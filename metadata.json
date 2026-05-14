@@ -1,0 +1,9 @@
+{
+  "name": "TeklifPro AI",
+  "description": "AI-powered quotation and management SaaS for Turkish construction sector with regulation intelligence and profitability analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API",
+    "MAJOR_CAPABILITY_CLOUDSQL"
+  ]
+}

@@ -1,0 +1,414 @@
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Building2, 
+  MapPin, 
+  Globe, 
+  Mail, 
+  Phone, 
+  CreditCard, 
+  ShieldCheck,
+  Save,
+  UserPlus,
+  Users,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Copy,
+  ExternalLink,
+  Layout,
+  Settings as SettingsIcon,
+  Zap,
+  TrendingUp,
+  Briefcase
+} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { SectionWrapper } from "@/components/layout/SectionWrapper";
+
+export function Settings() {
+  const { company, role } = useAuth();
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invites, setInvites] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [industriesList, setIndustriesList] = useState<any[]>([]);
+  const [companyIndustrySettings, setCompanyIndustrySettings] = useState<any[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [usage, setUsage] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const token = localStorage.getItem('token');
+    const headers = { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+    
+    try {
+      const [invRes, indRes, setRes, subRes, usageRes] = await Promise.all([
+        fetch("/api/invitations", { headers }),
+        fetch("/api/ai/industries", { headers }),
+        fetch("/api/company/industry-settings", { headers }),
+        fetch("/api/billing/subscription", { headers }),
+        fetch("/api/usage/report", { headers })
+      ]);
+
+      if (invRes.ok) setInvites(await invRes.json());
+      if (indRes.ok) setIndustriesList(await indRes.json());
+      if (setRes.ok) setCompanyIndustrySettings(await setRes.json());
+      if (subRes.ok) setSubscription(await subRes.json());
+      if (usageRes.ok) setUsage(await usageRes.json());
+    } catch (e) {
+      toast.error("Veriler yüklenemedi.");
+    }
+  };
+
+  const industryEnabled = (id: string) => {
+    const setting = companyIndustrySettings.find(s => s.industryId === id);
+    return setting ? setting.isEnabled : true;
+  };
+
+  const toggleIndustry = async (id: string) => {
+    const token = localStorage.getItem('token');
+    const currentlyEnabled = industryEnabled(id);
+    const newStatus = !currentlyEnabled;
+
+    try {
+      await fetch("/api/company/industry-settings", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ industryId: id, isEnabled: newStatus })
+      });
+      fetchData();
+      toast.success(`${id} başarıyla ${newStatus ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`);
+    } catch (e) {
+      toast.error("Ayarlar güncellenemedi.");
+    }
+  };
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail) return;
+
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ email: inviteEmail, role: "viewer" }),
+      });
+
+      if (res.ok) {
+        toast.success("Davetiye başarıyla oluşturuldu.");
+        setInviteEmail("");
+        fetchData();
+      } else {
+        toast.error("Davetiye oluşturulamadı.");
+      }
+    } catch (error) {
+      toast.error("Bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpgrade = async (plan: string) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('/api/billing/upgrade', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ plan })
+      });
+      if (res.ok) {
+        toast.success(`Plan ${plan} olarak güncellendi.`);
+        fetchData();
+      }
+    } catch (e) {
+      toast.error("Yükseltme başarısız.");
+    }
+  };
+
+  const copyInviteLink = (token: string) => {
+    const link = `${window.location.origin}/accept-invite/${token}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Davet bağlantısı kopyalandı.");
+  };
+
+  return (
+    <PageContainer>
+      <PageHeader 
+        title="Sistem Ayarları" 
+        description="Şirket profili, ekip yönetimi ve uygulama tercihlerini yapılandırın."
+        icon={SettingsIcon}
+        actions={
+          <Button className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20">
+            <Save size={16} /> Değişiklikleri Kaydet
+          </Button>
+        }
+      />
+
+      <Tabs defaultValue="company" className="space-y-8">
+        <TabsList className="bg-zinc-900/50 border border-zinc-800 p-1 w-full md:w-auto h-12 inline-flex">
+          <TabsTrigger value="company" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+            <Building2 size={14} className="mr-2" /> ŞİRKET
+          </TabsTrigger>
+          <TabsTrigger value="team" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+            <Users size={14} className="mr-2" /> EKİP
+          </TabsTrigger>
+          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+            <CreditCard size={14} className="mr-2" /> ABONELİK
+          </TabsTrigger>
+          <TabsTrigger value="industries" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+            <Layout size={14} className="mr-2" /> EKLENTİLER
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="company" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
+          <SectionWrapper title="Genel Şirket Bilgileri" description="Resmi yazışmalarda ve teklif başlıklarında görünecek bilgiler.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resmi Şirket Ünvanı</Label>
+                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue={company?.name || ""} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Marka Adı (Görünen)</Label>
+                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue={company?.name || ""} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">İletişim E-posta</Label>
+                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="info@atlasyapi.com.tr" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Telefon</Label>
+                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="+90 212 555 0123" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Merkez Ofis Adresi</Label>
+                  <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="Levent Mah. Plaza Sok. No:12 Kat:4 Beşiktaş, İstanbul" />
+                </div>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+
+          <SectionWrapper title="Mali Bilgiler" description="Fatura ve yasal dokümanlar için gerekli vergi detayları.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Vergi Dairesi</Label>
+                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="Zincirlikuyu V.D." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Vergi Numarası</Label>
+                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="1234567890" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
+          <SectionWrapper title="Ekip ve Yetkilendirme" description="Sistemi kullanacak ekip üyelerini davet edin ve yönetin.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardHeader className="border-b border-zinc-800 pb-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Yeni Üye Davet Et</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-8">
+                <form onSubmit={handleInvite} className="flex gap-4">
+                  <div className="flex-1">
+                    <Input 
+                      type="email"
+                      placeholder="davet@e-posta.com" 
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </div>
+                  <Button type="submit" disabled={loading} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-2">
+                    <UserPlus size={18} /> Davet Gönder
+                  </Button>
+                </form>
+
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <Clock size={12} className="text-orange-500" /> Bekleyen Davetiyeler
+                  </Label>
+                  <div className="rounded-2xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
+                    {invites.length === 0 ? (
+                      <div className="p-12 text-center text-zinc-600 text-xs font-bold uppercase tracking-widest italic">
+                        Henüz aktif bir davetiye bulunmuyor.
+                      </div>
+                    ) : (
+                      invites.filter(i => !i.acceptedAt).map((invite) => (
+                        <div key={invite.id} className="p-6 flex items-center justify-between bg-zinc-900/10 group hover:bg-zinc-900/30 transition-colors">
+                          <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center text-zinc-400 group-hover:scale-110 transition-transform">
+                              <Mail size={20} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-white">{invite.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge className="bg-zinc-800 text-zinc-500 border-none font-black text-[9px] px-2 py-0">ROLE: {invite.role.toUpperCase()}</Badge>
+                                <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">GÖNDERİLDİ: 12.05.2024</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="bg-zinc-800/50 text-zinc-400 hover:text-white font-black text-[10px] uppercase tracking-widest h-9 px-4 gap-2"
+                            onClick={() => copyInviteLink(invite.token)}
+                          >
+                            <Copy size={14} /> Linki Kopyala
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+        </TabsContent>
+
+        <TabsContent value="billing" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden relative group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
+              <CardHeader className="border-b border-zinc-800 bg-zinc-900/20">
+                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Mevcut Abonelik Planı</CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tight">{subscription?.plan || 'Starter'}</h3>
+                    <p className="text-zinc-500 text-xs font-bold mt-1 uppercase tracking-widest italic">Aylık faturalandırma</p>
+                  </div>
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black text-[10px] px-3 py-1">AKTİF & ÖDENMİŞ</Badge>
+                </div>
+                <div className="space-y-4 mb-10">
+                  <div className="flex items-center gap-3 text-xs font-bold text-zinc-400">
+                    <div className="p-1 bg-emerald-500/10 rounded-lg">
+                      <CheckCircle2 size={12} className="text-emerald-500" />
+                    </div>
+                    Teklif Zekası Modülü (Sınırsız)
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-bold text-zinc-400">
+                    <div className="p-1 bg-emerald-500/10 rounded-lg">
+                      <CheckCircle2 size={12} className="text-emerald-500" />
+                    </div>
+                    PDF & Doküman Üretimi
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-bold text-zinc-400">
+                    <div className="p-1 bg-emerald-500/10 rounded-lg">
+                      <CheckCircle2 size={12} className="text-emerald-500" />
+                    </div>
+                    Ekip İşbirliği (3 Kullanıcı)
+                  </div>
+                </div>
+                <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-12 shadow-lg shadow-orange-900/20" onClick={() => handleUpgrade('pro')}>
+                  PLANI YÜKSELT & ÖZELLİKLERİ AÇ
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardHeader className="border-b border-zinc-800 bg-zinc-900/20">
+                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Bu Ayki Kullanım Kotası</CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
+                {usage.length > 0 ? usage.map((u: any) => (
+                  <div key={u.feature} className="space-y-3">
+                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                      <span className="text-zinc-400">{u.feature.replace('_', ' ')}</span>
+                      <span className="text-white">{u.count} / {u.limit || '∞'}</span>
+                    </div>
+                    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700/50">
+                      <div 
+                        className="h-full bg-orange-600 rounded-full shadow-[0_0_10px_rgba(234,88,12,0.5)] transition-all duration-1000" 
+                        style={{ width: `${Math.min(100, (u.count / (u.limit || 100)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )) : (
+                  <div className="py-12 text-center text-zinc-600 text-xs font-bold uppercase tracking-widest italic">
+                    Kullanım verisi yükleniyor...
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="industries" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
+          <SectionWrapper title="Sektörel Uyumluluk Modülleri" description="TeklifPro AI'nın hangi uzmanlık alanlarında akıllı teklif asistanlığı yapacağını seçin.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {industriesList.map((industry: any) => (
+                    <div key={industry.id} className="flex items-center justify-between p-6 rounded-2xl border border-zinc-800 bg-zinc-900/10 group hover:border-orange-500/30 transition-all">
+                      <div className="flex items-center gap-5">
+                        <div className={cn(
+                          "w-12 h-12 rounded-2xl border flex items-center justify-center transition-all",
+                          industryEnabled(industry.id) 
+                            ? "bg-orange-600/10 border-orange-500/20 text-orange-500 scale-105" 
+                            : "bg-zinc-800 border-zinc-700 text-zinc-500"
+                        )}>
+                          <Briefcase size={22} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-white uppercase tracking-tight">{industry.name}</span>
+                          <span className="text-[10px] text-zinc-600 font-bold mt-0.5 line-clamp-1 italic uppercase tracking-tighter">{industry.description}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm"
+                        variant={industryEnabled(industry.id) ? "default" : "outline"}
+                        className={cn(
+                          "text-[9px] h-8 px-4 font-black uppercase tracking-widest transition-all",
+                          industryEnabled(industry.id) 
+                            ? "bg-orange-600 hover:bg-orange-700 text-white shadow-[0_0_15px_rgba(234,88,12,0.3)]" 
+                            : "border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:text-zinc-400"
+                        )}
+                        onClick={() => toggleIndustry(industry.id)}
+                      >
+                        {industryEnabled(industry.id) ? "AKTİF" : "ETKİNLEŞTİR"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+        </TabsContent>
+      </Tabs>
+    </PageContainer>
+  );
+}
