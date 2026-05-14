@@ -31,6 +31,7 @@ import { CRMIntelligenceService } from "./src/services/crm/crmService";
 import { AuthService } from "./src/services/auth/authService";
 import { memberships, subscriptions, usageLogs, usageAlerts } from "./src/db/schema";
 
+dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 // SaaS Middleware
@@ -161,7 +162,7 @@ const usageTracker = (feature: string) => async (req: any, res: any, next: any) 
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   app.use(express.json());
 
@@ -175,8 +176,8 @@ async function startServer() {
   // API routes go here FIRST
   app.get("/api/health", async (req, res) => {
     try {
-      const dbCheck = await db.select({ val: sql`1` });
-      res.json({ status: "ok", db: "connected", dbCheck, env: { hasDbUrl: !!process.env.DATABASE_URL } });
+      await db.execute(sql`select 1`);
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, env: { hasDbUrl: !!process.env.DATABASE_URL } });
     } catch (error: any) {
       res.status(500).json({ status: "error", db: "failed", error: error.message });
     }
@@ -1005,4 +1006,3 @@ async function startServer() {
 }
 
 startServer();
-
