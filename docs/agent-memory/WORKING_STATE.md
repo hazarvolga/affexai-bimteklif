@@ -189,6 +189,31 @@ Verified:
 - `npm run test` with 5 passing tests.
 - `npm run lint`
 
+### Phase 5 - Pilot Deploy/Security/Observability Readiness
+
+Status: completed documentation pass.
+
+Changes:
+
+- Added Coolify/VPS pilot deploy checklist.
+- Added pilot security checklist.
+- Added pilot observability plan.
+- Added `JWT_SECRET`, `SENTRY_DSN`, and `LOG_LEVEL` placeholders to
+  `.env.example`.
+
+Verified:
+
+- `npm run test`
+- `npm run lint`
+- `npm run build`
+- `graphify update .`
+
+Build notes:
+
+- Vite build passed.
+- Build emitted existing CSS import-order and large chunk warnings. They do not
+  fail the build, but should be addressed before a polished production deploy.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

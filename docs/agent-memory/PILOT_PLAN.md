@@ -149,6 +149,10 @@ Acceptance:
 - Production env checklist exists.
 - Security findings are triaged before pilot users are invited.
 
+Current status: documentation pass completed. Coolify/VPS deploy checklist,
+pilot security checklist, and observability plan have been added. Sentry SDK
+wiring remains a follow-up implementation task.
+
 ## Next.js Re-Evaluation Trigger
 
 Revisit the Next.js migration only after:
