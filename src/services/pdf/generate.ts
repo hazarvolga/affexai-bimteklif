@@ -1,24 +1,26 @@
 import puppeteer from 'puppeteer';
 import { db } from '../../db';
 import { quotations, quotationItems, companies, clients } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { templates, PdfData } from './templates';
 
 /**
  * Professional PDF Generation Engine
  */
-export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction"): Promise<Buffer> {
+export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction", companyId?: string): Promise<Buffer> {
   // 1. Fetch Data
   const quote = await db.query.quotations.findFirst({
-    where: eq(quotations.id, quotationId),
+    where: companyId
+      ? and(eq(quotations.id, quotationId), eq(quotations.companyId, companyId))
+      : eq(quotations.id, quotationId),
   });
 
   if (!quote) throw new Error("Quotation not found");
 
   const [company, clientData, items] = await Promise.all([
     db.query.companies.findFirst({ where: eq(companies.id, quote.companyId) }),
-    db.query.clients.findFirst({ where: eq(clients.id, quote.clientId) }),
-    db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId))
+    db.query.clients.findFirst({ where: and(eq(clients.id, quote.clientId), eq(clients.companyId, quote.companyId)) }),
+    db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotationId), eq(quotationItems.companyId, quote.companyId)))
   ]);
 
   if (!company) throw new Error("Company not found");

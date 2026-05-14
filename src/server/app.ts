@@ -23,6 +23,8 @@ import { registerCompanyRoutes } from "./routes/company";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
+const canMutate = checkRole(["owner", "admin", "manager"]);
+
 export async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
@@ -64,7 +66,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/crm/leads", authenticate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
+  app.post("/api/crm/leads", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
     try {
       const data = { ...req.body, companyId: req.user.companyId };
       const [newLead] = await db.insert(leads).values(data).returning();
@@ -84,7 +86,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/crm/activities", authenticate, async (req, res) => {
+  app.post("/api/crm/activities", authenticate, canMutate, async (req, res) => {
     try {
       const data = { ...req.body, companyId: req.user.companyId, userId: req.user.userId };
       const [activity] = await db.insert(activities).values(data).returning();
@@ -104,7 +106,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/crm/deals/update-stage", authenticate, async (req, res) => {
+  app.post("/api/crm/deals/update-stage", authenticate, canMutate, async (req, res) => {
     try {
       const { dealId, stage } = req.body;
       const [updatedDeal] = await db.update(deals)
@@ -126,7 +128,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/crm/analyze-deal", authenticate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
+  app.post("/api/crm/analyze-deal", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
     try {
       const { dealId } = req.body;
       const deal = await db.query.deals.findFirst({
@@ -135,9 +137,9 @@ export async function startServer() {
       if (!deal || !deal.quotationId) return res.status(404).json({ error: "Deal or Quotation not found" });
 
       const quote = await db.query.quotations.findFirst({
-        where: eq(quotations.id, deal.quotationId),
+        where: and(eq(quotations.id, deal.quotationId), eq(quotations.companyId, req.user.companyId)),
       });
-      const qItems = await db.select().from(quotationItems).where(eq(quotationItems.quotationId, deal.quotationId));
+      const qItems = await db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, deal.quotationId), eq(quotationItems.companyId, req.user.companyId)));
       const financials = await db.query.quotationFinancials.findFirst({
         where: eq(quotationFinancials.quotationId, deal.quotationId)
       });
@@ -190,7 +192,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/regulations/check-impact", authenticate, usageTracker("REGULATION_CHECK_RUN"), async (req, res) => {
+  app.post("/api/regulations/check-impact", authenticate, canMutate, usageTracker("REGULATION_CHECK_RUN"), async (req, res) => {
     try {
       const { quotationId, alertId } = req.body;
       
@@ -211,7 +213,7 @@ export async function startServer() {
   });
 
   // Financial Intelligence
-  app.post("/api/profit/calculate", authenticate, usageTracker("PROFIT_ANALYSIS_RUN"), async (req, res) => {
+  app.post("/api/profit/calculate", authenticate, canMutate, usageTracker("PROFIT_ANALYSIS_RUN"), async (req, res) => {
     try {
       const { quotationId } = req.body;
       const quote = await db.query.quotations.findFirst({
@@ -298,7 +300,7 @@ export async function startServer() {
   });
 
 
-  app.post("/api/ai/detect-industry", authenticate, async (req, res) => {
+  app.post("/api/ai/detect-industry", authenticate, canMutate, async (req, res) => {
     try {
       const { description } = req.body;
       const industryId = await aiService.detectIndustry(description);
@@ -308,7 +310,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/ai/generate-quotation", authenticate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/generate-quotation", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     try {
       const { description, industryId } = req.body;
       const result = await aiService.generateQuotation(description, industryId);
@@ -319,7 +321,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/ai/improve-quotation", async (req, res) => {
+  app.post("/api/ai/improve-quotation", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     try {
       const { items, instructions } = req.body;
       const improvedItems = await aiService.improveQuotation(items, instructions);
@@ -339,7 +341,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/clients", authenticate, async (req, res) => {
+  app.post("/api/clients", authenticate, canMutate, async (req, res) => {
     try {
       const data = { ...req.body, companyId: req.user.companyId };
       const newClient = await db.insert(clients).values(data).returning();
@@ -391,7 +393,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/quotations", authenticate, usageTracker("QUOTATION_CREATED"), async (req, res) => {
+  app.post("/api/quotations", authenticate, canMutate, usageTracker("QUOTATION_CREATED"), async (req, res) => {
     try {
       const { items, ...quoteData } = req.body;
       
@@ -429,7 +431,7 @@ export async function startServer() {
     }
   });
 
-  app.post("/api/quotations/:id/revision", authenticate, async (req, res) => {
+  app.post("/api/quotations/:id/revision", authenticate, canMutate, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -441,7 +443,7 @@ export async function startServer() {
 
       const originalItems = await db.select()
         .from(quotationItems)
-        .where(eq(quotationItems.quotationId, id));
+        .where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
 
       await db.update(quotations)
         .set({ isLatest: false })
@@ -478,7 +480,7 @@ export async function startServer() {
     }
   });
 
-  app.patch("/api/quotations/:id/status", authenticate, async (req, res) => {
+  app.patch("/api/quotations/:id/status", authenticate, canMutate, async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -496,7 +498,7 @@ export async function startServer() {
   });
 
   // AI Quote Generation Proxy
-  app.post("/api/ai/generate-quote", async (req, res) => {
+  app.post("/api/ai/generate-quote", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     try {
       const { description } = req.body;
       const prompt = `Sen bir inşaat uzmanısın. Aşağıdaki açıklamayı yapılandırılmış bir inşaat kalemleri listesine dönüştür.
@@ -523,7 +525,7 @@ export async function startServer() {
   });
 
   // PDF Generation for Quotations
-  app.get("/api/quotations/:id/pdf", authenticate, usageTracker("PDF_GENERATED"), async (req, res) => {
+  app.get("/api/quotations/:id/pdf", authenticate, canMutate, usageTracker("PDF_GENERATED"), async (req, res) => {
     try {
       const { id } = req.params;
       const { templateId } = req.query;
@@ -533,7 +535,7 @@ export async function startServer() {
       });
       if (!quote) return res.status(404).json({ error: "Quotation not found" });
 
-      const pdfBuffer = await generateQuotationPdf(id, templateId as string);
+      const pdfBuffer = await generateQuotationPdf(id, templateId as string, req.user.companyId);
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=teklif-${id}.pdf`);

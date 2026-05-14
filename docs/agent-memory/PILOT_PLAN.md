@@ -87,6 +87,11 @@ Acceptance:
 - Viewer cannot create/edit/delete.
 - Admin/owner-only settings remain protected.
 
+Current status: first pass completed. Mutation/paid-action endpoints now require
+owner/admin/manager, previously authless AI legacy routes are protected, PDF
+service has company-level filtering, and frontend raw fetch calls for protected
+quote actions now use `fetchWithAuth`.
+
 ## Phase P3 - Quote Engine And PDF Reliability
 
 Goals:

@@ -113,6 +113,38 @@ Verified:
 Note: port `3001` already had a Node process listening, so it was not touched.
 The temporary `3011` verification server was stopped after the health check.
 
+### Phase 2 - Tenant/Auth/RBAC Hardening, First Pass
+
+Status: completed first pass.
+
+Changes:
+
+- Viewer role is now blocked from key mutation/paid-action endpoints by server
+  role middleware.
+- AI legacy endpoint `/api/ai/generate-quote` now requires auth, mutation role,
+  and usage tracking.
+- `/api/ai/improve-quotation` now requires auth, mutation role, and usage
+  tracking.
+- Client creation, quotation creation/revision/status, PDF generation, profit
+  calculation, CRM mutations, regulation impact checks, and AI generation now
+  require owner/admin/manager.
+- Frontend raw `fetch` calls in quote detail and legacy quote editor now use
+  `fetchWithAuth`.
+- PDF download now fetches the protected PDF with auth and opens a blob URL.
+- PDF service accepts an optional `companyId` and filters quote/client/items by
+  company ownership.
+- CRM deal analysis and revision item cloning received explicit tenant filters.
+
+Verified:
+
+- `npm run lint`
+- Smoke server on `PORT=3011 npm run dev`
+- `curl -sS http://localhost:3011/api/health`
+- Authless `/api/ai/generate-quote` POST returns `401`.
+- Authless `/api/profit/calculate` POST returns `401`.
+
+Note: the temporary `3011` verification server was stopped after checks.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

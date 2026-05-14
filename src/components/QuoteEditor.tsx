@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuoteItem } from '@/types';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
+import { fetchWithAuth } from '@/lib/api';
 
 export function QuoteEditor({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<Partial<QuoteItem>[]>([
@@ -58,9 +59,8 @@ export function QuoteEditor({ onClose }: { onClose: () => void }) {
 
     setAiLoading(true);
     try {
-      const res = await fetch('/api/ai/generate-quote', {
+      const res = await fetchWithAuth('/api/ai/generate-quote', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: projectName })
       });
       const data = await res.json();

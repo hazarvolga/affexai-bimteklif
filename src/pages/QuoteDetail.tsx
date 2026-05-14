@@ -110,9 +110,8 @@ export function QuoteDetail() {
   const recalculateFinancials = async () => {
     setFinLoading(true);
     try {
-      const res = await fetch('/api/profit/calculate', {
+      const res = await fetchWithAuth('/api/profit/calculate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quotationId: id })
       });
       const data = await res.json();
@@ -138,9 +137,8 @@ export function QuoteDetail() {
   const handleStatusChange = async (newStatus: string) => {
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/quotations/${id}/status`, {
+      const res = await fetchWithAuth(`/api/quotations/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
@@ -178,7 +176,11 @@ export function QuoteDetail() {
   const handleDownloadPdf = async (templateId: string = 'default_construction') => {
     setActionLoading(true);
     try {
-      window.open(`/api/quotations/${id}/pdf?templateId=${templateId}`, '_blank');
+      const res = await fetchWithAuth(`/api/quotations/${id}/pdf?templateId=${templateId}`);
+      if (!res.ok) throw new Error("PDF failed");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
       toast.success("PDF hazırlanıyor...");
     } catch (err) {
       toast.error("PDF oluşturulamadı.");
