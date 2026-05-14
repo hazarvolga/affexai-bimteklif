@@ -70,25 +70,30 @@ export async function generateQuotationPdf(quotationId: string, templateId: stri
   const html = template.htmlTemplate(pdfData);
 
   // 4. Generate PDF
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' as any });
-  
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: {
-      top: '0px',
-      right: '0px',
-      bottom: '0px',
-      left: '0px'
-    }
-  });
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
 
-  await browser.close();
-  return Buffer.from(pdfBuffer);
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' as any });
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '0px',
+        right: '0px',
+        bottom: '0px',
+        left: '0px'
+      }
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser?.close();
+  }
 }

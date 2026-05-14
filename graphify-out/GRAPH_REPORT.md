@@ -1,12 +1,12 @@
 # Graph Report - TeklifPro-repo  (2026-05-14)
 
 ## Corpus Check
-- 86 files · ~36,376 words
+- 87 files · ~36,747 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 208 nodes · 194 edges · 23 communities detected
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 23 edges (avg confidence: 0.8)
+- 212 nodes · 201 edges · 23 communities detected
+- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 23 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -47,22 +47,22 @@
 10. `checkRole()` - 3 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `generateWithAi()` --calls--> `fetchWithAuth()`  [INFERRED]
-  src/components/QuoteEditor.tsx → src/lib/api.ts
 - `startServer()` --calls--> `registerAuthRoutes()`  [INFERRED]
   src/server/app.ts → src/server/routes/auth.ts
 - `startServer()` --calls--> `registerBillingRoutes()`  [INFERRED]
   src/server/app.ts → src/server/routes/billing.ts
 - `startServer()` --calls--> `usageTracker()`  [INFERRED]
   src/server/app.ts → src/server/middleware/usage.ts
+- `generateWithAi()` --calls--> `fetchWithAuth()`  [INFERRED]
+  src/components/QuoteEditor.tsx → src/lib/api.ts
 - `fetchWithAuth()` --calls--> `removeItem()`  [INFERRED]
   src/lib/api.ts → src/pages/CreateQuote.tsx
 
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.14
-Nodes (10): fetchWithAuth(), fetchClients(), handleCreate(), generateWithAi(), handleSave(), removeItem(), analyzeDeal(), fetchData() (+2 more)
+Cohesion: 0.1
+Nodes (11): fetchWithAuth(), fetchClients(), handleCreate(), generateWithAi(), handleSave(), removeItem(), analyzeDeal(), fetchData() (+3 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.12
@@ -105,8 +105,8 @@ Cohesion: 0.53
 Nodes (4): cn(), Table(), TableBody(), TableHeader()
 
 ### Community 11 - "Community 11"
-Cohesion: 0.33
-Nodes (1): generateWithAi()
+Cohesion: 0.6
+Nodes (5): calculateLineItemTotal(), calculateQuotationTotals(), normalizeLineItem(), roundMoney(), toFiniteNumber()
 
 ### Community 12 - "Community 12"
 Cohesion: 0.4
@@ -155,8 +155,6 @@ Nodes (1): cn()
 ## Knowledge Gaps
 - **Thin community `Community 6`** (8 nodes): `AuthService`, `.comparePassword()`, `.generateToken()`, `.hashPassword()`, `.verifyToken()`, `VerifyEmail.tsx`, `authService.ts`, `verify()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 11`** (6 nodes): `addItem()`, `calculateTotals()`, `generateWithAi()`, `removeItem()`, `updateItem()`, `QuoteEditor.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 12`** (5 nodes): `Badge()`, `cn()`, `QuoteDetail()`, `badge.tsx`, `QuoteDetail.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 13`** (5 nodes): `CRMIntelligenceService`, `.analyzeDeal()`, `.constructor()`, `.generateFollowUpMessage()`, `crmService.ts`
@@ -183,13 +181,11 @@ Nodes (1): cn()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `fetchWithAuth()` connect `Community 0` to `Community 11`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Are the 9 inferred relationships involving `fetchWithAuth()` (e.g. with `generateWithAi()` and `removeItem()`) actually correct?**
   _`fetchWithAuth()` has 9 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 5 inferred relationships involving `startServer()` (e.g. with `registerAuthRoutes()` and `registerBillingRoutes()`) actually correct?**
   _`startServer()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.14 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.12 - nodes in this community are weakly interconnected._

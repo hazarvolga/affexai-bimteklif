@@ -145,6 +145,29 @@ Verified:
 
 Note: the temporary `3011` verification server was stopped after checks.
 
+### Phase 3 - Quote Engine And PDF Reliability, First Pass
+
+Status: completed first pass.
+
+Changes:
+
+- `src/lib/calculations.ts` now normalizes numeric input and rounds money
+  consistently.
+- Server-side quotation creation recalculates item totals and quotation totals
+  instead of trusting client-submitted totals.
+- Added `npm run test` using `tsx --test`.
+- Added calculation tests in `src/lib/calculations.test.ts`.
+- PDF browser lifecycle now closes Puppeteer in a `finally` block.
+
+Verified:
+
+- `npm run test` with 3 passing calculation tests.
+- `npm run lint`
+- Smoke server on `PORT=3011 npm run dev`
+- `curl -sS http://localhost:3011/api/health`
+
+Note: the temporary `3011` verification server was stopped after checks.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

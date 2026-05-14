@@ -19,6 +19,7 @@ import { PLAN_LIMITS, usageTracker } from "./middleware/usage";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerBillingRoutes } from "./routes/billing";
 import { registerCompanyRoutes } from "./routes/company";
+import { calculateLineItemTotal, calculateQuotationTotals, normalizeLineItem } from "../lib/calculations";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -396,30 +397,37 @@ export async function startServer() {
   app.post("/api/quotations", authenticate, canMutate, usageTracker("QUOTATION_CREATED"), async (req, res) => {
     try {
       const { items, ...quoteData } = req.body;
+      const normalizedItems = Array.isArray(items)
+        ? items.map((item: any) => ({
+            ...item,
+            ...normalizeLineItem(item),
+          }))
+        : [];
+      const totals = calculateQuotationTotals(normalizedItems);
       
       const [newQuote] = await db.insert(quotations).values({
         ...quoteData,
         companyId: req.user.companyId,
-        subtotal: String(quoteData.subtotal || 0),
-        discountTotal: String(quoteData.discountTotal || 0),
-        vatTotal: String(quoteData.vatTotal || 0),
-        grandTotal: String(quoteData.grandTotal || 0),
+        subtotal: String(totals.subtotal),
+        discountTotal: String(totals.discountTotal),
+        vatTotal: String(totals.vatTotal),
+        grandTotal: String(totals.grandTotal),
         date: new Date(quoteData.date),
         expiryDate: new Date(quoteData.expiryDate),
         revisionVersion: 1,
         isLatest: true
       }).returning();
 
-      if (items && items.length > 0) {
-        const itemsWithExtras = items.map((item: any) => ({
+      if (normalizedItems.length > 0) {
+        const itemsWithExtras = normalizedItems.map((item: any) => ({
           ...item,
           quotationId: newQuote.id,
           companyId: newQuote.companyId,
-          quantity: String(item.quantity || 0),
-          unitPrice: String(item.unitPrice || 0),
-          discountPercent: String(item.discountPercent || 0),
-          vatPercent: String(item.vatPercent || 20),
-          total: String(item.total || 0),
+          quantity: String(item.quantity),
+          unitPrice: String(item.unitPrice),
+          discountPercent: String(item.discountPercent),
+          vatPercent: String(item.vatPercent),
+          total: String(calculateLineItemTotal(item)),
         }));
         await db.insert(quotationItems).values(itemsWithExtras);
       }

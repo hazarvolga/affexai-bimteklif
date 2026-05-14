@@ -107,6 +107,10 @@ Acceptance:
 - Server recalculates trusted financial totals.
 - PDF endpoint requires auth and company ownership.
 
+Current status: first pass completed. Server now recalculates quote/item totals
+on quotation creation, calculation tests exist, and Puppeteer closes through a
+`finally` block during PDF generation.
+
 ## Phase P4 - Multi AI Provider Layer
 
 Goals:

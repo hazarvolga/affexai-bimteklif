@@ -4,10 +4,10 @@
  */
 
 export interface LineItem {
-  quantity: number;
-  unitPrice: number;
-  discountPercent: number;
-  vatPercent: number;
+  quantity: number | string | null | undefined;
+  unitPrice: number | string | null | undefined;
+  discountPercent: number | string | null | undefined;
+  vatPercent: number | string | null | undefined;
 }
 
 export interface CalculationResult {
@@ -17,13 +17,39 @@ export interface CalculationResult {
   grandTotal: number;
 }
 
+export interface NormalizedLineItem {
+  quantity: number;
+  unitPrice: number;
+  discountPercent: number;
+  vatPercent: number;
+}
+
+export function toFiniteNumber(value: number | string | null | undefined, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+export function roundMoney(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+export function normalizeLineItem(item: LineItem): NormalizedLineItem {
+  return {
+    quantity: toFiniteNumber(item.quantity),
+    unitPrice: toFiniteNumber(item.unitPrice),
+    discountPercent: toFiniteNumber(item.discountPercent),
+    vatPercent: toFiniteNumber(item.vatPercent, 20),
+  };
+}
+
 /**
  * Calculates totals for a single line item
  */
 export function calculateLineItemTotal(item: LineItem): number {
-  const base = item.quantity * item.unitPrice;
-  const discount = base * (item.discountPercent / 100);
-  return base - discount;
+  const normalized = normalizeLineItem(item);
+  const base = normalized.quantity * normalized.unitPrice;
+  const discount = base * (normalized.discountPercent / 100);
+  return roundMoney(base - discount);
 }
 
 /**
@@ -35,10 +61,11 @@ export function calculateQuotationTotals(items: LineItem[]): CalculationResult {
   let vatTotal = 0;
 
   items.forEach((item) => {
-    const rawBase = item.quantity * item.unitPrice;
-    const discount = rawBase * (item.discountPercent / 100);
+    const normalized = normalizeLineItem(item);
+    const rawBase = normalized.quantity * normalized.unitPrice;
+    const discount = rawBase * (normalized.discountPercent / 100);
     const lineSubtotal = rawBase - discount;
-    const vat = lineSubtotal * (item.vatPercent / 100);
+    const vat = lineSubtotal * (normalized.vatPercent / 100);
 
     subtotal += rawBase;
     discountTotal += discount;
@@ -46,9 +73,9 @@ export function calculateQuotationTotals(items: LineItem[]): CalculationResult {
   });
 
   return {
-    subtotal,
-    discountTotal,
-    vatTotal,
-    grandTotal: subtotal - discountTotal + vatTotal,
+    subtotal: roundMoney(subtotal),
+    discountTotal: roundMoney(discountTotal),
+    vatTotal: roundMoney(vatTotal),
+    grandTotal: roundMoney(subtotal - discountTotal + vatTotal),
   };
 }
