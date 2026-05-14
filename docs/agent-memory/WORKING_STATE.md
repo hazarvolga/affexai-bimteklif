@@ -168,6 +168,27 @@ Verified:
 
 Note: the temporary `3011` verification server was stopped after checks.
 
+### Phase 4 - Multi AI Provider Layer, First Pass
+
+Status: completed first pass.
+
+Changes:
+
+- Added provider interface under `src/services/ai/providers/types.ts`.
+- Added `OpenAIProvider` as primary provider when `OPENAI_API_KEY` is present.
+- Added `GeminiProvider` preserving the existing Gemini behavior as fallback.
+- Added `AIProviderRouter` for ordered fallback behavior.
+- Updated `AIService` to use the provider router.
+- Legacy `/api/ai/generate-quote` now routes through `AIService` instead of a
+  direct Gemini call.
+- `.env.example` documents `OPENAI_API_KEY` and `OPENAI_MODEL`.
+- Added provider router tests.
+
+Verified:
+
+- `npm run test` with 5 passing tests.
+- `npm run lint`
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

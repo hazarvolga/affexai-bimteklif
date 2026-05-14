@@ -130,6 +130,10 @@ Acceptance:
 - AI responses are validated before being persisted or displayed as trusted data.
 - Usage is metered server-side.
 
+Current status: first pass completed. `AIService` now routes through OpenAI
+primary when configured and Gemini fallback when configured. Provider fallback
+has unit coverage. Manual quote creation remains independent of AI providers.
+
 ## Phase P5 - Observability, Security, And Deploy Readiness
 
 Goals:

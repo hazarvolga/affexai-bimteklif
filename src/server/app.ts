@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 import { db } from "../db";
 import { clients, quotations, quotationItems, regulationAlerts, companies, invitations, users, industries, companyIndustrySettings, quotationFinancials, costComponents, leads, deals, activities } from "../db/schema";
@@ -32,9 +31,11 @@ export async function startServer() {
 
   app.use(express.json());
 
-  // Gemini AI Setup
-  const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-  const aiService = new AIService(process.env.GEMINI_API_KEY || "");
+  // AI service uses OpenAI when configured and falls back to Gemini.
+  const aiService = new AIService({
+    openAiApiKey: process.env.OPENAI_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
+  });
   const regulatoryService = new RegulatoryIntelligenceService(process.env.GEMINI_API_KEY || "");
   const profitService = new ProfitService(process.env.GEMINI_API_KEY || "");
   const crmService = new CRMIntelligenceService(process.env.GEMINI_API_KEY || "");
@@ -509,23 +510,8 @@ export async function startServer() {
   app.post("/api/ai/generate-quote", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     try {
       const { description } = req.body;
-      const prompt = `Sen bir inşaat uzmanısın. Aşağıdaki açıklamayı yapılandırılmış bir inşaat kalemleri listesine dönüştür.
-      Birimler, miktarlar ve birim fiyatlar tahmini olsun. Birim fiyatlar 2024-2025 Türkiye güncel inşaat malzeme ve işçilik piyasa ortalamalarına dayansın.
-      Açıklama: "${description}"
-      Yanıtı şu anahtarlara sahip bir JSON dizisi olarak döndür: description, unit, quantity, unitPrice.
-      Fiyatı tahmin edemediğin kalemler için unitPrice değerini 0 döndür.
-      Örnek: [{"description": "Hafriyat", "unit": "m3", "quantity": 100, "unitPrice": 150}]`;
-
-      const response = await ai.getGenerativeModel({
-        model: "gemini-1.5-flash",
-      }).generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-        }
-      });
-
-      res.json(JSON.parse(response.response.text() || "[]"));
+      const quotation = await aiService.generateQuotation(description, "residential");
+      res.json(quotation.lineItems);
     } catch (error) {
       console.error("AI Error:", error);
       res.status(500).json({ error: "Failed to generate quote" });
