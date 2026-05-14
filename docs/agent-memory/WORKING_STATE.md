@@ -76,6 +76,43 @@ GitNexus was mentioned by the user, but no local GitNexus installation or folder
 was found during setup. If GitNexus becomes available later, connect it to this
 same memory layer instead of creating a second source of truth.
 
+## Phase Progress
+
+### Phase 0 - Agent Memory And Pilot Roadmap
+
+Commit: `52882be`
+
+Status: completed.
+
+Verified:
+
+- `npm run lint`
+- `graphify update .`
+
+### Phase 1 - Backend Modularization, First Pass
+
+Status: completed first pass.
+
+Changes:
+
+- `server.ts` is now a small process entrypoint.
+- Express app setup moved to `src/server/app.ts`.
+- Auth and role middleware moved to `src/server/middleware/auth.ts`.
+- Usage limits/tracking moved to `src/server/middleware/usage.ts`.
+- Auth routes moved to `src/server/routes/auth.ts`.
+- Billing routes moved to `src/server/routes/billing.ts`.
+- Company/team/industry/invitation routes moved to
+  `src/server/routes/company.ts`.
+
+Verified:
+
+- `npm run lint`
+- Smoke server on `PORT=3011 npm run dev`
+- `curl -sS http://localhost:3011/api/health`
+
+Note: port `3001` already had a Node process listening, so it was not touched.
+The temporary `3011` verification server was stopped after the health check.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

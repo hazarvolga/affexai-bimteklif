@@ -35,6 +35,11 @@ Acceptance:
 
 Current issue: `server.ts` owns too many responsibilities.
 
+Current status: first pass completed. Bootstrap, auth middleware, usage
+middleware, auth routes, billing routes, and company/team/invitation routes have
+been extracted. Remaining domain routes should be split while hardening their
+specific behavior in later phases.
+
 Refactor target:
 
 - `src/server/app.ts` - Express app setup.
