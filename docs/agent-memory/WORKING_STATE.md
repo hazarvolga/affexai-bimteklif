@@ -214,6 +214,34 @@ Build notes:
 - Build emitted existing CSS import-order and large chunk warnings. They do not
   fail the build, but should be addressed before a polished production deploy.
 
+### Phase 6 - Remaining Domain Route Modularization
+
+Status: completed.
+
+Changes:
+
+- `src/server/app.ts` reduced to app assembly, health, Vite/static serving, and
+  seed bootstrap.
+- Added route modules:
+  - `src/server/routes/crm.ts`
+  - `src/server/routes/regulations.ts`
+  - `src/server/routes/profit.ts`
+  - `src/server/routes/ai.ts`
+  - `src/server/routes/clients.ts`
+  - `src/server/routes/quotations.ts`
+- Preserved server-side guards and tenant filters from previous phases.
+
+Verified:
+
+- `npm run lint`
+- `npm run test`
+- `npm run build`
+- Smoke server on `PORT=3011 npm run dev`
+- `curl -sS http://localhost:3011/api/health`
+- Authless `/api/ai/generate-quote` POST returns `401`.
+
+Note: the temporary `3011` verification server was stopped after checks.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

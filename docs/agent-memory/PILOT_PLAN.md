@@ -40,6 +40,10 @@ middleware, auth routes, billing routes, and company/team/invitation routes have
 been extracted. Remaining domain routes should be split while hardening their
 specific behavior in later phases.
 
+Update: remaining CRM, regulation, profit, AI, client, quotation, and PDF routes
+have now been extracted into domain route modules. `src/server/app.ts` is app
+assembly only.
+
 Refactor target:
 
 - `src/server/app.ts` - Express app setup.
