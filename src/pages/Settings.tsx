@@ -266,7 +266,7 @@ export function Settings() {
               <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
                 <CardContent className="pt-6 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Pilot başvurusu", calibration.pilotApplicationCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{label}</p><p className="mt-1 font-mono text-lg text-zinc-200">{value}</p></div>)}
+                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Gerçekleşen gözlem", calibration.observedQuoteCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{label}</p><p className="mt-1 font-mono text-lg text-zinc-200">{value}</p></div>)}
                   </div>
                   <div className={cn("rounded-lg border p-3 text-xs", calibration.readyForCalibration ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300")}>{calibration.message}</div>
                 </CardContent>

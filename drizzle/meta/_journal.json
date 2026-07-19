@@ -71,6 +71,13 @@
       "when": 1784481301666,
       "tag": "0009_glossy_tomorrow_man",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784481678459,
+      "tag": "0010_cooing_scorpion",
+      "breakpoints": true
     }
   ]
 }

@@ -62,6 +62,8 @@ export function QuoteDetail() {
   const [financials, setFinancials] = useState<any>(null);
   const [finLoading, setFinLoading] = useState(false);
   const [audit, setAudit] = useState<any>(null);
+  const [calibrationForm, setCalibrationForm] = useState({ actualCost: '', actualDurationMonths: '', note: '' });
+  const [calibrationSaving, setCalibrationSaving] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -86,6 +88,7 @@ export function QuoteDetail() {
       if (!res.ok) throw new Error("Quote not found");
       const json = await res.json();
       setData(json);
+      setCalibrationForm({ actualCost: json.observedActualCost ? String(json.observedActualCost) : '', actualDurationMonths: json.observedActualDurationMonths ? String(json.observedActualDurationMonths) : '', note: json.calibrationNote || '' });
     } catch (err) {
       toast.error("Teklif bilgileri yüklenemedi.");
       navigate("/app/quotes");
@@ -142,6 +145,21 @@ export function QuoteDetail() {
       setRecentAlerts(json.slice(0, 3));
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const saveCalibrationObservation = async () => {
+    setCalibrationSaving(true);
+    try {
+      const res = await fetchWithAuth(`/api/quotations/${id}/calibration`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(calibrationForm) });
+      if (!res.ok) throw new Error('save failed');
+      const updated = await res.json();
+      setData((current: any) => ({ ...current, ...updated }));
+      toast.success('Gerçekleşen proje gözlemi kaydedildi.');
+    } catch (error) {
+      toast.error('Kalibrasyon gözlemi kaydedilemedi.');
+    } finally {
+      setCalibrationSaving(false);
     }
   };
 
@@ -321,6 +339,19 @@ export function QuoteDetail() {
           </div>
 
           {/* Financial Intelligence Panel */}
+          <SectionWrapper title="Kalibrasyon Gözlemi" description="Proje kapandıktan sonra gerçekleşen maliyet ve süreyi kaydedin. Bu alan sonraki katsayı incelemeleri için kullanılır.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-6 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gerçekleşen toplam maliyet</label><input type="number" min="0" value={calibrationForm.actualCost} onChange={(e) => setCalibrationForm({...calibrationForm, actualCost: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 font-mono text-sm text-white" placeholder={`Para birimi: ${data.currency}`} /></div>
+                  <div><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gerçekleşen süre (ay)</label><input type="number" min="1" step="1" value={calibrationForm.actualDurationMonths} onChange={(e) => setCalibrationForm({...calibrationForm, actualDurationMonths: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 font-mono text-sm text-white" placeholder="Örn. 18" /></div>
+                </div>
+                <textarea value={calibrationForm.note} onChange={(e) => setCalibrationForm({...calibrationForm, note: e.target.value})} rows={2} maxLength={2000} className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white" placeholder="Katsayı incelemesine yardımcı olacak kısa not..." />
+                <Button onClick={saveCalibrationObservation} disabled={calibrationSaving} className="bg-orange-600 hover:bg-orange-700 text-white text-[10px] font-black uppercase tracking-widest">{calibrationSaving ? 'Kaydediliyor...' : 'Gözlemi Kaydet'}</Button>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+
           <SectionWrapper title="Finansal Zeka Paneli" description="AI tarafından oluşturulan kârlılık ve risk analiz raporu.">
             <Card className="bg-zinc-900/30 border-orange-500/20 shadow-xl shadow-orange-950/20 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>

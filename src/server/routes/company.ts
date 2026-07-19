@@ -15,11 +15,13 @@ export function registerCompanyRoutes(app: Express) {
     ]);
     const quoteCount = Number(quotes[0]?.count || 0);
     const pricedItemCount = Number(pricedItems[0]?.count || 0);
+    const observedQuotes = await db.select({ count: count() }).from(quotations).where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected")));
     res.json({
       quoteCount,
       pricedItemCount,
       financialReportCount: Number(financialReports[0]?.count || 0),
       pilotApplicationCount: Number(pilots[0]?.count || 0),
+      observedQuoteCount: Number(observedQuotes[0]?.count || 0),
       minimumQuoteSamples: 5,
       readyForCalibration: quoteCount >= 5 && pricedItemCount >= 20,
       message: quoteCount >= 5 && pricedItemCount >= 20

@@ -182,6 +182,26 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
     }
   });
 
+  app.patch("/api/quotations/:id/calibration", authenticate, canMutate, async (req, res) => {
+    try {
+      const actualCost = req.body.actualCost == null || req.body.actualCost === "" ? null : Number(req.body.actualCost);
+      const actualDurationMonths = req.body.actualDurationMonths == null || req.body.actualDurationMonths === "" ? null : Number(req.body.actualDurationMonths);
+      if (actualCost !== null && (!Number.isFinite(actualCost) || actualCost < 0)) return res.status(400).json({ error: "Gerçekleşen maliyet geçersiz." });
+      if (actualDurationMonths !== null && (!Number.isInteger(actualDurationMonths) || actualDurationMonths < 1)) return res.status(400).json({ error: "Gerçekleşen süre geçersiz." });
+      const [updated] = await db.update(quotations).set({
+        observedActualCost: actualCost === null ? null : String(actualCost),
+        observedActualDurationMonths: actualDurationMonths,
+        calibrationStatus: actualCost !== null || actualDurationMonths !== null ? "collected" : "not_collected",
+        calibrationNote: typeof req.body.note === "string" ? req.body.note.slice(0, 2000) : null,
+        updatedAt: new Date(),
+      }).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).returning();
+      if (!updated) return res.status(404).json({ error: "Quotation not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Calibration observation could not be saved" });
+    }
+  });
+
   app.get("/api/quotations/:id/pdf", authenticate, canMutate, usageTracker("PDF_GENERATED"), async (req, res) => {
     try {
       const { id } = req.params;
