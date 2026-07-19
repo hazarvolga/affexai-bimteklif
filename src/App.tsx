@@ -25,12 +25,19 @@ import { LandingPage } from '@/pages/LandingPage';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { Toaster } from '@/components/ui/sonner';
+import { SmartCheck } from '@/pages/SmartCheck';
+import { SmartCheckDemo } from '@/pages/SmartCheckDemo';
+import { Academy } from '@/pages/Academy';
+import { AllplanAcademy } from '@/pages/AllplanAcademy';
+import { LessonViewerPage } from '@/pages/LessonViewerPage';
+import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 
 function AppRoutes() {
   const navigate = useNavigate();
-  
+
   return (
-    <Routes>
+    <SmartCheckDemoProvider>
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage onGetStarted={() => navigate('/register')} />} />
       <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/register')} />} />
@@ -56,11 +63,18 @@ function AppRoutes() {
           <Route path="profitability" element={<Profitability />} />
           <Route path="billing" element={<Billing />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="smartcheck" element={<SmartCheck />} />
+          <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
+          <Route path="academy" element={<Academy />} />
+          <Route path="academy/content/:slug" element={<LessonViewerPage />} />
+          <Route path="academy/allplan" element={<AllplanAcademy />} />
+          <Route path="academy/allplan/content/:slug" element={<LessonViewerPage />} />
         </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/app" replace />} />
-    </Routes>
+      </Routes>
+    </SmartCheckDemoProvider>
   );
 }
 

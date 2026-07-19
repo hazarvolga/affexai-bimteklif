@@ -1,9 +1,9 @@
-import { 
-  BarChart3, 
-  FileText, 
-  Users, 
-  Settings, 
-  LayoutDashboard, 
+import {
+  BarChart3,
+  FileText,
+  Users,
+  Settings,
+  LayoutDashboard,
   BookOpen,
   Target,
   Sparkles,
@@ -55,6 +55,18 @@ export const navigationConfig: NavItem[] = [
     path: "/app/regulations",
     icon: Shield,
     roles: ["owner", "admin", "manager"],
+  },
+  {
+    label: "SmartCheck",
+    path: "/app/smartcheck",
+    icon: Shield,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "Akademi",
+    path: "/app/academy",
+    icon: BookOpen,
+    roles: ["owner", "admin", "manager", "viewer"],
   },
   {
     label: "Kârlılık",
