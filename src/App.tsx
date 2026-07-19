@@ -30,6 +30,8 @@ import { SmartCheckDemo } from '@/pages/SmartCheckDemo';
 import { Academy } from '@/pages/Academy';
 import { AllplanAcademy } from '@/pages/AllplanAcademy';
 import { LessonViewerPage } from '@/pages/LessonViewerPage';
+import { PilotApplication } from '@/pages/PilotApplication';
+import { PilotApplications } from '@/pages/PilotApplications';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 
 function AppRoutes() {
@@ -39,10 +41,11 @@ function AppRoutes() {
     <SmartCheckDemoProvider>
       <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<LandingPage onGetStarted={() => navigate('/register')} />} />
-      <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/register')} />} />
-      <Route path="/pricing" element={<LandingPage onGetStarted={() => navigate('/register')} />} />
-      <Route path="/features" element={<LandingPage onGetStarted={() => navigate('/register')} />} />
+      <Route path="/" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
+      <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
+      <Route path="/pricing" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
+      <Route path="/features" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
+      <Route path="/pilot" element={<PilotApplication />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/accept-invite/:token" element={<AcceptInvite />} />
@@ -62,6 +65,7 @@ function AppRoutes() {
           <Route path="ai" element={<AIAssistant />} />
           <Route path="profitability" element={<Profitability />} />
           <Route path="billing" element={<Billing />} />
+          <Route path="pilot-applications" element={<PilotApplications />} />
           <Route path="settings" element={<Settings />} />
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />

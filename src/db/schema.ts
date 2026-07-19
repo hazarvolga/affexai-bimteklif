@@ -223,6 +223,29 @@ export const leads = pgTable("leads", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const pilotApplications = pgTable("pilot_applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  fullName: text("full_name").notNull(),
+  companyName: text("company_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  teamSize: text("team_size"),
+  currentWorkflow: text("current_workflow"),
+  source: text("source").default("website").notNull(),
+  status: text("status").default("new").notNull(),
+  offerAmount: numeric("offer_amount", { precision: 12, scale: 2 }),
+  offerCurrency: text("offer_currency").default("TRY").notNull(),
+  offerSentAt: timestamp("offer_sent_at"),
+  paymentStatus: text("payment_status").default("not_offered").notNull(),
+  paidAt: timestamp("paid_at"),
+  consentAt: timestamp("consent_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  emailIdx: index("idx_pilot_applications_email").on(table.email),
+  statusIdx: index("idx_pilot_applications_status").on(table.status),
+}));
+
 export const clients = pgTable("clients", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),

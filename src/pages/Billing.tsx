@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { 
   CreditCard, 
-  Zap, 
-  FileText, 
-  Target, 
-  BrainCircuit, 
-  TrendingUp, 
   AlertCircle,
-  CheckCircle2,
-  Lock,
-  ArrowUpRight
+  Lock
 } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -79,12 +72,6 @@ export function Billing() {
       </PageContainer>
     );
   }
-
-  const plans = [
-    { name: "Starter", price: "0", features: ["20 AI İstek", "20 PDF", "Temel CRM"], id: "starter" },
-    { name: "Pro", price: "499", features: ["200 AI İstek", "Sınırsız PDF", "Gelişmiş CRM"], id: "pro", popular: true },
-    { name: "Elite", price: "1299", features: ["1000 AI İstek", "Öncelikli Destek", "Tam Otomasyon"], id: "elite" },
-  ];
 
   const chartData = data.usage.map(u => ({
     name: u.feature.replace("_", " ").toUpperCase(),
@@ -180,47 +167,20 @@ export function Billing() {
         </Card>
       </div>
 
-      <h3 className="text-lg font-black text-white uppercase tracking-widest mb-6">Planınızı Yükseltin</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {plans.map((p) => (
-          <Card key={p.id} className={cn(
-            "bg-[#0c0c0e] border-zinc-800 relative transition-all duration-300 hover:scale-[1.02]",
-            p.popular && "border-orange-600/50 shadow-2xl shadow-orange-900/10"
-          )}>
-            {p.popular && (
-              <div className="absolute top-0 right-0 -tranzinc-y-1/2 bg-orange-600 text-[8px] font-black text-white px-3 py-1 rounded-full tracking-widest">
-                EN ÇOK TERCİH EDİLEN
-              </div>
-            )}
-            <CardHeader>
-              <CardTitle className="text-white flex items-center justify-between">
-                {p.name}
-                <span className="text-2xl font-black">₺{p.price}</span>
-              </CardTitle>
-              <CardDescription>aylık</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
-                {p.features.map(f => (
-                  <li key={f} className="flex items-center gap-2 text-xs text-zinc-400">
-                    <CheckCircle2 size={14} className="text-emerald-500" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                className={cn(
-                  "w-full font-black text-[10px] uppercase tracking-widest h-11 rounded-xl",
-                  p.id === data.plan ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" : "bg-white text-black hover:bg-orange-600 hover:text-white"
-                )}
-                disabled={p.id === data.plan}
-              >
-                {p.id === data.plan ? "MEVCUT PLAN" : "ABONE OL"}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <h3 className="mb-6 text-lg font-black uppercase tracking-widest text-white">Ticari durum</h3>
+      <Card className="mb-10 border-orange-500/20 bg-orange-500/[0.04]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-white"><Lock className="text-orange-400" size={20} />Ödeme altyapısı henüz bağlı değil</CardTitle>
+          <CardDescription className="max-w-3xl leading-relaxed">Bu çalışma alanındaki abonelik kaydı pilot geliştirme içindir. Gerçek kart çekimi, otomatik abonelik veya online checkout yapılmıyor. İlk ticari pilotlar için kapsam ve fiyat manuel olarak netleştirilecek.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 text-sm text-zinc-400 md:grid-cols-3">
+            <div className="border border-zinc-800 bg-zinc-950/50 p-4"><p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Mevcut çalışma planı</p><p className="mt-2 font-semibold text-white">{data.plan.toUpperCase()}</p></div>
+            <div className="border border-zinc-800 bg-zinc-950/50 p-4"><p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Pilot fiyatı</p><p className="mt-2 font-semibold text-white">Görüşmede belirlenir</p></div>
+            <div className="border border-zinc-800 bg-zinc-950/50 p-4"><p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Ödeme durumu</p><p className="mt-2 font-semibold text-amber-300">Otomatik değil</p></div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Usage Alerts / Logs */}
       <Card className="bg-[#0c0c0e] border-zinc-800 mb-20">
@@ -246,8 +206,4 @@ export function Billing() {
       </Card>
     </PageContainer>
   );
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
 }

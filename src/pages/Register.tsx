@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Mail, Lock, Loader2, User, Building2, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Loader2, User, Building2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function Register() {
@@ -14,6 +14,8 @@ export function Register() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPilot = searchParams.get('intent') === 'pilot';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +47,11 @@ export function Register() {
       <div className="w-full max-w-md space-y-8 relative z-10">
         <div className="text-center">
           <div className="inline-flex items-center gap-2 mb-6">
-            <Zap className="text-orange-500" size={32} fill="currentColor" />
-            <span className="text-2xl font-black text-white tracking-tighter">TEKLIFPRO <span className="text-orange-500">AI</span></span>
+            <span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold text-white">BP</span>
+            <span className="text-2xl font-semibold tracking-tight text-white">BIMPlan Academy</span>
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Yenİ Hesap Oluştur</h1>
-          <p className="text-zinc-500 mt-2 text-sm uppercase tracking-widest font-bold">İnşaat devrimine katılın</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-white">{isPilot ? 'Pilot hesabınızı oluşturun' : 'Yeni hesap oluşturun'}</h1>
+          <p className="mt-2 text-sm text-zinc-500">{isPilot ? 'TeklifPro pilot akışına kontrollü bir başlangıç yapın.' : 'TeklifPro çalışma alanınızı oluşturun.'}</p>
         </div>
 
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
@@ -120,7 +122,7 @@ export function Register() {
                 disabled={loading}
                 className="w-full bg-orange-600 hover:bg-orange-700 h-12 text-white font-black uppercase tracking-widest text-xs gap-2"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <>KAYDOL <ArrowRight size={18} /></>}
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <>{isPilot ? 'PİLOT HESABI OLUŞTUR' : 'KAYDOL'} <ArrowRight size={18} /></>}
               </Button>
             </form>
             

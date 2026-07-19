@@ -20,6 +20,7 @@ import { registerProfitRoutes } from "./routes/profit";
 import { registerAiRoutes } from "./routes/ai";
 import { registerClientRoutes } from "./routes/clients";
 import { registerQuotationRoutes } from "./routes/quotations";
+import { registerPilotRoutes } from "./routes/pilot";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -60,6 +61,7 @@ export async function startServer() {
   registerAiRoutes(app, aiService, canMutate);
   registerClientRoutes(app, canMutate);
   registerQuotationRoutes(app, canMutate);
+  registerPilotRoutes(app);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

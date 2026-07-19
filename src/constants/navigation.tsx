@@ -9,7 +9,8 @@ import {
   Sparkles,
   Shield,
   ChartBarIncreasing,
-  CreditCard
+  CreditCard,
+  ClipboardList
 } from 'lucide-react';
 
 export interface NavItem {
@@ -43,6 +44,12 @@ export const navigationConfig: NavItem[] = [
     path: "/app/crm",
     icon: Target,
     roles: ["owner", "admin", "manager"],
+  },
+  {
+    label: "Pilot Başvuruları",
+    path: "/app/pilot-applications",
+    icon: ClipboardList,
+    roles: ["owner", "admin"],
   },
   {
     label: "AI Asistan",

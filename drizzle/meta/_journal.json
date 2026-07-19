@@ -8,6 +8,20 @@
       "when": 1784400884318,
       "tag": "0000_fair_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784477715402,
+      "tag": "0001_graceful_rafael_vega",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784479157567,
+      "tag": "0002_blushing_prism",
+      "breakpoints": true
     }
   ]
 }

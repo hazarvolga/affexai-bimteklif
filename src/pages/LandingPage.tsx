@@ -1,188 +1,123 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle2, ShieldCheck, Zap, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ArrowRight, CheckCircle2, ClipboardCheck, FileSpreadsheet, GraduationCap, ShieldCheck } from 'lucide-react';
+import type { ReactNode } from 'react';
 
-export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
+type LandingPageProps = {
+  onGetStarted: () => void;
+  onPilotRequest: () => void;
+};
+
+export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans selection:bg-orange-500/30 selection:text-orange-500">
-      {/* Navbar */}
-      <nav className="h-20 px-8 flex items-center justify-between bg-[#09090b]/80 backdrop-blur-md border-b border-zinc-800 sticky top-0 z-50">
-        <div className="flex items-center gap-3 font-semibold text-xl tracking-tight text-white">
-          <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center font-bold text-white">TP</div>
-          TeklifPro <span className="text-orange-500">AI</span>
-        </div>
-        <div className="flex items-center gap-8">
-          <a href="#features" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Özellikler</a>
-          <a href="#pricing" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Fiyatlandırma</a>
-          <div className="h-6 w-[1px] bg-zinc-800 mx-2"></div>
-          <Button variant="ghost" className="text-zinc-300 hover:text-white hover:bg-zinc-800" onClick={onGetStarted}>Giriş Yap</Button>
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white px-6 shadow-lg shadow-orange-900/20" onClick={onGetStarted}>Ücretsiz Başla</Button>
+    <div className="min-h-screen bg-[#09090b] font-sans text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
+      <nav className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-zinc-800/80 bg-[#09090b]/95 px-6 backdrop-blur-md md:px-8">
+        <a href="#top" className="flex items-center gap-3 font-semibold tracking-tight text-white" aria-label="BIMPlan Academy ana sayfa">
+          <span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold text-white">BP</span>
+          <span className="text-lg">BIMPlan Academy</span>
+        </a>
+        <div className="hidden items-center gap-7 md:flex">
+          <a href="#workflow" className="text-sm text-zinc-400 transition-colors hover:text-white">Nasıl çalışır?</a>
+          <a href="#pilot" className="text-sm text-zinc-400 transition-colors hover:text-white">Pilot programı</a>
+          <Button variant="ghost" className="text-zinc-300 hover:bg-zinc-800 hover:text-white" onClick={onGetStarted}>Giriş yap</Button>
+          <Button className="bg-orange-600 px-5 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot başvurusu</Button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-8 max-w-7xl mx-auto overflow-hidden">
-        {/* Background Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-orange-600/5 blur-[120px] -z-10 rounded-full" />
-        
-        <div className="text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-600/10 text-orange-500 border border-orange-600/20 rounded-full text-[10px] font-bold uppercase tracking-widest mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Sparkles size={14} />
-            Türkiye'nin İlk AI Destekli İnşaat Teklif Platformu
-          </div>
-          <h1 className="text-7xl font-bold tracking-tight text-white mb-8 leading-[1.1] font-heading animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-            İnşaat Tekliflerinde <br />
-            <span className="text-orange-500 italic">Yapay Zeka</span> Dönemi
-          </h1>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
-            Excel ve karmaşık hesaplamalardan kurtulun. Yapay zeka ile dakikalar içinde profesyonel teklifler hazırlayın, kârlılığınızı anlık takip edin.
-          </p>
-          <div className="flex items-center justify-center gap-5 animate-in fade-in slide-in-from-bottom-16 duration-700 delay-300">
-            <Button size="lg" className="h-14 px-10 text-md bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-all hover:scale-105 active:scale-95 shadow-xl shadow-orange-900/30" onClick={onGetStarted}>
-              Hemen Deneyin
-              <ArrowRight size={20} className="ml-2" />
-            </Button>
-            <Button variant="outline" size="lg" className="h-14 px-10 text-md border-zinc-800 bg-[#0c0c0e] text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
-              Demo Talep Et
-            </Button>
-          </div>
-          <div className="mt-12 flex items-center justify-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
-            <div className="text-xs font-bold uppercase tracking-[0.3em]">Referanslar:</div>
-            <div className="h-4 w-24 bg-zinc-700 rounded-sm"></div>
-            <div className="h-4 w-24 bg-zinc-700 rounded-sm"></div>
-            <div className="h-4 w-24 bg-zinc-700 rounded-sm"></div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Grid */}
-      <section id="features" className="py-32 bg-[#0c0c0e] relative border-y border-zinc-800">
-        <div className="max-w-7xl mx-auto px-8 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-            <div className="max-w-xl">
-              <h2 className="text-4xl font-bold text-white mb-4">Müteahhitler İçin Özel Geliştirildi</h2>
-              <p className="text-zinc-500 text-lg">Hataları minimize edin, hızı maksimize edin.</p>
+      <main id="top">
+        <section className="relative overflow-hidden border-b border-zinc-800/80 px-6 pb-24 pt-24 md:px-8 md:pb-32 md:pt-32">
+          <div className="absolute left-1/2 top-0 -z-0 h-[480px] w-[760px] -translate-x-1/2 rounded-full bg-orange-600/5 blur-[120px]" />
+          <div className="relative z-10 mx-auto max-w-5xl">
+            <div className="mb-7 inline-flex items-center gap-2 border border-orange-500/25 bg-orange-500/10 px-3 py-1.5 text-xs font-medium text-orange-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+              BIMPlan Academy · İlk ticari ürün: TeklifPro
             </div>
-            <div className="text-orange-500 font-mono text-sm uppercase tracking-widest border-b border-orange-500/30 pb-2">
-              Teknolojik Üstünlük
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FeatureCard 
-              icon={<Zap className="text-orange-500" />} 
-              title="AI Teklif Üretici" 
-              description="Siz projeyi anlatın, AI kalemleri ve tahmini metrajları saniyeler içinde çıkarsın."
-            />
-            <FeatureCard 
-              icon={<ShieldCheck className="text-orange-500" />} 
-              title="Mevzuat Zekâsı" 
-              description="KDV ve Tevkifat değişikliklerini anlık takip eder, tekliflerinizi yasal risklere karşı korur."
-            />
-            <FeatureCard 
-              icon={<CheckCircle2 className="text-orange-500" />} 
-              title="Kârlılık Analizi" 
-              description="Her teklifte kâr marjınızı ve maliyet risklerinizi anlık olarak görün."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-32 relative">
-        <div className="max-w-7xl mx-auto px-8">
-           <div className="text-center mb-24">
-            <h2 className="text-4xl font-bold text-white mb-4">Her Ölçeğe Uygun Planlar</h2>
-            <p className="text-zinc-500 text-lg">İhtiyacınız olan paketi seçin, profesyonelliğe adım atın.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <PricingCard plan="Starter" price="1.990" features={['20 Teklif/Ay', 'Tek Kullanıcı', 'Standart PDF']} />
-            <PricingCard plan="Pro" price="4.990" features={['Sınırsız Teklif', '5 Kullanıcı', 'AI Asistan', 'Mevzuat Takibi', 'Özel Logo']} popular />
-            <PricingCard plan="Elite" price="9.990" features={['Sınırsız Teklif', 'Sınırsız Kullanıcı', 'Detaylı Analitik', 'CRM Entegrasyonu', 'API Erişimi']} />
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-       <footer className="py-20 bg-[#09090b] border-t border-zinc-800">
-        <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12 text-zinc-500 text-sm">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 font-semibold text-xl tracking-tight text-white mb-6">
-              <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center font-bold text-white text-xs">TP</div>
-              TeklifPro AI
-            </div>
-            <p className="max-w-xs leading-relaxed">
-              İnşaat sektöründe dijital dönüşümün öncüsü. 
-              Yapay zeka desteği ile teklif süreçlerinizi optimize ediyoruz.
+            <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight text-white md:text-7xl">
+              Tekliflerinizi daha hızlı hazırlayın.
+              <span className="block text-orange-400">Kârlılığınızı kontrol altında tutun.</span>
+            </h1>
+            <p className="mt-8 max-w-2xl text-lg leading-relaxed text-zinc-400 md:text-xl">
+              TeklifPro, inşaat ekiplerinin metrajdan teklif PDF&apos;ine kadar uzanan sürecini tek bir çalışma alanında düzenler. Hesabı hızlandırır; son kararı ve sorumluluğu sizde bırakır.
             </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <Button size="lg" className="h-13 bg-orange-600 px-7 text-white hover:bg-orange-700" onClick={onPilotRequest}>
+                Pilot başvurusu <ArrowRight size={18} className="ml-2" />
+              </Button>
+              <a href="#workflow" className="inline-flex h-13 items-center justify-center rounded-md border border-zinc-700 bg-transparent px-7 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800 hover:text-white">Ürün akışını görün</a>
+            </div>
+            <div className="mt-14 grid max-w-3xl grid-cols-1 gap-4 border-t border-zinc-800 pt-6 text-sm text-zinc-400 sm:grid-cols-3">
+              <TrustPoint title="TeklifPro" text="Teklif ve metraj çalışma alanı" />
+              <TrustPoint title="SmartCheck" text="Kalite kontrol katmanı" />
+              <TrustPoint title="Akademi" text="Ekiplerin kullanımını güçlendirir" />
+            </div>
           </div>
+        </section>
+
+        <section id="workflow" className="border-b border-zinc-800 bg-[#0c0c0e] px-6 py-24 md:px-8 md:py-28">
+          <div className="mx-auto max-w-7xl">
+            <div className="max-w-2xl">
+              <p className="mb-4 text-sm font-medium text-orange-400">İLK ODAK: GELİR ÜRETEN İŞ AKIŞI</p>
+              <h2 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">Teklif hazırlamayı ölçülebilir bir sürece çevirin.</h2>
+              <p className="mt-5 text-lg leading-relaxed text-zinc-400">TeklifPro&apos;nun ilk sürümünde geniş bir platform sözü vermiyoruz. Bir ekibin gerçek teklifini daha hızlı, izlenebilir ve kontrol edilebilir biçimde tamamlamasına odaklanıyoruz.</p>
+            </div>
+            <div className="mt-14 grid gap-5 md:grid-cols-3">
+              <WorkflowCard number="01" icon={<FileSpreadsheet />} title="Metrajı düzenleyin" text="Kalem, miktar, birim ve maliyet bilgilerini tek çalışma alanında toplayın." />
+              <WorkflowCard number="02" icon={<ClipboardCheck />} title="Teklifi kontrol edin" text="Eksik, uyumsuz veya tekrar eden kalemleri gözden geçirin; insan onayını koruyun." />
+              <WorkflowCard number="03" icon={<ShieldCheck />} title="Kârlılıkla gönderin" text="Maliyet ve marjı görün, profesyonel teklif çıktısını hazırlayın ve süreci izleyin." />
+            </div>
+          </div>
+        </section>
+
+        <section className="px-6 py-24 md:px-8 md:py-28">
+          <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1fr_1.1fr] md:items-start">
+            <div>
+              <p className="mb-4 text-sm font-medium text-orange-400">BIMPLAN ACADEMY ÇATISI</p>
+              <h2 className="text-4xl font-semibold tracking-tight text-white">Önce teklif. Sonra kalite ve yetkinlik.</h2>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-zinc-400">BIMPlan Academy, birbirinden kopuk ürünler toplamı değil; inşaat ekiplerinin daha iyi iş üretmesine yardım eden bir ürün ailesidir. Ticari giriş noktamız TeklifPro&apos;dur.</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <EcosystemCard icon={<FileSpreadsheet />} title="TeklifPro" status="Şimdi" text="Metraj, teklif, PDF ve kârlılık akışının ilk ticari ürünü." />
+              <EcosystemCard icon={<ShieldCheck />} title="SmartCheck" status="Pilot kapsamı" text="Teklifteki kontrol noktalarını görünür kılan kalite katmanı." />
+              <EcosystemCard icon={<GraduationCap />} title="Akademi" status="Enablement" text="Ekiplerin ürünü doğru ve sürekli kullanmasına yardımcı olur." />
+              <EcosystemCard icon={<CheckCircle2 />} title="BIMPLAN" status="İleri aşama" text="Standartlar ve kaynaklar için uzun vadeli kurumsal çatı." muted />
+            </div>
+          </div>
+        </section>
+
+        <section id="pilot" className="border-y border-orange-500/20 bg-orange-500/[0.06] px-6 py-20 md:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <p className="mb-3 text-sm font-medium text-orange-400">KONTROLLÜ İLK ADIM</p>
+              <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">İlk pilot ekipler için birlikte kurulum.</h2>
+              <p className="mt-4 leading-relaxed text-zinc-300">Pilot sürecinde hedefimiz özellik sayısını artırmak değil; ekibinizin gerçek bir teklifi başarıyla tamamlaması ve sonucu ölçebilmek. Kapsam, onboarding ve fiyat görüşmede netleştirilir.</p>
+            </div>
+            <Button size="lg" className="h-13 shrink-0 bg-orange-600 px-7 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot başvurusu yapın <ArrowRight size={18} className="ml-2" /></Button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-zinc-800 bg-[#09090b] px-6 py-16 md:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 text-sm text-zinc-500 md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
-            <h4 className="text-white font-bold mb-6 tracking-widest text-[10px] uppercase">Hizmetler</h4>
-            <ul className="space-y-4">
-              <li><a href="#" className="hover:text-orange-500 transition-colors">AI Teklif</a></li>
-              <li><a href="#" className="hover:text-orange-500 transition-colors">CRM</a></li>
-              <li><a href="#" className="hover:text-orange-500 transition-colors">Analitik</a></li>
-            </ul>
+            <div className="flex items-center gap-3 text-lg font-semibold text-white"><span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold text-white">BP</span>BIMPlan Academy</div>
+            <p className="mt-5 max-w-sm leading-relaxed">İnşaat ekipleri için daha hızlı teklif, daha görünür kalite ve daha güçlü yetkinlik.</p>
           </div>
-          <div>
-            <h4 className="text-white font-bold mb-6 tracking-widest text-[10px] uppercase">İrtibat</h4>
-            <ul className="space-y-4">
-              <li>info@teklifpro.ai</li>
-              <li>İstanbul, Türkiye</li>
-              <li>+90 212 ...</li>
-            </ul>
-          </div>
+          <div><h3 className="mb-4 font-medium text-zinc-300">Ürün</h3><a href="#workflow" className="block py-1 hover:text-orange-400">TeklifPro akışı</a><a href="#pilot" className="block py-1 hover:text-orange-400">Pilot programı</a></div>
+          <div><h3 className="mb-4 font-medium text-zinc-300">İletişim</h3><a href="mailto:info@teklifpro.ai" className="block py-1 hover:text-orange-400">info@teklifpro.ai</a><span className="block py-1">İstanbul, Türkiye</span></div>
         </div>
-        <div className="max-w-7xl mx-auto px-8 mt-20 pt-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between gap-4 text-[10px] text-zinc-600 uppercase tracking-[0.2em]">
-          <p>© 2026 TeklifPro AI. Tüm hakları saklıdır.</p>
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-zinc-400">Gizlilik</a>
-            <a href="#" className="hover:text-zinc-400">Kullanım Koşulları</a>
-          </div>
-        </div>
+        <div className="mx-auto mt-12 max-w-7xl border-t border-zinc-800 pt-6 text-xs text-zinc-600">© 2026 BIMPlan Academy. TeklifPro, BIMPlan Academy çatısı altında geliştirilir.</div>
       </footer>
     </div>
   );
 }
 
-function FeatureCard({ icon, title, description }: any) {
-  return (
-    <div className="p-10 rounded-2xl border border-zinc-800 bg-[#09090b] hover:bg-zinc-900 transition-all group hover:border-orange-500/30">
-      <div className="w-12 h-12 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-orange-500/10 transition-all duration-300">
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold text-white mb-4">{title}</h3>
-      <p className="text-zinc-500 leading-relaxed group-hover:text-zinc-400 transition-colors">{description}</p>
-    </div>
-  );
+function TrustPoint({ title, text }: { title: string; text: string }) {
+  return <div><p className="font-medium text-zinc-200">{title}</p><p className="mt-1 text-zinc-500">{text}</p></div>;
 }
 
-function PricingCard({ plan, price, features, popular = false }: any) {
-  return (
-    <div className={`p-10 rounded-3xl border flex flex-col relative transition-all duration-500 hover:scale-105 ${popular ? 'border-orange-500 bg-orange-600/5 shadow-2xl shadow-orange-900/10' : 'border-zinc-800 bg-zinc-900/30'}`}>
-      {popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase">EN ÇOK TERCİH EDİLEN</span>}
-      <h3 className="text-lg font-bold text-white mb-2">{plan}</h3>
-      <div className="mb-8">
-        <span className="text-5xl font-bold text-white tracking-tighter">₺{price}</span>
-        <span className="text-zinc-500 ml-2 font-mono text-xs">/ay</span>
-      </div>
-      <div className="space-y-5 mb-10 flex-1">
-        {features.map((f: string) => (
-          <div key={f} className="flex items-center gap-3 text-sm text-zinc-400 group">
-            <CheckCircle2 size={16} className={popular ? "text-orange-500" : "text-zinc-600"} />
-            {f}
-          </div>
-        ))}
-      </div>
-      <Button className={`w-full h-12 rounded-xl text-sm font-bold tracking-tight transition-all ${popular ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-xl shadow-orange-600/20' : 'bg-white text-zinc-950 hover:bg-zinc-200'}`}>
-        Hemen Başla
-      </Button>
-    </div>
-  );
+function WorkflowCard({ number, icon, title, text }: { number: string; icon: ReactNode; title: string; text: string }) {
+  return <article className="border border-zinc-800 bg-[#09090b] p-7 transition-colors hover:border-orange-500/40"><div className="flex items-center justify-between"><span className="font-mono text-xs text-orange-400">{number}</span><span className="text-orange-400">{icon}</span></div><h3 className="mt-10 text-xl font-semibold text-white">{title}</h3><p className="mt-3 leading-relaxed text-zinc-500">{text}</p></article>;
+}
+
+function EcosystemCard({ icon, title, status, text, muted = false }: { icon: ReactNode; title: string; status: string; text: string; muted?: boolean }) {
+  return <article className={`border p-6 ${muted ? 'border-zinc-800/70 bg-zinc-900/30 opacity-75' : 'border-zinc-800 bg-[#0c0c0e]'}`}><div className="flex items-start justify-between gap-4"><span className="text-orange-400">{icon}</span><span className="text-xs text-zinc-500">{status}</span></div><h3 className="mt-8 font-semibold text-white">{title}</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">{text}</p></article>;
 }
