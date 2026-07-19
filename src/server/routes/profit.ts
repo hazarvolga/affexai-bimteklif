@@ -27,6 +27,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
         margin: analysis.margin.toFixed(2),
         riskScore: analysis.riskScore,
         riskLevel: analysis.riskLevel,
+        costDataStatus: analysis.costStatus,
       }).onConflictDoUpdate({
         target: quotationFinancials.quotationId,
         set: {
@@ -36,6 +37,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
           margin: analysis.margin.toFixed(2),
           riskScore: analysis.riskScore,
           riskLevel: analysis.riskLevel,
+          costDataStatus: analysis.costStatus,
           updatedAt: new Date()
         }
       });

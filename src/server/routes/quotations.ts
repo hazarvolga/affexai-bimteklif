@@ -84,6 +84,9 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
           unitPrice: String(item.unitPrice),
           discountPercent: String(item.discountPercent),
           vatPercent: String(item.vatPercent),
+          costUnitPrice: item.costUnitPrice == null || item.costUnitPrice === "" ? null : String(item.costUnitPrice),
+          wastePercent: String(item.wastePercent ?? 0),
+          costCategory: item.costCategory || "material",
           total: String(calculateLineItemTotal(item)),
         }));
         await db.insert(quotationItems).values(itemsWithExtras);

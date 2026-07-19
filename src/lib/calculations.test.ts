@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { calculateLineItemTotal, calculateQuotationTotals, validateQuotationItems } from "./calculations";
+import { calculateQuotationFinancials } from "./financial-calculations";
 
 describe("quotation calculations", () => {
   it("calculates a discounted line total before VAT", () => {
@@ -53,5 +54,26 @@ describe("quotation calculations", () => {
 
   it("requires at least one line item", () => {
     assert.deepEqual(validateQuotationItems([]), [{ code: "ITEMS_REQUIRED", field: "items", message: "Teklifte en az bir kalem bulunmalıdır." }]);
+  });
+});
+
+describe("real quotation financials", () => {
+  it("calculates cost with waste and category breakdown", () => {
+    const result = calculateQuotationFinancials([{ quantity: 100, unitPrice: 250, costUnitPrice: 150, wastePercent: 5, costCategory: "material" }]);
+    assert.equal(result.salesNet, 25000);
+    assert.equal(result.totalCost, 15750);
+    assert.equal(result.profit, 9250);
+    assert.equal(result.margin, 37);
+    assert.equal(result.costBreakdown.material, 15750);
+  });
+
+  it("does not report profit while a cost is missing", () => {
+    const result = calculateQuotationFinancials([
+      { quantity: 1, unitPrice: 100, costUnitPrice: null },
+      { quantity: 1, unitPrice: 50, costUnitPrice: 25 },
+    ]);
+    assert.deepEqual(result.missingCostItemIndexes, [0]);
+    assert.equal(result.profit, 0);
+    assert.equal(result.margin, 0);
   });
 });

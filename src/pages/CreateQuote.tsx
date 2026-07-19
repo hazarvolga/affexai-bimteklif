@@ -72,7 +72,7 @@ export function CreateQuote() {
   });
 
   const [items, setItems] = useState<Partial<QuoteItem>[]>([
-    { id: crypto.randomUUID(), description: '', unit: 'm2', quantity: 0, unitPrice: 0, discountPercent: 0, vatPercent: 20, total: 0 }
+    { id: crypto.randomUUID(), description: '', unit: 'm2', quantity: 0, unitPrice: 0, costUnitPrice: null, wastePercent: 0, costCategory: 'material', discountPercent: 0, vatPercent: 20, total: 0 }
   ]);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export function CreateQuote() {
   };
 
   const addItem = () => {
-    setItems([...items, { id: crypto.randomUUID(), description: '', unit: 'm2', quantity: 0, unitPrice: 0, discountPercent: 0, vatPercent: 20, total: 0 }]);
+    setItems([...items, { id: crypto.randomUUID(), description: '', unit: 'm2', quantity: 0, unitPrice: 0, costUnitPrice: null, wastePercent: 0, costCategory: 'material', discountPercent: 0, vatPercent: 20, total: 0 }]);
   };
 
   const removeItem = (id: string) => {
@@ -159,6 +159,9 @@ export function CreateQuote() {
           unit: item.unit || 'm2',
           quantity: Number(item.quantity) || 0,
           unitPrice: Number(item.unitPrice) || 0,
+          costUnitPrice: null,
+          wastePercent: 0,
+          costCategory: 'material',
           discountPercent: 0,
           vatPercent: 20,
         };
@@ -188,6 +191,12 @@ export function CreateQuote() {
     acc.grandTotal += (sub - disc + vat);
     return acc;
   }, { subtotal: 0, discountTotal: 0, vatTotal: 0, grandTotal: 0 });
+
+  const costInputsComplete = items.length > 0 && items.every((item) => Number.isFinite(Number(item.costUnitPrice)) && Number(item.costUnitPrice) >= 0);
+  const estimatedCost = costInputsComplete ? items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costUnitPrice) || 0) * (1 + (Number(item.wastePercent) || 0) / 100), 0) : 0;
+  const estimatedMargin = costInputsComplete && totals.subtotal - totals.discountTotal > 0
+    ? ((totals.subtotal - totals.discountTotal - estimatedCost) / (totals.subtotal - totals.discountTotal)) * 100
+    : 0;
 
   const handleSave = async (status: QuoteStatus = QuoteStatus.DRAFT) => {
     if (!formData.clientId || !formData.projectName) {
@@ -366,7 +375,9 @@ export function CreateQuote() {
                         <TableHead className="w-[45%] text-zinc-500 font-black text-[10px] uppercase tracking-widest pl-6 py-4">DETAY / İŞ KALEMİ</TableHead>
                         <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center py-4">BİRİM</TableHead>
                         <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center py-4">MİKTAR</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">BİRİM FİYAT</TableHead>
+                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">SATIŞ BİRİM</TableHead>
+                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">MALİYET BİRİM</TableHead>
+                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">ZAYİAT %</TableHead>
                         <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right pr-6 py-4">TOPLAM</TableHead>
                         <TableHead className="w-[50px] py-4"></TableHead>
                       </TableRow>
@@ -410,6 +421,12 @@ export function CreateQuote() {
                               onChange={(e) => updateItem(item.id!, { unitPrice: Number(e.target.value) })}
                               className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-white font-black text-sm"
                             />
+                          </TableCell>
+                          <TableCell className="text-right py-4">
+                            <Input type="number" min="0" placeholder="Gerekli" value={item.costUnitPrice ?? ''} onChange={(e) => updateItem(item.id!, { costUnitPrice: e.target.value === '' ? null : Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-amber-300 font-black text-sm placeholder:text-zinc-700" />
+                          </TableCell>
+                          <TableCell className="text-right py-4">
+                            <Input type="number" min="0" value={item.wastePercent ?? 0} onChange={(e) => updateItem(item.id!, { wastePercent: Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-zinc-400 text-sm" />
                           </TableCell>
                           <TableCell className="text-right font-black text-white pr-6 py-4 font-mono text-sm">
                             ₺{(item.total || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
@@ -510,7 +527,7 @@ export function CreateQuote() {
               </div>
 
               <div className="pt-8 border-t border-zinc-200">
-                <p className="text-[11px] font-black text-orange-600 uppercase tracking-[0.4em] mb-3 leading-none">Net Teklif Toplamı</p>
+                  <p className="text-[11px] font-black text-orange-600 uppercase tracking-[0.4em] mb-3 leading-none">Net Teklif Toplamı</p>
                 <div className="flex items-baseline gap-3">
                   <h2 className="text-5xl font-black tracking-tighter text-zinc-950">
                     {totals.grandTotal.toLocaleString('tr-TR')}
@@ -519,11 +536,11 @@ export function CreateQuote() {
                 </div>
               </div>
 
-              <div className="mt-8 flex items-center gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white text-emerald-700 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-zinc-200/50">
-                <div className="p-1.5 bg-emerald-100 rounded-lg">
-                  <TrendingUp size={16} className="text-emerald-600" />
+              <div className={cn("mt-8 flex items-center gap-3 p-4 backdrop-blur-sm rounded-2xl border font-black text-[10px] uppercase tracking-widest shadow-lg", costInputsComplete ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-amber-50 border-amber-100 text-amber-700")}>
+                <div className={cn("p-1.5 rounded-lg", costInputsComplete ? "bg-emerald-100" : "bg-amber-100")}>
+                  {costInputsComplete ? <TrendingUp size={16} className="text-emerald-600" /> : <AlertCircle size={16} className="text-amber-600" />}
                 </div>
-                Öngörülen Brüt Kâr: %18
+                {costInputsComplete ? `Gerçek maliyet bazlı marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
               </div>
             </CardContent>
           </Card>

@@ -337,6 +337,15 @@ export function QuoteDetail() {
                 </div>
               ) : financials?.financials ? (
                 <div className="divide-y divide-zinc-800">
+                  {((financials.financials.costStatus || financials.financials.costDataStatus) !== 'complete') && (
+                    <div className="m-5 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-200">
+                      <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-500" />
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-widest">Maliyet verisi eksik</p>
+                        <p className="mt-1 text-xs text-amber-200/70">Maliyet birim fiyatları tamamlanmadan kâr ve marj gösterilmez. Aşağıdaki rakamlar karar vermek için güvenilir değildir.</p>
+                      </div>
+                    </div>
+                  )}
                   {/* Summary row */}
                   <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-zinc-800">
                     <div className="p-5">
@@ -345,13 +354,13 @@ export function QuoteDetail() {
                     </div>
                     <div className="p-5">
                       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Brüt Kâr</p>
-                      <p className="text-xl font-black text-emerald-500">{Number(financials.financials.profit).toLocaleString()} <span className="text-xs text-emerald-900 font-medium">{data.currency}</span></p>
+                      <p className="text-xl font-black text-emerald-500">{(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' ? Number(financials.financials.profit).toLocaleString() : '—'} <span className="text-xs text-emerald-900 font-medium">{data.currency}</span></p>
                     </div>
                     <div className="p-5">
                       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Kâr Marjı</p>
                       <div className="flex items-end gap-2">
-                        <p className="text-xl font-black text-white">%{financials.financials.margin}</p>
-                        <ProfitabilityBadge margin={Number(financials.financials.margin)} />
+                        <p className="text-xl font-black text-white">{(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' ? `%${financials.financials.margin}` : '—'}</p>
+                        {(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' && <ProfitabilityBadge margin={Number(financials.financials.margin)} />}
                       </div>
                     </div>
                     <div className="p-5">
@@ -362,9 +371,9 @@ export function QuoteDetail() {
                             "text-xs font-black uppercase tracking-tighter",
                             financials.financials.riskLevel === 'HIGH' ? 'text-red-500' :
                             financials.financials.riskLevel === 'MEDIUM' ? 'text-amber-500' :
-                            'text-emerald-500'
+                            financials.financials.riskLevel === 'UNKNOWN' ? 'text-amber-500' : 'text-emerald-500'
                           )}>
-                            {financials.financials.riskLevel}
+                            {financials.financials.riskLevel === 'UNKNOWN' ? 'VERİ BEKLENİYOR' : financials.financials.riskLevel}
                           </span>
                           <span className="text-[10px] text-zinc-500 font-mono">{financials.financials.riskScore}/100</span>
                         </div>
@@ -384,13 +393,14 @@ export function QuoteDetail() {
                       </p>
                     </div>
                     <div className="p-5 bg-zinc-950/30">
-                       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Önerilen Fiyat Aralıkları</p>
+                       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Maliyet Bazlı Fiyat Aralıkları</p>
                        <div className="space-y-2.5">
+                          {(financials.financials.costStatus || financials.financials.costDataStatus) !== 'complete' ? <p className="text-xs text-zinc-600">Maliyet verisi tamamlandığında gösterilecek.</p> : null}
                           {[
                             { label: 'Minimum Güvenli', val: (financials.financials.totalCost * 1.1).toFixed(0), color: 'text-zinc-400' },
                             { label: 'Rekabetçi Piyasa', val: (financials.financials.totalCost * 1.2).toFixed(0), color: 'text-blue-400' },
                             { label: 'Optimum Kârlılık', val: (financials.financials.totalCost * 1.3).toFixed(0), color: 'text-emerald-400' }
-                          ].map((range, i) => (
+                          ].filter(() => (financials.financials.costStatus || financials.financials.costDataStatus) === 'complete').map((range, i) => (
                             <div key={i} className="flex items-center justify-between text-[11px]">
                                <span className="text-zinc-500">{range.label}</span>
                                <span className={cn("font-bold", range.color)}>{Number(range.val).toLocaleString()} {data.currency}</span>
@@ -420,7 +430,9 @@ export function QuoteDetail() {
                       <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-6">Açıklama</TableHead>
                       <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-center">Birim</TableHead>
                       <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Miktar</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Birim Fiyat</TableHead>
+                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Satış Birim</TableHead>
+                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Maliyet Birim</TableHead>
+                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Zayiat</TableHead>
                       <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right pr-6">Toplam</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -431,6 +443,8 @@ export function QuoteDetail() {
                         <TableCell className="text-center text-zinc-500 text-xs">{item.unit}</TableCell>
                         <TableCell className="text-right font-mono text-zinc-400">{item.quantity}</TableCell>
                         <TableCell className="text-right font-mono text-zinc-400 font-semibold">{Number(item.unitPrice).toLocaleString('tr-TR')} {data.currency}</TableCell>
+                        <TableCell className="text-right font-mono text-amber-300 font-semibold">{item.costUnitPrice == null ? '—' : `${Number(item.costUnitPrice).toLocaleString('tr-TR')} ${data.currency}`}</TableCell>
+                        <TableCell className="text-right font-mono text-zinc-500">%{Number(item.wastePercent || 0).toLocaleString('tr-TR')}</TableCell>
                         <TableCell className="text-right font-mono text-white font-bold pr-6">{Number(item.total).toLocaleString('tr-TR')} {data.currency}</TableCell>
                       </TableRow>
                     ))}

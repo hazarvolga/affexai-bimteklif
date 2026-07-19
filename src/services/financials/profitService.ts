@@ -1,108 +1,57 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { registry } from "../../lib/plugins/registry";
+import { calculateQuotationFinancials } from "../../lib/financial-calculations";
 
 export interface FinancialAnalysis {
   totalCost: number;
   totalPrice: number;
   profit: number;
   margin: number;
-  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  costStatus: "complete" | "incomplete";
+  missingCostItemIndexes: number[];
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
   riskScore: number;
-  costBreakdown: {
-    material: number;
-    labor: number;
-    logistics: number;
-    subcontractor: number;
-    overhead: number;
-  };
+  costBreakdown: { material: number; labor: number; logistics: number; subcontractor: number; overhead: number };
   insights: string;
-  suggestedPriceRange: {
-    min: number;
-    optimal: number;
-    competitive: number;
-  };
+  suggestedPriceRange: { min: number; optimal: number; competitive: number };
 }
 
 export class ProfitService {
-  private genAI: GoogleGenerativeAI;
+  private genAI: GoogleGenerativeAI | null;
 
-  constructor(apiKey: string) {
-    this.genAI = new GoogleGenerativeAI(apiKey);
-  }
+  constructor(apiKey: string) { this.genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null; }
 
-  async analyzeProfitability(
-    items: any[], 
-    industryId: string, 
-    currency: string = "TRY"
-  ): Promise<FinancialAnalysis> {
-    const totalPrice = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
-    
-    // In a real scenario, cost would be stored per item or calculated via a formula.
-    // For this module, we'll use a sophisticated estimation logic based on industry defaults.
-    const plugin = registry.getIndustry(industryId) || registry.getIndustry("residential")!;
-    
-    // Simulated cost distribution based on industry plugin calculation model
-    let costFactor = 0.8; // Default 20% margin
-    if (plugin.quotationRules.calculationModel === "labor_heavy") costFactor = 0.65;
-    if (plugin.quotationRules.calculationModel === "material_heavy") costFactor = 0.85;
+  async analyzeProfitability(items: any[], industryId: string, currency = "TRY"): Promise<FinancialAnalysis> {
+    const calculation = calculateQuotationFinancials(items);
+    const costStatus = calculation.missingCostItemIndexes.length === 0 ? "complete" : "incomplete";
+    if (costStatus === "incomplete") {
+      return {
+        totalCost: calculation.totalCost, totalPrice: calculation.salesNet, profit: 0, margin: 0,
+        costStatus, missingCostItemIndexes: calculation.missingCostItemIndexes, riskLevel: "UNKNOWN", riskScore: 0,
+        costBreakdown: calculation.costBreakdown,
+        insights: `${calculation.missingCostItemIndexes.length} teklif kaleminde maliyet birim fiyatı eksik. Gerçek kâr ve marj hesaplamak için maliyetleri girin.`,
+        suggestedPriceRange: { min: 0, optimal: 0, competitive: 0 },
+      };
+    }
 
-    const totalCost = totalPrice * costFactor;
-    const profit = totalPrice - totalCost;
-    const margin = totalPrice > 0 ? (profit / totalPrice) * 100 : 0;
-
-    // Breakdown simulation
-    const breakdown = {
-      material: totalCost * (plugin.quotationRules.calculationModel === "material_heavy" ? 0.6 : 0.3),
-      labor: totalCost * (plugin.quotationRules.calculationModel === "labor_heavy" ? 0.5 : 0.3),
-      logistics: totalCost * 0.1,
-      subcontractor: totalCost * 0.2,
-      overhead: totalCost * 0.1,
-    };
-
-    // Risk Scoring
     let riskScore = 0;
-    if (margin < 15) riskScore += 40;
-    if (margin < 10) riskScore += 30;
-    if (currency !== "USD" && currency !== "EUR") riskScore += 15; // Local currency risk
-
+    if (calculation.margin < 15) riskScore += 40;
+    if (calculation.margin < 10) riskScore += 30;
     const riskLevel = riskScore > 60 ? "HIGH" : riskScore > 30 ? "MEDIUM" : "LOW";
-
-    // AI Financial Insights
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = `
-      Sen bir inşaat finans uzmanısın. Aşağıdaki teklif verilerini analiz et ve stratejik finansal tavsiye ver.
-      
-      Sektör: ${plugin.name}
-      Toplam Fiyat: ${totalPrice} ${currency}
-      Tahmini Kar: ${profit} ${currency}
-      Kar Marjı: %${margin.toFixed(2)}
-      Risk Seviyesi: ${riskLevel}
-      
-      Görevin:
-      1. Kar marjının sektör standartlarına (\%15-\%35) uygunluğunu değerlendir.
-      2. En büyük maliyet risksini belirt.
-      3. Teklifin rekabet gücünü yorumla.
-      
-      Kısa, öz ve profesyonel bir paragraf döndür.
-    `;
-
-    const result = await model.generateContent(prompt);
-    const insights = result.response.text();
-
-    return {
-      totalCost,
-      totalPrice,
-      profit,
-      margin,
-      riskLevel,
-      riskScore,
-      costBreakdown: breakdown,
-      insights,
-      suggestedPriceRange: {
-        min: totalCost * 1.1,
-        optimal: totalCost * 1.25,
-        competitive: totalCost * 1.2
+    const fallback = `Maliyet verileri tamamlandı. Net satış ${calculation.salesNet.toLocaleString("tr-TR")} ${currency}, maliyet ${calculation.totalCost.toLocaleString("tr-TR")} ${currency}; hesaplanan marj %${calculation.margin.toFixed(2)} (${riskLevel}).`;
+    let insights = fallback;
+    if (this.genAI) {
+      try {
+        const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(`İnşaat teklifini kısa ve profesyonel değerlendir. Sektör: ${industryId}. Net satış: ${calculation.salesNet} ${currency}. Gerçek maliyet: ${calculation.totalCost} ${currency}. Kâr: ${calculation.profit} ${currency}. Marj: %${calculation.margin.toFixed(2)}. Risk: ${riskLevel}. En fazla üç cümlede marjı, ana maliyet riskini ve teklif kararını belirt.`);
+        insights = result.response.text() || fallback;
+      } catch (error) {
+        console.error("Financial insight generation failed:", error);
       }
+    }
+    return {
+      totalCost: calculation.totalCost, totalPrice: calculation.salesNet, profit: calculation.profit, margin: calculation.margin,
+      costStatus, missingCostItemIndexes: [], riskLevel, riskScore, costBreakdown: calculation.costBreakdown, insights,
+      suggestedPriceRange: { min: Math.round(calculation.totalCost * 1.1), optimal: Math.round(calculation.totalCost * 1.25), competitive: Math.round(calculation.totalCost * 1.2) },
     };
   }
 }

@@ -297,6 +297,9 @@ export const quotationItems = pgTable("quotation_items", {
   unit: text("unit").notNull(),
   quantity: numeric("quantity", { precision: 20, scale: 4 }).notNull(),
   unitPrice: numeric("unit_price", { precision: 20, scale: 2 }).notNull(),
+  costUnitPrice: numeric("cost_unit_price", { precision: 20, scale: 2 }),
+  wastePercent: numeric("waste_percent", { precision: 5, scale: 2 }).default("0").notNull(),
+  costCategory: text("cost_category").default("material").notNull(),
   discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }).default("20").notNull(),
   total: numeric("total", { precision: 20, scale: 2 }).notNull(),
@@ -387,6 +390,7 @@ export const quotationFinancials = pgTable("quotation_financials", {
   margin: numeric("margin", { precision: 5, scale: 2 }).notNull(),
   riskScore: integer("risk_score").default(0).notNull(),
   riskLevel: text("risk_level").notNull(),
+  costDataStatus: text("cost_data_status").default("incomplete").notNull(),
   currencyExposure: text("currency_exposure"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

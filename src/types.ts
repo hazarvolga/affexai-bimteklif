@@ -59,6 +59,9 @@ export interface QuoteItem {
   unit: string;
   quantity: number;
   unitPrice: number;
+  costUnitPrice?: number | null;
+  wastePercent?: number;
+  costCategory?: 'material' | 'labor' | 'logistics' | 'subcontractor' | 'overhead';
   discountPercent: number;
   vatPercent: number;
   total: number;
