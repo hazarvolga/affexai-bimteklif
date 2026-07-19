@@ -173,7 +173,8 @@ export type DatasetType = 'development' | 'blind-evaluation' | 'robustness';
 export type ProviderFailureStatus = 'unsupported' | 'corrupt' | 'password_protected' | 'parse_failure';
 
 export interface InvalidCandidateDiagnostic {
-  candidateId: string;
+  candidateId: string | null;
+  rawPayloadHash: string;
   issues: string[];
 }
 
@@ -225,3 +226,18 @@ export type CaseEvaluationResult =
   | RuleExtractionEvaluationResult
   | OutcomeEvaluationResult
   | UnexpectedProviderFailureResult;
+
+export type EvaluationErrorCode =
+  | 'EVALUATION_DUPLICATE_CANDIDATE_ID'
+  | 'EVALUATION_METRIC_INVARIANT_FAILED'
+  | 'EVALUATION_RAW_CANDIDATE_NOT_JSON_COMPATIBLE';
+
+export class EvaluationError extends Error {
+  constructor(
+    public readonly code: EvaluationErrorCode,
+    message: string
+  ) {
+    super(message);
+    this.name = 'EvaluationError';
+  }
+}
