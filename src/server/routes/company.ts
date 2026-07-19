@@ -1,11 +1,32 @@
 import type { Express } from "express";
 import crypto from "crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
-import { companies, companyIndustrySettings, invitations, memberships, users } from "../../db/schema";
+import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 
 export function registerCompanyRoutes(app: Express) {
+  app.get("/api/company/risk-calibration", authenticate, async (req, res) => {
+    const [quotes, pricedItems, financialReports, pilots] = await Promise.all([
+      db.select({ count: count() }).from(quotations).where(eq(quotations.companyId, req.user.companyId)),
+      db.select({ count: count() }).from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), isNotNull(quotationItems.costUnitPrice))),
+      db.select({ count: count() }).from(quotationFinancials).innerJoin(quotations, eq(quotationFinancials.quotationId, quotations.id)).where(eq(quotations.companyId, req.user.companyId)),
+      db.select({ count: count() }).from(pilotApplications),
+    ]);
+    const quoteCount = Number(quotes[0]?.count || 0);
+    const pricedItemCount = Number(pricedItems[0]?.count || 0);
+    res.json({
+      quoteCount,
+      pricedItemCount,
+      financialReportCount: Number(financialReports[0]?.count || 0),
+      pilotApplicationCount: Number(pilots[0]?.count || 0),
+      minimumQuoteSamples: 5,
+      readyForCalibration: quoteCount >= 5 && pricedItemCount >= 20,
+      message: quoteCount >= 5 && pricedItemCount >= 20
+        ? "Kalibrasyon için başlangıç veri eşiği karşılandı; katsayılar uzman incelemesiyle güncellenebilir."
+        : "Kalibrasyon için en az 5 teklif ve 20 maliyetli kalem gerekir. Mevcut varsayımlar otomatik değiştirilmez.",
+    });
+  });
   app.get("/api/company/risk-settings", authenticate, async (req, res) => {
     const company = await db.query.companies.findFirst({ where: eq(companies.id, req.user.companyId) });
     if (!company) return res.status(404).json({ error: "Company not found" });

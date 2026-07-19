@@ -45,6 +45,7 @@ export function Settings() {
   const [subscription, setSubscription] = useState<any>(null);
   const [usage, setUsage] = useState<any[]>([]);
   const [riskSettings, setRiskSettings] = useState({ escalationVolatilityPercent: 0, carbonRiskPremiumPercent: 0, informationDeliveryCostPercent: 0 });
+  const [calibration, setCalibration] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -58,13 +59,14 @@ export function Settings() {
     };
     
     try {
-      const [invRes, indRes, setRes, subRes, usageRes, riskRes] = await Promise.all([
+      const [invRes, indRes, setRes, subRes, usageRes, riskRes, calibrationRes] = await Promise.all([
         fetch("/api/invitations", { headers }),
         fetch("/api/ai/industries", { headers }),
         fetch("/api/company/industry-settings", { headers }),
         fetch("/api/billing/subscription", { headers }),
         fetch("/api/usage/report", { headers }),
-        fetch("/api/company/risk-settings", { headers })
+        fetch("/api/company/risk-settings", { headers }),
+        fetch("/api/company/risk-calibration", { headers })
       ]);
 
       if (invRes.ok) setInvites(await invRes.json());
@@ -73,6 +75,7 @@ export function Settings() {
       if (subRes.ok) setSubscription(await subRes.json());
       if (usageRes.ok) setUsage(await usageRes.json());
       if (riskRes.ok) setRiskSettings(await riskRes.json());
+      if (calibrationRes.ok) setCalibration(await calibrationRes.json());
     } catch (e) {
       toast.error("Veriler yüklenemedi.");
     }
@@ -258,6 +261,18 @@ export function Settings() {
               </CardContent>
             </Card>
           </SectionWrapper>
+          {calibration && (
+            <SectionWrapper title="Kalibrasyon Hazırlığı" description="Sistem katsayıları yalnızca yeterli gerçek teklif verisi oluştuğunda gözden geçirilmeye hazır kabul edilir.">
+              <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Pilot başvurusu", calibration.pilotApplicationCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{label}</p><p className="mt-1 font-mono text-lg text-zinc-200">{value}</p></div>)}
+                  </div>
+                  <div className={cn("rounded-lg border p-3 text-xs", calibration.readyForCalibration ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300")}>{calibration.message}</div>
+                </CardContent>
+              </Card>
+            </SectionWrapper>
+          )}
         </TabsContent>
 
         <TabsContent value="team" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
