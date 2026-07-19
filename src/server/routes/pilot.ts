@@ -9,6 +9,22 @@ function clean(value: unknown, maxLength: number) {
 }
 
 export function registerPilotRoutes(app: Express) {
+  app.get("/api/pilot-applications/metrics", authenticate, checkRole(["owner", "admin"]), async (_req, res) => {
+    try {
+      const applications = await db.select().from(pilotApplications);
+      const total = applications.length;
+      const converted = applications.filter((application) => application.status === "converted").length;
+      const paid = applications.filter((application) => application.paymentStatus === "paid").length;
+      const conversionDays = applications
+        .filter((application) => application.createdAt && application.convertedAt)
+        .map((application) => (application.convertedAt!.getTime() - application.createdAt.getTime()) / 86400000);
+      return res.json({ total, converted, paid, conversionRate: total ? converted / total : 0, paidRate: total ? paid / total : 0, averageDaysToConvert: conversionDays.length ? conversionDays.reduce((sum, days) => sum + days, 0) / conversionDays.length : null });
+    } catch (error) {
+      console.error("Pilot metrics error:", error);
+      return res.status(500).json({ error: "Pilot metrikleri yüklenemedi." });
+    }
+  });
+
   app.get("/api/pilot-applications", authenticate, checkRole(["owner", "admin"]), async (_req, res) => {
     try {
       const applications = await db.select().from(pilotApplications).orderBy(desc(pilotApplications.createdAt));
@@ -41,11 +57,16 @@ export function registerPilotRoutes(app: Express) {
     }
 
     try {
+      const [existing] = await db.select().from(pilotApplications).where(eq(pilotApplications.id, req.params.id));
+      if (!existing) return res.status(404).json({ error: "Pilot başvurusu bulunamadı." });
+      const now = new Date();
+      if (status === "contacted" && !existing.contactedAt) updates.contactedAt = now;
+      if (status === "qualified" && !existing.qualifiedAt) updates.qualifiedAt = now;
+      if (status === "converted" && !existing.convertedAt) updates.convertedAt = now;
       const [application] = await db.update(pilotApplications)
         .set(updates)
         .where(eq(pilotApplications.id, req.params.id))
         .returning();
-      if (!application) return res.status(404).json({ error: "Pilot başvurusu bulunamadı." });
       return res.json(application);
     } catch (error) {
       console.error("Pilot application update error:", error);
