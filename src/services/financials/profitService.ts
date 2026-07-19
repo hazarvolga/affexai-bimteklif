@@ -9,6 +9,7 @@ export interface FinancialAnalysis {
   costStatus: "complete" | "incomplete";
   missingCostItemIndexes: number[];
   escalationPremium: number;
+  carbonRiskPremium: number;
   riskLevel: "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
   riskScore: number;
   costBreakdown: { material: number; labor: number; logistics: number; subcontractor: number; overhead: number };
@@ -21,7 +22,7 @@ export class ProfitService {
 
   constructor(apiKey: string) { this.genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null; }
 
-  async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number } = {}): Promise<FinancialAnalysis> {
+  async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number } = {}): Promise<FinancialAnalysis> {
     const calculation = calculateQuotationFinancials(items, riskInputs);
     const costStatus = calculation.missingCostItemIndexes.length === 0 ? "complete" : "incomplete";
     if (costStatus === "incomplete") {
@@ -29,6 +30,7 @@ export class ProfitService {
         totalCost: calculation.totalCost, totalPrice: calculation.salesNet, profit: 0, margin: 0,
         costStatus, missingCostItemIndexes: calculation.missingCostItemIndexes, riskLevel: "UNKNOWN", riskScore: 0,
         escalationPremium: 0,
+        carbonRiskPremium: 0,
         costBreakdown: calculation.costBreakdown,
         insights: `${calculation.missingCostItemIndexes.length} teklif kaleminde maliyet birim fiyatı eksik. Gerçek kâr ve marj hesaplamak için maliyetleri girin.`,
         suggestedPriceRange: { min: 0, optimal: 0, competitive: 0 },
@@ -54,6 +56,7 @@ export class ProfitService {
       totalCost: calculation.totalCost, totalPrice: calculation.salesNet, profit: calculation.profit, margin: calculation.margin,
       costStatus, missingCostItemIndexes: [], riskLevel, riskScore, costBreakdown: calculation.costBreakdown, insights,
       escalationPremium: calculation.escalationPremium,
+      carbonRiskPremium: calculation.carbonRiskPremium,
       suggestedPriceRange: { min: Math.round(calculation.totalCost * 1.1), optimal: Math.round(calculation.totalCost * 1.25), competitive: Math.round(calculation.totalCost * 1.2) },
     };
   }

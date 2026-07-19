@@ -21,11 +21,13 @@ export interface QuotationFinancialCalculation {
   escalationPremium: number;
   projectDurationMonths: number;
   escalationVolatilityPercent: number;
+  carbonRiskPremium: number;
+  carbonRiskPremiumPercent: number;
 }
 
 const categories: CostCategory[] = ['material', 'labor', 'logistics', 'subcontractor', 'overhead'];
 
-export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number } = {}): QuotationFinancialCalculation {
+export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number } = {}): QuotationFinancialCalculation {
   const costBreakdown = Object.fromEntries(categories.map((category) => [category, 0])) as Record<CostCategory, number>;
   const missingCostItemIndexes: number[] = [];
   let salesNet = 0;
@@ -57,7 +59,11 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
   const escalationPremium = missingCostItemIndexes.length === 0
     ? roundMoney(totalCost * projectDurationMonths * escalationVolatilityPercent / 100)
     : 0;
-  const riskAdjustedCost = totalCost + escalationPremium;
+  const carbonRiskPremiumPercent = Math.max(0, toFiniteNumber(riskInputs.carbonRiskPremiumPercent));
+  const carbonRiskPremium = missingCostItemIndexes.length === 0
+    ? roundMoney(totalCost * carbonRiskPremiumPercent / 100)
+    : 0;
+  const riskAdjustedCost = totalCost + escalationPremium + carbonRiskPremium;
   const riskAdjustedProfit = missingCostItemIndexes.length === 0 ? salesNet - riskAdjustedCost : 0;
   return {
     salesNet: roundMoney(salesNet),
@@ -69,5 +75,7 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
     escalationPremium,
     projectDurationMonths,
     escalationVolatilityPercent,
+    carbonRiskPremium,
+    carbonRiskPremiumPercent,
   };
 }

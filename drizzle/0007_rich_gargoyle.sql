@@ -1,0 +1,2 @@
+ALTER TABLE "quotations" ADD COLUMN "procurement_profile" text DEFAULT 'standard' NOT NULL;--> statement-breakpoint
+ALTER TABLE "quotations" ADD COLUMN "carbon_risk_premium_percent" numeric(5, 2) DEFAULT '0' NOT NULL;

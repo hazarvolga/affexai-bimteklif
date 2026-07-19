@@ -70,6 +70,8 @@ export function CreateQuote() {
     currency: Currency.TRY,
     projectDurationMonths: 1,
     escalationVolatilityPercent: 0,
+    procurementProfile: 'standard' as 'standard' | 'low_carbon' | 'high_carbon_risk',
+    carbonRiskPremiumPercent: 0,
     notes: '',
   });
 
@@ -510,6 +512,24 @@ export function CreateQuote() {
                     <div className="h-12 flex items-center px-4 bg-zinc-950 border border-zinc-800 rounded-lg text-sm font-bold text-zinc-400">
                       %20 (Standart)
                     </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tedarik Profili</Label>
+                    <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})}>
+                      <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                        <SelectItem value="standard" className="text-xs font-bold">Standart</SelectItem>
+                        <SelectItem value="low_carbon" className="text-xs font-bold">Düşük karbon hedefi</SelectItem>
+                        <SelectItem value="high_carbon_risk" className="text-xs font-bold">Yüksek karbon riski</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Karbon Risk Primi %</Label>
+                    <Input type="number" min="0" step="0.1" value={formData.carbonRiskPremiumPercent} onChange={(e) => setFormData({...formData, carbonRiskPremiumPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                    <p className="text-[9px] leading-relaxed text-zinc-600">Senaryo katsayısıdır; vergi/uyum kararı değildir.</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

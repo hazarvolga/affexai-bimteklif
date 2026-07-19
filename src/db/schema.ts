@@ -276,6 +276,8 @@ export const quotations = pgTable("quotations", {
   industryId: text("industry_id").references(() => industries.id),
   projectDurationMonths: integer("project_duration_months").default(1).notNull(),
   escalationVolatilityPercent: numeric("escalation_volatility_percent", { precision: 5, scale: 2 }).default("0").notNull(),
+  procurementProfile: text("procurement_profile").default("standard").notNull(),
+  carbonRiskPremiumPercent: numeric("carbon_risk_premium_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   subtotal: numeric("subtotal", { precision: 20, scale: 2 }).notNull(),
   discountTotal: numeric("discount_total", { precision: 20, scale: 2 }).notNull(),
   vatTotal: numeric("vat_total", { precision: 20, scale: 2 }).notNull(),

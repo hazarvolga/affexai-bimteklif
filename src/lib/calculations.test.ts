@@ -84,6 +84,13 @@ describe("real quotation financials", () => {
     assert.equal(result.totalCost, 148);
     assert.equal(result.profit, 52);
   });
+
+  it("keeps carbon risk as an explicit scenario premium", () => {
+    const result = calculateQuotationFinancials([{ quantity: 1, unitPrice: 200, costUnitPrice: 100 }], { carbonRiskPremiumPercent: 4 });
+    assert.equal(result.carbonRiskPremium, 4);
+    assert.equal(result.totalCost, 104);
+    assert.equal(result.profit, 96);
+  });
 });
 
 describe("quotation source audit", () => {

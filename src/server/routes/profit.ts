@@ -20,6 +20,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
       const analysis = await profitService.analyzeProfitability(items, quote.industryId || "residential", quote.currency, {
         projectDurationMonths: Number(quote.projectDurationMonths),
         escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
+        carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
       });
 
       await db.insert(quotationFinancials).values({

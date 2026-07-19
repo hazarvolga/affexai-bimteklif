@@ -84,6 +84,8 @@ export interface Quote {
   status: QuoteStatus;
   projectDurationMonths?: number;
   escalationVolatilityPercent?: number;
+  procurementProfile?: 'standard' | 'low_carbon' | 'high_carbon_risk';
+  carbonRiskPremiumPercent?: number;
   items: QuoteItem[];
   subtotal: number;
   discountTotal: number;
