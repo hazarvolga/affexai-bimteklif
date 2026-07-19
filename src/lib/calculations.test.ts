@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { calculateLineItemTotal, calculateQuotationTotals, validateQuotationItems } from "./calculations";
 import { calculateQuotationFinancials } from "./financial-calculations";
+import { auditQuotationItems } from "./quotation-audit";
 
 describe("quotation calculations", () => {
   it("calculates a discounted line total before VAT", () => {
@@ -75,5 +76,12 @@ describe("real quotation financials", () => {
     assert.deepEqual(result.missingCostItemIndexes, [0]);
     assert.equal(result.profit, 0);
     assert.equal(result.margin, 0);
+  });
+});
+
+describe("quotation source audit", () => {
+  it("flags AI estimates and missing costs without claiming engineering validation", () => {
+    const issues = auditQuotationItems([{ quantitySource: "ai_estimate", priceSource: "ai_estimate", verificationStatus: "unverified", costUnitPrice: null }]);
+    assert.deepEqual(issues.map((issue) => issue.code), ["SOURCE_UNVERIFIED", "COST_MISSING"]);
   });
 });

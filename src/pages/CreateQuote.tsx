@@ -162,6 +162,10 @@ export function CreateQuote() {
           costUnitPrice: null,
           wastePercent: 0,
           costCategory: 'material',
+          quantitySource: 'ai_estimate',
+          priceSource: 'ai_estimate',
+          sourceReference: 'AI teklif asistanı',
+          verificationStatus: 'unverified',
           discountPercent: 0,
           vatPercent: 20,
         };

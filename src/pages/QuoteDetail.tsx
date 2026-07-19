@@ -61,12 +61,23 @@ export function QuoteDetail() {
   const [recentAlerts, setRecentAlerts] = useState<any[]>([]);
   const [financials, setFinancials] = useState<any>(null);
   const [finLoading, setFinLoading] = useState(false);
+  const [audit, setAudit] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
     fetchRecentAlerts();
     fetchFinancials();
+    fetchAudit();
   }, [id]);
+
+  const fetchAudit = async () => {
+    try {
+      const res = await fetchWithAuth(`/api/quotations/${id}/smartcheck`);
+      if (res.ok) setAudit(await res.json());
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -422,6 +433,12 @@ export function QuoteDetail() {
           </SectionWrapper>
 
           <SectionWrapper title="Teklif Kalemleri" description="Detaylı ürün ve hizmet dökümü.">
+            {audit?.status === 'needs_review' && (
+              <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-200">
+                <p className="font-black uppercase tracking-widest">SmartCheck: inceleme gerekli</p>
+                <p className="mt-1 text-amber-200/70">Bu kontrol kaynak izlenebilirliğini gösterir; mühendislik veya mevzuat uygunluğu kararı değildir. {audit.issues.length} uyarı bulundu.</p>
+              </div>
+            )}
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="p-0">
                 <Table>

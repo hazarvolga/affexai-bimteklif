@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { quotationItems, quotations } from "../../db/schema";
 import { calculateLineItemTotal, calculateQuotationTotals, normalizeLineItem, validateQuotationItems } from "../../lib/calculations";
+import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
@@ -17,6 +18,19 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       res.json(allQuotes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch quotations" });
+    }
+  });
+
+  app.get("/api/quotations/:id/smartcheck", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const quote = await db.query.quotations.findFirst({ where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)) });
+      if (!quote) return res.status(404).json({ error: "Quote not found" });
+      const items = await db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
+      const issues = auditQuotationItems(items);
+      res.json({ status: issues.some((issue) => issue.severity === 'warning') ? 'needs_review' : 'ready_for_review', authorityStatus: 'traceability_only', issues });
+    } catch (error) {
+      res.status(500).json({ error: "Quotation audit failed" });
     }
   });
 
@@ -87,6 +101,10 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
           costUnitPrice: item.costUnitPrice == null || item.costUnitPrice === "" ? null : String(item.costUnitPrice),
           wastePercent: String(item.wastePercent ?? 0),
           costCategory: item.costCategory || "material",
+          quantitySource: item.quantitySource || "manual",
+          priceSource: item.priceSource || "manual",
+          sourceReference: item.sourceReference || null,
+          verificationStatus: item.verificationStatus || "unverified",
           total: String(calculateLineItemTotal(item)),
         }));
         await db.insert(quotationItems).values(itemsWithExtras);
