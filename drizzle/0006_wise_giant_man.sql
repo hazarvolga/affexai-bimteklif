@@ -1,0 +1,2 @@
+ALTER TABLE "quotations" ADD COLUMN "project_duration_months" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
+ALTER TABLE "quotations" ADD COLUMN "escalation_volatility_percent" numeric(5, 2) DEFAULT '0' NOT NULL;

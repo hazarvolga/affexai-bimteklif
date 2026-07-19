@@ -77,6 +77,13 @@ describe("real quotation financials", () => {
     assert.equal(result.profit, 0);
     assert.equal(result.margin, 0);
   });
+
+  it("adds an explicit duration-based escalation premium", () => {
+    const result = calculateQuotationFinancials([{ quantity: 1, unitPrice: 200, costUnitPrice: 100 }], { projectDurationMonths: 24, escalationVolatilityPercent: 2 });
+    assert.equal(result.escalationPremium, 48);
+    assert.equal(result.totalCost, 148);
+    assert.equal(result.profit, 52);
+  });
 });
 
 describe("quotation source audit", () => {

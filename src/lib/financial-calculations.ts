@@ -18,11 +18,14 @@ export interface QuotationFinancialCalculation {
   margin: number;
   missingCostItemIndexes: number[];
   costBreakdown: Record<CostCategory, number>;
+  escalationPremium: number;
+  projectDurationMonths: number;
+  escalationVolatilityPercent: number;
 }
 
 const categories: CostCategory[] = ['material', 'labor', 'logistics', 'subcontractor', 'overhead'];
 
-export function calculateQuotationFinancials(items: FinancialLineItem[]): QuotationFinancialCalculation {
+export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number } = {}): QuotationFinancialCalculation {
   const costBreakdown = Object.fromEntries(categories.map((category) => [category, 0])) as Record<CostCategory, number>;
   const missingCostItemIndexes: number[] = [];
   let salesNet = 0;
@@ -49,13 +52,22 @@ export function calculateQuotationFinancials(items: FinancialLineItem[]): Quotat
     costBreakdown[category] += effectiveCost;
   });
 
-  const profit = missingCostItemIndexes.length === 0 ? salesNet - totalCost : 0;
+  const projectDurationMonths = Math.max(1, toFiniteNumber(riskInputs.projectDurationMonths, 1));
+  const escalationVolatilityPercent = Math.max(0, toFiniteNumber(riskInputs.escalationVolatilityPercent));
+  const escalationPremium = missingCostItemIndexes.length === 0
+    ? roundMoney(totalCost * projectDurationMonths * escalationVolatilityPercent / 100)
+    : 0;
+  const riskAdjustedCost = totalCost + escalationPremium;
+  const riskAdjustedProfit = missingCostItemIndexes.length === 0 ? salesNet - riskAdjustedCost : 0;
   return {
     salesNet: roundMoney(salesNet),
-    totalCost: roundMoney(totalCost),
-    profit: roundMoney(profit),
-    margin: salesNet > 0 && missingCostItemIndexes.length === 0 ? roundMoney((profit / salesNet) * 100) : 0,
+    totalCost: roundMoney(riskAdjustedCost),
+    profit: roundMoney(riskAdjustedProfit),
+    margin: salesNet > 0 && missingCostItemIndexes.length === 0 ? roundMoney((riskAdjustedProfit / salesNet) * 100) : 0,
     missingCostItemIndexes,
     costBreakdown: Object.fromEntries(categories.map((category) => [category, roundMoney(costBreakdown[category])])) as Record<CostCategory, number>,
+    escalationPremium,
+    projectDurationMonths,
+    escalationVolatilityPercent,
   };
 }

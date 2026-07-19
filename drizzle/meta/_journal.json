@@ -43,6 +43,13 @@
       "when": 1784480634799,
       "tag": "0005_eminent_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784480827537,
+      "tag": "0006_wise_giant_man",
+      "breakpoints": true
     }
   ]
 }

@@ -68,6 +68,8 @@ export function CreateQuote() {
     date: new Date().toISOString().split('T')[0],
     expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     currency: Currency.TRY,
+    projectDurationMonths: 1,
+    escalationVolatilityPercent: 0,
     notes: '',
   });
 
@@ -508,6 +510,17 @@ export function CreateQuote() {
                     <div className="h-12 flex items-center px-4 bg-zinc-950 border border-zinc-800 rounded-lg text-sm font-bold text-zinc-400">
                       %20 (Standart)
                     </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Süre (Ay)</Label>
+                    <Input type="number" min="1" value={formData.projectDurationMonths} onChange={(e) => setFormData({...formData, projectDurationMonths: Math.max(1, Number(e.target.value) || 1)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aylık Volatilite %</Label>
+                    <Input type="number" min="0" step="0.1" value={formData.escalationVolatilityPercent} onChange={(e) => setFormData({...formData, escalationVolatilityPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                    <p className="text-[9px] leading-relaxed text-zinc-600">Şirket varsayımıdır; otomatik piyasa verisi değildir.</p>
                   </div>
                 </div>
               </CardContent>

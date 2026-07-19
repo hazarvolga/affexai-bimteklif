@@ -17,7 +17,10 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
 
       if (!quote) return res.status(404).json({ error: "Quotation not found" });
 
-      const analysis = await profitService.analyzeProfitability(items, quote.industryId || "residential", quote.currency);
+      const analysis = await profitService.analyzeProfitability(items, quote.industryId || "residential", quote.currency, {
+        projectDurationMonths: Number(quote.projectDurationMonths),
+        escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
+      });
 
       await db.insert(quotationFinancials).values({
         quotationId,

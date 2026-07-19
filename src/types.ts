@@ -82,6 +82,8 @@ export interface Quote {
   currency: Currency;
   notes?: string;
   status: QuoteStatus;
+  projectDurationMonths?: number;
+  escalationVolatilityPercent?: number;
   items: QuoteItem[];
   subtotal: number;
   discountTotal: number;
