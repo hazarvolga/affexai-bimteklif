@@ -1,57 +1,131 @@
-import { 
-  pgTable, 
-  text, 
-  timestamp, 
-  uuid, 
-  integer, 
-  numeric, 
-  pgEnum, 
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  integer,
   boolean,
-  primaryKey
+  numeric,
+  primaryKey,
+  foreignKey,
+  pgEnum,
+  index,
+  check,
+  bigint,
+  jsonb,
+  uniqueIndex,
+  unique
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import type { SourceEvidence } from "../smartcheck/schemas/source-evidence.schema";
+import type { StructuredCondition } from "../smartcheck/schemas/structured-condition.schema";
 
+// ─── GLOBAL ENUMS ───
 export const currencyEnum = pgEnum("currency", ["TRY", "USD", "EUR"]);
 export const quoteStatusEnum = pgEnum("quote_status", ["draft", "sent", "negotiation", "won", "lost", "archived"]);
 export const pipelineStageEnum = pgEnum("pipeline_stage", ["lead", "contacted", "quotation_sent", "negotiation", "won", "lost"]);
-export const impactLevelEnum = pgEnum("impact_level", ["low", "medium", "high"]);
+export const userRoleEnum = pgEnum("user_role", ["owner", "admin", "manager", "viewer"]);
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["starter", "pro", "elite", "enterprise"]);
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "canceled"]);
 export const activityTypeEnum = pgEnum("activity_type", ["call", "email", "meeting", "quotation_update", "stage_change", "note"]);
+export const impactLevelEnum = pgEnum("impact_level", ["low", "medium", "high"]);
 
-export const leads = pgTable("leads", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id").references(() => companies.id).notNull(),
-  name: text("name").notNull(),
-  contactPerson: text("contact_person"),
-  phone: text("phone"),
-  email: text("email"),
-  source: text("source").default("manual"), // manual, referral, website, etc.
-  notes: text("notes"),
-  status: text("status").default("active"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// ─── MODULE ENUMS ───
+export const documentStatusEnum = pgEnum("document_status", [
+  "uploaded",
+  "queued",
+  "processing",
+  "awaiting_review",
+  "completed",
+  "failed",
+  "cancelled",
+  "archived"
+]);
 
-export const deals = pgTable("deals", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id").references(() => companies.id).notNull(),
-  clientId: uuid("client_id").references(() => clients.id).notNull(),
-  quotationId: uuid("quotation_id").references(() => quotations.id),
-  name: text("name").notNull(),
-  stage: pipelineStageEnum("stage").default("lead").notNull(),
-  value: numeric("value", { precision: 20, scale: 2 }).default("0"),
-  probability: numeric("probability", { precision: 5, scale: 2 }).default("0"), // 0.00 to 1.00
-  expectedCloseDate: timestamp("expected_close_date"),
-  riskLevel: text("risk_level").default("low"), // low, medium, high
-  aiInsights: text("ai_insights"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const processingRunStatusEnum = pgEnum("processing_run_status", [
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled"
+]);
 
-export const activities = pgTable("activities", {
+export const processingStageEnum = pgEnum("processing_stage", [
+  "queued",
+  "parsing",
+  "extracting_rules",
+  "consolidating",
+  "preparing_review",
+  "completed",
+  "failed",
+  "cancelled"
+]);
+
+export const reviewSessionStatusEnum = pgEnum("review_session_status", [
+  "draft",
+  "submitted",
+  "in_progress",
+  "completed",
+  "cancelled",
+  "reopened"
+]);
+
+export const ruleCandidateStatusEnum = pgEnum("rule_candidate_status", [
+  "draft",
+  "in_review",
+  "approved",
+  "rejected",
+  "deferred",
+  "merged"
+]);
+
+export const ruleScopeEnum = pgEnum("rule_scope_type", ["company", "quotation"]);
+export const ruleStatusEnum = pgEnum("rule_status", ["draft", "active", "inactive", "archived"]);
+export const severityEnum = pgEnum("severity", ["low", "medium", "high", "critical"]);
+export const findingStatusEnum = pgEnum("finding_status", [
+  "open",
+  "in_progress",
+  "resolved",
+  "disputed",
+  "accepted_exception",
+  "rejected"
+]);
+
+export const resourceTypeEnum = pgEnum("resource_type", [
+  "inline_guide",
+  "checklist",
+  "example",
+  "document",
+  "image",
+  "video",
+  "external_link"
+]);
+
+export const errorCategoryEnum = pgEnum("error_category", [
+  "classification_code",
+  "quantity_unit",
+  "modeling_standard",
+  "missing_duplicate",
+  "pricing_margin"
+]);
+
+export const competencySignalStatusEnum = pgEnum("competency_signal_status", [
+  "observing",
+  "suggested",
+  "manager_confirmed",
+  "dismissed",
+  "resolved"
+]);
+
+// ─── TABLES ───
+
+export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  companyId: uuid("company_id").references(() => companies.id).notNull(),
-  dealId: uuid("deal_id").references(() => deals.id).notNull(),
-  userId: uuid("user_id").references(() => users.id),
-  type: activityTypeEnum("type").notNull(),
-  description: text("description").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash"),
+  fullName: text("full_name").notNull(),
+  emailVerified: timestamp("email_verified"),
+  verificationToken: text("verification_token"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -71,69 +145,16 @@ export const companies = pgTable("companies", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const industries = pgTable("industries", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  configJson: text("config_json").notNull(),
-  enabled: boolean("enabled").default(true).notNull(),
-});
-
-export const companyIndustrySettings = pgTable("company_industry_settings", {
-  companyId: uuid("company_id").references(() => companies.id).notNull(),
-  industryId: text("industry_id").references(() => industries.id).notNull(),
-  preferredModel: text("preferred_model").default("balanced"),
-  customRules: text("custom_rules"),
-  isEnabled: boolean("is_enabled").default(true).notNull(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.companyId, table.industryId] }),
-  };
-});
-
-export const quotationFinancials = pgTable("quotation_financials", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  quotationId: uuid("quotation_id").references(() => quotations.id).notNull().unique(),
-  totalCost: numeric("total_cost", { precision: 20, scale: 2 }).notNull(),
-  totalPrice: numeric("total_price", { precision: 20, scale: 2 }).notNull(),
-  profit: numeric("profit", { precision: 20, scale: 2 }).notNull(),
-  margin: numeric("margin", { precision: 5, scale: 2 }).notNull(),
-  riskScore: integer("risk_score").default(0).notNull(), // 0-100
-  riskLevel: text("risk_level").notNull(), // LOW, MEDIUM, HIGH
-  currencyExposure: text("currency_exposure"),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const costComponents = pgTable("cost_components", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  quotationId: uuid("quotation_id").references(() => quotations.id).notNull().unique(),
-  materialCost: numeric("material_cost", { precision: 20, scale: 2 }).default("0"),
-  laborCost: numeric("labor_cost", { precision: 20, scale: 2 }).default("0"),
-  logisticsCost: numeric("logistics_cost", { precision: 20, scale: 2 }).default("0"),
-  subcontractorCost: numeric("subcontractor_cost", { precision: 20, scale: 2 }).default("0"),
-  overheadCost: numeric("overhead_cost", { precision: 20, scale: 2 }).default("0"),
-});
-
-export const userRoleEnum = pgEnum("user_role", ["owner", "admin", "manager", "viewer"]);
-export const subscriptionPlanEnum = pgEnum("subscription_plan", ["starter", "pro", "elite", "enterprise"]);
-export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "canceled"]);
-
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  passwordHash: text("password_hash"), // Optional if using OAuth only, but required for Module 8
-  fullName: text("full_name").notNull(),
-  emailVerified: timestamp("email_verified"),
-  verificationToken: text("verification_token"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const memberships = pgTable("memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => users.id).notNull(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
   role: userRoleEnum("role").default("viewer").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    userCompanyUnique: unique("memberships_user_id_company_id_key").on(table.userId, table.companyId),
+  };
 });
 
 export const subscriptions = pgTable("subscriptions", {
@@ -141,27 +162,37 @@ export const subscriptions = pgTable("subscriptions", {
   companyId: uuid("company_id").references(() => companies.id).notNull().unique(),
   plan: subscriptionPlanEnum("plan").default("starter").notNull(),
   status: subscriptionStatusEnum("status").default("active").notNull(),
-  billingCycle: text("billing_cycle").default("monthly").notNull(), // monthly, yearly
+  billingCycle: text("billing_cycle").default("monthly").notNull(),
   currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 12. usage_logs (Kept in original order, lazy evaluation for FK to avoid TDZ & Drizzle TTY Prompt)
 export const usageLogs = pgTable("usage_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
   userId: uuid("user_id").references(() => users.id),
-  feature: text("feature").notNull(), // ai_request, pdf_generation, quotation_creation, crm_activity
+  feature: text("feature").notNull(),
   count: integer("count").default(1).notNull(),
   tokensUsed: integer("tokens_used"),
   costEstimate: numeric("cost_estimate", { precision: 10, scale: 5 }),
   date: timestamp("date").defaultNow().notNull(),
+  documentProcessingRunId: uuid("document_processing_run_id"),
+}, (table) => {
+  return {
+    processingRunFk: foreignKey({
+      columns: [table.documentProcessingRunId, table.companyId],
+      foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.companyId],
+    }).onDelete("no action"),
+    companyRunIdx: index("idx_usage_logs_processing_run").on(table.companyId, table.documentProcessingRunId),
+  };
 });
 
 export const usageAlerts = pgTable("usage_alerts", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
-  type: text("type").notNull(), // quota_80, quota_100, cost_spike
+  type: text("type").notNull(),
   message: text("message").notNull(),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -179,11 +210,24 @@ export const invitations = pgTable("invitations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const leads = pgTable("leads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  source: text("source"),
+  status: text("status").default("new").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const clients = pgTable("clients", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
   name: text("name").notNull(),
-  type: text("type", { enum: ["company", "person"] }).notNull(),
+  type: text("type").notNull(),
   phone: text("phone"),
   email: text("email"),
   address: text("address"),
@@ -209,16 +253,20 @@ export const quotations = pgTable("quotations", {
   vatTotal: numeric("vat_total", { precision: 20, scale: 2 }).notNull(),
   grandTotal: numeric("grand_total", { precision: 20, scale: 2 }).notNull(),
   revisionVersion: integer("revision_version").default(1).notNull(),
-  parentId: uuid("parent_id"), // Points to the first version (V1)
+  parentId: uuid("parent_id"),
   isLatest: boolean("is_latest").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyQuoteUnique: unique("quotations_id_company_id_key").on(table.id, table.companyId),
+  };
 });
 
 export const quotationItems = pgTable("quotation_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
-  quotationId: uuid("quotation_id").references(() => quotations.id).notNull(),
+  quotationId: uuid("quotation_id").notNull(),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
   quantity: numeric("quantity", { precision: 20, scale: 4 }).notNull(),
@@ -226,6 +274,15 @@ export const quotationItems = pgTable("quotation_items", {
   discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }).default("20").notNull(),
   total: numeric("total", { precision: 20, scale: 2 }).notNull(),
+}, (table) => {
+  return {
+    companyItemUnique: unique("quotation_items_id_company_id_key").on(table.id, table.companyId),
+    companyQuoteItemUnique: unique("quotation_items_id_quotation_id_company_id_key").on(table.id, table.quotationId, table.companyId),
+    quotationFk: foreignKey({
+      columns: [table.quotationId, table.companyId],
+      foreignColumns: [quotations.id, quotations.companyId],
+    }).onDelete("no action"),
+  };
 });
 
 export const regulationAlerts = pgTable("regulation_alerts", {
@@ -237,4 +294,457 @@ export const regulationAlerts = pgTable("regulation_alerts", {
   summary: text("summary").notNull(),
   affectedModules: text("affected_modules").array(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const industries = pgTable("industries", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  configJson: text("config_json").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+});
+
+export const companyIndustrySettings = pgTable("company_industry_settings", {
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  industryId: text("industry_id").references(() => industries.id).notNull(),
+  preferredModel: text("preferred_model").default("balanced"),
+  customRules: text("custom_rules"),
+  isEnabled: boolean("is_enabled").default(true).notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.companyId, table.industryId] }),
+  };
+});
+
+export const deals = pgTable("deals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  clientId: uuid("client_id").references(() => clients.id).notNull(),
+  quotationId: uuid("quotation_id").references(() => quotations.id),
+  name: text("name").notNull(),
+  stage: pipelineStageEnum("stage").default("lead").notNull(),
+  value: numeric("value", { precision: 20, scale: 2 }).default("0"),
+  probability: numeric("probability", { precision: 5, scale: 2 }).default("0"),
+  expectedCloseDate: timestamp("expected_close_date"),
+  riskLevel: text("risk_level").default("low"),
+  aiInsights: text("ai_insights"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const activities = pgTable("activities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  dealId: uuid("deal_id").references(() => deals.id).notNull(),
+  userId: uuid("user_id").references(() => users.id),
+  type: activityTypeEnum("type").notNull(),
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const costComponents = pgTable("cost_components", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  quotationId: uuid("quotation_id").references(() => quotations.id).notNull().unique(),
+  materialCost: numeric("material_cost", { precision: 20, scale: 2 }).default("0"),
+  laborCost: numeric("labor_cost", { precision: 20, scale: 2 }).default("0"),
+  logisticsCost: numeric("logistics_cost", { precision: 20, scale: 2 }).default("0"),
+  subcontractorCost: numeric("subcontractor_cost", { precision: 20, scale: 2 }).default("0"),
+  overheadCost: numeric("overhead_cost", { precision: 20, scale: 2 }).default("0"),
+});
+
+export const quotationFinancials = pgTable("quotation_financials", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  quotationId: uuid("quotation_id").references(() => quotations.id).notNull().unique(),
+  totalCost: numeric("total_cost", { precision: 20, scale: 2 }).notNull(),
+  totalPrice: numeric("total_price", { precision: 20, scale: 2 }).notNull(),
+  profit: numeric("profit", { precision: 20, scale: 2 }).notNull(),
+  margin: numeric("margin", { precision: 5, scale: 2 }).notNull(),
+  riskScore: integer("risk_score").default(0).notNull(),
+  riskLevel: text("risk_level").notNull(),
+  currencyExposure: text("currency_exposure"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// SMARTCHECK PHASE 1
+// ============================================================
+
+export const documents = pgTable("documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  originalFileName: text("original_file_name").notNull(),
+  displayName: text("display_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  fileSizeBytes: bigint("file_size_bytes", { mode: "number" }).notNull(),
+  storageKey: text("storage_key").notNull(),
+  checksumSha256: text("checksum_sha256").notNull(),
+  status: documentStatusEnum("status").default("uploaded").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+}, (table) => {
+  return {
+    companyDocUnique: unique("documents_id_company_id_key").on(table.id, table.companyId),
+    uploadedByFk: foreignKey({
+      columns: [table.uploadedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxCompanyStatus: index("idx_documents_company_status").on(table.companyId, table.status),
+    fileSizeCheck: check("documents_file_size_bytes_check", sql`${table.fileSizeBytes} > 0`),
+    archiveConsistencyCheck: check(
+      "documents_archive_consistency_check",
+      sql`(${table.status} = 'archived' AND ${table.archivedAt} IS NOT NULL) OR (${table.status} != 'archived' AND ${table.archivedAt} IS NULL)`
+    ),
+  };
+});
+
+export const documentProcessingRuns = pgTable("document_processing_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  documentId: uuid("document_id").notNull(),
+  status: processingRunStatusEnum("status").default("queued").notNull(),
+  currentStage: processingStageEnum("current_stage").default("queued").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  pipelineVersion: integer("pipeline_version").default(1).notNull(),
+  provider: text("provider"),
+  model: text("model"),
+  progressPercent: integer("progress_percent").default(0).notNull(),
+  progressMessage: text("progress_message"),
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyRunUnique: unique("document_processing_runs_id_company_id_key").on(table.id, table.companyId),
+    companyDocIdUnique: unique("document_processing_runs_id_document_id_company_id_key").on(table.id, table.documentId, table.companyId),
+    companyIdempotencyUnique: unique("document_processing_runs_company_id_document_id_idem_key").on(table.companyId, table.documentId, table.idempotencyKey),
+    documentFk: foreignKey({
+      columns: [table.documentId, table.companyId],
+      foreignColumns: [documents.id, documents.companyId],
+    }).onDelete("no action"),
+    idxRunsLookup: index("idx_processing_runs_lookup").on(table.companyId, table.documentId, table.status),
+    pipelineVersionCheck: check("document_processing_runs_pipeline_version_check", sql`${table.pipelineVersion} > 0`),
+    progressPercentCheck: check("document_processing_runs_progress_percent_check", sql`${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100`),
+  };
+});
+
+export const ruleCandidates = pgTable("rule_candidates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  documentId: uuid("document_id").notNull(),
+  processingRunId: uuid("processing_run_id").notNull(),
+  quotationId: uuid("quotation_id"),
+  ruleCode: text("rule_code").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  originalTextEvidence: text("original_text_evidence").notNull(),
+  severity: severityEnum("severity").notNull(),
+  errorCategory: errorCategoryEnum("error_category").notNull(),
+  competencyArea: text("competency_area").notNull(),
+  suggestedAction: text("suggested_action").notNull(),
+  confidenceScore: numeric("confidence_score", { precision: 3, scale: 2 }).notNull(),
+  sourceEvidenceJson: jsonb("source_evidence_json").$type<SourceEvidence>().notNull(),
+  status: ruleCandidateStatusEnum("status").default("draft").notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewerNotes: text("reviewer_notes"),
+  rejectionReason: text("rejection_reason"),
+  deferredUntil: timestamp("deferred_until", { withTimezone: true }),
+  isSystemRule: boolean("is_system_rule").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyCandidateUnique: unique("rule_candidates_id_company_id_key").on(table.id, table.companyId),
+    documentFk: foreignKey({
+      columns: [table.documentId, table.companyId],
+      foreignColumns: [documents.id, documents.companyId],
+    }).onDelete("no action"),
+    processingRunFk: foreignKey({
+      columns: [table.processingRunId, table.documentId, table.companyId],
+      foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId],
+    }).onDelete("no action"),
+    quotationFk: foreignKey({
+      columns: [table.quotationId, table.companyId],
+      foreignColumns: [quotations.id, quotations.companyId],
+    }).onDelete("no action"),
+    reviewerFk: foreignKey({
+      columns: [table.reviewedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxCandidatesLookup: index("idx_rule_candidates_lookup").on(table.companyId, table.documentId, table.status),
+    confidenceCheck: check("rule_candidates_confidence_check", sql`${table.confidenceScore} >= 0.00 AND ${table.confidenceScore} <= 1.00`),
+  };
+});
+
+export const ruleRegistry = pgTable("rule_registry", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  ruleCode: text("rule_code").notNull(),
+  scope: ruleScopeEnum("scope").notNull(),
+  quotationId: uuid("quotation_id"),
+  status: ruleStatusEnum("status").default("draft").notNull(),
+  currentVersion: integer("current_version").default(1).notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  approvedByUserId: uuid("approved_by_user_id"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
+  deactivationReason: text("deactivation_reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyRuleUnique: unique("rule_registry_id_company_id_key").on(table.id, table.companyId),
+    quotationFk: foreignKey({
+      columns: [table.quotationId, table.companyId],
+      foreignColumns: [quotations.id, quotations.companyId],
+    }).onDelete("no action"),
+    creatorFk: foreignKey({
+      columns: [table.createdByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    approverFk: foreignKey({
+      columns: [table.approvedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxRuleLookup: index("idx_rule_registry_lookup").on(table.companyId, table.status),
+    currentVersionCheck: check("rule_registry_current_version_check", sql`${table.currentVersion} > 0`),
+    scopeConsistencyCheck: check(
+      "rule_registry_scope_consistency_check",
+      sql`(${table.scope} = 'quotation' AND ${table.quotationId} IS NOT NULL) OR (${table.scope} = 'company' AND ${table.quotationId} IS NULL)`
+    ),
+  };
+});
+
+export const ruleVersions = pgTable("rule_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  ruleId: uuid("rule_id").notNull(),
+  version: integer("version").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  severity: severityEnum("severity").notNull(),
+  errorCategory: errorCategoryEnum("error_category").notNull(),
+  competencyArea: text("competency_area").notNull(),
+  suggestedAction: text("suggested_action").notNull(),
+  canonicalStatement: text("canonical_statement").notNull(),
+  structuredConditionJson: jsonb("structured_condition_json").$type<StructuredCondition>().notNull(),
+  sourceEvidenceJson: jsonb("source_evidence_json").$type<SourceEvidence[]>().notNull(),
+  sourceCandidateId: uuid("source_candidate_id"),
+  changeLog: text("change_log"),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyRuleVersionUnique: unique("rule_versions_company_id_rule_id_version_key").on(table.companyId, table.ruleId, table.version),
+    ruleFk: foreignKey({
+      columns: [table.ruleId, table.companyId],
+      foreignColumns: [ruleRegistry.id, ruleRegistry.companyId],
+    }).onDelete("restrict"),
+    candidateFk: foreignKey({
+      columns: [table.sourceCandidateId, table.companyId],
+      foreignColumns: [ruleCandidates.id, ruleCandidates.companyId],
+    }).onDelete("no action"),
+    creatorFk: foreignKey({
+      columns: [table.createdByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxRuleVersionsLookup: index("idx_rule_versions_lookup").on(table.companyId, table.ruleId, table.version),
+    candidateUniqueIndex: uniqueIndex("rule_versions_unique_candidate_idx")
+      .on(table.companyId, table.sourceCandidateId)
+      .where(sql`${table.sourceCandidateId} IS NOT NULL`),
+    versionCheck: check("rule_versions_version_check", sql`${table.version} > 0`),
+  };
+});
+
+export const reviewSessions = pgTable("review_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  quotationId: uuid("quotation_id").notNull(),
+  status: reviewSessionStatusEnum("status").default("draft").notNull(),
+  assignedToUserId: uuid("assigned_to_user_id"),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  totalFindingsCount: integer("total_findings_count").default(0).notNull(),
+  openFindingsCount: integer("open_findings_count").default(0).notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companySessionUnique: unique("review_sessions_id_company_id_key").on(table.id, table.companyId),
+    companyQuoteSessionUnique: unique("review_sessions_id_quotation_id_company_id_key").on(table.id, table.quotationId, table.companyId),
+    quotationFk: foreignKey({
+      columns: [table.quotationId, table.companyId],
+      foreignColumns: [quotations.id, quotations.companyId],
+    }).onDelete("no action"),
+    assigneeFk: foreignKey({
+      columns: [table.assignedToUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    creatorFk: foreignKey({
+      columns: [table.createdByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxReviewSessions: index("idx_review_sessions_lookup").on(table.companyId, table.quotationId, table.status),
+    idxReviewSessionsAssignee: index("idx_review_sessions_assignee").on(table.companyId, table.assignedToUserId, table.status),
+    totalFindingsCheck: check("review_sessions_total_findings_check", sql`${table.totalFindingsCount} >= 0`),
+    openFindingsCheck: check("review_sessions_open_findings_check", sql`${table.openFindingsCount} >= 0`),
+  };
+});
+
+export const reviewFindings = pgTable("review_findings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  reviewSessionId: uuid("review_session_id").notNull(),
+  quotationId: uuid("quotation_id").notNull(),
+  quotationItemId: uuid("quotation_item_id").notNull(),
+  ruleId: uuid("rule_id"),
+  reportedByUserId: uuid("reported_by_user_id").notNull(),
+  errorCategory: errorCategoryEnum("error_category").notNull(),
+  severity: severityEnum("severity").notNull(),
+  details: text("details").notNull(),
+  originalValue: text("original_value").notNull(),
+  correctedValue: text("corrected_value"),
+  status: findingStatusEnum("status").default("open").notNull(),
+  resolvedByUserId: uuid("resolved_by_user_id"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyFindingUnique: unique("review_findings_id_company_id_key").on(table.id, table.companyId),
+    sessionFk: foreignKey({
+      columns: [table.reviewSessionId, table.quotationId, table.companyId],
+      foreignColumns: [reviewSessions.id, reviewSessions.quotationId, reviewSessions.companyId],
+    }).onDelete("no action"),
+    quotationItemFk: foreignKey({
+      columns: [table.quotationItemId, table.quotationId, table.companyId],
+      foreignColumns: [quotationItems.id, quotationItems.quotationId, quotationItems.companyId],
+    }).onDelete("no action"),
+    ruleFk: foreignKey({
+      columns: [table.ruleId, table.companyId],
+      foreignColumns: [ruleRegistry.id, ruleRegistry.companyId],
+    }).onDelete("no action"),
+    reporterFk: foreignKey({
+      columns: [table.reportedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    resolverFk: foreignKey({
+      columns: [table.resolvedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxFindingsLookup: index("idx_review_findings_lookup").on(table.companyId, table.reviewSessionId),
+  };
+});
+
+export const competencySignals = pgTable("competency_signals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  userId: uuid("user_id").notNull(),
+  ruleId: uuid("rule_id"),
+  errorCategory: errorCategoryEnum("error_category").notNull(),
+  competencyArea: text("competency_area").notNull(),
+  evidenceCount: integer("evidence_count").default(1).notNull(),
+  distinctQuotationCount: integer("distinct_quotation_count").default(1).notNull(),
+  distinctReviewRoundCount: integer("distinct_review_round_count").default(1).notNull(),
+  signalFingerprint: text("signal_fingerprint").notNull(),
+  firstObservedAt: timestamp("first_observed_at", { withTimezone: true }).defaultNow().notNull(),
+  lastObservedAt: timestamp("last_observed_at", { withTimezone: true }).defaultNow().notNull(),
+  status: competencySignalStatusEnum("status").default("observing").notNull(),
+  managerReviewedByUserId: uuid("manager_reviewed_by_user_id"),
+  managerReviewedAt: timestamp("manager_reviewed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companySignalUnique: unique("competency_signals_id_company_id_key").on(table.id, table.companyId),
+    companyUserSignalUnique: unique("competency_signals_id_user_id_company_id_key").on(table.id, table.userId, table.companyId),
+    fingerprintUnique: unique("competency_signals_fingerprint_key").on(table.companyId, table.userId, table.signalFingerprint),
+    ruleFk: foreignKey({
+      columns: [table.ruleId, table.companyId],
+      foreignColumns: [ruleRegistry.id, ruleRegistry.companyId],
+    }).onDelete("no action"),
+    userFk: foreignKey({
+      columns: [table.userId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    managerFk: foreignKey({
+      columns: [table.managerReviewedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxSignalsUser: index("idx_competency_signals_user").on(table.companyId, table.userId, table.status),
+    evidenceCountCheck: check("competency_signals_evidence_count_check", sql`${table.evidenceCount} >= 0`),
+    distinctQuotationCheck: check("competency_signals_distinct_quotation_count_check", sql`${table.distinctQuotationCount} >= 0`),
+    distinctReviewRoundCheck: check("competency_signals_distinct_review_round_count_check", sql`${table.distinctReviewRoundCount} >= 0`),
+  };
+});
+
+export const competencySignalEvidence = pgTable("competency_signal_evidence", {
+  companyId: uuid("company_id").notNull(),
+  competencySignalId: uuid("competency_signal_id").notNull(),
+  reviewFindingId: uuid("review_finding_id").notNull(),
+  observedUserId: uuid("observed_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.companyId, table.competencySignalId, table.reviewFindingId] }),
+    signalUserFk: foreignKey({
+      columns: [table.competencySignalId, table.observedUserId, table.companyId],
+      foreignColumns: [competencySignals.id, competencySignals.userId, competencySignals.companyId],
+    }).onDelete("restrict"),
+    findingFk: foreignKey({
+      columns: [table.reviewFindingId, table.companyId],
+      foreignColumns: [reviewFindings.id, reviewFindings.companyId],
+    }).onDelete("restrict"),
+  };
+});
+
+export const assistanceResources = pgTable("assistance_resources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  title: text("title").notNull(),
+  resourceType: resourceTypeEnum("resource_type").notNull(),
+  estimatedDurationSeconds: integer("estimated_duration_seconds").default(180).notNull(),
+  errorCategory: errorCategoryEnum("error_category").notNull(),
+  competencyArea: text("competency_area").notNull(),
+  contentBody: text("content_body"),
+  externalUrl: text("external_url"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    companyResourceUnique: unique("assistance_resources_id_company_id_key").on(table.id, table.companyId),
+    creatorFk: foreignKey({
+      columns: [table.createdByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    idxResourcesActive: index("idx_assistance_resources_active").on(table.companyId, table.isActive),
+    durationCheck: check("assistance_resources_estimated_duration_seconds_check", sql`${table.estimatedDurationSeconds} >= 0`),
+    contentOrUrlCheck: check("assistance_resources_content_or_url_check", sql`${table.contentBody} IS NOT NULL OR ${table.externalUrl} IS NOT NULL`),
+  };
+});
+
+export const ruleAssistanceResources = pgTable("rule_assistance_resources", {
+  ruleId: uuid("rule_id").notNull(),
+  assistanceResourceId: uuid("assistance_resource_id").notNull(),
+  companyId: uuid("company_id").notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.ruleId, table.assistanceResourceId, table.companyId] }),
+    ruleFk: foreignKey({
+      columns: [table.ruleId, table.companyId],
+      foreignColumns: [ruleRegistry.id, ruleRegistry.companyId],
+    }).onDelete("cascade"),
+    resourceFk: foreignKey({
+      columns: [table.assistanceResourceId, table.companyId],
+      foreignColumns: [assistanceResources.id, assistanceResources.companyId],
+    }).onDelete("cascade"),
+  };
 });
