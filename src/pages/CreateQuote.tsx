@@ -72,6 +72,8 @@ export function CreateQuote() {
     escalationVolatilityPercent: 0,
     procurementProfile: 'standard' as 'standard' | 'low_carbon' | 'high_carbon_risk',
     carbonRiskPremiumPercent: 0,
+    informationDeliveryLevel: 'none' as 'none' | 'as_built' | 'cobie' | 'digital_twin',
+    informationDeliveryCostPercent: 0,
     notes: '',
   });
 
@@ -512,6 +514,25 @@ export function CreateQuote() {
                     <div className="h-12 flex items-center px-4 bg-zinc-950 border border-zinc-800 rounded-lg text-sm font-bold text-zinc-400">
                       %20 (Standart)
                     </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Bilgi Teslimi</Label>
+                    <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})}>
+                      <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                        <SelectItem value="none" className="text-xs font-bold">Kapsam yok</SelectItem>
+                        <SelectItem value="as_built" className="text-xs font-bold">As-built teslim</SelectItem>
+                        <SelectItem value="cobie" className="text-xs font-bold">COBie veri teslimi</SelectItem>
+                        <SelectItem value="digital_twin" className="text-xs font-bold">Dijital ikiz hazırlığı</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Teslim Maliyeti %</Label>
+                    <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                    <p className="text-[9px] leading-relaxed text-zinc-600">Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

@@ -21,6 +21,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
         projectDurationMonths: Number(quote.projectDurationMonths),
         escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
         carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
+        informationDeliveryCostPercent: Number(quote.informationDeliveryCostPercent),
       });
 
       await db.insert(quotationFinancials).values({

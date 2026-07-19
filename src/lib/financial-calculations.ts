@@ -23,11 +23,13 @@ export interface QuotationFinancialCalculation {
   escalationVolatilityPercent: number;
   carbonRiskPremium: number;
   carbonRiskPremiumPercent: number;
+  informationDeliveryCostPremium: number;
+  informationDeliveryCostPercent: number;
 }
 
 const categories: CostCategory[] = ['material', 'labor', 'logistics', 'subcontractor', 'overhead'];
 
-export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number } = {}): QuotationFinancialCalculation {
+export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}): QuotationFinancialCalculation {
   const costBreakdown = Object.fromEntries(categories.map((category) => [category, 0])) as Record<CostCategory, number>;
   const missingCostItemIndexes: number[] = [];
   let salesNet = 0;
@@ -63,7 +65,11 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
   const carbonRiskPremium = missingCostItemIndexes.length === 0
     ? roundMoney(totalCost * carbonRiskPremiumPercent / 100)
     : 0;
-  const riskAdjustedCost = totalCost + escalationPremium + carbonRiskPremium;
+  const informationDeliveryCostPercent = Math.max(0, toFiniteNumber(riskInputs.informationDeliveryCostPercent));
+  const informationDeliveryCostPremium = missingCostItemIndexes.length === 0
+    ? roundMoney(totalCost * informationDeliveryCostPercent / 100)
+    : 0;
+  const riskAdjustedCost = totalCost + escalationPremium + carbonRiskPremium + informationDeliveryCostPremium;
   const riskAdjustedProfit = missingCostItemIndexes.length === 0 ? salesNet - riskAdjustedCost : 0;
   return {
     salesNet: roundMoney(salesNet),
@@ -77,5 +83,7 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
     escalationVolatilityPercent,
     carbonRiskPremium,
     carbonRiskPremiumPercent,
+    informationDeliveryCostPremium,
+    informationDeliveryCostPercent,
   };
 }

@@ -86,6 +86,8 @@ export interface Quote {
   escalationVolatilityPercent?: number;
   procurementProfile?: 'standard' | 'low_carbon' | 'high_carbon_risk';
   carbonRiskPremiumPercent?: number;
+  informationDeliveryLevel?: 'none' | 'as_built' | 'cobie' | 'digital_twin';
+  informationDeliveryCostPercent?: number;
   items: QuoteItem[];
   subtotal: number;
   discountTotal: number;

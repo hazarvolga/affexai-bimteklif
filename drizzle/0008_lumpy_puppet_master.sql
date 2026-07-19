@@ -1,0 +1,2 @@
+ALTER TABLE "quotations" ADD COLUMN "information_delivery_level" text DEFAULT 'none' NOT NULL;--> statement-breakpoint
+ALTER TABLE "quotations" ADD COLUMN "information_delivery_cost_percent" numeric(5, 2) DEFAULT '0' NOT NULL;

@@ -312,7 +312,7 @@ export function QuoteDetail() {
                  <div>
                     <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Süre / Durum</p>
                     <div className="mt-1">
-                      <span className="text-xs font-mono text-zinc-300">{data.projectDurationMonths || 1} ay · %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} eskalasyon · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} karbon primi</span>
+                      <span className="text-xs font-mono text-zinc-300">{data.projectDurationMonths || 1} ay · %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} eskalasyon · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} karbon · {data.informationDeliveryLevel || 'none'} teslim</span>
                       <div className="mt-1"><StatusBadge status={data.status} /></div>
                     </div>
                  </div>
@@ -409,6 +409,8 @@ export function QuoteDetail() {
                        <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.escalationPremium || 0).toLocaleString('tr-TR')} {data.currency} · {data.projectDurationMonths || 1} ay × %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')}</p>
                        <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-emerald-500">Karbon/Tedarik Risk Primi</p>
                        <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.carbonRiskPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} senaryo katsayısı</p>
+                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-blue-400">Bilgi Teslim Maliyeti</p>
+                       <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.informationDeliveryCostPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.informationDeliveryCostPercent || 0).toLocaleString('tr-TR')} kapsam katsayısı</p>
                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Maliyet Bazlı Fiyat Aralıkları</p>
                        <div className="space-y-2.5">
                           {(financials.financials.costStatus || financials.financials.costDataStatus) !== 'complete' ? <p className="text-xs text-zinc-600">Maliyet verisi tamamlandığında gösterilecek.</p> : null}

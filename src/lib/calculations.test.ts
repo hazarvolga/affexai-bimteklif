@@ -91,6 +91,13 @@ describe("real quotation financials", () => {
     assert.equal(result.totalCost, 104);
     assert.equal(result.profit, 96);
   });
+
+  it("prices information delivery as an explicit scope cost", () => {
+    const result = calculateQuotationFinancials([{ quantity: 1, unitPrice: 200, costUnitPrice: 100 }], { informationDeliveryCostPercent: 2 });
+    assert.equal(result.informationDeliveryCostPremium, 2);
+    assert.equal(result.totalCost, 102);
+    assert.equal(result.profit, 98);
+  });
 });
 
 describe("quotation source audit", () => {
