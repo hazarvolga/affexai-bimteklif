@@ -41,13 +41,13 @@ export const EvaluationManifestSchema = z.object({
     file: z.string().min(1),
     mimeType: z.string().min(1),
     language: z.array(z.string()).min(1)
-  }),
+  }).strict(),
   expectation: z.object({
     outcome: ManifestExpectationOutcomeSchema,
     expectedRuleCount: z.number().int().nonnegative()
-  }),
+  }).strict(),
   tags: z.array(z.string())
-});
+}).strict();
 
 export type EvaluationManifest = z.infer<typeof EvaluationManifestSchema>;
 
@@ -95,8 +95,8 @@ export const CandidateProviderSuccessSchema = z.object({
   usage: z.object({
     durationMs: z.number().nonnegative().optional(),
     estimatedCostUsd: z.number().nonnegative().optional()
-  }).optional()
-});
+  }).strict().optional()
+}).strict();
 
 export const CandidateProviderFailureSchema = z.object({
   status: z.enum([
@@ -107,7 +107,7 @@ export const CandidateProviderFailureSchema = z.object({
   ]),
   errorCode: z.string().optional(),
   safeMessage: z.string().optional()
-});
+}).strict();
 
 export const CandidateProviderResultSchema = z.discriminatedUnion('status', [
   CandidateProviderSuccessSchema,
@@ -118,7 +118,11 @@ export type CandidateProviderResult = z.infer<typeof CandidateProviderResultSche
 
 export interface EvaluationFixture {
   manifest: EvaluationManifest;
+  expectedRules: ExpectedRule[];
+  fixtureRoot: string;
+  caseDirectory: string;
   manifestPath: string;
+  inputPath: string;
   expectedRulesPath: string;
   candidateOutputPath: string;
 }
