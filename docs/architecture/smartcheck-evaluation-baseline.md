@@ -1,6 +1,6 @@
 # SmartCheck Evaluation Baseline
 
-**Design Status: Approved v1.2 — Ready for core implementation**
+**Design Status: Approved v1.3 — Core implementation completed**
 
 Bu belge, SmartCheck Faz 1 kapsamında geliştirilecek olan deterministik değerlendirme altyapısının (Evaluation Harness) mimari tasarımını, veri yapılarını, metrik tanımlarını ve doğrulama mantığını açıklar.
 
@@ -225,7 +225,7 @@ export interface CandidateProvider {
 ```
 
 ### İlk Sağlayıcı: `FixtureCandidateProvider`
-Bu milestone kapsamında geliştirilecek tek sağlayıcıdır. `candidate-output.json` dosyasını diskten okup doğrudan `CandidateProviderResult` formatında döner.
+FixtureCandidateProvider, sonraki Fixture Infrastructure diliminde geliştirilecek ilk provider adapter’ıdır. Evaluation Core implementasyonuna dahil değildir.
 
 ---
 
@@ -242,11 +242,26 @@ Eşleştirme öncesinde kritik alanlara şu normalizasyon adımları uygulanır:
 5.  **Birim Standardizasyonu:** Birimler ortak kısaltmalara eşlenir (örn: "adet", "pcs", "tane" -> "pcs").
 
 ### B. Fingerprint Üretimi
-Her kural için aşağıdaki alanların birleşiminden benzersiz bir **Fingerprint** (SHA-256) üretilir. Nullable olan alanlar için kararlı bir sentinel değer olan `"<null>"` kullanılır:
+Her kural için aşağıdaki ordered JSON tuple array preimage yapısının SHA-256 hash'i alınarak benzersiz bir **Fingerprint** üretilir:
 
-$$\text{Fingerprint} = \text{SHA256}(\text{discipline} \mid \text{objectType} \mid \text{parameter} \mid \text{operator} \mid \text{expectedValue} \mid \text{scopeType} \mid \text{errorCategory} \mid \text{canonicalStatementNormalized})$$
+```typescript
+const fingerprintPayload = [
+  normalizedDiscipline,
+  normalizedObjectType,
+  normalizedParameter,
+  normalizedOperator,
+  normalizedExpectedValue,
+  normalizedScopeType,
+  normalizedErrorCategory,
+  normalizedCanonicalStatement
+] as const;
 
-*Not: Kural başlığı (`title`) fingerprint üretimine dahil edilmez.*
+const fingerprintPreimage = JSON.stringify(fingerprintPayload);
+```
+
+Fingerprint serialization sırasında nullable alanlar JSON `null` olarak korunur. Boş string ve literal metin değerleri null ile birleştirilmez.
+
+*Not: Kural başlığı (`title`) fingerprint preimage'ına dahil edilmez.*
 
 ### C. Sıralama ve Eşleşme Mantığı
 Determinizmi ve tekrarlanabilirliği garantilemek adına matching öncesinde candidate listesi şu alanlara göre stabil biçimde sıralanır:
@@ -288,7 +303,8 @@ Metrikler, deterministik kalite metrikleri ve çalışmaya özgü metadata alanl
 - `schemaValidCandidateCount`: safeParse sonucu başarılı olan aday sayısı.
 - `schemaInvalidCandidateCount`: safeParse sonucu başarısız olan aday sayısı.
 - `schemaValidityRate`: $\frac{\text{schemaValidCandidateCount}}{\text{candidateRuleCount}}$ (Eğer candidateRuleCount = 0 ise, schemaValidityRate = 1.0)
-- `evidenceExactMatchRate`: Kanıt lokasyon doğruluk oranı. (En az bir matched rule ve expected evidence varsa 0.0 - 1.0 arası değer, matched rule veya expected evidence yoksa ya da no_rules durumunda null).
+- `evidenceExactMatchRate`: Kanıt lokasyon doğruluk oranı. Matched rule sayısı = 0 ise `null` değerini alır. Matched rule sayısı > 0 olduğunda expected kural kanıt listesi şema gereği en az 1 kayıt taşıyacağından, 0.0 - 1.0 arasında hesaplanır. Boş expected evidence listesi şema doğrulama hatası (schema validation failure) üretir.
+
 
 #### 2. Run Metadata (Deterministik Değerlendirmeyi Etkilemeyenler)
 - `runId`
@@ -465,6 +481,7 @@ Değerlendirme sonucunda disk üzerinde aşağıdaki yapıda çıktılar üretil
 ### A. Quality Gate Kriterleri
 *   Expected rule ID'leri fixture içinde unique olmalıdır.
 *   Expected fingerprint'leri fixture içinde benzersiz olmalıdır.
+*   Candidate ID değerleri bir fixture case içinde unique olmalıdır. Duplicate candidateId, fixture/provider validation hatasıdır.
 *   Manifest count ile expected-rules liste uzunluğu birebir eşit olmalıdır.
 *   Tüm candidate raw girdileri safeParse edilmeli, invalid olanlar crash etmeden diagnostic olarak sayılmalıdır.
 *   `falsePositive = duplicateCount + hallucinationCount` invariant eşitliği her durumda korunmalıdır.
@@ -476,11 +493,63 @@ Değerlendirme sonucunda disk üzerinde aşağıdaki yapıda çıktılar üretil
 Tüm harness mantığı aşağıdaki 7 test dosyası üzerinden tamamen mock ve veri izole olarak test edilecektir:
 
 1.  `normalize.test.ts`: Türkçe `I/İ/ı/i` case folding, Unicode NFC normalizasyonu, unit standardizasyonu ve sayısal normalizasyon testleri.
-2.  `matcher.test.ts`: Null fingerprints sentinel (`<null>`) davranışı, candidate sıralama bağımsızlığı, expected fingerprint ambiguity tespiti.
+2.  `matcher.test.ts`: Ordered JSON tuple serialization (JSON null, boş string, literal "<null>", pipe karakteri içeren metin, alan sırası değişikliği, stabil SHA-256 sonucu), candidate sıralama bağımsızlığı, expected fingerprint ambiguity tespiti.
 3.  `metrics.test.ts`: $TP, FP, FN$ ve precision/recall/f1 hesaplama motorunun sınır durumları ile sıfıra bölme testleri. Aşağıdaki senaryolar test edilmelidir:
     *   `expected = 0, candidates = 0` -> schemaValidityRate = 1, precision = 1, recall = 1, f1 = 1
     *   `expected > 0, candidates = 0` -> schemaValidityRate = 1, precision = 1, recall = 0, f1 = 0
-4.  `evidence-metrics.test.ts`: One-to-one evidence matching, lokasyon anahtarları doğruluğu ve match rate hesaplamaları (matched rule veya expected evidence olmadığında rate = null testi dahil).
+4.  `evidence-metrics.test.ts`: One-to-one evidence matching, lokasyon anahtarları doğruluğu ve match rate hesaplamaları (matched rule olmadığında rate = null testi dahil).
 5.  `fixture-loader.test.ts`: Path traversal engelleme, symlink dışı kalma kontrolü, duplicate case ID tespiti, manifest ile expected-rules adet eşleşmesi.
 6.  `evaluator.test.ts`: `FixtureCandidateProvider` yardımıyla tüm pipeline'ın mock çalıştırılması ve kalite kapısı kontrolleri.
 7.  `provider-result.test.ts`: Provider discriminated union sonuç formatı, robustness çıktılarının loader eşleşme testleri.
+
+---
+
+## 13. Core Geliştirme ve v1.3 Revizyonu (Uygulama ve İyileştirmeler)
+
+Core Geliştirme Dilimi kapsamında `feat/smartcheck-evaluation-baseline` branch'inde (commit `a8fd6de35dc69339f602223311ee78c12dd4fadd`) gerçekleştirilen tüm teknik tasarım revizyonları, veri yapıları ve doğrulamalar aşağıda ayrıntılı olarak kayıt altına alınmıştır.
+
+### A. Çakışmaya Dayanıklı Fingerprint (JSON Tuple Preimage)
+Eski tasarımdaki pipe (`|`) ayraçlı birleşim yöntemi, kural alanlarında doğal olarak `|` bulunması durumunda çakışma (collision) ve yanlış eşleşme riski taşıdığı için iptal edilmiştir. Yerine **Ordered JSON Tuple Preimage** tasarımı uygulanmıştır.
+*   **Payload Yapısı:**
+    ```typescript
+    const fingerprintPayload = [
+      normalizedDiscipline,          // string
+      normalizedObjectType,          // string | null
+      normalizedParameter,           // string | null
+      normalizedOperator,            // string | null
+      normalizedExpectedValue,       // string | null
+      normalizedScopeType,           // string
+      normalizedErrorCategory,       // string
+      normalizedCanonicalStatement   // string
+    ] as const;
+    ```
+*   **JSON Serialization ve Null Koruması:** Serialization adımlarında nullable alanlar kesinlikle literal `"<null>"` string'ine çevrilmez, doğrudan JSON `null` değeri olarak korunur. Böylece veri kümesindeki şu üç kritik durum çakışmasız biçimde hashlenir:
+    1.  `null` (tanımsız alan)
+    2.  `""` (boş metin)
+    3.  `"<null>"` (literal metin girdisi)
+*   **SHA-256 Üretimi:** Preimage `JSON.stringify(fingerprintPayload)` ile üretilip `crypto.createHash('sha256')` yardımıyla hashlenir.
+
+### B. Kanıt (Evidence) Eşleşme Oranı ve Sıfır Denominator Güvenliği
+*   **Uygulanamaz Durum (Null):** Hiçbir kural eşleşmesi gerçekleşmediğinde (`matches.length === 0`), kanıt karşılaştırması anlamsız olacağı için `evidenceExactMatchRate` metriği doğrudan **`null`** döner.
+*   **Denominator Garantisi:** Eşleşen kural sayısı $>0$ olduğunda, Zod şeması gereğince her bir expected kural en az bir kanıt taşımak zorunda olduğundan (`SourceEvidenceListSchema.min(1)`), `totalExpectedEvidenceCount` paydası her zaman $\ge 1$ olur. Bu durumda metrik `0.0` - `1.0` aralığında reel bir oran üretir.
+*   **Mismatched Evidence:** Eşleşmiş bir kural olmasına rağmen kanıt lokasyon anahtarları (sayfa numarası, paragraf indeksi, sayfa adı ve hücre aralığı vb.) uyuşmuyorsa, oran başarıyla `0.0` olarak hesaplanır.
+
+### C. Metrik Matematiksel Invariants ve Invalid Aday Yönetimi
+*   **Matematiksel Eşitlikler:** Modül ve birim testler seviyesinde aşağıdaki 4 invariant her koşulda korunmaktadır:
+    *   $\text{candidateRuleCount} = \text{schemaValidCandidateCount} + \text{schemaInvalidCandidateCount}$
+    *   $\text{schemaValidCandidateCount} = \text{truePositive} + \text{falsePositive}$
+    *   $\text{expectedRuleCount} = \text{truePositive} + \text{falseNegative}$
+    *   $\text{falsePositive} = \text{duplicateCount} + \text{hallucinationCount}$
+*   **Şema Uyumsuz Adaylar (Invalid Candidates):** Zod doğrulamasından geçemeyen adaylar TP, FP, Duplicate veya Hallucination metriklerine dahil edilmez. Yalnızca `schemaInvalidCandidateCount` metriğinde sayılarak izole edilir ve sistemin genel kalitesini (`schemaValidityRate`) düşürür.
+
+### D. Sayısal Normalizasyon ve Locale Bağımsızlığı
+Locale tabanlı hatalı çıkarımları engellemek adına belirsiz sayı formatlarının tahmin edilip dönüştürülmesi önlenmiştir:
+*   **Belirsiz Değerler:** `"1.000"` veya `"1,250"` gibi (tek bir nokta/virgül sonrası tam 3 hane içeren) belirsiz değerler binlik/ondalık ayracı olarak tahmin edilmez; sadece whitespace ve Unicode normalizasyonuna uğratılarak aynen korunur.
+*   **Açık Değerler:** Sadece JS standart float formatındaki (`"1.2"`) ve açıkça ondalık virgülü taşıyan (`"12,5"`) gibi net sayısal değerler standardize edilerek ondalık noktasına dönüştürülür.
+
+### E. Bağımsızlık ve Determinizm Kriterleri
+Evaluation Core katmanının tam izolasyonu ve determinizmi için kod seviyesinde şu kurallara riayet edilmiştir:
+*   `Date.now()`, `new Date()`, `Math.random()`, UUID üreticileri gibi non-deterministic çağrılar bulunmaz.
+*   `process.env` gibi ortam değişkeni okumaları, file-system (`fs`) okumaları, veritabanı bağlantıları (`pg`, `drizzle`), HTTP veya network çağrıları (`fetch`, `axios`) ve yapay zekâ kütüphane (`openai`, AI provider SDK) importları bulunmaz.
+*   Tüm veri tipleri Zod ile tanımlanmıştır ve strict typecheck uyumludur; `any` veya `z.any()` kullanımı yasaktır (yalnızca candidate payload'ları `z.unknown()` ile taşınır).
+*   Eşleştirme motorunun çıktısı candidate dizisinin geliş sırasından bağımsızdır (sıralama deterministiktir).
