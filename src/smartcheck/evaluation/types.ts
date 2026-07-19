@@ -241,3 +241,35 @@ export class EvaluationError extends Error {
     this.name = 'EvaluationError';
   }
 }
+
+export type EvaluationSuiteErrorCode =
+  | 'EVALUATION_SUITE_EMPTY'
+  | 'EVALUATION_SUITE_DUPLICATE_CASE_ID'
+  | 'EVALUATION_SUITE_SUMMARY_INVARIANT_FAILED';
+
+export class EvaluationSuiteError extends Error {
+  constructor(
+    public readonly code: EvaluationSuiteErrorCode,
+    message: string
+  ) {
+    super(message);
+    this.name = 'EvaluationSuiteError';
+  }
+}
+
+export interface EvaluationSuiteSummary {
+  totalCases: number;
+  passedCases: number;
+  failedCases: number;
+  passRate: number;
+  allQualityGatesPassed: boolean;
+
+  ruleExtractionCases: number;
+  robustnessCases: number;
+  unexpectedProviderFailureCases: number;
+}
+
+export interface EvaluationSuiteResult {
+  summary: EvaluationSuiteSummary;
+  cases: CaseEvaluationResult[];
+}
