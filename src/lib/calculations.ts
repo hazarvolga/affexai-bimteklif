@@ -24,6 +24,12 @@ export interface NormalizedLineItem {
   vatPercent: number;
 }
 
+export interface ValidationIssue {
+  code: string;
+  field: string;
+  message: string;
+}
+
 export function toFiniteNumber(value: number | string | null | undefined, fallback = 0): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -40,6 +46,27 @@ export function normalizeLineItem(item: LineItem): NormalizedLineItem {
     discountPercent: toFiniteNumber(item.discountPercent),
     vatPercent: toFiniteNumber(item.vatPercent, 20),
   };
+}
+
+export function validateLineItem(item: LineItem & { description?: unknown; unit?: unknown }, index: number): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const quantity = toFiniteNumber(item.quantity, Number.NaN);
+  const unitPrice = toFiniteNumber(item.unitPrice, Number.NaN);
+  const discountPercent = toFiniteNumber(item.discountPercent, Number.NaN);
+  const vatPercent = toFiniteNumber(item.vatPercent, Number.NaN);
+
+  if (typeof item.description !== "string" || !item.description.trim()) issues.push({ code: "DESCRIPTION_REQUIRED", field: `items.${index}.description`, message: "Kalem açıklaması zorunludur." });
+  if (typeof item.unit !== "string" || !item.unit.trim()) issues.push({ code: "UNIT_REQUIRED", field: `items.${index}.unit`, message: "Kalem birimi zorunludur." });
+  if (!Number.isFinite(quantity) || quantity <= 0) issues.push({ code: "QUANTITY_INVALID", field: `items.${index}.quantity`, message: "Miktar sıfırdan büyük, geçerli bir sayı olmalıdır." });
+  if (!Number.isFinite(unitPrice) || unitPrice < 0) issues.push({ code: "UNIT_PRICE_INVALID", field: `items.${index}.unitPrice`, message: "Birim fiyat geçerli ve negatif olmayan bir sayı olmalıdır." });
+  if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) issues.push({ code: "DISCOUNT_INVALID", field: `items.${index}.discountPercent`, message: "İskonto yüzde 0 ile 100 arasında olmalıdır." });
+  if (!Number.isFinite(vatPercent) || vatPercent < 0 || vatPercent > 100) issues.push({ code: "VAT_INVALID", field: `items.${index}.vatPercent`, message: "KDV yüzde 0 ile 100 arasında olmalıdır." });
+  return issues;
+}
+
+export function validateQuotationItems(items: Array<LineItem & { description?: unknown; unit?: unknown }>): ValidationIssue[] {
+  if (!Array.isArray(items) || items.length === 0) return [{ code: "ITEMS_REQUIRED", field: "items", message: "Teklifte en az bir kalem bulunmalıdır." }];
+  return items.flatMap((item, index) => validateLineItem(item, index));
 }
 
 /**

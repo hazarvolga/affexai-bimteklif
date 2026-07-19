@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { quotationItems, quotations } from "../../db/schema";
-import { calculateLineItemTotal, calculateQuotationTotals, normalizeLineItem } from "../../lib/calculations";
+import { calculateLineItemTotal, calculateQuotationTotals, normalizeLineItem, validateQuotationItems } from "../../lib/calculations";
 import { generateQuotationPdf } from "../../services/pdf/generate";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
@@ -52,6 +52,8 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
   app.post("/api/quotations", authenticate, canMutate, usageTracker("QUOTATION_CREATED"), async (req, res) => {
     try {
       const { items, ...quoteData } = req.body;
+      const validationIssues = validateQuotationItems(items);
+      if (validationIssues.length > 0) return res.status(400).json({ error: "Teklif kalemleri doğrulanamadı.", issues: validationIssues });
       const normalizedItems = Array.isArray(items)
         ? items.map((item: any) => ({
             ...item,
