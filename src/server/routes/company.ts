@@ -39,6 +39,37 @@ export function registerCompanyRoutes(app: Express) {
     });
   });
 
+  app.get("/api/company/risk-calibration/report", authenticate, async (req, res) => {
+    const rows = await db.select({
+      plannedCost: quotationFinancials.totalCost,
+      plannedDuration: quotations.projectDurationMonths,
+      actualCost: quotations.observedActualCost,
+      actualDuration: quotations.observedActualDurationMonths,
+    }).from(quotations)
+      .innerJoin(quotationFinancials, eq(quotationFinancials.quotationId, quotations.id))
+      .where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected"), isNotNull(quotations.observedActualCost)));
+    const observations = rows.map((row) => ({
+      plannedCost: Number(row.plannedCost),
+      actualCost: Number(row.actualCost),
+      plannedDuration: Number(row.plannedDuration),
+      actualDuration: row.actualDuration == null ? null : Number(row.actualDuration),
+    })).filter((row) => Number.isFinite(row.plannedCost) && Number.isFinite(row.actualCost));
+    const average = (values: number[]) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+    const costBiasPercent = average(observations.map((row) => row.plannedCost > 0 ? ((row.actualCost - row.plannedCost) / row.plannedCost) * 100 : 0));
+    const durationBiasPercent = average(observations.filter((row) => row.actualDuration !== null && row.plannedDuration > 0).map((row) => ((row.actualDuration! - row.plannedDuration) / row.plannedDuration) * 100));
+    res.json({
+      status: observations.length >= 5 ? "review_ready" : "insufficient_data",
+      observationCount: observations.length,
+      averagePlannedCost: average(observations.map((row) => row.plannedCost)),
+      averageActualCost: average(observations.map((row) => row.actualCost)),
+      costBiasPercent,
+      durationBiasPercent,
+      recommendation: observations.length >= 5
+        ? "Sapmaları uzmanla inceleyin; şirket varsayımlarını yalnızca onay sonrası güncelleyin."
+        : "Otomatik katsayı önerisi için en az 5 maliyet gözlemi gerekir.",
+    });
+  });
+
   app.post("/api/company/risk-settings", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     const parsePercent = (value: unknown) => Math.max(0, Math.min(100, Number.isFinite(Number(value)) ? Number(value) : 0));
     const [updated] = await db.update(companies).set({
