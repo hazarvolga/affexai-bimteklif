@@ -44,6 +44,7 @@ export function Settings() {
   const [companyIndustrySettings, setCompanyIndustrySettings] = useState<any[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
   const [usage, setUsage] = useState<any[]>([]);
+  const [riskSettings, setRiskSettings] = useState({ escalationVolatilityPercent: 0, carbonRiskPremiumPercent: 0, informationDeliveryCostPercent: 0 });
 
   useEffect(() => {
     fetchData();
@@ -57,12 +58,13 @@ export function Settings() {
     };
     
     try {
-      const [invRes, indRes, setRes, subRes, usageRes] = await Promise.all([
+      const [invRes, indRes, setRes, subRes, usageRes, riskRes] = await Promise.all([
         fetch("/api/invitations", { headers }),
         fetch("/api/ai/industries", { headers }),
         fetch("/api/company/industry-settings", { headers }),
         fetch("/api/billing/subscription", { headers }),
-        fetch("/api/usage/report", { headers })
+        fetch("/api/usage/report", { headers }),
+        fetch("/api/company/risk-settings", { headers })
       ]);
 
       if (invRes.ok) setInvites(await invRes.json());
@@ -70,9 +72,17 @@ export function Settings() {
       if (setRes.ok) setCompanyIndustrySettings(await setRes.json());
       if (subRes.ok) setSubscription(await subRes.json());
       if (usageRes.ok) setUsage(await usageRes.json());
+      if (riskRes.ok) setRiskSettings(await riskRes.json());
     } catch (e) {
       toast.error("Veriler yüklenemedi.");
     }
+  };
+
+  const saveRiskSettings = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/company/risk-settings', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(riskSettings) });
+    if (res.ok) toast.success('Teklif risk varsayımları kaydedildi.');
+    else toast.error('Risk varsayımları kaydedilemedi.');
   };
 
   const industryEnabled = (id: string) => {
@@ -229,6 +239,22 @@ export function Settings() {
                     <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="1234567890" />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+
+          <SectionWrapper title="Teklif Risk Varsayımları" description="Yeni tekliflerde kullanılacak şirket varsayımları. Bu değerler piyasa veya mevzuat doğrulaması değildir.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {([['escalationVolatilityPercent', 'Aylık eskalasyon %'], ['carbonRiskPremiumPercent', 'Karbon risk primi %'], ['informationDeliveryCostPercent', 'Bilgi teslim maliyeti %']] as const).map(([key, label]) => (
+                    <div className="space-y-2" key={key}>
+                      <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{label}</Label>
+                      <Input type="number" min="0" max="100" step="0.1" value={riskSettings[key]} onChange={(event) => setRiskSettings({ ...riskSettings, [key]: Math.max(0, Math.min(100, Number(event.target.value) || 0)) })} className="h-12 bg-zinc-950 border-zinc-800 font-mono" />
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={saveRiskSettings} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest"><Save size={16} className="mr-2" /> Varsayımları Kaydet</Button>
               </CardContent>
             </Card>
           </SectionWrapper>

@@ -87,6 +87,16 @@ export function CreateQuote() {
       .then((data) => setClients(Array.isArray(data) ? data : []))
       .catch(console.error);
 
+    fetchWithAuth('/api/company/risk-settings')
+      .then(res => res.ok ? res.json() : null)
+      .then((settings) => settings && setFormData((current) => ({
+        ...current,
+        escalationVolatilityPercent: settings.escalationVolatilityPercent,
+        carbonRiskPremiumPercent: settings.carbonRiskPremiumPercent,
+        informationDeliveryCostPercent: settings.informationDeliveryCostPercent,
+      })))
+      .catch(console.error);
+
     fetchWithAuth('/api/ai/industries')
       .then(res => res.json())
       .then(async (allIndustries) => {

@@ -6,6 +6,30 @@ import { companies, companyIndustrySettings, invitations, memberships, users } f
 import { authenticate, checkRole } from "../middleware/auth";
 
 export function registerCompanyRoutes(app: Express) {
+  app.get("/api/company/risk-settings", authenticate, async (req, res) => {
+    const company = await db.query.companies.findFirst({ where: eq(companies.id, req.user.companyId) });
+    if (!company) return res.status(404).json({ error: "Company not found" });
+    res.json({
+      escalationVolatilityPercent: Number(company.defaultEscalationVolatilityPercent),
+      carbonRiskPremiumPercent: Number(company.defaultCarbonRiskPremiumPercent),
+      informationDeliveryCostPercent: Number(company.defaultInformationDeliveryCostPercent),
+    });
+  });
+
+  app.post("/api/company/risk-settings", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+    const parsePercent = (value: unknown) => Math.max(0, Math.min(100, Number.isFinite(Number(value)) ? Number(value) : 0));
+    const [updated] = await db.update(companies).set({
+      defaultEscalationVolatilityPercent: String(parsePercent(req.body.escalationVolatilityPercent)),
+      defaultCarbonRiskPremiumPercent: String(parsePercent(req.body.carbonRiskPremiumPercent)),
+      defaultInformationDeliveryCostPercent: String(parsePercent(req.body.informationDeliveryCostPercent)),
+    }).where(eq(companies.id, req.user.companyId)).returning();
+    res.json({
+      escalationVolatilityPercent: Number(updated.defaultEscalationVolatilityPercent),
+      carbonRiskPremiumPercent: Number(updated.defaultCarbonRiskPremiumPercent),
+      informationDeliveryCostPercent: Number(updated.defaultInformationDeliveryCostPercent),
+    });
+  });
+
   app.get("/api/company/team", authenticate, async (req, res) => {
     const members = await db.select({
       id: users.id,

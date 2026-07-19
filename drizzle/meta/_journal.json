@@ -64,6 +64,13 @@
       "when": 1784481157578,
       "tag": "0008_lumpy_puppet_master",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784481301666,
+      "tag": "0009_glossy_tomorrow_man",
+      "breakpoints": true
     }
   ]
 }
