@@ -318,6 +318,9 @@ export function CreateQuote() {
                     <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                       <Zap size={12} /> AI Kalem Varsayımları
                     </p>
+                    <p className="mb-3 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] font-bold leading-relaxed text-amber-300">
+                      AI çıktısı doğrulanmış metraj veya maliyet kaynağı değildir. Miktarı, satış fiyatını ve gerçek maliyeti kontrol edin.
+                    </p>
                     <ul className="space-y-2">
                       {aiResult.assumptions?.map((a: string, i: number) => (
                         <li key={i} className="text-[11px] text-zinc-400 flex items-start gap-2.5 font-medium">

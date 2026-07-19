@@ -23,7 +23,16 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     try {
       const { description, industryId } = req.body;
       const result = await aiService.generateQuotation(description, industryId);
-      res.json(result);
+      res.json({
+        ...result,
+        sourceStatus: "ai_estimate",
+        authorityStatus: "non_authoritative",
+        lineItems: result.lineItems.map((item) => ({
+          ...item,
+          quantitySource: "ai_estimate",
+          unitPriceSource: "ai_estimate",
+        })),
+      });
     } catch (error) {
       console.error("AI Generation Error:", error);
       res.status(500).json({ error: "AI Generation failed" });

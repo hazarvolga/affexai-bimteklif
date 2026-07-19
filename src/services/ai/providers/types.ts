@@ -11,6 +11,8 @@ export interface AIQuotationResult {
   assumptions: string[];
   riskFlags: string[];
   riskLevel: "low" | "medium" | "high";
+  sourceStatus?: "ai_estimate";
+  authorityStatus?: "non_authoritative";
 }
 
 export interface AIQuotationInput {
@@ -61,8 +63,8 @@ export function buildQuotationPrompt({ inputText, industryId, plugin }: AIQuotat
 
     Görevin:
     1. Girdiyi analiz et ve yapılandırılmış bir inşaat teklifi oluştur.
-    2. Eksik miktarları rasyonel şekilde tahmin et.
-    3. Birim fiyatlar 2024-2025 Türkiye güncel piyasa (TL bazlı) ortalamalarına dayansın.
+    2. Eksik miktarları yalnızca AI tahmini olarak üret; bunları doğrulanmış metraj gibi sunma.
+    3. Birim fiyatları yalnızca başlangıç satış fiyatı tahmini olarak üret; gerçek maliyet veya güncel piyasa verisi iddiasında bulunma.
     4. Çıktıyı aşağıdaki JSON formatında ver:
 
     {
@@ -74,7 +76,9 @@ export function buildQuotationPrompt({ inputText, industryId, plugin }: AIQuotat
       ],
       "assumptions": ["yapılan_varsayımlar"],
       "riskFlags": ["risk_etiketleri_ör_döviz_kuru_malzeme_oynaklığı"],
-      "riskLevel": "low|medium|high"
+      "riskLevel": "low|medium|high",
+      "sourceStatus": "ai_estimate",
+      "authorityStatus": "non_authoritative"
     }
 
     Sadece JSON döndür. Başka metin ekleme.
