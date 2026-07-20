@@ -22,6 +22,9 @@ import { Billing } from '@/pages/Billing';
 import { AcceptInvite } from '@/pages/AcceptInvite';
 import { VerifyEmail } from '@/pages/VerifyEmail';
 import { LandingPage } from '@/pages/LandingPage';
+import { PublicAcademy } from '@/pages/PublicAcademy';
+import { PublicAcademyDetail } from '@/pages/PublicAcademyDetail';
+import { CompleteAcademyContent } from '@/pages/CompleteAcademyContent';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { Toaster } from '@/components/ui/sonner';
@@ -45,6 +48,9 @@ function AppRoutes() {
       <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/pricing" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/features" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
+      <Route path="/academy" element={<PublicAcademy />} />
+      <Route path="/academy/complete" element={<CompleteAcademyContent />} />
+      <Route path="/academy/:slug" element={<PublicAcademyDetail />} />
       <Route path="/pilot" element={<PilotApplication />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle2, ClipboardCheck, FileSpreadsheet, GraduationCap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, ClipboardCheck, FileSpreadsheet, GraduationCap, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
 type LandingPageProps = {
@@ -17,6 +18,7 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
         </a>
         <div className="hidden items-center gap-7 md:flex">
           <a href="#workflow" className="text-sm text-zinc-400 transition-colors hover:text-white">Nasıl çalışır?</a>
+          <Link to="/academy" className="text-sm text-zinc-400 transition-colors hover:text-white">Academy</Link>
           <a href="#pilot" className="text-sm text-zinc-400 transition-colors hover:text-white">Pilot programı</a>
           <Button variant="ghost" className="text-zinc-300 hover:bg-zinc-800 hover:text-white" onClick={onGetStarted}>Giriş yap</Button>
           <Button className="bg-orange-600 px-5 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot başvurusu</Button>
@@ -48,6 +50,23 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
               <TrustPoint title="TeklifPro" text="Teklif ve metraj çalışma alanı" />
               <TrustPoint title="SmartCheck" text="Kalite kontrol katmanı" />
               <TrustPoint title="Akademi" text="Ekiplerin kullanımını güçlendirir" />
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-zinc-800 bg-[#09090b] px-6 py-20 md:px-8 md:py-24">
+          <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.8fr_1.2fr] md:items-center">
+            <div>
+              <p className="mb-4 text-sm font-medium text-orange-400">BİMPLAN ACADEMY · AÇIK BİLGİ ALANI</p>
+              <h2 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">BIM’i gerçek iş kararlarıyla öğrenin.</h2>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-zinc-400">ISO 19650’den 5D maliyet mühendisliğine, sürdürülebilirlikten saha pratiğine uzanan içerik haritasını inceleyin.</p>
+              <Link to="/academy" className="mt-7 inline-flex h-11 items-center rounded-md border border-zinc-700 px-5 text-sm font-medium text-zinc-200 transition-colors hover:border-orange-500/50 hover:bg-zinc-800">Academy’yi keşfet <BookOpen size={17} className="ml-2 text-orange-400" /></Link>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AcademyPreview title="ISO 19650" text="Bilgi üretimi ve teslim disiplini" />
+              <AcademyPreview title="4D / 5D" text="Zaman, metraj ve teklif riski" />
+              <AcademyPreview title="6D" text="Sürdürülebilirlik ve karbon" />
+              <AcademyPreview title="Saha pratiği" text="Üretilebilirlik ve kariyer" />
             </div>
           </div>
         </section>
@@ -101,7 +120,7 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
             <div className="flex items-center gap-3 text-lg font-semibold text-white"><span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold text-white">BP</span>BIMPlan Academy</div>
             <p className="mt-5 max-w-sm leading-relaxed">İnşaat ekipleri için daha hızlı teklif, daha görünür kalite ve daha güçlü yetkinlik.</p>
           </div>
-          <div><h3 className="mb-4 font-medium text-zinc-300">Ürün</h3><a href="#workflow" className="block py-1 hover:text-orange-400">TeklifPro akışı</a><a href="#pilot" className="block py-1 hover:text-orange-400">Pilot programı</a></div>
+          <div><h3 className="mb-4 font-medium text-zinc-300">Ürün</h3><a href="#workflow" className="block py-1 hover:text-orange-400">TeklifPro akışı</a><Link to="/academy" className="block py-1 hover:text-orange-400">BIMPlan Academy</Link><a href="#pilot" className="block py-1 hover:text-orange-400">Pilot programı</a></div>
           <div><h3 className="mb-4 font-medium text-zinc-300">İletişim</h3><a href="mailto:info@teklifpro.ai" className="block py-1 hover:text-orange-400">info@teklifpro.ai</a><span className="block py-1">İstanbul, Türkiye</span></div>
         </div>
         <div className="mx-auto mt-12 max-w-7xl border-t border-zinc-800 pt-6 text-xs text-zinc-600">© 2026 BIMPlan Academy. TeklifPro, BIMPlan Academy çatısı altında geliştirilir.</div>
@@ -120,4 +139,8 @@ function WorkflowCard({ number, icon, title, text }: { number: string; icon: Rea
 
 function EcosystemCard({ icon, title, status, text, muted = false }: { icon: ReactNode; title: string; status: string; text: string; muted?: boolean }) {
   return <article className={`border p-6 ${muted ? 'border-zinc-800/70 bg-zinc-900/30 opacity-75' : 'border-zinc-800 bg-[#0c0c0e]'}`}><div className="flex items-start justify-between gap-4"><span className="text-orange-400">{icon}</span><span className="text-xs text-zinc-500">{status}</span></div><h3 className="mt-8 font-semibold text-white">{title}</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">{text}</p></article>;
+}
+
+function AcademyPreview({ title, text }: { title: string; text: string }) {
+  return <div className="border border-zinc-800 bg-[#0c0c0e] p-5"><p className="font-medium text-white">{title}</p><p className="mt-2 text-sm leading-relaxed text-zinc-500">{text}</p></div>;
 }
