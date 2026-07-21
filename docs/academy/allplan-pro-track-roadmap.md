@@ -1,8 +1,10 @@
 # BIMPlan Academy — Allplan Pro Track Yol Haritası
 
-Durum: Faz 2 tamamlandı · public Allplan Pro Track hazır, üyelik entegrasyonu başlamadı
+Durum: Rebaseline gerekli · Allplan public eğitim olmaktan çıkarılıyor, protected/sertifikalı modül olarak yeniden kuruluyor
 Kaynak: `../allplanAkademi-main`
-Karar: Allplan eğitimi, BIMPlan Academy içinde uzmanlaşma hattı olarak konumlanacak.
+Karar: Allplan eğitimi, BIMPlan Academy içinde kayıtlı kullanıcıya özel uzmanlaşma ve ileride ücretlendirilebilir sertifika modülü olarak konumlanacak.
+
+Yeni ayrıntılı plan: `docs/academy/allplan-rebaseline-plan.md`
 
 ## Stratejik karar
 
