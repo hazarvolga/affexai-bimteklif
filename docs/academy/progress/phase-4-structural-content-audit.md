@@ -147,6 +147,16 @@ Resmî ALLPLAN 2026 IFC kaynaklarıyla schema/MVD, drawing-file ve element scope
 - Güncel validator sonucu: `LOCKED`
 - Kalan kesin gereksinimler: üç workstation screenshot, üretilen IFC için bağımsız validation kanıtı, teknik reviewer onayı ve ayrıntılı ders gövdesi.
 
+### FEM preparation kaynak hazırlığı
+
+Resmî ALLPLAN AutoConverter kaynaklarıyla physical-to-analytical dönüşüm, element role/exclusion, system line, eccentricity, master plane, profile/material mapping ve target-tool diagnostics adımlarını kapsayan draft record hazırlandı. Model conversion hiçbir şekilde tamamlanmış FEM hesabı sayılmaz.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/fem-preparation-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c3-m2`
+- Kaynak paketi SHA-256: `57e85395c2e7e352e9b33467de2174c5e202a5fe3bbb1dcdf6b8d15bed4ee5dd`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler: üç gerçek AutoConverter/analysis-tool screenshot, structural reviewer onayı ve ayrıntılı ders gövdesi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.

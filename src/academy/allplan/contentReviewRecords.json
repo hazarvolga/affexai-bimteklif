@@ -395,6 +395,60 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/structural-export-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "fb4d62da78d5298d23aa8fa64219be04efe4632cf6247a8e83f62d5d5d174e16"
+    },
+    "p3-c3-m2": {
+      "sourceId": "p3-c3-m2",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Convert a reviewed physical structural model into an explicit analytical-model draft.",
+        "Review element roles, system lines, eccentricities, connectivity and material/profile mappings.",
+        "Separate model preparation from supports, loading, combinations, solver checks and engineering approval."
+      ],
+      "prerequisites": [
+        "A reviewed ALLPLAN 2026 structural model and agreed analysis scope.",
+        "Access to ALLPLAN AutoConverter and the target analysis application."
+      ],
+      "allplanVersions": ["2026.1"],
+      "interfaceContext": "ALLPLAN/Bimplus structural model > ALLPLAN AutoConverter > target structural analysis application",
+      "stepsEvidence": [
+        {
+          "step": 1,
+          "title": "Review recognized elements and analytical roles",
+          "evidenceRef": "docs/academy/content-review/evidence/fem-preparation-step-1.png",
+          "expectedOutput": "Included elements, removed non-loadbearing objects and analytical roles match the approved analysis scope."
+        },
+        {
+          "step": 2,
+          "title": "Resolve alignment, connectivity and section mappings",
+          "evidenceRef": "docs/academy/content-review/evidence/fem-preparation-step-2.png",
+          "expectedOutput": "System lines, eccentricities, master planes, connections, profiles and materials have reviewed mappings."
+        },
+        {
+          "step": 3,
+          "title": "Validate the analytical draft in the target application",
+          "evidenceRef": "docs/academy/content-review/evidence/fem-preparation-step-3.png",
+          "expectedOutput": "The target application records connectivity and model diagnostics before loads or design results are accepted."
+        }
+      ],
+      "learnerOutput": "One traceable analytical-model draft with documented exclusions, role mappings, alignment decisions and target-tool diagnostics.",
+      "references": [
+        {"title": "ALLPLAN AutoConverter Welcome", "versionOrDate": "accessed 2026-07-22", "locator": "https://bimplus-help.allplan.com/AutoConverter/welcome.htm"},
+        {"title": "ALLPLAN SCIA structural analysis workflow", "versionOrDate": "accessed 2026-07-22", "locator": "https://www.allplan.com/allplan-scia-bim-workflow/"},
+        {"title": "ALLPLAN 2026-0 IFC Export Settings", "versionOrDate": "2026-0", "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/87733.htm"},
+        {"title": "ALLPLAN 2026-0 IFC export object notes", "versionOrDate": "2026-0", "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/295132.htm"}
+      ],
+      "technicalReviewer": {"name": "", "role": "", "reviewedAt": ""},
+      "checkpoint": {
+        "prompt": "Submit recognition, alignment and target-tool diagnostic evidence for the analytical-model draft.",
+        "acceptanceCriteria": "Scope, roles, exclusions, system lines, mappings and connectivity diagnostics must match the structural review."
+      },
+      "assessmentQuestion": {
+        "prompt": "Why can a converted analytical model not be treated as a validated FEM model?",
+        "expectedAnswer": "Conversion does not prove connectivity, supports, loads, combinations, mesh quality, solver behavior, resistance checks or code compliance."
+      },
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/fem-preparation-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "57e85395c2e7e352e9b33467de2174c5e202a5fe3bbb1dcdf6b8d15bed4ee5dd"
     }
   }
 }
