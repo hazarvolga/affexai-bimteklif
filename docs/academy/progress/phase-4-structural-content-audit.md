@@ -88,6 +88,22 @@ Resmî ALLPLAN 2026-1 yardım sayfalarıyla Columns draft review record hazırla
 
 External URL, workstation ekran kanıtı olarak kabul edilmez. CLI ve audit, referenced evidence dosyasının gerçekten repo içinde bulunmasını ve source-pack hash'inin içerikle eşleşmesini ayrıca doğrular.
 
+### Beams kaynak hazırlığı
+
+Resmî ALLPLAN 2026-1 yardım sayfalarıyla Beams draft review record hazırlandı. Kaynak paketi Structural Framing Beam komut yolunu, yatay/eğimli construction method farkını, başlangıç/bitiş anchor noktalarını, yükseklik davranışını, geometry editing sınırlarını ve `IfcBeam` eşlemesini kapsar.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/beams-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c1-m2`
+- Kaynak paketi SHA-256: `1984fc963fc8e20689f3f83497e6de9ba317d3aee1efb23ee507a27bd7185f19`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler:
+  - ALLPLAN 2026 workstation'dan üç yerel adım ekran görüntüsü,
+  - teknik reviewer adı/rolü/tarihi,
+  - reviewer kararı `approved`,
+  - review kaydıyla eşleşen ayrıntılı ders gövdesi.
+
+Beams kaydı eksik kanıtla açılmaz; validator ve Structural audit üç screenshot ile reviewer eksikliğini ayrı nedenlerle raporlar.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.

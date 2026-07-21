@@ -81,6 +81,82 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/columns-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "5120e39edc052df70fdabfd8b5a18d177e319361a0d23ef29bc70b41a90b76e7"
+    },
+    "p3-c1-m2": {
+      "sourceId": "p3-c1-m2",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Create a horizontal or inclined structural framing beam with an explicit cross-section, construction method and anchor-point geometry.",
+        "Verify height behavior and downstream classification without confusing software output with structural design approval.",
+        "Record the beam attributes and exchange result required for a reproducible review."
+      ],
+      "prerequisites": [
+        "ALLPLAN 2026 workspace with the Structural Framing task available in the installed license.",
+        "A checked building structure and plane model with agreed story elevations."
+      ],
+      "allplanVersions": [
+        "2026.1"
+      ],
+      "interfaceContext": "Architecture role > Structural Framing task > Structural Framing Objects > Structural Framing Beam",
+      "stepsEvidence": [
+        {
+          "step": 1,
+          "title": "Open Structural Framing Beam and define geometry",
+          "evidenceRef": "docs/academy/content-review/evidence/beams-step-1.png",
+          "expectedOutput": "The Geometry tab shows the agreed cross-section, construction method, dimensions and start anchor point."
+        },
+        {
+          "step": 2,
+          "title": "Place the beam and verify its height behavior",
+          "evidenceRef": "docs/academy/content-review/evidence/beams-step-2.png",
+          "expectedOutput": "The start and end anchor points and the horizontal or inclined height settings match the checked model context."
+        },
+        {
+          "step": 3,
+          "title": "Assign attributes and verify exchange classification",
+          "evidenceRef": "docs/academy/content-review/evidence/beams-step-3.png",
+          "expectedOutput": "The agreed attributes are visible and the exchange check identifies the structural framing beam as IfcBeam."
+        }
+      ],
+      "learnerOutput": "One reproducible structural framing beam with reviewed geometry, height behavior, attributes and an IfcBeam verification result.",
+      "references": [
+        {
+          "title": "ALLPLAN 2026-1 Structural Framing Beam",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/254647.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 Structural framing beam palette",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/276259.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 Structural framing geometry editing",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/276249.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 IFC Import Settings",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/320465.htm"
+        }
+      ],
+      "technicalReviewer": {
+        "name": "",
+        "role": "",
+        "reviewedAt": ""
+      },
+      "checkpoint": {
+        "prompt": "Submit the three workstation screenshots and the agreed IfcBeam verification result for the created object.",
+        "acceptanceCriteria": "Geometry, construction method, anchor points, height behavior, attributes and exchange classification must match the reviewed evidence pack."
+      },
+      "assessmentQuestion": {
+        "prompt": "Which beam settings and outputs must be verified before the object can be trusted in schedules and IFC exchange?",
+        "expectedAnswer": "Cross-section, construction method, start and end anchor points, plane or height behavior, attributes and the resulting IfcBeam classification."
+      },
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/beams-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "1984fc963fc8e20689f3f83497e6de9ba317d3aee1efb23ee507a27bd7185f19"
     }
   }
 }
