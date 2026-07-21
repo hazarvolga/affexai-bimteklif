@@ -9,7 +9,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/vite.config.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_vite_config_ts",
-      "community": 78,
+      "community": 77,
       "norm_label": "vite.config.ts"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/server.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_server_ts",
-      "community": 79,
+      "community": 78,
       "norm_label": "server.ts"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_components_ui_sonner_tsx",
-      "community": 80,
+      "community": 79,
       "norm_label": "sonner.tsx"
     },
     {
@@ -495,7 +495,7 @@
       "source_file": "notebooklm/scripts/run.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_run_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "run.py"
     },
     {
@@ -504,7 +504,7 @@
       "source_file": "notebooklm/scripts/run.py",
       "source_location": "L13",
       "id": "run_get_venv_python",
-      "community": 5,
+      "community": 3,
       "norm_label": "get_venv_python()"
     },
     {
@@ -513,7 +513,7 @@
       "source_file": "notebooklm/scripts/run.py",
       "source_location": "L26",
       "id": "run_ensure_venv",
-      "community": 5,
+      "community": 3,
       "norm_label": "ensure_venv()"
     },
     {
@@ -522,7 +522,7 @@
       "source_file": "notebooklm/scripts/run.py",
       "source_location": "L48",
       "id": "run_main",
-      "community": 5,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -530,7 +530,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/run.py",
       "source_location": "L14",
-      "community": 5,
+      "community": 3,
       "norm_label": "get the virtual environment python executable",
       "id": "run_rationale_14"
     },
@@ -539,7 +539,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/run.py",
       "source_location": "L27",
-      "community": 5,
+      "community": 3,
       "norm_label": "ensure virtual environment exists",
       "id": "run_rationale_27"
     },
@@ -567,7 +567,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_setup_environment_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "setup_environment.py"
     },
     {
@@ -576,7 +576,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L14",
       "id": "setup_environment_skillenvironment",
-      "community": 5,
+      "community": 3,
       "norm_label": "skillenvironment"
     },
     {
@@ -585,7 +585,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L17",
       "id": "setup_environment_skillenvironment_init",
-      "community": 5,
+      "community": 3,
       "norm_label": ".__init__()"
     },
     {
@@ -594,7 +594,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L31",
       "id": "setup_environment_skillenvironment_ensure_venv",
-      "community": 5,
+      "community": 3,
       "norm_label": ".ensure_venv()"
     },
     {
@@ -603,7 +603,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L96",
       "id": "setup_environment_skillenvironment_is_in_skill_venv",
-      "community": 5,
+      "community": 3,
       "norm_label": ".is_in_skill_venv()"
     },
     {
@@ -612,7 +612,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L104",
       "id": "setup_environment_skillenvironment_get_python_executable",
-      "community": 5,
+      "community": 3,
       "norm_label": ".get_python_executable()"
     },
     {
@@ -621,7 +621,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L110",
       "id": "setup_environment_skillenvironment_run_script",
-      "community": 5,
+      "community": 3,
       "norm_label": ".run_script()"
     },
     {
@@ -630,7 +630,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L138",
       "id": "setup_environment_skillenvironment_activate_instructions",
-      "community": 5,
+      "community": 3,
       "norm_label": ".activate_instructions()"
     },
     {
@@ -639,7 +639,7 @@
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L148",
       "id": "setup_environment_main",
-      "community": 5,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -647,7 +647,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L15",
-      "community": 5,
+      "community": 3,
       "norm_label": "manages skill-specific virtual environment",
       "id": "setup_environment_rationale_15"
     },
@@ -656,7 +656,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L32",
-      "community": 5,
+      "community": 3,
       "norm_label": "ensure virtual environment exists and is set up",
       "id": "setup_environment_rationale_32"
     },
@@ -665,7 +665,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L97",
-      "community": 5,
+      "community": 3,
       "norm_label": "check if we're already running in the skill's venv",
       "id": "setup_environment_rationale_97"
     },
@@ -674,7 +674,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L105",
-      "community": 5,
+      "community": 3,
       "norm_label": "get the correct python executable to use",
       "id": "setup_environment_rationale_105"
     },
@@ -683,7 +683,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L111",
-      "community": 5,
+      "community": 3,
       "norm_label": "run a script with the virtual environment",
       "id": "setup_environment_rationale_111"
     },
@@ -692,7 +692,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L139",
-      "community": 5,
+      "community": 3,
       "norm_label": "get instructions for manual activation",
       "id": "setup_environment_rationale_139"
     },
@@ -701,7 +701,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/setup_environment.py",
       "source_location": "L149",
-      "community": 5,
+      "community": 3,
       "norm_label": "main entry point for environment setup",
       "id": "setup_environment_rationale_149"
     },
@@ -720,7 +720,7 @@
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L15",
       "id": "browser_utils_browserfactory",
-      "community": 3,
+      "community": 4,
       "norm_label": "browserfactory"
     },
     {
@@ -729,7 +729,7 @@
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L19",
       "id": "browser_utils_launch_persistent_context",
-      "community": 3,
+      "community": 4,
       "norm_label": "launch_persistent_context()"
     },
     {
@@ -791,7 +791,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L16",
-      "community": 3,
+      "community": 4,
       "norm_label": "factory for creating configured browser contexts",
       "id": "browser_utils_rationale_16"
     },
@@ -800,7 +800,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L24",
-      "community": 81,
+      "community": 80,
       "norm_label": "launch a persistent browser context with anti-detection features         and coo",
       "id": "browser_utils_rationale_24"
     },
@@ -809,7 +809,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L47",
-      "community": 82,
+      "community": 81,
       "norm_label": "inject cookies from state.json if available",
       "id": "browser_utils_rationale_47"
     },
@@ -827,7 +827,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L69",
-      "community": 83,
+      "community": 82,
       "norm_label": "type with human-like speed",
       "id": "browser_utils_rationale_69"
     },
@@ -836,7 +836,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L93",
-      "community": 84,
+      "community": 83,
       "norm_label": "click with realistic movement",
       "id": "browser_utils_rationale_93"
     },
@@ -846,7 +846,7 @@
       "source_file": "notebooklm/scripts/__init__.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_init_py",
-      "community": 5,
+      "community": 3,
       "norm_label": "__init__.py"
     },
     {
@@ -855,7 +855,7 @@
       "source_file": "notebooklm/scripts/__init__.py",
       "source_location": "L13",
       "id": "init_ensure_venv_and_run",
-      "community": 5,
+      "community": 3,
       "norm_label": "ensure_venv_and_run()"
     },
     {
@@ -863,7 +863,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/__init__.py",
       "source_location": "L14",
-      "community": 5,
+      "community": 3,
       "norm_label": "ensure virtual environment exists and run the requested script.     this is call",
       "id": "init_rationale_14"
     },
@@ -954,7 +954,7 @@
       "source_file": "notebooklm/scripts/browser_session.py",
       "source_location": "L223",
       "id": "browser_session_browsersession_close",
-      "community": 3,
+      "community": 4,
       "norm_label": ".close()"
     },
     {
@@ -1052,7 +1052,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_session.py",
       "source_location": "L224",
-      "community": 3,
+      "community": 4,
       "norm_label": "close this session and clean up resources",
       "id": "browser_session_rationale_224"
     },
@@ -1080,7 +1080,7 @@
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_ask_question_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "ask_question.py"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L40",
       "id": "ask_question_ask_notebooklm",
-      "community": 3,
+      "community": 4,
       "norm_label": "ask_notebooklm()"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L190",
       "id": "ask_question_main",
-      "community": 4,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -1106,7 +1106,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L41",
-      "community": 3,
+      "community": 4,
       "norm_label": "ask a question to notebooklm      args:         question: question to ask",
       "id": "ask_question_rationale_41"
     },
@@ -1269,7 +1269,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_notebook_manager_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "notebook_manager.py"
     },
     {
@@ -1278,7 +1278,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L17",
       "id": "notebook_manager_notebooklibrary",
-      "community": 4,
+      "community": 5,
       "norm_label": "notebooklibrary"
     },
     {
@@ -1287,7 +1287,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L20",
       "id": "notebook_manager_notebooklibrary_init",
-      "community": 4,
+      "community": 5,
       "norm_label": ".__init__()"
     },
     {
@@ -1296,7 +1296,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L34",
       "id": "notebook_manager_notebooklibrary_load_library",
-      "community": 4,
+      "community": 5,
       "norm_label": "._load_library()"
     },
     {
@@ -1305,7 +1305,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L50",
       "id": "notebook_manager_notebooklibrary_save_library",
-      "community": 4,
+      "community": 5,
       "norm_label": "._save_library()"
     },
     {
@@ -1314,7 +1314,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L63",
       "id": "notebook_manager_notebooklibrary_add_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".add_notebook()"
     },
     {
@@ -1323,7 +1323,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L123",
       "id": "notebook_manager_notebooklibrary_remove_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".remove_notebook()"
     },
     {
@@ -1332,7 +1332,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L150",
       "id": "notebook_manager_notebooklibrary_update_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".update_notebook()"
     },
     {
@@ -1341,7 +1341,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L198",
       "id": "notebook_manager_notebooklibrary_get_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".get_notebook()"
     },
     {
@@ -1350,7 +1350,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L202",
       "id": "notebook_manager_notebooklibrary_list_notebooks",
-      "community": 4,
+      "community": 5,
       "norm_label": ".list_notebooks()"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L206",
       "id": "notebook_manager_notebooklibrary_search_notebooks",
-      "community": 4,
+      "community": 5,
       "norm_label": ".search_notebooks()"
     },
     {
@@ -1368,7 +1368,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L234",
       "id": "notebook_manager_notebooklibrary_select_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".select_notebook()"
     },
     {
@@ -1377,7 +1377,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L254",
       "id": "notebook_manager_notebooklibrary_get_active_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".get_active_notebook()"
     },
     {
@@ -1386,7 +1386,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L260",
       "id": "notebook_manager_notebooklibrary_increment_use_count",
-      "community": 4,
+      "community": 5,
       "norm_label": ".increment_use_count()"
     },
     {
@@ -1395,7 +1395,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L280",
       "id": "notebook_manager_notebooklibrary_get_stats",
-      "community": 4,
+      "community": 5,
       "norm_label": ".get_stats()"
     },
     {
@@ -1404,7 +1404,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L308",
       "id": "notebook_manager_main",
-      "community": 4,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -1412,7 +1412,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L18",
-      "community": 4,
+      "community": 5,
       "norm_label": "manages a collection of notebooklm notebooks with metadata",
       "id": "notebook_manager_rationale_18"
     },
@@ -1421,7 +1421,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L21",
-      "community": 4,
+      "community": 5,
       "norm_label": "initialize the notebook library",
       "id": "notebook_manager_rationale_21"
     },
@@ -1430,7 +1430,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L35",
-      "community": 4,
+      "community": 5,
       "norm_label": "load library from disk",
       "id": "notebook_manager_rationale_35"
     },
@@ -1439,7 +1439,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L73",
-      "community": 4,
+      "community": 5,
       "norm_label": "add a new notebook to the library          args:             url: notebooklm not",
       "id": "notebook_manager_rationale_73"
     },
@@ -1448,7 +1448,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L124",
-      "community": 4,
+      "community": 5,
       "norm_label": "remove a notebook from the library          args:             notebook_id: id of",
       "id": "notebook_manager_rationale_124"
     },
@@ -1457,7 +1457,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L161",
-      "community": 4,
+      "community": 5,
       "norm_label": "update notebook metadata          args:             notebook_id: id of notebook",
       "id": "notebook_manager_rationale_161"
     },
@@ -1466,7 +1466,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L199",
-      "community": 4,
+      "community": 5,
       "norm_label": "get a specific notebook by id",
       "id": "notebook_manager_rationale_199"
     },
@@ -1475,7 +1475,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L203",
-      "community": 4,
+      "community": 5,
       "norm_label": "list all notebooks in the library",
       "id": "notebook_manager_rationale_203"
     },
@@ -1484,7 +1484,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L207",
-      "community": 4,
+      "community": 5,
       "norm_label": "search notebooks by query          args:             query: search query (search",
       "id": "notebook_manager_rationale_207"
     },
@@ -1493,7 +1493,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L235",
-      "community": 4,
+      "community": 5,
       "norm_label": "set a notebook as active          args:             notebook_id: id of notebook",
       "id": "notebook_manager_rationale_235"
     },
@@ -1502,7 +1502,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L255",
-      "community": 4,
+      "community": 5,
       "norm_label": "get the currently active notebook",
       "id": "notebook_manager_rationale_255"
     },
@@ -1511,7 +1511,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L261",
-      "community": 4,
+      "community": 5,
       "norm_label": "increment usage counter for a notebook          args:             notebook_id: i",
       "id": "notebook_manager_rationale_261"
     },
@@ -1520,7 +1520,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L281",
-      "community": 4,
+      "community": 5,
       "norm_label": "get library statistics",
       "id": "notebook_manager_rationale_281"
     },
@@ -1529,7 +1529,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L309",
-      "community": 4,
+      "community": 5,
       "norm_label": "command-line interface for notebook management",
       "id": "notebook_manager_rationale_309"
     },
@@ -1539,7 +1539,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_auth_manager_py",
-      "community": 3,
+      "community": 4,
       "norm_label": "auth_manager.py"
     },
     {
@@ -1548,7 +1548,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L31",
       "id": "auth_manager_authmanager",
-      "community": 3,
+      "community": 4,
       "norm_label": "authmanager"
     },
     {
@@ -1557,7 +1557,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L42",
       "id": "auth_manager_authmanager_init",
-      "community": 3,
+      "community": 4,
       "norm_label": ".__init__()"
     },
     {
@@ -1566,7 +1566,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L52",
       "id": "auth_manager_authmanager_is_authenticated",
-      "community": 3,
+      "community": 4,
       "norm_label": ".is_authenticated()"
     },
     {
@@ -1575,7 +1575,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L64",
       "id": "auth_manager_authmanager_get_auth_info",
-      "community": 3,
+      "community": 4,
       "norm_label": ".get_auth_info()"
     },
     {
@@ -1584,7 +1584,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L86",
       "id": "auth_manager_authmanager_setup_auth",
-      "community": 3,
+      "community": 4,
       "norm_label": ".setup_auth()"
     },
     {
@@ -1593,7 +1593,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L160",
       "id": "auth_manager_authmanager_save_browser_state",
-      "community": 3,
+      "community": 4,
       "norm_label": "._save_browser_state()"
     },
     {
@@ -1602,7 +1602,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L170",
       "id": "auth_manager_authmanager_save_auth_info",
-      "community": 3,
+      "community": 4,
       "norm_label": "._save_auth_info()"
     },
     {
@@ -1611,7 +1611,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L182",
       "id": "auth_manager_authmanager_clear_auth",
-      "community": 3,
+      "community": 4,
       "norm_label": ".clear_auth()"
     },
     {
@@ -1620,7 +1620,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L214",
       "id": "auth_manager_authmanager_re_auth",
-      "community": 3,
+      "community": 4,
       "norm_label": ".re_auth()"
     },
     {
@@ -1629,7 +1629,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L233",
       "id": "auth_manager_authmanager_validate_auth",
-      "community": 3,
+      "community": 4,
       "norm_label": ".validate_auth()"
     },
     {
@@ -1638,7 +1638,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L287",
       "id": "auth_manager_main",
-      "community": 3,
+      "community": 4,
       "norm_label": "main()"
     },
     {
@@ -1646,7 +1646,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L32",
-      "community": 3,
+      "community": 4,
       "norm_label": "manages authentication and browser state for notebooklm      features:     - int",
       "id": "auth_manager_rationale_32"
     },
@@ -1655,7 +1655,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L43",
-      "community": 3,
+      "community": 4,
       "norm_label": "initialize the authentication manager",
       "id": "auth_manager_rationale_43"
     },
@@ -1664,7 +1664,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L53",
-      "community": 3,
+      "community": 4,
       "norm_label": "check if valid authentication exists",
       "id": "auth_manager_rationale_53"
     },
@@ -1673,7 +1673,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L65",
-      "community": 3,
+      "community": 4,
       "norm_label": "get authentication information",
       "id": "auth_manager_rationale_65"
     },
@@ -1682,7 +1682,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L87",
-      "community": 3,
+      "community": 4,
       "norm_label": "perform interactive authentication setup          args:             headless: ru",
       "id": "auth_manager_rationale_87"
     },
@@ -1691,7 +1691,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L161",
-      "community": 3,
+      "community": 4,
       "norm_label": "save browser state to disk",
       "id": "auth_manager_rationale_161"
     },
@@ -1700,7 +1700,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L171",
-      "community": 3,
+      "community": 4,
       "norm_label": "save authentication metadata",
       "id": "auth_manager_rationale_171"
     },
@@ -1709,7 +1709,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L183",
-      "community": 3,
+      "community": 4,
       "norm_label": "clear all authentication data          returns:             true if cleared succ",
       "id": "auth_manager_rationale_183"
     },
@@ -1718,7 +1718,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L215",
-      "community": 3,
+      "community": 4,
       "norm_label": "perform re-authentication (clear and setup)          args:             headless:",
       "id": "auth_manager_rationale_215"
     },
@@ -1727,7 +1727,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L234",
-      "community": 3,
+      "community": 4,
       "norm_label": "validate that stored authentication works         uses persistent context to mat",
       "id": "auth_manager_rationale_234"
     },
@@ -1736,7 +1736,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L288",
-      "community": 3,
+      "community": 4,
       "norm_label": "command-line interface for authentication management",
       "id": "auth_manager_rationale_288"
     },
@@ -1746,7 +1746,7 @@
       "source_file": "scripts/allplan-source-inventory.mjs",
       "source_location": "L1",
       "id": "scripts_allplan_source_inventory_mjs",
-      "community": 5,
+      "community": 3,
       "norm_label": "allplan-source-inventory.mjs"
     },
     {
@@ -1755,7 +1755,7 @@
       "source_file": "scripts/allplan-source-inventory.mjs",
       "source_location": "L6",
       "id": "allplan_source_inventory_read",
-      "community": 5,
+      "community": 3,
       "norm_label": "read()"
     },
     {
@@ -1764,7 +1764,7 @@
       "source_file": "scripts/allplan-source-inventory.mjs",
       "source_location": "L7",
       "id": "allplan_source_inventory_exists",
-      "community": 5,
+      "community": 3,
       "norm_label": "exists()"
     },
     {
@@ -1773,7 +1773,7 @@
       "source_file": "scripts/allplan-source-inventory.mjs",
       "source_location": "L8",
       "id": "allplan_source_inventory_count",
-      "community": 5,
+      "community": 3,
       "norm_label": "count()"
     },
     {
@@ -1782,8 +1782,26 @@
       "source_file": "scripts/validate-allplan-content-review.mjs",
       "source_location": "L1",
       "id": "scripts_validate_allplan_content_review_mjs",
-      "community": 10,
+      "community": 9,
       "norm_label": "validate-allplan-content-review.mjs"
+    },
+    {
+      "label": "resolveEvidenceFile()",
+      "file_type": "code",
+      "source_file": "scripts/validate-allplan-content-review.mjs",
+      "source_location": "L17",
+      "id": "validate_allplan_content_review_resolveevidencefile",
+      "community": 9,
+      "norm_label": "resolveevidencefile()"
+    },
+    {
+      "label": "validateRecord()",
+      "file_type": "code",
+      "source_file": "scripts/validate-allplan-content-review.mjs",
+      "source_location": "L27",
+      "id": "validate_allplan_content_review_validaterecord",
+      "community": 9,
+      "norm_label": "validaterecord()"
     },
     {
       "label": "negative-test.ts",
@@ -1836,25 +1854,25 @@
       "source_file": "scripts/allplan-structural-audit.mjs",
       "source_location": "L1",
       "id": "scripts_allplan_structural_audit_mjs",
-      "community": 10,
+      "community": 9,
       "norm_label": "allplan-structural-audit.mjs"
     },
     {
       "label": "read()",
       "file_type": "code",
       "source_file": "scripts/allplan-structural-audit.mjs",
-      "source_location": "L9",
+      "source_location": "L10",
       "id": "allplan_structural_audit_read",
-      "community": 10,
+      "community": 9,
       "norm_label": "read()"
     },
     {
       "label": "evaluateEvidenceFiles()",
       "file_type": "code",
       "source_file": "scripts/allplan-structural-audit.mjs",
-      "source_location": "L15",
+      "source_location": "L16",
       "id": "allplan_structural_audit_evaluateevidencefiles",
-      "community": 10,
+      "community": 9,
       "norm_label": "evaluateevidencefiles()"
     },
     {
@@ -1863,7 +1881,7 @@
       "source_file": "scripts/extract-academy-source-data.mjs",
       "source_location": "L1",
       "id": "scripts_extract_academy_source_data_mjs",
-      "community": 85,
+      "community": 84,
       "norm_label": "extract-academy-source-data.mjs"
     },
     {
@@ -1872,7 +1890,7 @@
       "source_file": "scripts/import-allplan-source.mjs",
       "source_location": "L1",
       "id": "scripts_import_allplan_source_mjs",
-      "community": 86,
+      "community": 85,
       "norm_label": "import-allplan-source.mjs"
     },
     {
@@ -1953,7 +1971,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/main.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_main_tsx",
-      "community": 87,
+      "community": 86,
       "norm_label": "main.tsx"
     },
     {
@@ -1962,7 +1980,7 @@
       "source_file": "src/types.ts",
       "source_location": "L1",
       "id": "src_types_ts",
-      "community": 88,
+      "community": 87,
       "norm_label": "types.ts"
     },
     {
@@ -1971,7 +1989,7 @@
       "source_file": "src/constants/navigation.tsx",
       "source_location": "L1",
       "id": "src_constants_navigation_tsx",
-      "community": 89,
+      "community": 88,
       "norm_label": "navigation.tsx"
     },
     {
@@ -1980,7 +1998,7 @@
       "source_file": "src/smartcheck/demo-slice.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_demo_slice_test_ts",
-      "community": 90,
+      "community": 89,
       "norm_label": "demo-slice.test.ts"
     },
     {
@@ -2034,7 +2052,7 @@
       "source_file": "src/smartcheck/demoData.ts",
       "source_location": "L1",
       "id": "src_smartcheck_demodata_ts",
-      "community": 91,
+      "community": 90,
       "norm_label": "demodata.ts"
     },
     {
@@ -2043,7 +2061,7 @@
       "source_file": "src/smartcheck/schemas/schemas.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_schemas_schemas_test_ts",
-      "community": 92,
+      "community": 91,
       "norm_label": "schemas.test.ts"
     },
     {
@@ -2052,7 +2070,7 @@
       "source_file": "src/smartcheck/schemas/structured-condition.schema.ts",
       "source_location": "L1",
       "id": "src_smartcheck_schemas_structured_condition_schema_ts",
-      "community": 93,
+      "community": 92,
       "norm_label": "structured-condition.schema.ts"
     },
     {
@@ -2061,7 +2079,7 @@
       "source_file": "src/smartcheck/schemas/source-evidence.schema.ts",
       "source_location": "L1",
       "id": "src_smartcheck_schemas_source_evidence_schema_ts",
-      "community": 94,
+      "community": 93,
       "norm_label": "source-evidence.schema.ts"
     },
     {
@@ -2277,7 +2295,7 @@
       "source_file": "src/smartcheck/evaluation/metrics.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_metrics_test_ts",
-      "community": 95,
+      "community": 94,
       "norm_label": "metrics.test.ts"
     },
     {
@@ -2331,7 +2349,7 @@
       "source_file": "src/smartcheck/evaluation/evidence-metrics.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_evidence_metrics_test_ts",
-      "community": 96,
+      "community": 95,
       "norm_label": "evidence-metrics.test.ts"
     },
     {
@@ -2484,7 +2502,7 @@
       "source_file": "src/smartcheck/evaluation/normalize.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_normalize_test_ts",
-      "community": 97,
+      "community": 96,
       "norm_label": "normalize.test.ts"
     },
     {
@@ -2736,7 +2754,7 @@
       "source_file": "src/smartcheck/evaluation/matcher.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_matcher_test_ts",
-      "community": 98,
+      "community": 97,
       "norm_label": "matcher.test.ts"
     },
     {
@@ -3303,7 +3321,7 @@
       "source_file": "src/academy/sourceData.ts",
       "source_location": "L1",
       "id": "src_academy_sourcedata_ts",
-      "community": 99,
+      "community": 98,
       "norm_label": "sourcedata.ts"
     },
     {
@@ -3312,7 +3330,7 @@
       "source_file": "src/academy/nativeDerivedData.ts",
       "source_location": "L1",
       "id": "src_academy_nativederiveddata_ts",
-      "community": 100,
+      "community": 99,
       "norm_label": "nativederiveddata.ts"
     },
     {
@@ -3321,7 +3339,7 @@
       "source_file": "src/academy/sourceSections.ts",
       "source_location": "L1",
       "id": "src_academy_sourcesections_ts",
-      "community": 101,
+      "community": 100,
       "norm_label": "sourcesections.ts"
     },
     {
@@ -3330,7 +3348,7 @@
       "source_file": "src/academy/allplan/releaseGate.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_releasegate_test_ts",
-      "community": 102,
+      "community": 101,
       "norm_label": "releasegate.test.ts"
     },
     {
@@ -3339,7 +3357,7 @@
       "source_file": "src/academy/allplan/navigation.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_navigation_test_ts",
-      "community": 103,
+      "community": 102,
       "norm_label": "navigation.test.ts"
     },
     {
@@ -3348,8 +3366,26 @@
       "source_file": "src/academy/allplan/access.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_access_test_ts",
-      "community": 104,
+      "community": 103,
       "norm_label": "access.test.ts"
+    },
+    {
+      "label": "reviewValidator.test.ts",
+      "file_type": "code",
+      "source_file": "src/academy/allplan/reviewValidator.test.ts",
+      "source_location": "L1",
+      "id": "src_academy_allplan_reviewvalidator_test_ts",
+      "community": 3,
+      "norm_label": "reviewvalidator.test.ts"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "src/academy/allplan/reviewValidator.test.ts",
+      "source_location": "L14",
+      "id": "reviewvalidator_test_run",
+      "community": 3,
+      "norm_label": "run()"
     },
     {
       "label": "progress.ts",
@@ -3456,7 +3492,7 @@
       "source_file": "src/academy/allplan/navigation.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_navigation_ts",
-      "community": 9,
+      "community": 10,
       "norm_label": "navigation.ts"
     },
     {
@@ -3465,7 +3501,7 @@
       "source_file": "src/academy/allplan/navigation.ts",
       "source_location": "L1",
       "id": "navigation_safeacademyreturnpath",
-      "community": 9,
+      "community": 10,
       "norm_label": "safeacademyreturnpath()"
     },
     {
@@ -3474,7 +3510,7 @@
       "source_file": "src/academy/allplan/certification.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_certification_test_ts",
-      "community": 105,
+      "community": 104,
       "norm_label": "certification.test.ts"
     },
     {
@@ -3483,7 +3519,7 @@
       "source_file": "src/academy/allplan/checkpoint.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_checkpoint_test_ts",
-      "community": 106,
+      "community": 105,
       "norm_label": "checkpoint.test.ts"
     },
     {
@@ -3492,7 +3528,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_releasegate_ts",
-      "community": 10,
+      "community": 9,
       "norm_label": "releasegate.ts"
     },
     {
@@ -3501,7 +3537,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L26",
       "id": "releasegate_present",
-      "community": 10,
+      "community": 9,
       "norm_label": "present()"
     },
     {
@@ -3510,7 +3546,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L27",
       "id": "releasegate_localevidence",
-      "community": 10,
+      "community": 9,
       "norm_label": "localevidence()"
     },
     {
@@ -3519,7 +3555,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L29",
       "id": "releasegate_evaluateallplancontentreview",
-      "community": 10,
+      "community": 9,
       "norm_label": "evaluateallplancontentreview()"
     },
     {
@@ -3528,7 +3564,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L50",
       "id": "releasegate_canreleaseallplanlesson",
-      "community": 10,
+      "community": 9,
       "norm_label": "canreleaseallplanlesson()"
     },
     {
@@ -3537,7 +3573,7 @@
       "source_file": "src/academy/allplan/types.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_types_ts",
-      "community": 107,
+      "community": 106,
       "norm_label": "types.ts"
     },
     {
@@ -3591,7 +3627,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_track_ts",
-      "community": 10,
+      "community": 9,
       "norm_label": "track.ts"
     },
     {
@@ -3600,7 +3636,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L6",
       "id": "track_slugify",
-      "community": 10,
+      "community": 9,
       "norm_label": "slugify()"
     },
     {
@@ -3609,7 +3645,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L8",
       "id": "track_parseminutes",
-      "community": 10,
+      "community": 9,
       "norm_label": "parseminutes()"
     },
     {
@@ -3618,7 +3654,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L10",
       "id": "track_normalizelesson",
-      "community": 10,
+      "community": 9,
       "norm_label": "normalizelesson()"
     },
     {
@@ -3627,7 +3663,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L25",
       "id": "track_normalizenode",
-      "community": 10,
+      "community": 9,
       "norm_label": "normalizenode()"
     },
     {
@@ -3636,7 +3672,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L49",
       "id": "track_walk",
-      "community": 10,
+      "community": 9,
       "norm_label": "walk()"
     },
     {
@@ -3645,7 +3681,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L60",
       "id": "track_getallplancoveragereport",
-      "community": 10,
+      "community": 9,
       "norm_label": "getallplancoveragereport()"
     },
     {
@@ -3654,7 +3690,7 @@
       "source_file": "src/academy/allplan/paymentWebhook.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_paymentwebhook_test_ts",
-      "community": 108,
+      "community": 107,
       "norm_label": "paymentwebhook.test.ts"
     },
     {
@@ -3780,7 +3816,7 @@
       "source_file": "src/academy/allplan/companion.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_companion_test_ts",
-      "community": 109,
+      "community": 108,
       "norm_label": "companion.test.ts"
     },
     {
@@ -3807,7 +3843,7 @@
       "source_file": "src/academy/allplan/source/constants.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_source_constants_ts",
-      "community": 110,
+      "community": 109,
       "norm_label": "constants.ts"
     },
     {
@@ -3906,7 +3942,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/progress.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_progress_tsx",
-      "community": 111,
+      "community": 110,
       "norm_label": "progress.tsx"
     },
     {
@@ -3942,7 +3978,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_sonner_tsx",
-      "community": 112,
+      "community": 111,
       "norm_label": "sonner.tsx"
     },
     {
@@ -4005,7 +4041,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/EmptyState.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_emptystate_tsx",
-      "community": 113,
+      "community": 112,
       "norm_label": "emptystate.tsx"
     },
     {
@@ -4041,7 +4077,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/auth/ProtectedRoute.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_auth_protectedroute_tsx",
-      "community": 9,
+      "community": 10,
       "norm_label": "protectedroute.tsx"
     },
     {
@@ -4050,7 +4086,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/auth/ProtectedRoute.tsx",
       "source_location": "L5",
       "id": "protectedroute_protectedroute",
-      "community": 9,
+      "community": 10,
       "norm_label": "protectedroute()"
     },
     {
@@ -4059,7 +4095,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/Shell.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_shell_tsx",
-      "community": 114,
+      "community": 113,
       "norm_label": "shell.tsx"
     },
     {
@@ -4086,7 +4122,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageHeader.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_pageheader_tsx",
-      "community": 115,
+      "community": 114,
       "norm_label": "pageheader.tsx"
     },
     {
@@ -4095,7 +4131,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/SectionWrapper.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_sectionwrapper_tsx",
-      "community": 116,
+      "community": 115,
       "norm_label": "sectionwrapper.tsx"
     },
     {
@@ -4122,7 +4158,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/ProfitabilityBadge.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_profitabilitybadge_tsx",
-      "community": 117,
+      "community": 116,
       "norm_label": "profitabilitybadge.tsx"
     },
     {
@@ -4257,7 +4293,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/data/StatCard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_data_statcard_tsx",
-      "community": 118,
+      "community": 117,
       "norm_label": "statcard.tsx"
     },
     {
@@ -4266,7 +4302,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/hooks/useAuth.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_hooks_useauth_tsx",
-      "community": 9,
+      "community": 10,
       "norm_label": "useauth.tsx"
     },
     {
@@ -4275,7 +4311,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/hooks/useAuth.tsx",
       "source_location": "L26",
       "id": "useauth_authprovider",
-      "community": 9,
+      "community": 10,
       "norm_label": "authprovider()"
     },
     {
@@ -4284,7 +4320,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/hooks/useAuth.tsx",
       "source_location": "L85",
       "id": "useauth_useauth",
-      "community": 9,
+      "community": 10,
       "norm_label": "useauth()"
     },
     {
@@ -4311,7 +4347,7 @@
       "source_file": "src/lib/calculations.test.ts",
       "source_location": "L1",
       "id": "src_lib_calculations_test_ts",
-      "community": 119,
+      "community": 118,
       "norm_label": "calculations.test.ts"
     },
     {
@@ -4437,7 +4473,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/types.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_types_ts",
-      "community": 120,
+      "community": 119,
       "norm_label": "types.ts"
     },
     {
@@ -4509,7 +4545,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/definitions.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_definitions_ts",
-      "community": 121,
+      "community": 120,
       "norm_label": "definitions.ts"
     },
     {
@@ -4518,7 +4554,7 @@
       "source_file": "src/db/schema.ts",
       "source_location": "L1",
       "id": "src_db_schema_ts",
-      "community": 122,
+      "community": 121,
       "norm_label": "schema.ts"
     },
     {
@@ -4527,7 +4563,7 @@
       "source_file": "src/db/index.ts",
       "source_location": "L1",
       "id": "src_db_index_ts",
-      "community": 123,
+      "community": 122,
       "norm_label": "index.ts"
     },
     {
@@ -4536,7 +4572,7 @@
       "source_file": "src/db/drizzle.config.ts",
       "source_location": "L1",
       "id": "src_db_drizzle_config_ts",
-      "community": 124,
+      "community": 123,
       "norm_label": "drizzle.config.ts"
     },
     {
@@ -4545,7 +4581,7 @@
       "source_file": "src/worker/task-list.ts",
       "source_location": "L1",
       "id": "src_worker_task_list_ts",
-      "community": 125,
+      "community": 124,
       "norm_label": "task-list.ts"
     },
     {
@@ -4554,7 +4590,7 @@
       "source_file": "src/worker/index.ts",
       "source_location": "L1",
       "id": "src_worker_index_ts",
-      "community": 68,
+      "community": 3,
       "norm_label": "index.ts"
     },
     {
@@ -4563,7 +4599,7 @@
       "source_file": "src/worker/index.ts",
       "source_location": "L1",
       "id": "index_main",
-      "community": 68,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -4572,7 +4608,7 @@
       "source_file": "src/worker/tasks/healthcheck.ts",
       "source_location": "L1",
       "id": "src_worker_tasks_healthcheck_ts",
-      "community": 69,
+      "community": 68,
       "norm_label": "healthcheck.ts"
     },
     {
@@ -4581,7 +4617,7 @@
       "source_file": "src/worker/tasks/healthcheck.ts",
       "source_location": "L1",
       "id": "healthcheck_healthcheck",
-      "community": 69,
+      "community": 68,
       "norm_label": "healthcheck()"
     },
     {
@@ -4779,7 +4815,7 @@
       "source_file": "src/pages/Login.tsx",
       "source_location": "L1",
       "id": "src_pages_login_tsx",
-      "community": 9,
+      "community": 10,
       "norm_label": "login.tsx"
     },
     {
@@ -4788,7 +4824,7 @@
       "source_file": "src/pages/Login.tsx",
       "source_location": "L9",
       "id": "login_login",
-      "community": 9,
+      "community": 10,
       "norm_label": "login()"
     },
     {
@@ -4797,7 +4833,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Dashboard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_dashboard_tsx",
-      "community": 126,
+      "community": 125,
       "norm_label": "dashboard.tsx"
     },
     {
@@ -4806,7 +4842,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AIAssistant.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_aiassistant_tsx",
-      "community": 70,
+      "community": 69,
       "norm_label": "aiassistant.tsx"
     },
     {
@@ -4815,7 +4851,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AIAssistant.tsx",
       "source_location": "L24",
       "id": "aiassistant_handlesend",
-      "community": 70,
+      "community": 69,
       "norm_label": "handlesend()"
     },
     {
@@ -4824,7 +4860,7 @@
       "source_file": "src/pages/Register.tsx",
       "source_location": "L1",
       "id": "src_pages_register_tsx",
-      "community": 9,
+      "community": 10,
       "norm_label": "register.tsx"
     },
     {
@@ -4833,7 +4869,7 @@
       "source_file": "src/pages/Register.tsx",
       "source_location": "L9",
       "id": "register_register",
-      "community": 9,
+      "community": 10,
       "norm_label": "register()"
     },
     {
@@ -4842,7 +4878,7 @@
       "source_file": "src/pages/ProtectedAllplanLessonPage.tsx",
       "source_location": "L1",
       "id": "src_pages_protectedallplanlessonpage_tsx",
-      "community": 9,
+      "community": 10,
       "norm_label": "protectedallplanlessonpage.tsx"
     },
     {
@@ -4851,7 +4887,7 @@
       "source_file": "src/pages/ProtectedAllplanLessonPage.tsx",
       "source_location": "L19",
       "id": "protectedallplanlessonpage_protectedallplanlessonpage",
-      "community": 9,
+      "community": 10,
       "norm_label": "protectedallplanlessonpage()"
     },
     {
@@ -4860,7 +4896,7 @@
       "source_file": "src/pages/Academy.tsx",
       "source_location": "L1",
       "id": "src_pages_academy_tsx",
-      "community": 71,
+      "community": 70,
       "norm_label": "academy.tsx"
     },
     {
@@ -4869,7 +4905,7 @@
       "source_file": "src/pages/Academy.tsx",
       "source_location": "L16",
       "id": "academy_academy",
-      "community": 71,
+      "community": 70,
       "norm_label": "academy()"
     },
     {
@@ -4914,7 +4950,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Profitability.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_profitability_tsx",
-      "community": 127,
+      "community": 126,
       "norm_label": "profitability.tsx"
     },
     {
@@ -4923,7 +4959,7 @@
       "source_file": "src/pages/PublicAcademy.tsx",
       "source_location": "L1",
       "id": "src_pages_publicacademy_tsx",
-      "community": 128,
+      "community": 127,
       "norm_label": "publicacademy.tsx"
     },
     {
@@ -4932,7 +4968,7 @@
       "source_file": "src/pages/AllplanAccessGate.tsx",
       "source_location": "L1",
       "id": "src_pages_allplanaccessgate_tsx",
-      "community": 72,
+      "community": 71,
       "norm_label": "allplanaccessgate.tsx"
     },
     {
@@ -4941,7 +4977,7 @@
       "source_file": "src/pages/AllplanAccessGate.tsx",
       "source_location": "L6",
       "id": "allplanaccessgate_allplanaccessgate",
-      "community": 72,
+      "community": 71,
       "norm_label": "allplanaccessgate()"
     },
     {
@@ -5031,7 +5067,7 @@
       "source_file": "src/pages/AllplanAcademy.tsx",
       "source_location": "L1",
       "id": "src_pages_allplanacademy_tsx",
-      "community": 9,
+      "community": 10,
       "norm_label": "allplanacademy.tsx"
     },
     {
@@ -5040,7 +5076,7 @@
       "source_file": "src/pages/AllplanAcademy.tsx",
       "source_location": "L14",
       "id": "allplanacademy_flattenlessons",
-      "community": 9,
+      "community": 10,
       "norm_label": "flattenlessons()"
     },
     {
@@ -5049,7 +5085,7 @@
       "source_file": "src/pages/AllplanAcademy.tsx",
       "source_location": "L33",
       "id": "allplanacademy_allplanacademy",
-      "community": 9,
+      "community": 10,
       "norm_label": "allplanacademy()"
     },
     {
@@ -5058,7 +5094,7 @@
       "source_file": "src/pages/AllplanAcademy.tsx",
       "source_location": "L123",
       "id": "allplanacademy_curriculumpath",
-      "community": 9,
+      "community": 10,
       "norm_label": "curriculumpath()"
     },
     {
@@ -5067,7 +5103,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Quotes.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_quotes_tsx",
-      "community": 129,
+      "community": 128,
       "norm_label": "quotes.tsx"
     },
     {
@@ -5166,7 +5202,7 @@
       "source_file": "src/pages/PilotApplication.tsx",
       "source_location": "L1",
       "id": "src_pages_pilotapplication_tsx",
-      "community": 73,
+      "community": 72,
       "norm_label": "pilotapplication.tsx"
     },
     {
@@ -5175,7 +5211,7 @@
       "source_file": "src/pages/PilotApplication.tsx",
       "source_location": "L9",
       "id": "pilotapplication_pilotapplication",
-      "community": 73,
+      "community": 72,
       "norm_label": "pilotapplication()"
     },
     {
@@ -5184,7 +5220,7 @@
       "source_file": "src/pages/SmartCheck.tsx",
       "source_location": "L1",
       "id": "src_pages_smartcheck_tsx",
-      "community": 74,
+      "community": 73,
       "norm_label": "smartcheck.tsx"
     },
     {
@@ -5193,7 +5229,7 @@
       "source_file": "src/pages/SmartCheck.tsx",
       "source_location": "L20",
       "id": "smartcheck_handlestartdemocheck",
-      "community": 74,
+      "community": 73,
       "norm_label": "handlestartdemocheck()"
     },
     {
@@ -5229,7 +5265,7 @@
       "source_file": "src/pages/Billing.tsx",
       "source_location": "L1",
       "id": "src_pages_billing_tsx",
-      "community": 75,
+      "community": 74,
       "norm_label": "billing.tsx"
     },
     {
@@ -5238,7 +5274,7 @@
       "source_file": "src/pages/Billing.tsx",
       "source_location": "L44",
       "id": "billing_billing",
-      "community": 75,
+      "community": 74,
       "norm_label": "billing()"
     },
     {
@@ -5247,7 +5283,7 @@
       "source_file": "src/pages/PilotApplications.tsx",
       "source_location": "L1",
       "id": "src_pages_pilotapplications_tsx",
-      "community": 76,
+      "community": 75,
       "norm_label": "pilotapplications.tsx"
     },
     {
@@ -5256,7 +5292,7 @@
       "source_file": "src/pages/PilotApplications.tsx",
       "source_location": "L39",
       "id": "pilotapplications_pilotapplications",
-      "community": 76,
+      "community": 75,
       "norm_label": "pilotapplications()"
     },
     {
@@ -5454,7 +5490,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/pdf/templates.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_services_pdf_templates_ts",
-      "community": 130,
+      "community": 129,
       "norm_label": "templates.ts"
     },
     {
@@ -5463,7 +5499,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/pdf/generate.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_services_pdf_generate_ts",
-      "community": 3,
+      "community": 4,
       "norm_label": "generate.ts"
     },
     {
@@ -5472,7 +5508,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/pdf/generate.ts",
       "source_location": "L10",
       "id": "generate_generatequotationpdf",
-      "community": 3,
+      "community": 4,
       "norm_label": "generatequotationpdf()"
     },
     {
@@ -5742,7 +5778,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/ai/providers/providerRouter.test.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_services_ai_providers_providerrouter_test_ts",
-      "community": 77,
+      "community": 76,
       "norm_label": "providerrouter.test.ts"
     },
     {
@@ -5751,7 +5787,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/ai/providers/providerRouter.test.ts",
       "source_location": "L6",
       "id": "providerrouter_test_fakeprovider",
-      "community": 77,
+      "community": 76,
       "norm_label": "fakeprovider()"
     },
     {
@@ -6850,12 +6886,36 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "notebooklm/scripts/run.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "run_ensure_venv",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "run_ensure_venv",
+      "target": "reviewvalidator_test_run"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "notebooklm/scripts/run.py",
       "source_location": "L76",
       "weight": 1.0,
       "_src": "run_main",
       "_tgt": "allplan_source_inventory_exists",
       "source": "run_main",
       "target": "allplan_source_inventory_exists"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "notebooklm/scripts/run.py",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "run_main",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "run_main",
+      "target": "reviewvalidator_test_run"
     },
     {
       "relation": "rationale_for",
@@ -7050,6 +7110,18 @@
       "target": "allplan_source_inventory_exists"
     },
     {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "notebooklm/scripts/setup_environment.py",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_src": "setup_environment_skillenvironment_ensure_venv",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "setup_environment_skillenvironment_ensure_venv",
+      "target": "reviewvalidator_test_run"
+    },
+    {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "notebooklm/scripts/setup_environment.py",
@@ -7132,6 +7204,18 @@
       "_tgt": "allplan_source_inventory_exists",
       "source": "setup_environment_skillenvironment_run_script",
       "target": "allplan_source_inventory_exists"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "notebooklm/scripts/setup_environment.py",
+      "source_location": "L132",
+      "weight": 1.0,
+      "_src": "setup_environment_skillenvironment_run_script",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "setup_environment_skillenvironment_run_script",
+      "target": "reviewvalidator_test_run"
     },
     {
       "relation": "calls",
@@ -7792,6 +7876,18 @@
       "_tgt": "allplan_source_inventory_exists",
       "source": "init_ensure_venv_and_run",
       "target": "allplan_source_inventory_exists"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "notebooklm/scripts/__init__.py",
+      "source_location": "L53",
+      "weight": 1.0,
+      "_src": "init_ensure_venv_and_run",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "init_ensure_venv_and_run",
+      "target": "reviewvalidator_test_run"
     },
     {
       "relation": "contains",
@@ -9668,6 +9764,66 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-allplan-content-review.mjs",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "scripts_validate_allplan_content_review_mjs",
+      "_tgt": "validate_allplan_content_review_resolveevidencefile",
+      "source": "scripts_validate_allplan_content_review_mjs",
+      "target": "validate_allplan_content_review_resolveevidencefile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-allplan-content-review.mjs",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_src": "scripts_validate_allplan_content_review_mjs",
+      "_tgt": "validate_allplan_content_review_validaterecord",
+      "source": "scripts_validate_allplan_content_review_mjs",
+      "target": "validate_allplan_content_review_validaterecord",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-allplan-content-review.mjs",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_src": "validate_allplan_content_review_validaterecord",
+      "_tgt": "validate_allplan_content_review_resolveevidencefile",
+      "source": "validate_allplan_content_review_resolveevidencefile",
+      "target": "validate_allplan_content_review_validaterecord",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/allplan-structural-audit.mjs",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "allplan_structural_audit_evaluateevidencefiles",
+      "_tgt": "validate_allplan_content_review_resolveevidencefile",
+      "source": "validate_allplan_content_review_resolveevidencefile",
+      "target": "allplan_structural_audit_evaluateevidencefiles"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/validate-allplan-content-review.mjs",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_src": "validate_allplan_content_review_validaterecord",
+      "_tgt": "releasegate_evaluateallplancontentreview",
+      "source": "validate_allplan_content_review_validaterecord",
+      "target": "releasegate_evaluateallplancontentreview"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "scripts/negative-test.ts",
       "source_location": "L6",
       "weight": 1.0,
@@ -9717,7 +9873,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/allplan-structural-audit.mjs",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_src": "scripts_allplan_structural_audit_mjs",
       "_tgt": "allplan_structural_audit_read",
@@ -9729,7 +9885,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/allplan-structural-audit.mjs",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0,
       "_src": "scripts_allplan_structural_audit_mjs",
       "_tgt": "allplan_structural_audit_evaluateevidencefiles",
@@ -11848,6 +12004,30 @@
       "source": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_regulations_ts",
       "target": "regulations_registerregulationroutes",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/academy/allplan/reviewValidator.test.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "src_academy_allplan_reviewvalidator_test_ts",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "src_academy_allplan_reviewvalidator_test_ts",
+      "target": "reviewvalidator_test_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/worker/index.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "index_main",
+      "_tgt": "reviewvalidator_test_run",
+      "source": "reviewvalidator_test_run",
+      "target": "index_main"
     },
     {
       "relation": "contains",

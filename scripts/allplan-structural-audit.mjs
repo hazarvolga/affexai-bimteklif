@@ -5,6 +5,7 @@ import reviewData from '../src/academy/allplan/contentReviewRecords.json' with {
 import { evaluateAllplanContentReview } from '../src/academy/allplan/releaseGate.ts';
 
 const repo = process.cwd();
+const evidenceRoot = path.resolve(repo, 'docs/academy/content-review/evidence');
 const sourceRoot = path.resolve(repo, '../allplanAkademi-main');
 const read = relative => fs.readFileSync(path.join(sourceRoot, relative), 'utf8');
 const constants = read('src/constants.ts');
@@ -15,11 +16,19 @@ const structuralBlock = constants.match(/id:\s*'p3',[\s\S]*?(?=\n\s*\{\n\s*id:\s
 const evaluateEvidenceFiles = record => {
   if (!record) return [];
   const reasons = [];
+  const resolveEvidenceFile = ref => {
+    if (typeof ref !== 'string') return null;
+    const candidate = path.resolve(repo, ref);
+    if (candidate !== evidenceRoot && !candidate.startsWith(`${evidenceRoot}${path.sep}`)) return null;
+    if (!fs.existsSync(candidate) || !fs.lstatSync(candidate).isFile()) return null;
+    const real = fs.realpathSync(candidate);
+    return real === evidenceRoot || real.startsWith(`${evidenceRoot}${path.sep}`) ? real : null;
+  };
   for (const step of record.stepsEvidence ?? []) {
-    if (!step.evidenceRef || !fs.existsSync(path.resolve(repo, step.evidenceRef))) reasons.push(`STEP_EVIDENCE_FILE_MISSING:${step.step ?? '?'}`);
+    if (!resolveEvidenceFile(step.evidenceRef)) reasons.push(`STEP_EVIDENCE_FILE_MISSING:${step.step ?? '?'}`);
   }
-  const sourcePath = record.sourceEvidenceRef ? path.resolve(repo, record.sourceEvidenceRef) : '';
-  if (!sourcePath || !fs.existsSync(sourcePath)) reasons.push('SOURCE_EVIDENCE_FILE_MISSING');
+  const sourcePath = resolveEvidenceFile(record.sourceEvidenceRef);
+  if (!sourcePath) reasons.push('SOURCE_EVIDENCE_FILE_MISSING');
   else if (crypto.createHash('sha256').update(fs.readFileSync(sourcePath)).digest('hex') !== record.sourceEvidenceHash) reasons.push('SOURCE_EVIDENCE_HASH_MISMATCH');
   return reasons;
 };

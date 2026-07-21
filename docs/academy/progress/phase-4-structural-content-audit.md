@@ -70,6 +70,8 @@ Bir modül aşağıdaki kanıtların tamamı olmadan `verified` veya `available`
 - Review record; öğrenme hedefi, ön koşul, Allplan sürümü, interface bağlamı, en az üç adım kanıtı, somut çıktı, tarihli referans, reviewer, checkpoint, değerlendirme, mühendislik uyarısı ve SHA-256 evidence hash olmadan onaylanmaz.
 - Columns başlangıç şablonu: `docs/academy/content-review/columns.review.template.json`.
 - Reviewer kaydı doğrulama komutu: `npm run allplan:review-validate -- <review-record.json>`.
+- Dokuz modül toplu doğrulama: `npm run allplan:review-validate -- src/academy/allplan/contentReviewRecords.json --all`.
+- Validator ve audit yalnız repo içindeki gerçek evidence dosyalarını kabul eder; evidence klasöründen dışarı çözümlenen symlink'ler reddedilir.
 
 Yerel `4708.pdf` dosyası metadata, metin ve sayfa renderı ile incelendi. Dosya Allplan Structural kullanım kanıtı değil, 2015 tarihli bir 4708 Sayılı Yapı Denetim Kanunu kopyasıdır; Columns release evidence olarak reddedildi ve kaynak kaydına eklenmedi.
 
