@@ -1,12 +1,12 @@
 # Graph Report - TeklifPro-repo  (2026-07-22)
 
 ## Corpus Check
-- 193 files · ~194,786 words
+- 196 files · ~195,554 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 636 nodes · 722 edges · 43 communities detected
-- Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 135 edges (avg confidence: 0.74)
+- 642 nodes · 730 edges · 43 communities detected
+- Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 136 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -28,7 +28,7 @@
 - [[_COMMUNITY_Community 15|Community 15]]
 - [[_COMMUNITY_Community 16|Community 16]]
 - [[_COMMUNITY_Community 17|Community 17]]
-- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 18|Community 18]]
 - [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 21|Community 21]]
 - [[_COMMUNITY_Community 23|Community 23]]
@@ -39,7 +39,7 @@
 - [[_COMMUNITY_Community 28|Community 28]]
 - [[_COMMUNITY_Community 29|Community 29]]
 - [[_COMMUNITY_Community 30|Community 30]]
-- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 31|Community 31]]
 - [[_COMMUNITY_Community 33|Community 33]]
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
@@ -49,10 +49,10 @@
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 44|Community 44]]
 - [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 81|Community 81]]
 - [[_COMMUNITY_Community 82|Community 82]]
 - [[_COMMUNITY_Community 83|Community 83]]
 - [[_COMMUNITY_Community 84|Community 84]]
-- [[_COMMUNITY_Community 85|Community 85]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `NotebookLibrary` - 18 edges
@@ -133,28 +133,28 @@ Cohesion: 0.15
 Nodes (6): findLesson(), loadCertificationEligibility(), toCurriculumNode(), toLessonSummary(), validSlug(), evaluateCertificationEligibility()
 
 ### Community 13 - "Community 13"
+Cohesion: 0.2
+Nodes (7): canReleaseAllplanLesson(), evaluateAllplanContentReview(), present(), normalizeLesson(), normalizeNode(), parseMinutes(), slugify()
+
+### Community 14 - "Community 14"
 Cohesion: 0.33
 Nodes (9): SelectContent(), SelectGroup(), SelectItem(), SelectLabel(), SelectScrollDownButton(), SelectScrollUpButton(), SelectSeparator(), SelectTrigger() (+1 more)
 
-### Community 14 - "Community 14"
+### Community 15 - "Community 15"
 Cohesion: 0.39
 Nodes (7): cn(), Sheet(), SheetClose(), SheetDescription(), SheetPortal(), SheetTitle(), SheetTrigger()
 
-### Community 15 - "Community 15"
+### Community 16 - "Community 16"
 Cohesion: 0.39
 Nodes (5): fetchData(), handleInvite(), handleUpgrade(), industryEnabled(), toggleIndustry()
 
-### Community 16 - "Community 16"
+### Community 17 - "Community 17"
 Cohesion: 0.48
 Nodes (5): cn(), Dialog(), DialogClose(), DialogPortal(), DialogTrigger()
 
-### Community 17 - "Community 17"
+### Community 18 - "Community 18"
 Cohesion: 0.48
 Nodes (5): cn(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuPortal(), DropdownMenuTrigger()
-
-### Community 19 - "Community 19"
-Cohesion: 0.43
-Nodes (4): normalizeLesson(), normalizeNode(), parseMinutes(), slugify()
 
 ### Community 20 - "Community 20"
 Cohesion: 0.38
@@ -193,16 +193,16 @@ Cohesion: 0.67
 Nodes (2): CardAction(), cn()
 
 ### Community 30 - "Community 30"
+Cohesion: 0.67
+Nodes (2): ScrollArea(), ScrollBar()
+
+### Community 31 - "Community 31"
 Cohesion: 0.83
 Nodes (3): expectUnauthorized(), main(), requestJson()
 
-### Community 32 - "Community 32"
-Cohesion: 0.67
-Nodes (2): answerFromAllplanLessons(), tokens()
-
 ### Community 33 - "Community 33"
 Cohesion: 0.67
-Nodes (2): ScrollArea(), ScrollBar()
+Nodes (2): answerFromAllplanLessons(), tokens()
 
 ### Community 35 - "Community 35"
 Cohesion: 0.67
@@ -236,19 +236,19 @@ Nodes (2): findAllplanEntitlement(), requireAllplanEntitlement()
 Cohesion: 1.0
 Nodes (1): Configuration for NotebookLM Skill Centralizes constants, selectors, and paths
 
-### Community 82 - "Community 82"
+### Community 81 - "Community 81"
 Cohesion: 1.0
 Nodes (1): Launch a persistent browser context with anti-detection features         and coo
 
-### Community 83 - "Community 83"
+### Community 82 - "Community 82"
 Cohesion: 1.0
 Nodes (1): Inject cookies from state.json if available
 
-### Community 84 - "Community 84"
+### Community 83 - "Community 83"
 Cohesion: 1.0
 Nodes (1): Type with human-like speed
 
-### Community 85 - "Community 85"
+### Community 84 - "Community 84"
 Cohesion: 1.0
 Nodes (1): Click with realistic movement
 
@@ -271,9 +271,9 @@ Nodes (1): Click with realistic movement
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 29`** (4 nodes): `CardAction()`, `cn()`, `card.tsx`, `card.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (4 nodes): `answerFromAllplanLessons()`, `excerpt()`, `tokens()`, `companion.ts`
+- **Thin community `Community 30`** (4 nodes): `ScrollArea()`, `ScrollBar()`, `scroll-area.tsx`, `scroll-area.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (4 nodes): `ScrollArea()`, `ScrollBar()`, `scroll-area.tsx`, `scroll-area.tsx`
+- **Thin community `Community 33`** (4 nodes): `answerFromAllplanLessons()`, `excerpt()`, `tokens()`, `companion.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 35`** (3 nodes): `cn()`, `tabs.tsx`, `tabs.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -291,20 +291,20 @@ Nodes (1): Click with realistic movement
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 54`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 82`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
+- **Thin community `Community 81`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 83`** (1 nodes): `Inject cookies from state.json if available`
+- **Thin community `Community 82`** (1 nodes): `Inject cookies from state.json if available`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 84`** (1 nodes): `Type with human-like speed`
+- **Thin community `Community 83`** (1 nodes): `Type with human-like speed`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 85`** (1 nodes): `Click with realistic movement`
+- **Thin community `Community 84`** (1 nodes): `Click with realistic movement`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `exists()` connect `Community 5` to `Community 8`, `Community 3`, `Community 4`, `Community 6`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Why does `NotebookLibrary` connect `Community 4` to `Community 3`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
 - **Why does `StealthUtils` connect `Community 6` to `Community 3`?**

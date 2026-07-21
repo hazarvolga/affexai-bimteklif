@@ -60,6 +60,19 @@ Bir modül aşağıdaki kanıtların tamamı olmadan `verified` veya `available`
 
 `npm run allplan:structural-audit` bu kararı otomatik üretir. Audit `LOCKED` döndüğü sürece UI’da yeni Structural ders açılmamalıdır.
 
+## Runtime release gate güncellemesi
+
+22 Temmuz 2026 itibarıyla bu kural yalnız dokümantasyon/audit kararı değildir:
+
+- `src/academy/allplan/releaseGate.ts` review sözleşmesini runtime'da doğrular.
+- Structural kaynak kimlikleri `contentReviewRecords.json` içinde allowlist olarak tutulur.
+- Kaynak uygulamaya ayrıntılı ders gövdesi eklense bile onaylı review record yoksa `track.ts` dersi API/UI'a açmaz.
+- Review record; öğrenme hedefi, ön koşul, Allplan sürümü, interface bağlamı, en az üç adım kanıtı, somut çıktı, tarihli referans, reviewer, checkpoint, değerlendirme, mühendislik uyarısı ve SHA-256 evidence hash olmadan onaylanmaz.
+- Columns başlangıç şablonu: `docs/academy/content-review/columns.review.template.json`.
+- Reviewer kaydı doğrulama komutu: `npm run allplan:review-validate -- <review-record.json>`.
+
+Yerel `4708.pdf` dosyası metadata, metin ve sayfa renderı ile incelendi. Dosya Allplan Structural kullanım kanıtı değil, 2015 tarihli bir 4708 Sayılı Yapı Denetim Kanunu kopyasıdır; Columns release evidence olarak reddedildi ve kaynak kaydına eklenmedi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.

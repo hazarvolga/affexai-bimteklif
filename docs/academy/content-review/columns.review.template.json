@@ -1,0 +1,57 @@
+{
+  "sourceId": "p3-c1-m1",
+  "decision": "changes-requested",
+  "learningOutcomes": [
+    ""
+  ],
+  "prerequisites": [
+    ""
+  ],
+  "allplanVersions": [
+    "2026"
+  ],
+  "interfaceContext": "",
+  "stepsEvidence": [
+    {
+      "step": 1,
+      "title": "",
+      "evidenceRef": "",
+      "expectedOutput": ""
+    },
+    {
+      "step": 2,
+      "title": "",
+      "evidenceRef": "",
+      "expectedOutput": ""
+    },
+    {
+      "step": 3,
+      "title": "",
+      "evidenceRef": "",
+      "expectedOutput": ""
+    }
+  ],
+  "learnerOutput": "",
+  "references": [
+    {
+      "title": "",
+      "versionOrDate": "",
+      "locator": ""
+    }
+  ],
+  "technicalReviewer": {
+    "name": "",
+    "role": "",
+    "reviewedAt": ""
+  },
+  "checkpoint": {
+    "prompt": "",
+    "acceptanceCriteria": ""
+  },
+  "assessmentQuestion": {
+    "prompt": "",
+    "expectedAnswer": ""
+  },
+  "engineeringDisclaimer": true,
+  "sourceEvidenceHash": ""
+}

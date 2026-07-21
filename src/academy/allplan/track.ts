@@ -1,6 +1,7 @@
 import { COURSE_TREE, type LessonNode } from './source/constants';
 import { LESSONS_CONTENT, type LessonDetail } from './source/lessonsContent';
 import type { AllplanCoverageReport, AllplanLesson, AllplanModuleNode, AllplanTrack } from './types';
+import { canReleaseAllplanLesson } from './releaseGate';
 
 const slugify = (value: string) => value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -23,6 +24,7 @@ const normalizeLesson = (sourceId: string, detail: LessonDetail): AllplanLesson 
 
 const normalizeNode = (node: LessonNode): AllplanModuleNode => {
   const detail = LESSONS_CONTENT[node.title];
+  const released = canReleaseAllplanLesson(node.id, Boolean(detail));
   const children = (node.children ?? []).map(normalizeNode);
   return {
     sourceId: node.id,
@@ -31,8 +33,8 @@ const normalizeNode = (node: LessonNode): AllplanModuleNode => {
     status: node.status,
     lessonsCount: node.lessonsCount,
     children,
-    lesson: detail ? normalizeLesson(node.id, detail) : undefined,
-    contentStatus: detail ? 'verified' : 'needs-review',
+    lesson: detail && released ? normalizeLesson(node.id, detail) : undefined,
+    contentStatus: detail && released ? 'verified' : 'needs-review',
   };
 };
 
@@ -60,12 +62,11 @@ export const getAllplanCoverageReport = (): AllplanCoverageReport => {
   const courses = ALLPLAN_NODES.filter(node => node.type === 'course');
   const modules = ALLPLAN_NODES.filter(node => node.type === 'module');
   const reviewRequired = modules.filter(node => node.contentStatus === 'needs-review');
-  const detailedLessonTitles = new Set(Object.keys(LESSONS_CONTENT));
   return {
     pathCount: paths.length,
     courseCount: courses.length,
     moduleCount: modules.length,
-    detailedLessonCount: detailedLessonTitles.size,
+    detailedLessonCount: ALLPLAN_DETAILED_LESSONS.length,
     coveredModuleCount: modules.length - reviewRequired.length,
     reviewRequiredModuleCount: reviewRequired.length,
     coveragePercent: modules.length ? Math.round(((modules.length - reviewRequired.length) / modules.length) * 100) : 0,

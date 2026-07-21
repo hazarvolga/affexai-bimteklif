@@ -12,7 +12,8 @@
     "lint": "tsc --noEmit",
     "academy:parity": "node scripts/academy-parity-check.mjs",
     "allplan:inventory": "node scripts/allplan-source-inventory.mjs",
-    "allplan:structural-audit": "node scripts/allplan-structural-audit.mjs",
+    "allplan:structural-audit": "tsx scripts/allplan-structural-audit.mjs",
+    "allplan:review-validate": "tsx scripts/validate-allplan-content-review.mjs",
     "allplan:import": "node scripts/import-allplan-source.mjs",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "smartcheck:evaluate": "tsx src/smartcheck/evaluation/cli-main.ts"

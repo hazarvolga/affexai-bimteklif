@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import reviewData from '../src/academy/allplan/contentReviewRecords.json' with { type: 'json' };
+import { evaluateAllplanContentReview } from '../src/academy/allplan/releaseGate.ts';
 
 const repo = process.cwd();
 const sourceRoot = path.resolve(repo, '../allplanAkademi-main');
@@ -11,13 +13,19 @@ const structuralBlock = constants.match(/id:\s*'p3',[\s\S]*?(?=\n\s*\{\n\s*id:\s
 
 if (!structuralBlock) throw new Error('[allplan-structural-audit] p3 Structural Engineering path not found');
 
-const modules = [...structuralBlock.matchAll(/id:\s*'([^']+)',\s*title:\s*'([^']+)',\s*type:\s*'module'/g)].map(([, sourceId, title]) => ({
-  sourceId,
-  title,
-  hasDetailedLessonBody: lessonKeys.includes(title),
-  contentStatus: lessonKeys.includes(title) ? 'verified' : 'needs-review',
-  releaseDecision: lessonKeys.includes(title) ? 'available' : 'locked',
-}));
+const modules = [...structuralBlock.matchAll(/id:\s*'([^']+)',\s*title:\s*'([^']+)',\s*type:\s*'module'/g)].map(([, sourceId, title]) => {
+  const hasDetailedLessonBody = lessonKeys.includes(title);
+  const reviewGate = evaluateAllplanContentReview(reviewData.records[sourceId]);
+  const releaseApproved = hasDetailedLessonBody && reviewGate.approved;
+  return {
+    sourceId,
+    title,
+    hasDetailedLessonBody,
+    reviewGate,
+    contentStatus: releaseApproved ? 'verified' : 'needs-review',
+    releaseDecision: releaseApproved ? 'available' : 'locked',
+  };
+});
 
 const componentEvidence = [
   { source: 'KnowledgeBase.tsx', signal: 'Automated Reinforcement Workflows', matches: read('src/components/KnowledgeBase.tsx').includes('Automated Reinforcement Workflows') },
@@ -27,13 +35,13 @@ const componentEvidence = [
   { source: 'ExamInterface.tsx', signal: 'Structural modeling standards question', matches: read('src/components/ExamInterface.tsx').includes('REINFORCEMENT MODELING STANDARDS') },
 ].filter(item => item.matches);
 
-const missingModules = modules.filter(module => !module.hasDetailedLessonBody);
+const missingModules = modules.filter(module => module.releaseDecision !== 'available');
 const releaseGate = {
   unlockable: missingModules.length === 0,
   decision: missingModules.length === 0 ? 'PASS' : 'LOCKED',
   reasons: missingModules.length === 0 ? [] : [
-    'Structural modül başlıkları için kaynak ders gövdesi bulunmuyor.',
-    'Parçalı component sinyalleri; hedef, ön koşul, adım, çıktı, standart ve review sözleşmesini karşılamıyor.',
+    'Structural modüller kaynak ders gövdesi ve onaylı content review record birlikte olmadan açılamaz.',
+    'Review record; hedef, ön koşul, sürüm, adım kanıtı, çıktı, referans, reviewer, checkpoint, değerlendirme ve evidence hash sözleşmesini karşılamalıdır.',
     'Eksik modüller fallback veya uydurma içerikle açılmamalı.',
   ],
 };
