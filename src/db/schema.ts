@@ -862,3 +862,95 @@ export const allplanLessonBookmarks = pgTable("allplan_lesson_bookmarks", {
   lessonSlugCheck: check("allplan_lesson_bookmarks_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   idxUserBookmarks: index("idx_allplan_lesson_bookmarks_user").on(table.companyId, table.userId, table.createdAt),
 }));
+
+export const allplanExamAttempts = pgTable("allplan_exam_attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  programVersion: text("program_version").notNull(),
+  answers: jsonb("answers").$type<number[]>().notNull(),
+  score: integer("score").notNull(),
+  passed: boolean("passed").notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  scoreCheck: check("allplan_exam_attempts_score_check", sql`${table.score} between 0 and 100`),
+  idxUserAttempts: index("idx_allplan_exam_attempts_user").on(table.companyId, table.userId, table.completedAt),
+}));
+
+export const allplanCertificates = pgTable("allplan_certificates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  certificateNumber: text("certificate_number").notNull().unique(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  examAttemptId: uuid("exam_attempt_id").references(() => allplanExamAttempts.id, { onDelete: "restrict" }).notNull(),
+  programVersion: text("program_version").notNull(),
+  holderName: text("holder_name").notNull(),
+  companyName: text("company_name").notNull(),
+  status: text("status").default("active").notNull(),
+  issuedAt: timestamp("issued_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokeReason: text("revoke_reason"),
+}, (table) => ({
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  userProgramUnique: unique("allplan_certificates_user_company_program_key").on(table.userId, table.companyId, table.programVersion),
+  statusCheck: check("allplan_certificates_status_check", sql`${table.status} in ('active', 'revoked', 'expired')`),
+  idxCertificateNumber: index("idx_allplan_certificates_number").on(table.certificateNumber),
+}));
+
+export const allplanCertificateAuditLogs = pgTable("allplan_certificate_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  certificateId: uuid("certificate_id").references(() => allplanCertificates.id, { onDelete: "cascade" }).notNull(),
+  companyId: uuid("company_id").notNull(),
+  actorUserId: uuid("actor_user_id").notNull(),
+  action: text("action").notNull(),
+  reason: text("reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  actorMembershipFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  actionCheck: check("allplan_certificate_audit_logs_action_check", sql`${table.action} in ('issued', 'revoked')`),
+  idxCertificateAudit: index("idx_allplan_certificate_audit").on(table.certificateId, table.createdAt),
+}));
+
+export const academyProducts = pgTable("academy_products", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const academyEditions = pgTable("academy_editions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id").references(() => academyProducts.id, { onDelete: "restrict" }).notNull(),
+  version: text("version").notNull(),
+  name: text("name").notNull(),
+  accessMode: text("access_mode").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).defaultNow().notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  productVersionUnique: unique("academy_editions_product_version_key").on(table.productId, table.version),
+  accessModeCheck: check("academy_editions_access_mode_check", sql`${table.accessMode} in ('free_pilot', 'invited', 'paid')`),
+}));
+
+export const academyEnrollments = pgTable("academy_enrollments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  editionId: uuid("edition_id").references(() => academyEditions.id, { onDelete: "restrict" }).notNull(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  status: text("status").default("active").notNull(),
+  source: text("source").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).defaultNow().notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  userCompanyEditionUnique: unique("academy_enrollments_user_company_edition_key").on(table.userId, table.companyId, table.editionId),
+  statusCheck: check("academy_enrollments_status_check", sql`${table.status} in ('active', 'expired', 'refunded', 'revoked')`),
+  sourceCheck: check("academy_enrollments_source_check", sql`${table.source} in ('pilot', 'invite', 'purchase', 'admin')`),
+  idxEnrollmentAccess: index("idx_academy_enrollments_access").on(table.companyId, table.userId, table.status, table.endsAt),
+}));
