@@ -478,6 +478,36 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/structural-drawings-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "1b32fde2a13ca51ee3680352d65948eec667498ce52ef5a580ed4bef1c026647"
+    },
+    "p3-c4-m2": {
+      "sourceId": "p3-c4-m2",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Define a traceable clipping path, viewing direction and vertical extent for a structural section.",
+        "Verify source drawing-file scope and model references before generating output.",
+        "Review section intersections, axes, annotations and revision status before issue."
+      ],
+      "prerequisites": ["A reviewed ALLPLAN 2026 structural model and Building Structure.", "An approved section register with identifiers, locations and view directions."],
+      "allplanVersions": ["2026.1"],
+      "interfaceContext": "Architecture role > Elements task > Views and Sections > Clipping Path and Generate Section",
+      "stepsEvidence": [
+        {"step": 1, "title": "Define clipping path and viewing direction", "evidenceRef": "docs/academy/content-review/evidence/sections-step-1.png", "expectedOutput": "Section identifier, clipping outline and viewing direction match the approved section register."},
+        {"step": 2, "title": "Set vertical extent and source scope", "evidenceRef": "docs/academy/content-review/evidence/sections-step-2.png", "expectedOutput": "Top/bottom levels or height-from-elements and referenced drawing files are explicit and reviewed."},
+        {"step": 3, "title": "Generate and review the section output", "evidenceRef": "docs/academy/content-review/evidence/sections-step-3.png", "expectedOutput": "The section records checked axes, cut elements, intersections, dimensions, labels, revision and issue status."}
+      ],
+      "learnerOutput": "One generated structural section with traceable clipping geometry, source scope and completed output review.",
+      "references": [
+        {"title": "ALLPLAN 2026-1 Arbitrary clipping path", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/87759.htm"},
+        {"title": "ALLPLAN 2026-1 Height of section object", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/9821.htm"},
+        {"title": "ALLPLAN 2026-0 Views and Sections behavior", "versionOrDate": "2026-0", "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/254618.htm"},
+        {"title": "ALLPLAN Python API 2026 ClippingPathProperties", "versionOrDate": "2026", "locator": "https://pythonparts.allplan.com/2026/api_reference/InterfaceStubs/NemAll_Python_BasisElements/ClippingPathProperties/"}
+      ],
+      "technicalReviewer": {"name": "", "role": "", "reviewedAt": ""},
+      "checkpoint": {"prompt": "Submit clipping-path, extent/source-scope and reviewed section-output evidence.", "acceptanceCriteria": "Identifier, path, direction, vertical extent, source scope, annotations, revision and issue status must match the section register."},
+      "assessmentQuestion": {"prompt": "Which section settings can silently omit or include unintended model content?", "expectedAnswer": "Clipping outline, viewing direction, top/bottom extent or height-from-elements, drawing-file scope and reference state control the generated content."},
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/sections-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "793f80b6a26e6ad81ca1c48d698849d0996afdb279deebdf5e37f53b2da449c9"
     }
   }
 }

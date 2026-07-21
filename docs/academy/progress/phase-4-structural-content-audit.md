@@ -167,6 +167,20 @@ Resmî ALLPLAN 2026 kaynaklarıyla Building Structure view output, drawing-file 
 - Güncel validator sonucu: `LOCKED`
 - Kalan kesin gereksinimler: üç workstation screenshot, drawing reviewer onayı ve ayrıntılı ders gövdesi.
 
+### Sections kaynak hazırlığı
+
+Resmî ALLPLAN 2026 kaynaklarıyla clipping path, viewing direction, top/bottom extent, drawing-file references ve generated-section review adımlarını kapsayan draft record hazırlandı.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/sections-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c4-m2`
+- Kaynak paketi SHA-256: `793f80b6a26e6ad81ca1c48d698849d0996afdb279deebdf5e37f53b2da449c9`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler: üç workstation screenshot, section reviewer onayı ve ayrıntılı ders gövdesi.
+
+## Dokuz modül kaynak-draft sonucu
+
+Structural Engineering içindeki 9/9 modül artık resmî kaynak paketi ve fail-closed review taslağına sahiptir. Bu, içerik sözleşmesinin kaynak hazırlığı kısmını tamamlar; hiçbir modül workstation kanıtı, teknik onay ve ayrıntılı ders gövdesi olmadan `available` değildir.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.
