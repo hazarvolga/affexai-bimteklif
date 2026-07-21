@@ -137,6 +137,16 @@ Resmî ALLPLAN 2026 Axis Grid kaynaklarıyla x/y/z spacing, rotation, label/numb
 - Güncel validator sonucu: `LOCKED`
 - Kalan kesin gereksinimler: üç workstation screenshot, teknik reviewer onayı ve review ile eşleşen ayrıntılı ders gövdesi.
 
+### Structural export kaynak hazırlığı
+
+Resmî ALLPLAN 2026 IFC kaynaklarıyla schema/MVD, drawing-file ve element scope, unit/scale/offset, CFG attribute mapping ve bağımsız validation adımlarını kapsayan draft record hazırlandı. IFC dosyasının yazılması tek başına geçerli export kanıtı sayılmaz.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/structural-export-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c3-m1`
+- Kaynak paketi SHA-256: `fb4d62da78d5298d23aa8fa64219be04efe4632cf6247a8e83f62d5d5d174e16`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler: üç workstation screenshot, üretilen IFC için bağımsız validation kanıtı, teknik reviewer onayı ve ayrıntılı ders gövdesi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.
