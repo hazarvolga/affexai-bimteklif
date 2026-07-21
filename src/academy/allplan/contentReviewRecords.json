@@ -157,6 +157,82 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/beams-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "1984fc963fc8e20689f3f83497e6de9ba317d3aee1efb23ee507a27bd7185f19"
+    },
+    "p3-c1-m3": {
+      "sourceId": "p3-c1-m3",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Model a wall with explicit construction layers, axis and plane-based height settings in the checked building structure.",
+        "Distinguish wall geometry and IFC classification from structural-capacity approval.",
+        "Verify layer terminations and exchange classification using reproducible evidence."
+      ],
+      "prerequisites": [
+        "ALLPLAN 2026 workspace with the Architecture role and wall tools available.",
+        "A checked building structure and plane model with agreed story elevations."
+      ],
+      "allplanVersions": [
+        "2026.1"
+      ],
+      "interfaceContext": "Architecture role > Elements task > Wall, with Building Structure and Plane Model context",
+      "stepsEvidence": [
+        {
+          "step": 1,
+          "title": "Define wall layers, thicknesses and component axis",
+          "evidenceRef": "docs/academy/content-review/evidence/structural-walls-step-1.png",
+          "expectedOutput": "The wall parameters show the reviewed layer order, material context, thicknesses and component axis."
+        },
+        {
+          "step": 2,
+          "title": "Bind wall-layer heights to checked reference planes",
+          "evidenceRef": "docs/academy/content-review/evidence/structural-walls-step-2.png",
+          "expectedOutput": "Layer heights and any slab offset visibly reference the agreed upper or lower planes."
+        },
+        {
+          "step": 3,
+          "title": "Verify wall geometry and IFC classification",
+          "evidenceRef": "docs/academy/content-review/evidence/structural-walls-step-3.png",
+          "expectedOutput": "The wall is present in the intended drawing-file context and the exchange check reports the reviewed IfcWallStandardCase or IfcWall classification."
+        }
+      ],
+      "learnerOutput": "One reproducible layered wall with reviewed axis, plane-based heights and an explicit IFC wall classification result.",
+      "references": [
+        {
+          "title": "ALLPLAN 2026-1 Multilayer walls with different height settings",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/10275.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 Shortcut menu of building structure",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/69749.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 IFC Import Settings",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/320465.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-0 Changing default reference-plane heights",
+          "versionOrDate": "2026-0",
+          "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/47548.htm"
+        }
+      ],
+      "technicalReviewer": {
+        "name": "",
+        "role": "",
+        "reviewedAt": ""
+      },
+      "checkpoint": {
+        "prompt": "Submit the three workstation screenshots and the agreed IFC wall-classification result.",
+        "acceptanceCriteria": "Layer order, axis, plane references, offsets and exchange classification must match the reviewed evidence pack."
+      },
+      "assessmentQuestion": {
+        "prompt": "Which evidence distinguishes a correctly coordinated wall model from an unsupported claim of structural adequacy?",
+        "expectedAnswer": "Reviewed wall layers and axis, plane-based heights and offsets, drawing-file context and IFC classification prove model coordination; structural capacity still requires engineering analysis and approval."
+      },
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/structural-walls-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "febaa57f0255eaddfe08779c12da233edc43b5ae4f16ad7e4ab314bfdf2bccdc"
     }
   }
 }

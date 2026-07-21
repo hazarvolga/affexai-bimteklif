@@ -104,6 +104,19 @@ Resmî ALLPLAN 2026-1 yardım sayfalarıyla Beams draft review record hazırland
 
 Beams kaydı eksik kanıtla açılmaz; validator ve Structural audit üç screenshot ile reviewer eksikliğini ayrı nedenlerle raporlar.
 
+### Structural walls kaynak hazırlığı
+
+Resmî ALLPLAN 2026 yardım sayfalarıyla Structural walls draft review record hazırlandı. Kaynak paketi katman bazlı duvar geometrisini, plane-based yükseklik/offset ilişkisini, Building Structure koordinasyonunu ve `IfcWallStandardCase` / `IfcWall` ayrımını kapsar. Model geometrisi ile taşıma kapasitesi onayı özellikle ayrılmıştır.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/structural-walls-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c1-m3`
+- Kaynak paketi SHA-256: `febaa57f0255eaddfe08779c12da233edc43b5ae4f16ad7e4ab314bfdf2bccdc`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler:
+  - ALLPLAN 2026 workstation'dan üç yerel adım ekran görüntüsü,
+  - teknik reviewer adı/rolü/tarihi ve `approved` kararı,
+  - review kaydıyla eşleşen ayrıntılı ders gövdesi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.
