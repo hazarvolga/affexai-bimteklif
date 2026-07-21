@@ -1,11 +1,11 @@
 # Graph Report - TeklifPro-repo  (2026-07-22)
 
 ## Corpus Check
-- 197 files · ~199,689 words
+- 199 files · ~200,681 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 649 nodes · 746 edges · 44 communities detected
+- 652 nodes · 747 edges · 44 communities detected
 - Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 144 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
@@ -49,7 +49,7 @@
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 45|Community 45]]
-- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 80|Community 80]]
 - [[_COMMUNITY_Community 81|Community 81]]
 - [[_COMMUNITY_Community 82|Community 82]]
@@ -70,13 +70,13 @@
 ## Surprising Connections (you probably didn't know these)
 - `_inject_cookies()` --calls--> `exists()`  [INFERRED]
   notebooklm/scripts/browser_utils.py → scripts/allplan-source-inventory.mjs
-- `startServer()` --calls--> `registerAuthRoutes()`  [INFERRED]
-  src/server/app.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/auth.ts
 - `startServer()` --calls--> `registerBillingRoutes()`  [INFERRED]
   src/server/app.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/billing.ts
 - `startServer()` --calls--> `registerClientRoutes()`  [INFERRED]
   src/server/app.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/clients.ts
 - `syncAllplanProgress()` --calls--> `fetchWithAuth()`  [INFERRED]
+  src/academy/allplan/progress.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts
+- `syncAllplanLessonProgress()` --calls--> `fetchWithAuth()`  [INFERRED]
   src/academy/allplan/progress.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts
 
 ## Communities
@@ -98,12 +98,12 @@ Cohesion: 0.09
 Nodes (19): exists(), main(), ensure_venv_and_run(), Ensure virtual environment exists and run the requested script.     This is call, run(), ensure_venv(), get_venv_python(), main() (+11 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.1
-Nodes (17): main(), main(), NotebookLibrary, Remove a notebook from the library          Args:             notebook_id: ID of, Update notebook metadata          Args:             notebook_id: ID of notebook, Manages a collection of NotebookLM notebooks with metadata, Get a specific notebook by ID, List all notebooks in the library (+9 more)
-
-### Community 5 - "Community 5"
 Cohesion: 0.12
 Nodes (20): ask_notebooklm(), Ask a question to NotebookLM      Args:         question: Question to ask, AuthManager, main(), Save browser state to disk, Save authentication metadata, Clear all authentication data          Returns:             True if cleared succ, Perform re-authentication (clear and setup)          Args:             headless: (+12 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.1
+Nodes (17): main(), main(), NotebookLibrary, Remove a notebook from the library          Args:             notebook_id: ID of, Update notebook metadata          Args:             notebook_id: ID of notebook, Manages a collection of NotebookLM notebooks with metadata, Get a specific notebook by ID, List all notebooks in the library (+9 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.12
@@ -237,7 +237,7 @@ Nodes (1): FixtureInfrastructureError
 Cohesion: 1.0
 Nodes (2): findAllplanEntitlement(), requireAllplanEntitlement()
 
-### Community 54 - "Community 54"
+### Community 55 - "Community 55"
 Cohesion: 1.0
 Nodes (1): Configuration for NotebookLM Skill Centralizes constants, selectors, and paths
 
@@ -296,7 +296,7 @@ Nodes (1): Click with realistic movement
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 45`** (3 nodes): `findAllplanEntitlement()`, `requireAllplanEntitlement()`, `academyEntitlement.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 54`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
+- **Thin community `Community 55`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 80`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -312,9 +312,9 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `exists()` connect `Community 3` to `Community 8`, `Community 4`, `Community 5`, `Community 6`?**
   _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **Why does `NotebookLibrary` connect `Community 4` to `Community 5`?**
+- **Why does `NotebookLibrary` connect `Community 5` to `Community 4`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `StealthUtils` connect `Community 6` to `Community 5`?**
+- **Why does `StealthUtils` connect `Community 6` to `Community 4`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `NotebookLibrary` (e.g. with `Ask a question to NotebookLM      Args:         question: Question to ask` and `main()`) actually correct?**
   _`NotebookLibrary` has 2 INFERRED edges - model-reasoned connections that need verification._

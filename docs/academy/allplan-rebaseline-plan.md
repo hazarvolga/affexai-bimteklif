@@ -139,6 +139,10 @@ Her yeni modül için zorunlu içerik sözleşmesi:
 
 Çıkış: Ödeme sistemi sonradan eklenebilir; eğitim erişim kodu/aboneliği mimariyi bozmaz.
 
+### 22 Temmuz 2026 ürün kararı
+
+Canlı ödeme entegrasyonu ertelenmiştir. Academy ilk büyüme döneminde ücretsiz öğrenci kaydıyla açılır; doğrulanmış mevcut içerik kullanıcıya anında değer verir. Ücretlendirme altyapısı korunur ancak ödeme, kullanıcı aktivasyonu ve içerik talebi ölçülmeden zorunlu erişim kapısı yapılmaz. Ayrıntılar: `docs/academy/progress/phase-10-free-learner-acquisition.md`.
+
 ## Sert durma kuralları
 
 - Public route üzerinden ders gövdesi açılıyorsa sonraki faza geçilmez.

@@ -549,7 +549,7 @@
       "source_file": "notebooklm/scripts/config.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_config_py",
-      "community": 54,
+      "community": 55,
       "norm_label": "config.py"
     },
     {
@@ -557,7 +557,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/config.py",
       "source_location": "L1",
-      "community": 54,
+      "community": 55,
       "norm_label": "configuration for notebooklm skill centralizes constants, selectors, and paths",
       "id": "config_rationale_1"
     },
@@ -720,7 +720,7 @@
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L15",
       "id": "browser_utils_browserfactory",
-      "community": 5,
+      "community": 4,
       "norm_label": "browserfactory"
     },
     {
@@ -729,7 +729,7 @@
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L19",
       "id": "browser_utils_launch_persistent_context",
-      "community": 5,
+      "community": 4,
       "norm_label": "launch_persistent_context()"
     },
     {
@@ -791,7 +791,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L16",
-      "community": 5,
+      "community": 4,
       "norm_label": "factory for creating configured browser contexts",
       "id": "browser_utils_rationale_16"
     },
@@ -954,7 +954,7 @@
       "source_file": "notebooklm/scripts/browser_session.py",
       "source_location": "L223",
       "id": "browser_session_browsersession_close",
-      "community": 5,
+      "community": 4,
       "norm_label": ".close()"
     },
     {
@@ -1052,7 +1052,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_session.py",
       "source_location": "L224",
-      "community": 5,
+      "community": 4,
       "norm_label": "close this session and clean up resources",
       "id": "browser_session_rationale_224"
     },
@@ -1080,7 +1080,7 @@
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_ask_question_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "ask_question.py"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L40",
       "id": "ask_question_ask_notebooklm",
-      "community": 5,
+      "community": 4,
       "norm_label": "ask_notebooklm()"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L190",
       "id": "ask_question_main",
-      "community": 4,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -1106,7 +1106,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/ask_question.py",
       "source_location": "L41",
-      "community": 5,
+      "community": 4,
       "norm_label": "ask a question to notebooklm      args:         question: question to ask",
       "id": "ask_question_rationale_41"
     },
@@ -1269,7 +1269,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_notebook_manager_py",
-      "community": 4,
+      "community": 5,
       "norm_label": "notebook_manager.py"
     },
     {
@@ -1278,7 +1278,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L17",
       "id": "notebook_manager_notebooklibrary",
-      "community": 4,
+      "community": 5,
       "norm_label": "notebooklibrary"
     },
     {
@@ -1287,7 +1287,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L20",
       "id": "notebook_manager_notebooklibrary_init",
-      "community": 4,
+      "community": 5,
       "norm_label": ".__init__()"
     },
     {
@@ -1296,7 +1296,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L34",
       "id": "notebook_manager_notebooklibrary_load_library",
-      "community": 4,
+      "community": 5,
       "norm_label": "._load_library()"
     },
     {
@@ -1305,7 +1305,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L50",
       "id": "notebook_manager_notebooklibrary_save_library",
-      "community": 4,
+      "community": 5,
       "norm_label": "._save_library()"
     },
     {
@@ -1314,7 +1314,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L63",
       "id": "notebook_manager_notebooklibrary_add_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".add_notebook()"
     },
     {
@@ -1323,7 +1323,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L123",
       "id": "notebook_manager_notebooklibrary_remove_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".remove_notebook()"
     },
     {
@@ -1332,7 +1332,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L150",
       "id": "notebook_manager_notebooklibrary_update_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".update_notebook()"
     },
     {
@@ -1341,7 +1341,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L198",
       "id": "notebook_manager_notebooklibrary_get_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".get_notebook()"
     },
     {
@@ -1350,7 +1350,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L202",
       "id": "notebook_manager_notebooklibrary_list_notebooks",
-      "community": 4,
+      "community": 5,
       "norm_label": ".list_notebooks()"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L206",
       "id": "notebook_manager_notebooklibrary_search_notebooks",
-      "community": 4,
+      "community": 5,
       "norm_label": ".search_notebooks()"
     },
     {
@@ -1368,7 +1368,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L234",
       "id": "notebook_manager_notebooklibrary_select_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".select_notebook()"
     },
     {
@@ -1377,7 +1377,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L254",
       "id": "notebook_manager_notebooklibrary_get_active_notebook",
-      "community": 4,
+      "community": 5,
       "norm_label": ".get_active_notebook()"
     },
     {
@@ -1386,7 +1386,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L260",
       "id": "notebook_manager_notebooklibrary_increment_use_count",
-      "community": 4,
+      "community": 5,
       "norm_label": ".increment_use_count()"
     },
     {
@@ -1395,7 +1395,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L280",
       "id": "notebook_manager_notebooklibrary_get_stats",
-      "community": 4,
+      "community": 5,
       "norm_label": ".get_stats()"
     },
     {
@@ -1404,7 +1404,7 @@
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L308",
       "id": "notebook_manager_main",
-      "community": 4,
+      "community": 5,
       "norm_label": "main()"
     },
     {
@@ -1412,7 +1412,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L18",
-      "community": 4,
+      "community": 5,
       "norm_label": "manages a collection of notebooklm notebooks with metadata",
       "id": "notebook_manager_rationale_18"
     },
@@ -1421,7 +1421,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L21",
-      "community": 4,
+      "community": 5,
       "norm_label": "initialize the notebook library",
       "id": "notebook_manager_rationale_21"
     },
@@ -1430,7 +1430,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L35",
-      "community": 4,
+      "community": 5,
       "norm_label": "load library from disk",
       "id": "notebook_manager_rationale_35"
     },
@@ -1439,7 +1439,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L73",
-      "community": 4,
+      "community": 5,
       "norm_label": "add a new notebook to the library          args:             url: notebooklm not",
       "id": "notebook_manager_rationale_73"
     },
@@ -1448,7 +1448,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L124",
-      "community": 4,
+      "community": 5,
       "norm_label": "remove a notebook from the library          args:             notebook_id: id of",
       "id": "notebook_manager_rationale_124"
     },
@@ -1457,7 +1457,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L161",
-      "community": 4,
+      "community": 5,
       "norm_label": "update notebook metadata          args:             notebook_id: id of notebook",
       "id": "notebook_manager_rationale_161"
     },
@@ -1466,7 +1466,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L199",
-      "community": 4,
+      "community": 5,
       "norm_label": "get a specific notebook by id",
       "id": "notebook_manager_rationale_199"
     },
@@ -1475,7 +1475,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L203",
-      "community": 4,
+      "community": 5,
       "norm_label": "list all notebooks in the library",
       "id": "notebook_manager_rationale_203"
     },
@@ -1484,7 +1484,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L207",
-      "community": 4,
+      "community": 5,
       "norm_label": "search notebooks by query          args:             query: search query (search",
       "id": "notebook_manager_rationale_207"
     },
@@ -1493,7 +1493,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L235",
-      "community": 4,
+      "community": 5,
       "norm_label": "set a notebook as active          args:             notebook_id: id of notebook",
       "id": "notebook_manager_rationale_235"
     },
@@ -1502,7 +1502,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L255",
-      "community": 4,
+      "community": 5,
       "norm_label": "get the currently active notebook",
       "id": "notebook_manager_rationale_255"
     },
@@ -1511,7 +1511,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L261",
-      "community": 4,
+      "community": 5,
       "norm_label": "increment usage counter for a notebook          args:             notebook_id: i",
       "id": "notebook_manager_rationale_261"
     },
@@ -1520,7 +1520,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L281",
-      "community": 4,
+      "community": 5,
       "norm_label": "get library statistics",
       "id": "notebook_manager_rationale_281"
     },
@@ -1529,7 +1529,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/notebook_manager.py",
       "source_location": "L309",
-      "community": 4,
+      "community": 5,
       "norm_label": "command-line interface for notebook management",
       "id": "notebook_manager_rationale_309"
     },
@@ -1539,7 +1539,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_auth_manager_py",
-      "community": 5,
+      "community": 4,
       "norm_label": "auth_manager.py"
     },
     {
@@ -1548,7 +1548,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L31",
       "id": "auth_manager_authmanager",
-      "community": 5,
+      "community": 4,
       "norm_label": "authmanager"
     },
     {
@@ -1557,7 +1557,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L42",
       "id": "auth_manager_authmanager_init",
-      "community": 5,
+      "community": 4,
       "norm_label": ".__init__()"
     },
     {
@@ -1566,7 +1566,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L52",
       "id": "auth_manager_authmanager_is_authenticated",
-      "community": 5,
+      "community": 4,
       "norm_label": ".is_authenticated()"
     },
     {
@@ -1575,7 +1575,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L64",
       "id": "auth_manager_authmanager_get_auth_info",
-      "community": 5,
+      "community": 4,
       "norm_label": ".get_auth_info()"
     },
     {
@@ -1584,7 +1584,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L86",
       "id": "auth_manager_authmanager_setup_auth",
-      "community": 5,
+      "community": 4,
       "norm_label": ".setup_auth()"
     },
     {
@@ -1593,7 +1593,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L160",
       "id": "auth_manager_authmanager_save_browser_state",
-      "community": 5,
+      "community": 4,
       "norm_label": "._save_browser_state()"
     },
     {
@@ -1602,7 +1602,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L170",
       "id": "auth_manager_authmanager_save_auth_info",
-      "community": 5,
+      "community": 4,
       "norm_label": "._save_auth_info()"
     },
     {
@@ -1611,7 +1611,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L182",
       "id": "auth_manager_authmanager_clear_auth",
-      "community": 5,
+      "community": 4,
       "norm_label": ".clear_auth()"
     },
     {
@@ -1620,7 +1620,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L214",
       "id": "auth_manager_authmanager_re_auth",
-      "community": 5,
+      "community": 4,
       "norm_label": ".re_auth()"
     },
     {
@@ -1629,7 +1629,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L233",
       "id": "auth_manager_authmanager_validate_auth",
-      "community": 5,
+      "community": 4,
       "norm_label": ".validate_auth()"
     },
     {
@@ -1638,7 +1638,7 @@
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L287",
       "id": "auth_manager_main",
-      "community": 5,
+      "community": 4,
       "norm_label": "main()"
     },
     {
@@ -1646,7 +1646,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L32",
-      "community": 5,
+      "community": 4,
       "norm_label": "manages authentication and browser state for notebooklm      features:     - int",
       "id": "auth_manager_rationale_32"
     },
@@ -1655,7 +1655,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L43",
-      "community": 5,
+      "community": 4,
       "norm_label": "initialize the authentication manager",
       "id": "auth_manager_rationale_43"
     },
@@ -1664,7 +1664,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L53",
-      "community": 5,
+      "community": 4,
       "norm_label": "check if valid authentication exists",
       "id": "auth_manager_rationale_53"
     },
@@ -1673,7 +1673,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L65",
-      "community": 5,
+      "community": 4,
       "norm_label": "get authentication information",
       "id": "auth_manager_rationale_65"
     },
@@ -1682,7 +1682,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L87",
-      "community": 5,
+      "community": 4,
       "norm_label": "perform interactive authentication setup          args:             headless: ru",
       "id": "auth_manager_rationale_87"
     },
@@ -1691,7 +1691,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L161",
-      "community": 5,
+      "community": 4,
       "norm_label": "save browser state to disk",
       "id": "auth_manager_rationale_161"
     },
@@ -1700,7 +1700,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L171",
-      "community": 5,
+      "community": 4,
       "norm_label": "save authentication metadata",
       "id": "auth_manager_rationale_171"
     },
@@ -1709,7 +1709,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L183",
-      "community": 5,
+      "community": 4,
       "norm_label": "clear all authentication data          returns:             true if cleared succ",
       "id": "auth_manager_rationale_183"
     },
@@ -1718,7 +1718,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L215",
-      "community": 5,
+      "community": 4,
       "norm_label": "perform re-authentication (clear and setup)          args:             headless:",
       "id": "auth_manager_rationale_215"
     },
@@ -1727,7 +1727,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L234",
-      "community": 5,
+      "community": 4,
       "norm_label": "validate that stored authentication works         uses persistent context to mat",
       "id": "auth_manager_rationale_234"
     },
@@ -1736,7 +1736,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/auth_manager.py",
       "source_location": "L288",
-      "community": 5,
+      "community": 4,
       "norm_label": "command-line interface for authentication management",
       "id": "auth_manager_rationale_288"
     },
@@ -1809,7 +1809,7 @@
       "source_file": "scripts/negative-test.ts",
       "source_location": "L1",
       "id": "scripts_negative_test_ts",
-      "community": 55,
+      "community": 56,
       "norm_label": "negative-test.ts"
     },
     {
@@ -1818,7 +1818,7 @@
       "source_file": "scripts/negative-test.ts",
       "source_location": "L6",
       "id": "negative_test_runtests",
-      "community": 55,
+      "community": 56,
       "norm_label": "runtests()"
     },
     {
@@ -1953,7 +1953,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L1",
       "id": "src_app_tsx",
-      "community": 56,
+      "community": 57,
       "norm_label": "app.tsx"
     },
     {
@@ -1962,7 +1962,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L42",
       "id": "app_approutes",
-      "community": 56,
+      "community": 57,
       "norm_label": "approutes()"
     },
     {
@@ -2736,7 +2736,7 @@
       "source_file": "src/smartcheck/evaluation/runner.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_runner_test_ts",
-      "community": 57,
+      "community": 58,
       "norm_label": "runner.test.ts"
     },
     {
@@ -2745,7 +2745,7 @@
       "source_file": "src/smartcheck/evaluation/runner.test.ts",
       "source_location": "L63",
       "id": "runner_test_createmockfixture",
-      "community": 57,
+      "community": 58,
       "norm_label": "createmockfixture()"
     },
     {
@@ -3019,6 +3019,42 @@
       "norm_label": "checkrole()"
     },
     {
+      "label": "registration.test.ts",
+      "file_type": "code",
+      "source_file": "src/server/auth/registration.test.ts",
+      "source_location": "L1",
+      "id": "src_server_auth_registration_test_ts",
+      "community": 98,
+      "norm_label": "registration.test.ts"
+    },
+    {
+      "label": "registration.ts",
+      "file_type": "code",
+      "source_file": "src/server/auth/registration.ts",
+      "source_location": "L1",
+      "id": "src_server_auth_registration_ts",
+      "community": 46,
+      "norm_label": "registration.ts"
+    },
+    {
+      "label": "parseRegistrationInput()",
+      "file_type": "code",
+      "source_file": "src/server/auth/registration.ts",
+      "source_location": "L13",
+      "id": "registration_parseregistrationinput",
+      "community": 46,
+      "norm_label": "parseregistrationinput()"
+    },
+    {
+      "label": "publicRegisteredUser()",
+      "file_type": "code",
+      "source_file": "src/server/auth/registration.ts",
+      "source_location": "L35",
+      "id": "registration_publicregistereduser",
+      "community": 46,
+      "norm_label": "publicregistereduser()"
+    },
+    {
       "label": "clients.ts",
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/clients.ts",
@@ -3255,17 +3291,17 @@
     {
       "label": "auth.ts",
       "file_type": "code",
-      "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/auth.ts",
+      "source_file": "src/server/routes/auth.ts",
       "source_location": "L1",
-      "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_auth_ts",
+      "id": "src_server_routes_auth_ts",
       "community": 2,
       "norm_label": "auth.ts"
     },
     {
       "label": "registerAuthRoutes()",
       "file_type": "code",
-      "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/auth.ts",
-      "source_location": "L8",
+      "source_file": "src/server/routes/auth.ts",
+      "source_location": "L10",
       "id": "auth_registerauthroutes",
       "community": 2,
       "norm_label": "registerauthroutes()"
@@ -3321,7 +3357,7 @@
       "source_file": "src/academy/sourceData.ts",
       "source_location": "L1",
       "id": "src_academy_sourcedata_ts",
-      "community": 98,
+      "community": 99,
       "norm_label": "sourcedata.ts"
     },
     {
@@ -3330,7 +3366,7 @@
       "source_file": "src/academy/nativeDerivedData.ts",
       "source_location": "L1",
       "id": "src_academy_nativederiveddata_ts",
-      "community": 99,
+      "community": 100,
       "norm_label": "nativederiveddata.ts"
     },
     {
@@ -3339,7 +3375,7 @@
       "source_file": "src/academy/sourceSections.ts",
       "source_location": "L1",
       "id": "src_academy_sourcesections_ts",
-      "community": 100,
+      "community": 101,
       "norm_label": "sourcesections.ts"
     },
     {
@@ -3348,7 +3384,7 @@
       "source_file": "src/academy/allplan/releaseGate.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_releasegate_test_ts",
-      "community": 101,
+      "community": 102,
       "norm_label": "releasegate.test.ts"
     },
     {
@@ -3357,7 +3393,7 @@
       "source_file": "src/academy/allplan/navigation.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_navigation_test_ts",
-      "community": 102,
+      "community": 103,
       "norm_label": "navigation.test.ts"
     },
     {
@@ -3366,7 +3402,7 @@
       "source_file": "src/academy/allplan/access.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_access_test_ts",
-      "community": 103,
+      "community": 104,
       "norm_label": "access.test.ts"
     },
     {
@@ -3510,7 +3546,7 @@
       "source_file": "src/academy/allplan/certification.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_certification_test_ts",
-      "community": 104,
+      "community": 105,
       "norm_label": "certification.test.ts"
     },
     {
@@ -3519,7 +3555,7 @@
       "source_file": "src/academy/allplan/checkpoint.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_checkpoint_test_ts",
-      "community": 105,
+      "community": 106,
       "norm_label": "checkpoint.test.ts"
     },
     {
@@ -3573,7 +3609,7 @@
       "source_file": "src/academy/allplan/types.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_types_ts",
-      "community": 106,
+      "community": 107,
       "norm_label": "types.ts"
     },
     {
@@ -3582,7 +3618,7 @@
       "source_file": "src/academy/allplan/access.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_access_ts",
-      "community": 58,
+      "community": 59,
       "norm_label": "access.ts"
     },
     {
@@ -3591,7 +3627,7 @@
       "source_file": "src/academy/allplan/access.ts",
       "source_location": "L7",
       "id": "access_isenrollmentactive",
-      "community": 58,
+      "community": 59,
       "norm_label": "isenrollmentactive()"
     },
     {
@@ -3699,7 +3735,7 @@
       "source_file": "src/academy/allplan/paymentWebhook.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_paymentwebhook_test_ts",
-      "community": 107,
+      "community": 108,
       "norm_label": "paymentwebhook.test.ts"
     },
     {
@@ -3825,7 +3861,7 @@
       "source_file": "src/academy/allplan/companion.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_companion_test_ts",
-      "community": 108,
+      "community": 109,
       "norm_label": "companion.test.ts"
     },
     {
@@ -3834,7 +3870,7 @@
       "source_file": "src/academy/allplan/source/lessonsContent.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_source_lessonscontent_ts",
-      "community": 59,
+      "community": 60,
       "norm_label": "lessonscontent.ts"
     },
     {
@@ -3843,7 +3879,7 @@
       "source_file": "src/academy/allplan/source/lessonsContent.ts",
       "source_location": "L477",
       "id": "lessonscontent_getlessondetail",
-      "community": 59,
+      "community": 60,
       "norm_label": "getlessondetail()"
     },
     {
@@ -3852,7 +3888,7 @@
       "source_file": "src/academy/allplan/source/constants.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_source_constants_ts",
-      "community": 109,
+      "community": 110,
       "norm_label": "constants.ts"
     },
     {
@@ -3861,7 +3897,7 @@
       "source_file": "src/components/PublicMetadata.tsx",
       "source_location": "L1",
       "id": "src_components_publicmetadata_tsx",
-      "community": 60,
+      "community": 61,
       "norm_label": "publicmetadata.tsx"
     },
     {
@@ -3870,7 +3906,7 @@
       "source_file": "src/components/PublicMetadata.tsx",
       "source_location": "L3",
       "id": "publicmetadata_publicmetadata",
-      "community": 60,
+      "community": 61,
       "norm_label": "publicmetadata()"
     },
     {
@@ -3951,7 +3987,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/progress.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_progress_tsx",
-      "community": 110,
+      "community": 111,
       "norm_label": "progress.tsx"
     },
     {
@@ -3987,7 +4023,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_sonner_tsx",
-      "community": 111,
+      "community": 112,
       "norm_label": "sonner.tsx"
     },
     {
@@ -4050,7 +4086,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/EmptyState.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_emptystate_tsx",
-      "community": 112,
+      "community": 113,
       "norm_label": "emptystate.tsx"
     },
     {
@@ -4104,7 +4140,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/Shell.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_shell_tsx",
-      "community": 113,
+      "community": 114,
       "norm_label": "shell.tsx"
     },
     {
@@ -4113,7 +4149,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageContainer.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_pagecontainer_tsx",
-      "community": 61,
+      "community": 62,
       "norm_label": "pagecontainer.tsx"
     },
     {
@@ -4122,7 +4158,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageContainer.tsx",
       "source_location": "L18",
       "id": "pagecontainer_pagecontainer",
-      "community": 61,
+      "community": 62,
       "norm_label": "pagecontainer()"
     },
     {
@@ -4131,7 +4167,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageHeader.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_pageheader_tsx",
-      "community": 114,
+      "community": 115,
       "norm_label": "pageheader.tsx"
     },
     {
@@ -4140,7 +4176,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/SectionWrapper.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_sectionwrapper_tsx",
-      "community": 115,
+      "community": 116,
       "norm_label": "sectionwrapper.tsx"
     },
     {
@@ -4149,7 +4185,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/QuotationCard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_quotationcard_tsx",
-      "community": 62,
+      "community": 63,
       "norm_label": "quotationcard.tsx"
     },
     {
@@ -4158,7 +4194,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/QuotationCard.tsx",
       "source_location": "L23",
       "id": "quotationcard_quotationcard",
-      "community": 62,
+      "community": 63,
       "norm_label": "quotationcard()"
     },
     {
@@ -4167,7 +4203,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/ProfitabilityBadge.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_profitabilitybadge_tsx",
-      "community": 116,
+      "community": 117,
       "norm_label": "profitabilitybadge.tsx"
     },
     {
@@ -4176,7 +4212,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/StatusBadge.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_statusbadge_tsx",
-      "community": 63,
+      "community": 64,
       "norm_label": "statusbadge.tsx"
     },
     {
@@ -4185,7 +4221,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/StatusBadge.tsx",
       "source_location": "L23",
       "id": "statusbadge_statusbadge",
-      "community": 63,
+      "community": 64,
       "norm_label": "statusbadge()"
     },
     {
@@ -4194,7 +4230,7 @@
       "source_file": "src/components/academy/WallIntersectionSimulator.tsx",
       "source_location": "L1",
       "id": "src_components_academy_wallintersectionsimulator_tsx",
-      "community": 46,
+      "community": 47,
       "norm_label": "wallintersectionsimulator.tsx"
     },
     {
@@ -4203,7 +4239,7 @@
       "source_file": "src/components/academy/WallIntersectionSimulator.tsx",
       "source_location": "L35",
       "id": "wallintersectionsimulator_updatelayer",
-      "community": 46,
+      "community": 47,
       "norm_label": "updatelayer()"
     },
     {
@@ -4212,7 +4248,7 @@
       "source_file": "src/components/academy/WallIntersectionSimulator.tsx",
       "source_location": "L52",
       "id": "wallintersectionsimulator_resetsimulator",
-      "community": 46,
+      "community": 47,
       "norm_label": "resetsimulator()"
     },
     {
@@ -4221,7 +4257,7 @@
       "source_file": "src/components/academy/ShortcutTrainer.tsx",
       "source_location": "L1",
       "id": "src_components_academy_shortcuttrainer_tsx",
-      "community": 64,
+      "community": 65,
       "norm_label": "shortcuttrainer.tsx"
     },
     {
@@ -4230,7 +4266,7 @@
       "source_file": "src/components/academy/ShortcutTrainer.tsx",
       "source_location": "L11",
       "id": "shortcuttrainer_shortcuttrainer",
-      "community": 64,
+      "community": 65,
       "norm_label": "shortcuttrainer()"
     },
     {
@@ -4239,7 +4275,7 @@
       "source_file": "src/components/academy/CoordinateCalculator.tsx",
       "source_location": "L1",
       "id": "src_components_academy_coordinatecalculator_tsx",
-      "community": 65,
+      "community": 66,
       "norm_label": "coordinatecalculator.tsx"
     },
     {
@@ -4248,7 +4284,7 @@
       "source_file": "src/components/academy/CoordinateCalculator.tsx",
       "source_location": "L5",
       "id": "coordinatecalculator_coordinatecalculator",
-      "community": 65,
+      "community": 66,
       "norm_label": "coordinatecalculator()"
     },
     {
@@ -4257,7 +4293,7 @@
       "source_file": "src/components/academy/ReinforcementEstimator.tsx",
       "source_location": "L1",
       "id": "src_components_academy_reinforcementestimator_tsx",
-      "community": 47,
+      "community": 48,
       "norm_label": "reinforcementestimator.tsx"
     },
     {
@@ -4266,7 +4302,7 @@
       "source_file": "src/components/academy/ReinforcementEstimator.tsx",
       "source_location": "L57",
       "id": "reinforcementestimator_handlecoverchange",
-      "community": 47,
+      "community": 48,
       "norm_label": "handlecoverchange()"
     },
     {
@@ -4275,7 +4311,7 @@
       "source_file": "src/components/academy/ReinforcementEstimator.tsx",
       "source_location": "L64",
       "id": "reinforcementestimator_resetsimulator",
-      "community": 47,
+      "community": 48,
       "norm_label": "resetsimulator()"
     },
     {
@@ -4284,7 +4320,7 @@
       "source_file": "src/components/academy/AcademyCompanion.tsx",
       "source_location": "L1",
       "id": "src_components_academy_academycompanion_tsx",
-      "community": 66,
+      "community": 67,
       "norm_label": "academycompanion.tsx"
     },
     {
@@ -4293,7 +4329,7 @@
       "source_file": "src/components/academy/AcademyCompanion.tsx",
       "source_location": "L13",
       "id": "academycompanion_academycompanion",
-      "community": 66,
+      "community": 67,
       "norm_label": "academycompanion()"
     },
     {
@@ -4302,7 +4338,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/data/StatCard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_data_statcard_tsx",
-      "community": 117,
+      "community": 118,
       "norm_label": "statcard.tsx"
     },
     {
@@ -4338,7 +4374,7 @@
       "source_file": "src/lib/quotation-audit.ts",
       "source_location": "L1",
       "id": "src_lib_quotation_audit_ts",
-      "community": 67,
+      "community": 68,
       "norm_label": "quotation-audit.ts"
     },
     {
@@ -4347,7 +4383,7 @@
       "source_file": "src/lib/quotation-audit.ts",
       "source_location": "L24",
       "id": "quotation_audit_auditquotationitems",
-      "community": 67,
+      "community": 68,
       "norm_label": "auditquotationitems()"
     },
     {
@@ -4356,7 +4392,7 @@
       "source_file": "src/lib/calculations.test.ts",
       "source_location": "L1",
       "id": "src_lib_calculations_test_ts",
-      "community": 118,
+      "community": 119,
       "norm_label": "calculations.test.ts"
     },
     {
@@ -4482,7 +4518,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/types.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_types_ts",
-      "community": 119,
+      "community": 120,
       "norm_label": "types.ts"
     },
     {
@@ -4554,7 +4590,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/definitions.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_definitions_ts",
-      "community": 120,
+      "community": 121,
       "norm_label": "definitions.ts"
     },
     {
@@ -4563,7 +4599,7 @@
       "source_file": "src/db/schema.ts",
       "source_location": "L1",
       "id": "src_db_schema_ts",
-      "community": 121,
+      "community": 122,
       "norm_label": "schema.ts"
     },
     {
@@ -4572,7 +4608,7 @@
       "source_file": "src/db/index.ts",
       "source_location": "L1",
       "id": "src_db_index_ts",
-      "community": 122,
+      "community": 123,
       "norm_label": "index.ts"
     },
     {
@@ -4581,7 +4617,7 @@
       "source_file": "src/db/drizzle.config.ts",
       "source_location": "L1",
       "id": "src_db_drizzle_config_ts",
-      "community": 123,
+      "community": 124,
       "norm_label": "drizzle.config.ts"
     },
     {
@@ -4590,7 +4626,7 @@
       "source_file": "src/worker/task-list.ts",
       "source_location": "L1",
       "id": "src_worker_task_list_ts",
-      "community": 124,
+      "community": 125,
       "norm_label": "task-list.ts"
     },
     {
@@ -4617,7 +4653,7 @@
       "source_file": "src/worker/tasks/healthcheck.ts",
       "source_location": "L1",
       "id": "src_worker_tasks_healthcheck_ts",
-      "community": 68,
+      "community": 69,
       "norm_label": "healthcheck.ts"
     },
     {
@@ -4626,7 +4662,7 @@
       "source_file": "src/worker/tasks/healthcheck.ts",
       "source_location": "L1",
       "id": "healthcheck_healthcheck",
-      "community": 68,
+      "community": 69,
       "norm_label": "healthcheck()"
     },
     {
@@ -4707,7 +4743,7 @@
       "source_file": "src/pages/SmartCheckDemo.tsx",
       "source_location": "L1",
       "id": "src_pages_smartcheckdemo_tsx",
-      "community": 48,
+      "community": 49,
       "norm_label": "smartcheckdemo.tsx"
     },
     {
@@ -4716,7 +4752,7 @@
       "source_file": "src/pages/SmartCheckDemo.tsx",
       "source_location": "L41",
       "id": "smartcheckdemo_handlequickfix",
-      "community": 48,
+      "community": 49,
       "norm_label": "handlequickfix()"
     },
     {
@@ -4725,7 +4761,7 @@
       "source_file": "src/pages/SmartCheckDemo.tsx",
       "source_location": "L58",
       "id": "smartcheckdemo_handlerecheck",
-      "community": 48,
+      "community": 49,
       "norm_label": "handlerecheck()"
     },
     {
@@ -4761,7 +4797,7 @@
       "source_file": "src/pages/PublicAcademyDetail.tsx",
       "source_location": "L1",
       "id": "src_pages_publicacademydetail_tsx",
-      "community": 49,
+      "community": 50,
       "norm_label": "publicacademydetail.tsx"
     },
     {
@@ -4770,7 +4806,7 @@
       "source_file": "src/pages/PublicAcademyDetail.tsx",
       "source_location": "L113",
       "id": "publicacademydetail_publicacademydetail",
-      "community": 49,
+      "community": 50,
       "norm_label": "publicacademydetail()"
     },
     {
@@ -4779,7 +4815,7 @@
       "source_file": "src/pages/PublicAcademyDetail.tsx",
       "source_location": "L200",
       "id": "publicacademydetail_format",
-      "community": 49,
+      "community": 50,
       "norm_label": "format()"
     },
     {
@@ -4842,7 +4878,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Dashboard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_dashboard_tsx",
-      "community": 125,
+      "community": 126,
       "norm_label": "dashboard.tsx"
     },
     {
@@ -4851,7 +4887,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AIAssistant.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_aiassistant_tsx",
-      "community": 69,
+      "community": 70,
       "norm_label": "aiassistant.tsx"
     },
     {
@@ -4860,7 +4896,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AIAssistant.tsx",
       "source_location": "L24",
       "id": "aiassistant_handlesend",
-      "community": 69,
+      "community": 70,
       "norm_label": "handlesend()"
     },
     {
@@ -4905,7 +4941,7 @@
       "source_file": "src/pages/Academy.tsx",
       "source_location": "L1",
       "id": "src_pages_academy_tsx",
-      "community": 70,
+      "community": 71,
       "norm_label": "academy.tsx"
     },
     {
@@ -4914,7 +4950,7 @@
       "source_file": "src/pages/Academy.tsx",
       "source_location": "L16",
       "id": "academy_academy",
-      "community": 70,
+      "community": 71,
       "norm_label": "academy()"
     },
     {
@@ -4959,7 +4995,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Profitability.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_profitability_tsx",
-      "community": 126,
+      "community": 127,
       "norm_label": "profitability.tsx"
     },
     {
@@ -4968,7 +5004,7 @@
       "source_file": "src/pages/PublicAcademy.tsx",
       "source_location": "L1",
       "id": "src_pages_publicacademy_tsx",
-      "community": 127,
+      "community": 128,
       "norm_label": "publicacademy.tsx"
     },
     {
@@ -4977,17 +5013,8 @@
       "source_file": "src/pages/AllplanAccessGate.tsx",
       "source_location": "L1",
       "id": "src_pages_allplanaccessgate_tsx",
-      "community": 71,
+      "community": 129,
       "norm_label": "allplanaccessgate.tsx"
-    },
-    {
-      "label": "AllplanAccessGate()",
-      "file_type": "code",
-      "source_file": "src/pages/AllplanAccessGate.tsx",
-      "source_location": "L6",
-      "id": "allplanaccessgate_allplanaccessgate",
-      "community": 71,
-      "norm_label": "allplanaccessgate()"
     },
     {
       "label": "AcceptInvite.tsx",
@@ -4995,7 +5022,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AcceptInvite.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_acceptinvite_tsx",
-      "community": 50,
+      "community": 51,
       "norm_label": "acceptinvite.tsx"
     },
     {
@@ -5004,7 +5031,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AcceptInvite.tsx",
       "source_location": "L20",
       "id": "acceptinvite_verifytoken",
-      "community": 50,
+      "community": 51,
       "norm_label": "verifytoken()"
     },
     {
@@ -5013,7 +5040,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AcceptInvite.tsx",
       "source_location": "L38",
       "id": "acceptinvite_handlesubmit",
-      "community": 50,
+      "community": 51,
       "norm_label": "handlesubmit()"
     },
     {
@@ -5049,7 +5076,7 @@
       "source_file": "src/pages/LessonViewerPage.tsx",
       "source_location": "L1",
       "id": "src_pages_lessonviewerpage_tsx",
-      "community": 51,
+      "community": 52,
       "norm_label": "lessonviewerpage.tsx"
     },
     {
@@ -5058,7 +5085,7 @@
       "source_file": "src/pages/LessonViewerPage.tsx",
       "source_location": "L43",
       "id": "lessonviewerpage_handlesimulatorvaluechange",
-      "community": 51,
+      "community": 52,
       "norm_label": "handlesimulatorvaluechange()"
     },
     {
@@ -5067,7 +5094,7 @@
       "source_file": "src/pages/LessonViewerPage.tsx",
       "source_location": "L55",
       "id": "lessonviewerpage_handlefixunit",
-      "community": 51,
+      "community": 52,
       "norm_label": "handlefixunit()"
     },
     {
@@ -5112,7 +5139,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Quotes.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_quotes_tsx",
-      "community": 128,
+      "community": 130,
       "norm_label": "quotes.tsx"
     },
     {
@@ -5121,7 +5148,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/DealDetail.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_dealdetail_tsx",
-      "community": 52,
+      "community": 53,
       "norm_label": "dealdetail.tsx"
     },
     {
@@ -5130,7 +5157,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/DealDetail.tsx",
       "source_location": "L48",
       "id": "dealdetail_fetchdealdata",
-      "community": 52,
+      "community": 53,
       "norm_label": "fetchdealdata()"
     },
     {
@@ -5139,7 +5166,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/DealDetail.tsx",
       "source_location": "L70",
       "id": "dealdetail_analyzedeal",
-      "community": 52,
+      "community": 53,
       "norm_label": "analyzedeal()"
     },
     {
@@ -5247,7 +5274,7 @@
       "source_file": "src/pages/CompleteAcademyContent.tsx",
       "source_location": "L1",
       "id": "src_pages_completeacademycontent_tsx",
-      "community": 53,
+      "community": 54,
       "norm_label": "completeacademycontent.tsx"
     },
     {
@@ -5256,7 +5283,7 @@
       "source_file": "src/pages/CompleteAcademyContent.tsx",
       "source_location": "L66",
       "id": "completeacademycontent_parseinlinecall",
-      "community": 53,
+      "community": 54,
       "norm_label": "parseinlinecall()"
     },
     {
@@ -5265,7 +5292,7 @@
       "source_file": "src/pages/CompleteAcademyContent.tsx",
       "source_location": "L75",
       "id": "completeacademycontent_sourcechartfallback",
-      "community": 53,
+      "community": 54,
       "norm_label": "sourcechartfallback()"
     },
     {
@@ -5499,7 +5526,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/pdf/templates.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_services_pdf_templates_ts",
-      "community": 129,
+      "community": 131,
       "norm_label": "templates.ts"
     },
     {
@@ -5508,7 +5535,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/pdf/generate.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_services_pdf_generate_ts",
-      "community": 5,
+      "community": 4,
       "norm_label": "generate.ts"
     },
     {
@@ -5517,7 +5544,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/pdf/generate.ts",
       "source_location": "L10",
       "id": "generate_generatequotationpdf",
-      "community": 5,
+      "community": 4,
       "norm_label": "generatequotationpdf()"
     },
     {
@@ -11717,6 +11744,30 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/server/auth/registration.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "src_server_auth_registration_ts",
+      "_tgt": "registration_parseregistrationinput",
+      "source": "src_server_auth_registration_ts",
+      "target": "registration_parseregistrationinput",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/server/auth/registration.ts",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_src": "src_server_auth_registration_ts",
+      "_tgt": "registration_publicregistereduser",
+      "source": "src_server_auth_registration_ts",
+      "target": "registration_publicregistereduser",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/clients.ts",
       "source_location": "L7",
       "weight": 1.0,
@@ -11969,12 +12020,12 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/server/routes/auth.ts",
-      "source_location": "L8",
+      "source_file": "src/server/routes/auth.ts",
+      "source_location": "L10",
       "weight": 1.0,
-      "_src": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_auth_ts",
+      "_src": "src_server_routes_auth_ts",
       "_tgt": "auth_registerauthroutes",
-      "source": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_auth_ts",
+      "source": "src_server_routes_auth_ts",
       "target": "auth_registerauthroutes",
       "confidence_score": 1.0
     },
@@ -13824,18 +13875,6 @@
       "_tgt": "landingpage_workflowcard",
       "source": "src_pages_landingpage_tsx",
       "target": "landingpage_workflowcard",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/pages/AllplanAccessGate.tsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_src": "src_pages_allplanaccessgate_tsx",
-      "_tgt": "allplanaccessgate_allplanaccessgate",
-      "source": "src_pages_allplanaccessgate_tsx",
-      "target": "allplanaccessgate_allplanaccessgate",
       "confidence_score": 1.0
     },
     {

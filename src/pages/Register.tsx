@@ -16,8 +16,9 @@ export function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isPilot = searchParams.get('intent') === 'pilot';
+  const isAcademy = searchParams.get('intent') === 'academy';
   const requestedNext = searchParams.get('next');
-  const nextPath = requestedNext?.startsWith('/app/') ? requestedNext : '/app';
+  const nextPath = isAcademy ? '/app/academy/allplan' : requestedNext?.startsWith('/app/') ? requestedNext : '/app';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +27,7 @@ export function Register() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName, companyName })
+        body: JSON.stringify({ email, password, fullName, companyName, intent: isAcademy ? 'academy' : 'workspace' })
       });
       const data = await res.json();
       if (res.ok) {
@@ -52,8 +53,8 @@ export function Register() {
             <span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold text-white">BP</span>
             <span className="text-2xl font-semibold tracking-tight text-white">BIMPlan Academy</span>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-white">{isPilot ? 'Pilot hesabınızı oluşturun' : 'Yeni hesap oluşturun'}</h1>
-          <p className="mt-2 text-sm text-zinc-500">{isPilot ? 'TeklifPro pilot akışına kontrollü bir başlangıç yapın.' : 'TeklifPro çalışma alanınızı oluşturun.'}</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-white">{isAcademy ? 'Ücretsiz öğrenci hesabı' : isPilot ? 'Pilot hesabınızı oluşturun' : 'Yeni hesap oluşturun'}</h1>
+          <p className="mt-2 text-sm text-zinc-500">{isAcademy ? 'Doğrulanmış Allplan derslerine hemen erişin. Kredi kartı gerekmez.' : isPilot ? 'TeklifPro pilot akışına kontrollü bir başlangıç yapın.' : 'TeklifPro çalışma alanınızı oluşturun.'}</p>
         </div>
 
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
@@ -75,16 +76,16 @@ export function Register() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Şİrket Adı</label>
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">{isAcademy ? 'Okul / Şirket (opsiyonel)' : 'Şirket Adı'}</label>
                 <div className="relative group">
                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-orange-500 transition-colors" size={16} />
                    <input 
                     type="text" 
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    required
+                    required={!isAcademy}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="Şirketiniz"
+                    placeholder={isAcademy ? 'Varsa okulunuz veya şirketiniz' : 'Şirketiniz'}
                    />
                 </div>
               </div>
@@ -124,7 +125,7 @@ export function Register() {
                 disabled={loading}
                 className="w-full bg-orange-600 hover:bg-orange-700 h-12 text-white font-black uppercase tracking-widest text-xs gap-2"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <>{isPilot ? 'PİLOT HESABI OLUŞTUR' : 'KAYDOL'} <ArrowRight size={18} /></>}
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <>{isAcademy ? 'ÜCRETSİZ ÖĞRENCİ KAYDI' : isPilot ? 'PİLOT HESABI OLUŞTUR' : 'KAYDOL'} <ArrowRight size={18} /></>}
               </Button>
             </form>
             
