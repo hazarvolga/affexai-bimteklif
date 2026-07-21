@@ -60,6 +60,14 @@ const tracks: AcademyTrack[] = [
     label: 'Saha odaklı',
     tone: 'green',
   },
+  {
+    slug: 'allplan',
+    title: 'Allplan Pro Track',
+    summary: 'Allplan Fundamentals, reinforcement, openBIM ve metrajı üretim odaklı tek öğrenme hattında birleştirir.',
+    topics: ['Allplan modelleme', 'Reinforcement ve metraj', 'IFC / openBIM iş akışı'],
+    label: 'Uygulamalı uzmanlaşma',
+    tone: 'orange',
+  },
 ];
 
 const toneClasses = {

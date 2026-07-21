@@ -11,6 +11,8 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "academy:parity": "node scripts/academy-parity-check.mjs",
+    "allplan:inventory": "node scripts/allplan-source-inventory.mjs",
+    "allplan:import": "node scripts/import-allplan-source.mjs",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "smartcheck:evaluate": "tsx src/smartcheck/evaluation/cli-main.ts"
   },
