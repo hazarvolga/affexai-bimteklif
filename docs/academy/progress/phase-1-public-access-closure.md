@@ -14,7 +14,7 @@ Durum: TAMAMLANDI
 - Client bundle’dan Allplan ders gövdeleri çıkarıldı.
 - `/api/academy/allplan/curriculum` protected hale getirildi.
 - `/api/academy/allplan/lessons/:lessonSlug` protected hale getirildi.
-- Protected Allplan ekranı 11/37/114 curriculum metriklerini ve 27 ayrıntılı dersi API’den alıyor.
+- Protected Allplan ekranı 10/37/114 curriculum metriklerini ve 27 ayrıntılı dersi API’den alıyor.
 - 87 eksik modül protected alanda dürüstçe kilitli/eksik kapsam olarak korunuyor.
 
 ## Güvenlik doğrulaması
@@ -40,4 +40,4 @@ Durum: TAMAMLANDI
 
 ## Sonraki faz
 
-Faz 2: protected curriculum workspace’i tam kaynak ağacıyla (11 path, 37 course, 114 module) göstermek; statü, kilit, arama ve yol bazlı ilerlemeyi tamamlamak.
+Faz 2: protected curriculum workspace’i tam kaynak ağacıyla (10 path, 37 course, 114 module) göstermek; statü, kilit, arama ve yol bazlı ilerlemeyi tamamlamak.

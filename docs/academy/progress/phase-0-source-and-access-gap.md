@@ -7,7 +7,7 @@ Commit: Bu rapor Faz 0 dokümantasyon commit’i ile birlikte kaydedilecek.
 ## Tamamlanan işler
 
 - Kaynak `allplanAkademi-main` yeniden envanterlendi.
-- 11 path, 37 course, 114 module, 27 ayrıntılı ders ve %24 coverage doğrulandı.
+- 10 path, 37 course, 114 module, 27 ayrıntılı ders ve %24 coverage doğrulandı.
 - 4 interaktif araç, 24 source component ve kaynak persistence riskleri kaydedildi.
 - Public/protected/internal erişim kararı netleştirildi.
 - Üyelikli curriculum, native lab, içerik üretim, sertifika ve entitlement fazları tanımlandı.

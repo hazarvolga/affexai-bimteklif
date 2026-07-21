@@ -28,7 +28,7 @@ const sourceWarnings = [
 const report = {
   sourceRoot,
   courseTree: {
-    paths: count(constants, /type:\s*'path'/g),
+    paths: count(constants, /id:\s*'p\d+',\s*title:/g),
     courses: count(constants, /type:\s*'course'/g),
     modules: count(constants, /type:\s*'module'/g),
     declaredLessonText: lessonKeys.length,

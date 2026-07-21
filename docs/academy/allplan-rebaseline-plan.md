@@ -13,7 +13,7 @@ Public yüzey yalnızca ürünün varlığını ve değerini anlatabilir. Ders g
 
 ### Kaynak gerçekleri
 
-- 11 öğrenme yolu, 37 kurs, 114 modül.
+- 10 öğrenme yolu, 37 kurs, 114 modül.
 - 27 modül için ayrıntılı ders gövdesi mevcut; kaynak kapsaması %24.
 - 87 modül yalnızca müfredat başlığı/statüsü seviyesinde.
 - Kaynakta 17 component dosyası ve 24 dışa aktarılan component var.
@@ -61,7 +61,7 @@ Public yüzey yalnızca ürünün varlığını ve değerini anlatabilir. Ders g
 ## Faz 2 — Protected curriculum workspace
 
 1. Kaynak ağacını `path/course/module/lesson` olarak protected workspace’te göster.
-2. 11/37/114 sayıları ve yol bazlı sayaçları göster.
+2. 10/37/114 sayıları ve yol bazlı sayaçları göster.
 3. 27 doğrulanmış dersi açılabilir yap.
 4. 87 modülü “İçerik hazırlanıyor” olarak kilitle; uydurma ders üretme.
 5. Ders statülerini `available`, `in-progress`, `completed`, `locked`, `needs-review` olarak ayır.
