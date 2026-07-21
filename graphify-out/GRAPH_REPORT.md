@@ -1,11 +1,11 @@
 # Graph Report - TeklifPro-repo  (2026-07-22)
 
 ## Corpus Check
-- 196 files · ~195,705 words
+- 196 files · ~196,386 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 642 nodes · 730 edges · 43 communities detected
+- 644 nodes · 732 edges · 43 communities detected
 - Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 136 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
@@ -121,20 +121,20 @@ Cohesion: 0.12
 Nodes (7): AllplanAcademy(), Login(), safeAcademyReturnPath(), ProtectedAllplanLessonPage(), ProtectedRoute(), Register(), useAuth()
 
 ### Community 10 - "Community 10"
+Cohesion: 0.17
+Nodes (7): canReleaseAllplanLesson(), evaluateAllplanContentReview(), present(), normalizeLesson(), normalizeNode(), parseMinutes(), slugify()
+
+### Community 11 - "Community 11"
 Cohesion: 0.16
 Nodes (4): GeminiProvider, OpenAIProvider, buildQuotationPrompt(), extractJsonObject()
 
-### Community 11 - "Community 11"
+### Community 12 - "Community 12"
 Cohesion: 0.17
 Nodes (9): runEvaluationCliEntry(), runCliMock(), EvaluationCliUsageError, setExitCode(), writeStderr(), writeStdout(), mapError(), parseArgs() (+1 more)
 
-### Community 12 - "Community 12"
+### Community 13 - "Community 13"
 Cohesion: 0.15
 Nodes (6): findLesson(), loadCertificationEligibility(), toCurriculumNode(), toLessonSummary(), validSlug(), evaluateCertificationEligibility()
-
-### Community 13 - "Community 13"
-Cohesion: 0.2
-Nodes (7): canReleaseAllplanLesson(), evaluateAllplanContentReview(), present(), normalizeLesson(), normalizeNode(), parseMinutes(), slugify()
 
 ### Community 14 - "Community 14"
 Cohesion: 0.33

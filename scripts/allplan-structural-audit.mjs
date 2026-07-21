@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import reviewData from '../src/academy/allplan/contentReviewRecords.json' with { type: 'json' };
 import { evaluateAllplanContentReview } from '../src/academy/allplan/releaseGate.ts';
 
@@ -11,11 +12,26 @@ const lessons = read('src/data/lessonsContent.ts');
 const lessonKeys = [...lessons.matchAll(/^  ['"]([^'"]+)['"]:\s*{/gm)].map(match => match[1]);
 const structuralBlock = constants.match(/id:\s*'p3',[\s\S]*?(?=\n\s*\{\n\s*id:\s*'p4')/)?.[0];
 
+const evaluateEvidenceFiles = record => {
+  if (!record) return [];
+  const reasons = [];
+  for (const step of record.stepsEvidence ?? []) {
+    if (!step.evidenceRef || !fs.existsSync(path.resolve(repo, step.evidenceRef))) reasons.push(`STEP_EVIDENCE_FILE_MISSING:${step.step ?? '?'}`);
+  }
+  const sourcePath = record.sourceEvidenceRef ? path.resolve(repo, record.sourceEvidenceRef) : '';
+  if (!sourcePath || !fs.existsSync(sourcePath)) reasons.push('SOURCE_EVIDENCE_FILE_MISSING');
+  else if (crypto.createHash('sha256').update(fs.readFileSync(sourcePath)).digest('hex') !== record.sourceEvidenceHash) reasons.push('SOURCE_EVIDENCE_HASH_MISMATCH');
+  return reasons;
+};
+
 if (!structuralBlock) throw new Error('[allplan-structural-audit] p3 Structural Engineering path not found');
 
 const modules = [...structuralBlock.matchAll(/id:\s*'([^']+)',\s*title:\s*'([^']+)',\s*type:\s*'module'/g)].map(([, sourceId, title]) => {
   const hasDetailedLessonBody = lessonKeys.includes(title);
-  const reviewGate = evaluateAllplanContentReview(reviewData.records[sourceId]);
+  const record = reviewData.records[sourceId];
+  const contractGate = evaluateAllplanContentReview(record);
+  const reasons = [...contractGate.reasons, ...evaluateEvidenceFiles(record)];
+  const reviewGate = { approved: reasons.length === 0, reasons };
   const releaseApproved = hasDetailedLessonBody && reviewGate.approved;
   return {
     sourceId,

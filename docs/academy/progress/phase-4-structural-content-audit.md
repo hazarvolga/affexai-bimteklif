@@ -73,6 +73,21 @@ Bir modül aşağıdaki kanıtların tamamı olmadan `verified` veya `available`
 
 Yerel `4708.pdf` dosyası metadata, metin ve sayfa renderı ile incelendi. Dosya Allplan Structural kullanım kanıtı değil, 2015 tarihli bir 4708 Sayılı Yapı Denetim Kanunu kopyasıdır; Columns release evidence olarak reddedildi ve kaynak kaydına eklenmedi.
 
+### Columns kaynak hazırlığı
+
+Resmî ALLPLAN 2026-1 yardım sayfalarıyla Columns draft review record hazırlandı. Kaynak paketi Structural Framing Column komut yolunu, palette/geometry/height/anchor ayarlarını, representation ve attributes sekmelerini, calculation mode etkisini, plane-model ilişkisini ve `IfcColumn` eşlemesini kapsar.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/columns-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c1-m1`
+- Kaynak paketi SHA-256: `5120e39edc052df70fdabfd8b5a18d177e319361a0d23ef29bc70b41a90b76e7`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler:
+  - Allplan 2026 workstation'dan üç yerel adım ekran görüntüsü,
+  - teknik reviewer adı/rolü/tarihi,
+  - reviewer kararı `approved`.
+
+External URL, workstation ekran kanıtı olarak kabul edilmez. CLI ve audit, referenced evidence dosyasının gerçekten repo içinde bulunmasını ve source-pack hash'inin içerikle eşleşmesini ayrıca doğrular.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.

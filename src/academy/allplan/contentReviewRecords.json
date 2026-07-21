@@ -10,5 +10,77 @@
     "p3-c4-m1",
     "p3-c4-m2"
   ],
-  "records": {}
+  "records": {
+    "p3-c1-m1": {
+      "sourceId": "p3-c1-m1",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Create and modify a perpendicular structural framing column using an explicit cross-section, anchor point and plane-based height.",
+        "Assign representation, material, trade, calculation mode and classification data required for downstream schedules and exchange checks.",
+        "Verify the column workflow without treating software output as structural design approval."
+      ],
+      "prerequisites": [
+        "Allplan 2026 workspace with the Structural Framing task available in the installed license.",
+        "A project building structure and plane model whose story elevations have already been checked."
+      ],
+      "allplanVersions": [
+        "2026.1"
+      ],
+      "interfaceContext": "Architecture role > Structural Framing task > Structural Framing Objects > Structural Framing Column",
+      "stepsEvidence": [
+        {
+          "step": 1,
+          "title": "Open Structural Framing Column and define geometry",
+          "evidenceRef": "docs/academy/content-review/evidence/columns-step-1.png",
+          "expectedOutput": "The Geometry tab shows the agreed cross-section, dimensions and anchor point."
+        },
+        {
+          "step": 2,
+          "title": "Bind top and bottom levels to the checked plane model",
+          "evidenceRef": "docs/academy/content-review/evidence/columns-step-2.png",
+          "expectedOutput": "The Height dialog shows explicit top and bottom plane references and the preview is placed in the correct story."
+        },
+        {
+          "step": 3,
+          "title": "Assign attributes and verify downstream classification",
+          "evidenceRef": "docs/academy/content-review/evidence/columns-step-3.png",
+          "expectedOutput": "Material, trade, calculation mode and classification are visible and the agreed exchange check identifies the object as IfcColumn."
+        }
+      ],
+      "learnerOutput": "One modelled structural framing column with reproducible geometry, plane-based height, attribute data and an IfcColumn verification result.",
+      "references": [
+        {
+          "title": "ALLPLAN 2026-1 Structural Framing Column",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/254637.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 Structural framing column palette",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/276241.htm"
+        },
+        {
+          "title": "ALLPLAN 2026-1 IFC Import Settings",
+          "versionOrDate": "2026-1",
+          "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/320465.htm"
+        }
+      ],
+      "technicalReviewer": {
+        "name": "",
+        "role": "",
+        "reviewedAt": ""
+      },
+      "checkpoint": {
+        "prompt": "Submit the three workstation screenshots and the agreed IfcColumn verification result for the created object.",
+        "acceptanceCriteria": "Geometry, plane references, attributes and exchange classification must match the reviewed evidence pack."
+      },
+      "assessmentQuestion": {
+        "prompt": "Which settings must be verified before a structural framing column can be trusted in schedules and IFC exchange?",
+        "expectedAnswer": "Cross-section and anchor point, top and bottom plane references, material and trade, calculation mode, attributes and the resulting IfcColumn classification."
+      },
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/columns-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "5120e39edc052df70fdabfd8b5a18d177e319361a0d23ef29bc70b41a90b76e7"
+    }
+  }
 }
