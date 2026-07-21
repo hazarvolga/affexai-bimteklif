@@ -1008,6 +1008,7 @@ export const academyPaymentEvents = pgTable("academy_payment_events", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   providerEventUnique: unique("academy_payment_events_provider_event_key").on(table.provider, table.eventId),
+  providerReferenceTypeUnique: unique("academy_payment_events_provider_reference_type_key").on(table.provider, table.paymentReference, table.eventType),
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   enrollmentFk: foreignKey({ columns: [table.enrollmentId, table.companyId], foreignColumns: [academyEnrollments.id, academyEnrollments.companyId] }).onDelete("restrict"),
   eventTypeCheck: check("academy_payment_events_type_check", sql`${table.eventType} in ('academy.purchase.completed', 'academy.purchase.refunded')`),

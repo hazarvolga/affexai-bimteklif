@@ -1,0 +1,1 @@
+ALTER TABLE "academy_payment_events" ADD CONSTRAINT "academy_payment_events_provider_reference_type_key" UNIQUE("provider","payment_reference","event_type");

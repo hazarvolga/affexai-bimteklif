@@ -103,6 +103,8 @@ export function registerAcademyRoutes(app: Express) {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`academy-payment:${event.provider}:${event.eventId}`}))`);
       const [processed] = await tx.select({ id: academyPaymentEvents.id, enrollmentId: academyPaymentEvents.enrollmentId }).from(academyPaymentEvents).where(and(eq(academyPaymentEvents.provider, event.provider), eq(academyPaymentEvents.eventId, event.eventId)));
       if (processed) return { duplicate: true as const, enrollmentId: processed.enrollmentId };
+      const [semanticDuplicate] = await tx.select({ id: academyPaymentEvents.id, enrollmentId: academyPaymentEvents.enrollmentId }).from(academyPaymentEvents).where(and(eq(academyPaymentEvents.provider, event.provider), eq(academyPaymentEvents.paymentReference, event.paymentReference), eq(academyPaymentEvents.eventType, event.type)));
+      if (semanticDuplicate) return { duplicate: true as const, enrollmentId: semanticDuplicate.enrollmentId };
       const [[membership], [edition]] = await Promise.all([
         tx.select({ userId: memberships.userId }).from(memberships).where(and(eq(memberships.companyId, event.companyId), eq(memberships.userId, event.userId))),
         tx.select({ id: academyEditions.id }).from(academyEditions).innerJoin(academyProducts, eq(academyProducts.id, academyEditions.productId)).where(and(eq(academyProducts.code, "allplan-pro"), eq(academyProducts.isActive, true), eq(academyEditions.version, ALLPLAN_PROGRAM_VERSION), eq(academyEditions.isActive, true))),
@@ -111,7 +113,11 @@ export function registerAcademyRoutes(app: Express) {
       if (!edition) return { invalid: "PAYMENT_EDITION_NOT_FOUND" as const };
       const [existing] = await tx.select().from(academyEnrollments).where(and(eq(academyEnrollments.companyId, event.companyId), eq(academyEnrollments.userId, event.userId), eq(academyEnrollments.editionId, edition.id)));
 
-      if (event.type === "academy.purchase.refunded" && (!existing || existing.source !== "purchase")) return { invalid: "PURCHASE_ENROLLMENT_NOT_FOUND" as const };
+      if (event.type === "academy.purchase.refunded") {
+        const [completedPayment] = await tx.select({ id: academyPaymentEvents.id }).from(academyPaymentEvents).where(and(eq(academyPaymentEvents.provider, event.provider), eq(academyPaymentEvents.paymentReference, event.paymentReference), eq(academyPaymentEvents.eventType, "academy.purchase.completed"), eq(academyPaymentEvents.companyId, event.companyId), eq(academyPaymentEvents.userId, event.userId)));
+        if (!completedPayment) return { invalid: "PAYMENT_REFERENCE_NOT_FOUND" as const };
+        if (!existing || existing.source !== "purchase") return { invalid: "PURCHASE_ENROLLMENT_NOT_FOUND" as const };
+      }
       let enrollment = existing;
       let action: "granted" | "extended" | "reactivated" | "refunded" | null = null;
       if (event.type === "academy.purchase.completed") {

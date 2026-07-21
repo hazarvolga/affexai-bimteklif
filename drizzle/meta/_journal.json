@@ -148,6 +148,13 @@
       "when": 1784669275643,
       "tag": "0020_lush_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1784670111510,
+      "tag": "0021_steep_masque",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,8 @@
   - `academy.purchase.refunded`
 - Zorunlu tenant üyeliği: `companyId + userId`
 - Provider ve event kimliği birlikte idempotency anahtarıdır.
+- Provider + payment reference + event type semantik idempotency anahtarıdır; farklı event ID aynı ödeme işlemini ikinci kez uygulayamaz.
+- Refund ancak aynı provider, payment reference, company ve user için daha önce işlenmiş bir `academy.purchase.completed` olayı varsa kabul edilir.
 - Transaction advisory lock aynı event'in yarış koşulunda iki kez işlenmesini engeller.
 
 ## Kalıcı kayıt
@@ -36,12 +38,18 @@
 - HMAC, timestamp ve payload contract testleri: 2/2 başarılı.
 - TypeScript typecheck başarılı.
 - Migration `0020_lush_shiver_man.sql` yalnız `localhost:5432/teklifpro_local` üzerinde uygulandı.
+- Migration `0021_steep_masque.sql` semantik payment-reference idempotency constraint'ini aynı izole DB üzerinde uyguladı.
 - Canlı API smoke:
   - yanlış secret: `401`
   - purchase completed: `201`
   - aynı event tekrar: `200`, `duplicate=true`
   - refund: `200`, status `refunded`
 - DB kanıtı: `purchase | refunded | 2 event | granted,refunded`.
+- Semantik idempotency smoke:
+  - purchase olmadan refund: `409 PAYMENT_REFERENCE_NOT_FOUND`
+  - aynı payment reference ile farklı purchase event ID: `200 duplicate=true`
+  - aynı payment reference ile farklı refund event ID: `200 duplicate=true`
+  - DB sonucu yine yalnız `2 event | granted,refunded`.
 - Smoke için oluşturulan geçici company, user, membership, enrollment, audit ve payment event kayıtları doğrulama sonrasında transaction ile silindi.
 - Full test suite: 236/236 başarılı.
 - Final TypeScript typecheck başarılı.

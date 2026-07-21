@@ -12150,8 +12150,8 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L27",
       "weight": 1.0,
-      "_src": "track_normalizenode",
-      "_tgt": "releasegate_canreleaseallplanlesson",
+      "_src": "releasegate_canreleaseallplanlesson",
+      "_tgt": "track_normalizenode",
       "source": "releasegate_canreleaseallplanlesson",
       "target": "track_normalizenode"
     },
