@@ -36,6 +36,7 @@ import { SmartCheckDemo } from '@/pages/SmartCheckDemo';
 import { Academy } from '@/pages/Academy';
 import { AllplanAcademy } from '@/pages/AllplanAcademy';
 import { LessonViewerPage } from '@/pages/LessonViewerPage';
+import { ProtectedAllplanLessonPage } from '@/pages/ProtectedAllplanLessonPage';
 import { PilotApplication } from '@/pages/PilotApplication';
 import { PilotApplications } from '@/pages/PilotApplications';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
@@ -84,6 +85,7 @@ function AppRoutes() {
           <Route path="academy" element={<Academy />} />
           <Route path="academy/content/:slug" element={<LessonViewerPage />} />
           <Route path="academy/allplan" element={<AllplanAcademy />} />
+          <Route path="academy/allplan/lesson/:lessonSlug" element={<ProtectedAllplanLessonPage />} />
           <Route path="academy/allplan/content/:slug" element={<LessonViewerPage />} />
         </Route>
       </Route>

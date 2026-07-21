@@ -5,17 +5,23 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Clock, ChevronRight } from 'lucide-react';
+import { BookOpen, Clock, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { demoAcademyContent } from '@/smartcheck/demoData';
+import { ALLPLAN_DETAILED_LESSONS, getAllplanCoverageReport } from '@/academy/allplan/track';
+import { getCompletedAllplanLessons } from '@/academy/allplan/progress';
+import { useAuth } from '@/hooks/useAuth';
 
 export function AllplanAcademy() {
+  const { user } = useAuth();
   // Sadece ALLPLAN Akademisi alanına ait olanları listele (Poz/Birim dahil edilmez)
   const courses = demoAcademyContent.filter(c => c.area === 'allplan');
+  const coverage = getAllplanCoverageReport();
+  const completedLessons = getCompletedAllplanLessons(user?.id, user?.email);
 
   return (
     <PageContainer>
@@ -29,7 +35,7 @@ export function AllplanAcademy() {
 
       <PageHeader
         title="ALLPLAN Akademisi"
-        description="CAD modelleme standartlarını, 3D köşe birleşim önceliklerini ve donatı hesap kurallarını simülatörlerle öğrenin."
+        description="Kaynak doğrulamalı Allplan Pro Track derslerini, ofis simülatörlerini ve mühendislik notlarını tek bir öğrenme akışında ilerletin."
       />
 
       <div className="space-y-8">
@@ -85,6 +91,25 @@ export function AllplanAcademy() {
                 </div>
               </Card>
             ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Allplan Pro Track · Kaynak Dersleri</h3>
+              <p className="mt-1 text-[10px] text-zinc-600">{coverage.detailedLessonCount} ayrıntılı ders · {coverage.coveragePercent}% modül kapsamı · {completedLessons.length} tamamlandı</p>
+            </div>
+            <Badge className="w-fit border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-zinc-500">Sunucu ilerlemesi: sonraki faz</Badge>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {ALLPLAN_DETAILED_LESSONS.map(lesson => {
+              const completed = completedLessons.includes(lesson.slug);
+              return <Card key={lesson.slug} className="flex flex-col justify-between border-zinc-800 bg-zinc-900/20 transition-all hover:border-orange-500/30">
+                <CardHeader className="pb-3"><div className="flex items-start justify-between gap-3"><Badge className="border border-zinc-800 bg-zinc-950 px-2 py-0.5 font-mono text-[8px] text-zinc-500">{lesson.seed}</Badge>{completed && <CheckCircle2 size={16} className="text-emerald-500" />}</div><CardTitle className="mt-2 text-xs font-black uppercase leading-relaxed tracking-widest text-zinc-100">{lesson.title}</CardTitle><CardDescription className="line-clamp-2 text-[10px] leading-relaxed text-zinc-500">{lesson.subtitle}</CardDescription></CardHeader>
+                <CardContent className="pt-0"><div className="mb-4 flex items-center gap-3 font-mono text-[9px] uppercase tracking-wider text-zinc-600"><span><Clock size={11} className="mr-1 inline" />{lesson.estimatedMinutes} dk</span>{lesson.interactiveTool && <span className="text-emerald-500">{lesson.interactiveTool}</span>}</div><Link to={`/app/academy/allplan/lesson/${lesson.slug}`}><Button variant="outline" className="h-9 w-full gap-2 rounded-xl border-zinc-800 bg-zinc-950 text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:bg-orange-600 hover:text-white">Dersi aç <ChevronRight size={14} /></Button></Link></CardContent>
+              </Card>;
+            })}
           </div>
         </div>
 
