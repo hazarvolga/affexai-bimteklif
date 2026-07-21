@@ -1,4 +1,5 @@
 import type { AllplanLesson } from './types';
+import { fetchWithAuth } from '@/lib/api';
 
 const STORAGE_KEY = 'bimplanacademy:allplan-progress:v1';
 
@@ -35,4 +36,20 @@ export const setAllplanLessonCompleted = (lesson: AllplanLesson, completed: bool
   completed ? current.add(lesson.slug) : current.delete(lesson.slug);
   store[key] = [...current];
   writeStore(store);
+};
+
+export const syncAllplanProgress = async () => {
+  const response = await fetchWithAuth('/api/academy/allplan/progress');
+  if (!response.ok) throw new Error('Progress sync failed');
+  const data = await response.json() as { completedLessons?: string[] };
+  return data.completedLessons ?? [];
+};
+
+export const syncAllplanLessonProgress = async (lesson: AllplanLesson, completed: boolean) => {
+  const response = await fetchWithAuth(`/api/academy/allplan/progress/${encodeURIComponent(lesson.slug)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completed }),
+  });
+  if (!response.ok) throw new Error('Progress update failed');
 };

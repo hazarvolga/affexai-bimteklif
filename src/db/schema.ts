@@ -795,3 +795,22 @@ export const ruleAssistanceResources = pgTable("rule_assistance_resources", {
     }).onDelete("cascade"),
   };
 });
+
+export const allplanLessonProgress = pgTable("allplan_lesson_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  lessonSlug: text("lesson_slug").notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyProgressUnique: unique("allplan_lesson_progress_id_company_id_key").on(table.id, table.companyId),
+  userCompanyLessonUnique: unique("allplan_lesson_progress_user_company_lesson_key").on(table.userId, table.companyId, table.lessonSlug),
+  membershipFk: foreignKey({
+    columns: [table.userId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("cascade"),
+  lessonSlugCheck: check("allplan_lesson_progress_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
+  idxUserProgress: index("idx_allplan_lesson_progress_user").on(table.companyId, table.userId, table.updatedAt),
+}));

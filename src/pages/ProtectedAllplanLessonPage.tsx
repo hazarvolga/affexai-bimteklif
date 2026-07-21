@@ -5,14 +5,20 @@ import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useAuth } from '@/hooks/useAuth';
 import { ALLPLAN_DETAILED_LESSONS } from '@/academy/allplan/track';
-import { isAllplanLessonCompleted, setAllplanLessonCompleted } from '@/academy/allplan/progress';
-import { useState } from 'react';
+import { isAllplanLessonCompleted, setAllplanLessonCompleted, syncAllplanLessonProgress, syncAllplanProgress } from '@/academy/allplan/progress';
+import { useEffect, useState } from 'react';
 
 export function ProtectedAllplanLessonPage() {
   const { lessonSlug } = useParams<{ lessonSlug: string }>();
   const { user } = useAuth();
   const lesson = ALLPLAN_DETAILED_LESSONS.find(item => item.slug === lessonSlug);
   const [completed, setCompleted] = useState(() => lesson ? isAllplanLessonCompleted(lesson, user?.id, user?.email) : false);
+
+  useEffect(() => {
+    syncAllplanProgress().then(slugs => {
+      if (lesson) setCompleted(slugs.includes(lesson.slug));
+    }).catch(() => undefined);
+  }, [lesson]);
 
   if (!lesson) {
     return <PageContainer><div className="py-16 text-center"><h2 className="text-lg font-black uppercase tracking-widest text-zinc-100">Ders bulunamadı</h2><Link to="/app/academy/allplan" className="mt-4 inline-block font-mono text-[10px] text-orange-500 hover:underline">Allplan Akademisine dön</Link></div></PageContainer>;
@@ -22,6 +28,7 @@ export function ProtectedAllplanLessonPage() {
     const next = !completed;
     setAllplanLessonCompleted(lesson, next, user?.id, user?.email);
     setCompleted(next);
+    syncAllplanLessonProgress(lesson, next).catch(() => undefined);
   };
 
   return <PageContainer>
