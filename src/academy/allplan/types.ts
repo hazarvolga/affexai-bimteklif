@@ -56,3 +56,25 @@ export interface AllplanCoverageReport {
   coveragePercent: number;
   missingLessonTitles: string[];
 }
+
+export interface AllplanLessonSummary {
+  sourceId: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  estimatedMinutes: number;
+  seed: string;
+  interactiveTool?: AllplanInteractiveTool;
+  contentStatus: AllplanContentStatus;
+}
+
+export interface AllplanCurriculumNode {
+  sourceId: string;
+  title: string;
+  type: AllplanModuleNode['type'];
+  status: AllplanModuleNode['status'];
+  lessonsCount?: string;
+  contentStatus: AllplanContentStatus;
+  lesson?: AllplanLessonSummary;
+  children: AllplanCurriculumNode[];
+}

@@ -16,6 +16,8 @@ export function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isPilot = searchParams.get('intent') === 'pilot';
+  const requestedNext = searchParams.get('next');
+  const nextPath = requestedNext?.startsWith('/app/') ? requestedNext : '/app';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export function Register() {
       const data = await res.json();
       if (res.ok) {
         login(data.token, data.user, data.company, 'owner');
-        navigate('/app');
+        navigate(nextPath);
       } else {
         toast.error(data.error || "Kayıt başarısız.");
       }

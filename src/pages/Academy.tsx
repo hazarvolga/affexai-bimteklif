@@ -12,12 +12,10 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { demoAcademyContent } from '@/smartcheck/demoData';
-import { getAllplanCoverageReport } from '@/academy/allplan/track';
 
 export function Academy() {
   const proposalContent = demoAcademyContent.find(c => c.area === 'teklif_metraj')!;
   const allplanContents = demoAcademyContent.filter(c => c.area === 'allplan');
-  const allplanCoverage = getAllplanCoverageReport();
 
   return (
     <PageContainer>
@@ -91,7 +89,7 @@ export function Academy() {
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
                   <Badge className="bg-orange-500/10 text-orange-500 border-none px-2 py-0.5 text-[8px] font-black uppercase tracking-wider">
-                    {allplanCoverage.detailedLessonCount} DOĞRULANMIŞ DERS
+                    KAYITLI KULLANICI ALANI
                   </Badge>
                 </div>
                 <CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-100 mt-4 group-hover:text-orange-500 transition-colors">

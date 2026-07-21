@@ -3,10 +3,46 @@ import { and, asc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
 import { allplanLessonProgress } from "../../db/schema";
 import { authenticate } from "../middleware/auth";
+import { ALLPLAN_DETAILED_LESSONS, ALLPLAN_TRACK, getAllplanCoverageReport } from "../../academy/allplan/track";
+import type { AllplanCurriculumNode, AllplanLesson, AllplanLessonSummary } from "../../academy/allplan/types";
 
 const validSlug = (value: unknown) => typeof value === "string" && /^[a-z0-9-]{1,180}$/.test(value);
 
+const toLessonSummary = (lesson: AllplanLesson): AllplanLessonSummary => ({
+  sourceId: lesson.sourceId,
+  slug: lesson.slug,
+  title: lesson.title,
+  subtitle: lesson.subtitle,
+  estimatedMinutes: lesson.estimatedMinutes,
+  seed: lesson.seed,
+  interactiveTool: lesson.interactiveTool,
+  contentStatus: lesson.contentStatus,
+});
+
+const toCurriculumNode = (node: typeof ALLPLAN_TRACK.nodes[number]): AllplanCurriculumNode => ({
+  sourceId: node.sourceId,
+  title: node.title,
+  type: node.type,
+  status: node.status,
+  lessonsCount: node.lessonsCount,
+  contentStatus: node.contentStatus,
+  lesson: node.lesson ? toLessonSummary(node.lesson) : undefined,
+  children: node.children.map(toCurriculumNode),
+});
+
 export function registerAcademyRoutes(app: Express) {
+  app.get("/api/academy/allplan/curriculum", authenticate, async (_req, res) => {
+    return res.json({ curriculum: ALLPLAN_TRACK.nodes.map(toCurriculumNode), coverage: getAllplanCoverageReport() });
+  });
+
+  app.get("/api/academy/allplan/lessons/:lessonSlug", authenticate, async (req, res) => {
+    const lesson = validSlug(req.params.lessonSlug)
+      ? ALLPLAN_DETAILED_LESSONS.find(item => item.slug === req.params.lessonSlug)
+      : undefined;
+    if (!lesson) return res.status(404).json({ error: "Allplan dersi bulunamadı." });
+    return res.json({ lesson });
+  });
+
   app.get("/api/academy/allplan/progress", authenticate, async (req, res) => {
     try {
       const rows = await db.select({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt })
