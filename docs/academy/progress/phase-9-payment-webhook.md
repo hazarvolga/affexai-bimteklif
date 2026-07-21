@@ -11,9 +11,11 @@
 
 - Endpoint: `POST /api/academy/allplan/webhooks/payment`
 - Zorunlu secret: `ACADEMY_PAYMENT_WEBHOOK_SECRET`
+- Secret en az 32 byte rastgele değer olmalıdır; kısa veya bilinen placeholder değerler webhook'u `503` ile kapalı tutar.
 - İmza header'ı: `x-academy-signature: t=<unix>,v1=<sha256>`
 - İmzalanan veri: `<unix>.<raw-request-body>`
 - Algoritma: HMAC-SHA256
+- Signature header tam olarak bir `t` ve bir `v1` alanı içermelidir; duplicate veya bilinmeyen alanlar reddedilir.
 - Replay penceresi: en fazla 5 dakika
 - Body limiti: 1 MB
 - Event türleri:

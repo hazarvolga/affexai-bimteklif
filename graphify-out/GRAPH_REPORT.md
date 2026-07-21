@@ -1,11 +1,11 @@
 # Graph Report - TeklifPro-repo  (2026-07-22)
 
 ## Corpus Check
-- 197 files · ~199,545 words
+- 197 files · ~199,689 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 648 nodes · 744 edges · 43 communities detected
+- 649 nodes · 746 edges · 44 communities detected
 - Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 144 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
@@ -41,13 +41,14 @@
 - [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 31|Community 31]]
 - [[_COMMUNITY_Community 33|Community 33]]
-- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 36|Community 36]]
 - [[_COMMUNITY_Community 37|Community 37]]
 - [[_COMMUNITY_Community 38|Community 38]]
-- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 41|Community 41]]
-- [[_COMMUNITY_Community 44|Community 44]]
+- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 45|Community 45]]
 - [[_COMMUNITY_Community 54|Community 54]]
 - [[_COMMUNITY_Community 80|Community 80]]
 - [[_COMMUNITY_Community 81|Community 81]]
@@ -97,12 +98,12 @@ Cohesion: 0.09
 Nodes (19): exists(), main(), ensure_venv_and_run(), Ensure virtual environment exists and run the requested script.     This is call, run(), ensure_venv(), get_venv_python(), main() (+11 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.12
-Nodes (20): ask_notebooklm(), Ask a question to NotebookLM      Args:         question: Question to ask, AuthManager, main(), Save browser state to disk, Save authentication metadata, Clear all authentication data          Returns:             True if cleared succ, Perform re-authentication (clear and setup)          Args:             headless: (+12 more)
-
-### Community 5 - "Community 5"
 Cohesion: 0.1
 Nodes (17): main(), main(), NotebookLibrary, Remove a notebook from the library          Args:             notebook_id: ID of, Update notebook metadata          Args:             notebook_id: ID of notebook, Manages a collection of NotebookLM notebooks with metadata, Get a specific notebook by ID, List all notebooks in the library (+9 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.12
+Nodes (20): ask_notebooklm(), Ask a question to NotebookLM      Args:         question: Question to ask, AuthManager, main(), Save browser state to disk, Save authentication metadata, Clear all authentication data          Returns:             True if cleared succ, Perform re-authentication (clear and setup)          Args:             headless: (+12 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.12
@@ -202,11 +203,11 @@ Nodes (3): expectUnauthorized(), main(), requestJson()
 
 ### Community 33 - "Community 33"
 Cohesion: 0.67
-Nodes (2): answerFromAllplanLessons(), tokens()
+Nodes (2): isAcademyPaymentWebhookSecretConfigured(), verifyAcademyPaymentSignature()
 
-### Community 35 - "Community 35"
+### Community 34 - "Community 34"
 Cohesion: 0.67
-Nodes (1): cn()
+Nodes (2): answerFromAllplanLessons(), tokens()
 
 ### Community 36 - "Community 36"
 Cohesion: 0.67
@@ -220,15 +221,19 @@ Nodes (1): cn()
 Cohesion: 0.67
 Nodes (1): cn()
 
-### Community 40 - "Community 40"
+### Community 39 - "Community 39"
 Cohesion: 0.67
 Nodes (1): cn()
 
 ### Community 41 - "Community 41"
 Cohesion: 0.67
+Nodes (1): cn()
+
+### Community 42 - "Community 42"
+Cohesion: 0.67
 Nodes (1): FixtureInfrastructureError
 
-### Community 44 - "Community 44"
+### Community 45 - "Community 45"
 Cohesion: 1.0
 Nodes (2): findAllplanEntitlement(), requireAllplanEntitlement()
 
@@ -273,21 +278,23 @@ Nodes (1): Click with realistic movement
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 30`** (4 nodes): `ScrollArea()`, `ScrollBar()`, `scroll-area.tsx`, `scroll-area.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (4 nodes): `answerFromAllplanLessons()`, `excerpt()`, `tokens()`, `companion.ts`
+- **Thin community `Community 33`** (4 nodes): `isAcademyPaymentWebhookSecretConfigured()`, `parseAcademyPaymentEvent()`, `verifyAcademyPaymentSignature()`, `paymentWebhook.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (3 nodes): `cn()`, `tabs.tsx`, `tabs.tsx`
+- **Thin community `Community 34`** (4 nodes): `answerFromAllplanLessons()`, `excerpt()`, `tokens()`, `companion.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (3 nodes): `cn()`, `label.tsx`, `label.tsx`
+- **Thin community `Community 36`** (3 nodes): `cn()`, `tabs.tsx`, `tabs.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (3 nodes): `cn()`, `separator.tsx`, `separator.tsx`
+- **Thin community `Community 37`** (3 nodes): `cn()`, `label.tsx`, `label.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (3 nodes): `cn()`, `button.tsx`, `button.tsx`
+- **Thin community `Community 38`** (3 nodes): `cn()`, `separator.tsx`, `separator.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (3 nodes): `utils.ts`, `utils.ts`, `cn()`
+- **Thin community `Community 39`** (3 nodes): `cn()`, `button.tsx`, `button.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (3 nodes): `FixtureInfrastructureError`, `.constructor()`, `fixture-errors.ts`
+- **Thin community `Community 41`** (3 nodes): `utils.ts`, `utils.ts`, `cn()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 44`** (3 nodes): `findAllplanEntitlement()`, `requireAllplanEntitlement()`, `academyEntitlement.ts`
+- **Thin community `Community 42`** (3 nodes): `FixtureInfrastructureError`, `.constructor()`, `fixture-errors.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 45`** (3 nodes): `findAllplanEntitlement()`, `requireAllplanEntitlement()`, `academyEntitlement.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 54`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -305,9 +312,9 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `exists()` connect `Community 3` to `Community 8`, `Community 4`, `Community 5`, `Community 6`?**
   _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **Why does `NotebookLibrary` connect `Community 5` to `Community 4`?**
+- **Why does `NotebookLibrary` connect `Community 4` to `Community 5`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `StealthUtils` connect `Community 6` to `Community 4`?**
+- **Why does `StealthUtils` connect `Community 6` to `Community 5`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `NotebookLibrary` (e.g. with `Ask a question to NotebookLM      Args:         question: Question to ask` and `main()`) actually correct?**
   _`NotebookLibrary` has 2 INFERRED edges - model-reasoned connections that need verification._

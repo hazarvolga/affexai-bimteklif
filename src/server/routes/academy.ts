@@ -10,7 +10,7 @@ import type { AllplanCurriculumNode, AllplanLesson, AllplanLessonSummary } from 
 import { ALLPLAN_ASSESSMENT, ALLPLAN_MAX_DAILY_ATTEMPTS, ALLPLAN_PROGRAM_VERSION, evaluateCertificationEligibility, publicAssessment, scoreAssessment } from "../../academy/allplan/certification";
 import { acceptedStudyDelta, requiredStudySeconds, validateCheckpointEvidence } from "../../academy/allplan/checkpoint";
 import { answerFromAllplanLessons } from "../../academy/allplan/companion";
-import { parseAcademyPaymentEvent, verifyAcademyPaymentSignature } from "../../academy/allplan/paymentWebhook";
+import { isAcademyPaymentWebhookSecretConfigured, parseAcademyPaymentEvent, verifyAcademyPaymentSignature } from "../../academy/allplan/paymentWebhook";
 
 const validSlug = (value: unknown) => typeof value === "string" && /^[a-z0-9-]{1,180}$/.test(value);
 const findLesson = (slug: string) => validSlug(slug) ? ALLPLAN_DETAILED_LESSONS.find(item => item.slug === slug) : undefined;
@@ -89,7 +89,7 @@ export function registerAcademyRoutes(app: Express) {
 
   route.post("/api/academy/allplan/webhooks/payment", async (req, res) => {
     const secret = process.env.ACADEMY_PAYMENT_WEBHOOK_SECRET ?? "";
-    if (!secret) return res.status(503).json({ error: "Academy payment webhook yapılandırılmamış." });
+    if (!isAcademyPaymentWebhookSecretConfigured(secret)) return res.status(503).json({ error: "Academy payment webhook güvenli biçimde yapılandırılmamış." });
     const rawBody = Buffer.isBuffer(req.rawBody) ? req.rawBody : Buffer.alloc(0);
     if (!verifyAcademyPaymentSignature(rawBody, req.get("x-academy-signature") ?? undefined, secret)) return res.status(401).json({ error: "Geçersiz payment webhook imzası." });
     const event = parseAcademyPaymentEvent(req.body);

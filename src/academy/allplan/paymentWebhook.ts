@@ -14,6 +14,12 @@ export interface AcademyPaymentEvent {
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const token = /^[a-z0-9][a-z0-9._:-]{0,199}$/i;
+const unsafeSecretValues = new Set(['change-me', 'changeme', 'secret', 'replace-me', 'your-secret']);
+
+export function isAcademyPaymentWebhookSecretConfigured(secret: string | undefined): boolean {
+  const value = secret?.trim() ?? '';
+  return Buffer.byteLength(value, 'utf8') >= 32 && !unsafeSecretValues.has(value.toLocaleLowerCase('en-US'));
+}
 
 export function parseAcademyPaymentEvent(value: unknown): AcademyPaymentEvent | null {
   if (!value || typeof value !== 'object') return null;
@@ -36,8 +42,14 @@ export function parseAcademyPaymentEvent(value: unknown): AcademyPaymentEvent | 
 }
 
 export function verifyAcademyPaymentSignature(rawBody: Buffer, signatureHeader: string | undefined, secret: string, nowSeconds = Math.floor(Date.now() / 1000)): boolean {
-  if (!rawBody.length || !secret || !signatureHeader) return false;
-  const parts = Object.fromEntries(signatureHeader.split(',').map(part => part.trim().split('=', 2)));
+  if (!rawBody.length || !isAcademyPaymentWebhookSecretConfigured(secret) || !signatureHeader) return false;
+  const parts: Record<string, string> = {};
+  for (const segment of signatureHeader.split(',')) {
+    const match = /^([a-z0-9]+)=([^=]+)$/i.exec(segment.trim());
+    if (!match || !['t', 'v1'].includes(match[1]) || parts[match[1]] !== undefined) return false;
+    parts[match[1]] = match[2];
+  }
+  if (Object.keys(parts).length !== 2) return false;
   const timestamp = Number(parts.t);
   const supplied = parts.v1;
   if (!Number.isInteger(timestamp) || Math.abs(nowSeconds - timestamp) > 300 || !/^[a-f0-9]{64}$/i.test(supplied ?? '')) return false;
