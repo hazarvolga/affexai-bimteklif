@@ -993,3 +993,23 @@ export const academyEnrollmentAuditLogs = pgTable("academy_enrollment_audit_logs
   actionCheck: check("academy_enrollment_audit_logs_action_check", sql`${table.action} in ('granted', 'extended', 'revoked', 'refunded', 'reactivated')`),
   idxEnrollmentAudit: index("idx_academy_enrollment_audit").on(table.enrollmentId, table.createdAt),
 }));
+
+export const academyPaymentEvents = pgTable("academy_payment_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider: text("provider").notNull(),
+  eventId: text("event_id").notNull(),
+  eventType: text("event_type").notNull(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  enrollmentId: uuid("enrollment_id"),
+  paymentReference: text("payment_reference").notNull(),
+  payloadHash: text("payload_hash").notNull(),
+  processedAt: timestamp("processed_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  providerEventUnique: unique("academy_payment_events_provider_event_key").on(table.provider, table.eventId),
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  enrollmentFk: foreignKey({ columns: [table.enrollmentId, table.companyId], foreignColumns: [academyEnrollments.id, academyEnrollments.companyId] }).onDelete("restrict"),
+  eventTypeCheck: check("academy_payment_events_type_check", sql`${table.eventType} in ('academy.purchase.completed', 'academy.purchase.refunded')`),
+  idxPaymentReference: index("idx_academy_payment_events_reference").on(table.provider, table.paymentReference),
+}));

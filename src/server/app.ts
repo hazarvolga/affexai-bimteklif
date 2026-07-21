@@ -32,7 +32,12 @@ export async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
 
-  app.use(express.json());
+  app.use(express.json({
+    limit: "1mb",
+    verify: (req: any, _res, buffer) => {
+      if (req.originalUrl?.split("?")[0] === "/api/academy/allplan/webhooks/payment") req.rawBody = Buffer.from(buffer);
+    },
+  }));
 
   // AI service uses OpenAI when configured and falls back to Gemini.
   const aiService = new AIService({

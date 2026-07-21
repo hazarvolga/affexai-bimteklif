@@ -2,7 +2,7 @@ import type { Express } from "express";
 import crypto from "crypto";
 import { and, asc, count, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
+import { academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 import { requireAllplanEntitlement } from "../middleware/academyEntitlement";
 import { ALLPLAN_DETAILED_LESSONS, ALLPLAN_TRACK, getAllplanCoverageReport } from "../../academy/allplan/track";
@@ -10,6 +10,7 @@ import type { AllplanCurriculumNode, AllplanLesson, AllplanLessonSummary } from 
 import { ALLPLAN_ASSESSMENT, ALLPLAN_MAX_DAILY_ATTEMPTS, ALLPLAN_PROGRAM_VERSION, evaluateCertificationEligibility, publicAssessment, scoreAssessment } from "../../academy/allplan/certification";
 import { acceptedStudyDelta, requiredStudySeconds, validateCheckpointEvidence } from "../../academy/allplan/checkpoint";
 import { answerFromAllplanLessons } from "../../academy/allplan/companion";
+import { parseAcademyPaymentEvent, verifyAcademyPaymentSignature } from "../../academy/allplan/paymentWebhook";
 
 const validSlug = (value: unknown) => typeof value === "string" && /^[a-z0-9-]{1,180}$/.test(value);
 const findLesson = (slug: string) => validSlug(slug) ? ALLPLAN_DETAILED_LESSONS.find(item => item.slug === slug) : undefined;
@@ -86,6 +87,52 @@ export function registerAcademyRoutes(app: Express) {
     return res.json({ certificate: { ...certificate, status: effectiveCertificateStatus(certificate) } });
   });
 
+  route.post("/api/academy/allplan/webhooks/payment", async (req, res) => {
+    const secret = process.env.ACADEMY_PAYMENT_WEBHOOK_SECRET ?? "";
+    if (!secret) return res.status(503).json({ error: "Academy payment webhook yapılandırılmamış." });
+    const rawBody = Buffer.isBuffer(req.rawBody) ? req.rawBody : Buffer.alloc(0);
+    if (!verifyAcademyPaymentSignature(rawBody, req.get("x-academy-signature") ?? undefined, secret)) return res.status(401).json({ error: "Geçersiz payment webhook imzası." });
+    const event = parseAcademyPaymentEvent(req.body);
+    if (!event) return res.status(400).json({ error: "Geçersiz payment webhook payload'u." });
+    const accessEndsAt = event.accessEndsAt ? new Date(event.accessEndsAt) : null;
+    if (event.type === "academy.purchase.completed" && accessEndsAt && accessEndsAt <= new Date()) return res.status(400).json({ error: "Satın alma erişim bitiş tarihi gelecekte olmalıdır." });
+    const payloadHash = crypto.createHash("sha256").update(rawBody).digest("hex");
+    const now = new Date();
+
+    const outcome = await db.transaction(async tx => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`academy-payment:${event.provider}:${event.eventId}`}))`);
+      const [processed] = await tx.select({ id: academyPaymentEvents.id, enrollmentId: academyPaymentEvents.enrollmentId }).from(academyPaymentEvents).where(and(eq(academyPaymentEvents.provider, event.provider), eq(academyPaymentEvents.eventId, event.eventId)));
+      if (processed) return { duplicate: true as const, enrollmentId: processed.enrollmentId };
+      const [[membership], [edition]] = await Promise.all([
+        tx.select({ userId: memberships.userId }).from(memberships).where(and(eq(memberships.companyId, event.companyId), eq(memberships.userId, event.userId))),
+        tx.select({ id: academyEditions.id }).from(academyEditions).innerJoin(academyProducts, eq(academyProducts.id, academyEditions.productId)).where(and(eq(academyProducts.code, "allplan-pro"), eq(academyProducts.isActive, true), eq(academyEditions.version, ALLPLAN_PROGRAM_VERSION), eq(academyEditions.isActive, true))),
+      ]);
+      if (!membership) return { invalid: "PAYMENT_MEMBER_NOT_FOUND" as const };
+      if (!edition) return { invalid: "PAYMENT_EDITION_NOT_FOUND" as const };
+      const [existing] = await tx.select().from(academyEnrollments).where(and(eq(academyEnrollments.companyId, event.companyId), eq(academyEnrollments.userId, event.userId), eq(academyEnrollments.editionId, edition.id)));
+
+      if (event.type === "academy.purchase.refunded" && (!existing || existing.source !== "purchase")) return { invalid: "PURCHASE_ENROLLMENT_NOT_FOUND" as const };
+      let enrollment = existing;
+      let action: "granted" | "extended" | "reactivated" | "refunded" | null = null;
+      if (event.type === "academy.purchase.completed") {
+        [enrollment] = existing
+          ? await tx.update(academyEnrollments).set({ status: "active", source: "purchase", startsAt: now, endsAt: accessEndsAt, updatedAt: now }).where(eq(academyEnrollments.id, existing.id)).returning()
+          : await tx.insert(academyEnrollments).values({ editionId: edition.id, companyId: event.companyId, userId: event.userId, status: "active", source: "purchase", startsAt: now, endsAt: accessEndsAt }).returning();
+        action = existing ? (existing.status === "active" ? "extended" : "reactivated") : "granted";
+      } else if (existing!.status !== "refunded") {
+        [enrollment] = await tx.update(academyEnrollments).set({ status: "refunded", updatedAt: now }).where(eq(academyEnrollments.id, existing!.id)).returning();
+        action = "refunded";
+      }
+      if (!enrollment) return { invalid: "PURCHASE_ENROLLMENT_NOT_FOUND" as const };
+      if (action) await tx.insert(academyEnrollmentAuditLogs).values({ enrollmentId: enrollment.id, companyId: event.companyId, actorUserId: event.userId, action, reason: event.type === "academy.purchase.refunded" ? "Doğrulanmış ödeme iadesi webhook'u" : null, details: { provider: event.provider, eventId: event.eventId, paymentReference: event.paymentReference, payloadHash } });
+      await tx.insert(academyPaymentEvents).values({ provider: event.provider, eventId: event.eventId, eventType: event.type, companyId: event.companyId, userId: event.userId, enrollmentId: enrollment.id, paymentReference: event.paymentReference, payloadHash, processedAt: now });
+      return { duplicate: false as const, enrollmentId: enrollment.id, status: enrollment.status };
+    });
+
+    if ("invalid" in outcome) return res.status(409).json({ error: outcome.invalid });
+    return res.status(outcome.duplicate ? 200 : event.type === "academy.purchase.completed" ? 201 : 200).json({ processed: true, duplicate: outcome.duplicate, enrollmentId: outcome.enrollmentId, status: "status" in outcome ? outcome.status : undefined });
+  });
+
   route.get("/api/academy/allplan/admin/enrollments", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     const rows = await db.select({ id: academyEnrollments.id, userId: academyEnrollments.userId, userName: users.fullName, userEmail: users.email, status: academyEnrollments.status, source: academyEnrollments.source, startsAt: academyEnrollments.startsAt, endsAt: academyEnrollments.endsAt, edition: academyEditions.version, accessMode: academyEditions.accessMode })
       .from(academyEnrollments)
@@ -94,7 +141,7 @@ export function registerAcademyRoutes(app: Express) {
       .innerJoin(academyProducts, eq(academyProducts.id, academyEditions.productId))
       .where(and(eq(academyEnrollments.companyId, req.user.companyId), eq(academyProducts.code, "allplan-pro")))
       .orderBy(desc(academyEnrollments.updatedAt));
-    return res.json({ enrollments: rows });
+    return res.json({ enrollments: rows.map(row => ({ ...row, accessMode: row.source === "purchase" ? "paid" : row.accessMode })) });
   });
 
   route.post("/api/academy/allplan/admin/enrollments", authenticate, checkRole(["owner", "admin"]), async (req, res) => {

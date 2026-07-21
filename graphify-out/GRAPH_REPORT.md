@@ -1,11 +1,11 @@
 # Graph Report - TeklifPro-repo  (2026-07-22)
 
 ## Corpus Check
-- 191 files · ~193,555 words
+- 193 files · ~194,786 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 632 nodes · 720 edges · 43 communities detected
+- 636 nodes · 722 edges · 43 communities detected
 - Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 135 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
@@ -48,11 +48,11 @@
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 44|Community 44]]
-- [[_COMMUNITY_Community 53|Community 53]]
-- [[_COMMUNITY_Community 81|Community 81]]
+- [[_COMMUNITY_Community 54|Community 54]]
 - [[_COMMUNITY_Community 82|Community 82]]
 - [[_COMMUNITY_Community 83|Community 83]]
 - [[_COMMUNITY_Community 84|Community 84]]
+- [[_COMMUNITY_Community 85|Community 85]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `NotebookLibrary` - 18 edges
@@ -232,23 +232,23 @@ Nodes (1): FixtureInfrastructureError
 Cohesion: 1.0
 Nodes (2): findAllplanEntitlement(), requireAllplanEntitlement()
 
-### Community 53 - "Community 53"
+### Community 54 - "Community 54"
 Cohesion: 1.0
 Nodes (1): Configuration for NotebookLM Skill Centralizes constants, selectors, and paths
 
-### Community 81 - "Community 81"
+### Community 82 - "Community 82"
 Cohesion: 1.0
 Nodes (1): Launch a persistent browser context with anti-detection features         and coo
 
-### Community 82 - "Community 82"
+### Community 83 - "Community 83"
 Cohesion: 1.0
 Nodes (1): Inject cookies from state.json if available
 
-### Community 83 - "Community 83"
+### Community 84 - "Community 84"
 Cohesion: 1.0
 Nodes (1): Type with human-like speed
 
-### Community 84 - "Community 84"
+### Community 85 - "Community 85"
 Cohesion: 1.0
 Nodes (1): Click with realistic movement
 
@@ -289,15 +289,15 @@ Nodes (1): Click with realistic movement
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 44`** (3 nodes): `findAllplanEntitlement()`, `requireAllplanEntitlement()`, `academyEntitlement.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 53`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
+- **Thin community `Community 54`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 81`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
+- **Thin community `Community 82`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 82`** (1 nodes): `Inject cookies from state.json if available`
+- **Thin community `Community 83`** (1 nodes): `Inject cookies from state.json if available`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 83`** (1 nodes): `Type with human-like speed`
+- **Thin community `Community 84`** (1 nodes): `Type with human-like speed`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 84`** (1 nodes): `Click with realistic movement`
+- **Thin community `Community 85`** (1 nodes): `Click with realistic movement`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions

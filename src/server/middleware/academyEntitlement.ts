@@ -27,7 +27,7 @@ export async function findAllplanEntitlement(companyId: string, userId: string) 
       eq(academyProducts.code, "allplan-pro"),
       eq(academyProducts.isActive, true),
     )).limit(1);
-  return entitlement ?? null;
+  return entitlement ? { ...entitlement, accessMode: entitlement.source === "purchase" ? "paid" : entitlement.accessMode } : null;
 }
 
 export const requireAllplanEntitlement = async (req: any, res: any, next: any) => {
