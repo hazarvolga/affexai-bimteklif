@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,11 @@ export function Register() {
   const [fullName, setFullName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [website, setWebsite] = useState('');
+  const formStartedAt = useRef(Date.now());
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -27,11 +32,11 @@ export function Register() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName, companyName, intent: isAcademy ? 'academy' : 'workspace' })
+        body: JSON.stringify({ email, password, fullName, companyName, intent: isAcademy ? 'academy' : 'workspace', termsAccepted, privacyAccepted, marketingConsent, website, formStartedAt: formStartedAt.current, acquisitionId: localStorage.getItem('academyAcquisitionId') })
       });
       const data = await res.json();
       if (res.ok) {
-        login(data.token, data.user, data.company, 'owner');
+        login(data.token, data.user, data.company, 'owner', data.accountType);
         navigate(nextPath);
       } else {
         toast.error(data.error || "Kayıt başarısız.");
@@ -60,6 +65,7 @@ export function Register() {
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
           <CardContent className="pt-8 space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="absolute -left-[10000px]" aria-hidden="true"><label>Web sitesi<input tabIndex={-1} autoComplete="off" value={website} onChange={event => setWebsite(event.target.value)} /></label></div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Tam Adınız</label>
                 <div className="relative group">
@@ -118,6 +124,12 @@ export function Register() {
                     placeholder="••••••••"
                    />
                 </div>
+              </div>
+
+              <div className="space-y-3 border-t border-zinc-800 pt-4 text-xs leading-relaxed text-zinc-400">
+                <label className="flex items-start gap-3"><input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} required className="mt-1 accent-orange-600" /><span><Link to="/terms" target="_blank" className="text-orange-400 hover:underline">Kullanım koşullarını</Link> okudum ve kabul ediyorum.</span></label>
+                <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAccepted} onChange={event => setPrivacyAccepted(event.target.checked)} required className="mt-1 accent-orange-600" /><span><Link to="/privacy" target="_blank" className="text-orange-400 hover:underline">Gizlilik bildirimini</Link> okudum ve kabul ediyorum.</span></label>
+                <label className="flex items-start gap-3"><input type="checkbox" checked={marketingConsent} onChange={event => setMarketingConsent(event.target.checked)} className="mt-1 accent-orange-600" /><span>Ürün ve eğitim duyurularını almak istiyorum. (İsteğe bağlı)</span></label>
               </div>
 
               <Button 

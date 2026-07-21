@@ -155,6 +155,20 @@
       "when": 1784670111510,
       "tag": "0021_steep_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1784675634842,
+      "tag": "0022_academy_learner_activation",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1784675758373,
+      "tag": "0023_academy_acquisition",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import crypto from "crypto";
 import { and, asc, count, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
+import { academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 import { requireAllplanEntitlement } from "../middleware/academyEntitlement";
 import { ALLPLAN_DETAILED_LESSONS, ALLPLAN_TRACK, getAllplanCoverageReport } from "../../academy/allplan/track";
@@ -64,6 +64,14 @@ const toCurriculumNode = (node: typeof ALLPLAN_TRACK.nodes[number]): AllplanCurr
   lesson: node.lesson ? toLessonSummary(node.lesson) : undefined,
   children: node.children.map(toCurriculumNode),
 });
+
+async function recordLessonActivation(companyId: string, userId: string, lessonSlug: string) {
+  const events = await db.select({ eventType: academyActivationEvents.eventType, lessonSlug: academyActivationEvents.lessonSlug, occurredAt: academyActivationEvents.occurredAt }).from(academyActivationEvents).where(and(eq(academyActivationEvents.companyId, companyId), eq(academyActivationEvents.userId, userId))).orderBy(asc(academyActivationEvents.occurredAt));
+  const opened = new Set(events.filter(event => event.eventType === 'first_lesson_opened' || event.eventType === 'second_lesson_opened').map(event => event.lessonSlug));
+  if (!opened.has(lessonSlug) && opened.size < 2) await db.insert(academyActivationEvents).values({ companyId, userId, eventType: opened.size === 0 ? 'first_lesson_opened' : 'second_lesson_opened', lessonSlug });
+  const activeSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  if (!events.some(event => event.eventType === 'learner_active_day' && event.occurredAt >= activeSince)) await db.insert(academyActivationEvents).values({ companyId, userId, eventType: 'learner_active_day' });
+}
 
 export function registerAcademyRoutes(app: Express) {
   const route = {
@@ -196,6 +204,25 @@ export function registerAcademyRoutes(app: Express) {
     return res.json({ entitlement: res.locals.allplanEntitlement });
   });
 
+  route.get('/api/academy/allplan/learner-profile', authenticate, async (req, res) => {
+    const [profile] = await db.select().from(academyLearnerProfiles).where(and(eq(academyLearnerProfiles.companyId, req.user.companyId), eq(academyLearnerProfiles.userId, req.user.userId)));
+    return res.json({ profile: profile ?? null });
+  });
+
+  route.put('/api/academy/allplan/onboarding', authenticate, async (req, res) => {
+    const lessonSlug = typeof req.body?.lessonSlug === 'string' ? req.body.lessonSlug : '';
+    if (!findLesson(lessonSlug)) return res.status(400).json({ error: 'Geçerli bir başlangıç dersi seçin.' });
+    const [profile] = await db.update(academyLearnerProfiles).set({ selectedLessonSlug: lessonSlug, onboardingCompletedAt: new Date(), updatedAt: new Date() }).where(and(eq(academyLearnerProfiles.companyId, req.user.companyId), eq(academyLearnerProfiles.userId, req.user.userId))).returning();
+    if (!profile) return res.status(404).json({ error: 'Öğrenci profili bulunamadı.' });
+    return res.json({ profile });
+  });
+
+  route.post('/api/academy/allplan/structural-early-access', authenticate, async (req, res) => {
+    const [existing] = await db.select({ id: academyActivationEvents.id }).from(academyActivationEvents).where(and(eq(academyActivationEvents.companyId, req.user.companyId), eq(academyActivationEvents.userId, req.user.userId), eq(academyActivationEvents.eventType, 'structural_early_access_requested')));
+    if (!existing) await db.insert(academyActivationEvents).values({ companyId: req.user.companyId, userId: req.user.userId, eventType: 'structural_early_access_requested' });
+    return res.status(existing ? 200 : 201).json({ requested: true });
+  });
+
   route.get("/api/academy/allplan/curriculum", authenticate, async (_req, res) => {
     return res.json({ curriculum: ALLPLAN_TRACK.nodes.map(toCurriculumNode), coverage: getAllplanCoverageReport() });
   });
@@ -219,6 +246,7 @@ export function registerAcademyRoutes(app: Express) {
   route.get("/api/academy/allplan/lessons/:lessonSlug", authenticate, async (req, res) => {
     const lesson = findLesson(req.params.lessonSlug);
     if (!lesson) return res.status(404).json({ error: "Allplan dersi bulunamadı." });
+    await recordLessonActivation(req.user.companyId, req.user.userId, lesson.slug);
     return res.json({ lesson });
   });
 

@@ -126,8 +126,22 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   emailVerified: timestamp("email_verified"),
   verificationToken: text("verification_token"),
+  passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const authActionTokens = pgTable("auth_action_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  type: text("type").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  typeCheck: check("auth_action_tokens_type_check", sql`${table.type} in ('verify_email', 'reset_password')`),
+  idxUserActionTokens: index("idx_auth_action_tokens_user_type").on(table.userId, table.type, table.createdAt),
+}));
 
 export const companies = pgTable("companies", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -976,6 +990,51 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   statusCheck: check("academy_enrollments_status_check", sql`${table.status} in ('active', 'expired', 'refunded', 'revoked')`),
   sourceCheck: check("academy_enrollments_source_check", sql`${table.source} in ('pilot', 'invite', 'purchase', 'admin')`),
   idxEnrollmentAccess: index("idx_academy_enrollments_access").on(table.companyId, table.userId, table.status, table.endsAt),
+}));
+
+export const academyLearnerProfiles = pgTable("academy_learner_profiles", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  companyId: uuid("company_id").notNull(),
+  onboardingCompletedAt: timestamp("onboarding_completed_at", { withTimezone: true }),
+  selectedLessonSlug: text("selected_lesson_slug"),
+  termsVersion: text("terms_version").notNull(),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }).notNull(),
+  privacyVersion: text("privacy_version").notNull(),
+  privacyAcceptedAt: timestamp("privacy_accepted_at", { withTimezone: true }).notNull(),
+  marketingConsent: boolean("marketing_consent").default(false).notNull(),
+  marketingConsentVersion: text("marketing_consent_version"),
+  marketingConsentAt: timestamp("marketing_consent_at", { withTimezone: true }),
+  acquisitionId: text("acquisition_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  idxLearnerCompany: index("idx_academy_learner_profiles_company").on(table.companyId, table.createdAt),
+}));
+
+export const academyActivationEvents = pgTable("academy_activation_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  eventType: text("event_type").notNull(),
+  lessonSlug: text("lesson_slug"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}).notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  eventTypeCheck: check("academy_activation_events_type_check", sql`${table.eventType} in ('registration_completed', 'first_lesson_opened', 'second_lesson_opened', 'learner_active_day', 'structural_early_access_requested')`),
+  idxActivationFunnel: index("idx_academy_activation_events_funnel").on(table.eventType, table.occurredAt),
+  idxActivationUser: index("idx_academy_activation_events_user").on(table.companyId, table.userId, table.occurredAt),
+}));
+
+export const academyAcquisitionEvents = pgTable("academy_acquisition_events", {
+  acquisitionId: text("acquisition_id").primaryKey(),
+  landingPath: text("landing_path").notNull(),
+  firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
+  registeredUserId: uuid("registered_user_id").references(() => users.id, { onDelete: "set null" }),
+  registeredAt: timestamp("registered_at", { withTimezone: true }),
+}, (table) => ({
+  idxAcquisitionRegistered: index("idx_academy_acquisition_registered").on(table.registeredAt),
 }));
 
 export const academyEnrollmentAuditLogs = pgTable("academy_enrollment_audit_logs", {

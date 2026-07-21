@@ -14,7 +14,7 @@ export function VerifyEmail() {
   useEffect(() => {
     async function verify() {
       try {
-        const res = await fetch(`/api/verify-email/${token}`);
+        const res = await fetch(`/api/auth/verify-email/${token}`);
         const data = await res.json();
 
         if (res.ok) {
@@ -63,7 +63,7 @@ export function VerifyEmail() {
           {status === "success" && (
             <div className="space-y-6">
               <p className="text-sm text-zinc-400">
-                Artık TeklifPro AI platformunu tam yetkiyle kullanmaya başlayabilirsiniz.
+                Hesabınız doğrulandı. Academy derslerinize güvenle devam edebilirsiniz.
               </p>
               <Button asChild className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg shadow-orange-900/30">
                 <Link to="/login">Giriş Yap ve Başla</Link>

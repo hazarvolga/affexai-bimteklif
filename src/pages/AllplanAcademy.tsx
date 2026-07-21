@@ -39,6 +39,9 @@ export function AllplanAcademy() {
   const [showOpenOnly, setShowOpenOnly] = useState(false);
   const [certification, setCertification] = useState<CertificationState | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState('');
+  const [earlyAccessRequested, setEarlyAccessRequested] = useState(false);
   const lessons = useMemo(() => flattenLessons(curriculum), [curriculum]);
   const filteredCurriculum = useMemo(() => curriculum.map(node => filterCurriculumNode(node, query, showOpenOnly)).filter(Boolean) as AllplanCurriculumNode[], [curriculum, query, showOpenOnly]);
 
@@ -50,17 +53,20 @@ export function AllplanAcademy() {
         return;
       }
       if (!entitlementResponse.ok) throw new Error('Entitlement check failed');
-      const [curriculumResponse, progress, certificationResponse] = await Promise.all([
+      const [curriculumResponse, progress, certificationResponse, profileResponse] = await Promise.all([
         fetchWithAuth('/api/academy/allplan/curriculum'),
         syncAllplanProgress(),
         fetchWithAuth('/api/academy/allplan/certification'),
+        fetchWithAuth('/api/academy/allplan/learner-profile'),
       ]);
       if (!curriculumResponse.ok || !certificationResponse.ok) throw new Error('Academy data load failed');
-      const [curriculumData, certificationData] = await Promise.all([curriculumResponse.json(), certificationResponse.json()]);
+      const [curriculumData, certificationData, profileData] = await Promise.all([curriculumResponse.json(), certificationResponse.json(), profileResponse.json()]);
       setCurriculum(curriculumData.curriculum ?? []);
       setCoverage(curriculumData.coverage ?? null);
       setCompletedLessons(progress);
       setCertification(certificationData);
+      setOnboarded(profileData.profile ? Boolean(profileData.profile.onboardingCompletedAt) : true);
+      setSelectedLesson(profileData.profile?.selectedLessonSlug ?? '');
     };
     loadAcademy().catch(() => undefined).finally(() => setLoading(false));
   }, []);
@@ -72,6 +78,7 @@ export function AllplanAcademy() {
     <PageHeader title="Allplan Akademisi" description="Kayıtlı kullanıcıya özel Allplan müfredatı, uygulamalı laboratuvarlar ve ileride sertifikalanabilir uzmanlık yolu." />
 
     <div className="space-y-8">
+      {onboarded === false && <section className="border border-orange-500/30 bg-orange-500/[0.06] p-6"><h2 className="text-lg font-semibold text-white">Hoş geldiniz. İlk dersinizi seçin.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">Başlangıç noktanızı şimdi belirleyin; seçiminiz daha sonra değiştirilebilir.</p><div className="mt-5 flex flex-wrap gap-2">{lessons.slice(0, 3).map(lesson => <button key={lesson.slug} type="button" onClick={() => setSelectedLesson(lesson.slug)} className={`rounded-lg border px-4 py-3 text-left text-xs transition-colors ${selectedLesson === lesson.slug ? 'border-orange-500 bg-orange-600 text-white' : 'border-zinc-700 bg-zinc-950 text-zinc-300 hover:border-zinc-500'}`}><span className="block font-semibold">{lesson.title}</span><span className="mt-1 block text-[10px] opacity-75">{lesson.estimatedMinutes} dakika</span></button>)}</div><Button disabled={!selectedLesson} onClick={async () => { const response = await fetchWithAuth('/api/academy/allplan/onboarding', { method: 'PUT', body: JSON.stringify({ lessonSlug: selectedLesson }) }); if (response.ok) setOnboarded(true); }} className="mt-5 bg-orange-600 text-white hover:bg-orange-700">Öğrenmeye başla</Button></section>}
       <section className="grid gap-4 md:grid-cols-4"><Metric label="Öğrenme yolu" value={coverage ? String(coverage.pathCount) : '—'} /><Metric label="Kurs" value={coverage ? String(coverage.courseCount) : '—'} /><Metric label="Modül" value={coverage ? String(coverage.moduleCount) : '—'} /><Metric label="Tamamlanan ders" value={`${completedLessons.length}/${coverage?.detailedLessonCount ?? '—'}`} /></section>
 
       <section className="space-y-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xs font-black uppercase tracking-widest text-zinc-400">Müfredat çalışma alanı</h2><p className="mt-1 text-[10px] text-zinc-600">Ayrıntılı içerik hazır olan dersler açılır; diğer modüller hazırlanma statüsünde korunur.</p></div><Badge className="w-fit border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-400">Korumalı kullanıcı alanı</Badge></div>{loading ? <div className="border border-zinc-800 bg-zinc-900/20 p-8 text-center text-xs text-zinc-500">Allplan müfredatı yükleniyor…</div> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{lessons.map(lesson => { const completed = completedLessons.includes(lesson.slug); return <Card key={lesson.slug} className="flex flex-col justify-between border-zinc-800 bg-zinc-900/20 transition-all hover:border-orange-500/30"><CardHeader className="pb-3"><div className="flex items-start justify-between gap-3"><Badge className="border border-zinc-800 bg-zinc-950 px-2 py-0.5 font-mono text-[8px] text-zinc-500">{lesson.seed}</Badge>{completed && <CheckCircle2 size={16} className="text-emerald-500" />}</div><CardTitle className="mt-2 text-xs font-black uppercase leading-relaxed tracking-widest text-zinc-100">{lesson.title}</CardTitle><CardDescription className="line-clamp-2 text-[10px] leading-relaxed text-zinc-500">{lesson.subtitle}</CardDescription></CardHeader><CardContent className="pt-0"><div className="mb-4 flex items-center gap-3 font-mono text-[9px] uppercase tracking-wider text-zinc-600"><span><Clock size={11} className="mr-1 inline" />{lesson.estimatedMinutes} dk</span>{lesson.interactiveTool && <span className="text-emerald-500">{lesson.interactiveTool}</span>}</div><Link to={`/app/academy/allplan/lesson/${lesson.slug}`}><Button variant="outline" className="h-9 w-full gap-2 rounded-xl border-zinc-800 bg-zinc-950 text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:bg-orange-600 hover:text-white">Dersi aç <ChevronRight size={14} /></Button></Link></CardContent></Card>; })}</div>}</section>
@@ -81,6 +88,8 @@ export function AllplanAcademy() {
       <section className="space-y-4"><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><h2 className="text-xs font-black uppercase tracking-widest text-zinc-400">Tam müfredat ağacı</h2><p className="mt-1 text-[10px] text-zinc-600">Kaynakta tanımlı tüm yollar, kurslar ve modüller burada görünür; içerik yoksa açılmaz.</p></div><div className="flex flex-col gap-2 sm:flex-row"><label className="flex h-9 min-w-64 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3"><Search size={13} className="text-zinc-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Müfredatta ara…" className="w-full bg-transparent text-xs text-zinc-200 outline-none placeholder:text-zinc-700" /></label><label className="flex h-9 items-center gap-2 border border-zinc-800 bg-zinc-950 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-500"><input type="checkbox" checked={showOpenOnly} onChange={event => setShowOpenOnly(event.target.checked)} className="accent-orange-600" /> Açık dersler</label></div></div><div className="space-y-3">{filteredCurriculum.map(path => <div key={path.sourceId}><CurriculumPath node={path} completedLessons={completedLessons} /></div>)}{!loading && filteredCurriculum.length === 0 && <div className="border border-zinc-800 bg-zinc-950 p-6 text-center text-xs text-zinc-500">Filtreye uyan müfredat öğesi bulunamadı.</div>}</div></section>
 
       <section className="space-y-3"><div className="flex items-center gap-2"><LockKeyhole size={14} className="text-zinc-500" /><h2 className="text-xs font-black uppercase tracking-widest text-zinc-400">İçerik hazırlık durumu</h2></div><div className="border border-zinc-800 bg-zinc-950 p-5 text-xs leading-relaxed text-zinc-500">{coverage ? `${coverage.reviewRequiredModuleCount} modül henüz ayrıntılı ders gövdesiyle doğrulanmadı. Bu modüller kilitli tutulur; otomatik veya uydurma fallback ders yayınlanmaz.` : 'Müfredat kapsam verisi yükleniyor.'}</div></section>
+
+      <section className="flex flex-col gap-4 border border-zinc-800 bg-zinc-950 p-5 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-sm font-semibold text-zinc-200">Structural modüller için erken erişim</h2><p className="mt-1 text-xs leading-5 text-zinc-500">Doğrulanmış ekran kanıtları ve teknik reviewer onayları tamamlandığında haber verelim.</p></div><Button variant="outline" disabled={earlyAccessRequested} onClick={async () => { const response = await fetchWithAuth('/api/academy/allplan/structural-early-access', { method: 'POST' }); if (response.ok) setEarlyAccessRequested(true); }} className="border-zinc-700 bg-zinc-900 text-zinc-200">{earlyAccessRequested ? 'Talebiniz alındı' : 'Erken erişim iste'}</Button></section>
 
       {certification && <CertificationPanel initialState={certification} />}
     </div>

@@ -28,6 +28,8 @@ import { CompleteAcademyContent } from '@/pages/CompleteAcademyContent';
 import { AllplanAccessGate } from '@/pages/AllplanAccessGate';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
+import { LegalPage } from '@/pages/LegalPage';
+import { PasswordRecovery } from '@/pages/PasswordRecovery';
 import { Toaster } from '@/components/ui/sonner';
 import { SmartCheck } from '@/pages/SmartCheck';
 import { SmartCheckDemo } from '@/pages/SmartCheckDemo';
@@ -59,6 +61,10 @@ function AppRoutes() {
       <Route path="/pilot" element={<PilotApplication />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/terms" element={<LegalPage />} />
+      <Route path="/privacy" element={<LegalPage />} />
+      <Route path="/forgot-password" element={<PasswordRecovery />} />
+      <Route path="/reset-password/:token" element={<PasswordRecovery reset />} />
       <Route path="/accept-invite/:token" element={<AcceptInvite />} />
       <Route path="/verify-email/:token" element={<VerifyEmail />} />
 

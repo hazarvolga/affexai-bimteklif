@@ -1,4 +1,7 @@
 import { AuthService } from "../../services/auth/authService";
+import { db } from "../../db";
+import { users } from "../../db/schema";
+import { eq } from "drizzle-orm";
 
 declare global {
   namespace Express {
@@ -19,6 +22,10 @@ export const authenticate = async (req: any, res: any, next: any) => {
 
   const decoded = AuthService.verifyToken(token);
   if (!decoded) return res.status(401).json({ error: "Invalid token" });
+
+  const [user] = await db.select({ passwordChangedAt: users.passwordChangedAt }).from(users).where(eq(users.id, decoded.userId));
+  if (!user) return res.status(401).json({ error: "Invalid token" });
+  if (user.passwordChangedAt && (!decoded.iat || decoded.iat * 1000 < user.passwordChangedAt.getTime())) return res.status(401).json({ error: "Session expired" });
 
   req.user = decoded;
   next();

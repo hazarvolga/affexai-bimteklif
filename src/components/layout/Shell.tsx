@@ -22,10 +22,11 @@ import { navigationConfig } from '@/constants/navigation';
 
 export function Shell() {
   const location = useLocation();
-  const { user, company, role, logout } = useAuth();
+  const { user, company, role, accountType, logout } = useAuth();
+  const isLearner = accountType === 'academy_learner';
 
   const filteredNavItems = navigationConfig.filter(item => 
-    !role || item.roles.includes(role)
+    (!role || item.roles.includes(role)) && (!isLearner || item.path === '/app/academy')
   );
 
   return (
@@ -33,13 +34,13 @@ export function Shell() {
       {/* Sidebar */}
       <aside className="w-64 border-r border-zinc-900 bg-[#0c0c0e]/80 backdrop-blur-xl flex flex-col h-screen sticky top-0 z-40">
         <div className="p-8 pb-10">
-          <Link to="/app" className="flex items-center gap-3 group transition-all">
+          <Link to={isLearner ? "/app/academy/allplan" : "/app"} className="flex items-center gap-3 group transition-all">
             <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-orange-950/40 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              TP
+              {isLearner ? 'BP' : 'TP'}
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-lg tracking-tighter text-white leading-none">TeklifPro</span>
-              <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mt-1">Intelligence</span>
+              <span className="font-black text-lg tracking-tighter text-white leading-none">{isLearner ? 'BIMPlan Academy' : 'TeklifPro'}</span>
+              <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mt-1">{isLearner ? 'Öğrenci alanı' : 'Intelligence'}</span>
             </div>
           </Link>
         </div>
@@ -71,7 +72,7 @@ export function Shell() {
         <div className="mt-auto p-6 space-y-4">
           <div className="bg-zinc-900/30 rounded-2xl p-4 border border-zinc-800/50 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-20 h-20 bg-orange-600/5 blur-2xl -mr-10 -mt-10 group-hover:bg-orange-600/10 transition-all"></div>
-            <p className="text-[8px] text-zinc-600 uppercase font-black tracking-[0.3em] mb-1">WORKSPACE</p>
+            <p className="text-[8px] text-zinc-600 uppercase font-black tracking-[0.3em] mb-1">{isLearner ? 'ÖĞRENCİ HESABI' : 'WORKSPACE'}</p>
             <p className="text-xs font-black text-zinc-300 truncate">{company?.name || 'Yükleniyor...'}</p>
           </div>
 
@@ -89,7 +90,7 @@ export function Shell() {
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="h-20 border-b border-zinc-900 bg-[#09090b]/80 backdrop-blur-md px-10 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-8">
+          {!isLearner && <div className="flex items-center gap-8">
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">SİSTEM DURUMU</span>
               <div className="flex items-center gap-4 text-[11px] font-black text-white mt-1">
@@ -103,7 +104,7 @@ export function Shell() {
                 </span>
               </div>
             </div>
-          </div>
+          </div>}
 
           <div className="flex items-center gap-6">
             <div className="hidden lg:flex items-center gap-6 pr-6 border-r border-zinc-900">
@@ -116,12 +117,12 @@ export function Shell() {
                </div>
             </div>
             
-            <Link to="/app/quotes/new">
+            {!isLearner && <Link to="/app/quotes/new">
               <Button className="bg-white hover:bg-orange-600 text-black hover:text-white text-[10px] font-black uppercase tracking-widest h-11 px-6 rounded-xl shadow-xl transition-all duration-300 transform active:scale-95">
                 <Plus size={18} className="mr-2" />
                 YENİ TEKLİF
               </Button>
-            </Link>
+            </Link>}
           </div>
         </header>
 
@@ -133,7 +134,7 @@ export function Shell() {
         {/* Footer */}
         <footer className="px-10 py-5 border-t border-zinc-950 bg-[#0c0c0e] flex justify-between items-center text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">
           <div className="flex items-center gap-8">
-            <span>© 2024 TeklifPro AI</span>
+            <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'TeklifPro AI'}</span>
             <span className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-orange-600"></span>
               SaaS Layer v1.0.4

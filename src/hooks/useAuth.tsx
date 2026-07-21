@@ -16,8 +16,10 @@ interface AuthContextType {
   user: User | null;
   company: Company | null;
   role: string | null;
+  accountType: 'workspace' | 'academy_learner' | null;
+  learnerProfile: { onboardingCompletedAt: string | null; selectedLessonSlug: string | null } | null;
   loading: boolean;
-  login: (token: string, user: User, company: Company, role: string) => void;
+  login: (token: string, user: User, company: Company, role: string, accountType?: 'workspace' | 'academy_learner') => void;
   logout: () => void;
 }
 
@@ -27,6 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [accountType, setAccountType] = useState<'workspace' | 'academy_learner' | null>(null);
+  const [learnerProfile, setLearnerProfile] = useState<AuthContextType['learnerProfile']>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,6 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         setCompany(data.company);
         setRole(data.role);
+        setAccountType(data.accountType ?? 'workspace');
+        setLearnerProfile(data.learnerProfile ?? null);
       } else {
         localStorage.removeItem('token');
       }
@@ -59,11 +65,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = (token: string, user: User, company: Company, role: string) => {
+  const login = (token: string, user: User, company: Company, role: string, nextAccountType: 'workspace' | 'academy_learner' = 'workspace') => {
     localStorage.setItem('token', token);
     setUser(user);
     setCompany(company);
     setRole(role);
+    setAccountType(nextAccountType);
+    setLearnerProfile(null);
     toast.success("Hizmete erişim sağlandı.");
   };
 
@@ -72,11 +80,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setCompany(null);
     setRole(null);
+    setAccountType(null);
+    setLearnerProfile(null);
     toast.info("Oturum kapatıldı.");
   };
 
   return (
-    <AuthContext.Provider value={{ user, company, role, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, company, role, accountType, learnerProfile, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

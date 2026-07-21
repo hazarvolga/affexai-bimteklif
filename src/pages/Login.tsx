@@ -27,8 +27,8 @@ export function Login() {
       });
       const data = await res.json();
       if (res.ok) {
-        login(data.token, data.user, data.company, data.role);
-        navigate(nextPath);
+        login(data.token, data.user, data.company, data.role, data.accountType);
+        navigate(data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
       } else {
         toast.error(data.error || "Giriş başarısız.");
       }
@@ -97,6 +97,7 @@ export function Login() {
             </form>
             
             <div className="pt-4 text-center">
+              <Link to="/forgot-password" className="mb-3 block text-xs text-zinc-400 hover:text-orange-400">Şifrenizi mi unuttunuz?</Link>
               <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
                 Hesabınız yok mu? <Link to="/register" className="text-orange-500 hover:underline">Kaydolun</Link>
               </p>

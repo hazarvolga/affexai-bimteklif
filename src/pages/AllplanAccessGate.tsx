@@ -1,12 +1,17 @@
 import { ArrowRight, BookOpen, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PublicMetadata } from '@/components/PublicMetadata';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 export function AllplanAccessGate() {
   const next = '/app/academy/allplan';
   const loginHref = `/login?next=${encodeURIComponent(next)}`;
   const registerHref = `/register?intent=academy&next=${encodeURIComponent(next)}`;
+  useEffect(() => {
+    const acquisitionId = localStorage.getItem('academyAcquisitionId') || crypto.randomUUID();
+    localStorage.setItem('academyAcquisitionId', acquisitionId);
+    fetch('/api/auth/academy-acquisition', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acquisitionId, landingPath: '/academy/allplan' }) }).catch(() => undefined);
+  }, []);
 
   return <div className="min-h-screen bg-[#09090b] font-sans text-zinc-100">
     <PublicMetadata title="Allplan Akademisi | BIMPlan Academy" description="BIMPlan Academy Allplan uzmanlık programı kayıtlı kullanıcılar içindir." canonicalPath="/academy/allplan" noIndex />
