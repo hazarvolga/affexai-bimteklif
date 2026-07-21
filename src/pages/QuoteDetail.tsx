@@ -27,7 +27,8 @@ import {
   PieChart,
   DollarSign,
   RefreshCw,
-  FileSearch
+  FileSearch,
+  BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -475,6 +476,15 @@ export function QuoteDetail() {
               <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-200">
                 <p className="font-black uppercase tracking-widest">SmartCheck: inceleme gerekli</p>
                 <p className="mt-1 text-amber-200/70">Bu kontrol kaynak izlenebilirliğini gösterir; mühendislik veya mevzuat uygunluğu kararı değildir. {audit.issues.length} uyarı bulundu.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {Array.from(new Map((audit.issues as any[]).map(issue => [issue.academyGuidance?.lessonSlug, issue.academyGuidance])).values())
+                    .filter((guidance: any) => guidance?.lessonSlug)
+                    .map((guidance: any) => (
+                      <Link key={guidance.lessonSlug} to={`/app/academy/allplan/lesson/${guidance.lessonSlug}?returnTo=${encodeURIComponent(`/app/quotes/${id}`)}`} className="inline-flex items-center gap-1 rounded-lg border border-amber-400/20 bg-zinc-950/40 px-3 py-2 font-black uppercase tracking-wider text-amber-100 transition-colors hover:border-orange-400/50 hover:text-white">
+                        <BookOpen size={12} /> {guidance.label} <ChevronRight size={12} />
+                      </Link>
+                    ))}
+                </div>
               </div>
             )}
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">

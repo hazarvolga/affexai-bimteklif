@@ -104,5 +104,12 @@ describe("quotation source audit", () => {
   it("flags AI estimates and missing costs without claiming engineering validation", () => {
     const issues = auditQuotationItems([{ quantitySource: "ai_estimate", priceSource: "ai_estimate", verificationStatus: "unverified", costUnitPrice: null }]);
     assert.deepEqual(issues.map((issue) => issue.code), ["SOURCE_UNVERIFIED", "COST_MISSING"]);
+    assert.deepEqual(issues.map((issue) => issue.academyGuidance.lessonSlug), ["bim-basics-openbim", "bar-schedules-takeoffs"]);
+  });
+
+  it("links missing source references to a canonical protected Allplan lesson", () => {
+    const [issue] = auditQuotationItems([{ quantitySource: "model", priceSource: "manual", sourceReference: "", verificationStatus: "verified", costUnitPrice: 10 }]);
+    assert.equal(issue.code, "SOURCE_REFERENCE_MISSING");
+    assert.equal(issue.academyGuidance.lessonSlug, "bim-basics-openbim");
   });
 });

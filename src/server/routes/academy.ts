@@ -2,13 +2,14 @@ import type { Express } from "express";
 import crypto from "crypto";
 import { and, asc, count, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, users } from "../../db/schema";
+import { academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 import { requireAllplanEntitlement } from "../middleware/academyEntitlement";
 import { ALLPLAN_DETAILED_LESSONS, ALLPLAN_TRACK, getAllplanCoverageReport } from "../../academy/allplan/track";
 import type { AllplanCurriculumNode, AllplanLesson, AllplanLessonSummary } from "../../academy/allplan/types";
 import { ALLPLAN_ASSESSMENT, ALLPLAN_MAX_DAILY_ATTEMPTS, ALLPLAN_PROGRAM_VERSION, evaluateCertificationEligibility, publicAssessment, scoreAssessment } from "../../academy/allplan/certification";
 import { acceptedStudyDelta, requiredStudySeconds, validateCheckpointEvidence } from "../../academy/allplan/checkpoint";
+import { answerFromAllplanLessons } from "../../academy/allplan/companion";
 
 const validSlug = (value: unknown) => typeof value === "string" && /^[a-z0-9-]{1,180}$/.test(value);
 const findLesson = (slug: string) => validSlug(slug) ? ALLPLAN_DETAILED_LESSONS.find(item => item.slug === slug) : undefined;
@@ -144,6 +145,22 @@ export function registerAcademyRoutes(app: Express) {
 
   route.get("/api/academy/allplan/curriculum", authenticate, async (_req, res) => {
     return res.json({ curriculum: ALLPLAN_TRACK.nodes.map(toCurriculumNode), coverage: getAllplanCoverageReport() });
+  });
+
+  route.post("/api/academy/allplan/companion/query", authenticate, async (req, res) => {
+    const question = typeof req.body?.question === "string" ? req.body.question.trim() : "";
+    if (question.length < 3 || question.length > 500) return res.status(400).json({ error: "Soru 3 ile 500 karakter arasında olmalıdır." });
+    const since = new Date(Date.now() - 60 * 60 * 1000);
+    const outcome = await db.transaction(async tx => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`academy-companion:${req.user.companyId}:${req.user.userId}`}))`);
+      const [usage] = await tx.select({ count: sql<number>`coalesce(sum(${usageLogs.count}), 0)` }).from(usageLogs).where(and(eq(usageLogs.companyId, req.user.companyId), eq(usageLogs.userId, req.user.userId), eq(usageLogs.feature, "ACADEMY_COMPANION_QUERY"), gte(usageLogs.date, since)));
+      if (Number(usage?.count ?? 0) >= 30) return { rateLimited: true as const };
+      const answer = answerFromAllplanLessons(question, ALLPLAN_DETAILED_LESSONS);
+      await tx.insert(usageLogs).values({ companyId: req.user.companyId, userId: req.user.userId, feature: "ACADEMY_COMPANION_QUERY", count: 1, tokensUsed: 0, costEstimate: "0" });
+      return answer;
+    });
+    if ("rateLimited" in outcome) return res.status(429).json({ error: "Companion saatlik 30 soru limitine ulaştı. Daha sonra tekrar deneyin." });
+    return res.json(outcome);
   });
 
   route.get("/api/academy/allplan/lessons/:lessonSlug", authenticate, async (req, res) => {
