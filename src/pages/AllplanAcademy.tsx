@@ -6,11 +6,9 @@ import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
-import { demoAcademyContent } from '@/smartcheck/demoData';
 import { fetchWithAuth } from '@/lib/api';
-import { getCompletedAllplanLessons, syncAllplanProgress } from '@/academy/allplan/progress';
+import { syncAllplanProgress } from '@/academy/allplan/progress';
 import type { AllplanCoverageReport, AllplanCurriculumNode, AllplanLessonSummary } from '@/academy/allplan/types';
-import { useAuth } from '@/hooks/useAuth';
 
 const flattenLessons = (nodes: AllplanCurriculumNode[], output: AllplanLessonSummary[] = []) => {
   nodes.forEach(node => {
@@ -32,11 +30,9 @@ type CertificationState = {
 };
 
 export function AllplanAcademy() {
-  const { user } = useAuth();
-  const courses = demoAcademyContent.filter(c => c.area === 'allplan');
   const [curriculum, setCurriculum] = useState<AllplanCurriculumNode[]>([]);
   const [coverage, setCoverage] = useState<AllplanCoverageReport | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<string[]>(() => getCompletedAllplanLessons(user?.id, user?.email));
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [showOpenOnly, setShowOpenOnly] = useState(false);

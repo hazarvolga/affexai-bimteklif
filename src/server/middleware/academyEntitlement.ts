@@ -31,8 +31,14 @@ export async function findAllplanEntitlement(companyId: string, userId: string) 
 }
 
 export const requireAllplanEntitlement = async (req: any, res: any, next: any) => {
-  const entitlement = await findAllplanEntitlement(req.user.companyId, req.user.userId);
-  if (!entitlement) return res.status(403).json({ error: "Allplan eğitim erişimi etkin değil.", code: "ACADEMY_ENTITLEMENT_REQUIRED" });
-  res.locals.allplanEntitlement = entitlement;
-  next();
+  try {
+    const certificateAdminAction = req.method === "POST" && /\/api\/academy\/allplan\/certificates\/BPA-\d{4}-[A-F0-9]{12}\/revoke$/i.test(String(req.originalUrl).split("?")[0]);
+    if (certificateAdminAction && ["owner", "admin"].includes(req.user.role)) return next();
+    const entitlement = await findAllplanEntitlement(req.user.companyId, req.user.userId);
+    if (!entitlement) return res.status(403).json({ error: "Allplan eğitim erişimi etkin değil.", code: "ACADEMY_ENTITLEMENT_REQUIRED" });
+    res.locals.allplanEntitlement = entitlement;
+    next();
+  } catch (error) {
+    next(error);
+  }
 };

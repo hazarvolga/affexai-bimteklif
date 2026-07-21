@@ -803,6 +803,8 @@ export const allplanLessonProgress = pgTable("allplan_lesson_progress", {
   lessonSlug: text("lesson_slug").notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   checkpointCompletedAt: timestamp("checkpoint_completed_at", { withTimezone: true }),
+  checkpointEvidence: jsonb("checkpoint_evidence").$type<Record<string, unknown>>(),
+  checkpointVersion: text("checkpoint_version"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
@@ -863,6 +865,22 @@ export const allplanLessonBookmarks = pgTable("allplan_lesson_bookmarks", {
   idxUserBookmarks: index("idx_allplan_lesson_bookmarks_user").on(table.companyId, table.userId, table.createdAt),
 }));
 
+export const allplanCheckpointAttempts = pgTable("allplan_checkpoint_attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  lessonSlug: text("lesson_slug").notNull(),
+  tool: text("tool").notNull(),
+  evidence: jsonb("evidence").$type<Record<string, unknown>>().default({}).notNull(),
+  passed: boolean("passed").notNull(),
+  attemptedAt: timestamp("attempted_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  lessonSlugCheck: check("allplan_checkpoint_attempts_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
+  toolCheck: check("allplan_checkpoint_attempts_tool_check", sql`${table.tool} in ('wall-simulator', 'coordinate-calculator', 'shortcut-trainer', 'reinforcement-estimator')`),
+  idxCheckpointAttempts: index("idx_allplan_checkpoint_attempts_user_lesson").on(table.companyId, table.userId, table.lessonSlug, table.attemptedAt),
+}));
+
 export const allplanExamAttempts = pgTable("allplan_exam_attempts", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").notNull(),
@@ -873,6 +891,7 @@ export const allplanExamAttempts = pgTable("allplan_exam_attempts", {
   passed: boolean("passed").notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
+  companyAttemptUnique: unique("allplan_exam_attempts_id_company_id_key").on(table.id, table.companyId),
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
   scoreCheck: check("allplan_exam_attempts_score_check", sql`${table.score} between 0 and 100`),
   idxUserAttempts: index("idx_allplan_exam_attempts_user").on(table.companyId, table.userId, table.completedAt),
@@ -883,7 +902,7 @@ export const allplanCertificates = pgTable("allplan_certificates", {
   certificateNumber: text("certificate_number").notNull().unique(),
   companyId: uuid("company_id").notNull(),
   userId: uuid("user_id").notNull(),
-  examAttemptId: uuid("exam_attempt_id").references(() => allplanExamAttempts.id, { onDelete: "restrict" }).notNull(),
+  examAttemptId: uuid("exam_attempt_id").notNull(),
   programVersion: text("program_version").notNull(),
   holderName: text("holder_name").notNull(),
   companyName: text("company_name").notNull(),
@@ -893,6 +912,8 @@ export const allplanCertificates = pgTable("allplan_certificates", {
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   revokeReason: text("revoke_reason"),
 }, (table) => ({
+  companyCertificateUnique: unique("allplan_certificates_id_company_id_key").on(table.id, table.companyId),
+  examAttemptFk: foreignKey({ columns: [table.examAttemptId, table.companyId], foreignColumns: [allplanExamAttempts.id, allplanExamAttempts.companyId] }).onDelete("restrict"),
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   userProgramUnique: unique("allplan_certificates_user_company_program_key").on(table.userId, table.companyId, table.programVersion),
   statusCheck: check("allplan_certificates_status_check", sql`${table.status} in ('active', 'revoked', 'expired')`),
@@ -901,13 +922,14 @@ export const allplanCertificates = pgTable("allplan_certificates", {
 
 export const allplanCertificateAuditLogs = pgTable("allplan_certificate_audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  certificateId: uuid("certificate_id").references(() => allplanCertificates.id, { onDelete: "cascade" }).notNull(),
+  certificateId: uuid("certificate_id").notNull(),
   companyId: uuid("company_id").notNull(),
   actorUserId: uuid("actor_user_id").notNull(),
   action: text("action").notNull(),
   reason: text("reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
+  certificateFk: foreignKey({ columns: [table.certificateId, table.companyId], foreignColumns: [allplanCertificates.id, allplanCertificates.companyId] }).onDelete("cascade"),
   actorMembershipFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   actionCheck: check("allplan_certificate_audit_logs_action_check", sql`${table.action} in ('issued', 'revoked')`),
   idxCertificateAudit: index("idx_allplan_certificate_audit").on(table.certificateId, table.createdAt),
@@ -948,9 +970,26 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
+  companyEnrollmentUnique: unique("academy_enrollments_id_company_id_key").on(table.id, table.companyId),
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
   userCompanyEditionUnique: unique("academy_enrollments_user_company_edition_key").on(table.userId, table.companyId, table.editionId),
   statusCheck: check("academy_enrollments_status_check", sql`${table.status} in ('active', 'expired', 'refunded', 'revoked')`),
   sourceCheck: check("academy_enrollments_source_check", sql`${table.source} in ('pilot', 'invite', 'purchase', 'admin')`),
   idxEnrollmentAccess: index("idx_academy_enrollments_access").on(table.companyId, table.userId, table.status, table.endsAt),
+}));
+
+export const academyEnrollmentAuditLogs = pgTable("academy_enrollment_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  enrollmentId: uuid("enrollment_id").notNull(),
+  companyId: uuid("company_id").notNull(),
+  actorUserId: uuid("actor_user_id").notNull(),
+  action: text("action").notNull(),
+  reason: text("reason"),
+  details: jsonb("details").$type<Record<string, unknown>>().default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  enrollmentFk: foreignKey({ columns: [table.enrollmentId, table.companyId], foreignColumns: [academyEnrollments.id, academyEnrollments.companyId] }).onDelete("cascade"),
+  actorMembershipFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  actionCheck: check("academy_enrollment_audit_logs_action_check", sql`${table.action} in ('granted', 'extended', 'revoked', 'refunded', 'reactivated')`),
+  idxEnrollmentAudit: index("idx_academy_enrollment_audit").on(table.enrollmentId, table.createdAt),
 }));

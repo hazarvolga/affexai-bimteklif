@@ -81,6 +81,8 @@ Bu faz öğrenme operasyonunu ürünleştirdi; ancak Allplan müfredatının iç
 
 Checkpoint endpoint’i bu fazda ilerleme telemetrisi olarak tasarlanmıştır. Kullanıcı endpoint’i doğrudan çağırarak bu kaydı teknik olarak taklit edebilir. Bu açık, sertifika veya ücretli eğitim doğrulaması için kabul edilemez; Phase 5’te server-side sınav, puan, deneme ve sertifika uygunluk kurallarıyla yeniden tasarlanmalıdır.
 
+Güncelleme: Bu açık Phase 7 güvenlik sertleştirmesinde kapatıldı. Sertifika uygunluğu artık server doğrulamalı çalışma süresi, tool-specific checkpoint evidence ve `checkpoint_version=v1` gerektirir; legacy timestamp kayıtları yeterli sayılmaz.
+
 ## Sonraki faz
 
 **Phase 4 — Content production and Structural path:** önce Structural yolunun 87 eksik modül içindeki öncelikli derslerini üretim kalitesinde tamamlamak, kaynak id/parite denetimini sürdürmek ve locked durumunu yalnızca doğrulanmış derslerde kaldırmak.

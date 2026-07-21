@@ -51,18 +51,27 @@ export const syncAllplanLessonProgress = async (lesson: AllplanLesson, completed
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ completed }),
   });
-  if (!response.ok) throw new Error('Progress update failed');
+  if (!response.ok) {
+    const data = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(data?.error ?? 'Progress update failed');
+  }
+  return response.json();
 };
 
-export const syncAllplanLessonTime = async (lesson: AllplanLesson, activeSeconds: number) => {
+export const syncAllplanLessonTime = async (lesson: AllplanLesson, deltaSeconds: number) => {
   const response = await fetchWithAuth(`/api/academy/allplan/lessons/${encodeURIComponent(lesson.slug)}/time`, {
     method: 'PUT',
-    body: JSON.stringify({ activeSeconds }),
+    body: JSON.stringify({ deltaSeconds }),
   });
   if (!response.ok) throw new Error('Study time update failed');
+  const data = await response.json() as { activeSeconds: number };
+  return data.activeSeconds;
 };
 
-export const syncAllplanLessonCheckpoint = async (lesson: AllplanLesson) => {
-  const response = await fetchWithAuth(`/api/academy/allplan/lessons/${encodeURIComponent(lesson.slug)}/checkpoint`, { method: 'POST' });
-  if (!response.ok) throw new Error('Checkpoint update failed');
+export const syncAllplanLessonCheckpoint = async (lesson: AllplanLesson, evidence: unknown) => {
+  const response = await fetchWithAuth(`/api/academy/allplan/lessons/${encodeURIComponent(lesson.slug)}/checkpoint`, { method: 'POST', body: JSON.stringify({ evidence }) });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(data?.error ?? 'Checkpoint update failed');
+  }
 };

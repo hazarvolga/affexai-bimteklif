@@ -65,6 +65,12 @@ export async function startServer() {
   registerPilotRoutes(app);
   registerAcademyRoutes(app);
 
+  app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("Unhandled API error:", error);
+    if (res.headersSent) return next(error);
+    return res.status(500).json({ error: "Beklenmeyen bir sunucu hatası oluştu." });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
