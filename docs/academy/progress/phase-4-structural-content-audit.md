@@ -117,6 +117,16 @@ Resmî ALLPLAN 2026 yardım sayfalarıyla Structural walls draft review record h
   - teknik reviewer adı/rolü/tarihi ve `approved` kararı,
   - review kaydıyla eşleşen ayrıntılı ders gövdesi.
 
+### Load-bearing structures kaynak hazırlığı
+
+Resmî ALLPLAN 2026 yardım kaynaklarıyla Building Structure hiyerarşisi, drawing-file/plane ataması ve scoped report doğrulamasını kapsayan draft record hazırlandı. Ders sınırı model organizasyonu ve girilmiş miktarların raporlanmasıdır; yük, yük yolu, dayanım, stabilite veya yönetmelik uygunluğu iddiası içermez.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/load-bearing-structures-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c2-m1`
+- Kaynak paketi SHA-256: `e6ef4e2b8c8444ca053380951deb9b3f8af92dc0304681418d9521ffe7345e94`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler: üç workstation screenshot, teknik reviewer onayı ve review ile eşleşen ayrıntılı ders gövdesi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.

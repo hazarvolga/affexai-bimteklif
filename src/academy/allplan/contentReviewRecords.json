@@ -233,6 +233,60 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/structural-walls-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "febaa57f0255eaddfe08779c12da233edc43b5ae4f16ad7e4ab314bfdf2bccdc"
+    },
+    "p3-c2-m1": {
+      "sourceId": "p3-c2-m1",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Organize reviewed structural model elements in the Building Structure with explicit drawing-file and plane assignments.",
+        "Generate an auditable model report without presenting modeled quantities as structural-capacity verification.",
+        "Identify the boundary between coordinated physical-model data and engineering analysis."
+      ],
+      "prerequisites": [
+        "ALLPLAN 2026 project with modeled columns, beams, walls and slabs.",
+        "A checked story hierarchy and plane model."
+      ],
+      "allplanVersions": ["2026.1"],
+      "interfaceContext": "Open on a Project-Specific Basis > Building Structure and Plane Model, plus Reports",
+      "stepsEvidence": [
+        {
+          "step": 1,
+          "title": "Organize structural elements by structural level and drawing file",
+          "evidenceRef": "docs/academy/content-review/evidence/load-bearing-structures-step-1.png",
+          "expectedOutput": "The Building Structure shows the reviewed hierarchy and drawing-file assignments."
+        },
+        {
+          "step": 2,
+          "title": "Assign and verify reference planes",
+          "evidenceRef": "docs/academy/content-review/evidence/load-bearing-structures-step-2.png",
+          "expectedOutput": "The selected structural level and drawing files show the agreed plane assignments and elevations."
+        },
+        {
+          "step": 3,
+          "title": "Generate and reconcile a component report",
+          "evidenceRef": "docs/academy/content-review/evidence/load-bearing-structures-step-3.png",
+          "expectedOutput": "A report lists reviewed model objects and quantities that reconcile with the selected drawing-file scope."
+        }
+      ],
+      "learnerOutput": "A reproducible Building Structure selection with checked planes and a scoped component report, explicitly marked as non-analytical.",
+      "references": [
+        {"title": "ALLPLAN 2026-1 Creating a building structure automatically", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/47442.htm"},
+        {"title": "ALLPLAN 2026-1 Shortcut menu of building structure", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/69749.htm"},
+        {"title": "ALLPLAN 2026-1 Available reports overview", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1031/Allplan/69939.htm"},
+        {"title": "ALLPLAN 2026-0 Changing default reference-plane heights", "versionOrDate": "2026-0", "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/47548.htm"}
+      ],
+      "technicalReviewer": {"name": "", "role": "", "reviewedAt": ""},
+      "checkpoint": {
+        "prompt": "Submit the three workstation screenshots and reconcile the report scope to the reviewed model selection.",
+        "acceptanceCriteria": "Hierarchy, drawing files, planes and report objects must match; the output must not claim structural-capacity approval."
+      },
+      "assessmentQuestion": {
+        "prompt": "What does a coordinated Building Structure and component report prove, and what does it not prove?",
+        "expectedAnswer": "It proves model organization, scope and entered geometry or quantities; it does not prove loads, load paths, resistance, stability or code compliance."
+      },
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/load-bearing-structures-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "e6ef4e2b8c8444ca053380951deb9b3f8af92dc0304681418d9521ffe7345e94"
     }
   }
 }
