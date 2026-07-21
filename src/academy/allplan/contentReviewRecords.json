@@ -449,6 +449,35 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/fem-preparation-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "57e85395c2e7e352e9b33467de2174c5e202a5fe3bbb1dcdf6b8d15bed4ee5dd"
+    },
+    "p3-c4-m1": {
+      "sourceId": "p3-c4-m1",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Generate a scoped structural view in a controlled Building Structure drawing file.",
+        "Verify model references, axes, scale, representation and annotations before issue.",
+        "Distinguish associative generation from approved construction documentation."
+      ],
+      "prerequisites": ["A reviewed ALLPLAN 2026 model and Building Structure.", "An approved drawing register, scale and issue-status convention."],
+      "allplanVersions": ["2026.1"],
+      "interfaceContext": "Building Structure > Derived from building structure > Views > Generate View",
+      "stepsEvidence": [
+        {"step": 1, "title": "Assign source and output drawing files", "evidenceRef": "docs/academy/content-review/evidence/structural-drawings-step-1.png", "expectedOutput": "The Building Structure shows the reviewed model scope and dedicated output drawing file."},
+        {"step": 2, "title": "Generate the structural view", "evidenceRef": "docs/academy/content-review/evidence/structural-drawings-step-2.png", "expectedOutput": "View direction, scale, representation, clipping and axis settings match the drawing register."},
+        {"step": 3, "title": "Review the drawing output for issue", "evidenceRef": "docs/academy/content-review/evidence/structural-drawings-step-3.png", "expectedOutput": "The output records checked axes, dimensions, labels, references, revision and issue status."}
+      ],
+      "learnerOutput": "One derived structural view with traceable source files and a completed drawing-review record.",
+      "references": [
+        {"title": "ALLPLAN 2026-1 Creating views in Building Structure", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1031/Allplan/45542.htm"},
+        {"title": "ALLPLAN 2026-1 Building Structure shortcut menu", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/69749.htm"},
+        {"title": "ALLPLAN 2026-0 Views and Sections behavior", "versionOrDate": "2026-0", "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/254618.htm"}
+      ],
+      "technicalReviewer": {"name": "", "role": "", "reviewedAt": ""},
+      "checkpoint": {"prompt": "Submit source/output scope, generation settings and reviewed drawing evidence.", "acceptanceCriteria": "Scope, scale, axes, representation, annotation, revision and issue status must match the drawing register."},
+      "assessmentQuestion": {"prompt": "Why is an associative view not automatically an approved structural drawing?", "expectedAnswer": "Association updates model geometry but does not approve scope, scale, dimensions, annotations, detailing, revisions or construction issue status."},
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/structural-drawings-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "1b32fde2a13ca51ee3680352d65948eec667498ce52ef5a580ed4bef1c026647"
     }
   }
 }

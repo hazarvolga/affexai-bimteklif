@@ -157,6 +157,16 @@ Resmî ALLPLAN AutoConverter kaynaklarıyla physical-to-analytical dönüşüm, 
 - Güncel validator sonucu: `LOCKED`
 - Kalan kesin gereksinimler: üç gerçek AutoConverter/analysis-tool screenshot, structural reviewer onayı ve ayrıntılı ders gövdesi.
 
+### Structural drawings kaynak hazırlığı
+
+Resmî ALLPLAN 2026 kaynaklarıyla Building Structure view output, drawing-file references, Generate View ve issue review adımlarını kapsayan draft record hazırlandı. Associative output, kendi başına construction-ready drawing sayılmaz.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/structural-drawings-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c4-m1`
+- Kaynak paketi SHA-256: `1b32fde2a13ca51ee3680352d65948eec667498ce52ef5a580ed4bef1c026647`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler: üç workstation screenshot, drawing reviewer onayı ve ayrıntılı ders gövdesi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.
