@@ -127,6 +127,16 @@ Resmî ALLPLAN 2026 yardım kaynaklarıyla Building Structure hiyerarşisi, draw
 - Güncel validator sonucu: `LOCKED`
 - Kalan kesin gereksinimler: üç workstation screenshot, teknik reviewer onayı ve review ile eşleşen ayrıntılı ders gövdesi.
 
+### Structural grids kaynak hazırlığı
+
+Resmî ALLPLAN 2026 Axis Grid kaynaklarıyla x/y/z spacing, rotation, label/numbering, grid name, handle-based modification ve `IfcGrid` doğrulamasını kapsayan draft record hazırlandı. Grid nesnesinin geçerli olması ile taşıyıcı eleman yerleşiminin mühendislik onayı birbirinden ayrılmıştır.
+
+- Kaynak paketi: `docs/academy/content-review/evidence/structural-grids-allplan-2026-source-pack.md`
+- Draft record: `contentReviewRecords.json > p3-c2-m2`
+- Kaynak paketi SHA-256: `6fd684758bac4bd88779a30ef8d8670f161eafe24edf3c2a0011880a358643a6`
+- Güncel validator sonucu: `LOCKED`
+- Kalan kesin gereksinimler: üç workstation screenshot, teknik reviewer onayı ve review ile eşleşen ayrıntılı ders gövdesi.
+
 ## Brutal karar
 
 Şu an Structural yolunu “hazır eğitim” diye pazarlamak yanlış olur. Kaynakta başlık var, ancak dokuz dersin dokuzunda da içerik gövdesi eksik. Parçalı diyagram, sınav sorusu ve bilgi bankası yazıları içerik üretimine başlangıç kanıtıdır; tamamlanmış müfredat değildir.

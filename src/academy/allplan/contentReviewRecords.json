@@ -287,6 +287,60 @@
       "engineeringDisclaimer": true,
       "sourceEvidenceRef": "docs/academy/content-review/evidence/load-bearing-structures-allplan-2026-source-pack.md",
       "sourceEvidenceHash": "e6ef4e2b8c8444ca053380951deb9b3f8af92dc0304681418d9521ffe7345e94"
+    },
+    "p3-c2-m2": {
+      "sourceId": "p3-c2-m2",
+      "decision": "changes-requested",
+      "learningOutcomes": [
+        "Create and name a reproducible axis grid with explicit x, y and z spacing and reviewed labels.",
+        "Modify grid axes without silently breaking numbering or member-alignment checks.",
+        "Verify `IfcGrid` exchange classification while keeping structural layout approval outside the software workflow."
+      ],
+      "prerequisites": [
+        "ALLPLAN 2026 workspace with Axis Grid available.",
+        "An approved project coordinate, origin and structural grid schedule."
+      ],
+      "allplanVersions": ["2026.1"],
+      "interfaceContext": "Draft role > Design task > Grid area, or Structural Framing module > Axis Grid",
+      "stepsEvidence": [
+        {
+          "step": 1,
+          "title": "Define x and y grid geometry and labels",
+          "evidenceRef": "docs/academy/content-review/evidence/structural-grids-step-1.png",
+          "expectedOutput": "The Axis Grid palette shows the reviewed origin, rotation, x/y spacings and label sequences."
+        },
+        {
+          "step": 2,
+          "title": "Configure z-direction planes and place the grid",
+          "evidenceRef": "docs/academy/content-review/evidence/structural-grids-step-2.png",
+          "expectedOutput": "The placed grid shows the agreed z-direction copies and retains its reviewed grid name."
+        },
+        {
+          "step": 3,
+          "title": "Verify member alignment and IFC grid classification",
+          "evidenceRef": "docs/academy/content-review/evidence/structural-grids-step-3.png",
+          "expectedOutput": "A checked view records grid-to-member alignment and the exchange result identifies the 3D grid as IfcGrid."
+        }
+      ],
+      "learnerOutput": "One named and reproducible 3D axis grid with checked spacing, labels, member-alignment evidence and an IfcGrid verification result.",
+      "references": [
+        {"title": "ALLPLAN 2026-1 Axis grid", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/93971.htm"},
+        {"title": "ALLPLAN 2026-0 Axis grid palette", "versionOrDate": "2026-0", "locator": "https://help.allplan.com/Allplan/2026-0/1033/Allplan/93997.htm"},
+        {"title": "ALLPLAN 2026-1 IFC Import Settings", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/320465.htm"},
+        {"title": "ALLPLAN 2026-1 Structural Framing task", "versionOrDate": "2026-1", "locator": "https://help.allplan.com/Allplan/2026-1/1033/Allplan/254626.htm"}
+      ],
+      "technicalReviewer": {"name": "", "role": "", "reviewedAt": ""},
+      "checkpoint": {
+        "prompt": "Submit the three workstation screenshots and reconcile the grid schedule, placed axes and IFC result.",
+        "acceptanceCriteria": "Origin, rotation, spacings, labels, z-levels and IfcGrid classification must match the approved grid schedule."
+      },
+      "assessmentQuestion": {
+        "prompt": "Which grid changes can create coordination risk even when the axis object remains valid?",
+        "expectedAnswer": "Changes to origin, rotation, spacing, z-levels, numbering or custom labels can misalign members and references; each requires a renewed coordination check."
+      },
+      "engineeringDisclaimer": true,
+      "sourceEvidenceRef": "docs/academy/content-review/evidence/structural-grids-allplan-2026-source-pack.md",
+      "sourceEvidenceHash": "6fd684758bac4bd88779a30ef8d8670f161eafe24edf3c2a0011880a358643a6"
     }
   }
 }
