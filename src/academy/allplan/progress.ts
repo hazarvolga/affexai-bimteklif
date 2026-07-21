@@ -53,3 +53,16 @@ export const syncAllplanLessonProgress = async (lesson: AllplanLesson, completed
   });
   if (!response.ok) throw new Error('Progress update failed');
 };
+
+export const syncAllplanLessonTime = async (lesson: AllplanLesson, activeSeconds: number) => {
+  const response = await fetchWithAuth(`/api/academy/allplan/lessons/${encodeURIComponent(lesson.slug)}/time`, {
+    method: 'PUT',
+    body: JSON.stringify({ activeSeconds }),
+  });
+  if (!response.ok) throw new Error('Study time update failed');
+};
+
+export const syncAllplanLessonCheckpoint = async (lesson: AllplanLesson) => {
+  const response = await fetchWithAuth(`/api/academy/allplan/lessons/${encodeURIComponent(lesson.slug)}/checkpoint`, { method: 'POST' });
+  if (!response.ok) throw new Error('Checkpoint update failed');
+};

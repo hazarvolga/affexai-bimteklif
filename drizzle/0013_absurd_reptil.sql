@@ -1,0 +1,1 @@
+ALTER TABLE "allplan_lesson_progress" ADD COLUMN "checkpoint_completed_at" timestamp with time zone;

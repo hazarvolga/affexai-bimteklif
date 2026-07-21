@@ -802,6 +802,7 @@ export const allplanLessonProgress = pgTable("allplan_lesson_progress", {
   userId: uuid("user_id").notNull(),
   lessonSlug: text("lesson_slug").notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  checkpointCompletedAt: timestamp("checkpoint_completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
@@ -813,4 +814,51 @@ export const allplanLessonProgress = pgTable("allplan_lesson_progress", {
   }).onDelete("cascade"),
   lessonSlugCheck: check("allplan_lesson_progress_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   idxUserProgress: index("idx_allplan_lesson_progress_user").on(table.companyId, table.userId, table.updatedAt),
+}));
+
+export const allplanLessonActivity = pgTable("allplan_lesson_activity", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  lessonSlug: text("lesson_slug").notNull(),
+  activeSeconds: integer("active_seconds").default(0).notNull(),
+  lastViewedAt: timestamp("last_viewed_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyActivityUnique: unique("allplan_lesson_activity_id_company_id_key").on(table.id, table.companyId),
+  userCompanyLessonUnique: unique("allplan_lesson_activity_user_company_lesson_key").on(table.userId, table.companyId, table.lessonSlug),
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  lessonSlugCheck: check("allplan_lesson_activity_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
+  secondsCheck: check("allplan_lesson_activity_seconds_check", sql`${table.activeSeconds} >= 0`),
+  idxUserActivity: index("idx_allplan_lesson_activity_user").on(table.companyId, table.userId, table.updatedAt),
+}));
+
+export const allplanLessonNotes = pgTable("allplan_lesson_notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  lessonSlug: text("lesson_slug").notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyNoteUnique: unique("allplan_lesson_notes_id_company_id_key").on(table.id, table.companyId),
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  lessonSlugCheck: check("allplan_lesson_notes_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
+  bodyCheck: check("allplan_lesson_notes_body_check", sql`length(${table.body}) between 1 and 5000`),
+  idxUserNotes: index("idx_allplan_lesson_notes_user_lesson").on(table.companyId, table.userId, table.lessonSlug, table.createdAt),
+}));
+
+export const allplanLessonBookmarks = pgTable("allplan_lesson_bookmarks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  lessonSlug: text("lesson_slug").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyBookmarkUnique: unique("allplan_lesson_bookmarks_id_company_id_key").on(table.id, table.companyId),
+  userCompanyLessonUnique: unique("allplan_lesson_bookmarks_user_company_lesson_key").on(table.userId, table.companyId, table.lessonSlug),
+  membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
+  lessonSlugCheck: check("allplan_lesson_bookmarks_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
+  idxUserBookmarks: index("idx_allplan_lesson_bookmarks_user").on(table.companyId, table.userId, table.createdAt),
 }));
