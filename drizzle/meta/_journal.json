@@ -190,6 +190,13 @@
       "when": 1784742832995,
       "tag": "0026_youthful_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1784743658875,
+      "tag": "0027_skinny_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

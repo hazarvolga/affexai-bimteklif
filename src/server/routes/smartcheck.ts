@@ -4,7 +4,7 @@ import express from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { quickAddJob } from "graphile-worker";
 import { db } from "../../db";
-import { documents, documentProcessingRuns, normalizedQuantityRows, smartcheckAuditLogs } from "../../db/schema";
+import { documents, documentProcessingRuns, normalizedQuantityRows, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
 import { SMARTCHECK_MAX_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
@@ -12,6 +12,7 @@ import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/impo
 import { detectAndValidateFile, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
 import { processingIdempotencyKey } from "../../smartcheck/import/processor";
 import type { ColumnMapping } from "../../smartcheck/import/normalize";
+import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
 const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip"], limit: SMARTCHECK_MAX_FILE_BYTES });
@@ -149,5 +150,47 @@ export function registerSmartCheckRoutes(app: Express) {
     const [updated] = await db.update(normalizedQuantityRows).set({ reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date() }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning();
     await audit(req, `row_${status}`, "normalized_quantity_row", current.id, { documentId: current.documentId });
     res.json(updated);
+  });
+
+  app.post("/api/smartcheck/documents/:id/transfer-to-quotation", ...protectedStack, async (req, res) => {
+    const quotationId = typeof req.body?.quotationId === "string" ? req.body.quotationId : "";
+    const rowIds = Array.isArray(req.body?.rowIds) ? req.body.rowIds.filter((id: unknown): id is string => typeof id === "string") : [];
+    if (!quotationId || rowIds.length === 0 || rowIds.length > 5000) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
+    const [quotation] = await db.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")));
+    if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
+    const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
+    const selected = documentRows.filter((row) => rowIds.includes(row.id));
+    if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
+    if (selected.some((row) => row.reviewStatus !== "approved")) return res.status(409).json({ error: "Yalnız onaylı satırlar teklife aktarılabilir." });
+    const overrides = typeof req.body?.overrides === "object" && req.body.overrides ? req.body.overrides as Record<string, Record<string, unknown>> : {};
+    const transferResult = await db.transaction(async (tx) => {
+      const inserts = selected.map((row) => {
+        const override = overrides[row.id] ?? {};
+        const quantity = Number(override.quantity ?? row.normalizedQuantity);
+        const unitPrice = Number(override.unitPrice ?? row.normalizedPrice);
+        const costUnitPrice = Number(override.costUnitPrice ?? row.normalizedPrice);
+        const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
+        const vatPercent = Number(override.vatPercent ?? 20);
+        if (![quantity, unitPrice, costUnitPrice, wastePercent, vatPercent].every(Number.isFinite) || quantity <= 0 || unitPrice < 0 || costUnitPrice < 0 || wastePercent < 0 || vatPercent < 0 || vatPercent > 100) throw new Error("INVALID_TRANSFER_VALUES");
+        const idempotencyKey = crypto.createHash("sha256").update(`${req.user.companyId}:${quotation.id}:${row.id}`).digest("hex");
+        const item = { quantity, unitPrice, discountPercent: 0, vatPercent };
+        return {
+          companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
+          unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: "document",
+          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: "verified", discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
+          sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
+          sourceRuleVersion: "pilot-integrity-v1", transferIdempotencyKey: idempotencyKey,
+        };
+      });
+      let insertedCount = 0;
+      for (const insert of inserts) insertedCount += (await tx.insert(quotationItems).values(insert).onConflictDoNothing().returning({ id: quotationItems.id })).length;
+      const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
+      const totals = calculateQuotationTotals(allItems);
+      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      return { insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
+    });
+    await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
+    res.json({ quotationId: quotation.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
   });
 }

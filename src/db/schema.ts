@@ -345,6 +345,12 @@ export const quotationItems = pgTable("quotation_items", {
   priceSource: text("price_source").default("manual").notNull(),
   sourceReference: text("source_reference"),
   verificationStatus: text("verification_status").default("unverified").notNull(),
+  sourceDocumentId: uuid("source_document_id"),
+  sourceProcessingRunId: uuid("source_processing_run_id"),
+  sourceQuantityRowId: uuid("source_quantity_row_id"),
+  sourceCellRange: text("source_cell_range"),
+  sourceRuleVersion: text("source_rule_version"),
+  transferIdempotencyKey: text("transfer_idempotency_key"),
   discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }).default("20").notNull(),
   total: numeric("total", { precision: 20, scale: 2 }).notNull(),
@@ -356,6 +362,7 @@ export const quotationItems = pgTable("quotation_items", {
       columns: [table.quotationId, table.companyId],
       foreignColumns: [quotations.id, quotations.companyId],
     }).onDelete("no action"),
+    transferIdempotencyUnique: uniqueIndex("quotation_items_transfer_idempotency_idx").on(table.companyId, table.quotationId, table.transferIdempotencyKey).where(sql`${table.transferIdempotencyKey} IS NOT NULL`),
   };
 });
 
@@ -698,6 +705,21 @@ export const ruleVersions = pgTable("rule_versions", {
   sourceEvidenceJson: jsonb("source_evidence_json").$type<SourceEvidence[]>().notNull(),
   sourceCandidateId: uuid("source_candidate_id"),
   changeLog: text("change_log"),
+  governanceStatus: text("governance_status").default("draft").notNull(),
+  jurisdiction: text("jurisdiction"),
+  contractType: text("contract_type"),
+  officialAuthority: text("official_authority"),
+  sourceDocumentIdentifier: text("source_document_identifier"),
+  sourceDocumentHash: text("source_document_hash"),
+  standardVersion: text("standard_version"),
+  effectiveFrom: timestamp("effective_from", { withTimezone: true }),
+  effectiveUntil: timestamp("effective_until", { withTimezone: true }),
+  unitPolicyJson: jsonb("unit_policy_json").$type<Record<string, unknown>>().default({}).notNull(),
+  roundingPolicyJson: jsonb("rounding_policy_json").$type<Record<string, unknown>>().default({}).notNull(),
+  applicability: text("applicability"),
+  exceptions: text("exceptions"),
+  technicalReviewerUserId: uuid("technical_reviewer_user_id"),
+  technicalApprovedAt: timestamp("technical_approved_at", { withTimezone: true }),
   createdByUserId: uuid("created_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
@@ -715,11 +737,16 @@ export const ruleVersions = pgTable("rule_versions", {
       columns: [table.createdByUserId, table.companyId],
       foreignColumns: [memberships.userId, memberships.companyId],
     }).onDelete("restrict"),
+    technicalReviewerFk: foreignKey({
+      columns: [table.technicalReviewerUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
     idxRuleVersionsLookup: index("idx_rule_versions_lookup").on(table.companyId, table.ruleId, table.version),
     candidateUniqueIndex: uniqueIndex("rule_versions_unique_candidate_idx")
       .on(table.companyId, table.sourceCandidateId)
       .where(sql`${table.sourceCandidateId} IS NOT NULL`),
     versionCheck: check("rule_versions_version_check", sql`${table.version} > 0`),
+    governanceStatusCheck: check("rule_versions_governance_status_check", sql`${table.governanceStatus} in ('draft', 'advisory', 'approved')`),
   };
 });
 

@@ -5,6 +5,7 @@ import { fetchWithAuth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 type Row = {
   id: string; sourceCellRange: string; rawDescription: string; rawPositionCode: string; rawUnit: string; rawQuantity: string;
@@ -23,10 +24,17 @@ export function SmartCheckImportWorkspace() {
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("Dosya bekleniyor");
   const [rows, setRows] = useState<Row[]>([]);
+  const [quotes, setQuotes] = useState<Array<{ id: string; quoteNumber: string; projectName: string; status: string }>>([]);
+  const [quotationId, setQuotationId] = useState("");
+  const [transferredQuotationId, setTransferredQuotationId] = useState<string | null>(null);
+  const [commercial, setCommercial] = useState({ costUnitPrice: "", wastePercent: "0", vatPercent: "20" });
   const [mapping, setMapping] = useState({ positionCode: "Poz No", description: "Açıklama", unit: "Birim", quantity: "Miktar", price: "Birim Fiyat", wastePercent: "Zayiat" });
   const polling = useRef<number | null>(null);
 
-  useEffect(() => () => { if (polling.current) window.clearInterval(polling.current); }, []);
+  useEffect(() => {
+    fetchWithAuth("/api/quotations").then(async (response) => response.ok ? setQuotes(await response.json()) : undefined);
+    return () => { if (polling.current) window.clearInterval(polling.current); };
+  }, []);
 
   const loadRows = async (id: string) => {
     const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/rows`);
@@ -86,6 +94,20 @@ export function SmartCheckImportWorkspace() {
     if (documentId) await loadRows(documentId);
   };
 
+  const transfer = async () => {
+    if (!documentId || !quotationId) return;
+    const approved = rows.filter((row) => row.reviewStatus === "approved");
+    const overrides = Object.fromEntries(approved.map((row) => [row.id, {
+      ...(commercial.costUnitPrice ? { costUnitPrice: Number(commercial.costUnitPrice) } : {}),
+      wastePercent: Number(commercial.wastePercent), vatPercent: Number(commercial.vatPercent),
+    }]));
+    const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quotationId, rowIds: approved.map((row) => row.id), overrides }) });
+    const body = await response.json();
+    if (!response.ok) return toast.error(body.error ?? "Aktarım başarısız.");
+    setTransferredQuotationId(body.quotationId);
+    toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
+  };
+
   return (
     <section className="mb-8 rounded-3xl border border-orange-500/20 bg-zinc-950 p-6 sm:p-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -109,6 +131,14 @@ export function SmartCheckImportWorkspace() {
           )}
         </div>
       </div>
+      {rows.some((row) => row.reviewStatus === "approved") && <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 md:grid-cols-5">
+        <select aria-label="Taslak teklif" value={quotationId} onChange={(event) => setQuotationId(event.target.value)} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200"><option value="">Taslak teklif seçin</option>{quotes.filter((quote) => quote.status === "draft").map((quote) => <option key={quote.id} value={quote.id}>{quote.quoteNumber} · {quote.projectName}</option>)}</select>
+        <Input aria-label="Gerçek maliyet" placeholder="Gerçek maliyet (opsiyonel)" value={commercial.costUnitPrice} onChange={(event) => setCommercial((value) => ({ ...value, costUnitPrice: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        <Input aria-label="Zayiat yüzdesi" type="number" value={commercial.wastePercent} onChange={(event) => setCommercial((value) => ({ ...value, wastePercent: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        <Input aria-label="KDV yüzdesi" type="number" value={commercial.vatPercent} onChange={(event) => setCommercial((value) => ({ ...value, vatPercent: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        <Button disabled={!quotationId} onClick={transfer} className="bg-emerald-600 text-white hover:bg-emerald-700">Onaylıları aktar</Button>
+        {transferredQuotationId && <Link className="text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>Teklif taslağını aç</Link>}
+      </div>}
     </section>
   );
 }

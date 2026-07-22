@@ -212,7 +212,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       });
       if (!quote) return res.status(404).json({ error: "Quotation not found" });
 
-      const pdfBuffer = await generateQuotationPdf(id, templateId as string, req.user.companyId);
+      const pdfBuffer = await generateQuotationPdf(id, templateId as string, req.user.companyId, req.query.includeEvidence === "true");
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=teklif-${id}.pdf`);

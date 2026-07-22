@@ -43,7 +43,19 @@ export interface PdfData {
     vatPercent: number;
     total: number;
   }>;
+  evidenceSummary?: {
+    verifiedItemCount: number;
+    sourceDocumentCount: number;
+    ruleVersions: string[];
+  };
 }
+
+const evidenceSummaryHtml = (data: PdfData) => data.evidenceSummary ? `
+  <div class="terms" style="border: 1px solid #e4e4e7; border-radius: 8px; padding: 14px;">
+    <div style="font-weight: 800; color: #18181b;">Kaynak ve doğrulama özeti</div>
+    <div>${data.evidenceSummary.verifiedItemCount} kalem insan onaylı kaynak iziyle aktarıldı; ${data.evidenceSummary.sourceDocumentCount} kaynak doküman kullanıldı.</div>
+    <div>Kural sürümleri: ${data.evidenceSummary.ruleVersions.join(", ") || "Pilot bütünlük kontrolleri"}. Ham dosya ve hassas iç maliyet verisi bu özete eklenmemiştir.</div>
+  </div>` : "";
 
 const commonStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
@@ -148,6 +160,7 @@ export const templates: PdfTemplate[] = [
           </div>
         </div>
 
+        ${evidenceSummaryHtml(data)}
         <div class="terms">
           <div style="font-weight: 800; margin-bottom: 5px; color: #18181b;">Şartlar ve Koşullar:</div>
           <div style="margin-bottom: 3px;">• Bu teklif hazırlandığı tarihten itibaren 7 gün geçerlidir.</div>
@@ -247,6 +260,7 @@ export const templates: PdfTemplate[] = [
           </div>
         </div>
 
+        ${evidenceSummaryHtml(data)}
         <div class="footer">
           <div>
             <div class="signature-box" style="margin-top: 80px;">Yüklenici Kaşe/İmza</div>
@@ -332,6 +346,7 @@ export const templates: PdfTemplate[] = [
           </div>
         </div>
 
+        ${evidenceSummaryHtml(data)}
         <div class="footer" style="margin-top: 100px;">
           <div class="signature-box">ONAY</div>
         </div>
