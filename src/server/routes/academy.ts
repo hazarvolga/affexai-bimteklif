@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import crypto from "crypto";
-import { and, asc, count, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
+import { and, asc, count, countDistinct, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
-import { authenticate, checkRole } from "../middleware/auth";
+import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
+import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { requireAllplanEntitlement } from "../middleware/academyEntitlement";
 import { ALLPLAN_DETAILED_LESSONS, ALLPLAN_TRACK, getAllplanCoverageReport } from "../../academy/allplan/track";
 import type { AllplanCurriculumNode, AllplanLesson, AllplanLessonSummary } from "../../academy/allplan/types";
@@ -11,6 +11,7 @@ import { ALLPLAN_ASSESSMENT, ALLPLAN_MAX_DAILY_ATTEMPTS, ALLPLAN_PROGRAM_VERSION
 import { acceptedStudyDelta, requiredStudySeconds, validateCheckpointEvidence } from "../../academy/allplan/checkpoint";
 import { answerFromAllplanLessons } from "../../academy/allplan/companion";
 import { isAcademyPaymentWebhookSecretConfigured, parseAcademyPaymentEvent, verifyAcademyPaymentSignature } from "../../academy/allplan/paymentWebhook";
+import { academyActivationSummary, isAcademyAnalyticsAdmin } from "../../academy/activation";
 
 const validSlug = (value: unknown) => typeof value === "string" && /^[a-z0-9-]{1,180}$/.test(value);
 const findLesson = (slug: string) => validSlug(slug) ? ALLPLAN_DETAILED_LESSONS.find(item => item.slug === slug) : undefined;
@@ -85,6 +86,21 @@ export function registerAcademyRoutes(app: Express) {
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("Vary", "Authorization");
     next();
+  });
+
+  route.get('/api/academy/activation/summary', authenticate, async (req, res) => {
+    if (!req.user.emailVerified || !isAcademyAnalyticsAdmin(req.user.email)) return res.status(403).json({ error: 'Academy aktivasyon raporu için doğrulanmış platform yöneticisi yetkisi gerekir.' });
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [[landing], [registrations], [verified], [firstLesson], [secondLesson], [active7d], [earlyAccess]] = await Promise.all([
+      db.select({ value: count() }).from(academyAcquisitionEvents),
+      db.select({ value: count() }).from(academyLearnerProfiles),
+      db.select({ value: count() }).from(academyLearnerProfiles).innerJoin(users, eq(users.id, academyLearnerProfiles.userId)).where(isNotNull(users.emailVerified)),
+      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'first_lesson_opened')),
+      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'second_lesson_opened')),
+      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(and(eq(academyActivationEvents.eventType, 'learner_active_day'), gte(academyActivationEvents.occurredAt, sevenDaysAgo))),
+      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'structural_early_access_requested')),
+    ]);
+    return res.json(academyActivationSummary({ landingViews: landing.value, registrations: registrations.value, verifiedLearners: verified.value, firstLessonLearners: firstLesson.value, secondLessonLearners: secondLesson.value, activeLearners7d: active7d.value, structuralEarlyAccessRequests: earlyAccess.value }));
   });
 
   route.get("/api/academy/allplan/certificates/verify/:certificateNumber", async (req, res) => {
@@ -383,7 +399,7 @@ export function registerAcademyRoutes(app: Express) {
     return res.json({ programVersion: ALLPLAN_PROGRAM_VERSION, passingScore: 80, maxDailyAttempts: ALLPLAN_MAX_DAILY_ATTEMPTS, attemptsToday, eligibility, assessment: publicAssessment(), certificate: certificate ? { ...certificate, status: effectiveCertificateStatus(certificate) } : null, entitlement: res.locals.allplanEntitlement });
   });
 
-  route.post("/api/academy/allplan/certification/attempts", authenticate, async (req, res) => {
+  route.post("/api/academy/allplan/certification/attempts", authenticate, requireVerifiedEmail, async (req, res) => {
     const answers = req.body?.answers;
     if (!Array.isArray(answers) || answers.length !== ALLPLAN_ASSESSMENT.length || answers.some((answer, index) => !Number.isInteger(answer) || answer < 0 || answer >= ALLPLAN_ASSESSMENT[index].options.length)) return res.status(400).json({ error: "Geçersiz sınav yanıtları." });
     const eligibility = await loadCertificationEligibility(req.user.companyId, req.user.userId);

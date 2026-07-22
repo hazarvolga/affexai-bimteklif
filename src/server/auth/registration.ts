@@ -50,6 +50,6 @@ export function parseRegistrationInput(value: unknown): RegistrationInput | null
   };
 }
 
-export function publicRegisteredUser<T extends { id: unknown; email: unknown; fullName: unknown; createdAt: unknown }>(user: T) {
-  return { id: user.id, email: user.email, fullName: user.fullName, createdAt: user.createdAt };
+export function publicRegisteredUser<T extends { id: unknown; email: unknown; fullName: unknown; createdAt: unknown; emailVerified?: unknown }>(user: T) {
+  return { id: user.id, email: user.email, fullName: user.fullName, emailVerified: user.emailVerified ?? null, createdAt: user.createdAt };
 }

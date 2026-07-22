@@ -20,7 +20,7 @@ describe('registration boundary', () => {
 
   it('does not expose password hashes in registration responses', () => {
     assert.deepEqual(publicRegisteredUser({ id: 'u1', email: 'a@example.com', fullName: 'Ada', createdAt: 'now', passwordHash: 'secret' }), {
-      id: 'u1', email: 'a@example.com', fullName: 'Ada', createdAt: 'now',
+      id: 'u1', email: 'a@example.com', fullName: 'Ada', emailVerified: null, createdAt: 'now',
     });
   });
 });

@@ -12,8 +12,10 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { demoAcademyContent } from '@/smartcheck/demoData';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Academy() {
+  const { accountType } = useAuth();
   const proposalContent = demoAcademyContent.find(c => c.area === 'teklif_metraj')!;
   const allplanContents = demoAcademyContent.filter(c => c.area === 'allplan');
 
@@ -23,6 +25,7 @@ export function Academy() {
         title="Akademi"
         description="Mühendislik standartlarını, donatı tasarım kurallarını ve metraj uyum yetkinliklerinizi geliştirin."
       />
+      {accountType === 'workspace' && <div className="mb-6 flex justify-end"><Link to="/app/academy/activation" className="text-sm text-zinc-400 hover:text-orange-400">Aktivasyon raporunu aç</Link></div>}
 
       {/* Hero Banner */}
       <div className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-8 sm:p-12 mb-10 relative overflow-hidden group">

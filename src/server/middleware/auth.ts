@@ -11,6 +11,7 @@ declare global {
         companyId: string;
         role: string;
         email: string;
+        emailVerified: Date | null;
       };
     }
   }
@@ -23,11 +24,16 @@ export const authenticate = async (req: any, res: any, next: any) => {
   const decoded = AuthService.verifyToken(token);
   if (!decoded) return res.status(401).json({ error: "Invalid token" });
 
-  const [user] = await db.select({ passwordChangedAt: users.passwordChangedAt }).from(users).where(eq(users.id, decoded.userId));
+  const [user] = await db.select({ email: users.email, emailVerified: users.emailVerified, passwordChangedAt: users.passwordChangedAt }).from(users).where(eq(users.id, decoded.userId));
   if (!user) return res.status(401).json({ error: "Invalid token" });
   if (user.passwordChangedAt && (!decoded.iat || decoded.iat * 1000 < user.passwordChangedAt.getTime())) return res.status(401).json({ error: "Session expired" });
 
-  req.user = decoded;
+  req.user = { ...decoded, email: user.email, emailVerified: user.emailVerified };
+  next();
+};
+
+export const requireVerifiedEmail = (req: any, res: any, next: any) => {
+  if (!req.user?.emailVerified) return res.status(403).json({ error: "Bu işlem için e-posta adresinizi doğrulamalısınız.", code: "EMAIL_VERIFICATION_REQUIRED" });
   next();
 };
 

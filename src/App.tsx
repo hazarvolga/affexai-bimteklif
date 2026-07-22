@@ -3,50 +3,54 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { lazy, Suspense, type ComponentType } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Shell } from '@/components/layout/Shell';
-import { Dashboard } from '@/pages/Dashboard';
-import { Quotes } from '@/pages/Quotes';
-import { CreateQuote } from '@/pages/CreateQuote';
-import { QuoteDetail } from '@/pages/QuoteDetail';
-import { Clients } from '@/pages/Clients';
-import { Settings } from '@/pages/Settings';
-import { Regulations } from '@/pages/Regulations';
-import { CRM } from '@/pages/CRM';
-import { DealDetail } from '@/pages/DealDetail';
-import { AIAssistant } from '@/pages/AIAssistant';
-import { Profitability } from '@/pages/Profitability';
-import { Billing } from '@/pages/Billing';
-import { AcceptInvite } from '@/pages/AcceptInvite';
-import { VerifyEmail } from '@/pages/VerifyEmail';
-import { LandingPage } from '@/pages/LandingPage';
-import { PublicAcademy } from '@/pages/PublicAcademy';
-import { PublicAcademyDetail } from '@/pages/PublicAcademyDetail';
-import { CompleteAcademyContent } from '@/pages/CompleteAcademyContent';
-import { AllplanAccessGate } from '@/pages/AllplanAccessGate';
-import { Login } from '@/pages/Login';
-import { Register } from '@/pages/Register';
-import { LegalPage } from '@/pages/LegalPage';
-import { PasswordRecovery } from '@/pages/PasswordRecovery';
 import { Toaster } from '@/components/ui/sonner';
-import { SmartCheck } from '@/pages/SmartCheck';
-import { SmartCheckDemo } from '@/pages/SmartCheckDemo';
-import { Academy } from '@/pages/Academy';
-import { AllplanAcademy } from '@/pages/AllplanAcademy';
-import { LessonViewerPage } from '@/pages/LessonViewerPage';
-import { ProtectedAllplanLessonPage } from '@/pages/ProtectedAllplanLessonPage';
-import { PilotApplication } from '@/pages/PilotApplication';
-import { PilotApplications } from '@/pages/PilotApplications';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
+
+const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(async () => ({ default: (await loader())[name] as ComponentType<any> }));
+const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
+const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
+const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
+const QuoteDetail = page(() => import('@/pages/QuoteDetail'), 'QuoteDetail');
+const Clients = page(() => import('@/pages/Clients'), 'Clients');
+const Settings = page(() => import('@/pages/Settings'), 'Settings');
+const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
+const CRM = page(() => import('@/pages/CRM'), 'CRM');
+const DealDetail = page(() => import('@/pages/DealDetail'), 'DealDetail');
+const AIAssistant = page(() => import('@/pages/AIAssistant'), 'AIAssistant');
+const Profitability = page(() => import('@/pages/Profitability'), 'Profitability');
+const Billing = page(() => import('@/pages/Billing'), 'Billing');
+const AcceptInvite = page(() => import('@/pages/AcceptInvite'), 'AcceptInvite');
+const VerifyEmail = page(() => import('@/pages/VerifyEmail'), 'VerifyEmail');
+const LandingPage = page(() => import('@/pages/LandingPage'), 'LandingPage');
+const PublicAcademy = page(() => import('@/pages/PublicAcademy'), 'PublicAcademy');
+const PublicAcademyDetail = page(() => import('@/pages/PublicAcademyDetail'), 'PublicAcademyDetail');
+const CompleteAcademyContent = page(() => import('@/pages/CompleteAcademyContent'), 'CompleteAcademyContent');
+const AllplanAccessGate = page(() => import('@/pages/AllplanAccessGate'), 'AllplanAccessGate');
+const Login = page(() => import('@/pages/Login'), 'Login');
+const Register = page(() => import('@/pages/Register'), 'Register');
+const LegalPage = page(() => import('@/pages/LegalPage'), 'LegalPage');
+const PasswordRecovery = page(() => import('@/pages/PasswordRecovery'), 'PasswordRecovery');
+const SmartCheck = page(() => import('@/pages/SmartCheck'), 'SmartCheck');
+const SmartCheckDemo = page(() => import('@/pages/SmartCheckDemo'), 'SmartCheckDemo');
+const Academy = page(() => import('@/pages/Academy'), 'Academy');
+const AcademyActivation = page(() => import('@/pages/AcademyActivation'), 'AcademyActivation');
+const AllplanAcademy = page(() => import('@/pages/AllplanAcademy'), 'AllplanAcademy');
+const LessonViewerPage = page(() => import('@/pages/LessonViewerPage'), 'LessonViewerPage');
+const ProtectedAllplanLessonPage = page(() => import('@/pages/ProtectedAllplanLessonPage'), 'ProtectedAllplanLessonPage');
+const PilotApplication = page(() => import('@/pages/PilotApplication'), 'PilotApplication');
+const PilotApplications = page(() => import('@/pages/PilotApplications'), 'PilotApplications');
 
 function AppRoutes() {
   const navigate = useNavigate();
 
   return (
     <SmartCheckDemoProvider>
-      <Routes>
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-zinc-950 text-sm text-zinc-400">Yükleniyor…</div>}><Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
@@ -87,6 +91,7 @@ function AppRoutes() {
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
           <Route path="academy" element={<Academy />} />
+          <Route path="academy/activation" element={<AcademyActivation />} />
           <Route path="academy/content/:slug" element={<LessonViewerPage />} />
           <Route path="academy/allplan" element={<AllplanAcademy />} />
           <Route path="academy/allplan/lesson/:lessonSlug" element={<ProtectedAllplanLessonPage />} />
@@ -95,7 +100,7 @@ function AppRoutes() {
       </Route>
 
       <Route path="*" element={<Navigate to="/app" replace />} />
-      </Routes>
+      </Routes></Suspense>
     </SmartCheckDemoProvider>
   );
 }

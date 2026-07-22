@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { useState } from 'react';
 
 import { navigationConfig } from '@/constants/navigation';
 
@@ -24,6 +25,7 @@ export function Shell() {
   const location = useLocation();
   const { user, company, role, accountType, logout } = useAuth();
   const isLearner = accountType === 'academy_learner';
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const filteredNavItems = navigationConfig.filter(item => 
     (!role || item.roles.includes(role)) && (!isLearner || item.path === '/app/academy')
@@ -88,6 +90,7 @@ export function Shell() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
+        {isLearner && user && !user.emailVerified && <div className="flex flex-col gap-3 border-b border-amber-500/25 bg-amber-500/[0.07] px-6 py-3 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between"><p>E-posta adresinizi doğrulayın. Dersleri kullanabilirsiniz; sertifika işlemleri doğrulama tamamlanana kadar kilitlidir.</p><Button type="button" variant="outline" disabled={verificationSent} onClick={async () => { const response = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: user.email }) }); if (response.ok) setVerificationSent(true); }} className="border-amber-500/30 bg-transparent text-amber-100 hover:bg-amber-500/10">{verificationSent ? 'Bağlantı gönderildi' : 'Doğrulama bağlantısı gönder'}</Button></div>}
         {/* Header */}
         <header className="h-20 border-b border-zinc-900 bg-[#09090b]/80 backdrop-blur-md px-10 flex items-center justify-between sticky top-0 z-30">
           {!isLearner && <div className="flex items-center gap-8">
