@@ -23,6 +23,13 @@ describe('Allplan content review validator CLI', () => {
     assert.equal(output.records.flatMap((record: { missingEvidenceRefs: string[] }) => record.missingEvidenceRefs).length, 27);
   });
 
+  it('accepts the pnpm argument separator used by the documented command', () => {
+    const result = run('--', 'src/academy/allplan/contentReviewRecords.json', '--all');
+    assert.equal(result.status, 2);
+    const output = JSON.parse(result.stdout);
+    assert.deepEqual(output.summary, { total: 9, approved: 0, locked: 9 });
+  });
+
   it('rejects evidence symlinks that resolve outside the evidence directory', () => {
     const evidenceRoot = path.join(repo, 'docs/academy/content-review/evidence');
     const suffix = `${process.pid}-${Date.now()}`;

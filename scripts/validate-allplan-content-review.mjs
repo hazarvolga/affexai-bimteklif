@@ -4,7 +4,9 @@ import crypto from 'node:crypto';
 import reviewData from '../src/academy/allplan/contentReviewRecords.json' with { type: 'json' };
 import { evaluateAllplanContentReview } from '../src/academy/allplan/releaseGate.ts';
 
-const candidatePath = process.argv[2];
+const cliArgs = process.argv.slice(2);
+if (cliArgs[0] === '--') cliArgs.shift();
+const candidatePath = cliArgs[0];
 if (!candidatePath) {
   console.error('Usage: npm run allplan:review-validate -- <review-record.json> [source-id|--all]');
   process.exit(2);
@@ -43,7 +45,7 @@ const validateRecord = record => {
   return { sourceId: record.sourceId, approved: reasons.length === 0, reasons, missingEvidenceRefs };
 };
 
-const sourceId = process.argv[3];
+const sourceId = cliArgs[1];
 if (sourceId === '--all') {
   if (!parsed.records) {
     console.error(JSON.stringify({ approved: false, reasons: ['CONTENT_REVIEW_REGISTRY_REQUIRED'], file: absolutePath }, null, 2));
