@@ -143,6 +143,16 @@ export const authActionTokens = pgTable("auth_action_tokens", {
   idxUserActionTokens: index("idx_auth_action_tokens_user_type").on(table.userId, table.type, table.createdAt),
 }));
 
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  bucketKey: text("bucket_key").primaryKey(),
+  requestCount: integer("request_count").default(0).notNull(),
+  resetsAt: timestamp("resets_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  requestCountCheck: check("rate_limit_buckets_request_count_check", sql`${table.requestCount} >= 0`),
+  idxRateLimitExpiry: index("idx_rate_limit_buckets_expiry").on(table.resetsAt),
+}));
+
 export const companies = pgTable("companies", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),

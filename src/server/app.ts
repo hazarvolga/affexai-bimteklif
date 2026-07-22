@@ -3,7 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { db } from "../db";
-import { companies, memberships, users } from "../db/schema";
+import { companies, memberships, rateLimitBuckets, users } from "../db/schema";
 import { sql } from "drizzle-orm";
 import { AIService } from "../services/ai/aiService";
 import { RegulatoryIntelligenceService } from "../services/regulations/regulatoryService";
@@ -22,6 +22,8 @@ import { registerClientRoutes } from "./routes/clients";
 import { registerQuotationRoutes } from "./routes/quotations";
 import { registerPilotRoutes } from "./routes/pilot";
 import { registerAcademyRoutes } from "./routes/academy";
+import { assertProductionEnvironment } from "./config/production";
+import { pruneExpiredRateLimits } from "./auth/security";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -29,8 +31,11 @@ dotenv.config();
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
 export async function startServer() {
+  const productionConfig = assertProductionEnvironment();
   const app = express();
+  app.disable('x-powered-by');
   const PORT = Number(process.env.PORT || 3000);
+  if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
   app.use(express.json({
     limit: "1mb",
@@ -52,9 +57,11 @@ export async function startServer() {
   app.get("/api/health", async (req, res) => {
     try {
       await db.execute(sql`select 1`);
-      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, env: { hasDbUrl: !!process.env.DATABASE_URL } });
-    } catch (error: any) {
-      res.status(500).json({ status: "error", db: "failed", error: error.message });
+      await db.select({ bucketKey: rateLimitBuckets.bucketKey }).from(rateLimitBuckets).limit(1);
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured: Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL), publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL) }, revision: process.env.SOURCE_COMMIT || null });
+    } catch (error) {
+      console.error("Health check failed:", error);
+      res.status(503).json({ status: "error", db: "failed" });
     }
   });
 
@@ -96,6 +103,8 @@ export async function startServer() {
     
     // Basic seeding if empty
     try {
+      await pruneExpiredRateLimits();
+      if (process.env.NODE_ENV === "production") return;
       const existingCompany = await db.query.companies.findFirst();
       if (!existingCompany) {
         console.log("Seeding initial company and admin...");

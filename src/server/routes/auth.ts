@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Response } from "express";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "../../db";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, authActionTokens, companies, memberships, subscriptions, users } from "../../db/schema";
@@ -28,12 +28,23 @@ async function issueAuthAction(userId: string, type: 'verify_email' | 'reset_pas
   return created.token;
 }
 
+async function guardedRateLimit(res: Response, key: string, limit: number, windowMs: number) {
+  try {
+    return await consumeRateLimit(key, limit, windowMs);
+  } catch (error) {
+    console.error('Rate-limit storage error:', error);
+    res.status(503).json({ error: 'Kimlik doğrulama hizmeti geçici olarak kullanılamıyor.' });
+    return null;
+  }
+}
+
 export function registerAuthRoutes(app: Express) {
   app.post('/api/auth/academy-acquisition', async (req, res) => {
     const acquisitionId = typeof req.body?.acquisitionId === 'string' && /^[a-zA-Z0-9_-]{12,80}$/.test(req.body.acquisitionId) ? req.body.acquisitionId : '';
     const landingPath = typeof req.body?.landingPath === 'string' && /^\/academy(?:\/allplan)?$/.test(req.body.landingPath) ? req.body.landingPath : '';
     if (!acquisitionId || !landingPath) return res.status(400).json({ error: 'Geçersiz edinim olayı.' });
-    const rate = consumeRateLimit(`acquisition:${clientAddress(req)}`, 20, 60 * 60 * 1000);
+    const rate = await guardedRateLimit(res, `acquisition:${clientAddress(req)}`, 20, 60 * 60 * 1000);
+    if (!rate) return;
     if (!rate.allowed) return res.status(202).json({ accepted: true });
     await db.insert(academyAcquisitionEvents).values({ acquisitionId, landingPath }).onConflictDoNothing();
     return res.status(202).json({ accepted: true });
@@ -41,7 +52,8 @@ export function registerAuthRoutes(app: Express) {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const rate = consumeRateLimit(`register:${clientAddress(req)}`, 5, 15 * 60 * 1000);
+      const rate = await guardedRateLimit(res, `register:${clientAddress(req)}`, 5, 15 * 60 * 1000);
+      if (!rate) return;
       if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: "Çok fazla kayıt denemesi. Lütfen daha sonra tekrar deneyin." });
       const input = parseRegistrationInput(req.body);
       if (!input) return res.status(400).json({ error: "Kayıt bilgileri geçersiz." });
@@ -100,7 +112,8 @@ export function registerAuthRoutes(app: Express) {
 
   app.post('/api/auth/resend-verification', async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
-    const rate = consumeRateLimit(`verify:${clientAddress(req)}:${email}`, 3, 60 * 60 * 1000);
+    const rate = await guardedRateLimit(res, `verify:${clientAddress(req)}:${email}`, 3, 60 * 60 * 1000);
+    if (!rate) return;
     if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: 'Yeni bağlantı isteme limiti doldu.' });
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user && !user.emailVerified) {
@@ -113,7 +126,8 @@ export function registerAuthRoutes(app: Express) {
 
   app.post('/api/auth/forgot-password', async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
-    const rate = consumeRateLimit(`reset:${clientAddress(req)}:${email}`, 3, 60 * 60 * 1000);
+    const rate = await guardedRateLimit(res, `reset:${clientAddress(req)}:${email}`, 3, 60 * 60 * 1000);
+    if (!rate) return;
     if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: 'Yeni bağlantı isteme limiti doldu.' });
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user) {
@@ -141,7 +155,11 @@ export function registerAuthRoutes(app: Express) {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+      const password = typeof req.body?.password === 'string' ? req.body.password : '';
+      const rate = await guardedRateLimit(res, `login:${clientAddress(req)}:${email}`, 10, 15 * 60 * 1000);
+      if (!rate) return;
+      if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin." });
       const [user] = await db.select().from(users).where(eq(users.email, email));
       if (!user || !(await AuthService.comparePassword(password, user.passwordHash || ""))) {
         return res.status(401).json({ error: "Invalid credentials" });

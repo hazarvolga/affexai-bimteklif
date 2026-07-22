@@ -169,6 +169,13 @@
       "when": 1784675758373,
       "tag": "0023_academy_acquisition",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784724617132,
+      "tag": "0024_persistent_auth_rate_limits",
+      "breakpoints": true
     }
   ]
 }
