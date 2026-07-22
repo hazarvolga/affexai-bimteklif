@@ -19,9 +19,9 @@ export enum QuoteStatus {
 }
 
 export enum PipelineStage {
-  NEW_LEAD = 'new_lead',
+  NEW_LEAD = 'lead',
   CONTACTED = 'contacted',
-  PROPOSAL_SENT = 'proposal_sent',
+  PROPOSAL_SENT = 'quotation_sent',
   NEGOTIATION = 'negotiation',
   WON = 'won',
   LOST = 'lost',

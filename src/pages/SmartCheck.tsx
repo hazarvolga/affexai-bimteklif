@@ -27,7 +27,7 @@ export function SmartCheck() {
     <PageContainer>
       <PageHeader
         title="SmartCheck Kalite Kontrolü"
-        description="Teklif ve metraj dosyalarınızı mühendislik, imalat ve BIM standartlarına göre denetleyin."
+        description="Teklif ve metraj satırlarınızı kaynak, birim ve maliyet bütünlüğü açısından insan onayıyla denetleyin."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -39,11 +39,11 @@ export function SmartCheck() {
               SmartCheck v1.0.0
             </Badge>
             <h2 className="text-3xl font-black tracking-tight leading-tight text-white uppercase">
-              Otomatik Hata Denetimi & <br/>
-              <span className="text-orange-500">Mühendislik Kontrolü</span>
+              Kanıta Dayalı Metraj & <br/>
+              <span className="text-orange-500">Teklif Kontrolü</span>
             </h2>
             <p className="text-sm text-zinc-400 leading-relaxed font-sans max-w-xl">
-              Teklif satırlarını, poz kodlarını, metraj cetvellerini ve BIM modellerinizi saniyeler içinde analiz edin. İmalat hatalarını saha aşamasından önce masa başında tespit edin.
+              Pilot akışta teklif satırlarını, poz kodlarını, birimleri ve kaynak bilgisini inceleyin. Demo bulguları mühendislik onayı değildir; gerçek dosya aktarımı kullanıcı incelemesiyle tamamlanır.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button
@@ -120,7 +120,7 @@ export function SmartCheck() {
             </div>
             <h4 className="text-xs font-black uppercase tracking-widest text-zinc-200">Hızlı & Güvenli Tespit</h4>
             <p className="text-xs text-zinc-500 leading-relaxed font-sans">
-              Proje tekliflerindeki birim uyuşmazlıklarını ve model çakışmalarını statik sözlük tabanlı kurallarla anında doğrular.
+              Proje tekliflerindeki birim, poz, miktar ve kaynak tutarsızlıklarını deterministik kontrollerle görünür kılar.
             </p>
           </div>
           <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-2xl space-y-3">

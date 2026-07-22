@@ -92,7 +92,7 @@ export function Clients() {
   }, []);
 
   const getStageCount = (stage: PipelineStage) => {
-    return clients.filter(c => c.pipelineStage === stage).length;
+    return clients.filter(c => normalizePipelineStage(c.pipelineStage) === stage).length;
   };
 
   const handleCreate = async () => {
@@ -132,10 +132,10 @@ export function Clients() {
         icon={Users}
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2">
+            <DialogTrigger
+              render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2" />}
+            >
                 <Plus size={16} /> Yeni Müşteri Ekle
-              </Button>
             </DialogTrigger>
             <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 sm:max-w-md p-0 overflow-hidden">
               <DialogHeader className="p-6 border-b border-zinc-900 bg-zinc-900/50">
@@ -342,7 +342,18 @@ export function Clients() {
   );
 }
 
-function StageBadge({ stage }: { stage: PipelineStage }) {
+export function normalizePipelineStage(stage: string): PipelineStage | null {
+  const aliases: Record<string, PipelineStage> = {
+    new_lead: PipelineStage.NEW_LEAD,
+    proposal_sent: PipelineStage.PROPOSAL_SENT,
+  };
+  const normalized = aliases[stage] ?? stage;
+  return Object.values(PipelineStage).includes(normalized as PipelineStage)
+    ? normalized as PipelineStage
+    : null;
+}
+
+function StageBadge({ stage }: { stage: PipelineStage | string }) {
   const configs: Record<PipelineStage, { label: string, color: string }> = {
     [PipelineStage.NEW_LEAD]: { label: 'POTANSİYEL', color: 'bg-zinc-800 text-zinc-400 border-zinc-700' },
     [PipelineStage.CONTACTED]: { label: 'GÖRÜŞÜLDÜ', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
@@ -351,7 +362,10 @@ function StageBadge({ stage }: { stage: PipelineStage }) {
     [PipelineStage.WON]: { label: 'KAZANILDI', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
     [PipelineStage.LOST]: { label: 'KAYBEDİLDİ', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
   };
-  const config = configs[stage];
+  const normalizedStage = normalizePipelineStage(stage);
+  const config = normalizedStage
+    ? configs[normalizedStage]
+    : { label: 'BİLİNMEYEN', color: 'bg-zinc-800 text-zinc-300 border-zinc-600' };
   return (
     <Badge variant="outline" className={cn("text-[9px] px-2 py-0.5 font-black tracking-widest rounded-md uppercase border transition-all", config.color)}>
       {config.label}
