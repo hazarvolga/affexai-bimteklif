@@ -12,6 +12,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { useSmartCheckDemo } from '@/smartcheck/SmartCheckDemoContext';
+import { SmartCheckImportWorkspace } from '@/components/smartcheck/SmartCheckImportWorkspace';
 
 export function SmartCheck() {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ export function SmartCheck() {
         title="SmartCheck Kalite Kontrolü"
         description="Teklif ve metraj satırlarınızı kaynak, birim ve maliyet bütünlüğü açısından insan onayıyla denetleyin."
       />
+
+      <SmartCheckImportWorkspace />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
         {/* Main Banner / Action */}

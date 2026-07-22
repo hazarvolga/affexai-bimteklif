@@ -16,7 +16,8 @@
     "allplan:review-validate": "tsx scripts/validate-allplan-content-review.mjs",
     "allplan:import": "node scripts/import-allplan-source.mjs",
     "test": "tsx --test \"src/**/*.test.ts\"",
-    "smartcheck:evaluate": "tsx src/smartcheck/evaluation/cli-main.ts"
+    "smartcheck:evaluate": "tsx src/smartcheck/evaluation/cli-main.ts",
+    "smartcheck:worker": "tsx src/smartcheck/import/worker.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1092.0",

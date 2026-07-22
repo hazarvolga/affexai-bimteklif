@@ -183,6 +183,13 @@
       "when": 1784742382879,
       "tag": "0025_pale_hellion",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1784742832995,
+      "tag": "0026_youthful_terror",
+      "breakpoints": true
     }
   ]
 }
