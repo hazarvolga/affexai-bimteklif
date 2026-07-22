@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, CheckCircle2, ClipboardCheck, FileSpreadsheet, GraduationCap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardCheck, FileSpreadsheet, GraduationCap, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
@@ -21,7 +21,7 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
           <Link to="/academy" className="text-sm text-zinc-400 transition-colors hover:text-white">Academy</Link>
           <a href="#pilot" className="text-sm text-zinc-400 transition-colors hover:text-white">Pilot programı</a>
           <Button variant="ghost" className="text-zinc-300 hover:bg-zinc-800 hover:text-white" onClick={onGetStarted}>Giriş yap</Button>
-          <Button className="bg-orange-600 px-5 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot başvurusu</Button>
+          <Button className="bg-orange-600 px-5 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot metrajınızı doğrulayın</Button>
         </div>
       </nav>
 
@@ -34,15 +34,15 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
               BIMPlan Academy · İlk ticari ürün: TeklifPro
             </div>
             <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight text-white md:text-7xl">
-              Tekliflerinizi daha hızlı hazırlayın.
-              <span className="block text-orange-400">Kârlılığınızı kontrol altında tutun.</span>
+              Teklifinizi tahminle değil,
+              <span className="block text-orange-400">kanıtla gönderin.</span>
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-relaxed text-zinc-400 md:text-xl">
-              TeklifPro, inşaat ekiplerinin metrajdan teklif PDF&apos;ine kadar uzanan sürecini tek bir çalışma alanında düzenler. Hesabı hızlandırır; son kararı ve sorumluluğu sizde bırakır.
+              Her teklif kaleminin miktarını, fiyatını, kuralını ve kaynağını gönderilmeden önce kontrol edin. MEP teklif ekipleri için Excel/CSV-first, insan onaylı çalışma alanı.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Button size="lg" className="h-13 bg-orange-600 px-7 text-white hover:bg-orange-700" onClick={onPilotRequest}>
-                Pilot başvurusu <ArrowRight size={18} className="ml-2" />
+                Pilot metrajınızı doğrulayın <ArrowRight size={18} className="ml-2" />
               </Button>
               <a href="#workflow" className="inline-flex h-13 items-center justify-center rounded-md border border-zinc-700 bg-transparent px-7 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800 hover:text-white">Ürün akışını görün</a>
             </div>
@@ -57,16 +57,15 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
         <section className="border-b border-zinc-800 bg-[#09090b] px-6 py-20 md:px-8 md:py-24">
           <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.8fr_1.2fr] md:items-center">
             <div>
-              <p className="mb-4 text-sm font-medium text-orange-400">BİMPLAN ACADEMY · AÇIK BİLGİ ALANI</p>
-              <h2 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">BIM’i gerçek iş kararlarıyla öğrenin.</h2>
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-zinc-400">ISO 19650’den 5D maliyet mühendisliğine, sürdürülebilirlikten saha pratiğine uzanan içerik haritasını inceleyin.</p>
-              <Link to="/academy" className="mt-7 inline-flex h-11 items-center rounded-md border border-zinc-700 px-5 text-sm font-medium text-zinc-200 transition-colors hover:border-orange-500/50 hover:bg-zinc-800">Academy’yi keşfet <BookOpen size={17} className="ml-2 text-orange-400" /></Link>
+              <p className="mb-4 text-sm font-medium text-orange-400">TEKLİFTE GÖRÜNMEYEN RİSK</p>
+              <h2 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">Bir hücre hatası, marjınızı ve güveninizi tüketebilir.</h2>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-zinc-400">Dağınık metraj tabloları; yanlış birim, mükerrer poz, kaynaksız fiyat ve kontrolsüz zayiatla teklif revizyonlarını büyütür. SmartCheck, hatayı saklamak yerine kaynağıyla görünür kılar.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <AcademyPreview title="ISO 19650" text="Bilgi üretimi ve teslim disiplini" />
-              <AcademyPreview title="4D / 5D" text="Zaman, metraj ve teklif riski" />
-              <AcademyPreview title="6D" text="Sürdürülebilirlik ve karbon" />
-              <AcademyPreview title="Saha pratiği" text="Üretilebilirlik ve kariyer" />
+              <AcademyPreview title="Kaynaksız miktar" text="Hangi sheet ve hücreden geldiği bilinmeyen değerler" />
+              <AcademyPreview title="Mükerrer kalem" text="Aynı pozun iki kez maliyete ve satışa yansıması" />
+              <AcademyPreview title="Birim uyuşmazlığı" text="m, m², m³ ve adet dönüşümlerinde sessiz kayıp" />
+              <AcademyPreview title="Kontrolsüz zayiat" text="Şirket limitini aşan maliyet varsayımları" />
             </div>
           </div>
         </section>
@@ -84,6 +83,14 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
               <WorkflowCard number="03" icon={<ShieldCheck />} title="Kârlılıkla gönderin" text="Maliyet ve marjı görün, profesyonel teklif çıktısını hazırlayın ve süreci izleyin." />
             </div>
           </div>
+        </section>
+
+        <section className="border-b border-zinc-800 px-6 py-24 md:px-8">
+          <div className="mx-auto max-w-7xl"><p className="mb-4 text-sm font-medium text-orange-400">GERÇEK KANIT MEKANİZMASI</p><h2 className="max-w-3xl text-4xl font-semibold tracking-tight text-white">Her aktarılan kalem, teklifin içine kaynak iziyle girer.</h2><div className="mt-12 grid gap-5 md:grid-cols-4"><EvidenceCard title="Kaynak hücre" text="Sheet adı, satır ve hücre aralığı" /><EvidenceCard title="Kural sürümü" text="Kontrolün hangi pilot kuralla yapıldığı" /><EvidenceCard title="İnsan onayı" text="Reviewer kararı ve karar zamanı" /><EvidenceCard title="Ölçülebilir sonuç" text="Aktarım öncesi bulgu ve hazırlama süresi" /></div></div>
+        </section>
+
+        <section className="border-b border-zinc-800 bg-[#0c0c0e] px-6 py-20 md:px-8">
+          <div className="mx-auto max-w-7xl"><p className="mb-4 text-sm font-medium text-orange-400">GÜVEN SINIRLARI</p><h2 className="text-3xl font-semibold text-white">Otomasyon önerir; mühendislik kararı kullanıcıda kalır.</h2><p className="mt-4 max-w-3xl leading-relaxed text-zinc-400">Pilot sürüm Excel/CSV metraj bütünlüğüne odaklanır. PDF/IFC computer vision, otomatik mühendislik onayı, sıfır hata veya tam mevzuat uyumu iddiasında bulunmaz. TS 500, TS 708, ÇŞİDB/YFK ve vergi kuralları resmî kaynak ve teknik reviewer onayı gelene kadar yalnız taslak/öneri statüsündedir.</p></div>
         </section>
 
         <section className="px-6 py-24 md:px-8 md:py-28">
@@ -109,7 +116,7 @@ export function LandingPage({ onGetStarted, onPilotRequest }: LandingPageProps) 
               <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">İlk pilot ekipler için birlikte kurulum.</h2>
               <p className="mt-4 leading-relaxed text-zinc-300">Pilot sürecinde hedefimiz özellik sayısını artırmak değil; ekibinizin gerçek bir teklifi başarıyla tamamlaması ve sonucu ölçebilmek. Kapsam, onboarding ve fiyat görüşmede netleştirilir.</p>
             </div>
-            <Button size="lg" className="h-13 shrink-0 bg-orange-600 px-7 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot başvurusu yapın <ArrowRight size={18} className="ml-2" /></Button>
+            <Button size="lg" className="h-13 shrink-0 bg-orange-600 px-7 text-white hover:bg-orange-700" onClick={onPilotRequest}>Pilot metrajınızı doğrulayın <ArrowRight size={18} className="ml-2" /></Button>
           </div>
         </section>
       </main>
@@ -143,4 +150,8 @@ function EcosystemCard({ icon, title, status, text, muted = false }: { icon: Rea
 
 function AcademyPreview({ title, text }: { title: string; text: string }) {
   return <div className="border border-zinc-800 bg-[#0c0c0e] p-5"><p className="font-medium text-white">{title}</p><p className="mt-2 text-sm leading-relaxed text-zinc-500">{text}</p></div>;
+}
+
+function EvidenceCard({ title, text }: { title: string; text: string }) {
+  return <article className="border border-emerald-500/20 bg-emerald-500/[0.04] p-6"><CheckCircle2 className="text-emerald-400" size={20} /><h3 className="mt-6 font-semibold text-white">{title}</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">{text}</p></article>;
 }
