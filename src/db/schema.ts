@@ -53,6 +53,9 @@ export const processingRunStatusEnum = pgEnum("processing_run_status", [
 export const processingStageEnum = pgEnum("processing_stage", [
   "queued",
   "parsing",
+  "normalizing",
+  "validating",
+  "awaiting_review",
   "extracting_rules",
   "consolidating",
   "preparing_review",
@@ -502,6 +505,90 @@ export const documentProcessingRuns = pgTable("document_processing_runs", {
     progressPercentCheck: check("document_processing_runs_progress_percent_check", sql`${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100`),
   };
 });
+
+export const documentProcessingArtifacts = pgTable("document_processing_artifacts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  documentId: uuid("document_id").notNull(),
+  processingRunId: uuid("processing_run_id").notNull(),
+  artifactType: text("artifact_type").notNull(),
+  storageKey: text("storage_key").notNull(),
+  checksumSha256: text("checksum_sha256").notNull(),
+  schemaVersion: integer("schema_version").default(1).notNull(),
+  contentType: text("content_type").notNull(),
+  sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+  metadataJson: jsonb("metadata_json").$type<Record<string, unknown>>().default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyArtifactUnique: unique("document_processing_artifacts_id_company_id_key").on(table.id, table.companyId),
+  runArtifactUnique: unique("document_processing_artifacts_run_type_key").on(table.companyId, table.processingRunId, table.artifactType),
+  runFk: foreignKey({
+    columns: [table.processingRunId, table.documentId, table.companyId],
+    foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId],
+  }).onDelete("cascade"),
+  sizeCheck: check("document_processing_artifacts_size_check", sql`${table.sizeBytes} >= 0`),
+}));
+
+export const normalizedQuantityRows = pgTable("normalized_quantity_rows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  documentId: uuid("document_id").notNull(),
+  processingRunId: uuid("processing_run_id").notNull(),
+  sheetName: text("sheet_name").notNull(),
+  sourceRowNumber: integer("source_row_number").notNull(),
+  sourceCellRange: text("source_cell_range").notNull(),
+  rawDescription: text("raw_description"),
+  rawPositionCode: text("raw_position_code"),
+  rawUnit: text("raw_unit"),
+  rawQuantity: text("raw_quantity"),
+  rawPrice: text("raw_price"),
+  formulaJson: jsonb("formula_json").$type<Record<string, string>>().default({}).notNull(),
+  normalizedDescription: text("normalized_description"),
+  normalizedPositionCode: text("normalized_position_code"),
+  normalizedUnit: text("normalized_unit"),
+  normalizedQuantity: numeric("normalized_quantity", { precision: 20, scale: 4 }),
+  normalizedPrice: numeric("normalized_price", { precision: 20, scale: 2 }),
+  quantitySource: text("quantity_source").default("document").notNull(),
+  priceSource: text("price_source").default("document").notNull(),
+  mappingConfidence: numeric("mapping_confidence", { precision: 3, scale: 2 }).default("0").notNull(),
+  reviewStatus: text("review_status").default("pending_review").notNull(),
+  findingsJson: jsonb("findings_json").$type<Array<Record<string, unknown>>>().default([]).notNull(),
+  reviewerUserId: uuid("reviewer_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewerNotes: text("reviewer_notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyRowUnique: unique("normalized_quantity_rows_id_company_id_key").on(table.id, table.companyId),
+  sourceRowUnique: unique("normalized_quantity_rows_source_key").on(table.companyId, table.processingRunId, table.sheetName, table.sourceRowNumber),
+  runFk: foreignKey({
+    columns: [table.processingRunId, table.documentId, table.companyId],
+    foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId],
+  }).onDelete("cascade"),
+  reviewerFk: foreignKey({
+    columns: [table.reviewerUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  reviewStatusCheck: check("normalized_quantity_rows_review_status_check", sql`${table.reviewStatus} in ('pending_review', 'approved', 'rejected')`),
+  confidenceCheck: check("normalized_quantity_rows_confidence_check", sql`${table.mappingConfidence} >= 0 AND ${table.mappingConfidence} <= 1`),
+}));
+
+export const smartcheckAuditLogs = pgTable("smartcheck_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  userId: uuid("user_id").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: uuid("entity_id"),
+  metadataJson: jsonb("metadata_json").$type<Record<string, unknown>>().default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  actorFk: foreignKey({
+    columns: [table.userId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  idxAuditLookup: index("idx_smartcheck_audit_lookup").on(table.companyId, table.createdAt),
+}));
 
 export const ruleCandidates = pgTable("rule_candidates", {
   id: uuid("id").primaryKey().defaultRandom(),
