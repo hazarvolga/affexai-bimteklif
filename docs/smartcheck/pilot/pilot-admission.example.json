@@ -1,0 +1,37 @@
+{
+  "pilotId": "mep-pilot-YYYY-MM",
+  "companyId": "00000000-0000-0000-0000-000000000000",
+  "files": [
+    {
+      "fileId": "MEP-01",
+      "customerName": "MUSTERI_ADI",
+      "projectName": "PROJE_ADI",
+      "discipline": "mechanical",
+      "permissionReference": "YAZILI_IZIN_REFERANSI",
+      "permissionGrantedAt": "YYYY-MM-DD",
+      "retentionUntil": "YYYY-MM-DD",
+      "sha256": "64_KARAKTER_SHA256",
+      "baselinePreparationMinutes": 0
+    }
+  ],
+  "technicalReviewers": [
+    {
+      "userId": "00000000-0000-0000-0000-000000000000",
+      "fullName": "REVIEWER_ADI",
+      "role": "MEP Metraj/Teklif Uzmani",
+      "competencyEvidenceReference": "CV_SERTIFIKA_VEYA_ATAMA_REFERANSI",
+      "scope": "unit quantity duplicate source cost integrity",
+      "appointedAt": "YYYY-MM-DD"
+    }
+  ],
+  "storage": {
+    "provider": "S3-compatible",
+    "bucket": "PILOT_BUCKET",
+    "region": "REGION",
+    "prefix": "COMPANY_SCOPED_PREFIX",
+    "encryptionVerified": false,
+    "leastPrivilegeVerified": false,
+    "retentionVerified": false,
+    "smokeTestEvidenceReference": ""
+  }
+}

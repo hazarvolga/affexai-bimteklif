@@ -461,7 +461,7 @@ export const documents = pgTable("documents", {
   fileSizeBytes: bigint("file_size_bytes", { mode: "number" }).notNull(),
   storageKey: text("storage_key").notNull(),
   checksumSha256: text("checksum_sha256").notNull(),
-  importMappingJson: jsonb("import_mapping_json").$type<Record<string, string>>().default({}).notNull(),
+  importMappingJson: jsonb("import_mapping_json").$type<Record<string, string | number>>().default({}).notNull(),
   status: documentStatusEnum("status").default("uploaded").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
