@@ -1,6 +1,6 @@
 # Working State
 
-Last updated: 2026-05-14
+Last updated: 2026-07-24
 
 ## Repository
 
@@ -242,6 +242,34 @@ Verified:
 
 Note: the temporary `3011` verification server was stopped after checks.
 
+## 2026-07-24 Rebaseline — SmartCheck pilot state
+
+Faz 0–9 evidence-first SmartCheck rollout local/sentetik kanıtlarla tamamlandı.
+Latest commit: `28b6264 test(smartcheck): add browser acceptance evidence`.
+
+Verified in the current checkout:
+
+- 295/295 TypeScript tests;
+- `pnpm lint` (TypeScript no-emit);
+- `pnpm build`;
+- `pnpm exec drizzle-kit check --config=src/db/drizzle.config.ts`;
+- `git diff --check`;
+- real local browser flow: SmartCheck upload → worker processing → review →
+  quotation transfer → revision → PDF blob tab;
+- cross-tenant and isolated HTTP/PostgreSQL integration suites.
+
+Current production boundary:
+
+- local storage/synthetic fixtures are not production S3 evidence;
+- five customer-permissioned MEP files are still absent;
+- technical reviewer identity/scope/decision records are still absent;
+- production S3 credentials, lifecycle/retention, encryption and restore drill
+  are still absent.
+
+The next execution phase is F10 pilot admission, followed by F11–F12 controlled
+file waves and operational hardening. The Next.js/NestJS migration remains a
+strangler cutover after measured pilot parity, not a pre-pilot rewrite.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
@@ -249,7 +277,7 @@ databases. The user may be running other work at the same time.
 
 Avoid destructive commands unless explicitly requested and confirmed.
 
-## Next Recommended Work
+## Historical Next Recommended Work (superseded by the 2026-07-24 rebaseline)
 
 1. Finish the agent memory bootstrap.
 2. Define the pilot readiness checklist for the current repo.

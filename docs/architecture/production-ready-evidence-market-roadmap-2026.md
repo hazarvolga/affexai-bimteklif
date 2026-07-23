@@ -441,3 +441,151 @@ Sentetik MEP fixture ile gerçek tarayıcı akışı doğrulandı: giriş → Sm
 Bu doğrulama sırasında status/queue polling'in mutation rate-limit bütçesini tüketerek 429 üretmesi P0 olarak düzeltildi. Read endpoint'leri ayrı tenant-scoped okuma bütçesi kullanır; frontend polling 2 saniyelik, çakışmayan isteklerle yalnız terminal durumda queue/rows yeniler. Eksik favicon da giderildi; SmartCheck browser smoke'unda console error/warning kalmadı. Quote/PDF ekranındaki iki non-blocking Recharts sizing warning'i ayrıca gözlendi; akışı veya PDF aksiyonunu engellemedi.
 
 Faz 9 local/sentetik kanıt kapısı geçmiştir. Gerçek müşteri dosyası, teknik reviewer, production S3/retention ve backup kanıtları olmadan bu sonuç production pilot kabulü değildir.
+
+## 22. 24 Temmuz 2026 rebaseline — Production Ready yürütme kararı
+
+Bu bölüm önceki faz kayıtlarının üzerine güncel yürütme kararını koyar. “Kod hazır” ile “production pilot kabulü” birbirine karıştırılmamalıdır.
+
+### 22.1 Kanıtla doğrulanmış mevcut durum
+
+| Katman | Mevcut kanıt | Karar |
+|---|---|---|
+| Ürün kapsamı | Excel/CSV-first, evidence-first SmartCheck; Academy ayrımı | Pilot kapsamı sabit |
+| Import güvenliği | Signature/MIME, 25 MB sınırı, checksum, traversal/zip-bomb/formula kontrolleri | Local pilot için hazır |
+| İşleme | Graphile Worker, idempotent run, parse → normalize → validate → review | Local pilot için hazır |
+| İnsan kontrolü | Approve/reject, düzeltme/accepted exception ve audit zinciri | Local pilot için hazır |
+| Provenance | Kaynak sheet/row/cell, raw/normalized değer, run ve rule metadata | Local pilot için hazır |
+| Fiyat | Snapshot, source hash, stale/outlier ve reviewer gate | Advisory/local beta |
+| Mevzuat | Allowlist adapter, hash/diff, effective-date ve advisory impact | Canonical değil |
+| Browser | Upload → review → transfer → revision → PDF sentetik akışı | Local/sentetik geçti |
+| Tenant/security | HTTP + PostgreSQL negatif testleri ve route filtreleri | Kanıt kapsamı iyi; CI ve gerçek deploy tekrarları sürmeli |
+| Production storage | S3 adapter/config/preflight kodu | Gerçek credential/object/retention kanıtı yok |
+| Pilot verisi | Beş sentetik fixture | Beş müşteri izinli dosya yok |
+| Teknik sorumluluk | Reviewer veri sözleşmesi | Gerçek reviewer kaydı yok |
+
+**Yürütme kararı:** Şu anda tam NestJS/Next.js rewrite başlatılmayacak. Önce gerçek pilot admission ve ölçüm tamamlanacak. Bunun nedeni mimari tercihin yanlış olması değil; ürün davranışı ve veri sözleşmesi kanıtlanmadan yapılan rewrite’ın kullanıcı değerini geciktirmesidir.
+
+### 22.2 Ürün farkı ve veri stratejisi
+
+TeklifPro’nun savunulabilir farkı “internetten en çok veriyi kazımak” değil, **kaynağı, geçerlilik tarihi, kapsamı ve insan kararını koruyan maliyet/uyum hafızası** oluşturmaktır.
+
+```text
+Resmî kaynak / lisanslı veri / tedarikçi teklifi / firma gerçekleşeni
+→ quarantine
+→ checksum + lisans/host kontrolü
+→ parse + normalize
+→ birim/bölge/KDV/nakliye kapsamı doğrulaması
+→ AI sınıflandırma veya diff önerisi
+→ insan/reviewer kararı
+→ immutable snapshot veya advisory rule version
+→ teklif kalemine provenance ile bağlama
+```
+
+AI yalnızca kolon eşleme, sınıflandırma, açıklama normalizasyonu, değişiklik özeti ve düşük riskli aday önerisi yapabilir. Miktar, fiyat, vergi veya canonical mevzuat kuralı kanıt ve insan kararı olmadan üretilmez.
+
+Kaynak adaptörleri açık uçlu scraping yerine sözleşmeli connector olarak tasarlanır:
+
+- Her connector’ın izinli hostu, kullanım/lisans durumu, çekme sıklığı, schema sürümü ve sahibi vardır.
+- Her ham cevap hash’lenir; önceki cevapla deterministic diff üretilir.
+- Kaynak bozulur, erişim kesilir veya lisans belirsizleşirse son onaylı snapshot korunur; yeni veri yayınlanmaz.
+- Endeks veya resmî referans “canlı tedarikçi fiyatı” gibi gösterilmez.
+- Yeni fiyat teklif geçmişini sessizce değiştirmez; yalnız fark uyarısı ve yeni snapshot önerisi üretir.
+
+Bu model YFK/ÇŞİDB, TÜİK, GİB ve Resmî Gazete için teknik olarak genişletilebilir; gerçek kullanım ancak kaynak lisansı, resmî URL/kimlik ve teknik reviewer kanıtı geldiğinde açılır.
+
+### 22.3 Hedef mimari — strangler, tek seferlik rewrite değil
+
+```text
+                    ┌──────────────────────────────┐
+                    │ Next.js App Router           │
+                    │ public + Academy + /app      │
+                    └──────────────┬───────────────┘
+                                   │ contracts
+             ┌─────────────────────┴─────────────────────┐
+             │ NestJS API / bounded contexts              │
+             │ Identity | SmartCheck | Quotations         │
+             │ Pricing | Regulations | Evidence           │
+             └──────────────┬─────────────────────────────┘
+                            │ domain events / jobs
+             ┌──────────────┴─────────────────────────────┐
+             │ Worker adapter (Graphile Worker korunur)    │
+             └──────────────┬─────────────────────────────┘
+                            │
+          PostgreSQL + Prisma (context cutover sonrası)
+          S3-compatible object store + audit/provenance
+
+  Academy: ayrı ürün/entitlement katmanı; canonical fiyat/mevzuat kaynağı değil.
+  Express/Vite: migration boyunca rollback ve parity referansı.
+```
+
+Geçiş prensipleri:
+
+1. Next.js önce mevcut Express API’ye bağlanan bir web façade olarak başlar; frontend rewrite ile backend rewrite aynı release’e sıkıştırılmaz.
+2. NestJS bounded context bazında, önce read-only veya shadow parity, sonra tek yazma sahibi olarak devreye girer.
+3. Prisma yeni production core için hedef ORM’dir; Drizzle ve Prisma aynı tabloda eşzamanlı write owner olmaz.
+4. Contract test, tenant negatif testi, migration backup ve rollback kanıtı olmadan trafik devri yapılmaz.
+5. Graphile Worker ilk aşamada korunur; sırf framework değiştiği için yeni queue ürünü eklenmez.
+
+## 23. Faz bazlı yürütme planı — sahip, bağımlılık, çıkış ve durdurma koşulu
+
+| Faz | Amaç ve ana işler | Sahip/dependency | Çıkış kanıtı | Durdurma/rollback |
+|---|---|---|---|---|
+| **F10 Pilot admission** | Beş gerçek MEP dosyasını izin, checksum, retention ve proje referansıyla güvenli manifestte aç; reviewer atamasını ve S3 preflight’ı tamamla | Product owner + teknik reviewer + platform; müşteri/S3 girdisi gerekir | `smartcheck:pilot-check` yeşil; S3 put/get/checksum/delete; 5 benzersiz checksum | Herhangi bir izin, reviewer veya storage alanı eksikse dosya alınmaz |
+| **F11 Dosya dalgası 1** | Dosyaları tek tek upload → parse → review → transfer akışından geçir; her dosyada önce/sonra süre ve düzeltme ölç | MEP reviewer + customer ops; F10 | 5/5 run tamam; her aktarımda provenance; parse ve manuel yeniden giriş metrikleri | Kritik bulgu açıklanamıyorsa aktarım reject/exception kuyruğunda kalır |
+| **F12 Pilot operasyon** | Queue retry/dead-letter, operator runbook, alert, backup/restore drill, retention/silme ve export paketi | Platform/SRE; F10–F11 | Başarısız run yeniden denenebilir; restore tatbikatı ve audit log kanıtlı; P0 tenant leakage = 0 | Restore veya audit kanıtı yoksa pilot genişletilmez |
+| **F13 Market intelligence beta** | Lisanslı/resmî connector’lar, supplier quote, company actual, region/KDV/nakliye koşulları ve snapshot karşılaştırması | Data steward + procurement reviewer; F11 | En az 3 firma ve 20+ snapshot; source license + outlier kararları; tahmin/gerçekleşen metriği | Kaynak lisansı veya karşılaştırılabilirlik yoksa veri advisory kalır |
+| **F14 Regulation intelligence beta** | Resmî kaynak watcher, hash/diff, etkilenen quotation advisory, yürürlük tarihi ve reviewer onayı | BIM/governance reviewer; F13 ile paralel olabilir | Her değişikliğin kaynak kimliği/hash’i, reviewer kararı ve effective-date testi | Hukuki/teknik yorum tek başına AI’a bırakılamaz; `draft/advisory` kalır |
+| **F15 Migration foundation** | `packages/contracts`, `packages/domain`, OpenAPI/JSON schema, monorepo sınırları, parity harness ve shadow PostgreSQL (`teklifpro_next_local`) | Platform architect; F11 KPI gate | Contract testleri eski Express üzerinde yeşil; additive Prisma shadow schema; backup/restore planı | Parity farkı veya migration drift varsa mevcut app tek yazma sahibi kalır |
+| **F16 Next.js web façade** | `apps/web`: public landing, Academy, auth ve `/app` shell; mevcut API’ye güvenli contract üzerinden bağlan | Web owner; F15 | Browser parity: login, SmartCheck, quotes, PDF; SEO/public smoke; rollback linki | Kullanıcı akışı veya auth parity bozulursa Vite UI’a dönülür |
+| **F17 NestJS Identity/Tenant + SmartCheck** | `apps/api` içinde guards, membership/RBAC, SmartCheck document/run/review/transfer modülleri; önce read/shadow, sonra tek write owner | Backend owner + security reviewer; F15–F16 | Cross-tenant negative suite, HTTP/PostgreSQL integration, audit/provenance parity | İki write owner açılmaz; route trafiği Express’te tutulur |
+| **F18 NestJS Quotations/Pricing/Regulations** | Quote/revision/PDF, price snapshot ve regulation impact modüllerini context bazında devret | Domain owners; F17 + pilot KPI | Totals/revision/PDF ve snapshot hashes parity; rollback route; load/queue smoke | Finansal toplam farkı veya provenance kaybında cutover geri alınır |
+| **F19 Production scale** | S3 lifecycle, OpenTelemetry/Sentry, cost budgets, rate limit/abuse, backup, export/delete, KVKK/sözleşme ve public runbook | SRE + legal/product; F12–F18 | SLO dashboard, restore drill, security review, data deletion/export ve incident rehearsal | SLO, güvenlik veya veri sahipliği kanıtı yoksa enterprise rollout durur |
+
+### 23.1 F10–F12 için ölçüm sözleşmesi
+
+Her dosya için aşağıdaki alanlar zorunludur:
+
+```text
+file_id, customer/project reference, consent reference, retention_until,
+sha256, source row count, parsed row count, manual correction count,
+accepted exception count, finding breakdown, transferred row count,
+provenance coverage, baseline minutes, final minutes,
+reviewer identity/scope/decision/time, storage object evidence
+```
+
+Pilot go/no-go eşikleri:
+
+- 5/5 müşteri izinli dosya ve benzersiz checksum;
+- manuel yeniden giriş olmadan parse oranı ≥ %90;
+- aktarılmış kalemlerde provenance coverage = %100;
+- cross-tenant veri sızıntısı = 0;
+- kritik bulguların %100’ü reviewer kararı veya gerekçeli ret ile kapanmış;
+- hazırlama süresinde ölçülebilir azalma;
+- production S3 encryption, least privilege, retention/lifecycle ve restore kanıtı.
+
+Bu metriklerden biri ölçülemiyorsa sonuç “pilot başarıldı” değil, `insufficient_evidence` olarak raporlanır.
+
+### 23.2 Takım ve sorumluluk modeli
+
+| Rol | Karar alanı |
+|---|---|
+| Ürün sahibi | Scope, pilot go/no-go, ticari iddia ve müşteri izni |
+| MEP teknik reviewer | Birim/miktar/kaynak bütünlüğü, exception ve rule promotion |
+| Platform/backend | Tenant, auth, API, worker, storage, migration ve rollback |
+| Data/source steward | Connector lisansı, source hash, fiyat snapshot ve freshness |
+| Customer operations | Dosya kabulü, consent, retention, ölçüm ve kullanıcı geri bildirimi |
+| Academy/content owner | Ders, enablement ve lead acquisition; canonical hesap/mevzuat değil |
+
+### 23.3 İlk uygulanabilir sonraki iş
+
+Kod tarafındaki bir sonraki genişleme NestJS/Next.js değildir. Önce F10 için gerçek operasyon paketi doldurulmalıdır:
+
+1. Güvenli operasyon alanında beş dosyalı manifest;
+2. teknik reviewer kayıtları ve scope;
+3. production S3 credentials/preflight ve retention/backup kanıtı;
+4. ilk dosyanın browser + worker + PostgreSQL + provenance ölçümü;
+5. F10–F12 KPI raporu.
+
+Bu dış kanıtlar gelmeden yapılan en doğru teknik çalışma, mevcut acceptance/negative testlerini CI kapısına bağlamak ve migration için contract/parity taslağını hazırlamaktır. Gerçek veriyi veya credential’ı sentetik fixture ile temsil etmek yasaktır.
+
+> Önceki bölümlerde “ilk uygulanabilir faz” olarak geçen sentetik fixture çalışması tamamlanmıştır; yürürlükteki sıra bu bölümdeki F10’dan başlar.

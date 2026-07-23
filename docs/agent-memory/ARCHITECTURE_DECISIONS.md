@@ -1,6 +1,6 @@
 # Architecture Decisions
 
-Last updated: 2026-05-14
+Last updated: 2026-07-24
 
 ## ADR-001: Preserve The Prototype
 
@@ -129,3 +129,29 @@ Suggested Next.js local DB:
 - `teklifpro_next_local`
 
 Confirm the active `DATABASE_URL` before any migration or seed.
+
+## ADR-007: Evidence Gate Before NestJS/Next.js Cutover
+
+Decision: keep the Vite + Express + Drizzle application as the single pilot
+write owner until five customer-permissioned MEP files, technical reviewer
+records, production S3 evidence and pilot KPI thresholds are proven. Then use a
+strangler migration: Next.js web façade first, followed by NestJS bounded
+contexts, with Prisma introduced per context only after schema/parity checks.
+
+Rationale: a framework rewrite before real file and review behavior is measured
+would create migration risk without proving customer value. Next.js and NestJS
+remain the production target; the decision changes sequencing, not the target.
+
+Rules:
+
+- one write owner per bounded context; no uncontrolled dual writes;
+- contract, tenant-negative, backup and rollback tests are cutover gates;
+- Graphile Worker and S3 provenance contracts are preserved during transition;
+- Express/Vite remains rollback/reference implementation until route parity is
+  demonstrated;
+- Academy is a separate learning/acquisition context and never a canonical
+  price, tax or engineering-rule source.
+
+Owner: product owner + platform architect
+Date: 2026-07-24
+Status: accepted

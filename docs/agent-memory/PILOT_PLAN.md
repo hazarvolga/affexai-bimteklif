@@ -1,6 +1,6 @@
 # Pilot Plan
 
-Last updated: 2026-05-14
+Last updated: 2026-07-24
 
 Decision: build the pilot product on the existing Vite + Express + Drizzle repo.
 Defer the Next.js migration until the pilot flow is real-user ready and a parity
@@ -168,3 +168,13 @@ Revisit the Next.js migration only after:
 
 At that point, create a separate migration plan and keep the current app as the
 reference implementation until cutover is complete.
+
+## 2026-07-24 Rebaseline
+
+The local/synthetic SmartCheck phases now cover fixture security, normalization,
+source and price evidence, regulation advisory impact, pilot evidence records,
+storage admission code, and browser acceptance through quotation revision/PDF.
+The next gate is not a framework rewrite: it is F10 pilot admission with five
+customer-permissioned MEP files, technical reviewer scope/decisions, and real
+S3/retention/restore evidence. F11–F12 measure the five-file pilot before any
+Next.js/NestJS traffic cutover.
