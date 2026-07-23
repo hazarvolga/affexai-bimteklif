@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { localStorageRoot } from "./config";
 
@@ -8,6 +8,7 @@ export interface StorageAdapter {
   createUploadTarget(storageKey: string, contentType: string): Promise<{ uploadUrl: string; method: "PUT"; headers?: Record<string, string> }>;
   put(storageKey: string, content: Buffer, contentType: string): Promise<void>;
   get(storageKey: string): Promise<Buffer>;
+  delete(storageKey: string): Promise<void>;
   localPath?(storageKey: string): string;
 }
 
@@ -29,6 +30,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     await fs.writeFile(target, content, { mode: 0o600 });
   }
   async get(storageKey: string): Promise<Buffer> { return fs.readFile(this.localPath(storageKey)); }
+  async delete(storageKey: string): Promise<void> { await fs.rm(this.localPath(storageKey), { force: true }); }
 }
 
 export class S3StorageAdapter implements StorageAdapter {
@@ -57,6 +59,9 @@ export class S3StorageAdapter implements StorageAdapter {
   async get(storageKey: string): Promise<Buffer> {
     const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
     return Buffer.from(await result.Body!.transformToByteArray());
+  }
+  async delete(storageKey: string): Promise<void> {
+    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
   }
 }
 

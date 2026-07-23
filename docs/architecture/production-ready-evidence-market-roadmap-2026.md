@@ -425,3 +425,11 @@ Gerçek dosya pilotu için tenant-scoped `smartcheck_pilot_cases` ve append-only
 Ölçüm servisi toplam satır üzerinden ağırlıklı `parseRate`, `manualReentryFreeRate` ve `provenanceCoverage` üretir; bulgu, onay, aktarım ve işlem/workflow sürelerini de kaydeder. Aynı measurement key tekrarlandığında yeni snapshot üretmez. `/app/pilot-evidence` yalnız KPI’ları ve kontrollü referansları gösterir; production S3, lisans ve reviewer yetkinliği dış admission kanıtı olarak kalır.
 
 Bu fazın çıkış kriteri beş gerçek müşteri dosyasının case olarak açılması, her dosyada gerçek upload → parse → review → transfer kanıtı ve toplam parse/manuel yeniden giriş oranlarının ölçülmesidir. Beş dosya ve `%90` hedefi kanıtlanmadan Next.js/NestJS strangler migration route trafiğini devralmayacak; Vite/Express/Drizzle/PostgreSQL pilot rollback yüzeyi olarak korunacaktır.
+
+## 20. Faz 8 uygulama durumu — Production Storage Admission
+
+Production storage admission için S3 adapter'ına açık `delete` işlemi ve geçici nesne üzerinde `put → get → checksum → delete → get-failure` smoke sözleşmesi eklendi. Local adapter izole volume üzerinde test edilir; production'da SmartCheck açıkken S3 bucket ve region zorunludur, local fallback yoktur. Endpoint HTTPS, credential çifti ve force-path-style değerleri preflight'ta doğrulanır.
+
+`/api/health` readiness çıktısı `smartcheckStorageConfigured` ile yalnız konfigürasyon durumunu gösterir. `pnpm smartcheck:storage-smoke` gerçek S3 bilgisi yoksa beklenen şekilde non-zero ile bloke olur; bu çıktı production object erişiminin kanıtı sayılmaz. Retention/lifecycle, encryption, tenant prefix policy, backup/restore drill ve beş gerçek dosyanın checksum/object kayıtları hâlâ dış admission kanıtıdır.
+
+Bu fazın kod/local test kapısı tamamlanmıştır; gerçek production S3 credentials ve operasyonel retention/backup kanıtı gelmeden canlı müşteri dosyası kabulü açılmayacaktır.

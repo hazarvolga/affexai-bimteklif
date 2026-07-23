@@ -5,6 +5,16 @@ const validHttpsUrl = (value: string) => {
   try { return new URL(value).protocol === 'https:'; } catch { return false; }
 };
 
+export function validateSmartcheckStorageEnvironment(env: Env = process.env) {
+  const errors: string[] = [];
+  if (!env.SMARTCHECK_S3_BUCKET) errors.push('SMARTCHECK_S3_BUCKET is required when SmartCheck production storage is enabled.');
+  if (!env.SMARTCHECK_S3_REGION) errors.push('SMARTCHECK_S3_REGION is required when SmartCheck production storage is enabled.');
+  if (env.SMARTCHECK_S3_ENDPOINT && !validHttpsUrl(env.SMARTCHECK_S3_ENDPOINT)) errors.push('SMARTCHECK_S3_ENDPOINT must be HTTPS when provided.');
+  if (Boolean(env.SMARTCHECK_S3_ACCESS_KEY_ID) !== Boolean(env.SMARTCHECK_S3_SECRET_ACCESS_KEY)) errors.push('SMARTCHECK_S3_ACCESS_KEY_ID and SMARTCHECK_S3_SECRET_ACCESS_KEY must be provided together.');
+  if (env.SMARTCHECK_S3_FORCE_PATH_STYLE && !['true', 'false'].includes(env.SMARTCHECK_S3_FORCE_PATH_STYLE)) errors.push('SMARTCHECK_S3_FORCE_PATH_STYLE must be true or false.');
+  return { valid: errors.length === 0, errors };
+}
+
 export function validateProductionEnvironment(env: Env = process.env) {
   const errors: string[] = [];
   if (env.NODE_ENV !== 'production') return { valid: true, errors, trustProxyHops: 0 };
@@ -15,8 +25,7 @@ export function validateProductionEnvironment(env: Env = process.env) {
   if (!env.AUTH_EMAIL_WEBHOOK_SECRET || env.AUTH_EMAIL_WEBHOOK_SECRET.length < 32 || placeholderSecret(env.AUTH_EMAIL_WEBHOOK_SECRET)) errors.push('AUTH_EMAIL_WEBHOOK_SECRET must be a non-placeholder secret of at least 32 characters.');
   if (env.SMARTCHECK_IMPORT_ENABLED === 'true') {
     if (!env.SMARTCHECK_PILOT_COMPANY_IDS) errors.push('SMARTCHECK_PILOT_COMPANY_IDS is required when SmartCheck import is enabled in production.');
-    if (!env.SMARTCHECK_S3_BUCKET) errors.push('SMARTCHECK_S3_BUCKET is required when SmartCheck import is enabled in production.');
-    if (!env.SMARTCHECK_S3_REGION) errors.push('SMARTCHECK_S3_REGION is required when SmartCheck import is enabled in production.');
+    errors.push(...validateSmartcheckStorageEnvironment(env).errors.map((error) => error.replace('when SmartCheck production storage is enabled', 'when SmartCheck import is enabled in production')));
   }
   const trustProxyHops = Number(env.TRUST_PROXY_HOPS ?? '1');
   if (!Number.isInteger(trustProxyHops) || trustProxyHops < 1 || trustProxyHops > 3) errors.push('TRUST_PROXY_HOPS must be an integer from 1 to 3.');

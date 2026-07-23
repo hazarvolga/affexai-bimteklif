@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { validateProductionEnvironment } from './production';
+import { validateProductionEnvironment, validateSmartcheckStorageEnvironment } from './production';
 
 describe('production environment preflight', () => {
   it('does not block local development', () => {
@@ -17,5 +17,11 @@ describe('production environment preflight', () => {
     const result = validateProductionEnvironment({ NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://academy.example.com', AUTH_EMAIL_WEBHOOK_URL: 'https://n8n.example.com/webhook/auth', AUTH_EMAIL_WEBHOOK_SECRET: 'w'.repeat(48), TRUST_PROXY_HOPS: '1' });
     assert.equal(result.valid, true);
     assert.equal(result.trustProxyHops, 1);
+  });
+
+  it('validates S3-compatible storage credentials as a paired, explicit boundary', () => {
+    assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ACCESS_KEY_ID: 'key' }).valid, false);
+    assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ACCESS_KEY_ID: 'key', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret', SMARTCHECK_S3_ENDPOINT: 'https://s3.example.com', SMARTCHECK_S3_FORCE_PATH_STYLE: 'true' }).valid, true);
+    assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ENDPOINT: 'http://s3.example.com' }).valid, false);
   });
 });

@@ -21,6 +21,7 @@
     "smartcheck:http-integration": "tsx --test src/server/routes/smartcheck.integration.test.ts",
     "smartcheck:fixtures": "tsx --test src/smartcheck/import/pilot-fixtures.test.ts",
     "smartcheck:pilot-check": "tsx scripts/smartcheck-pilot-readiness.ts",
+    "smartcheck:storage-smoke": "tsx scripts/smartcheck-storage-smoke.ts",
     "smartcheck:worker": "tsx src/smartcheck/import/worker.ts"
   },
   "dependencies": {

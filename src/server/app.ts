@@ -27,7 +27,7 @@ import { registerPricingRoutes } from "./routes/pricing";
 import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
-import { assertProductionEnvironment } from "./config/production";
+import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { pruneExpiredRateLimits } from "./auth/security";
 
 dotenv.config({ path: ".env.local" });
@@ -60,7 +60,8 @@ export function createApiApp() {
     try {
       await db.execute(sql`select 1`);
       await db.select({ bucketKey: rateLimitBuckets.bucketKey }).from(rateLimitBuckets).limit(1);
-      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured: Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL), publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL) }, revision: process.env.SOURCE_COMMIT || null });
+      const storageReadiness = process.env.SMARTCHECK_IMPORT_ENABLED === "true" ? validateSmartcheckStorageEnvironment(process.env).valid : null;
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured: Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL), publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, revision: process.env.SOURCE_COMMIT || null });
     } catch (error) {
       console.error("Health check failed:", error);
       res.status(503).json({ status: "error", db: "failed" });
