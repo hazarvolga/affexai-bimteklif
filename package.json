@@ -17,6 +17,7 @@
     "allplan:import": "node scripts/import-allplan-source.mjs",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "smartcheck:evaluate": "tsx src/smartcheck/evaluation/cli-main.ts",
+    "smartcheck:integration": "tsx --test src/smartcheck/import/integration-contract.test.ts",
     "smartcheck:pilot-check": "tsx scripts/smartcheck-pilot-readiness.ts",
     "smartcheck:worker": "tsx src/smartcheck/import/worker.ts"
   },
