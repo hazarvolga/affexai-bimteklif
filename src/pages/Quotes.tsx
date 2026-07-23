@@ -48,7 +48,7 @@ export function Quotes() {
             <Button variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-4">
               <FileDown size={16} /> Dışa Aktar
             </Button>
-            <Button render={<Link to="/app/quotes/new" />} className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-900/20 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
+            <Button nativeButton={false} render={<Link to="/app/quotes/new" />} className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-900/20 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
               <Plus size={16} /> Yeni Teklif
             </Button>
           </>

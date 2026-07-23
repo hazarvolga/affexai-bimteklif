@@ -30,6 +30,15 @@ const rateLimit: RequestHandler = async (req, res, next) => {
   next();
 };
 
+// Status/queue/preview reads are polled by the workspace while a worker runs.
+// Keep their abuse budget separate from mutation/upload operations so a normal
+// long-running import cannot consume the write bucket and surface false 429s.
+const readRateLimit: RequestHandler = async (req, res, next) => {
+  const result = await consumeRateLimit(`smartcheck:read:${req.user.companyId}:${req.user.userId}`, 240, 60_000);
+  if (!result.allowed) return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "SmartCheck okuma limiti aşıldı." });
+  next();
+};
+
 async function audit(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {
   await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson });
 }
@@ -94,7 +103,7 @@ export function registerSmartCheckRoutes(app: Express) {
     res.json(updated);
   });
 
-  app.get("/api/smartcheck/documents/:id/preview", authenticate, featureGate, rateLimit, async (req, res) => {
+  app.get("/api/smartcheck/documents/:id/preview", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Önizleme için yükleme tamamlanmalı." });
@@ -110,7 +119,7 @@ export function registerSmartCheckRoutes(app: Express) {
     }
   });
 
-  app.get("/api/smartcheck/documents/:id/status", authenticate, featureGate, rateLimit, async (req, res) => {
+  app.get("/api/smartcheck/documents/:id/status", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     const [run] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
@@ -165,7 +174,7 @@ export function registerSmartCheckRoutes(app: Express) {
     res.status(202).json(run);
   });
 
-  app.get("/api/smartcheck/queue", authenticate, featureGate, rateLimit, canReview, async (req, res) => {
+  app.get("/api/smartcheck/queue", authenticate, featureGate, readRateLimit, canReview, async (req, res) => {
     const queue = await db.select({
       id: documentProcessingRuns.id,
       documentId: documentProcessingRuns.documentId,
@@ -182,7 +191,7 @@ export function registerSmartCheckRoutes(app: Express) {
     res.json(queue);
   });
 
-  app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, rateLimit, async (req, res) => {
+  app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     const rows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).orderBy(normalizedQuantityRows.sheetName, normalizedQuantityRows.sourceRowNumber);

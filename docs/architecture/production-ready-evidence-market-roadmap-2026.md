@@ -433,3 +433,11 @@ Production storage admission için S3 adapter'ına açık `delete` işlemi ve ge
 `/api/health` readiness çıktısı `smartcheckStorageConfigured` ile yalnız konfigürasyon durumunu gösterir. `pnpm smartcheck:storage-smoke` gerçek S3 bilgisi yoksa beklenen şekilde non-zero ile bloke olur; bu çıktı production object erişiminin kanıtı sayılmaz. Retention/lifecycle, encryption, tenant prefix policy, backup/restore drill ve beş gerçek dosyanın checksum/object kayıtları hâlâ dış admission kanıtıdır.
 
 Bu fazın kod/local test kapısı tamamlanmıştır; gerçek production S3 credentials ve operasyonel retention/backup kanıtı gelmeden canlı müşteri dosyası kabulü açılmayacaktır.
+
+## 21. Faz 9 uygulama durumu — Browser Acceptance ve Kullanıcı Akışı Kanıtı
+
+Sentetik MEP fixture ile gerçek tarayıcı akışı doğrulandı: giriş → SmartCheck upload/complete → kaynak önizleme → MEP eşleme → Graphile Worker parse/normalize/validate → dört satır insan onayı → taslak teklife aktarım → teklif detayı → V2 revizyon → PDF aksiyonu. Kanıt ekranı `output/playwright/smartcheck-phase9-browser-review.png`, tekrarlanabilir senaryo ve sınırlar `docs/smartcheck/pilot/phase9-browser-acceptance.md` içindedir.
+
+Bu doğrulama sırasında status/queue polling'in mutation rate-limit bütçesini tüketerek 429 üretmesi P0 olarak düzeltildi. Read endpoint'leri ayrı tenant-scoped okuma bütçesi kullanır; frontend polling 2 saniyelik, çakışmayan isteklerle yalnız terminal durumda queue/rows yeniler. Eksik favicon da giderildi; SmartCheck browser smoke'unda console error/warning kalmadı. Quote/PDF ekranındaki iki non-blocking Recharts sizing warning'i ayrıca gözlendi; akışı veya PDF aksiyonunu engellemedi.
+
+Faz 9 local/sentetik kanıt kapısı geçmiştir. Gerçek müşteri dosyası, teknik reviewer, production S3/retention ve backup kanıtları olmadan bu sonuç production pilot kabulü değildir.

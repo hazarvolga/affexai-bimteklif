@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -258,7 +259,9 @@ export function QuoteDetail() {
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-zinc-500" /></Button>} />
               <DropdownMenuContent className="bg-zinc-900 border-zinc-800 text-zinc-300 w-56">
-                <DropdownMenuLabel className="text-xs text-zinc-500">Şablon Seçiniz</DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-zinc-500">Şablon Seçiniz</DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem onClick={() => handleDownloadPdf('default_construction')} className="gap-2 focus:bg-zinc-800 cursor-pointer py-2.5">
                   <Layout size={16} className="text-orange-500" />

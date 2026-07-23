@@ -98,6 +98,7 @@ export function SmartCheckImportWorkspace() {
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
   const polling = useRef<number | null>(null);
+  const pollInFlight = useRef(false);
 
   const loadQueue = async () => {
     const response = await fetchWithAuth("/api/smartcheck/queue");
@@ -148,19 +149,25 @@ export function SmartCheckImportWorkspace() {
   const poll = (id: string) => {
     if (polling.current) window.clearInterval(polling.current);
     polling.current = window.setInterval(async () => {
-      const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/status`);
-      if (!response.ok) return;
-      const data = await response.json();
-      setStage(data.run?.progressMessage ?? data.document.status);
-      await loadQueue();
-      if (["succeeded", "failed"].includes(data.run?.status)) {
-        window.clearInterval(polling.current!);
-        polling.current = null;
-        setBusy(false);
-        if (data.run.status === "succeeded") await loadRows(id);
-        else toast.error(data.run.errorMessage ?? "İşleme başarısız.");
+      if (pollInFlight.current) return;
+      pollInFlight.current = true;
+      try {
+        const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/status`);
+        if (!response.ok) return;
+        const data = await response.json();
+        setStage(data.run?.progressMessage ?? data.document.status);
+        if (["succeeded", "failed"].includes(data.run?.status)) {
+          window.clearInterval(polling.current!);
+          polling.current = null;
+          setBusy(false);
+          await loadQueue();
+          if (data.run.status === "succeeded") await loadRows(id);
+          else toast.error(data.run.errorMessage ?? "İşleme başarısız.");
+        }
+      } finally {
+        pollInFlight.current = false;
       }
-    }, 1200);
+    }, 2000);
   };
 
   const upload = async () => {
