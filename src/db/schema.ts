@@ -315,6 +315,10 @@ export const quotations = pgTable("quotations", {
   observedActualDurationMonths: integer("observed_actual_duration_months"),
   calibrationStatus: text("calibration_status").default("not_collected").notNull(),
   calibrationNote: text("calibration_note"),
+  pricingSnapshotLockStatus: text("pricing_snapshot_lock_status").default("unlocked").notNull(),
+  pricingSnapshotLockedAt: timestamp("pricing_snapshot_locked_at", { withTimezone: true }),
+  pricingSnapshotLockedByUserId: uuid("pricing_snapshot_locked_by_user_id"),
+  pricingSnapshotLockHash: text("pricing_snapshot_lock_hash"),
   subtotal: numeric("subtotal", { precision: 20, scale: 2 }).notNull(),
   discountTotal: numeric("discount_total", { precision: 20, scale: 2 }).notNull(),
   vatTotal: numeric("vat_total", { precision: 20, scale: 2 }).notNull(),
@@ -327,8 +331,93 @@ export const quotations = pgTable("quotations", {
 }, (table) => {
   return {
     companyQuoteUnique: unique("quotations_id_company_id_key").on(table.id, table.companyId),
+    pricingSnapshotLockUserFk: foreignKey({
+      columns: [table.pricingSnapshotLockedByUserId, table.companyId],
+      foreignColumns: [memberships.userId, memberships.companyId],
+    }).onDelete("restrict"),
+    pricingSnapshotLockStatusCheck: check("quotations_pricing_snapshot_lock_status_check", sql`${table.pricingSnapshotLockStatus} in ('unlocked', 'locked', 'stale')`),
   };
 });
+
+// ============================================================
+// SMARTCHECK PHASE 3 — PRICE SOURCES AND IMMUTABLE SNAPSHOTS
+// ============================================================
+
+export const priceSources = pgTable("price_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  sourceType: text("source_type").notNull(),
+  name: text("name").notNull(),
+  authority: text("authority"),
+  sourceUrl: text("source_url"),
+  sourceDocumentIdentifier: text("source_document_identifier"),
+  sourceDocumentHash: text("source_document_hash").notNull(),
+  licenseStatus: text("license_status").default("unknown").notNull(),
+  jurisdiction: text("jurisdiction"),
+  region: text("region"),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  metadataJson: jsonb("metadata_json").$type<Record<string, unknown>>().default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companySourceUnique: unique("price_sources_id_company_id_key").on(table.id, table.companyId),
+  creatorFk: foreignKey({
+    columns: [table.createdByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  sourceTypeCheck: check("price_sources_source_type_check", sql`${table.sourceType} in ('official_reference', 'supplier_quote', 'company_actual', 'index_adjusted', 'manual_override')`),
+  licenseStatusCheck: check("price_sources_license_status_check", sql`${table.licenseStatus} in ('unknown', 'verified', 'restricted', 'not_applicable')`),
+  sourceHashCheck: check("price_sources_source_document_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
+  sourceLookupIdx: index("idx_price_sources_lookup").on(table.companyId, table.sourceType, table.region),
+}));
+
+export const priceSnapshots = pgTable("price_snapshots", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  priceSourceId: uuid("price_source_id").notNull(),
+  snapshotKey: text("snapshot_key").notNull(),
+  externalReference: text("external_reference"),
+  positionCode: text("position_code"),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  amount: numeric("amount", { precision: 20, scale: 4 }).notNull(),
+  currency: currencyEnum("currency").default("TRY").notNull(),
+  vatStatus: text("vat_status").default("unknown").notNull(),
+  vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }),
+  freightStatus: text("freight_status").default("unknown").notNull(),
+  region: text("region"),
+  validFrom: timestamp("valid_from", { withTimezone: true }),
+  validUntil: timestamp("valid_until", { withTimezone: true }),
+  capturedAt: timestamp("captured_at", { withTimezone: true }).defaultNow().notNull(),
+  sourceDocumentHash: text("source_document_hash").notNull(),
+  sourceVersion: text("source_version"),
+  confidence: numeric("confidence", { precision: 3, scale: 2 }).default("0").notNull(),
+  reviewStatus: text("review_status").default("advisory").notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewerNotes: text("reviewer_notes"),
+  metadataJson: jsonb("metadata_json").$type<Record<string, unknown>>().default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companySnapshotUnique: unique("price_snapshots_id_company_id_key").on(table.id, table.companyId),
+  sourceFk: foreignKey({
+    columns: [table.priceSourceId, table.companyId],
+    foreignColumns: [priceSources.id, priceSources.companyId],
+  }).onDelete("restrict"),
+  reviewerFk: foreignKey({
+    columns: [table.reviewedByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  snapshotKeyUnique: unique("price_snapshots_company_source_key").on(table.companyId, table.priceSourceId, table.snapshotKey),
+  amountCheck: check("price_snapshots_amount_check", sql`${table.amount} >= 0`),
+  confidenceCheck: check("price_snapshots_confidence_check", sql`${table.confidence} >= 0 AND ${table.confidence} <= 1`),
+  vatStatusCheck: check("price_snapshots_vat_status_check", sql`${table.vatStatus} in ('included', 'excluded', 'unknown')`),
+  freightStatusCheck: check("price_snapshots_freight_status_check", sql`${table.freightStatus} in ('included', 'excluded', 'unknown')`),
+  reviewStatusCheck: check("price_snapshots_review_status_check", sql`${table.reviewStatus} in ('draft', 'advisory', 'approved', 'rejected')`),
+  validityCheck: check("price_snapshots_validity_check", sql`${table.validUntil} IS NULL OR ${table.validFrom} IS NULL OR ${table.validUntil} >= ${table.validFrom}`),
+  sourceHashCheck: check("price_snapshots_source_document_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
+  snapshotLookupIdx: index("idx_price_snapshots_lookup").on(table.companyId, table.reviewStatus, table.validUntil),
+}));
 
 export const quotationItems = pgTable("quotation_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -351,6 +440,9 @@ export const quotationItems = pgTable("quotation_items", {
   sourceCellRange: text("source_cell_range"),
   sourceRuleVersion: text("source_rule_version"),
   transferIdempotencyKey: text("transfer_idempotency_key"),
+  priceSnapshotId: uuid("price_snapshot_id"),
+  priceSnapshotLockedAt: timestamp("price_snapshot_locked_at", { withTimezone: true }),
+  priceSnapshotStatus: text("price_snapshot_status").default("none").notNull(),
   discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }).default("20").notNull(),
   total: numeric("total", { precision: 20, scale: 2 }).notNull(),
@@ -362,9 +454,68 @@ export const quotationItems = pgTable("quotation_items", {
       columns: [table.quotationId, table.companyId],
       foreignColumns: [quotations.id, quotations.companyId],
     }).onDelete("no action"),
+    priceSnapshotFk: foreignKey({
+      columns: [table.priceSnapshotId, table.companyId],
+      foreignColumns: [priceSnapshots.id, priceSnapshots.companyId],
+    }).onDelete("restrict"),
     transferIdempotencyUnique: uniqueIndex("quotation_items_transfer_idempotency_idx").on(table.companyId, table.quotationId, table.transferIdempotencyKey).where(sql`${table.transferIdempotencyKey} IS NOT NULL`),
+  priceSnapshotStatusCheck: check("quotation_items_price_snapshot_status_check", sql`${table.priceSnapshotStatus} in ('none', 'attached', 'locked', 'stale', 'missing')`),
   };
 });
+
+export const quotationItemEvidence = pgTable("quotation_item_evidence", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  quotationId: uuid("quotation_id").notNull(),
+  quotationItemId: uuid("quotation_item_id").notNull(),
+  evidenceType: text("evidence_type").notNull(),
+  evidenceKey: text("evidence_key").notNull(),
+  priceSnapshotId: uuid("price_snapshot_id"),
+  sourceDocumentId: uuid("source_document_id"),
+  sourceProcessingRunId: uuid("source_processing_run_id"),
+  sourceQuantityRowId: uuid("source_quantity_row_id"),
+  sourceCellRange: text("source_cell_range"),
+  sourceDocumentHash: text("source_document_hash"),
+  capturedValueJson: jsonb("captured_value_json").$type<Record<string, unknown>>().default({}).notNull(),
+  status: text("status").default("current").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyEvidenceUnique: unique("quotation_item_evidence_id_company_id_key").on(table.id, table.companyId),
+  quotationFk: foreignKey({
+    columns: [table.quotationId, table.companyId],
+    foreignColumns: [quotations.id, quotations.companyId],
+  }).onDelete("cascade"),
+  quotationItemFk: foreignKey({
+    columns: [table.quotationItemId, table.quotationId, table.companyId],
+    foreignColumns: [quotationItems.id, quotationItems.quotationId, quotationItems.companyId],
+  }).onDelete("cascade"),
+  priceSnapshotFk: foreignKey({
+    columns: [table.priceSnapshotId, table.companyId],
+    foreignColumns: [priceSnapshots.id, priceSnapshots.companyId],
+  }).onDelete("restrict"),
+  documentFk: foreignKey({
+    columns: [table.sourceDocumentId, table.companyId],
+    foreignColumns: [documents.id, documents.companyId],
+  }).onDelete("restrict"),
+  processingRunFk: foreignKey({
+    columns: [table.sourceProcessingRunId, table.sourceDocumentId, table.companyId],
+    foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId],
+  }).onDelete("restrict"),
+  quantityRowFk: foreignKey({
+    columns: [table.sourceQuantityRowId, table.companyId],
+    foreignColumns: [normalizedQuantityRows.id, normalizedQuantityRows.companyId],
+  }).onDelete("restrict"),
+  creatorFk: foreignKey({
+    columns: [table.createdByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  evidenceKeyUnique: unique("quotation_item_evidence_key_unique").on(table.companyId, table.quotationItemId, table.evidenceKey),
+  evidenceTypeCheck: check("quotation_item_evidence_type_check", sql`${table.evidenceType} in ('quantity', 'price', 'rule', 'source')`),
+  statusCheck: check("quotation_item_evidence_status_check", sql`${table.status} in ('current', 'stale', 'superseded')`),
+  sourceHashCheck: check("quotation_item_evidence_source_hash_check", sql`${table.sourceDocumentHash} IS NULL OR length(${table.sourceDocumentHash}) >= 16`),
+  evidenceLookupIdx: index("idx_quotation_item_evidence_lookup").on(table.companyId, table.quotationId, table.quotationItemId),
+}));
 
 export const regulationAlerts = pgTable("regulation_alerts", {
   id: uuid("id").primaryKey().defaultRandom(),

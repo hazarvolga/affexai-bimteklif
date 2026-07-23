@@ -70,6 +70,7 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quotationId: quote.id, rowIds: [rows[0].id] }), }, tokenB)).status, 404);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.companyId, companyA.id), eq(schema.quotationItemEvidence.quotationId, quote.id)));
     if (runId) await db.delete(schema.normalizedQuantityRows).where(and(eq(schema.normalizedQuantityRows.processingRunId, runId), eq(schema.normalizedQuantityRows.companyId, companyA.id)));
     if (documentId) {
       await db.delete(schema.documentProcessingArtifacts).where(and(eq(schema.documentProcessingArtifacts.documentId, documentId), eq(schema.documentProcessingArtifacts.companyId, companyA.id)));

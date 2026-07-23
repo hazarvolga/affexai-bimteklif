@@ -1,0 +1,88 @@
+import assert from "node:assert/strict";
+import crypto from "node:crypto";
+import http from "node:http";
+import test from "node:test";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
+test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout: 30_000 }, async (t) => {
+  if (!process.env.DATABASE_URL) return t.skip("DATABASE_URL is required for the isolated HTTP integration test");
+  const [{ createApiApp }, schema, dbModule, { AuthService }] = await Promise.all([
+    import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"),
+  ]);
+  const { and, eq } = await import("drizzle-orm");
+  const db = dbModule.db;
+  const suffix = crypto.randomUUID();
+  const [companyA, companyB] = await Promise.all([
+    db.insert(schema.companies).values({ name: `Pricing Integration A ${suffix}` }).returning(),
+    db.insert(schema.companies).values({ name: `Pricing Integration B ${suffix}` }).returning(),
+  ]).then(([a, b]) => [a[0], b[0]] as const);
+  const [userA] = await db.insert(schema.users).values({ email: `pricing-a-${suffix}@example.test`, fullName: "Pricing Tenant A", emailVerified: new Date() }).returning();
+  const [userB] = await db.insert(schema.users).values({ email: `pricing-b-${suffix}@example.test`, fullName: "Pricing Tenant B", emailVerified: new Date() }).returning();
+  await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
+  const [client] = await db.insert(schema.clients).values({ companyId: companyA.id, name: "Pricing Integration Client", type: "company" }).returning();
+  const [quote] = await db.insert(schema.quotations).values({ companyId: companyA.id, clientId: client.id, quoteNumber: `PRICE-${suffix}`, projectName: "MEP Pricing Pilot", expiryDate: new Date(Date.now() + 86400000), subtotal: "1000", discountTotal: "0", vatTotal: "200", grandTotal: "1200" }).returning();
+  const [item] = await db.insert(schema.quotationItems).values({ companyId: companyA.id, quotationId: quote.id, description: "VRF dış ünite", unit: "adet", quantity: "2", unitPrice: "500", total: "1000" }).returning();
+  const tokenA = AuthService.generateToken({ userId: userA.id, companyId: companyA.id, role: "owner" });
+  const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
+  const app = createApiApp();
+  const server = http.createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
+  const request = (path: string, init: RequestInit = {}, token = tokenA) => fetch(`${base}${path}`, { ...init, headers: { Authorization: `Bearer ${token}`, ...(init.headers ?? {}) } });
+  const sourcePayload = { sourceType: "supplier_quote", name: "Pilot supplier snapshot", authority: "Pilot supplier", sourceDocumentIdentifier: `supplier-${suffix}`, sourceDocumentPayload: { version: "2026-07-23", supplier: "Pilot supplier", lines: 1 }, licenseStatus: "verified", jurisdiction: "TR", region: "İstanbul" };
+  let sourceId = "";
+  let snapshotId = "";
+  try {
+    const sourceResponse = await request("/api/pricing/sources", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(sourcePayload) });
+    assert.equal(sourceResponse.status, 201);
+    const source = await sourceResponse.json() as { id: string; sourceDocumentHash: string };
+    sourceId = source.id;
+    assert.match(source.sourceDocumentHash, /^[a-f0-9]{64}$/);
+    assert.equal((await request("/api/pricing/sources")).status, 200);
+    assert.equal((await request(`/api/pricing/sources/${sourceId}/snapshots`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ description: "VRF dış ünite", unit: "adet", amount: 525, currency: "TRY", positionCode: "M-001", sourceDocumentHash: source.sourceDocumentHash, validUntil: "2026-12-31T23:59:59.000Z", confidence: 0.92 }) })).status, 201);
+    const snapshotResponse = await request(`/api/pricing/snapshots?positionCode=M-001`);
+    assert.equal(snapshotResponse.status, 200);
+    const snapshots = await snapshotResponse.json() as Array<{ id: string; stale: boolean }>;
+    assert.equal(snapshots.length, 1);
+    assert.equal(snapshots[0].stale, false);
+    snapshotId = snapshots[0].id;
+    assert.equal((await request(`/api/pricing/snapshots?positionCode=M-001`, {}, tokenB)).status, 200);
+    assert.equal((await request(`/api/pricing/sources/${sourceId}/snapshots`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ description: "cross tenant", unit: "adet", amount: 1, sourceDocumentHash: source.sourceDocumentHash }) }, tokenB)).status, 404);
+    const preview = await request(`/api/quotations/${quote.id}/pricing-snapshot`);
+    assert.equal(preview.status, 200);
+    assert.equal((await preview.json() as { warnings: unknown[] }).warnings.length, 1);
+    const lock = await request(`/api/quotations/${quote.id}/pricing-snapshot/lock`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ items: [{ quotationItemId: item.id, priceSnapshotId: snapshotId }] }) });
+    assert.equal(lock.status, 200);
+    const lockBody = await lock.json() as { lockStatus: string; lockHash: string };
+    assert.equal(lockBody.lockStatus, "locked");
+    assert.match(lockBody.lockHash, /^[a-f0-9]{64}$/);
+    const afterLock = await request(`/api/quotations/${quote.id}/pricing-snapshot`);
+    const afterLockBody = await afterLock.json() as { quote: { pricingSnapshotLockStatus: string }; items: Array<{ stale: boolean; snapshot: { id: string } | null }> };
+    assert.equal(afterLockBody.quote.pricingSnapshotLockStatus, "locked");
+    assert.equal(afterLockBody.items[0].snapshot?.id, snapshotId);
+    assert.equal(afterLockBody.items[0].stale, false);
+    assert.equal((await request(`/api/quotations/${quote.id}/pricing-snapshot`, {}, tokenB)).status, 404);
+    const evidence = await db.select().from(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.quotationItemId, item.id), eq(schema.quotationItemEvidence.companyId, companyA.id)));
+    assert.equal(evidence.length, 1);
+    assert.equal(evidence[0].priceSnapshotId, snapshotId);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.quotationItemId, item.id), eq(schema.quotationItemEvidence.companyId, companyA.id)));
+    await db.delete(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, quote.id), eq(schema.quotationItems.companyId, companyA.id)));
+    await db.delete(schema.quotations).where(and(eq(schema.quotations.id, quote.id), eq(schema.quotations.companyId, companyA.id)));
+    if (snapshotId) await db.delete(schema.priceSnapshots).where(and(eq(schema.priceSnapshots.id, snapshotId), eq(schema.priceSnapshots.companyId, companyA.id)));
+    if (sourceId) await db.delete(schema.priceSources).where(and(eq(schema.priceSources.id, sourceId), eq(schema.priceSources.companyId, companyA.id)));
+    await db.delete(schema.clients).where(and(eq(schema.clients.id, client.id), eq(schema.clients.companyId, companyA.id)));
+    await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));
+    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userA.id));
+    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userB.id));
+    await db.delete(schema.users).where(eq(schema.users.id, userA.id));
+    await db.delete(schema.users).where(eq(schema.users.id, userB.id));
+    await db.delete(schema.companies).where(eq(schema.companies.id, companyA.id));
+    await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));
+  }
+});

@@ -48,10 +48,8 @@ export function Quotes() {
             <Button variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-4">
               <FileDown size={16} /> Dışa Aktar
             </Button>
-            <Button asChild className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-900/20 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
-              <Link to="/app/quotes/new">
-                <Plus size={16} /> Yeni Teklif
-              </Link>
+            <Button render={<Link to="/app/quotes/new" />} className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-900/20 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
+              <Plus size={16} /> Yeni Teklif
             </Button>
           </>
         }
@@ -135,18 +133,10 @@ export function Quotes() {
                       </TableCell>
                       <TableCell className="py-4 text-right pr-6" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors">
-                              <MoreHorizontal size={18} />
-                            </Button>
-                          </DropdownMenuTrigger>
+                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors"><MoreHorizontal size={18} /></Button>} />
                           <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-300 w-48 p-1">
-                            <DropdownMenuItem asChild className="text-[10px] font-black uppercase tracking-widest focus:bg-orange-600 focus:text-white cursor-pointer py-2">
-                              <Link to={`/app/quotes/${quote.id}`} className="w-full flex items-center gap-2">Görüntüle</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild className="text-[10px] font-black uppercase tracking-widest text-orange-500 focus:bg-zinc-800 focus:text-orange-500 cursor-pointer py-2">
-                              <Link to={`/app/quotes/${quote.id}`} className="w-full flex items-center gap-2">Revizyon Yap</Link>
-                            </DropdownMenuItem>
+                            <DropdownMenuItem render={<Link to={`/app/quotes/${quote.id}`} className="w-full flex items-center gap-2" />} className="text-[10px] font-black uppercase tracking-widest focus:bg-orange-600 focus:text-white cursor-pointer py-2">Görüntüle</DropdownMenuItem>
+                            <DropdownMenuItem render={<Link to={`/app/quotes/${quote.id}`} className="w-full flex items-center gap-2" />} className="text-[10px] font-black uppercase tracking-widest text-orange-500 focus:bg-zinc-800 focus:text-orange-500 cursor-pointer py-2">Revizyon Yap</DropdownMenuItem>
                             <div className="h-px bg-zinc-800 my-1" />
                             <DropdownMenuItem className="text-[10px] font-black uppercase tracking-widest focus:bg-zinc-800 cursor-pointer py-2 gap-2">
                               <Copy size={12} /> Kopyala

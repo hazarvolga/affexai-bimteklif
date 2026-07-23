@@ -379,3 +379,9 @@ Sentetik fixture paketi `fixtures/smartcheck/pilot-v1` altında oluşturuldu. Be
 SmartCheck çalışma alanı gerçek pilot dosyasını doğrudan işleme almadan önce kaynak önizlemesi gösterecek şekilde ayrıldı: `yükle → preview → MEP eşleme profili → kullanıcı onayı → process`. Üç deterministik MEP eşleme profili, bounded sheet/header örneklemesi, formül hücresi işaretleme, raw/normalized provenance paneli ve tenant-scoped operator kuyruğu eklendi. Başarısız işlemler için yalnızca açık retry endpoint’i bulunur; başarılı run’lar tekrar çalıştırılmaz.
 
 Tarayıcı smoke ve HTTP/PostgreSQL entegrasyon kanıtı local-only’dir. Faz 2 çıkışı hâlâ gerçek müşteri izinli beş dosya, teknik reviewer kayıtları ve production S3 credentials bekler; sentetik veri veya local storage bu kapının yerine geçmez.
+
+## 14. Faz 3 uygulama durumu
+
+Evidence Graph ve fiyat snapshot çekirdeği local pilot akışına eklendi. `price_sources`, `price_snapshots` ve `quotation_item_evidence` additive migration ile oluşturuldu; teklif ve kalem seviyesinde snapshot referansı, stale uyarısı ve deterministik fiyat kilit hash’i eklendi. Kaynak hash’i değişmeden aynı snapshot tekrar kullanılabiliyor; reviewer kararı olmadan `approved` üretilemiyor. Quote Detail ekranı fiyat kanıtının kilit/stale/eksik durumunu ve geçerlilik tarihini gösteriyor.
+
+Gerçek HTTP + PostgreSQL testi `src/server/routes/pricing.integration.test.ts` altında tenant sınırı, snapshot oluşturma, fiyat kilidi ve evidence persistence akışını doğruluyor. Bu faz canlı fiyat crawler’ı değildir: gerçek piyasa adaptörleri, resmî kaynak lisansı, teknik reviewer ve production S3 admission kapıları hâlâ açıktır.

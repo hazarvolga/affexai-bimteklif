@@ -63,6 +63,8 @@ export function QuoteDetail() {
   const [financials, setFinancials] = useState<any>(null);
   const [finLoading, setFinLoading] = useState(false);
   const [audit, setAudit] = useState<any>(null);
+  const [pricingSnapshot, setPricingSnapshot] = useState<any>(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
   const [calibrationForm, setCalibrationForm] = useState({ actualCost: '', actualDurationMonths: '', note: '' });
   const [calibrationSaving, setCalibrationSaving] = useState(false);
 
@@ -71,7 +73,20 @@ export function QuoteDetail() {
     fetchRecentAlerts();
     fetchFinancials();
     fetchAudit();
+    fetchPricingSnapshot();
   }, [id]);
+
+  const fetchPricingSnapshot = async () => {
+    setPricingLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/quotations/${id}/pricing-snapshot`);
+      if (res.ok) setPricingSnapshot(await res.json());
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPricingLoading(false);
+    }
+  };
 
   const fetchAudit = async () => {
     try {
@@ -241,17 +256,7 @@ export function QuoteDetail() {
         actions={
           <div className="flex flex-wrap gap-2">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  disabled={actionLoading} 
-                  variant="outline" 
-                  className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"
-                >
-                  <Download size={18} className="text-orange-500" />
-                  PDF Dosyası
-                  <ChevronDown size={14} className="text-zinc-500" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-zinc-500" /></Button>} />
               <DropdownMenuContent className="bg-zinc-900 border-zinc-800 text-zinc-300 w-56">
                 <DropdownMenuLabel className="text-xs text-zinc-500">Şablon Seçiniz</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-zinc-800" />
@@ -469,6 +474,41 @@ export function QuoteDetail() {
             </CardContent>
           </Card>
 
+          </SectionWrapper>
+
+          <SectionWrapper title="Fiyat kanıtı" description="Teklifte kullanılan fiyatların kaynağını, geçerlilik tarihini ve kilit durumunu gösterir.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-5">
+                {pricingLoading && !pricingSnapshot ? (
+                  <div className="flex items-center gap-2 text-xs text-zinc-500"><Loader2 size={14} className="animate-spin text-orange-500" /> Fiyat kanıtı yükleniyor...</div>
+                ) : pricingSnapshot ? (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck size={17} className={pricingSnapshot.quote?.pricingSnapshotLockStatus === 'locked' ? 'text-emerald-500' : 'text-amber-500'} />
+                        <span className="text-xs font-black uppercase tracking-widest text-zinc-300">{pricingSnapshot.quote?.pricingSnapshotLockStatus === 'locked' ? 'Fiyat kanıtı kilitli' : 'Fiyat kanıtı kilitli değil'}</span>
+                        {pricingSnapshot.quote?.pricingSnapshotLockHash && <span className="font-mono text-[10px] text-zinc-600">#{String(pricingSnapshot.quote.pricingSnapshotLockHash).slice(0, 12)}</span>}
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" onClick={fetchPricingSnapshot} disabled={pricingLoading} className="h-7 gap-1 text-[10px] font-bold text-zinc-500 hover:text-white"><RefreshCw size={12} className={cn(pricingLoading && 'animate-spin')} /> YENİLE</Button>
+                    </div>
+                    {pricingSnapshot.warnings?.length > 0 && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"><AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-500" /><span>{pricingSnapshot.warnings.length} kalemde fiyat snapshot eksik veya süresi geçmiş. Göndermeden önce kaynak kanıtını tamamlayın.</span></div>
+                    )}
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {(pricingSnapshot.items || []).map((entry: any) => (
+                        <div key={entry.item.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div><p className="text-xs font-semibold text-zinc-200">{entry.item.description}</p><p className="mt-1 text-[10px] text-zinc-500">{entry.item.quantity} {entry.item.unit}</p></div>
+                            <Badge className={cn('text-[9px] font-black', entry.missing || entry.stale ? 'border-amber-500/20 bg-amber-500/10 text-amber-300' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300')}>{entry.missing ? 'EKSİK' : entry.stale ? 'ESKİ' : 'KANITLI'}</Badge>
+                          </div>
+                          {entry.snapshot && <p className="mt-2 font-mono text-[10px] text-zinc-500">{Number(entry.snapshot.amount).toLocaleString('tr-TR')} {entry.snapshot.currency} · geçerlilik: {entry.snapshot.validUntil ? new Date(entry.snapshot.validUntil).toLocaleDateString('tr-TR') : 'süresiz'}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : <p className="text-xs text-zinc-500">Bu teklif için fiyat kanıtı bulunamadı.</p>}
+              </CardContent>
+            </Card>
           </SectionWrapper>
 
           <SectionWrapper title="Teklif Kalemleri" description="Detaylı ürün ve hizmet dökümü.">

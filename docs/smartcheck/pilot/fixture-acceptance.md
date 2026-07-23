@@ -37,6 +37,10 @@ Faz 2 API kanıtları:
 
 Bu senaryo gerçek müşteri dosyası veya production S3 kanıtı yerine sentetik acceptance katmanıdır.
 
+## Faz 3 fiyat kanıtı acceptance
+
+Fiyat snapshot akışı `docs/smartcheck/pilot/phase3-pricing-evidence.md` içindeki kaynak hash’i → snapshot → teklif kalemi → kilit hash’i zinciriyle doğrulanır. Süresi geçmiş snapshot kilitlenmeden önce açık kullanıcı kararı ister; başka tenant’ın kaynak veya snapshot’ı kullanılamaz.
+
 Faz 2 canlı smoke ekran kanıtı: `output/playwright/smartcheck-phase2-queue.png` (local-only; commit edilmesi zorunlu değildir).
 
 ## Komutlar

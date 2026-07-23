@@ -65,9 +65,7 @@ export function VerifyEmail() {
               <p className="text-sm text-zinc-400">
                 Hesabınız doğrulandı. Academy derslerinize güvenle devam edebilirsiniz.
               </p>
-              <Button asChild className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg shadow-orange-900/30">
-                <Link to="/login">Giriş Yap ve Başla</Link>
-              </Button>
+              <Button render={<Link to="/login" />} className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg shadow-orange-900/30">Giriş Yap ve Başla</Button>
             </div>
           )}
           
@@ -76,9 +74,7 @@ export function VerifyEmail() {
               <p className="text-sm text-zinc-400">
                 Bağlantı geçersiz veya süresi dolmuş olabilir. Lütfen yeni bir doğrulama bağlantısı talep edin.
               </p>
-              <Button asChild variant="outline" className="w-full h-12 border-zinc-800 text-zinc-300 hover:bg-zinc-800">
-                <Link to="/">Ana Sayfaya Dön</Link>
-              </Button>
+              <Button render={<Link to="/" />} variant="outline" className="w-full h-12 border-zinc-800 text-zinc-300 hover:bg-zinc-800">Ana Sayfaya Dön</Button>
             </div>
           )}
 
