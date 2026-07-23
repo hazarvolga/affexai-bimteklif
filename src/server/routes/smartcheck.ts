@@ -15,6 +15,7 @@ import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../
 import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import { sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
 const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip"], limit: SMARTCHECK_MAX_FILE_BYTES });
@@ -174,6 +175,18 @@ export function registerSmartCheckRoutes(app: Express) {
     res.status(202).json(run);
   });
 
+  app.post("/api/smartcheck/documents/:id/recover-stale", ...protectedStack, async (req, res) => {
+    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    const [latestRun] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun || !isProcessingRunStale(latestRun)) return res.status(409).json({ error: "Yalnız stale queued/running işlem kurtarılabilir.", code: "PROCESSING_RUN_NOT_STALE" });
+    const recoveredAt = new Date();
+    const [recovered] = await db.update(documentProcessingRuns).set({ status: "failed", currentStage: "failed", progressMessage: "Worker stale; operatör kurtarma kararı bekleniyor", errorCode: "WORKER_STALE", errorMessage: "Worker heartbeat eşiği aşıldı; işlem operatör kararıyla yeniden kuyruğa alınmalı.", completedAt: recoveredAt, updatedAt: recoveredAt }).where(and(eq(documentProcessingRuns.id, latestRun.id), eq(documentProcessingRuns.companyId, req.user.companyId))).returning();
+    await db.update(documents).set({ status: "failed", updatedAt: recoveredAt }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)));
+    await audit(req, "processing_stale_recovered", "processing_run", latestRun.id, { documentId: document.id, errorCode: "WORKER_STALE" });
+    res.json(recovered);
+  });
+
   app.get("/api/smartcheck/queue", authenticate, featureGate, readRateLimit, canReview, async (req, res) => {
     const queue = await db.select({
       id: documentProcessingRuns.id,
@@ -188,7 +201,7 @@ export function registerSmartCheckRoutes(app: Express) {
       updatedAt: documentProcessingRuns.updatedAt,
       fileName: documents.originalFileName,
     }).from(documentProcessingRuns).leftJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, req.user.companyId))).where(eq(documentProcessingRuns.companyId, req.user.companyId)).orderBy(desc(documentProcessingRuns.createdAt)).limit(25);
-    res.json(queue);
+    res.json(queue.map((run) => ({ ...run, isStale: isProcessingRunStale(run) })));
   });
 
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {

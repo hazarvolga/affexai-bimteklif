@@ -62,3 +62,6 @@ Minimum pilot signals:
 - quota exceeded count
 - registration/login success and failure counts
 - average quote creation latency
+- SmartCheck queued/running stale run count
+- SmartCheck worker retry and `WORKER_STALE` recovery count
+- SmartCheck processing duration and error-code breakdown

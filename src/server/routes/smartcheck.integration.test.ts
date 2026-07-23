@@ -57,6 +57,17 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     assert.equal(queue.status, 200);
     assert.ok((await queue.json() as Array<{ documentId: string }>).some((item) => item.documentId === documentId));
     assert.equal((await request("/api/smartcheck/queue", {}, tokenB)).status, 200);
+    await db.update(schema.documentProcessingRuns).set({ status: "running", currentStage: "parsing", startedAt: new Date("2020-01-01T00:00:00Z"), updatedAt: new Date("2020-01-01T00:00:00Z") }).where(and(eq(schema.documentProcessingRuns.id, runId), eq(schema.documentProcessingRuns.companyId, companyA.id)));
+    const staleQueue = await request("/api/smartcheck/queue");
+    const staleRun = (await staleQueue.json() as Array<{ id: string; isStale: boolean }>).find((item) => item.id === runId);
+    assert.equal(staleRun?.isStale, true);
+    assert.equal((await request(`/api/smartcheck/documents/${documentId}/recover-stale`, { method: "POST" }, tokenB)).status, 404);
+    const recover = await request(`/api/smartcheck/documents/${documentId}/recover-stale`, { method: "POST" });
+    assert.equal(recover.status, 200);
+    assert.equal((await recover.json() as { errorCode: string }).errorCode, "WORKER_STALE");
+    const retry = await request(`/api/smartcheck/documents/${documentId}/retry`, { method: "POST" });
+    assert.equal(retry.status, 202);
+    runId = (await retry.json() as { id: string }).id;
     await processor.processSmartCheckDocument({ companyId: companyA.id, documentId, processingRunId: runId });
     const rowsResponse = await request(`/api/smartcheck/documents/${documentId}/rows`);
     assert.equal(rowsResponse.status, 200);

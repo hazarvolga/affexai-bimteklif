@@ -282,6 +282,11 @@ retention, zero expected rows and incomplete documents fail closed before a
 pilot case is created. The real HTTP/PostgreSQL integration test covers these
 negative paths plus measurement, reviewer, idempotency and tenant isolation.
 
+F12 worker operations hardening is implemented: stale queued/running runs are
+reported in the operator queue, and a tenant-scoped `recover-stale` action marks
+the run `failed/WORKER_STALE` before the existing explicit retry path creates a
+new job. No automatic mutation or scheduler was added for the first pilot.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

@@ -601,3 +601,9 @@ Runbook: `docs/smartcheck/pilot/phase10-admission.md`. Placeholder örnek manife
 Pilot evidence API’si artık dış manifest validatorındaki zaman ve kaynak sınırlarını tekrar uygular: gelecekteki izin tarihi, admission tarihini kapsamayan retention, sıfır beklenen satır ve `completed` olmayan doküman pilot case oluşturamaz. Böylece repo dışındaki manifest kontrolü ile HTTP/PostgreSQL runtime kapısı arasında sessiz bir gevşeme kalmaz.
 
 `src/server/routes/pilot-evidence.integration.test.ts` gerçek lokal HTTP + PostgreSQL koşusunda future-consent, expired-retention ve zero-row negatif durumlarını; ardından normal ölçüm, reviewer, tenant izolasyonu ve idempotent measurement akışını doğrular. F11 gerçek müşteri dosyası veya S3 kanıtı değildir; F10 external admission girdileri hâlâ gereklidir.
+
+## 26. F12 uygulama durumu — Worker stale recovery ve operasyon görünürlüğü
+
+Processing run health katmanı eklendi. `queued/running` run’lar yapılandırılabilir heartbeat eşiğini (`SMARTCHECK_PROCESSING_STALE_MINUTES`, güvenli aralık 5–240 dakika) aşarsa queue’da `isStale` olarak görünür. `recover-stale` endpoint’i yalnız tenant-scoped yetkili operatör kararıyla run’ı `failed/WORKER_STALE` durumuna taşır; ardından mevcut açık `retry` endpoint’i yeni idempotency key ve Graphile job oluşturur. Otomatik status mutasyonu yoktur.
+
+`src/server/routes/smartcheck.integration.test.ts` stale queue görünürlüğünü, tenant negatifini, recovery → retry → yeniden processing zincirini doğrular. Operasyon runbook’u `docs/smartcheck/pilot/phase12-operations.md` içindedir. Bu faz worker process health ve DB gözlemlenebilirliğini güçlendirir; gerçek S3/restore ve müşteri pilotu yerine geçmez.

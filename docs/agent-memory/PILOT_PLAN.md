@@ -186,3 +186,7 @@ the example manifest must remain blocked until external evidence is supplied.
 The pilot evidence API now mirrors those admission invariants at runtime and
 rejects future consent, expired retention, zero-row cases and incomplete source
 documents before creating a pilot case.
+
+F12 now exposes stale worker runs and an operator-only recovery-to-retry path;
+the first pilot keeps recovery manual and auditable rather than enabling an
+automatic scheduler.
