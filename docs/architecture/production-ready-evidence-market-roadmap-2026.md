@@ -393,3 +393,11 @@ Kontrollü resmî kaynak istihbaratı local pilot akışına eklendi. YFK, TÜİ
 Gerçek HTTP + PostgreSQL entegrasyon testleri `src/server/routes/source-intelligence.integration.test.ts` ve `src/server/routes/regulations.integration.test.ts` içinde tenant izolasyonu, tekrar gönderim, reviewer onayı ve regulation advisory sınırını doğrular. `/app/regulations` artık doğrulanmamış “LIVE” etiketleri yerine adaptör kaydı, son başarı/hash ve bekleyen insan kararını gösterir.
 
 Bu fazın canlı admission kapıları: müşteri izinli en az 5 MEP dosyası, teknik reviewer adı/rolü/tarihi, her resmî kaynağın ticari kullanım/lisans doğrulaması, production S3-compatible credentials ve retention/backup politikası. Bunlar tamamlanmadan otomatik scheduler, crawler veya canonical fiyat/mevzuat yayını açılmayacaktır. Sonraki teknik faz, onaylı regulation diff'lerini etkilenen tekliflerle eşleştiren semantic impact analysis'tir.
+
+## 16. Faz 5 uygulama durumu
+
+Onaylı `regulation_diff` review item'ları artık her değişiklik için hash-bound `regulation_versions` advisory kaydı ve tenant-scoped alert üretir. `GET /api/regulations/versions/:id/affected-quotations` deterministic eşleme ile latest teklifleri ve kalemleri listeler; yürürlük tarihi `upcoming/effective/unknown` olarak görünür. Geçmiş teklif tutarları ve canonical `rule_registry` değişmez.
+
+Etki motoru yalnız düşük riskli, açıklanabilir sinyaller kullanır: labor/material kalem kategorileri ve sınırlı açıklama terimleri; tax/legal/procurement eşleşmeleri düşük güvenli quotation-wide advisory olarak döner. `/app/regulations` etki paneli kaynak metni, sürümü, önerilen eşleşmeyi ve güven sınırını gösterir.
+
+Faz 5 local HTTP + PostgreSQL acceptance testleri tenant izolasyonunu, reviewer → advisory version zincirini ve effective-date davranışını doğrular. Gerçek mevzuat yorumunu otomatikleştirme, canonical rule promotion, kullanıcı teklifini mutasyona uğratma ve hukuki/mühendislik onayı bu fazın dışındadır.

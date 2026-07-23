@@ -563,6 +563,60 @@ export const sourceReviewItems = pgTable("source_review_items", {
   idxQueue: index("idx_source_review_items_queue").on(table.companyId, table.status, table.itemType, table.createdAt),
 }));
 
+// ============================================================
+// SMARTCHECK PHASE 5 — ADVISORY REGULATION VERSIONS
+// ============================================================
+
+export const regulationVersions = pgTable("regulation_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  sourceReviewItemId: uuid("source_review_item_id").notNull(),
+  ingestionRunId: uuid("ingestion_run_id").notNull(),
+  versionKey: text("version_key").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  category: text("category").notNull(),
+  impactLevel: impactLevelEnum("impact_level").notNull(),
+  authority: text("authority").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  sourceDocumentIdentifier: text("source_document_identifier").notNull(),
+  sourceDocumentHash: text("source_document_hash").notNull(),
+  sourceVersion: text("source_version"),
+  sourceText: text("source_text").notNull(),
+  jurisdiction: text("jurisdiction").default("TR").notNull(),
+  contractType: text("contract_type"),
+  applicability: text("applicability"),
+  exceptions: text("exceptions"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  effectiveFrom: timestamp("effective_from", { withTimezone: true }),
+  effectiveUntil: timestamp("effective_until", { withTimezone: true }),
+  governanceStatus: text("governance_status").default("advisory").notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyVersionUnique: unique("regulation_versions_id_company_id_key").on(table.id, table.companyId),
+  versionKeyUnique: unique("regulation_versions_company_key").on(table.companyId, table.versionKey),
+  reviewItemFk: foreignKey({
+    columns: [table.sourceReviewItemId, table.companyId],
+    foreignColumns: [sourceReviewItems.id, sourceReviewItems.companyId],
+  }).onDelete("restrict"),
+  ingestionRunFk: foreignKey({
+    columns: [table.ingestionRunId, table.companyId],
+    foreignColumns: [sourceIngestionRuns.id, sourceIngestionRuns.companyId],
+  }).onDelete("restrict"),
+  reviewerFk: foreignKey({
+    columns: [table.reviewedByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  categoryCheck: check("regulation_versions_category_check", sql`${table.category} in ('tax', 'labor', 'material', 'procurement', 'legal')`),
+  statusCheck: check("regulation_versions_status_check", sql`${table.governanceStatus} in ('draft', 'advisory', 'approved', 'rejected')`),
+  hashCheck: check("regulation_versions_source_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
+  validityCheck: check("regulation_versions_validity_check", sql`${table.effectiveUntil} IS NULL OR ${table.effectiveFrom} IS NULL OR ${table.effectiveUntil} >= ${table.effectiveFrom}`),
+  idxLookup: index("idx_regulation_versions_lookup").on(table.companyId, table.governanceStatus, table.effectiveFrom),
+}));
+
 export const quotationItems = pgTable("quotation_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),

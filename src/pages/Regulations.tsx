@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { fetchWithAuth } from "@/lib/api";
 import { 
-  ShieldAlert, 
   RefreshCw, 
   Calendar, 
-  ExternalLink, 
   ArrowUpRight, 
-  CheckCircle2, 
-  Info,
   Loader2,
   FileSearch,
   MessageSquare,
-  AlertTriangle,
-  TrendingUp,
-  PieChart,
   ShieldCheck,
-  DollarSign,
   Zap,
-  BookOpen,
   Scale
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,12 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
-import { useNavigate } from "react-router-dom";
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { SourceIntelligencePanel } from '@/components/smartcheck/SourceIntelligencePanel';
+import { RegulationImpactPanel } from '@/components/smartcheck/RegulationImpactPanel';
 
 interface RegulationAlert {
   id: string;
@@ -208,6 +197,7 @@ export function Regulations() {
         {/* Right Column: Status & Sources */}
         <div className="space-y-8">
           <SourceIntelligencePanel />
+          <RegulationImpactPanel />
 
           <Card className="bg-zinc-900 border-zinc-800 overflow-hidden relative group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>

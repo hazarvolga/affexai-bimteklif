@@ -75,12 +75,17 @@ test("official source adapter ingest is hash-bound, review-gated, and tenant-iso
     const regulationItem = (await regulationQueue.json() as Array<{ id: string; itemType: string }>).find((item) => item.itemType === "regulation_diff");
     assert.ok(regulationItem);
     assert.equal((await request(`/api/source-intelligence/review-items/${regulationItem.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Değişiklik canonical rule üretmeden advisory olarak kabul edildi." }) })).status, 200);
+    const regulationVersions = await db.select().from(schema.regulationVersions).where(and(eq(schema.regulationVersions.companyId, companyA.id), eq(schema.regulationVersions.sourceReviewItemId, regulationItem.id)));
+    assert.equal(regulationVersions.length, 1);
+    assert.equal(regulationVersions[0].governanceStatus, "advisory");
     const [regulationRun] = await db.select().from(schema.sourceIngestionRuns).where(and(eq(schema.sourceIngestionRuns.id, regulationRunId), eq(schema.sourceIngestionRuns.companyId, companyA.id)));
     assert.equal(regulationRun.status, "approved");
     assert.equal((await request("/api/source-intelligence/review-queue", {}, tokenB)).status, 200);
     assert.equal((await request(`/api/source-intelligence/official-adapters/${adapterId}/ingest`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sourcePayload: payload }) }, tokenB)).status, 404);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    await db.delete(schema.regulationVersions).where(eq(schema.regulationVersions.companyId, companyA.id));
+    await db.delete(schema.regulationAlerts).where(eq(schema.regulationAlerts.companyId, companyA.id));
     await db.delete(schema.sourceReviewItems).where(eq(schema.sourceReviewItems.companyId, companyA.id));
     await db.delete(schema.sourceIngestionArtifacts).where(eq(schema.sourceIngestionArtifacts.companyId, companyA.id));
     await db.delete(schema.sourceIngestionRuns).where(eq(schema.sourceIngestionRuns.companyId, companyA.id));

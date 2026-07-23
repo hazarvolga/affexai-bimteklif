@@ -1,8 +1,9 @@
 import type { Express } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db";
-import { quotations, regulationAlerts } from "../../db/schema";
+import { quotationItems, quotations, regulationAlerts, regulationVersions } from "../../db/schema";
 import { RegulatoryIntelligenceService } from "../../services/regulations/regulatoryService";
+import { findRegulationQuotationImpact } from "../regulations/impact";
 import { authenticate, checkRole } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 
@@ -15,6 +16,40 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
       res.json(alerts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch alerts" });
+    }
+  });
+
+  app.get("/api/regulations/versions", authenticate, async (req, res) => {
+    try {
+      const versions = await db.select().from(regulationVersions)
+        .where(and(eq(regulationVersions.companyId, req.user.companyId), eq(regulationVersions.governanceStatus, "advisory")))
+        .orderBy(desc(regulationVersions.effectiveFrom), desc(regulationVersions.createdAt))
+        .limit(200);
+      res.json(versions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch regulation versions" });
+    }
+  });
+
+  app.get("/api/regulations/versions/:id/affected-quotations", authenticate, async (req, res) => {
+    try {
+      const [version] = await db.select().from(regulationVersions)
+        .where(and(eq(regulationVersions.id, req.params.id), eq(regulationVersions.companyId, req.user.companyId)));
+      if (!version) return res.status(404).json({ error: "Regulation version not found" });
+      const asOfValue = typeof req.query.asOf === "string" ? new Date(req.query.asOf) : new Date();
+      const asOf = Number.isNaN(asOfValue.getTime()) ? new Date() : asOfValue;
+      const quoteRows = await db.select().from(quotations)
+        .where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.isLatest, true)))
+        .orderBy(desc(quotations.updatedAt)).limit(500);
+      const quoteIds = quoteRows.map((quote) => quote.id);
+      const items = quoteIds.length
+        ? await db.select().from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), inArray(quotationItems.quotationId, quoteIds)))
+        : [];
+      const impactVersion = { ...version, category: version.category as "tax" | "labor" | "material" | "procurement" | "legal" };
+      const affectedQuotations = quoteRows.map((quote) => findRegulationQuotationImpact(impactVersion, quote, items, asOf)).filter((impact): impact is NonNullable<typeof impact> => Boolean(impact));
+      res.json({ version, asOf, count: affectedQuotations.length, affectedQuotations });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to calculate regulation impact" });
     }
   });
 

@@ -5,13 +5,15 @@ import { db } from "../../db";
 import {
   priceSnapshots,
   priceSources,
+  regulationAlerts,
+  regulationVersions,
   smartcheckAuditLogs,
   sourceIngestionArtifacts,
   sourceIngestionRuns,
   sourceIntelligenceAdapters,
   sourceReviewItems,
 } from "../../db/schema";
-import { assertAllowedSourceUrl, diffSourcePayload, getOfficialAdapter, normalizeOfficialPayload, OFFICIAL_ADAPTERS, sourcePayloadHash } from "../../smartcheck/sources/adapters";
+import { assertAllowedSourceUrl, diffSourcePayload, getOfficialAdapter, normalizeOfficialPayload, OFFICIAL_ADAPTERS, sourcePayloadHash, type NormalizedRegulationChange } from "../../smartcheck/sources/adapters";
 import { buildPriceSnapshotKey } from "../../smartcheck/pricing/snapshots";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
@@ -41,6 +43,18 @@ function parseDate(value: unknown) {
 
 function payloadSize(payload: unknown) {
   return Buffer.byteLength(JSON.stringify(payload));
+}
+
+function regulationChanges(payload: Record<string, unknown>) {
+  return Array.isArray(payload.changes)
+    ? payload.changes.filter((change): change is NormalizedRegulationChange => Boolean(change && typeof change === "object" && !Array.isArray(change)))
+    : [];
+}
+
+function optionalDate(value: unknown) {
+  if (typeof value !== "string" || !value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 async function audit(req: any, action: string, entityType: string, entityId: string, metadataJson: Record<string, unknown> = {}) {
@@ -202,7 +216,7 @@ export function registerSourceIntelligenceRoutes(app: Express) {
           }
         }
         if (normalized.changes.length > 0) {
-          const [reviewItem] = await tx.insert(sourceReviewItems).values({ companyId: req.user.companyId, ingestionRunId: createdRun.id, artifactId: diffArtifact.id, itemType: "regulation_diff", title: `${adapter.displayName} değişiklik incelemesi`, rationale: "Mevzuat değişikliği yalnızca reviewer kararı sonrası canonical rule adayına dönüşebilir; bu akış otomatik kural üretmez.", proposedPayloadJson: { changes: normalized.changes, diff }, status: "pending" }).returning({ id: sourceReviewItems.id });
+          const [reviewItem] = await tx.insert(sourceReviewItems).values({ companyId: req.user.companyId, ingestionRunId: createdRun.id, artifactId: diffArtifact.id, itemType: "regulation_diff", title: `${adapter.displayName} değişiklik incelemesi`, rationale: "Mevzuat değişikliği yalnızca reviewer kararı sonrası advisory regulation version olarak görünür; bu akış otomatik canonical rule üretmez.", proposedPayloadJson: { sourceVersion: normalized.sourceVersion, publishedAt: normalized.publishedAt, changes: normalized.changes, diff }, status: "pending" }).returning({ id: sourceReviewItems.id });
           reviewItemIds.push(reviewItem.id);
         }
         const finalStatus = reviewItemIds.length ? "awaiting_review" : diff.changed ? "diffed" : "unchanged";
@@ -227,13 +241,54 @@ export function registerSourceIntelligenceRoutes(app: Express) {
     const [item] = await db.select().from(sourceReviewItems).where(and(eq(sourceReviewItems.id, req.params.id), eq(sourceReviewItems.companyId, req.user.companyId)));
     if (!item) return res.status(404).json({ error: "Kaynak review item bulunamadı." });
     if (item.status !== "pending") return res.status(409).json({ error: "Review item daha önce karara bağlandı." });
-    const [updated] = await db.update(sourceReviewItems).set({ status, reviewedByUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: new Date() }).where(and(eq(sourceReviewItems.id, item.id), eq(sourceReviewItems.companyId, req.user.companyId))).returning();
-    if (item.priceSnapshotId) await db.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: textValue(req.body?.notes, 2000) || null }).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
-    const runItems = await db.select({ status: sourceReviewItems.status }).from(sourceReviewItems).where(and(eq(sourceReviewItems.ingestionRunId, item.ingestionRunId), eq(sourceReviewItems.companyId, req.user.companyId)));
-    if (runItems.length > 0 && runItems.every((runItem) => runItem.status !== "pending")) {
-      const runStatus = runItems.some((runItem) => runItem.status === "rejected") ? "rejected" : "approved";
-      await db.update(sourceIngestionRuns).set({ status: runStatus, updatedAt: new Date() }).where(and(eq(sourceIngestionRuns.id, item.ingestionRunId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
-    }
+    const reviewedAt = new Date();
+    let updated: typeof item;
+    await db.transaction(async (tx) => {
+      [updated] = await tx.update(sourceReviewItems).set({ status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: reviewedAt }).where(and(eq(sourceReviewItems.id, item.id), eq(sourceReviewItems.companyId, req.user.companyId))).returning();
+      if (item.priceSnapshotId) await tx.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null }).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
+      if (status === "approved" && item.itemType === "regulation_diff") {
+        const [run] = await tx.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.id, item.ingestionRunId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
+        const [adapter] = run ? await tx.select().from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.id, run.adapterId), eq(sourceIntelligenceAdapters.companyId, req.user.companyId))) : [];
+        const payload = item.proposedPayloadJson as Record<string, unknown>;
+        const changes = regulationChanges(payload);
+        if (run && adapter) {
+          for (const change of changes) {
+            const versionKey = sourcePayloadHash({ companyId: req.user.companyId, sourceReviewItemId: item.id, change });
+            const effectiveFrom = optionalDate(change.effectiveFrom);
+            await tx.insert(regulationVersions).values({
+              companyId: req.user.companyId,
+              sourceReviewItemId: item.id,
+              ingestionRunId: item.ingestionRunId,
+              versionKey,
+              title: change.title,
+              summary: change.summary,
+              category: change.category,
+              impactLevel: change.impactLevel,
+              authority: adapter.authority,
+              sourceUrl: run.sourceUrl,
+              sourceDocumentIdentifier: run.sourceDocumentIdentifier,
+              sourceDocumentHash: run.sourceHash ?? "",
+              sourceVersion: typeof payload.sourceVersion === "string" ? payload.sourceVersion : null,
+              sourceText: change.sourceText,
+              jurisdiction: adapter.jurisdiction,
+              applicability: change.applicability,
+              publishedAt: optionalDate(payload.publishedAt),
+              effectiveFrom,
+              governanceStatus: "advisory",
+              reviewedByUserId: req.user.userId,
+              reviewedAt,
+              updatedAt: reviewedAt,
+            }).onConflictDoNothing({ target: [regulationVersions.companyId, regulationVersions.versionKey] });
+            await tx.insert(regulationAlerts).values({ companyId: req.user.companyId, title: change.title, category: change.category, effectiveDate: effectiveFrom ?? reviewedAt, impactLevel: change.impactLevel, summary: change.summary, affectedModules: ["quotation-impact"] });
+          }
+        }
+      }
+      const runItems = await tx.select({ status: sourceReviewItems.status }).from(sourceReviewItems).where(and(eq(sourceReviewItems.ingestionRunId, item.ingestionRunId), eq(sourceReviewItems.companyId, req.user.companyId)));
+      if (runItems.length > 0 && runItems.every((runItem) => runItem.status !== "pending")) {
+        const runStatus = runItems.some((runItem) => runItem.status === "rejected") ? "rejected" : "approved";
+        await tx.update(sourceIngestionRuns).set({ status: runStatus, updatedAt: reviewedAt }).where(and(eq(sourceIngestionRuns.id, item.ingestionRunId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
+      }
+    });
     await audit(req, `source_review_${status}`, "source_review_item", item.id, { itemType: item.itemType, priceSnapshotId: item.priceSnapshotId, canonicalPromotion: false });
     res.json(updated);
   });
