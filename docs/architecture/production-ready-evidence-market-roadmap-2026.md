@@ -616,10 +616,12 @@ sözleşmesine alıyor; mevcut Express route’ları bu sözleşmeleri kullanıy
 `src/contracts/context-contracts.ts` bounded context, route operasyonu, mevcut
 write owner ve cutover durumunu makine tarafından doğrulanabilir bir envanterde
 tutuyor. `express-pilot` dışındaki bir write owner, context `cutover-ready`
-olmadan testte reddediliyor.
+olmadan testte reddediliyor. `pnpm contracts:generate` ile 5 JSON Schema ve 17
+kritik pilot yolu içeren OpenAPI 3.1 artifact’ı üretiliyor; route parity testi
+bu envanteri gerçek Express registry’siyle karşılaştırıyor.
 
 Bu bir NestJS/Next.js rewrite veya dual-write değildir. Tam F15 çıkışı için
-OpenAPI/JSON schema yayını, izole `teklifpro_next_local` üzerinde additive
-Prisma shadow schema, Express–Nest parity koşusu ve backup/restore kanıtı hâlâ
-gereklidir. Gerçek beş dosya ve production storage admission tamamlanmadan
-trafik devri yapılmayacaktır. Detay: `docs/architecture/contract-parity-foundation.md`.
+izole `teklifpro_next_local` üzerinde additive Prisma shadow schema,
+Express–Nest parity koşusu ve backup/restore kanıtı hâlâ gereklidir. Gerçek beş
+dosya ve production storage admission tamamlanmadan trafik devri
+yapılmayacaktır. Detay: `docs/architecture/contract-parity-foundation.md`.

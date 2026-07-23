@@ -17,7 +17,12 @@ first seam explicit without changing the pilot runtime:
 - the current Express SmartCheck routes consume the same schemas that a future
   NestJS controller can reuse;
 - the contract test rejects duplicate routes and a target write owner while a
-  context is still in `foundation`.
+  context is still in `foundation`;
+- `pnpm contracts:generate` publishes deterministic
+  `docs/architecture/generated/smartcheck.v1.json` and
+  `docs/architecture/generated/teklifpro.openapi.json` artifacts;
+- the route parity test compares the inventory with the actual Express route
+  registry so an undocumented or missing pilot route fails CI.
 
 ## Single-write-owner rule
 
@@ -45,7 +50,6 @@ been attached.
 
 The complete migration-foundation phase still needs:
 
-- OpenAPI/JSON schema publication from these contracts;
 - a shadow `teklifpro_next_local` database and additive Prisma schema;
 - old-Express vs future-Nest contract and tenant-negative parity runs;
 - backup/restore evidence and a documented rollback window.

@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://teklifpro.local/contracts/smartcheck.v1.json",
+  "title": "TeklifPro SmartCheck transport contracts",
+  "type": "object",
+  "properties": {
+    "SmartCheckUploadRequest": {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "mimeType": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "fileSizeBytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "fileName",
+        "mimeType",
+        "fileSizeBytes"
+      ],
+      "additionalProperties": true,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SmartCheckCompleteRequest": {
+      "type": "object",
+      "properties": {
+        "checksumSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "checksumSha256"
+      ],
+      "additionalProperties": true,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SmartCheckMappingRequest": {
+      "type": "object",
+      "properties": {
+        "profileId": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "sheet": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "positionCode": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "quantity": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "price": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "wastePercent": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "headerRow": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": true,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SmartCheckRowReviewRequest": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "rejected",
+            "accepted_exception"
+          ]
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "correction": {
+          "type": "object",
+          "properties": {
+            "positionCode": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "unit": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "quantity": {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            "price": {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            "wastePercent": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "additionalProperties": true,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SmartCheckTransferRequest": {
+      "type": "object",
+      "properties": {
+        "quotationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rowIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 5000
+        },
+        "overrides": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "quantity": {},
+              "unitPrice": {},
+              "costUnitPrice": {},
+              "wastePercent": {},
+              "vatPercent": {},
+              "priceSnapshotId": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "quotationId",
+        "rowIds"
+      ],
+      "additionalProperties": true,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  }
+}

@@ -1,0 +1,791 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TeklifPro pilot contract surface",
+    "version": "smartcheck.v1",
+    "description": "Generated request-boundary and cutover inventory. Express remains the pilot write owner."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/smartcheck/documents/uploads": {
+      "post": {
+        "operationId": "createUpload",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartCheckUploadRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/smartcheck/documents/{id}/content": {
+      "put": {
+        "operationId": "uploadContent",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/documents/{id}/complete": {
+      "post": {
+        "operationId": "completeUpload",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartCheckCompleteRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/smartcheck/documents/{id}/preview": {
+      "get": {
+        "operationId": "previewDocument",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/documents/{id}/mapping": {
+      "patch": {
+        "operationId": "updateMapping",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartCheckMappingRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/smartcheck/documents/{id}/process": {
+      "post": {
+        "operationId": "queueProcessing",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/documents/{id}/retry": {
+      "post": {
+        "operationId": "retryProcessing",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/documents/{id}/recover-stale": {
+      "post": {
+        "operationId": "recoverStaleProcessing",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/documents/{id}/status": {
+      "get": {
+        "operationId": "getDocumentStatus",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/documents/{id}/rows": {
+      "get": {
+        "operationId": "getNormalizedRows",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/queue": {
+      "get": {
+        "operationId": "getProcessingQueue",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation"
+      }
+    },
+    "/api/smartcheck/rows/{id}/review": {
+      "patch": {
+        "operationId": "reviewRow",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartCheckRowReviewRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/smartcheck/documents/{id}/transfer-to-quotation": {
+      "post": {
+        "operationId": "transferApprovedRows",
+        "tags": [
+          "smartcheck"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "foundation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartCheckTransferRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quotations/{id}": {
+      "get": {
+        "operationId": "getQuotation",
+        "tags": [
+          "quotations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "pilot-reference"
+      }
+    },
+    "/api/quotations": {
+      "post": {
+        "operationId": "createQuotation",
+        "tags": [
+          "quotations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "pilot-reference"
+      }
+    },
+    "/api/quotations/{id}/revision": {
+      "post": {
+        "operationId": "createRevision",
+        "tags": [
+          "quotations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "pilot-reference"
+      }
+    },
+    "/api/quotations/{id}/pdf": {
+      "get": {
+        "operationId": "generatePdf",
+        "tags": [
+          "quotations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "2XX": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client or authorization error"
+          }
+        },
+        "x-write-owner": "express-pilot",
+        "x-contract-status": "pilot-reference"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "SmartCheckUploadRequest": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1
+          },
+          "mimeType": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "fileSizeBytes": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "fileName",
+          "mimeType",
+          "fileSizeBytes"
+        ],
+        "additionalProperties": true,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "SmartCheckCompleteRequest": {
+        "type": "object",
+        "properties": {
+          "checksumSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "checksumSha256"
+        ],
+        "additionalProperties": true,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "SmartCheckMappingRequest": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "sheet": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "positionCode": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "price": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "wastePercent": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "headerRow": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": true,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "SmartCheckRowReviewRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected",
+              "accepted_exception"
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "correction": {
+            "type": "object",
+            "properties": {
+              "positionCode": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "unit": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "quantity": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "price": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "wastePercent": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": true,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "SmartCheckTransferRequest": {
+        "type": "object",
+        "properties": {
+          "quotationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rowIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 5000
+          },
+          "overrides": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "quantity": {},
+                "unitPrice": {},
+                "costUnitPrice": {},
+                "wastePercent": {},
+                "vatPercent": {},
+                "priceSnapshotId": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": [
+          "quotationId",
+          "rowIds"
+        ],
+        "additionalProperties": true,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    }
+  }
+}

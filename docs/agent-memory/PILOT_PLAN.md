@@ -191,7 +191,8 @@ F12 now exposes stale worker runs and an operator-only recovery-to-retry path;
 the first pilot keeps recovery manual and auditable rather than enabling an
 automatic scheduler.
 
-F15 foundation has started with reusable `smartcheck.v1` transport contracts
-and a bounded-context/write-owner inventory. Express remains the sole pilot
-write owner; NestJS/Prisma cutover is still gated by real pilot KPI, parity,
-backup and rollback evidence.
+F15 foundation has started with reusable `smartcheck.v1` transport contracts,
+generated JSON Schema/OpenAPI artifacts, an Express route parity check and a
+bounded-context/write-owner inventory. Express remains the sole pilot write
+owner; NestJS/Prisma cutover is still gated by real pilot KPI, parity, backup
+and rollback evidence.
