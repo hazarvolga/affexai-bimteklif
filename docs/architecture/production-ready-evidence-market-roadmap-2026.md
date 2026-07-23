@@ -385,3 +385,11 @@ Tarayıcı smoke ve HTTP/PostgreSQL entegrasyon kanıtı local-only’dir. Faz 2
 Evidence Graph ve fiyat snapshot çekirdeği local pilot akışına eklendi. `price_sources`, `price_snapshots` ve `quotation_item_evidence` additive migration ile oluşturuldu; teklif ve kalem seviyesinde snapshot referansı, stale uyarısı ve deterministik fiyat kilit hash’i eklendi. Kaynak hash’i değişmeden aynı snapshot tekrar kullanılabiliyor; reviewer kararı olmadan `approved` üretilemiyor. Quote Detail ekranı fiyat kanıtının kilit/stale/eksik durumunu ve geçerlilik tarihini gösteriyor.
 
 Gerçek HTTP + PostgreSQL testi `src/server/routes/pricing.integration.test.ts` altında tenant sınırı, snapshot oluşturma, fiyat kilidi ve evidence persistence akışını doğruluyor. Bu faz canlı fiyat crawler’ı değildir: gerçek piyasa adaptörleri, resmî kaynak lisansı, teknik reviewer ve production S3 admission kapıları hâlâ açıktır.
+
+## 15. Faz 4 uygulama durumu
+
+Kontrollü resmî kaynak istihbaratı local pilot akışına eklendi. YFK, TÜİK, GİB ve Resmî Gazete için tenant-scoped adapter registry; HTTPS host allowlist; raw/normalized/diff artifact zinciri; SHA-256 source hash ve idempotent run key; advisory price snapshot; regulation diff reviewer kuyruğu ve kaynak sağlık paneli hazırdır. `sourceReviewItems` kararı audit log'a yazılır; hiçbir ingest otomatik canonical mevzuat kuralı üretmez.
+
+Gerçek HTTP + PostgreSQL entegrasyon testleri `src/server/routes/source-intelligence.integration.test.ts` ve `src/server/routes/regulations.integration.test.ts` içinde tenant izolasyonu, tekrar gönderim, reviewer onayı ve regulation advisory sınırını doğrular. `/app/regulations` artık doğrulanmamış “LIVE” etiketleri yerine adaptör kaydı, son başarı/hash ve bekleyen insan kararını gösterir.
+
+Bu fazın canlı admission kapıları: müşteri izinli en az 5 MEP dosyası, teknik reviewer adı/rolü/tarihi, her resmî kaynağın ticari kullanım/lisans doğrulaması, production S3-compatible credentials ve retention/backup politikası. Bunlar tamamlanmadan otomatik scheduler, crawler veya canonical fiyat/mevzuat yayını açılmayacaktır. Sonraki teknik faz, onaylı regulation diff'lerini etkilenen tekliflerle eşleştiren semantic impact analysis'tir.

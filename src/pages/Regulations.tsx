@@ -18,7 +18,6 @@ import {
   DollarSign,
   Zap,
   BookOpen,
-  Wifi,
   Scale
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,6 +30,7 @@ import { useNavigate } from "react-router-dom";
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
+import { SourceIntelligencePanel } from '@/components/smartcheck/SourceIntelligencePanel';
 
 interface RegulationAlert {
   id: string;
@@ -95,7 +95,7 @@ export function Regulations() {
     <PageContainer>
       <PageHeader 
         title="Mevzuat İstihbaratı" 
-        description="Resmî Gazete ve ilgili kurumların güncel verileri AI ile analiz edilerek tekliflerinize yansıtılır."
+        description="Resmî kaynak değişiklikleri advisory olarak izlenir; reviewer onayı olmadan tekliflere veya kanonik kurallara uygulanmaz."
         icon={Scale}
         actions={
           <Button 
@@ -104,7 +104,7 @@ export function Regulations() {
             className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20"
           >
             {syncing ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-            AI Senkronizasyon
+            Advisory tarama
           </Button>
         }
       />
@@ -129,7 +129,7 @@ export function Regulations() {
               <CardContent className="flex flex-col items-center justify-center p-16 text-zinc-500 text-center">
                 <FileSearch size={48} className="mb-6 opacity-10" />
                 <p className="text-sm font-bold text-zinc-400 mb-2">Henüz bir mevzuat güncellemesi kayıtlı değil.</p>
-                <p className="text-xs text-zinc-600 mb-6 max-w-xs">AI asistanımızı kullanarak Resmî Gazete ve kurum verilerini tarayabilirsiniz.</p>
+                <p className="text-xs text-zinc-600 mb-6 max-w-xs">Kaynak değişikliğini önce advisory olarak inceleyin; reviewer onayı olmadan hiçbir kural veya fiyat değişmez.</p>
                 <Button onClick={handleSync} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-[10px] tracking-widest uppercase h-9 px-6">Taramayı Başlat</Button>
               </CardContent>
             </Card>
@@ -207,33 +207,7 @@ export function Regulations() {
 
         {/* Right Column: Status & Sources */}
         <div className="space-y-8">
-          <SectionWrapper title="Sistem Kaynakları" description="İzlenen resmi veri kanalları.">
-            <Card className="bg-zinc-900/20 border-zinc-800 shadow-none">
-              <CardContent className="p-4 space-y-2">
-                {[
-                  { name: "Resmî Gazete", status: "online", last: "2 dk önce" },
-                  { name: "GİB (Tebliğler)", status: "online", last: "15 dk önce" },
-                  { name: "SGK Duyuruları", status: "online", last: "1 saat önce" },
-                  { name: "TÜİK (Endeksler)", status: "online", last: "3 saat önce" },
-                  { name: "Kamu İhale Kurumu", status: "online", last: "6 saat önce" }
-                ].map((s, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-zinc-800 hover:bg-zinc-800/20 transition-all group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)] group-hover:scale-125 transition-transform"></div>
-                      <span className="text-[11px] font-black text-zinc-300 uppercase tracking-tight">{s.name}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[9px] text-zinc-600 uppercase font-black font-mono tracking-tighter">{s.last}</span>
-                      <div className="flex items-center gap-1">
-                        <Wifi size={8} className="text-emerald-500/50" />
-                        <span className="text-[8px] text-emerald-500/50 font-black uppercase">LIVE</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </SectionWrapper>
+          <SourceIntelligencePanel />
 
           <Card className="bg-zinc-900 border-zinc-800 overflow-hidden relative group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
@@ -250,13 +224,13 @@ export function Regulations() {
             </CardHeader>
             <CardContent>
               <p className="text-[11px] text-zinc-400 mb-6 leading-relaxed font-medium">
-                Mevzuat değişiklikleri tespit edildiğinde, etkilenen teklifleriniz için otomatik revizyon önerileri ve maliyet simülasyonları hazırlıyoruz.
+                Mevzuat diff'i tespit edildiğinde, reviewer onayından sonra etkilenen teklifler için advisory revizyon önerileri ve maliyet simülasyonları hazırlanır.
               </p>
               <div className="flex items-center justify-between p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800 group-hover:border-zinc-700 transition-colors">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Oto-Analiz</span>
-                  <span className="text-[9px] text-emerald-500 font-black uppercase flex items-center gap-1.5 tracking-widest">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> AKTİF
+                  <span className="text-[9px] text-amber-500 font-black uppercase flex items-center gap-1.5 tracking-widest">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ADVISORY
                   </span>
                 </div>
                 <div className="w-10 h-5 bg-orange-600 rounded-full flex items-center justify-end px-1 cursor-pointer">

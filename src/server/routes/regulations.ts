@@ -9,7 +9,9 @@ import { usageTracker } from "../middleware/usage";
 export function registerRegulationRoutes(app: Express, regulatoryService: RegulatoryIntelligenceService, canMutate: any) {
   app.get("/api/regulations/alerts", authenticate, async (req, res) => {
     try {
-      const alerts = await db.select().from(regulationAlerts).orderBy(desc(regulationAlerts.createdAt));
+      const alerts = await db.select().from(regulationAlerts)
+        .where(eq(regulationAlerts.companyId, req.user.companyId))
+        .orderBy(desc(regulationAlerts.createdAt));
       res.json(alerts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch alerts" });
@@ -23,6 +25,7 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
       if (newAlerts && newAlerts.length > 0) {
         const formattedAlerts = newAlerts.map(a => ({
           ...a,
+          companyId: req.user.companyId,
           effectiveDate: new Date(a.effectiveDate),
         }));
         await db.insert(regulationAlerts).values(formattedAlerts);
@@ -43,7 +46,7 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
         where: and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId)),
       });
       const alert = await db.query.regulationAlerts.findFirst({
-        where: eq(regulationAlerts.id, alertId),
+        where: and(eq(regulationAlerts.id, alertId), eq(regulationAlerts.companyId, req.user.companyId)),
       });
 
       if (!quote || !alert) return res.status(404).json({ error: "Quote or Alert not found" });

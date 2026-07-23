@@ -419,6 +419,150 @@ export const priceSnapshots = pgTable("price_snapshots", {
   snapshotLookupIdx: index("idx_price_snapshots_lookup").on(table.companyId, table.reviewStatus, table.validUntil),
 }));
 
+// ============================================================
+// SMARTCHECK PHASE 4 — CONTROLLED OFFICIAL SOURCE INGESTION
+// ============================================================
+
+export const sourceIntelligenceAdapters = pgTable("source_intelligence_adapters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  adapterKey: text("adapter_key").notNull(),
+  sourceKind: text("source_kind").notNull(),
+  displayName: text("display_name").notNull(),
+  authority: text("authority").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  allowedHost: text("allowed_host").notNull(),
+  jurisdiction: text("jurisdiction").default("TR").notNull(),
+  region: text("region"),
+  cadence: text("cadence").default("manual").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  configurationJson: jsonb("configuration_json").$type<Record<string, unknown>>().default({}).notNull(),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
+  lastSourceHash: text("last_source_hash"),
+  lastErrorCode: text("last_error_code"),
+  lastErrorMessage: text("last_error_message"),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyAdapterUnique: unique("source_intelligence_adapters_id_company_id_key").on(table.id, table.companyId),
+  adapterKeyUnique: unique("source_intelligence_adapters_company_key").on(table.companyId, table.adapterKey),
+  creatorFk: foreignKey({
+    columns: [table.createdByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  sourceKindCheck: check("source_intelligence_adapters_source_kind_check", sql`${table.sourceKind} in ('price', 'regulation', 'index')`),
+  adapterKeyCheck: check("source_intelligence_adapters_adapter_key_check", sql`${table.adapterKey} in ('yfk', 'tuik', 'gib', 'resmi_gazete')`),
+  cadenceCheck: check("source_intelligence_adapters_cadence_check", sql`${table.cadence} in ('manual', 'daily', 'weekly', 'monthly')`),
+  idxLookup: index("idx_source_intelligence_adapters_lookup").on(table.companyId, table.enabled, table.sourceKind),
+}));
+
+export const sourceIngestionRuns = pgTable("source_ingestion_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  adapterId: uuid("adapter_id").notNull(),
+  priceSourceId: uuid("price_source_id"),
+  runKey: text("run_key").notNull(),
+  sourceDocumentIdentifier: text("source_document_identifier").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  status: text("status").default("queued").notNull(),
+  sourceHash: text("source_hash"),
+  previousSourceHash: text("previous_source_hash"),
+  parserVersion: text("parser_version").notNull(),
+  httpStatus: integer("http_status"),
+  requestedByUserId: uuid("requested_by_user_id").notNull(),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  diffSummaryJson: jsonb("diff_summary_json").$type<Record<string, unknown>>().default({}).notNull(),
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyRunUnique: unique("source_ingestion_runs_id_company_id_key").on(table.id, table.companyId),
+  runKeyUnique: unique("source_ingestion_runs_company_run_key").on(table.companyId, table.runKey),
+  adapterFk: foreignKey({
+    columns: [table.adapterId, table.companyId],
+    foreignColumns: [sourceIntelligenceAdapters.id, sourceIntelligenceAdapters.companyId],
+  }).onDelete("restrict"),
+  priceSourceFk: foreignKey({
+    columns: [table.priceSourceId, table.companyId],
+    foreignColumns: [priceSources.id, priceSources.companyId],
+  }).onDelete("restrict"),
+  requesterFk: foreignKey({
+    columns: [table.requestedByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  statusCheck: check("source_ingestion_runs_status_check", sql`${table.status} in ('queued', 'fetching', 'quarantined', 'parsed', 'diffed', 'awaiting_review', 'approved', 'rejected', 'unchanged', 'failed')`),
+  sourceHashCheck: check("source_ingestion_runs_source_hash_check", sql`${table.sourceHash} IS NULL OR length(${table.sourceHash}) >= 16`),
+  idxLookup: index("idx_source_ingestion_runs_lookup").on(table.companyId, table.adapterId, table.status, table.createdAt),
+}));
+
+export const sourceIngestionArtifacts = pgTable("source_ingestion_artifacts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  ingestionRunId: uuid("ingestion_run_id").notNull(),
+  artifactType: text("artifact_type").notNull(),
+  storageKey: text("storage_key").notNull(),
+  contentType: text("content_type").notNull(),
+  checksumSha256: text("checksum_sha256").notNull(),
+  sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+  schemaVersion: integer("schema_version").default(1).notNull(),
+  payloadJson: jsonb("payload_json").$type<Record<string, unknown>>().default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyArtifactUnique: unique("source_ingestion_artifacts_id_company_id_key").on(table.id, table.companyId),
+  runArtifactUnique: unique("source_ingestion_artifacts_run_type_key").on(table.companyId, table.ingestionRunId, table.artifactType),
+  runFk: foreignKey({
+    columns: [table.ingestionRunId, table.companyId],
+    foreignColumns: [sourceIngestionRuns.id, sourceIngestionRuns.companyId],
+  }).onDelete("cascade"),
+  artifactTypeCheck: check("source_ingestion_artifacts_type_check", sql`${table.artifactType} in ('raw', 'normalized', 'diff', 'error')`),
+  checksumCheck: check("source_ingestion_artifacts_checksum_check", sql`length(${table.checksumSha256}) >= 16`),
+  sizeCheck: check("source_ingestion_artifacts_size_check", sql`${table.sizeBytes} >= 0`),
+  idxLookup: index("idx_source_ingestion_artifacts_lookup").on(table.companyId, table.ingestionRunId, table.artifactType),
+}));
+
+export const sourceReviewItems = pgTable("source_review_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  ingestionRunId: uuid("ingestion_run_id").notNull(),
+  artifactId: uuid("artifact_id"),
+  priceSnapshotId: uuid("price_snapshot_id"),
+  itemType: text("item_type").notNull(),
+  title: text("title").notNull(),
+  rationale: text("rationale").notNull(),
+  proposedPayloadJson: jsonb("proposed_payload_json").$type<Record<string, unknown>>().default({}).notNull(),
+  status: text("status").default("pending").notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewerNotes: text("reviewer_notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyReviewUnique: unique("source_review_items_id_company_id_key").on(table.id, table.companyId),
+  runFk: foreignKey({
+    columns: [table.ingestionRunId, table.companyId],
+    foreignColumns: [sourceIngestionRuns.id, sourceIngestionRuns.companyId],
+  }).onDelete("cascade"),
+  artifactFk: foreignKey({
+    columns: [table.artifactId, table.companyId],
+    foreignColumns: [sourceIngestionArtifacts.id, sourceIngestionArtifacts.companyId],
+  }).onDelete("restrict"),
+  priceSnapshotFk: foreignKey({
+    columns: [table.priceSnapshotId, table.companyId],
+    foreignColumns: [priceSnapshots.id, priceSnapshots.companyId],
+  }).onDelete("restrict"),
+  reviewerFk: foreignKey({
+    columns: [table.reviewedByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  itemTypeCheck: check("source_review_items_type_check", sql`${table.itemType} in ('price_snapshot', 'regulation_diff')`),
+  statusCheck: check("source_review_items_status_check", sql`${table.status} in ('pending', 'approved', 'rejected')`),
+  idxQueue: index("idx_source_review_items_queue").on(table.companyId, table.status, table.itemType, table.createdAt),
+}));
+
 export const quotationItems = pgTable("quotation_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
@@ -519,6 +663,7 @@ export const quotationItemEvidence = pgTable("quotation_item_evidence", {
 
 export const regulationAlerts = pgTable("regulation_alerts", {
   id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id),
   title: text("title").notNull(),
   category: text("category").notNull(),
   effectiveDate: timestamp("effective_date").notNull(),
@@ -526,7 +671,9 @@ export const regulationAlerts = pgTable("regulation_alerts", {
   summary: text("summary").notNull(),
   affectedModules: text("affected_modules").array(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  companyCreatedIdx: index("idx_regulation_alerts_company_created").on(table.companyId, table.createdAt),
+}));
 
 export const industries = pgTable("industries", {
   id: text("id").primaryKey(),

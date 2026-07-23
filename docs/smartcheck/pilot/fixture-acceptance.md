@@ -37,6 +37,12 @@ Faz 2 API kanıtları:
 
 Bu senaryo gerçek müşteri dosyası veya production S3 kanıtı yerine sentetik acceptance katmanıdır.
 
+## Faz 4 resmî kaynak acceptance
+
+`docs/smartcheck/pilot/phase4-source-intelligence.md` içindeki test, resmî kaynak adapter registry'sinin yalnız allowlist edilmiş HTTPS hostları kabul ettiğini, payload hash'i ile idempotent çalıştığını ve her fiyat/mevzuat diff'ini reviewer kararına bağladığını doğrular. Health ekranı kaynak hash'i ve son başarılı çalışma zamanını gösterir; adaptör kaydı yokken sistem sahte bir `LIVE` durumu göstermez.
+
+Bu acceptance sentetik kaynak payload'ı ile local PostgreSQL üzerinde çalışır. Gerçek crawler/scheduler, lisanslı kaynak erişimi, müşteri dosyaları, teknik reviewer kayıtları ve production S3 admission ayrı pilot kapılarıdır.
+
 ## Faz 3 fiyat kanıtı acceptance
 
 Fiyat snapshot akışı `docs/smartcheck/pilot/phase3-pricing-evidence.md` içindeki kaynak hash’i → snapshot → teklif kalemi → kilit hash’i zinciriyle doğrulanır. Süresi geçmiş snapshot kilitlenmeden önce açık kullanıcı kararı ister; başka tenant’ın kaynak veya snapshot’ı kullanılamaz.

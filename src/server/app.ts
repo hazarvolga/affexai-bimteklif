@@ -24,6 +24,7 @@ import { registerPilotRoutes } from "./routes/pilot";
 import { registerAcademyRoutes } from "./routes/academy";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
+import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { assertProductionEnvironment } from "./config/production";
 import { pruneExpiredRateLimits } from "./auth/security";
 
@@ -77,6 +78,7 @@ export function createApiApp() {
   registerAcademyRoutes(app);
   registerSmartCheckRoutes(app);
   registerPricingRoutes(app);
+  registerSourceIntelligenceRoutes(app);
 
   app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error("Unhandled API error:", error);

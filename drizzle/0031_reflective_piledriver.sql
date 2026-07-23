@@ -1,0 +1,3 @@
+ALTER TABLE "regulation_alerts" ADD COLUMN "company_id" uuid;--> statement-breakpoint
+ALTER TABLE "regulation_alerts" ADD CONSTRAINT "regulation_alerts_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "idx_regulation_alerts_company_created" ON "regulation_alerts" USING btree ("company_id","created_at");
