@@ -10,6 +10,8 @@ Bu klasör gerçek pilot kapısının kanıt sözleşmesidir. Örnek manifest do
 4. Production S3 bucket/prefix için encryption, least privilege, retention/lifecycle ve gerçek object smoke kanıtı kaydedilir.
 5. `pnpm smartcheck:pilot-check -- /guvenli/yol/pilot-admission.json` çalıştırılır.
 
+Güncel F10 runbook: `phase10-admission.md`. Tekrarlanabilir ve CI/operasyon kaydı için `--json --as-of=YYYY-MM-DD` seçenekleri kullanılabilir. Validator; beş dosya, approved reviewer kararı, tarih tutarlılığı ve güvenli S3 tenant prefix’i yoksa fail-closed davranır.
+
 Manifest secret içermez. Access key, secret key, token, müşteri dosyası veya izin belgesi repoya commit edilmez.
 
 ## Beş dosya için minimum sonuç kaydı

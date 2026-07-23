@@ -23,12 +23,15 @@ const valid = {
     competencyEvidenceReference: "HR-APPOINTMENT-01",
     scope: "unit quantity duplicate source cost integrity",
     appointedAt: "2026-07-23",
+    decision: "approved" as const,
+    decisionReference: "REVIEW-APPROVAL-01",
+    decisionAt: "2026-07-23",
   }],
   storage: {
     provider: "S3-compatible",
     bucket: "teklifpro-pilot",
     region: "eu-central-1",
-    prefix: "company-id/smartcheck",
+    prefix: "company-id/smartcheck/",
     encryptionVerified: true,
     leastPrivilegeVerified: true,
     retentionVerified: true,
@@ -37,7 +40,7 @@ const valid = {
 };
 
 test("pilot admission passes only with five permissioned files, reviewer and storage evidence", () => {
-  assert.deepEqual(validatePilotAdmission(valid), []);
+  assert.deepEqual(validatePilotAdmission(valid, { asOf: new Date("2026-07-23T12:00:00Z") }), []);
 });
 
 test("pilot admission rejects placeholders and incomplete external evidence", () => {
@@ -51,4 +54,32 @@ test("pilot admission rejects placeholders and incomplete external evidence", ()
   assert.ok(errors.includes("At least one technical reviewer is required."));
   assert.ok(errors.includes("storage.bucket is required."));
   assert.ok(errors.includes("storage.encryptionVerified must be verified."));
+});
+
+test("pilot admission rejects stale or temporally inconsistent consent evidence", () => {
+  const errors = validatePilotAdmission({
+    ...valid,
+    files: valid.files.map((file, index) => index === 0 ? {
+      ...file,
+      permissionGrantedAt: "2026-07-25",
+      retentionUntil: "2026-07-23",
+    } : file),
+  }, { asOf: new Date("2026-07-24T12:00:00Z") });
+  assert.ok(errors.includes("files[0].permissionGrantedAt cannot be in the future."));
+  assert.ok(errors.includes("files[0].retentionUntil cannot precede permissionGrantedAt."));
+  assert.ok(errors.includes("files[0].retentionUntil must cover the admission date."));
+});
+
+test("pilot admission requires an approved, unique technical reviewer and safe storage prefix", () => {
+  const errors = validatePilotAdmission({
+    ...valid,
+    technicalReviewers: [
+      { ...valid.technicalReviewers[0], decision: "pending" },
+      { ...valid.technicalReviewers[0] },
+    ],
+    storage: { ...valid.storage, prefix: "../shared" },
+  }, { asOf: new Date("2026-07-23T12:00:00Z") });
+  assert.ok(errors.includes("technicalReviewers[0].decision must be approved."));
+  assert.ok(errors.includes("technicalReviewers[1].userId must be unique."));
+  assert.ok(errors.includes("storage.prefix must be a safe tenant-scoped path ending with '/'."));
 });

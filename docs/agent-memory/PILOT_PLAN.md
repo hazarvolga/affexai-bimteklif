@@ -178,3 +178,7 @@ The next gate is not a framework rewrite: it is F10 pilot admission with five
 customer-permissioned MEP files, technical reviewer scope/decisions, and real
 S3/retention/restore evidence. F11–F12 measure the five-file pilot before any
 Next.js/NestJS traffic cutover.
+
+F10 admission preflight hardening is implemented and covered by four targeted
+tests plus the full 297-test suite. The preflight is deliberately fail-closed;
+the example manifest must remain blocked until external evidence is supplied.

@@ -270,6 +270,13 @@ The next execution phase is F10 pilot admission, followed by F11–F12 controlle
 file waves and operational hardening. The Next.js/NestJS migration remains a
 strangler cutover after measured pilot parity, not a pre-pilot rewrite.
 
+F10 technical preflight hardening is now implemented locally: admission dates
+are pin-able, consent/retention dates are checked, MEP discipline and unique
+reviewers are required, reviewer decision must be `approved`, and S3 prefixes
+must be safe tenant-scoped paths. The CLI supports deterministic `--as-of` and
+machine-readable `--json` output. The placeholder manifest remains blocked by
+design; real customer, reviewer and S3 evidence is still external.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

@@ -589,3 +589,9 @@ Kod tarafındaki bir sonraki genişleme NestJS/Next.js değildir. Önce F10 içi
 Bu dış kanıtlar gelmeden yapılan en doğru teknik çalışma, mevcut acceptance/negative testlerini CI kapısına bağlamak ve migration için contract/parity taslağını hazırlamaktır. Gerçek veriyi veya credential’ı sentetik fixture ile temsil etmek yasaktır.
 
 > Önceki bölümlerde “ilk uygulanabilir faz” olarak geçen sentetik fixture çalışması tamamlanmıştır; yürürlükteki sıra bu bölümdeki F10’dan başlar.
+
+## 24. F10 uygulama durumu — Admission preflight hardening
+
+F10’un teknik admission kapısı güçlendirildi. `validatePilotAdmission` artık admission tarihini deterministik olarak pinleyebiliyor; izin/retention tarihlerini, MEP disiplinini, reviewer duplicate durumunu, reviewer’ın `approved` kararını ve karar referansını, S3-compatible provider’ı ve güvenli `/` ile biten tenant prefix’ini fail-closed kontrol ediyor. `smartcheck:pilot-check` JSON ve `--as-of=YYYY-MM-DD` çıktısı üretiyor.
+
+Runbook: `docs/smartcheck/pilot/phase10-admission.md`. Placeholder örnek manifestin `blocked` dönmesi beklenen ve korunması gereken negatif kanıttır. Gerçek beş dosya, reviewer kayıtları ve S3 object/retention/restore kanıtı gelmediği için F10 production admission henüz geçilmiş sayılmaz.

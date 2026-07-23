@@ -21,14 +21,17 @@
       "role": "MEP Metraj/Teklif Uzmani",
       "competencyEvidenceReference": "CV_SERTIFIKA_VEYA_ATAMA_REFERANSI",
       "scope": "unit quantity duplicate source cost integrity",
-      "appointedAt": "YYYY-MM-DD"
+      "appointedAt": "YYYY-MM-DD",
+      "decision": "approved",
+      "decisionReference": "REVIEW_APPROVAL_REFERANSI",
+      "decisionAt": "YYYY-MM-DD"
     }
   ],
   "storage": {
     "provider": "S3-compatible",
     "bucket": "PILOT_BUCKET",
     "region": "REGION",
-    "prefix": "COMPANY_SCOPED_PREFIX",
+    "prefix": "COMPANY_SCOPED_PREFIX/",
     "encryptionVerified": false,
     "leastPrivilegeVerified": false,
     "retentionVerified": false,
