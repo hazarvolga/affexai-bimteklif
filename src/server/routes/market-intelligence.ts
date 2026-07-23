@@ -4,6 +4,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db";
 import {
   documents,
+  normalizedQuantityRows,
   priceSnapshots,
   priceSources,
   smartcheckAuditLogs,
@@ -171,6 +172,43 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     await db.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
     await audit(req, "supplier_quote_entries_created", "supplier_quote_submission", submission.id, { insertedCount: inserted.length, evaluations });
     res.status(inserted.length ? 201 : 200).json({ submissionId: submission.id, insertedCount: inserted.length, evaluations, entries: inserted });
+  });
+
+  app.post("/api/market-intelligence/supplier-quotes/:id/import-smartcheck-rows", ...mutateStack, async (req, res) => {
+    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
+    if (!submission.documentId) return res.status(409).json({ error: "Bu teklif SmartCheck kaynak dokümanına bağlı değil.", code: "SMARTCHECK_SOURCE_REQUIRED" });
+    if (submission.status === "approved" || submission.status === "rejected") return res.status(409).json({ error: "Karara bağlanmış tedarikçi teklifine satır aktarılamaz." });
+    const requestedRowIds = Array.isArray(req.body?.rowIds) ? req.body.rowIds.filter((id: unknown): id is string => typeof id === "string" && id.length > 0) : [];
+    if (requestedRowIds.length > 5000) return res.status(400).json({ error: "En fazla 5000 SmartCheck satırı aktarılabilir." });
+    const rows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.companyId, req.user.companyId), eq(normalizedQuantityRows.documentId, submission.documentId)));
+    const rowById = new Map(rows.map((row) => [row.id, row]));
+    if (requestedRowIds.some((id) => !rowById.has(id))) return res.status(404).json({ error: "Bir veya daha fazla SmartCheck satırı bu şirkete/kaynağa ait değil." });
+    const selected = (requestedRowIds.length ? requestedRowIds.map((id) => rowById.get(id)!) : rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception"));
+    if (!selected.length) return res.status(409).json({ error: "Aktarılabilir onaylı SmartCheck satırı bulunamadı.", code: "SMARTCHECK_ROWS_NOT_APPROVED" });
+    const notApproved = selected.filter((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception");
+    if (notApproved.length) return res.status(409).json({ error: "Piyasa hafızasına yalnız onaylı veya gerekçeli istisna SmartCheck satırları aktarılabilir.", code: "SMARTCHECK_ROWS_NOT_APPROVED", rowIds: notApproved.map((row) => row.id) });
+    const baselineRows = await approvedSamples(req.user.companyId, submission.currency);
+    const baselineSamples = baselineRows.map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
+    const inserts = [];
+    const evaluations = [];
+    for (const row of selected) {
+      const description = textValue(row.normalizedDescription ?? row.rawDescription, 500);
+      const unit = textValue(row.normalizedUnit ?? row.rawUnit, 40);
+      const quantity = numberValue(row.normalizedQuantity);
+      const unitPrice = numberValue(row.normalizedPrice);
+      if (!description || !unit || quantity === null || quantity <= 0 || unitPrice === null || unitPrice < 0) return res.status(409).json({ error: "Onaylı SmartCheck satırında aktarılabilir miktar/fiyat bulunamadı.", code: "SMARTCHECK_ROW_VALUES_MISSING", rowId: row.id });
+      const region = submission.region;
+      const evaluation = evaluateSupplierPrice(unitPrice, { positionCode: row.normalizedPositionCode ?? row.rawPositionCode, description, unit, region }, baselineSamples, completeness(submission, { region, vatStatus: submission.vatStatus, freightStatus: submission.freightStatus }));
+      const sourceRowKey = `smartcheck:${row.id}`;
+      evaluations.push({ sourceRowKey, normalizedQuantityRowId: row.id, ...evaluation });
+      inserts.push({ companyId: req.user.companyId, submissionId: submission.id, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceRowKey, positionCode: row.normalizedPositionCode ?? row.rawPositionCode ?? null, description, unit, quantity: String(quantity), unitPrice: String(unitPrice), currency: submission.currency, vatStatus: submission.vatStatus, vatPercent: submission.vatPercent, freightStatus: submission.freightStatus, region, validFrom: submission.quoteDate, validUntil: submission.validUntil, sourceCellRange: row.sourceCellRange, baselineCount: evaluation.baselineCount, outlierStatus: evaluation.outlierStatus, outlierScore: evaluation.outlierScore === null ? null : String(evaluation.outlierScore), confidence: String(evaluation.confidence), reviewStatus: "pending" as const });
+    }
+    const inserted = await db.insert(supplierQuoteEntries).values(inserts).onConflictDoNothing({ target: [supplierQuoteEntries.companyId, supplierQuoteEntries.submissionId, supplierQuoteEntries.sourceRowKey] }).returning();
+    const averageConfidence = inserted.length ? inserted.reduce((sum, entry) => sum + Number(entry.confidence), 0) / inserted.length : Number(submission.confidence);
+    await db.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    await audit(req, "supplier_quote_smartcheck_rows_imported", "supplier_quote_submission", submission.id, { selectedCount: selected.length, insertedCount: inserted.length, sourceDocumentId: submission.documentId, evaluations });
+    res.status(inserted.length ? 201 : 200).json({ submissionId: submission.id, sourceDocumentId: submission.documentId, selectedCount: selected.length, insertedCount: inserted.length, evaluations, entries: inserted });
   });
 
   app.patch("/api/market-intelligence/supplier-quote-entries/:id/review", ...mutateStack, async (req, res) => {

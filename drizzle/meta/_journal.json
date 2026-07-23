@@ -232,6 +232,13 @@
       "when": 1784837105146,
       "tag": "0033_fixed_arclight",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1784838118814,
+      "tag": "0034_closed_snowbird",
+      "breakpoints": true
     }
   ]
 }

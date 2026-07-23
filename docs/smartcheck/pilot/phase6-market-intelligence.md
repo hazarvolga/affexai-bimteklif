@@ -35,6 +35,7 @@ Bu sinyaller karar desteğidir; bölgesel ticari koşul, kapsam farkı veya tekl
 - `GET/POST /api/market-intelligence/supplier-quotes` — submission kuyruğu ve metadata;
 - `GET /api/market-intelligence/supplier-quotes/:id` — satır, baseline ve bulgular;
 - `POST /api/market-intelligence/supplier-quotes/:id/entries` — normalize edilmiş satırların idempotent eklenmesi;
+- `POST /api/market-intelligence/supplier-quotes/:id/import-smartcheck-rows` — onaylı SmartCheck satırlarını aynı provenance ile aktarma;
 - `PATCH /api/market-intelligence/supplier-quote-entries/:id/review` — approve/reject ve reviewer audit'i;
 - `GET /api/market-intelligence/price-memory` — yalnız tenant'ın approved snapshot özetleri ve örnekleri.
 
@@ -42,7 +43,7 @@ Tüm yüzeyler membership, rol, rate-limit, audit ve `companyId` izolasyonu uygu
 
 ## UI ve bilinçli sınırlar
 
-`/app/market-intelligence` ekranı mevcut SmartCheck güvenli upload yaşam döngüsünü kullanır; dosya hash'i ve tedarikçi metadata'sı kaydedilir, satır review kuyruğunda görünür. İlk beta satırları kontrollü manuel giriş olarak kabul eder; parser çıktısının otomatik satır eşlemesi sonraki küçük iterasyondur.
+`/app/market-intelligence` ekranı mevcut SmartCheck güvenli upload yaşam döngüsünü kullanır; dosya hash'i ve tedarikçi metadata'sı kaydedilir. Onaylı SmartCheck satırları aynı document/run/cell provenance ile reviewer kuyruğuna aktarılabilir. Parser sonucu olmayan kontrollü senaryolar için manuel satır girişi yalnız beta fallback’i olarak tutulur.
 
 Ekrandaki “firma fiyat hafızası” yalnız onaylı `supplier_quote` ve `company_actual` snapshot'larını gösterir. Gerçek tedarikçi fiyatı, crawler, API credential veya mevzuat güncellemesi bu fazda yoktur. Lisans, veri kullanım hakkı, S3 retention/backup ve en az üç firma/20 snapshot pilotu tamamlanmadan scheduler veya otomatik canonical fiyat açılmaz.
 

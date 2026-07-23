@@ -409,3 +409,11 @@ Faz 5 local HTTP + PostgreSQL acceptance testleri tenant izolasyonunu, reviewer 
 Outlier motoru üçten az karşılaştırılabilir örnekte `insufficient_data`, yeterli baseline'da median/MAD tabanlı `normal` veya `outlier` üretir. Outlier otomatik onaylanmaz; kullanıcı/reviewer açıkça karar vermeden fiyat kanonikleşmez. HTTP + PostgreSQL entegrasyon testi tenant izolasyonunu, review gate'i ve snapshot persistence'ı doğrular; browser kanıtı `/app/market-intelligence` ekranında alınmıştır.
 
 Bu faz otomatik crawler, gerçek tedarikçi API'si veya canlı piyasa fiyatı değildir. Sonraki admission kapıları: müşteri izinli beş MEP dosyası, teknik reviewer kayıtları, en az üç firma ve 20+ snapshot ile ölçüm, veri kullanım lisansı ve production S3 credentials/retention. Bu kapılar kapanmadan scheduler veya otomatik fiyat mutasyonu açılmayacaktır.
+
+## 18. Faz 6.5 uygulama durumu — Provenance Bridge
+
+SmartCheck’te onaylanan veya gerekçeli istisna olarak kabul edilen satırlar, `/api/market-intelligence/supplier-quotes/:id/import-smartcheck-rows` üzerinden tedarikçi teklifine ikinci kez manuel yazılmadan aktarılabilir. `supplier_quote_entries` artık `sourceProcessingRunId` ve `sourceQuantityRowId` ile aynı şirketin processing run/normalized row zincirine bağlıdır; source cell range korunur. Pending/rejected SmartCheck satırı aktarım kapısından geçemez.
+
+Bu fazın ölçülebilir faydası, aynı satırın iki kez girilmesini kaldırmak ve provenance kaybını azaltmaktır. Aktarım hâlâ reviewer kuyruğunda başlar; approved `price_snapshot` yalnız reviewer kararıyla oluşur. Browser ekranında SmartCheck kaynaklı ve manuel beta kaynaklı entry ayrımı gösterilir.
+
+Faz 6.5 sonrası sıra: izinli gerçek dosyalarda parser doğruluğu ve 3 firma/20+ snapshot pilot ölçümü. Bu ölçümler tamamlanmadan NestJS/Next.js strangler migration route trafiğini devralmayacak; mevcut Express/Vite çekirdeği rollback yüzeyi olarak korunacaktır.

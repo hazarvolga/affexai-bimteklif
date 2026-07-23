@@ -1011,6 +1011,8 @@ export const supplierQuoteEntries = pgTable("supplier_quote_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
   submissionId: uuid("submission_id").notNull(),
+  sourceProcessingRunId: uuid("source_processing_run_id"),
+  sourceQuantityRowId: uuid("source_quantity_row_id"),
   sourceRowKey: text("source_row_key").notNull(),
   positionCode: text("position_code"),
   description: text("description").notNull(),
@@ -1043,6 +1045,14 @@ export const supplierQuoteEntries = pgTable("supplier_quote_entries", {
     columns: [table.submissionId, table.companyId],
     foreignColumns: [supplierQuoteSubmissions.id, supplierQuoteSubmissions.companyId],
   }).onDelete("cascade"),
+  sourceRunFk: foreignKey({
+    columns: [table.sourceProcessingRunId, table.companyId],
+    foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.companyId],
+  }).onDelete("restrict"),
+  sourceRowFk: foreignKey({
+    columns: [table.sourceQuantityRowId, table.companyId],
+    foreignColumns: [normalizedQuantityRows.id, normalizedQuantityRows.companyId],
+  }).onDelete("restrict"),
   reviewerFk: foreignKey({
     columns: [table.reviewerUserId, table.companyId],
     foreignColumns: [memberships.userId, memberships.companyId],

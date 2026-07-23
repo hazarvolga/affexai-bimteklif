@@ -1,0 +1,4 @@
+ALTER TABLE "supplier_quote_entries" ADD COLUMN "source_processing_run_id" uuid;--> statement-breakpoint
+ALTER TABLE "supplier_quote_entries" ADD COLUMN "source_quantity_row_id" uuid;--> statement-breakpoint
+ALTER TABLE "supplier_quote_entries" ADD CONSTRAINT "supplier_quote_entries_source_processing_run_id_company_id_document_processing_runs_id_company_id_fk" FOREIGN KEY ("source_processing_run_id","company_id") REFERENCES "public"."document_processing_runs"("id","company_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "supplier_quote_entries" ADD CONSTRAINT "supplier_quote_entries_source_quantity_row_id_company_id_normalized_quantity_rows_id_company_id_fk" FOREIGN KEY ("source_quantity_row_id","company_id") REFERENCES "public"."normalized_quantity_rows"("id","company_id") ON DELETE restrict ON UPDATE no action;
