@@ -8,6 +8,20 @@ import { createStorageAdapter } from "./storage";
 import { detectAndValidateFile, sanitizeSpreadsheetText, sha256, validateXlsxArchive } from "./file-security";
 import { type ColumnMapping, type ParsedQuantityRow, suggestMapping, validateRows } from "./normalize";
 
+export type PreviewSheet = {
+  name: string;
+  rowCount: number;
+  columnCount: number;
+  sampleRows: string[][];
+  suggestedMapping: ColumnMapping;
+  formulaCells: string[];
+};
+
+export type DocumentPreview = {
+  kind: "xlsx" | "csv";
+  sheets: PreviewSheet[];
+};
+
 function cellText(cell: ExcelJS.Cell, formulaJson: Record<string, string>): string {
   const value = cell.value;
   if (value && typeof value === "object" && "formula" in value) {
@@ -19,6 +33,17 @@ function cellText(cell: ExcelJS.Cell, formulaJson: Record<string, string>): stri
 
 function headerIndex(headers: string[], mapped?: string): number {
   return mapped ? headers.findIndex((header) => header.trim() === mapped.trim()) : -1;
+}
+
+function excelColumnName(columnNumber: number): string {
+  let value = Math.max(1, columnNumber);
+  let name = "";
+  while (value > 0) {
+    const remainder = (value - 1) % 26;
+    name = String.fromCharCode(65 + remainder) + name;
+    value = Math.floor((value - 1) / 26);
+  }
+  return name;
 }
 
 function fromMatrix(sheetName: string, matrix: Array<Array<string>>, mappingInput: ColumnMapping = {}, formulas: Record<number, Record<string, string>> = {}) {
@@ -37,12 +62,63 @@ function fromMatrix(sheetName: string, matrix: Array<Array<string>>, mappingInpu
     const sourceRowNumber = headerRow + offset + 1;
     const read = (index: number) => index < 0 ? "" : String(values[index] ?? "");
     rows.push({
-      sheetName, sourceRowNumber, sourceCellRange: `A${sourceRowNumber}:${String.fromCharCode(64 + Math.min(headers.length, 26))}${sourceRowNumber}`,
+      sheetName, sourceRowNumber, sourceCellRange: `A${sourceRowNumber}:${excelColumnName(Math.min(headers.length, 256))}${sourceRowNumber}`,
       rawPositionCode: read(indices.positionCode), rawDescription: read(indices.description), rawUnit: read(indices.unit),
       rawQuantity: read(indices.quantity), rawPrice: read(indices.price), rawWastePercent: read(indices.wastePercent), formulaJson: formulas[sourceRowNumber] ?? {},
     });
   });
   return { rows, mapping };
+}
+
+function previewSheet(name: string, matrix: string[][], formulaCells: string[] = []): PreviewSheet {
+  const nonEmptyRows = matrix.filter((row) => row.some((value) => String(value ?? "").trim() !== ""));
+  const headers = nonEmptyRows[0] ?? [];
+  const columnCount = nonEmptyRows.reduce((max, row) => Math.max(max, row.length), 0);
+  return {
+    name,
+    rowCount: nonEmptyRows.length,
+    columnCount,
+    sampleRows: nonEmptyRows.slice(0, 21).map((row) => row.slice(0, 32)),
+    suggestedMapping: suggestMapping(headers),
+    formulaCells: formulaCells.slice(0, 50),
+  };
+}
+
+/**
+ * Reads only a bounded preview and never writes normalized rows. The route
+ * uses this before mapping/process so a reviewer can see the source shape.
+ */
+export async function inspectDocument(content: Buffer, kind: "xlsx" | "csv"): Promise<DocumentPreview> {
+  if (kind === "csv") {
+    const records = parseCsv(content, { bom: true, relax_column_count: true, skip_empty_lines: true }) as unknown[][];
+    const formulaCells: string[] = [];
+    const matrix = records.map((record, rowIndex) => record.map((value, columnIndex) => {
+      const raw = String(value ?? "");
+      if (/^[=+\-@]/.test(raw)) formulaCells.push(`CSV!${excelColumnName(columnIndex + 1)}${rowIndex + 1}`);
+      return sanitizeSpreadsheetText(raw);
+    }));
+    return { kind, sheets: [previewSheet("CSV", matrix, formulaCells)] };
+  }
+
+  await validateXlsxArchive(content);
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(content as unknown as ExcelJS.Buffer);
+  const sheets = workbook.worksheets.map((worksheet) => {
+    const matrix: string[][] = [];
+    const formulaCells: string[] = [];
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      const values: string[] = [];
+      for (let column = 1; column <= row.cellCount; column += 1) {
+        const cell = row.getCell(column);
+        const value = cell.value;
+        if (value && typeof value === "object" && "formula" in value) formulaCells.push(`${worksheet.name}!${cell.address}`);
+        values.push(sanitizeSpreadsheetText(cellText(cell, {})));
+      }
+      matrix[rowNumber - 1] = values;
+    });
+    return previewSheet(worksheet.name, matrix, formulaCells);
+  });
+  return { kind, sheets };
 }
 
 async function parseDocument(content: Buffer, kind: "xlsx" | "csv", mapping: ColumnMapping) {

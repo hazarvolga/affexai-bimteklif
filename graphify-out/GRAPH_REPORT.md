@@ -1,12 +1,12 @@
 # Graph Report - TeklifPro-repo  (2026-07-23)
 
 ## Corpus Check
-- 228 files · ~245,814 words
+- 231 files · ~254,210 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 758 nodes · 914 edges · 49 communities detected
-- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 211 edges (avg confidence: 0.76)
+- 770 nodes · 937 edges · 49 communities detected
+- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 219 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -61,7 +61,7 @@
 - [[_COMMUNITY_Community 94|Community 94]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `fetchWithAuth()` - 20 edges
+1. `fetchWithAuth()` - 24 edges
 2. `NotebookLibrary` - 18 edges
 3. `startServer()` - 18 edges
 4. `BrowserFactory` - 15 edges
@@ -75,28 +75,28 @@
 ## Surprising Connections (you probably didn't know these)
 - `_inject_cookies()` --calls--> `exists()`  [INFERRED]
   notebooklm/scripts/browser_utils.py → scripts/allplan-source-inventory.mjs
-- `syncAllplanLessonProgress()` --calls--> `fetchWithAuth()`  [INFERRED]
-  src/academy/allplan/progress.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts
-- `syncAllplanLessonTime()` --calls--> `fetchWithAuth()`  [INFERRED]
-  src/academy/allplan/progress.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts
-- `syncAllplanLessonCheckpoint()` --calls--> `fetchWithAuth()`  [INFERRED]
-  src/academy/allplan/progress.ts → /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts
+- `generateWithAi()` --calls--> `fetchWithAuth()`  [INFERRED]
+  /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/QuoteEditor.tsx → src/lib/api.ts
 - `ProtectedRoute()` --calls--> `useAuth()`  [INFERRED]
   /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/auth/ProtectedRoute.tsx → src/hooks/useAuth.tsx
+- `Input()` --calls--> `main()`  [INFERRED]
+  /Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/input.tsx → notebooklm/scripts/cleanup_manager.py
+- `ensure_venv()` --calls--> `exists()`  [INFERRED]
+  notebooklm/scripts/run.py → scripts/allplan-source-inventory.mjs
 
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.06
-Nodes (39): load(), ask_notebooklm(), Ask a question to NotebookLM      Args:         question: Question to ask, AuthManager, main(), Save browser state to disk, Save authentication metadata, Clear all authentication data          Returns:             True if cleared succ (+31 more)
+Cohesion: 0.07
+Nodes (37): ask_notebooklm(), Ask a question to NotebookLM      Args:         question: Question to ask, AuthManager, main(), Save browser state to disk, Save authentication metadata, Clear all authentication data          Returns:             True if cleared succ, Perform re-authentication (clear and setup)          Args:             headless: (+29 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.06
-Nodes (30): loadAcademy(), fetchWithAuth(), fetchClients(), handleCreate(), generateWithAi(), handleSave(), removeItem(), analyzeDeal() (+22 more)
+Cohesion: 0.05
+Nodes (35): loadAcademy(), fetchWithAuth(), fetchClients(), handleCreate(), generateWithAi(), handleSave(), removeItem(), analyzeDeal() (+27 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.1
-Nodes (19): registerAcademyRoutes(), registerAiRoutes(), createApiApp(), startServer(), checkRole(), registerAuthRoutes(), registerBillingRoutes(), registerClientRoutes() (+11 more)
+Nodes (20): registerAcademyRoutes(), registerAiRoutes(), createApiApp(), startServer(), checkRole(), registerAuthRoutes(), registerBillingRoutes(), registerClientRoutes() (+12 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.09
@@ -115,20 +115,20 @@ Cohesion: 0.09
 Nodes (11): AIService, calculateLineItemTotal(), calculateQuotationTotals(), normalizeLineItem(), roundMoney(), toFiniteNumber(), validateLineItem(), calculateQuotationFinancials() (+3 more)
 
 ### Community 7 - "Community 7"
+Cohesion: 0.13
+Nodes (14): load(), _inject_cookies(), detectAndValidateFile(), sha256(), validateXlsxArchive(), suggestMapping(), validateRows(), fromMatrix() (+6 more)
+
+### Community 8 - "Community 8"
 Cohesion: 0.14
 Nodes (11): CleanupManager, main(), Get size of file or directory in bytes, Format size in human-readable form, Manages cleanup of NotebookLM skill data      Features:     - Preview what will, Perform the actual cleanup          Args:             preserve_library: Keep lib, Print a preview of what will be cleaned, Command-line interface for cleanup management (+3 more)
 
-### Community 8 - "Community 8"
+### Community 9 - "Community 9"
 Cohesion: 0.12
 Nodes (9): guardedRateLimit(), issueAuthAction(), smartcheckImportEnabled(), consumeRateLimit(), createActionToken(), hashActionToken(), rateLimitStorageKey(), featureGate() (+1 more)
 
-### Community 9 - "Community 9"
-Cohesion: 0.16
-Nodes (10): evaluateEvidenceFiles(), canReleaseAllplanLesson(), evaluateAllplanContentReview(), present(), normalizeLesson(), normalizeNode(), parseMinutes(), slugify() (+2 more)
-
 ### Community 10 - "Community 10"
 Cohesion: 0.16
-Nodes (11): detectAndValidateFile(), sha256(), validateXlsxArchive(), suggestMapping(), validateRows(), fromMatrix(), headerIndex(), parseDocument() (+3 more)
+Nodes (10): evaluateEvidenceFiles(), canReleaseAllplanLesson(), evaluateAllplanContentReview(), present(), normalizeLesson(), normalizeNode(), parseMinutes(), slugify() (+2 more)
 
 ### Community 11 - "Community 11"
 Cohesion: 0.14
@@ -339,14 +339,14 @@ Nodes (1): Click with realistic movement
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `load()` connect `Community 0` to `Community 1`, `Community 10`, `Community 5`?**
-  _High betweenness centrality (0.067) - this node is a cross-community bridge._
-- **Why does `exists()` connect `Community 4` to `Community 0`, `Community 5`, `Community 7`?**
-  _High betweenness centrality (0.066) - this node is a cross-community bridge._
-- **Why does `fetchWithAuth()` connect `Community 1` to `Community 0`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
-- **Are the 19 inferred relationships involving `fetchWithAuth()` (e.g. with `syncAllplanProgress()` and `syncAllplanLessonProgress()`) actually correct?**
-  _`fetchWithAuth()` has 19 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `load()` connect `Community 7` to `Community 0`, `Community 1`, `Community 5`?**
+  _High betweenness centrality (0.075) - this node is a cross-community bridge._
+- **Why does `fetchWithAuth()` connect `Community 1` to `Community 7`?**
+  _High betweenness centrality (0.072) - this node is a cross-community bridge._
+- **Why does `exists()` connect `Community 4` to `Community 8`, `Community 0`, `Community 5`, `Community 7`?**
+  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+- **Are the 23 inferred relationships involving `fetchWithAuth()` (e.g. with `syncAllplanProgress()` and `syncAllplanLessonProgress()`) actually correct?**
+  _`fetchWithAuth()` has 23 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `NotebookLibrary` (e.g. with `Ask a question to NotebookLM      Args:         question: Question to ask` and `main()`) actually correct?**
   _`NotebookLibrary` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 16 inferred relationships involving `startServer()` (e.g. with `assertProductionEnvironment()` and `.get()`) actually correct?**

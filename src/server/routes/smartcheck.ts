@@ -10,8 +10,9 @@ import { consumeRateLimit } from "../auth/security";
 import { SMARTCHECK_MAX_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
 import { detectAndValidateFile, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
-import { processingIdempotencyKey } from "../../smartcheck/import/processor";
+import { inspectDocument, processingIdempotencyKey } from "../../smartcheck/import/processor";
 import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
+import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
@@ -92,6 +93,22 @@ export function registerSmartCheckRoutes(app: Express) {
     res.json(updated);
   });
 
+  app.get("/api/smartcheck/documents/:id/preview", authenticate, featureGate, rateLimit, async (req, res) => {
+    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Önizleme için yükleme tamamlanmalı." });
+    try {
+      const content = await createStorageAdapter().get(document.storageKey);
+      if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
+      const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
+      const preview = await inspectDocument(content, kind);
+      res.json({ document: { id: document.id, fileName: document.originalFileName, fileSizeBytes: document.fileSizeBytes, checksumSha256: document.checksumSha256, mapping: document.importMappingJson }, preview });
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "PREVIEW_FAILED";
+      res.status(422).json({ error: "Dosya önizlemesi oluşturulamadı.", code });
+    }
+  });
+
   app.get("/api/smartcheck/documents/:id/status", authenticate, featureGate, rateLimit, async (req, res) => {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
@@ -100,13 +117,14 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.patch("/api/smartcheck/documents/:id/mapping", ...protectedStack, async (req, res) => {
-    const allowed = ["sheet", "positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
+    const allowed = ["profileId", "sheet", "positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
     const mapping: ColumnMapping = {};
     for (const key of allowed) {
       const value = req.body?.[key];
       if (value !== undefined && (typeof value !== "string" || value.length > 120)) return res.status(400).json({ error: `Geçersiz eşleme alanı: ${key}` });
       if (value) mapping[key] = value.trim();
     }
+    if (mapping.profileId && !getMappingProfile(mapping.profileId)) return res.status(400).json({ error: "Bilinmeyen MEP eşleme profili." });
     if (req.body?.headerRow !== undefined) {
       const headerRow = Number(req.body.headerRow);
       if (!Number.isInteger(headerRow) || headerRow < 1 || headerRow > 100) return res.status(400).json({ error: "Geçersiz başlık satırı." });
@@ -130,6 +148,37 @@ export function registerSmartCheckRoutes(app: Express) {
     await quickAddJob({ connectionString: process.env.DATABASE_URL! }, "process_smartcheck_document", { companyId: req.user.companyId, documentId: document.id, processingRunId: run.id }, { jobKey: `smartcheck:${run.id}`, maxAttempts: 3 });
     await audit(req, "processing_queued", "processing_run", run.id, { documentId: document.id, idempotencyKey });
     res.status(202).json(run);
+  });
+
+  app.post("/api/smartcheck/documents/:id/retry", ...protectedStack, async (req, res) => {
+    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Yükleme henüz tamamlanmadı." });
+    const [latestRun] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun || latestRun.status !== "failed") return res.status(409).json({ error: "Yalnızca başarısız son işlem tekrar kuyruğa alınabilir." });
+    const idempotencyKey = `${processingIdempotencyKey(document.checksumSha256, document.importMappingJson as ColumnMapping)}:retry:${crypto.randomUUID()}`;
+    const [run] = await db.insert(documentProcessingRuns).values({ companyId: req.user.companyId, documentId: document.id, idempotencyKey, pipelineVersion: latestRun.pipelineVersion, progressMessage: "Tekrar kuyruğa alındı" }).returning();
+    await db.update(documents).set({ status: "queued", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)));
+    await quickAddJob({ connectionString: process.env.DATABASE_URL! }, "process_smartcheck_document", { companyId: req.user.companyId, documentId: document.id, processingRunId: run.id }, { jobKey: `smartcheck:${run.id}`, maxAttempts: 3 });
+    await audit(req, "processing_retried", "processing_run", run.id, { documentId: document.id, previousRunId: latestRun.id });
+    res.status(202).json(run);
+  });
+
+  app.get("/api/smartcheck/queue", authenticate, featureGate, rateLimit, canReview, async (req, res) => {
+    const queue = await db.select({
+      id: documentProcessingRuns.id,
+      documentId: documentProcessingRuns.documentId,
+      status: documentProcessingRuns.status,
+      currentStage: documentProcessingRuns.currentStage,
+      progressPercent: documentProcessingRuns.progressPercent,
+      progressMessage: documentProcessingRuns.progressMessage,
+      errorCode: documentProcessingRuns.errorCode,
+      errorMessage: documentProcessingRuns.errorMessage,
+      createdAt: documentProcessingRuns.createdAt,
+      updatedAt: documentProcessingRuns.updatedAt,
+      fileName: documents.originalFileName,
+    }).from(documentProcessingRuns).leftJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, req.user.companyId))).where(eq(documentProcessingRuns.companyId, req.user.companyId)).orderBy(desc(documentProcessingRuns.createdAt)).limit(25);
+    res.json(queue);
   });
 
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, rateLimit, async (req, res) => {

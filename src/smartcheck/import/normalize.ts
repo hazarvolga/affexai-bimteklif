@@ -1,4 +1,5 @@
 export type ColumnMapping = {
+  profileId?: string;
   sheet?: string;
   headerRow?: number;
   positionCode?: string;

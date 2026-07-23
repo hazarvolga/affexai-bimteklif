@@ -1,10 +1,10 @@
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token');
-  const headers = {
-    ...options.headers,
-    'Authorization': token ? `Bearer ${token}` : '',
-    'Content-Type': 'application/json',
-  };
+  const headers = new Headers(options.headers);
+  headers.set('Authorization', token ? `Bearer ${token}` : '');
+  // Preserve explicit binary/S3 content types. The previous unconditional
+  // JSON header corrupted SmartCheck CSV/XLSX uploads in the browser.
+  if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
   const response = await fetch(url, {
     ...options,

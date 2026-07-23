@@ -486,7 +486,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/components/ui/input.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_components_ui_input_tsx",
-      "community": 7,
+      "community": 8,
       "norm_label": "input.tsx"
     },
     {
@@ -495,7 +495,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/input.tsx",
       "source_location": "L6",
       "id": "input_input",
-      "community": 7,
+      "community": 8,
       "norm_label": "input()"
     },
     {
@@ -747,7 +747,7 @@
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L46",
       "id": "browser_utils_inject_cookies",
-      "community": 0,
+      "community": 7,
       "norm_label": "_inject_cookies()"
     },
     {
@@ -1125,7 +1125,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_cleanup_manager_py",
-      "community": 7,
+      "community": 8,
       "norm_label": "cleanup_manager.py"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L13",
       "id": "cleanup_manager_cleanupmanager",
-      "community": 7,
+      "community": 8,
       "norm_label": "cleanupmanager"
     },
     {
@@ -1143,7 +1143,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L24",
       "id": "cleanup_manager_cleanupmanager_init",
-      "community": 7,
+      "community": 8,
       "norm_label": ".__init__()"
     },
     {
@@ -1152,7 +1152,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L30",
       "id": "cleanup_manager_cleanupmanager_get_cleanup_paths",
-      "community": 7,
+      "community": 8,
       "norm_label": ".get_cleanup_paths()"
     },
     {
@@ -1161,7 +1161,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L116",
       "id": "cleanup_manager_cleanupmanager_get_size",
-      "community": 7,
+      "community": 8,
       "norm_label": "._get_size()"
     },
     {
@@ -1170,7 +1170,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L131",
       "id": "cleanup_manager_cleanupmanager_format_size",
-      "community": 7,
+      "community": 8,
       "norm_label": "._format_size()"
     },
     {
@@ -1179,7 +1179,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L139",
       "id": "cleanup_manager_cleanupmanager_perform_cleanup",
-      "community": 7,
+      "community": 8,
       "norm_label": ".perform_cleanup()"
     },
     {
@@ -1188,7 +1188,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L199",
       "id": "cleanup_manager_cleanupmanager_print_cleanup_preview",
-      "community": 7,
+      "community": 8,
       "norm_label": ".print_cleanup_preview()"
     },
     {
@@ -1197,7 +1197,7 @@
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L226",
       "id": "cleanup_manager_main",
-      "community": 7,
+      "community": 8,
       "norm_label": "main()"
     },
     {
@@ -1205,7 +1205,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L14",
-      "community": 7,
+      "community": 8,
       "norm_label": "manages cleanup of notebooklm skill data      features:     - preview what will",
       "id": "cleanup_manager_rationale_14"
     },
@@ -1214,7 +1214,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L25",
-      "community": 7,
+      "community": 8,
       "norm_label": "initialize the cleanup manager",
       "id": "cleanup_manager_rationale_25"
     },
@@ -1223,7 +1223,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L31",
-      "community": 7,
+      "community": 8,
       "norm_label": "get paths that would be cleaned up          args:             preserve_library:",
       "id": "cleanup_manager_rationale_31"
     },
@@ -1232,7 +1232,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L117",
-      "community": 7,
+      "community": 8,
       "norm_label": "get size of file or directory in bytes",
       "id": "cleanup_manager_rationale_117"
     },
@@ -1241,7 +1241,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L132",
-      "community": 7,
+      "community": 8,
       "norm_label": "format size in human-readable form",
       "id": "cleanup_manager_rationale_132"
     },
@@ -1250,7 +1250,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L144",
-      "community": 7,
+      "community": 8,
       "norm_label": "perform the actual cleanup          args:             preserve_library: keep lib",
       "id": "cleanup_manager_rationale_144"
     },
@@ -1259,7 +1259,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L200",
-      "community": 7,
+      "community": 8,
       "norm_label": "print a preview of what will be cleaned",
       "id": "cleanup_manager_rationale_200"
     },
@@ -1268,7 +1268,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/cleanup_manager.py",
       "source_location": "L227",
-      "community": 7,
+      "community": 8,
       "norm_label": "command-line interface for cleanup management",
       "id": "cleanup_manager_rationale_227"
     },
@@ -1791,7 +1791,7 @@
       "source_file": "scripts/validate-allplan-content-review.mjs",
       "source_location": "L1",
       "id": "scripts_validate_allplan_content_review_mjs",
-      "community": 9,
+      "community": 10,
       "norm_label": "validate-allplan-content-review.mjs"
     },
     {
@@ -1800,7 +1800,7 @@
       "source_file": "scripts/validate-allplan-content-review.mjs",
       "source_location": "L19",
       "id": "validate_allplan_content_review_resolveevidencefile",
-      "community": 9,
+      "community": 10,
       "norm_label": "resolveevidencefile()"
     },
     {
@@ -1809,7 +1809,7 @@
       "source_file": "scripts/validate-allplan-content-review.mjs",
       "source_location": "L29",
       "id": "validate_allplan_content_review_validaterecord",
-      "community": 9,
+      "community": 10,
       "norm_label": "validaterecord()"
     },
     {
@@ -1872,7 +1872,7 @@
       "source_file": "scripts/allplan-structural-audit.mjs",
       "source_location": "L1",
       "id": "scripts_allplan_structural_audit_mjs",
-      "community": 9,
+      "community": 10,
       "norm_label": "allplan-structural-audit.mjs"
     },
     {
@@ -1881,7 +1881,7 @@
       "source_file": "scripts/allplan-structural-audit.mjs",
       "source_location": "L10",
       "id": "allplan_structural_audit_read",
-      "community": 9,
+      "community": 10,
       "norm_label": "read()"
     },
     {
@@ -1890,7 +1890,7 @@
       "source_file": "scripts/allplan-structural-audit.mjs",
       "source_location": "L16",
       "id": "allplan_structural_audit_evaluateevidencefiles",
-      "community": 9,
+      "community": 10,
       "norm_label": "evaluateevidencefiles()"
     },
     {
@@ -2761,7 +2761,7 @@
       "label": "normalizeUnit()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L35",
+      "source_location": "L36",
       "id": "normalize_normalizeunit",
       "community": 3,
       "norm_label": "normalizeunit()"
@@ -3186,7 +3186,7 @@
       "source_file": "src/smartcheck/import/storage.ts",
       "source_location": "L63",
       "id": "storage_createstorageadapter",
-      "community": 10,
+      "community": 2,
       "norm_label": "createstorageadapter()"
     },
     {
@@ -3204,7 +3204,7 @@
       "source_file": "src/smartcheck/import/file-security.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_file_security_ts",
-      "community": 10,
+      "community": 7,
       "norm_label": "file-security.ts"
     },
     {
@@ -3213,7 +3213,7 @@
       "source_file": "src/smartcheck/import/file-security.ts",
       "source_location": "L14",
       "id": "file_security_sha256",
-      "community": 10,
+      "community": 7,
       "norm_label": "sha256()"
     },
     {
@@ -3222,7 +3222,7 @@
       "source_file": "src/smartcheck/import/file-security.ts",
       "source_location": "L18",
       "id": "file_security_detectandvalidatefile",
-      "community": 10,
+      "community": 7,
       "norm_label": "detectandvalidatefile()"
     },
     {
@@ -3231,7 +3231,7 @@
       "source_file": "src/smartcheck/import/file-security.ts",
       "source_location": "L30",
       "id": "file_security_sanitizespreadsheettext",
-      "community": 10,
+      "community": 7,
       "norm_label": "sanitizespreadsheettext()"
     },
     {
@@ -3240,7 +3240,7 @@
       "source_file": "src/smartcheck/import/file-security.ts",
       "source_location": "L34",
       "id": "file_security_validatexlsxarchive",
-      "community": 10,
+      "community": 7,
       "norm_label": "validatexlsxarchive()"
     },
     {
@@ -3249,71 +3249,107 @@
       "source_file": "src/smartcheck/import/processor.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_processor_ts",
-      "community": 10,
+      "community": 7,
       "norm_label": "processor.ts"
     },
     {
       "label": "cellText()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L11",
+      "source_location": "L25",
       "id": "processor_celltext",
-      "community": 10,
+      "community": 7,
       "norm_label": "celltext()"
     },
     {
       "label": "headerIndex()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L20",
+      "source_location": "L34",
       "id": "processor_headerindex",
-      "community": 10,
+      "community": 7,
       "norm_label": "headerindex()"
+    },
+    {
+      "label": "excelColumnName()",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L38",
+      "id": "processor_excelcolumnname",
+      "community": 7,
+      "norm_label": "excelcolumnname()"
     },
     {
       "label": "fromMatrix()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L24",
+      "source_location": "L49",
       "id": "processor_frommatrix",
-      "community": 10,
+      "community": 7,
       "norm_label": "frommatrix()"
+    },
+    {
+      "label": "previewSheet()",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L73",
+      "id": "processor_previewsheet",
+      "community": 7,
+      "norm_label": "previewsheet()"
+    },
+    {
+      "label": "inspectDocument()",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L91",
+      "id": "processor_inspectdocument",
+      "community": 7,
+      "norm_label": "inspectdocument()"
     },
     {
       "label": "parseDocument()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L48",
+      "source_location": "L124",
       "id": "processor_parsedocument",
-      "community": 10,
+      "community": 7,
       "norm_label": "parsedocument()"
     },
     {
       "label": "updateRun()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L79",
+      "source_location": "L155",
       "id": "processor_updaterun",
-      "community": 10,
+      "community": 7,
       "norm_label": "updaterun()"
     },
     {
       "label": "processSmartCheckDocument()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L83",
+      "source_location": "L159",
       "id": "processor_processsmartcheckdocument",
-      "community": 10,
+      "community": 7,
       "norm_label": "processsmartcheckdocument()"
     },
     {
       "label": "processingIdempotencyKey()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L124",
+      "source_location": "L200",
       "id": "processor_processingidempotencykey",
-      "community": 10,
+      "community": 7,
       "norm_label": "processingidempotencykey()"
+    },
+    {
+      "label": "preview.test.ts",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/preview.test.ts",
+      "source_location": "L1",
+      "id": "src_smartcheck_import_preview_test_ts",
+      "community": 113,
+      "norm_label": "preview.test.ts"
     },
     {
       "label": "normalize.ts",
@@ -3321,35 +3357,53 @@
       "source_file": "src/smartcheck/import/normalize.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_normalize_ts",
-      "community": 10,
+      "community": 7,
       "norm_label": "normalize.ts"
     },
     {
       "label": "parseLocalizedNumber()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L39",
+      "source_location": "L40",
       "id": "normalize_parselocalizednumber",
-      "community": 10,
+      "community": 7,
       "norm_label": "parselocalizednumber()"
     },
     {
       "label": "suggestMapping()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L49",
+      "source_location": "L50",
       "id": "normalize_suggestmapping",
-      "community": 10,
+      "community": 7,
       "norm_label": "suggestmapping()"
     },
     {
       "label": "validateRows()",
       "file_type": "code",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L65",
+      "source_location": "L66",
       "id": "normalize_validaterows",
-      "community": 10,
+      "community": 7,
       "norm_label": "validaterows()"
+    },
+    {
+      "label": "mapping-profiles.ts",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/mapping-profiles.ts",
+      "source_location": "L1",
+      "id": "src_smartcheck_import_mapping_profiles_ts",
+      "community": 1,
+      "norm_label": "mapping-profiles.ts"
+    },
+    {
+      "label": "getMappingProfile()",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/mapping-profiles.ts",
+      "source_location": "L35",
+      "id": "mapping_profiles_getmappingprofile",
+      "community": 1,
+      "norm_label": "getmappingprofile()"
     },
     {
       "label": "file-security.test.ts",
@@ -3357,7 +3411,7 @@
       "source_file": "src/smartcheck/import/file-security.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_file_security_test_ts",
-      "community": 113,
+      "community": 114,
       "norm_label": "file-security.test.ts"
     },
     {
@@ -3393,7 +3447,7 @@
       "source_file": "src/smartcheck/import/config.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_config_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "config.ts"
     },
     {
@@ -3402,7 +3456,7 @@
       "source_file": "src/smartcheck/import/config.ts",
       "source_location": "L5",
       "id": "config_smartcheckimportenabled",
-      "community": 8,
+      "community": 9,
       "norm_label": "smartcheckimportenabled()"
     },
     {
@@ -3411,8 +3465,17 @@
       "source_file": "src/smartcheck/import/config.ts",
       "source_location": "L14",
       "id": "config_localstorageroot",
-      "community": 8,
+      "community": 9,
       "norm_label": "localstorageroot()"
+    },
+    {
+      "label": "mapping-profiles.test.ts",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/mapping-profiles.test.ts",
+      "source_location": "L1",
+      "id": "src_smartcheck_import_mapping_profiles_test_ts",
+      "community": 115,
+      "norm_label": "mapping-profiles.test.ts"
     },
     {
       "label": "pilot-fixtures.test.ts",
@@ -3438,7 +3501,7 @@
       "source_file": "src/smartcheck/import/worker.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_worker_ts",
-      "community": 114,
+      "community": 116,
       "norm_label": "worker.ts"
     },
     {
@@ -3600,7 +3663,7 @@
       "source_file": "src/server/config/production.test.ts",
       "source_location": "L1",
       "id": "src_server_config_production_test_ts",
-      "community": 115,
+      "community": 117,
       "norm_label": "production.test.ts"
     },
     {
@@ -3609,7 +3672,7 @@
       "source_file": "src/server/auth/security.test.ts",
       "source_location": "L1",
       "id": "src_server_auth_security_test_ts",
-      "community": 116,
+      "community": 118,
       "norm_label": "security.test.ts"
     },
     {
@@ -3618,7 +3681,7 @@
       "source_file": "src/server/auth/registration.test.ts",
       "source_location": "L1",
       "id": "src_server_auth_registration_test_ts",
-      "community": 117,
+      "community": 119,
       "norm_label": "registration.test.ts"
     },
     {
@@ -3627,7 +3690,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L1",
       "id": "src_server_auth_security_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "security.ts"
     },
     {
@@ -3636,7 +3699,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L6",
       "id": "security_hashactiontoken",
-      "community": 8,
+      "community": 9,
       "norm_label": "hashactiontoken()"
     },
     {
@@ -3645,7 +3708,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L7",
       "id": "security_ratelimitstoragekey",
-      "community": 8,
+      "community": 9,
       "norm_label": "ratelimitstoragekey()"
     },
     {
@@ -3654,7 +3717,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L9",
       "id": "security_createactiontoken",
-      "community": 8,
+      "community": 9,
       "norm_label": "createactiontoken()"
     },
     {
@@ -3663,7 +3726,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L16",
       "id": "security_nextratelimitbucket",
-      "community": 8,
+      "community": 9,
       "norm_label": "nextratelimitbucket()"
     },
     {
@@ -3672,7 +3735,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L22",
       "id": "security_consumeratelimit",
-      "community": 8,
+      "community": 9,
       "norm_label": "consumeratelimit()"
     },
     {
@@ -3681,7 +3744,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L34",
       "id": "security_pruneexpiredratelimits",
-      "community": 8,
+      "community": 9,
       "norm_label": "pruneexpiredratelimits()"
     },
     {
@@ -3690,7 +3753,7 @@
       "source_file": "src/server/auth/security.ts",
       "source_location": "L39",
       "id": "security_clientaddress",
-      "community": 8,
+      "community": 9,
       "norm_label": "clientaddress()"
     },
     {
@@ -3726,41 +3789,41 @@
       "source_file": "src/server/routes/smartcheck.ts",
       "source_location": "L1",
       "id": "src_server_routes_smartcheck_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "smartcheck.ts"
     },
     {
       "label": "featureGate()",
       "file_type": "code",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L20",
+      "source_location": "L21",
       "id": "smartcheck_featuregate",
-      "community": 8,
+      "community": 9,
       "norm_label": "featuregate()"
     },
     {
       "label": "rateLimit()",
       "file_type": "code",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "id": "smartcheck_ratelimit",
-      "community": 8,
+      "community": 9,
       "norm_label": "ratelimit()"
     },
     {
       "label": "audit()",
       "file_type": "code",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "id": "smartcheck_audit",
-      "community": 8,
+      "community": 9,
       "norm_label": "audit()"
     },
     {
       "label": "registerSmartCheckRoutes()",
       "file_type": "code",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L35",
+      "source_location": "L36",
       "id": "smartcheck_registersmartcheckroutes",
       "community": 2,
       "norm_label": "registersmartcheckroutes()"
@@ -4032,7 +4095,7 @@
       "source_file": "src/server/routes/auth.ts",
       "source_location": "L1",
       "id": "src_server_routes_auth_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "auth.ts"
     },
     {
@@ -4041,7 +4104,7 @@
       "source_file": "src/server/routes/auth.ts",
       "source_location": "L11",
       "id": "auth_actionurl",
-      "community": 8,
+      "community": 9,
       "norm_label": "actionurl()"
     },
     {
@@ -4050,7 +4113,7 @@
       "source_file": "src/server/routes/auth.ts",
       "source_location": "L13",
       "id": "auth_deliverauthlink",
-      "community": 8,
+      "community": 9,
       "norm_label": "deliverauthlink()"
     },
     {
@@ -4059,7 +4122,7 @@
       "source_file": "src/server/routes/auth.ts",
       "source_location": "L24",
       "id": "auth_issueauthaction",
-      "community": 8,
+      "community": 9,
       "norm_label": "issueauthaction()"
     },
     {
@@ -4068,7 +4131,7 @@
       "source_file": "src/server/routes/auth.ts",
       "source_location": "L31",
       "id": "auth_guardedratelimit",
-      "community": 8,
+      "community": 9,
       "norm_label": "guardedratelimit()"
     },
     {
@@ -4131,7 +4194,7 @@
       "source_file": "src/academy/sourceData.ts",
       "source_location": "L1",
       "id": "src_academy_sourcedata_ts",
-      "community": 118,
+      "community": 120,
       "norm_label": "sourcedata.ts"
     },
     {
@@ -4140,7 +4203,7 @@
       "source_file": "src/academy/activation.test.ts",
       "source_location": "L1",
       "id": "src_academy_activation_test_ts",
-      "community": 119,
+      "community": 121,
       "norm_label": "activation.test.ts"
     },
     {
@@ -4185,7 +4248,7 @@
       "source_file": "src/academy/nativeDerivedData.ts",
       "source_location": "L1",
       "id": "src_academy_nativederiveddata_ts",
-      "community": 120,
+      "community": 122,
       "norm_label": "nativederiveddata.ts"
     },
     {
@@ -4194,7 +4257,7 @@
       "source_file": "src/academy/sourceSections.ts",
       "source_location": "L1",
       "id": "src_academy_sourcesections_ts",
-      "community": 121,
+      "community": 123,
       "norm_label": "sourcesections.ts"
     },
     {
@@ -4203,7 +4266,7 @@
       "source_file": "src/academy/allplan/releaseGate.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_releasegate_test_ts",
-      "community": 122,
+      "community": 124,
       "norm_label": "releasegate.test.ts"
     },
     {
@@ -4212,7 +4275,7 @@
       "source_file": "src/academy/allplan/navigation.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_navigation_test_ts",
-      "community": 123,
+      "community": 125,
       "norm_label": "navigation.test.ts"
     },
     {
@@ -4221,7 +4284,7 @@
       "source_file": "src/academy/allplan/access.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_access_test_ts",
-      "community": 124,
+      "community": 126,
       "norm_label": "access.test.ts"
     },
     {
@@ -4365,7 +4428,7 @@
       "source_file": "src/academy/allplan/certification.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_certification_test_ts",
-      "community": 125,
+      "community": 127,
       "norm_label": "certification.test.ts"
     },
     {
@@ -4374,7 +4437,7 @@
       "source_file": "src/academy/allplan/checkpoint.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_checkpoint_test_ts",
-      "community": 126,
+      "community": 128,
       "norm_label": "checkpoint.test.ts"
     },
     {
@@ -4383,7 +4446,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_releasegate_ts",
-      "community": 9,
+      "community": 10,
       "norm_label": "releasegate.ts"
     },
     {
@@ -4392,7 +4455,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L26",
       "id": "releasegate_present",
-      "community": 9,
+      "community": 10,
       "norm_label": "present()"
     },
     {
@@ -4401,7 +4464,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L27",
       "id": "releasegate_localevidence",
-      "community": 9,
+      "community": 10,
       "norm_label": "localevidence()"
     },
     {
@@ -4410,7 +4473,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L29",
       "id": "releasegate_evaluateallplancontentreview",
-      "community": 9,
+      "community": 10,
       "norm_label": "evaluateallplancontentreview()"
     },
     {
@@ -4419,7 +4482,7 @@
       "source_file": "src/academy/allplan/releaseGate.ts",
       "source_location": "L50",
       "id": "releasegate_canreleaseallplanlesson",
-      "community": 9,
+      "community": 10,
       "norm_label": "canreleaseallplanlesson()"
     },
     {
@@ -4428,7 +4491,7 @@
       "source_file": "src/academy/allplan/types.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_types_ts",
-      "community": 127,
+      "community": 129,
       "norm_label": "types.ts"
     },
     {
@@ -4491,7 +4554,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_track_ts",
-      "community": 9,
+      "community": 10,
       "norm_label": "track.ts"
     },
     {
@@ -4500,7 +4563,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L6",
       "id": "track_slugify",
-      "community": 9,
+      "community": 10,
       "norm_label": "slugify()"
     },
     {
@@ -4509,7 +4572,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L8",
       "id": "track_parseminutes",
-      "community": 9,
+      "community": 10,
       "norm_label": "parseminutes()"
     },
     {
@@ -4518,7 +4581,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L10",
       "id": "track_normalizelesson",
-      "community": 9,
+      "community": 10,
       "norm_label": "normalizelesson()"
     },
     {
@@ -4527,7 +4590,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L25",
       "id": "track_normalizenode",
-      "community": 9,
+      "community": 10,
       "norm_label": "normalizenode()"
     },
     {
@@ -4536,7 +4599,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L49",
       "id": "track_walk",
-      "community": 9,
+      "community": 10,
       "norm_label": "walk()"
     },
     {
@@ -4545,7 +4608,7 @@
       "source_file": "src/academy/allplan/track.ts",
       "source_location": "L60",
       "id": "track_getallplancoveragereport",
-      "community": 9,
+      "community": 10,
       "norm_label": "getallplancoveragereport()"
     },
     {
@@ -4554,7 +4617,7 @@
       "source_file": "src/academy/allplan/paymentWebhook.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_paymentwebhook_test_ts",
-      "community": 128,
+      "community": 130,
       "norm_label": "paymentwebhook.test.ts"
     },
     {
@@ -4680,7 +4743,7 @@
       "source_file": "src/academy/allplan/companion.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_companion_test_ts",
-      "community": 129,
+      "community": 131,
       "norm_label": "companion.test.ts"
     },
     {
@@ -4707,7 +4770,7 @@
       "source_file": "src/academy/allplan/source/constants.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_source_constants_ts",
-      "community": 130,
+      "community": 132,
       "norm_label": "constants.ts"
     },
     {
@@ -4806,7 +4869,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/progress.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_progress_tsx",
-      "community": 131,
+      "community": 133,
       "norm_label": "progress.tsx"
     },
     {
@@ -4842,7 +4905,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_sonner_tsx",
-      "community": 132,
+      "community": 134,
       "norm_label": "sonner.tsx"
     },
     {
@@ -4905,7 +4968,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/EmptyState.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_emptystate_tsx",
-      "community": 133,
+      "community": 135,
       "norm_label": "emptystate.tsx"
     },
     {
@@ -4932,7 +4995,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/input.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_input_tsx",
-      "community": 7,
+      "community": 8,
       "norm_label": "input.tsx"
     },
     {
@@ -4959,7 +5022,7 @@
       "source_file": "src/components/layout/Shell.tsx",
       "source_location": "L1",
       "id": "src_components_layout_shell_tsx",
-      "community": 134,
+      "community": 136,
       "norm_label": "shell.tsx"
     },
     {
@@ -4986,7 +5049,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageHeader.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_pageheader_tsx",
-      "community": 135,
+      "community": 137,
       "norm_label": "pageheader.tsx"
     },
     {
@@ -4995,7 +5058,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/SectionWrapper.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_sectionwrapper_tsx",
-      "community": 136,
+      "community": 138,
       "norm_label": "sectionwrapper.tsx"
     },
     {
@@ -5022,7 +5085,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/ProfitabilityBadge.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_profitabilitybadge_tsx",
-      "community": 137,
+      "community": 139,
       "norm_label": "profitabilitybadge.tsx"
     },
     {
@@ -5056,43 +5119,88 @@
       "label": "checksum()",
       "file_type": "code",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L16",
+      "source_location": "L67",
       "id": "smartcheckimportworkspace_checksum",
       "community": 1,
       "norm_label": "checksum()"
     },
     {
+      "label": "statusLabel()",
+      "file_type": "code",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L72",
+      "id": "smartcheckimportworkspace_statuslabel",
+      "community": 1,
+      "norm_label": "statuslabel()"
+    },
+    {
+      "label": "loadQueue()",
+      "file_type": "code",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L96",
+      "id": "smartcheckimportworkspace_loadqueue",
+      "community": 1,
+      "norm_label": "loadqueue()"
+    },
+    {
       "label": "loadRows()",
       "file_type": "code",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L39",
+      "source_location": "L107",
       "id": "smartcheckimportworkspace_loadrows",
       "community": 1,
       "norm_label": "loadrows()"
     },
     {
+      "label": "loadPreview()",
+      "file_type": "code",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L112",
+      "id": "smartcheckimportworkspace_loadpreview",
+      "community": 1,
+      "norm_label": "loadpreview()"
+    },
+    {
       "label": "poll()",
       "file_type": "code",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L44",
+      "source_location": "L129",
       "id": "smartcheckimportworkspace_poll",
       "community": 1,
       "norm_label": "poll()"
     },
     {
-      "label": "uploadAndProcess()",
+      "label": "upload()",
       "file_type": "code",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L61",
-      "id": "smartcheckimportworkspace_uploadandprocess",
+      "source_location": "L147",
+      "id": "smartcheckimportworkspace_upload",
       "community": 1,
-      "norm_label": "uploadandprocess()"
+      "norm_label": "upload()"
+    },
+    {
+      "label": "startProcessing()",
+      "file_type": "code",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L176",
+      "id": "smartcheckimportworkspace_startprocessing",
+      "community": 1,
+      "norm_label": "startprocessing()"
+    },
+    {
+      "label": "retry()",
+      "file_type": "code",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L194",
+      "id": "smartcheckimportworkspace_retry",
+      "community": 1,
+      "norm_label": "retry()"
     },
     {
       "label": "review()",
       "file_type": "code",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L89",
+      "source_location": "L208",
       "id": "smartcheckimportworkspace_review",
       "community": 1,
       "norm_label": "review()"
@@ -5101,7 +5209,7 @@
       "label": "transfer()",
       "file_type": "code",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L98",
+      "source_location": "L217",
       "id": "smartcheckimportworkspace_transfer",
       "community": 1,
       "norm_label": "transfer()"
@@ -5220,7 +5328,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/data/StatCard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_data_statcard_tsx",
-      "community": 138,
+      "community": 140,
       "norm_label": "statcard.tsx"
     },
     {
@@ -5256,7 +5364,7 @@
       "source_file": "src/lib/tax-advisory.test.ts",
       "source_location": "L1",
       "id": "src_lib_tax_advisory_test_ts",
-      "community": 139,
+      "community": 141,
       "norm_label": "tax-advisory.test.ts"
     },
     {
@@ -5283,7 +5391,7 @@
       "source_file": "src/lib/calculations.test.ts",
       "source_location": "L1",
       "id": "src_lib_calculations_test_ts",
-      "community": 140,
+      "community": 142,
       "norm_label": "calculations.test.ts"
     },
     {
@@ -5316,16 +5424,16 @@
     {
       "label": "api.ts",
       "file_type": "code",
-      "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts",
+      "source_file": "src/lib/api.ts",
       "source_location": "L1",
-      "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_api_ts",
+      "id": "src_lib_api_ts",
       "community": 1,
       "norm_label": "api.ts"
     },
     {
       "label": "fetchWithAuth()",
       "file_type": "code",
-      "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts",
+      "source_file": "src/lib/api.ts",
       "source_location": "L1",
       "id": "api_fetchwithauth",
       "community": 1,
@@ -5427,7 +5535,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/types.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_types_ts",
-      "community": 141,
+      "community": 143,
       "norm_label": "types.ts"
     },
     {
@@ -5499,7 +5607,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/definitions.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_definitions_ts",
-      "community": 142,
+      "community": 144,
       "norm_label": "definitions.ts"
     },
     {
@@ -5508,7 +5616,7 @@
       "source_file": "src/db/schema.ts",
       "source_location": "L1",
       "id": "src_db_schema_ts",
-      "community": 143,
+      "community": 145,
       "norm_label": "schema.ts"
     },
     {
@@ -5517,7 +5625,7 @@
       "source_file": "src/db/index.ts",
       "source_location": "L1",
       "id": "src_db_index_ts",
-      "community": 144,
+      "community": 146,
       "norm_label": "index.ts"
     },
     {
@@ -5526,7 +5634,7 @@
       "source_file": "src/db/drizzle.config.ts",
       "source_location": "L1",
       "id": "src_db_drizzle_config_ts",
-      "community": 145,
+      "community": 147,
       "norm_label": "drizzle.config.ts"
     },
     {
@@ -5535,7 +5643,7 @@
       "source_file": "src/worker/task-list.ts",
       "source_location": "L1",
       "id": "src_worker_task_list_ts",
-      "community": 146,
+      "community": 148,
       "norm_label": "task-list.ts"
     },
     {
@@ -5787,7 +5895,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Dashboard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_dashboard_tsx",
-      "community": 147,
+      "community": 149,
       "norm_label": "dashboard.tsx"
     },
     {
@@ -5913,7 +6021,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Profitability.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_profitability_tsx",
-      "community": 148,
+      "community": 150,
       "norm_label": "profitability.tsx"
     },
     {
@@ -5922,7 +6030,7 @@
       "source_file": "src/pages/PublicAcademy.tsx",
       "source_location": "L1",
       "id": "src_pages_publicacademy_tsx",
-      "community": 149,
+      "community": 151,
       "norm_label": "publicacademy.tsx"
     },
     {
@@ -5931,7 +6039,7 @@
       "source_file": "src/pages/AllplanAccessGate.tsx",
       "source_location": "L1",
       "id": "src_pages_allplanaccessgate_tsx",
-      "community": 150,
+      "community": 152,
       "norm_label": "allplanaccessgate.tsx"
     },
     {
@@ -6066,7 +6174,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Quotes.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_quotes_tsx",
-      "community": 151,
+      "community": 153,
       "norm_label": "quotes.tsx"
     },
     {
@@ -6264,7 +6372,7 @@
       "source_file": "src/pages/AcademyActivation.tsx",
       "source_location": "L1",
       "id": "src_pages_academyactivation_tsx",
-      "community": 0,
+      "community": 7,
       "norm_label": "academyactivation.tsx"
     },
     {
@@ -6273,7 +6381,7 @@
       "source_file": "src/pages/AcademyActivation.tsx",
       "source_location": "L19",
       "id": "academyactivation_load",
-      "community": 0,
+      "community": 7,
       "norm_label": "load()"
     },
     {
@@ -12255,7 +12363,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L35",
+      "source_location": "L36",
       "weight": 1.0,
       "_src": "src_smartcheck_import_normalize_ts",
       "_tgt": "normalize_normalizeunit",
@@ -13204,6 +13312,18 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L103",
+      "weight": 1.0,
+      "_src": "processor_inspectdocument",
+      "_tgt": "file_security_validatexlsxarchive",
+      "source": "file_security_validatexlsxarchive",
+      "target": "processor_inspectdocument"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/smartcheck/import/processor.ts",
       "source_location": "L62",
       "weight": 1.0,
       "_src": "file_security_validatexlsxarchive",
@@ -13215,7 +13335,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L11",
+      "source_location": "L25",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_celltext",
@@ -13227,7 +13347,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L20",
+      "source_location": "L34",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_headerindex",
@@ -13239,7 +13359,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L24",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "src_smartcheck_import_processor_ts",
+      "_tgt": "processor_excelcolumnname",
+      "source": "src_smartcheck_import_processor_ts",
+      "target": "processor_excelcolumnname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L49",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_frommatrix",
@@ -13251,7 +13383,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L48",
+      "source_location": "L73",
+      "weight": 1.0,
+      "_src": "src_smartcheck_import_processor_ts",
+      "_tgt": "processor_previewsheet",
+      "source": "src_smartcheck_import_processor_ts",
+      "target": "processor_previewsheet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "src_smartcheck_import_processor_ts",
+      "_tgt": "processor_inspectdocument",
+      "source": "src_smartcheck_import_processor_ts",
+      "target": "processor_inspectdocument",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L124",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_parsedocument",
@@ -13263,7 +13419,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L79",
+      "source_location": "L155",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_updaterun",
@@ -13275,7 +13431,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L83",
+      "source_location": "L159",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_processsmartcheckdocument",
@@ -13287,7 +13443,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L124",
+      "source_location": "L200",
       "weight": 1.0,
       "_src": "src_smartcheck_import_processor_ts",
       "_tgt": "processor_processingidempotencykey",
@@ -13299,7 +13455,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L29",
+      "source_location": "L54",
       "weight": 1.0,
       "_src": "processor_frommatrix",
       "_tgt": "processor_headerindex",
@@ -13311,7 +13467,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L60",
+      "source_location": "L136",
       "weight": 1.0,
       "_src": "processor_parsedocument",
       "_tgt": "processor_frommatrix",
@@ -13335,7 +13491,43 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L96",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "processor_inspectdocument",
+      "_tgt": "processor_previewsheet",
+      "source": "processor_previewsheet",
+      "target": "processor_inspectdocument",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L82",
+      "weight": 1.0,
+      "_src": "processor_previewsheet",
+      "_tgt": "normalize_suggestmapping",
+      "source": "processor_previewsheet",
+      "target": "normalize_suggestmapping"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_src": "processor_inspectdocument",
+      "_tgt": "academyactivation_load",
+      "source": "processor_inspectdocument",
+      "target": "academyactivation_load"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/smartcheck/import/processor.ts",
+      "source_location": "L172",
       "weight": 1.0,
       "_src": "processor_processsmartcheckdocument",
       "_tgt": "processor_parsedocument",
@@ -13359,7 +13551,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/processor.ts",
-      "source_location": "L90",
+      "source_location": "L166",
       "weight": 1.0,
       "_src": "processor_processsmartcheckdocument",
       "_tgt": "processor_updaterun",
@@ -13383,7 +13575,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0,
       "_src": "src_smartcheck_import_normalize_ts",
       "_tgt": "normalize_parselocalizednumber",
@@ -13395,7 +13587,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0,
       "_src": "src_smartcheck_import_normalize_ts",
       "_tgt": "normalize_suggestmapping",
@@ -13407,13 +13599,37 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/smartcheck/import/normalize.ts",
-      "source_location": "L65",
+      "source_location": "L66",
       "weight": 1.0,
       "_src": "src_smartcheck_import_normalize_ts",
       "_tgt": "normalize_validaterows",
       "source": "src_smartcheck_import_normalize_ts",
       "target": "normalize_validaterows",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/smartcheck/import/mapping-profiles.ts",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_src": "src_smartcheck_import_mapping_profiles_ts",
+      "_tgt": "mapping_profiles_getmappingprofile",
+      "source": "src_smartcheck_import_mapping_profiles_ts",
+      "target": "mapping_profiles_getmappingprofile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L122",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_loadpreview",
+      "_tgt": "mapping_profiles_getmappingprofile",
+      "source": "mapping_profiles_getmappingprofile",
+      "target": "smartcheckimportworkspace_loadpreview"
     },
     {
       "relation": "contains",
@@ -14307,7 +14523,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "_src": "src_server_routes_smartcheck_ts",
       "_tgt": "smartcheck_featuregate",
@@ -14319,7 +14535,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "_src": "src_server_routes_smartcheck_ts",
       "_tgt": "smartcheck_ratelimit",
@@ -14331,7 +14547,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
       "_src": "src_server_routes_smartcheck_ts",
       "_tgt": "smartcheck_audit",
@@ -14343,7 +14559,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L35",
+      "source_location": "L36",
       "weight": 1.0,
       "_src": "src_server_routes_smartcheck_ts",
       "_tgt": "smartcheck_registersmartcheckroutes",
@@ -15651,7 +15867,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L16",
+      "source_location": "L67",
       "weight": 1.0,
       "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
       "_tgt": "smartcheckimportworkspace_checksum",
@@ -15663,7 +15879,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L39",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "_tgt": "smartcheckimportworkspace_statuslabel",
+      "source": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "target": "smartcheckimportworkspace_statuslabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "_tgt": "smartcheckimportworkspace_loadqueue",
+      "source": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "target": "smartcheckimportworkspace_loadqueue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L107",
       "weight": 1.0,
       "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
       "_tgt": "smartcheckimportworkspace_loadrows",
@@ -15675,7 +15915,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L44",
+      "source_location": "L112",
+      "weight": 1.0,
+      "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "_tgt": "smartcheckimportworkspace_loadpreview",
+      "source": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "target": "smartcheckimportworkspace_loadpreview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L129",
       "weight": 1.0,
       "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
       "_tgt": "smartcheckimportworkspace_poll",
@@ -15687,19 +15939,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L61",
+      "source_location": "L147",
       "weight": 1.0,
       "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
-      "_tgt": "smartcheckimportworkspace_uploadandprocess",
+      "_tgt": "smartcheckimportworkspace_upload",
       "source": "src_components_smartcheck_smartcheckimportworkspace_tsx",
-      "target": "smartcheckimportworkspace_uploadandprocess",
+      "target": "smartcheckimportworkspace_upload",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L89",
+      "source_location": "L176",
+      "weight": 1.0,
+      "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "_tgt": "smartcheckimportworkspace_startprocessing",
+      "source": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "target": "smartcheckimportworkspace_startprocessing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L194",
+      "weight": 1.0,
+      "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "_tgt": "smartcheckimportworkspace_retry",
+      "source": "src_components_smartcheck_smartcheckimportworkspace_tsx",
+      "target": "smartcheckimportworkspace_retry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L208",
       "weight": 1.0,
       "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
       "_tgt": "smartcheckimportworkspace_review",
@@ -15711,7 +15987,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L98",
+      "source_location": "L217",
       "weight": 1.0,
       "_src": "src_components_smartcheck_smartcheckimportworkspace_tsx",
       "_tgt": "smartcheckimportworkspace_transfer",
@@ -15723,19 +15999,67 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L75",
+      "source_location": "L163",
       "weight": 1.0,
-      "_src": "smartcheckimportworkspace_uploadandprocess",
+      "_src": "smartcheckimportworkspace_upload",
       "_tgt": "smartcheckimportworkspace_checksum",
       "source": "smartcheckimportworkspace_checksum",
-      "target": "smartcheckimportworkspace_uploadandprocess",
+      "target": "smartcheckimportworkspace_upload",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L95",
+      "source_location": "L167",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_upload",
+      "_tgt": "smartcheckimportworkspace_loadqueue",
+      "source": "smartcheckimportworkspace_loadqueue",
+      "target": "smartcheckimportworkspace_upload",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L186",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_startprocessing",
+      "_tgt": "smartcheckimportworkspace_loadqueue",
+      "source": "smartcheckimportworkspace_loadqueue",
+      "target": "smartcheckimportworkspace_startprocessing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L204",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_retry",
+      "_tgt": "smartcheckimportworkspace_loadqueue",
+      "source": "smartcheckimportworkspace_loadqueue",
+      "target": "smartcheckimportworkspace_retry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_loadqueue",
+      "_tgt": "api_fetchwithauth",
+      "source": "smartcheckimportworkspace_loadqueue",
+      "target": "api_fetchwithauth"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L214",
       "weight": 1.0,
       "_src": "smartcheckimportworkspace_review",
       "_tgt": "smartcheckimportworkspace_loadrows",
@@ -15759,12 +16083,12 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L82",
+      "source_location": "L166",
       "weight": 1.0,
-      "_src": "smartcheckimportworkspace_uploadandprocess",
-      "_tgt": "smartcheckimportworkspace_poll",
-      "source": "smartcheckimportworkspace_poll",
-      "target": "smartcheckimportworkspace_uploadandprocess",
+      "_src": "smartcheckimportworkspace_upload",
+      "_tgt": "smartcheckimportworkspace_loadpreview",
+      "source": "smartcheckimportworkspace_loadpreview",
+      "target": "smartcheckimportworkspace_upload",
       "confidence_score": 1.0
     },
     {
@@ -15772,11 +16096,71 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
-      "source_location": "L66",
+      "source_location": "L114",
       "weight": 1.0,
-      "_src": "smartcheckimportworkspace_uploadandprocess",
+      "_src": "smartcheckimportworkspace_loadpreview",
       "_tgt": "api_fetchwithauth",
-      "source": "smartcheckimportworkspace_uploadandprocess",
+      "source": "smartcheckimportworkspace_loadpreview",
+      "target": "api_fetchwithauth"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L187",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_startprocessing",
+      "_tgt": "smartcheckimportworkspace_poll",
+      "source": "smartcheckimportworkspace_poll",
+      "target": "smartcheckimportworkspace_startprocessing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L205",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_retry",
+      "_tgt": "smartcheckimportworkspace_poll",
+      "source": "smartcheckimportworkspace_poll",
+      "target": "smartcheckimportworkspace_retry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_upload",
+      "_tgt": "api_fetchwithauth",
+      "source": "smartcheckimportworkspace_upload",
+      "target": "api_fetchwithauth"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L181",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_startprocessing",
+      "_tgt": "api_fetchwithauth",
+      "source": "smartcheckimportworkspace_startprocessing",
+      "target": "api_fetchwithauth"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+      "source_location": "L196",
+      "weight": 1.0,
+      "_src": "smartcheckimportworkspace_retry",
+      "_tgt": "api_fetchwithauth",
+      "source": "smartcheckimportworkspace_retry",
       "target": "api_fetchwithauth"
     },
     {
@@ -16022,12 +16406,12 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/api.ts",
+      "source_file": "src/lib/api.ts",
       "source_location": "L1",
       "weight": 1.0,
-      "_src": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_api_ts",
+      "_src": "src_lib_api_ts",
       "_tgt": "api_fetchwithauth",
-      "source": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_api_ts",
+      "source": "src_lib_api_ts",
       "target": "api_fetchwithauth",
       "confidence_score": 1.0
     },

@@ -373,3 +373,9 @@ Bu faz tamamlanmadan gerçek piyasa crawler’ı veya NestJS/Next.js rewrite ba�
 ## 12. Faz 1 uygulama durumu
 
 Sentetik fixture paketi `fixtures/smartcheck/pilot-v1` altında oluşturuldu. Beş MEP CSV senaryosu, bozuk XLSX, fiyat snapshot’ları ve mevzuat diff simülasyonu `pnpm smartcheck:fixtures` ile doğrulanıyor. Gerçek browser acceptance adımları ve kapsamı `docs/smartcheck/pilot/fixture-acceptance.md` içinde sabitlendi. Bu kanıt, gerçek müşteri pilotu veya production market data entegrasyonu yerine geçmez.
+
+## 13. Faz 2 uygulama durumu
+
+SmartCheck çalışma alanı gerçek pilot dosyasını doğrudan işleme almadan önce kaynak önizlemesi gösterecek şekilde ayrıldı: `yükle → preview → MEP eşleme profili → kullanıcı onayı → process`. Üç deterministik MEP eşleme profili, bounded sheet/header örneklemesi, formül hücresi işaretleme, raw/normalized provenance paneli ve tenant-scoped operator kuyruğu eklendi. Başarısız işlemler için yalnızca açık retry endpoint’i bulunur; başarılı run’lar tekrar çalıştırılmaz.
+
+Tarayıcı smoke ve HTTP/PostgreSQL entegrasyon kanıtı local-only’dir. Faz 2 çıkışı hâlâ gerçek müşteri izinli beş dosya, teknik reviewer kayıtları ve production S3 credentials bekler; sentetik veri veya local storage bu kapının yerine geçmez.
