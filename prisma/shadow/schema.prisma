@@ -29,6 +29,17 @@ enum UserRole {
   @@map("user_role")
 }
 
+enum PipelineStage {
+  lead
+  contacted
+  quotation_sent
+  negotiation
+  won
+  lost
+
+  @@map("pipeline_stage")
+}
+
 enum QuoteStatus {
   draft
   sent
@@ -82,19 +93,35 @@ enum ProcessingStage {
 model User {
   id                 String                  @id @default(uuid()) @db.Uuid
   email              String                  @unique @db.Text
+  passwordHash       String?                 @map("password_hash") @db.Text
   fullName           String                  @map("full_name") @db.Text
-  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  emailVerified      DateTime?               @map("email_verified") @db.Timestamp(6)
+  verificationToken  String?                 @map("verification_token") @db.Text
+  passwordChangedAt  DateTime?               @map("password_changed_at") @db.Timestamptz(6)
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
   memberships        Membership[]
 
   @@map("users")
 }
 
 model Company {
-  id                 String                  @id @default(uuid()) @db.Uuid
-  name               String                  @db.Text
-  defaultCurrency    Currency                @default(TRY) @map("default_currency")
-  smartcheckMaxWaste Decimal                 @default(20) @map("smartcheck_max_waste_percent") @db.Decimal(5, 2)
-  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  id                                  String                  @id @default(uuid()) @db.Uuid
+  name                                String                  @db.Text
+  logoUrl                             String?                 @map("logo_url") @db.Text
+  taxNumber                           String?                 @map("tax_number") @db.Text
+  taxOffice                           String?                 @map("tax_office") @db.Text
+  address                             String?                 @db.Text
+  signatureUrl                        String?                 @map("signature_url") @db.Text
+  stampUrl                            String?                 @map("stamp_url") @db.Text
+  defaultCurrency                     Currency                @default(TRY) @map("default_currency")
+  defaultVatRate                      Int                     @default(20) @map("default_vat_rate")
+  smartcheckMaxWaste                  Decimal                 @default(20) @map("smartcheck_max_waste_percent") @db.Decimal(5, 2)
+  defaultEscalationVolatility         Decimal                 @default(0) @map("default_escalation_volatility_percent") @db.Decimal(5, 2)
+  defaultCarbonRiskPremium             Decimal                 @default(0) @map("default_carbon_risk_premium_percent") @db.Decimal(5, 2)
+  defaultInformationDeliveryCost       Decimal                 @default(0) @map("default_information_delivery_cost_percent") @db.Decimal(5, 2)
+  phone                               String?                 @db.Text
+  email                               String?                 @db.Text
+  createdAt                           DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
   memberships        Membership[]
   clients            Client[]
   quotations         Quotation[]
@@ -135,6 +162,11 @@ model Client {
   companyId   String      @map("company_id") @db.Uuid
   name        String      @db.Text
   type        String      @db.Text
+  phone       String?     @db.Text
+  email       String?     @db.Text
+  address     String?     @db.Text
+  notes       String?     @db.Text
+  pipelineStage PipelineStage @default(lead) @map("pipeline_stage")
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
   company     Company     @relation(fields: [companyId], references: [id])
   quotations  Quotation[]
@@ -149,9 +181,26 @@ model Quotation {
   clientId        String                  @map("client_id") @db.Uuid
   quoteNumber     String                  @map("quote_number") @db.Text
   projectName     String                  @map("project_name") @db.Text
+  date            DateTime                @default(now()) @db.Timestamp(6)
   expiryDate      DateTime                @map("expiry_date") @db.Timestamp(6)
   currency        Currency                @default(TRY)
+  notes           String?                 @db.Text
   status          QuoteStatus              @default(draft)
+  industryId      String?                 @map("industry_id") @db.Text
+  projectDurationMonths Int                @default(1) @map("project_duration_months")
+  escalationVolatilityPercent Decimal     @default(0) @map("escalation_volatility_percent") @db.Decimal(5, 2)
+  procurementProfile String                @default("standard") @map("procurement_profile") @db.Text
+  carbonRiskPremiumPercent Decimal        @default(0) @map("carbon_risk_premium_percent") @db.Decimal(5, 2)
+  informationDeliveryLevel String         @default("none") @map("information_delivery_level") @db.Text
+  informationDeliveryCostPercent Decimal  @default(0) @map("information_delivery_cost_percent") @db.Decimal(5, 2)
+  observedActualCost Decimal?             @map("observed_actual_cost") @db.Decimal(20, 2)
+  observedActualDurationMonths Int?       @map("observed_actual_duration_months")
+  calibrationStatus String                @default("not_collected") @map("calibration_status") @db.Text
+  calibrationNote String?                 @map("calibration_note") @db.Text
+  pricingSnapshotLockStatus String        @default("unlocked") @map("pricing_snapshot_lock_status") @db.Text
+  pricingSnapshotLockedAt DateTime?       @map("pricing_snapshot_locked_at") @db.Timestamptz(6)
+  pricingSnapshotLockedByUserId String?   @map("pricing_snapshot_locked_by_user_id") @db.Uuid
+  pricingSnapshotLockHash String?         @map("pricing_snapshot_lock_hash") @db.Text
   subtotal        Decimal                 @db.Decimal(20, 2)
   discountTotal   Decimal                 @map("discount_total") @db.Decimal(20, 2)
   vatTotal        Decimal                 @map("vat_total") @db.Decimal(20, 2)
@@ -160,6 +209,7 @@ model Quotation {
   isLatest        Boolean                 @default(true) @map("is_latest")
   createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt       DateTime                @default(now()) @map("updated_at") @db.Timestamp(6)
+  parentId        String?                 @map("parent_id") @db.Uuid
   company         Company                 @relation(fields: [companyId], references: [id])
   client          Client                  @relation(fields: [clientId, companyId], references: [id, companyId])
   items           QuotationItem[]
@@ -204,8 +254,12 @@ model DocumentProcessingRun {
   currentStage      ProcessingStage        @default(queued) @map("current_stage")
   idempotencyKey    String                  @map("idempotency_key") @db.Text
   pipelineVersion   Int                     @default(1) @map("pipeline_version")
+  provider          String?                 @db.Text
+  model             String?                 @db.Text
   progressPercent   Int                     @default(0) @map("progress_percent")
+  progressMessage   String?                 @map("progress_message") @db.Text
   errorCode         String?                 @map("error_code") @db.Text
+  errorMessage      String?                 @map("error_message") @db.Text
   startedAt         DateTime?               @map("started_at") @db.Timestamptz(6)
   completedAt       DateTime?               @map("completed_at") @db.Timestamptz(6)
   createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -232,7 +286,14 @@ model NormalizedQuantityRow {
   sourceRowNumber       Int                     @map("source_row_number")
   sourceCellRange       String                  @map("source_cell_range") @db.Text
   rawDescription        String?                 @map("raw_description") @db.Text
+  rawPositionCode       String?                 @map("raw_position_code") @db.Text
+  rawUnit               String?                 @map("raw_unit") @db.Text
+  rawQuantity           String?                 @map("raw_quantity") @db.Text
+  rawPrice              String?                 @map("raw_price") @db.Text
+  rawWastePercent       String?                 @map("raw_waste_percent") @db.Text
+  formulaJson           Json                    @default("{}") @map("formula_json")
   normalizedDescription String?                 @map("normalized_description") @db.Text
+  normalizedPositionCode String?                @map("normalized_position_code") @db.Text
   normalizedUnit        String?                 @map("normalized_unit") @db.Text
   normalizedQuantity    Decimal?                @map("normalized_quantity") @db.Decimal(20, 4)
   normalizedPrice       Decimal?                @map("normalized_price") @db.Decimal(20, 2)
@@ -242,6 +303,9 @@ model NormalizedQuantityRow {
   findingsJson          Json                    @default("[]") @map("findings_json")
   reviewerUserId        String?                 @map("reviewer_user_id") @db.Uuid
   reviewedAt            DateTime?               @map("reviewed_at") @db.Timestamptz(6)
+  quantitySource        String                  @default("document") @map("quantity_source") @db.Text
+  priceSource           String                  @default("document") @map("price_source") @db.Text
+  reviewerNotes         String?                 @map("reviewer_notes") @db.Text
   createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
   company               Company                 @relation(fields: [companyId], references: [id])
@@ -264,12 +328,24 @@ model QuotationItem {
   unit                  String                  @db.Text
   quantity              Decimal                 @db.Decimal(20, 4)
   unitPrice             Decimal                 @map("unit_price") @db.Decimal(20, 2)
+  costUnitPrice         Decimal?                @map("cost_unit_price") @db.Decimal(20, 2)
+  wastePercent          Decimal                 @default(0) @map("waste_percent") @db.Decimal(5, 2)
+  costCategory          String                  @default("material") @map("cost_category") @db.Text
+  quantitySource        String                  @default("manual") @map("quantity_source") @db.Text
+  priceSource           String                  @default("manual") @map("price_source") @db.Text
+  sourceReference       String?                 @map("source_reference") @db.Text
+  verificationStatus    String                  @default("unverified") @map("verification_status") @db.Text
   sourceDocumentId      String?                 @map("source_document_id") @db.Uuid
   sourceProcessingRunId String?                 @map("source_processing_run_id") @db.Uuid
   sourceQuantityRowId   String?                 @map("source_quantity_row_id") @db.Uuid
   sourceCellRange       String?                 @map("source_cell_range") @db.Text
   sourceRuleVersion     String?                 @map("source_rule_version") @db.Text
   transferIdempotencyKey String?                @map("transfer_idempotency_key") @db.Text
+  priceSnapshotId       String?                 @map("price_snapshot_id") @db.Uuid
+  priceSnapshotLockedAt DateTime?               @map("price_snapshot_locked_at") @db.Timestamptz(6)
+  priceSnapshotStatus   String                  @default("none") @map("price_snapshot_status") @db.Text
+  discountPercent       Decimal                 @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  vatPercent            Decimal                 @default(20) @map("vat_percent") @db.Decimal(5, 2)
   total                 Decimal                 @db.Decimal(20, 2)
   company               Company                 @relation(fields: [companyId], references: [id])
   quotation             Quotation               @relation(fields: [quotationId, companyId], references: [id, companyId])
@@ -291,6 +367,7 @@ model QuotationItemEvidence {
   quotationItemId       String                  @map("quotation_item_id") @db.Uuid
   evidenceType          String                  @map("evidence_type") @db.Text
   evidenceKey           String                  @map("evidence_key") @db.Text
+  priceSnapshotId       String?                 @map("price_snapshot_id") @db.Uuid
   sourceDocumentId      String?                 @map("source_document_id") @db.Uuid
   sourceProcessingRunId String?                 @map("source_processing_run_id") @db.Uuid
   sourceQuantityRowId   String?                 @map("source_quantity_row_id") @db.Uuid
@@ -342,8 +419,13 @@ model SmartcheckPilotCase {
   retentionUntil     DateTime                   @map("retention_until") @db.Timestamptz(6)
   status             String                    @default("admitted") @db.Text
   expectedRowCount  Int?                       @map("expected_row_count")
+  workflowStartedAt DateTime                   @default(now()) @map("workflow_started_at") @db.Timestamptz(6)
+  workflowCompletedAt DateTime?               @map("workflow_completed_at") @db.Timestamptz(6)
   reviewerUserId    String?                    @map("reviewer_user_id") @db.Uuid
+  reviewerRole      String?                    @map("reviewer_role") @db.Text
+  reviewedAt        DateTime?                  @map("reviewed_at") @db.Timestamptz(6)
   reviewerDecision  String?                    @map("reviewer_decision") @db.Text
+  reviewerNotes     String?                    @map("reviewer_notes") @db.Text
   createdByUserId   String                     @map("created_by_user_id") @db.Uuid
   createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime                   @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -368,7 +450,18 @@ model SmartcheckPilotMeasurement {
   measuredAt          DateTime                @default(now()) @map("measured_at") @db.Timestamptz(6)
   totalRows           Int                     @default(0) @map("total_rows")
   parsedRows          Int                     @default(0) @map("parsed_rows")
+  manuallyCorrectedRows Int                   @default(0) @map("manually_corrected_rows")
+  findingCount        Int                     @default(0) @map("finding_count")
+  approvedRows        Int                     @default(0) @map("approved_rows")
+  transferredRows     Int                     @default(0) @map("transferred_rows")
+  provenanceCompleteRows Int                  @default(0) @map("provenance_complete_rows")
+  processingDurationSeconds Int?              @map("processing_duration_seconds")
+  workflowDurationSeconds Int?                @map("workflow_duration_seconds")
+  parseRate           Decimal?                @map("parse_rate") @db.Decimal(5, 4)
+  manualReentryFreeRate Decimal?              @map("manual_reentry_free_rate") @db.Decimal(5, 4)
   provenanceCoverage  Decimal?                @map("provenance_coverage") @db.Decimal(5, 4)
+  notes               String?                 @db.Text
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   company             Company                 @relation(fields: [companyId], references: [id])
   pilotCase           SmartcheckPilotCase    @relation(fields: [pilotCaseId, companyId], references: [id, companyId])
   processingRun       DocumentProcessingRun?  @relation(fields: [processingRunId, companyId], references: [id, companyId])

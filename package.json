@@ -25,7 +25,10 @@
     "smartcheck:worker": "tsx src/smartcheck/import/worker.ts",
     "contracts:generate": "tsx scripts/generate-contract-schemas.ts",
     "prisma:validate:shadow": "DATABASE_URL=\"${DATABASE_URL:-postgresql://shadow:shadow@127.0.0.1:5432/teklifpro_next_local}\" prisma validate --schema=prisma/shadow/schema.prisma",
-    "prisma:shadow-contract": "tsx scripts/validate-prisma-shadow-contract.ts"
+    "prisma:shadow-contract": "tsx scripts/validate-prisma-shadow-contract.ts",
+    "prisma:shadow-db:plan": "tsx scripts/prisma-shadow-parity.ts --plan",
+    "prisma:shadow-db:prepare": "tsx scripts/prisma-shadow-parity.ts --prepare",
+    "prisma:shadow-parity": "tsx scripts/prisma-shadow-parity.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1092.0",

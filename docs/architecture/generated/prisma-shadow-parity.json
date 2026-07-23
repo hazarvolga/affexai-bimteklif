@@ -1,0 +1,116 @@
+{
+  "contract": "prisma-shadow-parity.v1",
+  "sourceDatabase": "teklifpro_local",
+  "targetDatabase": "teklifpro_next_local",
+  "targetGuard": "teklifpro_next_local",
+  "schemaDumpSha256": "41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a",
+  "targetSchemaDumpSha256": "41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a",
+  "schemaDumpParity": true,
+  "models": [
+    {
+      "model": "User",
+      "table": "users",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "Company",
+      "table": "companies",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "Membership",
+      "table": "memberships",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "Client",
+      "table": "clients",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "Quotation",
+      "table": "quotations",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "Document",
+      "table": "documents",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "DocumentProcessingRun",
+      "table": "document_processing_runs",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "NormalizedQuantityRow",
+      "table": "normalized_quantity_rows",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "QuotationItem",
+      "table": "quotation_items",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "QuotationItemEvidence",
+      "table": "quotation_item_evidence",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "SmartcheckAuditLog",
+      "table": "smartcheck_audit_logs",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "SmartcheckPilotCase",
+      "table": "smartcheck_pilot_cases",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    },
+    {
+      "model": "SmartcheckPilotMeasurement",
+      "table": "smartcheck_pilot_measurements",
+      "missingColumns": [],
+      "extraColumns": [],
+      "typeMismatches": [],
+      "status": "pass"
+    }
+  ],
+  "status": "pass"
+}

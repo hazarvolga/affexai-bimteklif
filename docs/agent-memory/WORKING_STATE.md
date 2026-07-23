@@ -300,6 +300,13 @@ No migration, `db push`, client generation or dual-write was performed; the
 schema remains descriptive until the isolated `teklifpro_next_local` parity and
 restore gates are approved.
 
+On 2026-07-24 the isolated shadow harness was executed. A schema-only dump from
+`teklifpro_local` was restored into `teklifpro_next_local`; source/target dump
+hashes matched and all 13 selected Prisma models passed column/type parity. The
+target contains no application rows. The harness refuses a non-target database,
+refuses to overwrite a populated target, and keeps Express/Drizzle as the sole
+write owner.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

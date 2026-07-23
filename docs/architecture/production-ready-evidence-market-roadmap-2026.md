@@ -635,3 +635,24 @@ validasyonunu çalıştırıyor. Bu bir migration veya `db push` değildir. İzo
 parity kanıtı olmadan Prisma write owner olamaz.
 
 Detay: `docs/architecture/prisma-shadow-schema.md`.
+
+## 28. F15 isolated PostgreSQL parity harness
+
+F15’in bir sonraki dilimi gerçek bir izole veritabanı ile tamamlandı. `prisma:shadow-db:prepare`
+mevcut `teklifpro_local` şemasını `pg_dump --schema-only` ile veri taşımadan
+`teklifpro_next_local` hedefine restore ediyor; dolu hedefi ezmiyor ve yalnızca
+beklenen hedef veritabanı adını kabul ediyor. `prisma:shadow-parity` seçili 13
+Prisma modelinin katalog kolon/type parity’sini ve kaynak/hedef schema dump
+SHA-256 eşleşmesini kontrol ediyor.
+
+Mevcut koşuda 13/13 model `pass`, kaynak ve hedef dump hash’i
+`41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a`,
+`schemaDumpParity=true` ve hedef satır sayısı sıfırdır. PostgreSQL 15 server ile
+uyumlu `pg_dump` otomatik seçilmiştir; kaynak veritabanına write yapılmamıştır.
+
+Detay ve operasyon sınırları: `docs/architecture/prisma-shadow-parity.md`;
+makine raporu: `docs/architecture/generated/prisma-shadow-parity.json`.
+
+Bu kanıt yalnız schema parity/restore dilimidir. F15’in tam çıkışı için additive
+migration review, backup/restore tatbikatı, Express–NestJS HTTP parity ve gerçek
+pilot KPI’ları hâlâ gereklidir; Prisma write owner veya trafik cutover yapılmadı.

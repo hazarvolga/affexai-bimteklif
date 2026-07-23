@@ -200,3 +200,9 @@ and rollback evidence.
 The first Prisma shadow model is validated without a database and keeps
 Express/Drizzle as the sole write owner. Creating `teklifpro_next_local` and
 running additive migration/parity checks remain post-admission work.
+
+The isolated parity slice is now executed: `teklifpro_local` schema-only restore
+to `teklifpro_next_local`, source/target SHA-256 match, and 13/13 selected Prisma
+models pass column/type parity. This is not a production migration or a Prisma
+write-owner change; additive migration review, backup/restore rehearsal,
+Express–NestJS HTTP parity, and external pilot evidence remain open.
