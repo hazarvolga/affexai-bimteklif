@@ -1,0 +1,380 @@
+// F15 shadow model only. Do not run migrate/db push from the pilot app.
+// The Express + Drizzle application remains the single write owner until the
+// external pilot admission and parity gates are satisfied.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../.prisma/shadow-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  TRY
+  USD
+  EUR
+
+  @@map("currency")
+}
+
+enum UserRole {
+  owner
+  admin
+  manager
+  viewer
+
+  @@map("user_role")
+}
+
+enum QuoteStatus {
+  draft
+  sent
+  negotiation
+  won
+  lost
+  archived
+
+  @@map("quote_status")
+}
+
+enum DocumentStatus {
+  uploaded
+  queued
+  processing
+  awaiting_review
+  completed
+  failed
+  cancelled
+  archived
+
+  @@map("document_status")
+}
+
+enum ProcessingRunStatus {
+  queued
+  running
+  succeeded
+  failed
+  cancelled
+
+  @@map("processing_run_status")
+}
+
+enum ProcessingStage {
+  queued
+  parsing
+  normalizing
+  validating
+  awaiting_review
+  extracting_rules
+  consolidating
+  preparing_review
+  completed
+  failed
+  cancelled
+
+  @@map("processing_stage")
+}
+
+model User {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  email              String                  @unique @db.Text
+  fullName           String                  @map("full_name") @db.Text
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  memberships        Membership[]
+
+  @@map("users")
+}
+
+model Company {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  name               String                  @db.Text
+  defaultCurrency    Currency                @default(TRY) @map("default_currency")
+  smartcheckMaxWaste Decimal                 @default(20) @map("smartcheck_max_waste_percent") @db.Decimal(5, 2)
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  memberships        Membership[]
+  clients            Client[]
+  quotations         Quotation[]
+  documents          Document[]
+  processingRuns     DocumentProcessingRun[]
+  normalizedRows     NormalizedQuantityRow[]
+  quotationItems     QuotationItem[]
+  quotationEvidence QuotationItemEvidence[]
+  auditLogs          SmartcheckAuditLog[]
+  pilotCases         SmartcheckPilotCase[]
+  pilotMeasurements  SmartcheckPilotMeasurement[]
+
+  @@map("companies")
+}
+
+model Membership {
+  id              String                  @id @default(uuid()) @db.Uuid
+  userId          String                  @map("user_id") @db.Uuid
+  companyId       String                  @map("company_id") @db.Uuid
+  role            UserRole                @default(viewer)
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  user            User                    @relation(fields: [userId], references: [id])
+  company         Company                 @relation(fields: [companyId], references: [id])
+  uploadedDocuments Document[]             @relation("DocumentUploader")
+  reviewedRows    NormalizedQuantityRow[]  @relation("RowReviewer")
+  auditLogs       SmartcheckAuditLog[]     @relation("AuditActor")
+  createdPilotCases SmartcheckPilotCase[]  @relation("PilotCaseCreator")
+  reviewedPilotCases SmartcheckPilotCase[] @relation("PilotCaseReviewer")
+  measurements    SmartcheckPilotMeasurement[] @relation("PilotMeasurementActor")
+  evidenceCreated QuotationItemEvidence[] @relation("EvidenceCreator")
+
+  @@unique([userId, companyId], name: "memberships_user_id_company_id_key")
+  @@map("memberships")
+}
+
+model Client {
+  id          String      @id @default(uuid()) @db.Uuid
+  companyId   String      @map("company_id") @db.Uuid
+  name        String      @db.Text
+  type        String      @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  company     Company     @relation(fields: [companyId], references: [id])
+  quotations  Quotation[]
+
+  @@unique([id, companyId], name: "clients_id_company_id_key")
+  @@map("clients")
+}
+
+model Quotation {
+  id              String                  @id @default(uuid()) @db.Uuid
+  companyId       String                  @map("company_id") @db.Uuid
+  clientId        String                  @map("client_id") @db.Uuid
+  quoteNumber     String                  @map("quote_number") @db.Text
+  projectName     String                  @map("project_name") @db.Text
+  expiryDate      DateTime                @map("expiry_date") @db.Timestamp(6)
+  currency        Currency                @default(TRY)
+  status          QuoteStatus              @default(draft)
+  subtotal        Decimal                 @db.Decimal(20, 2)
+  discountTotal   Decimal                 @map("discount_total") @db.Decimal(20, 2)
+  vatTotal        Decimal                 @map("vat_total") @db.Decimal(20, 2)
+  grandTotal      Decimal                 @map("grand_total") @db.Decimal(20, 2)
+  revisionVersion Int                     @default(1) @map("revision_version")
+  isLatest        Boolean                 @default(true) @map("is_latest")
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime                @default(now()) @map("updated_at") @db.Timestamp(6)
+  company         Company                 @relation(fields: [companyId], references: [id])
+  client          Client                  @relation(fields: [clientId, companyId], references: [id, companyId])
+  items           QuotationItem[]
+  evidence        QuotationItemEvidence[]
+
+  @@unique([id, companyId], name: "quotations_id_company_id_key")
+  @@map("quotations")
+}
+
+model Document {
+  id                String                  @id @default(uuid()) @db.Uuid
+  companyId         String                  @map("company_id") @db.Uuid
+  uploadedByUserId  String                  @map("uploaded_by_user_id") @db.Uuid
+  originalFileName  String                  @map("original_file_name") @db.Text
+  displayName       String                  @map("display_name") @db.Text
+  mimeType          String                  @map("mime_type") @db.Text
+  fileSizeBytes     BigInt                  @map("file_size_bytes")
+  storageKey        String                  @map("storage_key") @db.Text
+  checksumSha256    String                  @map("checksum_sha256") @db.Text
+  importMappingJson Json                    @default("{}") @map("import_mapping_json")
+  status            DocumentStatus          @default(uploaded)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  archivedAt        DateTime?               @map("archived_at") @db.Timestamptz(6)
+  company           Company                 @relation(fields: [companyId], references: [id])
+  uploader          Membership              @relation("DocumentUploader", fields: [uploadedByUserId, companyId], references: [userId, companyId])
+  processingRuns    DocumentProcessingRun[]
+  normalizedRows    NormalizedQuantityRow[]
+  quotationSources  QuotationItem[]         @relation("QuotationItemSourceDocument")
+  evidenceSources   QuotationItemEvidence[] @relation("EvidenceSourceDocument")
+  pilotCases        SmartcheckPilotCase[]
+
+  @@unique([id, companyId], name: "documents_id_company_id_key")
+  @@map("documents")
+}
+
+model DocumentProcessingRun {
+  id                String                  @id @default(uuid()) @db.Uuid
+  companyId         String                  @map("company_id") @db.Uuid
+  documentId        String                  @map("document_id") @db.Uuid
+  status            ProcessingRunStatus     @default(queued)
+  currentStage      ProcessingStage        @default(queued) @map("current_stage")
+  idempotencyKey    String                  @map("idempotency_key") @db.Text
+  pipelineVersion   Int                     @default(1) @map("pipeline_version")
+  progressPercent   Int                     @default(0) @map("progress_percent")
+  errorCode         String?                 @map("error_code") @db.Text
+  startedAt         DateTime?               @map("started_at") @db.Timestamptz(6)
+  completedAt       DateTime?               @map("completed_at") @db.Timestamptz(6)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  company           Company                 @relation(fields: [companyId], references: [id])
+  document          Document                @relation(fields: [documentId, companyId], references: [id, companyId])
+  normalizedRows    NormalizedQuantityRow[]
+  quotationSources  QuotationItem[]         @relation("QuotationItemSourceRun")
+  evidenceSources   QuotationItemEvidence[] @relation("EvidenceSourceRun")
+  pilotMeasurements SmartcheckPilotMeasurement[]
+
+  @@unique([id, companyId], name: "document_processing_runs_id_company_id_key")
+  @@unique([id, documentId, companyId], name: "document_processing_runs_id_document_id_company_id_key")
+  @@unique([companyId, documentId, idempotencyKey], name: "document_processing_runs_company_document_idempotency_key")
+  @@map("document_processing_runs")
+}
+
+model NormalizedQuantityRow {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  companyId             String                  @map("company_id") @db.Uuid
+  documentId            String                  @map("document_id") @db.Uuid
+  processingRunId       String                  @map("processing_run_id") @db.Uuid
+  sheetName             String                  @map("sheet_name") @db.Text
+  sourceRowNumber       Int                     @map("source_row_number")
+  sourceCellRange       String                  @map("source_cell_range") @db.Text
+  rawDescription        String?                 @map("raw_description") @db.Text
+  normalizedDescription String?                 @map("normalized_description") @db.Text
+  normalizedUnit        String?                 @map("normalized_unit") @db.Text
+  normalizedQuantity    Decimal?                @map("normalized_quantity") @db.Decimal(20, 4)
+  normalizedPrice       Decimal?                @map("normalized_price") @db.Decimal(20, 2)
+  normalizedWaste       Decimal                 @default(0) @map("normalized_waste_percent") @db.Decimal(5, 2)
+  mappingConfidence     Decimal                 @default(0) @map("mapping_confidence") @db.Decimal(3, 2)
+  reviewStatus          String                  @default("pending_review") @map("review_status") @db.Text
+  findingsJson          Json                    @default("[]") @map("findings_json")
+  reviewerUserId        String?                 @map("reviewer_user_id") @db.Uuid
+  reviewedAt            DateTime?               @map("reviewed_at") @db.Timestamptz(6)
+  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
+  company               Company                 @relation(fields: [companyId], references: [id])
+  document              Document                @relation(fields: [documentId, companyId], references: [id, companyId])
+  processingRun         DocumentProcessingRun  @relation(fields: [processingRunId, documentId, companyId], references: [id, documentId, companyId])
+  reviewer              Membership?            @relation("RowReviewer", fields: [reviewerUserId, companyId], references: [userId, companyId])
+  quotationItems        QuotationItem[]
+  evidence              QuotationItemEvidence[] @relation("EvidenceSourceRow")
+
+  @@unique([id, companyId], name: "normalized_quantity_rows_id_company_id_key")
+  @@unique([companyId, processingRunId, sheetName, sourceRowNumber], name: "normalized_quantity_rows_source_key")
+  @@map("normalized_quantity_rows")
+}
+
+model QuotationItem {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  companyId             String                  @map("company_id") @db.Uuid
+  quotationId           String                  @map("quotation_id") @db.Uuid
+  description           String                  @db.Text
+  unit                  String                  @db.Text
+  quantity              Decimal                 @db.Decimal(20, 4)
+  unitPrice             Decimal                 @map("unit_price") @db.Decimal(20, 2)
+  sourceDocumentId      String?                 @map("source_document_id") @db.Uuid
+  sourceProcessingRunId String?                 @map("source_processing_run_id") @db.Uuid
+  sourceQuantityRowId   String?                 @map("source_quantity_row_id") @db.Uuid
+  sourceCellRange       String?                 @map("source_cell_range") @db.Text
+  sourceRuleVersion     String?                 @map("source_rule_version") @db.Text
+  transferIdempotencyKey String?                @map("transfer_idempotency_key") @db.Text
+  total                 Decimal                 @db.Decimal(20, 2)
+  company               Company                 @relation(fields: [companyId], references: [id])
+  quotation             Quotation               @relation(fields: [quotationId, companyId], references: [id, companyId])
+  sourceDocument        Document?               @relation("QuotationItemSourceDocument", fields: [sourceDocumentId, companyId], references: [id, companyId])
+  sourceProcessingRun   DocumentProcessingRun?  @relation("QuotationItemSourceRun", fields: [sourceProcessingRunId, sourceDocumentId, companyId], references: [id, documentId, companyId])
+  sourceQuantityRow     NormalizedQuantityRow?  @relation(fields: [sourceQuantityRowId, companyId], references: [id, companyId])
+  evidence              QuotationItemEvidence[]
+
+  @@unique([id, companyId], name: "quotation_items_id_company_id_key")
+  @@unique([id, quotationId, companyId], name: "quotation_items_id_quotation_id_company_id_key")
+  @@unique([companyId, quotationId, transferIdempotencyKey], name: "quotation_items_transfer_idempotency_key")
+  @@map("quotation_items")
+}
+
+model QuotationItemEvidence {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  companyId             String                  @map("company_id") @db.Uuid
+  quotationId           String                  @map("quotation_id") @db.Uuid
+  quotationItemId       String                  @map("quotation_item_id") @db.Uuid
+  evidenceType          String                  @map("evidence_type") @db.Text
+  evidenceKey           String                  @map("evidence_key") @db.Text
+  sourceDocumentId      String?                 @map("source_document_id") @db.Uuid
+  sourceProcessingRunId String?                 @map("source_processing_run_id") @db.Uuid
+  sourceQuantityRowId   String?                 @map("source_quantity_row_id") @db.Uuid
+  sourceCellRange       String?                 @map("source_cell_range") @db.Text
+  sourceDocumentHash    String?                 @map("source_document_hash") @db.Text
+  capturedValueJson     Json                    @default("{}") @map("captured_value_json")
+  status                String                  @default("current") @db.Text
+  createdByUserId       String                  @map("created_by_user_id") @db.Uuid
+  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  company               Company                 @relation(fields: [companyId], references: [id])
+  quotation             Quotation               @relation(fields: [quotationId, companyId], references: [id, companyId])
+  quotationItem         QuotationItem           @relation(fields: [quotationItemId, quotationId, companyId], references: [id, quotationId, companyId])
+  sourceDocument        Document?               @relation("EvidenceSourceDocument", fields: [sourceDocumentId, companyId], references: [id, companyId])
+  sourceProcessingRun   DocumentProcessingRun?  @relation("EvidenceSourceRun", fields: [sourceProcessingRunId, sourceDocumentId, companyId], references: [id, documentId, companyId])
+  sourceQuantityRow     NormalizedQuantityRow?  @relation("EvidenceSourceRow", fields: [sourceQuantityRowId, companyId], references: [id, companyId])
+  creator               Membership              @relation("EvidenceCreator", fields: [createdByUserId, companyId], references: [userId, companyId])
+
+  @@unique([id, companyId], name: "quotation_item_evidence_id_company_id_key")
+  @@unique([companyId, quotationItemId, evidenceKey], name: "quotation_item_evidence_key_unique")
+  @@map("quotation_item_evidence")
+}
+
+model SmartcheckAuditLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  companyId   String      @map("company_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  action      String      @db.Text
+  entityType  String      @map("entity_type") @db.Text
+  entityId    String?     @map("entity_id") @db.Uuid
+  metadataJson Json       @default("{}") @map("metadata_json")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  company     Company     @relation(fields: [companyId], references: [id])
+  actor       Membership  @relation("AuditActor", fields: [userId, companyId], references: [userId, companyId])
+
+  @@index([companyId, createdAt], name: "idx_smartcheck_audit_lookup")
+  @@map("smartcheck_audit_logs")
+}
+
+model SmartcheckPilotCase {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  companyId          String                    @map("company_id") @db.Uuid
+  documentId         String                    @map("document_id") @db.Uuid
+  pilotId            String                    @map("pilot_id") @db.Text
+  customerReference  String                    @map("customer_reference") @db.Text
+  projectReference   String                    @map("project_reference") @db.Text
+  discipline         String                    @default("MEP") @db.Text
+  permissionReference String                   @map("permission_reference") @db.Text
+  permissionGrantedAt DateTime                 @map("permission_granted_at") @db.Timestamptz(6)
+  retentionUntil     DateTime                   @map("retention_until") @db.Timestamptz(6)
+  status             String                    @default("admitted") @db.Text
+  expectedRowCount  Int?                       @map("expected_row_count")
+  reviewerUserId    String?                    @map("reviewer_user_id") @db.Uuid
+  reviewerDecision  String?                    @map("reviewer_decision") @db.Text
+  createdByUserId   String                     @map("created_by_user_id") @db.Uuid
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  company           Company                    @relation(fields: [companyId], references: [id])
+  document          Document                   @relation(fields: [documentId, companyId], references: [id, companyId])
+  creator           Membership                 @relation("PilotCaseCreator", fields: [createdByUserId, companyId], references: [userId, companyId])
+  reviewer          Membership?               @relation("PilotCaseReviewer", fields: [reviewerUserId, companyId], references: [userId, companyId])
+  measurements      SmartcheckPilotMeasurement[]
+
+  @@unique([id, companyId], name: "smartcheck_pilot_cases_id_company_id_key")
+  @@unique([companyId, pilotId, documentId], name: "smartcheck_pilot_cases_pilot_document_key")
+  @@map("smartcheck_pilot_cases")
+}
+
+model SmartcheckPilotMeasurement {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  companyId           String                  @map("company_id") @db.Uuid
+  pilotCaseId         String                  @map("pilot_case_id") @db.Uuid
+  processingRunId     String?                 @map("processing_run_id") @db.Uuid
+  measuredByUserId    String                  @map("measured_by_user_id") @db.Uuid
+  measurementKey      String                  @map("measurement_key") @db.Text
+  measuredAt          DateTime                @default(now()) @map("measured_at") @db.Timestamptz(6)
+  totalRows           Int                     @default(0) @map("total_rows")
+  parsedRows          Int                     @default(0) @map("parsed_rows")
+  provenanceCoverage  Decimal?                @map("provenance_coverage") @db.Decimal(5, 4)
+  company             Company                 @relation(fields: [companyId], references: [id])
+  pilotCase           SmartcheckPilotCase    @relation(fields: [pilotCaseId, companyId], references: [id, companyId])
+  processingRun       DocumentProcessingRun?  @relation(fields: [processingRunId, companyId], references: [id, companyId])
+  measuredBy          Membership              @relation("PilotMeasurementActor", fields: [measuredByUserId, companyId], references: [userId, companyId])
+
+  @@unique([id, companyId], name: "smartcheck_pilot_measurements_id_company_id_key")
+  @@unique([companyId, pilotCaseId, measurementKey], name: "smartcheck_pilot_measurements_case_key")
+  @@map("smartcheck_pilot_measurements")
+}

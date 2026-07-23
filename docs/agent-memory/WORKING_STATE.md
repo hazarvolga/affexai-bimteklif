@@ -294,6 +294,12 @@ inventory plus Express route parity test rejects unsafe target writes before
 `cutover-ready`. Complete F15 still requires an isolated Prisma shadow database
 and Express–Nest parity/backup evidence.
 
+The Prisma shadow schema is now present under `prisma/shadow/schema.prisma` and
+passes both the database-free tenant contract validator and `prisma validate`.
+No migration, `db push`, client generation or dual-write was performed; the
+schema remains descriptive until the isolated `teklifpro_next_local` parity and
+restore gates are approved.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

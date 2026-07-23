@@ -196,3 +196,7 @@ generated JSON Schema/OpenAPI artifacts, an Express route parity check and a
 bounded-context/write-owner inventory. Express remains the sole pilot write
 owner; NestJS/Prisma cutover is still gated by real pilot KPI, parity, backup
 and rollback evidence.
+
+The first Prisma shadow model is validated without a database and keeps
+Express/Drizzle as the sole write owner. Creating `teklifpro_next_local` and
+running additive migration/parity checks remain post-admission work.

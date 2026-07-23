@@ -23,7 +23,9 @@
     "smartcheck:pilot-check": "tsx scripts/smartcheck-pilot-readiness.ts",
     "smartcheck:storage-smoke": "tsx scripts/smartcheck-storage-smoke.ts",
     "smartcheck:worker": "tsx src/smartcheck/import/worker.ts",
-    "contracts:generate": "tsx scripts/generate-contract-schemas.ts"
+    "contracts:generate": "tsx scripts/generate-contract-schemas.ts",
+    "prisma:validate:shadow": "DATABASE_URL=\"${DATABASE_URL:-postgresql://shadow:shadow@127.0.0.1:5432/teklifpro_next_local}\" prisma validate --schema=prisma/shadow/schema.prisma",
+    "prisma:shadow-contract": "tsx scripts/validate-prisma-shadow-contract.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1092.0",
@@ -53,6 +55,7 @@
     "next-themes": "^0.4.6",
     "pg": "^8.20.0",
     "puppeteer": "^24.43.1",
+    "prisma": "^6.16.2",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-router-dom": "^7.15.0",

@@ -625,3 +625,13 @@ izole `teklifpro_next_local` üzerinde additive Prisma shadow schema,
 Express–Nest parity koşusu ve backup/restore kanıtı hâlâ gereklidir. Gerçek beş
 dosya ve production storage admission tamamlanmadan trafik devri
 yapılmayacaktır. Detay: `docs/architecture/contract-parity-foundation.md`.
+
+`prisma/shadow/schema.prisma` ile F15’in schema-only Prisma dilimi de
+oluşturuldu. `pnpm prisma:shadow-contract` 13 tenant-aware modeli, composite
+identity unique’lerini ve Express single-write-owner guardrail’ini veritabanına
+bağlanmadan kontrol ediyor; `pnpm prisma:validate:shadow` Prisma parser/schema
+validasyonunu çalıştırıyor. Bu bir migration veya `db push` değildir. İzole
+`teklifpro_next_local`, Drizzle–Prisma diff, backup/restore ve Express–Nest
+parity kanıtı olmadan Prisma write owner olamaz.
+
+Detay: `docs/architecture/prisma-shadow-schema.md`.
