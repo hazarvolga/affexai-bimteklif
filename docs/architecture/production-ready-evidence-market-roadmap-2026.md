@@ -369,3 +369,7 @@ Bir sonraki teknik faz **Faz 1 — Sentetik veri ve kullanıcı akışı**dır. 
 7. sonuçların kısa pilot kanıt raporu.
 
 Bu faz tamamlanmadan gerçek piyasa crawler’ı veya NestJS/Next.js rewrite başlatılmamalıdır. Önce hangi verinin doğru kabul edildiğini ve kullanıcının gerçekten daha az çabayla doğru sonuca ulaştığını ölçmeliyiz.
+
+## 12. Faz 1 uygulama durumu
+
+Sentetik fixture paketi `fixtures/smartcheck/pilot-v1` altında oluşturuldu. Beş MEP CSV senaryosu, bozuk XLSX, fiyat snapshot’ları ve mevzuat diff simülasyonu `pnpm smartcheck:fixtures` ile doğrulanıyor. Gerçek browser acceptance adımları ve kapsamı `docs/smartcheck/pilot/fixture-acceptance.md` içinde sabitlendi. Bu kanıt, gerçek müşteri pilotu veya production market data entegrasyonu yerine geçmez.

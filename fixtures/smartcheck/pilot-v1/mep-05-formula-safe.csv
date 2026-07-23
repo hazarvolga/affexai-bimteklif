@@ -1,0 +1,4 @@
+Poz No,Açıklama,Birim,Miktar,Birim Fiyat,Zayiat
+M-401,Isı pompası,adet,2,"=HYPERLINK(""https://example.invalid"")",3
+M-402,Kontrol paneli,adet,5,"+CMD(""calc"")",2
+M-403,Debi ölçüm noktası,adet,14,"1.250,00",2

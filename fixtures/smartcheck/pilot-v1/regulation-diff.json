@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "fixtureType": "advisory_regulation_diff",
+  "source": {"authority":"Synthetic Official Gazette Mirror","documentId":"SYN-REG-2026-07","documentHash":"synthetic-regulation-hash","publishedAt":"2026-07-23"},
+  "previousVersion": {"ruleCode":"construction.vat.withholding.advisory","status":"advisory","statement":"Synthetic previous statement"},
+  "candidateVersion": {"ruleCode":"construction.vat.withholding.advisory","status":"draft","statement":"Synthetic changed statement; requires tax reviewer approval","effectiveFrom":"2026-08-01"},
+  "expectedAction":"create_candidate_and_block_canonical_promotion_until_reviewer_approval"
+}

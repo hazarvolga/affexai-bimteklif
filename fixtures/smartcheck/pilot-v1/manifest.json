@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "fixtureSet": "smartcheck-pilot-v1",
+  "synthetic": true,
+  "cases": [
+    {"id":"mep-01-clean","file":"mep-01-clean.csv","expectedFindings":0,"expectedParseRows":4},
+    {"id":"mep-02-electrical","file":"mep-02-electrical.csv","expectedFindings":0,"expectedParseRows":4},
+    {"id":"mep-03-findings","file":"mep-03-findings.csv","expectedFindingCodes":["UNKNOWN_UNIT","INVALID_QUANTITY","MISSING_PRICE_SOURCE","WASTE_LIMIT_EXCEEDED"],"expectedParseRows":5},
+    {"id":"mep-04-duplicate","file":"mep-04-duplicate.csv","expectedFindingCodes":["DUPLICATE_POSITION_CODE"],"expectedParseRows":3},
+    {"id":"mep-05-formula-safe","file":"mep-05-formula-safe.csv","expectedFormulaCells":2,"expectedParseRows":3},
+    {"id":"negative-corrupt-xlsx","file":"negative-corrupt.xlsx","expectedError":"FILE_SIGNATURE_MISMATCH"}
+  ],
+  "marketFixture":"price-snapshots.json",
+  "regulationFixture":"regulation-diff.json"
+}

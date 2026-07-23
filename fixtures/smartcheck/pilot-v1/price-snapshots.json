@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "currency": "TRY",
+  "snapshots": [
+    {"snapshotId":"PX-2026-07-MEP-001","itemCode":"M-001","description":"VRF dış ünite","unit":"adet","unitPrice":185000,"region":"Istanbul","sourceType":"supplier_quote","sourceName":"Synthetic Supplier A","capturedAt":"2026-07-23","validUntil":"2026-07-30","sourceDocumentHash":"synthetic-001","confidence":"medium","reviewStatus":"advisory"},
+    {"snapshotId":"PX-2026-07-MEP-002","itemCode":"M-002","description":"Bakır boru hattı","unit":"m","unitPrice":1245,"region":"Istanbul","sourceType":"company_actual","sourceName":"Synthetic Company Memory","capturedAt":"2026-07-23","validUntil":"2026-08-06","sourceDocumentHash":"synthetic-002","confidence":"medium","reviewStatus":"advisory"},
+    {"snapshotId":"PX-2026-07-REF-001","itemCode":"REF-IME","description":"İnşaat maliyet endeksi referansı","unit":"index","unitPrice":100,"region":"TR","sourceType":"official_reference","sourceName":"Synthetic TÜİK reference","capturedAt":"2026-07-23","validUntil":"2026-08-23","sourceDocumentHash":"synthetic-003","confidence":"high","reviewStatus":"advisory"}
+  ]
+}

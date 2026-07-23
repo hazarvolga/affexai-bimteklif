@@ -1,11 +1,11 @@
 # Graph Report - TeklifPro-repo  (2026-07-23)
 
 ## Corpus Check
-- 226 files · ~214,461 words
+- 228 files · ~245,814 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 753 nodes · 911 edges · 49 communities detected
+- 758 nodes · 914 edges · 49 communities detected
 - Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 211 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
@@ -51,14 +51,14 @@
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
 - [[_COMMUNITY_Community 44|Community 44]]
-- [[_COMMUNITY_Community 46|Community 46]]
-- [[_COMMUNITY_Community 49|Community 49]]
-- [[_COMMUNITY_Community 53|Community 53]]
-- [[_COMMUNITY_Community 64|Community 64]]
-- [[_COMMUNITY_Community 89|Community 89]]
-- [[_COMMUNITY_Community 90|Community 90]]
+- [[_COMMUNITY_Community 47|Community 47]]
+- [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 91|Community 91]]
 - [[_COMMUNITY_Community 92|Community 92]]
+- [[_COMMUNITY_Community 93|Community 93]]
+- [[_COMMUNITY_Community 94|Community 94]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `fetchWithAuth()` - 20 edges
@@ -250,35 +250,35 @@ Nodes (1): cn()
 Cohesion: 0.67
 Nodes (1): cn()
 
-### Community 46 - "Community 46"
+### Community 47 - "Community 47"
 Cohesion: 0.67
 Nodes (1): cn()
 
-### Community 49 - "Community 49"
+### Community 50 - "Community 50"
 Cohesion: 0.67
 Nodes (1): FixtureInfrastructureError
 
-### Community 53 - "Community 53"
+### Community 54 - "Community 54"
 Cohesion: 1.0
 Nodes (2): findAllplanEntitlement(), requireAllplanEntitlement()
 
-### Community 64 - "Community 64"
+### Community 65 - "Community 65"
 Cohesion: 1.0
 Nodes (1): Configuration for NotebookLM Skill Centralizes constants, selectors, and paths
 
-### Community 89 - "Community 89"
+### Community 91 - "Community 91"
 Cohesion: 1.0
 Nodes (1): Launch a persistent browser context with anti-detection features         and coo
 
-### Community 90 - "Community 90"
+### Community 92 - "Community 92"
 Cohesion: 1.0
 Nodes (1): Inject cookies from state.json if available
 
-### Community 91 - "Community 91"
+### Community 93 - "Community 93"
 Cohesion: 1.0
 Nodes (1): Type with human-like speed
 
-### Community 92 - "Community 92"
+### Community 94 - "Community 94"
 Cohesion: 1.0
 Nodes (1): Click with realistic movement
 
@@ -319,32 +319,32 @@ Nodes (1): Click with realistic movement
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 44`** (3 nodes): `cn()`, `button.tsx`, `button.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 46`** (3 nodes): `utils.ts`, `utils.ts`, `cn()`
+- **Thin community `Community 47`** (3 nodes): `utils.ts`, `utils.ts`, `cn()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 49`** (3 nodes): `FixtureInfrastructureError`, `.constructor()`, `fixture-errors.ts`
+- **Thin community `Community 50`** (3 nodes): `FixtureInfrastructureError`, `.constructor()`, `fixture-errors.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 53`** (3 nodes): `findAllplanEntitlement()`, `requireAllplanEntitlement()`, `academyEntitlement.ts`
+- **Thin community `Community 54`** (3 nodes): `findAllplanEntitlement()`, `requireAllplanEntitlement()`, `academyEntitlement.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 64`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
+- **Thin community `Community 65`** (2 nodes): `Configuration for NotebookLM Skill Centralizes constants, selectors, and paths`, `config.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 89`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
+- **Thin community `Community 91`** (1 nodes): `Launch a persistent browser context with anti-detection features         and coo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 90`** (1 nodes): `Inject cookies from state.json if available`
+- **Thin community `Community 92`** (1 nodes): `Inject cookies from state.json if available`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 91`** (1 nodes): `Type with human-like speed`
+- **Thin community `Community 93`** (1 nodes): `Type with human-like speed`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 92`** (1 nodes): `Click with realistic movement`
+- **Thin community `Community 94`** (1 nodes): `Click with realistic movement`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `load()` connect `Community 0` to `Community 1`, `Community 10`, `Community 5`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
-- **Why does `exists()` connect `Community 4` to `Community 0`, `Community 5`, `Community 7`?**
   _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `exists()` connect `Community 4` to `Community 0`, `Community 5`, `Community 7`?**
+  _High betweenness centrality (0.066) - this node is a cross-community bridge._
 - **Why does `fetchWithAuth()` connect `Community 1` to `Community 0`?**
-  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+  _High betweenness centrality (0.064) - this node is a cross-community bridge._
 - **Are the 19 inferred relationships involving `fetchWithAuth()` (e.g. with `syncAllplanProgress()` and `syncAllplanLessonProgress()`) actually correct?**
   _`fetchWithAuth()` has 19 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `NotebookLibrary` (e.g. with `Ask a question to NotebookLM      Args:         question: Question to ask` and `main()`) actually correct?**

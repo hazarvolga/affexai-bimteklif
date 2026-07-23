@@ -9,7 +9,7 @@
       "source_file": "vite.config.ts",
       "source_location": "L1",
       "id": "vite_config_ts",
-      "community": 63,
+      "community": 64,
       "norm_label": "vite.config.ts"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "vite.config.ts",
       "source_location": "L28",
       "id": "vite_config_manualchunks",
-      "community": 63,
+      "community": 64,
       "norm_label": "manualchunks()"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/server.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_server_ts",
-      "community": 87,
+      "community": 89,
       "norm_label": "server.ts"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_components_ui_sonner_tsx",
-      "community": 88,
+      "community": 90,
       "norm_label": "sonner.tsx"
     },
     {
@@ -558,7 +558,7 @@
       "source_file": "notebooklm/scripts/config.py",
       "source_location": "L1",
       "id": "notebooklm_scripts_config_py",
-      "community": 64,
+      "community": 65,
       "norm_label": "config.py"
     },
     {
@@ -566,7 +566,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/config.py",
       "source_location": "L1",
-      "community": 64,
+      "community": 65,
       "norm_label": "configuration for notebooklm skill centralizes constants, selectors, and paths",
       "id": "config_rationale_1"
     },
@@ -809,7 +809,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L24",
-      "community": 89,
+      "community": 91,
       "norm_label": "launch a persistent browser context with anti-detection features         and coo",
       "id": "browser_utils_rationale_24"
     },
@@ -818,7 +818,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L47",
-      "community": 90,
+      "community": 92,
       "norm_label": "inject cookies from state.json if available",
       "id": "browser_utils_rationale_47"
     },
@@ -836,7 +836,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L69",
-      "community": 91,
+      "community": 93,
       "norm_label": "type with human-like speed",
       "id": "browser_utils_rationale_69"
     },
@@ -845,7 +845,7 @@
       "file_type": "rationale",
       "source_file": "notebooklm/scripts/browser_utils.py",
       "source_location": "L93",
-      "community": 92,
+      "community": 94,
       "norm_label": "click with realistic movement",
       "id": "browser_utils_rationale_93"
     },
@@ -1818,7 +1818,7 @@
       "source_file": "scripts/negative-test.ts",
       "source_location": "L1",
       "id": "scripts_negative_test_ts",
-      "community": 65,
+      "community": 66,
       "norm_label": "negative-test.ts"
     },
     {
@@ -1827,7 +1827,7 @@
       "source_file": "scripts/negative-test.ts",
       "source_location": "L6",
       "id": "negative_test_runtests",
-      "community": 65,
+      "community": 66,
       "norm_label": "runtests()"
     },
     {
@@ -1836,7 +1836,7 @@
       "source_file": "scripts/smartcheck-pilot-readiness.ts",
       "source_location": "L1",
       "id": "scripts_smartcheck_pilot_readiness_ts",
-      "community": 93,
+      "community": 95,
       "norm_label": "smartcheck-pilot-readiness.ts"
     },
     {
@@ -1899,7 +1899,7 @@
       "source_file": "scripts/extract-academy-source-data.mjs",
       "source_location": "L1",
       "id": "scripts_extract_academy_source_data_mjs",
-      "community": 94,
+      "community": 96,
       "norm_label": "extract-academy-source-data.mjs"
     },
     {
@@ -1908,7 +1908,7 @@
       "source_file": "scripts/import-allplan-source.mjs",
       "source_location": "L1",
       "id": "scripts_import_allplan_source_mjs",
-      "community": 95,
+      "community": 97,
       "norm_label": "import-allplan-source.mjs"
     },
     {
@@ -1948,12 +1948,39 @@
       "norm_label": "main()"
     },
     {
+      "label": "build_live_gap_doc.py",
+      "file_type": "code",
+      "source_file": "scripts/build_live_gap_doc.py",
+      "source_location": "L1",
+      "id": "scripts_build_live_gap_doc_py",
+      "community": 46,
+      "norm_label": "build_live_gap_doc.py"
+    },
+    {
+      "label": "para()",
+      "file_type": "code",
+      "source_file": "scripts/build_live_gap_doc.py",
+      "source_location": "L24",
+      "id": "build_live_gap_doc_para",
+      "community": 46,
+      "norm_label": "para()"
+    },
+    {
+      "label": "table()",
+      "file_type": "code",
+      "source_file": "scripts/build_live_gap_doc.py",
+      "source_location": "L32",
+      "id": "build_live_gap_doc_table",
+      "community": 46,
+      "norm_label": "table()"
+    },
+    {
       "label": "utils.ts",
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/lib/utils.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_lib_utils_ts",
-      "community": 46,
+      "community": 47,
       "norm_label": "utils.ts"
     },
     {
@@ -1962,7 +1989,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/utils.ts",
       "source_location": "L4",
       "id": "utils_cn",
-      "community": 46,
+      "community": 47,
       "norm_label": "cn()"
     },
     {
@@ -1971,7 +1998,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L1",
       "id": "src_app_tsx",
-      "community": 47,
+      "community": 48,
       "norm_label": "app.tsx"
     },
     {
@@ -1980,7 +2007,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L14",
       "id": "app_page",
-      "community": 47,
+      "community": 48,
       "norm_label": "page()"
     },
     {
@@ -1989,7 +2016,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L48",
       "id": "app_approutes",
-      "community": 47,
+      "community": 48,
       "norm_label": "approutes()"
     },
     {
@@ -1998,7 +2025,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/main.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_main_tsx",
-      "community": 96,
+      "community": 98,
       "norm_label": "main.tsx"
     },
     {
@@ -2007,7 +2034,7 @@
       "source_file": "src/types.ts",
       "source_location": "L1",
       "id": "src_types_ts",
-      "community": 97,
+      "community": 99,
       "norm_label": "types.ts"
     },
     {
@@ -2016,7 +2043,7 @@
       "source_file": "src/constants/navigation.tsx",
       "source_location": "L1",
       "id": "src_constants_navigation_tsx",
-      "community": 98,
+      "community": 100,
       "norm_label": "navigation.tsx"
     },
     {
@@ -2025,7 +2052,7 @@
       "source_file": "src/smartcheck/demo-slice.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_demo_slice_test_ts",
-      "community": 99,
+      "community": 101,
       "norm_label": "demo-slice.test.ts"
     },
     {
@@ -2079,7 +2106,7 @@
       "source_file": "src/smartcheck/demoData.ts",
       "source_location": "L1",
       "id": "src_smartcheck_demodata_ts",
-      "community": 100,
+      "community": 102,
       "norm_label": "demodata.ts"
     },
     {
@@ -2088,7 +2115,7 @@
       "source_file": "src/smartcheck/schemas/schemas.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_schemas_schemas_test_ts",
-      "community": 101,
+      "community": 103,
       "norm_label": "schemas.test.ts"
     },
     {
@@ -2097,7 +2124,7 @@
       "source_file": "src/smartcheck/schemas/structured-condition.schema.ts",
       "source_location": "L1",
       "id": "src_smartcheck_schemas_structured_condition_schema_ts",
-      "community": 102,
+      "community": 104,
       "norm_label": "structured-condition.schema.ts"
     },
     {
@@ -2106,7 +2133,7 @@
       "source_file": "src/smartcheck/schemas/source-evidence.schema.ts",
       "source_location": "L1",
       "id": "src_smartcheck_schemas_source_evidence_schema_ts",
-      "community": 103,
+      "community": 105,
       "norm_label": "source-evidence.schema.ts"
     },
     {
@@ -2115,7 +2142,7 @@
       "source_file": "src/smartcheck/rules/governance.ts",
       "source_location": "L1",
       "id": "src_smartcheck_rules_governance_ts",
-      "community": 48,
+      "community": 49,
       "norm_label": "governance.ts"
     },
     {
@@ -2124,7 +2151,7 @@
       "source_file": "src/smartcheck/rules/governance.ts",
       "source_location": "L24",
       "id": "governance_validaterulegovernance",
-      "community": 48,
+      "community": 49,
       "norm_label": "validaterulegovernance()"
     },
     {
@@ -2133,7 +2160,7 @@
       "source_file": "src/smartcheck/rules/governance.ts",
       "source_location": "L36",
       "id": "governance_defaultgovernancestatus",
-      "community": 48,
+      "community": 49,
       "norm_label": "defaultgovernancestatus()"
     },
     {
@@ -2142,7 +2169,7 @@
       "source_file": "src/smartcheck/rules/governance.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_rules_governance_test_ts",
-      "community": 104,
+      "community": 106,
       "norm_label": "governance.test.ts"
     },
     {
@@ -2187,7 +2214,7 @@
       "source_file": "src/smartcheck/pilot/readiness.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_pilot_readiness_test_ts",
-      "community": 105,
+      "community": 107,
       "norm_label": "readiness.test.ts"
     },
     {
@@ -2403,7 +2430,7 @@
       "source_file": "src/smartcheck/evaluation/metrics.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_metrics_test_ts",
-      "community": 106,
+      "community": 108,
       "norm_label": "metrics.test.ts"
     },
     {
@@ -2412,7 +2439,7 @@
       "source_file": "src/smartcheck/evaluation/fixture-errors.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_fixture_errors_ts",
-      "community": 49,
+      "community": 50,
       "norm_label": "fixture-errors.ts"
     },
     {
@@ -2421,7 +2448,7 @@
       "source_file": "src/smartcheck/evaluation/fixture-errors.ts",
       "source_location": "L16",
       "id": "fixture_errors_fixtureinfrastructureerror",
-      "community": 49,
+      "community": 50,
       "norm_label": "fixtureinfrastructureerror"
     },
     {
@@ -2430,7 +2457,7 @@
       "source_file": "src/smartcheck/evaluation/fixture-errors.ts",
       "source_location": "L17",
       "id": "fixture_errors_fixtureinfrastructureerror_constructor",
-      "community": 49,
+      "community": 50,
       "norm_label": ".constructor()"
     },
     {
@@ -2457,7 +2484,7 @@
       "source_file": "src/smartcheck/evaluation/evidence-metrics.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_evidence_metrics_test_ts",
-      "community": 107,
+      "community": 109,
       "norm_label": "evidence-metrics.test.ts"
     },
     {
@@ -2484,7 +2511,7 @@
       "source_file": "src/smartcheck/evaluation/provider-result.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_provider_result_test_ts",
-      "community": 50,
+      "community": 51,
       "norm_label": "provider-result.test.ts"
     },
     {
@@ -2493,7 +2520,7 @@
       "source_file": "src/smartcheck/evaluation/provider-result.test.ts",
       "source_location": "L11",
       "id": "provider_result_test_withtempdir",
-      "community": 50,
+      "community": 51,
       "norm_label": "withtempdir()"
     },
     {
@@ -2502,7 +2529,7 @@
       "source_file": "src/smartcheck/evaluation/provider-result.test.ts",
       "source_location": "L22",
       "id": "provider_result_test_createmockfixture",
-      "community": 50,
+      "community": 51,
       "norm_label": "createmockfixture()"
     },
     {
@@ -2610,7 +2637,7 @@
       "source_file": "src/smartcheck/evaluation/normalize.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_normalize_test_ts",
-      "community": 108,
+      "community": 110,
       "norm_label": "normalize.test.ts"
     },
     {
@@ -2664,7 +2691,7 @@
       "source_file": "src/smartcheck/evaluation/fixture-loader.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_fixture_loader_test_ts",
-      "community": 51,
+      "community": 52,
       "norm_label": "fixture-loader.test.ts"
     },
     {
@@ -2673,7 +2700,7 @@
       "source_file": "src/smartcheck/evaluation/fixture-loader.test.ts",
       "source_location": "L11",
       "id": "fixture_loader_test_withtempdir",
-      "community": 51,
+      "community": 52,
       "norm_label": "withtempdir()"
     },
     {
@@ -2682,7 +2709,7 @@
       "source_file": "src/smartcheck/evaluation/fixture-loader.test.ts",
       "source_location": "L65",
       "id": "fixture_loader_test_writefixturefiles",
-      "community": 51,
+      "community": 52,
       "norm_label": "writefixturefiles()"
     },
     {
@@ -2844,7 +2871,7 @@
       "source_file": "src/smartcheck/evaluation/runner.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_runner_test_ts",
-      "community": 66,
+      "community": 67,
       "norm_label": "runner.test.ts"
     },
     {
@@ -2853,7 +2880,7 @@
       "source_file": "src/smartcheck/evaluation/runner.test.ts",
       "source_location": "L63",
       "id": "runner_test_createmockfixture",
-      "community": 66,
+      "community": 67,
       "norm_label": "createmockfixture()"
     },
     {
@@ -2862,7 +2889,7 @@
       "source_file": "src/smartcheck/evaluation/matcher.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_evaluation_matcher_test_ts",
-      "community": 109,
+      "community": 111,
       "norm_label": "matcher.test.ts"
     },
     {
@@ -3168,7 +3195,7 @@
       "source_file": "src/smartcheck/import/normalize.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_normalize_test_ts",
-      "community": 110,
+      "community": 112,
       "norm_label": "normalize.test.ts"
     },
     {
@@ -3330,7 +3357,7 @@
       "source_file": "src/smartcheck/import/file-security.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_file_security_test_ts",
-      "community": 111,
+      "community": 113,
       "norm_label": "file-security.test.ts"
     },
     {
@@ -3339,7 +3366,7 @@
       "source_file": "src/smartcheck/import/integration-contract.test.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_integration_contract_test_ts",
-      "community": 52,
+      "community": 53,
       "norm_label": "integration-contract.test.ts"
     },
     {
@@ -3348,7 +3375,7 @@
       "source_file": "src/smartcheck/import/integration-contract.test.ts",
       "source_location": "L7",
       "id": "integration_contract_test_selectrows",
-      "community": 52,
+      "community": 53,
       "norm_label": "selectrows()"
     },
     {
@@ -3357,7 +3384,7 @@
       "source_file": "src/smartcheck/import/integration-contract.test.ts",
       "source_location": "L11",
       "id": "integration_contract_test_cantransfer",
-      "community": 52,
+      "community": 53,
       "norm_label": "cantransfer()"
     },
     {
@@ -3388,12 +3415,30 @@
       "norm_label": "localstorageroot()"
     },
     {
+      "label": "pilot-fixtures.test.ts",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/pilot-fixtures.test.ts",
+      "source_location": "L1",
+      "id": "src_smartcheck_import_pilot_fixtures_test_ts",
+      "community": 68,
+      "norm_label": "pilot-fixtures.test.ts"
+    },
+    {
+      "label": "readCsvRows()",
+      "file_type": "code",
+      "source_file": "src/smartcheck/import/pilot-fixtures.test.ts",
+      "source_location": "L14",
+      "id": "pilot_fixtures_test_readcsvrows",
+      "community": 68,
+      "norm_label": "readcsvrows()"
+    },
+    {
       "label": "worker.ts",
       "file_type": "code",
       "source_file": "src/smartcheck/import/worker.ts",
       "source_location": "L1",
       "id": "src_smartcheck_import_worker_ts",
-      "community": 112,
+      "community": 114,
       "norm_label": "worker.ts"
     },
     {
@@ -3447,7 +3492,7 @@
       "source_file": "src/server/middleware/academyEntitlement.ts",
       "source_location": "L1",
       "id": "src_server_middleware_academyentitlement_ts",
-      "community": 53,
+      "community": 54,
       "norm_label": "academyentitlement.ts"
     },
     {
@@ -3456,7 +3501,7 @@
       "source_file": "src/server/middleware/academyEntitlement.ts",
       "source_location": "L6",
       "id": "academyentitlement_findallplanentitlement",
-      "community": 53,
+      "community": 54,
       "norm_label": "findallplanentitlement()"
     },
     {
@@ -3465,7 +3510,7 @@
       "source_file": "src/server/middleware/academyEntitlement.ts",
       "source_location": "L33",
       "id": "academyentitlement_requireallplanentitlement",
-      "community": 53,
+      "community": 54,
       "norm_label": "requireallplanentitlement()"
     },
     {
@@ -3555,7 +3600,7 @@
       "source_file": "src/server/config/production.test.ts",
       "source_location": "L1",
       "id": "src_server_config_production_test_ts",
-      "community": 113,
+      "community": 115,
       "norm_label": "production.test.ts"
     },
     {
@@ -3564,7 +3609,7 @@
       "source_file": "src/server/auth/security.test.ts",
       "source_location": "L1",
       "id": "src_server_auth_security_test_ts",
-      "community": 114,
+      "community": 116,
       "norm_label": "security.test.ts"
     },
     {
@@ -3573,7 +3618,7 @@
       "source_file": "src/server/auth/registration.test.ts",
       "source_location": "L1",
       "id": "src_server_auth_registration_test_ts",
-      "community": 115,
+      "community": 117,
       "norm_label": "registration.test.ts"
     },
     {
@@ -3654,7 +3699,7 @@
       "source_file": "src/server/auth/registration.ts",
       "source_location": "L1",
       "id": "src_server_auth_registration_ts",
-      "community": 54,
+      "community": 55,
       "norm_label": "registration.ts"
     },
     {
@@ -3663,7 +3708,7 @@
       "source_file": "src/server/auth/registration.ts",
       "source_location": "L21",
       "id": "registration_parseregistrationinput",
-      "community": 54,
+      "community": 55,
       "norm_label": "parseregistrationinput()"
     },
     {
@@ -3672,7 +3717,7 @@
       "source_file": "src/server/auth/registration.ts",
       "source_location": "L53",
       "id": "registration_publicregistereduser",
-      "community": 54,
+      "community": 55,
       "norm_label": "publicregistereduser()"
     },
     {
@@ -3951,7 +3996,7 @@
       "source_file": "src/server/routes/smartcheck.integration.test.ts",
       "source_location": "L1",
       "id": "src_server_routes_smartcheck_integration_test_ts",
-      "community": 67,
+      "community": 69,
       "norm_label": "smartcheck.integration.test.ts"
     },
     {
@@ -3960,7 +4005,7 @@
       "source_file": "src/server/routes/smartcheck.integration.test.ts",
       "source_location": "L36",
       "id": "smartcheck_integration_test_request",
-      "community": 67,
+      "community": 69,
       "norm_label": "request()"
     },
     {
@@ -4086,7 +4131,7 @@
       "source_file": "src/academy/sourceData.ts",
       "source_location": "L1",
       "id": "src_academy_sourcedata_ts",
-      "community": 116,
+      "community": 118,
       "norm_label": "sourcedata.ts"
     },
     {
@@ -4095,7 +4140,7 @@
       "source_file": "src/academy/activation.test.ts",
       "source_location": "L1",
       "id": "src_academy_activation_test_ts",
-      "community": 117,
+      "community": 119,
       "norm_label": "activation.test.ts"
     },
     {
@@ -4140,7 +4185,7 @@
       "source_file": "src/academy/nativeDerivedData.ts",
       "source_location": "L1",
       "id": "src_academy_nativederiveddata_ts",
-      "community": 118,
+      "community": 120,
       "norm_label": "nativederiveddata.ts"
     },
     {
@@ -4149,7 +4194,7 @@
       "source_file": "src/academy/sourceSections.ts",
       "source_location": "L1",
       "id": "src_academy_sourcesections_ts",
-      "community": 119,
+      "community": 121,
       "norm_label": "sourcesections.ts"
     },
     {
@@ -4158,7 +4203,7 @@
       "source_file": "src/academy/allplan/releaseGate.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_releasegate_test_ts",
-      "community": 120,
+      "community": 122,
       "norm_label": "releasegate.test.ts"
     },
     {
@@ -4167,7 +4212,7 @@
       "source_file": "src/academy/allplan/navigation.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_navigation_test_ts",
-      "community": 121,
+      "community": 123,
       "norm_label": "navigation.test.ts"
     },
     {
@@ -4176,7 +4221,7 @@
       "source_file": "src/academy/allplan/access.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_access_test_ts",
-      "community": 122,
+      "community": 124,
       "norm_label": "access.test.ts"
     },
     {
@@ -4320,7 +4365,7 @@
       "source_file": "src/academy/allplan/certification.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_certification_test_ts",
-      "community": 123,
+      "community": 125,
       "norm_label": "certification.test.ts"
     },
     {
@@ -4329,7 +4374,7 @@
       "source_file": "src/academy/allplan/checkpoint.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_checkpoint_test_ts",
-      "community": 124,
+      "community": 126,
       "norm_label": "checkpoint.test.ts"
     },
     {
@@ -4383,7 +4428,7 @@
       "source_file": "src/academy/allplan/types.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_types_ts",
-      "community": 125,
+      "community": 127,
       "norm_label": "types.ts"
     },
     {
@@ -4392,7 +4437,7 @@
       "source_file": "src/academy/allplan/access.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_access_ts",
-      "community": 68,
+      "community": 70,
       "norm_label": "access.ts"
     },
     {
@@ -4401,7 +4446,7 @@
       "source_file": "src/academy/allplan/access.ts",
       "source_location": "L7",
       "id": "access_isenrollmentactive",
-      "community": 68,
+      "community": 70,
       "norm_label": "isenrollmentactive()"
     },
     {
@@ -4509,7 +4554,7 @@
       "source_file": "src/academy/allplan/paymentWebhook.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_paymentwebhook_test_ts",
-      "community": 126,
+      "community": 128,
       "norm_label": "paymentwebhook.test.ts"
     },
     {
@@ -4635,7 +4680,7 @@
       "source_file": "src/academy/allplan/companion.test.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_companion_test_ts",
-      "community": 127,
+      "community": 129,
       "norm_label": "companion.test.ts"
     },
     {
@@ -4644,7 +4689,7 @@
       "source_file": "src/academy/allplan/source/lessonsContent.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_source_lessonscontent_ts",
-      "community": 69,
+      "community": 71,
       "norm_label": "lessonscontent.ts"
     },
     {
@@ -4653,7 +4698,7 @@
       "source_file": "src/academy/allplan/source/lessonsContent.ts",
       "source_location": "L477",
       "id": "lessonscontent_getlessondetail",
-      "community": 69,
+      "community": 71,
       "norm_label": "getlessondetail()"
     },
     {
@@ -4662,7 +4707,7 @@
       "source_file": "src/academy/allplan/source/constants.ts",
       "source_location": "L1",
       "id": "src_academy_allplan_source_constants_ts",
-      "community": 128,
+      "community": 130,
       "norm_label": "constants.ts"
     },
     {
@@ -4671,7 +4716,7 @@
       "source_file": "src/components/PublicMetadata.tsx",
       "source_location": "L1",
       "id": "src_components_publicmetadata_tsx",
-      "community": 70,
+      "community": 72,
       "norm_label": "publicmetadata.tsx"
     },
     {
@@ -4680,7 +4725,7 @@
       "source_file": "src/components/PublicMetadata.tsx",
       "source_location": "L3",
       "id": "publicmetadata_publicmetadata",
-      "community": 70,
+      "community": 72,
       "norm_label": "publicmetadata()"
     },
     {
@@ -4761,7 +4806,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/progress.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_progress_tsx",
-      "community": 129,
+      "community": 131,
       "norm_label": "progress.tsx"
     },
     {
@@ -4797,7 +4842,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/sonner.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_sonner_tsx",
-      "community": 130,
+      "community": 132,
       "norm_label": "sonner.tsx"
     },
     {
@@ -4860,7 +4905,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/ui/EmptyState.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_ui_emptystate_tsx",
-      "community": 131,
+      "community": 133,
       "norm_label": "emptystate.tsx"
     },
     {
@@ -4914,7 +4959,7 @@
       "source_file": "src/components/layout/Shell.tsx",
       "source_location": "L1",
       "id": "src_components_layout_shell_tsx",
-      "community": 132,
+      "community": 134,
       "norm_label": "shell.tsx"
     },
     {
@@ -4923,7 +4968,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageContainer.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_pagecontainer_tsx",
-      "community": 71,
+      "community": 73,
       "norm_label": "pagecontainer.tsx"
     },
     {
@@ -4932,7 +4977,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageContainer.tsx",
       "source_location": "L18",
       "id": "pagecontainer_pagecontainer",
-      "community": 71,
+      "community": 73,
       "norm_label": "pagecontainer()"
     },
     {
@@ -4941,7 +4986,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/PageHeader.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_pageheader_tsx",
-      "community": 133,
+      "community": 135,
       "norm_label": "pageheader.tsx"
     },
     {
@@ -4950,7 +4995,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/layout/SectionWrapper.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_layout_sectionwrapper_tsx",
-      "community": 134,
+      "community": 136,
       "norm_label": "sectionwrapper.tsx"
     },
     {
@@ -4959,7 +5004,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/QuotationCard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_quotationcard_tsx",
-      "community": 72,
+      "community": 74,
       "norm_label": "quotationcard.tsx"
     },
     {
@@ -4968,7 +5013,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/QuotationCard.tsx",
       "source_location": "L23",
       "id": "quotationcard_quotationcard",
-      "community": 72,
+      "community": 74,
       "norm_label": "quotationcard()"
     },
     {
@@ -4977,7 +5022,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/ProfitabilityBadge.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_profitabilitybadge_tsx",
-      "community": 135,
+      "community": 137,
       "norm_label": "profitabilitybadge.tsx"
     },
     {
@@ -4986,7 +5031,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/StatusBadge.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_business_statusbadge_tsx",
-      "community": 73,
+      "community": 75,
       "norm_label": "statusbadge.tsx"
     },
     {
@@ -4995,7 +5040,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/business/StatusBadge.tsx",
       "source_location": "L23",
       "id": "statusbadge_statusbadge",
-      "community": 73,
+      "community": 75,
       "norm_label": "statusbadge()"
     },
     {
@@ -5067,7 +5112,7 @@
       "source_file": "src/components/academy/WallIntersectionSimulator.tsx",
       "source_location": "L1",
       "id": "src_components_academy_wallintersectionsimulator_tsx",
-      "community": 55,
+      "community": 56,
       "norm_label": "wallintersectionsimulator.tsx"
     },
     {
@@ -5076,7 +5121,7 @@
       "source_file": "src/components/academy/WallIntersectionSimulator.tsx",
       "source_location": "L35",
       "id": "wallintersectionsimulator_updatelayer",
-      "community": 55,
+      "community": 56,
       "norm_label": "updatelayer()"
     },
     {
@@ -5085,7 +5130,7 @@
       "source_file": "src/components/academy/WallIntersectionSimulator.tsx",
       "source_location": "L52",
       "id": "wallintersectionsimulator_resetsimulator",
-      "community": 55,
+      "community": 56,
       "norm_label": "resetsimulator()"
     },
     {
@@ -5094,7 +5139,7 @@
       "source_file": "src/components/academy/ShortcutTrainer.tsx",
       "source_location": "L1",
       "id": "src_components_academy_shortcuttrainer_tsx",
-      "community": 74,
+      "community": 76,
       "norm_label": "shortcuttrainer.tsx"
     },
     {
@@ -5103,7 +5148,7 @@
       "source_file": "src/components/academy/ShortcutTrainer.tsx",
       "source_location": "L11",
       "id": "shortcuttrainer_shortcuttrainer",
-      "community": 74,
+      "community": 76,
       "norm_label": "shortcuttrainer()"
     },
     {
@@ -5112,7 +5157,7 @@
       "source_file": "src/components/academy/CoordinateCalculator.tsx",
       "source_location": "L1",
       "id": "src_components_academy_coordinatecalculator_tsx",
-      "community": 75,
+      "community": 77,
       "norm_label": "coordinatecalculator.tsx"
     },
     {
@@ -5121,7 +5166,7 @@
       "source_file": "src/components/academy/CoordinateCalculator.tsx",
       "source_location": "L5",
       "id": "coordinatecalculator_coordinatecalculator",
-      "community": 75,
+      "community": 77,
       "norm_label": "coordinatecalculator()"
     },
     {
@@ -5130,7 +5175,7 @@
       "source_file": "src/components/academy/ReinforcementEstimator.tsx",
       "source_location": "L1",
       "id": "src_components_academy_reinforcementestimator_tsx",
-      "community": 56,
+      "community": 57,
       "norm_label": "reinforcementestimator.tsx"
     },
     {
@@ -5139,7 +5184,7 @@
       "source_file": "src/components/academy/ReinforcementEstimator.tsx",
       "source_location": "L57",
       "id": "reinforcementestimator_handlecoverchange",
-      "community": 56,
+      "community": 57,
       "norm_label": "handlecoverchange()"
     },
     {
@@ -5148,7 +5193,7 @@
       "source_file": "src/components/academy/ReinforcementEstimator.tsx",
       "source_location": "L64",
       "id": "reinforcementestimator_resetsimulator",
-      "community": 56,
+      "community": 57,
       "norm_label": "resetsimulator()"
     },
     {
@@ -5157,7 +5202,7 @@
       "source_file": "src/components/academy/AcademyCompanion.tsx",
       "source_location": "L1",
       "id": "src_components_academy_academycompanion_tsx",
-      "community": 76,
+      "community": 78,
       "norm_label": "academycompanion.tsx"
     },
     {
@@ -5166,7 +5211,7 @@
       "source_file": "src/components/academy/AcademyCompanion.tsx",
       "source_location": "L13",
       "id": "academycompanion_academycompanion",
-      "community": 76,
+      "community": 78,
       "norm_label": "academycompanion()"
     },
     {
@@ -5175,7 +5220,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/components/data/StatCard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_components_data_statcard_tsx",
-      "community": 136,
+      "community": 138,
       "norm_label": "statcard.tsx"
     },
     {
@@ -5211,7 +5256,7 @@
       "source_file": "src/lib/tax-advisory.test.ts",
       "source_location": "L1",
       "id": "src_lib_tax_advisory_test_ts",
-      "community": 137,
+      "community": 139,
       "norm_label": "tax-advisory.test.ts"
     },
     {
@@ -5220,7 +5265,7 @@
       "source_file": "src/lib/quotation-audit.ts",
       "source_location": "L1",
       "id": "src_lib_quotation_audit_ts",
-      "community": 77,
+      "community": 79,
       "norm_label": "quotation-audit.ts"
     },
     {
@@ -5229,7 +5274,7 @@
       "source_file": "src/lib/quotation-audit.ts",
       "source_location": "L24",
       "id": "quotation_audit_auditquotationitems",
-      "community": 77,
+      "community": 79,
       "norm_label": "auditquotationitems()"
     },
     {
@@ -5238,7 +5283,7 @@
       "source_file": "src/lib/calculations.test.ts",
       "source_location": "L1",
       "id": "src_lib_calculations_test_ts",
-      "community": 138,
+      "community": 140,
       "norm_label": "calculations.test.ts"
     },
     {
@@ -5265,7 +5310,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/utils.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_utils_ts",
-      "community": 46,
+      "community": 47,
       "norm_label": "utils.ts"
     },
     {
@@ -5382,7 +5427,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/types.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_types_ts",
-      "community": 139,
+      "community": 141,
       "norm_label": "types.ts"
     },
     {
@@ -5454,7 +5499,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/definitions.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_definitions_ts",
-      "community": 140,
+      "community": 142,
       "norm_label": "definitions.ts"
     },
     {
@@ -5463,7 +5508,7 @@
       "source_file": "src/db/schema.ts",
       "source_location": "L1",
       "id": "src_db_schema_ts",
-      "community": 141,
+      "community": 143,
       "norm_label": "schema.ts"
     },
     {
@@ -5472,7 +5517,7 @@
       "source_file": "src/db/index.ts",
       "source_location": "L1",
       "id": "src_db_index_ts",
-      "community": 142,
+      "community": 144,
       "norm_label": "index.ts"
     },
     {
@@ -5481,7 +5526,7 @@
       "source_file": "src/db/drizzle.config.ts",
       "source_location": "L1",
       "id": "src_db_drizzle_config_ts",
-      "community": 143,
+      "community": 145,
       "norm_label": "drizzle.config.ts"
     },
     {
@@ -5490,7 +5535,7 @@
       "source_file": "src/worker/task-list.ts",
       "source_location": "L1",
       "id": "src_worker_task_list_ts",
-      "community": 144,
+      "community": 146,
       "norm_label": "task-list.ts"
     },
     {
@@ -5517,7 +5562,7 @@
       "source_file": "src/worker/tasks/healthcheck.ts",
       "source_location": "L1",
       "id": "src_worker_tasks_healthcheck_ts",
-      "community": 78,
+      "community": 80,
       "norm_label": "healthcheck.ts"
     },
     {
@@ -5526,7 +5571,7 @@
       "source_file": "src/worker/tasks/healthcheck.ts",
       "source_location": "L1",
       "id": "healthcheck_healthcheck",
-      "community": 78,
+      "community": 80,
       "norm_label": "healthcheck()"
     },
     {
@@ -5607,7 +5652,7 @@
       "source_file": "src/pages/SmartCheckDemo.tsx",
       "source_location": "L1",
       "id": "src_pages_smartcheckdemo_tsx",
-      "community": 57,
+      "community": 58,
       "norm_label": "smartcheckdemo.tsx"
     },
     {
@@ -5616,7 +5661,7 @@
       "source_file": "src/pages/SmartCheckDemo.tsx",
       "source_location": "L41",
       "id": "smartcheckdemo_handlequickfix",
-      "community": 57,
+      "community": 58,
       "norm_label": "handlequickfix()"
     },
     {
@@ -5625,7 +5670,7 @@
       "source_file": "src/pages/SmartCheckDemo.tsx",
       "source_location": "L58",
       "id": "smartcheckdemo_handlerecheck",
-      "community": 57,
+      "community": 58,
       "norm_label": "handlerecheck()"
     },
     {
@@ -5661,7 +5706,7 @@
       "source_file": "src/pages/PublicAcademyDetail.tsx",
       "source_location": "L1",
       "id": "src_pages_publicacademydetail_tsx",
-      "community": 58,
+      "community": 59,
       "norm_label": "publicacademydetail.tsx"
     },
     {
@@ -5670,7 +5715,7 @@
       "source_file": "src/pages/PublicAcademyDetail.tsx",
       "source_location": "L113",
       "id": "publicacademydetail_publicacademydetail",
-      "community": 58,
+      "community": 59,
       "norm_label": "publicacademydetail()"
     },
     {
@@ -5679,7 +5724,7 @@
       "source_file": "src/pages/PublicAcademyDetail.tsx",
       "source_location": "L200",
       "id": "publicacademydetail_format",
-      "community": 58,
+      "community": 59,
       "norm_label": "format()"
     },
     {
@@ -5742,7 +5787,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Dashboard.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_dashboard_tsx",
-      "community": 145,
+      "community": 147,
       "norm_label": "dashboard.tsx"
     },
     {
@@ -5751,7 +5796,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AIAssistant.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_aiassistant_tsx",
-      "community": 79,
+      "community": 81,
       "norm_label": "aiassistant.tsx"
     },
     {
@@ -5760,7 +5805,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AIAssistant.tsx",
       "source_location": "L24",
       "id": "aiassistant_handlesend",
-      "community": 79,
+      "community": 81,
       "norm_label": "handlesend()"
     },
     {
@@ -5868,7 +5913,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Profitability.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_profitability_tsx",
-      "community": 146,
+      "community": 148,
       "norm_label": "profitability.tsx"
     },
     {
@@ -5877,7 +5922,7 @@
       "source_file": "src/pages/PublicAcademy.tsx",
       "source_location": "L1",
       "id": "src_pages_publicacademy_tsx",
-      "community": 147,
+      "community": 149,
       "norm_label": "publicacademy.tsx"
     },
     {
@@ -5886,7 +5931,7 @@
       "source_file": "src/pages/AllplanAccessGate.tsx",
       "source_location": "L1",
       "id": "src_pages_allplanaccessgate_tsx",
-      "community": 148,
+      "community": 150,
       "norm_label": "allplanaccessgate.tsx"
     },
     {
@@ -5895,7 +5940,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AcceptInvite.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_acceptinvite_tsx",
-      "community": 59,
+      "community": 60,
       "norm_label": "acceptinvite.tsx"
     },
     {
@@ -5904,7 +5949,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AcceptInvite.tsx",
       "source_location": "L20",
       "id": "acceptinvite_verifytoken",
-      "community": 59,
+      "community": 60,
       "norm_label": "verifytoken()"
     },
     {
@@ -5913,7 +5958,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/AcceptInvite.tsx",
       "source_location": "L38",
       "id": "acceptinvite_handlesubmit",
-      "community": 59,
+      "community": 60,
       "norm_label": "handlesubmit()"
     },
     {
@@ -5949,7 +5994,7 @@
       "source_file": "src/pages/LessonViewerPage.tsx",
       "source_location": "L1",
       "id": "src_pages_lessonviewerpage_tsx",
-      "community": 60,
+      "community": 61,
       "norm_label": "lessonviewerpage.tsx"
     },
     {
@@ -5958,7 +6003,7 @@
       "source_file": "src/pages/LessonViewerPage.tsx",
       "source_location": "L43",
       "id": "lessonviewerpage_handlesimulatorvaluechange",
-      "community": 60,
+      "community": 61,
       "norm_label": "handlesimulatorvaluechange()"
     },
     {
@@ -5967,7 +6012,7 @@
       "source_file": "src/pages/LessonViewerPage.tsx",
       "source_location": "L55",
       "id": "lessonviewerpage_handlefixunit",
-      "community": 60,
+      "community": 61,
       "norm_label": "handlefixunit()"
     },
     {
@@ -6003,7 +6048,7 @@
       "source_file": "src/pages/LegalPage.tsx",
       "source_location": "L1",
       "id": "src_pages_legalpage_tsx",
-      "community": 80,
+      "community": 82,
       "norm_label": "legalpage.tsx"
     },
     {
@@ -6012,7 +6057,7 @@
       "source_file": "src/pages/LegalPage.tsx",
       "source_location": "L3",
       "id": "legalpage_legalpage",
-      "community": 80,
+      "community": 82,
       "norm_label": "legalpage()"
     },
     {
@@ -6021,7 +6066,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/Quotes.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_quotes_tsx",
-      "community": 149,
+      "community": 151,
       "norm_label": "quotes.tsx"
     },
     {
@@ -6030,7 +6075,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/DealDetail.tsx",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_pages_dealdetail_tsx",
-      "community": 61,
+      "community": 62,
       "norm_label": "dealdetail.tsx"
     },
     {
@@ -6039,7 +6084,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/DealDetail.tsx",
       "source_location": "L48",
       "id": "dealdetail_fetchdealdata",
-      "community": 61,
+      "community": 62,
       "norm_label": "fetchdealdata()"
     },
     {
@@ -6048,7 +6093,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/pages/DealDetail.tsx",
       "source_location": "L70",
       "id": "dealdetail_analyzedeal",
-      "community": 61,
+      "community": 62,
       "norm_label": "analyzedeal()"
     },
     {
@@ -6120,7 +6165,7 @@
       "source_file": "src/pages/PilotApplication.tsx",
       "source_location": "L1",
       "id": "src_pages_pilotapplication_tsx",
-      "community": 81,
+      "community": 83,
       "norm_label": "pilotapplication.tsx"
     },
     {
@@ -6129,7 +6174,7 @@
       "source_file": "src/pages/PilotApplication.tsx",
       "source_location": "L9",
       "id": "pilotapplication_pilotapplication",
-      "community": 81,
+      "community": 83,
       "norm_label": "pilotapplication()"
     },
     {
@@ -6138,7 +6183,7 @@
       "source_file": "src/pages/SmartCheck.tsx",
       "source_location": "L1",
       "id": "src_pages_smartcheck_tsx",
-      "community": 82,
+      "community": 84,
       "norm_label": "smartcheck.tsx"
     },
     {
@@ -6147,7 +6192,7 @@
       "source_file": "src/pages/SmartCheck.tsx",
       "source_location": "L21",
       "id": "smartcheck_handlestartdemocheck",
-      "community": 82,
+      "community": 84,
       "norm_label": "handlestartdemocheck()"
     },
     {
@@ -6156,7 +6201,7 @@
       "source_file": "src/pages/CompleteAcademyContent.tsx",
       "source_location": "L1",
       "id": "src_pages_completeacademycontent_tsx",
-      "community": 62,
+      "community": 63,
       "norm_label": "completeacademycontent.tsx"
     },
     {
@@ -6165,7 +6210,7 @@
       "source_file": "src/pages/CompleteAcademyContent.tsx",
       "source_location": "L66",
       "id": "completeacademycontent_parseinlinecall",
-      "community": 62,
+      "community": 63,
       "norm_label": "parseinlinecall()"
     },
     {
@@ -6174,7 +6219,7 @@
       "source_file": "src/pages/CompleteAcademyContent.tsx",
       "source_location": "L75",
       "id": "completeacademycontent_sourcechartfallback",
-      "community": 62,
+      "community": 63,
       "norm_label": "sourcechartfallback()"
     },
     {
@@ -6183,7 +6228,7 @@
       "source_file": "src/pages/Billing.tsx",
       "source_location": "L1",
       "id": "src_pages_billing_tsx",
-      "community": 83,
+      "community": 85,
       "norm_label": "billing.tsx"
     },
     {
@@ -6192,7 +6237,7 @@
       "source_file": "src/pages/Billing.tsx",
       "source_location": "L44",
       "id": "billing_billing",
-      "community": 83,
+      "community": 85,
       "norm_label": "billing()"
     },
     {
@@ -6201,7 +6246,7 @@
       "source_file": "src/pages/PilotApplications.tsx",
       "source_location": "L1",
       "id": "src_pages_pilotapplications_tsx",
-      "community": 84,
+      "community": 86,
       "norm_label": "pilotapplications.tsx"
     },
     {
@@ -6210,7 +6255,7 @@
       "source_file": "src/pages/PilotApplications.tsx",
       "source_location": "L39",
       "id": "pilotapplications_pilotapplications",
-      "community": 84,
+      "community": 86,
       "norm_label": "pilotapplications()"
     },
     {
@@ -6426,7 +6471,7 @@
       "source_file": "src/services/pdf/templates.ts",
       "source_location": "L1",
       "id": "src_services_pdf_templates_ts",
-      "community": 85,
+      "community": 87,
       "norm_label": "templates.ts"
     },
     {
@@ -6435,7 +6480,7 @@
       "source_file": "src/services/pdf/templates.ts",
       "source_location": "L53",
       "id": "templates_evidencesummaryhtml",
-      "community": 85,
+      "community": 87,
       "norm_label": "evidencesummaryhtml()"
     },
     {
@@ -6723,7 +6768,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/ai/providers/providerRouter.test.ts",
       "source_location": "L1",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_services_ai_providers_providerrouter_test_ts",
-      "community": 86,
+      "community": 88,
       "norm_label": "providerrouter.test.ts"
     },
     {
@@ -6732,7 +6777,7 @@
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/services/ai/providers/providerRouter.test.ts",
       "source_location": "L6",
       "id": "providerrouter_test_fakeprovider",
-      "community": 86,
+      "community": 88,
       "norm_label": "fakeprovider()"
     },
     {
@@ -11021,6 +11066,30 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/build_live_gap_doc.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_src": "scripts_build_live_gap_doc_py",
+      "_tgt": "build_live_gap_doc_para",
+      "source": "scripts_build_live_gap_doc_py",
+      "target": "build_live_gap_doc_para",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build_live_gap_doc.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_src": "scripts_build_live_gap_doc_py",
+      "_tgt": "build_live_gap_doc_table",
+      "source": "scripts_build_live_gap_doc_py",
+      "target": "build_live_gap_doc_table",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/lib/utils.ts",
       "source_location": "L4",
       "weight": 1.0,
@@ -12837,8 +12906,8 @@
       "source_file": "src/server/app.ts",
       "source_location": "L55",
       "weight": 1.0,
-      "_src": "app_createapiapp",
-      "_tgt": "storage_s3storageadapter_get",
+      "_src": "storage_s3storageadapter_get",
+      "_tgt": "app_createapiapp",
       "source": "storage_s3storageadapter_get",
       "target": "app_createapiapp"
     },
@@ -13405,6 +13474,18 @@
       "_tgt": "smartcheck_featuregate",
       "source": "config_smartcheckimportenabled",
       "target": "smartcheck_featuregate"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/smartcheck/import/pilot-fixtures.test.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "src_smartcheck_import_pilot_fixtures_test_ts",
+      "_tgt": "pilot_fixtures_test_readcsvrows",
+      "source": "src_smartcheck_import_pilot_fixtures_test_ts",
+      "target": "pilot_fixtures_test_readcsvrows",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
