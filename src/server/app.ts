@@ -31,12 +31,9 @@ dotenv.config();
 
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
-export async function startServer() {
-  const productionConfig = assertProductionEnvironment();
+export function createApiApp() {
   const app = express();
   app.disable('x-powered-by');
-  const PORT = Number(process.env.PORT || 3000);
-  if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
   app.use(express.json({
     limit: "1mb",
@@ -84,6 +81,15 @@ export async function startServer() {
     if (res.headersSent) return next(error);
     return res.status(500).json({ error: "Beklenmeyen bir sunucu hatası oluştu." });
   });
+
+  return app;
+}
+
+export async function startServer() {
+  const productionConfig = assertProductionEnvironment();
+  const app = createApiApp();
+  const PORT = Number(process.env.PORT || 3000);
+  if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

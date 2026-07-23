@@ -6,6 +6,14 @@ Bu contract testi, gerçek müşteri verisi veya production credential içermez.
 pnpm smartcheck:integration
 ```
 
+Gerçek HTTP + PostgreSQL koşusu için izole tenant/veri/ephemeral port harness'ı:
+
+```bash
+pnpm smartcheck:http-integration
+```
+
+Bu koşu `.env.local` içindeki `DATABASE_URL` üzerinde yalnızca benzersiz test kayıtları oluşturur ve `finally` cleanup ile siler. Uygulama `createApiApp()` üzerinden gerçek Express route'larıyla ephemeral portta açılır; Graphile job kuyruğuna kayıt atılır, processing worker fonksiyonu test içinde deterministik olarak çalıştırılır.
+
 Kapsanan sözleşmeler:
 
 - upload sonrası normalize edilmiş satır yalnız kendi şirket dokümanında görünür;
