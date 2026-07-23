@@ -954,6 +954,98 @@ export const smartcheckAuditLogs = pgTable("smartcheck_audit_logs", {
 }));
 
 // ============================================================
+// SMARTCHECK PILOT EVIDENCE CONTROL
+// ============================================================
+
+export const smartcheckPilotCases = pgTable("smartcheck_pilot_cases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  documentId: uuid("document_id").notNull(),
+  pilotId: text("pilot_id").notNull(),
+  customerReference: text("customer_reference").notNull(),
+  projectReference: text("project_reference").notNull(),
+  discipline: text("discipline").default("MEP").notNull(),
+  permissionReference: text("permission_reference").notNull(),
+  permissionGrantedAt: timestamp("permission_granted_at", { withTimezone: true }).notNull(),
+  retentionUntil: timestamp("retention_until", { withTimezone: true }).notNull(),
+  status: text("status").default("admitted").notNull(),
+  expectedRowCount: integer("expected_row_count"),
+  workflowStartedAt: timestamp("workflow_started_at", { withTimezone: true }).defaultNow().notNull(),
+  workflowCompletedAt: timestamp("workflow_completed_at", { withTimezone: true }),
+  reviewerUserId: uuid("reviewer_user_id"),
+  reviewerRole: text("reviewer_role"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewerDecision: text("reviewer_decision"),
+  reviewerNotes: text("reviewer_notes"),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyCaseUnique: unique("smartcheck_pilot_cases_id_company_id_key").on(table.id, table.companyId),
+  pilotDocumentUnique: unique("smartcheck_pilot_cases_pilot_document_key").on(table.companyId, table.pilotId, table.documentId),
+  documentFk: foreignKey({
+    columns: [table.documentId, table.companyId],
+    foreignColumns: [documents.id, documents.companyId],
+  }).onDelete("restrict"),
+  reviewerFk: foreignKey({
+    columns: [table.reviewerUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  creatorFk: foreignKey({
+    columns: [table.createdByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  statusCheck: check("smartcheck_pilot_cases_status_check", sql`${table.status} in ('admitted', 'processing', 'review', 'completed', 'failed', 'rejected')`),
+  expectedRowCountCheck: check("smartcheck_pilot_cases_expected_row_count_check", sql`${table.expectedRowCount} IS NULL OR ${table.expectedRowCount} >= 0`),
+  retentionCheck: check("smartcheck_pilot_cases_retention_check", sql`${table.retentionUntil} >= ${table.permissionGrantedAt}`),
+  reviewerDecisionCheck: check("smartcheck_pilot_cases_reviewer_decision_check", sql`${table.reviewerDecision} IS NULL OR ${table.reviewerDecision} in ('approved', 'rejected', 'accepted_exception')`),
+  idxLookup: index("idx_smartcheck_pilot_cases_lookup").on(table.companyId, table.status, table.retentionUntil),
+}));
+
+export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  pilotCaseId: uuid("pilot_case_id").notNull(),
+  processingRunId: uuid("processing_run_id"),
+  measuredByUserId: uuid("measured_by_user_id").notNull(),
+  measurementKey: text("measurement_key").notNull(),
+  measuredAt: timestamp("measured_at", { withTimezone: true }).defaultNow().notNull(),
+  totalRows: integer("total_rows").default(0).notNull(),
+  parsedRows: integer("parsed_rows").default(0).notNull(),
+  manuallyCorrectedRows: integer("manually_corrected_rows").default(0).notNull(),
+  findingCount: integer("finding_count").default(0).notNull(),
+  approvedRows: integer("approved_rows").default(0).notNull(),
+  transferredRows: integer("transferred_rows").default(0).notNull(),
+  provenanceCompleteRows: integer("provenance_complete_rows").default(0).notNull(),
+  processingDurationSeconds: integer("processing_duration_seconds"),
+  workflowDurationSeconds: integer("workflow_duration_seconds"),
+  parseRate: numeric("parse_rate", { precision: 5, scale: 4 }),
+  manualReentryFreeRate: numeric("manual_reentry_free_rate", { precision: 5, scale: 4 }),
+  provenanceCoverage: numeric("provenance_coverage", { precision: 5, scale: 4 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyMeasurementUnique: unique("smartcheck_pilot_measurements_id_company_id_key").on(table.id, table.companyId),
+  measurementIdempotencyUnique: unique("smartcheck_pilot_measurements_case_key").on(table.companyId, table.pilotCaseId, table.measurementKey),
+  caseFk: foreignKey({
+    columns: [table.pilotCaseId, table.companyId],
+    foreignColumns: [smartcheckPilotCases.id, smartcheckPilotCases.companyId],
+  }).onDelete("cascade"),
+  runFk: foreignKey({
+    columns: [table.processingRunId, table.companyId],
+    foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.companyId],
+  }).onDelete("restrict"),
+  measuredByFk: foreignKey({
+    columns: [table.measuredByUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  nonNegativeCheck: check("smartcheck_pilot_measurements_non_negative_check", sql`${table.totalRows} >= 0 AND ${table.parsedRows} >= 0 AND ${table.manuallyCorrectedRows} >= 0 AND ${table.findingCount} >= 0 AND ${table.approvedRows} >= 0 AND ${table.transferredRows} >= 0 AND ${table.provenanceCompleteRows} >= 0`),
+  rateCheck: check("smartcheck_pilot_measurements_rate_check", sql`(${table.parseRate} IS NULL OR (${table.parseRate} >= 0 AND ${table.parseRate} <= 1)) AND (${table.manualReentryFreeRate} IS NULL OR (${table.manualReentryFreeRate} >= 0 AND ${table.manualReentryFreeRate} <= 1)) AND (${table.provenanceCoverage} IS NULL OR (${table.provenanceCoverage} >= 0 AND ${table.provenanceCoverage} <= 1))`),
+  durationCheck: check("smartcheck_pilot_measurements_duration_check", sql`(${table.processingDurationSeconds} IS NULL OR ${table.processingDurationSeconds} >= 0) AND (${table.workflowDurationSeconds} IS NULL OR ${table.workflowDurationSeconds} >= 0)`),
+  idxLookup: index("idx_smartcheck_pilot_measurements_lookup").on(table.companyId, table.pilotCaseId, table.measuredAt),
+}));
+
+// ============================================================
 // SMARTCHECK PHASE 6 — SUPPLIER QUOTE MARKET INTELLIGENCE
 // ============================================================
 

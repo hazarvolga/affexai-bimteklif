@@ -417,3 +417,11 @@ SmartCheck’te onaylanan veya gerekçeli istisna olarak kabul edilen satırlar,
 Bu fazın ölçülebilir faydası, aynı satırın iki kez girilmesini kaldırmak ve provenance kaybını azaltmaktır. Aktarım hâlâ reviewer kuyruğunda başlar; approved `price_snapshot` yalnız reviewer kararıyla oluşur. Browser ekranında SmartCheck kaynaklı ve manuel beta kaynaklı entry ayrımı gösterilir.
 
 Faz 6.5 sonrası sıra: izinli gerçek dosyalarda parser doğruluğu ve 3 firma/20+ snapshot pilot ölçümü. Bu ölçümler tamamlanmadan NestJS/Next.js strangler migration route trafiğini devralmayacak; mevcut Express/Vite çekirdeği rollback yüzeyi olarak korunacaktır.
+
+## 19. Faz 7 uygulama durumu — Pilot Evidence Control
+
+Gerçek dosya pilotu için tenant-scoped `smartcheck_pilot_cases` ve append-only `smartcheck_pilot_measurements` katmanı eklendi. Case kaydı; tamamlanmış doküman checksum’ı, müşteri/proje referansı, izin ve retention kanıtı, workflow durumu ve teknik reviewer kararını taşır. Ham müşteri izin dokümanı, kişisel veri veya credential saklanmaz.
+
+Ölçüm servisi toplam satır üzerinden ağırlıklı `parseRate`, `manualReentryFreeRate` ve `provenanceCoverage` üretir; bulgu, onay, aktarım ve işlem/workflow sürelerini de kaydeder. Aynı measurement key tekrarlandığında yeni snapshot üretmez. `/app/pilot-evidence` yalnız KPI’ları ve kontrollü referansları gösterir; production S3, lisans ve reviewer yetkinliği dış admission kanıtı olarak kalır.
+
+Bu fazın çıkış kriteri beş gerçek müşteri dosyasının case olarak açılması, her dosyada gerçek upload → parse → review → transfer kanıtı ve toplam parse/manuel yeniden giriş oranlarının ölçülmesidir. Beş dosya ve `%90` hedefi kanıtlanmadan Next.js/NestJS strangler migration route trafiğini devralmayacak; Vite/Express/Drizzle/PostgreSQL pilot rollback yüzeyi olarak korunacaktır.

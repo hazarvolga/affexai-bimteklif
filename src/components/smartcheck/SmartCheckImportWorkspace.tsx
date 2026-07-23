@@ -95,6 +95,8 @@ export function SmartCheckImportWorkspace() {
   const [mapping, setMapping] = useState<ColumnMapping>(MEP_MAPPING_PROFILES[0].mapping);
   const [priceSnapshots, setPriceSnapshots] = useState<PriceSnapshotOption[]>([]);
   const [snapshotByRow, setSnapshotByRow] = useState<Record<string, string>>({});
+  const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
+  const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
   const polling = useRef<number | null>(null);
 
   const loadQueue = async () => {
@@ -177,6 +179,7 @@ export function SmartCheckImportWorkspace() {
         : await fetch(target.uploadUrl, { method: "PUT", headers: target.headers, body: file });
       if (!uploadResponse.ok) throw new Error("Dosya yüklenemedi.");
       setDocumentId(target.documentId);
+      setPilotCaseId(null);
       setStage("Dosya bütünlüğü doğrulanıyor");
       const completeResponse = await fetchWithAuth(`/api/smartcheck/documents/${target.documentId}/complete`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: await checksum(file) }) });
       if (!completeResponse.ok) throw new Error((await completeResponse.json()).error ?? "Dosya doğrulanamadı.");
@@ -189,6 +192,15 @@ export function SmartCheckImportWorkspace() {
       setBusy(false);
       toast.error(error instanceof Error ? error.message : "SmartCheck yüklemesi başarısız.");
     }
+  };
+
+  const admitPilotCase = async () => {
+    if (!documentId) return;
+    const response = await fetchWithAuth("/api/smartcheck/pilot-cases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ documentId, ...pilotMeta, expectedRowCount: Number(pilotMeta.expectedRowCount) }) });
+    const body = await response.json();
+    if (!response.ok) return toast.error(body.error ?? "Pilot case kaydedilemedi.");
+    setPilotCaseId(body.id);
+    toast.success("Pilot case izin ve retention referansıyla kaydedildi.");
   };
 
   const startProcessing = async () => {
@@ -277,6 +289,7 @@ export function SmartCheckImportWorkspace() {
             <div className="grid grid-cols-2 gap-2">{mappingFields.map((key) => <Input key={key} aria-label={key} placeholder={mappingLabels[key]} value={String(mapping[key] ?? "")} onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))} className="h-9 border-zinc-800 bg-zinc-950 text-xs" />)}</div>
             <Button disabled={busy || previewBusy || !selectedSheet} onClick={startProcessing} className="w-full gap-2 bg-sky-600 text-white hover:bg-sky-700">{busy ? <Loader2 className="animate-spin" size={15} /> : <Layers3 size={15} />} Eşlemeyi onayla ve işle</Button>
           </div>}
+          {documentId && <div className="space-y-3 border-t border-zinc-800 pt-4"><div className="flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">Pilot kanıt kaydı</p><p className="mt-1 text-[10px] text-zinc-500">Müşteri adı yerine kontrollü referans, izin ve retention kaydedilir.</p></div>{pilotCaseId && <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400">Case kaydedildi</Badge>}</div><div className="grid grid-cols-2 gap-2"><Input aria-label="Pilot kimliği" placeholder="Pilot kimliği" value={pilotMeta.pilotId} onChange={(event) => setPilotMeta((value) => ({ ...value, pilotId: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="Müşteri referansı" placeholder="Müşteri referansı" value={pilotMeta.customerReference} onChange={(event) => setPilotMeta((value) => ({ ...value, customerReference: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /></div><div className="grid grid-cols-2 gap-2"><Input aria-label="Proje referansı" placeholder="Proje referansı" value={pilotMeta.projectReference} onChange={(event) => setPilotMeta((value) => ({ ...value, projectReference: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="İzin referansı" placeholder="İzin referansı" value={pilotMeta.permissionReference} onChange={(event) => setPilotMeta((value) => ({ ...value, permissionReference: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /></div><div className="grid grid-cols-3 gap-2"><Input aria-label="İzin tarihi" type="date" value={pilotMeta.permissionGrantedAt} onChange={(event) => setPilotMeta((value) => ({ ...value, permissionGrantedAt: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="Retention tarihi" type="date" value={pilotMeta.retentionUntil} onChange={(event) => setPilotMeta((value) => ({ ...value, retentionUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="Beklenen satır" type="number" min="0" placeholder="Beklenen satır" value={pilotMeta.expectedRowCount} onChange={(event) => setPilotMeta((value) => ({ ...value, expectedRowCount: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /></div><Button disabled={busy || Boolean(pilotCaseId) || !pilotMeta.pilotId || !pilotMeta.customerReference || !pilotMeta.projectReference || !pilotMeta.permissionReference || !pilotMeta.retentionUntil} onClick={() => void admitPilotCase()} variant="outline" className="w-full border-orange-500/30 text-orange-300 hover:bg-orange-500/10">{pilotCaseId ? "Pilot case kaydedildi" : "İzin ve retention ile pilot case oluştur"}</Button></div>}
         </div>
 
         <div className="space-y-4 overflow-auto rounded-2xl border border-zinc-800">

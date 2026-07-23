@@ -10,7 +10,8 @@ import {
   Shield,
   ChartBarIncreasing,
   CreditCard,
-  ClipboardList
+  ClipboardList,
+  ClipboardCheck
 } from 'lucide-react';
 
 export interface NavItem {
@@ -68,6 +69,12 @@ export const navigationConfig: NavItem[] = [
     path: "/app/market-intelligence",
     icon: BarChart3,
     roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "Pilot Kanıtı",
+    path: "/app/pilot-evidence",
+    icon: ClipboardCheck,
+    roles: ["owner", "admin", "manager"],
   },
   {
     label: "SmartCheck",
