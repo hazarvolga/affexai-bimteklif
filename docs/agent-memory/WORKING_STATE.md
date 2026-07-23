@@ -277,6 +277,11 @@ must be safe tenant-scoped paths. The CLI supports deterministic `--as-of` and
 machine-readable `--json` output. The placeholder manifest remains blocked by
 design; real customer, reviewer and S3 evidence is still external.
 
+F11 pilot evidence API parity is also implemented: future consent, expired
+retention, zero expected rows and incomplete documents fail closed before a
+pilot case is created. The real HTTP/PostgreSQL integration test covers these
+negative paths plus measurement, reviewer, idempotency and tenant isolation.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

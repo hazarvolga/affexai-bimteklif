@@ -182,3 +182,7 @@ Next.js/NestJS traffic cutover.
 F10 admission preflight hardening is implemented and covered by four targeted
 tests plus the full 297-test suite. The preflight is deliberately fail-closed;
 the example manifest must remain blocked until external evidence is supplied.
+
+The pilot evidence API now mirrors those admission invariants at runtime and
+rejects future consent, expired retention, zero-row cases and incomplete source
+documents before creating a pilot case.

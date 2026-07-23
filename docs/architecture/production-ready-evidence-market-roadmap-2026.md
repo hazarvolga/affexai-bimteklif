@@ -595,3 +595,9 @@ Bu dış kanıtlar gelmeden yapılan en doğru teknik çalışma, mevcut accepta
 F10’un teknik admission kapısı güçlendirildi. `validatePilotAdmission` artık admission tarihini deterministik olarak pinleyebiliyor; izin/retention tarihlerini, MEP disiplinini, reviewer duplicate durumunu, reviewer’ın `approved` kararını ve karar referansını, S3-compatible provider’ı ve güvenli `/` ile biten tenant prefix’ini fail-closed kontrol ediyor. `smartcheck:pilot-check` JSON ve `--as-of=YYYY-MM-DD` çıktısı üretiyor.
 
 Runbook: `docs/smartcheck/pilot/phase10-admission.md`. Placeholder örnek manifestin `blocked` dönmesi beklenen ve korunması gereken negatif kanıttır. Gerçek beş dosya, reviewer kayıtları ve S3 object/retention/restore kanıtı gelmediği için F10 production admission henüz geçilmiş sayılmaz.
+
+## 25. F11 uygulama durumu — Pilot case API admission parity
+
+Pilot evidence API’si artık dış manifest validatorındaki zaman ve kaynak sınırlarını tekrar uygular: gelecekteki izin tarihi, admission tarihini kapsamayan retention, sıfır beklenen satır ve `completed` olmayan doküman pilot case oluşturamaz. Böylece repo dışındaki manifest kontrolü ile HTTP/PostgreSQL runtime kapısı arasında sessiz bir gevşeme kalmaz.
+
+`src/server/routes/pilot-evidence.integration.test.ts` gerçek lokal HTTP + PostgreSQL koşusunda future-consent, expired-retention ve zero-row negatif durumlarını; ardından normal ölçüm, reviewer, tenant izolasyonu ve idempotent measurement akışını doğrular. F11 gerçek müşteri dosyası veya S3 kanıtı değildir; F10 external admission girdileri hâlâ gereklidir.

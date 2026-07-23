@@ -87,6 +87,8 @@ Başarı çıktısı:
 4. Yalnız `approved` veya gerekçeli `accepted_exception` satırlar taslak teklife aktarılır.
 5. Pilot case ölçümü alınır; reviewer sonucu ve süreler manifest dışı pilot evidence kaydına işlenir.
 
+Pilot case API’si aynı admission sınırlarını tekrar kontrol eder: gelecekteki izin, geçmiş retention, sıfır beklenen satır ve tamamlanmamış kaynak doküman `400/409` ile reddedilir. Manifesti atlayarak HTTP üzerinden admission açmak bu nedenle mümkün değildir.
+
 ## Go / no-go
 
 | Kontrol | Go koşulu | No-go davranışı |

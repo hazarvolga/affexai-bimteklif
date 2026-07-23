@@ -39,6 +39,10 @@ function parseDate(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
+function utcDateOnly(value: Date) {
+  return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+}
+
 function integerValue(value: unknown) {
   if (value === undefined || value === null || value === "") return null;
   const parsed = Number(value);
@@ -118,10 +122,17 @@ export function registerPilotEvidenceRoutes(app: Express) {
     const expectedRowCount = integerValue(req.body?.expectedRowCount);
     const workflowStartedAt = parseDate(req.body?.workflowStartedAt) ?? new Date();
     if (!documentId || !pilotId || !customerReference || !projectReference || !permissionReference || !permissionGrantedAt || !retentionUntil || expectedRowCount === undefined) return res.status(400).json({ error: "Pilot kimliği, kaynak doküman, izin, retention ve beklenen satır sayısı zorunludur." });
-    if (retentionUntil < permissionGrantedAt) return res.status(400).json({ error: "Retention tarihi izin tarihinden önce olamaz." });
+    if (expectedRowCount <= 0) return res.status(400).json({ error: "Beklenen satır sayısı sıfırdan büyük olmalıdır." });
+    const today = utcDateOnly(new Date());
+    const permissionDate = utcDateOnly(permissionGrantedAt);
+    const retentionDate = utcDateOnly(retentionUntil);
+    if (permissionDate > today) return res.status(400).json({ error: "İzin tarihi gelecekte olamaz." });
+    if (retentionDate < permissionDate) return res.status(400).json({ error: "Retention tarihi izin tarihinden önce olamaz." });
+    if (retentionDate < today) return res.status(400).json({ error: "Retention tarihi pilot kabul tarihini kapsamalıdır." });
     const [document] = await db.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Pilot kaynak dokümanı bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Pilot case için kaynak yüklemesi tamamlanmalı." });
+    if (document.status !== "completed") return res.status(409).json({ error: "Pilot case yalnız tamamlanmış dokümanla açılabilir.", code: "PILOT_DOCUMENT_NOT_COMPLETED" });
     const [existing] = await db.select().from(smartcheckPilotCases).where(and(eq(smartcheckPilotCases.companyId, req.user.companyId), eq(smartcheckPilotCases.pilotId, pilotId), eq(smartcheckPilotCases.documentId, documentId)));
     if (existing) return res.status(409).json({ error: "Bu pilot ve doküman için case zaten kayıtlı.", caseId: existing.id });
     const [pilotCase] = await db.insert(smartcheckPilotCases).values({ companyId: req.user.companyId, documentId, pilotId, customerReference, projectReference, discipline, permissionReference, permissionGrantedAt, retentionUntil, expectedRowCount, workflowStartedAt, createdByUserId: req.user.userId }).returning();

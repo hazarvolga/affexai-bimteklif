@@ -40,7 +40,17 @@ test("pilot evidence control records consent, measurements, reviewer gate, and t
   const request = (path: string, init: RequestInit = {}, token = tokenA) => fetch(`${base}${path}`, { ...init, headers: { Authorization: `Bearer ${token}`, ...(init.headers ?? {}) } });
   let caseId = "";
   try {
-    const create = await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ documentId: document.id, pilotId: `mep-${suffix}`, customerReference: "CUSTOMER-REF-01", projectReference: "PROJECT-REF-01", discipline: "MEP", permissionReference: "CONSENT-REF-01", permissionGrantedAt: "2026-07-20", retentionUntil: "2026-12-31", expectedRowCount: 3, workflowStartedAt: "2026-07-23T07:55:00Z" }) });
+    const pilotBody = { documentId: document.id, pilotId: `mep-${suffix}`, customerReference: "CUSTOMER-REF-01", projectReference: "PROJECT-REF-01", discipline: "MEP", permissionReference: "CONSENT-REF-01", permissionGrantedAt: "2026-07-20", retentionUntil: "2026-12-31", expectedRowCount: 3, workflowStartedAt: "2026-07-23T07:55:00Z" };
+    const futurePermission = await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...pilotBody, pilotId: `future-${suffix}`, permissionGrantedAt: "2099-01-01", retentionUntil: "2099-01-02" }) });
+    assert.equal(futurePermission.status, 400);
+    assert.equal((await futurePermission.json() as { error: string }).error, "İzin tarihi gelecekte olamaz.");
+    const expiredRetention = await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...pilotBody, pilotId: `expired-${suffix}`, permissionGrantedAt: "2019-01-01", retentionUntil: "2020-01-01" }) });
+    assert.equal(expiredRetention.status, 400);
+    assert.equal((await expiredRetention.json() as { error: string }).error, "Retention tarihi pilot kabul tarihini kapsamalıdır.");
+    const zeroRows = await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...pilotBody, pilotId: `zero-${suffix}`, expectedRowCount: 0 }) });
+    assert.equal(zeroRows.status, 400);
+    assert.equal((await zeroRows.json() as { error: string }).error, "Beklenen satır sayısı sıfırdan büyük olmalıdır.");
+    const create = await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(pilotBody) });
     assert.equal(create.status, 201);
     caseId = (await create.json() as { id: string }).id;
     assert.equal((await request(`/api/smartcheck/pilot-cases/${caseId}`, {}, tokenB)).status, 404);
@@ -72,7 +82,7 @@ test("pilot evidence control records consent, measurements, reviewer gate, and t
     assert.equal(metricsBody.gates.fiveCases, false);
     assert.equal(metricsBody.gates.parseRateAtLeast90, false);
     assert.equal(metricsBody.reviewedCaseCount, 1);
-    assert.equal((await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ documentId: document.id, pilotId: `mep-${suffix}`, customerReference: "CUSTOMER-REF-01", projectReference: "PROJECT-REF-01", permissionReference: "CONSENT-REF-01", permissionGrantedAt: "2026-07-20", retentionUntil: "2026-12-31", expectedRowCount: 3 }) })).status, 409);
+    assert.equal((await request("/api/smartcheck/pilot-cases", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(pilotBody) })).status, 409);
     const otherMetrics = await (await request("/api/smartcheck/pilot-metrics", {}, tokenB)).json() as { summary: { caseCount: number } };
     assert.equal(otherMetrics.summary.caseCount, 0);
   } finally {
