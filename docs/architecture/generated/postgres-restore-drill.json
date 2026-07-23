@@ -1,0 +1,21 @@
+{
+  "contract": "postgres-restore-drill.v1",
+  "mode": "schema-only",
+  "sourceDatabase": "teklifpro_local",
+  "targetDatabase": "teklifpro_restore_drill_local",
+  "targetGuard": "teklifpro_restore_drill_local",
+  "source": {
+    "schemaSha256": "41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a",
+    "tableCount": 64,
+    "enumCount": 20,
+    "rowCount": 558
+  },
+  "target": {
+    "schemaSha256": "41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a",
+    "tableCount": 64,
+    "enumCount": 20,
+    "rowCount": 0
+  },
+  "schemaParity": true,
+  "status": "pass"
+}

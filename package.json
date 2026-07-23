@@ -28,7 +28,10 @@
     "prisma:shadow-contract": "tsx scripts/validate-prisma-shadow-contract.ts",
     "prisma:shadow-db:plan": "tsx scripts/prisma-shadow-parity.ts --plan",
     "prisma:shadow-db:prepare": "tsx scripts/prisma-shadow-parity.ts --prepare",
-    "prisma:shadow-parity": "tsx scripts/prisma-shadow-parity.ts"
+    "prisma:shadow-parity": "tsx scripts/prisma-shadow-parity.ts",
+    "postgres:restore-drill:plan": "tsx scripts/postgres-restore-drill.ts --plan",
+    "postgres:restore-drill": "tsx scripts/postgres-restore-drill.ts --prepare",
+    "postgres:restore-drill:verify": "tsx scripts/postgres-restore-drill.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1092.0",

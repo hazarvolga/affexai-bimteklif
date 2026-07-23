@@ -656,3 +656,20 @@ makine raporu: `docs/architecture/generated/prisma-shadow-parity.json`.
 Bu kanıt yalnız schema parity/restore dilimidir. F15’in tam çıkışı için additive
 migration review, backup/restore tatbikatı, Express–NestJS HTTP parity ve gerçek
 pilot KPI’ları hâlâ gereklidir; Prisma write owner veya trafik cutover yapılmadı.
+
+## 29. F15 schema restore drill
+
+F15 restore kanıtı ayrı bir operatör komutuyla sabitlendi:
+`pnpm postgres:restore-drill` yalnızca `teklifpro_restore_drill_local` adlı
+boş hedefe schema-only restore yapıyor; `pnpm postgres:restore-drill:verify`
+kaynak/hedef katalog snapshot’ını tekrar ölçüyor. Mevcut koşuda 64 non-worker
+tablo, 20 public enum ve kaynak/hedef SHA-256 eşleşti; hedefte satır sayısı 0,
+durum `pass` oldu.
+
+Bu, veri yedeği geri yükleme iddiası değildir. Full PostgreSQL data restore,
+encrypted S3 object restore ve production retention/backup tatbikatı için
+maskelenmiş fixture veya SRE onayı gerekir. Mevcut Express/Drizzle write owner
+ve trafik sınırı değişmedi.
+
+Detay: `docs/architecture/postgres-restore-drill.md`;
+makine raporu: `docs/architecture/generated/postgres-restore-drill.json`.

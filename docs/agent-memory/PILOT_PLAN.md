@@ -206,3 +206,8 @@ to `teklifpro_next_local`, source/target SHA-256 match, and 13/13 selected Prism
 models pass column/type parity. This is not a production migration or a Prisma
 write-owner change; additive migration review, backup/restore rehearsal,
 Express–NestJS HTTP parity, and external pilot evidence remain open.
+
+The schema restore drill also passes on `teklifpro_restore_drill_local` with
+64 non-worker tables, 20 public enums, equal hashes, and zero target rows. It
+does not claim full data restore; production S3 and masked-fixture backup
+evidence remain required before cutover.

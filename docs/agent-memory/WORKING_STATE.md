@@ -307,6 +307,12 @@ target contains no application rows. The harness refuses a non-target database,
 refuses to overwrite a populated target, and keeps Express/Drizzle as the sole
 write owner.
 
+The same source schema now passes the separate restore drill into
+`teklifpro_restore_drill_local`: 64 non-worker tables, 20 public enums, matching
+schema hashes, and zero target rows. This remains schema-only evidence; full
+data backup/restore and production S3 restore are still external operational
+gates.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
