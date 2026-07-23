@@ -1,0 +1,223 @@
+import crypto from "node:crypto";
+import type { Express, RequestHandler } from "express";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db } from "../../db";
+import {
+  documents,
+  priceSnapshots,
+  priceSources,
+  smartcheckAuditLogs,
+  supplierQuoteEntries,
+  supplierQuoteSubmissions,
+} from "../../db/schema";
+import { buildPriceSnapshotKey, sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { evaluateSupplierPrice, summarizePriceMemory, type PriceMemorySample } from "../market-intelligence/price-memory";
+import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
+import { consumeRateLimit } from "../auth/security";
+
+const currencies = new Set(["TRY", "USD", "EUR"]);
+const vatStatuses = new Set(["included", "excluded", "unknown"]);
+const freightStatuses = new Set(["included", "excluded", "unknown"]);
+const mutableRoles = checkRole(["owner", "admin", "manager"]);
+const rateLimit: RequestHandler = async (req, res, next) => {
+  const result = await consumeRateLimit(`market-intelligence:${req.user.companyId}:${req.user.userId}`, 90, 60_000);
+  if (!result.allowed) return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "Çok fazla piyasa verisi isteği." });
+  next();
+};
+const mutateStack = [authenticate, requireVerifiedEmail, rateLimit, mutableRoles];
+
+function textValue(value: unknown, maxLength: number) {
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+function numberValue(value: unknown) {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function parseDate(value: unknown) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" && !(value instanceof Date)) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function validHash(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{16,128}$/i.test(value);
+}
+
+function bodyObject(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function completeness(submission: typeof supplierQuoteSubmissions.$inferSelect, entry: { region: string | null; vatStatus: string; freightStatus: string }) {
+  let score = 0;
+  if (submission.supplierContact) score += 0.05;
+  if (entry.region || submission.region) score += 0.1;
+  if (submission.deliveryTerms) score += 0.1;
+  if (entry.vatStatus !== "unknown") score += 0.05;
+  return score;
+}
+
+async function audit(req: any, action: string, entityType: string, entityId: string, metadataJson: Record<string, unknown> = {}) {
+  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson });
+}
+
+async function approvedSamples(companyId: string, currency: string) {
+  const rows = await db.select({ snapshot: priceSnapshots, sourceType: priceSources.sourceType })
+    .from(priceSnapshots)
+    .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
+    .where(and(eq(priceSnapshots.companyId, companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"])))
+    .orderBy(desc(priceSnapshots.capturedAt)).limit(2000);
+  return rows;
+}
+
+export function registerMarketIntelligenceRoutes(app: Express) {
+  app.get("/api/market-intelligence/supplier-quotes", authenticate, rateLimit, async (req, res) => {
+    const status = typeof req.query.status === "string" ? textValue(req.query.status, 30) : "";
+    const conditions = [eq(supplierQuoteSubmissions.companyId, req.user.companyId)];
+    if (["draft", "awaiting_review", "approved", "rejected", "expired"].includes(status)) conditions.push(eq(supplierQuoteSubmissions.status, status));
+    const submissions = await db.select().from(supplierQuoteSubmissions).where(and(...conditions)).orderBy(desc(supplierQuoteSubmissions.createdAt)).limit(200);
+    const ids = submissions.map((submission) => submission.id);
+    const entries = ids.length ? await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.companyId, req.user.companyId), inArray(supplierQuoteEntries.submissionId, ids))).orderBy(supplierQuoteEntries.createdAt) : [];
+    const entriesBySubmission = new Map<string, typeof entries>();
+    for (const entry of entries) entriesBySubmission.set(entry.submissionId, [...(entriesBySubmission.get(entry.submissionId) ?? []), entry]);
+    res.json(submissions.map((submission) => ({ ...submission, entries: entriesBySubmission.get(submission.id) ?? [] })));
+  });
+
+  app.post("/api/market-intelligence/supplier-quotes", ...mutateStack, async (req, res) => {
+    const body = bodyObject(req.body);
+    const supplierName = textValue(body.supplierName, 200);
+    const documentId = textValue(body.documentId, 80) || null;
+    let document: typeof documents.$inferSelect | undefined;
+    if (documentId) {
+      [document] = await db.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, req.user.companyId)));
+      if (!document) return res.status(404).json({ error: "Kaynak doküman bulunamadı." });
+      if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Kaynak doküman yüklemesi tamamlanmalı." });
+    }
+    const sourceDocumentHash = validHash(body.sourceDocumentHash) ? String(body.sourceDocumentHash).toLowerCase() : document?.checksumSha256 ?? (body.sourceDocumentPayload === undefined ? "" : sha256Payload(body.sourceDocumentPayload));
+    const sourceDocumentIdentifier = textValue(body.sourceDocumentIdentifier, 255) || document?.originalFileName || textValue(body.quoteNumber, 120);
+    const currency = textValue(body.currency, 3).toUpperCase() || "TRY";
+    const quoteDate = parseDate(body.quoteDate);
+    const validUntil = parseDate(body.validUntil);
+    const vatStatus = textValue(body.vatStatus, 20) || "unknown";
+    const freightStatus = textValue(body.freightStatus, 20) || "unknown";
+    if (!supplierName || !sourceDocumentIdentifier || !validHash(sourceDocumentHash) || !currencies.has(currency) || quoteDate === undefined || validUntil === undefined || !vatStatuses.has(vatStatus) || !freightStatuses.has(freightStatus)) return res.status(400).json({ error: "Tedarikçi, kaynak hash'i, belge kimliği, para birimi ve geçerli ticari alanlar zorunludur." });
+    if (quoteDate && validUntil && validUntil < quoteDate) return res.status(400).json({ error: "Teklif geçerlilik tarihi teklif tarihinden önce olamaz." });
+    const confidence = numberValue(body.confidence);
+    if (confidence !== null && (confidence < 0 || confidence > 1)) return res.status(400).json({ error: "Confidence 0 ile 1 arasında olmalıdır." });
+    const [submission] = await db.insert(supplierQuoteSubmissions).values({
+      companyId: req.user.companyId,
+      documentId,
+      sourceDocumentHash,
+      sourceDocumentIdentifier,
+      sourceUrl: textValue(body.sourceUrl, 2000) || null,
+      supplierName,
+      supplierContact: textValue(body.supplierContact, 255) || null,
+      quoteNumber: textValue(body.quoteNumber, 120) || null,
+      quoteDate,
+      validUntil,
+      currency: currency as "TRY" | "USD" | "EUR",
+      region: textValue(body.region, 120) || null,
+      deliveryTerms: textValue(body.deliveryTerms, 200) || null,
+      deliveryLocation: textValue(body.deliveryLocation, 200) || null,
+      vatStatus,
+      vatPercent: numberValue(body.vatPercent) === null ? null : String(numberValue(body.vatPercent)),
+      freightStatus,
+      confidence: String(confidence ?? 0),
+      status: "awaiting_review",
+      createdByUserId: req.user.userId,
+    }).returning();
+    await audit(req, "supplier_quote_created", "supplier_quote_submission", submission.id, { supplierName, sourceDocumentHash, documentId });
+    res.status(201).json({ ...submission, entries: [] });
+  });
+
+  app.get("/api/market-intelligence/supplier-quotes/:id", authenticate, rateLimit, async (req, res) => {
+    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
+    const entries = await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.submissionId, submission.id), eq(supplierQuoteEntries.companyId, req.user.companyId))).orderBy(supplierQuoteEntries.createdAt);
+    res.json({ ...submission, entries });
+  });
+
+  app.post("/api/market-intelligence/supplier-quotes/:id/entries", ...mutateStack, async (req, res) => {
+    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
+    if (submission.status === "approved" || submission.status === "rejected") return res.status(409).json({ error: "Karara bağlanmış tedarikçi teklifine satır eklenemez." });
+    const rawEntries = Array.isArray(req.body?.entries) ? req.body.entries : [];
+    if (!rawEntries.length || rawEntries.length > 1000) return res.status(400).json({ error: "1 ile 1000 arasında tedarikçi satırı zorunludur." });
+    const baselineRows = await approvedSamples(req.user.companyId, submission.currency);
+    const inserts = [];
+    const evaluations = [];
+    for (let index = 0; index < rawEntries.length; index += 1) {
+      const raw = bodyObject(rawEntries[index]);
+      const description = textValue(raw.description, 500);
+      const unit = textValue(raw.unit, 40);
+      const quantity = numberValue(raw.quantity) ?? 1;
+      const unitPrice = numberValue(raw.unitPrice);
+      const currency = textValue(raw.currency, 3).toUpperCase() || submission.currency;
+      const region = textValue(raw.region, 120) || submission.region;
+      const vatStatus = textValue(raw.vatStatus, 20) || submission.vatStatus;
+      const freightStatus = textValue(raw.freightStatus, 20) || submission.freightStatus;
+      if (!description || !unit || quantity <= 0 || unitPrice === null || unitPrice < 0 || !currencies.has(currency) || !vatStatuses.has(vatStatus) || !freightStatuses.has(freightStatus)) return res.status(400).json({ error: `Geçersiz tedarikçi satırı: ${index + 1}` });
+      const positionCode = textValue(raw.positionCode, 120) || null;
+      const sourceRowKey = textValue(raw.sourceRowKey, 120) || crypto.createHash("sha256").update(`${index}:${positionCode ?? ""}:${description}:${unit}:${unitPrice}`).digest("hex");
+      const samples: PriceMemorySample[] = baselineRows.filter((row) => row.snapshot.currency === currency).map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
+      const evaluation = evaluateSupplierPrice(unitPrice, { positionCode, description, unit, region }, samples, completeness(submission, { region, vatStatus, freightStatus }));
+      evaluations.push({ sourceRowKey, ...evaluation });
+      inserts.push({ companyId: req.user.companyId, submissionId: submission.id, sourceRowKey, positionCode, description, unit, quantity: String(quantity), unitPrice: String(unitPrice), currency: currency as "TRY" | "USD" | "EUR", vatStatus, vatPercent: numberValue(raw.vatPercent) === null ? submission.vatPercent : String(numberValue(raw.vatPercent)), freightStatus, region, validFrom: parseDate(raw.validFrom) ?? submission.quoteDate, validUntil: parseDate(raw.validUntil) ?? submission.validUntil, sourceCellRange: textValue(raw.sourceCellRange, 120) || null, baselineCount: evaluation.baselineCount, outlierStatus: evaluation.outlierStatus, outlierScore: evaluation.outlierScore === null ? null : String(evaluation.outlierScore), confidence: String(evaluation.confidence), reviewStatus: "pending" });
+    }
+    const inserted = await db.insert(supplierQuoteEntries).values(inserts).onConflictDoNothing({ target: [supplierQuoteEntries.companyId, supplierQuoteEntries.submissionId, supplierQuoteEntries.sourceRowKey] }).returning();
+    const averageConfidence = inserted.length ? inserted.reduce((sum, entry) => sum + Number(entry.confidence), 0) / inserted.length : Number(submission.confidence);
+    await db.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    await audit(req, "supplier_quote_entries_created", "supplier_quote_submission", submission.id, { insertedCount: inserted.length, evaluations });
+    res.status(inserted.length ? 201 : 200).json({ submissionId: submission.id, insertedCount: inserted.length, evaluations, entries: inserted });
+  });
+
+  app.patch("/api/market-intelligence/supplier-quote-entries/:id/review", ...mutateStack, async (req, res) => {
+    const status = textValue(req.body?.status, 20);
+    if (status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu approved veya rejected olabilir." });
+    const [entry] = await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, req.params.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+    if (!entry) return res.status(404).json({ error: "Tedarikçi teklif satırı bulunamadı." });
+    if (entry.reviewStatus !== "pending") return res.status(409).json({ error: "Satır daha önce karara bağlandı." });
+    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, entry.submissionId), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
+    const reviewedAt = new Date();
+    let priceSnapshotId: string | null = entry.priceSnapshotId;
+    await db.transaction(async (tx) => {
+      if (status === "approved") {
+        let [source] = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), eq(priceSources.sourceType, "supplier_quote"), eq(priceSources.sourceDocumentHash, submission.sourceDocumentHash), eq(priceSources.sourceDocumentIdentifier, submission.sourceDocumentIdentifier))).limit(1);
+        if (!source) {
+          [source] = await tx.insert(priceSources).values({ companyId: req.user.companyId, sourceType: "supplier_quote", name: `${submission.supplierName}${submission.quoteNumber ? ` · ${submission.quoteNumber}` : ""}`, authority: submission.supplierName, sourceUrl: submission.sourceUrl, sourceDocumentIdentifier: submission.sourceDocumentIdentifier, sourceDocumentHash: submission.sourceDocumentHash, licenseStatus: "not_applicable", jurisdiction: "TR", region: submission.region, createdByUserId: req.user.userId, metadataJson: { supplierQuoteSubmissionId: submission.id, deliveryTerms: submission.deliveryTerms, deliveryLocation: submission.deliveryLocation } }).returning();
+        }
+        const capturedAt = submission.quoteDate ?? reviewedAt;
+        const snapshotKey = buildPriceSnapshotKey({ sourceDocumentHash: submission.sourceDocumentHash, positionCode: entry.positionCode, description: entry.description, unit: entry.unit, amount: entry.unitPrice, currency: entry.currency, capturedAt });
+        const [snapshot] = await tx.insert(priceSnapshots).values({ companyId: req.user.companyId, priceSourceId: source.id, snapshotKey, positionCode: entry.positionCode, description: entry.description, unit: entry.unit, amount: entry.unitPrice, currency: entry.currency, vatStatus: entry.vatStatus, vatPercent: entry.vatPercent, freightStatus: entry.freightStatus, region: entry.region ?? submission.region, validFrom: entry.validFrom, validUntil: entry.validUntil, capturedAt, sourceDocumentHash: submission.sourceDocumentHash, sourceVersion: submission.quoteNumber, confidence: entry.confidence, reviewStatus: "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, metadataJson: { supplierQuoteSubmissionId: submission.id, supplierQuoteEntryId: entry.id, outlierStatus: entry.outlierStatus, baselineCount: entry.baselineCount } }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning({ id: priceSnapshots.id });
+        priceSnapshotId = snapshot?.id ?? (await tx.select({ id: priceSnapshots.id }).from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.priceSourceId, source.id), eq(priceSnapshots.snapshotKey, snapshotKey))))[0]?.id ?? null;
+        if (!priceSnapshotId) throw new Error("SUPPLIER_SNAPSHOT_CREATE_FAILED");
+      }
+      await tx.update(supplierQuoteEntries).set({ reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, priceSnapshotId, updatedAt: reviewedAt }).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+      const allEntries = await tx.select({ reviewStatus: supplierQuoteEntries.reviewStatus }).from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.submissionId, submission.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+      if (allEntries.length > 0 && allEntries.every((row) => row.reviewStatus !== "pending")) {
+        await tx.update(supplierQuoteSubmissions).set({ status: allEntries.some((row) => row.reviewStatus === "rejected") ? "rejected" : "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: reviewedAt }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+      }
+    });
+    const [updated] = await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+    await audit(req, `supplier_quote_entry_${status}`, "supplier_quote_entry", entry.id, { submissionId: submission.id, priceSnapshotId, outlierStatus: entry.outlierStatus, canonicalPromotion: false });
+    res.json(updated);
+  });
+
+  app.get("/api/market-intelligence/price-memory", authenticate, rateLimit, async (req, res) => {
+    const currency = textValue(req.query.currency, 3).toUpperCase() || "TRY";
+    if (!currencies.has(currency)) return res.status(400).json({ error: "Geçersiz para birimi." });
+    const positionCode = textValue(req.query.positionCode, 120) || null;
+    const unit = textValue(req.query.unit, 40) || null;
+    const region = textValue(req.query.region, 120) || null;
+    const conditions = [eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"] as string[])];
+    if (positionCode) conditions.push(eq(priceSnapshots.positionCode, positionCode));
+    if (unit) conditions.push(eq(priceSnapshots.unit, unit));
+    if (region) conditions.push(eq(priceSnapshots.region, region));
+    const rows = await db.select({ snapshot: priceSnapshots, source: priceSources }).from(priceSnapshots).innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId))).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(500);
+    const samples: PriceMemorySample[] = rows.map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
+    res.json({ currency, positionCode, unit, region, summary: summarizePriceMemory(samples), samples: rows.map(({ snapshot, source }) => ({ ...snapshot, sourceType: source.sourceType, sourceName: source.name })).slice(0, 100) });
+  });
+}

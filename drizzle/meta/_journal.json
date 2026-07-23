@@ -225,6 +225,13 @@
       "when": 1784836359051,
       "tag": "0032_low_kid_colt",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1784837105146,
+      "tag": "0033_fixed_arclight",
+      "breakpoints": true
     }
   ]
 }

@@ -401,3 +401,11 @@ Onaylı `regulation_diff` review item'ları artık her değişiklik için hash-b
 Etki motoru yalnız düşük riskli, açıklanabilir sinyaller kullanır: labor/material kalem kategorileri ve sınırlı açıklama terimleri; tax/legal/procurement eşleşmeleri düşük güvenli quotation-wide advisory olarak döner. `/app/regulations` etki paneli kaynak metni, sürümü, önerilen eşleşmeyi ve güven sınırını gösterir.
 
 Faz 5 local HTTP + PostgreSQL acceptance testleri tenant izolasyonunu, reviewer → advisory version zincirini ve effective-date davranışını doğrular. Gerçek mevzuat yorumunu otomatikleştirme, canonical rule promotion, kullanıcı teklifini mutasyona uğratma ve hukuki/mühendislik onayı bu fazın dışındadır.
+
+## 17. Faz 6 uygulama durumu
+
+İnsan onaylı piyasa verisi beta akışı eklendi. `supplier_quote_submissions` ve `supplier_quote_entries` additive migration ile oluşturuldu; kaynak hash'i, tedarikçi koşulları, satır provenance'ı, baseline karşılaştırması, outlier sinyali ve reviewer kararı korunuyor. Approved satır immutable `price_snapshots` kaydına bağlanıyor; `GET /api/market-intelligence/price-memory` yalnız şirketin onaylı snapshot hafızasını döndürüyor.
+
+Outlier motoru üçten az karşılaştırılabilir örnekte `insufficient_data`, yeterli baseline'da median/MAD tabanlı `normal` veya `outlier` üretir. Outlier otomatik onaylanmaz; kullanıcı/reviewer açıkça karar vermeden fiyat kanonikleşmez. HTTP + PostgreSQL entegrasyon testi tenant izolasyonunu, review gate'i ve snapshot persistence'ı doğrular; browser kanıtı `/app/market-intelligence` ekranında alınmıştır.
+
+Bu faz otomatik crawler, gerçek tedarikçi API'si veya canlı piyasa fiyatı değildir. Sonraki admission kapıları: müşteri izinli beş MEP dosyası, teknik reviewer kayıtları, en az üç firma ve 20+ snapshot ile ölçüm, veri kullanım lisansı ve production S3 credentials/retention. Bu kapılar kapanmadan scheduler veya otomatik fiyat mutasyonu açılmayacaktır.

@@ -64,6 +64,12 @@ export const navigationConfig: NavItem[] = [
     roles: ["owner", "admin", "manager"],
   },
   {
+    label: "Piyasa Verisi",
+    path: "/app/market-intelligence",
+    icon: BarChart3,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
     label: "SmartCheck",
     path: "/app/smartcheck",
     icon: Shield,
