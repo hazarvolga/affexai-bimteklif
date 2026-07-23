@@ -607,3 +607,19 @@ Pilot evidence API’si artık dış manifest validatorındaki zaman ve kaynak s
 Processing run health katmanı eklendi. `queued/running` run’lar yapılandırılabilir heartbeat eşiğini (`SMARTCHECK_PROCESSING_STALE_MINUTES`, güvenli aralık 5–240 dakika) aşarsa queue’da `isStale` olarak görünür. `recover-stale` endpoint’i yalnız tenant-scoped yetkili operatör kararıyla run’ı `failed/WORKER_STALE` durumuna taşır; ardından mevcut açık `retry` endpoint’i yeni idempotency key ve Graphile job oluşturur. Otomatik status mutasyonu yoktur.
 
 `src/server/routes/smartcheck.integration.test.ts` stale queue görünürlüğünü, tenant negatifini, recovery → retry → yeniden processing zincirini doğrular. Operasyon runbook’u `docs/smartcheck/pilot/phase12-operations.md` içindedir. Bu faz worker process health ve DB gözlemlenebilirliğini güçlendirir; gerçek S3/restore ve müşteri pilotu yerine geçmez.
+
+## 27. F15 foundation slice — Contract ve parity sınırı
+
+F15’in ilk geri alınabilir dilimi tamamlandı. `src/contracts/smartcheck.ts`
+kritik SmartCheck transport girdilerini `smartcheck.v1` altında ortak Zod
+sözleşmesine alıyor; mevcut Express route’ları bu sözleşmeleri kullanıyor.
+`src/contracts/context-contracts.ts` bounded context, route operasyonu, mevcut
+write owner ve cutover durumunu makine tarafından doğrulanabilir bir envanterde
+tutuyor. `express-pilot` dışındaki bir write owner, context `cutover-ready`
+olmadan testte reddediliyor.
+
+Bu bir NestJS/Next.js rewrite veya dual-write değildir. Tam F15 çıkışı için
+OpenAPI/JSON schema yayını, izole `teklifpro_next_local` üzerinde additive
+Prisma shadow schema, Express–Nest parity koşusu ve backup/restore kanıtı hâlâ
+gereklidir. Gerçek beş dosya ve production storage admission tamamlanmadan
+trafik devri yapılmayacaktır. Detay: `docs/architecture/contract-parity-foundation.md`.

@@ -16,6 +16,13 @@ import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import { sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
+import {
+  smartcheckCompleteRequestSchema,
+  smartcheckMappingRequestSchema,
+  smartcheckRowReviewRequestSchema,
+  smartcheckTransferRequestSchema,
+  smartcheckUploadRequestSchema,
+} from "../../contracts/smartcheck";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
 const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip"], limit: SMARTCHECK_MAX_FILE_BYTES });
@@ -48,12 +55,11 @@ export function registerSmartCheckRoutes(app: Express) {
   const protectedStack = [authenticate, requireVerifiedEmail, featureGate, rateLimit, canReview];
 
   app.post("/api/smartcheck/documents/uploads", ...protectedStack, async (req, res) => {
-    const originalFileName = typeof req.body?.fileName === "string" ? req.body.fileName.trim() : "";
-    const mimeType = typeof req.body?.mimeType === "string" ? req.body.mimeType.trim().toLowerCase() : "";
-    const fileSizeBytes = Number(req.body?.fileSizeBytes);
-    if (!originalFileName || originalFileName.length > 255 || !Number.isInteger(fileSizeBytes) || fileSizeBytes < 1 || fileSizeBytes > SMARTCHECK_MAX_FILE_BYTES) {
+    const parsedRequest = smartcheckUploadRequestSchema.safeParse(req.body);
+    if (!parsedRequest.success || parsedRequest.data.fileSizeBytes > SMARTCHECK_MAX_FILE_BYTES) {
       return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
     }
+    const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
     if (!/\.(xlsx|csv)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX ve CSV kabul edilir." });
     const storageKey = `${req.user.companyId}/${crypto.randomUUID()}/original`;
     const [document] = await db.insert(documents).values({
@@ -88,8 +94,9 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.post("/api/smartcheck/documents/:id/complete", ...protectedStack, async (req, res) => {
-    const checksum = typeof req.body?.checksumSha256 === "string" ? req.body.checksumSha256.toLowerCase() : "";
-    if (!/^[a-f0-9]{64}$/.test(checksum)) return res.status(400).json({ error: "Geçersiz SHA-256 checksum." });
+    const parsedRequest = smartcheckCompleteRequestSchema.safeParse(req.body);
+    if (!parsedRequest.success) return res.status(400).json({ error: "Geçersiz SHA-256 checksum." });
+    const checksum = parsedRequest.data.checksumSha256;
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     const storage = createStorageAdapter();
@@ -128,19 +135,17 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.patch("/api/smartcheck/documents/:id/mapping", ...protectedStack, async (req, res) => {
+    const parsedRequest = smartcheckMappingRequestSchema.safeParse(req.body ?? {});
+    if (!parsedRequest.success) return res.status(400).json({ error: "Geçersiz eşleme gövdesi." });
+    const mappingRequest = parsedRequest.data;
     const allowed = ["profileId", "sheet", "positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
     const mapping: ColumnMapping = {};
     for (const key of allowed) {
-      const value = req.body?.[key];
-      if (value !== undefined && (typeof value !== "string" || value.length > 120)) return res.status(400).json({ error: `Geçersiz eşleme alanı: ${key}` });
+      const value = mappingRequest[key];
       if (value) mapping[key] = value.trim();
     }
     if (mapping.profileId && !getMappingProfile(mapping.profileId)) return res.status(400).json({ error: "Bilinmeyen MEP eşleme profili." });
-    if (req.body?.headerRow !== undefined) {
-      const headerRow = Number(req.body.headerRow);
-      if (!Number.isInteger(headerRow) || headerRow < 1 || headerRow > 100) return res.status(400).json({ error: "Geçersiz başlık satırı." });
-      mapping.headerRow = headerRow;
-    }
+    if (mappingRequest.headerRow !== undefined) mapping.headerRow = mappingRequest.headerRow;
     const [document] = await db.update(documents).set({ importMappingJson: mapping, updatedAt: new Date() }).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))).returning();
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     await audit(req, "mapping_updated", "document", document.id, { mapping });
@@ -212,13 +217,14 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.patch("/api/smartcheck/rows/:id/review", ...protectedStack, async (req, res) => {
-    const status = req.body?.status;
-    if (status !== "approved" && status !== "rejected" && status !== "accepted_exception") return res.status(400).json({ error: "Review kararı approved, accepted_exception veya rejected olmalıdır." });
+    const parsedRequest = smartcheckRowReviewRequestSchema.safeParse(req.body);
+    if (!parsedRequest.success) return res.status(400).json({ error: "Review kararı approved, accepted_exception veya rejected olmalıdır." });
+    const { status } = parsedRequest.data;
     const [current] = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     if (!current) return res.status(404).json({ error: "Satır bulunamadı." });
-    const notes = typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 2000) : null;
+    const notes = parsedRequest.data.notes ?? null;
     if ((status === "rejected" || status === "accepted_exception") && !notes) return res.status(400).json({ error: `${status === "rejected" ? "Red" : "İstisna"} gerekçesi zorunludur.` });
-    const patch = req.body?.correction && typeof req.body.correction === "object" ? req.body.correction as Record<string, unknown> : {};
+    const patch = parsedRequest.data.correction ?? {};
     const allowedCorrection = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
     if (Object.keys(patch).some((key) => !allowedCorrection.includes(key as typeof allowedCorrection[number]))) return res.status(400).json({ error: "Geçersiz düzeltme alanı." });
     const allRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, current.documentId), eq(normalizedQuantityRows.companyId, req.user.companyId)));
@@ -246,16 +252,16 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.post("/api/smartcheck/documents/:id/transfer-to-quotation", ...protectedStack, async (req, res) => {
-    const quotationId = typeof req.body?.quotationId === "string" ? req.body.quotationId : "";
-    const rowIds = Array.isArray(req.body?.rowIds) ? req.body.rowIds.filter((id: unknown): id is string => typeof id === "string") : [];
-    if (!quotationId || rowIds.length === 0 || rowIds.length > 5000) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
+    const parsedRequest = smartcheckTransferRequestSchema.safeParse(req.body);
+    if (!parsedRequest.success) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
+    const { quotationId, rowIds } = parsedRequest.data;
     const [quotation] = await db.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")));
     if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
     const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     const selected = documentRows.filter((row) => rowIds.includes(row.id));
     if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
     if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
-    const overrides = typeof req.body?.overrides === "object" && req.body.overrides ? req.body.overrides as Record<string, Record<string, unknown>> : {};
+    const overrides = parsedRequest.data.overrides ?? {};
     const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
     const snapshots = requestedSnapshotIds.length ? await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
     if (snapshots.length !== new Set(requestedSnapshotIds).size || snapshots.some((snapshot) => snapshot.reviewStatus === "rejected")) return res.status(409).json({ error: "Geçersiz veya reddedilmiş fiyat snapshot seçildi.", code: "INVALID_PRICE_SNAPSHOT" });

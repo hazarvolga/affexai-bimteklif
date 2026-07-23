@@ -287,6 +287,12 @@ reported in the operator queue, and a tenant-scoped `recover-stale` action marks
 the run `failed/WORKER_STALE` before the existing explicit retry path creates a
 new job. No automatic mutation or scheduler was added for the first pilot.
 
+F15 foundation slice is now started without changing the pilot write owner:
+versioned SmartCheck transport schemas live under `src/contracts`, and a
+bounded-context contract inventory rejects unsafe target writes before
+`cutover-ready`. Complete F15 still requires OpenAPI/JSON schema publication,
+an isolated Prisma shadow database and Express–Nest parity/backup evidence.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
