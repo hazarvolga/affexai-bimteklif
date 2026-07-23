@@ -132,3 +132,7 @@ Pilot hazırlık sistemi kurulabilir; ancak aşağıdakiler gerçek sahipleri ta
 3. Production S3 endpoint/bucket/region ve least-privilege kimlik bilgileri; secret değerleri repoya yazılmamalıdır.
 
 Bu girdiler gelmeden ilgili kapılar **pending_external_evidence** kalmalıdır.
+
+## 10. P0 fazı uygulama durumu (23 Temmuz 2026)
+
+Bu raporun ardından ilk P0 teknik kapanışı uygulandı: satır review endpoint'i düzeltme payload'ını kabul ediyor, şirket zayiat limitiyle yeniden doğrulama yapıyor ve `accepted_exception` kararı gerekçe + reviewer + audit kaydıyla destekleniyor. İstisna satırlar aktarımda açıkça kabul ediliyor; veritabanı kontrolü additive migration ile genişletildi. Bu değişiklik, müşteri dosyası, reviewer kimliği veya S3 kanıtının yerine geçmez; G2–G5 kapıları hâlâ harici kanıt beklemektedir.

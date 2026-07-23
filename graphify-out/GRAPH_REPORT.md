@@ -1,7 +1,7 @@
 # Graph Report - TeklifPro-repo  (2026-07-23)
 
 ## Corpus Check
-- 224 files · ~213,072 words
+- 224 files · ~213,430 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

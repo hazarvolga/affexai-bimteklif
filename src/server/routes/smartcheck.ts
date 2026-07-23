@@ -4,14 +4,14 @@ import express from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { quickAddJob } from "graphile-worker";
 import { db } from "../../db";
-import { documents, documentProcessingRuns, normalizedQuantityRows, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
+import { companies, documents, documentProcessingRuns, normalizedQuantityRows, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
 import { SMARTCHECK_MAX_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
 import { detectAndValidateFile, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
 import { processingIdempotencyKey } from "../../smartcheck/import/processor";
-import type { ColumnMapping } from "../../smartcheck/import/normalize";
+import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
@@ -141,14 +141,35 @@ export function registerSmartCheckRoutes(app: Express) {
 
   app.patch("/api/smartcheck/rows/:id/review", ...protectedStack, async (req, res) => {
     const status = req.body?.status;
-    if (status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review kararı approved veya rejected olmalıdır." });
+    if (status !== "approved" && status !== "rejected" && status !== "accepted_exception") return res.status(400).json({ error: "Review kararı approved, accepted_exception veya rejected olmalıdır." });
     const [current] = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     if (!current) return res.status(404).json({ error: "Satır bulunamadı." });
-    if (status === "approved" && current.findingsJson.length > 0) return res.status(409).json({ error: "Açık bulgular çözülmeden satır onaylanamaz.", findings: current.findingsJson });
     const notes = typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 2000) : null;
-    if (status === "rejected" && !notes) return res.status(400).json({ error: "Red gerekçesi zorunludur." });
-    const [updated] = await db.update(normalizedQuantityRows).set({ reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date() }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning();
-    await audit(req, `row_${status}`, "normalized_quantity_row", current.id, { documentId: current.documentId });
+    if ((status === "rejected" || status === "accepted_exception") && !notes) return res.status(400).json({ error: `${status === "rejected" ? "Red" : "İstisna"} gerekçesi zorunludur.` });
+    const patch = req.body?.correction && typeof req.body.correction === "object" ? req.body.correction as Record<string, unknown> : {};
+    const allowedCorrection = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
+    if (Object.keys(patch).some((key) => !allowedCorrection.includes(key as typeof allowedCorrection[number]))) return res.status(400).json({ error: "Geçersiz düzeltme alanı." });
+    const allRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, current.documentId), eq(normalizedQuantityRows.companyId, req.user.companyId)));
+    const corrected: ParsedQuantityRow = {
+      sheetName: current.sheetName, sourceRowNumber: current.sourceRowNumber, sourceCellRange: current.sourceCellRange,
+      rawDescription: String(patch.description ?? current.rawDescription ?? ""), rawPositionCode: String(patch.positionCode ?? current.rawPositionCode ?? ""),
+      rawUnit: String(patch.unit ?? current.rawUnit ?? ""), rawQuantity: String(patch.quantity ?? current.rawQuantity ?? ""),
+      rawPrice: String(patch.price ?? current.rawPrice ?? ""), rawWastePercent: String(patch.wastePercent ?? current.rawWastePercent ?? ""), formulaJson: current.formulaJson,
+    };
+    const validationRows = allRows.map((row) => row.id === current.id ? corrected : {
+      sheetName: row.sheetName, sourceRowNumber: row.sourceRowNumber, sourceCellRange: row.sourceCellRange,
+      rawDescription: row.rawDescription ?? "", rawPositionCode: row.rawPositionCode ?? "", rawUnit: row.rawUnit ?? "", rawQuantity: row.rawQuantity ?? "", rawPrice: row.rawPrice ?? "", rawWastePercent: row.rawWastePercent ?? "", formulaJson: row.formulaJson,
+    });
+    const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
+    const [validated] = validateRows(validationRows, Number(company?.maxWaste ?? 20)).filter((result) => result.row.sourceRowNumber === current.sourceRowNumber && result.row.sheetName === current.sheetName);
+    if (!validated) return res.status(500).json({ error: "Satır yeniden doğrulanamadı." });
+    if (status === "approved" && validated.findings.length > 0) return res.status(409).json({ error: "Açık bulgular çözülmeden satır onaylanamaz.", findings: validated.findings });
+    const [updated] = await db.update(normalizedQuantityRows).set({
+      rawDescription: corrected.rawDescription, rawPositionCode: corrected.rawPositionCode, rawUnit: corrected.rawUnit, rawQuantity: corrected.rawQuantity, rawPrice: corrected.rawPrice, rawWastePercent: corrected.rawWastePercent,
+      normalizedDescription: validated.normalized.description, normalizedPositionCode: validated.normalized.positionCode, normalizedUnit: validated.normalized.unit, normalizedQuantity: validated.normalized.quantity?.toString(), normalizedPrice: validated.normalized.price?.toString(), normalizedWastePercent: validated.normalized.wastePercent.toString(), findingsJson: validated.findings,
+      reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date(),
+    }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning();
+    await audit(req, `row_${status}`, "normalized_quantity_row", current.id, { documentId: current.documentId, correction: patch, findingCodes: validated.findings.map((finding) => finding.code) });
     res.json(updated);
   });
 
@@ -161,7 +182,7 @@ export function registerSmartCheckRoutes(app: Express) {
     const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     const selected = documentRows.filter((row) => rowIds.includes(row.id));
     if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
-    if (selected.some((row) => row.reviewStatus !== "approved")) return res.status(409).json({ error: "Yalnız onaylı satırlar teklife aktarılabilir." });
+    if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
     const overrides = typeof req.body?.overrides === "object" && req.body.overrides ? req.body.overrides as Record<string, Record<string, unknown>> : {};
     const transferResult = await db.transaction(async (tx) => {
       const inserts = selected.map((row) => {

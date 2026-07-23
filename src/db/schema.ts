@@ -580,7 +580,7 @@ export const normalizedQuantityRows = pgTable("normalized_quantity_rows", {
     columns: [table.reviewerUserId, table.companyId],
     foreignColumns: [memberships.userId, memberships.companyId],
   }).onDelete("restrict"),
-  reviewStatusCheck: check("normalized_quantity_rows_review_status_check", sql`${table.reviewStatus} in ('pending_review', 'approved', 'rejected')`),
+  reviewStatusCheck: check("normalized_quantity_rows_review_status_check", sql`${table.reviewStatus} in ('pending_review', 'approved', 'accepted_exception', 'rejected')`),
   confidenceCheck: check("normalized_quantity_rows_confidence_check", sql`${table.mappingConfidence} >= 0 AND ${table.mappingConfidence} <= 1`),
 }));
 
