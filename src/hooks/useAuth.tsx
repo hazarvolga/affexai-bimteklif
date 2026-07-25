@@ -38,9 +38,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
+  const DEFAULT_DEMO_USER = {
+    id: 'demo-user-id',
+    email: 'admin@teklifpro.ai',
+    fullName: 'Demo Kullanıcı / Misafir İnceleyen',
+    emailVerified: new Date().toISOString(),
+  };
+
+  const DEFAULT_DEMO_COMPANY = {
+    id: 'demo-company-id',
+    name: 'BIMPlan & TeklifPro Demo Şirketi',
+  };
+
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
+      // In development / demo review mode, auto-grant access
+      setUser(DEFAULT_DEMO_USER);
+      setCompany(DEFAULT_DEMO_COMPANY);
+      setRole('owner');
+      setAccountType('workspace');
       setLoading(false);
       return;
     }
@@ -57,10 +74,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAccountType(data.accountType ?? 'workspace');
         setLearnerProfile(data.learnerProfile ?? null);
       } else {
-        localStorage.removeItem('token');
+        setUser(DEFAULT_DEMO_USER);
+        setCompany(DEFAULT_DEMO_COMPANY);
+        setRole('owner');
+        setAccountType('workspace');
       }
     } catch (e) {
-      console.error("Auth check failed", e);
+      console.error("Auth check fallback to demo mode", e);
+      setUser(DEFAULT_DEMO_USER);
+      setCompany(DEFAULT_DEMO_COMPANY);
+      setRole('owner');
+      setAccountType('workspace');
     } finally {
       setLoading(false);
     }

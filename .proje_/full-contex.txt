@@ -1,0 +1,5320 @@
+Codex ile (AI destekli geliştirme akışı / coding agent yaklaşımıyla) Türkiye’deki müteahhitlik firmalarına özel teklif hazırlama uygulaması yapmak teknik olarak çok güçlü bir fikir. Çünkü pazarda hâlâ Excel, Word ve manuel fiyatlama yoğun kullanılıyor. Özellikle orta ölçekli müteahhitler için ciddi ihtiyaç var. Türkiye’de mevcut çözümler daha çok ERP veya genel şantiye yönetimi tarafında yoğunlaşıyor; teklif odaklı modern ürün alanı hâlâ fırsat barındırıyor.
+
+1. Böyle Bir Uygulama İçin Temelde Nelere İhtiyacın Var?
+A. Sektör Bilgisi (En Kritik Kısım)
+
+Yazılımı yazmak kolay kısım. Zor olan Türkiye inşaat teklif süreçlerini bilmek.
+
+Bilmen gerekenler:
+
+Metraj mantığı
+Keşif özeti
+Birim fiyat hesabı
+Malzeme + işçilik + nakliye + ekipman giderleri
+KDV / stopaj / tevkifat
+Hakediş ilişkisi
+Alt yüklenici teklif toplama
+Kamu ihale / özel sektör teklif farkı
+Kar marjı hesabı
+Revizyonlu teklif yönetimi
+
+Eğer bunları bilmiyorsan bir inşaat mühendisi / keşif uzmanı / eski şantiye şefi ile çalışman gerekir.
+
+B. Hedef Müşteri Seçimi
+
+Tek ürünü herkese satmaya çalışma. Önce bir segment seç.
+
+Örnek segmentler:
+
+Konut müteahhitleri
+Taşeron firmalar
+Tadilat firmaları
+Endüstriyel yapı yapan firmalar
+Elektrik / mekanik taahhüt firmaları
+Kamu ihale takip firmaları
+
+Ben olsam ilk etapta:
+
+20–200 çalışanlı orta ölçekli özel sektör müteahhitleri
+
+C. MVP Özellikleri (İlk Satılabilir Versiyon)
+
+İlk ürün şunları çözmeli:
+
+Teklif Oluşturma
+Firma bilgileri
+Müşteri bilgileri
+Proje adı
+Teklif kalemleri
+Birim / miktar / fiyat
+Otomatik toplam
+Şablon Sistemi
+Kaba inşaat teklifi
+Anahtar teslim villa
+Tadilat
+Mekanik işler
+Elektrik işleri
+PDF Teklif Çıktısı
+
+Kurumsal tasarımlı teklif PDF.
+
+Revizyon Yönetimi
+
+V1, V2, V3 teklif takibi.
+
+Karlılık Hesabı
+Maliyet
+Satış fiyatı
+Brüt kâr
+Marj %
+CRM Hafif Yapı
+Hangi müşteri?
+Teklif durumu?
+Kazanıldı / Kaybedildi
+D. Türkiye’ye Özel Gereksinimler
+
+Bu seni global SaaS’lardan ayırır.
+
+Vergi
+%20 KDV
+Tevkifatlı işler
+Stopaj senaryoları
+Para Birimi
+TRY
+USD
+EUR
+Kur sabitleme
+Dil
+Türkçe tam destek
+İngilizce teklif çıktısı opsiyonu
+Evrak
+Kaşe alanı
+Islak imza alanı
+E-imza opsiyonu
+E. Teknik Altyapı
+
+Codex ile hızlı geliştirmek için ideal stack:
+
+Frontend
+Next.js
+React
+Tailwind
+Backend
+Node.js (NestJS) veya Python (FastAPI)
+Database
+PostgreSQL
+Auth
+Clerk / Supabase Auth / Auth0
+File & PDF
+Puppeteer
+React PDF
+Hosting
+
+Vercel + Railway
+veya
+Coolify + Oracle Cloud
+
+F. Codex ile Nasıl Kullanılır?
+
+Codex’e şunları yaptırırsın:
+
+UI
+
+Create a Turkish contractor proposal dashboard SaaS with React + Tailwind.
+
+Backend
+
+Build quotation API with PostgreSQL schema for offers, customers, line items.
+
+PDF
+
+Generate professional Turkish proposal PDF with logo and totals.
+
+AI Özellikleri
+
+Convert customer notes into structured quotation items.
+
+Örneğin kullanıcı yazacak:
+
+3 katlı villa kaba inşaat 450 m2
+
+AI otomatik kalem çıkaracak:
+
+Betonarme
+Kalıp
+Demir
+İşçilik
+Hafriyat
+
+Bu çok güçlü satış özelliği olur.
+
+G. Satış Modeli
+SaaS
+Starter: 1 kullanıcı
+Pro: 5 kullanıcı
+Kurumsal: limitsiz
+Türkiye Fiyatlama
+₺1.500 / ay
+₺3.500 / ay
+₺10.000+ / ay
+H. Sana Gerçekten Gereken İnsan Kaynağı
+
+Minimum:
+
+Sen (ürün sahibi)
+Codex / AI developer workflow
+1 freelance UI developer
+1 inşaat teklif uzmanı
+1 satışçı
+I. Bence En Büyük Fırsat
+
+Şu anda piyasadaki çoğu sistem:
+
+Eski arayüzlü
+ERP ağır yapıda
+Mobil kötü
+AI yok
+Hızlı teklif üretmiyor
+
+Sen şunu yaparsan kazanırsın:
+
+“Excel’den 10 kat hızlı teklif hazırlatan modern yapay zekâlı müteahhit yazılımı”
+
+J. Sana Açık Konuşayım
+
+Bu fikir doğru yapılırsa Türkiye’de 8 haneli TL gelir potansiyeli taşır. Çünkü müşteri başına değer yüksek.
+
+Sana En Doğru Başlangıç Planı
+İlk 30 Gün:
+20 müteahhit ile görüş
+Nasıl teklif hazırlıyorlar öğren
+En büyük acıları çıkar
+Sonraki 30 Gün:
+MVP geliştir
+5 firmaya ücretsiz pilot ver
+Sonraki 60 Gün:
+Referans al
+Ücretli satışa geç
+Eğer istersen sana bir sonraki adımda:
+“Codex ile 30 günde Türkiye Müteahhit Teklif SaaS Kurma Yol Haritası”
+
+veya
+
+“Bu işten aylık ₺500.000 MRR’a nasıl gidilir”
+
+şeklinde detaylı plan da çıkarabilirim.
+
+yol haritasını ver 
+
+
+
+
+Türkiye Müteahhit Teklif SaaS – 30 Günlük Yol Haritası (Codex ile MVP)
+
+Hedef: 30 gün içinde satılabilir ilk versiyonu çıkarmak
+Amaç: Türkiye’deki müteahhitlik firmalarının teklif hazırlama süresini ciddi şekilde azaltmak.
+
+Faz 0 — Strateji (Gün 1–3)
+1. Tek Bir Niş Seç
+
+Hepsine ürün yapma. Birini seç:
+
+Konut müteahhitleri
+Villa yapan firmalar
+Tadilat firmaları
+Mekanik taahhüt firmaları
+Elektrik taahhüt firmaları
+Kaba inşaat taşeronları
+En doğru başlangıç:
+
+10–100 çalışanlı özel sektör konut müteahhitleri
+
+Çünkü:
+
+Teklif çok üretirler
+Excel kullanırlar
+Hız isterler
+Para ödeme kapasiteleri vardır
+2. 10 Firma ile Görüş
+
+Türkiye içindeki yerel müteahhitlerle konuş:
+
+Sorular:
+
+Teklifi nasıl hazırlıyorsunuz?
+Ne kadar sürüyor?
+Excel mi Word mü?
+En çok hata nerede oluyor?
+Revizyon nasıl yönetiliyor?
+PDF teklif nasıl çıkıyor?
+Aylık kaç teklif hazırlanıyor?
+Çıktı:
+
+En büyük 3 problem bulunacak.
+
+Faz 1 — Ürün Tasarımı (Gün 4–6)
+MVP’de Sadece Bunlar Olacak
+Modül 1: Firma Yönetimi
+Firma adı
+Logo
+Vergi no
+Adres
+İmza alanı
+Modül 2: Müşteri Yönetimi
+Müşteri adı
+Telefon
+Email
+Proje adı
+Modül 3: Teklif Oluştur
+Kalem adı
+Birim
+Miktar
+Birim fiyat
+Toplam
+Modül 4: PDF Çıktı
+
+Profesyonel teklif çıktısı.
+
+Modül 5: Revizyonlar
+V1
+V2
+V3
+Faz 2 — Teknik Stack (Gün 7)
+Tavsiye Sistem
+Frontend
+
+Next.js
+Tailwind CSS
+
+Backend
+
+FastAPI
+veya
+NestJS
+
+Database
+
+PostgreSQL
+
+Auth
+
+Supabase
+
+PDF
+
+Puppeteer
+
+Hosting
+
+Vercel
+veya
+Coolify
+
+Faz 3 — Codex ile Geliştirme Sprinti (Gün 8–18)
+Gün 8–10
+
+Prompt:
+
+Build a Turkish construction quotation SaaS dashboard with Next.js, Tailwind and sidebar navigation.
+
+Gün 11–12
+
+Prompt:
+
+Create PostgreSQL schema for companies, clients, quotations, quotation_items, revisions.
+
+Gün 13–14
+
+Prompt:
+
+Build quotation creation page with dynamic line items and totals.
+
+Gün 15–16
+
+Prompt:
+
+Generate professional Turkish quotation PDF with logo, tax details and signature area.
+
+Gün 17–18
+
+Prompt:
+
+Add login, company profile and dashboard metrics.
+
+Faz 4 — AI Özelliği (Gün 19–22)
+Seni Rakiplerden Ayıracak Özellik
+
+Kullanıcı yazsın:
+
+3 katlı villa kaba inşaat 500 m2
+
+AI çıkarsın:
+
+Hafriyat
+Beton
+Kalıp
+Demir
+İşçilik
+Nakliye
+Genel gider
+
+Prompt:
+
+Convert Turkish construction request into quotation line items with estimated quantities.
+
+Faz 5 — Pilot Müşteri (Gün 23–26)
+5 Firmaya Ver
+
+Istanbul, Ankara, Izmir odaklı firmalara ulaş.
+
+Teklif:
+
+14 gün ücretsiz kullanın, geri bildirim verin.
+
+Sor:
+
+Nerede takıldınız?
+Eksik ne?
+Kullanır mısınız?
+Ne kadar ödersiniz?
+Faz 6 — Satışa Çıkış (Gün 27–30)
+Paketler
+Başlangıç
+
+₺1.990 / ay
+
+1 kullanıcı
+20 teklif
+Pro
+
+₺4.990 / ay
+
+5 kullanıcı
+limitsiz teklif
+logo özel PDF
+Kurumsal
+
+₺10.000+
+
+özel kurulum
+entegrasyon
+eğitim
+İlk Satış Kanalları
+1. LinkedIn
+
+“Müteahhit firmalar teklif hazırlarken hâlâ Excel mi kullanıyor?”
+
+2. Instagram Reel
+
+“2 saatte hazırlanan teklif artık 5 dakikada.”
+
+3. Google Ads
+
+Anahtar kelimeler:
+
+teklif hazırlama programı
+inşaat teklif programı
+müteahhit teklif yazılımı
+Kritik KPI’lar
+İlk 30 Gün
+10 demo
+5 pilot müşteri
+2 ücretli müşteri
+90 Gün
+20 ücretli müşteri
+₺100K MRR
+12 Ay
+100+ müşteri
+₺500K+ MRR
+Sana Net Tavsiyem
+
+Önce yazılım değil problem sat.
+
+Müteahhit şunu satın alır:
+
+zaman kazancı
+daha hızlı teklif
+daha profesyonel görünüm
+daha çok satış kapama
+Eğer Ben Yapsaydım İlk Özellik Şu Olurdu
+WhatsApp’tan teklif oluşturma
+
+Müşteri mesaj atar:
+
+4 daireli bina anahtar teslim teklif istiyorum
+
+Sistem teklif taslağı hazırlar.
+
+Bu çok satar.
+
+Sana En Güçlü Sonraki Adım
+
+İstersen bir sonraki mesajda sana:
+
+“Bu projeyi Codex ile tek başına kurmak için tam prompt paketi”
+
+veya
+
+“Türkiye’de bu iş için rakip analizi + açık pazar boşlukları”
+
+çıkarabilirim.
+
+
+
+
+
+
+You are a senior construction industry analyst, Turkish procurement expert, cost estimation consultant, and SaaS product strategist.
+
+Your task is to conduct a DEEP RESEARCH study for building a software product for the Turkish construction / contractor market.
+
+RESEARCH GOAL:
+
+I want to build an AI-powered quotation and proposal management SaaS for contractors in Turkey.
+
+To do this, I need expert-level understanding of Turkish construction commercial workflows, terminology, pricing logic, operational pain points, and offer preparation processes.
+
+Please produce a HIGHLY STRUCTURED, DETAILED, PRACTICAL report focused on Turkey.
+
+IMPORTANT:
+Do not give shallow summaries.
+Do not give generic global construction explanations.
+Focus on how these processes REALLY work in Turkey.
+
+==================================================
+MAIN RESEARCH TOPICS
+==================================================
+
+Create deep analysis for each of these concepts:
+
+1. Teklif Hazırlama Süreci
+2. Metraj
+3. Keşif Özeti
+4. Birim Fiyat
+5. KDV
+6. Tevkifat
+7. Hakediş
+8. Alt Yüklenici Teklifleri
+9. Revizyon Teklifleri
+10. Karlılık Hesabı
+
+==================================================
+FOR EACH TOPIC, ANALYZE IN THIS FORMAT
+==================================================
+
+For every topic above, provide:
+
+A. Definition
+- What it means in Turkish construction sector
+- Real-world usage
+
+B. Why It Matters
+- Why contractors care
+- Financial impact
+- Operational impact
+
+C. Who Uses It
+- Owner
+- Site engineer
+- Technical office
+- Accountant
+- Procurement
+- Sales team
+- Subcontractor
+
+D. Current Workflow in Turkey
+- How small firms do it
+- How medium firms do it
+- How large firms do it
+- Excel / ERP / WhatsApp / manual systems
+
+E. Biggest Pain Points
+- Delays
+- Errors
+- Version confusion
+- Missing costs
+- Approval issues
+- Cash flow problems
+
+F. Digitalization Opportunity
+- How software can solve it
+- Automation opportunities
+- AI opportunities
+
+G. SaaS Features We Can Build
+- Exact product modules
+- UI ideas
+- Dashboards
+- Reports
+- Alerts
+- Smart automation
+
+H. Example Data Model
+- What fields should exist in database
+
+I. Example User Scenario
+- Step-by-step real use case
+
+==================================================
+SPECIAL TURKEY CONTEXT TO ANALYZE
+==================================================
+
+Include deep insights about:
+
+1. Public projects vs private projects
+2. Common payment delays
+3. Currency volatility (TRY / USD / EUR)
+4. Material price fluctuation
+5. Informal workflows (phone / WhatsApp)
+6. Family-owned contractor firms
+7. Trust-based sales culture
+8. Competitive underpricing
+9. Regional differences (Istanbul, Ankara, Izmir, Anatolia)
+10. VAT / invoice sensitivity
+
+==================================================
+SOFTWARE PRODUCT DISCOVERY SECTION
+==================================================
+
+After researching all topics, produce:
+
+1. Top 20 Pain Points Turkish contractors face
+2. Top 20 Features they would pay for
+3. What existing software products fail to solve
+4. Biggest market gaps in Turkey
+5. AI opportunities no competitor is doing
+6. MVP recommendation for launch in 30 days
+7. Best pricing model for Turkish market
+8. Fastest niche to enter first
+
+==================================================
+COMPETITOR RESEARCH
+==================================================
+
+Research Turkish market competitors such as:
+
+- Construction ERP tools
+- Quotation software
+- Accounting software used by contractors
+- Excel-based workflows
+- Custom internal tools
+
+Explain:
+
+- What they do well
+- What they do badly
+- UX weaknesses
+- Missing AI features
+- Pricing weaknesses
+
+==================================================
+OUTPUT FORMAT
+==================================================
+
+Use markdown.
+
+Use clear sections.
+
+Use tables where useful.
+
+Use bullet points.
+
+Be practical, not academic.
+
+Give concrete examples.
+
+Think like a startup founder building a real SaaS product.
+
+==================================================
+FINAL SECTION
+==================================================
+
+At the end answer:
+
+"If I launch today, what exact product should I build first for fastest revenue in Turkey?"
+
+Be bold and commercially realistic.
+
+Start now.
+araytırmaya baladımbinr yandan da uygulamanın iskeletini oluyturuyorum AI Sağlayıcısı — OpenAI / Gemini / Claude?
+PDF Motoru — Puppeteer / React-PDF / Her ikisi?
+Ödeme Entegrasyonu — iyzico / Stripe / Şimdilik placeholder?
+Çok Kiracılık — RLS / Uygulama seviyesi / Hibrit?
+Tevkifat — Basit checkbox / Tam otomatik / A ile başla B'ye geç? bu sorulara ne yanıt vermeliyim
+
+Bu kararlar MVP hızını, teknik borcu ve Türkiye pazarına uyumu doğrudan etkiler. Sana “şimdi ne seçilmeli” ve “ileride nasıl evrilmeli” şeklinde cevap vereceğim.
+
+
+
+Evet — düşündüğün konu çok stratejik ve sıradan bir özellik değil, doğrudan rekabet avantajı olabilir.
+
+Türkiye’de özellikle:
+
+vergi oranları değişebilir
+tevkifat kapsamları güncellenebilir
+e-fatura/e-arşiv limitleri değişebilir
+SGK işçilik parametreleri değişebilir
+kamu birim fiyatları yayınlanabilir
+asgari ücret değişebilir
+döviz / enflasyon maliyetleri etkiler
+ihale mevzuatı değişebilir
+
+Eğer teklif yazılımı bunları takip etmiyorsa kısa sürede eskiyebilir.
+
+Kısa Cevap
+Evet, ama “crawler” değil Regulatory Intelligence System kurmalısın.
+
+Yani sadece veri çekmek değil:
+
+Resmi kaynağı izle
+Değişikliği tespit et
+Etkisini yorumla
+Sisteme kural olarak uygula
+Kullanıcıya anlat
+Teklifleri güncelleme önerisi ver
+
+Bu çok daha değerli.
+
+Neden Gerekli?
+Kullanıcının Gerçek Problemi:
+
+Müteahhit şunu demez:
+
+Bana crawler lazım
+
+Şunu der:
+
+Dün verdiğim teklif bugün hâlâ doğru mu?
+
+Yeni KDV çıktıysa beni uyar.
+
+Asgari ücret arttıysa işçilik teklifimi güncelle.
+
+Tevkifat değiştiyse yanlış kesmeyeyim.
+
+Yani ihtiyaç güncel karar desteği.
+
+Kurulması Gereken Yapı
+1. Kaynak Katmanı (Resmi Siteler)
+
+Takip edilmesi gereken başlıca kurumlar:
+
+Resmî Gazete
+Gelir İdaresi Başkanlığı
+Ticaret Bakanlığı
+Çalışma ve Sosyal Güvenlik Bakanlığı
+SGK
+Kamu İhale Kurumu
+TÜİK
+TCMB
+2. Veri Toplama Katmanı
+
+Crawler + RSS + API + PDF parser
+
+Örnek:
+
+günlük kontrol
+değişiklik diff analizi
+PDF’den metin çıkarma
+tablo tespiti
+tarih / yürürlük tarihi çıkarma
+3. AI Yorumlama Katmanı
+
+Ham metin kullanıcıya yetmez.
+
+Örnek:
+
+56 sayılı tebliğde KDV oranı...
+
+Bunun yerine sistem demeli:
+
+Villa tadilat teklifleri etkilenebilir
+Mekanik taşeron faturalarında kontrol edin
+1 Haziran sonrası tekliflerde yeni oranı kullanın
+
+Bu katmanda OpenAI / Google kullanılabilir.
+
+4. Rule Engine
+
+Örnek kurallar:
+
+IF category = labor_heavy
+AND minimum_wage_changed = true
+THEN suggest +12% labor recalculation
+IF tevkifat_rule_changed
+THEN update invoice templates
+5. Kullanıcıya Sunum
+Dashboard Kartları
+Son 7 günde 3 mevzuat değişikliği
+12 aktif teklif etkilenebilir
+4 müşteri teklifinde revizyon önerilir
+Bildirimler
+Email
+WhatsApp
+Panel notification
+MVP İçin Ne Yapılmalı?
+
+Tam sistemle başlamayın.
+
+Faz 1 (2 hafta)
+
+Sadece:
+
+Resmî Gazete izle
+GİB duyuruları izle
+Haftalık özet üret
+Kullanıcıya “seni etkileyebilir” bildirimi
+Faz 2
+KDV
+Tevkifat
+Asgari ücret
+Kur etkisi
+
+otomatik teklif uyarısı
+
+Faz 3
+
+Tam otomatik revizyon asistanı
+
+Ticari Değeri Çok Yüksek
+
+Rakipler teklif programı satar.
+
+Sen şunu satarsın:
+
+Teklif + Güncel Mevzuat Koruması
+
+Bu çok güçlü positioning.
+
+Riskler
+Sadece AI yorumuna güvenme
+
+Vergi / hukuk konularında:
+
+kaynak linki göster
+“bilgilendirme amaçlıdır” notu koy
+resmi müşavir kontrolü öner
+Yanlış yorum = güven kaybı
+
+Bu yüzden hybrid sistem:
+
+Rule engine + AI summary
+
+Sana Net Tavsiye
+Evet, kur.
+
+Ama ana ürün değil, premium intelligence module olarak.
+
+Ana ürün:
+
+Teklif oluşturma
+
+Premium modül:
+
+Mevzuat takip + teklif etkisi analizi
+
+Sana Kod Mimari Önerisi
+/services/regwatch/
+- crawlers/
+- parsers/
+- summarizer/
+- rule-engine/
+- notifier/
+En Karlı Paketleme
+Pro Paket
+
+Teklif sistemi
+
+Enterprise Paket
+Mevzuat izleme
+Risk uyarıları
+Toplu teklif revizyon analizi
+Ben olsam İlk İzlenecek 5 Veri
+KDV
+Tevkifat
+Asgari ücret
+İnşaat birim fiyatları
+Döviz kuru
+Sonuç
+
+Bu fikir gereksiz değil.
+Doğru yapılırsa seni sıradan teklif yazılımından karar destek platformuna yükseltir.
+
+İstersen sonraki adımda sana:
+“Türkiye için resmi kaynak crawler listesi + URL haritası”
+
+veya
+
+“Crawl4AI + Dify + Supabase ile mevzuat takip sistemi mimarisi”
+
+çıkarabilirim.
+
+bana bu nu konsept olarak bu yapıyı verir misin full proje olarak 
+
+
+
+
+Proje Konsepti: Türkiye İnşaat Sektörü İçin AI Destekli Teklif + Mevzuat Zekâ Platformu
+Proje Adı (Öneriler)
+TeklifPro AI
+InsaQuote
+Müteahhit360
+YapıTeklif AI
+ŞantiyeIQ
+BuildGov AI
+1. Ana Vizyon
+
+Türkiye’deki müteahhitlik firmaları için sadece teklif hazırlayan bir yazılım değil;
+
+Teklif + Maliyet + Mevzuat + Risk + Karlılık + Güncelleme Tavsiye Sistemi
+
+oluşturmak.
+
+Yani kullanıcı sadece teklif üretmez, aynı zamanda:
+
+mevzuat değişikliklerinden haberdar olur
+tekliflerinin riskli olup olmadığını görür
+kârlılığını ölçer
+güncelleme önerileri alır
+rakiplerine göre daha hızlı teklif verir
+2. Çözülen Ana Problemler
+Bugünkü Durum
+
+Türkiye’de birçok firma:
+
+Microsoft Excel ile teklif yapıyor
+Microsoft Word ile PDF hazırlıyor
+WhatsApp ile fiyat topluyor
+vergi/mevzuat değişimini geç öğreniyor
+revizyonları karıştırıyor
+teklifte zarar ettiğini geç fark ediyor
+Sonuç
+zaman kaybı
+fiyatlama hatası
+kâr kaybı
+profesyonellik eksikliği
+düşük teklif kazanım oranı
+3. Yeni Nesil Çözüm
+Platform 4 Çekirdek Modülden Oluşur
+MODÜL A — Akıllı Teklif Sistemi
+Özellikler
+Teklif Oluşturma
+müşteri seç
+proje seç
+teklif kalemleri ekle
+otomatik toplam
+AI Teklif Üretici
+
+Kullanıcı yazar:
+
+450 m2 villa kaba inşaat
+
+Sistem çıkarır:
+
+hafriyat
+temel beton
+demir
+kalıp
+duvar işleri
+işçilik
+nakliye
+Revizyonlar
+V1
+V2
+V3
+PDF Çıktı
+
+Premium görünümlü teklif.
+
+MODÜL B — Mevzuat Zekâ Merkezi
+Resmi Kaynakları İzler
+Resmî Gazete
+Gelir İdaresi Başkanlığı
+SGK
+Kamu İhale Kurumu
+TCMB
+Kullanıcıya Der ki:
+KDV değişti
+Tevkifat güncellendi
+Asgari ücret arttı
+İşçilik maliyeti yükseldi
+14 teklifiniz etkilenebilir
+MODÜL C — Karlılık Motoru
+Her Teklifte Gösterir
+tahmini maliyet
+satış fiyatı
+brüt kâr
+marj %
+risk puanı
+Uyarılar
+Marj çok düşük
+Demir fiyatı güncel değil
+İşçilik eksik hesaplanmış
+MODÜL D — Ticari CRM
+Pipeline
+yeni fırsat
+teklif gönderildi
+pazarlık
+kazanıldı
+kaybedildi
+Analitik
+hangi satışçı daha iyi
+hangi teklif tipi daha çok kazanıyor
+ortalama teklif tutarı
+kapanış oranı
+4. Kullanıcı Tipleri
+Ana Kullanıcılar
+Müteahhit
+Teknik ofis şefi
+İnşaat mühendisi
+Satış sorumlusu
+Finans müdürü
+Taşeron firma sahibi
+5. Gelir Modeli
+Paketler
+Starter
+
+₺1.990 / ay
+
+1 kullanıcı
+20 teklif
+Pro
+
+₺4.990 / ay
+
+5 kullanıcı
+AI teklif
+PDF
+CRM
+Elite
+
+₺9.990 / ay
+
+sınırsız kullanıcı
+mevzuat modülü
+risk analizi
+raporlar
+Enterprise
+
+Özel fiyat
+
+6. Teknik Mimari
+Frontend
+
+Next.js
+Tailwind CSS
+
+Backend
+
+FastAPI
+veya
+NestJS
+
+Database
+
+PostgreSQL
+
+Auth
+
+Supabase
+
+AI
+
+OpenAI
+
+Crawl Engine
+Crawl4AI
+scheduler
+parser
+rule engine
+7. Eşsiz Rekabet Avantajı
+
+Rakipler:
+
+teklif programı satar
+
+Sen:
+
+karar veren teklif sistemi satarsın
+
+8. MVP (30 Günde Çıkacak İlk Ürün)
+İlk Sürüm
+login
+müşteri yönetimi
+teklif oluşturma
+PDF export
+AI teklif taslağı
+temel kârlılık hesaplama
+mevzuat haber kartı
+9. 6 Ay Sonra
+ERP entegrasyonu
+e-fatura entegrasyonu
+muhasebe bağlantısı
+otomatik fiyat endeksleri
+WhatsApp teklif botu
+mobil uygulama
+10. Kullanıcı Deneyimi Senaryosu
+Kullanıcı Girer
+
+600 m2 fabrika kaba + çatı işi
+
+Sistem 20 saniyede:
+kalemleri çıkarır
+fiyat önerir
+PDF hazırlar
+marj gösterir
+KDV hesaplar
+tevkifat uyarır
+11. Türkiye’de Çok Satar Çünkü
+Excel yorgunluğu var
+hız ihtiyacı var
+profesyonel görünüm ihtiyacı var
+maliyet baskısı var
+mevzuat korkusu var
+12. Sana Net Görüşüm
+
+Bu proje sıradan SaaS değil.
+Doğru yapılırsa Türkiye’de kategori lideri olabilir.
+
+13. Eğer İstersen Sonraki Adımda Sana Şunları Hazırlayabilirim:
+A. Full Database Schema
+B. UI Wireframe Sistemi
+C. Codex İçin Tam Master Prompt
+D. Türkiye Rakip Analizi
+E. 12 Aylık Büyüme Planı
+
+Sadece hangisini istediğini yaz.
+
+
+
+
+bunu code penceresinde md olarak ver lütfen 
+
+
+```md
+# Proje Konsepti: Türkiye İnşaat Sektörü İçin AI Destekli Teklif + Mevzuat Zekâ Platformu
+
+## Proje Adı (Öneriler)
+
+- TeklifPro AI
+- InsaQuote
+- Müteahhit360
+- YapıTeklif AI
+- ŞantiyeIQ
+- BuildGov AI
+
+---
+
+# 1. Ana Vizyon
+
+Türkiye’deki müteahhitlik firmaları için sadece teklif hazırlayan bir yazılım değil;
+
+**Teklif + Maliyet + Mevzuat + Risk + Karlılık + Güncelleme Tavsiye Sistemi**
+
+oluşturmak.
+
+Yani kullanıcı sadece teklif üretmez, aynı zamanda:
+
+- mevzuat değişikliklerinden haberdar olur
+- tekliflerinin riskli olup olmadığını görür
+- kârlılığını ölçer
+- güncelleme önerileri alır
+- rakiplerine göre daha hızlı teklif verir
+
+---
+
+# 2. Çözülen Ana Problemler
+
+## Bugünkü Durum
+
+Türkiye’de birçok firma:
+
+- Excel ile teklif yapıyor
+- Word ile PDF hazırlıyor
+- WhatsApp ile fiyat topluyor
+- vergi/mevzuat değişimini geç öğreniyor
+- revizyonları karıştırıyor
+- teklifte zarar ettiğini geç fark ediyor
+
+## Sonuç
+
+- zaman kaybı
+- fiyatlama hatası
+- kâr kaybı
+- profesyonellik eksikliği
+- düşük teklif kazanım oranı
+
+---
+
+# 3. Yeni Nesil Çözüm
+
+## Platform 4 Çekirdek Modülden Oluşur
+
+---
+
+# MODÜL A — Akıllı Teklif Sistemi
+
+## Özellikler
+
+### Teklif Oluşturma
+
+- müşteri seç
+- proje seç
+- teklif kalemleri ekle
+- otomatik toplam
+
+### AI Teklif Üretici
+
+Kullanıcı yazar:
+
+> 450 m2 villa kaba inşaat
+
+Sistem çıkarır:
+
+- hafriyat
+- temel beton
+- demir
+- kalıp
+- duvar işleri
+- işçilik
+- nakliye
+
+### Revizyonlar
+
+- V1
+- V2
+- V3
+
+### PDF Çıktı
+
+Premium görünümlü teklif.
+
+---
+
+# MODÜL B — Mevzuat Zekâ Merkezi
+
+## Resmi Kaynakları İzler
+
+- Resmî Gazete
+- Gelir İdaresi Başkanlığı
+- SGK
+- Kamu İhale Kurumu
+- TCMB
+
+## Kullanıcıya Der ki:
+
+- KDV değişti
+- Tevkifat güncellendi
+- Asgari ücret arttı
+- İşçilik maliyeti yükseldi
+- 14 teklifiniz etkilenebilir
+
+---
+
+# MODÜL C — Karlılık Motoru
+
+## Her Teklifte Gösterir
+
+- tahmini maliyet
+- satış fiyatı
+- brüt kâr
+- marj %
+- risk puanı
+
+## Uyarılar
+
+- Marj çok düşük
+- Demir fiyatı güncel değil
+- İşçilik eksik hesaplanmış
+
+---
+
+# MODÜL D — Ticari CRM
+
+## Pipeline
+
+- yeni fırsat
+- teklif gönderildi
+- pazarlık
+- kazanıldı
+- kaybedildi
+
+## Analitik
+
+- hangi satışçı daha iyi
+- hangi teklif tipi daha çok kazanıyor
+- ortalama teklif tutarı
+- kapanış oranı
+
+---
+
+# 4. Kullanıcı Tipleri
+
+## Ana Kullanıcılar
+
+- Müteahhit
+- Teknik ofis şefi
+- İnşaat mühendisi
+- Satış sorumlusu
+- Finans müdürü
+- Taşeron firma sahibi
+
+---
+
+# 5. Gelir Modeli
+
+## Paketler
+
+### Starter
+
+₺1.990 / ay
+
+- 1 kullanıcı
+- 20 teklif
+
+### Pro
+
+₺4.990 / ay
+
+- 5 kullanıcı
+- AI teklif
+- PDF
+- CRM
+
+### Elite
+
+₺9.990 / ay
+
+- sınırsız kullanıcı
+- mevzuat modülü
+- risk analizi
+- raporlar
+
+### Enterprise
+
+Özel fiyat
+
+---
+
+# 6. Teknik Mimari
+
+## Frontend
+
+- Next.js
+- Tailwind CSS
+
+## Backend
+
+- FastAPI  
+veya  
+- NestJS
+
+## Database
+
+- PostgreSQL
+
+## Auth
+
+- Supabase
+
+## AI
+
+- OpenAI
+
+## Crawl Engine
+
+- Crawl4AI
+- scheduler
+- parser
+- rule engine
+
+---
+
+# 7. Eşsiz Rekabet Avantajı
+
+Rakipler:
+
+> teklif programı satar
+
+Sen:
+
+> karar veren teklif sistemi satarsın
+
+---
+
+# 8. MVP (30 Günde Çıkacak İlk Ürün)
+
+## İlk Sürüm
+
+- login
+- müşteri yönetimi
+- teklif oluşturma
+- PDF export
+- AI teklif taslağı
+- temel kârlılık hesaplama
+- mevzuat haber kartı
+
+---
+
+# 9. 6 Ay Sonra
+
+- ERP entegrasyonu
+- e-fatura entegrasyonu
+- muhasebe bağlantısı
+- otomatik fiyat endeksleri
+- WhatsApp teklif botu
+- mobil uygulama
+
+---
+
+# 10. Kullanıcı Deneyimi Senaryosu
+
+## Kullanıcı Girer
+
+> 600 m2 fabrika kaba + çatı işi
+
+## Sistem 20 saniyede:
+
+- kalemleri çıkarır
+- fiyat önerir
+- PDF hazırlar
+- marj gösterir
+- KDV hesaplar
+- tevkifat uyarır
+
+---
+
+# 11. Türkiye’de Çok Satar Çünkü
+
+- Excel yorgunluğu var
+- hız ihtiyacı var
+- profesyonel görünüm ihtiyacı var
+- maliyet baskısı var
+- mevzuat korkusu var
+
+---
+
+# 12. Sonuç
+
+Bu proje sıradan SaaS değil.  
+Doğru yapılırsa Türkiye’de kategori lideri olabilir.
+```
+
+
+
+ok bu konspet peki bu uygulamayı direkt koda döktürmem için gereken promtu verir misin code penceresinde google aı stduio da kullanacağım
+
+
+
+
+```md
+You are a world-class senior SaaS architect, staff full-stack engineer, product designer, AI systems engineer, and startup CTO.
+
+Your mission is to build a production-grade web application from scratch based on the following concept.
+
+# PROJECT NAME
+
+TeklifPro AI
+
+# PRODUCT CATEGORY
+
+AI-powered SaaS for Turkish construction companies, contractors, builders, renovation firms, and subcontractors.
+
+# CORE PRODUCT IDEA
+
+A platform that combines:
+
+1. Smart quotation management  
+2. AI-generated construction proposals  
+3. Profitability analysis  
+4. Regulation intelligence (Turkey)  
+5. CRM sales pipeline  
+6. Revision management  
+7. Professional PDF proposal generation
+
+This product replaces Excel, Word, and WhatsApp-based quotation workflows.
+
+---
+
+# PRIMARY USERS
+
+- Construction companies
+- General contractors
+- Villa builders
+- Renovation firms
+- Mechanical contractors
+- Electrical contractors
+- Subcontractors
+- Technical office teams
+- Sales managers
+
+---
+
+# TARGET MARKET
+
+Turkey first.
+
+Language priority:
+
+1. Turkish  
+2. English
+
+Currency:
+
+- TRY
+- USD
+- EUR
+
+---
+
+# REQUIRED TECH STACK
+
+Frontend:
+- Next.js latest App Router
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+Backend:
+- Next.js Server Actions or API routes
+
+Database:
+- PostgreSQL
+
+ORM:
+- Prisma
+
+Authentication:
+- Supabase Auth
+
+Storage:
+- Supabase Storage
+
+PDF:
+- Puppeteer
+
+AI Provider:
+- OpenAI (provider abstraction ready)
+
+Deployment:
+- Vercel + Supabase
+
+---
+
+# UI / UX STYLE
+
+- Premium SaaS
+- Clean
+- Fast
+- Minimal
+- Corporate
+- Elegant dashboard
+- Responsive
+- Mobile friendly
+- Dark/light mode ready
+
+---
+
+# MAIN MODULES
+
+# 1. AUTH SYSTEM
+
+Build:
+
+- Register
+- Login
+- Forgot password
+- Protected routes
+- Team invites
+
+---
+
+# 2. COMPANY SETTINGS
+
+Fields:
+
+- Company name
+- Logo
+- Tax number
+- Tax office
+- Address
+- Signature image
+- Stamp image
+- Default currency
+- Default VAT rate
+
+---
+
+# 3. CLIENT CRM
+
+Build full CRUD:
+
+- Client name
+- Company / person
+- Phone
+- Email
+- Address
+- Notes
+- Previous quotations
+- Pipeline stage
+
+Stages:
+
+- New Lead
+- Contacted
+- Proposal Sent
+- Negotiation
+- Won
+- Lost
+
+---
+
+# 4. QUOTATION SYSTEM
+
+Build full quotation engine.
+
+Quotation Header:
+
+- Quote number
+- Client
+- Project name
+- Date
+- Expiry date
+- Currency
+- Notes
+
+Line Items:
+
+- Description
+- Unit
+- Quantity
+- Unit price
+- Discount %
+- VAT %
+- Total
+
+Totals:
+
+- Subtotal
+- Discount total
+- VAT total
+- Grand total
+
+Features:
+
+- Duplicate quote
+- Save draft
+- Send quote
+- Convert to revision
+- Archive quote
+
+---
+
+# 5. REVISION SYSTEM
+
+Need:
+
+- V1
+- V2
+- V3
+- Full revision history
+- Compare revisions
+- Show changed items
+
+---
+
+# 6. AI QUOTE GENERATOR
+
+If user types:
+
+"500 m2 3 floor villa rough construction"
+
+AI converts to structured quotation items:
+
+- Excavation
+- Foundation concrete
+- Rebar
+- Formwork
+- Wall works
+- Labor
+- Transport
+
+Need button:
+
+Generate With AI
+
+Also add:
+
+- rewrite proposal professionally
+- detect missing items
+- suggest margin
+- summarize quote
+
+---
+
+# 7. PROFITABILITY ENGINE
+
+Each quotation should show:
+
+- Estimated cost
+- Sale price
+- Gross profit
+- Margin %
+- Risk level
+
+Warnings:
+
+- Margin too low
+- Material risk high
+- Labor missing
+- Currency risk
+
+---
+
+# 8. PDF GENERATOR
+
+Create beautiful professional PDF with:
+
+- Logo
+- Company info
+- Client info
+- Project title
+- Items table
+- Totals
+- Terms & conditions
+- Signature area
+- Stamp area
+
+Need downloadable PDF.
+
+---
+
+# 9. REGULATION INTELLIGENCE MODULE
+
+Create separate dashboard widget.
+
+Track manually seeded regulation records for now.
+
+Fields:
+
+- Title
+- Category
+- Effective date
+- Impact level
+- Summary
+- Affected modules
+
+Examples:
+
+- VAT change
+- Tevkifat update
+- Minimum wage increase
+- Currency alert
+
+Show:
+
+- 3 active alerts
+- impacted quotations count
+
+Build architecture ready for crawler later.
+
+---
+
+# 10. ANALYTICS DASHBOARD
+
+Cards:
+
+- Total quotations
+- Total sent
+- Won rate
+- Monthly pipeline value
+- Average quote value
+- Profit forecast
+
+Charts:
+
+- Monthly quotes
+- Win rate
+- Revenue pipeline
+
+---
+
+# 11. MULTI TENANT SAAS
+
+Every company must have isolated data.
+
+Use:
+
+company_id on all tables.
+
+Implement scalable architecture.
+
+---
+
+# DATABASE TABLES
+
+Create complete schema for:
+
+users
+companies
+memberships
+clients
+quotations
+quotation_items
+quotation_revisions
+activities
+regulation_alerts
+subscriptions
+
+Include relations and indexes.
+
+---
+
+# REQUIRED PAGES
+
+Public:
+
+- Landing page
+- Features
+- Pricing
+- Login
+- Register
+
+App:
+
+- Dashboard
+- Clients
+- Quotations
+- Create Quote
+- Quote Detail
+- Templates
+- Analytics
+- Regulations
+- Settings
+
+---
+
+# LANDING PAGE COPY
+
+Headline:
+
+Türkiye’de Müteahhitler İçin Yeni Nesil Teklif Hazırlama Sistemi
+
+Subheadline:
+
+Excel’den çıkın. Dakikalar içinde profesyonel teklif hazırlayın.
+
+CTA:
+
+14 Gün Ücretsiz Deneyin
+
+---
+
+# PRICING
+
+Starter:
+₺1.990 / month
+
+Pro:
+₺4.990 / month
+
+Elite:
+₺9.990 / month
+
+Enterprise:
+Custom
+
+---
+
+# CODING RULES
+
+- Clean architecture
+- Reusable components
+- Strong typing
+- Secure auth
+- Production ready
+- Modular code
+- SEO optimized
+- Fast loading
+- Excellent UX
+- Use server components where useful
+
+---
+
+# IMPORTANT EXECUTION RULE
+
+Do NOT give explanation only.
+
+Generate the REAL CODEBASE.
+
+Start by:
+
+1. full folder structure  
+2. Prisma schema  
+3. setup commands  
+4. UI components  
+5. dashboard pages  
+6. quotation CRUD  
+7. AI integration  
+8. PDF generation  
+9. deployment guide
+
+---
+
+# OUTPUT FORMAT
+
+Return code in organized file-by-file blocks.
+
+Start building now.
+```
+
+
+
+
+
+en tek bir niş seçmemi istedin ancak uygulamamda ilk olarak niş segment seçilip teklif ona göre çıkartılamaz mı
+
+
+
+
+
+Evet, teknik olarak bu mümkün ve hatta doğru kurgulanırsa ürün için güçlü bir avantaj olur. Ancak burada kritik bir ayrım var: ürün mimarisi çok nişli olabilir, ama MVP odağı tek niş olmalıdır.
+
+1. Senin düşündüğün model (Doğru yaklaşım)
+“Multi-Niș + Template-Based Quotation Engine”
+
+Uygulama içinde:
+
+Kullanıcı niş seçer
+Sistem o nişe özel teklif motoru çalıştırır
+Kalemler, metraj mantığı ve şablon değişir
+
+Örnek:
+
+Konut müteahhidi → beton, demir, kalıp
+Elektrik taahhüt → pano, kablo, işçilik
+Mekanik → HVAC, borulama, izolasyon
+Tadilat → işçilik ağırlıklı liste
+
+Bu yapı ürün ölçeklenebilirliği açısından doğru mimari.
+
+2. Ama kritik hata nerede olur?
+
+Eğer ilk günden:
+
+6–8 niş
+6 farklı teklif mantığı
+6 farklı fiyatlama modeli
+
+yaparsan:
+
+👉 ürün dağılır
+👉 UI karmaşıklaşır
+👉 AI yanlış öneri verir
+👉 MVP çıkışı gecikir
+
+3. Doğru strateji (ürün + teknik birlikte)
+Aşama 1 — Tek niş (MVP)
+
+Sadece 1 domain:
+
+👉 örnek: kaba inşaat / konut müteahhitliği
+
+Bunun nedeni:
+
+veri seti net
+teklif kalemleri standart
+kullanıcı sayısı yüksek
+AI kolay öğrenir
+Aşama 2 — Niş motoru ekle
+
+Sonra sistem genişler:
+
+“Industry Template Engine”
+
+Her niş için:
+
+default kalem seti
+metraj kuralları
+fiyat hesap modeli
+vergi davranışı
+PDF şablonu
+Aşama 3 — Multi-niş platform
+
+Son hali:
+
+Kullanıcı girişte seçer:
+
+Konut
+Elektrik
+Mekanik
+Tadilat
+Altyapı
+
+ve sistem tamamen adapte olur.
+
+4. Teknik Mimari (doğru çözüm)
+
+Bunu kod tarafında şöyle tasarlamalısın:
+
+Core Engine (değişmez)
+quotation engine
+user system
+AI layer
+PDF generator
+Plugin Layer (değişken)
+/industries/
+  residential/
+  electrical/
+  mechanical/
+  renovation/
+
+Her biri içerir:
+
+default items
+calculation rules
+templates
+tax logic
+5. En kritik tasarım kararı
+❌ Yanlış:
+
+“Her nişi aynı form içinde çözmeye çalışmak”
+
+✅ Doğru:
+
+“Her nişi plugin gibi ayrı modellemek”
+
+6. AI açısından kritik fark
+
+Eğer multi-niş yaparsan AI:
+
+yanlış kalem üretir
+maliyet modelini karıştırır
+teklif kalitesini düşürür
+
+Ama plugin-based yaparsan:
+
+AI’ye context verirsin:
+
+{
+  "industry": "residential_construction",
+  "rules": "concrete-heavy, labor + material split"
+}
+7. Net cevap
+Evet:
+
+👉 Uygulama içinde niş seçip teklif üretmek doğru ve gerekli
+
+Ama:
+
+👉 MVP’de tek nişle başlamazsan ürün zorlanır
+
+8. En doğru strateji (tek cümle)
+
+“Single niche MVP + multi-niche architecture”
+
+9. Sana önerim (pratik)
+Şu an yap:
+Konut müteahhitliği seç
+sistemi onun için mükemmelleştir
+plugin yapısını baştan kur
+
+İstersen bir sonraki adımda sana:
+
+“Industry plugin architecture full schema”
+“AI prompt routing sistemi (nişe göre AI davranışı)”
+“multi-tenant + multi-industry database tasarımı”
+
+çıkarabilirim.
+
+
+
+
+
+“Industry plugin architecture full schema” “AI prompt routing sistemi (nişe göre AI davranışı)” “multi-tenant + multi-industry database tasarımı” bunların üçünü tek bir code penceresinde md olarak ver bunu multi niş planınıda ekle lütfen , proje dasylarına ekleyeceğim
+
+
+
+# TEKLIFPRO AI — MULTI-NIŞ INDUSTRY ENGINE ARCHITECTURE
+
+Bu doküman:
+- Industry Plugin Architecture
+- AI Prompt Routing System (Niş bazlı AI davranışı)
+- Multi-Tenant + Multi-Industry Database Design
+- Multi-Niche Expansion Strategy
+
+için production-grade sistem tasarımını içerir.
+
+---
+
+# 1. GENEL SİSTEM MİMARİSİ
+
+Sistem 3 katmandan oluşur:
+
+## 1. Core SaaS Engine (değişmez)
+
+- Authentication
+- Multi-tenant system
+- Quotation engine (generic)
+- AI orchestration layer
+- PDF generator
+- Billing (later)
+
+## 2. Industry Plugin Layer (değişken)
+
+Her sektör için ayrı modül:
+
+- Residential Construction
+- Electrical Contracting
+- Mechanical/HVAC
+- Renovation
+- Infrastructure (future)
+- Interior Design (future)
+
+## 3. Intelligence Layer
+
+- AI prompt routing
+- cost inference engine
+- regulation mapping
+- margin prediction
+
+---
+
+# 2. INDUSTRY PLUGIN ARCHITECTURE
+
+## 2.1 Klasör Yapısı
+
+```txt
+/src
+  /industries
+    /residential
+      config.ts
+      rules.ts
+      templates.ts
+      ai-profile.ts
+      cost-model.ts
+
+    /electrical
+      config.ts
+      rules.ts
+      templates.ts
+      ai-profile.ts
+      cost-model.ts
+
+    /mechanical
+      config.ts
+      rules.ts
+      templates.ts
+      ai-profile.ts
+      cost-model.ts
+
+
+
+2.2 Industry Interface (CORE CONTRACT)
+
+export interface IndustryPlugin {
+  id: string;
+  name: string;
+
+  defaultCurrency: "TRY" | "USD" | "EUR";
+
+  taxRules: {
+    vatRate: number;
+    withholdingEnabled: boolean;
+  };
+
+  quotationModel: {
+    defaultLineItems: string[];
+    calculationType: "labor_heavy" | "material_heavy" | "balanced";
+  };
+
+  aiProfile: {
+    systemPrompt: string;
+    extractionRules: string;
+  };
+
+  pdfTemplate: {
+    templateId: string;
+  };
+}
+
+
+
+2.3 Example — Residential Plugin
+
+export const ResidentialIndustry: IndustryPlugin = {
+  id: "residential",
+  name: "Konut İnşaat",
+
+  defaultCurrency: "TRY",
+
+  taxRules: {
+    vatRate: 20,
+    withholdingEnabled: true,
+  },
+
+  quotationModel: {
+    defaultLineItems: [
+      "Excavation",
+      "Rebar",
+      "Concrete",
+      "Formwork",
+      "Masonry",
+      "Labor",
+    ],
+    calculationType: "material_heavy",
+  },
+
+  aiProfile: {
+    systemPrompt:
+      "You
+
+
+
+
+
+aı studioda başladım bana modül modül bu proje geliytirme için promtlar verir misin prototipi ni en azından aı studioda hazırlayıp geliytirmeyi localrde yapacağım sonradan. hangi modülle başlamak mantklı ona göre bir promt ver bana
+
+
+
+Başlangıçta doğru modül seçimi kritik: önce “Quotation Core (Teklif Motoru)” ile başlamalısın.
+
+Sebep:
+
+AI, PDF, CRM ve mevzuat bunun üstüne oturur
+En hızlı demo burada çıkar
+Kullanıcı değeri burada başlar
+🧭 ÖNERİLEN SIRALAMA (Doğru MVP akışı)
+Quotation Core (Teklif Motoru) ← START BURASI
+Client + Company Management
+PDF Generator
+AI Quote Generator
+Profitability Engine
+Industry Plugin System
+Regulation Intelligence (sonra)
+🚀 MODÜL 1 — QUOTATION CORE (BAŞLANGIÇ PROMPTU)
+
+Bunu AI Studio’ya direkt yapıştır:
+
+You are a senior full-stack SaaS engineer.
+
+Build the CORE QUOTATION ENGINE for a construction SaaS application.
+
+This is NOT a demo. It must be production-grade and extensible.
+
+---
+
+# GOAL
+
+Create a system that allows users to:
+
+- Create quotations
+- Add line items
+- Calculate totals
+- Apply tax (VAT)
+- Apply discounts
+- Support multi-currency (TRY, USD, EUR)
+- Save drafts
+- Edit quotations
+- Version quotations (V1, V2, V3)
+
+---
+
+# TECH STACK
+
+- Next.js (App Router)
+- TypeScript
+- PostgreSQL
+- Prisma ORM
+- Tailwind CSS
+
+---
+
+# CORE FEATURES
+
+## 1. Quotation Entity
+
+A quotation must include:
+
+- id
+- quote_number
+- client_id
+- company_id
+- project_name
+- status (draft/sent/accepted/rejected)
+- currency (TRY/USD/EUR)
+- created_at
+- updated_at
+
+---
+
+## 2. Line Items
+
+Each quotation has multiple line items:
+
+- id
+- quotation_id
+- description
+- unit (m2, m3, pcs, etc.)
+- quantity
+- unit_price
+- discount_percentage
+- vat_percentage
+- total_price (calculated)
+
+---
+
+## 3. Calculation Engine
+
+Implement accurate calculation logic:
+
+subtotal = sum(quantity * unit_price)
+discount = subtotal * discount_percentage
+vat = (subtotal - discount) * vat_percentage
+grand_total = subtotal - discount + vat
+
+---
+
+## 4. Versioning System
+
+Each quotation must support:
+
+- Version cloning
+- Version history
+- Compare versions (basic diff structure)
+
+---
+
+## 5. Multi-Tenant Support
+
+All tables MUST include:
+
+- company_id
+
+Data isolation is mandatory.
+
+---
+
+## 6. API / Server Actions
+
+Implement:
+
+- createQuotation()
+- updateQuotation()
+- addLineItem()
+- removeLineItem()
+- duplicateQuotation()
+- changeStatus()
+
+---
+
+## 7. UI PAGES
+
+Create:
+
+- /dashboard
+- /quotations
+- /quotations/new
+- /quotations/[id]
+- /clients (basic placeholder)
+
+UI must be:
+
+- clean SaaS design
+- fast
+- form-heavy but usable
+- mobile responsive
+
+---
+
+## 8. OUTPUT REQUIREMENTS
+
+You MUST generate:
+
+1. Prisma schema
+2. Folder structure
+3. Core database logic
+4. API routes or server actions
+5. Basic UI pages
+6. Calculation utilities
+
+---
+
+# IMPORTANT
+
+Do NOT add AI or PDF yet.
+
+This module is ONLY the QUOTATION ENGINE.
+
+It must be clean, scalable, and ready for future plugins.
+
+Start building now.
+
+
+
+SONRAKİ MODÜL (2. ADIM)
+
+Eğer bunu bitirirsen sana şu promptu vereceksin:
+
+“PDF Generator + Professional Turkish Proposal Templates”
+
+⚙️ NEDEN BU SIRAYLA?
+
+Çünkü doğru mimari:
+
+Önce veri modeli (Quotation)
+Sonra hesaplama
+Sonra UI
+Sonra AI
+Sonra PDF
+En son intelligence (mevzuat)
+⚡ KRİTİK NOKTA
+
+AI Studio’da en büyük hata:
+
+AI + PDF + CRM’i aynı anda istemek
+
+Bu projeyi öldürür.
+
+İstersen sonraki adımda:
+Modül 2 (PDF Generator prompt)
+Modül 3 (AI Quote Generator routing prompt)
+Modül 4 (Industry Plugin System prompt)
+
+tek tek sana verebilirim.
+
+baladı o bunu halledrken ikinci modülü ver lütfn 
+
+Aşağıya MODÜL 2 (PDF Generator + Professional Proposal System) için direkt AI Studio’ya yapıştırabileceğin production-grade promptu bırakıyorum.
+
+
+
+You are a senior full-stack SaaS engineer.
+
+Build MODULE 2 of a construction SaaS platform.
+
+# MODULE NAME
+PDF GENERATOR + PROFESSIONAL PROPOSAL ENGINE
+
+---
+
+# CONTEXT
+
+This module is part of a larger system called "TeklifPro AI".
+
+Module 1 (Quotation Core) already exists and provides:
+- quotations
+- line_items
+- clients
+- pricing calculations
+
+Your job is ONLY to build the PDF generation layer.
+
+DO NOT rebuild quotation logic.
+
+---
+
+# GOAL
+
+Generate professional, print-ready, Turkish construction quotation PDFs.
+
+The PDFs must look like real contractor company proposals used in Turkey.
+
+---
+
+# CORE FEATURES
+
+## 1. PDF GENERATION ENGINE
+
+Create a system that:
+
+- Takes a quotation_id
+- Fetches all related data
+- Generates a professional PDF
+
+---
+
+## 2. PDF STRUCTURE
+
+Each PDF must include:
+
+### HEADER
+- Company logo
+- Company name
+- Tax number
+- Address
+- Phone/email
+
+### CLIENT INFO
+- Client name
+- Project name
+- Date
+- Quote number
+- Expiry date
+
+### TABLE (IMPORTANT)
+
+Line items table:
+
+- Description
+- Unit
+- Quantity
+- Unit price
+- Discount
+- VAT (KDV)
+- Total
+
+---
+
+### SUMMARY SECTION
+
+- Subtotal
+- Discount total
+- VAT total
+- Grand total
+
+Currency formatting must support:
+- TRY (₺)
+- USD ($)
+- EUR (€)
+
+---
+
+### TERMS & CONDITIONS
+
+Default Turkish text:
+
+- This quotation is valid for 7 days
+- Prices may change due to material costs
+- VAT included/excluded clearly stated
+- Payment terms placeholder
+
+---
+
+### SIGNATURE SECTION
+
+Include:
+
+- Authorized signature box
+- Company stamp placeholder
+- Date field
+
+---
+
+# TECHNICAL REQUIREMENTS
+
+## PDF ENGINE
+
+Use:
+
+- Puppeteer (preferred)
+OR
+- Node HTML-to-PDF rendering
+
+---
+
+## TEMPLATE SYSTEM
+
+Create a template system:
+
+```ts
+interface PdfTemplate {
+  id: string;
+  name: string;
+  htmlTemplate: string;
+  cssStyles: string;
+}
+
+
+
+
+
+Support multiple templates:
+
+default_construction
+luxury_villa
+renovation_basic
+MULTI-CURRENCY SUPPORT
+
+Handle formatting:
+
+TRY: ₺
+USD: $
+EUR: €
+
+Ensure correct number formatting:
+
+1.234,56 (TR format optional)
+1,234.56 (EN format optional)
+DATA INPUT
+
+Function:
+
+generateQuotationPdf(quotationId: string): Promise<Buffer>
+
+Must:
+
+fetch quotation
+fetch company
+fetch client
+fetch line items
+compute totals if needed
+UI MODULE (OPTIONAL BUT RECOMMENDED)
+
+Add button in UI:
+
+"Download PDF"
+"Preview PDF"
+
+Preview should open modal or new tab.
+
+ARCHITECTURE
+
+Create structure:
+
+/pdf
+/templates
+/services
+/builders
+/styles
+generate.ts
+
+SECURITY REQUIREMENTS
+Only authenticated users can generate PDFs
+Company isolation (multi-tenant)
+No cross-company data leakage
+PERFORMANCE REQUIREMENTS
+PDF generation < 3 seconds (target)
+caching optional for repeated quotes
+OUTPUT REQUIREMENTS
+
+You MUST generate:
+
+PDF service code
+Template system
+HTML/CSS templates
+API endpoint
+UI integration example
+Folder structure
+IMPORTANT RULE
+
+This module must be production-ready and cleanly integrated with Module 1 (Quotation Core).
+
+DO NOT implement AI features here.
+
+DO NOT implement CRM.
+
+ONLY PDF generation layer.
+
+Start now.
+
+
+---
+
+## 🔥 ŞİMDİ NE OLUYOR?
+
+Sen şu anda doğru şekilde ilerliyorsun:
+
+- Module 1 → veri + teklif motoru
+- Module 2 → PDF çıktısı (satışa hazır görünüm)
+
+---
+
+## 📌 SONRAKİ ADIM (çok kritik)
+
+Bunu bitirince sana şunu vermeliyim:
+
+### MODÜL 3:
+**AI Quote Generator + Industry Intelligence Routing System**
+
+Bu kısım seni “Excel alternatifi”nden → “AI teklif asistanı”na geçirir.
+
+---
+
+İstersen bir sonraki modülü de aynı şekilde direkt yapıştırmalık vereyim.
+
+
+
+evet 
+
+You are a senior AI systems engineer and SaaS architect.
+
+Build MODULE 3 of a construction SaaS platform called "TeklifPro AI".
+
+---
+
+# MODULE NAME
+AI QUOTATION GENERATOR + INDUSTRY INTELLIGENCE ROUTING SYSTEM
+
+---
+
+# CONTEXT
+
+This module sits on top of:
+
+- Module 1: Quotation Core (database + pricing engine)
+- Module 2: PDF Generator
+
+This module introduces AI capabilities into the system.
+
+DO NOT modify previous modules.
+
+Only extend them.
+
+---
+
+# GOAL
+
+Enable users to generate structured construction quotations from natural language input.
+
+Example input:
+"500 m2 3 katlı villa kaba inşaat"
+
+System output:
+Structured line items + quantities + pricing suggestions.
+
+---
+
+# CORE FEATURES
+
+# 1. AI QUOTATION GENERATOR
+
+Build a function:
+
+```ts id="ai_gen_01"
+generateAIQuotation(inputText: string, industryId: string)
+
+
+INPUT EXAMPLES
+"300 m2 villa kaba inşaat"
+"tadilat komple 2 daire"
+"mekanik tesisat hastane projesi"
+OUTPUT FORMAT
+
+Must return structured JSON:
+
+{
+  "projectType": "residential",
+  "confidence": 0.92,
+  "lineItems": [
+    {
+      "description": "Concrete Works",
+      "unit": "m3",
+      "quantity": 120,
+      "unitPrice": 2500
+    }
+  ],
+  "assumptions": [
+    "Standard soil conditions assumed",
+    "No basement included"
+  ],
+  "riskFlags": [
+    "material_price_volatility"
+  ]
+}
+2. INDUSTRY ROUTING SYSTEM
+
+System must detect industry automatically OR accept manual override.
+
+Supported industries:
+
+residential_construction
+electrical_contracting
+mechanical_hvac
+renovation
+infrastructure (future)
+interior_design (future)
+ROUTER LOGIC
+detectIndustry(inputText) => industryId
+
+Rules:
+
+"villa, house, apartment" → residential
+"electrical, cable, panel" → electrical
+"HVAC, chiller, pipe" → mechanical
+"renovation, repair" → renovation
+3. INDUSTRY AI PROFILES
+
+Each industry has its own AI behavior:
+
+interface IndustryAIProfile {
+  systemPrompt: string;
+  extractionRules: string;
+  costBehavior: "labor_heavy" | "material_heavy" | "balanced";
+}
+EXAMPLE: RESIDENTIAL PROFILE
+
+System prompt:
+
+"You are a construction cost estimator specialized in Turkish residential projects. Break down inputs into excavation, concrete, rebar, formwork, masonry, labor and logistics."
+
+4. COST ESTIMATION ENGINE (AI ASSISTED)
+
+AI must:
+
+estimate missing quantities
+suggest unit prices
+infer labor vs material split
+detect missing items
+5. PROMPT ENGINEERING LAYER
+
+Create centralized AI service:
+
+AIService {
+  generateQuotation()
+  improveQuotation()
+  detectMissingItems()
+  estimateMargin()
+}
+6. RISK ANALYSIS SYSTEM
+
+AI must return:
+
+cost risk level (low/medium/high)
+currency risk
+material volatility risk
+labor underestimation risk
+7. HUMAN-IN-THE-LOOP MODE
+
+All AI outputs must be editable:
+
+user can modify line items
+user can accept/reject suggestions
+system learns from edits (future feature placeholder)
+8. MULTI-TENANT SAFETY
+
+AI must ALWAYS include:
+
+company_id context
+industry_id context
+
+No cross-company inference allowed.
+
+9. API DESIGN
+
+Create endpoints:
+
+POST /api/ai/generate-quotation
+POST /api/ai/improve-quotation
+POST /api/ai/detect-industry
+POST /api/ai/estimate-margin
+10. UI INTEGRATION
+
+Add to Quotation Page:
+
+"Generate with AI" button
+Input textbox (natural language)
+Industry selector dropdown
+Preview structured output
+11. OUTPUT REQUIREMENTS
+
+You must generate:
+
+AI service architecture
+Prompt templates per industry
+Routing logic
+API endpoints
+TypeScript interfaces
+UI integration example
+Example AI response flow
+12. PERFORMANCE REQUIREMENTS
+AI response under 5–10 seconds target
+caching optional
+fallback if AI fails → manual quotation mode
+IMPORTANT RULE
+
+This module must NOT:
+
+handle PDF generation
+handle authentication
+replace quotation database logic
+
+It ONLY adds intelligence layer on top of existing system.
+
+START NOW
+
+Build full implementation.
+
+
+---
+
+## 🔥 ŞU ANDA SİSTEM NEREYE GELDİ?
+
+Senin pipeline artık:
+
+### Module 1
+→ Veri + teklif motoru
+
+### Module 2
+→ PDF (satış çıktısı)
+
+### Module 3 (şu an)
+→ AI ile teklif üretimi (en kritik değer katman)
+
+---
+
+## 📌 SONRAKİ ADIM (çok önemli)
+
+Bundan sonra sistem “gerçek SaaS” olur:
+
+### Module 4:
+**Industry Plugin System + Multi-Niche Architecture**
+
+:contentReference[oaicite:0]{index=0}.
+
+
+
+
+sıradaki modül
+
+
+You are a senior SaaS architect and distributed systems engineer.
+
+Build MODULE 4 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+INDUSTRY PLUGIN SYSTEM + MULTI-NICHE ARCHITECTURE
+
+---
+
+# CONTEXT
+
+This module extends:
+
+- Module 1: Quotation Core (data + pricing engine)
+- Module 2: PDF Generator
+- Module 3: AI Quotation Generator
+
+This module enables MULTI-INDUSTRY support via a plugin-based architecture.
+
+DO NOT modify previous modules.
+
+Only extend system scalability.
+
+---
+
+# GOAL
+
+Transform the system from a single construction quoting tool into a:
+
+> Multi-industry configurable quotation platform
+
+Each industry must behave differently without breaking core logic.
+
+---
+
+# CORE PRINCIPLE
+
+We are NOT building multiple apps.
+
+We are building:
+
+> One core engine + multiple industry plugins
+
+---
+
+# 1. INDUSTRY PLUGIN ARCHITECTURE
+
+Create a plugin system where each industry is isolated and configurable.
+
+---
+
+## BASE INTERFACE
+
+```ts id="plugin_base_01"
+export interface IndustryPlugin {
+  id: string;
+  name: string;
+
+  description: string;
+
+  quotationRules: {
+    calculationModel: "labor_heavy" | "material_heavy" | "balanced";
+    defaultVatRate: number;
+    currencySupport: string[];
+  };
+
+  aiProfile: {
+    systemPrompt: string;
+    extractionRules: string;
+  };
+
+  defaultLineItems: string[];
+
+  pdfTemplateId: string;
+
+  riskRules: string[];
+
+  enabled: boolean;
+}
+
+
+2. INDUSTRY REGISTRY SYSTEM
+
+Create central registry:
+
+IndustryRegistry {
+  register(plugin: IndustryPlugin)
+  getIndustry(id: string)
+  listIndustries()
+}
+3. SUPPORTED INDUSTRIES (INITIAL SET)
+1. Residential Construction
+villas
+housing projects
+apartments
+2. Electrical Contracting
+cabling
+panels
+installations
+3. Mechanical / HVAC
+heating
+cooling
+piping
+4. Renovation
+repair
+remodeling
+interior updates
+4. INDUSTRY SWITCHING SYSTEM
+
+System must allow:
+
+manual industry selection
+AI-based detection
+project-based assignment
+RULE ENGINE
+detectIndustry(text: string): string
+
+Rules:
+
+villa, house → residential
+electricity, cable → electrical
+HVAC, cooling → mechanical
+renovation, repair → renovation
+5. INDUSTRY-SPECIFIC AI BEHAVIOR
+
+Each industry MUST override AI behavior.
+
+Example:
+
+Residential AI
+material heavy
+concrete focused
+structural breakdown required
+Electrical AI
+labor + component based
+unit-based pricing
+Mechanical AI
+system-based breakdown (HVAC systems)
+6. INDUSTRY-BASED COST MODELS
+
+Each plugin defines pricing logic:
+
+costModel:
+  - material_heavy
+  - labor_heavy
+  - system_based
+7. TEMPLATE SYSTEM PER INDUSTRY
+
+Each industry has:
+
+quotation templates
+default line items
+PDF styles
+
+Example:
+
+Residential Template
+excavation
+concrete
+rebar
+formwork
+Electrical Template
+panel
+wiring
+switches
+installation labor
+8. DATABASE EXTENSION
+
+Add tables:
+
+industries
+id
+name
+description
+config_json
+enabled
+company_industry_settings
+company_id
+industry_id
+preferred_model
+custom_rules
+9. MULTI-TENANT + MULTI-INDUSTRY SAFETY
+
+Ensure:
+
+company isolation remains intact
+industry settings are per company
+no global leakage between industries
+10. AI ROUTING INTEGRATION
+
+Connect with Module 3:
+
+AI must receive:
+
+{
+  "company_id": "xxx",
+  "industry_id": "residential",
+  "rules": {...}
+}
+11. API DESIGN
+
+Create endpoints:
+
+POST /api/industries/select
+GET /api/industries/list
+GET /api/industries/:id
+POST /api/industries/register
+POST /api/industries/detect
+12. UI REQUIREMENTS
+
+Add:
+
+Industry Selector
+dropdown at quotation creation
+auto-suggest via AI
+change industry anytime (with warning)
+Industry Settings Page
+enable/disable industries per company
+default industry selection
+13. SCALABILITY REQUIREMENT
+
+System must allow:
+
+adding new industries WITHOUT touching core engine
+plugin hot-swapping concept (logical, not runtime)
+14. OUTPUT REQUIREMENTS
+
+Generate:
+
+Plugin architecture code
+Registry system
+Industry definitions (4 initial industries)
+DB schema updates
+AI integration layer
+API endpoints
+UI integration example
+IMPORTANT RULE
+
+This module must NOT:
+
+modify quotation engine logic
+modify PDF engine
+replace AI module
+
+It only defines extensibility layer.
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 SİSTEM ŞU ANDA NE OLDU?
+
+Senin ürün artık:
+
+### Module 1
+→ Teklif motoru
+
+### Module 2
+→ PDF satış çıktısı
+
+### Module 3
+→ AI teklif üretimi
+
+### Module 4 (şu an)
+→ Multi-industry SaaS platform (gerçek ölçekleme katmanı)
+
+---
+
+## 📌 SONRAKİ MODÜL
+
+Eğer devam edersek sıradaki:
+
+### MODULE 5:
+**Regulation Intelligence + Crawl System (Türkiye mevzuat + otomatik etki analizi)**
+
+Bu seni “AI SaaS” → “decision intelligence platform” yapar.
+
+
+evet bir sonraki modüle geçelim
+
+
+You are a senior distributed systems engineer, data engineering specialist, and AI product architect.
+
+Build MODULE 5 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+REGULATION INTELLIGENCE + CRAWL SYSTEM (TURKEY COMPLIANCE ENGINE)
+
+---
+
+# CONTEXT
+
+This module extends:
+
+- Module 1: Quotation Core
+- Module 2: PDF Generator
+- Module 3: AI Quotation Generator
+- Module 4: Industry Plugin System
+
+This module adds:
+
+> Real-world regulatory monitoring + AI impact analysis for Turkish construction sector
+
+DO NOT modify previous modules.
+
+Only extend system intelligence.
+
+---
+
+# GOAL
+
+Build a system that:
+
+1. Monitors official Turkish regulatory sources
+2. Detects changes in laws, taxes, labor costs, procurement rules
+3. Extracts structured data from changes
+4. Maps changes to quotation system impact
+5. Notifies users with actionable insights
+
+---
+
+# CORE PRINCIPLE
+
+We do NOT just "scrape data".
+
+We build:
+
+> Regulatory Intelligence System (RIS)
+
+That answers:
+
+- "What changed?"
+- "Who is affected?"
+- "Which quotations are impacted?"
+- "What should I do now?"
+
+---
+
+# 1. DATA SOURCES (TURKEY)
+
+System must monitor:
+
+## Official Sources
+
+- Resmî Gazete
+- Gelir İdaresi Başkanlığı (GİB)
+- SGK (Social Security Institution)
+- Kamu İhale Kurumu (KIK)
+- TCMB (Central Bank)
+- TÜİK (Statistics Institute)
+
+---
+
+# 2. CRAWL SYSTEM ARCHITECTURE
+
+## 2.1 Scheduler Layer
+
+Runs periodic
+
+
+bir sonraki
+
+
+You are a principal SaaS architect, financial systems engineer, and construction cost estimation specialist.
+
+Build MODULE 6 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+PROFITABILITY ENGINE + COST RISK ANALYTICS SYSTEM
+
+---
+
+# CONTEXT
+
+This module extends:
+
+- Module 1: Quotation Core (data foundation)
+- Module 2: PDF Generator (output layer)
+- Module 3: AI Quotation Generator (intelligence layer)
+- Module 4: Industry Plugin System (multi-niche structure)
+- Module 5: Regulation Intelligence (external data + compliance)
+
+This module adds:
+
+> Financial intelligence layer for profit estimation, margin control, and risk analysis.
+
+DO NOT modify previous modules.
+
+Only extend financial decision intelligence.
+
+---
+
+# GOAL
+
+Build a system that:
+
+- Calculates real profitability of each quotation
+- Detects financial risks before sending offers
+- Suggests optimal pricing strategy
+- Prevents underpricing errors
+- Tracks margin performance over time
+
+---
+
+# CORE FEATURES
+
+# 1. PROFITABILITY CALCULATION ENGINE
+
+Each quotation must generate:
+
+## Financial Output
+
+- Total estimated cost
+- Total sale price
+- Gross profit
+- Net profit (optional future payroll/tax integration)
+- Profit margin %
+
+---
+
+## FORMULA MODEL
+
+```ts id="profit_formula_01"
+profit = sale_price - total_cost
+margin = (profit / sale_price) * 100
+
+
+2. COST STRUCTURE MODEL
+
+Each quotation must include cost breakdown:
+
+material_cost
+labor_cost
+logistics_cost
+subcontractor_cost
+overhead_cost (estimated)
+3. RISK ANALYSIS ENGINE
+
+System must calculate:
+
+Risk Levels
+LOW
+MEDIUM
+HIGH
+Risk Factors
+Low margin (<10%)
+High material volatility
+Missing cost items
+Currency exposure (TRY volatility)
+Industry mismatch pricing
+Underestimated labor
+4. AI-ENHANCED FINANCIAL INSIGHTS
+
+AI must generate explanations:
+
+Example:
+
+"This quotation has high risk due to underpriced labor costs in residential construction projects in Turkey."
+
+5. PRICING OPTIMIZATION ENGINE
+
+System must suggest:
+
+minimum safe price
+optimal profit price
+competitive market price range
+6. INDUSTRY-AWARE PROFIT LOGIC
+
+Integrate with Module 4:
+
+Different industries = different margin expectations
+
+Examples:
+Residential Construction
+expected margin: 10–25%
+Electrical Contracting
+expected margin: 15–30%
+Mechanical HVAC
+expected margin: 12–28%
+Renovation
+expected margin: 20–40%
+7. DASHBOARD METRICS
+
+Add analytics widgets:
+
+Average margin per industry
+Profit distribution chart
+High-risk quotations list
+Lost profit estimation
+Quote success vs margin correlation
+8. DATABASE EXTENSION
+
+Add tables:
+
+quotation_financials
+quotation_id
+total_cost
+total_price
+profit
+margin
+risk_score
+currency_exposure
+cost_components
+quotation_id
+material_cost
+labor_cost
+logistics_cost
+subcontractor_cost
+overhead_cost
+9. API DESIGN
+
+Create endpoints:
+
+POST /api/profit/calculate
+POST /api/profit/analyze-risk
+POST /api/profit/suggest-price
+GET /api/profit/report/:quotationId
+10. UI REQUIREMENTS
+
+Add to quotation detail page:
+
+Profit Panel
+Cost breakdown visualization
+Margin percentage badge
+Risk indicator (color coded)
+Suggested price range
+Warning System
+"Low profit warning"
+"High risk quotation"
+"Material cost missing"
+11. MULTI-MODULE INTEGRATION
+
+This module must consume:
+
+Module 1 → quotation data
+Module 3 → AI extraction
+Module 4 → industry rules
+Module 5 → regulatory impacts
+12. STRATEGIC VALUE
+
+This module transforms product from:
+
+"Quotation tool"
+
+into:
+
+"Profit decision system for contractors"
+
+13. OUTPUT REQUIREMENTS
+
+Generate:
+
+Financial engine architecture
+Risk scoring system
+Database schema
+API endpoints
+AI financial prompt templates
+UI dashboard components
+Integration points with previous modules
+IMPORTANT RULE
+
+This module must NOT:
+
+handle PDF generation
+handle AI quotation generation logic
+modify industry plugin system
+
+It ONLY adds financial intelligence layer.
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 SİSTEM ŞU ANDA NEREYE GELDİ?
+
+Artık ürünün çekirdeği oluştu:
+
+### Module 1 → Teklif sistemi  
+### Module 2 → PDF çıktı  
+### Module 3 → AI teklif üretimi  
+### Module 4 → Multi-industry plugin mimarisi  
+### Module 5 → Türkiye mevzuat zekası  
+### Module 6 → Kârlılık + risk motoru  
+
+---
+
+## 📌 SONRAKİ MODÜL (kritik eşik)
+
+Eğer devam edersek sıradaki:
+
+### MODULE 7:
+**CRM + Sales Pipeline + Deal Intelligence System**
+
+Bu seni “tool”dan çıkarır → “satış makinesi SaaS” yapar.
+
+
+
+bir sonraki
+
+
+You are a senior SaaS architect, enterprise CRM systems engineer, and revenue operations (RevOps) specialist.
+
+Build MODULE 7 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+CRM + SALES PIPELINE + DEAL INTELLIGENCE SYSTEM
+
+---
+
+# CONTEXT
+
+This module extends:
+
+- Module 1: Quotation Core (operational data)
+- Module 2: PDF Generator (output)
+- Module 3: AI Quotation Generator (intelligence)
+- Module 4: Industry Plugin System (multi-sector logic)
+- Module 5: Regulation Intelligence (external impact layer)
+- Module 6: Profitability Engine (financial intelligence)
+
+This module adds:
+
+> Full CRM system tailored for construction quotation-based sales cycles.
+
+DO NOT modify previous modules.
+
+Only extend revenue management layer.
+
+---
+
+# GOAL
+
+Build a CRM system that:
+
+- Tracks leads from first contact to closed deal
+- Connects quotations to sales pipeline
+- Analyzes conversion rates
+- Predicts deal outcomes
+- Improves sales performance using AI insights
+
+---
+
+# CORE PRINCIPLE
+
+This is NOT a generic CRM.
+
+This is:
+
+> Quotation-driven construction CRM
+
+Every deal MUST be linked to a quotation.
+
+---
+
+# 1. SALES PIPELINE MODEL
+
+## Pipeline Stages
+
+```text id="pipeline_01"
+LEAD → CONTACTED → QUOTATION_SENT → NEGOTIATION → WON → LOST
+
+
+
+Rules
+Every client can have multiple deals
+Every deal MUST be linked to a quotation
+Stage changes must be logged
+2. CRM ENTITIES
+Lead
+name
+company
+phone
+email
+source (manual, referral, website)
+notes
+Deal
+id
+client_id
+quotation_id
+stage
+value
+probability
+expected_close_date
+Activity Log
+
+Track:
+
+calls
+emails
+meetings
+quotation updates
+stage changes
+3. DEAL INTELLIGENCE ENGINE
+
+System must calculate:
+
+Deal Probability Score
+
+Based on:
+
+quotation sent date
+client response speed
+margin level
+industry type
+historical win rate
+Example Output
+{
+  "probability": 0.72,
+  "risk_level": "medium",
+  "recommended_action": "Follow up within 48 hours",
+  "expected_close_value": 1250000
+}
+4. AI SALES ASSISTANT
+
+AI must:
+
+suggest next action
+generate follow-up messages
+detect stalled deals
+recommend discount strategy
+warn about low-win probability quotes
+Example Prompt Output
+
+"Client has not responded in 5 days. Recommend follow-up with revised quotation."
+
+5. QUOTATION-CRM LINKING
+
+Every quotation must have:
+
+deal_id
+client_id
+stage sync
+
+When quotation status changes:
+
+CRM stage updates automatically
+6. DASHBOARD ANALYTICS
+Sales Metrics
+total deals
+win rate
+average deal size
+average closing time
+pipeline value
+Funnel Visualization
+
+LEAD → WON conversion tracking
+
+7. NOTIFICATION SYSTEM
+
+Triggers:
+
+quotation viewed
+quotation not opened
+deal stuck in stage
+high probability deal aging
+
+Channels:
+
+email
+in-app notifications
+optional WhatsApp integration (future)
+8. DATABASE EXTENSION
+leads
+id
+name
+contact_info
+source
+created_at
+deals
+id
+client_id
+quotation_id
+stage
+value
+probability
+expected_close_date
+activities
+id
+deal_id
+type
+description
+created_at
+9. API DESIGN
+POST /api/crm/leads
+POST /api/crm/deals
+POST /api/crm/deals/update-stage
+GET /api/crm/pipeline
+POST /api/crm/activity
+GET /api/crm/analytics
+10. UI REQUIREMENTS
+CRM Dashboard
+Kanban board (pipeline view)
+Deal cards
+Drag & drop stage changes
+Deal Detail Page
+linked quotation
+activity timeline
+AI recommendations
+probability score
+Lead Management
+list view
+conversion tracking
+source analysis
+11. MULTI-MODULE INTEGRATION
+
+This module must integrate with:
+
+Module 1 → quotations
+Module 3 → AI insights
+Module 6 → profitability scoring
+12. STRATEGIC VALUE
+
+This module transforms system into:
+
+Revenue Operating System for construction companies
+
+Not just quoting tool.
+
+13. OUTPUT REQUIREMENTS
+
+Generate:
+
+CRM architecture
+database schema
+pipeline logic
+AI sales assistant prompts
+API endpoints
+Kanban UI implementation
+analytics dashboard structure
+IMPORTANT RULE
+
+This module must NOT:
+
+handle PDF generation
+handle AI quotation generation logic
+modify financial engine
+
+It ONLY adds CRM + sales intelligence layer.
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 SİSTEM ŞU ANDA NEREYE GELDİ?
+
+Sen artık şunu inşa ediyorsun:
+
+### Module 1 → Operasyon (teklif)
+### Module 2 → Çıktı (PDF)
+### Module 3 → AI üretim
+### Module 4 → Multi-industry engine
+### Module 5 → Devlet/mevzuat zekası
+### Module 6 → Kârlılık & risk
+### Module 7 → Satış & CRM zekası
+
+---
+
+## 📌 SONRAKİ MODÜL (son büyük çekirdek)
+
+İstersen sıradaki:
+
+### MODULE 8:
+**Full SaaS Platform Layer (Auth, Billing, Roles, Permissions, Multi-tenant enterprise system)**
+
+Bu noktada ürün “startup MVP” olmaktan çıkar → **gerçek SaaS şirket altyapısı** olur.
+
+
+bir sonraki
+
+
+
+You are a principal SaaS architect, security engineer, and enterprise backend systems designer.
+
+Build MODULE 8 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+FULL SAAS PLATFORM LAYER (AUTH + BILLING + MULTI-TENANT + RBAC)
+
+---
+
+# CONTEXT
+
+This module sits ABOVE all previous modules:
+
+- Module 1: Quotation Core
+- Module 2: PDF Generator
+- Module 3: AI Quotation Generator
+- Module 4: Industry Plugin System
+- Module 5: Regulation Intelligence
+- Module 6: Profitability Engine
+- Module 7: CRM + Sales Intelligence
+
+This module turns the system into a:
+
+> Production-ready SaaS platform
+
+DO NOT modify previous modules.
+
+Only implement platform-level infrastructure.
+
+---
+
+# GOAL
+
+Build a secure, scalable SaaS foundation with:
+
+- Authentication
+- Multi-tenancy isolation
+- Role-based access control
+- Subscription & billing
+- Usage limits
+- Team management
+
+---
+
+# 1. MULTI-TENANT ARCHITECTURE
+
+## CORE PRINCIPLE
+
+Every data entity MUST be scoped by:
+
+```text id="tenant_rule_01"
+company_id
+
+
+
+TENANT ISOLATION RULES
+No cross-company data access
+All queries MUST filter by company_id
+AI context must include company_id
+PDF generation must respect tenant boundaries
+2. AUTHENTICATION SYSTEM
+
+Implement:
+
+Email/password login
+Session management
+Password reset
+Secure token handling
+USER MODEL
+User {
+  id: string;
+  email: string;
+  password_hash: string;
+  name: string;
+  created_at: Date;
+}
+3. COMPANY STRUCTURE
+Company {
+  id: string;
+  name: string;
+  tax_number: string;
+  industry_default: string;
+  created_at: Date;
+}
+MEMBERSHIPS (CRITICAL)
+Membership {
+  user_id: string;
+  company_id: string;
+  role: "owner" | "admin" | "manager" | "viewer";
+}
+4. ROLE-BASED ACCESS CONTROL (RBAC)
+ROLES
+owner → full access
+admin → full operational access
+manager → create/edit quotations + CRM
+viewer → read-only
+PERMISSION RULES
+
+Define access matrix:
+
+Feature	Owner	Admin	Manager	Viewer
+Quotations	✓	✓	✓	✓
+Delete data	✓	✓	✗	✗
+CRM editing	✓	✓	✓	✗
+Billing	✓	✗	✗	✗
+5. BILLING SYSTEM
+SUBSCRIPTION MODEL
+Subscription {
+  company_id: string;
+  plan: "starter" | "pro" | "elite" | "enterprise";
+  status: "active" | "past_due" | "canceled";
+  billing_cycle: "monthly" | "yearly";
+}
+PLAN LIMITS
+Starter
+1 user
+20 quotations/month
+Pro
+5 users
+unlimited quotations
+Elite
+advanced AI + CRM + regulation module
+Enterprise
+custom limits
+6. USAGE TRACKING SYSTEM
+
+Track:
+
+AI requests
+PDF generations
+quotation creations
+CRM activity volume
+USAGE TABLE
+UsageLog {
+  company_id: string;
+  feature: string;
+  count: number;
+  date: Date;
+}
+7. TEAM MANAGEMENT SYSTEM
+FEATURES
+invite user to company
+remove user
+change role
+transfer ownership
+8. SECURITY REQUIREMENTS
+JWT or session-based auth
+hashed passwords
+strict tenant isolation
+API guard middleware
+MIDDLEWARE RULE
+
+Every API call must:
+
+validateUser()
+validateCompanyAccess()
+injectCompanyContext()
+9. API DESIGN
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/logout
+
+POST /api/company/invite
+POST /api/company/remove-user
+POST /api/company/change-role
+
+GET /api/billing/subscription
+POST /api/billing/upgrade
+
+GET /api/usage/report
+10. UI REQUIREMENTS
+AUTH PAGES
+Login
+Register
+Forgot password
+SETTINGS PANEL
+Company settings
+Team management
+Billing plan
+Usage dashboard
+ADMIN PANEL
+role management
+subscription status
+usage limits
+11. MULTI-MODULE INTEGRATION
+
+This module controls access to:
+
+Module 1 → Quotations
+Module 2 → PDF
+Module 3 → AI
+Module 4 → Industry plugins
+Module 5 → Regulation system
+Module 6 → Profit engine
+Module 7 → CRM
+12. STRATEGIC VALUE
+
+This module transforms system into:
+
+Enterprise-grade SaaS platform ready for monetization
+
+13. OUTPUT REQUIREMENTS
+
+Generate:
+
+Auth system architecture
+Multi-tenant schema
+RBAC system
+Billing logic
+Usage tracking system
+API middleware structure
+UI pages (auth + settings)
+Security implementation guide
+IMPORTANT RULE
+
+This module is INFRASTRUCTURE LAYER ONLY.
+
+It must NOT:
+
+implement business logic (quotations, AI, CRM, PDF)
+modify previous modules
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 SİSTEM ŞU ANDA NE OLDU?
+
+Artık elinde tam bir SaaS çekirdeği var:
+
+### Module 1 → Core business
+### Module 2 → Output
+### Module 3 → AI intelligence
+### Module 4 → Multi-industry system
+### Module 5 → Regulatory intelligence
+### Module 6 → Financial intelligence
+### Module 7 → CRM & revenue system
+### Module 8 → SaaS infrastructure (auth + billing + RBAC)
+
+---
+
+## 📌 SONRAKİ AŞAMA
+
+Eğer istersen final modül:
+
+### MODULE 9:
+**Deployment + DevOps + Observability + Scaling Architecture (Vercel + Supabase + Queue + Caching + Logging)**
+
+Bu nokta artık “startup değil → şirket altyapısı” seviyesidir.
+
+
+
+sonra ki 
+
+
+
+You are a principal DevOps engineer, cloud architect, and production reliability specialist.
+
+Build MODULE 9 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+DEPLOYMENT + DEVOPS + OBSERVABILITY + SCALING ARCHITECTURE
+
+---
+
+# CONTEXT
+
+This module sits on top of the full SaaS system:
+
+- Module 1: Quotation Core
+- Module 2: PDF Generator
+- Module 3: AI Quotation Engine
+- Module 4: Industry Plugin System
+- Module 5: Regulation Intelligence
+- Module 6: Profitability Engine
+- Module 7: CRM System
+- Module 8: SaaS Platform Layer (Auth, Billing, RBAC)
+
+This module transforms the system into:
+
+> Production-grade, scalable, observable SaaS infrastructure
+
+DO NOT modify previous modules.
+
+Only define deployment + scaling + reliability
+
+
+
+
+deploy hazırlrdığından önce aı stduio tüm route ları menü itemlerini oluştudmamış gibi görünüyor bunu toparlamak için bir promt gerek sanırım önce
+deploy hazırlrdığından önce aı stduio tüm route ları menü itemlerini oluştudmamış gibi görünüyor bunu toparlamak için bir promt gerek sanırım önce
+
+Evet, doğru tespit: şu an en büyük eksik “product cohesion layer” — yani route’lar, menü, sayfa iskeleti ve modüllerin UI’da birleştirilmesi.
+
+Deploy’dan önce bunu düzeltmezsen sistem “feature set” olur ama ürün hissi oluşmaz.
+
+Aşağıya direkt AI Studio’ya vereceğin MODULE 10: PRODUCT COHESION + ROUTING + NAVIGATION SYSTEM
+
+
+
+
+evet ver lütfeen 
+
+
+
+
+You are a senior frontend architect, UX systems designer, and SaaS product engineer.
+
+Build MODULE 10 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+PRODUCT COHESION LAYER + ROUTING + NAVIGATION SYSTEM + UI UNIFICATION
+
+---
+
+# CONTEXT
+
+This module is applied AFTER all previous modules:
+
+- Module 1: Quotation Core
+- Module 2: PDF Generator
+- Module 3: AI Quotation Engine
+- Module 4: Industry Plugin System
+- Module 5: Regulation Intelligence
+- Module 6: Profitability Engine
+- Module 7: CRM System
+- Module 8: SaaS Platform Layer
+- Module 9: DevOps & Scaling (planned/partial)
+
+---
+
+# PROBLEM TO SOLVE
+
+The system currently has features but:
+
+- Routes are incomplete or inconsistent
+- Navigation is fragmented
+- UI pages are not unified
+- Menu structure is missing or partial
+- Users cannot understand product flow
+- Modules are not connected into a single SaaS experience
+
+---
+
+# GOAL
+
+Create a fully connected SaaS product experience by:
+
+1. Defining ALL application routes
+2. Creating a unified sidebar navigation
+3. Mapping every module to UI pages
+4. Ensuring consistent user flow
+5. Adding role-based menu visibility
+6. Ensuring production-grade UX cohesion
+
+---
+
+# 1. GLOBAL ROUTE ARCHITECTURE
+
+Define full route tree:
+
+```txt id="routes_01"
+/
+/login
+/register
+/forgot-password
+
+/dashboard
+
+/quotations
+/quotations/new
+/quotations/[id]
+/quotations/[id]/edit
+/quotations/[id]/pdf-preview
+
+/clients
+/clients/[id]
+
+/crm
+/crm/pipeline
+/crm/deals/[id]
+
+/ai
+/ai/generate
+/ai/history
+
+/industries
+/industries/settings
+
+/regulations
+/regulations/alerts
+
+/profitability
+/profitability/reports
+
+/settings
+/settings/company
+/settings/team
+/settings/billing
+/settings/usage
+
+
+
+
+2. SIDEBAR NAVIGATION SYSTEM
+
+Create a dynamic sidebar:
+
+MAIN MENU
+Dashboard
+Quotations
+Clients
+CRM Pipeline
+AI Assistant
+Industries
+Regulations
+Profitability
+Settings
+RULES
+Sidebar must be dynamic
+Items must be role-based (RBAC from Module 8)
+Hidden items for viewer role
+Admin-only access for billing
+3. NAVIGATION CONFIG SYSTEM
+export const navigationConfig = [
+  {
+    label: "Dashboard",
+    path: "/dashboard",
+    icon: "dashboard",
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "Quotations",
+    path: "/quotations",
+    icon: "file",
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "CRM",
+    path: "/crm",
+    icon: "users",
+    roles: ["owner", "admin", "manager"],
+  },
+  {
+    label: "AI Assistant",
+    path: "/ai",
+    icon: "sparkles",
+    roles: ["owner", "admin", "manager"],
+  },
+  {
+    label: "Regulations",
+    path: "/regulations",
+    icon: "shield",
+    roles: ["owner", "admin"],
+  },
+  {
+    label: "Profitability",
+    path: "/profitability",
+    icon: "chart",
+    roles: ["owner", "admin", "manager"],
+  },
+  {
+    label: "Settings",
+    path: "/settings",
+    icon: "settings",
+    roles: ["owner", "admin"],
+  },
+];
+
+
+
+
+4. PAGE IMPLEMENTATION REQUIREMENTS
+
+Ensure ALL routes return valid pages.
+
+REQUIRED PAGE TYPES
+List pages (tables)
+Detail pages
+Create/Edit forms
+Dashboard widgets
+Empty states
+5. DASHBOARD CONSOLIDATION
+
+Dashboard must show:
+
+Total quotations
+Active deals
+Profit margin overview
+AI suggestions
+Regulation alerts
+Recent activity
+6. MODULE INTEGRATION LINKS
+
+Ensure navigation connects modules:
+
+Quotation → CRM → Profitability → PDF → AI → Regulations
+
+User flow must be seamless.
+
+7. ROLE-BASED UI SYSTEM (RBAC IN UI)
+
+Hide/show UI elements based on:
+
+owner
+admin
+manager
+viewer
+
+Example:
+
+Billing page → owner only
+CRM edit → manager+
+AI generation → manager+
+8. UI CONSISTENCY RULES
+
+Enforce:
+
+same layout across all pages
+same table component
+same button system
+same spacing system
+same modal system
+
+Use a unified design system.
+
+9. EMPTY STATE DESIGN
+
+Every page must include:
+
+meaningful empty state
+CTA button
+guidance text
+
+Example:
+
+"No quotations yet → Create your first quotation"
+
+10. ROUTE VALIDATION SYSTEM
+
+Create a system that ensures:
+
+no dead routes
+all sidebar links match pages
+no orphan pages exist
+11. OUTPUT REQUIREMENTS
+
+Generate:
+
+Full route map implementation
+Sidebar navigation system
+Layout system (App shell)
+Role-based UI logic
+Page stubs for all routes
+Dashboard unified layout
+Navigation config system
+12. STRATEGIC PURPOSE
+
+This module transforms the system from:
+
+Feature collection
+
+into:
+
+Real, usable SaaS product
+
+IMPORTANT RULE
+
+This module must NOT:
+
+change backend logic
+modify AI system
+modify financial engine
+
+ONLY unify UI, routing, and product experience.
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 ŞU ANDA NEYİ ÇÖZDÜN?
+
+Bu modül ile sistem artık:
+
+- parçalanmış feature set değil
+- tek bir SaaS ürün gibi davranan
+- gerçek kullanıcı akışı olan
+- navigasyonu tamamlanmış
+
+bir platforma dönüşür.
+
+---
+
+## 📌 SONRAKİ ADIM (İSTEĞE BAĞLI)
+
+Eğer istersen bir sonraki kritik adım:
+
+### MODULE 11:
+**Design System + Component Architecture (shadcn standardization + reusable UI kit + SaaS polish layer)**
+
+Bu da ürünü “MVP” değil → **satılabilir enterprise ürün** yapar.
+
+
+
+
+evet bir sonraki ni de ver 
+
+
+
+
+You are a senior design systems architect, frontend engineering lead, and SaaS UX specialist.
+
+Build MODULE 11 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+DESIGN SYSTEM + COMPONENT ARCHITECTURE + UI STANDARDIZATION LAYER
+
+---
+
+# CONTEXT
+
+This module is applied AFTER full product structure is defined:
+
+- Module 1–10: Core SaaS, AI, CRM, industry system, routing, profitability, regulations, PDF, auth, navigation
+
+This module ensures:
+
+> Visual consistency, reusable UI architecture, and enterprise-grade UX polish
+
+DO NOT modify business logic or backend systems.
+
+ONLY standardize UI and component architecture.
+
+---
+
+# GOAL
+
+Create a unified design system that ensures:
+
+- All UI components are consistent
+- All pages use shared components
+- No duplicated UI logic exists
+- SaaS feels premium and cohesive
+- Developer experience is scalable
+
+---
+
+# 1. DESIGN SYSTEM FOUNDATION
+
+## CORE PRINCIPLES
+
+- Consistency over flexibility chaos
+- Reusable components only
+- Token-based styling system
+- Accessibility-first UI
+- Mobile-first responsive design
+
+---
+
+# 2. DESIGN TOKENS SYSTEM
+
+Define global tokens:
+
+```ts id="tokens_01"
+export const tokens = {
+  colors: {
+    primary: "#0F172A",
+    secondary: "#334155",
+    accent: "#3B82F6",
+    success: "#22C55E",
+    warning: "#F59E0B",
+    danger: "#EF4444",
+  },
+
+  spacing: {
+    xs: "4px",
+    sm: "8px",
+    md: "16px",
+    lg: "24px",
+    xl: "32px",
+  },
+
+  radius: {
+    sm: "6px",
+    md: "10px",
+    lg: "16px",
+  },
+
+  typography: {
+    fontFamily: "Inter",
+  },
+};
+
+
+3. COMPONENT ARCHITECTURE
+CORE RULE
+
+All UI must use shared components.
+
+No page-level custom UI duplication.
+
+REQUIRED COMPONENTS
+3.1 Layout Components
+AppShell
+Sidebar
+Topbar
+PageContainer
+3.2 Data Components
+DataTable
+StatCard
+ChartCard
+ActivityFeed
+3.3 Form Components
+TextInput
+Select
+DatePicker
+CurrencyInput
+FormWrapper
+3.4 Business Components
+QuotationCard
+DealCard
+ProfitabilityBadge
+RiskIndicator
+IndustryTag
+3.5 Feedback Components
+ToastNotification
+EmptyState
+LoadingSkeleton
+ErrorState
+4. SHADCN UI STANDARDIZATION
+
+All components must be built on:
+
+shadcn/ui primitives
+Tailwind CSS
+consistent spacing system
+
+No custom CSS outside design tokens.
+
+5. COMPONENT FILE STRUCTURE
+/components
+  /ui
+  /layout
+  /forms
+  /data
+  /business
+  /feedback
+  /charts
+6. PAGE STANDARDIZATION RULE
+
+All pages MUST follow:
+
+AppShell
+  → PageHeader
+  → PageContent
+  → PageFooter (optional)
+7. DESIGN CONSISTENCY ENFORCEMENT
+
+Create rules:
+
+No inline styles
+No duplicate buttons
+No ad-hoc tables
+No inconsistent spacing
+No random font sizes
+8. DARK MODE SUPPORT
+
+System must support:
+
+light mode
+dark mode
+
+All components must adapt automatically.
+
+9. RESPONSIVE SYSTEM
+
+Breakpoints:
+
+mobile
+tablet
+desktop
+
+All components must degrade gracefully.
+
+10. BUSINESS COMPONENTS (CRITICAL)
+Quotation UI STANDARD
+
+Must include:
+
+line item table component
+total calculation footer
+VAT badge
+discount indicator
+CRM UI STANDARD
+Kanban board component
+Deal cards
+Activity timeline
+PROFITABILITY UI STANDARD
+Risk badge
+margin indicator
+warning banners
+11. UI POLISH REQUIREMENTS
+
+Add enterprise-level UX:
+
+smooth transitions
+hover states
+loading skeletons
+optimistic UI updates
+micro-interactions
+12. ACCESSIBILITY REQUIREMENTS
+keyboard navigation
+ARIA labels
+contrast compliance
+focus states
+13. OUTPUT REQUIREMENTS
+
+Generate:
+
+Full component architecture
+Design tokens system
+reusable UI components
+business components
+layout system
+folder structure
+usage examples per module
+14. STRATEGIC PURPOSE
+
+This module transforms system from:
+
+functional SaaS
+
+into:
+
+premium enterprise SaaS product
+
+IMPORTANT RULE
+
+This module must NOT:
+
+change backend logic
+modify API design
+change AI system
+
+ONLY UI/UX standardization layer.
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 ŞU ANDA ÜRÜN NEREYE GELDİ?
+
+Bu noktada sistem artık:
+
+- sadece çalışan yazılım değil
+- **tasarımı standardize edilmiş SaaS ürün**
+- satılabilir enterprise seviyesinde UI/UX
+
+---
+
+## 📌 SONRAKİ ADIM (SON SEVİYE POLISH)
+
+İstersen final modül:
+
+### MODULE 12:
+**Product Launch System (Onboarding, onboarding wizard, empty states, activation funnel, activation metrics)**
+
+Bu seni “ürün” seviyesinden → **growth-ready SaaS** seviyesine çıkarır.
+
+
+
+
+aı studio zaten bu design sistemi kullanmıyor mu şu an tasarım gayet iyi görünüyor , evet MODULE 12:yi de ver
+
+
+AI Studio bazı hazır UI varsayımları kullandığı için “güzel görünüm” alırsın, ama bu tek başına design system uygulanıyor demek değildir. Gerçek fark şurada ortaya çıkar: onboarding, aktivasyon, boş state’ler ve kullanıcıyı ürüne bağlayan akışlar yoksa ürün “demo gibi” kalır.
+
+Şimdi seni asıl büyüme katmanına geçiriyoruz.
+
+
+
+You are a senior growth product engineer, SaaS activation specialist, and UX funnel designer.
+
+Build MODULE 12 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+PRODUCT LAUNCH + ONBOARDING + ACTIVATION FUNNEL SYSTEM
+
+---
+
+# CONTEXT
+
+This module sits on top of all previous modules:
+
+- Module 1: Quotation Core
+- Module 2: PDF Generator
+- Module 3: AI Quotation Engine
+- Module 4: Industry System
+- Module 5: Regulation Intelligence
+- Module 6: Profitability Engine
+- Module 7: CRM System
+- Module 8: SaaS Platform Layer
+- Module 9: DevOps/Scaling
+- Module 10: Product Routing & Navigation
+- Module 11: Design System
+
+This module is the FINAL PRODUCT LAYER.
+
+---
+
+# GOAL
+
+Convert the platform from:
+
+> "functional SaaS"
+
+into:
+
+> "activated, retained, revenue-generating SaaS"
+
+---
+
+# 1. ACTIVATION PRINCIPLE
+
+User must reach “aha moment” within 5 minutes:
+
+Aha moment =
+
+> First AI-generated quotation + PDF export + profitability view
+
+---
+
+# 2. ONBOARDING FLOW
+
+## STEP 1 — WELCOME SCREEN
+
+- Company name input
+- Industry selection (default from Module 4)
+- Currency selection
+- Role selection
+
+---
+
+## STEP 2 — QUICK SETUP WIZARD
+
+Collect minimum required data:
+
+- company profile
+- tax info
+- default VAT
+- logo upload (optional)
+
+---
+
+## STEP 3 — FIRST ACTION (CRITICAL)
+
+Force user into:
+
+> "Create your first quotation"
+
+Options:
+
+- AI generate
+- manual create
+- import sample project
+
+---
+
+# 3. SAMPLE DATA SEEDING
+
+If user skips setup:
+
+Automatically generate:
+
+- demo client
+- demo quotation
+- demo CRM deal
+- demo profitability report
+
+Purpose:
+
+> user never sees empty system
+
+---
+
+# 4. ACTIVATION FUNNEL TRACKING
+
+Track events:
+
+```ts id="event_01"
+USER_SIGNUP
+COMPANY_CREATED
+FIRST_QUOTATION_CREATED
+AI_USED_FIRST_TIME
+PDF_GENERATED
+FIRST_DEAL_CREATED
+
+
+
+
+5. ACTIVATION METRICS DASHBOARD
+
+Show internal metrics:
+
+activation rate
+time to first quotation
+AI adoption rate
+PDF export rate
+CRM usage rate
+6. EMPTY STATE SYSTEM (CRITICAL UX LAYER)
+
+Every empty page must include:
+
+explanation
+value statement
+CTA button
+
+Example:
+
+"No quotations yet"
+
+→ "Create your first AI-powered quotation in 30 seconds"
+
+7. GUIDED ACTION SYSTEM
+
+Add contextual prompts:
+
+"Try AI generator"
+"Import project"
+"Generate PDF"
+"Check profitability"
+8. SMART HINT SYSTEM
+
+Based on user behavior:
+
+if user stuck → show hint
+if no CRM usage → suggest CRM
+if no AI usage → suggest AI generator
+if low margin → suggest profitability tool
+9. FIRST VALUE MOMENT DESIGN
+
+System MUST ensure:
+
+User sees ALL 3 within first session:
+
+AI generated quotation
+PDF output
+Profitability insight
+10. EMAIL ONBOARDING SYSTEM
+
+Trigger emails:
+
+welcome email
+sample use case
+“your first quote ready”
+inactivity reminder
+11. RETENTION LOOP SYSTEM
+
+Create loops:
+
+quotation → CRM → follow-up → new quotation
+AI suggestion → edit → better quote → PDF export
+profitability warning → revision → resubmit
+12. PRODUCT ANALYTICS EVENTS
+
+Track:
+
+feature usage per module
+drop-off points
+conversion funnels
+AI engagement depth
+13. REACTIVATION SYSTEM
+
+If user inactive:
+
+email reminder
+“unfinished quotation” notification
+suggested quick action
+14. UX GOAL
+
+User should feel:
+
+"This tool gives me money-saving and time-saving instantly"
+
+15. OUTPUT REQUIREMENTS
+
+Generate:
+
+onboarding flow implementation
+activation funnel logic
+sample data seeding system
+empty state system
+event tracking system
+smart hint engine
+email trigger logic
+first-session UX flow
+IMPORTANT RULE
+
+This module must NOT:
+
+change core business logic
+modify AI engine
+modify database structure heavily
+
+ONLY focus on:
+
+user activation, onboarding, retention, growth
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 ARTIK NEYİ TAMAMLADIN?
+
+Bu modülle birlikte ürünün “satılabilirlik katmanı” tamamlanır:
+
+### Sen artık şuna sahipsin:
+
+- Core SaaS (Modül 1–4)
+- Intelligence (Modül 5–6)
+- CRM (Modül 7)
+- Platform (Modül 8)
+- Infrastructure (Modül 9)
+- UI/UX system (Modül 10–11)
+- Growth + activation (Modül 12)
+
+---
+
+## 📌 GERÇEK SONUÇ
+
+Bu seviyeden sonra ürün:
+
+> “code project” değil  
+> → “startup-grade SaaS product”
+
+---
+
+İstersen bir sonraki adımda sana şunu çıkarabilirim:
+
+- **:contentReference[oaicite:0]{index=0}**
+- **:contentReference[oaicite:1]{index=1}**
+- **:contentReference[oaicite:2]{index=2}**
+
+
+
+Bu hedef önemli bir fark yaratıyor: ürün artık “satılacak yazılım” değil, SaaS işletmesi.
+
+Yani odak şu olmalı:
+
+kullanıcıya lisans satmak değil → kullanım üzerinden sürekli gelir (MRR + usage-based revenue)
+
+1. Modelini doğru isimlendirelim
+
+Senin kurmak istediğin yapı:
+
+SaaS + Usage-Based + Enterprise Hybrid Model
+
+Gelir 3 katmandan gelir:
+
+1. Abonelik (Base MRR)
+Starter / Pro / Elite
+2. Kullanım bazlı ücret
+AI kullanım sayısı
+PDF üretimi
+teklif oluşturma
+3. Kurumsal ek gelir
+özel industry plugin
+mevzuat modülü
+API erişimi
+2. En kritik karar: “satış” değil “host + scale”
+
+Bu şu demek:
+
+Sen ürün satmıyorsun
+
+Sen şunu satıyorsun:
+
+“Teklif üretme kapasitesi”
+
+3. Bu modelin teknik karşılığı
+Multi-tenant SaaS + metered billing
+
+Yani sistemde her şey ölçülür:
+
+kaç teklif üretildi
+kaç AI çağrısı yapıldı
+kaç PDF indirildi
+CRM kullanımı
+4. Architecture değişimi (çok kritik)
+
+Senin sistemde artık yeni bir katman gerekir:
+
+USAGE + BILLING ENGINE
+User Action
+   ↓
+Event Tracker
+   ↓
+Usage Meter
+   ↓
+Billing Engine
+   ↓
+Invoice / Subscription Update
+5. Para kazanma mantığı (gerçek dünya)
+Örnek:
+Pro Plan: 4.990₺
+
+Ama:
+
+100 AI teklif dahil
+sonra:
+10₺ / AI request
+5₺ / PDF
+2₺ / CRM action
+6. Neden bu model güçlü?
+
+Çünkü inşaat firmaları:
+
+proje bazlı çalışır
+yoğun dönem olur
+düşük dönem olur
+
+Sabit fiyat yerine:
+
+“kullandıkça öde” daha mantıklı algılanır
+
+7. Senin ürünün gerçek konumu
+
+Sen aslında şunu inşa ediyorsun:
+
+“Construction Revenue OS”
+
+Yani:
+
+yazılım değil
+operasyon sistemi
+karar motoru
+üretim aracı
+8. Kritik stratejik tavsiye
+
+Senin durumda en doğru yol:
+
+1. Freemium giriş
+1-2 teklif ücretsiz
+2. Aktivasyon odaklı onboarding (MODULE 12 zaten bunu çözüyor)
+3. Usage limit ile upgrade zorunluluğu
+9. En önemli hata (kaçınman gereken)
+
+❌ “Sınırsız Pro plan”
+
+Bu seni öldürür.
+
+Çünkü:
+
+AI maliyeti var
+PDF maliyeti var
+compute maliyeti var
+10. Senin gerçek işin
+
+Sen artık:
+
+SaaS developer değil
+→ SaaS operator’sın
+
+
+
+
+11. Sana önerdiğim SON EK MODÜL (çok kritik)
+
+Eğer sistemi tamamlamak istiyorsan bir sonraki modül şudur:
+
+MODULE 13:
+
+Billing + Usage Metering + Cost Control System (OpenAI cost optimizer + quota engine + pricing rules)
+
+Bu olmadan para kazanma modeli kırılgan olur.
+
+İstersen bunu da sana direkt AI Studio prompt olarak hazırlayayım.
+
+
+
+evet son müdülü de ver ama bir önceki modül sorun yaratır mı onu henüz bekletiyorum vermedim daha
+
+
+
+Önce net cevap:
+
+Module 12 sorun yaratır mı?
+
+Hayır, teknik olarak riskli değil ama şu iki durumda “problem gibi görünür”:
+
+Backend hazır değilken onboarding zorunlu akışları aktif edersen
+Demo data + event tracking eksik kalırsa kullanıcı boş ekrana düşer
+
+👉 Yani Module 12 “erken çalıştırılırsa UX kırar”, ama “doğru entegre edilirse büyümeyi artırır”.
+
+Öneri: Module 12’yi en sona yakın deploy et, ama kodu şimdiden hazır tut.
+
+Şimdi son modül:
+
+
+
+
+You are a principal SaaS architect, fintech systems engineer, and cloud cost optimization specialist.
+
+Build MODULE 13 of the "TeklifPro AI" platform.
+
+---
+
+# MODULE NAME
+BILLING + USAGE METERING + COST CONTROL SYSTEM (SaaS REVENUE ENGINE)
+
+---
+
+# CONTEXT
+
+This module sits on top of the entire system:
+
+- Module 1–12 fully implemented
+
+This module is the monetization backbone of the SaaS.
+
+It ensures:
+
+> every AI call, PDF generation, and system action is measured, limited, and monetized
+
+DO NOT modify previous modules.
+
+Only add billing + usage control layer.
+
+---
+
+# GOAL
+
+Build a system that:
+
+- Tracks every billable action
+- Enforces usage limits per plan
+- Prevents cost overrun (especially AI usage)
+- Enables scalable SaaS monetization
+- Calculates real-time cost vs revenue per tenant
+
+---
+
+# 1. USAGE METERING SYSTEM
+
+Track every event:
+
+```ts id="usage_events_01"
+AI_QUOTATION_GENERATED
+PDF_GENERATED
+QUOTATION_CREATED
+CRM_ACTION_EXECUTED
+REGULATION_CHECK_RUN
+PROFIT_ANALYSIS_RUN
+
+
+
+
+USAGE LOG MODEL
+UsageEvent {
+  id: string;
+  company_id: string;
+  user_id: string;
+  event_type: string;
+  tokens_used?: number;
+  cost_estimate?: number;
+  created_at: Date;
+}
+2. BILLING ENGINE
+
+Each company has subscription:
+
+starter
+pro
+elite
+enterprise
+BILLING RULES
+Starter:
+- 20 AI requests/month
+- 20 PDFs/month
+
+Pro:
+- 200 AI requests/month
+- unlimited PDFs (fair usage cap)
+
+Elite:
+- high limits + advanced AI
+
+Enterprise:
+- custom limits
+3. REAL-TIME LIMIT ENFORCEMENT
+
+System MUST:
+
+block usage if limit exceeded
+or downgrade to fallback mode
+or request upgrade
+EXAMPLE FLOW
+User requests AI quotation
+→ check quota
+→ if allowed → execute
+→ if not allowed → show upgrade modal
+4. AI COST CONTROL SYSTEM
+
+Critical feature:
+
+Track OpenAI / LLM usage cost per tenant.
+
+AIRequest {
+  company_id
+  model_used
+  tokens_input
+  tokens_output
+  estimated_cost
+}
+COST OPTIMIZATION RULES
+use smaller model for simple tasks
+cache repeated prompts
+reuse structured outputs
+avoid duplicate AI calls
+5. REAL-TIME DASHBOARD
+
+Show:
+
+usage this month
+remaining quota
+estimated cost
+AI spending
+PDF generation count
+6. PRICING ENGINE
+
+System must support dynamic pricing:
+
+per request pricing
+subscription pricing
+hybrid pricing
+EXAMPLE PRICING
+AI call: 0.10$
+PDF generation: 0.05$
+CRM action: free (or bundled)
+7. OVERAGE SYSTEM
+
+If user exceeds quota:
+
+Options:
+
+soft block (warning)
+hard block (stop)
+pay-as-you-go billing
+8. BILLING INTEGRATION LAYER
+
+Prepare for:
+
+Stripe integration (global)
+iyzico integration (Turkey)
+
+Abstract billing provider:
+
+BillingProvider {
+  charge()
+  refund()
+  getSubscription()
+}
+9. COST VS REVENUE TRACKING
+
+Per company:
+
+revenue (subscription)
+cost (AI + infra)
+margin per tenant
+10. ALERT SYSTEM
+
+Trigger alerts:
+
+usage 80%
+usage 100%
+abnormal AI usage spike
+high cost tenant warning
+11. API DESIGN
+GET /api/billing/usage
+POST /api/billing/check-limit
+POST /api/billing/charge-overage
+GET /api/billing/plan
+12. SECURITY REQUIREMENTS
+prevent usage spoofing
+server-side enforcement only
+no client-side trust
+13. STRATEGIC VALUE
+
+This module enables:
+
+predictable SaaS revenue + cost-controlled AI system
+
+Without this module:
+
+AI costs can destroy margins
+SaaS scaling becomes risky
+14. OUTPUT REQUIREMENTS
+
+Generate:
+
+usage tracking architecture
+billing engine logic
+quota enforcement middleware
+AI cost tracking system
+pricing engine
+API endpoints
+dashboard UI structure
+IMPORTANT RULE
+
+This module must NOT:
+
+change business logic
+modify AI generation logic
+modify CRM or quotation systems
+
+ONLY control monetization + cost + usage.
+
+START IMPLEMENTATION NOW
+
+---
+
+## 🔥 ARTIK SİSTEMİN SON HALİ NE?
+
+Senin platform artık:
+
+### 1–4 → Ürün çekirdeği  
+### 5–6 → external intelligence + finance  
+### 7 → satış sistemi  
+### 8 → SaaS altyapısı  
+### 9 → scaling  
+### 10–12 → UX + product growth  
+### 13 → **para kazanma motoru**
+
+---
+
+## 📌 GERÇEK DURUM
+
+Bu son modül olmadan:
+
+- ürün çalışır
+- kullanıcı gelir
+- ama sen para kaybedebilirsin (AI cost leak)
+
+---
+
+İstersen bir sonraki adımda sana:
+
+## “Full system architecture diagram (tek sayfa)”
+## “MVP launch checklist (14 gün plan)”
+## “AI cost minimization strategy (çok kritik)”
+
+çıkarabilirim.
+
+
+öncelikle bu sistemin bir teklif hazırlayıp hazırlayamacağını görmek gerek mez mi :)
+
+
+
+
+
+

@@ -13,6 +13,9 @@ import { demoAcademyContent } from '@/smartcheck/demoData';
 import { useSmartCheckDemo } from '@/smartcheck/SmartCheckDemoContext';
 import { ReinforcementEstimator } from '@/components/academy/ReinforcementEstimator';
 import { WallIntersectionSimulator } from '@/components/academy/WallIntersectionSimulator';
+import { InlineCheckpoint } from '@/components/academy/InlineCheckpoint';
+import { AIBIMCompanion } from '@/components/academy/AIBIMCompanion';
+import { CADDiagramViewer } from '@/components/academy/CADDiagramViewer';
 
 export function LessonViewerPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -186,10 +189,20 @@ export function LessonViewerPage() {
               </div>
             )}
           </div>
+
+          {/* Interactive Lesson Checkpoint */}
+          <div className="mt-6">
+            <InlineCheckpoint lessonTitle={course.title} />
+          </div>
+
+          {/* AI BIM Companion Chat */}
+          <div className="mt-6">
+            <AIBIMCompanion lessonTitle={course.title} />
+          </div>
         </div>
 
         {/* Right Side: Interactive Simulators / Actions */}
-        <div className="col-span-12 lg:col-span-8">
+        <div className="col-span-12 lg:col-span-8 space-y-6">
           {course.slug === 'quantity-and-unit-mapping' && (
             <div className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-6 space-y-6">
               <div className="flex justify-between items-center border-b border-zinc-800/80 pb-3">
@@ -233,6 +246,9 @@ export function LessonViewerPage() {
               initialPriority={demoState.values.wallPriority}
             />
           )}
+
+          {/* Interactive CAD Diagram & Rebar View */}
+          <CADDiagramViewer />
         </div>
       </div>
     </PageContainer>

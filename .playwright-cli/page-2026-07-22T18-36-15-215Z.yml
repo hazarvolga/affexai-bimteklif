@@ -1,0 +1,143 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - link "BIMPlan Academy ana sayfa" [ref=e5] [cursor=pointer]:
+        - /url: "#top"
+        - generic [ref=e6]: BP
+        - generic [ref=e7]: BIMPlan Academy
+      - generic [ref=e8]:
+        - link "Nasıl çalışır?" [ref=e9] [cursor=pointer]:
+          - /url: "#workflow"
+        - link "Academy" [ref=e10] [cursor=pointer]:
+          - /url: /academy
+        - link "Pilot programı" [ref=e11] [cursor=pointer]:
+          - /url: "#pilot"
+        - button "Giriş yap" [ref=e12]
+        - button "Pilot metrajınızı doğrulayın" [ref=e13]
+    - main [ref=e14]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: "BIMPlan Academy · İlk ticari ürün: TeklifPro"
+        - heading "Teklifinizi tahminle değil, kanıtla gönderin." [level=1] [ref=e20]:
+          - text: Teklifinizi tahminle değil,
+          - generic [ref=e21]: kanıtla gönderin.
+        - paragraph [ref=e22]: Her teklif kaleminin miktarını, fiyatını, kuralını ve kaynağını gönderilmeden önce kontrol edin. MEP teklif ekipleri için Excel/CSV-first, insan onaylı çalışma alanı.
+        - generic [ref=e23]:
+          - button "Pilot metrajınızı doğrulayın" [ref=e24]
+          - link "Ürün akışını görün" [ref=e25] [cursor=pointer]:
+            - /url: "#workflow"
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - paragraph [ref=e28]: TeklifPro
+            - paragraph [ref=e29]: Teklif ve metraj çalışma alanı
+          - generic [ref=e30]:
+            - paragraph [ref=e31]: SmartCheck
+            - paragraph [ref=e32]: Kalite kontrol katmanı
+          - generic [ref=e33]:
+            - paragraph [ref=e34]: Akademi
+            - paragraph [ref=e35]: Ekiplerin kullanımını güçlendirir
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: TEKLİFTE GÖRÜNMEYEN RİSK
+          - heading "Bir hücre hatası, marjınızı ve güveninizi tüketebilir." [level=2] [ref=e40]
+          - paragraph [ref=e41]: Dağınık metraj tabloları; yanlış birim, mükerrer poz, kaynaksız fiyat ve kontrolsüz zayiatla teklif revizyonlarını büyütür. SmartCheck, hatayı saklamak yerine kaynağıyla görünür kılar.
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: Kaynaksız miktar
+            - paragraph [ref=e45]: Hangi sheet ve hücreden geldiği bilinmeyen değerler
+          - generic [ref=e46]:
+            - paragraph [ref=e47]: Mükerrer kalem
+            - paragraph [ref=e48]: Aynı pozun iki kez maliyete ve satışa yansıması
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: Birim uyuşmazlığı
+            - paragraph [ref=e51]: m, m², m³ ve adet dönüşümlerinde sessiz kayıp
+          - generic [ref=e52]:
+            - paragraph [ref=e53]: Kontrolsüz zayiat
+            - paragraph [ref=e54]: Şirket limitini aşan maliyet varsayımları
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - paragraph [ref=e58]: "İLK ODAK: GELİR ÜRETEN İŞ AKIŞI"
+          - heading "Teklif hazırlamayı ölçülebilir bir sürece çevirin." [level=2] [ref=e59]
+          - paragraph [ref=e60]: TeklifPro'nun ilk sürümünde geniş bir platform sözü vermiyoruz. Bir ekibin gerçek teklifini daha hızlı, izlenebilir ve kontrol edilebilir biçimde tamamlamasına odaklanıyoruz.
+        - generic [ref=e61]:
+          - article [ref=e62]:
+            - generic [ref=e63]: "01"
+            - heading "Metrajı düzenleyin" [level=3] [ref=e69]
+            - paragraph [ref=e70]: Kalem, miktar, birim ve maliyet bilgilerini tek çalışma alanında toplayın.
+          - article [ref=e71]:
+            - generic [ref=e72]: "02"
+            - heading "Teklifi kontrol edin" [level=3] [ref=e79]
+            - paragraph [ref=e80]: Eksik, uyumsuz veya tekrar eden kalemleri gözden geçirin; insan onayını koruyun.
+          - article [ref=e81]:
+            - generic [ref=e82]: "03"
+            - heading "Kârlılıkla gönderin" [level=3] [ref=e88]
+            - paragraph [ref=e89]: Maliyet ve marjı görün, profesyonel teklif çıktısını hazırlayın ve süreci izleyin.
+      - generic [ref=e91]:
+        - paragraph [ref=e92]: GERÇEK KANIT MEKANİZMASI
+        - heading "Her aktarılan kalem, teklifin içine kaynak iziyle girer." [level=2] [ref=e93]
+        - generic [ref=e94]:
+          - article [ref=e95]:
+            - heading "Kaynak hücre" [level=3] [ref=e99]
+            - paragraph [ref=e100]: Sheet adı, satır ve hücre aralığı
+          - article [ref=e101]:
+            - heading "Kural sürümü" [level=3] [ref=e105]
+            - paragraph [ref=e106]: Kontrolün hangi pilot kuralla yapıldığı
+          - article [ref=e107]:
+            - heading "İnsan onayı" [level=3] [ref=e111]
+            - paragraph [ref=e112]: Reviewer kararı ve karar zamanı
+          - article [ref=e113]:
+            - heading "Ölçülebilir sonuç" [level=3] [ref=e117]
+            - paragraph [ref=e118]: Aktarım öncesi bulgu ve hazırlama süresi
+      - generic [ref=e120]:
+        - paragraph [ref=e121]: GÜVEN SINIRLARI
+        - heading "Otomasyon önerir; mühendislik kararı kullanıcıda kalır." [level=2] [ref=e122]
+        - paragraph [ref=e123]: Pilot sürüm Excel/CSV metraj bütünlüğüne odaklanır. PDF/IFC computer vision, otomatik mühendislik onayı, sıfır hata veya tam mevzuat uyumu iddiasında bulunmaz. TS 500, TS 708, ÇŞİDB/YFK ve vergi kuralları resmî kaynak ve teknik reviewer onayı gelene kadar yalnız taslak/öneri statüsündedir.
+      - generic [ref=e125]:
+        - generic [ref=e126]:
+          - paragraph [ref=e127]: BIMPLAN ACADEMY ÇATISI
+          - heading "Önce teklif. Sonra kalite ve yetkinlik." [level=2] [ref=e128]
+          - paragraph [ref=e129]: BIMPlan Academy, birbirinden kopuk ürünler toplamı değil; inşaat ekiplerinin daha iyi iş üretmesine yardım eden bir ürün ailesidir. Ticari giriş noktamız TeklifPro'dur.
+        - generic [ref=e130]:
+          - article [ref=e131]:
+            - generic [ref=e132]: Şimdi
+            - heading "TeklifPro" [level=3] [ref=e138]
+            - paragraph [ref=e139]: Metraj, teklif, PDF ve kârlılık akışının ilk ticari ürünü.
+          - article [ref=e140]:
+            - generic [ref=e141]: Pilot kapsamı
+            - heading "SmartCheck" [level=3] [ref=e147]
+            - paragraph [ref=e148]: Teklifteki kontrol noktalarını görünür kılan kalite katmanı.
+          - article [ref=e149]:
+            - generic [ref=e150]: Enablement
+            - heading "Akademi" [level=3] [ref=e156]
+            - paragraph [ref=e157]: Ekiplerin ürünü doğru ve sürekli kullanmasına yardımcı olur.
+          - article [ref=e158]:
+            - generic [ref=e159]: İleri aşama
+            - heading "BIMPLAN" [level=3] [ref=e165]
+            - paragraph [ref=e166]: Standartlar ve kaynaklar için uzun vadeli kurumsal çatı.
+      - generic [ref=e168]:
+        - generic [ref=e169]:
+          - paragraph [ref=e170]: KONTROLLÜ İLK ADIM
+          - heading "İlk pilot ekipler için birlikte kurulum." [level=2] [ref=e171]
+          - paragraph [ref=e172]: Pilot sürecinde hedefimiz özellik sayısını artırmak değil; ekibinizin gerçek bir teklifi başarıyla tamamlaması ve sonucu ölçebilmek. Kapsam, onboarding ve fiyat görüşmede netleştirilir.
+        - button "Pilot metrajınızı doğrulayın" [ref=e173]
+    - contentinfo [ref=e174]:
+      - generic [ref=e175]:
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - generic [ref=e178]: BP
+            - text: BIMPlan Academy
+          - paragraph [ref=e179]: İnşaat ekipleri için daha hızlı teklif, daha görünür kalite ve daha güçlü yetkinlik.
+        - generic [ref=e180]:
+          - heading "Ürün" [level=3] [ref=e181]
+          - link "TeklifPro akışı" [ref=e182] [cursor=pointer]:
+            - /url: "#workflow"
+          - link "BIMPlan Academy" [ref=e183] [cursor=pointer]:
+            - /url: /academy
+          - link "Pilot programı" [ref=e184] [cursor=pointer]:
+            - /url: "#pilot"
+        - generic [ref=e185]:
+          - heading "İletişim" [level=3] [ref=e186]
+          - link "info@teklifpro.ai" [ref=e187] [cursor=pointer]:
+            - /url: mailto:info@teklifpro.ai
+          - generic [ref=e188]: İstanbul, Türkiye
+      - generic [ref=e189]: © 2026 BIMPlan Academy. TeklifPro, BIMPlan Academy çatısı altında geliştirilir.
+  - region "Notifications alt+T"

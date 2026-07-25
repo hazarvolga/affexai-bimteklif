@@ -1,0 +1,132 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e33]:
+      - complementary [ref=e34]:
+        - link "TP TeklifPro Intelligence" [ref=e36] [cursor=pointer]:
+          - /url: /app
+          - generic [ref=e37]: TP
+          - generic [ref=e38]:
+            - generic [ref=e39]: TeklifPro
+            - generic [ref=e40]: Intelligence
+        - navigation [ref=e41]:
+          - link "Dashboard" [ref=e42] [cursor=pointer]:
+            - /url: /app
+          - link "Teklifler" [ref=e48] [cursor=pointer]:
+            - /url: /app/quotes
+          - link "Müşteriler" [ref=e52] [cursor=pointer]:
+            - /url: /app/clients
+          - link "CRM Pipeline" [ref=e58] [cursor=pointer]:
+            - /url: /app/crm
+          - link "Pilot Başvuruları" [ref=e63] [cursor=pointer]:
+            - /url: /app/pilot-applications
+          - link "AI Asistan" [ref=e67] [cursor=pointer]:
+            - /url: /app/ai
+          - link "Mevzuat" [ref=e71] [cursor=pointer]:
+            - /url: /app/regulations
+          - link "SmartCheck" [active] [ref=e74] [cursor=pointer]:
+            - /url: /app/smartcheck
+          - link "Akademi" [ref=e77] [cursor=pointer]:
+            - /url: /app/academy
+          - link "Kârlılık" [ref=e80] [cursor=pointer]:
+            - /url: /app/profitability
+          - link "Faturalandırma" [ref=e83] [cursor=pointer]:
+            - /url: /app/billing
+          - link "Ayarlar" [ref=e86] [cursor=pointer]:
+            - /url: /app/settings
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - paragraph [ref=e93]: WORKSPACE
+            - paragraph [ref=e94]: TeklifPro Demo Şirketi
+          - button "ÇIKIŞ YAP" [ref=e95]
+      - main [ref=e96]:
+        - generic [ref=e97]:
+          - generic [ref=e99]:
+            - generic [ref=e100]: SİSTEM DURUMU
+            - generic [ref=e101]:
+              - generic [ref=e102]: "USD: 32.42 ₺"
+              - generic [ref=e104]: "EUR: 35.15 ₺"
+          - generic [ref=e106]:
+            - generic [ref=e107]:
+              - generic [ref=e108]:
+                - generic [ref=e109]: AKTİF KULLANICI
+                - generic [ref=e110]: Admin Kullanıcı
+              - generic [ref=e111]: A
+            - link [ref=e112] [cursor=pointer]:
+              - /url: /app/quotes/new
+              - button "YENİ TEKLİF" [ref=e113]
+        - generic [ref=e326]:
+          - generic [ref=e328]:
+            - heading "SmartCheck Kalite Kontrolü" [level=1] [ref=e330]
+            - paragraph [ref=e331]: Teklif ve metraj satırlarınızı kaynak, birim ve maliyet bütünlüğü açısından insan onayıyla denetleyin.
+          - generic [ref=e332]:
+            - generic [ref=e333]:
+              - generic [ref=e334]:
+                - paragraph [ref=e335]: Evidence-first pilot
+                - heading "Excel/CSV SmartCheck çalışma alanı" [level=2] [ref=e336]
+                - paragraph [ref=e337]: Yükle → kolonları eşle → bulguları incele → onaylı satırları aktar.
+              - generic [ref=e338]: Dosya bekleniyor
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e341] [cursor=pointer]:
+                  - generic [ref=e345]: XLSX veya CSV seçin (en fazla 25 MB)
+                  - button "XLSX veya CSV seçin (en fazla 25 MB)" [ref=e346]
+                - generic [ref=e347]:
+                  - textbox "positionCode" [ref=e348]: Poz No
+                  - textbox "description" [ref=e349]: Açıklama
+                  - textbox "unit" [ref=e350]: Birim
+                  - textbox "quantity" [ref=e351]: Miktar
+                  - textbox "price" [ref=e352]: Birim Fiyat
+                  - textbox "wastePercent" [ref=e353]: Zayiat
+                - button "Yükle ve doğrula" [disabled]
+              - generic [ref=e354]: Normalize edilmiş satırlar ve kaynak hücre kanıtları burada görünecek.
+          - generic [ref=e358]:
+            - generic [ref=e361]:
+              - generic [ref=e362]: SmartCheck v1.0.0
+              - heading "Kanıta Dayalı Metraj & Teklif Kontrolü" [level=2] [ref=e363]
+              - paragraph [ref=e364]: Pilot akışta teklif satırlarını, poz kodlarını, birimleri ve kaynak bilgisini inceleyin. Demo bulguları mühendislik onayı değildir; gerçek dosya aktarımı kullanıcı incelemesiyle tamamlanır.
+              - generic [ref=e365]:
+                - button "Demo Denetimi Başlat" [ref=e366]
+                - link [ref=e367] [cursor=pointer]:
+                  - /url: /app/quotes
+                  - button "Teklifleri Listele" [ref=e368]
+            - generic [ref=e369]:
+              - generic [ref=e370]:
+                - generic [ref=e371]: Genel İstatistikler
+                - generic [ref=e373]:
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: Son Denetim Tarihi
+                    - generic [ref=e376]: Bulunmuyor
+                  - generic [ref=e377]:
+                    - generic [ref=e378]: Toplam Bulgular
+                    - generic [ref=e379]: 0 adet
+                  - generic [ref=e380]:
+                    - generic [ref=e381]: Ortalama Çözüm Hızı
+                    - generic [ref=e382]: 12 Dk
+              - generic [ref=e383]:
+                - generic [ref=e384]: En Sık Karşılaşılan Hatalar
+                - generic [ref=e386]:
+                  - generic [ref=e387]:
+                    - generic [ref=e388]: Poz/Birim
+                    - generic [ref=e391]: 42 Kez
+                  - generic [ref=e392]:
+                    - generic [ref=e393]: Paspayı
+                    - generic [ref=e396]: 28 Kez
+          - generic [ref=e397]:
+            - heading "Neden SmartCheck?" [level=3] [ref=e398]
+            - generic [ref=e399]:
+              - generic [ref=e400]:
+                - heading "Hızlı & Güvenli Tespit" [level=4] [ref=e404]
+                - paragraph [ref=e405]: Proje tekliflerindeki birim, poz, miktar ve kaynak tutarsızlıklarını deterministik kontrollerle görünür kılar.
+              - generic [ref=e406]:
+                - heading "Mühendislik Standartları" [level=4] [ref=e410]
+                - paragraph [ref=e411]: Donatı detaylandırma demo simülasyonunu ve paspayı toleranslarını kontrol etmek üzere interaktif kurallar sunar.
+              - generic [ref=e412]:
+                - heading "Akademi Desteği" [level=4] [ref=e417]
+                - paragraph [ref=e418]: Hata tespit edilen alanlarda doğrudan o hatayı çözmeye yönelik interaktif simülatörler ve dersler atar.
+        - generic [ref=e308]:
+          - generic [ref=e309]:
+            - generic [ref=e310]: © 2026 TeklifPro AI
+            - generic [ref=e311]: SaaS Layer v1.0.4
+          - generic [ref=e313]: GÜVENLİ BAĞLANTI AKTİF
+    - region "Notifications alt+T"
+  - generic [ref=e322]: "0"

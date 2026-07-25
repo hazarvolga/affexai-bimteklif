@@ -1,0 +1,286 @@
+- generic [ref=f66e2]:
+  - generic [ref=f66e3]:
+    - complementary [ref=f66e4]:
+      - link "TP TeklifPro Intelligence" [ref=f66e6] [cursor=pointer]:
+        - /url: /app
+        - generic [ref=f66e7]: TP
+        - generic [ref=f66e8]:
+          - generic [ref=f66e9]: TeklifPro
+          - generic [ref=f66e10]: Intelligence
+      - navigation [ref=f66e11]:
+        - link "Dashboard" [ref=f66e12] [cursor=pointer]:
+          - /url: /app
+        - link "Teklifler" [ref=f66e18] [cursor=pointer]:
+          - /url: /app/quotes
+        - link "Müşteriler" [ref=f66e22] [cursor=pointer]:
+          - /url: /app/clients
+        - link "CRM Pipeline" [ref=f66e28] [cursor=pointer]:
+          - /url: /app/crm
+        - link "Pilot Başvuruları" [ref=f66e33] [cursor=pointer]:
+          - /url: /app/pilot-applications
+        - link "AI Asistan" [ref=f66e37] [cursor=pointer]:
+          - /url: /app/ai
+        - link "Mevzuat" [ref=f66e41] [cursor=pointer]:
+          - /url: /app/regulations
+        - link "Piyasa Verisi" [ref=f66e44] [cursor=pointer]:
+          - /url: /app/market-intelligence
+        - link "Pilot Kanıtı" [ref=f66e47] [cursor=pointer]:
+          - /url: /app/pilot-evidence
+        - link "SmartCheck" [ref=f66e52] [cursor=pointer]:
+          - /url: /app/smartcheck
+        - link "Akademi" [ref=f66e55] [cursor=pointer]:
+          - /url: /app/academy
+        - link "Kârlılık" [ref=f66e58] [cursor=pointer]:
+          - /url: /app/profitability
+        - link "Faturalandırma" [ref=f66e61] [cursor=pointer]:
+          - /url: /app/billing
+        - link "Ayarlar" [ref=f66e64] [cursor=pointer]:
+          - /url: /app/settings
+      - generic [ref=f66e68]:
+        - generic [ref=f66e69]:
+          - paragraph [ref=f66e71]: WORKSPACE
+          - paragraph [ref=f66e72]: TeklifPro Demo Şirketi
+        - button "ÇIKIŞ YAP" [ref=f66e73]
+    - main [ref=f66e74]:
+      - generic [ref=f66e75]:
+        - generic [ref=f66e77]:
+          - generic [ref=f66e78]: SİSTEM DURUMU
+          - generic [ref=f66e79]:
+            - generic [ref=f66e80]: "USD: 32.42 ₺"
+            - generic [ref=f66e82]: "EUR: 35.15 ₺"
+        - generic [ref=f66e84]:
+          - generic [ref=f66e85]:
+            - generic [ref=f66e86]:
+              - generic [ref=f66e87]: AKTİF KULLANICI
+              - generic [ref=f66e88]: Admin Kullanıcı
+            - generic [ref=f66e89]: A
+          - link [ref=f66e90] [cursor=pointer]:
+            - /url: /app/quotes/new
+            - button "YENİ TEKLİF" [ref=f66e91]
+      - generic [ref=f66e402]:
+        - generic [ref=f66e403]:
+          - generic [ref=f66e404]:
+            - generic [ref=f66e405]:
+              - button "Tekliflere Dön" [ref=f66e406]
+              - heading "SmartCheck MEP Pilot" [level=1] [ref=f66e415]
+            - paragraph [ref=f66e416]: "Teklif No: #SC-PILOT-001 | V1"
+          - generic [ref=f66e418]:
+            - button "PDF Dosyası" [ref=f66e419]
+            - button "Gönderildi Olarak İşaretle" [ref=f66e420]
+            - button "Yeni Revizyon Oluştur" [ref=f66e421]
+        - generic [ref=f66e422]:
+          - generic [ref=f66e423]:
+            - generic [ref=f66e424]:
+              - generic [ref=f66e430]:
+                - paragraph [ref=f66e431]: Düzenleme Tarihi
+                - paragraph [ref=f66e432]: 22.07.2026
+              - generic [ref=f66e439]:
+                - paragraph [ref=f66e440]: Geçerlilik Tarihi
+                - paragraph [ref=f66e441]: 22.08.2026
+              - generic [ref=f66e448]:
+                - paragraph [ref=f66e449]: Süre / Durum
+                - generic [ref=f66e450]:
+                  - generic [ref=f66e451]: 1 ay · %0 eskalasyon · %0 karbon · none teslim
+                  - generic [ref=f66e452]: TASLAK
+            - generic [ref=f66e454]:
+              - generic [ref=f66e456]:
+                - heading "Kalibrasyon Gözlemi" [level=2] [ref=f66e457]
+                - paragraph [ref=f66e458]: Proje kapandıktan sonra gerçekleşen maliyet ve süreyi kaydedin. Bu alan sonraki katsayı incelemeleri için kullanılır.
+              - generic [ref=f66e461]:
+                - generic [ref=f66e462]:
+                  - generic [ref=f66e463]:
+                    - text: Gerçekleşen toplam maliyet
+                    - 'spinbutton "Para birimi: TRY" [ref=f66e464]'
+                  - generic [ref=f66e465]:
+                    - text: Gerçekleşen süre (ay)
+                    - spinbutton "Örn. 18" [ref=f66e466]
+                - textbox "Katsayı incelemesine yardımcı olacak kısa not..." [ref=f66e467]
+                - button "Gözlemi Kaydet" [ref=f66e468]
+            - generic [ref=f66e469]:
+              - generic [ref=f66e471]:
+                - heading "Finansal Zeka Paneli" [level=2] [ref=f66e472]
+                - paragraph [ref=f66e473]: AI tarafından oluşturulan kârlılık ve risk analiz raporu.
+              - generic [ref=f66e475]:
+                - generic [ref=f66e477]:
+                  - generic [ref=f66e478]: Kârlılık ve Risk Analizi
+                  - button "YENİLE" [ref=f66e482]
+                - generic [ref=f66e484]:
+                  - generic [ref=f66e485]:
+                    - generic [ref=f66e486]:
+                      - paragraph [ref=f66e487]: Toplam Maliyet
+                      - paragraph [ref=f66e488]: 94,878 TRY
+                    - generic [ref=f66e489]:
+                      - paragraph [ref=f66e490]: Brüt Kâr
+                      - paragraph [ref=f66e491]: 11,797 TRY
+                    - generic [ref=f66e492]:
+                      - paragraph [ref=f66e493]: Kâr Marjı
+                      - generic [ref=f66e494]:
+                        - paragraph [ref=f66e495]: "%11.06"
+                        - generic [ref=f66e496]: "%11.06 MARJ"
+                    - generic [ref=f66e502]:
+                      - paragraph [ref=f66e503]: Risk Skoru
+                      - generic [ref=f66e504]:
+                        - generic [ref=f66e505]:
+                          - generic [ref=f66e506]: MEDIUM
+                          - generic [ref=f66e507]: 40/100
+                        - progressbar [ref=f66e508]
+                  - generic [ref=f66e510]:
+                    - generic [ref=f66e511]:
+                      - paragraph [ref=f66e512]: AI Finansal Öngörü
+                      - paragraph [ref=f66e515]: "\"Analiz ediliyor...\""
+                    - generic [ref=f66e516]:
+                      - paragraph [ref=f66e517]: Zaman Risk Primi
+                      - paragraph [ref=f66e518]: 0 TRY · 1 ay × %0
+                      - paragraph [ref=f66e519]: Karbon/Tedarik Risk Primi
+                      - paragraph [ref=f66e520]: 0 TRY · %0 senaryo katsayısı
+                      - paragraph [ref=f66e521]: Bilgi Teslim Maliyeti
+                      - paragraph [ref=f66e522]: 0 TRY · %0 kapsam katsayısı
+                      - paragraph [ref=f66e523]: Maliyet Bazlı Fiyat Aralıkları
+                      - generic [ref=f66e524]:
+                        - generic [ref=f66e525]:
+                          - generic [ref=f66e526]: Minimum Güvenli
+                          - generic [ref=f66e527]: 104,366 TRY
+                        - generic [ref=f66e528]:
+                          - generic [ref=f66e529]: Rekabetçi Piyasa
+                          - generic [ref=f66e530]: 113,854 TRY
+                        - generic [ref=f66e531]:
+                          - generic [ref=f66e532]: Optimum Kârlılık
+                          - generic [ref=f66e533]: 123,341 TRY
+            - generic [ref=f66e534]:
+              - generic [ref=f66e536]:
+                - heading "Fiyat kanıtı" [level=2] [ref=f66e537]
+                - paragraph [ref=f66e538]: Teklifte kullanılan fiyatların kaynağını, geçerlilik tarihini ve kilit durumunu gösterir.
+              - generic [ref=f66e542]:
+                - generic [ref=f66e543]:
+                  - generic [ref=f66e544]: Fiyat kanıtı kilitli değil
+                  - button "YENİLE" [ref=f66e549]
+                - generic [ref=f66e550]: 6 kalemde fiyat snapshot eksik veya süresi geçmiş. Göndermeden önce kaynak kanıtını tamamlayın.
+                - generic [ref=f66e554]:
+                  - generic [ref=f66e556]:
+                    - generic [ref=f66e557]:
+                      - paragraph [ref=f66e558]: Pilot başlangıç kalemi
+                      - paragraph [ref=f66e559]: 1.0000 adet
+                    - generic [ref=f66e560]: EKSİK
+                  - generic [ref=f66e562]:
+                    - generic [ref=f66e563]:
+                      - paragraph [ref=f66e564]: Havalandırma kanalı
+                      - paragraph [ref=f66e565]: 125.5000 m²
+                    - generic [ref=f66e566]: EKSİK
+                  - generic [ref=f66e568]:
+                    - generic [ref=f66e569]:
+                      - paragraph [ref=f66e570]: Yangın damperi
+                      - paragraph [ref=f66e571]: 18.0000 adet
+                    - generic [ref=f66e572]: EKSİK
+                  - generic [ref=f66e574]:
+                    - generic [ref=f66e575]:
+                      - paragraph [ref=f66e576]: VRF dış ünite
+                      - paragraph [ref=f66e577]: 4.0000 adet
+                    - generic [ref=f66e578]: EKSİK
+                  - generic [ref=f66e580]:
+                    - generic [ref=f66e581]:
+                      - paragraph [ref=f66e582]: Bakır boru hattı
+                      - paragraph [ref=f66e583]: 248.5000 m
+                    - generic [ref=f66e584]: EKSİK
+                  - generic [ref=f66e586]:
+                    - generic [ref=f66e587]:
+                      - paragraph [ref=f66e588]: Havalandırma kanalı
+                      - paragraph [ref=f66e589]: 1240.0000 m²
+                    - generic [ref=f66e590]: EKSİK
+            - generic [ref=f66e591]:
+              - generic [ref=f66e593]:
+                - heading "Teklif Kalemleri" [level=2] [ref=f66e594]
+                - paragraph [ref=f66e595]: Detaylı ürün ve hizmet dökümü.
+              - generic [ref=f66e596]:
+                - generic [ref=f66e597]:
+                  - paragraph [ref=f66e598]: "SmartCheck: inceleme gerekli"
+                  - paragraph [ref=f66e599]: Bu kontrol kaynak izlenebilirliğini gösterir; mühendislik veya mevzuat uygunluğu kararı değildir. 1 uyarı bulundu.
+                  - link "BIM Basics & openBIM dersini aç" [ref=f66e601] [cursor=pointer]:
+                    - /url: /app/academy/allplan/lesson/bim-basics-openbim?returnTo=%2Fapp%2Fquotes%2F410ee0a7-93e9-4df8-bca2-39491c90d52c
+                - generic [ref=f66e607]:
+                  - table [ref=f66e609]:
+                    - rowgroup [ref=f66e610]:
+                      - row [ref=f66e611]:
+                        - columnheader "Açıklama" [ref=f66e612]
+                        - columnheader "Birim" [ref=f66e613]
+                        - columnheader "Miktar" [ref=f66e614]
+                        - columnheader "Satış Birim" [ref=f66e615]
+                        - columnheader "Maliyet Birim" [ref=f66e616]
+                        - columnheader "Zayiat" [ref=f66e617]
+                        - columnheader "Toplam" [ref=f66e618]
+                    - rowgroup [ref=f66e619]:
+                      - row [ref=f66e620]:
+                        - cell "Pilot başlangıç kalemi" [ref=f66e621]
+                        - cell "adet" [ref=f66e622]
+                        - cell "1.0000" [ref=f66e623]
+                        - cell "0 TRY" [ref=f66e624]
+                        - cell "0 TRY" [ref=f66e625]
+                        - cell "%0" [ref=f66e626]
+                        - cell "0 TRY" [ref=f66e627]
+                      - row [ref=f66e628]:
+                        - cell "Havalandırma kanalı" [ref=f66e629]
+                        - cell "m²" [ref=f66e630]
+                        - cell "125.5000" [ref=f66e631]
+                        - cell "850 TRY" [ref=f66e632]
+                        - cell "700 TRY" [ref=f66e633]
+                        - cell "%8" [ref=f66e634]
+                        - cell "106.675 TRY" [ref=f66e635]
+                      - row [ref=f66e636]:
+                        - cell "Yangın damperi" [ref=f66e637]
+                        - cell "adet" [ref=f66e638]
+                        - cell "18.0000" [ref=f66e639]
+                        - cell "4.750 TRY" [ref=f66e640]
+                        - cell "4.750 TRY" [ref=f66e641]
+                        - cell "%0" [ref=f66e642]
+                        - cell "85.500 TRY" [ref=f66e643]
+                      - row [ref=f66e644]:
+                        - cell "VRF dış ünite" [ref=f66e645]
+                        - cell "adet" [ref=f66e646]
+                        - cell "4.0000" [ref=f66e647]
+                        - cell "185.000 TRY" [ref=f66e648]
+                        - cell "185.000 TRY" [ref=f66e649]
+                        - cell "%0" [ref=f66e650]
+                        - cell "740.000 TRY" [ref=f66e651]
+                      - row [ref=f66e652]:
+                        - cell "Bakır boru hattı" [ref=f66e653]
+                        - cell "m" [ref=f66e654]
+                        - cell "248.5000" [ref=f66e655]
+                        - cell "1.245 TRY" [ref=f66e656]
+                        - cell "1.245 TRY" [ref=f66e657]
+                        - cell "%0" [ref=f66e658]
+                        - cell "309.382,5 TRY" [ref=f66e659]
+                      - row [ref=f66e660]:
+                        - cell "Havalandırma kanalı" [ref=f66e661]
+                        - cell "m²" [ref=f66e662]
+                        - cell "1240.0000" [ref=f66e663]
+                        - cell "850 TRY" [ref=f66e664]
+                        - cell "850 TRY" [ref=f66e665]
+                        - cell "%0" [ref=f66e666]
+                        - cell "1.054.000 TRY" [ref=f66e667]
+                  - generic [ref=f66e669]:
+                    - generic [ref=f66e670]:
+                      - generic [ref=f66e671]: ARA TOPLAM
+                      - generic [ref=f66e672]: 2.295.557,5 TRY
+                    - generic [ref=f66e673]:
+                      - generic [ref=f66e674]: İNDİRİM
+                      - generic [ref=f66e675]: "-0 TRY"
+                    - generic [ref=f66e676]:
+                      - generic [ref=f66e677]: KDV
+                      - generic [ref=f66e678]: 459.111,5 TRY
+                    - separator [ref=f66e679]
+                    - generic [ref=f66e680]:
+                      - generic [ref=f66e681]: GENEL TOPLAM
+                      - generic [ref=f66e682]: 2.754.669 TRY
+          - generic [ref=f66e683]:
+            - generic [ref=f66e684]: Revizyon Geçmişi
+            - generic [ref=f66e691]:
+              - generic [ref=f66e692]: Compliance AI
+              - paragraph [ref=f66e702]: Mevzuat Uyumluluk Tamam
+            - generic [ref=f66e703]:
+              - generic [ref=f66e704]: Veri Güvenliği
+              - paragraph [ref=f66e711]: Bu teklif çoklu şirket mimarisi ile korunmaktadır. Bu veriye yalnızca yetkili şirket personeli erişebilir.
+      - generic [ref=f66e198]:
+        - generic [ref=f66e199]:
+          - generic [ref=f66e200]: © 2026 TeklifPro AI
+          - generic [ref=f66e201]: SaaS Layer v1.0.4
+        - generic [ref=f66e203]: GÜVENLİ BAĞLANTI AKTİF
+  - region "Notifications alt+T"

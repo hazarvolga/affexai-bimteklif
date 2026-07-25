@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6D BIM: Sürdürülebilirlik ve Enerji Analizi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary: #064E3B;
+            --secondary: #0EA5E9;
+            --accent: #10B981;
+            --bg-light: #F8FAFC;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: #1E293B;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .module-step {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .module-step.active {
+            background-color: white;
+            border-left-color: var(--accent);
+            box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-emerald-900 rounded flex items-center justify-center text-emerald-400 font-bold">6D</div>
+                <span class="font-bold tracking-tight text-slate-800 uppercase text-sm">BIM Sustainability Portal</span>
+            </div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Master Curriculum Deep-Dive</div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        
+        <!-- Bölüm 1: 6D Vizyonu ve Giriş -->
+        <header class="mb-20">
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">6D Sürdürülebilirlik <br><span class="text-emerald-600">Analizi ve Yönetimi</span></h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    6D BIM, bir yapının 3 boyutlu geometrisinin ötesine geçerek; enerji tüketimi, karbon emisyonu ve yaşam döngüsü maliyetlerini içeren <b>çevresel verileri</b> modele entegre eder. Bu modül, tasarımın ilk aşamasından yıkım aşamasına kadar olan tüm "yeşil" süreçleri akademik bir metodolojiyle detaylandırır.
+                </p>
+            </div>
+        </header>
+
+        <div class="grid lg:grid-cols-12 gap-12">
+            <!-- Sol: Modül Listesi -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">6D Müfredat Maddeleri</h3>
+                    <p class="text-xs text-slate-500 mt-1 italic">Her bir maddeyi detaylı incelemek için üzerine tıklayın.</p>
+                </div>
+
+                <div onclick="updateDetail(0)" id="step-0" class="module-step active p-6 rounded-2xl cursor-pointer">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">6D.1 Enerji Performans Simülasyonu</h4>
+                        <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">Modül 01</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">BEM (Building Energy Modeling) ve pasif tasarım stratejileri.</p>
+                </div>
+
+                <div onclick="updateDetail(1)" id="step-1" class="module-step p-6 rounded-2xl cursor-pointer">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">6D.2 Yaşam Döngüsü Analizi (LCA)</h4>
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Modül 02</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Beşikten mezara çevresel etki ve malzeme seçimi.</p>
+                </div>
+
+                <div onclick="updateDetail(2)" id="step-2" class="module-step p-6 rounded-2xl cursor-pointer">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">6D.3 Karbon Ayak İzi Analizi</h4>
+                        <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Modül 03</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Gömülü karbon (Embodied) ve Operasyonel karbon yönetimi.</p>
+                </div>
+
+                <div onclick="updateDetail(3)" id="step-3" class="module-step p-6 rounded-2xl cursor-pointer">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">6D.4 Sertifikasyon Entegrasyonu</h4>
+                        <span class="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">Modül 04</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">LEED, BREEAM ve EDGE standartları için veri hazırlığı.</p>
+                </div>
+
+                <div onclick="updateDetail(4)" id="step-4" class="module-step p-6 rounded-2xl cursor-pointer">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800">6D.5 Operasyonel Verimlilik</h4>
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Modül 05</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Enerji izleme, IoT entegrasyonu ve dijital ikiz geri beslemesi.</p>
+                </div>
+            </div>
+
+            <!-- Sağ: Detay Görünümü -->
+            <div class="lg:col-span-7">
+                <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-100 min-h-[600px] flex flex-col">
+                    <div id="content-area">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div id="detail-icon" class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl">💡</div>
+                            <div>
+                                <h2 id="detail-title" class="text-2xl font-bold text-slate-900">Enerji Performans Simülasyonu</h2>
+                                <p id="detail-subtitle" class="text-sm text-slate-400 font-semibold uppercase tracking-wider">Modül 01: Analitik Temeller</p>
+                            </div>
+                        </div>
+
+                        <div class="prose prose-slate max-w-none">
+                            <p id="detail-description" class="text-slate-600 leading-relaxed mb-8">
+                                Bu aşama, BIM modelinin geometrik verilerini (duvar kalınlığı, cam alanı oranı) ve termal özelliklerini (U-değerleri) kullanarak binanın yıllık enerji talebini hesaplar. <b>BEM (Building Energy Modeling)</b> süreçlerini kapsar.
+                            </p>
+                            
+                            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                                <div class="bg-slate-50 p-6 rounded-2xl">
+                                    <h5 class="text-xs font-bold text-emerald-800 uppercase mb-3">Akademik Kapsam</h5>
+                                    <ul id="detail-list-1" class="text-xs space-y-2 text-slate-600">
+                                        <li>• İklim verisi (EPW) analizi</li>
+                                        <li>• Gün ışığı ve gölgeleme simülasyonları</li>
+                                        <li>• Isıtma-Soğutma yükü hesaplamaları</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-slate-50 p-6 rounded-2xl">
+                                    <h5 class="text-xs font-bold text-blue-800 uppercase mb-3">Teknik Standartlar</h5>
+                                    <ul id="detail-list-2" class="text-xs space-y-2 text-slate-600">
+                                        <li>• ISO 52000-1</li>
+                                        <li>• ASHRAE Standard 90.1</li>
+                                        <li>• TS EN ISO 13790</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-6 bg-emerald-900 rounded-3xl text-white">
+                            <h4 class="text-sm font-bold text-emerald-400 mb-2 uppercase">Vaka Analizi Çıktısı</h4>
+                            <p id="detail-insight" class="text-xs text-emerald-100/80 leading-relaxed">
+                                Erken aşama 6D analizi ile bir yapının enerji tüketimi, mimari değişikliklerle %30'a kadar optimize edilebilir.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Grafik Alanı -->
+                    <div class="mt-auto pt-10 border-t border-slate-100">
+                        <div class="chart-container">
+                            <canvas id="detailChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bölüm 2: Veri Akış Simülatörü Girişi -->
+        <section class="mt-32">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4">6D Veri Entegrasyon Döngüsü</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto">Sürdürülebilirlik verisi bir kez girilmez, yapının tüm ömrü boyunca güncellenir. İşte bu veri akışının akademik şeması:</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-[2rem] text-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm font-bold text-emerald-600">1</div>
+                    <h4 class="font-bold mb-3">Veri Toplama (LOI)</h4>
+                    <p class="text-xs text-slate-500">Malzeme EPD (Environmental Product Declaration) belgelerinin modele meta-veri olarak işlenmesi.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-[2rem] text-center border-emerald-200">
+                    <div class="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm font-bold text-white">2</div>
+                    <h4 class="font-bold mb-3">Simülasyon (BEM)</h4>
+                    <p class="text-xs text-slate-500">Geometrinin GBXML veya IFC formatında enerji analiz motorlarına aktarılması ve iterasyonlar.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-[2rem] text-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm font-bold text-emerald-600">3</div>
+                    <h4 class="font-bold mb-3">Optimizasyon</h4>
+                    <p class="text-xs text-slate-500">Çıkan sonuçlara göre malzeme, cam oranı veya mekanik sistemlerin revize edilmesi.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-white py-16 px-6 mt-24">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <h4 class="text-2xl font-bold mb-4">6D Akademik Onayı</h4>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Bu müfredat detayı, **Climate-Neutral Buildings 2050** hedefleri ve **EU Taxonomy** regülasyonları ile uyumlu olarak, yapıların çevresel performansını en üst düzeye çıkarmak için hazırlanmıştır.
+                </p>
+            </div>
+            <div class="flex md:justify-end space-x-4">
+                <div class="px-6 py-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div class="text-2xl font-bold text-emerald-400">LCA</div>
+                    <div class="text-[10px] uppercase font-bold text-slate-500">Uyumlu Veri</div>
+                </div>
+                <div class="px-6 py-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div class="text-2xl font-bold text-emerald-400">BEM</div>
+                    <div class="text-[10px] uppercase font-bold text-slate-500">Entegrasyonu</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const details = [
+            {
+                title: "Enerji Performans Simülasyonu",
+                subtitle: "Modül 01: Analitik Temeller",
+                icon: "💡",
+                desc: "Bu aşama, BIM modelinin geometrik verilerini (duvar kalınlığı, cam alanı oranı) ve termal özelliklerini (U-değerleri) kullanarak binanın yıllık enerji talebini hesaplar. BEM (Building Energy Modeling) süreçlerini kapsar.",
+                list1: ["İklim verisi (EPW) analizi", "Gün ışığı ve gölgeleme simülasyonları", "Isıtma-Soğutma yükü hesaplamaları"],
+                list2: ["ISO 52000-1", "ASHRAE Standard 90.1", "TS EN ISO 13790"],
+                insight: "Erken aşama 6D analizi ile bir yapının enerji tüketimi, mimari değişikliklerle %30'a kadar optimize edilebilir.",
+                chartData: [45, 25, 20, 10],
+                chartLabels: ["Isıtma", "Soğutma", "Aydınlatma", "Ekipman"],
+                chartType: "doughnut"
+            },
+            {
+                title: "Yaşam Döngüsü Analizi (LCA)",
+                subtitle: "Modül 02: Beşikten Mezara Çevresel Etki",
+                icon: "🌍",
+                desc: "Malzemelerin çıkarılmasından, nakliyesine, kullanımına ve geri dönüşümüne kadar olan tüm süreçlerin çevresel etkisinin ölçülmesidir. Karbon salınımı, su ayak izi ve asitifikasyon gibi metrikler incelenir.",
+                list1: ["EPD Veri Tabanı Kullanımı", "Yeniden Kullanım Potansiyeli", "Sökülebilirlik Tasarımı (DfD)"],
+                list2: ["ISO 14040/14044", "EN 15978", "TRACI Metodolojisi"],
+                insight: "Beton ve çelik, bir yapının toplam gömülü karbonunun %60'ından fazlasını oluşturabilir; LCA bu seçimleri rasyonelleştirir.",
+                chartData: [60, 15, 10, 15],
+                chartLabels: ["İmalat", "Nakliye", "İnşaat", "Ömür Sonu"],
+                chartType: "pie"
+            },
+            {
+                title: "Karbon Ayak İzi Analizi",
+                subtitle: "Modül 03: Dekarbonizasyon Stratejisi",
+                icon: "☁️",
+                desc: "Yapı sektörünün küresel CO2 emisyonlarının %40'ından sorumlu olduğu gerçeğinden hareketle, gömülü (embodied) ve operasyonel karbonun minimize edilmesi sürecidir.",
+                list1: ["Global Isınma Potansiyeli (GWP)", "Karbon Dengeleme Yöntemleri", "Düşük Karbonlu Malzeme Seçimi"],
+                list2: ["ISO 16745-1", "GHG Protocol", "PAS 2080"],
+                insight: "2050 'Net Zero' hedefleri için yapısal karbonun modelleme aşamasında denetlenmesi bir zorunluluktur.",
+                chartData: [400, 320, 280, 210, 150],
+                chartLabels: ["Geleneksel", "Hibrit", "Optimize", "Ahşap-Melez", "Net-Zero Tasarım"],
+                chartType: "bar"
+            },
+            {
+                title: "Sertifikasyon Entegrasyonu",
+                subtitle: "Modül 04: Yeşil Bina Derecelendirme",
+                icon: "📜",
+                desc: "BIM modelinin yeşil bina sertifika sistemleri (LEED, BREEAM, DGNB) için gerekli olan verileri otomatik olarak sağlaması sürecidir. Kredi puanlaması için kanıt dosyaları oluşturulur.",
+                list1: ["Kredi Takip Matrisi", "Su Verimliliği Hesapları", "İç Hava Kalitesi Analizi"],
+                list2: ["LEED v4.1 Guide", "BREEAM International", "EDGE Certification"],
+                insight: "Otomatik BIM-Sertifika entegrasyonu, dokümantasyon süresini %40 oranında azaltabilir.",
+                chartData: [20, 30, 25, 25],
+                chartLabels: ["Enerji", "Malzeme", "Su", "Konum"],
+                chartType: "polarArea"
+            },
+            {
+                title: "Operasyonel Verimlilik",
+                subtitle: "Modül 05: Dijital İkiz ve FM",
+                icon: "⚙️",
+                desc: "Yapım sonrası binanın gerçek enerji verilerinin sensörler (IoT) aracılığıyla toplanıp 6D modeliyle karşılaştırılmasıdır. 'Performans Boşluğu' (Performance Gap) bu aşamada giderilir.",
+                list1: ["BMS/EMS Entegrasyonu", "Anomali Tespiti", "Tahminleme Algoritmaları"],
+                list2: ["ISO 19650-3", "COBie Veri Yapısı", "ISO 50001"],
+                insight: "Dijital ikiz ile desteklenen işletme süreçleri, enerji maliyetlerinde yıllık %15-20 tasarruf sağlar.",
+                chartData: [90, 85, 95, 70, 88],
+                chartLabels: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs"],
+                chartType: "line"
+            }
+        ];
+
+        let detailChart;
+
+        function updateDetail(index) {
+            const data = details[index];
+            
+            // UI Güncelleme
+            document.getElementById('detail-title').innerText = data.title;
+            document.getElementById('detail-subtitle').innerText = data.subtitle;
+            document.getElementById('detail-icon').innerText = data.icon;
+            document.getElementById('detail-description').innerText = data.desc;
+            document.getElementById('detail-insight').innerText = data.insight;
+
+            // Listeleri güncelle
+            const l1 = document.getElementById('detail-list-1');
+            const l2 = document.getElementById('detail-list-2');
+            l1.innerHTML = data.list1.map(i => `<li>• ${i}</li>`).join('');
+            l2.innerHTML = data.list2.map(i => `<li>• ${i}</li>`).join('');
+
+            // Aktif Sınıfı Değiştir
+            document.querySelectorAll('.module-step').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+
+            // Grafiği Güncelle
+            renderChart(data);
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('detailChart').getContext('2d');
+            
+            if (detailChart) detailChart.destroy();
+
+            detailChart = new Chart(ctx, {
+                type: data.chartType,
+                data: {
+                    labels: data.chartLabels,
+                    datasets: [{
+                        label: 'Etki Oranı / Değeri',
+                        data: data.chartData,
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(14, 165, 233, 0.6)',
+                            'rgba(55, 65, 81, 0.6)',
+                            'rgba(245, 158, 11, 0.6)',
+                            'rgba(139, 92, 246, 0.6)'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    },
+                    scales: data.chartType === 'bar' || data.chartType === 'line' ? {
+                        y: { beginAtZero: true, grid: { color: '#f1f1f1' } }
+                    } : {
+                        r: { ticks: { display: false } }
+                    }
+                }
+            });
+        }
+
+        window.onload = () => updateDetail(0);
+    </script>
+</body>
+</html>

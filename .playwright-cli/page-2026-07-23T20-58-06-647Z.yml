@@ -1,0 +1,106 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e32]:
+      - complementary [ref=e33]:
+        - link "TP TeklifPro Intelligence" [ref=e35] [cursor=pointer]:
+          - /url: /app
+          - generic [ref=e36]: TP
+          - generic [ref=e37]:
+            - generic [ref=e38]: TeklifPro
+            - generic [ref=e39]: Intelligence
+        - navigation [ref=e40]:
+          - link "Dashboard" [ref=e41] [cursor=pointer]:
+            - /url: /app
+          - link "Teklifler" [active] [ref=e47] [cursor=pointer]:
+            - /url: /app/quotes
+          - link "Müşteriler" [ref=e51] [cursor=pointer]:
+            - /url: /app/clients
+          - link "CRM Pipeline" [ref=e57] [cursor=pointer]:
+            - /url: /app/crm
+          - link "Pilot Başvuruları" [ref=e62] [cursor=pointer]:
+            - /url: /app/pilot-applications
+          - link "AI Asistan" [ref=e66] [cursor=pointer]:
+            - /url: /app/ai
+          - link "Mevzuat" [ref=e70] [cursor=pointer]:
+            - /url: /app/regulations
+          - link "Piyasa Verisi" [ref=e73] [cursor=pointer]:
+            - /url: /app/market-intelligence
+          - link "Pilot Kanıtı" [ref=e76] [cursor=pointer]:
+            - /url: /app/pilot-evidence
+          - link "SmartCheck" [ref=e81] [cursor=pointer]:
+            - /url: /app/smartcheck
+          - link "Akademi" [ref=e84] [cursor=pointer]:
+            - /url: /app/academy
+          - link "Kârlılık" [ref=e87] [cursor=pointer]:
+            - /url: /app/profitability
+          - link "Faturalandırma" [ref=e90] [cursor=pointer]:
+            - /url: /app/billing
+          - link "Ayarlar" [ref=e93] [cursor=pointer]:
+            - /url: /app/settings
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - paragraph [ref=e100]: WORKSPACE
+            - paragraph [ref=e101]: TeklifPro Demo Şirketi
+          - button "ÇIKIŞ YAP" [ref=e102]
+      - main [ref=e103]:
+        - generic [ref=e104]:
+          - generic [ref=e106]:
+            - generic [ref=e107]: SİSTEM DURUMU
+            - generic [ref=e108]:
+              - generic [ref=e109]: "USD: 32.42 ₺"
+              - generic [ref=e111]: "EUR: 35.15 ₺"
+          - generic [ref=e113]:
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - generic [ref=e116]: AKTİF KULLANICI
+                - generic [ref=e117]: Admin Kullanıcı
+              - generic [ref=e118]: A
+            - link [ref=e119] [cursor=pointer]:
+              - /url: /app/quotes/new
+              - button "YENİ TEKLİF" [ref=e120]
+        - generic [ref=e333]:
+          - generic [ref=e334]:
+            - generic [ref=e335]:
+              - heading "Teklifler" [level=1] [ref=e341]
+              - paragraph [ref=e342]: Tüm inşaat ve proje tekliflerinizi buradan yönetin. AI destekli maliyet analizi ve kârlılık takibi ile.
+            - generic [ref=e343]:
+              - button "Dışa Aktar" [ref=e344]
+              - link "Yeni Teklif" [ref=e345] [cursor=pointer]:
+                - /url: /app/quotes/new
+          - generic [ref=e347]:
+            - generic [ref=e348]:
+              - textbox "Tekliflerde ara..." [ref=e353]
+              - button "Filtrele" [ref=e355]
+            - table [ref=e358]:
+              - rowgroup [ref=e359]:
+                - row [ref=e360]:
+                  - columnheader "TEKLİF NO" [ref=e361]
+                  - columnheader "PROJE ADI" [ref=e362]
+                  - columnheader "TARİH" [ref=e363]
+                  - columnheader "TUTAR" [ref=e364]
+                  - columnheader "DURUM" [ref=e365]
+                  - columnheader "İŞLEM" [ref=e366]
+              - rowgroup [ref=e367]:
+                - row [ref=e368] [cursor=pointer]:
+                  - cell "SC-PILOT-001" [ref=e369]
+                  - cell "SmartCheck MEP Pilot" [ref=e370]
+                  - cell "22.07.2026" [ref=e371]
+                  - cell "2.754.669 TRY" [ref=e372]
+                  - cell "TASLAK" [ref=e373]
+                  - cell [ref=e375]:
+                    - button [ref=e376]
+                - row [ref=e377] [cursor=pointer]:
+                  - cell "SC-PILOT-001" [ref=e378]
+                  - cell "SmartCheck MEP Pilot" [ref=e379]
+                  - cell "22.07.2026" [ref=e380]
+                  - cell "2.754.669 TRY" [ref=e381]
+                  - cell "TASLAK" [ref=e382]
+                  - cell [ref=e384]:
+                    - button [ref=e385]
+        - generic [ref=e315]:
+          - generic [ref=e316]:
+            - generic [ref=e317]: © 2026 TeklifPro AI
+            - generic [ref=e318]: SaaS Layer v1.0.4
+          - generic [ref=e320]: GÜVENLİ BAĞLANTI AKTİF
+    - region "Notifications alt+T"
+  - generic [ref=e329]: "0"

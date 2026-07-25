@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeklifX - İnşaat SaaS Strateji Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #fcfcfb; color: #1c1917; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+        
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .nav-item.active { background-color: #f5f5f4; border-right: 4px solid #d97706; font-weight: 600; color: #92400e; }
+        .tab-btn.active { border-bottom: 2px solid #d97706; color: #92400e; font-weight: 600; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- Chosen Palette: Warm Neutrals (Stone/Amber) - Backgrounds #fcfcfb, Text #1c1917, Accents #d97706 (Amber-600) / #92400e (Amber-800). Supports a professional, trust-building B2B environment. -->
+<!-- Application Structure Plan: Dashboard layout with a fixed sidebar for navigation. Sections are split functionally: 'Özet' for high-level strategy and charts, 'Resmi Kurumlar' (the new request) as an interactive filterable database for compliance tracking, 'Saha Gerçekleri' for the core report analysis, and 'MVP Ürün' for the actionable software roadmap. This allows the founder to non-linearly explore market data, legal sources, and product specs without losing context. -->
+<!-- Visualization & Content Choices: 
+1. Pain Points Chart -> Goal: Compare severity of operational issues -> Viz: Horizontal Bar Chart (Chart.js) -> Justification: Clearly ranks the market gaps to prioritize MVP features -> Library: Chart.js (Canvas).
+2. Official Institutions Matrix -> Goal: Organize tracking URLs -> Viz: Filterable Grid -> Justification: Allows quick sorting by domain (Tax, Prices, Law) for ongoing project maintenance.
+3. Feature Modules -> Goal: Inform -> Viz: Interactive Accordion/Cards -> Justification: Condenses heavy text into digestible bites. 
+CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <aside class="w-64 bg-white border-r border-stone-200 flex flex-col justify-between hidden md:flex z-10 shadow-sm">
+        <div>
+            <div class="p-6 border-b border-stone-100">
+                <h1 class="text-2xl font-bold text-amber-700 tracking-tight">🏗️ TeklifX<span class="text-stone-400 font-light">Panel</span></h1>
+                <p class="text-xs text-stone-500 mt-1">İnşaat SaaS Pazar Analizi</p>
+            </div>
+            <nav class="mt-4 flex flex-col gap-1 px-3" id="sidebar-nav">
+                <button data-target="dashboard" class="nav-item active text-left px-4 py-3 rounded-md text-sm text-stone-700 hover:bg-stone-50 transition-colors">📊 Yönetici Özeti</button>
+                <button data-target="kurumlar" class="nav-item text-left px-4 py-3 rounded-md text-sm text-stone-700 hover:bg-stone-50 transition-colors">🏛️ Mevzuat & Kurum URL'leri</button>
+                <button data-target="kavramlar" class="nav-item text-left px-4 py-3 rounded-md text-sm text-stone-700 hover:bg-stone-50 transition-colors">⚙️ Sektör Dinamikleri</button>
+                <button data-target="mvp" class="nav-item text-left px-4 py-3 rounded-md text-sm text-stone-700 hover:bg-stone-50 transition-colors">🚀 MVP & Ürün Stratejisi</button>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-stone-100">
+            <div class="bg-amber-50 p-3 rounded-lg border border-amber-100">
+                <p class="text-xs font-semibold text-amber-800">Hedef Pazar:</p>
+                <p class="text-xs text-amber-700 mt-1">Türkiye KOBİ Alt Yükleniciler</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 h-full overflow-y-auto bg-stone-50 relative" id="main-content">
+        <header class="md:hidden bg-white p-4 border-b border-stone-200 flex justify-between items-center sticky top-0 z-20">
+            <h1 class="text-xl font-bold text-amber-700">🏗️ TeklifX Panel</h1>
+            <select id="mobile-nav" class="bg-stone-100 border border-stone-200 text-stone-700 text-sm rounded-md p-2">
+                <option value="dashboard">📊 Yönetici Özeti</option>
+                <option value="kurumlar">🏛️ Kurum URL'leri</option>
+                <option value="kavramlar">⚙️ Sektör Dinamikleri</option>
+                <option value="mvp">🚀 MVP Stratejisi</option>
+            </select>
+        </header>
+
+        <div id="dashboard" class="section-container p-6 md:p-10 fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Pazar Keşfi: Türkiye İnşaat SaaS Potansiyeli</h2>
+                <p class="text-stone-600 mt-2 text-lg">Türk müteahhitler ve alt yükleniciler için yapay zeka destekli teklif ve sözleşme yönetimi ürün stratejisi ana paneli. Bu bölüm projenin çıkış noktasını ve çözeceği temel acı noktalarını özetler.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-3xl mb-2">💸</div>
+                    <h3 class="font-bold text-stone-800 mb-1">Pazar Büyüklüğü</h3>
+                    <p class="text-sm text-stone-500">Milyarlarca liralık teklif hacmi şu an hatalı Excel dosyalarında dönüyor.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-3xl mb-2">⏱️</div>
+                    <h3 class="font-bold text-stone-800 mb-1">Hız İhtiyacı</h3>
+                    <p class="text-sm text-stone-500">Fiyatların günlük değiştiği enflasyonist ortamda teklif hızı hayati önem taşıyor.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 border-l-4 border-l-amber-500">
+                    <div class="text-3xl mb-2">🎯</div>
+                    <h3 class="font-bold text-amber-900 mb-1">Fırsat (Gaps)</h3>
+                    <p class="text-sm text-amber-700 font-medium">Büyük ERP'ler çok hantal, yerel çözümler eski moda. KOBİ'lerin mobil ve akıllı bir araca acil ihtiyacı var.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 mb-8">
+                <h3 class="text-lg font-bold text-stone-800 mb-4">Türk Müteahhitlerin En Kritik Acı Noktaları (Aciliyet Skoru)</h3>
+                <p class="text-sm text-stone-500 mb-6">Aşağıdaki grafik, pazar araştırması sonucunda belirlenen ve yazılımımızın çözmeyi hedeflediği en büyük operasyonel sorunları şiddetine göre listeler. Etkileşimli olarak değerleri inceleyebilirsiniz.</p>
+                <div class="chart-container">
+                    <canvas id="painPointsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="kurumlar" class="section-container p-6 md:p-10 hidden fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Mevzuat ve Resmi Kurum Takip Veritabanı</h2>
+                <p class="text-stone-600 mt-2 text-lg">Bu bölüm, SaaS platformunun mevzuata uyumlu çalışabilmesi ve güncel parametreleri (KDV, Tevkifat, Döviz, Rayiç Fiyatlar) çekebilmesi için izlenmesi zorunlu resmi kurum kaynaklarını içerir. Kategorilere tıklayarak filtreleme yapabilirsiniz.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-6" id="kurum-filters">
+                <button class="filter-btn active bg-stone-800 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors" data-filter="all">Tümü</button>
+                <button class="filter-btn bg-stone-200 text-stone-700 hover:bg-stone-300 px-4 py-2 rounded-full text-sm font-medium transition-colors" data-filter="maliyet">💰 Fiyat & Maliyet</button>
+                <button class="filter-btn bg-stone-200 text-stone-700 hover:bg-stone-300 px-4 py-2 rounded-full text-sm font-medium transition-colors" data-filter="vergi">⚖️ Vergi & Tevkifat</button>
+                <button class="filter-btn bg-stone-200 text-stone-700 hover:bg-stone-300 px-4 py-2 rounded-full text-sm font-medium transition-colors" data-filter="mevzuat">📑 İhale & Mevzuat</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="kurumlar-grid">
+            </div>
+        </div>
+
+        <div id="kavramlar" class="section-container p-6 md:p-10 hidden fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Sektör Dinamikleri & İş Akışı Analizi</h2>
+                <p class="text-stone-600 mt-2 text-lg">Türkiye inşaat sektöründeki temel operasyonel süreçlerin dijitalleşme fırsatlarını inceleyen bölüm. Kartlara tıklayarak her bir kavramın sahadaki mevcut durumunu ve yazılımımızın sunacağı çözümü görebilirsiniz.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="kavramlar-list">
+            </div>
+        </div>
+
+        <div id="mvp" class="section-container p-6 md:p-10 hidden fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">30 Günlük MVP & Pazar Stratejisi</h2>
+                <p class="text-stone-600 mt-2 text-lg">Pazar analizinden damıtılan nihai ürün stratejisi. En hızlı gelir elde edilecek kitle, geliştirilecek temel özellikler ve fiyatlandırma modeli burada özetlenmiştir.</p>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8">
+                <h3 class="text-xl font-bold text-amber-900 mb-2">🎯 En Hızlı Niş: İç Mimarlar, Elektrik ve Mekanik Taşeronları</h3>
+                <p class="text-amber-800 mb-4">Ana müteahhitleri ve dev ihaleleri unutun. Karar süreçleri aylarca sürer. Haftada 20 farklı projeye teklif yetiştirmek zorunda olan, WhatsApp'tan iş bağlayan taşeron KOBİ'ler bizim ilk müşterimizdir. Acıları yüksek, satış döngüleri kısadır.</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-amber-200 text-amber-900 rounded-md text-sm font-semibold">Satış Döngüsü: 1-3 Gün</span>
+                    <span class="px-3 py-1 bg-amber-200 text-amber-900 rounded-md text-sm font-semibold">Karar Verici: Firma Sahibi</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">🛠️ MVP Çekirdek Özellikleri (V1.0)</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-amber-600 mr-2">📌</span>
+                            <div>
+                                <strong class="text-stone-800 block">Excel Keşif İçe Aktarma (AI Destekli)</strong>
+                                <span class="text-sm text-stone-600">Karmaşık formattaki müşteri Excel'ini kopyala/yapıştır ile sisteme alıp yapılandırma.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-600 mr-2">📌</span>
+                            <div>
+                                <strong class="text-stone-800 block">Mobil Patron Onay Ekranı (Slider)</strong>
+                                <span class="text-sm text-stone-600">Patronun cep telefonundan kâr marjını kaydırarak değiştirip anında PDF üretebilmesi.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-600 mr-2">📌</span>
+                            <div>
+                                <strong class="text-stone-800 block">WhatsApp Uyumlu Kurumsal PDF</strong>
+                                <span class="text-sm text-stone-600">Sıfır tasarım bilgisiyle şirkete özel antetli, profesyonel teklif dökümanı oluşturma.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-600 mr-2">📌</span>
+                            <div>
+                                <strong class="text-stone-800 block">Tek Tıkla Taşeron Hakedişi</strong>
+                                <span class="text-sm text-stone-600">Sahadan girilen "yüzde ilerleme" verisiyle otomatik tevkifatlı fatura/hakediş taslağı.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">💳 Tavsiye Edilen Fiyatlandırma</h3>
+                    <p class="text-sm text-stone-500 mb-4">Türkiye pazarında 'Kullanıcı Başı' (Per Seat) lisanslama çalışmaz (şifreler paylaşılır). Paket bazlı, yıllık peşin tahsilat modeli uygulanmalıdır.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-stone-100 pb-2">
+                            <div>
+                                <strong class="text-stone-800">Başlangıç (Starter)</strong>
+                                <p class="text-xs text-stone-500">Sınırlı teklif, PDF üretici</p>
+                            </div>
+                            <span class="font-bold text-amber-700">1.500 ₺ / Ay</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-stone-100 pb-2 bg-amber-50 p-2 rounded -mx-2">
+                            <div>
+                                <strong class="text-stone-800">Profesyonel (Pro) ⭐</strong>
+                                <p class="text-xs text-stone-500">Sınırsız teklif, Taşeron modülü</p>
+                            </div>
+                            <span class="font-bold text-amber-700">4.500 ₺ / Ay</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2">
+                            <div>
+                                <strong class="text-stone-800">Kurumsal (Enterprise)</strong>
+                                <p class="text-xs text-stone-500">Özel formlar, Logo/Mikro Ent.</p>
+                            </div>
+                            <span class="font-bold text-stone-600">15.000+ ₺ / Ay</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const kurumlarData = [
+            { id: 1, name: "TÜİK - Türkiye İstatistik Kurumu", url: "https://www.tuik.gov.tr", desc: "Aylık İnşaat Maliyet Endeksi (İME) verileri. Malzeme ve işçilik enflasyonunu takip edip, sözleşmelerdeki fiyat farkı formüllerini güncellemek için kritiktir.", category: "maliyet", icon: "📈" },
+            { id: 2, name: "ÇŞB Yüksek Fen Kurulu", url: "https://yfk.csb.gov.tr", desc: "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı yıllık inşaat birim fiyatları, rayiçler ve iş kalemi analizleri. Kamu projeleri BoQ'ları için referanstır.", category: "maliyet", icon: "🏢" },
+            { id: 3, name: "TCMB - Merkez Bankası", url: "https://www.tcmb.gov.tr", desc: "Günlük döviz kurları (USD, EUR). Çelik, mekanik donanım gibi ithal malzemelerin TRY karşılığını tekliflerde canlı hesaplamak için API entegrasyonu gerekir.", category: "maliyet", icon: "💱" },
+            { id: 4, name: "Gelir İdaresi Başkanlığı (GİB)", url: "https://www.gib.gov.tr", desc: "KDV oran değişiklikleri, tevkifat tebliğleri ve KDV İade mevzuatı. Nakit akışı ve fatura modüllerinin yasal kalabilmesi için izlenmesi şarttır.", category: "vergi", icon: "⚖️" },
+            { id: 5, name: "Resmi Gazete", url: "https://www.resmigazete.gov.tr", desc: "Günlük yayımlanan Cumhurbaşkanlığı Kararnameleri. Özellikle sürpriz 'Fiyat Farkı Kararnameleri' ve vergi indirimleri/artışları buradan takip edilir.", category: "mevzuat", icon: "📑" },
+            { id: 6, name: "Kamu İhale Kurumu (KİK) & EKAP", url: "https://ekap.kik.gov.tr", desc: "Kamu İhale Kanunu mevzuatı, ihale ilanları ve standart formlar. Müşterilerin kamuya iş yapması durumunda teklif şablonlarının KİK uyumlu olması gerekir.", category: "mevzuat", icon: "🏛️" },
+            { id: 7, name: "T.C. Hazine ve Maliye Bakanlığı", url: "https://www.hmb.gov.tr", desc: "Damga vergisi oranları, genel ekonomik tedbir paketleri. Sözleşme imzalanırken doğan damga vergisi maliyetlerinin hesabı için önemlidir.", category: "vergi", icon: "💰" }
+        ];
+
+        const kavramlarData = [
+            { title: "Teklif Hazırlama Süreci", current: "İç içe geçmiş, formülleri bozulmuş devasa Excel dosyaları. Versiyon karmaşası ('Hangi fiyat en sondu?').", opportunity: "Tek tıkla kurumsal PDF. Geçmiş fiyat veri tabanından otomatik çekim. Mobil patron onayı." },
+            { title: "Metraj Hesaplama", current: "AutoCAD çıktısı üzerinde fosforlu kalemle çizip Excel'e aktarma ameleliği. Revizyon gelince her şeyin çökmesi.", opportunity: "2D PDF'den AI ile oda/alan tanıma. Revizyon karşılaştırma (Diff) aracı." },
+            { title: "Birim Fiyat & Enflasyon", current: "WhatsApp'tan tedarikçiye fiyat sorma. Fiyatın 3 ay sonra geçerliliğini yitirip şirketi zarara sokması.", opportunity: "Sistem içi canlı fiyat kütüphanesi. 'Bu malzeme fiyatı 60 gündür güncellenmedi' uyarıları." },
+            { title: "Tevkifat & KDV", current: "Excel'in altında yanlış kurulan KDV formülleri. Tevkifatın unutulup nakit akışında maaş ödeyememe krizi yaşanması.", opportunity: "Fatura simülatörü (Brüt -> KDV -> Tevkifat -> Ele Geçecek Net Tutar gösterimi)." },
+            { title: "Hakediş (Yeşil Defter)", current: "Kümülatif hesapların manuel yapılması. Önceki ay/bu ay dengesinin şaşması. İhzarati kargaşası.", opportunity: "Sözleşme keşfi üzerinden % ilerleme girilerek hatasız, otomatik hakediş dökümü oluşturma." },
+            { title: "Alt Yüklenici Yönetimi", current: "Taşeronlara boş Excel yollama. Her birinin farklı formatta cevap vermesi. 'Elmalarla armutların' kıyaslanması.", opportunity: "Akıllı Tedarikçi Portalı. Link gönderip standart formatta fiyat toplama, anında yeşil/kırmızı mukayese tablosu." },
+            { title: "Kârlılık & Revizyon", current: "Müşteri indirim isteyince eski dosyanın kopyasını alma. Fiyat kırarken genel giderleri unutup zararına iş bağlama.", opportunity: "Gizli marj slider'ı. Dinamik senaryo analizi (Süre uzarsa kâr ne olur?). Değişen kalemlerin loglanması." }
+        ];
+
+        let chartInstance = null;
+
+        function initNavigation() {
+            const navItems = document.querySelectorAll('.nav-item');
+            const mobileNav = document.getElementById('mobile-nav');
+            const sections = document.querySelectorAll('.section-container');
+
+            function switchSection(targetId) {
+                sections.forEach(sec => {
+                    sec.classList.add('hidden');
+                    sec.classList.remove('fade-in');
+                });
+                
+                navItems.forEach(item => item.classList.remove('active'));
+                
+                const targetSec = document.getElementById(targetId);
+                targetSec.classList.remove('hidden');
+                void targetSec.offsetWidth; 
+                targetSec.classList.add('fade-in');
+
+                navItems.forEach(item => {
+                    if(item.dataset.target === targetId) item.classList.add('active');
+                });
+                
+                mobileNav.value = targetId;
+
+                if(targetId === 'dashboard' && chartInstance) {
+                    chartInstance.update();
+                }
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => switchSection(e.target.dataset.target));
+            });
+
+            mobileNav.addEventListener('change', (e) => switchSection(e.target.value));
+        }
+
+        function renderKurumlar() {
+            const grid = document.getElementById('kurumlar-grid');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+
+            function displayCards(filter) {
+                grid.innerHTML = '';
+                const filteredData = filter === 'all' ? kurumlarData : kurumlarData.filter(d => d.category === filter);
+                
+                filteredData.forEach(kurum => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-6 rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between';
+                    card.innerHTML = `
+                        <div>
+                            <div class="text-3xl mb-3">${kurum.icon}</div>
+                            <h3 class="text-lg font-bold text-stone-800 mb-2">${kurum.name}</h3>
+                            <p class="text-sm text-stone-600 mb-4">${kurum.desc}</p>
+                        </div>
+                        <a href="${kurum.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center w-full py-2 px-4 bg-stone-100 hover:bg-amber-50 hover:text-amber-700 text-stone-700 text-sm font-medium rounded-md transition-colors border border-stone-200 hover:border-amber-200">
+                            Siteye Git &rarr;
+                        </a>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('bg-stone-800', 'text-white');
+                        b.classList.add('bg-stone-200', 'text-stone-700');
+                    });
+                    e.target.classList.remove('bg-stone-200', 'text-stone-700');
+                    e.target.classList.add('bg-stone-800', 'text-white');
+                    
+                    displayCards(e.target.dataset.filter);
+                });
+            });
+
+            displayCards('all');
+        }
+
+        function renderKavramlar() {
+            const list = document.getElementById('kavramlar-list');
+            
+            kavramlarData.forEach(kavram => {
+                const item = document.createElement('div');
+                item.className = 'bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm group';
+                item.innerHTML = `
+                    <div class="p-5 border-b border-stone-100 bg-stone-50 group-hover:bg-amber-50 transition-colors">
+                        <h3 class="text-lg font-bold text-stone-800 group-hover:text-amber-900">${kavram.title}</h3>
+                    </div>
+                    <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">🚫 Mevcut Acı Durum</span>
+                            <p class="text-sm text-stone-700 mt-1">${kavram.current}</p>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">💡 SaaS Fırsatı</span>
+                            <p class="text-sm text-stone-700 mt-1">${kavram.opportunity}</p>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('painPointsChart').getContext('2d');
+            
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#57534e';
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        ['Enflasyon &', 'Fiyat Eskimesi'], 
+                        ['Excel Formül', 'Hataları'], 
+                        ['Revizyon &', 'Metraj Süresi'], 
+                        ['Tevkifat &', 'Nakit Akışı'], 
+                        ['Alt Yüklenici', 'Kıyaslaması'],
+                        ['Onay Gecikmesi']
+                    ],
+                    datasets: [{
+                        label: 'Aciliyet / Şiddet Skoru (%)',
+                        data: [95, 88, 82, 78, 70, 65],
+                        backgroundColor: [
+                            'rgba(217, 119, 6, 0.8)', 
+                            'rgba(217, 119, 6, 0.6)',
+                            'rgba(217, 119, 6, 0.5)',
+                            'rgba(28, 25, 23, 0.4)',
+                            'rgba(28, 25, 23, 0.3)',
+                            'rgba(28, 25, 23, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(217, 119, 6, 1)',
+                            'rgba(217, 119, 6, 1)',
+                            'rgba(217, 119, 6, 1)',
+                            'rgba(28, 25, 23, 1)',
+                            'rgba(28, 25, 23, 1)',
+                            'rgba(28, 25, 23, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y', 
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Sorun Şiddeti: %' + context.parsed.x;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#f5f5f4' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { weight: '500' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            renderKurumlar();
+            renderKavramlar();
+            initChart();
+        });
+    </script>
+</body>
+</html>

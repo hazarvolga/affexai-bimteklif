@@ -1,0 +1,200 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e32]:
+      - complementary [ref=e33]:
+        - link "TP TeklifPro Intelligence" [ref=e35] [cursor=pointer]:
+          - /url: /app
+          - generic [ref=e36]: TP
+          - generic [ref=e37]:
+            - generic [ref=e38]: TeklifPro
+            - generic [ref=e39]: Intelligence
+        - navigation [ref=e40]:
+          - link "Dashboard" [ref=e41] [cursor=pointer]:
+            - /url: /app
+          - link "Teklifler" [ref=e47] [cursor=pointer]:
+            - /url: /app/quotes
+          - link "Müşteriler" [ref=e51] [cursor=pointer]:
+            - /url: /app/clients
+          - link "CRM Pipeline" [ref=e57] [cursor=pointer]:
+            - /url: /app/crm
+          - link "Pilot Başvuruları" [ref=e62] [cursor=pointer]:
+            - /url: /app/pilot-applications
+          - link "AI Asistan" [ref=e66] [cursor=pointer]:
+            - /url: /app/ai
+          - link "Mevzuat" [ref=e70] [cursor=pointer]:
+            - /url: /app/regulations
+          - link "SmartCheck" [ref=e73] [cursor=pointer]:
+            - /url: /app/smartcheck
+          - link "Akademi" [ref=e76] [cursor=pointer]:
+            - /url: /app/academy
+          - link "Kârlılık" [ref=e79] [cursor=pointer]:
+            - /url: /app/profitability
+          - link "Faturalandırma" [ref=e82] [cursor=pointer]:
+            - /url: /app/billing
+          - link "Ayarlar" [ref=e85] [cursor=pointer]:
+            - /url: /app/settings
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - paragraph [ref=e92]: WORKSPACE
+            - paragraph [ref=e93]: TeklifPro Demo Şirketi
+          - button "ÇIKIŞ YAP" [ref=e94]
+      - main [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e98]:
+            - generic [ref=e99]: SİSTEM DURUMU
+            - generic [ref=e100]:
+              - generic [ref=e101]: "USD: 32.42 ₺"
+              - generic [ref=e103]: "EUR: 35.15 ₺"
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e108]: AKTİF KULLANICI
+                - generic [ref=e109]: Admin Kullanıcı
+              - generic [ref=e110]: A
+            - link [ref=e111] [cursor=pointer]:
+              - /url: /app/quotes/new
+              - button "YENİ TEKLİF" [ref=e112]
+        - generic [ref=e371]:
+          - generic [ref=e372]:
+            - generic [ref=e373]:
+              - generic [ref=e374]:
+                - button "Tekliflere Dön" [ref=e375]
+                - heading "Yeni Teklif Oluştur" [level=1] [ref=e380]
+              - paragraph [ref=e381]: AI destekli kalem sihirbazı ile saniyeler içinde profesyonel teklifler hazırlayın.
+            - generic [ref=e383]:
+              - button "Taslak Kaydet" [ref=e384]
+              - button "Yayınla & Gönder" [ref=e385]
+          - generic [ref=e386]:
+            - generic [ref=e387]:
+              - generic [ref=e388]:
+                - generic [ref=e390]: AI Teklif Sihirbazı
+                - generic [ref=e396]:
+                  - generic [ref=e397]:
+                    - generic [ref=e398]:
+                      - generic [ref=e399]: Sektör
+                      - combobox [ref=e400]:
+                        - generic [ref=e401]: residential
+                        - img: ▼
+                      - textbox [ref=e402]: residential
+                    - generic [ref=e403]:
+                      - generic [ref=e404]: Proje Detayları
+                      - generic [ref=e405]:
+                        - 'textbox "Proje tipini anlatın... (Örn: 200m2 villa kaba inşaat)" [ref=e406]'
+                        - button "Oluştur" [ref=e407]
+                  - paragraph [ref=e412]: Birim fiyatlar piyasa verilerine göre AI asistanı tarafından hesaplanır.
+              - generic [ref=e413]:
+                - generic [ref=e415]:
+                  - heading "Teklif Kalemleri" [level=2] [ref=e416]
+                  - paragraph [ref=e417]: Proje kapsamında sunacağınız iş kalemleri ve birim fiyatlar.
+                - generic [ref=e420]:
+                  - table [ref=e423]:
+                    - rowgroup [ref=e424]:
+                      - row [ref=e425]:
+                        - columnheader "DETAY / İŞ KALEMİ" [ref=e426]
+                        - columnheader "BİRİM" [ref=e427]
+                        - columnheader "MİKTAR" [ref=e428]
+                        - columnheader "SATIŞ BİRİM" [ref=e429]
+                        - columnheader "MALİYET BİRİM" [ref=e430]
+                        - columnheader "ZAYİAT %" [ref=e431]
+                        - columnheader "TOPLAM" [ref=e432]
+                        - columnheader [ref=e433]
+                    - rowgroup [ref=e434]:
+                      - row [ref=e435]:
+                        - cell [ref=e436]:
+                          - textbox "Burada yeni bir iş kalemi oluşturun..." [ref=e437]
+                        - cell [ref=e438]:
+                          - textbox [ref=e439]: m2
+                        - cell [ref=e440]:
+                          - spinbutton [ref=e441]: "0"
+                        - cell [ref=e442]:
+                          - spinbutton [ref=e443]: "0"
+                        - cell [ref=e444]:
+                          - spinbutton "Gerekli" [ref=e445]
+                        - cell [ref=e446]:
+                          - spinbutton [ref=e447]: "0"
+                        - cell "₺0,00" [ref=e448]
+                        - cell [ref=e449]:
+                          - button [ref=e450]
+                  - button "Yeni Kalem Ekle" [ref=e452]
+            - generic [ref=e453]:
+              - generic [ref=e454]:
+                - generic [ref=e456]:
+                  - heading "Genel Taslak Bilgileri" [level=2] [ref=e457]
+                  - paragraph [ref=e458]: Teklifin temel parametrelerini belirleyin.
+                - generic [ref=e461]:
+                  - generic [ref=e462]:
+                    - generic [ref=e463]: Müşteri İlişkilendirme
+                    - combobox [ref=e469]:
+                      - generic [ref=e470]: Bir müşteri atayın...
+                      - img: ▼
+                    - textbox [ref=e471]
+                  - generic [ref=e472]:
+                    - generic [ref=e473]: Proje Başlığı
+                    - 'textbox "Örn: Villa Restorasyonu Faz 1" [ref=e476]'
+                  - generic [ref=e477]:
+                    - generic [ref=e478]:
+                      - generic [ref=e479]: Para Birimi
+                      - combobox [ref=e480]:
+                        - generic [ref=e481]: TRY
+                        - img: ▼
+                      - textbox [ref=e482]: TRY
+                    - generic [ref=e483]:
+                      - generic [ref=e484]: KDV Oranı
+                      - generic [ref=e485]: "%20 (Standart)"
+                  - generic [ref=e486]:
+                    - generic [ref=e487]:
+                      - generic [ref=e488]: Bilgi Teslimi
+                      - combobox [ref=e489]:
+                        - generic [ref=e490]: none
+                        - img: ▼
+                      - textbox [ref=e491]: none
+                    - generic [ref=e492]:
+                      - generic [ref=e493]: Teslim Maliyeti %
+                      - spinbutton [ref=e494]: "0"
+                      - paragraph [ref=e495]: Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.
+                  - generic [ref=e496]:
+                    - generic [ref=e497]:
+                      - generic [ref=e498]: Tedarik Profili
+                      - combobox [ref=e499]:
+                        - generic [ref=e500]: standard
+                        - img: ▼
+                      - textbox [ref=e501]: standard
+                    - generic [ref=e502]:
+                      - generic [ref=e503]: Karbon Risk Primi %
+                      - spinbutton [ref=e504]: "0"
+                      - paragraph [ref=e505]: Senaryo katsayısıdır; vergi/uyum kararı değildir.
+                  - generic [ref=e506]:
+                    - generic [ref=e507]:
+                      - generic [ref=e508]: Süre (Ay)
+                      - spinbutton [ref=e509]: "1"
+                    - generic [ref=e510]:
+                      - generic [ref=e511]: Aylık Volatilite %
+                      - spinbutton [ref=e512]: "0"
+                      - paragraph [ref=e513]: Şirket varsayımıdır; otomatik piyasa verisi değildir.
+              - generic [ref=e516]:
+                - generic [ref=e517]:
+                  - generic [ref=e518]:
+                    - generic [ref=e519]: Ara Toplam
+                    - generic [ref=e520]: 0 TRY
+                  - generic [ref=e521]:
+                    - generic [ref=e522]: İndirimler
+                    - generic [ref=e523]: "-0 TRY"
+                  - generic [ref=e524]:
+                    - generic [ref=e525]: Yasal Vergi (KDV)
+                    - generic [ref=e526]: +0 TRY
+                - generic [ref=e527]:
+                  - paragraph [ref=e528]: Net Teklif Toplamı
+                  - generic [ref=e529]:
+                    - heading "0" [level=2] [ref=e530]
+                    - generic [ref=e531]: TRY
+                - generic [ref=e532]: "Gerçek maliyet bazlı marj: %0.0"
+              - generic [ref=e542]:
+                - paragraph [ref=e543]: Profesyonel İpucu
+                - paragraph [ref=e544]: Pazarlık payı için %5-8 arası indirim kalemini AI asistanınıza eklemesini söyleyebilirsiniz.
+        - generic [ref=e307]:
+          - generic [ref=e308]:
+            - generic [ref=e309]: © 2026 TeklifPro AI
+            - generic [ref=e310]: SaaS Layer v1.0.4
+          - generic [ref=e312]: GÜVENLİ BAĞLANTI AKTİF
+    - region "Notifications alt+T"
+  - generic [ref=e321]: "0"

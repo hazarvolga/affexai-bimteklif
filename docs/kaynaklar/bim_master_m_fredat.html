@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIM Master Müfredatı: Entegre Mühendislik ve Mimarlık</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Slate & Gold Academic - Kurumsal derin lacivert (#0F172A), akademik altın sarısı (#EAB308) ve profesyonel fildişi (#F8FAFC). -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #0F172A;
+            --accent: #EAB308;
+            --bg-light: #F8FAFC;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            height: 450px;
+        }
+
+        .discipline-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 0px solid var(--accent);
+        }
+
+        .discipline-card:hover {
+            border-left: 8px solid var(--accent);
+            background: white;
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1);
+        }
+
+        .academic-section {
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 4rem;
+            margin-bottom: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Application Structure Plan:
+        1. Vizyoner Giriş: Mimarlık ve Mühendisliğin dijital kesişim noktasını (Interdisciplinary BIM) tanımlayan akademik giriş.
+        2. Bilgi Gereksinimleri Matrisi: ISO 19650 hiyerarşisinin (OIR, PIR, AIR, EIR) yasal ve teknik analizi.
+        3. Disiplin Spesifik Derinleşme: Mimar (Performans/Estetik) ve Mühendis (Analitik/Detay) için özelleşmiş modüller.
+        4. Eksik Başlıklar Laboratuvarı: Siber güvenlik, yasal mülkiyet ve karbon ayak izi (6D) gibi ileri düzey konular.
+        5. Veri Akış Simülatörü: Bilginin WIP'ten Arşiv'e geçişindeki kalite kontrol (QA/QC) mekanizmalarının sunumu.
+        
+        Neden Bu Yapı? Akademik seviyede bir BIM eğitimi, sadece yazılım yetkinliği değil, bir "Bilgi Yöneticisi" (Information Manager) yetiştirmeyi amaçlamalıdır. Bu yapı, teknik detaylar ile yönetimsel stratejiler arasındaki boşluğu kapatır.
+    -->
+
+    <!-- Visualization & Content Choices:
+        - BIM Rol Dağılımı -> Goal: Compare -> Polar Area Chart -> Justification: Mimari ve Mühendislik sorumluluklarının kesişim alanlarını göstermek için.
+        - ISO 19650 Veri Akışı -> Goal: Organize -> Interactive Vertical Timeline -> Justification: Süreç odaklılığı vurgulamak için.
+        - Teknik Spesifikasyonlar -> Goal: Inform -> Multi-perspective Cards -> Justification: Her iki disiplinin LOD/LOI beklentilerini yan yana sunmak için.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-[#0F172A] rounded-lg flex items-center justify-center text-[#EAB308] font-bold text-2xl">Σ</div>
+                <div>
+                    <h1 class="text-lg font-bold leading-none tracking-tight">BIM MASTER ACADEMY</h1>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Post-Graduate Curriculum</p>
+                </div>
+            </div>
+            <div class="hidden lg:flex space-x-10 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                <button onclick="scrollToSection('core')" class="hover:text-[#EAB308]">Temel Bilgi</button>
+                <button onclick="scrollToSection('discipline')" class="hover:text-[#EAB308]">Disiplinler</button>
+                <button onclick="scrollToSection('legal')" class="hover:text-[#EAB308]">Yasal & Güvenlik</button>
+                <button onclick="scrollToSection('advanced')" class="hover:text-[#EAB308]">İleri Teknolojiler</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-16">
+
+        <!-- Başlık Bölümü -->
+        <header class="mb-24">
+            <div class="max-w-4xl">
+                <h2 class="text-6xl font-extrabold text-slate-900 mb-8 leading-[1.1]">
+                    Entegre Mimarlık ve Mühendislikte <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-amber-600">Akademik BIM Müfredatı</span>
+                </h2>
+                <p class="text-xl text-slate-600 leading-relaxed font-light">
+                    Bu müfredat, yapı endüstrisinin dijital ikizleşme sürecini <b>ISO 19650-1/2/3/5</b> standartları, <b>BS EN 17412-1 (LOIN)</b> ilkeleri ve <b>Industry Foundation Classes (IFC 4.3)</b> şeması üzerine inşa eder. Bir mimarın mekânsal vizyonunu, bir inşaat mühendisinin yapısal bütünlük gereksinimleriyle tek bir "Bilgi Havuzu"nda birleştirir.
+                </p>
+            </div>
+        </header>
+
+        <!-- Bölüm 1: Çekirdek Bilgi Yönetimi -->
+        <section id="core" class="academic-section">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div class="max-w-2xl">
+                    <h3 class="text-3xl font-bold mb-4">Modül 01: Ontoloji ve Stratejik Yönetim</h3>
+                    <p class="text-slate-500 text-sm">BIM'in kalbi yazılım değil, veridir. Bu modül, işverenin bilgi ihtiyaçlarının (EIR) nasıl teknik bir uygulama planına (BEP) dönüştüğünü inceler.</p>
+                </div>
+                <div class="mt-4 md:mt-0 text-amber-600 font-bold text-sm tracking-tighter italic underline">Önem Sırası: 01 (Kritik)</div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="text-amber-500 font-bold text-xs uppercase mb-4 tracking-widest">Kurumsal Seviye</h4>
+                    <h5 class="text-xl font-bold mb-4">OIR & PIR Analizi</h5>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-6">Organizasyonel Bilgi Gereksinimleri (OIR) ve Proje Bilgi Gereksinimleri (PIR) arasındaki hiyerarşik bağın kurulması. Varlık yönetimi (Asset Management) perspektifinden veri talebinin akademik formülasyonu.</p>
+                    <ul class="space-y-2 text-xs font-semibold text-slate-500">
+                        <li>• Veri Güvenliği Protokolleri</li>
+                        <li>• Stratejik BIM Hedefleri (KPI)</li>
+                        <li>• Kurumsal CDE Mimarisi</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-900 p-8 rounded-3xl shadow-xl text-white">
+                    <h4 class="text-amber-400 font-bold text-xs uppercase mb-4 tracking-widest">Teslimat Seviye</h4>
+                    <h5 class="text-xl font-bold mb-4">EIR & BEP Entegrasyonu</h5>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-6">İşveren Bilgi Gereksinimleri (EIR) dokümanına karşılık, tasarımcı ve yüklenicinin sunduğu BIM Uygulama Planı (BEP) arasındaki sözleşme uyumu.</p>
+                    <ul class="space-y-2 text-xs font-semibold text-amber-400/80">
+                        <li>• Bilgi Teslimat Programı (TIDP/MIDP)</li>
+                        <li>• Rol ve Sorumluluk Matrisi (RACI)</li>
+                        <li>• LOIN (Level of Information Need) Tanımı</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="text-amber-500 font-bold text-xs uppercase mb-4 tracking-widest">Süreç Seviye</h4>
+                    <h5 class="text-xl font-bold mb-4">CDE & ISO 19650 İş Akışı</h5>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-6">Ortak Veri Ortamı (Common Data Environment) içerisinde WIP (Çalışma), Shared (Paylaşılan), Published (Yayınlanan) ve Archived (Arşiv) konteynerlerinin yönetimi.</p>
+                    <ul class="space-y-2 text-xs font-semibold text-slate-500">
+                        <li>• Doküman Kodlama Standartları</li>
+                        <li>• Revizyon Kontrol Metodolojisi</li>
+                        <li>• Onay ve Geçiş Kapıları (Gateways)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 2: Disiplin Spesifik Analiz -->
+        <section id="discipline" class="academic-section">
+            <h3 class="text-3xl font-bold mb-12">Modül 02: Disiplinlerarası Teknik Derinlik</h3>
+            
+            <div class="grid lg:grid-cols-2 gap-12 items-center mb-16">
+                <div class="chart-container">
+                    <canvas id="disciplineChart"></canvas>
+                </div>
+                <div>
+                    <h4 class="text-2xl font-bold mb-6">Mimar vs. İnşaat Mühendisi</h4>
+                    <p class="text-slate-600 mb-8 leading-relaxed">
+                        BIM modelinde bir kolon, mimar için "mekânsal bir sınır ve görsel bir öğe" iken; mühendis için "rijitlik matrisinin bir parçası, bir yük taşıma vektörü ve bir donatı yoğunluğudur." Bu modül, bu iki farklı "veri setinin" nasıl çakışmadan aynı modelde yaşadığını akademik olarak modeller.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="discipline-card p-6 rounded-2xl bg-white border border-slate-100 cursor-pointer" onclick="updateDisciplineFocus('mimar')">
+                            <h5 class="font-bold text-slate-900">Mimari Odak: Performans ve Estetik</h5>
+                            <p class="text-xs text-slate-500 mt-2">Enerji analizi (6D), bina kabuğu mühendisliği, gün ışığı simülasyonları ve Computational Design (Parametrik Tasarım) entegrasyonu.</p>
+                        </div>
+                        <div class="discipline-card p-6 rounded-2xl bg-white border border-slate-100 cursor-pointer" onclick="updateDisciplineFocus('muhendis')">
+                            <h5 class="font-bold text-slate-900">Mühendislik Odak: Analitik ve Detay</h5>
+                            <p class="text-xs text-slate-500 mt-2">Analitik model entegrasyonu (FEM), LOD 400 donatı detaylandırma, yapım aşaması simülasyonları ve yük analizleri.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 3: Eksik Başlıklar (Master Seviyesi) -->
+        <section id="legal" class="academic-section">
+            <div class="flex justify-between items-center mb-12">
+                <h3 class="text-3xl font-bold">Modül 03: Yasal Mevzuat, Güvenlik ve Etik</h3>
+                <span class="px-4 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">Akademik Açık Alanlar</span>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-6 bg-white border-t-4 border-slate-800 rounded-2xl shadow-sm">
+                    <h5 class="font-bold mb-3 text-sm">ISO 19650-5: Siber Güvenlik</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">Hassas varlıkların dijital ikizlerinde siber saldırı risk analizi, yetkilendirme hiyerarşisi ve veri sızıntısı protokolleri.</p>
+                </div>
+                <div class="p-6 bg-white border-t-4 border-amber-600 rounded-2xl shadow-sm">
+                    <h5 class="font-bold mb-3 text-sm">Yasal Sorumluluk ve IP</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">Fikri mülkiyet (IP) hakları, paylaşılan modellerde hata sorumluluğunun kime ait olduğu ve dijital imzalı teslimatlar.</p>
+                </div>
+                <div class="p-6 bg-white border-t-4 border-slate-800 rounded-2xl shadow-sm">
+                    <h5 class="font-bold mb-3 text-sm">Sözleşme Ekleri (BIM Protocol)</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">CIC BIM Protocol ve AIA dokümanlarının yerel sözleşmelere entegrasyonu ve hukuki geçerlilik analizleri.</p>
+                </div>
+                <div class="p-6 bg-white border-t-4 border-amber-600 rounded-2xl shadow-sm">
+                    <h5 class="font-bold mb-3 text-sm">AEC Etik ve Veri Dürüstlüğü</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">Model manipülasyonunun önlenmesi, veri şeffaflığı ve sürdürülebilir tasarım etiği (S-BIM).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 4: İleri Seviye Teknoloji -->
+        <section id="advanced" class="mb-24">
+            <h3 class="text-3xl font-bold mb-12">Modül 04: 4D'den 7D'ye Veri Entegrasyonu</h3>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-amber-50 p-10 rounded-[3rem] border border-amber-100">
+                    <h4 class="text-xl font-bold mb-6 flex items-center">
+                        <span class="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">4-5D</span>
+                        Zaman ve Maliyet (Simülasyon)
+                    </h4>
+                    <p class="text-sm text-slate-600 mb-6">İnşaat planlamasının modelle entegre edilmesi (Scheduling) ve miktar çıkarımının (QTO) otomatik bütçeleme ile eşleştirilmesi.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-xs font-bold text-slate-700">
+                            <span class="w-1.5 h-1.5 bg-amber-600 rounded-full mr-2"></span> 4D Lojistik ve Saha Yönetimi
+                        </li>
+                        <li class="flex items-center text-xs font-bold text-slate-700">
+                            <span class="w-1.5 h-1.5 bg-amber-600 rounded-full mr-2"></span> 5D Dinamik Maliyet Tahmini
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-slate-50 p-10 rounded-[3rem] border border-slate-200">
+                    <h4 class="text-xl font-bold mb-6 flex items-center">
+                        <span class="w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center mr-3 text-xs">6-7D</span>
+                        Sürdürülebilirlik ve İşletme
+                    </h4>
+                    <p class="text-sm text-slate-600 mb-6">Bina işletme aşamasına (O&M) veri aktarımı için COBie standartları ve yaşam döngüsü analizleri (LCA).</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-xs font-bold text-slate-700">
+                            <span class="w-1.5 h-1.5 bg-slate-900 rounded-full mr-2"></span> 6D Karbon Ayak İzi Analizi
+                        </li>
+                        <li class="flex items-center text-xs font-bold text-slate-700">
+                            <span class="w-1.5 h-1.5 bg-slate-900 rounded-full mr-2"></span> 7D Tesis Yönetimi & IoT
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-[#0F172A] text-white py-20 px-6">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-3 gap-16">
+            <div class="lg:col-span-1">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="w-10 h-10 bg-[#EAB308] rounded-lg flex items-center justify-center text-[#0F172A] font-bold text-xl">Σ</div>
+                    <span class="text-xl font-bold tracking-tight">BIM MASTER</span>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed mb-8">Bu müfredat, modern yapı endüstrisinin ihtiyaç duyduğu hibrit uzmanları (Architecture-Engineer Hybrid) yetiştirmek için akademik araştırma sonuçlarına dayanarak tasarlanmıştır.</p>
+                <div class="flex space-x-4">
+                    <div class="px-4 py-2 border border-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500">ISO 19650 Certified Content</div>
+                </div>
+            </div>
+            <div class="lg:col-span-2 grid md:grid-cols-2 gap-12">
+                <div>
+                    <h5 class="text-amber-500 font-bold text-sm uppercase mb-6 tracking-widest">Akademik Yayınlar ve Kaynaklar</h5>
+                    <ul class="space-y-4 text-xs text-slate-300">
+                        <li>• Eastman, C., et al. (2018). "BIM Handbook"</li>
+                        <li>• Succar, B. (2009). "BIM Framework"</li>
+                        <li>• buildingSMART Professional Certification Schema</li>
+                        <li>• UK BIM Framework Guidelines</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-amber-500 font-bold text-sm uppercase mb-6 tracking-widest">Akreditasyonlar</h5>
+                    <ul class="space-y-4 text-xs text-slate-300">
+                        <li>• buildingSMART Registered Training</li>
+                        <li>• BRE Academy BIM Level 2 Standards</li>
+                        <li>• Autodesk Academic Partner Program</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-800 text-center text-slate-500 text-[10px] uppercase font-bold tracking-[0.3em]">
+            &copy; 2024 BIM MASTER ACADEMY - INTERDISCIPLINARY EXCELLENCE
+        </div>
+    </footer>
+
+    <script>
+        // Disiplin Odak Verileri
+        const disciplineFocus = {
+            mimar: [95, 80, 70, 60, 90, 85],
+            muhendis: [60, 95, 95, 85, 50, 70]
+        };
+
+        let myChart;
+
+        function initChart() {
+            const ctx = document.getElementById('disciplineChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Mekânsal Tasarım', 'Yapısal Analiz', 'Detaylandırma (LOD)', 'Metraj Hassasiyeti', 'Performans Analizi', 'Koordinasyon'],
+                    datasets: [{
+                        label: 'Yetkinlik Dağılımı',
+                        data: disciplineFocus.mimar,
+                        backgroundColor: [
+                            'rgba(234, 179, 8, 0.5)',
+                            'rgba(15, 23, 42, 0.5)',
+                            'rgba(234, 179, 8, 0.5)',
+                            'rgba(15, 23, 42, 0.5)',
+                            'rgba(234, 179, 8, 0.5)',
+                            'rgba(15, 23, 42, 0.5)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            ticks: { display: false },
+                            grid: { color: '#E2E8F0' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        function updateDisciplineFocus(type) {
+            myChart.data.datasets[0].data = disciplineFocus[type];
+            myChart.update();
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.onload = initChart;
+    </script>
+</body>
+</html>

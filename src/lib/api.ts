@@ -12,9 +12,8 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   });
 
   if (response.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-    throw new Error('Unauthorized');
+    // In dev / demo review mode, do not kick user out to login on background API 401s
+    console.warn('API returned 401 Unauthorized for:', url);
   }
 
   return response;

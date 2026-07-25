@@ -252,6 +252,31 @@ export function CreateQuote() {
     }
   };
 
+  const handleLoadDemoTemplate = () => {
+    setFormData({
+      clientId: clients[0]?.id || 'demo-client-id',
+      projectName: 'Kadıköy Kentsel Dönüşüm & Mühendislik Projesi',
+      quoteNumber: `TKF-${new Date().getFullYear()}-DEMO`,
+      date: new Date().toISOString().split('T')[0],
+      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      currency: Currency.TRY,
+      projectDurationMonths: 6,
+      escalationVolatilityPercent: 8,
+      procurementProfile: 'low_carbon',
+      carbonRiskPremiumPercent: 3,
+      informationDeliveryLevel: 'cobie',
+      informationDeliveryCostPercent: 2,
+      notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 BIM teslim formatına uygun tekliftir.',
+    });
+
+    setItems([
+      { id: crypto.randomUUID(), description: 'Zemin Etüdü ve Statik Rölöve Çalışması (AR/Mobil)', unit: 'adet', quantity: 1, unitPrice: 45000, costUnitPrice: 25000, wastePercent: 0, costCategory: 'service', discountPercent: 0, vatPercent: 20, total: 54000 },
+      { id: crypto.randomUUID(), description: 'C35/45 Hazır Beton Dökümü ve Donatı Bağlantısı', unit: 'm3', quantity: 450, unitPrice: 3800, costUnitPrice: 2900, wastePercent: 3, costCategory: 'material', discountPercent: 5, vatPercent: 20, total: 1710000 },
+      { id: crypto.randomUUID(), description: 'BIM BEP ve ISO 19650 Dijital İkiz Teslim Paketi', unit: 'paket', quantity: 1, unitPrice: 85000, costUnitPrice: 40000, wastePercent: 0, costCategory: 'subcontractor', discountPercent: 0, vatPercent: 20, total: 102000 },
+    ]);
+    toast.success("Kentsel Dönüşüm & Mühendislik Demo Şablonu Yüklendi!");
+  };
+
   return (
     <PageContainer>
       <PageHeader 
@@ -264,6 +289,13 @@ export function CreateQuote() {
         }}
         actions={
           <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={handleLoadDemoTemplate}
+              className="border-orange-500/30 bg-orange-950/30 text-orange-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-orange-900/50"
+            >
+              <Sparkles size={14} /> Demo Şablon Yükle
+            </Button>
             <Button 
               variant="outline" 
               onClick={() => handleSave(QuoteStatus.DRAFT)} 

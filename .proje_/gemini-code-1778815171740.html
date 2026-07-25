@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnşaat Projesi Nihai Raporu ve İnteraktif Teklif Tablosu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Corporate Construction - Slate, Navy, Amber -->
+    <!-- Application Structure Plan: A tabbed SPA layout focusing on three main user needs for evaluating a construction proposal: 1. Executive Summary (understanding the project scope), 2. Visual Cost Analysis (seeing the big financial picture via charts), 3. Interactive Detailed BOQ (drilling down into specific line items, filtering by labor/material/transport). This prevents information overload and allows users to navigate from macro to micro levels easily. -->
+    <!-- Visualization & Content Choices: 1. Project Summary -> Goal: Inform -> Method: Structured text blocks -> Justification: Clear reading of scope. 2. Cost Breakdown -> Goal: Compare proportions -> Method: Chart.js Doughnut Chart -> Interaction: Hover tooltips -> Justification: Best for showing part-to-whole relationships of categories (Material/Labor). 3. Phase Cost -> Goal: Compare -> Method: Chart.js Bar Chart -> Justification: Good for comparing discrete categories. 4. BOQ Table -> Goal: Organize & Filter -> Method: HTML Table with JS filtering -> Interaction: Dropdown and text search -> Justification: Allows precise inspection of specific ÇŞB codes and unit prices. NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #1E293B; }
+        .tab-btn { transition: all 0.2s ease-in-out; border-bottom: 2px solid transparent; }
+        .tab-btn.active { border-bottom-color: #F59E0B; color: #0F172A; font-weight: 600; }
+        .section-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .section-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container { height: 280px; }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #F1F5F9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    </style>
+</head>
+<body class="antialiased h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-slate-900 text-white shadow-md z-10 flex-shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-2 md:mb-0 text-center md:text-left">
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-100">Nihai Rapor & Teklif Tablosu</h1>
+                    <p class="text-sm text-slate-400 mt-1">Kamu Hizmet Binası İnşaatı Projesi (ÇŞB Standartları)</p>
+                </div>
+                <div class="text-right flex items-center gap-4">
+                    <div class="bg-slate-800 rounded px-3 py-1 text-sm border border-slate-700">
+                        <span class="text-slate-400">Tarih:</span> <span class="font-medium text-amber-500">15 Mayıs 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 px-4 sm:px-6 lg:px-8 shadow-inner">
+            <div class="max-w-7xl mx-auto flex space-x-8 overflow-x-auto custom-scrollbar">
+                <button onclick="switchTab('ozet')" id="btn-ozet" class="tab-btn active whitespace-nowrap py-3 px-1 text-slate-300 hover:text-white">Proje Özeti</button>
+                <button onclick="switchTab('analiz')" id="btn-analiz" class="tab-btn whitespace-nowrap py-3 px-1 text-slate-300 hover:text-white">Maliyet Analizi</button>
+                <button onclick="switchTab('teklif')" id="btn-teklif" class="tab-btn whitespace-nowrap py-3 px-1 text-slate-300 hover:text-white">İnteraktif Teklif Tablosu (BOQ)</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto">
+
+            <section id="ozet" class="section-content active">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-amber-500 pb-2 inline-block mb-4">Nihai Rapor Değerlendirmesi</h2>
+                        <p class="text-slate-600 leading-relaxed text-lg">Bu bölüm, projenin genel kapsamını, kullanılan standartları ve keşif/teklif sürecinin temel varsayımlarını açıklamaktadır. Tüm veriler Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (ÇŞB) güncel poz numaraları ve analizlerine uygun olarak derlenmiştir.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-50 rounded-lg p-6 border border-slate-100">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-3 flex items-center">
+                                <span class="text-amber-500 mr-2 text-xl">&#9632;</span> Proje Kapsamı
+                            </h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li><strong>Proje Tipi:</strong> Kamu Hizmet Binası</li>
+                                <li><strong>Toplam İnşaat Alanı:</strong> 2.450 m²</li>
+                                <li><strong>Yapı Sınıfı:</strong> III. Sınıf B Grubu Yapılar</li>
+                                <li><strong>Birim Fiyat Yılı:</strong> Güncel (2026 Analizleri)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-slate-50 rounded-lg p-6 border border-slate-100">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-3 flex items-center">
+                                <span class="text-amber-500 mr-2 text-xl">&#9650;</span> Teklif Hazırlama Kriterleri
+                            </h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li><strong>KDV Oranı:</strong> Kamu projesi olduğu için genel <span class="font-bold text-slate-800">%20</span> KDV oranı uygulanmıştır.</li>
+                                <li><strong>Ayrıştırma:</strong> İşçilik, Malzeme ve Nakliye bedelleri, detaylı maliyet kontrolü amacıyla ayrı satırlar halinde ve bağımsız pozlar/analizler olarak düzenlenmiştir.</li>
+                                <li><strong>Poz Referansları:</strong> ÇŞB rayiç ve analizlerine dayalı standart formatlar kullanılmıştır.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-lg">
+                        <h4 class="text-amber-800 font-semibold mb-1">Mimar/Mühendis Notu:</h4>
+                        <p class="text-amber-700 text-sm">Girdi verileri üzerinden yapılan araştırmanın son aşaması olan Nihai Rapor ve Teklif Tablosu entegrasyonu tamamlanmıştır. Veriler arası ilişkiyi incelemek için 'Maliyet Analizi' ve 'İnteraktif Teklif Tablosu' sekmelerini kullanınız.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="analiz" class="section-content">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-amber-500 pb-2 inline-block">Proje Maliyet Analizi (Dashboard)</h2>
+                    <p class="text-slate-600 mt-2">Teklif tablosundaki verilerin grafiksel özeti. Genel maliyet dağılımını ve kategorik ağırlıkları inceleyebilirsiniz.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-slate-500 text-sm uppercase tracking-wider font-semibold mb-1">Toplam Net Tutar</span>
+                        <span id="dashboard-net" class="text-3xl font-bold text-slate-800">0,00 ₺</span>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-slate-500 text-sm uppercase tracking-wider font-semibold mb-1">Hesaplanan KDV (%20)</span>
+                        <span id="dashboard-kdv" class="text-3xl font-bold text-slate-600">0,00 ₺</span>
+                    </div>
+                    <div class="bg-slate-900 rounded-xl shadow-md border border-slate-800 p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-amber-400 text-sm uppercase tracking-wider font-semibold mb-1">Genel Toplam (KDV Dahil)</span>
+                        <span id="dashboard-total" class="text-4xl font-bold text-white">0,00 ₺</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-semibold text-center text-slate-800 mb-4">Gider Türüne Göre Dağılım</h3>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-semibold text-center text-slate-800 mb-4">Ana Kalem Maliyetleri</h3>
+                        <div class="chart-container">
+                            <canvas id="phaseChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="teklif" class="section-content">
+                <div class="mb-6 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-amber-500 pb-2 inline-block">İnteraktif Teklif Tablosu (BOQ)</h2>
+                        <p class="text-slate-600 mt-2">ÇŞB formatında detaylı keşif özeti. Tabloda arama yapabilir veya malzeme/işçilik/nakliye kırılımlarını filtreleyebilirsiniz.</p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                        <div class="flex-grow">
+                            <label for="searchInput" class="sr-only">Ara</label>
+                            <input type="text" id="searchInput" placeholder="Poz No veya Açıklama ara..." class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm">
+                        </div>
+                        <div class="flex-shrink-0">
+                            <label for="categoryFilter" class="sr-only">Kategori Filtresi</label>
+                            <select id="categoryFilter" class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm cursor-pointer">
+                                <option value="Tümü">Tüm Kategoriler</option>
+                                <option value="Malzeme">Sadece Malzeme</option>
+                                <option value="İşçilik">Sadece İşçilik</option>
+                                <option value="Nakliye">Sadece Nakliye</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-32">ÇŞB Poz No</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">İş Kalemi / Açıklama</th>
+                                    <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Kategori</th>
+                                    <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-20">Birim</th>
+                                    <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Miktar</th>
+                                    <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Birim Fiyat</th>
+                                    <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider w-36">Tutar (Net)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="boqTableBody" class="bg-white divide-y divide-slate-200">
+                            </tbody>
+                            <tfoot class="bg-slate-50 border-t-2 border-slate-300 font-semibold text-slate-800">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-right uppercase tracking-wider text-sm">Filtrelenen Tutar Toplamı:</td>
+                                    <td id="table-total" class="px-6 py-4 text-right text-base text-slate-900">0,00 ₺</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        const boqData = [
+            { id: 1, phase: 'Hafriyat', poz: '15.100.1004', desc: 'Makine ile her derinlikte yumuşak ve sert toprak kazılması', cat: 'İşçilik', unit: 'm³', qty: 2500, price: 185.00, vat: 20 },
+            { id: 2, phase: 'Hafriyat', poz: '07.005/N-01', desc: 'Kazı malzemesinin döküm sahasına taşınması (10 km)', cat: 'Nakliye', unit: 'ton', qty: 4500, price: 65.50, vat: 20 },
+            { id: 3, phase: 'Betonarme', poz: '15.120.1003', desc: 'C25/30 Sınıfı Hazır Beton Alımı', cat: 'Malzeme', unit: 'm³', qty: 1200, price: 2450.00, vat: 20 },
+            { id: 4, phase: 'Betonarme', poz: '15.120.1003-İ', desc: 'Hazır Beton Dökülmesi, Yerleştirilmesi ve Kürü', cat: 'İşçilik', unit: 'm³', qty: 1200, price: 320.00, vat: 20 },
+            { id: 5, phase: 'Betonarme', poz: '15.160.1003', desc: 'Ø 8-12 mm Nervürlü Çelik Hasır / Betonçelik Çubuğu', cat: 'Malzeme', unit: 'ton', qty: 110, price: 23500.00, vat: 20 },
+            { id: 6, phase: 'Betonarme', poz: '15.160.1003-İ', desc: 'Demir Bükülmesi ve Yerine Konması', cat: 'İşçilik', unit: 'ton', qty: 110, price: 5100.00, vat: 20 },
+            { id: 7, phase: 'Duvar ve Sıva', poz: '15.250.1001', desc: '8,5 cm veya 13,5 cm kalınlıkta yatay delikli tuğla', cat: 'Malzeme', unit: 'm²', qty: 3500, price: 165.00, vat: 20 },
+            { id: 8, phase: 'Duvar ve Sıva', poz: '15.250.1001-İ', desc: 'Tuğla Duvar Örülmesi', cat: 'İşçilik', unit: 'm²', qty: 3500, price: 215.00, vat: 20 },
+            { id: 9, phase: 'Duvar ve Sıva', poz: '15.275.1101', desc: 'İç yüzeylere çimento harçlı kaba ve ince sıva', cat: 'Malzeme', unit: 'm²', qty: 7000, price: 95.00, vat: 20 },
+            { id: 10, phase: 'Duvar ve Sıva', poz: '15.275.1101-İ', desc: 'Sıva Yapılması', cat: 'İşçilik', unit: 'm²', qty: 7000, price: 180.00, vat: 20 },
+            { id: 11, phase: 'Kaplama', poz: '15.430.1001', desc: 'Sırlı seramik duvar ve yer karosu (30x30 - 45x45 cm)', cat: 'Malzeme', unit: 'm²', qty: 1800, price: 420.00, vat: 20 },
+            { id: 12, phase: 'Kaplama', poz: '15.430.1001-İ', desc: 'Seramik Karoların Döşenmesi', cat: 'İşçilik', unit: 'm²', qty: 1800, price: 380.00, vat: 20 },
+            { id: 13, phase: 'Genel', poz: '07.006/N-02', desc: 'İnşaat malzemelerinin şantiyeye nakli (Ortalama)', cat: 'Nakliye', unit: 'ton', qty: 1200, price: 350.00, vat: 20 },
+            { id: 14, phase: 'Çatı', poz: '15.335.1001', desc: 'Ahşap oturtma çatı yapılması (Malzeme dahil)', cat: 'Malzeme', unit: 'm²', qty: 850, price: 1150.00, vat: 20 },
+            { id: 15, phase: 'Çatı', poz: '15.335.1001-İ', desc: 'Ahşap Çatı Kurulumu', cat: 'İşçilik', unit: 'm²', qty: 850, price: 450.00, vat: 20 }
+        ];
+
+        let myCategoryChart = null;
+        let myPhaseChart = null;
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(value);
+        }
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat('tr-TR').format(value);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section-content').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            
+            document.getElementById('btn-' + tabId).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'analiz') {
+                updateDashboardCharts();
+            }
+        }
+
+        function getCategoryColor(cat) {
+            if (cat === 'Malzeme') return 'bg-blue-100 text-blue-800 border-blue-200';
+            if (cat === 'İşçilik') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            if (cat === 'Nakliye') return 'bg-amber-100 text-amber-800 border-amber-200';
+            return 'bg-slate-100 text-slate-800 border-slate-200';
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('boqTableBody');
+            tbody.innerHTML = '';
+            let filteredTotal = 0;
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">Arama kriterlerine uygun kayıt bulunamadı.</td></tr>';
+                document.getElementById('table-total').textContent = '0,00 ₺';
+                return;
+            }
+
+            data.forEach(item => {
+                const itemTotal = item.qty * item.price;
+                filteredTotal += itemTotal;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${item.poz}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${item.desc}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded border ${getCategoryColor(item.cat)}">
+                            ${item.cat}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center">${item.unit}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 text-right font-medium">${formatNumber(item.qty)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 text-right">${formatCurrency(item.price)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900 text-right bg-slate-50/50">${formatCurrency(itemTotal)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('table-total').textContent = formatCurrency(filteredTotal);
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const catTerm = document.getElementById('categoryFilter').value;
+
+            const filteredData = boqData.filter(item => {
+                const matchSearch = item.poz.toLowerCase().includes(searchTerm) || item.desc.toLowerCase().includes(searchTerm);
+                const matchCat = catTerm === 'Tümü' || item.cat === catTerm;
+                return matchSearch && matchCat;
+            });
+
+            renderTable(filteredData);
+        }
+
+        function calculateDashboardMetrics() {
+            let netTotal = 0;
+            let kdvTotal = 0;
+            
+            const catTotals = { 'Malzeme': 0, 'İşçilik': 0, 'Nakliye': 0 };
+            const phaseTotals = {};
+
+            boqData.forEach(item => {
+                const total = item.qty * item.price;
+                const kdv = total * (item.vat / 100);
+                
+                netTotal += total;
+                kdvTotal += kdv;
+
+                if (catTotals[item.cat] !== undefined) {
+                    catTotals[item.cat] += total;
+                }
+
+                if (!phaseTotals[item.phase]) {
+                    phaseTotals[item.phase] = 0;
+                }
+                phaseTotals[item.phase] += total;
+            });
+
+            return { netTotal, kdvTotal, grandTotal: netTotal + kdvTotal, catTotals, phaseTotals };
+        }
+
+        function updateDashboardUI(metrics) {
+            document.getElementById('dashboard-net').textContent = formatCurrency(metrics.netTotal);
+            document.getElementById('dashboard-kdv').textContent = formatCurrency(metrics.kdvTotal);
+            document.getElementById('dashboard-total').textContent = formatCurrency(metrics.grandTotal);
+        }
+
+        function updateDashboardCharts() {
+            const metrics = calculateDashboardMetrics();
+            updateDashboardUI(metrics);
+
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748B';
+
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            if (myCategoryChart) myCategoryChart.destroy();
+            
+            myCategoryChart = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Malzeme', 'İşçilik', 'Nakliye'],
+                    datasets: [{
+                        data: [metrics.catTotals['Malzeme'], metrics.catTotals['İşçilik'], metrics.catTotals['Nakliye']],
+                        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            const phaseLabels = Object.keys(metrics.phaseTotals);
+            const phaseData = Object.values(metrics.phaseTotals);
+
+            const wrapLabel = (label) => {
+                if (label.length > 16) return label.substring(0, 14) + '...';
+                return label;
+            };
+            const wrappedLabels = phaseLabels.map(wrapLabel);
+
+            const phaseCtx = document.getElementById('phaseChart').getContext('2d');
+            if (myPhaseChart) myPhaseChart.destroy();
+
+            myPhaseChart = new Chart(phaseCtx, {
+                type: 'bar',
+                data: {
+                    labels: wrappedLabels,
+                    datasets: [{
+                        label: 'Maliyet (Net ₺)',
+                        data: phaseData,
+                        backgroundColor: '#64748B',
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return phaseLabels[context[0].dataIndex];
+                                },
+                                label: function(context) {
+                                    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#F1F5F9', drawBorder: false },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M ₺';
+                                    if (value >= 1000) return (value / 1000).toFixed(0) + 'B ₺';
+                                    return value + ' ₺';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('categoryFilter').addEventListener('change', filterData);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable(boqData);
+            const metrics = calculateDashboardMetrics();
+            updateDashboardUI(metrics);
+        });
+
+    </script>
+</body>
+</html>

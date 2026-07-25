@@ -1,0 +1,178 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e33]:
+      - complementary [ref=e34]:
+        - link "TP TeklifPro Intelligence" [ref=e36] [cursor=pointer]:
+          - /url: /app
+          - generic [ref=e37]: TP
+          - generic [ref=e38]:
+            - generic [ref=e39]: TeklifPro
+            - generic [ref=e40]: Intelligence
+        - navigation [ref=e41]:
+          - link "Dashboard" [ref=e42] [cursor=pointer]:
+            - /url: /app
+          - link "Teklifler" [ref=e48] [cursor=pointer]:
+            - /url: /app/quotes
+          - link "Müşteriler" [ref=e52] [cursor=pointer]:
+            - /url: /app/clients
+          - link "CRM Pipeline" [ref=e58] [cursor=pointer]:
+            - /url: /app/crm
+          - link "Pilot Başvuruları" [ref=e63] [cursor=pointer]:
+            - /url: /app/pilot-applications
+          - link "AI Asistan" [ref=e67] [cursor=pointer]:
+            - /url: /app/ai
+          - link "Mevzuat" [ref=e71] [cursor=pointer]:
+            - /url: /app/regulations
+          - link "Piyasa Verisi" [ref=e74] [cursor=pointer]:
+            - /url: /app/market-intelligence
+          - link "Pilot Kanıtı" [ref=e77] [cursor=pointer]:
+            - /url: /app/pilot-evidence
+          - link "SmartCheck" [ref=e82] [cursor=pointer]:
+            - /url: /app/smartcheck
+          - link "Akademi" [ref=e85] [cursor=pointer]:
+            - /url: /app/academy
+          - link "Kârlılık" [ref=e88] [cursor=pointer]:
+            - /url: /app/profitability
+          - link "Faturalandırma" [ref=e91] [cursor=pointer]:
+            - /url: /app/billing
+          - link "Ayarlar" [ref=e94] [cursor=pointer]:
+            - /url: /app/settings
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - paragraph [ref=e101]: WORKSPACE
+            - paragraph [ref=e102]: TeklifPro Demo Şirketi
+          - button "ÇIKIŞ YAP" [ref=e103]
+      - main [ref=e104]:
+        - generic [ref=e105]:
+          - generic [ref=e107]:
+            - generic [ref=e108]: SİSTEM DURUMU
+            - generic [ref=e109]:
+              - generic [ref=e110]: "USD: 32.42 ₺"
+              - generic [ref=e112]: "EUR: 35.15 ₺"
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - generic [ref=e117]: AKTİF KULLANICI
+                - generic [ref=e118]: Admin Kullanıcı
+              - generic [ref=e119]: A
+            - link [ref=e120] [cursor=pointer]:
+              - /url: /app/quotes/new
+              - button "YENİ TEKLİF" [ref=e121]
+        - generic [ref=e123]:
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - heading "Panel" [level=1] [ref=e127]
+              - paragraph [ref=e128]: Satış performansınız, AI önerileriniz ve finansal özetiniz.
+            - generic [ref=e129]:
+              - button "Rapor İndir" [ref=e130]
+              - link [ref=e131] [cursor=pointer]:
+                - /url: /app/quotes/new
+                - button "Yeni Teklif +" [ref=e132]
+          - generic [ref=e133]:
+            - generic [ref=e135]:
+              - generic [ref=e136]: 12%
+              - generic [ref=e145]:
+                - heading "24" [level=3] [ref=e146]
+                - paragraph [ref=e147]: Aktif Teklifler
+            - generic [ref=e149]:
+              - generic [ref=e150]: 5%
+              - generic [ref=e159]:
+                - heading "₺4.2M" [level=3] [ref=e160]
+                - paragraph [ref=e161]: Bekleyen Hacim
+            - generic [ref=e163]:
+              - generic [ref=e164]: 0%
+              - generic [ref=e173]:
+                - heading "%68" [level=3] [ref=e174]
+                - paragraph [ref=e175]: Kazanma Oranı
+            - generic [ref=e177]:
+              - generic [ref=e178]: 22%
+              - generic [ref=e187]:
+                - heading "₺842K" [level=3] [ref=e188]
+                - paragraph [ref=e189]: Net Kar Öngörüsü
+              - paragraph [ref=e190]: Yapay zeka tahmini
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - generic [ref=e194]: Satış Pipeline Değeri
+                - link "DETAYLI CRM ->" [ref=e195] [cursor=pointer]:
+                  - /url: /app/crm
+              - application [ref=e200]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]:
+                    - generic [ref=e213]: Oca
+                    - generic [ref=e215]: Şub
+                    - generic [ref=e217]: Mar
+                    - generic [ref=e219]: Nis
+                    - generic [ref=e221]: May
+                    - generic [ref=e223]: Haz
+                  - generic [ref=e225]:
+                    - generic [ref=e226]: "0"
+                    - generic [ref=e228]: "250"
+                    - generic [ref=e230]: "500"
+                    - generic [ref=e232]: "750"
+                    - generic [ref=e234]: "1000"
+            - generic [ref=e236]:
+              - generic [ref=e237]:
+                - generic [ref=e238]: AI Önerileri
+                - generic [ref=e242]: 6 YENİ
+              - generic [ref=e243]:
+                - generic [ref=e244]:
+                  - paragraph [ref=e245]: Müşteri Fırsatı
+                  - paragraph [ref=e246]: "\"Acme Corp\" teklifi uzun süredir bekliyor. %15 indirim ile kapatma şansınız yüksek."
+                  - button "HAREKETE GEÇ ->" [ref=e247]
+                - generic [ref=e248]:
+                  - paragraph [ref=e249]: Mevzuat Uyarısı
+                  - paragraph [ref=e250]: Tekstil sektöründe KDV düzenlemesi değişti. Tekliflerini güncelleyin.
+                  - button "DÜZENLEMELERİ GÖR ->" [ref=e251]
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - generic [ref=e255]:
+                - heading "Kârlılık Özeti" [level=2] [ref=e256]
+                - paragraph [ref=e257]: Bu ayki hedefler ve gerçekleşme oranı.
+              - generic [ref=e260]:
+                - generic [ref=e261]:
+                  - generic [ref=e262]:
+                    - generic [ref=e263]: Bu Ayki Hedef
+                    - generic [ref=e264]: ₺1.200.000
+                  - generic [ref=e267]:
+                    - generic [ref=e268]: Gerçekleşen
+                    - generic [ref=e269]: "%72 TAMAMLANDI"
+                - separator [ref=e270]
+                - link [ref=e271] [cursor=pointer]:
+                  - /url: /app/profitability
+                  - button "TÜM RAPORLARI GÖR ->" [ref=e272]
+            - generic [ref=e273]:
+              - generic [ref=e275]:
+                - heading "Son Etkinlikler" [level=2] [ref=e276]
+                - paragraph [ref=e277]: Sistemdeki en son güncellemeler.
+              - generic [ref=e281]:
+                - generic [ref=e286]:
+                  - paragraph [ref=e287]: "Yeni teklif oluşturuldu: #TK-0042"
+                  - paragraph [ref=e288]: 12 Dakika Önce
+                - generic [ref=e293]:
+                  - paragraph [ref=e294]: "Yeni teklif oluşturuldu: #TK-0084"
+                  - paragraph [ref=e295]: 12 Dakika Önce
+                - generic [ref=e299]:
+                  - paragraph [ref=e300]: "Yeni teklif oluşturuldu: #TK-00126"
+                  - paragraph [ref=e301]: 12 Dakika Önce
+            - generic [ref=e302]:
+              - generic [ref=e304]:
+                - heading "Kritik Mevzuat" [level=2] [ref=e305]
+                - paragraph [ref=e306]: İşinizi etkileyecek yasal değişiklikler.
+              - generic [ref=e310]:
+                - generic [ref=e311]:
+                  - heading "YENİ KDV DÜZENLEMESİ" [level=4] [ref=e312]
+                  - paragraph [ref=e313]: Hizmet ihracatında vergi muafiyeti güncellendi. Yaklaşan tüm teklifleri etkileyecektir.
+                - link [ref=e314] [cursor=pointer]:
+                  - /url: /app/regulations
+                  - button "KRİTİK GÜNCELLEMELERİ İNCELE" [ref=e315]
+        - generic [ref=e316]:
+          - generic [ref=e317]:
+            - generic [ref=e318]: © 2026 TeklifPro AI
+            - generic [ref=e319]: SaaS Layer v1.0.4
+          - generic [ref=e321]: GÜVENLİ BAĞLANTI AKTİF
+    - region "Notifications alt+T":
+      - list:
+        - listitem [ref=e323]:
+          - generic [ref=e328]: Hizmete erişim sağlandı.
+  - generic [ref=e330]: "0"

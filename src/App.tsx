@@ -46,6 +46,12 @@ const LessonViewerPage = page(() => import('@/pages/LessonViewerPage'), 'LessonV
 const ProtectedAllplanLessonPage = page(() => import('@/pages/ProtectedAllplanLessonPage'), 'ProtectedAllplanLessonPage');
 const PilotApplication = page(() => import('@/pages/PilotApplication'), 'PilotApplication');
 const PilotApplications = page(() => import('@/pages/PilotApplications'), 'PilotApplications');
+const BimStandardsPage = page(() => import('@/pages/BimStandardsPage'), 'default');
+const BimGlossaryPage = page(() => import('@/pages/BimGlossaryPage'), 'default');
+const AcademyCertificatesPage = page(() => import('@/pages/AcademyCertificatesPage'), 'default');
+const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'default');
+const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
+const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -95,11 +101,17 @@ function AppRoutes() {
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
           <Route path="academy" element={<Academy />} />
+          <Route path="academy/exam" element={<AcademyExamPage />} />
+          <Route path="academy/certificates" element={<AcademyCertificatesPage />} />
+          <Route path="academy/profile" element={<AcademyProfilePage />} />
+          <Route path="academy/cad-viewer" element={<AcademyCADPage />} />
           <Route path="academy/activation" element={<AcademyActivation />} />
           <Route path="academy/content/:slug" element={<LessonViewerPage />} />
           <Route path="academy/allplan" element={<AllplanAcademy />} />
           <Route path="academy/allplan/lesson/:lessonSlug" element={<ProtectedAllplanLessonPage />} />
           <Route path="academy/allplan/content/:slug" element={<LessonViewerPage />} />
+          <Route path="bim-standards" element={<BimStandardsPage />} />
+          <Route path="bim-glossary" element={<BimGlossaryPage />} />
         </Route>
       </Route>
 

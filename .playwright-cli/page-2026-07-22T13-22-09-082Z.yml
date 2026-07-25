@@ -1,0 +1,26 @@
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: TEKLIFPRO AI
+      - heading "Tekrar Merhaba" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Lütfen oturum açın
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - text: Email Adresİ
+          - textbox "email@teklifpro.ai" [ref=e21]: admin@teklifpro.ai
+        - generic [ref=e22]:
+          - text: Şİfre
+          - textbox "••••••••" [ref=e27]: admin123
+        - button "OTURUM AÇ" [ref=e28]
+      - generic [ref=e29]:
+        - link "Şifrenizi mi unuttunuz?" [ref=e30] [cursor=pointer]:
+          - /url: /forgot-password
+        - paragraph [ref=e31]:
+          - text: Hesabınız yok mu?
+          - link "Kaydolun" [ref=e32] [cursor=pointer]:
+            - /url: /register
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e33]:
+        - generic [ref=e38]: Hizmete erişim sağlandı.

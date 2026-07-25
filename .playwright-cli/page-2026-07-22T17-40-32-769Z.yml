@@ -1,0 +1,171 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e32]:
+      - complementary [ref=e33]:
+        - link [ref=e480] [cursor=pointer]:
+          - /url: /app
+          - generic [ref=e36]: TP
+          - generic [ref=e37]:
+            - generic [ref=e38]: TeklifPro
+            - generic [ref=e39]: Intelligence
+        - navigation [ref=e40]:
+          - link [ref=e481] [cursor=pointer]:
+            - /url: /app
+            - text: Dashboard
+          - link [ref=e482] [cursor=pointer]:
+            - /url: /app/quotes
+            - text: Teklifler
+          - link [ref=e483] [cursor=pointer]:
+            - /url: /app/clients
+            - text: Müşteriler
+          - link [ref=e484] [cursor=pointer]:
+            - /url: /app/crm
+            - text: CRM Pipeline
+          - link [ref=e485] [cursor=pointer]:
+            - /url: /app/pilot-applications
+            - text: Pilot Başvuruları
+          - link [ref=e486] [cursor=pointer]:
+            - /url: /app/ai
+            - text: AI Asistan
+          - link [ref=e487] [cursor=pointer]:
+            - /url: /app/regulations
+            - text: Mevzuat
+          - link [ref=e488] [cursor=pointer]:
+            - /url: /app/smartcheck
+            - text: SmartCheck
+          - link [ref=e489] [cursor=pointer]:
+            - /url: /app/academy
+            - text: Akademi
+          - link [ref=e490] [cursor=pointer]:
+            - /url: /app/profitability
+            - text: Kârlılık
+          - link [ref=e491] [cursor=pointer]:
+            - /url: /app/billing
+            - text: Faturalandırma
+          - link [ref=e492] [cursor=pointer]:
+            - /url: /app/settings
+            - text: Ayarlar
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - paragraph [ref=e92]: WORKSPACE
+            - paragraph [ref=e93]: TeklifPro Demo Şirketi
+          - button [ref=e493]: ÇIKIŞ YAP
+      - main [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e98]:
+            - generic [ref=e99]: SİSTEM DURUMU
+            - generic [ref=e100]:
+              - generic [ref=e101]: "USD: 32.42 ₺"
+              - generic [ref=e103]: "EUR: 35.15 ₺"
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e108]: AKTİF KULLANICI
+                - generic [ref=e109]: Admin Kullanıcı
+              - generic [ref=e110]: A
+            - link [ref=e494] [cursor=pointer]:
+              - /url: /app/quotes/new
+              - button [ref=e495]: YENİ TEKLİF
+        - generic [ref=e325]:
+          - generic [ref=e326]:
+            - generic [ref=e327]:
+              - heading [level=1] [ref=e496]: Müşteriler & CRM
+              - paragraph [ref=e336]: Müşteri portföyünüzü ve satış pipeline sürecini yönetin.
+            - button [expanded] [ref=e497]: Yeni Müşteri Ekle
+          - generic [ref=e339]:
+            - generic [ref=e347]:
+              - heading [level=3] [ref=e498]: "2"
+              - paragraph [ref=e349]: Potansiyel
+            - generic [ref=e356]:
+              - heading [level=3] [ref=e499]: "0"
+              - paragraph [ref=e358]: Görüşüldü
+            - generic [ref=e366]:
+              - heading [level=3] [ref=e500]: "0"
+              - paragraph [ref=e368]: Teklifli
+            - generic [ref=e378]:
+              - heading [level=3] [ref=e501]: "0"
+              - paragraph [ref=e380]: Pazarlık
+            - generic [ref=e388]:
+              - heading [level=3] [ref=e502]: "0"
+              - paragraph [ref=e390]: Kazanıldı
+            - generic [ref=e399]:
+              - heading [level=3] [ref=e503]: "0"
+              - paragraph [ref=e401]: Kaybedildi
+          - generic [ref=e403]:
+            - generic [ref=e404]:
+              - textbox [ref=e504]:
+                - /placeholder: Müşteri listesinde ara...
+              - button [ref=e505]: Filtrele
+            - table [ref=e413]:
+              - rowgroup [ref=e414]:
+                - row [ref=e506]:
+                  - columnheader [ref=e507]: MÜŞTERİ BİLGİSİ
+                  - columnheader [ref=e508]: İLETİŞİM KANALLARI
+                  - columnheader [ref=e509]: PIPELINE ADIMI
+                  - columnheader [ref=e510]: KAYIT TARİHİ
+                  - columnheader [ref=e511]: İŞLEM
+              - rowgroup [ref=e421]:
+                - row [ref=e512]:
+                  - cell [ref=e513]:
+                    - generic [ref=e430]:
+                      - paragraph [ref=e431]: SMOKE Client 2026-05-14T17-28-04-198Z
+                      - paragraph [ref=e436]: KURUMSAL
+                  - cell [ref=e514]:
+                    - generic [ref=e438]:
+                      - generic [ref=e439] [cursor=pointer]: smoke+2026-05-14T17-28-04-198Z@teklifpro.local
+                      - generic [ref=e443] [cursor=pointer]: +90 555 000 00 00
+                  - cell [ref=e515]:
+                    - generic [ref=e447]: POTANSİYEL
+                  - cell [ref=e516]: 14.05.2026
+                  - cell [ref=e449]:
+                    - button [ref=e450]
+                - row [ref=e517]:
+                  - cell [ref=e518]:
+                    - generic [ref=e459]:
+                      - paragraph [ref=e460]: SMOKE Client 2026-05-14T17-27-12-493Z
+                      - paragraph [ref=e465]: KURUMSAL
+                  - cell [ref=e519]:
+                    - generic [ref=e467]:
+                      - generic [ref=e468] [cursor=pointer]: smoke+2026-05-14T17-27-12-493Z@teklifpro.local
+                      - generic [ref=e472] [cursor=pointer]: +90 555 000 00 00
+                  - cell [ref=e520]:
+                    - generic [ref=e476]: POTANSİYEL
+                  - cell [ref=e521]: 14.05.2026
+                  - cell [ref=e478]:
+                    - button [ref=e479]
+        - generic [ref=e307]:
+          - generic [ref=e308]:
+            - generic [ref=e309]: © 2026 TeklifPro AI
+            - generic [ref=e310]: SaaS Layer v1.0.4
+          - generic [ref=e312]: GÜVENLİ BAĞLANTI AKTİF
+    - region "Notifications alt+T"
+  - generic [ref=e321]: "0"
+  - dialog [ref=e525]:
+    - heading "Yeni Müşteri Kaydı" [level=2] [ref=e527]
+    - generic [ref=e531]:
+      - generic [ref=e532]:
+        - generic [ref=e533]: Müşteri Adı / Ünvan
+        - 'textbox "Örn: Aras Yapı Denetim Ltd." [active] [ref=e534]'
+      - generic [ref=e535]:
+        - generic [ref=e536]:
+          - generic [ref=e537]: Tip
+          - combobox [ref=e538]:
+            - generic [ref=e539]: company
+            - img: ▼
+          - textbox [ref=e540]: company
+        - generic [ref=e541]:
+          - generic [ref=e542]: Pipeline Durumu
+          - combobox [ref=e543]:
+            - generic [ref=e544]: lead
+            - img: ▼
+          - textbox [ref=e545]: lead
+      - generic [ref=e546]:
+        - generic [ref=e547]: İletişim E-posta
+        - textbox "info@sirket.com" [ref=e548]
+      - generic [ref=e549]:
+        - generic [ref=e550]: Telefon
+        - textbox "+90 5XX XXX XX XX" [ref=e551]
+    - generic [ref=e552]:
+      - button "İptal" [ref=e553]
+      - button "Müşteriyi Kaydet" [ref=e554]
+    - button "Close" [ref=e555]

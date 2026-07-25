@@ -1,0 +1,307 @@
+{
+  "version": "2.0.0",
+  "generated_at": "2026-07-23T21:17:30Z",
+  "notebook_source_id": "da730fbf-ac81-475b-9996-1c87f261d19f",
+  "notebook_title": "ALLPLAN Datasource 1 (312 Sources)",
+  "title": "ALLPLAN Master Müfredat & Sürüm Karşılaştırmalı Eğitim Veri Seti (2026-2021)",
+  "description": "ALLPLAN 2026 ve 2025 en son sürüm yeniliklerinden başlayarak, geriye dönük 2021-2024 sürüm farklarını, menü adım adım kullanım yollarını, görsel UI varlıklarını (SVG assets) ve OSKA e-Hakediş CAD entegrasyon kurallarını içeren tam müfredat veri seti.",
+  "paths": [
+    {
+      "path_id": "p1",
+      "code": "allplan-fundamentals",
+      "title": "1. Allplan Temelleri, Arayüz Mantığı & 10Duke Bulut Lisanslama",
+      "courses": [
+        {
+          "course_id": "p1-c1",
+          "title": "ALLPLAN 2026/2025 Arayüzü, WPF Çerçevesi & Dark Mode (Look & Feel)",
+          "modules": [
+            {
+              "module_id": "mod-1-1",
+              "slug": "allplan-2026-interface-dark-mode",
+              "title": "ALLPLAN 2026/2025 Arayüzü, WPF Çerçevesi & Dark Mode",
+              "estimated_minutes": 30,
+              "smartcheck_skill_code": "allplan.interface.navigation",
+              "latest_features_2026_2025": [
+                "Dark Mode (Koyu Tema) desteği ve modernize edilmiş Açık Tema (Light Mode)",
+                "Actionbar (Aksiyon Çubuğu) üzerinde gelişmiş WPF altyapısı",
+                "Context Menu 2.0 (Daha düzenli sağ tık bağlam menüsü)",
+                "Multi-letter Shortcuts (Çift harfli kısayollar: WA - Duvar, CO - Kolon)",
+                "AI Assistant: Allplan Connect üzerinden 24/7 canlı yapay zeka rehberliği"
+              ],
+              "legacy_compatibility_notes_2021_2024": [
+                "ALLPLAN 2021-2023 sürümlerinde varsayılan olarak yalnızca Açık Tema mevcuttur.",
+                "Eski sürümlerde tek harfli kısayollar kullanılır, çift harfli kısayol girerken enter basılmalıdır."
+              ],
+              "learning_objectives": [
+                "ALLPLAN 2026 Dark Mode ve WPF tabanlı grafik arayüzüne hakim olmak",
+                "Aksiyon Çubuğu üzerinde Mavi (Oluştur) ve Gri (Değiştir) araç mantığını kullanmak",
+                "F4 tuşu ile 3B animasyon penceresinde odak noktası etrafında gezinmek"
+              ],
+              "ui_action_steps": [
+                "1. Allplan 2026 varsayılan 2+1 Animasyon pencere düzeni ile açılır.",
+                "2. Ekran altındaki Durum Çubuğundan (Status Bar) proje ölçeği (1:50) ve birimi (Metre) seçilir.",
+                "3. Actionbar sol üst menüsünden Rol (Mimari/Mühendislik) seçilir.",
+                "4. WA klavye kısayolu ile Duvar (Wall) komutu çalıştırılır.",
+                "5. F4 tuşuna basılarak 3B animasyon penceresi aktifleştirilir."
+              ],
+              "visual_assets": [
+                {
+                  "id": "asset_dark_mode_actionbar",
+                  "type": "svg",
+                  "path": "kaynaklar/assets/allplan_academy/allplan_2026_dark_mode_actionbar.svg",
+                  "description": "ALLPLAN 2026 Dark Mode Arayüzü, Actionbar Rolleri ve 2+1 Görünüm Düzeni"
+                }
+              ],
+              "fix_card_summary": "ALLPLAN 2026 araçları iki renge ayrılır: Mavi ikonlar yeni eleman oluşturur, Gri ikonlar var olan elemanı değiştirir."
+            },
+            {
+              "module_id": "mod-1-2",
+              "slug": "allplan-10duke-cloud-licensing-ifc43",
+              "title": "Proje Strüktürü, IFC 4.3 Uyumlu Hiyerarşi & 10Duke Bulut Lisanslama",
+              "estimated_minutes": 40,
+              "smartcheck_skill_code": "allplan.project.structure",
+              "latest_features_2026_2025": [
+                "10Duke Bulut Lisanslama: Donanım kilitleri olmadan ALLPLAN ID e-posta ile anında lisans aktivasyonu",
+                "IFC 4.3 Uyumlu Yapı Strüktürü Sihirbazı",
+                "Cloud Referencing (Bimplus XRef): IFC dosyalarını yerel hafızayı yormadan buluttan XRef ekleme",
+                "Geliştirilmiş XRef Yöneticisi: 3B önizlemeli harici referans yönetimi"
+              ],
+              "legacy_compatibility_notes_2021_2024": [
+                "ALLPLAN 2021-2023 sürümlerindeki Wibu Softlock / CodeMeter fiziksel dongle sistemleri 2025/2026'da kaldırılmıştır.",
+                "Klasik LAN Workgroup Manager ürününün desteği Ekim 2027'de (End of Life) sona erecektir. Çalışmalar Allplan Share buluta aktarılmalıdır."
+              ],
+              "learning_objectives": [
+                "10Duke bulut lisansı ile oturum açmak ve lisans transferi ihtiyacını ortadan kaldırmak",
+                "IFC 4.3 standartlarıyla uyumlu Yapı Strüktürü (Building Structure) kurmak",
+                "Bimplus bulut XRef entegrasyonu ile büyük projeleri sıfır kasma ile yönetmek"
+              ],
+              "ui_action_steps": [
+                "1. Allplan 2026 açılışında ALLPLAN ID e-postanız ile 10Duke bulut oturumu açın.",
+                "2. Dosya > Yeni Proje yolunu izleyin ve Yapı Strüktürü Sihirbazını başlatın.",
+                "3. 'IFC 4.3 Uyumlu Strüktür' seçeneğini işaretleyin.",
+                "4. Kat yüksekliklerini tanımlayın ve Çizim Dosyalarını (NDW) atayın.",
+                "5. XRef Yöneticisinden Bimplus üzerindeki bulut IFC modelini referans gösterin."
+              ],
+              "visual_assets": [
+                {
+                  "id": "asset_dark_mode_actionbar",
+                  "type": "svg",
+                  "path": "kaynaklar/assets/allplan_academy/allplan_2026_dark_mode_actionbar.svg",
+                  "description": "10Duke Bulut Lisansı ve Proje Yapı Strüktürü Panel Görünümü"
+                }
+              ],
+              "fix_card_summary": "ALLPLAN 2026'da lisans donanıma değil e-postaya bağlıdır (10Duke). LAN Workgroup desteği Ekim 2027'de sona erecektir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path_id": "p2",
+      "code": "allplan-architecture",
+      "title": "2. ALLPLAN Mimarlık, Çok Katmanlı Döşemeler & IDS Yönetimi",
+      "courses": [
+        {
+          "course_id": "p2-c1",
+          "title": "Akıllı Mimari Elemanlar & Multilayer Slabs",
+          "modules": [
+            {
+              "module_id": "mod-2-1",
+              "slug": "allplan-multilayer-slabs-priority",
+              "title": "Çok Katmanlı Döşemeler (Multilayer Slabs) ve Priority (Öncelik) Yönetimi",
+              "estimated_minutes": 50,
+              "smartcheck_skill_code": "allplan.wall.priority",
+              "latest_features_2026_2025": [
+                "Multilayer Slabs: Döşemelerin çok katmanlı yapısı ve etkileşimli önizlemesi (Interactive Preview)",
+                "Geliştirilmiş Serbest Form Merdiven Modelleyicisi (Freeform Staircase)",
+                "Yeni Parametrik Kapı ve Pencere Objeleri (SmartPart yerine daha hafif nesneler)",
+                "Preoptima CONCEPT entegrasyonu ile erken aşama karbon ayak izi hesabı"
+              ],
+              "legacy_compatibility_notes_2021_2024": [
+                "2024 öncesi sürümlerde döşemeler tek katmanlı modellenip detay katmanları ayrı çiziliyordu.",
+                "Eski SmartPart pencereleri çoklu seçimde donma yapabiliyordu; 2025/2026 yeni objeleriyle bu sorun giderilmiştir."
+              ],
+              "learning_objectives": [
+                "Taşıyıcı beton, yalıtım ve şap katmanlarını tek bir döşeme bileşeninde yönetmek",
+                " Priority (Öncelik) değerleri atayarak kalıp ve metraj kesişim hatalarını önlemek"
+              ],
+              "ui_action_steps": [
+                "1. Actionbar > Mimari > Duvar (Wall) komutunu çalıştırın.",
+                "2. Taşıyıcı betonarme duvar katmanına Priority 500, tuğla katmana 300, XPS yalıtıma 200 atayın.",
+                "3. Döşeme komutunda 'Multilayer Slab' seçeneğini işaretleyin ve katman yönünü önizleyin.",
+                "4. Taşıyıcı katmanın diğer katmanlar tarafından kesilmediğini doğrulayın."
+              ],
+              "visual_assets": [
+                {
+                  "id": "asset_wall_priority_slabs",
+                  "type": "svg",
+                  "path": "kaynaklar/assets/allplan_academy/allplan_wall_priority_and_multilayer_slabs.svg",
+                  "description": "ALLPLAN Duvar Priority Hiyerarşisi ve Çok Katmanlı Döşeme Görseli"
+                }
+              ],
+              "fix_card_summary": "Yük taşıyıcı betonarme duvar katmanının Priority değeri (500), yalıtım ve tuğla katmanlarından (200-300) yüksek olmalıdır."
+            },
+            {
+              "module_id": "mod-2-2",
+              "slug": "allplan-information-palette-ids-validation",
+              "title": "Bilgi Paleti (Information Palette), IDS Uyumluluğu & Model Viewer",
+              "estimated_minutes": 45,
+              "smartcheck_skill_code": "allplan.information.ids",
+              "latest_features_2026_2025": [
+                "Yenilenmiş Bilgi Paleti (Information Palette): Esnek gruplama, otomatik toplam alma ve IDS doğrulaması",
+                "Tam IDS (Information Delivery Specification) .json kural dosyası desteği",
+                "ALLPLAN Model Viewer (modelviewer.allplan.com): Tarayıcı üzerinden ücretsiz anlık IFC görüntüleme",
+                "Bluebeam Studio entegrasyonu ile PDF revizyonlarını Allplan iş akışına aktarma"
+              ],
+              "legacy_compatibility_notes_2021_2024": [
+                "ALLPLAN 2024 öncesi sürümlerde IDS desteği deneyseldi; 2026 sürümünde tam standart hale gelmiştir."
+              ],
+              "learning_objectives": [
+                "IDS kural dosyalarıyla BIM modelindeki nitelik eksikliklerini otomatik denetlemek",
+                "Bilgi paleti üzerinden nesnelere toplu veri ve parametre ataması yapmak",
+                "ALLPLAN Model Viewer ile paydaşlara anında ücretsiz IFC linki göndermek"
+              ],
+              "ui_action_steps": [
+                "1. Sol menüden Bilgi Paletini (Information Palette) açın.",
+                "2. IDS Kural İçe Aktar seçeneğinden proje .json kural dosyasını yükleyin.",
+                "3. Modeldeki eksik nitelikleri (LoI) yeşil/kırmızı kontrol ışıklarıyla süzün.",
+                "4. Dışa aktarım öncesinde modelviewer.allplan.com adresinden önizleme linki üretin."
+              ],
+              "visual_assets": [
+                {
+                  "id": "asset_dark_mode_actionbar",
+                  "type": "svg",
+                  "path": "kaynaklar/assets/allplan_academy/allplan_2026_dark_mode_actionbar.svg",
+                  "description": "ALLPLAN Bilgi Paleti ve IDS Kural Denetim Paneli"
+                }
+              ],
+              "fix_card_summary": "IDS doğrulaması sayesinde modeldeki eksik nitelikler IFC export öncesinde otomatik tespit edilir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path_id": "p3",
+      "code": "allplan-engineering",
+      "title": "3. ALLPLAN Mühendislik, 3B Donatı & SDS2 Çelik Otomasyonu",
+      "courses": [
+        {
+          "course_id": "p3-c1",
+          "title": "3B Donatı Otomasyonu & SDS2 Çelik Birleşimler",
+          "modules": [
+            {
+              "module_id": "mod-3-1",
+              "slug": "allplan-3d-reinforcement-auto-update",
+              "title": "Betonarme Yapılarda 3B Çubuk Donatı Modelleme & Otomatik Güncelleme",
+              "estimated_minutes": 55,
+              "smartcheck_skill_code": "allplan.reinforcement.cover",
+              "latest_features_2026_2025": [
+                "Otomatik Donatı Güncelleme (Automatic Reinforcement Updates): 3B model değiştiğinde donatının anında güncellenmesi",
+                "PythonParts donatı otomasyon şablonları",
+                "TS500 uyumlu paspayı (cover) ve büküm lejantı üretim araçları"
+              ],
+              "legacy_compatibility_notes_2021_2024": [
+                "ALLPLAN 2022 öncesinde kalıp boyutu değiştiğinde donatılar manuel güncellenmek zorundaydı."
+              ],
+              "learning_objectives": [
+                "İlişkisel kesitler üzerinden 3B çubuk donatı ve etriye modellemek",
+                "Büküm şemaları (Bending Schedule) ve donatı poz lejantları türetmek"
+              ],
+              "ui_action_steps": [
+                "1. Actionbar > Mühendislik > Donatı sekmesine geçin.",
+                "2. Çubuk Donatı (Bar Reinforcement) komutunu çalıştırın ve Paspayını (min 30mm) ayarlayın.",
+                "3. Etiket aracı ile Poz Numaralarını otomatik yerleştirin.",
+                "4. Donatı Lejantı tablosunu paftanıza sürükleyin."
+              ],
+              "visual_assets": [
+                {
+                  "id": "asset_wall_priority_slabs",
+                  "type": "svg",
+                  "path": "kaynaklar/assets/allplan_academy/allplan_wall_priority_and_multilayer_slabs.svg",
+                  "description": "3B Donatı Paspayı ve Lejant Görseli"
+                }
+              ],
+              "fix_card_summary": "Donatı paspayı (cover) değeri TS500 standartlarına göre minimum 30mm-50mm arasında ayarlanmalıdır."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path_id": "p4",
+      "code": "allplan-takeoff-integration",
+      "title": "4. ALLPLAN Metraj & e-Hakediş (OSKA) Entegrasyonu",
+      "courses": [
+        {
+          "course_id": "p4-c1",
+          "title": "Otomatik Metraj ve OSKA CAD Export",
+          "modules": [
+            {
+              "module_id": "mod-4-1",
+              "slug": "allplan-oska-ehakedis-cad-integration",
+              "title": "Allplan Metraj ve e-Hakediş (OSKA) Entegrasyonu Kuralları",
+              "estimated_minutes": 60,
+              "smartcheck_skill_code": "allplan.takeoff.oska_export",
+              "latest_features_2026_2025": [
+                "Smart Catalog Editor: Uluslararası poz ve malzeme veritabanlarının yönetimi",
+                "Excel ile Çift Yönlü Veri Senkronizasyonu (Bi-directional Excel Sync)",
+                "OSKA e-Hakediş CAD ile birebir metraj yeşil defter entegrasyonu"
+              ],
+              "legacy_compatibility_notes_2021_2024": [
+                "Eski sürümlerde iXMLDialog.dll ve OskaKatalog.dll kopyalama adımları manuel yapılmaktaydı."
+              ],
+              "learning_objectives": [
+                "3B Modelden malzeme, kat ve eleman bazlı otomatik metraj cetveli türetmek",
+                "OSKA e-Hakediş CAD programına metraj verilerini kayıpsız aktarmak"
+              ],
+              "ui_action_steps": [
+                "1. iXMLDialog.dll ve OskaKatalog.dll dosyalarını Prg ana dizinine kopyalayın.",
+                "2. Servisler (Allmenu) > DXF/DWG > 'Genel katalog sistemini ilişkilendir - OSKA' tıklayıp iXMLDialog.dll seçin.",
+                "3. Allplan Araçlar > Seçenekler > Kataloglar sekmesinde varsayılan kataloğu user_kat yapın.",
+                "4. Dosya > Dosya Gönder > OSKA'ya Metraj Verilerini Gönder yolunu izleyin.",
+                "5. Tablo olarak Metraj Cetveli.rdlc, program olarak C:\\e-Oska\\OskaCad.exe seçip gönderin."
+              ],
+              "visual_assets": [
+                {
+                  "id": "asset_oska_export_flow",
+                  "type": "svg",
+                  "path": "kaynaklar/assets/allplan_academy/allplan_oska_ehakedis_cad_export_flow.svg",
+                  "description": "ALLPLAN OSKA e-Hakediş CAD Entegrasyon Akış Şeması"
+                }
+              ],
+              "fix_card_summary": "Allplan metraj verilerini OSKA e-Hakediş CAD'e aktarmak için iXMLDialog.dll kopyalanmalı ve catalog ataması user_kat yapılmalıdır."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "oska_integration_rules": [
+    {
+      "rule_id": "rule-oska-1",
+      "title": "Lisans ve Türkçe Yama Ön Koşulu",
+      "details": "Allplan ve OSKA e-Hakediş CAD aynı bilgisayarda kurulu olmalı ve Allplan Türkçe Yaması yüklenmiş olmalıdır."
+    },
+    {
+      "rule_id": "rule-oska-2",
+      "title": "DLL Kopyalama Prosedürü",
+      "details": "C:\\Program Files\\Nemetschek\\Allplan_2013\\Prg\\@_Oska\\64_Bit altındaki iXMLDialog.dll ve OskaKatalog.dll dosyaları Prg ana dizinine kopyalanmalıdır."
+    },
+    {
+      "rule_id": "rule-oska-3",
+      "title": "Allmenu Servis İlişkilendirmesi",
+      "details": "Servisler (Allmenu) kapalıyken DXF/DWG > Genel katalog sistemini ilişkilendir - OSKA tıklanıp iXMLDialog.dll seçilmelidir."
+    },
+    {
+      "rule_id": "rule-oska-4",
+      "title": "Katalog Seçeneği user_kat",
+      "details": "Allplan Araçlar > Seçenekler > Kataloglar sekmesinde Katalog ataması user_kat olarak ayarlanmalıdır."
+    },
+    {
+      "rule_id": "rule-oska-5",
+      "title": "RDLC ve Executable Hedefi",
+      "details": "Export yaparken Metraj Cetveli.rdlc raporu ve C:\\e-Oska\\OskaCad.exe hedef gösterilmelidir."
+    }
+  ]
+}

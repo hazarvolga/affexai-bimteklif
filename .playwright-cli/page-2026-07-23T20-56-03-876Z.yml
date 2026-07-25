@@ -1,0 +1,243 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e4]:
+    - complementary [ref=f2e5]:
+      - link "TP TeklifPro Intelligence" [ref=f2e7] [cursor=pointer]:
+        - /url: /app
+        - generic [ref=f2e8]: TP
+        - generic [ref=f2e9]:
+          - generic [ref=f2e10]: TeklifPro
+          - generic [ref=f2e11]: Intelligence
+      - navigation [ref=f2e12]:
+        - link "Dashboard" [ref=f2e13] [cursor=pointer]:
+          - /url: /app
+        - link "Teklifler" [ref=f2e19] [cursor=pointer]:
+          - /url: /app/quotes
+        - link "Müşteriler" [ref=f2e23] [cursor=pointer]:
+          - /url: /app/clients
+        - link "CRM Pipeline" [ref=f2e29] [cursor=pointer]:
+          - /url: /app/crm
+        - link "Pilot Başvuruları" [ref=f2e34] [cursor=pointer]:
+          - /url: /app/pilot-applications
+        - link "AI Asistan" [ref=f2e38] [cursor=pointer]:
+          - /url: /app/ai
+        - link "Mevzuat" [ref=f2e42] [cursor=pointer]:
+          - /url: /app/regulations
+        - link "Piyasa Verisi" [ref=f2e45] [cursor=pointer]:
+          - /url: /app/market-intelligence
+        - link "Pilot Kanıtı" [ref=f2e48] [cursor=pointer]:
+          - /url: /app/pilot-evidence
+        - link "SmartCheck" [ref=f2e53] [cursor=pointer]:
+          - /url: /app/smartcheck
+        - link "Akademi" [ref=f2e56] [cursor=pointer]:
+          - /url: /app/academy
+        - link "Kârlılık" [ref=f2e59] [cursor=pointer]:
+          - /url: /app/profitability
+        - link "Faturalandırma" [ref=f2e62] [cursor=pointer]:
+          - /url: /app/billing
+        - link "Ayarlar" [ref=f2e65] [cursor=pointer]:
+          - /url: /app/settings
+      - generic [ref=f2e69]:
+        - generic [ref=f2e70]:
+          - paragraph [ref=f2e72]: WORKSPACE
+          - paragraph [ref=f2e73]: TeklifPro Demo Şirketi
+        - button "ÇIKIŞ YAP" [ref=f2e74]
+    - main [ref=f2e75]:
+      - generic [ref=f2e76]:
+        - generic [ref=f2e78]:
+          - generic [ref=f2e79]: SİSTEM DURUMU
+          - generic [ref=f2e80]:
+            - generic [ref=f2e81]: "USD: 32.42 ₺"
+            - generic [ref=f2e83]: "EUR: 35.15 ₺"
+        - generic [ref=f2e85]:
+          - generic [ref=f2e86]:
+            - generic [ref=f2e87]:
+              - generic [ref=f2e88]: AKTİF KULLANICI
+              - generic [ref=f2e89]: Admin Kullanıcı
+            - generic [ref=f2e90]: A
+          - link [ref=f2e91] [cursor=pointer]:
+            - /url: /app/quotes/new
+            - button "YENİ TEKLİF" [ref=f2e92]
+      - generic [ref=f2e94]:
+        - generic [ref=f2e96]:
+          - heading "SmartCheck Kalite Kontrolü" [level=1] [ref=f2e98]
+          - paragraph [ref=f2e99]: Teklif ve metraj satırlarınızı kaynak, birim ve maliyet bütünlüğü açısından insan onayıyla denetleyin.
+        - generic [ref=f2e100]:
+          - generic [ref=f2e101]:
+            - generic [ref=f2e102]:
+              - paragraph [ref=f2e103]: Evidence-first pilot
+              - heading "Excel/CSV SmartCheck çalışma alanı" [level=2] [ref=f2e104]
+              - paragraph [ref=f2e105]: Yükle → kaynak önizlemeyi doğrula → kolonları eşle → bulguları incele → aktar.
+            - generic [ref=f2e106]: Eşleme onayı bekleniyor
+          - generic [ref=f2e107]:
+            - generic [ref=f2e108]:
+              - generic [ref=f2e109] [cursor=pointer]:
+                - generic [ref=f2e113]: mep-02-electrical.csv
+                - button "mep-02-electrical.csv" [ref=f2e212]
+              - button "Yükle ve önizle" [ref=f2e213]
+              - generic [ref=f2e214]:
+                - generic [ref=f2e215]: Kaynak yapısı
+                - generic [ref=f2e218]:
+                  - generic [ref=f2e219]:
+                    - text: Sheet
+                    - combobox "Sheet" [ref=f2e220]:
+                      - option "CSV · 5 satır" [selected]
+                  - generic [ref=f2e221]:
+                    - text: Başlık satırı
+                    - spinbutton "Başlık satırı" [ref=f2e222]: "1"
+                - generic [ref=f2e223]:
+                  - text: MEP eşleme profili
+                  - combobox "MEP eşleme profili" [ref=f2e224]:
+                    - option "MEP · Türkçe standart" [selected]
+                    - option "MEP · miktar ve fiyat"
+                    - option "Kamu analiz şablonu"
+                - paragraph [ref=f2e225]: Profil yalnız kolon eşleme önerisidir; miktar, fiyat ve kural onayı üretmez.
+                - generic [ref=f2e226]:
+                  - textbox "positionCode" [ref=f2e227]:
+                    - /placeholder: Poz No
+                    - text: Poz No
+                  - textbox "description" [ref=f2e228]:
+                    - /placeholder: Açıklama
+                    - text: Açıklama
+                  - textbox "unit" [ref=f2e229]:
+                    - /placeholder: Birim
+                    - text: Birim
+                  - textbox "quantity" [ref=f2e230]:
+                    - /placeholder: Miktar
+                    - text: Miktar
+                  - textbox "price" [ref=f2e231]:
+                    - /placeholder: Birim Fiyat
+                    - text: Birim Fiyat
+                  - textbox "wastePercent" [ref=f2e232]:
+                    - /placeholder: Zayiat
+                    - text: Zayiat
+                - button "Eşlemeyi onayla ve işle" [ref=f2e233]
+              - generic [ref=f2e234]:
+                - generic [ref=f2e236]:
+                  - paragraph [ref=f2e237]: Pilot kanıt kaydı
+                  - paragraph [ref=f2e238]: Müşteri adı yerine kontrollü referans, izin ve retention kaydedilir.
+                - generic [ref=f2e239]:
+                  - textbox "Pilot kimliği" [ref=f2e240]
+                  - textbox "Müşteri referansı" [ref=f2e241]
+                - generic [ref=f2e242]:
+                  - textbox "Proje referansı" [ref=f2e243]
+                  - textbox "İzin referansı" [ref=f2e244]
+                - generic [ref=f2e245]:
+                  - textbox "İzin tarihi" [ref=f2e246]: 2026-07-23
+                  - textbox "Retention tarihi" [ref=f2e247]
+                  - spinbutton "Beklenen satır" [ref=f2e248]: "0"
+                - button "İzin ve retention ile pilot case oluştur" [disabled]
+            - generic [ref=f2e115]:
+              - generic [ref=f2e249]:
+                - generic [ref=f2e251]:
+                  - paragraph [ref=f2e252]: Kaynak önizleme · CSV
+                  - paragraph [ref=f2e253]: 5 satır · 6 kolon · Önerilen eşleme güvenli olmayan taslaktır.
+                - table [ref=f2e255]:
+                  - rowgroup [ref=f2e256]:
+                    - row [ref=f2e257]:
+                      - cell "Poz No" [ref=f2e258]
+                      - cell "Açıklama" [ref=f2e259]
+                      - cell "Birim" [ref=f2e260]
+                      - cell "Miktar" [ref=f2e261]
+                      - cell "Birim Fiyat" [ref=f2e262]
+                      - cell "Zayiat" [ref=f2e263]
+                    - row [ref=f2e264]:
+                      - cell "E-101" [ref=f2e265]
+                      - cell "LED armatür" [ref=f2e266]
+                      - cell "adet" [ref=f2e267]
+                      - cell "96" [ref=f2e268]
+                      - cell "1.850,00" [ref=f2e269]
+                      - cell "2" [ref=f2e270]
+                    - row [ref=f2e271]:
+                      - cell "E-102" [ref=f2e272]
+                      - cell "Enerji kablosu" [ref=f2e273]
+                      - cell "m" [ref=f2e274]
+                      - cell "680" [ref=f2e275]
+                      - cell "145,50" [ref=f2e276]
+                      - cell "4" [ref=f2e277]
+                    - row [ref=f2e278]:
+                      - cell "E-103" [ref=f2e279]
+                      - cell "Kablo tavası" [ref=f2e280]
+                      - cell "mt" [ref=f2e281]
+                      - cell "312" [ref=f2e282]
+                      - cell "390,00" [ref=f2e283]
+                      - cell "6" [ref=f2e284]
+                    - row [ref=f2e285]:
+                      - cell "E-104" [ref=f2e286]
+                      - cell "Topraklama barası" [ref=f2e287]
+                      - cell "set" [ref=f2e288]
+                      - cell "3" [ref=f2e289]
+                      - cell "12.500,00" [ref=f2e290]
+                      - cell "2" [ref=f2e291]
+              - generic [ref=f2e116]: Önizlemeyi kontrol edin; işlem başladığında normalize edilmiş sonuçlar burada görünecek.
+          - generic [ref=f2e119]:
+            - generic [ref=f2e120]:
+              - generic [ref=f2e121]:
+                - paragraph [ref=f2e122]: İşleme kuyruğu
+                - paragraph [ref=f2e123]: Tenant içindeki son SmartCheck işlemleri; başarısız run yalnızca açık retry ile tekrar başlar.
+              - button "Yenile" [ref=f2e124]
+            - generic [ref=f2e125]:
+              - generic [ref=f2e126]:
+                - generic [ref=f2e127]:
+                  - paragraph [ref=f2e128]: mep-01-clean.csv
+                  - paragraph [ref=f2e129]: İnsan incelemesi bekleniyor · %100
+                - generic [ref=f2e130]: succeeded
+              - generic [ref=f2e132]:
+                - generic [ref=f2e133]:
+                  - paragraph [ref=f2e134]: mep-01-clean.csv
+                  - paragraph [ref=f2e135]: İnsan incelemesi bekleniyor · %100
+                - generic [ref=f2e136]: succeeded
+              - generic [ref=f2e138]:
+                - generic [ref=f2e139]:
+                  - paragraph [ref=f2e140]: mep-pilot.csv
+                  - paragraph [ref=f2e141]: İnsan incelemesi bekleniyor · %100
+                - generic [ref=f2e142]: succeeded
+        - generic [ref=f2e144]:
+          - generic [ref=f2e147]:
+            - generic [ref=f2e148]: SmartCheck v1.0.0
+            - heading "Kanıta Dayalı Metraj & Teklif Kontrolü" [level=2] [ref=f2e149]
+            - paragraph [ref=f2e150]: Pilot akışta teklif satırlarını, poz kodlarını, birimleri ve kaynak bilgisini inceleyin. Demo bulguları mühendislik onayı değildir; gerçek dosya aktarımı kullanıcı incelemesiyle tamamlanır.
+            - generic [ref=f2e151]:
+              - button "Demo Denetimi Başlat" [ref=f2e152]
+              - link [ref=f2e153] [cursor=pointer]:
+                - /url: /app/quotes
+                - button "Teklifleri Listele" [ref=f2e154]
+          - generic [ref=f2e155]:
+            - generic [ref=f2e156]:
+              - generic [ref=f2e157]: Genel İstatistikler
+              - generic [ref=f2e159]:
+                - generic [ref=f2e160]:
+                  - generic [ref=f2e161]: Son Denetim Tarihi
+                  - generic [ref=f2e162]: Bulunmuyor
+                - generic [ref=f2e163]:
+                  - generic [ref=f2e164]: Toplam Bulgular
+                  - generic [ref=f2e165]: 0 adet
+                - generic [ref=f2e166]:
+                  - generic [ref=f2e167]: Ortalama Çözüm Hızı
+                  - generic [ref=f2e168]: 12 Dk
+            - generic [ref=f2e169]:
+              - generic [ref=f2e170]: En Sık Karşılaşılan Hatalar
+              - generic [ref=f2e172]:
+                - generic [ref=f2e173]:
+                  - generic [ref=f2e174]: Poz/Birim
+                  - generic [ref=f2e177]: 42 Kez
+                - generic [ref=f2e178]:
+                  - generic [ref=f2e179]: Paspayı
+                  - generic [ref=f2e182]: 28 Kez
+        - generic [ref=f2e183]:
+          - heading "Neden SmartCheck?" [level=3] [ref=f2e184]
+          - generic [ref=f2e185]:
+            - generic [ref=f2e186]:
+              - heading "Hızlı & Güvenli Tespit" [level=4] [ref=f2e190]
+              - paragraph [ref=f2e191]: Proje tekliflerindeki birim, poz, miktar ve kaynak tutarsızlıklarını deterministik kontrollerle görünür kılar.
+            - generic [ref=f2e192]:
+              - heading "Mühendislik Standartları" [level=4] [ref=f2e196]
+              - paragraph [ref=f2e197]: Donatı detaylandırma demo simülasyonunu ve paspayı toleranslarını kontrol etmek üzere interaktif kurallar sunar.
+            - generic [ref=f2e198]:
+              - heading "Akademi Desteği" [level=4] [ref=f2e203]
+              - paragraph [ref=f2e204]: Hata tespit edilen alanlarda doğrudan o hatayı çözmeye yönelik interaktif simülatörler ve dersler atar.
+      - generic [ref=f2e205]:
+        - generic [ref=f2e206]:
+          - generic [ref=f2e207]: © 2026 TeklifPro AI
+          - generic [ref=f2e208]: SaaS Layer v1.0.4
+        - generic [ref=f2e210]: GÜVENLİ BAĞLANTI AKTİF
+  - region "Notifications alt+T"

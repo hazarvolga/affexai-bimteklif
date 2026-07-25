@@ -89,6 +89,42 @@ export const navigationConfig: NavItem[] = [
     roles: ["owner", "admin", "manager", "viewer"],
   },
   {
+    label: "Sertifikalarım",
+    path: "/app/academy/certificates",
+    icon: BookOpen,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "Sertifika Sınavı",
+    path: "/app/academy/exam",
+    icon: ClipboardCheck,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "Akademi Profili",
+    path: "/app/academy/profile",
+    icon: Users,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "CAD Detay Viewer",
+    path: "/app/academy/cad-viewer",
+    icon: FileText,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "BIM Standartları",
+    path: "/app/bim-standards",
+    icon: ClipboardList,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "BIM Sözlüğü",
+    path: "/app/bim-glossary",
+    icon: BookOpen,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
     label: "Kârlılık",
     path: "/app/profitability",
     icon: ChartBarIncreasing,

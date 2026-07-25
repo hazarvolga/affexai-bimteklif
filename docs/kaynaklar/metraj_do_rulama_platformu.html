@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnşaat Metraj Doğrulama ve Analiz Platformu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Mimari Kum ve Mühendislik Grisi - Sıcak nötrler (#F5F5F0, #E5E5E0) zemininde, profesyonel gri ve lacivert aksanlar. -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --bg-primary: #F5F5F0;
+            --bg-secondary: #E5E5E0;
+            --accent-blue: #2C3E50;
+            --accent-gold: #C5A059;
+            --text-main: #333333;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            scroll-behavior: smooth;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-gold);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .active-nav::after {
+            width: 100%;
+        }
+
+        /* Tab Styles */
+        .tab-btn.active {
+            border-bottom: 2px solid var(--accent-blue);
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Application Structure Plan:
+        1. Dashboard Approach: Ana mesajları ve raporun akademik değerini özetleyen bir giriş.
+        2. Disiplinlerarası Perspektif: Mimar ve Mühendis bakış açısını etkileşimli kartlarla sunan bölüm.
+        3. Standartlar & Yasal Dayanaklar: ÇŞB, TS, RICS gibi kaynakların hiyerarşik listesi.
+        4. Rebar Engine (Donatı Analizi): TS 708 verilerini görselleştiren ve hesaplama hatalarını gösteren dinamik tablo ve grafik.
+        5. Boşluk (Minha) Laboratuvarı: ÇŞB vs DIN 18350 kurallarını görsel bir simülasyonla karşılaştıran interaktif alan.
+        6. BIM Katman Gezgini: UniFormat II hiyerarşisini gösteren akordiyon yapı.
+        
+        Neden Bu Yapı? Metraj uzmanının günlük iş akışına (hesaplama, kontrol, yasal dayanak bulma) uygun, lineer olmayan bir keşif sağladığı için tercih edildi.
+    -->
+
+    <!-- Visualization & Content Choices:
+        - Report Info -> Goal -> Viz/Presentation Method -> Interaction -> Justification
+        - Donatı Çap/Ağırlık -> Doğruluk -> Chart.js Bar Chart -> Hover data & Toggle -> Standart sapmaları görselleştirmek için en net yöntem.
+        - Minha Kuralları -> Karşılaştırma -> İnteraktif Senaryo Kartları -> Seçim bazlı içerik güncelleme -> Karmaşık yasal ayrımı basitleştirmek için.
+        - BIM Hiyerarşisi -> Organizasyon -> Interactive Tree/Accordion -> Click to expand -> Bilgi yoğunluğunu yönetmek için.
+        - Betonarme Hiyerarşisi -> Süreç -> Canvas Drawing (Simple) -> Statik görselleştirme -> Mükerrer hesaplamanın nerede olduğunu göstermek için.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <nav class="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl font-bold tracking-tighter text-slate-800">METRAJ<span class="text-amber-600">PRO</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium">
+                    <a href="#perspektif" class="nav-link text-slate-600 hover:text-slate-900">Perspektifler</a>
+                    <a href="#donati" class="nav-link text-slate-600 hover:text-slate-900">Donatı Analizi</a>
+                    <a href="#minha" class="nav-link text-slate-600 hover:text-slate-900">Minha Kuralları</a>
+                    <a href="#bim" class="nav-link text-slate-600 hover:text-slate-900">BIM & Standartlar</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="p-2 text-slate-600">☰</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Giriş Bölümü -->
+        <header class="mb-20 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight">Teklif ve Metrajda <br><span class="text-amber-600">Bilimsel Doğruluk</span></h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+                İnşaat ekonomisi salt bir aritmetik işlem değil; yasal düzenlemelerin ve saha gerçekliklerinin entegre edildiği bir mühendislik sanatıdır. Bu platform, sektördeki yaygın hataları çürütmek ve TS 500/708 standartlarını merkeze almak için tasarlanmıştır.
+            </p>
+        </header>
+
+        <!-- Bölüm 1: Perspektifler -->
+        <section id="perspektif" class="mb-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-semibold mb-4 border-l-4 border-amber-600 pl-4">1. Disiplinlerarası Paradigma</h2>
+                <p class="text-slate-600">Metraj çalışmaları, mimari boşluklar (Void) ve mühendislik kütleleri (Mass) arasındaki ontolojik farkın anlaşılmasıyla başlar. Aşağıdaki kartlar, disiplinlerin bir yapı elemanına nasıl farklı yaklaştığını özetlemektedir.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex items-center mb-6">
+                        <span class="text-3xl mr-4">📐</span>
+                        <h3 class="text-xl font-bold">Mimari Perspektif (Hacim & Yüzey)</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-600 mb-4">
+                        Mimar için bir yapı, hacimlerin ve bu hacimleri çevreleyen yüzeylerin estetik bütünlüğüdür. İnce işler metrajında kaplama yüzeylerinin sürekliliği, denizlik detayları ve pah noktaları esastır.
+                    </p>
+                    <ul class="text-xs space-y-2 text-slate-500 italic">
+                        <li>• Odak: Net kullanım alanları (m²)</li>
+                        <li>• Kritik Nokta: Görsel birleşim detayları</li>
+                        <li>• Yaklaşım: Mekânsal kalite ve ışık tanımı</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-8 rounded-2xl border-l-4 border-slate-800">
+                    <div class="flex items-center mb-6">
+                        <span class="text-3xl mr-4">🏗️</span>
+                        <h3 class="text-xl font-bold">Mühendislik Perspektifi (Kütle & Mukavemet)</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-600 mb-4">
+                        İnşaat mühendisi için yapı, dış yüklere karşı koyan rijit kütlelerdir. Odak noktası estetik değil; kütlenin hacmi, yoğunluğu ve donatı aderansıdır.
+                    </p>
+                    <ul class="text-xs space-y-2 text-slate-500 italic">
+                        <li>• Odak: Brüt kütle ve ağırlık (m³, Ton)</li>
+                        <li>• Kritik Nokta: Bindirme boyları ve paspayları</li>
+                        <li>• Yaklaşım: Statik davranış ve güvenilirlik</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 2: Donatı Analizi -->
+        <section id="donati" class="mb-24 bg-white rounded-3xl p-8 shadow-sm">
+            <div class="mb-10">
+                <h2 class="text-3xl font-semibold mb-4 border-l-4 border-amber-600 pl-4">2. Çelik Donatı (TS 708) Gerçekliği</h2>
+                <p class="text-slate-600">Sektörde sıkça karşılaşılan yuvarlama hataları ve TS 708 standardında bulunmayan çapların kullanımı, büyük projelerde tonlarca sapmaya yol açar. Aşağıdaki grafik, yasal nominal kütleleri göstermektedir.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <canvas id="rebarChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                        <h4 class="font-bold text-amber-800 text-sm mb-2 uppercase">Kritik Uyarı: Φ18</h4>
+                        <p class="text-xs text-amber-700 leading-relaxed">TS 708 uyarınca net nominal kütle <b>1.997 kg/m</b>'dir. Piyasadaki 2.000 kg/m yuvarlaması, 5000 tonluk bir projede 7.5 tonluk (yaklaşık 1 tırın 1/3'ü) haksız ödemeye neden olur.</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2 uppercase">Yasal Çap Sınırı</h4>
+                        <p class="text-xs text-slate-700 leading-relaxed">Projelerde Φ24 kullanımı yaygın bir hatadır. TS 708 üretim standartlarında Φ24 yoktur; yerine Φ22 veya Φ25 tercih edilmelidir.</p>
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        <label class="text-xs font-semibold text-slate-500 uppercase">Hızlı Donatı Doğrulama (kg/m)</label>
+                        <select id="rebarSelector" onchange="updateRebarInfo()" class="p-3 rounded-lg border border-slate-200 bg-white text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                            <option value="8">Φ8 (TS 708: 0.395)</option>
+                            <option value="12">Φ12 (TS 708: 0.888)</option>
+                            <option value="18">Φ18 (TS 708: 1.997)</option>
+                            <option value="25">Φ25 (TS 708: 3.853)</option>
+                            <option value="32">Φ32 (TS 708: 6.313)</option>
+                        </select>
+                        <div id="rebarResult" class="text-2xl font-bold text-amber-600 mt-2">0.395 kg/m</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 3: Minha (Boşluk) Karşılaştırması -->
+        <section id="minha" class="mb-24">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-semibold mb-4">3. Boşluk Düşme (Minha) Çatışması</h2>
+                <p class="text-slate-600 max-w-3xl mx-auto">Sektörün en büyük "efsanesi" olan 3.00 m² kuralının kökenini ve Türkiye'deki yasal (ÇŞB) gerçeği keşfedin.</p>
+            </div>
+
+            <div class="flex justify-center mb-8">
+                <div class="inline-flex rounded-lg p-1 bg-slate-200">
+                    <button onclick="toggleMinha('tr')" id="btn-tr" class="px-6 py-2 rounded-md text-sm font-semibold transition-all bg-white shadow-sm text-slate-800">Türkiye (ÇŞB Kuralları)</button>
+                    <button onclick="toggleMinha('de')" id="btn-de" class="px-6 py-2 rounded-md text-sm font-semibold transition-all text-slate-600">Almanya (DIN 18350)</button>
+                </div>
+            </div>
+
+            <div id="minha-content" class="glass-card p-8 rounded-3xl min-h-[400px]">
+                <!-- Dinamik içerik buraya gelecek -->
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 id="minha-title" class="text-2xl font-bold mb-4 text-slate-800">Çevre ve Şehircilik Bakanlığı (ÇŞB)</h3>
+                        <p id="minha-desc" class="text-slate-600 leading-relaxed mb-6">
+                            Türkiye'deki yasal otoriteye göre, boşluğun boyutu ne olursa olsun (0.1 m² bile olsa) metrajdan düşülür. Karşılığında işçilik gerektiren iç yan yüzeyler (merkezler) metraja eklenir. Bu yöntem %100 matematiksel kesinlik sağlar.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center p-3 bg-green-50 text-green-800 rounded-lg text-sm font-medium">
+                                <span class="mr-2">✓</span> Alan ne olursa olsun "Minha" (Düşme) yapılır.
+                            </div>
+                            <div class="flex items-center p-3 bg-blue-50 text-blue-800 rounded-lg text-sm font-medium">
+                                <span class="mr-2">i</span> Boşluk yan yüzeyleri (Laibung) ayrı hesaplanır.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative bg-slate-100 rounded-2xl p-6 flex flex-col items-center justify-center border-2 border-dashed border-slate-300">
+                        <div id="minha-viz-wall" class="w-48 h-32 bg-amber-200 border-2 border-amber-400 relative">
+                            <div id="minha-viz-window" class="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-white border-2 border-red-500 flex items-center justify-center">
+                                <span id="minha-viz-label" class="text-[10px] text-red-600 font-bold">- MINHA</span>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-500 text-center italic">Görselleştirme: Birim Fiyat Pozları uyarınca boşluk her zaman düşülür.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 4: BIM & Klasifikasyon -->
+        <section id="bim" class="mb-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-semibold mb-4 border-l-4 border-amber-600 pl-4">4. BIM Tabanlı Sınıflandırma (UniFormat II)</h2>
+                <p class="text-slate-600">BIM modellerinden doğru metraj alabilmek için fonksiyonel sınıflandırma şarttır. ASTM E1557 standardına göre yapının hiyerarşik kırılımı:</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="p-6 bg-white rounded-2xl shadow-sm border-t-4 border-slate-800">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Level 1</span>
+                    <h3 class="text-lg font-bold mt-1">A: Altyapı</h3>
+                    <p class="text-xs text-slate-500 mt-2 italic">Temeller ve zemin seviyesi altındaki tüm yapısal elemanlar.</p>
+                </div>
+                <div class="p-6 bg-white rounded-2xl shadow-sm border-t-4 border-amber-600">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Level 1</span>
+                    <h3 class="text-lg font-bold mt-1">B: Kabuk (Shell)</h3>
+                    <div class="mt-4 space-y-2">
+                        <div class="p-2 bg-slate-50 rounded text-xs font-medium text-slate-700">B10: Üstyapı</div>
+                        <div class="p-2 bg-slate-50 rounded text-xs font-medium text-slate-700">B20: Dış Cephe</div>
+                    </div>
+                </div>
+                <div class="p-6 bg-white rounded-2xl shadow-sm border-t-4 border-slate-400">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Level 1</span>
+                    <h3 class="text-lg font-bold mt-1">C: İç Mekan</h3>
+                    <p class="text-xs text-slate-500 mt-2 italic">Bölücü duvarlar, kapılar ve ince bitiş işleri.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bölüm 5: SmartCheck & Güvenlik -->
+        <section class="mb-24 bg-slate-900 text-white rounded-3xl p-10 overflow-hidden relative">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+            <div class="relative z-10">
+                <h2 class="text-3xl font-bold mb-8">SmartCheck™: Hata Denetim Protokolü</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="space-y-3">
+                        <div class="text-amber-500 font-bold text-xl">01</div>
+                        <h4 class="font-semibold">Kesişim Önceliği</h4>
+                        <p class="text-sm text-slate-400">BIM modelinde betonarme eleman önceliği >900 olmalıdır. Aksi halde tuğla duvar hacmi mükerrer hesaplanır.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="text-amber-500 font-bold text-xl">02</div>
+                        <h4 class="font-semibold">Hiyerarşik Ölçüm</h4>
+                        <p class="text-sm text-slate-400">Kolon (Kat-Kat) > Kiriş (Kolon Yüzü) > Döşeme (Net Açıklık) sırası takip edilmelidir.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="text-amber-500 font-bold text-xl">03</div>
+                        <h4 class="font-semibold">Zayiat Toleransı</h4>
+                        <p class="text-sm text-slate-400">Teorik hacme Beton için %2-3, Donatı için %3-5 fiziksel zayiat payı analizlerde eklenmelidir.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="text-amber-500 font-bold text-xl">04</div>
+                        <h4 class="font-semibold">Yasal Birimler</h4>
+                        <p class="text-sm text-slate-400">Teklif birimi ile metraj pozu uyumu (m² vs m³) çapraz kontrolden geçirilmelidir.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm">İnşaat Metraj Doğrulama Araştırması & SPA Platformu</p>
+            <p class="text-slate-400 text-xs mt-2">Bu uygulama akademik rapor verileri esas alınarak oluşturulmuştur. Tüm hesaplamalar TS 500 ve TS 708 uyumludur.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Data Storage
+        const rebarData = {
+            8: 0.395,
+            10: 0.617,
+            12: 0.888,
+            14: 1.208,
+            16: 1.578,
+            18: 1.997,
+            20: 2.466,
+            22: 2.984,
+            25: 3.853,
+            28: 4.833,
+            32: 6.313
+        };
+
+        const minhaScenarios = {
+            tr: {
+                title: "Türkiye (ÇŞB Kuralları)",
+                desc: "Çevre ve Şehircilik Bakanlığı poz tariflerine göre boşluğun alanı ne olursa olsun metrajdan düşülür (eksi yazılır). Boşluk yan yüzeyleri ise metraja artı olarak eklenir. '3.00 m² altı düşülmez' kuralı kamu projelerinde geçersizdir.",
+                label: "- MINHA",
+                color: "red-500"
+            },
+            de: {
+                title: "Almanya (DIN 18350)",
+                desc: "Alman VOB/C normlarına göre, işçilik kaybını dengelemek için 2.50 m²'den küçük boşluklar metrajda yok sayılır (düşülmez). Ancak karşılığında bu boşlukların yan yüzeyleri de metraja eklenmez.",
+                label: "DAHİL",
+                color: "green-500"
+            }
+        };
+
+        // Initialize Charts
+        window.onload = function() {
+            const ctx = document.getElementById('rebarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(rebarData).map(d => 'Φ' + d),
+                    datasets: [{
+                        label: 'Nominal Kütle (kg/m)',
+                        data: Object.values(rebarData),
+                        backgroundColor: '#C5A059',
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Ağırlık: ${context.parsed.y} kg/m`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            title: { display: true, text: 'kg/m', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Interaction Handlers
+        function updateRebarInfo() {
+            const val = document.getElementById('rebarSelector').value;
+            const resultDiv = document.getElementById('rebarResult');
+            resultDiv.innerText = rebarData[val] + ' kg/m';
+            resultDiv.classList.add('animate-pulse');
+            setTimeout(() => resultDiv.classList.remove('animate-pulse'), 500);
+        }
+
+        function toggleMinha(lang) {
+            const data = minhaScenarios[lang];
+            document.getElementById('minha-title').innerText = data.title;
+            document.getElementById('minha-desc').innerText = data.desc;
+            
+            const windowViz = document.getElementById('minha-viz-window');
+            const labelViz = document.getElementById('minha-viz-label');
+            const btnTr = document.getElementById('btn-tr');
+            const btnDe = document.getElementById('btn-de');
+
+            labelViz.innerText = data.label;
+            windowViz.className = `absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-white border-2 border-${data.color} flex items-center justify-center transition-all duration-500`;
+            labelViz.className = `text-[10px] text-${data.color} font-bold`;
+
+            if(lang === 'tr') {
+                btnTr.className = "px-6 py-2 rounded-md text-sm font-semibold transition-all bg-white shadow-sm text-slate-800";
+                btnDe.className = "px-6 py-2 rounded-md text-sm font-semibold transition-all text-slate-600";
+            } else {
+                btnDe.className = "px-6 py-2 rounded-md text-sm font-semibold transition-all bg-white shadow-sm text-slate-800";
+                btnTr.className = "px-6 py-2 rounded-md text-sm font-semibold transition-all text-slate-600";
+            }
+        }
+    </script>
+</body>
+</html>

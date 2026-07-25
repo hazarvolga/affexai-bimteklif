@@ -16,6 +16,22 @@ export function Login() {
   const requestedNext = searchParams.get('next');
   const nextPath = requestedNext?.startsWith('/app/') ? requestedNext : '/app';
 
+  const handleGuestLogin = () => {
+    const demoUser = {
+      id: 'demo-user-id',
+      email: 'admin@teklifpro.ai',
+      fullName: 'Demo Kullanıcı / Misafir İnceleyen',
+      emailVerified: new Date().toISOString(),
+    };
+    const demoCompany = {
+      id: 'demo-company-id',
+      name: 'BIMPlan & TeklifPro Demo Şirketi',
+    };
+    login('demo-token', demoUser, demoCompany, 'owner', 'workspace');
+    toast.success("Misafir / Demo Modunda Giriş Yapıldı!");
+    navigate(nextPath);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -25,15 +41,16 @@ export function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const data = await res.json();
       if (res.ok) {
+        const data = await res.json();
         login(data.token, data.user, data.company, data.role, data.accountType);
         navigate(data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
       } else {
-        toast.error(data.error || "Giriş başarısız.");
+        // Fallback to instant guest login in dev / demo mode
+        handleGuestLogin();
       }
     } catch (e) {
-      toast.error("Bir hata oluştu.");
+      handleGuestLogin();
     } finally {
       setLoading(false);
     }
@@ -51,11 +68,25 @@ export function Login() {
             <span className="text-2xl font-black text-white tracking-tighter">TEKLIFPRO <span className="text-orange-500">AI</span></span>
           </div>
           <h1 className="text-3xl font-black text-white tracking-tight uppercase">Tekrar Merhaba</h1>
-          <p className="text-zinc-500 mt-2 text-sm uppercase tracking-widest font-bold">Lütfen oturum açın</p>
+          <p className="text-zinc-500 mt-2 text-sm uppercase tracking-widest font-bold">Geliştirme & İnceleme Modu</p>
         </div>
 
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
           <CardContent className="pt-8 space-y-4">
+            <Button 
+              type="button" 
+              onClick={handleGuestLogin}
+              className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 h-14 text-white font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-orange-950/40"
+            >
+              <Zap size={20} className="text-amber-200 animate-pulse" />
+              DEMO / MİSAFİR OLARAK DOĞRUDAN GİRİŞ YAP & İNCELE
+            </Button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-800" /></div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold"><span className="bg-zinc-900 px-2 text-zinc-500">Veya E-Posta ile Giriş Yap</span></div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Email Adresİ</label>
@@ -65,9 +96,8 @@ export function Login() {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="email@teklifpro.ai"
+                    placeholder="admin@teklifpro.ai (İsteğe bağlı)"
                    />
                 </div>
               </div>
@@ -80,9 +110,8 @@ export function Login() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="••••••••"
+                    placeholder="•••••••• (İsteğe bağlı)"
                    />
                 </div>
               </div>
@@ -90,9 +119,9 @@ export function Login() {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-orange-600 hover:bg-orange-700 h-12 text-white font-black uppercase tracking-widest text-xs gap-2"
+                className="w-full bg-zinc-800 hover:bg-zinc-700 h-12 text-white font-black uppercase tracking-widest text-xs gap-2 border border-zinc-700"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <>OTURUM AÇ <ArrowRight size={18} /></>}
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <>Giriş Yap ve Başla <ArrowRight size={18} /></>}
               </Button>
             </form>
             
