@@ -19,7 +19,7 @@ This document defines the complete computer configuration, folder hierarchy, ins
 │   │
 │   ├── studio/                      # Enterprise Client & Support Applications
 │   │   ├── aluplan-support-desk-v02 # [ACTIVE] NestJS 11 + Next.js 15 + RAG + Dynamics 365 Support Desk
-│   │   ├── FlexSoft/                # [NEW] Flexsoft Arge Allplan Rebar Automation Modules
+│   │   ├── FlexSoft/                # Flexsoft Arge Allplan Rebar Automation Modules
 │   │   ├── aluplan-2026/            # Allplan 2026 Corporate Portal
 │   │   ├── aluplan-sertifka-sorgulama/ # Certificate Validation Portal
 │   │   ├── A-Yap-/                  # A-Yapı Construction Portal
@@ -31,8 +31,7 @@ This document defines the complete computer configuration, folder hierarchy, ins
 │   │   ├── suntek-systems-architecture/
 │   │   └── suntek-v03/
 │   │
-│   ├── ai-tools/                    # AI Engines, Runtimes, Agents & Skill Suites
-│   │   ├── local-ai-suite/          # [NEW] Apple Silicon M5 Max Local LLM Engine (MLX 32B Models, OpenAI API:8080)
+│   ├── ai-tools/                    # AI Skill Sets & Frameworks
 │   │   ├── everything-claude-code/  # Anthropic Hackathon Winner 9 Agents, 8 Rules & 15 Commands Framework
 │   │   ├── marketingskills/         # Corey Haines 48 High-Value AI Marketing & Branding Skills
 │   │   └── rules/                   # Universal Behavioral Rules (RULES.md)
@@ -51,18 +50,7 @@ This document defines the complete computer configuration, folder hierarchy, ins
 │   ├── Eski_Bilgisayardan_Aktarilan_Tum_Projeler -> ~/dev/old-projects-staging
 │   └── Eski_Bilgisayar_Kaynaklar_Klasoru -> ~/dev/products/bimplanacademy/TeklifPro-repo/docs/kaynaklar
 │
-├── .codex/                          # Codex State, Global Prompts & Local AI Endpoints
+├── .codex/                          # Codex State, Global Prompts & Default Config
 ├── .claude/                         # Claude Desktop & Claude Code Settings
 └── .gemini/config/plugins/          # Global AI Plugin Registry
 ```
-
----
-
-## 🛠️ Installed Local AI Engines & Control Aliases
-
-- **Start Local M5 Max AI Server:** `local-ai-start` (`http://127.0.0.1:8080/v1`)
-- **Stop Server & Free Memory:** `local-ai-stop`
-- **Check Server & RAM Status:** `local-ai-status`
-- **Installed Models:** `mlx-community/Qwen2.5-Coder-32B-Instruct-4bit` (Reasoning & Editing) & `mlx-community/Qwen2.5-Coder-1.5B-Instruct-4bit` (Draft / Autocomplete).
-- **OpenAI CODEX Endpoint:** `http://127.0.0.1:8080/v1`
-- **VS Code Continue Config:** `~/.continue/config.json`
