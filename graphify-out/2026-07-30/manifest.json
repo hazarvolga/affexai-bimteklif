@@ -1430,8 +1430,8 @@
     "semantic_hash": ""
   },
   "src/pages/Academy.tsx": {
-    "mtime": 1784676580.0,
-    "ast_hash": "7bc817c6e78e127f510757fbf73902f6",
+    "mtime": 1785428376.4885268,
+    "ast_hash": "30f6672c2710ef753a9e4ce09ef129f8",
     "semantic_hash": ""
   },
   "src/pages/AcademyActivation.tsx": {
@@ -1580,13 +1580,13 @@
     "semantic_hash": ""
   },
   "src/pages/PublicAcademy.tsx": {
-    "mtime": 1784641784.0,
-    "ast_hash": "83eff46a83b361f8343337648b457e04",
+    "mtime": 1785428930.7493513,
+    "ast_hash": "2841fc8d39f309ad4389d0e1878d634c",
     "semantic_hash": ""
   },
   "src/pages/PublicAcademyDetail.tsx": {
-    "mtime": 1784533285.0,
-    "ast_hash": "935113574f8f9cc2ece8b6cbb15b9810",
+    "mtime": 1785429595.573781,
+    "ast_hash": "35cb01f2d2078de4b58c1c905bfe9c67",
     "semantic_hash": ""
   },
   "src/pages/QuoteDetail.tsx": {
@@ -1890,8 +1890,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/SmartCheckDemoContext.tsx": {
-    "mtime": 1784475669.0,
-    "ast_hash": "d2e56ed557932f7968d36c6b2021dfcb",
+    "mtime": 1785428480.8745177,
+    "ast_hash": "a50ff95fd2c978c8bf17bcb897f02555",
     "semantic_hash": ""
   },
   "src/smartcheck/demo-slice.test.ts": {
@@ -1900,8 +1900,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/demoData.ts": {
-    "mtime": 1784475669.0,
-    "ast_hash": "7e84798d1f0dbc8507ef8c77e97144ed",
+    "mtime": 1785428496.307992,
+    "ast_hash": "7260f8eda13411abe7fd7c7866410e1f",
     "semantic_hash": ""
   },
   "src/smartcheck/evaluation/cli-entry.test.ts": {
@@ -3895,8 +3895,8 @@
     "semantic_hash": ""
   },
   "docs/TEKLIFPRO_IFC_5D_BIM_ROADMAP.md": {
-    "mtime": 1785428099.0843608,
-    "ast_hash": "e211649878e89ee34947c548485e75fc",
+    "mtime": 1785428383.300709,
+    "ast_hash": "d430a470df99421a01c51e05d42dbac8",
     "semantic_hash": ""
   },
   "docs/academy/allplan-pro-track-roadmap.md": {
@@ -4477,6 +4477,21 @@
   "public/favicon.svg": {
     "mtime": 1784840111.0,
     "ast_hash": "b626a8c8305a929d51fbe2c6aa54eada",
+    "semantic_hash": ""
+  },
+  "sondurum-eklenenler.md": {
+    "mtime": 1785428531.7540424,
+    "ast_hash": "060058df364f0e24b6506ba2f344d8c4",
+    "semantic_hash": ""
+  },
+  "src/academy/subGuidesData.ts": {
+    "mtime": 1785429570.0270066,
+    "ast_hash": "9ad2e27c9cc5d354a4491da95cb34db9",
+    "semantic_hash": ""
+  },
+  "src/components/academy/SubGuideDrawer.tsx": {
+    "mtime": 1785429606.128986,
+    "ast_hash": "bcaa9bbe8b878cbb178ba2f5394bb58e",
     "semantic_hash": ""
   }
 }

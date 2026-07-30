@@ -1,16 +1,16 @@
 # Graph Report - TeklifPro-repo  (2026-07-30)
 
 ## Corpus Check
-- 761 files · ~1,306,352 words
+- 764 files · ~1,314,729 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 8384 nodes · 10501 edges · 786 communities (724 shown, 62 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 234 edges (avg confidence: 0.75)
+- 8400 nodes · 10521 edges · 790 communities (731 shown, 59 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 210 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `54071d4c`
+- Built from commit: `ef07ad54`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,7 +26,7 @@
 - Input
 - routes/auth.ts
 - releaseGate.ts
-- academy.ts
+- schema.ts
 - AIProvider
 - cli.ts
 - cn
@@ -42,10 +42,10 @@
 - cli-process.test.ts
 - market-intelligence.ts
 - Security Checklist
-- storage.ts
-- checkpoint.ts
-- LandingPage.tsx
-- fetchWithAuth
+- LocalStorageAdapter
+- SMS Sequence Types
+- validate-allplan-content-review.mjs
+- QuoteDetail.tsx
 - CRMIntelligenceService
 - RegulatoryIntelligenceService
 - CardAction
@@ -53,8 +53,8 @@
 - pilot-smoke.ts
 - readiness.ts
 - CandidateProvider
-- activation.ts
-- paymentWebhook.ts
+- 🚀 Tamamlanan Tüm Adımlar
+- Google Ads Setup
 - allplan/types.ts
 - cn
 - cn
@@ -72,12 +72,12 @@
 - NotebookLM Claude Code Skill
 - The 12 Programmatic SEO Playbooks
 - LessonViewerPage.tsx
-- src/components/ui/button.tsx
+- src/lib/utils.ts
 - PublicAcademyDetail.tsx
 - Customer Research — Source Guides
 - Free Tool Strategy (Engineering as Marketing)
 - config.py
-- schema.ts
+- Meta Ads Setup
 - Schema Markup Examples
 - SMS Marketing
 - access.ts
@@ -88,7 +88,7 @@
 - Directory Submissions
 - NotebookLM Skill Troubleshooting Guide
 - reviewValidator.test.ts
-- PilotApplication.tsx
+- Post-Purchase Flow
 - Coding Standards & Best Practices
 - Client Types — Variations by Business Model
 - The 139 Marketing Ideas
@@ -148,7 +148,7 @@
 - Sections to Capture
 - Sales Enablement
 - properties
-- SmartCheckImportWorkspace.tsx
+- fetchWithAuth
 - Ad Creative
 - Page CRO Experiment Ideas
 - AARRR Framework — Primer for Plan Sequencing
@@ -244,7 +244,7 @@
 - rowIds
 - 3. Müfredat Ders Gövdeleri ve Görsel Varlık (Asset) Listesi
 - BimStandardsPage.tsx
-- MarketIntelligence.tsx
+- constants.ts
 - A/B Test Templates Reference
 - The Creative Review Page
 - B2B Paid Playbook
@@ -273,7 +273,7 @@
 - Sample Size Guide
 - Paid Ads
 - Citations vs. Recommendations: The AI Visibility Ladder
-- AEO and GEO Content Patterns
+- Generative Engine Optimization (GEO) Patterns
 - ASO Benchmarks & Conversion Data
 - AI Image Prompting Guide
 - Design & Delivery Models
@@ -327,18 +327,18 @@
 - Common Copy Problems & Fixes
 - Copy Editing
 - Field-by-Field Optimization
-- Quietude — Marketing Plan v1
+- 13. Measurement, RACI, open decisions, appendix
 - Growth & Scaling Models
 - HubSpot Workflow Recipes
 - International SEO: Evidence & Sources
-- SMS Platform Reference
+- AudienceTap
 - BIMPlan Academy Design Direction
 - Architecture Decisions
 - code-reviewer.md
 - Video Generation
-- Google Ads Setup
-- Meta Ads Setup
 - LinkedIn Ads Setup
+- Pitch Templates by Angle
+- Core Principles
 - Follow-Up Sequences
 - Subject Line Optimization
 - Continuous Learning Skill
@@ -381,7 +381,7 @@
 - SmartCheck Faz 7 — Pilot Evidence Control
 - [1.3.0] - 2025-11-21
 - 1. GENEL SİSTEM MİMARİSİ
-- certification.ts
+- Before Starting
 - Coding Style
 - Growth Experimentation Program
 - The Creative Strategy Loop
@@ -400,7 +400,7 @@
 - Section 11 — Marketing operations stack
 - Popup Types
 - Trigger Strategies
-- Pitch Templates by Angle
+- SMS Copy Guidelines
 - Zapier Cross-Tool Patterns
 - Discovery Call Script
 - First Demo Script
@@ -438,9 +438,9 @@
 - Static Ad Template Library
 - Before Starting
 - Output Formats
-- Google Ads
+- Video Hook Library
 - Retargeting Strategies
-- Domain-Specific GEO Tactics
+- AEO and GEO Content Patterns
 - AI SEO by Content Type
 - Data Layer Patterns
 - Cancel Flow Design
@@ -483,14 +483,14 @@
 - Attentive
 - Brevo (formerly Sendinblue)
 - Klaviyo SMS
-- Twilio
+- Google Ads
 - SimpleTexting
 - Plivo
 - Customer.io
 - Postscript
-- Transactional / Account Notifications
+- src/components/ui/button.tsx
 - Content Repurposing System
-- AIService
+- One-Pagers / Leave-Behinds
 - Columns - Allplan 2026 Official Source Pack
 - Phase 10 — Ücretsiz Öğrenci Kaydı ve Kullanıcı Edinme
 - Phase 7 — Academy Trust and Security Hardening
@@ -577,15 +577,15 @@
 - Threshold Calibration
 - Core Principles
 - Data Hygiene & Enrichment
-- Core Principles
+- Essential Events
 - Phrases That Signal AI Writing
 - International Sitemaps
 - Before Planning
 - Page Hierarchy Design
 - Navigation Design
 - Internal Linking Strategy
-- United States — A2P 10DLC
-- Audio Strategy
+- Page-Specific Guidance
+- Twilio
 - Visual Patterns
 - Hook Formulas
 - Style Keywords
@@ -618,7 +618,7 @@
 - Product/App Events
 - Configuration
 - Custom Dimensions and Metrics
-- Advanced Patterns
+- Lead Lifecycle Framework
 - Debugging and Validation
 - Cancel Flow by Business Type
 - Implementation Checklist
@@ -672,19 +672,19 @@
 - Launch Checklist
 - Deal Desk Processes
 - Lead Scoring
-- Lead Lifecycle Framework
+- Transactional / Account Notifications
 - Pipeline Stage Management
 - ROI Calculators & Value Props
 - Case Study Briefs (Sales Format)
-- Demo Scripts & Talk Tracks
-- One-Pagers / Leave-Behinds
+- AIService
+- class-variance-authority
 - Sales Playbooks
-- Header Navigation
-- Content / Blog Site
+- United States — A2P 10DLC
+- Compliance — Read First
 - SaaS Marketing Site
 - Abandoned Cart (highest-ROI flow for ecom)
-- Win-Back (Lapsed Customers)
-- Welcome / Opt-In Confirmation
+- Advanced Patterns
+- Quietude — Marketing Plan v1
 - Analytics & Optimization
 - Engagement Strategy
 - Before Starting
@@ -698,7 +698,8 @@
 - 3. Product North Star
 - SmartCheck gerçek pilot kabul paketi
 - Landing Page Alignment (the headline-mirror trick)
-- UTM Parameter Strategy
+- Sales Deck / Pitch Deck
+- Proposal Templates
 - marketing-council/SKILL.md
 - Personalization Experiments
 - Defining Activation
@@ -712,7 +713,7 @@
 - Affiliate Recruitment
 - Measuring Success
 - TeklifPro Agent Memory
-- analyzeDeal
+- Objection Handling Docs
 - 10. Riskler ve stop koşulları
 - 2. Kaynak belgelerden çıkan gerçek ihtiyaç
 - System Environment & Workspace Architecture Guide
@@ -724,7 +725,7 @@
 - evaluate-session.sh
 - suggest-compact.sh
 - bcryptjs
-- class-variance-authority
+- Footer Navigation
 - CLAUDE.md
 - csv-parse
 - date-fns
@@ -741,7 +742,7 @@
 - graphile-worker
 - jsonwebtoken
 - @radix-ui/react-progress
-- recharts
+- exceljs
 - sonner
 - tailwind-merge
 - @tailwindcss/vite
@@ -753,6 +754,9 @@
 - App
 - src/components/ui/sonner.tsx
 - db
+- Content / Blog Site
+- Promotional / Campaign Sends
+- SMS Platform Reference
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 181 edges
@@ -781,19 +785,19 @@
 ## Import Cycles
 - None detected.
 
-## Communities (786 total, 62 thin omitted)
+## Communities (790 total, 59 thin omitted)
 
 ### Community 0 - "BrowserFactory"
 Cohesion: 0.14
-Nodes (18): Ask a question to NotebookLM      Args:         question: Question to ask, AuthManager, main(), Any, BrowserContext, Save browser state to disk, Save authentication metadata, Clear all authentication data          Returns:             True if cleared succ (+10 more)
+Nodes (18): Ask a question to NotebookLM Args: question: Question to ask notebook_url:…, AuthManager, main(), Any, BrowserContext, Save browser state to disk, Save authentication metadata, Clear all authentication data Returns: True if cleared successfully (+10 more)
 
 ### Community 1 - "AllplanAcademy.tsx"
-Cohesion: 0.08
-Nodes (28): safeAcademyReturnPath(), getCompletedAllplanLessons(), isAllplanLessonCompleted(), ProgressStore, readStore(), setAllplanLessonCompleted(), syncAllplanLessonCheckpoint(), syncAllplanLessonProgress() (+20 more)
+Cohesion: 0.10
+Nodes (24): safeAcademyReturnPath(), getCompletedAllplanLessons(), isAllplanLessonCompleted(), ProgressStore, readStore(), setAllplanLessonCompleted(), syncAllplanLessonCheckpoint(), syncAllplanLessonProgress() (+16 more)
 
 ### Community 2 - "createApiApp"
 Cohesion: 0.10
-Nodes (15): app, registerBillingRoutes(), registerClientRoutes(), registerCrmRoutes(), IndustryRegistry, registerRegulationRoutes(), createApiApp(), startServer() (+7 more)
+Nodes (14): app, registerBillingRoutes(), registerClientRoutes(), registerCrmRoutes(), IndustryRegistry, registerRegulationRoutes(), createApiApp(), startServer() (+6 more)
 
 ### Community 3 - "evaluator.ts"
 Cohesion: 0.12
@@ -801,31 +805,31 @@ Nodes (23): calculateRawPayloadHash(), canonicalJsonStringify(), evaluateFixture
 
 ### Community 4 - "Path"
 Cohesion: 0.07
-Nodes (28): CleanupManager, main(), Any, Get size of file or directory in bytes, Format size in human-readable form, Manages cleanup of NotebookLM skill data      Features:     - Preview what will, Perform the actual cleanup          Args:             preserve_library: Keep lib, Print a preview of what will be cleaned (+20 more)
+Nodes (28): CleanupManager, main(), Any, Get size of file or directory in bytes, Format size in human-readable form, Manages cleanup of NotebookLM skill data Features: - Preview what will be…, Perform the actual cleanup Args: preserve_library: Keep library.json if True…, Print a preview of what will be cleaned (+20 more)
 
 ### Community 5 - "NotebookLibrary"
 Cohesion: 0.11
-Nodes (18): main(), main(), NotebookLibrary, Any, Remove a notebook from the library          Args:             notebook_id: ID of, Update notebook metadata          Args:             notebook_id: ID of notebook, Manages a collection of NotebookLM notebooks with metadata, Get a specific notebook by ID (+10 more)
+Nodes (18): main(), main(), NotebookLibrary, Any, Remove a notebook from the library Args: notebook_id: ID of notebook to remove…, Update notebook metadata Args: notebook_id: ID of notebook to update Other…, Manages a collection of NotebookLM notebooks with metadata, Get a specific notebook by ID (+10 more)
 
 ### Community 6 - "quotations.ts"
-Cohesion: 0.12
-Nodes (25): calculateLineItemTotal(), calculateQuotationTotals(), CalculationResult, LineItem, NormalizedLineItem, normalizeLineItem(), roundMoney(), toFiniteNumber() (+17 more)
+Cohesion: 0.10
+Nodes (28): clients, calculateLineItemTotal(), calculateQuotationTotals(), CalculationResult, LineItem, NormalizedLineItem, normalizeLineItem(), roundMoney() (+20 more)
 
 ### Community 7 - "routes/smartcheck.ts"
 Cohesion: 0.07
-Nodes (48): documentProcessingArtifacts, documentProcessingRuns, documents, load(), requireVerifiedEmail(), audit(), canReview, featureGate() (+40 more)
+Nodes (44): companies, documentProcessingRuns, documents, normalizedQuantityRows, load(), featureGate(), canReview, featureGate() (+36 more)
 
 ### Community 9 - "routes/auth.ts"
-Cohesion: 0.14
-Nodes (20): authActionTokens, rateLimitBuckets, parseRegistrationInput(), publicRegisteredUser(), RegistrationInput, RegistrationIntent, Bucket, clientAddress() (+12 more)
+Cohesion: 0.12
+Nodes (23): authActionTokens, rateLimitBuckets, parseRegistrationInput(), publicRegisteredUser(), RegistrationInput, RegistrationIntent, Bucket, clientAddress() (+15 more)
 
 ### Community 10 - "releaseGate.ts"
-Cohesion: 0.18
-Nodes (14): evaluateEvidenceFiles(), absolutePath, cliArgs, evidenceRoot, parsed, resolveEvidenceFile(), validateRecord(), AllplanContentReviewRecord (+6 more)
+Cohesion: 0.39
+Nodes (7): AllplanContentReviewRecord, canReleaseAllplanLesson(), evaluateAllplanContentReview(), localEvidence(), present(), ReleaseGateResult, approvedRecord
 
-### Community 11 - "academy.ts"
-Cohesion: 0.10
-Nodes (31): ALLPLAN_DETAILED_LESSONS, getAllplanCoverageReport(), academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles (+23 more)
+### Community 11 - "schema.ts"
+Cohesion: 0.03
+Nodes (95): AcademyActivationCounts, academyActivationSummary(), isAcademyAnalyticsAdmin(), rate(), ALLPLAN_ASSESSMENT, CertificationEligibility, CertificationProgress, evaluateCertificationEligibility() (+87 more)
 
 ### Community 12 - "AIProvider"
 Cohesion: 0.06
@@ -837,7 +841,7 @@ Nodes (15): defaultDependencies, EvaluationCliEntryDependencies, EvaluationCliPr
 
 ### Community 14 - "cn"
 Cohesion: 0.03
-Nodes (77): Button(), buttonVariants, Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader() (+69 more)
+Nodes (69): Button(), buttonVariants, Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader() (+61 more)
 
 ### Community 15 - "TeklifPro-repo/components/ui/select.tsx"
 Cohesion: 0.33
@@ -848,8 +852,8 @@ Cohesion: 0.39
 Nodes (7): cn(), Sheet(), SheetClose(), SheetDescription(), SheetPortal(), SheetTitle(), SheetTrigger()
 
 ### Community 18 - "Settings.tsx"
-Cohesion: 0.08
-Nodes (28): ProtectedRoute(), ProtectedRoute(), SectionWrapper(), SectionWrapperProps, Shell(), Label(), Separator(), Tabs() (+20 more)
+Cohesion: 0.09
+Nodes (25): ProtectedRoute(), ProtectedRoute(), Shell(), Label(), Tabs(), TabsContent(), TabsList(), tabsListVariants (+17 more)
 
 ### Community 19 - "TeklifPro-repo/components/ui/dialog.tsx"
 Cohesion: 0.48
@@ -871,17 +875,21 @@ Nodes (47): priceSnapshots, priceSources, quotationItemEvidence, smartcheckAudit
 Cohesion: 0.04
 Nodes (48): 10. Dependency Security, 1. Secrets Management, 2. Input Validation, 3. SQL Injection Prevention, 4. Authentication & Authorization, 5. XSS Prevention, 6. CSRF Protection, 7. Rate Limiting (+40 more)
 
-### Community 27 - "storage.ts"
+### Community 27 - "LocalStorageAdapter"
 Cohesion: 0.10
-Nodes (16): environment, storage, assertProductionEnvironment(), Env, placeholderSecret(), validateProductionEnvironment(), validateSmartcheckStorageEnvironment(), validHttpsUrl() (+8 more)
+Nodes (15): environment, storage, assertProductionEnvironment(), Env, placeholderSecret(), validateProductionEnvironment(), validateSmartcheckStorageEnvironment(), validHttpsUrl() (+7 more)
 
-### Community 28 - "checkpoint.ts"
-Cohesion: 0.48
-Nodes (5): acceptedStudyDelta(), finite(), NumericRecord, requiredStudySeconds(), validateCheckpointEvidence()
+### Community 28 - "SMS Sequence Types"
+Cohesion: 0.25
+Nodes (8): Abandoned Cart (highest-ROI flow for ecom), Browse Abandonment, Post-Purchase, Promotional / Campaign Sends, SMS Sequence Types, Transactional (separate compliance bucket), Welcome / Opt-In Confirmation (immediate), Win-Back (lapsed)
 
-### Community 30 - "fetchWithAuth"
-Cohesion: 0.07
-Nodes (46): Badge(), fetchAlerts(), handleSync(), QuoteEditor(), readJson(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent() (+38 more)
+### Community 29 - "validate-allplan-content-review.mjs"
+Cohesion: 0.29
+Nodes (7): evaluateEvidenceFiles(), absolutePath, cliArgs, evidenceRoot, parsed, resolveEvidenceFile(), validateRecord()
+
+### Community 30 - "QuoteDetail.tsx"
+Cohesion: 0.09
+Nodes (32): Badge(), ProfitabilityBadge(), ProfitabilityBadgeProps, QuotationCard(), QuotationCardProps, StatusBadge(), StatusBadgeProps, statusMap (+24 more)
 
 ### Community 35 - "pilot-smoke.ts"
 Cohesion: 0.47
@@ -895,17 +903,17 @@ Nodes (17): args, asOfArgument, jsonOutput, manifestPath, isMepDiscipline(), MEP
 Cohesion: 0.12
 Nodes (13): EvaluateFixtureOptions, runDiscoveredEvaluationSuite(), RunDiscoveredEvaluationSuiteOptions, defaultCandidate, compareStrings(), runEvaluationSuite(), RunEvaluationSuiteOptions, defaultCandidate (+5 more)
 
-### Community 38 - "activation.ts"
-Cohesion: 0.53
-Nodes (4): AcademyActivationCounts, academyActivationSummary(), isAcademyAnalyticsAdmin(), rate()
+### Community 38 - "🚀 Tamamlanan Tüm Adımlar"
+Cohesion: 0.25
+Nodes (7): 1. Pazarlama & Landing Page Konumlandırması (`src/pages/LandingPage.tsx`), 2. İstemci Tarafı openBIM IFC Parser Bileşeni (`src/components/bimplan/BimIfcParser.tsx`), 3. Teklif Oluşturucu Entegrasyonu (`src/pages/CreateQuote.tsx`), 4. BIMPlan Academy "BIM Yazılımları Metraj Karşılaştırma & Brutal Truth" Modülü (`src/pages/Academy.tsx`, `src/smartcheck/demoData.ts`), 5. Yol Haritası Belgesi & Bilgi Grafiği (`docs/TEKLIFPRO_IFC_5D_BIM_ROADMAP.md`), 5D BIM, openBIM IFC & BIMPlan Akademi Yol Haritası Tamamlama Özeti, 🚀 Tamamlanan Tüm Adımlar
 
-### Community 39 - "paymentWebhook.ts"
-Cohesion: 0.33
-Nodes (7): AcademyPaymentEvent, AcademyPaymentEventType, isAcademyPaymentWebhookSecretConfigured(), parseAcademyPaymentEvent(), validPayload, unsafeSecretValues, verifyAcademyPaymentSignature()
+### Community 39 - "Google Ads Setup"
+Cohesion: 0.25
+Nodes (8): Account Foundation, Ad Extensions, Analytics Integration, Audience Setup, Brand Protection, Campaign Readiness, Conversion Tracking, Google Ads Setup
 
 ### Community 40 - "allplan/types.ts"
-Cohesion: 0.14
-Nodes (16): answerFromAllplanLessons(), CompanionAnswer, CompanionCitation, excerpt(), stopWords, lessons, tokens(), AllplanContentStatus (+8 more)
+Cohesion: 0.17
+Nodes (13): answerFromAllplanLessons(), CompanionAnswer, CompanionCitation, excerpt(), stopWords, lessons, tokens(), AllplanContentStatus (+5 more)
 
 ### Community 45 - "academy-parity-check.mjs"
 Cohesion: 0.12
@@ -932,8 +940,8 @@ Cohesion: 0.21
 Nodes (12): checkSymlink(), discoverEvaluationFixtures(), FixtureLocator, isPathInside(), isPathInsideOrEqual(), loadEvaluationFixture(), defaultExpectedRules, defaultManifest (+4 more)
 
 ### Community 53 - "app.ts"
-Cohesion: 0.12
-Nodes (27): db, pool, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, subscriptions (+19 more)
+Cohesion: 0.10
+Nodes (31): db, pool, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, subscriptions (+23 more)
 
 ### Community 54 - "Signup Flow CRO"
 Cohesion: 0.04
@@ -948,16 +956,16 @@ Cohesion: 0.04
 Nodes (43): 10. Translations, 11. Directory, 12. Profiles, 1. Templates, 2. Curation, 3. Conversions, 4. Comparisons, 5. Examples (+35 more)
 
 ### Community 57 - "LessonViewerPage.tsx"
-Cohesion: 0.07
-Nodes (24): AIBIMCompanion(), AIBIMCompanionProps, Message, CADDiagramViewer(), CADDiagramViewerProps, CheckpointQuestion, CHECKPOINTS_DATA, DEFAULT_CHECKPOINT (+16 more)
+Cohesion: 0.06
+Nodes (26): AIBIMCompanion(), AIBIMCompanionProps, Message, CADDiagramViewer(), CADDiagramViewerProps, CheckpointQuestion, CHECKPOINTS_DATA, DEFAULT_CHECKPOINT (+18 more)
 
-### Community 58 - "src/components/ui/button.tsx"
-Cohesion: 0.09
+### Community 58 - "src/lib/utils.ts"
+Cohesion: 0.08
 Nodes (45): colorMap, StatCard(), StatCardProps, maxWidthMap, PageContainer(), PageContainerProps, PageHeader(), PageHeaderProps (+37 more)
 
 ### Community 59 - "PublicAcademyDetail.tsx"
-Cohesion: 0.07
-Nodes (24): arcRuleData, careerMatrixData, loaData, clashData, curriculumDetailData, data4D, data6D, dataCdeStates (+16 more)
+Cohesion: 0.06
+Nodes (30): arcRuleData, careerMatrixData, loaData, clashData, curriculumDetailData, data4D, data6D, dataCdeStates (+22 more)
 
 ### Community 61 - "Customer Research — Source Guides"
 Cohesion: 0.05
@@ -967,25 +975,25 @@ Nodes (43): Amazon Reviews (for physical products or software with Amazon presen
 Cohesion: 0.05
 Nodes (41): Agency/Services, Analyzers/Auditors, Calculators, Contents, Developer Tools, E-commerce, Finance, Free Tool Types Reference (+33 more)
 
-### Community 66 - "schema.ts"
-Cohesion: 0.04
-Nodes (44): activities, activityTypeEnum, allplanCertificateAuditLogs, allplanLessonNotes, allplanLessonProgress, assistanceResources, clients, companies (+36 more)
+### Community 66 - "Meta Ads Setup"
+Cohesion: 0.25
+Nodes (8): Audience Setup, Business Manager Foundation, Catalog (E-commerce), Compliance, Creative Assets, Domain & Aggregated Events, Meta Ads Setup, Pixel & Tracking
 
 ### Community 67 - "Schema Markup Examples"
 Cohesion: 0.05
 Nodes (41): Article / BlogPosting, BreadcrumbList, Contents, Event, FAQPage, HowTo, Implementation Example (Next.js), LocalBusiness (+33 more)
 
 ### Community 68 - "SMS Marketing"
-Cohesion: 0.05
-Nodes (43): 1. Business Type, 1. Every send has a real cost, 2. Current State, 2. Opt-in is your most valuable asset, 3. Compliance Posture, 3. Each message must justify itself, 4. Brevity + clarity, 4. Goal (+35 more)
+Cohesion: 0.15
+Nodes (13): Common Mistakes, Key Metrics, Measurement, Output Format, Phone Number Types (US), Platform Selection, Related Skills, SMS Marketing (+5 more)
 
 ### Community 70 - "access.ts"
 Cohesion: 0.50
 Nodes (3): EnrollmentWindow, isEnrollmentActive(), now
 
 ### Community 71 - "track.ts"
-Cohesion: 0.16
-Nodes (13): COURSE_TREE, LessonNode, NAV_ITEMS, NavItem, ScreenType, LessonDetail, LESSONS_CONTENT, ALLPLAN_NODES (+5 more)
+Cohesion: 0.20
+Nodes (10): LessonDetail, LESSONS_CONTENT, ALLPLAN_NODES, ALLPLAN_TRACK, normalizeLesson(), normalizeNode(), parseMinutes(), slugify() (+2 more)
 
 ### Community 76 - "Test-Driven Development Workflow"
 Cohesion: 0.05
@@ -1007,6 +1015,10 @@ Nodes (40): Access denied to notebook, Authentication Errors, Authentication exp
 Cohesion: 0.22
 Nodes (7): repo, run(), script, validator, main(), taskList, healthcheck()
 
+### Community 83 - "Post-Purchase Flow"
+Cohesion: 0.33
+Nodes (6): Post-Purchase Flow, Send 1 — Immediately after purchase (transactional, separate consent), Send 2 — Day of shipment, Send 3 — Day of delivery, Send 4 — 2 days after delivery (marketing consent required), Send 5 — 14 days after delivery (cross-sell, marketing consent)
+
 ### Community 84 - "Coding Standards & Best Practices"
 Cohesion: 0.05
 Nodes (39): 1. Long Functions, 1. Readability First, 2. Deep Nesting, 2. KISS (Keep It Simple, Stupid), 3. DRY (Don't Repeat Yourself), 3. Magic Numbers, 4. YAGNI (You Aren't Gonna Need It), API Design Standards (+31 more)
@@ -1025,7 +1037,7 @@ Nodes (25): react, react, FAQItem, TOPICS, CertificatesViewer(), CertificatesVie
 
 ### Community 91 - ".launch_persistent_context"
 Cohesion: 0.40
-Nodes (4): BrowserContext, Launch a persistent browser context with anti-detection features         and coo, Inject cookies from state.json if available, Playwright
+Nodes (4): BrowserContext, Launch a persistent browser context with anti-detection features and cookie…, Inject cookies from state.json if available, Playwright
 
 ### Community 92 - "source-intelligence.ts"
 Cohesion: 0.10
@@ -1033,7 +1045,7 @@ Nodes (34): regulationAlerts, regulationVersions, sourceIngestionArtifacts, sour
 
 ### Community 93 - "StealthUtils"
 Cohesion: 0.10
-Nodes (18): BrowserSession, Any, BrowserContext, Get the current latest response text, Wait for and extract the new answer, Reset the chat by reloading the page, Represents a single persistent browser session for NotebookLM      Each session, Close this session and clean up resources (+10 more)
+Nodes (18): BrowserSession, Any, BrowserContext, Get the current latest response text, Wait for and extract the new answer, Reset the chat by reloading the page, Represents a single persistent browser session for NotebookLM Each session gets…, Close this session and clean up resources (+10 more)
 
 ### Community 94 - "contracts/smartcheck.ts"
 Cohesion: 0.08
@@ -1041,7 +1053,7 @@ Nodes (24): openApi, outputDir, paths, requestSchemaByOperation, rootDir, schema
 
 ### Community 95 - "dependencies"
 Cohesion: 0.06
-Nodes (35): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, @base-ui/react, clsx, exceljs, express, lucide-react, motion (+27 more)
+Nodes (35): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, @base-ui/react, clsx, express, lucide-react, motion, next-themes (+27 more)
 
 ### Community 96 - "co-marketing/SKILL.md"
 Cohesion: 0.06
@@ -1068,8 +1080,8 @@ Cohesion: 0.06
 Nodes (30): Announcement Tactics, Before Starting, Borrowed Channels, Case Studies, Cons, Core Philosophy, Five-Phase Launch Approach, How to Launch Successfully (+22 more)
 
 ### Community 103 - "Clients.tsx"
-Cohesion: 0.09
-Nodes (24): Dialog(), DialogContent(), DialogDescription(), DialogFooter(), DialogHeader(), DialogOverlay(), DialogTitle(), DialogTrigger() (+16 more)
+Cohesion: 0.06
+Nodes (36): Dialog(), DialogContent(), DialogDescription(), DialogFooter(), DialogHeader(), DialogOverlay(), DialogTitle(), DialogTrigger() (+28 more)
 
 ### Community 104 - "Directory List — Full Reference"
 Cohesion: 0.07
@@ -1113,15 +1125,15 @@ Nodes (27): 1. Extract Documentation from Code, 1. Repository Structure Analysis
 
 ### Community 114 - "Analytics Tracking"
 Cohesion: 0.07
-Nodes (28): Analytics Tracking, Best Practices, Best Practices, Considerations, Container Structure, Custom Event Example, Data Layer Pattern, Essential Events (+20 more)
+Nodes (28): Analytics Tracking, Best Practices, Best Practices, Considerations, Container Structure, Custom Event Example, Data Layer Pattern, Event Naming Conventions (+20 more)
 
 ### Community 115 - "prisma-shadow-parity.ts"
 Cohesion: 0.13
 Nodes (27): ActualColumn, buildReport(), command(), databaseExists(), databaseHasUserTables(), DatabaseTarget, DEFAULT_REPORT_PATH, dumpDatabaseSchema() (+19 more)
 
 ### Community 116 - "pilot-evidence.ts"
-Cohesion: 0.12
-Nodes (25): normalizedQuantityRows, smartcheckPilotCases, smartcheckPilotMeasurements, audit(), buildMeasurement(), canOperatePilot, featureGate(), findCase() (+17 more)
+Cohesion: 0.14
+Nodes (21): smartcheckPilotCases, smartcheckPilotMeasurements, audit(), buildMeasurement(), canOperatePilot, findCase(), integerValue(), mutateStack (+13 more)
 
 ### Community 117 - "Build Error Resolver"
 Cohesion: 0.08
@@ -1188,8 +1200,8 @@ Cohesion: 0.09
 Nodes (23): Availability Heuristic, Bandwagon Effect / Social Proof, Confirmation Bias, Curse of Knowledge, Default Effect, Endowment Effect, Fundamental Attribution Error, Goal-Gradient Effect (+15 more)
 
 ### Community 136 - "SMS Sequence Templates"
-Cohesion: 0.09
-Nodes (23): Browse Abandonment, Early access, Flash sale (single send), Holiday / BFCM (2-send sequence), Limited drop / launch, Loyalty milestone, Post-Purchase Flow, Promotional / Campaign Sends (+15 more)
+Cohesion: 0.10
+Nodes (21): Browse Abandonment, Early access, Loyalty milestone, Re-Engagement / Reactivation (Subscribers Who've Gone Cold), Replenishment (Consumables Ecom), Segmentation rules across all flows, Send 1 — 1 hour after browse (single product or category), Send 1 — 60-90 days after last purchase (+13 more)
 
 ### Community 141 - "TeklifPro Production-Ready Evidence & Market Intelligence Roadmap"
 Cohesion: 0.09
@@ -1236,16 +1248,16 @@ Cohesion: 0.10
 Nodes (20): 10. Brand Voice, 11. Proof Points, 12. Goals, 1. Product Overview, 2. Target Audience, 3. Personas (B2B only), 4. Problems & Pain Points, 5. Competitive Landscape (+12 more)
 
 ### Community 157 - "Sales Enablement"
-Cohesion: 0.10
-Nodes (21): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Common Mistakes, Customization by Buyer Type, Customization Guidance, Deck Principles (+13 more)
+Cohesion: 0.11
+Nodes (18): Before Starting, Buyer Persona Cards, Card Structure, Core Principles, Demo Scripts & Talk Tracks, Key Principles, Output Format, Persona Types (+10 more)
 
 ### Community 158 - "properties"
 Cohesion: 0.11
 Nodes (21): properties, maxLength, type, maxLength, type, maxLength, maxLength, type (+13 more)
 
-### Community 159 - "SmartCheckImportWorkspace.tsx"
-Cohesion: 0.14
-Nodes (20): checksum(), DocumentPreview, Finding, loadPreview(), loadQueue(), loadRows(), mappingFields, mappingLabels (+12 more)
+### Community 159 - "fetchWithAuth"
+Cohesion: 0.07
+Nodes (41): analyzeDeal(), fetchData(), fetchAlerts(), handleSync(), QuoteEditor(), checksum(), DocumentPreview, Finding (+33 more)
 
 ### Community 160 - "Ad Creative"
 Cohesion: 0.10
@@ -1317,7 +1329,7 @@ Nodes (19): Champion Enablement One-Pager, Color, Copy Prompts, File Format, Fon
 
 ### Community 177 - "Short-Form Video: Hooks, Scripts & Strategy"
 Cohesion: 0.11
-Nodes (18): Additional Video Structures, Analytics & Iteration, Batch Creation Workflow, Controversial Hooks (Best for comments), Curiosity Hooks (Best for engagement), Frequency Recommendations, Metrics That Matter, Optimal Posting Times (test your audience) (+10 more)
+Nodes (18): Additional Video Structures, Analytics & Iteration, Audio Strategy, Batch Creation Workflow, Frequency Recommendations, Metrics That Matter, Music Selection, Optimal Posting Times (test your audience) (+10 more)
 
 ### Community 178 - "2. Kesin Tablo Listesi, Alanlar ve Veri Tipleri"
 Cohesion: 0.11
@@ -1357,7 +1369,7 @@ Nodes (18): Building the Media List, Contents, Discovery checklist, Don't waste 
 
 ### Community 187 - "Navigation Patterns"
 Cohesion: 0.11
-Nodes (18): Anti-Patterns, Blog Category Sidebar, Bottom Tab Bar, Breadcrumbs, Column-Based Footer (Standard), Common Fixes, Documentation Sidebar, Expanded Footer (+10 more)
+Nodes (18): Anti-Patterns, Blog Category Sidebar, Bottom Tab Bar, Breadcrumbs, Common Fixes, Documentation Sidebar, Hamburger Menu, Header Navigation (+10 more)
 
 ### Community 188 - "Runtime release gate güncellemesi"
 Cohesion: 0.11
@@ -1436,8 +1448,8 @@ Cohesion: 0.12
 Nodes (13): 1. Current Churn Situation, 2. Billing & Platform, 3. Product & Usage Data, 4. Constraints, Before Starting, Churn Prediction & Proactive Retention, Churn Prevention, Common Mistakes (+5 more)
 
 ### Community 207 - "Copywriting"
-Cohesion: 0.12
-Nodes (16): About Page, Above the Fold, Copywriting, Core Principles, Core Sections, CTA Copy Guidelines, Feature Page, Homepage (+8 more)
+Cohesion: 0.15
+Nodes (10): Above the Fold, Copywriting, Core Principles, Core Sections, CTA Copy Guidelines, Page Structure Framework, Quick Quality Check, Related Skills (+2 more)
 
 ### Community 208 - "Form CRO"
 Cohesion: 0.12
@@ -1452,7 +1464,7 @@ Cohesion: 0.12
 Nodes (16): Documentation Site, E-Commerce, Hybrid SaaS + Content, Navigation, Navigation, Navigation, Navigation, Page Hierarchy (+8 more)
 
 ### Community 211 - "SMS Compliance Reference"
-Cohesion: 0.12
+Cohesion: 0.17
 Nodes (12): Audit-ready compliance checklist, Australia — Spam Act 2003, Canada — CASL, Consent, Consent requirements, EU / UK — GDPR + ePrivacy Directive, Every message must include, Mandatory provisions (+4 more)
 
 ### Community 212 - "BIMPlan Academy — Allplan Rebaseline ve Ürünleştirme Planı"
@@ -1627,9 +1639,9 @@ Nodes (12): 1. Genel Bakış ve Mimarinin Amacı, 2. Sürüm Karşılaştırmas�
 Cohesion: 0.22
 Nodes (6): BimDashboard(), AuditQuestion, BimGapAnalysis(), DocumentsView(), LegislationView(), StandardsView()
 
-### Community 255 - "MarketIntelligence.tsx"
-Cohesion: 0.23
-Nodes (9): Input(), emptyEntry, emptyForm, MarketIntelligence(), readJson(), sha256(), SupplierEntry, SupplierSubmission (+1 more)
+### Community 255 - "constants.ts"
+Cohesion: 0.33
+Nodes (5): COURSE_TREE, LessonNode, NAV_ITEMS, NavItem, ScreenType
 
 ### Community 256 - "A/B Test Templates Reference"
 Cohesion: 0.17
@@ -1717,7 +1729,7 @@ Nodes (12): additionalProperties, type, anyOf, correction, notes, status, proper
 
 ### Community 277 - "ask_notebooklm"
 Cohesion: 0.29
-Nodes (8): ask_notebooklm(), Ask a question in this session          Args:             question: The question, human_type(), _inject_cookies(), launch_persistent_context(), random_delay(), Browser Utilities for NotebookLM Skill Handles browser launching, stealth featur, realistic_click()
+Nodes (8): ask_notebooklm(), Ask a question in this session Args: question: The question to ask Returns:…, human_type(), _inject_cookies(), launch_persistent_context(), random_delay(), Browser Utilities for NotebookLM Skill Handles browser launching, stealth…, realistic_click()
 
 ### Community 278 - "allplan-structural-audit.mjs"
 Cohesion: 0.17
@@ -1740,12 +1752,12 @@ Cohesion: 0.18
 Nodes (11): Ad Copy Frameworks, Google RSA Output Spec (mandatory when generating RSAs), Key Formulas, Paid Ads, Platform Selection Guide, Platform Setup, Reference Routing, Related Skills (+3 more)
 
 ### Community 283 - "Citations vs. Recommendations: The AI Visibility Ladder"
-Cohesion: 0.22
+Cohesion: 0.33
 Nodes (6): Applying This, Citations vs. Recommendations: The AI Visibility Ladder, The Self-Promotional Listicle Risk, The Visibility Ladder, What a Recommendation Is Worth, What Earns Recommendations
 
-### Community 284 - "AEO and GEO Content Patterns"
-Cohesion: 0.18
-Nodes (11): AEO and GEO Content Patterns, Authoritative Claim Block, Contents, Evidence Sandwich Block, Expert Quote Block, Generative Engine Optimization (GEO) Patterns, Question Formats for Voice, Self-Contained Answer Block (+3 more)
+### Community 284 - "Generative Engine Optimization (GEO) Patterns"
+Cohesion: 0.33
+Nodes (6): Authoritative Claim Block, Evidence Sandwich Block, Expert Quote Block, Generative Engine Optimization (GEO) Patterns, Self-Contained Answer Block, Statistic Citation Block
 
 ### Community 285 - "ASO Benchmarks & Conversion Data"
 Cohesion: 0.18
@@ -1959,9 +1971,9 @@ Nodes (9): Content Refresh Editing, Copy Editing, Copy Editing Checklist, Core P
 Cohesion: 0.22
 Nodes (9): Checkboxes (Multi-select), Company/Organization, Dropdown Selects, Email Field, Field-by-Field Optimization, Job Title/Role, Message/Comments (Free Text), Name Fields (+1 more)
 
-### Community 338 - "Quietude — Marketing Plan v1"
-Cohesion: 0.22
-Nodes (8): 13. Measurement, RACI, open decisions, appendix, 1. Executive summary, Appendix — deep-dive links, Example — Quietude Marketing Plan v1, Measurement — the metrics that matter, Open decisions blocking the plan, Quietude — Marketing Plan v1, RACI
+### Community 338 - "13. Measurement, RACI, open decisions, appendix"
+Cohesion: 0.40
+Nodes (5): 13. Measurement, RACI, open decisions, appendix, Appendix — deep-dive links, Measurement — the metrics that matter, Open decisions blocking the plan, RACI
 
 ### Community 339 - "Growth & Scaling Models"
 Cohesion: 0.22
@@ -1975,9 +1987,9 @@ Nodes (9): 1. MQL Alert and Assignment, 2. MQL SLA Escalation, 3. Lead Scoring U
 Cohesion: 0.22
 Nodes (6): Canonical Overrides Hreflang, Canonicalization & i18n, International SEO: Evidence & Sources, Near-Duplicate Regional Variants, Pagination Across Locales, Self-Referencing Canonicals
 
-### Community 342 - "SMS Platform Reference"
-Cohesion: 0.22
-Nodes (9): A2P 10DLC: what your platform should handle, AudienceTap, Compliance, Integration paths, Key features, Pricing, Quick selection table, SMS Platform Reference (+1 more)
+### Community 342 - "AudienceTap"
+Cohesion: 0.33
+Nodes (6): AudienceTap, Compliance, Integration paths, Key features, Pricing, Watch out for
 
 ### Community 343 - "BIMPlan Academy Design Direction"
 Cohesion: 0.22
@@ -1995,17 +2007,17 @@ Nodes (7): Approval Criteria, Best Practices (MEDIUM), Code Quality (HIGH), Perf
 Cohesion: 0.25
 Nodes (8): Google Veo, Higgsfield, Kling (Kuaishou), Runway, Seedance 2.0 (ByteDance), Sora 2 (OpenAI), Video Generation, Video Tool Comparison
 
-### Community 347 - "Google Ads Setup"
-Cohesion: 0.25
-Nodes (8): Account Foundation, Ad Extensions, Analytics Integration, Audience Setup, Brand Protection, Campaign Readiness, Conversion Tracking, Google Ads Setup
-
-### Community 348 - "Meta Ads Setup"
-Cohesion: 0.25
-Nodes (8): Audience Setup, Business Manager Foundation, Catalog (E-commerce), Compliance, Creative Assets, Domain & Aggregated Events, Meta Ads Setup, Pixel & Tracking
-
-### Community 349 - "LinkedIn Ads Setup"
+### Community 347 - "LinkedIn Ads Setup"
 Cohesion: 0.25
 Nodes (8): Audience Setup, Budget Considerations, Campaign Manager Foundation, Creative Assets, Document Ads (if using), Insight Tag & Tracking, Lead Gen Forms (if using), LinkedIn Ads Setup
+
+### Community 348 - "Pitch Templates by Angle"
+Cohesion: 0.29
+Nodes (7): 1. Data story, 2. Exclusive launch / milestone, 3. Op-ed / contributed piece, 4. Customer story, 5. Trend piece / connector, 6. Newsjack response, Pitch Templates by Angle
+
+### Community 349 - "Core Principles"
+Cohesion: 0.29
+Nodes (7): 1. Every send has a real cost, 2. Opt-in is your most valuable asset, 3. Each message must justify itself, 4. Brevity + clarity, 5. One CTA, one link, 6. Sender identity, every send, Core Principles
 
 ### Community 350 - "Follow-Up Sequences"
 Cohesion: 0.25
@@ -2175,9 +2187,9 @@ Nodes (7): [1.2.0] - 2025-10-28, [1.3.0] - 2025-11-21, Added, Added, Changed, Ch
 Cohesion: 0.25
 Nodes (7): 1. Core SaaS Engine (değişmez), 1. GENEL SİSTEM MİMARİSİ, 2.1 Klasör Yapısı, 2. INDUSTRY PLUGIN ARCHITECTURE, 2. Industry Plugin Layer (değişken), 3. Intelligence Layer, TEKLIFPRO AI — MULTI-NIŞ INDUSTRY ENGINE ARCHITECTURE
 
-### Community 393 - "certification.ts"
-Cohesion: 0.39
-Nodes (6): ALLPLAN_ASSESSMENT, CertificationEligibility, CertificationProgress, evaluateCertificationEligibility(), publicAssessment(), scoreAssessment()
+### Community 393 - "Before Starting"
+Cohesion: 0.40
+Nodes (5): 1. Business Type, 2. Current State, 3. Compliance Posture, 4. Goal, Before Starting
 
 ### Community 394 - "Coding Style"
 Cohesion: 0.29
@@ -2251,9 +2263,9 @@ Nodes (7): Announcement Banner, Discount/Promotion Popup, Email Capture Popup, E
 Cohesion: 0.29
 Nodes (7): Behavior-Based, Click-Triggered, Exit Intent, Page Count / Session-Based, Scroll-Based, Time-Based, Trigger Strategies
 
-### Community 413 - "Pitch Templates by Angle"
-Cohesion: 0.29
-Nodes (7): 1. Data story, 2. Exclusive launch / milestone, 3. Op-ed / contributed piece, 4. Customer story, 5. Trend piece / connector, 6. Newsjack response, Pitch Templates by Angle
+### Community 413 - "SMS Copy Guidelines"
+Cohesion: 0.40
+Nodes (5): Length, Personalization, SMS Copy Guidelines, Structure, Voice
 
 ### Community 414 - "Zapier Cross-Tool Patterns"
 Cohesion: 0.29
@@ -2403,20 +2415,20 @@ Nodes (6): 1. Platform & Format, 2. Product & Offer, 3. Audience & Intent, 4. Pe
 Cohesion: 0.33
 Nodes (6): Bulk CSV Output, Creative Review Page (client / stakeholder approval), Iteration Report, Output Formats, Standard Output, Static Batch Output (Mode 3)
 
-### Community 451 - "Google Ads"
-Cohesion: 0.33
-Nodes (6): Enhanced Conversions, Fire conversion events, Google Ads, Google Tag Manager alternative, Install the Google tag, Set up conversion actions
+### Community 451 - "Video Hook Library"
+Cohesion: 0.40
+Nodes (5): Controversial Hooks (Best for comments), Curiosity Hooks (Best for engagement), Story Hooks (Best for watch time), Value Hooks (Best for saves), Video Hook Library
 
 ### Community 452 - "Retargeting Strategies"
 Cohesion: 0.33
 Nodes (6): Exclusions to Set Up, Funnel-Based Approach, Retarget with DIFFERENT offers (not the same one), Retargeting Strategies, Retargeting Windows, The 4-component retargeting framework
 
-### Community 453 - "Domain-Specific GEO Tactics"
-Cohesion: 0.33
-Nodes (6): Business/Marketing Content, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Technology Content
+### Community 453 - "AEO and GEO Content Patterns"
+Cohesion: 0.18
+Nodes (11): AEO and GEO Content Patterns, Business/Marketing Content, Contents, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Question Formats for Voice (+3 more)
 
 ### Community 454 - "AI SEO by Content Type"
-Cohesion: 0.33
+Cohesion: 0.22
 Nodes (6): AI SEO by Content Type, Blog Content, Comparison / Alternative Pages, Documentation / Help Content, Local Business / Ecom (Google emphasis), SaaS Product Pages
 
 ### Community 455 - "Data Layer Patterns"
@@ -2583,9 +2595,9 @@ Nodes (6): Brevo (formerly Sendinblue), Compliance, Integration paths, Key featu
 Cohesion: 0.33
 Nodes (6): Compliance, Integration paths, Key features, Klaviyo SMS, Pricing, Watch out for
 
-### Community 496 - "Twilio"
+### Community 496 - "Google Ads"
 Cohesion: 0.33
-Nodes (6): Compliance, Integration paths, Key features, Pricing, Twilio, Watch out for
+Nodes (6): Enhanced Conversions, Fire conversion events, Google Ads, Google Tag Manager alternative, Install the Google tag, Set up conversion actions
 
 ### Community 497 - "SimpleTexting"
 Cohesion: 0.33
@@ -2603,13 +2615,17 @@ Nodes (6): Compliance, Customer.io, Integration paths, Key features, Pricing, Wa
 Cohesion: 0.33
 Nodes (6): Compliance, Integration paths, Key features, Postscript, Pricing, Watch out for
 
-### Community 501 - "Transactional / Account Notifications"
-Cohesion: 0.33
-Nodes (6): Account alert, Auth code (2FA), Delivery confirmation, Order confirmation, Shipping update, Transactional / Account Notifications
+### Community 501 - "src/components/ui/button.tsx"
+Cohesion: 0.09
+Nodes (10): CompanionResponse, Button(), buttonVariants, LandingPageProps, initialForm, paymentStatuses, PilotApplication, PilotApplications() (+2 more)
 
 ### Community 502 - "Content Repurposing System"
 Cohesion: 0.33
 Nodes (6): Blog Post → Social Content, Content Repurposing System, Newsletter → Social Content, Podcast / Video → Social Content, Repurposing Workflow, Webinar / Live Event → Social Content
+
+### Community 503 - "One-Pagers / Leave-Behinds"
+Cohesion: 0.50
+Nodes (4): Design Principles, One-Pagers / Leave-Behinds, Structure, When to Use
 
 ### Community 504 - "Columns - Allplan 2026 Official Source Pack"
 Cohesion: 0.33
@@ -2951,9 +2967,9 @@ Nodes (5): Core Principles, Define Before Automate, Measure Every Handoff, Reven
 Cohesion: 0.40
 Nodes (5): Data Hygiene & Enrichment, Dedup Strategy, Enrichment Tools, Quarterly Audit Checklist, Required Fields Enforcement
 
-### Community 592 - "Core Principles"
-Cohesion: 0.40
-Nodes (5): Core Principles, Sales Uses What Sales Trusts, Scannable Over Comprehensive, Situation-Specific, Not Generic, Tie Back to Business Outcomes
+### Community 592 - "Essential Events"
+Cohesion: 0.67
+Nodes (3): Essential Events, Marketing Site, Product/App
 
 ### Community 593 - "Phrases That Signal AI Writing"
 Cohesion: 0.40
@@ -2979,13 +2995,13 @@ Nodes (5): Breadcrumb Format, Footer Organization, Header Navigation Rules, Navi
 Cohesion: 0.40
 Nodes (5): Hub-and-Spoke Model, Internal Linking Rules, Internal Linking Strategy, Link Audit Checklist, Link Types
 
-### Community 599 - "United States — A2P 10DLC"
-Cohesion: 0.40
-Nodes (5): Common rejections, Registration components, Throughput tiers (varies by carrier and trust score), United States — A2P 10DLC, What it is
+### Community 599 - "Page-Specific Guidance"
+Cohesion: 0.33
+Nodes (6): About Page, Feature Page, Homepage, Landing Page, Page-Specific Guidance, Pricing Page
 
-### Community 601 - "Audio Strategy"
-Cohesion: 0.40
-Nodes (5): Audio Strategy, Music Selection, Voiceover Tips, When to Use Original Audio, When to Use Trending Sounds
+### Community 601 - "Twilio"
+Cohesion: 0.33
+Nodes (6): Compliance, Integration paths, Key features, Pricing, Twilio, Watch out for
 
 ### Community 602 - "Visual Patterns"
 Cohesion: 0.40
@@ -3111,9 +3127,9 @@ Nodes (4): Configuration, Data Streams, Enhanced Measurement Events (Automatic),
 Cohesion: 0.50
 Nodes (4): Custom Dimensions and Metrics, Examples, Setup Steps, When to Use
 
-### Community 635 - "Advanced Patterns"
+### Community 635 - "Lead Lifecycle Framework"
 Cohesion: 0.50
-Nodes (4): Advanced Patterns, Custom JavaScript Variables, Exception Handling, Tag Sequencing
+Nodes (4): Lead Lifecycle Framework, MQL Definition, MQL-to-SQL Handoff SLA, Stage Definitions
 
 ### Community 636 - "Debugging and Validation"
 Cohesion: 0.50
@@ -3327,9 +3343,9 @@ Nodes (4): Approval Workflow Tiers, Deal Desk Processes, Non-Standard Terms Hand
 Cohesion: 0.50
 Nodes (4): Building a Scoring Model, Common Scoring Mistakes, Lead Scoring, Scoring Dimensions
 
-### Community 689 - "Lead Lifecycle Framework"
-Cohesion: 0.50
-Nodes (4): Lead Lifecycle Framework, MQL Definition, MQL-to-SQL Handoff SLA, Stage Definitions
+### Community 689 - "Transactional / Account Notifications"
+Cohesion: 0.33
+Nodes (6): Account alert, Auth code (2FA), Delivery confirmation, Order confirmation, Shipping update, Transactional / Account Notifications
 
 ### Community 690 - "Pipeline Stage Management"
 Cohesion: 0.50
@@ -3343,25 +3359,17 @@ Nodes (4): Calculator Design, Implementation Options, ROI Calculators & Value Pr
 Cohesion: 0.50
 Nodes (4): Case Study Briefs (Sales Format), How Sales Case Studies Differ, Organization, Structure
 
-### Community 693 - "Demo Scripts & Talk Tracks"
-Cohesion: 0.50
-Nodes (4): Demo Scripts & Talk Tracks, Key Principles, Script Structure, Talk Track Types
-
-### Community 694 - "One-Pagers / Leave-Behinds"
-Cohesion: 0.50
-Nodes (4): Design Principles, One-Pagers / Leave-Behinds, Structure, When to Use
-
 ### Community 695 - "Sales Playbooks"
 Cohesion: 0.50
 Nodes (4): Keeping It Living, Sales Playbooks, What Goes in a Playbook, When to Build
 
-### Community 696 - "Header Navigation"
-Cohesion: 0.50
-Nodes (4): Header Navigation, Mega Menu Header, Simple Header (4-6 items), Split Navigation
+### Community 696 - "United States — A2P 10DLC"
+Cohesion: 0.40
+Nodes (5): Common rejections, Registration components, Throughput tiers (varies by carrier and trust score), United States — A2P 10DLC, What it is
 
-### Community 697 - "Content / Blog Site"
-Cohesion: 0.50
-Nodes (4): Content / Blog Site, Navigation, Page Hierarchy, URL Map
+### Community 697 - "Compliance — Read First"
+Cohesion: 0.40
+Nodes (5): Canada — CASL, Compliance — Read First, EU/UK — GDPR-derived consent, US — A2P 10DLC Registration (required since 2022), US — TCPA (Telephone Consumer Protection Act)
 
 ### Community 698 - "SaaS Marketing Site"
 Cohesion: 0.50
@@ -3371,13 +3379,13 @@ Nodes (4): Navigation, Page Hierarchy, SaaS Marketing Site, URL Map
 Cohesion: 0.50
 Nodes (4): Abandoned Cart (highest-ROI flow for ecom), Send 1 — 30 minutes after abandon, Send 2 — 4 hours after abandon (if no purchase), Send 3 — 24 hours after abandon (if no purchase, discount allowed)
 
-### Community 700 - "Win-Back (Lapsed Customers)"
+### Community 700 - "Advanced Patterns"
 Cohesion: 0.50
-Nodes (4): Send 1 — 60-90 days after last purchase, Send 2 — 14 days later (if no purchase), Send 3 — 14 days after Send 2 (final, if no purchase), Win-Back (Lapsed Customers)
+Nodes (4): Advanced Patterns, Custom JavaScript Variables, Exception Handling, Tag Sequencing
 
-### Community 701 - "Welcome / Opt-In Confirmation"
+### Community 701 - "Quietude — Marketing Plan v1"
 Cohesion: 0.50
-Nodes (4): Send 1 — Immediate (after opt-in), Send 2 — 24 hours later (optional), Send 3 — 7 days later (optional, conditional on no purchase), Welcome / Opt-In Confirmation
+Nodes (3): 1. Executive summary, Example — Quietude Marketing Plan v1, Quietude — Marketing Plan v1
 
 ### Community 702 - "Analytics & Optimization"
 Cohesion: 0.50
@@ -3431,9 +3439,13 @@ Nodes (3): Beş dosya için minimum sonuç kaydı, Kabul sırası, SmartCheck ge
 Cohesion: 0.67
 Nodes (3): Headline mirroring, Landing Page Alignment (the headline-mirror trick), Three split tests minimum at all times
 
-### Community 715 - "UTM Parameter Strategy"
-Cohesion: 0.67
-Nodes (3): Naming Conventions, Standard Parameters, UTM Parameter Strategy
+### Community 715 - "Sales Deck / Pitch Deck"
+Cohesion: 0.50
+Nodes (4): 10-12 Slide Framework, Customization by Buyer Type, Deck Principles, Sales Deck / Pitch Deck
+
+### Community 716 - "Proposal Templates"
+Cohesion: 0.50
+Nodes (4): Common Mistakes, Customization Guidance, Proposal Templates, Structure
 
 ### Community 718 - "Personalization Experiments"
 Cohesion: 0.67
@@ -3479,6 +3491,10 @@ Nodes (3): Affiliate Recruitment, Outreach template:, Where to find affiliates:
 Cohesion: 0.67
 Nodes (3): Key Metrics, Measuring Success, Typical Findings
 
+### Community 730 - "Objection Handling Docs"
+Cohesion: 0.50
+Nodes (4): Objection Categories, Objection Handling Docs, Response Framework, Two Formats
+
 ### Community 731 - "10. Riskler ve stop koşulları"
 Cohesion: 0.67
 Nodes (3): 10. Riskler ve stop koşulları, Riskler, Stop koşulları
@@ -3487,25 +3503,41 @@ Nodes (3): 10. Riskler ve stop koşulları, Riskler, Stop koşulları
 Cohesion: 0.67
 Nodes (3): 2. Kaynak belgelerden çıkan gerçek ihtiyaç, Metraj doğrulama araştırması, Teklif yazılımı PRD
 
+### Community 742 - "Footer Navigation"
+Cohesion: 0.50
+Nodes (4): Column-Based Footer (Standard), Expanded Footer, Footer Navigation, Minimal Footer
+
+### Community 786 - "Content / Blog Site"
+Cohesion: 0.50
+Nodes (4): Content / Blog Site, Navigation, Page Hierarchy, URL Map
+
+### Community 788 - "Promotional / Campaign Sends"
+Cohesion: 0.50
+Nodes (4): Flash sale (single send), Holiday / BFCM (2-send sequence), Limited drop / launch, Promotional / Campaign Sends
+
+### Community 789 - "SMS Platform Reference"
+Cohesion: 0.67
+Nodes (3): A2P 10DLC: what your platform should handle, Quick selection table, SMS Platform Reference
+
 ## Knowledge Gaps
-- **5249 isolated node(s):** `evaluate-session.sh script`, `suggest-compact.sh script`, `app`, `$schema`, `style` (+5244 more)
+- **5256 isolated node(s):** `evaluate-session.sh script`, `suggest-compact.sh script`, `app`, `$schema`, `style` (+5251 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **62 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **59 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `dependencies` to `yauzl`, `zod`, `StudentProfile.tsx`, `bcryptjs`, `class-variance-authority`, `csv-parse`, `date-fns`, `devDependencies`, `dotenv`, `drizzle-orm`, `@fontsource-variable/geist`, `@google/genai`, `@google/generative-ai`, `graphile-worker`, `jsonwebtoken`, `@radix-ui/react-progress`, `recharts`, `sonner`, `tailwind-merge`, `@tailwindcss/vite`, `tw-animate-css`, `@types/jsonwebtoken`, `@vitejs/plugin-react`?**
+- **Why does `dependencies` connect `dependencies` to `yauzl`, `zod`, `class-variance-authority`, `StudentProfile.tsx`, `bcryptjs`, `csv-parse`, `date-fns`, `devDependencies`, `dotenv`, `drizzle-orm`, `@fontsource-variable/geist`, `@google/genai`, `@google/generative-ai`, `graphile-worker`, `jsonwebtoken`, `@radix-ui/react-progress`, `exceljs`, `sonner`, `tailwind-merge`, `@tailwindcss/vite`, `tw-animate-css`, `@types/jsonwebtoken`, `@vitejs/plugin-react`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `CertificatesViewer()` connect `StudentProfile.tsx` to `src/lib/utils.ts`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **Why does `react` connect `StudentProfile.tsx` to `dependencies`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
-- **Are the 23 inferred relationships involving `fetchWithAuth()` (e.g. with `generateWithAi()` and `syncAllplanLessonCheckpoint()`) actually correct?**
-  _`fetchWithAuth()` has 23 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 19 inferred relationships involving `fetchWithAuth()` (e.g. with `generateWithAi()` and `loadPreview()`) actually correct?**
+  _`fetchWithAuth()` has 19 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 20 inferred relationships involving `authenticate()` (e.g. with `.verifyToken()` and `registerAcademyRoutes()`) actually correct?**
   _`authenticate()` has 20 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `evaluate-session.sh script`, `suggest-compact.sh script`, `app` to the rest of the system?**
-  _5249 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _5256 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `BrowserFactory` be split into smaller, more focused modules?**
   _Cohesion score 0.1396011396011396 - nodes in this community are weakly interconnected._
-- **Should `AllplanAcademy.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.07505285412262157 - nodes in this community are weakly interconnected._
