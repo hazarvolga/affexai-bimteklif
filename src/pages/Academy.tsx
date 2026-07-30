@@ -115,6 +115,48 @@ export function Academy() {
             </div>
           </Card>
         </div>
+
+        {/* openBIM & Yazılım Metraj Karşılaştırma (Brutal Truth) Section */}
+        <div className="space-y-4 md:col-span-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+            <GraduationCap size={14} className="text-emerald-400" /> BIM Yazılımları Metraj Karşılaştırması &amp; Brutal Truth
+          </h3>
+          <Card className="bg-emerald-950/10 border-emerald-500/30 hover:border-emerald-500/60 transition-all shadow-none group relative overflow-hidden p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-4 bg-zinc-900/60 rounded-2xl border border-zinc-800">
+                <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-bold mb-2">AUTODESK REVIT</Badge>
+                <h4 className="text-xs font-bold text-white mb-1">Revit 2025 IFC Metraj Sapmaları</h4>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  Mimari ekosistemde dünya lideri. Donatı detaylandırmasında paspayı ve metraj çakışmalarında ±%10-%15 arası manuel müdahale gerektirir.
+                </p>
+              </div>
+              <div className="p-4 bg-zinc-900/60 rounded-2xl border border-zinc-800">
+                <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold mb-2">NEMETSCHEK ALLPLAN</Badge>
+                <h4 className="text-xs font-bold text-white mb-1">Allplan 2026 Donatı Hassasiyeti</h4>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  %100 matematiksel donatı ve metraj cetveli hassasiyetinde dünyada 1 numaradır. Statik betonarme projelerinde 0 sapma sağlar.
+                </p>
+              </div>
+              <div className="p-4 bg-zinc-900/60 rounded-2xl border border-zinc-800">
+                <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[9px] font-bold mb-2">GRAPHISOFT ARCHICAD</Badge>
+                <h4 className="text-xs font-bold text-white mb-1">Archicad 28 Mimari &amp; IFC Çıktısı</h4>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  Hızlı mimari konsept ve sezgisel 3D çizimde harikadır; donatı tonaj metrajında statik IFC dönüştürücü köprüsü gerektirir.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 pt-4 border-t border-emerald-900/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <p className="text-xs text-zinc-300 font-medium">
+                BIMPlan Academy tüm yazılımlara eşit mesafede dürüst mühendislik verilerini sunar.
+              </p>
+              <Link to="/app/ifc-parser">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 gap-2 shrink-0">
+                  openBIM IFC Engine ile Test Et <ChevronRight size={14} />
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </div>
     </PageContainer>
   );

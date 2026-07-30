@@ -11,7 +11,8 @@ import {
   ChartBarIncreasing,
   CreditCard,
   ClipboardList,
-  ClipboardCheck
+  ClipboardCheck,
+  Box
 } from 'lucide-react';
 
 export interface NavItem {
@@ -26,6 +27,12 @@ export const navigationConfig: NavItem[] = [
     label: "Dashboard",
     path: "/app",
     icon: LayoutDashboard,
+    roles: ["owner", "admin", "manager", "viewer"],
+  },
+  {
+    label: "5D IFC Metraj Engine",
+    path: "/app/ifc-parser",
+    icon: Box,
     roles: ["owner", "admin", "manager", "viewer"],
   },
   {

@@ -22,7 +22,8 @@ import {
   ShieldCheck,
   Zap,
   DollarSign,
-  Users
+  Users,
+  Box
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -82,6 +83,121 @@ export function CreateQuote() {
   ]);
 
   useEffect(() => {
+    // Check if openBIM IFC parsed metraj data exists in sessionStorage
+    const ifcData = sessionStorage.getItem('teklifpro_ifc_extracted');
+    if (ifcData) {
+      try {
+        const { summary } = JSON.parse(ifcData);
+        if (summary) {
+          const importedItems: Partial<QuoteItem>[] = [];
+
+          if (summary.beamVolumeM3 > 0) {
+            importedItems.push({
+              id: crypto.randomUUID(),
+              description: `5D IFC Metrajı: IfcBeam Kiriş Betonarme İmalatı (${summary.beamCount} Adet)`,
+              unit: 'm3',
+              quantity: summary.beamVolumeM3,
+              unitPrice: 3800,
+              costUnitPrice: 2900,
+              costCategory: 'material',
+              quantitySource: 'model',
+              sourceReference: 'openBIM IFC 4.0 Model',
+              verificationStatus: 'verified',
+              total: summary.beamVolumeM3 * 3800
+            });
+          }
+
+          if (summary.columnVolumeM3 > 0) {
+            importedItems.push({
+              id: crypto.randomUUID(),
+              description: `5D IFC Metrajı: IfcColumn Kolon Betonarme İmalatı (${summary.columnCount} Adet)`,
+              unit: 'm3',
+              quantity: summary.columnVolumeM3,
+              unitPrice: 4200,
+              costUnitPrice: 3100,
+              costCategory: 'material',
+              quantitySource: 'model',
+              sourceReference: 'openBIM IFC 4.0 Model',
+              verificationStatus: 'verified',
+              total: summary.columnVolumeM3 * 4200
+            });
+          }
+
+          if (summary.slabVolumeM3 > 0) {
+            importedItems.push({
+              id: crypto.randomUUID(),
+              description: `5D IFC Metrajı: IfcSlab Döşeme Betonarme İmalatı (${summary.slabCount} Adet)`,
+              unit: 'm3',
+              quantity: summary.slabVolumeM3,
+              unitPrice: 3600,
+              costUnitPrice: 2750,
+              costCategory: 'material',
+              quantitySource: 'model',
+              sourceReference: 'openBIM IFC 4.0 Model',
+              verificationStatus: 'verified',
+              total: summary.slabVolumeM3 * 3600
+            });
+          }
+
+          if (summary.wallVolumeM3 > 0) {
+            importedItems.push({
+              id: crypto.randomUUID(),
+              description: `5D IFC Metrajı: IfcWall Perde Duvar İmalatı (${summary.wallCount} Adet)`,
+              unit: 'm3',
+              quantity: summary.wallVolumeM3,
+              unitPrice: 3900,
+              costUnitPrice: 2950,
+              costCategory: 'material',
+              quantitySource: 'model',
+              sourceReference: 'openBIM IFC 4.0 Model',
+              verificationStatus: 'verified',
+              total: summary.wallVolumeM3 * 3900
+            });
+          }
+
+          if (summary.totalRebarTon > 0) {
+            importedItems.push({
+              id: crypto.randomUUID(),
+              description: `5D IFC Metrajı: TS 708 B420C / B500C Donatı Çelik Tonajı`,
+              unit: 'ton',
+              quantity: summary.totalRebarTon,
+              unitPrice: 32000,
+              costUnitPrice: 27000,
+              costCategory: 'material',
+              quantitySource: 'model',
+              sourceReference: 'openBIM IFC 4.0 Model',
+              verificationStatus: 'verified',
+              total: summary.totalRebarTon * 32000
+            });
+          }
+
+          if (summary.totalFormworkM2 > 0) {
+            importedItems.push({
+              id: crypto.randomUUID(),
+              description: `5D IFC Metrajı: Endüstriyel Kalıp İmalat Alanı`,
+              unit: 'm2',
+              quantity: summary.totalFormworkM2,
+              unitPrice: 450,
+              costUnitPrice: 320,
+              costCategory: 'subcontractor',
+              quantitySource: 'model',
+              sourceReference: 'openBIM IFC 4.0 Model',
+              verificationStatus: 'verified',
+              total: summary.totalFormworkM2 * 450
+            });
+          }
+
+          if (importedItems.length > 0) {
+            setItems(importedItems);
+            toast.success(`openBIM IFC 4.0'dan ${importedItems.length} kesin metraj kalemi teklife aktarıldı!`);
+          }
+          sessionStorage.removeItem('teklifpro_ifc_extracted');
+        }
+      } catch (err) {
+        console.error('Error importing IFC data:', err);
+      }
+    }
+
     fetchWithAuth('/api/clients')
       .then(res => res.json())
       .then((data) => setClients(Array.isArray(data) ? data : []))
@@ -288,7 +404,14 @@ export function CreateQuote() {
           onClick: () => navigate('/app/quotes')
         }}
         actions={
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/app/ifc-parser')}
+              className="border-emerald-500/30 bg-emerald-950/30 text-emerald-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-emerald-900/50"
+            >
+              <Box size={14} /> 5D IFC Metraj Yükle
+            </Button>
             <Button 
               variant="outline" 
               onClick={handleLoadDemoTemplate}

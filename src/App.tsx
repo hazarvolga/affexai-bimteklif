@@ -52,6 +52,7 @@ const AcademyCertificatesPage = page(() => import('@/pages/AcademyCertificatesPa
 const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'default');
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
 const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
+const BimIfcParserPage = page(() => import('@/pages/BimIfcParserPage'), 'default');
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -84,6 +85,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<Shell />}>
           <Route index element={<Dashboard />} />
+          <Route path="ifc-parser" element={<BimIfcParserPage />} />
           <Route path="quotes" element={<Quotes />} />
           <Route path="quotes/new" element={<CreateQuote />} />
           <Route path="quotes/:id" element={<QuoteDetail />} />

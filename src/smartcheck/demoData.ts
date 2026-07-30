@@ -52,7 +52,7 @@ export interface DemoAcademyContent {
   contentType: string;
   softwareVersions: string[];
   status: string;
-  area: 'teklif_metraj' | 'allplan';
+  area: 'teklif_metraj' | 'allplan' | 'openbim_comparison';
 }
 
 export const demoRules: DemoRule[] = [
@@ -176,6 +176,20 @@ export const demoAcademyContent: DemoAcademyContent[] = [
     softwareVersions: ['2024', '2026'],
     status: 'demo',
     area: 'allplan'
+  },
+  {
+    id: 'content-bim-software-comparison',
+    title: 'BIM Yazılımları Metraj Karşılaştırması & Brutal Truth',
+    slug: 'bim-software-quantity-comparison',
+    productCode: 'ALLPLAN',
+    domain: 'proposal',
+    skillCode: 'quantity.unit_mapping',
+    level: 'intermediate',
+    estimatedMinutes: 15,
+    contentType: 'microlearning',
+    softwareVersions: ['Revit 2025', 'Allplan 2026', 'Archicad 28'],
+    status: 'demo',
+    area: 'openbim_comparison'
   }
 ];
 

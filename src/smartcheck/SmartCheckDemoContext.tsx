@@ -178,6 +178,19 @@ export const demoAcademyContent: DemoAcademyContent[] = [
     contentType: 'interactive',
     softwareVersions: ['2024', '2026'],
     status: 'demo'
+  },
+  {
+    id: 'content-bim-software-comparison',
+    title: 'BIM Yazılımları Metraj Karşılaştırması & Brutal Truth',
+    slug: 'bim-software-quantity-comparison',
+    productCode: 'ALLPLAN',
+    domain: 'proposal_quantity',
+    skillCode: 'quantity.unit_mapping',
+    level: 'foundation',
+    estimatedMinutes: 15,
+    contentType: 'microlearning',
+    softwareVersions: ['Revit 2025', 'Allplan 2026', 'Archicad 28'],
+    status: 'demo'
   }
 ];
 
