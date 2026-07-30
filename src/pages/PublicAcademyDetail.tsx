@@ -22,11 +22,46 @@ const details: Record<string, Detail> = {
     intro: 'ISO 19650 serisini yalnızca standart isimleri olarak değil; ihtiyaçtan ihale yanıtına, ortak üretimden işletme modeline uzanan bir bilgi yönetimi sistemi olarak ele alıyoruz.',
     why: 'Kaynak platformun ana fikri nettir: BIM, üç boyutlu çizim üretmekten önce bilginin kim tarafından, hangi amaçla, hangi durumda ve hangi kanıtla üretileceğine karar vermektir.',
     modules: [
-      { title: '19650-1 · Kavramlar ve ilkeler', body: 'DIKW piramidi, bilgi konteyneri, CDE ve OIR/PIR/AIR/EIR arasındaki nedensellik zincirini kurar.', points: ['Veri → bilgi → bilgi birikimi → bilgelik', 'Bilginin stratejik varlık olarak tanımlanması', 'CDE’nin basit dosya deposundan ayrılması'] },
-      { title: '19650-2 · Teslim aşaması', body: 'Değerlendirme ve ihtiyaçtan proje kapanışına kadar sekiz adımlı bilgi yönetim sürecini işler.', points: ['BEP hazırlığı ve görev dağılımı', 'TIDP → MIDP → PIM hiyerarşisi', 'WIP, Shared, Published ve Archived geçişleri'] },
-      { title: '19650-3 · İşletme aşaması', body: 'Teslimden sonra modelin AIM’e dönüşmesini, COBie ve tesis yönetimi verisinin sürekliliğini açıklar.', points: ['Asset Information Model', 'COBie bakım ve garanti verileri', 'IoT / sensör bilgisinin işletme bağlamı'] },
-      { title: '19650-4 · Bilgi değişimi', body: 'IFC, MVD ve doğrulama süreçleriyle yazılımlar arası veri kaybını ve yorum farkını azaltma yaklaşımıdır.', points: ['openBIM ve yazılım bağımsızlığı', 'Model View Definition', 'Validation / verification sınırları'] },
-      { title: '19650-5 · Güvenlik odaklı yönetim', body: 'Hastane, altyapı ve kritik tesis dijital ikizlerinde güvenlik bilincini bilgi yönetiminin bir parçası yapar.', points: ['RBAC ve hassas veri sınıflandırması', 'Erişim, şifreleme ve tehdit senaryoları', 'Audit trail ve sorumluluk izleri'] },
+      { 
+        title: '19650-1 & 19650-2 · Kavramlar, İlkeler & Teslim Aşaması (OIR, PIR, AIR, EIR & CDE)', 
+        body: 'Organizasyonel hedeflerden proje bilgi teslimine uzanan 8 adımlı omurga: OIR → PIR → AIR → EIR nedensellik zinciri ve CDE (WIP, Shared, Published, Archived) bilgi konteyneri yaşam döngüsü.', 
+        points: [
+          'OIR / PIR / AIR / EIR: Stratejik kurum hedeflerinden yüklenici ihale teslim şartnamesine geçiş',
+          '8 Adımlı Süreç: İhtiyaç Analizi → İhale Daveti → Yanıt (BEP) → Sözleşme → Mobilizasyon → Üretim → PIM Teslimi → Kapanış',
+          'CDE Durum Geçişleri: WIP (Taslak), Shared (Koordinasyon R/O), Published (Onaylı İhale/Ödeme), Archived (Audit Trail)',
+          'TIDP & MIDP: Görev Teslim Planı (TIDP) birleşimiyle Ana Bilgi Teslim Planı (MIDP) oluşturulması'
+        ] 
+      },
+      { 
+        title: '19650-3 & 19650-4 · İşletme Aşaması, openBIM & COBie Teslimi (PIM → AIM)', 
+        body: 'İnşaat esnasındaki Canlı Proje Bilgi Modeli\'nin (PIM), işletme safhasında Tesis Yönetimi (FM) için COBie standartlarında Varlık Bilgi Modeli\'ne (AIM) dönüştürülmesi.', 
+        points: [
+          'PIM → AIM Dönüşümü: İnşaat karmaşasından temizlenmiş, garanti ve bakım verisi içeren AIM varlık modeli',
+          'COBie Eşleşmesi: IFC IfcAsset, IfcTypeProduct ve IfcSpace nesnelerinin COBie Excel/XML yapısına aktarımı',
+          'openBIM & IFC 4.0: Yazılımdan bağımsız NVD (Model View Definition) validation & verification denetimi',
+          'İşletme Garanti & Bakım: Cihaz ve ekipman seri no, son bakım tarihi ve üretici belgelerinin gömülmesi'
+        ] 
+      },
+      { 
+        title: '19650-5 · Güvenlik Odaklı Yönetim (RBAC & Audit Trail)', 
+        body: 'Kritik altyapı, hastane ve kamu binalarında dijital ikiz verisinin rol bazlı yetkilendirilmesi, şifrelenmesi ve siber güvenlik uyumunun sağlanması.', 
+        points: [
+          'RBAC Yetki Matrisi: Mimar, Statikçi, MEP ve İşveren için WIP/Shared/Published klasör bazlı erişim kontrolü',
+          'Hassas Veri Sınıflandırması: Güvenlik kamerası, havalandırma ve yapısal kritik detayların şifrelenmesi',
+          'Audit Trail Kaydı: Modeldeki her geometrik ve alfanümerik değişikliğin zaman damgalı dijital izi',
+          'Sözleşmesel Güvenlik: Yüklenici ve alt yüklenici verilerinin ISO 19650-5 güvenlik protokolüne bağlanması'
+        ] 
+      },
+      { 
+        title: 'EN 17412-1 · LOIN (Level of Information Need) Bilgi İhtiyacı Seviyesi', 
+        body: 'Gereksiz 3D geometrik modellemeden kaçınarak geometric (LOG) ve alfanümerik (LOI) bilgenin doğru aşamada doğru miktarda üretilmesi ilkesi.', 
+        points: [
+          'LOG vs LOI Ayrımı: LOG (Geometrik Temsil Seviyesi) ile LOI (Alfanümerik Bilgi Zenginliği) dengesi',
+          'Brutal Truth İlkesi: "Gereksiz donatıyı 3D çizme, LOI parametresine yaz" ile model boyutunu ve kasmayı engelleme',
+          'İhtiyaca Göre Bilgi Seviyesi: Tasarım, ihale ve işletme aşamalarına özel LOIN matrislerinin hazırlanması',
+          'SmartCheck Uyum Denetimi: Model nesnelerinin LOIN şartnamesine göre eksiksizlik kontrolü'
+        ] 
+      },
     ],
     outputs: ['Örnek OIR/PIR/AIR/EIR ilişkisi', 'CDE durum kodları ve gateway haritası', 'Rol–sorumluluk–teslim matrisi', 'Teklif öncesi bilgi gereksinimi kontrol listesi'],
     standards: ['ISO 19650-1 / -2 / -3 / -4 / -5', 'buildingSMART / IFC / MVD', 'COBie ve bilgi teslim yaklaşımı'],
@@ -38,11 +73,51 @@ const details: Record<string, Detail> = {
     intro: 'BIM Core hattı, yazılım operatörlüğünün ötesine geçerek ontoloji, bilgi yazarlığı, openBIM, sözleşme protokolleri ve dijital ikiz yönetimini aynı akademik omurgada toplar.',
     why: 'Kaynak HTML’deki yüksek lisans seviyesi yaklaşımın ticari karşılığı şudur: modeldeki bir kolon yalnızca şekil değil; maliyet, zaman, yangın dayanımı, üretim ve işletme bilgisi taşıyan bir varlıktır.',
     modules: [
-      { title: 'BIM501 · Ontoloji ve strateji', body: 'IfcColumn gibi varlıkların geometri, maliyet, zaman ve performans bağlamlarını nasıl taşıdığını inceler.', points: ['Objeye dayalı düşünme', 'DIKW’nin AEC uyarlaması', 'Bilgi yöneticisinin rolü'] },
-      { title: 'BIM502 · Bilgi yazarlığı ve LOIN', body: '“Gereksizse çizme, gerekliyse yaz” ilkesiyle geometrik temsil ve alfanümerik bilgi dengesini kurar.', points: ['LOG ve LOI ayrımı', 'Aşırı modellemenin maliyeti', 'İhtiyaca göre bilgi seviyesi'] },
-      { title: 'BIM503 · openBIM ve birlikte çalışabilirlik', body: 'IFC, BCF, buildingSMART ve EXPRESS-G üzerinden ortak veri dilinin sınırlarını tartışır.', points: ['IFC veri şeması', 'BCF issue akışı', 'B-Rep ve analitik model farkı'] },
-      { title: 'BIM504 · Sözleşme ve protokoller', body: 'BEP, CIC/AIA protokolleri, fikri mülkiyet ve RACI ile bilgi sorumluluğunu sözleşmeye bağlar.', points: ['TIDP / MIDP sorumluluğu', 'RACI matrisi', 'Model kullanım lisansı'] },
-      { title: 'BIM505 · Dijital ikiz ve FM', body: 'PIM’den AIM’e geçişi, COBie ve tesis yönetim sistemleriyle bilgi sürekliliğini ele alır.', points: ['Operasyonel bilgi modeli', 'Garanti ve bakım verisi', 'Dijital ikizin gerçek veri ihtiyacı'] },
+      { 
+        title: 'BIM501 · AEC Ontolojisi & Varlık Yönetimi', 
+        body: 'IfcColumn ve IfcBeam gibi varlıkların geometri, maliyet, zaman ve performans bağlamlarını nesne tabanlı mimaride taşır.', 
+        points: [
+          'DIKW Piramidi: Veri → Bilgi → Bilgelik sürecinin AEC şantiyelerine uyarlanması',
+          'Objeye Dayalı Düşünme: Geometrinin arkasında alfanümerik veri zenginliği oluşturma',
+          'Bilgi Yöneticisi Rolü: Disiplinler arası veri akışının kurumsal yönetimi'
+        ] 
+      },
+      { 
+        title: 'BIM502 · Bilgi Yazarlığı & EN 17412-1 LOIN', 
+        body: '“Gereksizse 3D donatı çizme, alfanümerik LOI parametresine yaz” ilkesiyle LOG ve LOI dengesini kurar.', 
+        points: [
+          'LOG vs LOI Ayrımı: LOG (Geometrik Temsil) ve LOI (Alfanümerik Veri) dengesi',
+          'Aşırı Modelleme Riski: Gereksiz poligon çizimlerinin model boyutunu ve kasmayı artırmasını önleme',
+          'Aşamalı LOIN Matrisi: İhale, inşaat ve işletme safhalarına özel veri seviyesi tanımları'
+        ] 
+      },
+      { 
+        title: 'BIM503 · openBIM, IFC 4.0 & BCF Issue Akışı', 
+        body: 'IFC şeması, BCF (BIM Collaboration Format), buildingSMART ve EXPRESS-G üzerinden ortak veri dilini çalıştırır.', 
+        points: [
+          'IFC 4.0 Veri Şeması: Software-independent openBIM nesne hiyerarşisi',
+          'BCF Issue Akışı: Çakışma ve model hatalarının yazılımlar arası BCF ile takibi',
+          'B-Rep vs Analitik Model: Statik hesap modeli ile 3D fiziksel geometrinin ayrıştırılması'
+        ] 
+      },
+      { 
+        title: 'BIM504 · Sözleşmeler, BEP & RACI Matrisi', 
+        body: 'BEP (BIM Execution Plan), CIC/AIA protokolleri, fikri mülkiyet ve RACI matrisi ile bilgi sorumluluğunu sözleşmeye bağlar.', 
+        points: [
+          'TIDP / MIDP Sorumluluğu: Görev bazlı bilgi teslim planlarının hiyerarşik yönetimi',
+          'RACI Matrisi: Kim Sorumlu (Responsible), Kim Hesap Verir (Accountable), Kim Danışılır (Consulted), Kim Bilgilendirilir (Informed)',
+          'Model Kullanım Lisansı: Fikri mülkiyet ve model verisinin telif sınırları'
+        ] 
+      },
+      { 
+        title: 'BIM505 · Dijital İkiz, PIM → AIM & COBie Teslimi', 
+        body: 'İnşaat esnasındaki PIM modelinin işletme aşaması için COBie standartlarında AIM varlık modeline dönüştürülmesi.', 
+        points: [
+          'Operasyonel Bilgi Modeli (AIM): İşletme ve Tesis Yönetimi (FM) odaklı temiz veri yapısı',
+          'COBie Veri Eşleşmesi: Garanti süreleri, seri numaraları ve bakım periyotlarının aktarımı',
+          'IoT & Sensör Bağlantısı: Dijital ikizde canlı bina verisinin izlenmesi'
+        ] 
+      },
     ],
     outputs: ['LOIN karar tablosu', 'IFC/BCF veri değişim kontrolü', 'BEP ve RACI taslakları', 'AIM/COBie teslim veri listesi'],
     standards: ['ISO 19650-1 / -3', 'EN 17412-1 LOIN yaklaşımı', 'IFC, BCF ve COBie'],
@@ -54,10 +129,42 @@ const details: Record<string, Detail> = {
     intro: '6D hattı, model geometrisini enerji, yaşam döngüsü maliyeti, gömülü karbon ve sertifikasyon verileriyle ilişkilendirir. Her sonuç veri sınırı ve varsayımla birlikte okunmalıdır.',
     why: 'Kaynakta dört ayrı laboratuvar bulunuyor: enerji performansı, LCA, karbon ayak izi ve yeşil bina sertifikasyonları. Bunlar tek bir “yeşil skor” değil, farklı karar sorularıdır.',
     modules: [
-      { title: 'Enerji performans simülasyonu', body: 'BEM yaklaşımıyla geometri ve termal özellikleri yıllık enerji talebi bağlamına taşır.', points: ['EPW iklim verisi', 'Gün ışığı simülasyonu', 'Isıtma–soğutma yükleri'] },
-      { title: 'Yaşam döngüsü analizi', body: 'Malzemenin çıkarılmasından nakliye, kullanım ve ömür sonuna kadar çevresel etkiyi izler.', points: ['EPD veri tabanı', 'A1–A5 ve yaşam döngüsü modülleri', 'Yeniden kullanım ve sökülebilirlik'] },
-      { title: 'Karbon ayak izi ve dekarbonizasyon', body: 'Gömülü ve operasyonel karbonu ayırarak düşük karbonlu malzeme ve tedarik kararlarına zemin hazırlar.', points: ['GWP göstergesi', 'Düşük karbonlu malzeme', 'Karbon dengeleme sınırları'] },
-      { title: 'Yeşil bina sertifikasyonları', body: 'BIM modelinin sertifika kredileri için gereken bilgiye nasıl dönüştürülebileceğini inceler.', points: ['Kredi takip matrisi', 'Su verimliliği', 'İç hava kalitesi ve konum'] },
+      { 
+        title: 'BEM & Enerji Performans Simülasyonu (ISO 52000-1)', 
+        body: 'BEM yaklaşımıyla 3D modelin geometrisini ve termal iletkenlik değerlerini yıllık enerji tüketim simülasyonuna taşır.', 
+        points: [
+          'EPW İklim Verisi: Bölgesel meteorolojik iklim verilerinin simülasyona aktarımı',
+          'Isıtma-Soğutma Yükü: Yapı kabuğu U-değerleri üzerinden iklimlendirme yükü hesabı',
+          'Gün Işığı Analizi: Doğal aydınlatma otomasyonu ile elektrik enerjisi tasarrufu'
+        ] 
+      },
+      { 
+        title: 'LCA Beşikten Mezara Yaşam Döngüsü Analizi (ISO 14040/14044)', 
+        body: 'Malzemenin topraktan çıkarılmasından (A1) ömür sonu geri dönüşümüne (D) kadar tüm çevresel etkisini ölçer.', 
+        points: [
+          'EPD Veri Tabanı: Üretici Çevresel Ürün Beyanları (EPD) ile malzeme karşılaştırması',
+          'A1–D Sistem Sınırları: A1-A3 (Üretim), A4-A5 (İnşaat), B1-B7 (Kullanım), C1-C4 (Ömür Sonu), D (Kazanım)',
+          'Sökülebilirlik (DfD): Tasarım aşamasında yeniden kullanım ve dairesel ekonomi planı'
+        ] 
+      },
+      { 
+        title: 'Karbon Ayak İzi & Dekarbonizasyon (PAS 2080 / ISO 16745)', 
+        body: 'Gömülü Karbon (Embodied) ve Operasyonel Karbon emisyonlarını ayrıştırarak düşük karbonlu malzeme kararlarını destekler.', 
+        points: [
+          'GWP Göstergesi: Küresel Isınma Potansiyeli ($kg CO_2eq$) metriği',
+          'Düşük Karbonlu Malzeme: Yeşil çimento, geri dönüştürülmüş donatı ve ahşap karkas seçimi',
+          'TeklifPro Karbon Primi: Teklif risk motorunda karbon tedarik volatilite senaryoları'
+        ] 
+      },
+      { 
+        title: 'Yeşil Bina Sertifikasyonları (LEED, BREEAM, EDGE)', 
+        body: 'BIM model nesne verilerinin yeşil bina sertifika kreditörlerine otomatik raporlanması sürecidir.', 
+        points: [
+          'Kredi Takip Matrisi: LEED v4.1 ve BREEAM puan katsayılarının modelden takibi',
+          'Su & Enerji Verimliliği: Tesisat modellerinden su tüketim debilerinin doğrulanması',
+          'İç Hava Kalitesi: Düşük emisyonlu uçucu organik bileşik (VOC) malzeme seçimi'
+        ] 
+      },
     ],
     outputs: ['LCA veri sınırı ve varsayım notu', 'Malzeme karbon karşılaştırma şeması', 'Sertifika kredi takip matrisi', 'Tedarik sınıfı için senaryo özeti'],
     standards: ['ISO 52000-1 / TS EN ISO 13790', 'ISO 14040 / 14044 ve EN 15978', 'ISO 16745-1, GHG Protocol, PAS 2080', 'LEED v4.1, BREEAM, EDGE'],
@@ -69,10 +176,42 @@ const details: Record<string, Detail> = {
     intro: '4D ve 5D laboratuvarı, statik metraj listesini iş programına ve maliyet gerçekleşmesine bağlar. Model yalnızca “ne kadar” değil, “ne zaman” sorusunu da yanıtlamaya başlar.',
     why: 'Kaynakta GUID tabanlı eşleştirme, 4D şantiye fazları ve EVM göstergeleri birlikte kullanılıyor. Bu, teklif hazırlama ile uygulama takibi arasında doğrudan bir veri köprüsü kurar.',
     modules: [
-      { title: 'GUID ile iş programı eşleştirme', body: '3D model elemanlarını Primavera/MS Project benzeri iş programı görevleriyle ilişkilendirir.', points: ['Eleman–görev eşleşmesi', 'Kazı/temel, karkas, ince işler fazları', '4D lojistik görünümü'] },
-      { title: 'EVM monitörü', body: 'Planlanan değer, kazanılmış değer ve gerçekleşen maliyeti aynı izleme çerçevesinde okur.', points: ['PV: Planned Value', 'EV: Earned Value', 'AC: Actual Cost; SPI/CPI yorumlama'] },
-      { title: 'Teklif risk motoru', body: 'Süre, sözleşme tipi, LOD, clash kontrolü, karbon sınıfı ve donatı standardını senaryo girdileri olarak ele alır.', points: ['Götürü bedel / birim fiyat ayrımı', 'Belirsizlik primi sınırları', 'Varsayımların raporda görünmesi'] },
-      { title: 'Sözleşme tipinin etkisi', body: 'Metraj riskinin kimin üzerinde olduğunu ve zaman/rework riskinin nasıl ayrıştırılması gerektiğini gösterir.', points: ['Lump sum risk çerçevesi', 'Remeasurement yaklaşımı', 'Teklif notu ve insan onayı'] },
+      { 
+        title: 'GUID ile Primavera/MS Project 4D İş Programı Eşleştirme', 
+        body: '3D model elemanlarını (IfcBeam, IfcColumn, IfcSlab) iş programı benzersiz WBS görevleriyle ilişkilendirir.', 
+        points: [
+          'Eleman–Görev Eşleşmesi: Model GUID\'lerinin 4D lojistik iş adımlarıyla otomasyonu',
+          'Şantiye Fazlama: Temel/kazı, karkas ve ince işler 4D görsel lojistik simülasyonu',
+          'Şantiye Kule Vinç & Lojistik: Geçici imalatların 4D çakışma kontrolüne dahil edilmesi'
+        ] 
+      },
+      { 
+        title: 'EVM (Earned Value Management) Performans Monitörü', 
+        body: 'Planlanan değer, kazanılmış değer ve gerçekleşen maliyeti aynı 5D izleme çerçevesinde okur.', 
+        points: [
+          'PV (Planned Value): İş programına göre harcanması planlanan bütçe',
+          'EV (Earned Value): Sahada fiziki olarak tamamlanan işin bütçelenmiş karşılığı',
+          'AC (Actual Cost) & SPI/CPI: Gerçekleşen maliyet ile Zaman/Maliyet Performans Endeksleri'
+        ] 
+      },
+      { 
+        title: 'Teklif Risk Motoru & Eskalasyon Primi', 
+        body: 'Süre, sözleşme tipi, LOD seviyesi, donatı standardı ve piyasa enflasyonunu teklif primine dönüştürür.', 
+        points: [
+          'Götürü Bedel vs Birim Fiyat: Risk sahibinin sözleşme tipine göre belirlenmesi',
+          'Enflasyon Volatilite Primi: Proje süresince aylık malzeme fiyat artış senaryoları',
+          'TeklifPro Entegrasyonu: Teklif oluşturucuda otomatik risk primi marj hesabı'
+        ] 
+      },
+      { 
+        title: 'Metraj Minha Kuralları (Türkiye ÇŞB vs Almanya DIN 18350)', 
+        body: 'Farklı ülke standartlarındaki metraj minha (boşluk düşümü) kurallarının kârlılığa etkisini analiz eder.', 
+        points: [
+          'Türkiye ÇŞB Standardı: Boşluk alanı ne olursa olsun net metrajdan düşülür',
+          'Almanya DIN 18350 Standardı: $2.50 m^2$ altındaki boşluklar işçilik kaybını dengelemek için düşülmez',
+          'Mükerrer Metraj Engelleme: Kolon-kiriş-duvar çakışmalarının CSG Boolean kurallarıyla temizlenmesi'
+        ] 
+      },
     ],
     outputs: ['4D faz ve bağımlılık haritası', 'PV/EV/AC izleme tablosu', 'Teklif varsayımları ve risk notu', 'TeklifPro’ya aktarılabilir kontrol listesi'],
     standards: ['EVM: PV / EV / AC mantığı', 'LOD/LOIN bilgi seviyesi yaklaşımı', 'Proje sözleşmesi ve BIM protokolü birlikte okuma'],
@@ -84,10 +223,42 @@ const details: Record<string, Detail> = {
     intro: 'Scan-to-BIM hattı, nokta bulutundan dijital modele geçerken doğruluk seviyesinin, toleransın ve kullanım amacının birlikte belirlenmesi gerektiğini öğretir.',
     why: 'Kaynakta LOA 10, LOA 30 ve LOA 50 senaryoları farklı doğruluk toleranslarıyla gösteriliyor. Aynı nokta bulutu her kullanım için aynı modelleme yoğunluğunu gerektirmez.',
     modules: [
-      { title: 'LOA 10 · Kavramsal boyutlandırma', body: 'Best-fit yaklaşımıyla deformasyonları detaylandırmadan genel kütleyi temsil eder.', points: ['Kavramsal geometri', 'Yaklaşık ±50 mm senaryosu', 'Erken karar ve hacim okuması'] },
-      { title: 'LOA 30 · Hassas koordinasyon', body: 'As-built veriye daha yakın, genel mimari ve MEP koordinasyonu için kullanılabilir bir modelleme seviyesidir.', points: ['Yaklaşık ±15 mm senaryosu', 'Koordinasyon ve saha kontrolü', 'Model amacıyla orantılı detay'] },
-      { title: 'LOA 50 · Dijital ikiz / HBIM', body: 'Tarihi eser ve rölöve senaryolarında deformasyon, eğiklik ve dokuya kadar yüksek doğruluk hedeflenir.', points: ['Yaklaşık ±1 mm senaryosu', 'Restorasyon ve HBIM', 'Toleransın açıkça belgelenmesi'] },
-      { title: 'Üretken tasarım ve AI sınırı', body: 'AI, enerji ve maliyet gibi zıt hedefleri çoklu varyasyonlarla tarayabilir; ancak girdilerin doğruluğunu ve tasarım sorumluluğunu devralmaz.', points: ['NSGA-II gibi optimizasyon mantığı', '5D maliyet / 6D performans dengesi', 'İnsan onayı ve kanıt kaydı'] },
+      { 
+        title: 'LOA 10 · Kavramsal Boyutlandırma (±50 mm Tolerans)', 
+        body: 'Nokta bulutundan best-fit kütle okumasıyla deformasyonları detaylandırmadan genel kütleyi temsil eder.', 
+        points: [
+          'Kavramsal Geometri: Yaklaşık $\pm 50\text{ mm}$ toleranslı ilk kütle modellemesi',
+          'Hızlı Hacim Okuması: Erken aşama ihale ve konsept karar destek sistemi',
+          'Düşük Maliyetli Lazer Tarama: Hızlı saha verisi toplama protokolü'
+        ] 
+      },
+      { 
+        title: 'LOA 30 · Hassas Koordinasyon (±15 mm Tolerans)', 
+        body: 'As-built sahaya yakın, genel mimari ve MEP koordinasyonu için kullanılan standart modelleme seviyesidir.', 
+        points: [
+          'Yaklaşık $\pm 15\text{ mm}$ Tolerans: Şantiye içi çakışma ve as-built kontrolü',
+          'MEP & Mimari Uyum: Tesisat geçiş boşlukları ve duvar diklik kontrolleri',
+          'Saha Doğrulama: Nokta bulutu ile IFC modelinin çakıştırılması'
+        ] 
+      },
+      { 
+        title: 'LOA 50 · Dijital İkiz & HBIM (±1 mm Tolerans)', 
+        body: 'Tarihi eser restorasyonlarında ve hassas dijital ikizlerde milimetrik deformasyon modellemesidir.', 
+        points: [
+          'Yaklaşık $\pm 1\text{ mm}$ Tolerans: Restorasyon ve tarihi bina (HBIM) rölövesi',
+          'Dokusal & Yapısal Eğimler: Duvarlardaki ve kemerlerdeki milimetrik oturmaların işlenmesi',
+          'Tolerans Belgelendirmesi: Resmi kurul ve restorasyon projelerine hazır belge üretimi'
+        ] 
+      },
+      { 
+        title: 'NSGA-II Üretken Tasarım & AI İnsan Onay Sınırı', 
+        body: 'AI asistanların maliyet, enerji ve statik gibi zıt hedefleri çoklu varyasyonlarla tarama sınırları.', 
+        points: [
+          'NSGA-II Algoritması: 5D Maliyet vs 6D Sürdürülebilirlik zıt hedeflerinin optimizasyonu',
+          'AI Sınırları: Algoritma öneri sunar; mühendislik sorumluluğu insana aittir',
+          'Audit & Kanıt Kaydı: AI önerilerinin zaman damgalı doğrulama kayıtları'
+        ] 
+      },
     ],
     outputs: ['Kullanım amacına göre LOA seçimi', 'Nokta bulutu–model tolerans notu', 'AI çıktısı için kanıt ve insan onayı kaydı', 'Scan-to-BIM teslim kapsamı'],
     standards: ['LOA / as-built doğruluk senaryoları', 'IFC ve point cloud bilgi akışı', 'AI sonucu: öneri, doğrulama gerektirir'],
@@ -99,10 +270,42 @@ const details: Record<string, Detail> = {
     intro: 'Bu hat, dijital modelin sözleşme, güvenlik, e-Ruhsat, clash yönetimi ve üretilebilirlik ile temas ettiği noktaları birlikte ele alır.',
     why: 'Kaynak HTML yalnızca model doğruluğunu değil, modelin sahada gerçekten üretilebilir olup olmadığını sorguluyor: geçici yapılar, toleranslar, BCF issue’ları, SAF ve GeoBIM bu yüzden aynı çerçevede yer alıyor.',
     modules: [
-      { title: 'ISO 19650-5 ve RBAC', body: 'Mimar, MEP mühendisi ve işveren temsilcisinin CDE içindeki okuma, yazma ve onay yetkilerini görünür kılar.', points: ['Rol tabanlı erişim', 'Hassas bilgi sınıflandırması', 'Audit trail ve tehdit senaryosu'] },
-      { title: 'e-Ruhsat, ARC ve GeoBIM', body: 'IFC modelinin imar parseli/GIS verisiyle ilişkisini ve otomatik kural kontrolünün sınırlarını tartışır.', points: ['Yangın kapısı kural senaryosu', 'TAKS/KAKS ve parsel ilişkisi', 'ARC sonucu insan incelemesi gerektirir'] },
-      { title: 'VDC ve clash matrisi', body: 'Hard, soft ve 4D clash türlerini BCF issue akışı ve disiplinler arası öncelik matrisiyle yönetir.', points: ['Fiziksel çakışma', 'Tolerans/bakım boşluğu', 'Zamana bağlı lojistik çakışması'] },
-      { title: 'Üretilebilirlik ve kariyer', body: 'LOD 400 donatı, BVBS, 12 metrelik çelik gerçeği, geçici işler ve BIM rol hiyerarşisini saha kararlarına bağlar.', points: ['Donatı hard clash ve BVBS', 'Geçici yapıların 4D’ye dahil edilmesi', 'Modeler → Coordinator → Information Manager'] },
+      { 
+        title: 'ISO 19650-5 CDE RBAC Yetki Matrisi', 
+        body: 'Mimar, Statikçi, MEP Mühendisi ve İşveren temsilcisinin CDE klasörleri üzerindeki erişim ve onay hakları.', 
+        points: [
+          'WIP / Shared / Published Yetkileri: Disiplin içi yazma (W) vs dış disiplin okuma (R) erişimleri',
+          'Hassas Veri Şifreleme: Kritik tesis ve havalandırma verilerinin gizlilik protokolleri',
+          'Audit Trail: CDE üzerindeki onay ve revizyon hareketlerinin silinemez dijital kaydı'
+        ] 
+      },
+      { 
+        title: 'e-Ruhsat, ARC & GeoBIM Otomatik Kural Denetimi', 
+        body: 'IFC modelinin imar parseli (GIS/GeoBIM) verileriyle eşleştirilerek ruhsat kurallarına uygunluğunun denetlenmesi.', 
+        points: [
+          'TAKS / KAKS Parsel Hesabı: Taban alanı ve katlar alanı katsayısının IFC modelden hesabı',
+          'Yangın Kaçış Koridoru: Yangın kapısı mesafeleri ve kaçış genişliği kural kontrolü',
+          'İnsan Onay Şartı: e-Ruhsat kural motoru çıktıları yetkili mimar/mühendis onayı gerektirir'
+        ] 
+      },
+      { 
+        title: 'VDC & Clash Matrisi (Hard, Soft & 4D Clash)', 
+        body: 'Disiplinler arası çakışmaların BCF issue formatında yönetilmesi ve saha rework maliyetlerinin sıfırlanması.', 
+        points: [
+          'Hard Clash (Fiziksel): Betonarme kiriş ile havalandırma kanalının çakışması',
+          'Soft Clash (Tolerans): Vana ve ekipman etrafında bakım ve çalışma boşluğu ihlali',
+          '4D Lojistik Clash: Şantiye kule vinci ile geçici iskele imalatlarının zamansal çakışması'
+        ] 
+      },
+      { 
+        title: 'Üretilebilirlik & Donatı LOD 400 (BVBS Kodları)', 
+        body: 'Statik betonarme donatılarının sahada bükülüp bağlanabilirliğini ve demir büküm otomasyonunu yönetir.', 
+        points: [
+          'BVBS Demir Kesim Kodları: CNC demir büküm makinelerine doğrudan veri aktarımı',
+          '12 Metre Çelik Sınırı: Nakliye ve ticari boy sınırları nedeniyle donatı ek yerlerinin planlanması',
+          'BIM Kariyer Matrisi: Modeler → Coordinator → Information Manager gelişim adımları'
+        ] 
+      },
     ],
     outputs: ['RBAC görev matrisi', 'Clash sınıflandırma ve BCF issue şablonu', 'ARC/e-Ruhsat veri sınırı notu', 'Rol bazlı kariyer gelişim haritası'],
     standards: ['ISO 19650-5 güvenlik yaklaşımı', 'BCF issue yönetimi', 'SAF / analitik model veri aktarımı', 'VDC ve üretilebilirlik prensipleri'],
@@ -110,19 +313,103 @@ const details: Record<string, Detail> = {
   },
 };
 
+import { subGuidesData } from '@/academy/subGuidesData';
+import { SubGuideDrawer } from '@/components/academy/SubGuideDrawer';
+
+const moduleKeyMap: Record<string, string[]> = {
+  'iso-19650': ['iso-19650-eir-template', 'iso-19650-pim-aim-cobie', 'iso-19650-rbac-security', 'iso-19650-loin-matrix'],
+  '4d-5d': ['4d-5d-guid-primavera', '4d-5d-evm-calculator', '4d-5d-lump-sum-risk', '4d-5d-minha-rules'],
+  'sustainability-6d': ['sustainability-6d-iso-52000', 'sustainability-6d-lca-phases', 'sustainability-6d-embodied-carbon', 'sustainability-6d-green-building-leed'],
+  'scan-to-bim': ['scan-to-bim-loa-standards', 'scan-to-bim-heatmap-analysis', 'scan-to-bim-generative-design', 'scan-to-bim-human-in-the-loop'],
+  'security-field': ['security-field-cde-rbac', 'security-field-e-ruhsat-arc', 'security-field-vdc-clash', 'security-field-bvbs-rebar'],
+  'bim-core': ['bim-core-aec-ontology', 'bim-core-loin-guide', 'bim-core-ifc-bcf-flow', 'bim-core-bep-raci-matrix', 'iso-19650-pim-aim-cobie'],
+};
+
 export function PublicAcademyDetail() {
   const { slug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialGuideKey = searchParams.get('guide');
+  const [activeGuideKey, setActiveGuideKey] = useState<string | null>(initialGuideKey);
+
   const detail = slug ? details[slug] : undefined;
+
+  const handleOpenGuide = (guideKey: string) => {
+    setActiveGuideKey(guideKey);
+    setSearchParams({ guide: guideKey });
+  };
+
+  const handleCloseGuide = () => {
+    setActiveGuideKey(null);
+    setSearchParams({});
+  };
 
   if (!detail) {
     return <div className="min-h-screen bg-[#09090b] px-6 py-24 text-zinc-100"><div className="mx-auto max-w-3xl"><p className="text-orange-400">Academy</p><h1 className="mt-4 text-4xl font-semibold">İçerik bulunamadı.</h1><Link to="/academy" className="mt-8 inline-flex text-orange-300">Academy’ye dön <ArrowRight size={17} className="ml-2" /></Link></div></div>;
   }
 
+  const activeGuideObj = activeGuideKey ? subGuidesData[activeGuideKey] || null : null;
+
   return <div className="min-h-screen bg-[#09090b] font-sans text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
     <header className="border-b border-zinc-800/80 px-6 md:px-8"><nav className="mx-auto flex h-20 max-w-7xl items-center justify-between"><Link to="/academy" className="flex items-center gap-3 font-semibold text-white"><span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold">BP</span>BIMPlan Academy</Link><Link to="/pilot" className="inline-flex h-10 items-center rounded-md bg-orange-600 px-4 text-sm font-medium text-white hover:bg-orange-700">Pilot başvurusu</Link></nav></header>
     <main>
       <section className="border-b border-zinc-800 px-6 pb-20 pt-16 md:px-8 md:pb-24 md:pt-24"><div className="mx-auto max-w-7xl"><Link to="/academy" className="inline-flex items-center text-sm text-zinc-500 hover:text-white"><ArrowLeft size={16} className="mr-2" />Tüm Academy içerikleri</Link><div className="mt-12 grid gap-12 md:grid-cols-[1fr_0.7fr] md:items-end"><div><p className="mb-5 text-sm font-medium text-orange-400">{detail.label}</p><h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-[-0.03em] text-white md:text-6xl md:text-balance">{detail.title}</h1><p className="mt-7 max-w-3xl text-lg leading-relaxed text-zinc-400">{detail.intro}</p></div><div className="border border-orange-500/25 bg-orange-500/[0.06] p-6"><div className="flex gap-3 text-orange-300"><FlaskConical size={19} /><span className="text-sm font-medium">Kaynak yaklaşımı</span></div><p className="mt-4 text-sm leading-relaxed text-zinc-300">{detail.why}</p></div></div></div></section>
-      <section className="border-b border-zinc-800 bg-[#0c0c0e] px-6 py-20 md:px-8 md:py-24"><div className="mx-auto max-w-7xl"><div className="flex items-end justify-between gap-6"><div><p className="mb-4 text-sm font-medium text-orange-400">AYRINTILI MÜFREDAT</p><h2 className="text-3xl font-semibold text-white md:text-4xl">Modüller ve uygulama konuları</h2></div><BookOpen className="hidden text-zinc-600 sm:block" size={28} /></div><div className="mt-12 space-y-4">{detail.modules.map((module, index) => <article key={module.title} className="grid gap-6 border border-zinc-800 bg-[#09090b] p-6 md:grid-cols-[70px_0.8fr_1fr] md:p-8"><span className="font-mono text-sm text-orange-400">{String(index + 1).padStart(2, '0')}</span><div><h3 className="text-xl font-semibold text-white">{module.title}</h3><p className="mt-3 text-sm leading-relaxed text-zinc-400">{module.body}</p></div><ul className="space-y-3 border-t border-zinc-800 pt-4 text-sm text-zinc-400 md:border-l md:border-t-0 md:pl-6 md:pt-0">{module.points.map(point => <li key={point} className="flex gap-3"><CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />{point}</li>)}</ul></article>)}</div></div></section>
+      <section className="border-b border-zinc-800 bg-[#0c0c0e] px-6 py-20 md:px-8 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <p className="mb-4 text-sm font-medium text-orange-400">AYRINTILI MÜFREDAT &amp; İNTERAKTİF MÜHENDİSLİK REHBERLERİ</p>
+              <h2 className="text-3xl font-semibold text-white md:text-4xl">Modüller ve uygulama konuları</h2>
+              <p className="mt-2 text-sm text-zinc-400">Tıklanabilir alt maddeler ile formüller, standart tabloları ve saha rehberlerine ulaşabilirsiniz.</p>
+            </div>
+            <BookOpen className="hidden text-zinc-600 sm:block" size={28} />
+          </div>
+          <div className="mt-12 space-y-4">
+            {detail.modules.map((module, index) => {
+              const guideKeys = slug && moduleKeyMap[slug] ? moduleKeyMap[slug] : [];
+              const guideKey = guideKeys[index] || null;
+
+              return (
+                <article key={module.title} className="grid gap-6 border border-zinc-800 bg-[#09090b] p-6 md:grid-cols-[70px_0.8fr_1.1fr] md:p-8 hover:border-zinc-700 transition-colors">
+                  <span className="font-mono text-sm text-orange-400">{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">{module.title}</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-400">{module.body}</p>
+                    {guideKey && (
+                      <div className="mt-5">
+                        <button
+                          onClick={() => handleOpenGuide(guideKey)}
+                          className="inline-flex items-center gap-2 rounded-md bg-orange-500/10 border border-orange-500/30 px-3.5 py-2 text-xs font-semibold text-orange-300 hover:bg-orange-500/20 hover:text-white transition-all shadow-sm"
+                        >
+                          <BookOpen size={14} />
+                          <span>Formüller &amp; Detaylı Mühendislik Rehberini İncele</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <ul className="space-y-3 border-t border-zinc-800 pt-4 text-sm text-zinc-400 md:border-l md:border-t-0 md:pl-6 md:pt-0">
+                    {module.points.map((point) => (
+                      <li key={point}>
+                        <button
+                          onClick={() => guideKey && handleOpenGuide(guideKey)}
+                          className="flex items-start gap-3 text-left w-full group rounded-lg p-1.5 hover:bg-zinc-800/40 transition-colors"
+                        >
+                          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400 group-hover:text-orange-400 transition-colors" />
+                          <span className="group-hover:text-zinc-200 transition-colors">{point}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Sub-Guide Drawer */}
+      <SubGuideDrawer guide={activeGuideObj} onClose={handleCloseGuide} />
+
       {slug === 'sustainability-6d' && <SixDNativeLab />}
       {slug === 'iso-19650' && <IsoNativeLab />}
       {slug === '4d-5d' && <CostNativeLab />}
