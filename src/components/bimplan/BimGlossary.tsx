@@ -67,6 +67,46 @@ export default function BimGlossary() {
       importance: 'Çok Yüksek'
     },
     {
+      term: 'IFC 4.3',
+      abbreviation: 'IFC Infrastructure & Civil Schema',
+      turkishName: 'Altyapı ve Sivil Yapılar openBIM Şeması',
+      category: 'Teknoloji',
+      definition: 'buildingSMART tarafından yayınlanan ve altyapı projelerini (Yol, Demiryolu, Köprü, Tünel ve Hizmet Hatları) kapsayan en güncel ISO 16739-1:2024 openBIM şemasıdır.',
+      englishTranslation: 'IFC 4.3 Infrastructure Standard',
+      isoRole: 'Karayolu, demiryolu ve viyadük gibi sivil altyapı modellerinde IfcAlignment ve IfcBridge sınıflarıyla veri değişimi sağlar.',
+      importance: 'Çok Yüksek'
+    },
+    {
+      term: 'Eurocode 2',
+      abbreviation: 'EN 1992-1-1 Structural Concrete Design',
+      turkishName: 'Avrupa Betonarme Yapı Tasarım Standardı',
+      category: 'Genel',
+      definition: 'Betonarme yapıların tasarımı, donatı kenetlenme boyu (l_bd), bindirme boyu (l_0) ve paspayı şartlarını belirleyen Avrupa standardıdır.',
+      englishTranslation: 'Eurocode 2: Design of concrete structures',
+      isoRole: 'BIM donatı modellerinde (LOD 400) kenetlenme katsayıları ve etriye bükümlerinin mühendislik kontrolünü sağlar.',
+      importance: 'Çok Yüksek'
+    },
+    {
+      term: 'ÇŞB Pozu',
+      abbreviation: 'ÇŞİDB Birim Fiyat Poz Kütüphanesi',
+      turkishName: 'Resmi Birim Fiyat Poz Numaraları',
+      category: 'Mali & Yönetim',
+      definition: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı tarafından her yıl yayınlanan, inşaat imalatlarının (beton, donatı, kalıp) resmi poz numaraları ve birim fiyat tarifleridir.',
+      englishTranslation: 'Official Ministry Unit Price Cost Codes',
+      isoRole: '5D BIM metrajlarında IFC model nesnelerine Pset_ElementCost.CostCode olarak atanarak otomatik maliyet hesabı sağlar.',
+      importance: 'Çok Yüksek'
+    },
+    {
+      term: 'BVBS',
+      abbreviation: 'Bundesvereinigung Bausoftware Standard',
+      turkishName: 'Otomatik Donatı Büküm Veri Formatı',
+      category: 'Teknoloji',
+      definition: 'LOD 400 donatı modellerinden elde edilen donatı çapı, büküm açısı, paspayı ve kesim boyu verilerinin CNC demir büküm makinelerine aktarıldığı uluslararası formattır.',
+      englishTranslation: 'Rebar CNC Bending Code Standard',
+      isoRole: 'Şantiyelerde donatı kesim firesini %8\'den %1.5 seviyesine indiren donatı imalat otomasyon standardıdır.',
+      importance: 'Yüksek'
+    },
+    {
       term: 'COBie',
       abbreviation: 'Construction Operations Building Information Exchange',
       turkishName: 'Yapım Operasyonları Bina Bilgi Değişimi',
