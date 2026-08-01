@@ -1,0 +1,40 @@
+{
+  "fixtureName": "e-proje_4x3.ifc",
+  "relativePath": "ifc-document-sample/e-proje_4x3.ifc",
+  "sha256": "61d21ccdb2531f755b32758d6ebc476ea3ab7e87651a22d0c1bec93b9944e25b",
+  "ifcSchema": "IFC4X3_ADD2",
+  "viewDefinition": "Ifc4X3NotAssigned",
+  "units": {
+    "length": "metre",
+    "area": "m2",
+    "volume": "m3",
+    "mass": "kilogram"
+  },
+  "expectedLegacyParser": {
+    "totalElements": 1180,
+    "beamCount": 293,
+    "columnCount": 177,
+    "slabCount": 173,
+    "wallCount": 537,
+    "rebarCount": 0,
+    "parseStatus": "succeeded",
+    "extractionMode": "demo_estimate",
+    "quoteTransferStatus": "needs_review"
+  },
+  "expectedIfcEntityCounts": {
+    "IfcBeam": 293,
+    "IfcColumn": 177,
+    "IfcSlab": 173,
+    "IfcWall": 537,
+    "IfcReinforcingBar": 0,
+    "IfcElementQuantity": 0,
+    "IfcQuantityVolume": 0,
+    "IfcQuantityArea": 0,
+    "IfcQuantityLength": 0
+  },
+  "knownQuantityEvidence": {
+    "allplanHacimPropertyCount": 165,
+    "recognizedSlabMatches": 160,
+    "recognizedSlabVolumeSumM3": 322.3747174984154
+  }
+}

@@ -34,10 +34,12 @@ export interface ParsedIfcElement {
 }
 
 export interface IfcParseSummary {
+  parseStatus: 'succeeded' | 'failed';
   extractionMode: 'demo_estimate';
   quantitySource: 'estimate';
   quoteTransferStatus: 'needs_review';
   warnings: string[];
+  unsupportedReasons: string[];
   totalElements: number;
   totalVolumeM3: number;
   totalFormworkM2: number;
@@ -191,9 +193,12 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     });
   }
 
-  // If no elements parsed from raw text (or if synthetic fallback needed for demo text), produce realistic structured dataset
+  // Real file uploads fail closed; demo data is only loaded through handleLoadDemo.
   if (elements.length === 0) {
-    return generateSyntheticIfcDataset();
+    return createFailedIfcParseResult([
+      'No supported IfcBeam, IfcColumn, IfcSlab, IfcWall, or IfcReinforcingBar entities were found in the uploaded file.',
+      'Synthetic demo quantities are disabled for real file uploads.',
+    ]);
   }
 
   return calculateSummary(elements);
@@ -347,6 +352,7 @@ function calculateSummary(elements: ParsedIfcElement[]): { elements: ParsedIfcEl
   });
 
   const summary: IfcParseSummary = {
+    parseStatus: 'succeeded',
     extractionMode: 'demo_estimate',
     quantitySource: 'estimate',
     quoteTransferStatus: 'needs_review',
@@ -354,6 +360,7 @@ function calculateSummary(elements: ParsedIfcElement[]): { elements: ParsedIfcEl
       'Legacy browser parser uses estimated quantities; technical review is required before quotation approval.',
       'Rebar and formwork values are derived estimates unless explicit IFC rebar/QTO/property evidence is implemented.',
     ],
+    unsupportedReasons: [],
     totalElements: elements.length,
     totalVolumeM3: parseFloat(totalVolumeM3.toFixed(2)),
     totalFormworkM2: parseFloat(totalFormworkM2.toFixed(2)),
@@ -372,6 +379,37 @@ function calculateSummary(elements: ParsedIfcElement[]): { elements: ParsedIfcEl
   };
 
   return { elements, summary };
+}
+
+function createFailedIfcParseResult(unsupportedReasons: string[]): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
+  return {
+    elements: [],
+    summary: {
+      parseStatus: 'failed',
+      extractionMode: 'demo_estimate',
+      quantitySource: 'estimate',
+      quoteTransferStatus: 'needs_review',
+      warnings: [
+        'The uploaded IFC file was not converted to quotation quantities.',
+      ],
+      unsupportedReasons,
+      totalElements: 0,
+      totalVolumeM3: 0,
+      totalFormworkM2: 0,
+      totalRebarKg: 0,
+      totalRebarTon: 0,
+      beamCount: 0,
+      beamVolumeM3: 0,
+      columnCount: 0,
+      columnVolumeM3: 0,
+      slabCount: 0,
+      slabVolumeM3: 0,
+      wallCount: 0,
+      wallVolumeM3: 0,
+      rebarCount: 0,
+      rebarByDiameter: {},
+    },
+  };
 }
 
 export interface BimIfcParserProps {
@@ -403,7 +441,11 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
         const result = parseIfcText(text);
         setParsedData(result);
         setIsParsing(false);
-        toast.success(`${file.name} başarıyla ayrıştırıldı! ${result.summary.totalElements} openBIM nesnesi bulundu.`);
+        if (result.summary.parseStatus === 'failed') {
+          toast.error(`${file.name} desteklenen IFC elemanı üretmedi; demo veri oluşturulmadı.`);
+        } else {
+          toast.warning(`${file.name} ön analiz edildi: ${result.summary.totalElements} nesne bulundu; sonuçlar review bekliyor.`);
+        }
       }, 600);
     };
 
@@ -479,10 +521,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   // Handle Transfer to TeklifPro Quote
   const handleTransfer = () => {
     if (!parsedData) return;
+    if (parsedData.summary.parseStatus !== 'succeeded') {
+      toast.error('Aktarım kapalı: desteklenen IFC elemanı bulunmadı.');
+      return;
+    }
     if (onTransferToQuote) {
       onTransferToQuote(parsedData.elements, parsedData.summary);
     }
-    toast.success('Metraj kalemleri TeklifPro ihale teklifine başarıyla aktarıldı!');
+    toast.warning('IFC ön analiz kalemleri review bekleyen tahmin olarak TeklifPro teklifine aktarıldı.');
   };
 
   return (
@@ -616,6 +662,20 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
       {/* PARSED RESULTS & DASHBOARD */}
       {parsedData && !isParsing && (
         <div className="space-y-8">
+          {parsedData.summary.parseStatus === 'failed' && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-5 text-sm text-red-100">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-300" />
+                <div>
+                  <div className="font-bold">IFC dosyası fail-closed durduruldu</div>
+                  <div className="mt-1 text-xs leading-relaxed text-red-100/80">
+                    Desteklenen taşıyıcı eleman bulunamadı veya mevcut parser bu export biçimini okuyamadı. Sistem gerçek dosya uploadında sentetik demo metraj üretmez.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TOP METRIC CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/10 p-5 backdrop-blur-sm">
@@ -779,6 +839,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 </Button>
                 <Button 
                   onClick={handleTransfer}
+                  disabled={parsedData.summary.parseStatus !== 'succeeded'}
                   className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-lg shadow-orange-950/40"
                 >
                   <Send className="w-4 h-4 mr-2" />
