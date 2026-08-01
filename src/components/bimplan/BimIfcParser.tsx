@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { extractAllplanVolumeQuantities } from '@/ifc/parser/quantity-extractor';
 
 export interface ParsedIfcElement {
   id: string;
@@ -29,6 +30,9 @@ export interface ParsedIfcElement {
   formworkM2: number;
   rebarKg: number;
   rebarDiameterMm?: number;
+  quantitySource: 'estimate' | 'property';
+  quantitySourcePath?: string;
+  quantityConfidence?: number;
   smartCheckStatus: 'pass' | 'warning' | 'review';
   smartCheckNote?: string;
 }
@@ -86,6 +90,9 @@ const DEMO_IFC_DATASETS = [
 export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   const lines = ifcText.split('\n');
   const elements: ParsedIfcElement[] = [];
+  const propertyQuantityByStepId = new Map(
+    extractAllplanVolumeQuantities(ifcText).quantities.map((quantity) => [quantity.stepId, quantity])
+  );
 
   // Match STEP entities e.g. #123= IFCBEAM('3vX082y...', #12, 'Kiris-K101', ...);
   const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
@@ -178,6 +185,15 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       smartCheckNote = `Kolon donatı oranı (${steelRatio.toFixed(1)} kg/m³) minimum yönetmelik şartının altında`;
     }
 
+    const propertyQuantity = propertyQuantityByStepId.get(stepId);
+    if (propertyQuantity) {
+      volumeM3 = propertyQuantity.normalizedValue;
+      formworkM2 = 0;
+      rebarKg = 0;
+      smartCheckStatus = 'review';
+      smartCheckNote = `${propertyQuantity.quantityName} ${propertyQuantity.propertySetName} property kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`;
+    }
+
     elements.push({
       id: stepId,
       guid,
@@ -188,6 +204,9 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       formworkM2,
       rebarKg,
       rebarDiameterMm,
+      quantitySource: propertyQuantity ? 'property' : 'estimate',
+      quantitySourcePath: propertyQuantity?.sourcePath,
+      quantityConfidence: propertyQuantity?.confidence,
       smartCheckStatus,
       smartCheckNote
     });
@@ -221,6 +240,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       volumeM3: vol,
       formworkM2: parseFloat((vol * 4.4).toFixed(2)),
       rebarKg: rebar,
+      quantitySource: 'estimate',
       smartCheckStatus: i % 7 === 0 ? 'warning' : 'pass',
       smartCheckNote: i % 7 === 0 ? 'Donatı bindirme boyu Eurocode 2 kontrolü gerektirir' : 'Eurocode 2 & TS 708 %100 Uyumlu'
     });
@@ -239,6 +259,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       volumeM3: vol,
       formworkM2: parseFloat((vol * 5.2).toFixed(2)),
       rebarKg: rebar,
+      quantitySource: 'estimate',
       smartCheckStatus: 'pass',
       smartCheckNote: 'TS 708 Nominal Kütle Doğrulaması Başarılı'
     });
@@ -257,6 +278,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       volumeM3: vol,
       formworkM2: parseFloat((vol / 0.18).toFixed(2)),
       rebarKg: rebar,
+      quantitySource: 'estimate',
       smartCheckStatus: 'pass',
       smartCheckNote: 'Net kalıp ve boşluk minha hesabı yapıldı'
     });
@@ -275,6 +297,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       volumeM3: vol,
       formworkM2: parseFloat((vol * 6.0).toFixed(2)),
       rebarKg: rebar,
+      quantitySource: 'estimate',
       smartCheckStatus: 'pass',
       smartCheckNote: 'TS 500 Perde Donatı Oranı Uyumlu'
     });
@@ -296,6 +319,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       formworkM2: 0,
       rebarKg,
       rebarDiameterMm: d,
+      quantitySource: 'estimate',
       smartCheckStatus: 'pass',
       smartCheckNote: `TS 708 ∅${d} nominal kütle formülü doğrulandı`
     });
@@ -494,7 +518,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   // Export CSV Metraj Raporu
   const handleExportCsv = () => {
     if (!parsedData) return;
-    const headers = ['STEP ID', 'GUID', 'Nesne Tipi', 'Eleman Adı', 'Kat', 'Hacim (m3)', 'Kalıp Alanı (m2)', 'Donatı (kg)', 'SmartCheck Durumu'];
+    const headers = ['STEP ID', 'GUID', 'Nesne Tipi', 'Eleman Adı', 'Kat', 'Hacim (m3)', 'Kalıp Alanı (m2)', 'Donatı (kg)', 'Miktar Kaynağı', 'SmartCheck Durumu'];
     const rows = parsedData.elements.map(e => [
       e.id,
       e.guid,
@@ -504,6 +528,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
       e.volumeM3,
       e.formworkM2,
       e.rebarKg,
+      e.quantitySourcePath ? `"${e.quantitySourcePath}"` : e.quantitySource,
       e.smartCheckStatus
     ]);
 
@@ -906,13 +931,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     <th className="p-3">Hacim ($m^3$)</th>
                     <th className="p-3">Kalıp ($m^2$)</th>
                     <th className="p-3">Donatı (kg)</th>
+                    <th className="p-3">Kaynak</th>
                     <th className="p-3">SmartCheck Durumu</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/60 font-mono">
                   {filteredElements.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-zinc-500">
+                      <td colSpan={10} className="p-8 text-center text-zinc-500">
                         Arama kriterlerine uygun IFC nesnesi bulunamadı.
                       </td>
                     </tr>
@@ -937,6 +963,9 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                         <td className="p-3 font-bold text-emerald-400">{el.volumeM3} $m^3$</td>
                         <td className="p-3">{el.formworkM2} $m^2$</td>
                         <td className="p-3 font-bold text-orange-400">{el.rebarKg} kg</td>
+                        <td className="p-3 text-[11px] text-zinc-400">
+                          {el.quantitySource === 'property' ? (el.quantitySourcePath?.split(':')[1] ?? 'property') : 'estimate'}
+                        </td>
                         <td className="p-3">
                           <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${
                             el.smartCheckStatus === 'pass' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :

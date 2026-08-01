@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1785560555.778929,
-    "ast_hash": "f48b2b1f39bb8c181d872455677dddb4",
+    "mtime": 1785560897.978436,
+    "ast_hash": "1bdc59deb1f501fd6e0467f3609e1156",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -4507,6 +4507,16 @@
   "IFC_GAP_RAPORU.md": {
     "mtime": 1785559781.5288136,
     "ast_hash": "9d0453c0685d60bfc55b1db5a1c80eda",
+    "semantic_hash": ""
+  },
+  "src/ifc/fixtures/e-proje_4x3.manifest.json": {
+    "mtime": 1785560898.1204562,
+    "ast_hash": "5784884b2a9f952626c33f62172db57e",
+    "semantic_hash": ""
+  },
+  "src/ifc/parser-gates.test.ts": {
+    "mtime": 1785560898.2049336,
+    "ast_hash": "b945face821945390fb02c45a1551e93",
     "semantic_hash": ""
   }
 }

@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1785560897.978436,
-    "ast_hash": "1bdc59deb1f501fd6e0467f3609e1156",
+    "mtime": 1785561426.9722633,
+    "ast_hash": "955a115a7c2f459a3af4456c158bd592",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -4517,6 +4517,16 @@
   "src/ifc/parser-gates.test.ts": {
     "mtime": 1785560898.2049336,
     "ast_hash": "b945face821945390fb02c45a1551e93",
+    "semantic_hash": ""
+  },
+  "src/ifc/parser/quantity-extractor.test.ts": {
+    "mtime": 1785561438.586077,
+    "ast_hash": "9fc4bd5630edb84cb8f546f39bbcaaff",
+    "semantic_hash": ""
+  },
+  "src/ifc/parser/quantity-extractor.ts": {
+    "mtime": 1785561418.1235285,
+    "ast_hash": "3ef645df4c5b3be7c140233e75bf4574",
     "semantic_hash": ""
   }
 }
