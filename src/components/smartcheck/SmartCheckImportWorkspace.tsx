@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, Eye, FileSpreadsheet, Layers3, Loader2, RefreshCw, ShieldAlert, Table2, Upload } from "lucide-react";
+import { CheckCircle2, ChevronDown, Eye, FileCode2, FileSpreadsheet, Layers3, Loader2, RefreshCw, ShieldAlert, Table2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { fetchWithAuth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,16 @@ async function checksum(file: File) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function isIfcSmartCheckFile(file: File | null): boolean {
+  return Boolean(file?.name.toLocaleLowerCase("tr-TR").endsWith(".ifc"));
+}
+
+function smartCheckMimeType(file: File): string {
+  if (isIfcSmartCheckFile(file)) return file.type || "model/ifc";
+  if (file.name.toLocaleLowerCase("tr-TR").endsWith(".csv")) return file.type || "text/csv";
+  return file.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+}
+
 function statusLabel(status: string) {
   return ({ pending_review: "İnceleme bekliyor", approved: "Onaylandı", accepted_exception: "İstisna onaylı", rejected: "Reddedildi" } as Record<string, string>)[status] ?? status;
 }
@@ -99,6 +109,7 @@ export function SmartCheckImportWorkspace() {
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
   const polling = useRef<number | null>(null);
   const pollInFlight = useRef(false);
+  const isIfcFile = isIfcSmartCheckFile(file);
 
   const loadQueue = async () => {
     const response = await fetchWithAuth("/api/smartcheck/queue");
@@ -170,15 +181,25 @@ export function SmartCheckImportWorkspace() {
     }, 2000);
   };
 
+  const queueProcessing = async (id: string) => {
+    const processResponse = await fetchWithAuth(`/api/smartcheck/documents/${id}/process`, { method: "POST" });
+    if (!processResponse.ok) throw new Error((await processResponse.json()).error ?? "İşleme başlatılamadı.");
+    setStage("Kuyruğa alındı");
+    await loadQueue();
+    poll(id);
+  };
+
   const upload = async () => {
     if (!file) return;
+    const ifcUpload = isIfcSmartCheckFile(file);
     setBusy(true);
     setRows([]);
     setSnapshotByRow({});
     setPreview(null);
+    setTransferredQuotationId(null);
     try {
       setStage("Güvenli yükleme hazırlanıyor");
-      const createResponse = await fetchWithAuth("/api/smartcheck/documents/uploads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, mimeType: file.type || (file.name.endsWith(".csv") ? "text/csv" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), fileSizeBytes: file.size }) });
+      const createResponse = await fetchWithAuth("/api/smartcheck/documents/uploads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, mimeType: smartCheckMimeType(file), fileSizeBytes: file.size }) });
       const target = await createResponse.json();
       if (!createResponse.ok) throw new Error(target.error ?? "Yükleme kaydı oluşturulamadı.");
       const uploadResponse = target.uploadUrl.startsWith("/api/")
@@ -190,6 +211,11 @@ export function SmartCheckImportWorkspace() {
       setStage("Dosya bütünlüğü doğrulanıyor");
       const completeResponse = await fetchWithAuth(`/api/smartcheck/documents/${target.documentId}/complete`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: await checksum(file) }) });
       if (!completeResponse.ok) throw new Error((await completeResponse.json()).error ?? "Dosya doğrulanamadı.");
+      if (ifcUpload) {
+        setStage("IFC kanıt satırları kuyruğa alınıyor");
+        await queueProcessing(target.documentId);
+        return;
+      }
       setStage("Kaynak önizleme hazırlanıyor");
       await loadPreview(target.documentId);
       await loadQueue();
@@ -217,11 +243,7 @@ export function SmartCheckImportWorkspace() {
       const mappingPayload = { ...mapping, profileId: selectedProfileId, sheet: selectedSheet, headerRow: Number(headerRow) };
       const mappingResponse = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/mapping`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mappingPayload) });
       if (!mappingResponse.ok) throw new Error((await mappingResponse.json()).error ?? "Kolon eşlemesi kaydedilemedi.");
-      const processResponse = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/process`, { method: "POST" });
-      if (!processResponse.ok) throw new Error((await processResponse.json()).error ?? "İşleme başlatılamadı.");
-      setStage("Kuyruğa alındı");
-      await loadQueue();
-      poll(documentId);
+      await queueProcessing(documentId);
     } catch (error) {
       setBusy(false);
       toast.error(error instanceof Error ? error.message : "SmartCheck işlemi başlatılamadı.");
@@ -273,19 +295,26 @@ export function SmartCheckImportWorkspace() {
   return (
     <section className="mb-8 rounded-3xl border border-orange-500/20 bg-zinc-950 p-6 sm:p-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">Evidence-first pilot</p><h2 className="mt-2 text-xl font-black text-white">Excel/CSV SmartCheck çalışma alanı</h2><p className="mt-1 text-xs text-zinc-500">Yükle → kaynak önizlemeyi doğrula → kolonları eşle → bulguları incele → aktar.</p></div>
+        <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">Evidence-first pilot</p><h2 className="mt-2 text-xl font-black text-white">Excel/CSV/IFC SmartCheck çalışma alanı</h2><p className="mt-1 text-xs text-zinc-500">Excel/CSV: önizle → eşle → işle. IFC: yükle → property/QTO kanıt satırlarını işle → bulguları incele → aktar.</p></div>
         <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{stage}</Badge>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
         <div className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
           <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-700 p-6 text-center hover:border-orange-500/50">
-            <FileSpreadsheet className="text-orange-500" /><span className="text-xs font-bold text-zinc-300">{file?.name ?? "XLSX veya CSV seçin (en fazla 25 MB)"}</span>
-            <input className="sr-only" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setPreview(null); setRows([]); }} />
+            {isIfcFile ? <FileCode2 className="text-orange-500" /> : <FileSpreadsheet className="text-orange-500" />}<span className="text-xs font-bold text-zinc-300">{file?.name ?? "XLSX, CSV veya IFC seçin (IFC en fazla 100 MB)"}</span>
+            <input className="sr-only" type="file" accept=".xlsx,.csv,.ifc,text/csv,model/ifc,application/ifc,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setDocumentId(null); setPilotCaseId(null); setPreview(null); setRows([]); setStage("Dosya bekleniyor"); }} />
           </label>
-          <Button disabled={!file || busy} onClick={upload} className="w-full gap-2 bg-orange-600 text-white hover:bg-orange-700">{busy && !preview ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />} Yükle ve önizle</Button>
+          <Button disabled={!file || busy} onClick={upload} className="w-full gap-2 bg-orange-600 text-white hover:bg-orange-700">{busy && !preview ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />} {isIfcFile ? "IFC yükle ve işle" : "Yükle ve önizle"}</Button>
 
-          {preview && <div className="space-y-3 border-t border-zinc-800 pt-4">
+          {isIfcFile && (
+            <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 text-[11px] leading-relaxed text-sky-100/80">
+              <p className="font-black uppercase tracking-widest text-sky-300">IFC DB-backed akış</p>
+              <p className="mt-1">Önizleme ve kolon eşleme atlanır. Backend sadece IFC property/QTO kaynaklı metraj kanıtlarını review satırı olarak kabul eder; geometry estimate, rebar ve kalıp türevleri bloklanır.</p>
+            </div>
+          )}
+
+          {!isIfcFile && preview && <div className="space-y-3 border-t border-zinc-800 pt-4">
             <div className="flex items-center gap-2 text-xs font-bold text-zinc-200"><Table2 size={14} className="text-orange-400" /> Kaynak yapısı</div>
             <div className="grid grid-cols-2 gap-2">
               <label className="text-[10px] uppercase tracking-widest text-zinc-500">Sheet<select aria-label="Sheet" value={selectedSheet} onChange={(event) => { setSelectedSheet(event.target.value); setMapping((current) => ({ ...current, sheet: event.target.value })); }} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200">{preview.sheets.map((sheet) => <option key={sheet.name} value={sheet.name}>{sheet.name} · {sheet.rowCount} satır</option>)}</select></label>
@@ -301,7 +330,7 @@ export function SmartCheckImportWorkspace() {
 
         <div className="space-y-4 overflow-auto rounded-2xl border border-zinc-800">
           {preview && !rows.length && activeSheet && <div className="border-b border-zinc-800 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">Kaynak önizleme · {activeSheet.name}</p><p className="mt-1 text-[10px] text-zinc-500">{activeSheet.rowCount} satır · {activeSheet.columnCount} kolon · Önerilen eşleme güvenli olmayan taslaktır.</p></div>{activeSheet.formulaCells.length > 0 && <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-300">{activeSheet.formulaCells.length} formül hücresi</Badge>}</div><div className="overflow-auto rounded-xl border border-zinc-900"><table className="w-full min-w-[640px] text-left text-[11px]"><tbody>{activeSheet.sampleRows.map((row, rowIndex) => <tr key={`${rowIndex}-${row.join("|")}`} className={rowIndex === Number(headerRow) - 1 ? "bg-orange-500/10 text-orange-200" : "border-t border-zinc-900 text-zinc-400"}>{row.map((value, columnIndex) => <td key={`${rowIndex}-${columnIndex}`} className="max-w-48 truncate p-2" title={value}>{value || "—"}</td>)}</tr>)}</tbody></table></div></div>}
-          {rows.length === 0 && !preview ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><ShieldAlert />Önce kaynak dosya önizlemesi, ardından normalize edilmiş satırlar ve kanıtlar burada görünecek.</div> : rows.length === 0 && previewBusy ? <div className="flex min-h-32 items-center justify-center gap-2 p-8 text-xs text-zinc-500"><Loader2 className="animate-spin" size={16} />Önizleme hazırlanıyor…</div> : rows.length === 0 && preview ? <div className="flex items-center gap-2 p-4 text-xs text-zinc-500"><Eye size={14} className="text-sky-400" />Önizlemeyi kontrol edin; işlem başladığında normalize edilmiş sonuçlar burada görünecek.</div> : <table className="w-full min-w-[900px] text-left text-xs"><thead className="bg-zinc-900 text-zinc-500"><tr><th className="p-3">Kaynak</th><th className="p-3">Poz / Açıklama</th><th className="p-3">Miktar</th><th className="p-3">Bulgular</th><th className="p-3">Karar</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-zinc-900 align-top"><td className="p-3 font-mono text-orange-400">{row.sheetName}!{row.sourceCellRange}<div className="mt-1 text-[10px] text-zinc-600">satır {row.sourceRowNumber}</div></td><td className="p-3 text-zinc-300"><b>{row.rawPositionCode || "Poz yok"}</b><div className="text-zinc-500">{row.rawDescription}</div><Badge className="mt-2 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-400">{Math.round(Number(row.mappingConfidence) * 100)}% eşleme</Badge></td><td className="p-3 text-zinc-300">{row.normalizedQuantity ?? row.rawQuantity} {row.normalizedUnit ?? row.rawUnit}</td><td className="p-3">{row.findingsJson.length ? row.findingsJson.map((finding) => <div key={finding.code} title={`${finding.ruleVersion}: ${finding.suggestion}`} className="mb-1 text-amber-400">{finding.message}</div>) : <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Bulgu yok</span>}</td><td className="p-3"><div className="mb-2 text-[10px] text-zinc-500">{statusLabel(row.reviewStatus)}</div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={row.findingsJson.length > 0 || row.reviewStatus === "approved"} onClick={() => review(row, "approved")}>Onayla</Button>{row.findingsJson.length > 0 && <Button size="sm" variant="outline" onClick={() => { const quantity = window.prompt("Düzeltilmiş miktar", row.rawQuantity ?? ""); if (quantity !== null) review(row, "approved", { quantity }); }}>Miktarı düzelt</Button>}<Button size="sm" variant="outline" onClick={() => review(row, "accepted_exception")}>İstisna</Button><Button size="sm" variant="outline" onClick={() => review(row, "rejected")}>Reddet</Button><Button size="sm" variant="ghost" onClick={() => setExpandedRowId((current) => current === row.id ? null : row.id)}><ChevronDown size={13} className={expandedRowId === row.id ? "rotate-180" : ""} />Kanıt</Button></div></td></tr>).flatMap((rowElement, index) => { const row = rows[index]; return expandedRowId === row.id ? [rowElement, <tr key={`${row.id}-evidence`} className="border-t border-sky-500/10 bg-sky-500/[0.03]"><td colSpan={5} className="p-4"><div className="grid gap-4 md:grid-cols-3"><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-400">Kaynak değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.rawPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.rawDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.rawUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.rawQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.rawPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">Normalize değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.normalizedPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.normalizedDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.normalizedUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.normalizedQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.normalizedPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-orange-400">Kural ve inceleme</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Durum</dt><dd>{statusLabel(row.reviewStatus)}</dd></div><div className="flex justify-between gap-3"><dt>İnceleme</dt><dd>{row.reviewedAt ? new Date(row.reviewedAt).toLocaleString("tr-TR") : "Bekliyor"}</dd></div><div className="flex justify-between gap-3"><dt>Not</dt><dd>{row.reviewerNotes || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Formül</dt><dd>{Object.keys(row.formulaJson ?? {}).length ? Object.entries(row.formulaJson).map(([cell, formula]) => <span key={cell} className="block font-mono text-amber-300">{cell}: {formula}</span>) : "Yok"}</dd></div></dl>{row.findingsJson.map((finding) => <p key={finding.code} className="mt-2 text-[10px] text-amber-300">{finding.code} · {finding.ruleVersion}<br />{finding.suggestion}</p>)}</div></div></td></tr>] : [rowElement]; })}</tbody></table>}
+          {rows.length === 0 && !preview && !documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><ShieldAlert />Önce kaynak dosya yükleyin; ardından normalize edilmiş satırlar ve kanıtlar burada görünecek.</div> : rows.length === 0 && !preview && documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><Loader2 className="animate-spin text-sky-400" size={18} />IFC kanıt satırları backend kuyruğunda işleniyor. Worker tamamlandığında property/QTO kaynaklı review satırları burada görünecek.</div> : rows.length === 0 && previewBusy ? <div className="flex min-h-32 items-center justify-center gap-2 p-8 text-xs text-zinc-500"><Loader2 className="animate-spin" size={16} />Önizleme hazırlanıyor…</div> : rows.length === 0 && preview ? <div className="flex items-center gap-2 p-4 text-xs text-zinc-500"><Eye size={14} className="text-sky-400" />Önizlemeyi kontrol edin; işlem başladığında normalize edilmiş sonuçlar burada görünecek.</div> : <table className="w-full min-w-[900px] text-left text-xs"><thead className="bg-zinc-900 text-zinc-500"><tr><th className="p-3">Kaynak</th><th className="p-3">Poz / Açıklama</th><th className="p-3">Miktar</th><th className="p-3">Bulgular</th><th className="p-3">Karar</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-zinc-900 align-top"><td className="p-3 font-mono text-orange-400">{row.sheetName}!{row.sourceCellRange}<div className="mt-1 text-[10px] text-zinc-600">satır {row.sourceRowNumber}</div></td><td className="p-3 text-zinc-300"><b>{row.rawPositionCode || "Poz yok"}</b><div className="text-zinc-500">{row.rawDescription}</div><Badge className="mt-2 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-400">{Math.round(Number(row.mappingConfidence) * 100)}% eşleme</Badge></td><td className="p-3 text-zinc-300">{row.normalizedQuantity ?? row.rawQuantity} {row.normalizedUnit ?? row.rawUnit}</td><td className="p-3">{row.findingsJson.length ? row.findingsJson.map((finding) => <div key={finding.code} title={`${finding.ruleVersion}: ${finding.suggestion}`} className="mb-1 text-amber-400">{finding.message}</div>) : <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Bulgu yok</span>}</td><td className="p-3"><div className="mb-2 text-[10px] text-zinc-500">{statusLabel(row.reviewStatus)}</div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={row.findingsJson.length > 0 || row.reviewStatus === "approved"} onClick={() => review(row, "approved")}>Onayla</Button>{row.findingsJson.length > 0 && <Button size="sm" variant="outline" onClick={() => { const quantity = window.prompt("Düzeltilmiş miktar", row.rawQuantity ?? ""); if (quantity !== null) review(row, "approved", { quantity }); }}>Miktarı düzelt</Button>}<Button size="sm" variant="outline" onClick={() => review(row, "accepted_exception")}>İstisna</Button><Button size="sm" variant="outline" onClick={() => review(row, "rejected")}>Reddet</Button><Button size="sm" variant="ghost" onClick={() => setExpandedRowId((current) => current === row.id ? null : row.id)}><ChevronDown size={13} className={expandedRowId === row.id ? "rotate-180" : ""} />Kanıt</Button></div></td></tr>).flatMap((rowElement, index) => { const row = rows[index]; return expandedRowId === row.id ? [rowElement, <tr key={`${row.id}-evidence`} className="border-t border-sky-500/10 bg-sky-500/[0.03]"><td colSpan={5} className="p-4"><div className="grid gap-4 md:grid-cols-3"><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-400">Kaynak değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.rawPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.rawDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.rawUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.rawQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.rawPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">Normalize değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.normalizedPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.normalizedDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.normalizedUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.normalizedQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.normalizedPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-orange-400">Kural ve inceleme</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Durum</dt><dd>{statusLabel(row.reviewStatus)}</dd></div><div className="flex justify-between gap-3"><dt>İnceleme</dt><dd>{row.reviewedAt ? new Date(row.reviewedAt).toLocaleString("tr-TR") : "Bekliyor"}</dd></div><div className="flex justify-between gap-3"><dt>Not</dt><dd>{row.reviewerNotes || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Formül</dt><dd>{Object.keys(row.formulaJson ?? {}).length ? Object.entries(row.formulaJson).map(([cell, formula]) => <span key={cell} className="block font-mono text-amber-300">{cell}: {formula}</span>) : "Yok"}</dd></div></dl>{row.findingsJson.map((finding) => <p key={finding.code} className="mt-2 text-[10px] text-amber-300">{finding.code} · {finding.ruleVersion}<br />{finding.suggestion}</p>)}</div></div></td></tr>] : [rowElement]; })}</tbody></table>}
         </div>
       </div>
 

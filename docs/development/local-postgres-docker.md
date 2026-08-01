@@ -109,3 +109,35 @@ Expected result after the IFC HTTP fixture fix:
 - tests: 8
 - pass: 8
 - skipped: 0
+
+## Local SmartCheck UI with IFC
+
+The `/app/smartcheck` UI can upload XLSX, CSV, and IFC files when the feature
+gate is enabled. IFC files skip spreadsheet preview/mapping and go directly to
+the Graphile worker. Start both the web process and worker against the local
+TeklifPro database:
+
+```bash
+SMARTCHECK_IMPORT_ENABLED=true PORT=3001 pnpm dev
+```
+
+In a second terminal:
+
+```bash
+pnpm smartcheck:worker
+```
+
+Then open:
+
+```text
+http://localhost:3001/app/smartcheck
+```
+
+For `ifc-document-sample/e-proje_4x3.ifc`, the current evidence-first behavior
+is:
+
+- upload succeeds as `model/ifc`;
+- spreadsheet preview and mapping are intentionally skipped;
+- worker creates review rows only for IFC property/QTO evidence;
+- geometry estimates, derived formwork, and rebar remain blocked until dedicated
+  evidence rules exist.

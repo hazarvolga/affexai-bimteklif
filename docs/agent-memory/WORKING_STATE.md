@@ -633,6 +633,44 @@ Not verified / still open:
   another local process already owns the HMR port; that is not part of this
   product transfer fix.
 
+### Phase - SmartCheck IFC Upload UI And Worker Review Rows
+
+Status: completed first pass.
+
+Changes:
+
+- `/app/smartcheck` now accepts `.ifc` files in the visible file picker.
+- IFC uploads use `model/ifc` when the browser does not provide a MIME type.
+- IFC files bypass spreadsheet preview and column mapping, then queue backend
+  processing directly after checksum completion.
+- The UI now explains that only IFC property/QTO evidence is admitted and that
+  geometry estimates, derived formwork, and rebar remain blocked.
+- Shared queueing logic is used by both spreadsheet processing and IFC
+  processing.
+- Local development docs now describe the feature gate plus
+  `pnpm smartcheck:worker` requirement for seeing IFC review rows in the UI.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- API + real Graphile worker smoke on local Docker PostgreSQL:
+  `e-proje_4x3.ifc` uploaded as `model/ifc`, processing run succeeded, and
+  `/api/smartcheck/documents/:id/rows` returned 160 `ifc_property`
+  `pending_review` rows.
+- Browser automation on `/app/smartcheck` selected
+  `ifc-document-sample/e-proje_4x3.ifc`, clicked `IFC yükle ve işle`, and
+  confirmed 160 review rows rendered with IFC source references and no
+  product page errors.
+
+Not verified / still open:
+
+- End-to-end transfer from DB-backed IFC SmartCheck rows into an actual draft
+  quotation was not completed in this slice because rows currently require price
+  evidence/correction or accepted-exception review before transfer.
+- The local Graphile worker saw stale jobs from older test runs with
+  `TENANT_DOCUMENT_RUN_MISMATCH`; new IFC jobs still completed successfully.
+  A later maintenance phase can add safe stale/invalid job cleanup tooling.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
