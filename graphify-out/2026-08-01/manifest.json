@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1785562448.3220305,
-    "ast_hash": "3516aed36a78878fd473f833e03c0745",
+    "mtime": 1785562984.9635944,
+    "ast_hash": "5fcccbcc7e590c7810d23b448e238d35",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -1805,8 +1805,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/smartcheck.ts": {
-    "mtime": 1785562698.6374195,
-    "ast_hash": "19502039dc83453997850813fc89e925",
+    "mtime": 1785563096.7253847,
+    "ast_hash": "d04ae21acb973e2d8d8e9fcfcd15372d",
     "semantic_hash": ""
   },
   "src/server/routes/source-intelligence.integration.test.ts": {
@@ -2085,8 +2085,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/import/processor.ts": {
-    "mtime": 1785562724.922783,
-    "ast_hash": "fbeff621a2ee94b7243eb361ce6e4092",
+    "mtime": 1785563082.5604987,
+    "ast_hash": "29850632a049cea5fe702ff67fbba30b",
     "semantic_hash": ""
   },
   "src/smartcheck/import/run-health.test.ts": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1785562757.7174356,
-    "ast_hash": "915b3b4e306d07e49dfa407b32504472",
+    "mtime": 1785563134.861269,
+    "ast_hash": "2dde798a9b49804ba53ad5cee47c0cba",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4515,13 +4515,13 @@
     "semantic_hash": ""
   },
   "src/ifc/parser-gates.test.ts": {
-    "mtime": 1785560898.2049336,
-    "ast_hash": "b945face821945390fb02c45a1551e93",
+    "mtime": 1785562996.706481,
+    "ast_hash": "f93084270e5512cfeeeda97604a3e336",
     "semantic_hash": ""
   },
   "src/ifc/parser/quantity-extractor.test.ts": {
-    "mtime": 1785561438.586077,
-    "ast_hash": "9fc4bd5630edb84cb8f546f39bbcaaff",
+    "mtime": 1785562996.5413465,
+    "ast_hash": "4398480d058f2bce3e680c12917d7c6d",
     "semantic_hash": ""
   },
   "src/ifc/parser/quantity-extractor.ts": {
@@ -4530,8 +4530,8 @@
     "semantic_hash": ""
   },
   "src/ifc/parser/spatial-extractor.test.ts": {
-    "mtime": 1785561641.6314719,
-    "ast_hash": "4db305485438c9d3e0fe7dd94cf2c1a6",
+    "mtime": 1785562996.4581163,
+    "ast_hash": "dd563d327188f547165ee3a4a9c67fac",
     "semantic_hash": ""
   },
   "src/ifc/parser/spatial-extractor.ts": {
@@ -4540,8 +4540,8 @@
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-evidence.test.ts": {
-    "mtime": 1785562470.712171,
-    "ast_hash": "f82814cea417ef4df050feb144568028",
+    "mtime": 1785562996.623861,
+    "ast_hash": "7c212f46d45fd746b19b7c5f7b48aacc",
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-evidence.ts": {
@@ -4552,6 +4552,21 @@
   "src/ifc/types.ts": {
     "mtime": 1785562448.2345338,
     "ast_hash": "db255751d9902360b68e08d37f1e8772",
+    "semantic_hash": ""
+  },
+  "src/ifc/parser/legacy-parser.ts": {
+    "mtime": 1785562960.3151522,
+    "ast_hash": "a8e5049a775f8f7cbb2ce330ff00f1b4",
+    "semantic_hash": ""
+  },
+  "src/ifc/smartcheck-processing.test.ts": {
+    "mtime": 1785563054.9749107,
+    "ast_hash": "a269811a541191bcd3c2cb22db5c8da9",
+    "semantic_hash": ""
+  },
+  "src/ifc/smartcheck-processing.ts": {
+    "mtime": 1785563054.8925595,
+    "ast_hash": "5ab609a7a8a64f7764a2986f8f27bc4b",
     "semantic_hash": ""
   }
 }

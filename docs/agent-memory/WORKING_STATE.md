@@ -360,6 +360,13 @@ Changes:
   property-backed quantity evidence exists, the run fails closed with
   `IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE` after storing the blocked-element
   artifact.
+- Added an IFC HTTP integration scenario to the existing SmartCheck route test:
+  it uploads a minimal `.ifc`, completes checksum validation, confirms preview
+  uses the processing artifact path, queues processing, runs the worker, then
+  verifies `ifc_evidence` artifact metadata and one tenant-isolated
+  `ifc_property` pending-review row. The HTTP integration test now first
+  verifies local PostgreSQL reachability; when `DATABASE_URL` exists but the DB
+  is down, it skips cleanly instead of failing with `ECONNREFUSED`.
 
 Verified:
 
@@ -385,6 +392,15 @@ Verified:
   src/ifc/parser/quantity-extractor.test.ts
   src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts
   src/ifc/smartcheck-processing.test.ts` -> 21/21 passing.
+- `pnpm exec tsx --test src/smartcheck/import/file-security.test.ts
+  src/smartcheck/import/integration-contract.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts
+  src/ifc/smartcheck-processing.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 21/21 passing and 2/2
+  HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
+  not reachable in this session.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
