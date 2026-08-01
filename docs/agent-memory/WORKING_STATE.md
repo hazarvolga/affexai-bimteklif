@@ -1,6 +1,6 @@
 # Working State
 
-Last updated: 2026-07-24
+Last updated: 2026-08-01
 
 ## Repository
 
@@ -464,15 +464,39 @@ Verified:
   src/server/routes/smartcheck.integration.test.ts` -> 29/29 passing and 2/2
   HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
   not reachable in this session.
+
+### Phase - Verification Blocker Cleanup
+
+Status: completed first pass.
+
+Changes:
+
+- Added the missing `firebase` dependency required by the Academy Firebase data
+  helper imports.
+- Fixed stale relative imports in Academy certificate/profile components.
+- Fixed stale BIMPlan `types` imports and added the missing shared BIMPlan view,
+  standard, document, timeline, and poz-code type contracts to `src/types.ts`.
+- Explicitly denied the newly suggested `@firebase/util` build script in
+  `pnpm-workspace.yaml`.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- `pnpm exec tsx --test src/ifc/evidence-policy.test.ts
+  src/smartcheck/import/file-security.test.ts
+  src/smartcheck/import/integration-contract.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/qto-extractor.test.ts src/ifc/parser/spatial-extractor.test.ts
+  src/ifc/smartcheck-evidence.test.ts src/ifc/smartcheck-processing.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 29/29 passing and 2/2
+  HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
+  not reachable in this session.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
 Not verified / still blocked:
 
-- `pnpm lint` still fails with pre-existing module resolution errors in Academy
-  Firebase imports, BIMPlan `../types` imports, and missing `firebase/*`
-  dependencies. The IFC files added in this slice are not among the reported
-  errors.
 - Full `pnpm test`, production build, browser UI verification, authenticated
   upload/process route E2E, real Graphile worker execution, and database-backed
   review/transfer flow were not completed in this slice.

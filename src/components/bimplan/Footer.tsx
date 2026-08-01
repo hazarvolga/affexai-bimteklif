@@ -1,4 +1,4 @@
-import { ViewType } from '../types';
+import { ViewType } from '../../types';
 
 interface FooterProps {
   setView: (view: ViewType) => void;

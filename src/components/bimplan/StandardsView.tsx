@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Filter, CheckSquare, Square, Award, ArrowRight, ShieldCheck, HelpCircle, Users, ClipboardCheck, Info } from 'lucide-react';
-import { Standard } from '../types';
+import { Standard } from '../../types';
 
 export default function StandardsView() {
   const [searchTerm, setSearchTerm] = useState('');

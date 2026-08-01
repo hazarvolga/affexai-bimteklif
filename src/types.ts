@@ -108,3 +108,54 @@ export interface RegulationAlert {
   summary: string;
   affectedModules: string[];
 }
+
+export type ViewType =
+  | 'home'
+  | 'standartlar'
+  | 'dokumanlar'
+  | 'mevzuat'
+  | 'sozluk'
+  | 'gap'
+  | 'dashboard';
+
+export interface Standard {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  category: string;
+  audience: string;
+  deliverables: string[];
+  checklist: string[];
+  bgClass: string;
+  iconName: string;
+}
+
+export interface TechnicalDocument {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  description: string;
+  points: string[];
+  expertNote: string;
+  templateFields: Array<{
+    field: string;
+    desc: string;
+    required: boolean;
+  }>;
+}
+
+export interface TimelineEvent {
+  year: string;
+  title: string;
+  description: string;
+  status: 'completed' | 'ongoing' | 'future';
+}
+
+export interface PozCode {
+  ifcClass: string;
+  pozNo: string;
+  description: string;
+  unit: string;
+}

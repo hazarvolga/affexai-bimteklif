@@ -6,7 +6,7 @@ import {
   Download, Share2, Clipboard, Loader2, Check, Activity, TrendingUp, Target
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
-import { TraineeUser, ExamAttemptData, NoteData, BookmarkData } from '../lib/firebase';
+import { TraineeUser, ExamAttemptData, NoteData, BookmarkData } from '../../lib/firebase';
 import { COURSE_TREE } from '../../constants/allplanConstants';
 import { generateCertificateImage } from '../../utils/CertificateGenerator';
 

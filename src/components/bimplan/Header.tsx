@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Layers, Menu, X, Award, FileText, ChevronRight, BookOpen, HelpCircle, AlertTriangle, BarChart2 } from 'lucide-react';
-import { ViewType } from '../types';
+import { ViewType } from '../../types';
 
 interface HeaderProps {
   currentView: ViewType;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileText, ClipboardList, Layers, HelpCircle, Copy, Check, Info, FileEdit, Settings, Save, Sparkles } from 'lucide-react';
-import { TechnicalDocument } from '../types';
+import { TechnicalDocument } from '../../types';
 
 export default function DocumentsView() {
   const [activeDocId, setActiveDocId] = useState<string>('eir');

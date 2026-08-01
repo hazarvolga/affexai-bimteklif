@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Calendar, Search, ShieldAlert, CheckCircle, Info, Database, Layers, ArrowRight, Award, ExternalLink } from 'lucide-react';
-import { TimelineEvent, PozCode } from '../types';
+import { TimelineEvent, PozCode } from '../../types';
 
 export default function LegislationView() {
   const [activeYear, setActiveYear] = useState<string>('2023');

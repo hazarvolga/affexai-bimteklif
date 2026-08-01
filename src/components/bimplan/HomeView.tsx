@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { TrendingUp, Award, Layers, Sliders, ArrowRight, Activity, DollarSign, Clock, ShieldCheck } from 'lucide-react';
-import { ViewType } from '../types';
+import { ViewType } from '../../types';
 
 interface HomeViewProps {
   setView: (view: ViewType) => void;

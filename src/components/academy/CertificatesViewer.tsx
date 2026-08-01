@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TechnicalPanel, TechnicalButton, TechnicalProgressBar } from './TechnicalUI';
 import { Award, ShieldCheck, Printer, Share2, Check, Download, AlertTriangle, FileCheck, RefreshCw, Loader2, QrCode } from 'lucide-react';
-import { ExamAttemptData, TraineeUser } from '../lib/firebase';
+import { ExamAttemptData, TraineeUser } from '../../lib/firebase';
 import { COURSE_TREE } from '../../constants/allplanConstants';
 import { generateCertificateImage } from '../../utils/CertificateGenerator';
 
