@@ -596,6 +596,43 @@ Next recommended IFC work:
 4. Design and test a dedicated rebar evidence path before admitting
    `IfcReinforcingBar` quantities into review rows.
 
+### Phase - IFC Browser Parser To Quote Transfer Hardening
+
+Status: completed first pass.
+
+Changes:
+
+- The `/app/ifc-parser` transfer action now stores a compact session payload
+  containing only the transfer summary, transfer metadata, and property/QTO
+  evidence element count instead of the full parsed IFC element list.
+- `/app/quotes/new` now consumes IFC transfer payloads defensively, removes the
+  session payload after handling, pre-fills a safe project title/notes, and
+  displays a visible "review required / verified değil" transfer notice.
+- The legacy IFC estimate transfer helper now tolerates missing/corrupt summary
+  inputs and keeps derived rebar/formwork blocked without explicit model
+  evidence.
+
+Verified:
+
+- Focused IFC transfer tests:
+  `pnpm exec tsx --test src/ifc/quotation-transfer.test.ts` -> 4/4 passing.
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- `pnpm test` -> 335/335 passing, 0 skipped, with the local Docker DB running.
+- `pnpm run build` -> passed.
+- Browser automation on an authenticated local dev server confirmed
+  `/app/quotes/new` renders after a compact IFC transfer payload, creates 4
+  review-required quote rows for the local `e-proje_4x3.ifc` summary, pre-fills
+  `IFC Ön Analiz Teklifi`, and shows the 160 property/QTO evidence count without
+  product page errors.
+
+Not verified / still open:
+
+- The current browser-parser quote transfer path is still a legacy
+  `demo_estimate` path; it does not write SmartCheck DB rows.
+- A separate dev-server issue can still surface Vite HMR websocket warnings when
+  another local process already owns the HMR port; that is not part of this
+  product transfer fix.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

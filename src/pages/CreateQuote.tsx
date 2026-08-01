@@ -23,7 +23,9 @@ import {
   Zap,
   DollarSign,
   Users,
-  Box
+  Box,
+  Loader2,
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -62,6 +64,11 @@ export function CreateQuote() {
   const [selectedIndustry, setSelectedIndustry] = useState<string>('residential');
   const [industries, setIndustries] = useState<any[]>([]);
   const [aiResult, setAiResult] = useState<any>(null);
+  const [ifcTransferNotice, setIfcTransferNotice] = useState<{
+    importedItems: number;
+    skippedItems: number;
+    evidenceElementCount?: number;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     clientId: '',
@@ -88,22 +95,35 @@ export function CreateQuote() {
     const ifcData = sessionStorage.getItem('teklifpro_ifc_extracted');
     if (ifcData) {
       try {
-        const { summary } = JSON.parse(ifcData);
+        const parsedTransfer = JSON.parse(ifcData);
+        const summary = parsedTransfer && typeof parsedTransfer === 'object' ? parsedTransfer.summary : null;
         if (summary) {
           const transfer = buildIfcEstimateQuoteItems(summary);
           const importedItems = transfer.items;
 
           if (importedItems.length > 0) {
             setItems(importedItems);
+            setFormData((current) => ({
+              ...current,
+              projectName: current.projectName || 'IFC Ön Analiz Teklifi',
+              notes: current.notes || 'IFC browser ön analizinden aktarılan kalemler teknik review bekler; verified/kesin metraj değildir.',
+            }));
+            setIfcTransferNotice({
+              importedItems: importedItems.length,
+              skippedItems: transfer.skipped.length,
+              evidenceElementCount: Number(parsedTransfer.evidenceElementCount) || undefined,
+            });
             toast.warning(`IFC on analizinden ${importedItems.length} tahmini kalem aktarıldı; teknik review olmadan verified sayılmaz.`);
           }
           if (transfer.skipped.length > 0) {
             toast.info(`${transfer.skipped.length} IFC türevi kalem kanıt eksikliği nedeniyle aktarılmadı.`);
           }
-          sessionStorage.removeItem('teklifpro_ifc_extracted');
         }
       } catch (err) {
         console.error('Error importing IFC data:', err);
+        toast.error('IFC aktarım verisi okunamadı; lütfen dosyayı tekrar aktarın.');
+      } finally {
+        sessionStorage.removeItem('teklifpro_ifc_extracted');
       }
     }
 
@@ -453,6 +473,24 @@ export function CreateQuote() {
 
           {/* Line Items Table */}
           <SectionWrapper title="Teklif Kalemleri" description="Proje kapsamında sunacağınız iş kalemleri ve birim fiyatlar.">
+            {ifcTransferNotice && (
+              <Card className="mb-4 border-amber-500/25 bg-amber-500/[0.06] shadow-none">
+                <CardContent className="flex flex-col gap-2 p-4 text-xs text-amber-200 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <div>
+                      <p className="font-black uppercase tracking-widest text-amber-300">IFC ön analiz aktarımı review bekliyor</p>
+                      <p className="mt-1 leading-relaxed text-amber-100/80">
+                        {ifcTransferNotice.importedItems} tahmini betonarme kalem teklife aktarıldı.
+                        {ifcTransferNotice.skippedItems > 0 ? ` ${ifcTransferNotice.skippedItems} türev kalem kanıt eksikliği nedeniyle aktarılmadı.` : ''}
+                        {ifcTransferNotice.evidenceElementCount ? ` ${ifcTransferNotice.evidenceElementCount} IFC property/QTO kanıtlı eleman bulundu.` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="w-fit border-amber-500/30 text-amber-300">Verified değil</Badge>
+                </CardContent>
+              </Card>
+            )}
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -697,5 +735,3 @@ export function CreateQuote() {
     </PageContainer>
   );
 }
-
-import { Loader2, Info, User } from 'lucide-react';

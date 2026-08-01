@@ -41,4 +41,39 @@ describe("IFC quote transfer safety gate", () => {
     ]);
     assert.match(result.warnings[0], /demo_estimate/);
   });
+
+  it("handles empty or corrupt transfer summaries without crashing quote creation", () => {
+    assert.deepEqual(buildIfcEstimateQuoteItems(null, { idFactory: () => "unused" }).items, []);
+    assert.deepEqual(buildIfcEstimateQuoteItems(undefined, { idFactory: () => "unused" }).items, []);
+    assert.deepEqual(buildIfcEstimateQuoteItems({ beamVolumeM3: Number.NaN }, { idFactory: () => "unused" }).items, []);
+  });
+
+  it("converts the 4x3 sample summary into four review-required concrete items", () => {
+    const result = buildIfcEstimateQuoteItems({
+      beamCount: 293,
+      beamVolumeM3: 362.65,
+      columnCount: 177,
+      columnVolumeM3: 146.76,
+      slabCount: 173,
+      slabVolumeM3: 404.67,
+      wallCount: 537,
+      wallVolumeM3: 1847.4,
+      totalRebarTon: 244.76,
+      totalFormworkM2: 14722.27,
+    }, {
+      idFactory: (() => {
+        let next = 0;
+        return () => `sample-${++next}`;
+      })(),
+    });
+
+    assert.equal(result.items.length, 4);
+    assert.deepEqual(result.items.map((item) => item.unit), ["m3", "m3", "m3", "m3"]);
+    assert.deepEqual(result.items.map((item) => item.verificationStatus), ["needs_review", "needs_review", "needs_review", "needs_review"]);
+    assert.deepEqual(result.items.map((item) => item.quantity), [362.65, 146.76, 404.67, 1847.4]);
+    assert.deepEqual(result.skipped.map((item) => item.code), [
+      "REBAR_REQUIRES_MODEL_EVIDENCE",
+      "FORMWORK_REQUIRES_MODEL_EVIDENCE",
+    ]);
+  });
 });

@@ -67,22 +67,23 @@ function makeEstimateItem(
 }
 
 export function buildIfcEstimateQuoteItems(
-  summary: LegacyIfcTransferSummary,
+  summary: LegacyIfcTransferSummary | null | undefined,
   options: BuildIfcEstimateQuoteItemsOptions = {},
 ): IfcQuoteTransferResult {
   const idFactory = options.idFactory ?? (() => crypto.randomUUID());
+  const transferSummary = summary ?? {};
   const items: Partial<QuoteItem>[] = [];
   const skipped: IfcSkippedTransferItem[] = [];
 
-  const beamVolumeM3 = positiveNumber(summary.beamVolumeM3);
-  const columnVolumeM3 = positiveNumber(summary.columnVolumeM3);
-  const slabVolumeM3 = positiveNumber(summary.slabVolumeM3);
-  const wallVolumeM3 = positiveNumber(summary.wallVolumeM3);
+  const beamVolumeM3 = positiveNumber(transferSummary.beamVolumeM3);
+  const columnVolumeM3 = positiveNumber(transferSummary.columnVolumeM3);
+  const slabVolumeM3 = positiveNumber(transferSummary.slabVolumeM3);
+  const wallVolumeM3 = positiveNumber(transferSummary.wallVolumeM3);
 
   if (beamVolumeM3 > 0) {
     items.push(makeEstimateItem(
       idFactory(),
-      `IFC On Analiz: IfcBeam kiris betonarme imalati (${summary.beamCount ?? 0} adet, review gerekli)`,
+      `IFC On Analiz: IfcBeam kiris betonarme imalati (${transferSummary.beamCount ?? 0} adet, review gerekli)`,
       beamVolumeM3,
       3800,
       2900,
@@ -92,7 +93,7 @@ export function buildIfcEstimateQuoteItems(
   if (columnVolumeM3 > 0) {
     items.push(makeEstimateItem(
       idFactory(),
-      `IFC On Analiz: IfcColumn kolon betonarme imalati (${summary.columnCount ?? 0} adet, review gerekli)`,
+      `IFC On Analiz: IfcColumn kolon betonarme imalati (${transferSummary.columnCount ?? 0} adet, review gerekli)`,
       columnVolumeM3,
       4200,
       3100,
@@ -102,7 +103,7 @@ export function buildIfcEstimateQuoteItems(
   if (slabVolumeM3 > 0) {
     items.push(makeEstimateItem(
       idFactory(),
-      `IFC On Analiz: IfcSlab doseme betonarme imalati (${summary.slabCount ?? 0} adet, review gerekli)`,
+      `IFC On Analiz: IfcSlab doseme betonarme imalati (${transferSummary.slabCount ?? 0} adet, review gerekli)`,
       slabVolumeM3,
       3600,
       2750,
@@ -112,14 +113,14 @@ export function buildIfcEstimateQuoteItems(
   if (wallVolumeM3 > 0) {
     items.push(makeEstimateItem(
       idFactory(),
-      `IFC On Analiz: IfcWall perde/duvar imalati (${summary.wallCount ?? 0} adet, review gerekli)`,
+      `IFC On Analiz: IfcWall perde/duvar imalati (${transferSummary.wallCount ?? 0} adet, review gerekli)`,
       wallVolumeM3,
       3900,
       2950,
     ));
   }
 
-  if (positiveNumber(summary.totalRebarTon) > 0) {
+  if (positiveNumber(transferSummary.totalRebarTon) > 0) {
     skipped.push({
       code: "REBAR_REQUIRES_MODEL_EVIDENCE",
       label: "Donati tonaji",
@@ -127,7 +128,7 @@ export function buildIfcEstimateQuoteItems(
     });
   }
 
-  if (positiveNumber(summary.totalFormworkM2) > 0) {
+  if (positiveNumber(transferSummary.totalFormworkM2) > 0) {
     skipped.push({
       code: "FORMWORK_REQUIRES_MODEL_EVIDENCE",
       label: "Kalip alani",

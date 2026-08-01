@@ -9,8 +9,15 @@ export function BimIfcParserPage() {
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <BimIfcParser 
         onTransferToQuote={(elements, summary) => {
-          // Store extracted IFC elements in sessionStorage for quote creation
-          sessionStorage.setItem('teklifpro_ifc_extracted', JSON.stringify({ elements, summary }));
+          const evidenceElementCount = elements.filter((element) => element.quantitySource === 'qto' || element.quantitySource === 'property').length;
+          // Store only the compact transfer payload needed by quote creation.
+          // Full element lists can be large for real IFC files and are not used by the legacy quote import path.
+          sessionStorage.setItem('teklifpro_ifc_extracted', JSON.stringify({
+            source: 'ifc-parser',
+            transferredAt: new Date().toISOString(),
+            evidenceElementCount,
+            summary,
+          }));
           navigate('/app/quotes/new');
         }} 
       />
