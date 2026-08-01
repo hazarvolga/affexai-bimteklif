@@ -37,7 +37,11 @@ export interface IfcBlockedEvidenceElement {
   elementId: string;
   globalId: string;
   elementType: ParsedIfcElement["type"];
-  code: "IFC_ESTIMATE_QUANTITY_BLOCKED" | "IFC_GEOMETRY_FALLBACK_BLOCKED" | "IFC_PARSE_FAILED";
+  code:
+    | "IFC_ESTIMATE_QUANTITY_BLOCKED"
+    | "IFC_GEOMETRY_FALLBACK_BLOCKED"
+    | "IFC_REBAR_EVIDENCE_POLICY_PENDING"
+    | "IFC_PARSE_FAILED";
   reason: string;
   sourceReference: string;
 }
@@ -55,6 +59,8 @@ export interface IfcSmartCheckEvidenceArtifact {
     qtoQuantityCount: number;
     propertyQuantityCount: number;
     geometryBlockedCount: number;
+    rebarBlockedCount: number;
+    formworkEstimateBlockedCount: number;
     spatiallyAssignedEvidenceRowCount: number;
   };
   rows: IfcSmartCheckEvidenceRow[];
@@ -118,6 +124,16 @@ function buildFindings(element: ParsedIfcElement, validationFindings: Finding[])
 }
 
 function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
+  if (element.type === "IfcReinforcingBar") {
+    return {
+      elementId: element.id,
+      globalId: element.guid,
+      elementType: element.type,
+      code: "IFC_REBAR_EVIDENCE_POLICY_PENDING",
+      reason: "Rebar quantities are blocked until the IFC pipeline supports explicit bar length/mass evidence, diameter grouping, unit conversion, lap/waste policy, and reviewer-backed BVBS/TS 708 validation.",
+      sourceReference: element.quantitySourcePath ?? `IFC#${element.id}`,
+    };
+  }
   if (element.quantitySource === "geometry") {
     return {
       elementId: element.id,
@@ -157,6 +173,8 @@ export function buildIfcSmartCheckEvidenceArtifact(
         qtoQuantityCount: 0,
         propertyQuantityCount: 0,
         geometryBlockedCount: 0,
+        rebarBlockedCount: 0,
+        formworkEstimateBlockedCount: 0,
         spatiallyAssignedEvidenceRowCount: 0,
       },
       rows: [],
@@ -168,7 +186,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
     };
   }
 
-  const evidenceElements = elements.filter((element) => (element.quantitySource === "qto" || element.quantitySource === "property") && element.volumeM3 > 0);
+  const evidenceElements = elements.filter((element) => element.type !== "IfcReinforcingBar" && (element.quantitySource === "qto" || element.quantitySource === "property") && element.volumeM3 > 0);
   const parsedRows = evidenceElements.map((element, index) => buildParsedQuantityRow(element, index + 1));
   const validatedRows = validateRows(parsedRows);
   const rows = evidenceElements.map((element, index): IfcSmartCheckEvidenceRow => {
@@ -207,6 +225,8 @@ export function buildIfcSmartCheckEvidenceArtifact(
       qtoQuantityCount: evidenceElements.filter((element) => element.quantitySource === "qto").length,
       propertyQuantityCount: evidenceElements.filter((element) => element.quantitySource === "property").length,
       geometryBlockedCount: blockedElements.filter((element) => element.code === "IFC_GEOMETRY_FALLBACK_BLOCKED").length,
+      rebarBlockedCount: blockedElements.filter((element) => element.code === "IFC_REBAR_EVIDENCE_POLICY_PENDING").length,
+      formworkEstimateBlockedCount: elements.filter((element) => element.formworkM2 > 0).length,
       spatiallyAssignedEvidenceRowCount: evidenceElements.filter((element) => element.storeySource === "ifc_spatial").length,
     },
     rows,

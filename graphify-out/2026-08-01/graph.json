@@ -14147,7 +14147,7 @@
       "label": "POSITION_BY_TYPE",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L63",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_position_by_type",
       "community": 303,
@@ -14158,7 +14158,7 @@
       "label": "formatQuantity()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L71",
+      "source_location": "L72",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_formatquantity",
       "community": 303,
@@ -14169,7 +14169,7 @@
       "label": "buildParsedQuantityRow()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L75",
+      "source_location": "L76",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_buildparsedquantityrow",
       "community": 303,
@@ -14180,7 +14180,7 @@
       "label": "buildFindings()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L96",
+      "source_location": "L97",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_buildfindings",
       "community": 303,
@@ -14191,7 +14191,7 @@
       "label": "blockElement()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L119",
+      "source_location": "L120",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_blockelement",
       "community": 303,
@@ -14202,7 +14202,7 @@
       "label": "buildIfcSmartCheckEvidenceArtifact()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L130",
+      "source_location": "L141",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
       "community": 303,
@@ -31431,8 +31431,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_google_ads",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 348,
+      "community_name": "Google Ads",
       "norm_label": "google ads"
     },
     {
@@ -31442,8 +31442,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_google_tag",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 348,
+      "community_name": "Google Ads",
       "norm_label": "install the google tag"
     },
     {
@@ -31453,8 +31453,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_set_up_conversion_actions",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 348,
+      "community_name": "Google Ads",
       "norm_label": "set up conversion actions"
     },
     {
@@ -31464,8 +31464,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_fire_conversion_events",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 348,
+      "community_name": "Google Ads",
       "norm_label": "fire conversion events"
     },
     {
@@ -31475,8 +31475,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_enhanced_conversions",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 348,
+      "community_name": "Google Ads",
       "norm_label": "enhanced conversions"
     },
     {
@@ -31486,8 +31486,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_google_tag_manager_alternative",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 348,
+      "community_name": "Google Ads",
       "norm_label": "google tag manager alternative"
     },
     {
@@ -31596,8 +31596,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_tiktok",
-      "community": 699,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "tiktok"
     },
     {
@@ -31607,8 +31607,8 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_tiktok_pixel",
-      "community": 699,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "install the tiktok pixel"
     },
     {
@@ -31618,8 +31618,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_standard_events_250",
-      "community": 699,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "standard events"
     },
     {
@@ -31629,8 +31629,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_events_api_server_side",
-      "community": 699,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "events api (server-side)"
     },
     {
@@ -31640,8 +31640,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_advanced_matching",
-      "community": 699,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "advanced matching"
     },
     {
@@ -34038,8 +34038,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_essential_events",
-      "community": 769,
-      "community_name": "Essential Events",
+      "community": 114,
+      "community_name": "Analytics Tracking",
       "norm_label": "essential events"
     },
     {
@@ -34049,8 +34049,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_marketing_site",
-      "community": 769,
-      "community_name": "Essential Events",
+      "community": 114,
+      "community_name": "Analytics Tracking",
       "norm_label": "marketing site"
     },
     {
@@ -34060,8 +34060,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_product_app",
-      "community": 769,
-      "community_name": "Essential Events",
+      "community": 114,
+      "community_name": "Analytics Tracking",
       "norm_label": "product/app"
     },
     {
@@ -34170,8 +34170,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_utm_parameter_strategy",
-      "community": 114,
-      "community_name": "Analytics Tracking",
+      "community": 788,
+      "community_name": "UTM Parameter Strategy",
       "norm_label": "utm parameter strategy"
     },
     {
@@ -34181,8 +34181,8 @@
       "source_location": "L184",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_standard_parameters",
-      "community": 114,
-      "community_name": "Analytics Tracking",
+      "community": 788,
+      "community_name": "UTM Parameter Strategy",
       "norm_label": "standard parameters"
     },
     {
@@ -34192,8 +34192,8 @@
       "source_location": "L194",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_naming_conventions",
-      "community": 114,
-      "community_name": "Analytics Tracking",
+      "community": 788,
+      "community_name": "UTM Parameter Strategy",
       "norm_label": "naming conventions"
     },
     {
@@ -35160,8 +35160,8 @@
       "source_location": "L201",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_common_tag_configurations",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 583,
+      "community_name": "Common Tag Configurations",
       "norm_label": "common tag configurations"
     },
     {
@@ -35171,8 +35171,8 @@
       "source_location": "L203",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_ga4_configuration_tag",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 583,
+      "community_name": "Common Tag Configurations",
       "norm_label": "ga4 configuration tag"
     },
     {
@@ -35182,8 +35182,8 @@
       "source_location": "L214",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_ga4_event_tag",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 583,
+      "community_name": "Common Tag Configurations",
       "norm_label": "ga4 event tag"
     },
     {
@@ -35193,8 +35193,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_facebook_pixel_base",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 583,
+      "community_name": "Common Tag Configurations",
       "norm_label": "facebook pixel - base"
     },
     {
@@ -35204,8 +35204,8 @@
       "source_location": "L246",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_facebook_pixel_event",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 583,
+      "community_name": "Common Tag Configurations",
       "norm_label": "facebook pixel - event"
     },
     {
@@ -35314,8 +35314,8 @@
       "source_location": "L351",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_advanced_patterns",
-      "community": 714,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "advanced patterns"
     },
     {
@@ -35325,8 +35325,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_tag_sequencing",
-      "community": 714,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "tag sequencing"
     },
     {
@@ -35336,8 +35336,8 @@
       "source_location": "L363",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_exception_handling",
-      "community": 714,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "exception handling"
     },
     {
@@ -35347,8 +35347,8 @@
       "source_location": "L370",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_custom_javascript_variables",
-      "community": 714,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "custom javascript variables"
     },
     {
@@ -66631,8 +66631,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_building_the_media_list",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 655,
+      "community_name": "Building the Media List",
       "norm_label": "building the media list"
     },
     {
@@ -66642,8 +66642,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_discovery_checklist",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 655,
+      "community_name": "Building the Media List",
       "norm_label": "discovery checklist"
     },
     {
@@ -66653,8 +66653,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_where_to_find_candidates",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 655,
+      "community_name": "Building the Media List",
       "norm_label": "where to find candidates"
     },
     {
@@ -66664,8 +66664,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_don_t_waste_time_on",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 655,
+      "community_name": "Building the Media List",
       "norm_label": "don't waste time on"
     },
     {
@@ -66686,8 +66686,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_pitch_templates_by_angle",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "pitch templates by angle"
     },
     {
@@ -66697,8 +66697,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_1_data_story",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "1. data story"
     },
     {
@@ -66708,8 +66708,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_2_exclusive_launch_milestone",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "2. exclusive launch / milestone"
     },
     {
@@ -66719,8 +66719,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_3_op_ed_contributed_piece",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "3. op-ed / contributed piece"
     },
     {
@@ -66730,8 +66730,8 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_4_customer_story",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "4. customer story"
     },
     {
@@ -66741,8 +66741,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_5_trend_piece_connector",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "5. trend piece / connector"
     },
     {
@@ -66752,8 +66752,8 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_6_newsjack_response",
-      "community": 348,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "6. newsjack response"
     },
     {
@@ -66884,8 +66884,8 @@
       "source_location": "L315",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_tooling",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 592,
+      "community_name": "Tooling",
       "norm_label": "tooling"
     },
     {
@@ -66895,8 +66895,8 @@
       "source_location": "L317",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_finding_journalist_contact_info",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 592,
+      "community_name": "Tooling",
       "norm_label": "finding journalist contact info"
     },
     {
@@ -66906,8 +66906,8 @@
       "source_location": "L327",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_researching_their_recent_work_browser_driven",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 592,
+      "community_name": "Tooling",
       "norm_label": "researching their recent work (browser-driven)"
     },
     {
@@ -66917,8 +66917,8 @@
       "source_location": "L347",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_maintaining_the_media_list",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 592,
+      "community_name": "Tooling",
       "norm_label": "maintaining the media list"
     },
     {
@@ -66928,8 +66928,8 @@
       "source_location": "L358",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_pitch_tracking",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 592,
+      "community_name": "Tooling",
       "norm_label": "pitch tracking"
     },
     {
@@ -68358,8 +68358,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_lead_lifecycle_framework",
-      "community": 583,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "lead lifecycle framework"
     },
     {
@@ -68369,8 +68369,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_stage_definitions",
-      "community": 583,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "stage definitions"
     },
     {
@@ -68380,8 +68380,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_mql_definition",
-      "community": 583,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "mql definition"
     },
     {
@@ -68391,8 +68391,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_mql_to_sql_handoff_sla",
-      "community": 583,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "mql-to-sql handoff sla"
     },
     {
@@ -68534,8 +68534,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_crm_automation_workflows",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 699,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "crm automation workflows"
     },
     {
@@ -68545,8 +68545,8 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_essential_automations",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 699,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "essential automations"
     },
     {
@@ -68556,8 +68556,8 @@
       "source_location": "L195",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_marketing_to_sales_automations",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 699,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "marketing-to-sales automations"
     },
     {
@@ -68567,8 +68567,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_calendar_scheduling_integration",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 699,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "calendar scheduling integration"
     },
     {
@@ -69854,8 +69854,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_sales_deck_pitch_deck",
-      "community": 592,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "sales deck / pitch deck"
     },
     {
@@ -69865,8 +69865,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_10_12_slide_framework",
-      "community": 592,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "10-12 slide framework"
     },
     {
@@ -69876,8 +69876,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_deck_principles",
-      "community": 592,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "deck principles"
     },
     {
@@ -69887,8 +69887,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_customization_by_buyer_type",
-      "community": 592,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "customization by buyer type"
     },
     {
@@ -69898,8 +69898,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_one_pagers_leave_behinds",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 723,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "one-pagers / leave-behinds"
     },
     {
@@ -69909,8 +69909,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_when_to_use",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 723,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "when to use"
     },
     {
@@ -69920,8 +69920,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 723,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "structure"
     },
     {
@@ -69931,8 +69931,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_design_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 723,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "design principles"
     },
     {
@@ -69942,8 +69942,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_handling_docs",
-      "community": 630,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection handling docs"
     },
     {
@@ -69953,8 +69953,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_categories",
-      "community": 630,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection categories"
     },
     {
@@ -69964,8 +69964,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_response_framework",
-      "community": 630,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "response framework"
     },
     {
@@ -69975,8 +69975,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_two_formats",
-      "community": 630,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "two formats"
     },
     {
@@ -70030,8 +70030,8 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_demo_scripts_talk_tracks",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 714,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "demo scripts & talk tracks"
     },
     {
@@ -70041,8 +70041,8 @@
       "source_location": "L189",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_script_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 714,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "script structure"
     },
     {
@@ -70052,8 +70052,8 @@
       "source_location": "L197",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_talk_track_types",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 714,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "talk track types"
     },
     {
@@ -70063,8 +70063,8 @@
       "source_location": "L206",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_key_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 714,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "key principles"
     },
     {
@@ -74507,8 +74507,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_header_navigation",
-      "community": 723,
-      "community_name": "Header Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "header navigation"
     },
     {
@@ -74518,8 +74518,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_simple_header_4_6_items",
-      "community": 723,
-      "community_name": "Header Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "simple header (4-6 items)"
     },
     {
@@ -74529,8 +74529,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_mega_menu_header",
-      "community": 723,
-      "community_name": "Header Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "mega menu header"
     },
     {
@@ -74540,8 +74540,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_split_navigation",
-      "community": 723,
-      "community_name": "Header Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "split navigation"
     },
     {
@@ -74551,8 +74551,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_footer_navigation",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 769,
+      "community_name": "Footer Navigation",
       "norm_label": "footer navigation"
     },
     {
@@ -74562,8 +74562,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_column_based_footer_standard",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 769,
+      "community_name": "Footer Navigation",
       "norm_label": "column-based footer (standard)"
     },
     {
@@ -74573,8 +74573,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_minimal_footer",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 769,
+      "community_name": "Footer Navigation",
       "norm_label": "minimal footer"
     },
     {
@@ -74584,8 +74584,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_expanded_footer",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 769,
+      "community_name": "Footer Navigation",
       "norm_label": "expanded footer"
     },
     {
@@ -76487,8 +76487,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_abandoned_cart_highest_roi_flow_for_ecom",
-      "community": 655,
-      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "abandoned cart (highest-roi flow for ecom)"
     },
     {
@@ -76498,8 +76498,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_1_30_minutes_after_abandon",
-      "community": 655,
-      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 1 \u2014 30 minutes after abandon"
     },
     {
@@ -76509,8 +76509,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_2_4_hours_after_abandon_if_no_purchase",
-      "community": 655,
-      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 2 \u2014 4 hours after abandon (if no purchase)"
     },
     {
@@ -76520,8 +76520,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_3_24_hours_after_abandon_if_no_purchase_discount_allowed",
-      "community": 655,
-      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 3 \u2014 24 hours after abandon (if no purchase, discount allowed)"
     },
     {
@@ -76553,8 +76553,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_post_purchase_flow",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 449,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "post-purchase flow"
     },
     {
@@ -76564,8 +76564,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_1_immediately_after_purchase_transactional_separate_consent",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 449,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 1 \u2014 immediately after purchase (transactional, separate consent)"
     },
     {
@@ -76575,8 +76575,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_2_day_of_shipment",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 449,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 2 \u2014 day of shipment"
     },
     {
@@ -76586,8 +76586,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_3_day_of_delivery",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 449,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 3 \u2014 day of delivery"
     },
     {
@@ -76597,8 +76597,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_4_2_days_after_delivery_marketing_consent_required",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 449,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 4 \u2014 2 days after delivery (marketing consent required)"
     },
     {
@@ -76608,8 +76608,8 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_5_14_days_after_delivery_cross_sell_marketing_consent",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 449,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 5 \u2014 14 days after delivery (cross-sell, marketing consent)"
     },
     {
@@ -78665,8 +78665,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_video_hook_library",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 630,
+      "community_name": "Video Hook Library",
       "norm_label": "video hook library"
     },
     {
@@ -78676,8 +78676,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_curiosity_hooks_best_for_engagement",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 630,
+      "community_name": "Video Hook Library",
       "norm_label": "curiosity hooks (best for engagement)"
     },
     {
@@ -78687,8 +78687,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_value_hooks_best_for_saves",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 630,
+      "community_name": "Video Hook Library",
       "norm_label": "value hooks (best for saves)"
     },
     {
@@ -78698,8 +78698,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_story_hooks_best_for_watch_time",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 630,
+      "community_name": "Video Hook Library",
       "norm_label": "story hooks (best for watch time)"
     },
     {
@@ -78709,8 +78709,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_controversial_hooks_best_for_comments",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 630,
+      "community_name": "Video Hook Library",
       "norm_label": "controversial hooks (best for comments)"
     },
     {
@@ -78819,8 +78819,8 @@
       "source_location": "L155",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_audio_strategy",
-      "community": 449,
-      "community_name": "Audio Strategy",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "audio strategy"
     },
     {
@@ -78830,8 +78830,8 @@
       "source_location": "L157",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_when_to_use_trending_sounds",
-      "community": 449,
-      "community_name": "Audio Strategy",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "when to use trending sounds"
     },
     {
@@ -78841,8 +78841,8 @@
       "source_location": "L162",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_when_to_use_original_audio",
-      "community": 449,
-      "community_name": "Audio Strategy",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "when to use original audio"
     },
     {
@@ -78852,8 +78852,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_voiceover_tips",
-      "community": 449,
-      "community_name": "Audio Strategy",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "voiceover tips"
     },
     {
@@ -78863,8 +78863,8 @@
       "source_location": "L175",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_music_selection",
-      "community": 449,
-      "community_name": "Audio Strategy",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "music selection"
     },
     {
@@ -84272,7 +84272,7 @@
       "label": "Do Not Touch",
       "file_type": "document",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L443",
+      "source_location": "L458",
       "_origin": "ast",
       "id": "docs_agent_memory_working_state_do_not_touch",
       "community": 200,
@@ -84283,7 +84283,7 @@
       "label": "Historical Next Recommended Work (superseded by the 2026-07-24 rebaseline)",
       "file_type": "document",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L450",
+      "source_location": "L465",
       "_origin": "ast",
       "id": "docs_agent_memory_working_state_historical_next_recommended_work_superseded_by_the_2026_07_24_rebaseline",
       "community": 200,
@@ -124763,7 +124763,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L119",
+      "source_location": "L120",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124774,7 +124774,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124785,7 +124785,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L130",
+      "source_location": "L141",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124796,7 +124796,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124807,7 +124807,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124862,7 +124862,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -125030,7 +125030,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L84",
+      "source_location": "L85",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildparsedquantityrow",
@@ -125042,7 +125042,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L160",
+      "source_location": "L172",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -125054,7 +125054,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L176",
+      "source_location": "L188",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -125066,7 +125066,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L152",
+      "source_location": "L164",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -125079,7 +125079,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L161",
+      "source_location": "L173",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -205394,7 +205394,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L443",
+      "source_location": "L458",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_agent_memory_working_state_working_state",
@@ -205405,7 +205405,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L450",
+      "source_location": "L465",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_agent_memory_working_state_working_state",
@@ -213810,5 +213810,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "cb818fbc71bca91417c351a9876ab3537aad4843"
+  "built_at_commit": "362bdf52221e77d8867d9f0900debb8e5cac975b"
 }

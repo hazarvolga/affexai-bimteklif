@@ -14136,7 +14136,7 @@
       "label": "IfcSmartCheckEvidenceArtifact",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L45",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_ifcsmartcheckevidenceartifact",
       "community": 303,
@@ -14147,7 +14147,7 @@
       "label": "POSITION_BY_TYPE",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L64",
+      "source_location": "L70",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_position_by_type",
       "community": 303,
@@ -14158,7 +14158,7 @@
       "label": "formatQuantity()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L72",
+      "source_location": "L78",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_formatquantity",
       "community": 303,
@@ -14169,7 +14169,7 @@
       "label": "buildParsedQuantityRow()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L76",
+      "source_location": "L82",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_buildparsedquantityrow",
       "community": 303,
@@ -14180,7 +14180,7 @@
       "label": "buildFindings()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L97",
+      "source_location": "L103",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_buildfindings",
       "community": 303,
@@ -14191,7 +14191,7 @@
       "label": "blockElement()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L120",
+      "source_location": "L126",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_blockelement",
       "community": 303,
@@ -14202,7 +14202,7 @@
       "label": "buildIfcSmartCheckEvidenceArtifact()",
       "file_type": "code",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L141",
+      "source_location": "L157",
       "_origin": "ast",
       "id": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
       "community": 303,
@@ -19992,7 +19992,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "cli-entry.test.ts"
     },
     {
@@ -20003,7 +20003,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_createmockruntime",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "createmockruntime()"
     },
     {
@@ -20014,7 +20014,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_writestdout",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "writestdout()"
     },
     {
@@ -20025,7 +20025,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_writestderr",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "writestderr()"
     },
     {
@@ -20036,7 +20036,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_setexitcode",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "setexitcode()"
     },
     {
@@ -20047,7 +20047,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "cli-entry.ts"
     },
     {
@@ -20058,7 +20058,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "evaluationcliprocessruntime"
     },
     {
@@ -20069,7 +20069,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_cwd",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": ".cwd()"
     },
     {
@@ -20080,7 +20080,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_writestdout",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": ".writestdout()"
     },
     {
@@ -20091,7 +20091,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_writestderr",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": ".writestderr()"
     },
     {
@@ -20102,7 +20102,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_setexitcode",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": ".setexitcode()"
     },
     {
@@ -20113,7 +20113,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationclientrydependencies",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "evaluationclientrydependencies"
     },
     {
@@ -20124,7 +20124,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_runevaluationclientry",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "runevaluationclientry()"
     },
     {
@@ -20135,7 +20135,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "cli-main.ts"
     },
     {
@@ -20146,7 +20146,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main_writestdout",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "writestdout()"
     },
     {
@@ -20157,7 +20157,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main_writestderr",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "writestderr()"
     },
     {
@@ -20168,7 +20168,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main_setexitcode",
       "community": 13,
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "norm_label": "setexitcode()"
     },
     {
@@ -20256,7 +20256,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "cli.test.ts"
     },
     {
@@ -20267,7 +20267,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_defaultcandidate",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "defaultcandidate"
     },
     {
@@ -20278,7 +20278,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createtempfixturedir",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "createtempfixturedir()"
     },
     {
@@ -20289,7 +20289,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_writefixture",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "writefixture()"
     },
     {
@@ -20300,7 +20300,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_cleandir",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "cleandir()"
     },
     {
@@ -20311,7 +20311,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createmockio",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "createmockio()"
     },
     {
@@ -20322,7 +20322,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createmocksuiteresult",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "createmocksuiteresult()"
     },
     {
@@ -20333,7 +20333,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createmockdependencies",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "createmockdependencies()"
     },
     {
@@ -20344,7 +20344,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createprovider",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "createprovider()"
     },
     {
@@ -20355,7 +20355,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_runsuite",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "runsuite()"
     },
     {
@@ -20366,7 +20366,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_writestdout",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "writestdout()"
     },
     {
@@ -20377,7 +20377,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_writestderr",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "writestderr()"
     },
     {
@@ -20387,7 +20387,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "cli.ts"
     },
@@ -20398,7 +20398,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliio",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "evaluationcliio"
     },
@@ -20409,7 +20409,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliio_writestdout",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": ".writestdout()"
     },
@@ -20420,7 +20420,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliio_writestderr",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": ".writestderr()"
     },
@@ -20431,7 +20431,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliexecution",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "evaluationcliexecution"
     },
@@ -20442,7 +20442,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationclidependencies",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "evaluationclidependencies"
     },
@@ -20453,7 +20453,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationclidependencies_createprovider",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": ".createprovider()"
     },
@@ -20464,8 +20464,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationclidependencies_runsuite",
-      "community": 37,
-      "community_name": "CandidateProvider",
+      "community": 21,
+      "community_name": "cli.ts",
       "norm_label": ".runsuite()"
     },
     {
@@ -20475,7 +20475,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliusageerrorcode",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "evaluationcliusageerrorcode"
     },
@@ -20487,7 +20487,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliusageerror",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": "evaluationcliusageerror"
     },
     {
@@ -20498,7 +20498,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliusageerror_constructor",
       "community": 21,
-      "community_name": "cli.test.ts",
+      "community_name": "cli.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -20508,7 +20508,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_defaultdependencies",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "defaultdependencies"
     },
@@ -20519,7 +20519,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_parseargs",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "parseargs()"
     },
@@ -20530,7 +20530,7 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_maperror",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "maperror()"
     },
@@ -20541,7 +20541,7 @@
       "source_location": "L244",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_runevaluationcli",
-      "community": 13,
+      "community": 21,
       "community_name": "cli.ts",
       "norm_label": "runevaluationcli()"
     },
@@ -21300,8 +21300,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_orchestrator_rundiscoveredevaluationsuiteoptions",
-      "community": 37,
-      "community_name": "CandidateProvider",
+      "community": 21,
+      "community_name": "cli.ts",
       "norm_label": "rundiscoveredevaluationsuiteoptions"
     },
     {
@@ -35160,8 +35160,8 @@
       "source_location": "L201",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_common_tag_configurations",
-      "community": 583,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "common tag configurations"
     },
     {
@@ -35171,8 +35171,8 @@
       "source_location": "L203",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_ga4_configuration_tag",
-      "community": 583,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "ga4 configuration tag"
     },
     {
@@ -35182,8 +35182,8 @@
       "source_location": "L214",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_ga4_event_tag",
-      "community": 583,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "ga4 event tag"
     },
     {
@@ -35193,8 +35193,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_facebook_pixel_base",
-      "community": 583,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "facebook pixel - base"
     },
     {
@@ -35204,8 +35204,8 @@
       "source_location": "L246",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_facebook_pixel_event",
-      "community": 583,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "facebook pixel - event"
     },
     {
@@ -35314,8 +35314,8 @@
       "source_location": "L351",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_advanced_patterns",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 630,
+      "community_name": "Advanced Patterns",
       "norm_label": "advanced patterns"
     },
     {
@@ -35325,8 +35325,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_tag_sequencing",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 630,
+      "community_name": "Advanced Patterns",
       "norm_label": "tag sequencing"
     },
     {
@@ -35336,8 +35336,8 @@
       "source_location": "L363",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_exception_handling",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 630,
+      "community_name": "Advanced Patterns",
       "norm_label": "exception handling"
     },
     {
@@ -35347,8 +35347,8 @@
       "source_location": "L370",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_custom_javascript_variables",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 630,
+      "community_name": "Advanced Patterns",
       "norm_label": "custom javascript variables"
     },
     {
@@ -66631,8 +66631,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_building_the_media_list",
-      "community": 655,
-      "community_name": "Building the Media List",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "building the media list"
     },
     {
@@ -66642,8 +66642,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_discovery_checklist",
-      "community": 655,
-      "community_name": "Building the Media List",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "discovery checklist"
     },
     {
@@ -66653,8 +66653,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_where_to_find_candidates",
-      "community": 655,
-      "community_name": "Building the Media List",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "where to find candidates"
     },
     {
@@ -66664,8 +66664,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_don_t_waste_time_on",
-      "community": 655,
-      "community_name": "Building the Media List",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "don't waste time on"
     },
     {
@@ -66686,8 +66686,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_pitch_templates_by_angle",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "pitch templates by angle"
     },
     {
@@ -66697,8 +66697,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_1_data_story",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "1. data story"
     },
     {
@@ -66708,8 +66708,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_2_exclusive_launch_milestone",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "2. exclusive launch / milestone"
     },
     {
@@ -66719,8 +66719,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_3_op_ed_contributed_piece",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "3. op-ed / contributed piece"
     },
     {
@@ -66730,8 +66730,8 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_4_customer_story",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "4. customer story"
     },
     {
@@ -66741,8 +66741,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_5_trend_piece_connector",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "5. trend piece / connector"
     },
     {
@@ -66752,8 +66752,8 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_6_newsjack_response",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 583,
+      "community_name": "Pitch Templates by Angle",
       "norm_label": "6. newsjack response"
     },
     {
@@ -66884,8 +66884,8 @@
       "source_location": "L315",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_tooling",
-      "community": 592,
-      "community_name": "Tooling",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "tooling"
     },
     {
@@ -66895,8 +66895,8 @@
       "source_location": "L317",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_finding_journalist_contact_info",
-      "community": 592,
-      "community_name": "Tooling",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "finding journalist contact info"
     },
     {
@@ -66906,8 +66906,8 @@
       "source_location": "L327",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_researching_their_recent_work_browser_driven",
-      "community": 592,
-      "community_name": "Tooling",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "researching their recent work (browser-driven)"
     },
     {
@@ -66917,8 +66917,8 @@
       "source_location": "L347",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_maintaining_the_media_list",
-      "community": 592,
-      "community_name": "Tooling",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "maintaining the media list"
     },
     {
@@ -66928,8 +66928,8 @@
       "source_location": "L358",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_pitch_tracking",
-      "community": 592,
-      "community_name": "Tooling",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "pitch tracking"
     },
     {
@@ -76487,8 +76487,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_abandoned_cart_highest_roi_flow_for_ecom",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 655,
+      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
       "norm_label": "abandoned cart (highest-roi flow for ecom)"
     },
     {
@@ -76498,8 +76498,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_1_30_minutes_after_abandon",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 655,
+      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
       "norm_label": "send 1 \u2014 30 minutes after abandon"
     },
     {
@@ -76509,8 +76509,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_2_4_hours_after_abandon_if_no_purchase",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 655,
+      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
       "norm_label": "send 2 \u2014 4 hours after abandon (if no purchase)"
     },
     {
@@ -76520,8 +76520,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_3_24_hours_after_abandon_if_no_purchase_discount_allowed",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 655,
+      "community_name": "Abandoned Cart (highest-ROI flow for ecom)",
       "norm_label": "send 3 \u2014 24 hours after abandon (if no purchase, discount allowed)"
     },
     {
@@ -78665,8 +78665,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_video_hook_library",
-      "community": 630,
-      "community_name": "Video Hook Library",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "video hook library"
     },
     {
@@ -78676,8 +78676,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_curiosity_hooks_best_for_engagement",
-      "community": 630,
-      "community_name": "Video Hook Library",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "curiosity hooks (best for engagement)"
     },
     {
@@ -78687,8 +78687,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_value_hooks_best_for_saves",
-      "community": 630,
-      "community_name": "Video Hook Library",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "value hooks (best for saves)"
     },
     {
@@ -78698,8 +78698,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_story_hooks_best_for_watch_time",
-      "community": 630,
-      "community_name": "Video Hook Library",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "story hooks (best for watch time)"
     },
     {
@@ -78709,8 +78709,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_controversial_hooks_best_for_comments",
-      "community": 630,
-      "community_name": "Video Hook Library",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "controversial hooks (best for comments)"
     },
     {
@@ -78819,8 +78819,8 @@
       "source_location": "L155",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_audio_strategy",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 592,
+      "community_name": "Audio Strategy",
       "norm_label": "audio strategy"
     },
     {
@@ -78830,8 +78830,8 @@
       "source_location": "L157",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_when_to_use_trending_sounds",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 592,
+      "community_name": "Audio Strategy",
       "norm_label": "when to use trending sounds"
     },
     {
@@ -78841,8 +78841,8 @@
       "source_location": "L162",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_when_to_use_original_audio",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 592,
+      "community_name": "Audio Strategy",
       "norm_label": "when to use original audio"
     },
     {
@@ -78852,8 +78852,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_voiceover_tips",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 592,
+      "community_name": "Audio Strategy",
       "norm_label": "voiceover tips"
     },
     {
@@ -78863,8 +78863,8 @@
       "source_location": "L175",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_music_selection",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 592,
+      "community_name": "Audio Strategy",
       "norm_label": "music selection"
     },
     {
@@ -84272,7 +84272,7 @@
       "label": "Do Not Touch",
       "file_type": "document",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L458",
+      "source_location": "L473",
       "_origin": "ast",
       "id": "docs_agent_memory_working_state_do_not_touch",
       "community": 200,
@@ -84283,7 +84283,7 @@
       "label": "Historical Next Recommended Work (superseded by the 2026-07-24 rebaseline)",
       "file_type": "document",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L465",
+      "source_location": "L480",
       "_origin": "ast",
       "id": "docs_agent_memory_working_state_historical_next_recommended_work_superseded_by_the_2026_07_24_rebaseline",
       "community": 200,
@@ -92046,7 +92046,7 @@
       "source_location": "L40",
       "community": 13,
       "norm_label": "runclimock()",
-      "community_name": "cli.ts",
+      "community_name": "cli-entry.test.ts",
       "id": "src_smartcheck_evaluation_cli_entry_test_runclimock"
     },
     {
@@ -124763,7 +124763,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L120",
+      "source_location": "L126",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124774,7 +124774,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L97",
+      "source_location": "L103",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124785,7 +124785,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L141",
+      "source_location": "L157",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124796,7 +124796,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L76",
+      "source_location": "L82",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124807,7 +124807,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L72",
+      "source_location": "L78",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124840,7 +124840,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L45",
+      "source_location": "L49",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -124862,7 +124862,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L64",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence",
@@ -125006,7 +125006,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L49",
+      "source_location": "L53",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_ifcsmartcheckevidenceartifact",
@@ -125030,7 +125030,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L85",
+      "source_location": "L91",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildparsedquantityrow",
@@ -125042,7 +125042,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L172",
+      "source_location": "L190",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -125054,7 +125054,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L188",
+      "source_location": "L206",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -125066,7 +125066,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L164",
+      "source_location": "L182",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -125079,7 +125079,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ifc/smartcheck-evidence.ts",
-      "source_location": "L173",
+      "source_location": "L191",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_smartcheck_evidence_buildifcsmartcheckevidenceartifact",
@@ -205394,7 +205394,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L458",
+      "source_location": "L473",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_agent_memory_working_state_working_state",
@@ -205405,7 +205405,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/agent-memory/WORKING_STATE.md",
-      "source_location": "L465",
+      "source_location": "L480",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_agent_memory_working_state_working_state",
@@ -213810,5 +213810,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "362bdf52221e77d8867d9f0900debb8e5cac975b"
+  "built_at_commit": "c3ee29edb8590f4bb1a95f4c45ddaba57315a1ac"
 }

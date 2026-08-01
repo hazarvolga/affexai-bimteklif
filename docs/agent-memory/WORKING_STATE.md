@@ -378,6 +378,11 @@ Changes:
   blocked from SmartCheck evidence rows until deterministic unit handling,
   opening deductions, net/gross rules, tolerance limits, and reviewer evidence
   are implemented. Artifact metadata now tracks `geometryBlockedCount`.
+- Added explicit rebar/formwork admission guards. `IfcReinforcingBar` elements
+  are blocked from SmartCheck evidence rows until bar length/mass evidence,
+  diameter grouping, unit conversion, lap/waste policy, and reviewer-backed
+  BVBS/TS 708 validation exist. Derived formwork values remain metadata-only
+  blocked estimates and are counted via `formworkEstimateBlockedCount`.
 
 Verified:
 
@@ -432,6 +437,16 @@ Verified:
   src/server/routes/smartcheck.integration.test.ts` -> 26/26 passing and 2/2
   HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
   not reachable in this session.
+- `pnpm exec tsx --test src/smartcheck/import/file-security.test.ts
+  src/smartcheck/import/integration-contract.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/qto-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts
+  src/ifc/smartcheck-processing.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 27/27 passing and 2/2
+  HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
+  not reachable in this session.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
@@ -452,8 +467,8 @@ Next recommended IFC work:
    browser E2E to prove the route → Graphile worker → rows/artifact chain.
 2. Design deterministic geometry fallback acceptance rules before enabling
    geometry-derived volume/area rows.
-3. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
-   reviewed rule evidence exists.
+3. Design and test a dedicated rebar evidence path before admitting
+   `IfcReinforcingBar` quantities into review rows.
 
 ## Do Not Touch
 

@@ -166,6 +166,55 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.match(artifact.blockedElements[0].reason, /opening deductions/);
   });
 
+  it("blocks rebar and derived formwork quantities until dedicated evidence policies exist", () => {
+    const elements: ParsedIfcElement[] = [
+      {
+        id: "700",
+        guid: "2REBARgKpn0FfR5lxdBlb",
+        type: "IfcReinforcingBar",
+        name: "Donatı QTO",
+        storey: "B01",
+        storeySource: "ifc_spatial",
+        storeySourcePath: "#100/#10:IfcRelContainedInSpatialStructure/IfcBuildingStorey",
+        volumeM3: 0.02,
+        formworkM2: 0,
+        rebarKg: 157,
+        quantitySource: "qto",
+        quantitySourcePath: "#700/#701/#702:Qto_ReinforcingBarBaseQuantities/NetWeight",
+        quantityConfidence: 0.95,
+        smartCheckStatus: "review",
+      },
+      {
+        id: "800",
+        guid: "2BEAMBgKpn0FfR5lxdBlb",
+        type: "IfcBeam",
+        name: "Kiriş Estimate",
+        storey: "B01",
+        storeySource: "ifc_spatial",
+        volumeM3: 1.25,
+        formworkM2: 5.5,
+        rebarKg: 140,
+        quantitySource: "estimate",
+        smartCheckStatus: "warning",
+      },
+    ];
+
+    const artifact = buildIfcSmartCheckEvidenceArtifact(elements, { ...succeededSummary, totalElements: 2 }, {
+      fileName: "unit-rebar.ifc",
+      checksumSha256: "d".repeat(64),
+      schemaName: "IFC4X3_ADD2",
+    });
+
+    assert.equal(artifact.summary.evidenceRowCount, 0);
+    assert.equal(artifact.summary.rebarBlockedCount, 1);
+    assert.equal(artifact.summary.formworkEstimateBlockedCount, 1);
+    assert.deepEqual(artifact.blockedElements.map((element) => element.code), [
+      "IFC_REBAR_EVIDENCE_POLICY_PENDING",
+      "IFC_ESTIMATE_QUANTITY_BLOCKED",
+    ]);
+    assert.match(artifact.blockedElements[0].reason, /diameter grouping/);
+  });
+
   it("matches the e-proje_4x3 property-volume evidence count when the sample IFC is present", { skip: !existsSync(samplePath) }, () => {
     const sample = readFileSync(samplePath, "utf8");
     const sha256 = createHash("sha256").update(sample).digest("hex");
