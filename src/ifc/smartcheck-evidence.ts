@@ -37,7 +37,7 @@ export interface IfcBlockedEvidenceElement {
   elementId: string;
   globalId: string;
   elementType: ParsedIfcElement["type"];
-  code: "IFC_ESTIMATE_QUANTITY_BLOCKED" | "IFC_PARSE_FAILED";
+  code: "IFC_ESTIMATE_QUANTITY_BLOCKED" | "IFC_GEOMETRY_FALLBACK_BLOCKED" | "IFC_PARSE_FAILED";
   reason: string;
   sourceReference: string;
 }
@@ -54,6 +54,7 @@ export interface IfcSmartCheckEvidenceArtifact {
     blockedElementCount: number;
     qtoQuantityCount: number;
     propertyQuantityCount: number;
+    geometryBlockedCount: number;
     spatiallyAssignedEvidenceRowCount: number;
   };
   rows: IfcSmartCheckEvidenceRow[];
@@ -117,6 +118,16 @@ function buildFindings(element: ParsedIfcElement, validationFindings: Finding[])
 }
 
 function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
+  if (element.quantitySource === "geometry") {
+    return {
+      elementId: element.id,
+      globalId: element.guid,
+      elementType: element.type,
+      code: "IFC_GEOMETRY_FALLBACK_BLOCKED",
+      reason: "Geometry-derived IFC quantities are blocked until deterministic unit handling, opening deductions, net/gross rules, tolerance limits, and reviewer evidence are implemented.",
+      sourceReference: element.quantitySourcePath ?? `IFC#${element.id}`,
+    };
+  }
   return {
     elementId: element.id,
     globalId: element.guid,
@@ -145,6 +156,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         blockedElementCount: elements.length,
         qtoQuantityCount: 0,
         propertyQuantityCount: 0,
+        geometryBlockedCount: 0,
         spatiallyAssignedEvidenceRowCount: 0,
       },
       rows: [],
@@ -194,6 +206,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       blockedElementCount: blockedElements.length,
       qtoQuantityCount: evidenceElements.filter((element) => element.quantitySource === "qto").length,
       propertyQuantityCount: evidenceElements.filter((element) => element.quantitySource === "property").length,
+      geometryBlockedCount: blockedElements.filter((element) => element.code === "IFC_GEOMETRY_FALLBACK_BLOCKED").length,
       spatiallyAssignedEvidenceRowCount: evidenceElements.filter((element) => element.storeySource === "ifc_spatial").length,
     },
     rows,

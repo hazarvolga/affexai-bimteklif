@@ -133,6 +133,39 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.equal(artifact.rows[0].mappingConfidence, "0.95");
   });
 
+  it("blocks geometry fallback quantities until deterministic geometry rules are implemented", () => {
+    const elements: ParsedIfcElement[] = [
+      {
+        id: "500",
+        guid: "2GEOMBgKpn0FfR5lxdBlb",
+        type: "IfcWall",
+        name: "Duvar Geometry",
+        storey: "B01",
+        storeySource: "ifc_spatial",
+        storeySourcePath: "#100/#10:IfcRelContainedInSpatialStructure/IfcBuildingStorey",
+        volumeM3: 4.75,
+        formworkM2: 0,
+        rebarKg: 0,
+        quantitySource: "geometry",
+        quantitySourcePath: "#500/IfcExtrudedAreaSolid",
+        quantityConfidence: 0.7,
+        smartCheckStatus: "review",
+      },
+    ];
+
+    const artifact = buildIfcSmartCheckEvidenceArtifact(elements, { ...succeededSummary, totalElements: 1 }, {
+      fileName: "unit-geometry.ifc",
+      checksumSha256: "c".repeat(64),
+      schemaName: "IFC4X3_ADD2",
+    });
+
+    assert.equal(artifact.summary.evidenceRowCount, 0);
+    assert.equal(artifact.summary.blockedElementCount, 1);
+    assert.equal(artifact.summary.geometryBlockedCount, 1);
+    assert.deepEqual(artifact.blockedElements.map((element) => element.code), ["IFC_GEOMETRY_FALLBACK_BLOCKED"]);
+    assert.match(artifact.blockedElements[0].reason, /opening deductions/);
+  });
+
   it("matches the e-proje_4x3 property-volume evidence count when the sample IFC is present", { skip: !existsSync(samplePath) }, () => {
     const sample = readFileSync(samplePath, "utf8");
     const sha256 = createHash("sha256").update(sample).digest("hex");

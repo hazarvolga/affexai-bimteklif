@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1785563594.4365852,
-    "ast_hash": "7617d9662608907f279ec8fcec2a1f5b",
+    "mtime": 1785563743.900008,
+    "ast_hash": "e858c9ef3693a3137f34a15064b6ff01",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4540,18 +4540,18 @@
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-evidence.test.ts": {
-    "mtime": 1785563563.7191126,
-    "ast_hash": "262b2e958eb110e36c4b02ffee973163",
+    "mtime": 1785563715.8254838,
+    "ast_hash": "b8af7a700ffc447d4e89f59be7eb749e",
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-evidence.ts": {
-    "mtime": 1785563543.584621,
-    "ast_hash": "313a259b8714c2f5260d805a504e425e",
+    "mtime": 1785563702.3278766,
+    "ast_hash": "16d38c438026bb7a1900f5a70e95f8f2",
     "semantic_hash": ""
   },
   "src/ifc/types.ts": {
-    "mtime": 1785563517.7242203,
-    "ast_hash": "c5fbc6b46109d1b2e12daa154b8db27f",
+    "mtime": 1785563702.2401712,
+    "ast_hash": "17bc7ab359433ce1042b6312b76ac4e6",
     "semantic_hash": ""
   },
   "src/ifc/parser/legacy-parser.ts": {
