@@ -313,6 +313,65 @@ schema hashes, and zero target rows. This remains schema-only evidence; full
 data backup/restore and production S3 restore are still external operational
 gates.
 
+## 2026-08-01 IFC Evidence Safety Slice
+
+Commits:
+
+- `b1f7a39 fix(ifc): gate estimate quote transfer`
+- `d9e871e test(ifc): add parser safety gates`
+- `0359851 feat(ifc): extract approved property volumes`
+- `f05a2c4 feat(ifc): resolve spatial storey containment`
+
+Changes:
+
+- Added `IFC_GAP_RAPORU.md` and refreshed Graphify metadata.
+- Legacy browser IFC output is now explicitly classified as `demo_estimate` and
+  `needs_review`.
+- IFC transfer into `CreateQuote` no longer creates `verified` model items.
+  It imports structural volume rows as `model_estimate` and skips derived rebar
+  and formwork rows until explicit model/QTO/property/reviewer evidence exists.
+- Real IFC uploads now fail closed when no supported structural elements are
+  found; synthetic demo data is only available through the demo button.
+- Added a committed golden manifest for `ifc-document-sample/e-proje_4x3.ifc`
+  without committing the 37 MB sample file.
+- Added IFC parser safety tests, quote transfer tests, Allplan/Pset volume
+  property extraction tests, and storey containment tests.
+- Parser now reads approved property volume evidence from `AllplanAttributes`
+  and `Pset_SlabCommon/Hacim`; the local sample resolves 160 slab volume
+  matches with a total of approximately `322.374717498415 m3`.
+- Parser now resolves `IfcRelContainedInSpatialStructure` to
+  `IfcBuildingStorey`; sample slab `#2250` resolves to
+  `2025-00-MM-BETO-CP-MMP-B01-01-00 (-1.9 m)` instead of a modulo estimate.
+
+Verified:
+
+- `pnpm exec tsx --test src/ifc/quotation-transfer.test.ts
+  src/ifc/parser-gates.test.ts src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts` -> 12/12 passing with the local
+  sample present.
+- `git diff --check` passed after each code phase.
+- `graphify update .` succeeded after each code phase.
+
+Not verified / still blocked:
+
+- `pnpm lint` still fails with pre-existing module resolution errors in Academy
+  Firebase imports, BIMPlan `../types` imports, and missing `firebase/*`
+  dependencies. The IFC files added in this slice are not among the reported
+  errors.
+- Full `pnpm test`, production build, browser UI verification, SmartCheck
+  document/run integration, worker processing, and database-backed review flow
+  were not completed in this slice.
+- The local sample IFC remains untracked under `ifc-document-sample/`.
+
+Next recommended IFC work:
+
+1. Add server/worker resource limits and checksum/upload contract for IFC files.
+2. Bind IFC result provenance into the existing SmartCheck document/run/review
+   evidence chain instead of browser `sessionStorage`.
+3. Add QTO extraction before approved property fallback.
+4. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
+   reviewed rule evidence exists.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
