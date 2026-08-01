@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1785561426.9722633,
-    "ast_hash": "955a115a7c2f459a3af4456c158bd592",
+    "mtime": 1785561641.5547981,
+    "ast_hash": "3812b05dfcf12baa5a4a8cd9c5f33feb",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -4510,8 +4510,8 @@
     "semantic_hash": ""
   },
   "src/ifc/fixtures/e-proje_4x3.manifest.json": {
-    "mtime": 1785560898.1204562,
-    "ast_hash": "5784884b2a9f952626c33f62172db57e",
+    "mtime": 1785561641.7092307,
+    "ast_hash": "3c483db2e34ee0931d56ef8091bf4cbe",
     "semantic_hash": ""
   },
   "src/ifc/parser-gates.test.ts": {
@@ -4527,6 +4527,16 @@
   "src/ifc/parser/quantity-extractor.ts": {
     "mtime": 1785561418.1235285,
     "ast_hash": "3ef645df4c5b3be7c140233e75bf4574",
+    "semantic_hash": ""
+  },
+  "src/ifc/parser/spatial-extractor.test.ts": {
+    "mtime": 1785561641.6314719,
+    "ast_hash": "4db305485438c9d3e0fe7dd94cf2c1a6",
+    "semantic_hash": ""
+  },
+  "src/ifc/parser/spatial-extractor.ts": {
+    "mtime": 1785561641.4771986,
+    "ast_hash": "8b20972208286669f971c0f64c166239",
     "semantic_hash": ""
   }
 }

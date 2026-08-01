@@ -20,49 +20,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { extractAllplanVolumeQuantities } from '@/ifc/parser/quantity-extractor';
 import { extractIfcStoreyContainment } from '@/ifc/parser/spatial-extractor';
-
-export interface ParsedIfcElement {
-  id: string;
-  guid: string;
-  type: 'IfcBeam' | 'IfcColumn' | 'IfcSlab' | 'IfcWall' | 'IfcReinforcingBar';
-  name: string;
-  storey: string;
-  storeySource: 'estimate' | 'ifc_spatial';
-  storeySourcePath?: string;
-  volumeM3: number;
-  formworkM2: number;
-  rebarKg: number;
-  rebarDiameterMm?: number;
-  quantitySource: 'estimate' | 'property';
-  quantitySourcePath?: string;
-  quantityConfidence?: number;
-  smartCheckStatus: 'pass' | 'warning' | 'review';
-  smartCheckNote?: string;
-}
-
-export interface IfcParseSummary {
-  parseStatus: 'succeeded' | 'failed';
-  extractionMode: 'demo_estimate';
-  quantitySource: 'estimate';
-  quoteTransferStatus: 'needs_review';
-  warnings: string[];
-  unsupportedReasons: string[];
-  totalElements: number;
-  totalVolumeM3: number;
-  totalFormworkM2: number;
-  totalRebarKg: number;
-  totalRebarTon: number;
-  beamCount: number;
-  beamVolumeM3: number;
-  columnCount: number;
-  columnVolumeM3: number;
-  slabCount: number;
-  slabVolumeM3: number;
-  wallCount: number;
-  wallVolumeM3: number;
-  rebarCount: number;
-  rebarByDiameter: Record<number, { lengthM: number; weightKg: number }>;
-}
+import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
 
 // Sample OpenBIM IFC Demo Datasets
 const DEMO_IFC_DATASETS = [

@@ -342,6 +342,12 @@ Changes:
 - Parser now resolves `IfcRelContainedInSpatialStructure` to
   `IfcBuildingStorey`; sample slab `#2250` resolves to
   `2025-00-MM-BETO-CP-MMP-B01-01-00 (-1.9 m)` instead of a modulo estimate.
+- Added a UI-independent IFC type boundary plus SmartCheck evidence adapter.
+  The adapter admits only property-backed IFC quantities into pending-review
+  rows compatible with `normalized_quantity_rows`, preserves STEP/globalId
+  provenance in the row evidence payload, marks missing price as a review
+  finding, and blocks all demo/estimated elements from SmartCheck evidence row
+  admission.
 
 Verified:
 
@@ -349,6 +355,13 @@ Verified:
   src/ifc/parser-gates.test.ts src/ifc/parser/quantity-extractor.test.ts
   src/ifc/parser/spatial-extractor.test.ts` -> 12/12 passing with the local
   sample present.
+- `pnpm exec tsx --test src/ifc/quotation-transfer.test.ts
+  src/ifc/parser-gates.test.ts src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts`
+  -> 14/14 passing with the local sample present; SmartCheck evidence adapter
+  emits 160 property-backed slab rows with approximately
+  `322.374717498415 m3` total quantity and blocks the remaining estimated
+  elements.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
@@ -358,16 +371,17 @@ Not verified / still blocked:
   Firebase imports, BIMPlan `../types` imports, and missing `firebase/*`
   dependencies. The IFC files added in this slice are not among the reported
   errors.
-- Full `pnpm test`, production build, browser UI verification, SmartCheck
-  document/run integration, worker processing, and database-backed review flow
+- Full `pnpm test`, production build, browser UI verification, server-side IFC
+  upload route, SmartCheck worker processing, and database-backed review flow
   were not completed in this slice.
 - The local sample IFC remains untracked under `ifc-document-sample/`.
 
 Next recommended IFC work:
 
 1. Add server/worker resource limits and checksum/upload contract for IFC files.
-2. Bind IFC result provenance into the existing SmartCheck document/run/review
-   evidence chain instead of browser `sessionStorage`.
+2. Persist the new IFC SmartCheck evidence artifact through the existing
+   `documents` / `document_processing_runs` / `document_processing_artifacts`
+   chain instead of browser `sessionStorage`.
 3. Add QTO extraction before approved property fallback.
 4. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
    reviewed rule evidence exists.
