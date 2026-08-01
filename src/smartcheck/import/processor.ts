@@ -7,6 +7,7 @@ import { companies, documentProcessingArtifacts, documentProcessingRuns, documen
 import { createStorageAdapter } from "./storage";
 import { detectAndValidateFile, sanitizeSpreadsheetText, sha256, validateXlsxArchive } from "./file-security";
 import { type ColumnMapping, type ParsedQuantityRow, suggestMapping, validateRows } from "./normalize";
+import { buildIfcSmartCheckEvidenceFromContent } from "../../ifc/smartcheck-processing";
 
 export type PreviewSheet = {
   name: string;
@@ -156,6 +157,123 @@ async function updateRun(runId: string, companyId: string, values: Partial<typeo
   await db.update(documentProcessingRuns).set({ ...values, updatedAt: new Date() }).where(and(eq(documentProcessingRuns.id, runId), eq(documentProcessingRuns.companyId, companyId)));
 }
 
+async function processIfcSmartCheckDocument(payload: {
+  companyId: string;
+  documentId: string;
+  processingRunId: string;
+  originalFileName: string;
+  checksumSha256: string;
+  content: Buffer;
+}) {
+  const { companyId, documentId, processingRunId, originalFileName, checksumSha256, content } = payload;
+  const artifact = buildIfcSmartCheckEvidenceFromContent({
+    fileName: originalFileName,
+    checksumSha256,
+    content,
+  });
+  const storage = createStorageAdapter();
+
+  await updateRun(processingRunId, companyId, {
+    currentStage: "normalizing",
+    progressPercent: 45,
+    progressMessage: "IFC property evidence satırları hazırlanıyor",
+  });
+
+  const artifactContent = Buffer.from(JSON.stringify(artifact, null, 2));
+  const artifactKey = `${companyId}/${documentId}/${processingRunId}/ifc-evidence.json`;
+  await storage.put(artifactKey, artifactContent, "application/json");
+
+  await updateRun(processingRunId, companyId, {
+    currentStage: "validating",
+    progressPercent: 70,
+    progressMessage: "IFC evidence admission kontrolleri çalışıyor",
+  });
+
+  await db.transaction(async (tx) => {
+    await tx.delete(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.processingRunId, processingRunId), eq(normalizedQuantityRows.companyId, companyId)));
+    if (artifact.rows.length) {
+      await tx.insert(normalizedQuantityRows).values(artifact.rows.map((row) => ({
+        companyId,
+        documentId,
+        processingRunId,
+        sheetName: row.sheetName,
+        sourceRowNumber: row.sourceRowNumber,
+        sourceCellRange: row.sourceCellRange,
+        rawDescription: row.rawDescription,
+        rawPositionCode: row.rawPositionCode,
+        rawUnit: row.rawUnit,
+        rawQuantity: row.rawQuantity,
+        rawPrice: row.rawPrice,
+        rawWastePercent: row.rawWastePercent,
+        formulaJson: row.formulaJson,
+        normalizedDescription: row.normalizedDescription,
+        normalizedPositionCode: row.normalizedPositionCode,
+        normalizedUnit: row.normalizedUnit,
+        normalizedQuantity: row.normalizedQuantity,
+        normalizedPrice: row.normalizedPrice,
+        normalizedWastePercent: row.normalizedWastePercent,
+        quantitySource: row.quantitySource,
+        priceSource: row.priceSource,
+        mappingConfidence: row.mappingConfidence,
+        reviewStatus: row.reviewStatus,
+        findingsJson: row.findingsJson,
+      })));
+    }
+    await tx.insert(documentProcessingArtifacts).values({
+      companyId,
+      documentId,
+      processingRunId,
+      artifactType: "ifc_evidence",
+      storageKey: artifactKey,
+      checksumSha256: sha256(artifactContent),
+      contentType: "application/json",
+      sizeBytes: artifactContent.length,
+      metadataJson: {
+        schemaVersion: artifact.schemaVersion,
+        kind: artifact.kind,
+        document: artifact.document,
+        summary: artifact.summary,
+      },
+    }).onConflictDoUpdate({
+      target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+      set: {
+        storageKey: artifactKey,
+        checksumSha256: sha256(artifactContent),
+        sizeBytes: artifactContent.length,
+        metadataJson: {
+          schemaVersion: artifact.schemaVersion,
+          kind: artifact.kind,
+          document: artifact.document,
+          summary: artifact.summary,
+        },
+      },
+    });
+  });
+
+  if (artifact.rows.length === 0) {
+    throw new Error("IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE");
+  }
+
+  await updateRun(processingRunId, companyId, {
+    status: "succeeded",
+    currentStage: "awaiting_review",
+    progressPercent: 100,
+    progressMessage: "IFC property evidence insan incelemesi bekliyor",
+    completedAt: new Date(),
+  });
+  await db.update(documents).set({
+    status: "awaiting_review",
+    importMappingJson: {
+      source: "ifc_property",
+      artifactType: "ifc_evidence",
+      schemaVersion: artifact.schemaVersion,
+      evidenceRowCount: artifact.summary.evidenceRowCount,
+      blockedElementCount: artifact.summary.blockedElementCount,
+    },
+    updatedAt: new Date(),
+  }).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));
+}
+
 export async function processSmartCheckDocument(payload: { companyId: string; documentId: string; processingRunId: string }) {
   const { companyId, documentId, processingRunId } = payload;
   const [document] = await db.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));
@@ -169,7 +287,17 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     const content = await storage.get(document.storageKey);
     if (sha256(content) !== document.checksumSha256) throw new Error("CHECKSUM_MISMATCH");
     const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-    if (kind === "ifc") throw new Error("IFC_WORKER_PENDING");
+    if (kind === "ifc") {
+      await processIfcSmartCheckDocument({
+        companyId,
+        documentId: document.id,
+        processingRunId: run.id,
+        originalFileName: document.originalFileName,
+        checksumSha256: document.checksumSha256,
+        content,
+      });
+      return;
+    }
     const parsed = await parseDocument(content, kind, document.importMappingJson as ColumnMapping);
     await updateRun(run.id, companyId, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });
     const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, companyId));

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, it } from "node:test";
-import { parseIfcText } from "../../components/bimplan/BimIfcParser";
+import { parseIfcText } from "./legacy-parser";
 import { extractAllplanVolumeQuantities } from "./quantity-extractor";
 
 const manifest = JSON.parse(readFileSync(resolve("src/ifc/fixtures/e-proje_4x3.manifest.json"), "utf8")) as {

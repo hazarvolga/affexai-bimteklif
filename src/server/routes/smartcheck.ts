@@ -107,7 +107,7 @@ export function registerSmartCheckRoutes(app: Express) {
       await validateXlsxArchive(content);
     }
     if (kind === "ifc") {
-      await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_pending" });
+      await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_enabled" });
     }
     const [updated] = await db.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning();
     if (kind !== "ifc") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
@@ -122,7 +122,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const content = await createStorageAdapter().get(document.storageKey);
       if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
       const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-      if (kind === "ifc") return res.status(409).json({ error: "IFC önizleme worker entegrasyonu bir sonraki fazda etkinleşecek.", code: "IFC_WORKER_PENDING" });
+      if (kind === "ifc") return res.status(409).json({ error: "IFC önizleme için işleme kuyruğunu başlatın; kanıt artifact'i run sonunda oluşur.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
       const preview = await inspectDocument(content, kind);
       res.json({ document: { id: document.id, fileName: document.originalFileName, fileSizeBytes: document.fileSizeBytes, checksumSha256: document.checksumSha256, mapping: document.importMappingJson }, preview });
     } catch (error) {
@@ -160,7 +160,6 @@ export function registerSmartCheckRoutes(app: Express) {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Yükleme henüz tamamlanmadı." });
-    if (/\.ifc$/i.test(document.originalFileName)) return res.status(409).json({ error: "IFC SmartCheck worker entegrasyonu bir sonraki fazda etkinleşecek.", code: "IFC_WORKER_PENDING" });
     const idempotencyKey = processingIdempotencyKey(document.checksumSha256, document.importMappingJson as ColumnMapping);
     const [existing] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.companyId, req.user.companyId), eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.idempotencyKey, idempotencyKey)));
     if (existing) return res.status(200).json(existing);

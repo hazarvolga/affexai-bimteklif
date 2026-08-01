@@ -351,9 +351,15 @@ Changes:
 - Added the first server-side IFC SmartCheck admission guard: `.ifc` uploads
   now have a separate 100 MB size limit, STEP/`FILE_SCHEMA(('IFC...'))`
   signature validation, accepted IFC MIME types, and upload/complete route
-  support. Preview/process still return `IFC_WORKER_PENDING` until the
-  database-backed IFC worker is implemented, so partial IFC parsing cannot be
-  misreported as a successful SmartCheck run.
+  support.
+- Moved the legacy IFC parser out of the React component into a UI-independent
+  parser module, then added the IFC worker branch in SmartCheck processing.
+  Uploaded IFC content is checksum-verified, parsed server-side, converted into
+  an `ifc_evidence` processing artifact, and property-backed rows are persisted
+  as `pending_review` `normalized_quantity_rows`. If no admissible
+  property-backed quantity evidence exists, the run fails closed with
+  `IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE` after storing the blocked-element
+  artifact.
 
 Verified:
 
@@ -373,6 +379,12 @@ Verified:
   src/ifc/parser/quantity-extractor.test.ts
   src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts`
   -> 17/17 passing.
+- `pnpm exec tsx --test src/smartcheck/import/file-security.test.ts
+  src/smartcheck/import/integration-contract.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts
+  src/ifc/smartcheck-processing.test.ts` -> 21/21 passing.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
@@ -382,17 +394,15 @@ Not verified / still blocked:
   Firebase imports, BIMPlan `../types` imports, and missing `firebase/*`
   dependencies. The IFC files added in this slice are not among the reported
   errors.
-- Full `pnpm test`, production build, browser UI verification, server-side IFC
-  upload route, SmartCheck worker processing, and database-backed review flow
-  were not completed in this slice.
+- Full `pnpm test`, production build, browser UI verification, authenticated
+  upload/process route E2E, real Graphile worker execution, and database-backed
+  review/transfer flow were not completed in this slice.
 - The local sample IFC remains untracked under `ifc-document-sample/`.
 
 Next recommended IFC work:
 
-1. Implement the IFC SmartCheck worker branch that parses uploaded IFC content
-   server-side and persists the evidence artifact through the existing
-   `documents` / `document_processing_runs` / `document_processing_artifacts`
-   chain instead of browser `sessionStorage`.
+1. Add authenticated SmartCheck IFC upload/process integration tests or local
+   browser E2E to prove the route → Graphile worker → rows/artifact chain.
 2. Add QTO extraction before approved property fallback.
 3. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
    reviewed rule evidence exists.

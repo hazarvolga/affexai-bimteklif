@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, it } from "node:test";
-import { parseIfcText } from "../components/bimplan/BimIfcParser";
+import { parseIfcText } from "./parser/legacy-parser";
 import { buildIfcSmartCheckEvidenceArtifact } from "./smartcheck-evidence";
 import type { IfcParseSummary, ParsedIfcElement } from "./types";
 
