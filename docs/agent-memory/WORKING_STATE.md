@@ -537,12 +537,60 @@ Not verified / still blocked:
   review/transfer flow were not completed in this slice.
 - The local sample IFC remains untracked under `ifc-document-sample/`.
 
+### Phase - Local Docker PostgreSQL DB-Backed Verification
+
+Status: completed first pass.
+
+Local service setup:
+
+- Docker Desktop was available at `/Applications/Docker.app`, but the `docker`
+  CLI was not on `PATH`.
+- Started Docker Desktop and used the bundled CLI at
+  `/Applications/Docker.app/Contents/Resources/bin/docker`.
+- Created `teklifpro-postgres-local` from `postgres:15` with named volume
+  `teklifpro_postgres_local_data`, local port `5432`, user `hazarekiz`, and
+  database `teklifpro_local`.
+- Restored `backups/teklifpro_local_pre_smartcheck_20260719_114911.dump` into
+  the new local DB and applied current Drizzle migrations with
+  `pnpm exec drizzle-kit migrate --config=src/db/drizzle.config.ts`.
+- Post-migration smoke read showed 63 public tables, 35 Drizzle migration rows,
+  and the 3 baseline companies from the restored local backup.
+- Added local setup notes at `docs/development/local-postgres-docker.md`.
+
+Changes:
+
+- Fixed the SmartCheck IFC HTTP integration fixture so its minimal IFC STEP
+  lines match the parser contract for OwnerHistory-backed property sets,
+  property relations, storeys, and spatial containment.
+
+Verified:
+
+- DB-backed integration test subset:
+  `pnpm exec tsx --test src/server/routes/pricing.integration.test.ts
+  src/server/routes/market-intelligence.integration.test.ts
+  src/server/routes/pilot-evidence.integration.test.ts
+  src/server/routes/regulation-impact.integration.test.ts
+  src/server/routes/regulations.integration.test.ts
+  src/server/routes/source-intelligence.integration.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 8/8 passing, 0 skipped,
+  on the local Docker `teklifpro_local` database.
+- `pnpm test` -> 333/333 passing, 0 skipped, with the local Docker DB running.
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- `pnpm run build` -> passed.
+
+Not verified / still blocked:
+
+- Browser UI verification and real Graphile worker daemon execution were not
+  completed in this slice; the worker processor is still invoked
+  deterministically by the integration tests.
+- The local sample IFC remains untracked under `ifc-document-sample/`.
+
 Next recommended IFC work:
 
-1. Add authenticated SmartCheck IFC upload/process integration tests or local
-   browser E2E to prove the route → Graphile worker → rows/artifact chain.
-2. Run browser/UI verification for the IFC parser evidence policy cards once a
+1. Run browser/UI verification for the IFC parser evidence policy cards once a
    local dev server/browser automation target is available.
+2. Add a real Graphile Worker daemon smoke to prove queued jobs are picked up
+   outside the deterministic in-test processor call.
 3. Design deterministic geometry fallback acceptance rules before enabling
    geometry-derived volume/area rows.
 4. Design and test a dedicated rebar evidence path before admitting
