@@ -41,6 +41,8 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
   let runId = "";
   let generatedQuoteId = "";
   let generatedClientId = "";
+  let priceSourceId = "";
+  let snapshotId = "";
   try {
     const create = await request("/api/smartcheck/documents/uploads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fileName: "mep.csv", mimeType: "text/csv", fileSizeBytes: csv.length }) });
     assert.equal(create.status, 201);
@@ -79,10 +81,17 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     assert.equal(rows[0].findingsJson.length, 0);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/rows`, {}, tokenB)).status, 404);
     assert.equal((await request(`/api/smartcheck/rows/${rows[0].id}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved" }) })).status, 200);
+    const sourceResponse = await request("/api/pricing/sources", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sourceType: "manual_override", name: "SmartCheck manual price", authority: "Estimator", sourceDocumentIdentifier: `smartcheck-${suffix}`, sourceDocumentPayload: { rowId: rows[0].id, amount: 777, currency: "TRY" }, licenseStatus: "not_applicable" }) });
+    assert.equal(sourceResponse.status, 201);
+    const sourceBody = await sourceResponse.json() as { id: string; sourceDocumentHash: string };
+    priceSourceId = sourceBody.id;
+    const snapshotResponse = await request(`/api/pricing/sources/${priceSourceId}/snapshots`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ description: "VRF dış ünite", unit: "adet", amount: 777, currency: "TRY", positionCode: "M-001", sourceDocumentHash: sourceBody.sourceDocumentHash, confidence: 0.55 }) });
+    assert.equal(snapshotResponse.status, 201);
+    snapshotId = (await snapshotResponse.json() as { id: string }).id;
     const transfer = await request(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quotationId: quote.id, rowIds: [rows[0].id] }) });
     assert.equal(transfer.status, 200);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quotationId: quote.id, rowIds: [rows[0].id] }), }, tokenB)).status, 404);
-    const generated = await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientName: "SmartCheck Generated Client", projectName: "Generated SmartCheck Quote", rowIds: [rows[0].id] }) });
+    const generated = await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientName: "SmartCheck Generated Client", projectName: "Generated SmartCheck Quote", rowIds: [rows[0].id], overrides: { [rows[0].id]: { priceSnapshotId: snapshotId } } }) });
     assert.equal(generated.status, 201);
     const generatedBody = await generated.json() as { quotationId: string; clientId: string; transferredCount: number };
     generatedQuoteId = generatedBody.quotationId;
@@ -93,6 +102,9 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     const generatedItems = await db.select().from(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, generatedQuoteId), eq(schema.quotationItems.companyId, companyA.id)));
     assert.equal(generatedItems.length, 1);
     assert.equal(generatedItems[0].sourceQuantityRowId, rows[0].id);
+    assert.equal(generatedItems[0].priceSnapshotId, snapshotId);
+    assert.equal(generatedItems[0].priceSnapshotStatus, "attached");
+    assert.equal(Number(generatedItems[0].unitPrice), 777);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientName: "Tenant B Client", projectName: "Tenant B Quote", rowIds: [rows[0].id] }) }, tokenB)).status, 404);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
@@ -108,6 +120,8 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     if (generatedQuoteId) await db.delete(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, generatedQuoteId), eq(schema.quotationItems.companyId, companyA.id)));
     if (generatedQuoteId) await db.delete(schema.quotations).where(eq(schema.quotations.id, generatedQuoteId));
     if (generatedClientId) await db.delete(schema.clients).where(eq(schema.clients.id, generatedClientId));
+    if (snapshotId) await db.delete(schema.priceSnapshots).where(and(eq(schema.priceSnapshots.id, snapshotId), eq(schema.priceSnapshots.companyId, companyA.id)));
+    if (priceSourceId) await db.delete(schema.priceSources).where(and(eq(schema.priceSources.id, priceSourceId), eq(schema.priceSources.companyId, companyA.id)));
     await db.delete(schema.quotations).where(eq(schema.quotations.id, quote.id));
     await db.delete(schema.clients).where(eq(schema.clients.id, client.id));
     await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));

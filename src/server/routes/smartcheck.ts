@@ -281,20 +281,20 @@ export function registerSmartCheckRoutes(app: Express) {
     const transferResult = await db.transaction(async (tx) => {
       const inserts = selected.map((row) => {
         const override = overrides[row.id] ?? {};
+        const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
+        const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const quantity = Number(override.quantity ?? row.normalizedQuantity);
-        const unitPrice = Number(override.unitPrice ?? row.normalizedPrice);
-        const costUnitPrice = Number(override.costUnitPrice ?? row.normalizedPrice);
+        const unitPrice = Number(override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice);
+        const costUnitPrice = Number(override.costUnitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice ?? unitPrice);
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
         if (![quantity, unitPrice, costUnitPrice, wastePercent, vatPercent].every(Number.isFinite) || quantity <= 0 || unitPrice < 0 || costUnitPrice < 0 || wastePercent < 0 || vatPercent < 0 || vatPercent > 100) throw new Error("INVALID_TRANSFER_VALUES");
         const idempotencyKey = crypto.createHash("sha256").update(`${req.user.companyId}:${quotation.id}:${row.id}`).digest("hex");
         const item = { quantity, unitPrice, discountPercent: 0, vatPercent };
-        const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
-        const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
-          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: "document",
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
           sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: "verified", discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: "pilot-integrity-v1", transferIdempotencyKey: idempotencyKey,
@@ -376,20 +376,20 @@ export function registerSmartCheckRoutes(app: Express) {
 
       const inserts = selected.map((row) => {
         const override = overrides[row.id] ?? {};
+        const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
+        const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const quantity = Number(override.quantity ?? row.normalizedQuantity);
-        const unitPrice = Number(override.unitPrice ?? row.normalizedPrice);
-        const costUnitPrice = Number(override.costUnitPrice ?? row.normalizedPrice);
+        const unitPrice = Number(override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice);
+        const costUnitPrice = Number(override.costUnitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice ?? unitPrice);
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
         if (![quantity, unitPrice, costUnitPrice, wastePercent, vatPercent].every(Number.isFinite) || quantity <= 0 || unitPrice < 0 || costUnitPrice < 0 || wastePercent < 0 || vatPercent < 0 || vatPercent > 100) throw new Error("INVALID_TRANSFER_VALUES");
         const idempotencyKey = crypto.createHash("sha256").update(`${req.user.companyId}:${quotation.id}:${row.id}`).digest("hex");
         const item = { quantity, unitPrice, discountPercent: 0, vatPercent };
-        const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
-        const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
-          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: "document",
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
           sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: "verified", discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: "pilot-integrity-v1", transferIdempotencyKey: idempotencyKey,

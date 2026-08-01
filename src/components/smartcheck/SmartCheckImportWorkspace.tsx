@@ -66,6 +66,7 @@ type ReviewDraft = { row: Row; status: "approved" | "rejected" | "accepted_excep
 
 const mappingFields: Array<keyof ColumnMapping> = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"];
 const mappingLabels: Record<string, string> = { positionCode: "Poz No", description: "Açıklama", unit: "Birim", quantity: "Miktar", price: "Birim Fiyat", wastePercent: "Zayiat" };
+const currencies = ["TRY", "USD", "EUR"] as const;
 
 async function checksum(file: File) {
   const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
@@ -117,6 +118,7 @@ export function SmartCheckImportWorkspace() {
   const [mapping, setMapping] = useState<ColumnMapping>(MEP_MAPPING_PROFILES[0].mapping);
   const [priceSnapshots, setPriceSnapshots] = useState<PriceSnapshotOption[]>([]);
   const [snapshotByRow, setSnapshotByRow] = useState<Record<string, string>>({});
+  const [manualSnapshotDraft, setManualSnapshotDraft] = useState({ rowId: "", amount: "", currency: "TRY", sourceName: "", validUntil: "" });
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
@@ -315,6 +317,63 @@ export function SmartCheckImportWorkspace() {
     wastePercent: Number(commercial.wastePercent), vatPercent: Number(commercial.vatPercent),
   }]));
 
+  const createManualPriceSnapshot = async () => {
+    const row = reviewedRows.find((candidate) => candidate.id === manualSnapshotDraft.rowId) ?? reviewedRows[0];
+    if (!documentId || !row) return;
+    const amount = Number(manualSnapshotDraft.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return toast.error("Geçerli bir manuel birim fiyat girin.");
+    const sourceName = manualSnapshotDraft.sourceName.trim() || "SmartCheck manuel fiyat girişi";
+    const capturedAt = new Date().toISOString();
+    const sourceResponse = await fetchWithAuth("/api/pricing/sources", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceType: "manual_override",
+        name: sourceName,
+        authority: "Kullanıcı manuel fiyat girişi",
+        sourceDocumentIdentifier: `smartcheck:${documentId}:${row.id}:${Date.now()}`,
+        sourceDocumentPayload: {
+          kind: "smartcheck_manual_price",
+          documentId,
+          rowId: row.id,
+          positionCode: row.normalizedPositionCode ?? row.rawPositionCode,
+          description: row.normalizedDescription ?? row.rawDescription,
+          unit: row.normalizedUnit ?? row.rawUnit,
+          amount,
+          currency: manualSnapshotDraft.currency,
+          capturedAt,
+        },
+        licenseStatus: "not_applicable",
+        metadataJson: { smartcheckDocumentId: documentId, smartcheckRowId: row.id },
+      }),
+    });
+    const source = await readJsonBody<{ id?: string; sourceDocumentHash?: string; error?: string }>(sourceResponse);
+    if (!sourceResponse.ok || !source.id || !source.sourceDocumentHash) return toast.error(source.error ?? "Fiyat kaynağı oluşturulamadı.");
+    const snapshotResponse = await fetchWithAuth(`/api/pricing/sources/${source.id}/snapshots`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        positionCode: row.normalizedPositionCode ?? row.rawPositionCode,
+        description: row.normalizedDescription ?? row.rawDescription ?? "SmartCheck metraj kalemi",
+        unit: row.normalizedUnit ?? row.rawUnit ?? "adet",
+        amount,
+        currency: manualSnapshotDraft.currency,
+        sourceDocumentHash: source.sourceDocumentHash,
+        confidence: 0.55,
+        reviewStatus: "advisory",
+        capturedAt,
+        validUntil: manualSnapshotDraft.validUntil ? new Date(manualSnapshotDraft.validUntil).toISOString() : null,
+        metadataJson: { smartcheckDocumentId: documentId, smartcheckRowId: row.id, source: "smartcheck_manual_price" },
+      }),
+    });
+    const snapshot = await readJsonBody<PriceSnapshotOption & { error?: string }>(snapshotResponse);
+    if (!snapshotResponse.ok || !snapshot.id) return toast.error(snapshot.error ?? "Fiyat snapshot oluşturulamadı.");
+    setPriceSnapshots((current) => [snapshot, ...current.filter((candidate) => candidate.id !== snapshot.id)]);
+    setSnapshotByRow((current) => ({ ...current, [row.id]: snapshot.id }));
+    setManualSnapshotDraft((current) => ({ ...current, rowId: row.id, amount: "", sourceName }));
+    toast.success("Manuel fiyat snapshot oluşturuldu ve satıra bağlandı.");
+  };
+
   const transfer = async () => {
     if (!documentId || !quotationId) return;
     const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
@@ -405,7 +464,25 @@ export function SmartCheckImportWorkspace() {
         <div className="mt-3 flex justify-end gap-2"><Button variant="outline" onClick={() => setReviewDraft(null)}>İptal</Button><Button onClick={submitReviewDraft} className="bg-amber-600 text-white hover:bg-amber-700">Kararı kaydet</Button></div>
       </div>}
 
-      {reviewedRows.length > 0 && priceSnapshots.length > 0 && <div className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4"><div className="mb-3"><p className="text-xs font-bold text-sky-200">Fiyat kanıtı eşlemesi</p><p className="mt-1 text-[10px] text-zinc-500">Snapshot seçimi opsiyoneldir; seçilen kaynak hash’i aktarımda kalem kanıtına bağlanır. Fiyat kilidi için tüm kalemler kanıtlı olmalıdır.</p></div><div className="grid gap-2 md:grid-cols-2">{reviewedRows.map((row) => <label key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400"><span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span><select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300"><option value="">Snapshot seç</option>{snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}</select></label>)}</div></div>}
+      {reviewedRows.length > 0 && <div className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
+        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+          <div><p className="text-xs font-bold text-sky-200">Fiyat kanıtı / katalog tohumu</p><p className="mt-1 text-[10px] text-zinc-500">Fiyat bilinmiyorsa sistem uydurmaz. Bildiğiniz fiyatı manuel snapshot olarak kaydedip satıra bağlayabilirsiniz; aktarımda bu snapshot birim fiyat olarak uygulanır.</p></div>
+          <Badge className="w-fit border-sky-500/30 bg-sky-500/10 text-sky-300">{priceSnapshots.length} snapshot</Badge>
+        </div>
+        <div className="grid gap-2 md:grid-cols-5">
+          <select aria-label="Manuel fiyat satırı" value={manualSnapshotDraft.rowId || reviewedRows[0]?.id || ""} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, rowId: event.target.value }))} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 md:col-span-2">
+            {reviewedRows.map((row) => <option key={row.id} value={row.id}>{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {(row.normalizedDescription || row.rawDescription || "Kalem").slice(0, 48)}</option>)}
+          </select>
+          <Input aria-label="Manuel birim fiyat" inputMode="decimal" placeholder="Birim fiyat" value={manualSnapshotDraft.amount} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, amount: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+          <select aria-label="Manuel fiyat para birimi" value={manualSnapshotDraft.currency} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, currency: event.target.value }))} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200">{currencies.map((currency) => <option key={currency} value={currency}>{currency}</option>)}</select>
+          <Button onClick={createManualPriceSnapshot} className="bg-sky-600 text-white hover:bg-sky-700">Fiyat kanıtı oluştur</Button>
+        </div>
+        <div className="mt-2 grid gap-2 md:grid-cols-2">
+          <Input aria-label="Manuel fiyat kaynak adı" placeholder="Kaynak adı (örn. tedarikçi teklifi / son teklif hafızası)" value={manualSnapshotDraft.sourceName} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, sourceName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+          <Input aria-label="Manuel fiyat geçerlilik tarihi" type="date" value={manualSnapshotDraft.validUntil} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, validUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        </div>
+        <div className="mt-4 grid gap-2 md:grid-cols-2">{reviewedRows.map((row) => <label key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400"><span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span><select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300"><option value="">Snapshot seç</option>{snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}</select></label>)}</div>
+      </div>}
 
       {queue.length > 0 && <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">İşleme kuyruğu</p><p className="mt-1 text-[10px] text-zinc-500">Tenant içindeki son SmartCheck işlemleri; başarısız run yalnızca açık retry ile tekrar başlar.</p></div><Button size="sm" variant="ghost" onClick={loadQueue}><RefreshCw size={13} />Yenile</Button></div><div className="grid gap-2 md:grid-cols-2">{queue.slice(0, 6).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 p-3"><div className="min-w-0"><p className="truncate text-xs text-zinc-300">{item.fileName ?? "Dosya"}</p><p className="mt-1 text-[10px] text-zinc-500">{item.progressMessage ?? item.currentStage} · %{item.progressPercent}</p>{item.errorCode && <p className="mt-1 truncate text-[10px] text-rose-300" title={item.errorMessage ?? item.errorCode}>{item.errorCode}</p>}</div><div className="flex shrink-0 flex-wrap items-center justify-end gap-2"><Badge className={item.status === "failed" ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : item.status === "succeeded" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-sky-500/30 bg-sky-500/10 text-sky-300"}>{item.status}</Badge>{item.status === "succeeded" && <Button size="sm" variant="outline" onClick={() => openQueueDocument(item.documentId, item.fileName, item.status)}>Sonuçları aç</Button>}{item.status === "failed" && <Button size="sm" variant="outline" onClick={() => retry(item.documentId)}>Retry</Button>}</div></div>)}</div></div>}
 

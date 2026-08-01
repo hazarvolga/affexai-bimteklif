@@ -717,6 +717,48 @@ Not verified / still open:
 - The dev server must be restarted after adding new backend routes; Vite HMR can
   refresh the frontend while the Express route table remains stale.
 
+### Phase - SmartCheck Manual Price Snapshot Seed
+
+Status: completed first pass.
+
+Changes:
+
+- Kept the price catalog evidence-bound: SmartCheck still does not invent prices
+  from IFC. The first catalog source path is a user-entered manual price
+  snapshot with `manual_override` source provenance.
+- `/app/smartcheck` now exposes a post-review "Fiyat kanıtı / katalog tohumu"
+  panel where the user can select a reviewed row, enter a unit price/currency,
+  optional source name and validity date, then create an advisory price
+  snapshot from the existing pricing APIs.
+- Newly created manual snapshots are immediately selected for the reviewed row
+  so the subsequent quote transfer carries both the snapshot ID and the unit
+  price.
+- SmartCheck transfer to an existing or new draft quotation now uses the
+  selected price snapshot amount as `unitPrice`/default `costUnitPrice` when no
+  explicit override is supplied; transferred items are marked
+  `priceSnapshotStatus=attached` and `priceSource=snapshot`.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- Focused DB-backed tests passed:
+  `pnpm exec tsx --test src/server/routes/smartcheck.integration.test.ts src/server/routes/pricing.integration.test.ts`.
+- Direct local API verification on `http://localhost:3013` created a
+  `manual_override` source, advisory snapshot, SmartCheck draft quotation, and
+  confirmed the transferred item had `unitPrice=4321.00`,
+  `priceSnapshotStatus=attached`, and the created `priceSnapshotId`.
+- Headless browser verification on `/app/smartcheck` created a manual price
+  snapshot from the rendered UI, transferred reviewed IFC rows to a new draft
+  quotation, opened the quote detail URL, and confirmed the `2468` price was
+  visible.
+
+Not verified / still open:
+
+- CSV/Excel bulk price catalog import UI is not implemented yet; this phase only
+  covers manual row-level catalog seeding.
+- Automatic fuzzy matching from description/unit/position to best historical
+  price is not implemented yet; current UI lists exact/general snapshot options.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
