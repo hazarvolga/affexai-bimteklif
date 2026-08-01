@@ -671,6 +671,52 @@ Not verified / still open:
   `TENANT_DOCUMENT_RUN_MISMATCH`; new IFC jobs still completed successfully.
   A later maintenance phase can add safe stale/invalid job cleanup tooling.
 
+### Phase - SmartCheck Human Review To Draft Quote Creation
+
+Status: completed first pass.
+
+Changes:
+
+- Confirmed current behavior: SmartCheck does not auto-create a quotation before
+  human review. It transfers only `approved` or `accepted_exception` rows.
+- Added a backend contract and endpoint for creating a new draft quotation from
+  human-reviewed SmartCheck rows:
+  `/api/smartcheck/documents/:id/transfer-to-new-quotation`.
+- The new endpoint can use an existing `clientId` or create a controlled
+  `clientName` record, then creates a draft quotation and transfers selected
+  reviewed rows with the same quantity/price evidence records used by the
+  existing transfer endpoint.
+- `/app/smartcheck` now shows two post-review paths: create a new draft quote
+  and transfer, or transfer to an existing draft quote.
+- Replaced `window.prompt` review actions with an inline human-review form for
+  approve/correct, accepted exception, and rejection decisions.
+- Completed queue cards now expose `Sonuçları aç`, so a finished IFC processing
+  run can be reopened and its persisted evidence rows can be reviewed without
+  re-uploading the file.
+- The frontend transfer actions now tolerate empty/non-JSON backend responses
+  and show a user-facing toast instead of throwing a blank-page style error.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- Focused contract + HTTP/PostgreSQL SmartCheck tests passed:
+  `pnpm exec tsx --test src/contracts/smartcheck.test.ts src/server/routes/smartcheck.integration.test.ts`.
+- Browser automation on `/app/smartcheck` with the real local IFC file confirmed:
+  completed queue item can be opened, an IFC row can be accepted as a justified
+  exception from the inline review form, the post-review transfer panel appears,
+  a new draft quotation is created, and `Teklif taslağını aç` opens the quote
+  detail page without a blank page.
+- Direct local API verification on `http://localhost:3013` confirmed
+  `/api/smartcheck/documents/:id/transfer-to-new-quotation` returns `201` with a
+  generated `quotationId`, `clientId`, and one transferred IFC item.
+
+Not verified / still open:
+
+- Bulk review / multi-select transfer is not implemented; the current pilot UI
+  still reviews rows one by one before transferring all reviewed rows.
+- The dev server must be restarted after adding new backend routes; Vite HMR can
+  refresh the frontend while the Express route table remains stale.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

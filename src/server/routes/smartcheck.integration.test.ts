@@ -39,6 +39,8 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
   const checksum = crypto.createHash("sha256").update(csv).digest("hex");
   let documentId = "";
   let runId = "";
+  let generatedQuoteId = "";
+  let generatedClientId = "";
   try {
     const create = await request("/api/smartcheck/documents/uploads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fileName: "mep.csv", mimeType: "text/csv", fileSizeBytes: csv.length }) });
     assert.equal(create.status, 201);
@@ -80,9 +82,22 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     const transfer = await request(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quotationId: quote.id, rowIds: [rows[0].id] }) });
     assert.equal(transfer.status, 200);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quotationId: quote.id, rowIds: [rows[0].id] }), }, tokenB)).status, 404);
+    const generated = await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientName: "SmartCheck Generated Client", projectName: "Generated SmartCheck Quote", rowIds: [rows[0].id] }) });
+    assert.equal(generated.status, 201);
+    const generatedBody = await generated.json() as { quotationId: string; clientId: string; transferredCount: number };
+    generatedQuoteId = generatedBody.quotationId;
+    generatedClientId = generatedBody.clientId;
+    assert.equal(generatedBody.transferredCount, 1);
+    const [generatedQuote] = await db.select().from(schema.quotations).where(and(eq(schema.quotations.id, generatedQuoteId), eq(schema.quotations.companyId, companyA.id)));
+    assert.equal(generatedQuote.projectName, "Generated SmartCheck Quote");
+    const generatedItems = await db.select().from(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, generatedQuoteId), eq(schema.quotationItems.companyId, companyA.id)));
+    assert.equal(generatedItems.length, 1);
+    assert.equal(generatedItems[0].sourceQuantityRowId, rows[0].id);
+    assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientName: "Tenant B Client", projectName: "Tenant B Quote", rowIds: [rows[0].id] }) }, tokenB)).status, 404);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.companyId, companyA.id), eq(schema.quotationItemEvidence.quotationId, quote.id)));
+    if (generatedQuoteId) await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.companyId, companyA.id), eq(schema.quotationItemEvidence.quotationId, generatedQuoteId)));
     if (runId) await db.delete(schema.normalizedQuantityRows).where(and(eq(schema.normalizedQuantityRows.processingRunId, runId), eq(schema.normalizedQuantityRows.companyId, companyA.id)));
     if (documentId) {
       await db.delete(schema.documentProcessingArtifacts).where(and(eq(schema.documentProcessingArtifacts.documentId, documentId), eq(schema.documentProcessingArtifacts.companyId, companyA.id)));
@@ -90,6 +105,9 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
       await db.delete(schema.documents).where(and(eq(schema.documents.id, documentId), eq(schema.documents.companyId, companyA.id)));
     }
     await db.delete(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, quote.id), eq(schema.quotationItems.companyId, companyA.id)));
+    if (generatedQuoteId) await db.delete(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, generatedQuoteId), eq(schema.quotationItems.companyId, companyA.id)));
+    if (generatedQuoteId) await db.delete(schema.quotations).where(eq(schema.quotations.id, generatedQuoteId));
+    if (generatedClientId) await db.delete(schema.clients).where(eq(schema.clients.id, generatedClientId));
     await db.delete(schema.quotations).where(eq(schema.quotations.id, quote.id));
     await db.delete(schema.clients).where(eq(schema.clients.id, client.id));
     await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));

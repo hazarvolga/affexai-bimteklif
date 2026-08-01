@@ -6,6 +6,7 @@ import {
   smartcheckMappingRequestSchema,
   smartcheckRowReviewRequestSchema,
   smartcheckTransferRequestSchema,
+  smartcheckTransferToNewQuotationRequestSchema,
   smartcheckUploadRequestSchema,
 } from "./smartcheck";
 
@@ -16,6 +17,7 @@ test("SmartCheck transport contracts are versioned and bounded", () => {
   assert.equal(smartcheckMappingRequestSchema.safeParse({ description: "Açıklama", quantity: "Miktar", headerRow: "2" }).success, true);
   assert.equal(smartcheckRowReviewRequestSchema.safeParse({ status: "accepted_exception", notes: "Reviewer gerekçesi", correction: { quantity: 2 } }).success, true);
   assert.equal(smartcheckTransferRequestSchema.safeParse({ quotationId: "quote-1", rowIds: ["row-1"], overrides: { "row-1": { unitPrice: "100" } } }).success, true);
+  assert.equal(smartcheckTransferToNewQuotationRequestSchema.safeParse({ clientName: "Pilot müşteri", projectName: "IFC aktarımı", rowIds: ["row-1"], overrides: { "row-1": { unitPrice: "100" } } }).success, true);
 });
 
 test("SmartCheck transport contracts reject malformed or oversized boundary values", () => {
@@ -25,4 +27,6 @@ test("SmartCheck transport contracts reject malformed or oversized boundary valu
   assert.equal(smartcheckMappingRequestSchema.safeParse({ headerRow: 101 }).success, false);
   assert.equal(smartcheckRowReviewRequestSchema.safeParse({ status: "approved", correction: { unknown: "field" } }).success, false);
   assert.equal(smartcheckTransferRequestSchema.safeParse({ quotationId: "quote-1", rowIds: [] }).success, false);
+  assert.equal(smartcheckTransferToNewQuotationRequestSchema.safeParse({ projectName: "IFC aktarımı", rowIds: ["row-1"] }).success, false);
+  assert.equal(smartcheckTransferToNewQuotationRequestSchema.safeParse({ clientName: "Pilot müşteri", rowIds: [] }).success, false);
 });

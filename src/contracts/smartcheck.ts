@@ -63,8 +63,23 @@ export const smartcheckTransferRequestSchema = z.object({
   overrides: z.record(transferOverrideSchema).optional(),
 }).passthrough();
 
+export const smartcheckTransferToNewQuotationRequestSchema = z.object({
+  clientId: z.string().trim().uuid().optional(),
+  clientName: boundedText(200).optional(),
+  projectName: boundedText(255).optional(),
+  quoteNumber: boundedText(120).optional(),
+  currency: z.enum(["TRY", "USD", "EUR"]).optional(),
+  expiryDays: z.coerce.number().int().min(1).max(365).optional(),
+  rowIds: z.array(z.string().trim().min(1)).min(1).max(5000),
+  overrides: z.record(transferOverrideSchema).optional(),
+}).passthrough().refine((value) => Boolean(value.clientId || value.clientName), {
+  message: "clientId veya clientName zorunludur.",
+  path: ["clientName"],
+});
+
 export type SmartCheckUploadRequest = z.infer<typeof smartcheckUploadRequestSchema>;
 export type SmartCheckCompleteRequest = z.infer<typeof smartcheckCompleteRequestSchema>;
 export type SmartCheckMappingRequest = z.infer<typeof smartcheckMappingRequestSchema>;
 export type SmartCheckRowReviewRequest = z.infer<typeof smartcheckRowReviewRequestSchema>;
 export type SmartCheckTransferRequest = z.infer<typeof smartcheckTransferRequestSchema>;
+export type SmartCheckTransferToNewQuotationRequest = z.infer<typeof smartcheckTransferToNewQuotationRequestSchema>;

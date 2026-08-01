@@ -62,6 +62,7 @@ type QueueItem = {
 };
 
 type PriceSnapshotOption = { id: string; positionCode: string | null; description: string; unit: string; amount: string; currency: string; stale: boolean; reviewStatus: string };
+type ReviewDraft = { row: Row; status: "approved" | "rejected" | "accepted_exception"; notes: string; quantity: string };
 
 const mappingFields: Array<keyof ColumnMapping> = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"];
 const mappingLabels: Record<string, string> = { positionCode: "Poz No", description: "Açıklama", unit: "Birim", quantity: "Miktar", price: "Birim Fiyat", wastePercent: "Zayiat" };
@@ -85,6 +86,16 @@ function statusLabel(status: string) {
   return ({ pending_review: "İnceleme bekliyor", approved: "Onaylandı", accepted_exception: "İstisna onaylı", rejected: "Reddedildi" } as Record<string, string>)[status] ?? status;
 }
 
+async function readJsonBody<T extends Record<string, unknown> = Record<string, unknown>>(response: Response): Promise<T> {
+  const text = await response.text();
+  if (!text) return {} as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return { error: "Sunucu JSON olmayan bir cevap döndürdü." } as unknown as T;
+  }
+}
+
 export function SmartCheckImportWorkspace() {
   const [file, setFile] = useState<File | null>(null);
   const [documentId, setDocumentId] = useState<string | null>(null);
@@ -102,9 +113,11 @@ export function SmartCheckImportWorkspace() {
   const [transferredQuotationId, setTransferredQuotationId] = useState<string | null>(null);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [commercial, setCommercial] = useState({ costUnitPrice: "", wastePercent: "0", vatPercent: "20" });
+  const [newQuotationDraft, setNewQuotationDraft] = useState({ clientName: "", projectName: "" });
   const [mapping, setMapping] = useState<ColumnMapping>(MEP_MAPPING_PROFILES[0].mapping);
   const [priceSnapshots, setPriceSnapshots] = useState<PriceSnapshotOption[]>([]);
   const [snapshotByRow, setSnapshotByRow] = useState<Record<string, string>>({});
+  const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
   const polling = useRef<number | null>(null);
@@ -138,6 +151,17 @@ export function SmartCheckImportWorkspace() {
   const loadRows = async (id: string) => {
     const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/rows`);
     if (response.ok) setRows(await response.json());
+  };
+
+  const openQueueDocument = async (id: string, fileName: string | null, status: string) => {
+    setDocumentId(id);
+    setPreview(null);
+    setRows([]);
+    setTransferredQuotationId(null);
+    setStage(status === "succeeded" ? "Sonuçlar açılıyor" : "İşleme durumu açılıyor");
+    await loadRows(id);
+    setStage(status === "succeeded" ? "IFC property evidence insan incelemesi bekliyor" : "Satırlar yüklendi");
+    if (fileName?.toLocaleLowerCase("tr-TR").endsWith(".ifc")) setFile(null);
   };
 
   const loadPreview = async (id: string) => {
@@ -264,28 +288,65 @@ export function SmartCheckImportWorkspace() {
     poll(id);
   };
 
-  const review = async (row: Row, status: "approved" | "rejected" | "accepted_exception", correction?: Record<string, string>) => {
-    const notes = status === "rejected" ? window.prompt("Red gerekçesi", "Kaynak satır düzeltilmek üzere reddedildi.")?.trim() : status === "accepted_exception" ? window.prompt("İstisna gerekçesi")?.trim() : undefined;
-    if ((status === "accepted_exception" || status === "rejected") && !notes) return;
-    const response = await fetchWithAuth(`/api/smartcheck/rows/${row.id}/review`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, notes, correction }) });
+  const openReviewDraft = (row: Row, status: ReviewDraft["status"]) => {
+    setReviewDraft({
+      row,
+      status,
+      notes: status === "rejected" ? "Kaynak satır düzeltilmek üzere reddedildi." : "",
+      quantity: row.rawQuantity ?? row.normalizedQuantity ?? "",
+    });
+  };
+
+  const submitReviewDraft = async () => {
+    if (!reviewDraft) return;
+    const notes = reviewDraft.notes.trim();
+    if ((reviewDraft.status === "accepted_exception" || reviewDraft.status === "rejected") && !notes) return toast.error("İstisna veya red kararı için gerekçe zorunludur.");
+    const correction = reviewDraft.status === "approved" && reviewDraft.quantity.trim() ? { quantity: reviewDraft.quantity.trim() } : undefined;
+    const response = await fetchWithAuth(`/api/smartcheck/rows/${reviewDraft.row.id}/review`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: reviewDraft.status, notes: notes || undefined, correction }) });
     const body = await response.json();
     if (!response.ok) return toast.error(body.error ?? "Review kararı kaydedilemedi.");
+    setReviewDraft(null);
     if (documentId) await loadRows(documentId);
   };
+
+  const transferOverrides = (reviewed: Row[]) => Object.fromEntries(reviewed.map((row) => [row.id, {
+    ...(commercial.costUnitPrice ? { costUnitPrice: Number(commercial.costUnitPrice) } : {}),
+    ...(snapshotByRow[row.id] ? { priceSnapshotId: snapshotByRow[row.id] } : {}),
+    wastePercent: Number(commercial.wastePercent), vatPercent: Number(commercial.vatPercent),
+  }]));
 
   const transfer = async () => {
     if (!documentId || !quotationId) return;
     const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
-    const overrides = Object.fromEntries(reviewed.map((row) => [row.id, {
-      ...(commercial.costUnitPrice ? { costUnitPrice: Number(commercial.costUnitPrice) } : {}),
-      ...(snapshotByRow[row.id] ? { priceSnapshotId: snapshotByRow[row.id] } : {}),
-      wastePercent: Number(commercial.wastePercent), vatPercent: Number(commercial.vatPercent),
-    }]));
-    const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quotationId, rowIds: reviewed.map((row) => row.id), overrides }) });
-    const body = await response.json();
+    const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quotationId, rowIds: reviewed.map((row) => row.id), overrides: transferOverrides(reviewed) }) });
+    const body = await readJsonBody<{ error?: string; quotationId?: string; transferredCount?: number }>(response);
     if (!response.ok) return toast.error(body.error ?? "Aktarım başarısız.");
+    if (!body.quotationId) return toast.error("Aktarım tamamlandı ancak teklif kimliği alınamadı.");
     setTransferredQuotationId(body.quotationId);
     toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
+  };
+
+  const createQuotationAndTransfer = async () => {
+    if (!documentId || !newQuotationDraft.clientName.trim()) return;
+    const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
+    const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientName: newQuotationDraft.clientName.trim(),
+        projectName: newQuotationDraft.projectName.trim() || undefined,
+        rowIds: reviewed.map((row) => row.id),
+        overrides: transferOverrides(reviewed),
+      }),
+    });
+    const body = await readJsonBody<{ error?: string; quotationId?: string; transferredCount?: number }>(response);
+    if (!response.ok) return toast.error(body.error ?? "Yeni taslak teklif oluşturulamadı.");
+    if (!body.quotationId) return toast.error("Taslak oluşturuldu ancak teklif kimliği alınamadı.");
+    setTransferredQuotationId(body.quotationId);
+    setQuotationId(body.quotationId);
+    const quotesResponse = await fetchWithAuth("/api/quotations");
+    if (quotesResponse.ok) setQuotes(await quotesResponse.json());
+    toast.success(`${body.transferredCount} onaylı satırla yeni taslak teklif oluşturuldu.`);
   };
 
   const activeSheet = preview?.sheets.find((sheet) => sheet.name === selectedSheet) ?? preview?.sheets[0];
@@ -330,15 +391,40 @@ export function SmartCheckImportWorkspace() {
 
         <div className="space-y-4 overflow-auto rounded-2xl border border-zinc-800">
           {preview && !rows.length && activeSheet && <div className="border-b border-zinc-800 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">Kaynak önizleme · {activeSheet.name}</p><p className="mt-1 text-[10px] text-zinc-500">{activeSheet.rowCount} satır · {activeSheet.columnCount} kolon · Önerilen eşleme güvenli olmayan taslaktır.</p></div>{activeSheet.formulaCells.length > 0 && <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-300">{activeSheet.formulaCells.length} formül hücresi</Badge>}</div><div className="overflow-auto rounded-xl border border-zinc-900"><table className="w-full min-w-[640px] text-left text-[11px]"><tbody>{activeSheet.sampleRows.map((row, rowIndex) => <tr key={`${rowIndex}-${row.join("|")}`} className={rowIndex === Number(headerRow) - 1 ? "bg-orange-500/10 text-orange-200" : "border-t border-zinc-900 text-zinc-400"}>{row.map((value, columnIndex) => <td key={`${rowIndex}-${columnIndex}`} className="max-w-48 truncate p-2" title={value}>{value || "—"}</td>)}</tr>)}</tbody></table></div></div>}
-          {rows.length === 0 && !preview && !documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><ShieldAlert />Önce kaynak dosya yükleyin; ardından normalize edilmiş satırlar ve kanıtlar burada görünecek.</div> : rows.length === 0 && !preview && documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><Loader2 className="animate-spin text-sky-400" size={18} />IFC kanıt satırları backend kuyruğunda işleniyor. Worker tamamlandığında property/QTO kaynaklı review satırları burada görünecek.</div> : rows.length === 0 && previewBusy ? <div className="flex min-h-32 items-center justify-center gap-2 p-8 text-xs text-zinc-500"><Loader2 className="animate-spin" size={16} />Önizleme hazırlanıyor…</div> : rows.length === 0 && preview ? <div className="flex items-center gap-2 p-4 text-xs text-zinc-500"><Eye size={14} className="text-sky-400" />Önizlemeyi kontrol edin; işlem başladığında normalize edilmiş sonuçlar burada görünecek.</div> : <table className="w-full min-w-[900px] text-left text-xs"><thead className="bg-zinc-900 text-zinc-500"><tr><th className="p-3">Kaynak</th><th className="p-3">Poz / Açıklama</th><th className="p-3">Miktar</th><th className="p-3">Bulgular</th><th className="p-3">Karar</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-zinc-900 align-top"><td className="p-3 font-mono text-orange-400">{row.sheetName}!{row.sourceCellRange}<div className="mt-1 text-[10px] text-zinc-600">satır {row.sourceRowNumber}</div></td><td className="p-3 text-zinc-300"><b>{row.rawPositionCode || "Poz yok"}</b><div className="text-zinc-500">{row.rawDescription}</div><Badge className="mt-2 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-400">{Math.round(Number(row.mappingConfidence) * 100)}% eşleme</Badge></td><td className="p-3 text-zinc-300">{row.normalizedQuantity ?? row.rawQuantity} {row.normalizedUnit ?? row.rawUnit}</td><td className="p-3">{row.findingsJson.length ? row.findingsJson.map((finding) => <div key={finding.code} title={`${finding.ruleVersion}: ${finding.suggestion}`} className="mb-1 text-amber-400">{finding.message}</div>) : <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Bulgu yok</span>}</td><td className="p-3"><div className="mb-2 text-[10px] text-zinc-500">{statusLabel(row.reviewStatus)}</div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={row.findingsJson.length > 0 || row.reviewStatus === "approved"} onClick={() => review(row, "approved")}>Onayla</Button>{row.findingsJson.length > 0 && <Button size="sm" variant="outline" onClick={() => { const quantity = window.prompt("Düzeltilmiş miktar", row.rawQuantity ?? ""); if (quantity !== null) review(row, "approved", { quantity }); }}>Miktarı düzelt</Button>}<Button size="sm" variant="outline" onClick={() => review(row, "accepted_exception")}>İstisna</Button><Button size="sm" variant="outline" onClick={() => review(row, "rejected")}>Reddet</Button><Button size="sm" variant="ghost" onClick={() => setExpandedRowId((current) => current === row.id ? null : row.id)}><ChevronDown size={13} className={expandedRowId === row.id ? "rotate-180" : ""} />Kanıt</Button></div></td></tr>).flatMap((rowElement, index) => { const row = rows[index]; return expandedRowId === row.id ? [rowElement, <tr key={`${row.id}-evidence`} className="border-t border-sky-500/10 bg-sky-500/[0.03]"><td colSpan={5} className="p-4"><div className="grid gap-4 md:grid-cols-3"><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-400">Kaynak değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.rawPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.rawDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.rawUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.rawQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.rawPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">Normalize değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.normalizedPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.normalizedDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.normalizedUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.normalizedQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.normalizedPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-orange-400">Kural ve inceleme</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Durum</dt><dd>{statusLabel(row.reviewStatus)}</dd></div><div className="flex justify-between gap-3"><dt>İnceleme</dt><dd>{row.reviewedAt ? new Date(row.reviewedAt).toLocaleString("tr-TR") : "Bekliyor"}</dd></div><div className="flex justify-between gap-3"><dt>Not</dt><dd>{row.reviewerNotes || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Formül</dt><dd>{Object.keys(row.formulaJson ?? {}).length ? Object.entries(row.formulaJson).map(([cell, formula]) => <span key={cell} className="block font-mono text-amber-300">{cell}: {formula}</span>) : "Yok"}</dd></div></dl>{row.findingsJson.map((finding) => <p key={finding.code} className="mt-2 text-[10px] text-amber-300">{finding.code} · {finding.ruleVersion}<br />{finding.suggestion}</p>)}</div></div></td></tr>] : [rowElement]; })}</tbody></table>}
+          {rows.length === 0 && !preview && !documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><ShieldAlert />Önce kaynak dosya yükleyin; ardından normalize edilmiş satırlar ve kanıtlar burada görünecek.</div> : rows.length === 0 && !preview && documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><Loader2 className="animate-spin text-sky-400" size={18} />IFC kanıt satırları backend kuyruğunda işleniyor. Worker tamamlandığında property/QTO kaynaklı review satırları burada görünecek.</div> : rows.length === 0 && previewBusy ? <div className="flex min-h-32 items-center justify-center gap-2 p-8 text-xs text-zinc-500"><Loader2 className="animate-spin" size={16} />Önizleme hazırlanıyor…</div> : rows.length === 0 && preview ? <div className="flex items-center gap-2 p-4 text-xs text-zinc-500"><Eye size={14} className="text-sky-400" />Önizlemeyi kontrol edin; işlem başladığında normalize edilmiş sonuçlar burada görünecek.</div> : <table className="w-full min-w-[900px] text-left text-xs"><thead className="bg-zinc-900 text-zinc-500"><tr><th className="p-3">Kaynak</th><th className="p-3">Poz / Açıklama</th><th className="p-3">Miktar</th><th className="p-3">Bulgular</th><th className="p-3">Karar</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-zinc-900 align-top"><td className="p-3 font-mono text-orange-400">{row.sheetName}!{row.sourceCellRange}<div className="mt-1 text-[10px] text-zinc-600">satır {row.sourceRowNumber}</div></td><td className="p-3 text-zinc-300"><b>{row.rawPositionCode || "Poz yok"}</b><div className="text-zinc-500">{row.rawDescription}</div><Badge className="mt-2 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-400">{Math.round(Number(row.mappingConfidence) * 100)}% eşleme</Badge></td><td className="p-3 text-zinc-300">{row.normalizedQuantity ?? row.rawQuantity} {row.normalizedUnit ?? row.rawUnit}</td><td className="p-3">{row.findingsJson.length ? row.findingsJson.map((finding) => <div key={finding.code} title={`${finding.ruleVersion}: ${finding.suggestion}`} className="mb-1 text-amber-400">{finding.message}</div>) : <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Bulgu yok</span>}</td><td className="p-3"><div className="mb-2 text-[10px] text-zinc-500">{statusLabel(row.reviewStatus)}</div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={row.findingsJson.length > 0 || row.reviewStatus === "approved"} onClick={() => openReviewDraft(row, "approved")}>Onayla</Button>{row.findingsJson.length > 0 && <Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "approved")}>Miktarı düzelt</Button>}<Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "accepted_exception")}>İstisna</Button><Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "rejected")}>Reddet</Button><Button size="sm" variant="ghost" onClick={() => setExpandedRowId((current) => current === row.id ? null : row.id)}><ChevronDown size={13} className={expandedRowId === row.id ? "rotate-180" : ""} />Kanıt</Button></div></td></tr>).flatMap((rowElement, index) => { const row = rows[index]; return expandedRowId === row.id ? [rowElement, <tr key={`${row.id}-evidence`} className="border-t border-sky-500/10 bg-sky-500/[0.03]"><td colSpan={5} className="p-4"><div className="grid gap-4 md:grid-cols-3"><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-400">Kaynak değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.rawPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.rawDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.rawUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.rawQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.rawPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">Normalize değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.normalizedPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.normalizedDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.normalizedUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.normalizedQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.normalizedPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-orange-400">Kural ve inceleme</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Durum</dt><dd>{statusLabel(row.reviewStatus)}</dd></div><div className="flex justify-between gap-3"><dt>İnceleme</dt><dd>{row.reviewedAt ? new Date(row.reviewedAt).toLocaleString("tr-TR") : "Bekliyor"}</dd></div><div className="flex justify-between gap-3"><dt>Not</dt><dd>{row.reviewerNotes || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Formül</dt><dd>{Object.keys(row.formulaJson ?? {}).length ? Object.entries(row.formulaJson).map(([cell, formula]) => <span key={cell} className="block font-mono text-amber-300">{cell}: {formula}</span>) : "Yok"}</dd></div></dl>{row.findingsJson.map((finding) => <p key={finding.code} className="mt-2 text-[10px] text-amber-300">{finding.code} · {finding.ruleVersion}<br />{finding.suggestion}</p>)}</div></div></td></tr>] : [rowElement]; })}</tbody></table>}
         </div>
       </div>
 
+      {reviewDraft && <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+          <div><p className="text-xs font-bold text-amber-200">Review kararı · {statusLabel(reviewDraft.status)}</p><p className="mt-1 text-[10px] text-zinc-500">{reviewDraft.row.sheetName}!{reviewDraft.row.sourceCellRange} · {reviewDraft.row.normalizedDescription ?? reviewDraft.row.rawDescription ?? "Metraj kalemi"}</p></div>
+          <Button size="sm" variant="ghost" onClick={() => setReviewDraft(null)}>Vazgeç</Button>
+        </div>
+        {reviewDraft.status === "approved" && <Input aria-label="Review miktar düzeltmesi" placeholder="Düzeltilmiş miktar" value={reviewDraft.quantity} onChange={(event) => setReviewDraft((value) => value ? { ...value, quantity: event.target.value } : value)} className="mb-3 border-zinc-800 bg-zinc-950" />}
+        <textarea aria-label="Review gerekçesi" placeholder={reviewDraft.status === "accepted_exception" ? "İstisna gerekçesi zorunlu" : reviewDraft.status === "rejected" ? "Red gerekçesi zorunlu" : "Review notu (opsiyonel)"} value={reviewDraft.notes} onChange={(event) => setReviewDraft((value) => value ? { ...value, notes: event.target.value } : value)} className="min-h-24 w-full rounded-md border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-200 outline-none focus:border-amber-500/60" />
+        <div className="mt-3 flex justify-end gap-2"><Button variant="outline" onClick={() => setReviewDraft(null)}>İptal</Button><Button onClick={submitReviewDraft} className="bg-amber-600 text-white hover:bg-amber-700">Kararı kaydet</Button></div>
+      </div>}
+
       {reviewedRows.length > 0 && priceSnapshots.length > 0 && <div className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4"><div className="mb-3"><p className="text-xs font-bold text-sky-200">Fiyat kanıtı eşlemesi</p><p className="mt-1 text-[10px] text-zinc-500">Snapshot seçimi opsiyoneldir; seçilen kaynak hash’i aktarımda kalem kanıtına bağlanır. Fiyat kilidi için tüm kalemler kanıtlı olmalıdır.</p></div><div className="grid gap-2 md:grid-cols-2">{reviewedRows.map((row) => <label key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400"><span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span><select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300"><option value="">Snapshot seç</option>{snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}</select></label>)}</div></div>}
 
-      {queue.length > 0 && <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">İşleme kuyruğu</p><p className="mt-1 text-[10px] text-zinc-500">Tenant içindeki son SmartCheck işlemleri; başarısız run yalnızca açık retry ile tekrar başlar.</p></div><Button size="sm" variant="ghost" onClick={loadQueue}><RefreshCw size={13} />Yenile</Button></div><div className="grid gap-2 md:grid-cols-2">{queue.slice(0, 6).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 p-3"><div className="min-w-0"><p className="truncate text-xs text-zinc-300">{item.fileName ?? "Dosya"}</p><p className="mt-1 text-[10px] text-zinc-500">{item.progressMessage ?? item.currentStage} · %{item.progressPercent}</p>{item.errorCode && <p className="mt-1 truncate text-[10px] text-rose-300" title={item.errorMessage ?? item.errorCode}>{item.errorCode}</p>}</div><div className="flex shrink-0 items-center gap-2"><Badge className={item.status === "failed" ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : item.status === "succeeded" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-sky-500/30 bg-sky-500/10 text-sky-300"}>{item.status}</Badge>{item.status === "failed" && <Button size="sm" variant="outline" onClick={() => retry(item.documentId)}>Retry</Button>}</div></div>)}</div></div>}
+      {queue.length > 0 && <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">İşleme kuyruğu</p><p className="mt-1 text-[10px] text-zinc-500">Tenant içindeki son SmartCheck işlemleri; başarısız run yalnızca açık retry ile tekrar başlar.</p></div><Button size="sm" variant="ghost" onClick={loadQueue}><RefreshCw size={13} />Yenile</Button></div><div className="grid gap-2 md:grid-cols-2">{queue.slice(0, 6).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 p-3"><div className="min-w-0"><p className="truncate text-xs text-zinc-300">{item.fileName ?? "Dosya"}</p><p className="mt-1 text-[10px] text-zinc-500">{item.progressMessage ?? item.currentStage} · %{item.progressPercent}</p>{item.errorCode && <p className="mt-1 truncate text-[10px] text-rose-300" title={item.errorMessage ?? item.errorCode}>{item.errorCode}</p>}</div><div className="flex shrink-0 flex-wrap items-center justify-end gap-2"><Badge className={item.status === "failed" ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : item.status === "succeeded" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-sky-500/30 bg-sky-500/10 text-sky-300"}>{item.status}</Badge>{item.status === "succeeded" && <Button size="sm" variant="outline" onClick={() => openQueueDocument(item.documentId, item.fileName, item.status)}>Sonuçları aç</Button>}{item.status === "failed" && <Button size="sm" variant="outline" onClick={() => retry(item.documentId)}>Retry</Button>}</div></div>)}</div></div>}
 
-      {reviewedRows.length > 0 && <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 md:grid-cols-5"><div className="md:col-span-2"><p className="text-xs font-bold text-emerald-300">{reviewedRows.length} satır aktarım için hazır</p><p className="mt-1 text-[10px] text-zinc-500">İstisna satırları gerekçesiyle birlikte korunur.</p></div><select aria-label="Taslak teklif" value={quotationId} onChange={(event) => setQuotationId(event.target.value)} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200"><option value="">Taslak teklif seçin</option>{quotes.filter((quote) => quote.status === "draft").map((quote) => <option key={quote.id} value={quote.id}>{quote.quoteNumber} · {quote.projectName}</option>)}</select><Input aria-label="Gerçek maliyet" placeholder="Gerçek maliyet (opsiyonel)" value={commercial.costUnitPrice} onChange={(event) => setCommercial((value) => ({ ...value, costUnitPrice: event.target.value }))} className="border-zinc-800 bg-zinc-950" /><Button disabled={!quotationId} onClick={transfer} className="bg-emerald-600 text-white hover:bg-emerald-700">Onaylıları aktar</Button>{transferredQuotationId && <Link className="text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>Teklif taslağını aç</Link>}</div>}
+      {reviewedRows.length > 0 && <div className="mt-4 space-y-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div><p className="text-xs font-bold text-emerald-300">{reviewedRows.length} satır aktarım için hazır</p><p className="mt-1 text-[10px] text-zinc-500">İnsan onaylı veya gerekçeli istisna satırları, kaynak/evidence bağları korunarak teklife aktarılır.</p></div>
+          {transferredQuotationId && <Link className="text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>Teklif taslağını aç</Link>}
+        </div>
+        <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+          <Input aria-label="Yeni teklif müşteri referansı" placeholder="Yeni teklif müşteri/ref adı" value={newQuotationDraft.clientName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, clientName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+          <Input aria-label="Yeni teklif proje adı" placeholder={`Proje adı · ${file?.name ?? "SmartCheck aktarımı"}`} value={newQuotationDraft.projectName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, projectName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+          <Button disabled={!newQuotationDraft.clientName.trim()} onClick={createQuotationAndTransfer} className="bg-emerald-600 text-white hover:bg-emerald-700">Yeni taslak oluştur ve aktar</Button>
+        </div>
+        <div className="grid gap-3 border-t border-emerald-500/10 pt-4 md:grid-cols-[1fr_1fr_auto]">
+          <select aria-label="Taslak teklif" value={quotationId} onChange={(event) => setQuotationId(event.target.value)} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200"><option value="">Var olan taslak teklif seçin</option>{quotes.filter((quote) => quote.status === "draft").map((quote) => <option key={quote.id} value={quote.id}>{quote.quoteNumber} · {quote.projectName}</option>)}</select>
+          <Input aria-label="Gerçek maliyet" placeholder="Gerçek maliyet (opsiyonel)" value={commercial.costUnitPrice} onChange={(event) => setCommercial((value) => ({ ...value, costUnitPrice: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+          <Button disabled={!quotationId} onClick={transfer} variant="outline" className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">Seçili taslağa aktar</Button>
+        </div>
+      </div>}
     </section>
   );
 }
