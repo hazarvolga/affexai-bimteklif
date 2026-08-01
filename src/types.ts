@@ -62,7 +62,7 @@ export interface QuoteItem {
   costUnitPrice?: number | null;
   wastePercent?: number;
   costCategory?: 'material' | 'labor' | 'logistics' | 'subcontractor' | 'overhead';
-  quantitySource?: 'manual' | 'ai_estimate' | 'document' | 'model' | 'verified';
+  quantitySource?: 'manual' | 'ai_estimate' | 'document' | 'model' | 'model_estimate' | 'verified';
   priceSource?: 'manual' | 'ai_estimate' | 'supplier' | 'market' | 'verified';
   sourceReference?: string | null;
   verificationStatus?: 'unverified' | 'needs_review' | 'verified';

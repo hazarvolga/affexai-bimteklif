@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1785428197.1719193,
-    "ast_hash": "8a48a9067cfb7e299a014e167b22a747",
+    "mtime": 1785560555.778929,
+    "ast_hash": "f48b2b1f39bb8c181d872455677dddb4",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -1510,8 +1510,8 @@
     "semantic_hash": ""
   },
   "src/pages/CreateQuote.tsx": {
-    "mtime": 1785428203.5129075,
-    "ast_hash": "1da7315d1c83e0e52e6dd14959a2453a",
+    "mtime": 1785560555.6944385,
+    "ast_hash": "6f36f69d3b9a49b568b0beb1141c8198",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
@@ -2175,8 +2175,8 @@
     "semantic_hash": ""
   },
   "src/types.ts": {
-    "mtime": 1784741957.0,
-    "ast_hash": "924cb1898e618c0beb9f45de953258af",
+    "mtime": 1785560555.6094804,
+    "ast_hash": "27c2fe5e6861e6799f6fd49ee2dec97b",
     "semantic_hash": ""
   },
   "src/utils/CertificateGenerator.ts": {
@@ -4492,6 +4492,21 @@
   "src/components/academy/SubGuideDrawer.tsx": {
     "mtime": 1785429739.2825413,
     "ast_hash": "80178c9bd6d944a0fbacdfce2cc9c5d2",
+    "semantic_hash": ""
+  },
+  "src/ifc/quotation-transfer.test.ts": {
+    "mtime": 1785560555.8636842,
+    "ast_hash": "d427ea3007ab166ef450852ab27f4db6",
+    "semantic_hash": ""
+  },
+  "src/ifc/quotation-transfer.ts": {
+    "mtime": 1785560555.5180085,
+    "ast_hash": "89e9124313416d3e7cc93f95ce10cb91",
+    "semantic_hash": ""
+  },
+  "IFC_GAP_RAPORU.md": {
+    "mtime": 1785559781.5288136,
+    "ast_hash": "9d0453c0685d60bfc55b1db5a1c80eda",
     "semantic_hash": ""
   }
 }

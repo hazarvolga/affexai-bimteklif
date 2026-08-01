@@ -34,6 +34,10 @@ export interface ParsedIfcElement {
 }
 
 export interface IfcParseSummary {
+  extractionMode: 'demo_estimate';
+  quantitySource: 'estimate';
+  quoteTransferStatus: 'needs_review';
+  warnings: string[];
   totalElements: number;
   totalVolumeM3: number;
   totalFormworkM2: number;
@@ -343,6 +347,13 @@ function calculateSummary(elements: ParsedIfcElement[]): { elements: ParsedIfcEl
   });
 
   const summary: IfcParseSummary = {
+    extractionMode: 'demo_estimate',
+    quantitySource: 'estimate',
+    quoteTransferStatus: 'needs_review',
+    warnings: [
+      'Legacy browser parser uses estimated quantities; technical review is required before quotation approval.',
+      'Rebar and formwork values are derived estimates unless explicit IFC rebar/QTO/property evidence is implemented.',
+    ],
     totalElements: elements.length,
     totalVolumeM3: parseFloat(totalVolumeM3.toFixed(2)),
     totalFormworkM2: parseFloat(totalFormworkM2.toFixed(2)),
@@ -483,28 +494,28 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3.5 py-1 text-xs font-bold text-orange-400">
               <Sparkles className="h-3.5 w-3.5 animate-spin" />
-              openBIM IFC 4.0 Standartlarında %100 Kesin 5D BIM Metraj Motoru
+              IFC Evidence Engine - Demo Estimate Mode
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-              Tarayıcı İçi (Client-Side) 3D IFC Metraj Ayrıştırıcı
+              Tarayıcı İçi IFC Ön Analiz ve Review Hazırlığı
             </h2>
             <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">
-              Allplan, Revit veya Archicad <code className="text-orange-300 font-mono">.ifc</code> dosyanızı sürükleyin. <strong className="text-white">IfcBeam, IfcColumn, IfcSlab, IfcWall</strong> nesne hacimlerini ($m^3$), kalıp alanlarını ($m^2$) ve TS 708 donatı tonajlarını ($Ton$) milimetrik hassasiyetle çıkarın.
+              Allplan, Revit veya Archicad <code className="text-orange-300 font-mono">.ifc</code> dosyanızı sürükleyin. <strong className="text-white">IfcBeam, IfcColumn, IfcSlab, IfcWall</strong> nesnelerini ön analiz için okuyun; miktarlar teknik review tamamlanmadan kesin metraj sayılmaz.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs font-mono text-zinc-400">
             <span className="rounded-lg bg-zinc-900 px-3 py-2 border border-zinc-800 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Allplan 2026 Ready
+              Demo estimate
             </span>
             <span className="rounded-lg bg-zinc-900 px-3 py-2 border border-zinc-800 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Revit IFC4 Export
+              Review gerekli
             </span>
             <span className="rounded-lg bg-zinc-900 px-3 py-2 border border-zinc-800 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              TS 708 / Eurocode 2
+              Verified değil
             </span>
           </div>
         </div>
@@ -597,8 +608,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
       {isParsing && (
         <div className="flex flex-col items-center justify-center py-16 bg-[#0c0c0e] rounded-3xl border border-zinc-800">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-600 border-t-transparent mb-4" />
-          <p className="text-sm font-bold text-white">openBIM .ifc Nesneleri &amp; Donatılar Ayrıştırılıyor...</p>
-          <p className="text-xs text-zinc-500 mt-1">IfcBeam, IfcColumn, IfcSlab hacimleri ve TS 708 kütleleri hesaplanıyor.</p>
+          <p className="text-sm font-bold text-white">openBIM .ifc Nesneleri Ön Analiz Ediliyor...</p>
+          <p className="text-xs text-zinc-500 mt-1">Elemanlar okunuyor; miktar ve kural sonuçları review bekleyen tahmin olarak etiketlenir.</p>
         </div>
       )}
 
@@ -613,7 +624,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <Box className="w-5 h-5" />
               </div>
               <div className="text-3xl font-black text-white">{parsedData.summary.totalVolumeM3.toLocaleString('tr-TR')} $m^3$</div>
-              <div className="mt-2 text-[11px] text-zinc-400">%100 Kesin 3D Hacim Hesabı</div>
+              <div className="mt-2 text-[11px] text-zinc-400">Demo estimate - teknik review gerekli</div>
             </div>
 
             <div className="rounded-2xl border border-orange-500/30 bg-orange-950/10 p-5 backdrop-blur-sm">
@@ -622,7 +633,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <Database className="w-5 h-5" />
               </div>
               <div className="text-3xl font-black text-white">{parsedData.summary.totalRebarTon.toLocaleString('tr-TR')} Ton</div>
-              <div className="mt-2 text-[11px] text-zinc-400">({parsedData.summary.totalRebarKg.toLocaleString('tr-TR')} kg TS 708 Nominal Kütle)</div>
+              <div className="mt-2 text-[11px] text-zinc-400">({parsedData.summary.totalRebarKg.toLocaleString('tr-TR')} kg türetilmiş tahmin)</div>
             </div>
 
             <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5 backdrop-blur-sm">
@@ -631,7 +642,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <Layers className="w-5 h-5" />
               </div>
               <div className="text-3xl font-black text-white">{parsedData.summary.totalFormworkM2.toLocaleString('tr-TR')} $m^2$</div>
-              <div className="mt-2 text-[11px] text-zinc-400">Net İmalat Yüzey Alanı</div>
+              <div className="mt-2 text-[11px] text-zinc-400">Kural uygulanmamış türetilmiş alan</div>
             </div>
 
             <div className="rounded-2xl border border-blue-500/30 bg-blue-950/10 p-5 backdrop-blur-sm">
@@ -695,7 +706,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <Database className="w-4 h-4 text-orange-400" />
                 TS 708 Donatı Çap Dağılımı ve Metraj Tonajı
               </h3>
-              <p className="text-xs text-zinc-400 mb-4">Eurocode 2 nominal kütle formülleriyle ayrıştırılan çelik tonajı</p>
+              <p className="text-xs text-zinc-400 mb-4">Gerçek rebar/QTO/property kanıtı olmadan teklif kalemine aktarılmaz</p>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-zinc-300 font-mono">
@@ -729,17 +740,17 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
               <div>
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">
                   <CheckCircle className="w-4 h-4" />
-                  SMARTCHECK &amp; TS 500 KURAL KONTROLÜ
+                  SMARTCHECK ÖN KONTROL
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">Metraj Doğrulama Analizi</h4>
+                <h4 className="text-lg font-bold text-white mb-2">Review Gerektiren Veri Kalitesi</h4>
                 
                 <div className="space-y-3 mt-4 text-xs">
                   <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex items-start gap-2.5">
                     <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-bold text-emerald-300">Ortalama Donatı Yoğunluğu Uyumlu</div>
+                      <div className="font-bold text-emerald-300">Ön Analiz Tamamlandı</div>
                       <div className="text-zinc-400 mt-0.5">
-                        Betonarme elemanlarda ortalama donatı oranı: <strong className="text-white">{(parsedData.summary.totalRebarKg / parsedData.summary.totalVolumeM3).toFixed(1)} kg/$m^3$</strong> (TS 500 normlarına uygundur).
+                        Betonarme elemanlarda türetilmiş ortalama değer: <strong className="text-white">{(parsedData.summary.totalRebarKg / parsedData.summary.totalVolumeM3).toFixed(1)} kg/$m^3$</strong>. Bu sonuç verified değildir.
                       </div>
                     </div>
                   </div>
@@ -747,9 +758,9 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                   <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/30 flex items-start gap-2.5">
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-bold text-amber-300">2 Adet Kiriş Elemanında Ulaşılabilirlik Uyarısı</div>
+                      <div className="font-bold text-amber-300">Teknik Review Kapısı Açık</div>
                       <div className="text-zinc-400 mt-0.5">
-                        Kiriş mesnet bölgelerindeki donatı yoğunluğu nedeniyle vibratör geçiş aralığı kontrol edilmelidir.
+                        Donatı, kalıp ve kesin hacim iddiası için explicit IFC quantity, approved property veya reviewer kanıtı gerekir.
                       </div>
                     </div>
                   </div>
@@ -771,7 +782,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                   className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-lg shadow-orange-950/40"
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  TeklifPro Metrajına Aktar
+                  Review İçin Teklife Aktar
                 </Button>
               </div>
             </div>
