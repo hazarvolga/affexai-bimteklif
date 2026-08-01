@@ -10,7 +10,7 @@ export interface ParsedIfcElement {
   formworkM2: number;
   rebarKg: number;
   rebarDiameterMm?: number;
-  quantitySource: "estimate" | "property";
+  quantitySource: "estimate" | "property" | "qto";
   quantitySourcePath?: string;
   quantityConfidence?: number;
   smartCheckStatus: "pass" | "warning" | "review";

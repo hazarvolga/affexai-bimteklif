@@ -26,7 +26,7 @@ export interface IfcSmartCheckEvidenceRow {
   normalizedQuantity: string | null;
   normalizedPrice: string | null;
   normalizedWastePercent: string;
-  quantitySource: "ifc_property";
+  quantitySource: "ifc_property" | "ifc_qto";
   priceSource: "manual_required";
   mappingConfidence: string;
   reviewStatus: "pending_review";
@@ -52,6 +52,7 @@ export interface IfcSmartCheckEvidenceArtifact {
     totalElements: number;
     evidenceRowCount: number;
     blockedElementCount: number;
+    qtoQuantityCount: number;
     propertyQuantityCount: number;
     spatiallyAssignedEvidenceRowCount: number;
   };
@@ -105,11 +106,11 @@ function buildFindings(element: ParsedIfcElement, validationFindings: Finding[])
   }
   if (!element.quantitySourcePath) {
     findings.push({
-      code: "IFC_PROPERTY_SOURCE_PATH_MISSING",
+      code: "IFC_QUANTITY_SOURCE_PATH_MISSING",
       severity: "high",
-      message: "IFC property miktarı için STEP kaynak yolu eksik.",
+      message: "IFC miktarı için STEP kaynak yolu eksik.",
       ruleVersion: "ifc-evidence-v1",
-      suggestion: "Miktarın hangi property set ve property satırından geldiğini kaydedin.",
+      suggestion: "Miktarın hangi QTO/property set ve STEP satırından geldiğini kaydedin.",
     });
   }
   return findings;
@@ -142,6 +143,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         totalElements: summary.totalElements,
         evidenceRowCount: 0,
         blockedElementCount: elements.length,
+        qtoQuantityCount: 0,
         propertyQuantityCount: 0,
         spatiallyAssignedEvidenceRowCount: 0,
       },
@@ -154,10 +156,10 @@ export function buildIfcSmartCheckEvidenceArtifact(
     };
   }
 
-  const propertyElements = elements.filter((element) => element.quantitySource === "property" && element.volumeM3 > 0);
-  const parsedRows = propertyElements.map((element, index) => buildParsedQuantityRow(element, index + 1));
+  const evidenceElements = elements.filter((element) => (element.quantitySource === "qto" || element.quantitySource === "property") && element.volumeM3 > 0);
+  const parsedRows = evidenceElements.map((element, index) => buildParsedQuantityRow(element, index + 1));
   const validatedRows = validateRows(parsedRows);
-  const rows = propertyElements.map((element, index): IfcSmartCheckEvidenceRow => {
+  const rows = evidenceElements.map((element, index): IfcSmartCheckEvidenceRow => {
     const validated = validatedRows[index];
     return {
       ...validated.row,
@@ -167,7 +169,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       normalizedQuantity: validated.normalized.quantity?.toString() ?? null,
       normalizedPrice: validated.normalized.price?.toString() ?? null,
       normalizedWastePercent: validated.normalized.wastePercent.toString(),
-      quantitySource: "ifc_property",
+      quantitySource: element.quantitySource === "qto" ? "ifc_qto" : "ifc_property",
       priceSource: "manual_required",
       mappingConfidence: (element.quantityConfidence ?? 0.8).toFixed(2),
       reviewStatus: "pending_review",
@@ -175,9 +177,9 @@ export function buildIfcSmartCheckEvidenceArtifact(
     };
   });
 
-  const propertyIds = new Set(propertyElements.map((element) => element.id));
+  const evidenceIds = new Set(evidenceElements.map((element) => element.id));
   const blockedElements = elements
-    .filter((element) => !propertyIds.has(element.id))
+    .filter((element) => !evidenceIds.has(element.id))
     .map(blockElement);
 
   return {
@@ -190,8 +192,9 @@ export function buildIfcSmartCheckEvidenceArtifact(
       totalElements: summary.totalElements,
       evidenceRowCount: rows.length,
       blockedElementCount: blockedElements.length,
-      propertyQuantityCount: propertyElements.length,
-      spatiallyAssignedEvidenceRowCount: propertyElements.filter((element) => element.storeySource === "ifc_spatial").length,
+      qtoQuantityCount: evidenceElements.filter((element) => element.quantitySource === "qto").length,
+      propertyQuantityCount: evidenceElements.filter((element) => element.quantitySource === "property").length,
+      spatiallyAssignedEvidenceRowCount: evidenceElements.filter((element) => element.storeySource === "ifc_spatial").length,
     },
     rows,
     blockedElements,

@@ -99,6 +99,40 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.match(artifact.rows[0].findingsJson.map((finding) => finding.code).join(","), /MISSING_PRICE_SOURCE/);
   });
 
+  it("admits QTO-backed quantities as first-class SmartCheck evidence rows", () => {
+    const elements: ParsedIfcElement[] = [
+      {
+        id: "2250",
+        guid: "2EiaBgKpn0FfR5lxdBlbEc",
+        type: "IfcSlab",
+        name: "Döşeme QTO",
+        storey: "B01",
+        storeySource: "ifc_spatial",
+        storeySourcePath: "#100/#10:IfcRelContainedInSpatialStructure/IfcBuildingStorey",
+        volumeM3: 8.25,
+        formworkM2: 0,
+        rebarKg: 0,
+        quantitySource: "qto",
+        quantitySourcePath: "#200/#201/#202:Qto_SlabBaseQuantities/NetVolume",
+        quantityConfidence: 0.95,
+        smartCheckStatus: "review",
+      },
+    ];
+
+    const artifact = buildIfcSmartCheckEvidenceArtifact(elements, { ...succeededSummary, totalElements: 1 }, {
+      fileName: "unit-qto.ifc",
+      checksumSha256: "b".repeat(64),
+      schemaName: "IFC4X3_ADD2",
+    });
+
+    assert.equal(artifact.summary.evidenceRowCount, 1);
+    assert.equal(artifact.summary.qtoQuantityCount, 1);
+    assert.equal(artifact.summary.propertyQuantityCount, 0);
+    assert.equal(artifact.rows[0].quantitySource, "ifc_qto");
+    assert.equal(artifact.rows[0].normalizedQuantity, "8.25");
+    assert.equal(artifact.rows[0].mappingConfidence, "0.95");
+  });
+
   it("matches the e-proje_4x3 property-volume evidence count when the sample IFC is present", { skip: !existsSync(samplePath) }, () => {
     const sample = readFileSync(samplePath, "utf8");
     const sha256 = createHash("sha256").update(sample).digest("hex");

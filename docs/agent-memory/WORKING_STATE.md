@@ -367,6 +367,12 @@ Changes:
   `ifc_property` pending-review row. The HTTP integration test now first
   verifies local PostgreSQL reachability; when `DATABASE_URL` exists but the DB
   is down, it skips cleanly instead of failing with `ECONNREFUSED`.
+- Added IFC QTO volume extraction for `IfcElementQuantity` /
+  `IfcQuantityVolume` and made parser source priority explicit:
+  QTO volume evidence wins first, approved Allplan/Pset property evidence is
+  fallback, and demo estimates remain last. SmartCheck evidence rows now
+  preserve QTO-backed quantities as `ifc_qto` and report QTO/property counts
+  separately in artifact metadata.
 
 Verified:
 
@@ -401,6 +407,16 @@ Verified:
   src/server/routes/smartcheck.integration.test.ts` -> 21/21 passing and 2/2
   HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
   not reachable in this session.
+- `pnpm exec tsx --test src/smartcheck/import/file-security.test.ts
+  src/smartcheck/import/integration-contract.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/qto-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts
+  src/ifc/smartcheck-processing.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 25/25 passing and 2/2
+  HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
+  not reachable in this session.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
@@ -419,7 +435,8 @@ Next recommended IFC work:
 
 1. Add authenticated SmartCheck IFC upload/process integration tests or local
    browser E2E to prove the route → Graphile worker → rows/artifact chain.
-2. Add QTO extraction before approved property fallback.
+2. Add geometry-based fallback only after deterministic volume/area rules and
+   explicit confidence metadata are designed.
 3. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
    reviewed rule evidence exists.
 

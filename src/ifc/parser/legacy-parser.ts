@@ -1,4 +1,5 @@
 import { extractAllplanVolumeQuantities } from "./quantity-extractor";
+import { extractIfcQtoVolumeQuantities } from "./qto-extractor";
 import { extractIfcStoreyContainment } from "./spatial-extractor";
 import type { IfcParseSummary, ParsedIfcElement } from "../types";
 
@@ -7,6 +8,9 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
   const elements: ParsedIfcElement[] = [];
   const propertyQuantityByStepId = new Map(
     extractAllplanVolumeQuantities(ifcText).quantities.map((quantity) => [quantity.stepId, quantity]),
+  );
+  const qtoQuantityByStepId = new Map(
+    extractIfcQtoVolumeQuantities(ifcText).quantities.map((quantity) => [quantity.stepId, quantity]),
   );
   const storeyByStepId = new Map(
     extractIfcStoreyContainment(ifcText).elementStoreys.map((assignment) => [assignment.elementStepId, assignment]),
@@ -93,13 +97,17 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       smartCheckNote = `Kolon donatı oranı (${steelRatio.toFixed(1)} kg/m³) minimum yönetmelik şartının altında`;
     }
 
+    const qtoQuantity = qtoQuantityByStepId.get(stepId);
     const propertyQuantity = propertyQuantityByStepId.get(stepId);
-    if (propertyQuantity) {
-      volumeM3 = propertyQuantity.normalizedValue;
+    const explicitQuantity = qtoQuantity ?? propertyQuantity;
+    if (explicitQuantity) {
+      volumeM3 = explicitQuantity.normalizedValue;
       formworkM2 = 0;
       rebarKg = 0;
       smartCheckStatus = "review";
-      smartCheckNote = `${propertyQuantity.quantityName} ${propertyQuantity.propertySetName} property kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`;
+      smartCheckNote = qtoQuantity
+        ? `${qtoQuantity.quantityName} ${qtoQuantity.quantitySetName} QTO kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`
+        : `${propertyQuantity?.quantityName} ${propertyQuantity?.propertySetName} property kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`;
     }
 
     const storeyAssignment = storeyByStepId.get(stepId);
@@ -121,9 +129,9 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       formworkM2,
       rebarKg,
       rebarDiameterMm,
-      quantitySource: propertyQuantity ? "property" : "estimate",
-      quantitySourcePath: propertyQuantity?.sourcePath,
-      quantityConfidence: propertyQuantity?.confidence,
+      quantitySource: qtoQuantity ? "qto" : propertyQuantity ? "property" : "estimate",
+      quantitySourcePath: explicitQuantity?.sourcePath,
+      quantityConfidence: explicitQuantity?.confidence,
       smartCheckStatus,
       smartCheckNote,
     });
