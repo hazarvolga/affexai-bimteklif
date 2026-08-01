@@ -17,6 +17,7 @@ const sourceTypes = new Set(["official_reference", "supplier_quote", "company_ac
 const licenseStatuses = new Set(["unknown", "verified", "restricted", "not_applicable"]);
 const currencies = new Set(["TRY", "USD", "EUR"]);
 const reviewStatuses = new Set(["draft", "advisory", "approved", "rejected"]);
+const catalogImportSourceTypes = new Set(["supplier_quote", "company_actual", "manual_override"]);
 const canReview = checkRole(["owner", "admin", "manager"]);
 const canApprove = checkRole(["owner", "admin", "manager"]);
 
@@ -36,7 +37,40 @@ function parseDate(value: unknown): Date | null | undefined {
   if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string" && !(value instanceof Date)) return undefined;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date;
+  if (Number.isNaN(date.getTime())) return undefined;
+  const year = date.getUTCFullYear();
+  return year < 1990 || year > 2200 ? undefined : date;
+}
+
+function trimText(value: unknown, max: number): string {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function optionalText(value: unknown, max: number): string | null {
+  const text = trimText(value, max);
+  return text || null;
+}
+
+function normalizeCurrency(value: unknown): "TRY" | "USD" | "EUR" | null {
+  const currency = typeof value === "string" ? value.trim().toUpperCase() : "TRY";
+  return currencies.has(currency) ? currency as "TRY" | "USD" | "EUR" : null;
+}
+
+function parsePriceAmount(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return Number.NaN;
+  const raw = value.trim().replace(/\s/g, "");
+  if (!raw) return Number.NaN;
+  const normalized = raw.includes(",")
+    ? raw.replace(/\./g, "").replace(",", ".")
+    : raw.replace(/,/g, "");
+  return Number(normalized);
+}
+
+function parseConfidence(value: unknown, fallback = 0.6): number {
+  if (value === undefined || value === null || value === "") return fallback;
+  const confidence = Number(value);
+  return confidence;
 }
 
 async function audit(req: any, action: string, entityType: string, entityId: string, metadataJson: Record<string, unknown> = {}) {
@@ -85,6 +119,135 @@ export function registerPricingRoutes(app: Express) {
     const rows = await db.select().from(priceSnapshots).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(Math.min(Math.max(Number(req.query.limit) || 100, 1), 500));
     const now = new Date();
     res.json(rows.map((row) => ({ ...row, stale: isPriceSnapshotStale(row, now) })));
+  });
+
+  app.post("/api/pricing/catalog/import", ...mutateStack, async (req, res) => {
+    const sourceName = trimText(req.body?.sourceName, 200);
+    const sourceType = typeof req.body?.sourceType === "string" ? req.body.sourceType : "supplier_quote";
+    const licenseStatus = typeof req.body?.licenseStatus === "string" ? req.body.licenseStatus : "not_applicable";
+    const rows = Array.isArray(req.body?.rows) ? req.body.rows : [];
+    if (!sourceName || !catalogImportSourceTypes.has(sourceType) || !licenseStatuses.has(licenseStatus) || rows.length === 0 || rows.length > 500) {
+      return res.status(400).json({ error: "Kaynak adı, izinli kaynak tipi ve 1-500 fiyat satırı zorunludur." });
+    }
+    const sourceDocumentPayload = req.body?.sourceDocumentPayload ?? {
+      kind: "pricing_catalog_import",
+      sourceName,
+      sourceType,
+      sourceDocumentIdentifier: req.body?.sourceDocumentIdentifier ?? null,
+      rows,
+    };
+    const sourceDocumentHash = validHash(req.body?.sourceDocumentHash)
+      ? String(req.body.sourceDocumentHash).toLowerCase()
+      : sha256Payload(sourceDocumentPayload);
+    if (!validHash(sourceDocumentHash)) return res.status(400).json({ error: "Kaynak hash geçersiz." });
+    const capturedAt = parseDate(req.body?.capturedAt) ?? new Date();
+    if (capturedAt === undefined) return res.status(400).json({ error: "Yakalama tarihi geçersiz." });
+    const validFrom = parseDate(req.body?.validFrom);
+    const globalValidUntil = parseDate(req.body?.validUntil);
+    if (validFrom === undefined || globalValidUntil === undefined) return res.status(400).json({ error: "Geçerlilik tarihi geçersiz." });
+    if (validFrom && globalValidUntil && globalValidUntil < validFrom) return res.status(400).json({ error: "Geçerlilik tarihleri tutarsız." });
+
+    const parsedRows = rows.map((row, index) => {
+      const description = trimText(row?.description, 500);
+      const unit = trimText(row?.unit, 40);
+      const amount = parsePriceAmount(row?.amount);
+      const currency = normalizeCurrency(row?.currency);
+      const confidence = parseConfidence(row?.confidence);
+      const rowValidUntil = parseDate(row?.validUntil);
+      const rowValidFrom = parseDate(row?.validFrom);
+      if (!description || !unit || !Number.isFinite(amount) || amount <= 0 || !currency || !Number.isFinite(confidence) || confidence < 0 || confidence > 1 || rowValidUntil === undefined || rowValidFrom === undefined) {
+        return { index, error: `${index + 1}. fiyat satırı geçersiz.` };
+      }
+      if ((rowValidFrom ?? validFrom) && (rowValidUntil ?? globalValidUntil) && (rowValidUntil ?? globalValidUntil)! < (rowValidFrom ?? validFrom)!) return { index, error: `${index + 1}. satırda geçerlilik tarihleri tutarsız.` };
+      const externalReference = optionalText(row?.externalReference, 255);
+      const positionCode = optionalText(row?.positionCode, 120);
+      return {
+        index,
+        positionCode,
+        description,
+        unit,
+        amount,
+        currency,
+        externalReference,
+        validFrom: rowValidFrom ?? validFrom,
+        validUntil: rowValidUntil ?? globalValidUntil,
+        confidence,
+        region: optionalText(row?.region, 120) ?? optionalText(req.body?.region, 120),
+        metadataJson: row?.metadataJson && typeof row.metadataJson === "object" ? row.metadataJson : {},
+      };
+    });
+    const invalidRow = parsedRows.find((row): row is { index: number; error: string } => "error" in row);
+    if (invalidRow) return res.status(400).json({ error: invalidRow.error, rowIndex: invalidRow.index });
+
+    const importedSnapshots: Array<typeof priceSnapshots.$inferSelect & { stale: boolean }> = [];
+    let insertedCount = 0;
+    let reusedCount = 0;
+    try {
+      const [source] = await db.transaction(async (tx) => {
+        const [createdSource] = await tx.insert(priceSources).values({
+          companyId: req.user.companyId,
+          sourceType,
+          name: sourceName,
+          authority: optionalText(req.body?.authority, 200),
+          sourceUrl: optionalText(req.body?.sourceUrl, 2000),
+          sourceDocumentIdentifier: optionalText(req.body?.sourceDocumentIdentifier, 255),
+          sourceDocumentHash,
+          licenseStatus,
+          jurisdiction: optionalText(req.body?.jurisdiction, 120),
+          region: optionalText(req.body?.region, 120),
+          createdByUserId: req.user.userId,
+          metadataJson: req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {},
+        }).returning();
+
+        for (const row of parsedRows) {
+          if ("error" in row) continue;
+          const snapshotKey = buildPriceSnapshotKey({
+            sourceDocumentHash,
+            externalReference: row.externalReference,
+            positionCode: row.positionCode,
+            description: row.description,
+            unit: row.unit,
+            amount: row.amount,
+            currency: row.currency,
+            capturedAt,
+          });
+          const [inserted] = await tx.insert(priceSnapshots).values({
+            companyId: req.user.companyId,
+            priceSourceId: createdSource.id,
+            snapshotKey,
+            externalReference: row.externalReference,
+            positionCode: row.positionCode,
+            description: row.description,
+            unit: row.unit,
+            amount: String(row.amount),
+            currency: row.currency,
+            vatStatus: req.body?.vatStatus === "included" || req.body?.vatStatus === "excluded" ? req.body.vatStatus : "unknown",
+            vatPercent: req.body?.vatPercent === undefined || req.body.vatPercent === null || req.body.vatPercent === "" ? null : String(Number(req.body.vatPercent)),
+            freightStatus: req.body?.freightStatus === "included" || req.body?.freightStatus === "excluded" ? req.body.freightStatus : "unknown",
+            region: row.region,
+            validFrom: row.validFrom,
+            validUntil: row.validUntil,
+            capturedAt,
+            sourceDocumentHash,
+            sourceVersion: optionalText(req.body?.sourceVersion, 120),
+            confidence: String(row.confidence),
+            reviewStatus: "advisory",
+            metadataJson: { ...row.metadataJson, importRowIndex: row.index, source: "pricing_catalog_import" },
+          }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning();
+          const snapshot = inserted ?? (await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.priceSourceId, createdSource.id), eq(priceSnapshots.snapshotKey, snapshotKey))))[0];
+          if (!snapshot) throw new Error("Fiyat snapshot oluşturulamadı.");
+          if (inserted) insertedCount += 1;
+          else reusedCount += 1;
+          importedSnapshots.push({ ...snapshot, stale: isPriceSnapshotStale(snapshot) });
+        }
+        return [createdSource] as const;
+      });
+
+      await audit(req, "price_catalog_imported", "price_source", source.id, { sourceType, sourceDocumentHash, insertedCount, reusedCount, rowCount: rows.length });
+      res.status(201).json({ source, insertedCount, reusedCount, snapshots: importedSnapshots });
+    } catch {
+      res.status(500).json({ error: "Fiyat kataloğu içe aktarılırken beklenmeyen bir hata oluştu." });
+    }
   });
 
   app.post("/api/pricing/sources/:sourceId/snapshots", ...mutateStack, async (req, res) => {

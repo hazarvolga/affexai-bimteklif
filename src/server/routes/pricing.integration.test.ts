@@ -87,3 +87,76 @@ test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout
     await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));
   }
 });
+
+test("pricing catalog import creates advisory snapshots without cross-tenant leakage", { timeout: 30_000 }, async (t) => {
+  if (await skipIfDatabaseUnavailable(t)) return;
+  const [{ createApiApp }, schema, dbModule, { AuthService }] = await Promise.all([
+    import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"),
+  ]);
+  const { eq } = await import("drizzle-orm");
+  const db = dbModule.db;
+  const suffix = crypto.randomUUID();
+  const [companyA, companyB] = await Promise.all([
+    db.insert(schema.companies).values({ name: `Catalog Import A ${suffix}` }).returning(),
+    db.insert(schema.companies).values({ name: `Catalog Import B ${suffix}` }).returning(),
+  ]).then(([a, b]) => [a[0], b[0]] as const);
+  const [userA] = await db.insert(schema.users).values({ email: `catalog-a-${suffix}@example.test`, fullName: "Catalog Tenant A", emailVerified: new Date() }).returning();
+  const [userB] = await db.insert(schema.users).values({ email: `catalog-b-${suffix}@example.test`, fullName: "Catalog Tenant B", emailVerified: new Date() }).returning();
+  await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
+  const tokenA = AuthService.generateToken({ userId: userA.id, companyId: companyA.id, role: "owner" });
+  const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
+  const app = createApiApp();
+  const server = http.createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
+  const request = (path: string, init: RequestInit = {}, token = tokenA) => fetch(`${base}${path}`, { ...init, headers: { Authorization: `Bearer ${token}`, ...(init.headers ?? {}) } });
+  const importedSourceIds: string[] = [];
+  const importedSnapshotIds: string[] = [];
+  try {
+    const importPayload = {
+      sourceName: "Pilot CSV katalog",
+      sourceType: "supplier_quote",
+      sourceDocumentIdentifier: `catalog-${suffix}.csv`,
+      licenseStatus: "not_applicable",
+      region: "İstanbul",
+      validUntil: "2026-12-31",
+      rows: [
+        { positionCode: "M-CSV-001", description: "VRF dış ünite", unit: "adet", amount: "12.500,50", currency: "TRY", externalReference: "L1", confidence: 0.7 },
+        { positionCode: "M-CSV-002", description: "Bakır boru", unit: "m", amount: 245, currency: "TRY", externalReference: "L2" },
+      ],
+    };
+    const importResponse = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(importPayload) });
+    assert.equal(importResponse.status, 201);
+    const importBody = await importResponse.json() as { source: { id: string; sourceDocumentHash: string }; insertedCount: number; reusedCount: number; snapshots: Array<{ id: string; reviewStatus: string; positionCode: string; amount: string; stale: boolean }> };
+    importedSourceIds.push(importBody.source.id);
+    importedSnapshotIds.push(...importBody.snapshots.map((snapshot) => snapshot.id));
+    assert.equal(importBody.insertedCount, 2);
+    assert.equal(importBody.reusedCount, 0);
+    assert.match(importBody.source.sourceDocumentHash, /^[a-f0-9]{64}$/);
+    assert.deepEqual(importBody.snapshots.map((snapshot) => snapshot.reviewStatus), ["advisory", "advisory"]);
+    assert.equal(Number(importBody.snapshots[0].amount), 12500.5);
+    assert.equal(importBody.snapshots[0].stale, false);
+    const tenantASnapshots = await request("/api/pricing/snapshots?positionCode=M-CSV-001");
+    assert.equal(tenantASnapshots.status, 200);
+    assert.equal((await tenantASnapshots.json() as unknown[]).length, 1);
+    const tenantBSnapshots = await request("/api/pricing/snapshots?positionCode=M-CSV-001", {}, tokenB);
+    assert.equal(tenantBSnapshots.status, 200);
+    assert.equal((await tenantBSnapshots.json() as unknown[]).length, 0);
+    const invalidImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid catalog", sourceType: "official_reference" }) });
+    assert.equal(invalidImport.status, 400);
+    const invalidDateImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid date catalog", validUntil: "+061231-02-19T21:00:00.000Z" }) });
+    assert.equal(invalidDateImport.status, 400);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    for (const snapshotId of importedSnapshotIds) await db.delete(schema.priceSnapshots).where(eq(schema.priceSnapshots.id, snapshotId));
+    for (const sourceId of importedSourceIds) await db.delete(schema.priceSources).where(eq(schema.priceSources.id, sourceId));
+    await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));
+    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userA.id));
+    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userB.id));
+    await db.delete(schema.users).where(eq(schema.users.id, userA.id));
+    await db.delete(schema.users).where(eq(schema.users.id, userB.id));
+    await db.delete(schema.companies).where(eq(schema.companies.id, companyA.id));
+    await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));
+  }
+});

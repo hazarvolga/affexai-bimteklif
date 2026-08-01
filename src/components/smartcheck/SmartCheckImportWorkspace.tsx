@@ -62,6 +62,7 @@ type QueueItem = {
 };
 
 type PriceSnapshotOption = { id: string; positionCode: string | null; description: string; unit: string; amount: string; currency: string; stale: boolean; reviewStatus: string };
+type PriceCatalogImportRow = { positionCode?: string; description: string; unit: string; amount: number; currency?: string; validUntil?: string; externalReference?: string };
 type ReviewDraft = { row: Row; status: "approved" | "rejected" | "accepted_exception"; notes: string; quantity: string };
 
 const mappingFields: Array<keyof ColumnMapping> = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"];
@@ -97,6 +98,85 @@ async function readJsonBody<T extends Record<string, unknown> = Record<string, u
   }
 }
 
+function splitCsvLine(line: string, delimiter: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    const next = line[index + 1];
+    if (character === '"' && quoted && next === '"') {
+      current += '"';
+      index += 1;
+    } else if (character === '"') {
+      quoted = !quoted;
+    } else if (!quoted && character === delimiter) {
+      values.push(current.trim());
+      current = "";
+    } else {
+      current += character;
+    }
+  }
+  values.push(current.trim());
+  return values;
+}
+
+function normalizeHeader(value: string) {
+  return value
+    .toLocaleLowerCase("tr-TR")
+    .replace(/[ıİ]/g, "i")
+    .replace(/[ğĞ]/g, "g")
+    .replace(/[üÜ]/g, "u")
+    .replace(/[şŞ]/g, "s")
+    .replace(/[öÖ]/g, "o")
+    .replace(/[çÇ]/g, "c")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function parseCatalogAmount(value: string): number {
+  const raw = value.trim().replace(/\s/g, "");
+  const normalized = raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw.replace(/,/g, "");
+  return Number(normalized);
+}
+
+function parsePriceCatalogCsv(text: string): PriceCatalogImportRow[] {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) throw new Error("CSV en az başlık ve bir fiyat satırı içermeli.");
+  const headerLine = lines[0];
+  const delimiter = headerLine.includes(";") ? ";" : headerLine.includes("\t") ? "\t" : ",";
+  const headers = splitCsvLine(headerLine, delimiter).map(normalizeHeader);
+  const headerIndex = (candidates: string[]) => candidates.map((candidate) => headers.indexOf(candidate)).find((index) => index >= 0) ?? -1;
+  const indexes = {
+    positionCode: headerIndex(["poz", "pozno", "positioncode", "position", "code"]),
+    description: headerIndex(["aciklama", "description", "malzeme", "item", "kalem"]),
+    unit: headerIndex(["birim", "unit"]),
+    amount: headerIndex(["birimfiyat", "fiyat", "amount", "unitprice", "price"]),
+    currency: headerIndex(["parabirimi", "currency", "doviz"]),
+    validUntil: headerIndex(["gecerlilik", "gecerliliktarihi", "validuntil", "validto"]),
+    externalReference: headerIndex(["referans", "externalreference", "ref"]),
+  };
+  if (indexes.description < 0 || indexes.unit < 0 || indexes.amount < 0) throw new Error("CSV başlıklarında açıklama, birim ve fiyat kolonları zorunlu.");
+  return lines.slice(1).map((line, index) => {
+    const cells = splitCsvLine(line, delimiter);
+    const amount = parseCatalogAmount(cells[indexes.amount] ?? "");
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error(`${index + 2}. CSV satırında fiyat geçersiz.`);
+    const description = (cells[indexes.description] ?? "").trim();
+    const unit = (cells[indexes.unit] ?? "").trim();
+    if (!description || !unit) throw new Error(`${index + 2}. CSV satırında açıklama ve birim zorunlu.`);
+    return {
+      positionCode: indexes.positionCode >= 0 ? cells[indexes.positionCode]?.trim() || undefined : undefined,
+      description,
+      unit,
+      amount,
+      currency: indexes.currency >= 0 ? cells[indexes.currency]?.trim().toUpperCase() || "TRY" : "TRY",
+      validUntil: indexes.validUntil >= 0 ? cells[indexes.validUntil]?.trim() || undefined : undefined,
+      externalReference: indexes.externalReference >= 0 ? cells[indexes.externalReference]?.trim() || undefined : undefined,
+    };
+  });
+}
+
 export function SmartCheckImportWorkspace() {
   const [file, setFile] = useState<File | null>(null);
   const [documentId, setDocumentId] = useState<string | null>(null);
@@ -119,6 +199,10 @@ export function SmartCheckImportWorkspace() {
   const [priceSnapshots, setPriceSnapshots] = useState<PriceSnapshotOption[]>([]);
   const [snapshotByRow, setSnapshotByRow] = useState<Record<string, string>>({});
   const [manualSnapshotDraft, setManualSnapshotDraft] = useState({ rowId: "", amount: "", currency: "TRY", sourceName: "", validUntil: "" });
+  const [catalogImportDraft, setCatalogImportDraft] = useState({ sourceName: "", region: "", validUntil: "", fileName: "" });
+  const [catalogImportText, setCatalogImportText] = useState("");
+  const [catalogImportRows, setCatalogImportRows] = useState<PriceCatalogImportRow[]>([]);
+  const [catalogImportBusy, setCatalogImportBusy] = useState(false);
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
@@ -374,6 +458,73 @@ export function SmartCheckImportWorkspace() {
     toast.success("Manuel fiyat snapshot oluşturuldu ve satıra bağlandı.");
   };
 
+  const readPriceCatalogCsv = async (selectedFile: File | null) => {
+    if (!selectedFile) return;
+    try {
+      const parsedRows = parsePriceCatalogCsv(await selectedFile.text());
+      setCatalogImportRows(parsedRows);
+      setCatalogImportDraft((current) => ({
+        ...current,
+        fileName: selectedFile.name,
+        sourceName: current.sourceName || selectedFile.name.replace(/\.[^.]+$/, ""),
+      }));
+      toast.success(`${parsedRows.length} CSV fiyat satırı hazır.`);
+    } catch (error) {
+      setCatalogImportRows([]);
+      toast.error(error instanceof Error ? error.message : "CSV fiyat kataloğu okunamadı.");
+    }
+  };
+
+  const readPriceCatalogText = () => {
+    try {
+      const parsedRows = parsePriceCatalogCsv(catalogImportText);
+      setCatalogImportRows(parsedRows);
+      setCatalogImportDraft((current) => ({ ...current, sourceName: current.sourceName || "Yapıştırılan CSV fiyat listesi", fileName: current.fileName || "pasted-price-catalog.csv" }));
+      toast.success(`${parsedRows.length} CSV fiyat satırı hazır.`);
+    } catch (error) {
+      setCatalogImportRows([]);
+      toast.error(error instanceof Error ? error.message : "CSV fiyat kataloğu okunamadı.");
+    }
+  };
+
+  const importPriceCatalog = async () => {
+    if (!catalogImportRows.length) return toast.error("Önce CSV fiyat kataloğu seçin.");
+    setCatalogImportBusy(true);
+    const sourceName = catalogImportDraft.sourceName.trim() || catalogImportDraft.fileName || "SmartCheck CSV fiyat kataloğu";
+    try {
+      const response = await fetchWithAuth("/api/pricing/catalog/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceName,
+          sourceType: "supplier_quote",
+          sourceDocumentIdentifier: catalogImportDraft.fileName || undefined,
+          sourceDocumentPayload: {
+            kind: "smartcheck_price_catalog_csv",
+            fileName: catalogImportDraft.fileName || null,
+            rows: catalogImportRows,
+          },
+          licenseStatus: "not_applicable",
+          region: catalogImportDraft.region.trim() || undefined,
+          validUntil: catalogImportDraft.validUntil ? new Date(catalogImportDraft.validUntil).toISOString() : undefined,
+          rows: catalogImportRows.map((row) => ({ ...row, validUntil: row.validUntil || (catalogImportDraft.validUntil ? new Date(catalogImportDraft.validUntil).toISOString() : undefined) })),
+          metadataJson: { source: "smartcheck_price_catalog_csv", documentId, fileName: catalogImportDraft.fileName || null },
+        }),
+      });
+      const body = await readJsonBody<{ error?: string; insertedCount?: number; reusedCount?: number; snapshots?: PriceSnapshotOption[] }>(response);
+      if (!response.ok || !body.snapshots) return toast.error(body.error ?? "CSV fiyat kataloğu içe aktarılamadı.");
+      setPriceSnapshots((current) => [
+        ...body.snapshots!,
+        ...current.filter((candidate) => !body.snapshots!.some((snapshot) => snapshot.id === candidate.id)),
+      ]);
+      toast.success(`${(body.insertedCount ?? 0) + (body.reusedCount ?? 0)} fiyat snapshot kataloğa eklendi.`);
+    } catch {
+      toast.error("CSV fiyat kataloğu içe aktarılamadı.");
+    } finally {
+      setCatalogImportBusy(false);
+    }
+  };
+
   const transfer = async () => {
     if (!documentId || !quotationId) return;
     const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
@@ -411,6 +562,32 @@ export function SmartCheckImportWorkspace() {
   const activeSheet = preview?.sheets.find((sheet) => sheet.name === selectedSheet) ?? preview?.sheets[0];
   const reviewedRows = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
   const snapshotOptionsForRow = (row: Row) => priceSnapshots.filter((snapshot) => !snapshot.positionCode || snapshot.positionCode === row.normalizedPositionCode || snapshot.positionCode === row.rawPositionCode);
+  const catalogImportCard = (
+    <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4">
+      <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+        <div><p className="text-xs font-bold text-sky-100">CSV fiyat listesi importu</p><p className="mt-1 text-[10px] leading-relaxed text-zinc-500">Başlık örneği: Poz No;Açıklama;Birim;Birim Fiyat;Para Birimi. Import edilen fiyatlar advisory gelir; onay veya satıra bağlama kararı insanda kalır.</p></div>
+        {catalogImportRows.length > 0 && <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{catalogImportRows.length} satır hazır</Badge>}
+      </div>
+      <div className="grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]">
+        <Input aria-label="CSV fiyat katalog kaynak adı" placeholder="Kaynak adı / tedarikçi" value={catalogImportDraft.sourceName} onChange={(event) => setCatalogImportDraft((value) => ({ ...value, sourceName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        <Input aria-label="CSV fiyat katalog bölgesi" placeholder="Bölge (opsiyonel)" value={catalogImportDraft.region} onChange={(event) => setCatalogImportDraft((value) => ({ ...value, region: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        <Input aria-label="CSV fiyat katalog geçerlilik tarihi" type="date" value={catalogImportDraft.validUntil} onChange={(event) => setCatalogImportDraft((value) => ({ ...value, validUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+        <Button disabled={!catalogImportRows.length || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "CSV kataloğu aktar"}</Button>
+      </div>
+      <label className="mt-3 flex cursor-pointer flex-col gap-2 rounded-xl border border-dashed border-zinc-700 p-4 text-[11px] text-zinc-400 hover:border-sky-500/50">
+        <span className="font-bold text-zinc-300">{catalogImportDraft.fileName || "CSV fiyat katalog dosyası seçin"}</span>
+        <span>Desteklenen MVP formatı CSV; Excel/XLSX importu bir sonraki genişletme adımı olarak kalıyor.</span>
+        <input aria-label="CSV fiyat katalog dosyası" className="sr-only" type="file" accept=".csv,text/csv" onChange={(event) => void readPriceCatalogCsv(event.target.files?.[0] ?? null)} />
+      </label>
+      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
+        <textarea aria-label="CSV fiyat katalog metni" placeholder="Excel/CSV satırlarını buraya yapıştırın" value={catalogImportText} onChange={(event) => setCatalogImportText(event.target.value)} className="min-h-24 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-[11px] text-zinc-200 outline-none focus:border-sky-500/60" />
+        <Button disabled={!catalogImportText.trim()} onClick={readPriceCatalogText} variant="outline" className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10">CSV metnini oku</Button>
+      </div>
+      {catalogImportRows[0] && <div className="mt-3 rounded-xl border border-zinc-900 bg-zinc-950 p-3 text-[10px] text-zinc-500">
+        İlk satır: <span className="text-zinc-300">{catalogImportRows[0].positionCode || "Poz yok"} · {catalogImportRows[0].description} · {catalogImportRows[0].unit} · {catalogImportRows[0].amount.toLocaleString("tr-TR")} {catalogImportRows[0].currency ?? "TRY"}</span>
+      </div>}
+    </div>
+  );
 
   return (
     <section className="mb-8 rounded-3xl border border-orange-500/20 bg-zinc-950 p-6 sm:p-8">
@@ -464,6 +641,8 @@ export function SmartCheckImportWorkspace() {
         <div className="mt-3 flex justify-end gap-2"><Button variant="outline" onClick={() => setReviewDraft(null)}>İptal</Button><Button onClick={submitReviewDraft} className="bg-amber-600 text-white hover:bg-amber-700">Kararı kaydet</Button></div>
       </div>}
 
+      {reviewedRows.length === 0 && catalogImportCard}
+
       {reviewedRows.length > 0 && <div className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
         <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div><p className="text-xs font-bold text-sky-200">Fiyat kanıtı / katalog tohumu</p><p className="mt-1 text-[10px] text-zinc-500">Fiyat bilinmiyorsa sistem uydurmaz. Bildiğiniz fiyatı manuel snapshot olarak kaydedip satıra bağlayabilirsiniz; aktarımda bu snapshot birim fiyat olarak uygulanır.</p></div>
@@ -481,6 +660,7 @@ export function SmartCheckImportWorkspace() {
           <Input aria-label="Manuel fiyat kaynak adı" placeholder="Kaynak adı (örn. tedarikçi teklifi / son teklif hafızası)" value={manualSnapshotDraft.sourceName} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, sourceName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
           <Input aria-label="Manuel fiyat geçerlilik tarihi" type="date" value={manualSnapshotDraft.validUntil} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, validUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
         </div>
+        {catalogImportCard}
         <div className="mt-4 grid gap-2 md:grid-cols-2">{reviewedRows.map((row) => <label key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400"><span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span><select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300"><option value="">Snapshot seç</option>{snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}</select></label>)}</div>
       </div>}
 

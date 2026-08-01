@@ -759,6 +759,45 @@ Not verified / still open:
 - Automatic fuzzy matching from description/unit/position to best historical
   price is not implemented yet; current UI lists exact/general snapshot options.
 
+### Phase - SmartCheck CSV Price Catalog Import MVP
+
+Status: completed first pass.
+
+Changes:
+
+- Added `POST /api/pricing/catalog/import` for bulk price catalog ingestion.
+  The endpoint creates one price source and up to 500 advisory price snapshots
+  in a single transaction; it rejects official-reference imports from this
+  user-controlled path and never creates approved snapshots directly.
+- Bulk imports keep tenant boundaries: imported snapshots are scoped by
+  `companyId`, duplicate snapshot keys under the same source are reused, and
+  import audit metadata is recorded.
+- Hardened pricing date parsing with a bounded year range so malformed browser
+  date values cannot crash Postgres timestamp insertion.
+- `/app/smartcheck` now exposes CSV price catalog import independent of reviewed
+  metraj rows, with both CSV file selection and paste-from-Excel/CSV text input.
+  Turkish CSV headers such as `Poz No`, `Açıklama`, `Birim`, `Birim Fiyat`,
+  `Para Birimi` are normalized correctly.
+- Imported catalog rows appear as advisory price snapshots; users still decide
+  which snapshot to attach to reviewed SmartCheck rows before quote transfer.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- Focused DB-backed pricing tests passed:
+  `pnpm exec tsx --test src/server/routes/pricing.integration.test.ts`.
+- Headless browser smoke on `http://127.0.0.1:3013/app/smartcheck` pasted a
+  Turkish-header CSV price row, imported it through the rendered UI, and
+  confirmed via `/api/pricing/snapshots?positionCode=M-BROWSER-001` that one
+  advisory snapshot was created with `amount=12500.5`.
+
+Not verified / still open:
+
+- Native XLSX price catalog import is still not implemented; the MVP supports
+  CSV file or pasted CSV/Excel text.
+- Automatic fuzzy matching from imported catalog rows to IFC/SmartCheck rows is
+  still the next logical phase.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
