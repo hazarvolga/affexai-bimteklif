@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { describeIfcQuantityEvidence, summarizeIfcEvidencePolicy } from '@/ifc/evidence-policy';
 import { calculateSummary, parseIfcText } from '@/ifc/parser/legacy-parser';
 import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
 
@@ -233,6 +234,11 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
     if (!parsedData) return [];
     const set = new Set(parsedData.elements.map(e => e.storey));
     return Array.from(set);
+  }, [parsedData]);
+
+  const evidencePolicySummary = useMemo(() => {
+    if (!parsedData) return null;
+    return summarizeIfcEvidencePolicy(parsedData.elements);
   }, [parsedData]);
 
   // Export CSV Metraj Raporu
@@ -504,6 +510,54 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </div>
           </div>
 
+          {evidencePolicySummary && (
+            <div className="rounded-3xl border border-sky-500/20 bg-sky-950/10 p-6">
+              <div className="mb-5 flex flex-col justify-between gap-2 md:flex-row md:items-end">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-400">SmartCheck Evidence Policy</p>
+                  <h3 className="mt-1 text-lg font-black text-white">Kabul edilen ve bloklanan IFC miktar kaynakları</h3>
+                  <p className="mt-1 text-xs text-zinc-400">QTO/property review kuyruğuna adaydır; estimate, geometry, rebar ve formwork ayrı kanıt politikası olmadan aktarılmaz.</p>
+                </div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-300">
+                  {evidencePolicySummary.admissibleQuantityCount} satır SmartCheck review aday
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">QTO accepted</div>
+                  <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.acceptedQtoCount}</div>
+                  <p className="mt-1 text-[10px] text-zinc-500">IfcQuantityVolume</p>
+                </div>
+                <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-sky-400">Property accepted</div>
+                  <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.acceptedPropertyCount}</div>
+                  <p className="mt-1 text-[10px] text-zinc-500">Approved property</p>
+                </div>
+                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Estimate blocked</div>
+                  <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedEstimateCount}</div>
+                  <p className="mt-1 text-[10px] text-zinc-500">Demo estimate</p>
+                </div>
+                <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-rose-400">Geometry blocked</div>
+                  <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedGeometryCount}</div>
+                  <p className="mt-1 text-[10px] text-zinc-500">Rules pending</p>
+                </div>
+                <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-orange-400">Rebar blocked</div>
+                  <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedRebarCount}</div>
+                  <p className="mt-1 text-[10px] text-zinc-500">BVBS/TS 708 pending</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-700 bg-zinc-900/50 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Formwork blocked</div>
+                  <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedFormworkEstimateCount}</div>
+                  <p className="mt-1 text-[10px] text-zinc-500">Net/gross pending</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* REBAR DIAMETER BREAKDOWN & SMARTCHECK QUALITY SUMMARY */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Rebar Diameter Table */}
@@ -687,7 +741,20 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                         <td className="p-3">{el.formworkM2} $m^2$</td>
                         <td className="p-3 font-bold text-orange-400">{el.rebarKg} kg</td>
                         <td className="p-3 text-[11px] text-zinc-400">
-                          {el.quantitySource === 'property' ? (el.quantitySourcePath?.split(':')[1] ?? 'property') : 'estimate'}
+                          {(() => {
+                            const evidence = describeIfcQuantityEvidence(el);
+                            const toneClass = evidence.tone === 'emerald' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                              : evidence.tone === 'sky' ? 'border-sky-500/30 bg-sky-500/10 text-sky-300'
+                              : evidence.tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+                              : evidence.tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                              : 'border-zinc-700 bg-zinc-900 text-zinc-400';
+                            return (
+                              <span title={evidence.reason} className={`inline-flex rounded border px-2 py-0.5 text-[10px] font-bold ${toneClass}`}>
+                                {evidence.label}
+                              </span>
+                            );
+                          })()}
+                          {el.quantitySourcePath && <div className="mt-1 max-w-44 truncate text-[10px] text-zinc-600" title={el.quantitySourcePath}>{el.quantitySourcePath.split(':')[1] ?? el.quantitySourcePath}</div>}
                         </td>
                         <td className="p-3">
                           <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${

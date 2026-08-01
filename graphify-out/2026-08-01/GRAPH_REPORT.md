@@ -1,16 +1,16 @@
 # Graph Report - TeklifPro-repo  (2026-08-01)
 
 ## Corpus Check
-- 781 files · ~1,324,086 words
+- 781 files · ~1,324,348 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 8529 nodes · 10734 edges · 789 communities (728 shown, 61 thin omitted)
+- 8529 nodes · 10734 edges · 789 communities (729 shown, 60 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 210 edges (avg confidence: 0.74)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `362bdf52`
+- Built from commit: `c3ee29ed`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -28,7 +28,7 @@
 - track.ts
 - Google Ads Setup
 - AIProvider
-- cli.ts
+- cli-entry.test.ts
 - cn
 - TeklifPro-repo/components/ui/select.tsx
 - AuthService
@@ -36,7 +36,7 @@
 - Settings.tsx
 - TeklifPro-repo/components/ui/dialog.tsx
 - TeklifPro-repo/components/ui/dropdown-menu.tsx
-- cli.test.ts
+- cli.ts
 - AIProviderRouter
 - TeklifPro-repo/components/ui/table.tsx
 - cli-process.test.ts
@@ -569,7 +569,7 @@
 - Usage-Value Correlation Analysis
 - MaxDiff Analysis (Best-Worst Scaling)
 - Before Starting
-- Common Tag Configurations
+- Pitch Templates by Angle
 - Voice and Structure
 - Before Starting
 - Referral Program Design
@@ -577,7 +577,7 @@
 - Threshold Calibration
 - Core Principles
 - Data Hygiene & Enrichment
-- Tooling
+- Audio Strategy
 - Phrases That Signal AI Writing
 - International Sitemaps
 - Before Planning
@@ -614,7 +614,7 @@
 - Campaign Structure Best Practices
 - Campaign Optimization
 - Creative Best Practices
-- Video Hook Library
+- Advanced Patterns
 - Product/App Events
 - Configuration
 - Custom Dimensions and Metrics
@@ -638,7 +638,7 @@
 - Error Handling
 - Output Format
 - Multi-Step Forms
-- Building the Media List
+- Abandoned Cart (highest-ROI flow for ecom)
 - Before Starting
 - AI Image Generation
 - Design Tools
@@ -784,7 +784,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (789 total, 61 thin omitted)
+## Communities (789 total, 60 thin omitted)
 
 ### Community 0 - "BrowserFactory"
 Cohesion: 0.14
@@ -834,9 +834,9 @@ Nodes (8): Account Foundation, Ad Extensions, Analytics Integration, Audience Se
 Cohesion: 0.06
 Nodes (22): GeminiProvider, OpenAIProvider, electricalPlugin, INITIAL_PLUGINS, mechanicalPlugin, renovationPlugin, residentialPlugin, IndustryRegistry (+14 more)
 
-### Community 13 - "cli.ts"
-Cohesion: 0.12
-Nodes (15): defaultDependencies, EvaluationCliEntryDependencies, EvaluationCliProcessRuntime, runEvaluationCliEntry(), runCliMock(), EvaluationCliDependencies, EvaluationCliExecution, EvaluationCliIo (+7 more)
+### Community 13 - "cli-entry.test.ts"
+Cohesion: 0.18
+Nodes (7): EvaluationCliEntryDependencies, EvaluationCliProcessRuntime, runEvaluationCliEntry(), runCliMock(), setExitCode(), writeStderr(), writeStdout()
 
 ### Community 14 - "cn"
 Cohesion: 0.03
@@ -861,6 +861,10 @@ Nodes (5): cn(), Dialog(), DialogClose(), DialogPortal(), DialogTrigger()
 ### Community 20 - "TeklifPro-repo/components/ui/dropdown-menu.tsx"
 Cohesion: 0.48
 Nodes (5): cn(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuPortal(), DropdownMenuTrigger()
+
+### Community 21 - "cli.ts"
+Cohesion: 0.10
+Nodes (11): defaultDependencies, EvaluationCliDependencies, EvaluationCliExecution, EvaluationCliIo, EvaluationCliUsageError, EvaluationCliUsageErrorCode, mapError(), parseArgs() (+3 more)
 
 ### Community 23 - "TeklifPro-repo/components/ui/table.tsx"
 Cohesion: 0.53
@@ -899,8 +903,8 @@ Cohesion: 0.14
 Nodes (17): args, asOfArgument, jsonOutput, manifestPath, isMepDiscipline(), MEP_DISCIPLINES, parseIsoDate(), PilotAdmission (+9 more)
 
 ### Community 37 - "CandidateProvider"
-Cohesion: 0.12
-Nodes (13): EvaluateFixtureOptions, runDiscoveredEvaluationSuite(), RunDiscoveredEvaluationSuiteOptions, defaultCandidate, compareStrings(), runEvaluationSuite(), RunEvaluationSuiteOptions, defaultCandidate (+5 more)
+Cohesion: 0.13
+Nodes (12): EvaluateFixtureOptions, runDiscoveredEvaluationSuite(), defaultCandidate, compareStrings(), runEvaluationSuite(), RunEvaluationSuiteOptions, defaultCandidate, defaultExpectedRule (+4 more)
 
 ### Community 38 - "🚀 Tamamlanan Tüm Adımlar"
 Cohesion: 0.25
@@ -1199,8 +1203,8 @@ Cohesion: 0.09
 Nodes (23): Availability Heuristic, Bandwagon Effect / Social Proof, Confirmation Bias, Curse of Knowledge, Default Effect, Endowment Effect, Fundamental Attribution Error, Goal-Gradient Effect (+15 more)
 
 ### Community 136 - "SMS Sequence Templates"
-Cohesion: 0.10
-Nodes (21): Abandoned Cart (highest-ROI flow for ecom), Browse Abandonment, Early access, Flash sale (single send), Holiday / BFCM (2-send sequence), Limited drop / launch, Loyalty milestone, Promotional / Campaign Sends (+13 more)
+Cohesion: 0.12
+Nodes (17): Browse Abandonment, Early access, Flash sale (single send), Holiday / BFCM (2-send sequence), Limited drop / launch, Loyalty milestone, Promotional / Campaign Sends, Re-Engagement / Reactivation (Subscribers Who've Gone Cold) (+9 more)
 
 ### Community 141 - "TeklifPro Production-Ready Evidence & Market Intelligence Roadmap"
 Cohesion: 0.09
@@ -1223,8 +1227,8 @@ Cohesion: 0.09
 Nodes (22): Audience Examples, Audience Export, Audiences, Common Issues, Contents, Conversion Values, Conversions Setup, Creating Audiences (+14 more)
 
 ### Community 148 - "Google Tag Manager Implementation Reference"
-Cohesion: 0.10
-Nodes (21): Advanced Patterns, Consent Management, Consent Mode Integration, Container Structure, Contents, Custom JavaScript Variables, Debug Tips, Exception Handling (+13 more)
+Cohesion: 0.09
+Nodes (22): Common Tag Configurations, Consent Management, Consent Mode Integration, Container Structure, Contents, Debug Tips, Facebook Pixel - Base, Facebook Pixel - Event (+14 more)
 
 ### Community 151 - "Customer Research"
 Cohesion: 0.09
@@ -1328,7 +1332,7 @@ Nodes (19): Champion Enablement One-Pager, Color, Copy Prompts, File Format, Fon
 
 ### Community 177 - "Short-Form Video: Hooks, Scripts & Strategy"
 Cohesion: 0.11
-Nodes (18): Additional Video Structures, Analytics & Iteration, Audio Strategy, Batch Creation Workflow, Frequency Recommendations, Metrics That Matter, Music Selection, Optimal Posting Times (test your audience) (+10 more)
+Nodes (18): Additional Video Structures, Analytics & Iteration, Batch Creation Workflow, Controversial Hooks (Best for comments), Curiosity Hooks (Best for engagement), Frequency Recommendations, Metrics That Matter, Optimal Posting Times (test your audience) (+10 more)
 
 ### Community 178 - "2. Kesin Tablo Listesi, Alanlar ve Veri Tipleri"
 Cohesion: 0.11
@@ -1363,8 +1367,8 @@ Cohesion: 0.11
 Nodes (17): Channel S-curves, Growth Patterns — The Real Shape of SaaS Growth, How they combine, How this informs the plan, Layering growth curves — Channel × Product × Market, Market S-curves, Operational guidance for the planner, Pattern 1 — Linear growth (+9 more)
 
 ### Community 186 - "Journalist Pitching — Proactive PR Workflow"
-Cohesion: 0.12
-Nodes (16): 1. Data story, 2. Exclusive launch / milestone, 3. Op-ed / contributed piece, 4. Customer story, 5. Trend piece / connector, 6. Newsjack response, Contents, Embargoes (+8 more)
+Cohesion: 0.11
+Nodes (18): Building the Media List, Contents, Discovery checklist, Don't waste time on, Embargoes, Embargoes, Exclusives, and Follow-Up Etiquette, Exclusives, Finding journalist contact info (+10 more)
 
 ### Community 187 - "Navigation Patterns"
 Cohesion: 0.11
@@ -2926,9 +2930,9 @@ Nodes (5): Analyzing Results, Example Survey Question, How It Works, MaxDiff Ana
 Cohesion: 0.40
 Nodes (5): 1. Business Context, 2. Value & Competition, 3. Current Performance, 4. Goals, Before Starting
 
-### Community 583 - "Common Tag Configurations"
-Cohesion: 0.40
-Nodes (5): Common Tag Configurations, Facebook Pixel - Base, Facebook Pixel - Event, GA4 Configuration Tag, GA4 Event Tag
+### Community 583 - "Pitch Templates by Angle"
+Cohesion: 0.29
+Nodes (7): 1. Data story, 2. Exclusive launch / milestone, 3. Op-ed / contributed piece, 4. Customer story, 5. Trend piece / connector, 6. Newsjack response, Pitch Templates by Angle
 
 ### Community 585 - "Voice and Structure"
 Cohesion: 0.40
@@ -2958,9 +2962,9 @@ Nodes (5): Core Principles, Define Before Automate, Measure Every Handoff, Reven
 Cohesion: 0.40
 Nodes (5): Data Hygiene & Enrichment, Dedup Strategy, Enrichment Tools, Quarterly Audit Checklist, Required Fields Enforcement
 
-### Community 592 - "Tooling"
+### Community 592 - "Audio Strategy"
 Cohesion: 0.40
-Nodes (5): Finding journalist contact info, Maintaining the media list, Pitch tracking, Researching their recent work (browser-driven), Tooling
+Nodes (5): Audio Strategy, Music Selection, Voiceover Tips, When to Use Original Audio, When to Use Trending Sounds
 
 ### Community 593 - "Phrases That Signal AI Writing"
 Cohesion: 0.40
@@ -3102,9 +3106,9 @@ Nodes (4): Bid Strategy Progression, Campaign Optimization, Key Metrics by Objec
 Cohesion: 0.50
 Nodes (4): Creative Best Practices, Creative Testing Hierarchy, Image Ads, Video Ads Structure (15-30 sec)
 
-### Community 630 - "Video Hook Library"
-Cohesion: 0.40
-Nodes (5): Controversial Hooks (Best for comments), Curiosity Hooks (Best for engagement), Story Hooks (Best for watch time), Value Hooks (Best for saves), Video Hook Library
+### Community 630 - "Advanced Patterns"
+Cohesion: 0.50
+Nodes (4): Advanced Patterns, Custom JavaScript Variables, Exception Handling, Tag Sequencing
 
 ### Community 632 - "Product/App Events"
 Cohesion: 0.50
@@ -3198,9 +3202,9 @@ Nodes (4): Form Audit, Output Format, Recommended Form Design, Test Hypotheses
 Cohesion: 0.50
 Nodes (4): Multi-Step Best Practices, Multi-Step Forms, Progressive Commitment Pattern, When to Use Multi-Step
 
-### Community 655 - "Building the Media List"
+### Community 655 - "Abandoned Cart (highest-ROI flow for ecom)"
 Cohesion: 0.50
-Nodes (4): Building the Media List, Discovery checklist, Don't waste time on, Where to find candidates
+Nodes (4): Abandoned Cart (highest-ROI flow for ecom), Send 1 — 30 minutes after abandon, Send 2 — 4 hours after abandon (if no purchase), Send 3 — 24 hours after abandon (if no purchase, discount allowed)
 
 ### Community 656 - "Before Starting"
 Cohesion: 0.50
@@ -3509,7 +3513,7 @@ Nodes (3): Naming Conventions, Standard Parameters, UTM Parameter Strategy
 ## Knowledge Gaps
 - **5324 isolated node(s):** `evaluate-session.sh script`, `suggest-compact.sh script`, `app`, `$schema`, `style` (+5319 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **61 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **60 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

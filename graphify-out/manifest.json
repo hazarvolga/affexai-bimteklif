@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1785562984.9635944,
-    "ast_hash": "5fcccbcc7e590c7810d23b448e238d35",
+    "mtime": 1785564033.1417274,
+    "ast_hash": "09536d5d7625db72a6f826b089b9352a",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1785563884.1844604,
-    "ast_hash": "95a3304aebfe193db6f5a20e25c551d8",
+    "mtime": 1785564124.088806,
+    "ast_hash": "b8d5828171eda6f34730d2401df06a56",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4577,6 +4577,16 @@
   "src/ifc/parser/qto-extractor.ts": {
     "mtime": 1785563504.554043,
     "ast_hash": "21d20b647426f8e5047231fa8526e61b",
+    "semantic_hash": ""
+  },
+  "src/ifc/evidence-policy.test.ts": {
+    "mtime": 1785564080.672689,
+    "ast_hash": "ed83c63a8e0a032dc596246e56f09af4",
+    "semantic_hash": ""
+  },
+  "src/ifc/evidence-policy.ts": {
+    "mtime": 1785564032.9576354,
+    "ast_hash": "22979be6d3fb40fa60fabc9a8160af8c",
     "semantic_hash": ""
   }
 }

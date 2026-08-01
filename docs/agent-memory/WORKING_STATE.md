@@ -383,6 +383,12 @@ Changes:
   diameter grouping, unit conversion, lap/waste policy, and reviewer-backed
   BVBS/TS 708 validation exist. Derived formwork values remain metadata-only
   blocked estimates and are counted via `formworkEstimateBlockedCount`.
+- Added a shared IFC evidence policy display helper and surfaced policy status
+  in the browser IFC parser UI. The UI now summarizes QTO accepted, property
+  accepted, estimate blocked, geometry blocked, rebar blocked, and formwork
+  blocked counts, and the element table labels each row with its SmartCheck
+  admission status instead of showing only raw `property`/`estimate` source
+  text.
 
 Verified:
 
@@ -447,6 +453,17 @@ Verified:
   src/server/routes/smartcheck.integration.test.ts` -> 27/27 passing and 2/2
   HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
   not reachable in this session.
+- `pnpm exec tsx --test src/ifc/evidence-policy.test.ts
+  src/smartcheck/import/file-security.test.ts
+  src/smartcheck/import/integration-contract.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/qto-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts
+  src/ifc/smartcheck-processing.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 29/29 passing and 2/2
+  HTTP integration tests skipped because local PostgreSQL at `DATABASE_URL` was
+  not reachable in this session.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
@@ -465,9 +482,11 @@ Next recommended IFC work:
 
 1. Add authenticated SmartCheck IFC upload/process integration tests or local
    browser E2E to prove the route → Graphile worker → rows/artifact chain.
-2. Design deterministic geometry fallback acceptance rules before enabling
+2. Run browser/UI verification for the IFC parser evidence policy cards once a
+   local dev server/browser automation target is available.
+3. Design deterministic geometry fallback acceptance rules before enabling
    geometry-derived volume/area rows.
-3. Design and test a dedicated rebar evidence path before admitting
+4. Design and test a dedicated rebar evidence path before admitting
    `IfcReinforcingBar` quantities into review rows.
 
 ## Do Not Touch
