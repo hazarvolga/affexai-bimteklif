@@ -169,6 +169,7 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     const content = await storage.get(document.storageKey);
     if (sha256(content) !== document.checksumSha256) throw new Error("CHECKSUM_MISMATCH");
     const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
+    if (kind === "ifc") throw new Error("IFC_WORKER_PENDING");
     const parsed = await parseDocument(content, kind, document.importMappingJson as ColumnMapping);
     await updateRun(run.id, companyId, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });
     const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, companyId));

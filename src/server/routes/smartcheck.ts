@@ -9,7 +9,7 @@ import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/aut
 import { consumeRateLimit } from "../auth/security";
 import { SMARTCHECK_MAX_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
-import { detectAndValidateFile, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
+import { detectAndValidateFile, maxBytesForSmartCheckFileName, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
 import { inspectDocument, processingIdempotencyKey } from "../../smartcheck/import/processor";
 import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
 import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
@@ -25,7 +25,7 @@ import {
 } from "../../contracts/smartcheck";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
-const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip"], limit: SMARTCHECK_MAX_FILE_BYTES });
+const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip", "model/ifc", "application/ifc"], limit: SMARTCHECK_MAX_FILE_BYTES });
 
 const featureGate: RequestHandler = (req, res, next) => {
   if (!smartcheckImportEnabled(req.user.companyId)) return res.status(404).json({ error: "SmartCheck import pilot kapsamında etkin değil.", code: "SMARTCHECK_IMPORT_DISABLED" });
@@ -56,11 +56,11 @@ export function registerSmartCheckRoutes(app: Express) {
 
   app.post("/api/smartcheck/documents/uploads", ...protectedStack, async (req, res) => {
     const parsedRequest = smartcheckUploadRequestSchema.safeParse(req.body);
-    if (!parsedRequest.success || parsedRequest.data.fileSizeBytes > SMARTCHECK_MAX_FILE_BYTES) {
+    if (!parsedRequest.success || parsedRequest.data.fileSizeBytes > maxBytesForSmartCheckFileName(parsedRequest.data.fileName)) {
       return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
     }
     const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
-    if (!/\.(xlsx|csv)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX ve CSV kabul edilir." });
+    if (!/\.(xlsx|csv|ifc)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX, CSV ve IFC kabul edilir." });
     const storageKey = `${req.user.companyId}/${crypto.randomUUID()}/original`;
     const [document] = await db.insert(documents).values({
       companyId: req.user.companyId,
@@ -78,7 +78,7 @@ export function registerSmartCheckRoutes(app: Express) {
       ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType } }
       : await storage.createUploadTarget(storageKey, mimeType);
     await audit(req, "upload_created", "document", document.id, { fileName: originalFileName, fileSizeBytes });
-    res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: SMARTCHECK_MAX_FILE_BYTES });
+    res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: maxBytesForSmartCheckFileName(originalFileName) });
   });
 
   app.put("/api/smartcheck/documents/:id/content", authenticate, requireVerifiedEmail, featureGate, rateLimit, canReview, uploadBody, async (req, res) => {
@@ -106,8 +106,11 @@ export function registerSmartCheckRoutes(app: Express) {
     if (kind === "xlsx") {
       await validateXlsxArchive(content);
     }
+    if (kind === "ifc") {
+      await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_pending" });
+    }
     const [updated] = await db.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning();
-    await audit(req, "upload_completed", "document", document.id, { checksum, kind });
+    if (kind !== "ifc") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
     res.json(updated);
   });
 
@@ -119,6 +122,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const content = await createStorageAdapter().get(document.storageKey);
       if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
       const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
+      if (kind === "ifc") return res.status(409).json({ error: "IFC önizleme worker entegrasyonu bir sonraki fazda etkinleşecek.", code: "IFC_WORKER_PENDING" });
       const preview = await inspectDocument(content, kind);
       res.json({ document: { id: document.id, fileName: document.originalFileName, fileSizeBytes: document.fileSizeBytes, checksumSha256: document.checksumSha256, mapping: document.importMappingJson }, preview });
     } catch (error) {
@@ -156,6 +160,7 @@ export function registerSmartCheckRoutes(app: Express) {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Yükleme henüz tamamlanmadı." });
+    if (/\.ifc$/i.test(document.originalFileName)) return res.status(409).json({ error: "IFC SmartCheck worker entegrasyonu bir sonraki fazda etkinleşecek.", code: "IFC_WORKER_PENDING" });
     const idempotencyKey = processingIdempotencyKey(document.checksumSha256, document.importMappingJson as ColumnMapping);
     const [existing] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.companyId, req.user.companyId), eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.idempotencyKey, idempotencyKey)));
     if (existing) return res.status(200).json(existing);

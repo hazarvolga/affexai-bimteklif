@@ -1,6 +1,8 @@
 import path from "node:path";
 
-export const SMARTCHECK_MAX_FILE_BYTES = 25 * 1024 * 1024;
+export const SMARTCHECK_MAX_SPREADSHEET_FILE_BYTES = 25 * 1024 * 1024;
+export const SMARTCHECK_MAX_IFC_FILE_BYTES = 100 * 1024 * 1024;
+export const SMARTCHECK_MAX_FILE_BYTES = Math.max(SMARTCHECK_MAX_SPREADSHEET_FILE_BYTES, SMARTCHECK_MAX_IFC_FILE_BYTES);
 
 export function smartcheckImportEnabled(companyId: string): boolean {
   if (process.env.SMARTCHECK_IMPORT_ENABLED !== "true") return false;

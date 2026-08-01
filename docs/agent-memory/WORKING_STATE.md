@@ -348,6 +348,12 @@ Changes:
   provenance in the row evidence payload, marks missing price as a review
   finding, and blocks all demo/estimated elements from SmartCheck evidence row
   admission.
+- Added the first server-side IFC SmartCheck admission guard: `.ifc` uploads
+  now have a separate 100 MB size limit, STEP/`FILE_SCHEMA(('IFC...'))`
+  signature validation, accepted IFC MIME types, and upload/complete route
+  support. Preview/process still return `IFC_WORKER_PENDING` until the
+  database-backed IFC worker is implemented, so partial IFC parsing cannot be
+  misreported as a successful SmartCheck run.
 
 Verified:
 
@@ -362,6 +368,11 @@ Verified:
   emits 160 property-backed slab rows with approximately
   `322.374717498415 m3` total quantity and blocks the remaining estimated
   elements.
+- `pnpm exec tsx --test src/smartcheck/import/file-security.test.ts
+  src/ifc/quotation-transfer.test.ts src/ifc/parser-gates.test.ts
+  src/ifc/parser/quantity-extractor.test.ts
+  src/ifc/parser/spatial-extractor.test.ts src/ifc/smartcheck-evidence.test.ts`
+  -> 17/17 passing.
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
@@ -378,12 +389,12 @@ Not verified / still blocked:
 
 Next recommended IFC work:
 
-1. Add server/worker resource limits and checksum/upload contract for IFC files.
-2. Persist the new IFC SmartCheck evidence artifact through the existing
+1. Implement the IFC SmartCheck worker branch that parses uploaded IFC content
+   server-side and persists the evidence artifact through the existing
    `documents` / `document_processing_runs` / `document_processing_artifacts`
    chain instead of browser `sessionStorage`.
-3. Add QTO extraction before approved property fallback.
-4. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
+2. Add QTO extraction before approved property fallback.
+3. Keep rebar and formwork unavailable until explicit rebar/QTO/property or
    reviewed rule evidence exists.
 
 ## Do Not Touch
