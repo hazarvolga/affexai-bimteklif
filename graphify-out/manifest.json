@@ -1740,8 +1740,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/market-intelligence.integration.test.ts": {
-    "mtime": 1784838325.0,
-    "ast_hash": "e7ab49e090b57efb502683fc5979d12e",
+    "mtime": 1785565138.404526,
+    "ast_hash": "4e688aea1d9c01e5d7fdfbaf954f4eb4",
     "semantic_hash": ""
   },
   "src/server/routes/market-intelligence.ts": {
@@ -1750,8 +1750,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/pilot-evidence.integration.test.ts": {
-    "mtime": 1784841682.0,
-    "ast_hash": "ed64c48fef03a0671eb57616662100d5",
+    "mtime": 1785565138.488573,
+    "ast_hash": "7d86abcd1898fd86fec5eccb55799418",
     "semantic_hash": ""
   },
   "src/server/routes/pilot-evidence.ts": {
@@ -1765,8 +1765,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/pricing.integration.test.ts": {
-    "mtime": 1784834005.0,
-    "ast_hash": "99f46fe9344e8f272f11746861ad488a",
+    "mtime": 1785565138.3213286,
+    "ast_hash": "d62c4b4642212af36fe67daf50bc8a40",
     "semantic_hash": ""
   },
   "src/server/routes/pricing.ts": {
@@ -1785,13 +1785,13 @@
     "semantic_hash": ""
   },
   "src/server/routes/regulation-impact.integration.test.ts": {
-    "mtime": 1784836718.0,
-    "ast_hash": "9b68dc46fcad08f0e9dc49b5198437a5",
+    "mtime": 1785565138.5711677,
+    "ast_hash": "ae59f20325b2f350208172f6f4a499ea",
     "semantic_hash": ""
   },
   "src/server/routes/regulations.integration.test.ts": {
-    "mtime": 1784836080.0,
-    "ast_hash": "94fd2b67a8f18a30435defcbfe219957",
+    "mtime": 1785565138.653603,
+    "ast_hash": "4efbbc3d59c61b87408513eba69c6fd6",
     "semantic_hash": ""
   },
   "src/server/routes/regulations.ts": {
@@ -1800,8 +1800,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/smartcheck.integration.test.ts": {
-    "mtime": 1785563337.6018984,
-    "ast_hash": "e3d1c85214a2fc4d85bfe69b823388fe",
+    "mtime": 1785565122.921583,
+    "ast_hash": "32b274818a643f20f4e365538427b808",
     "semantic_hash": ""
   },
   "src/server/routes/smartcheck.ts": {
@@ -1810,8 +1810,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/source-intelligence.integration.test.ts": {
-    "mtime": 1784836625.0,
-    "ast_hash": "b8a81c4bbcb8e87c72aff977d0e0bde6",
+    "mtime": 1785565138.7374094,
+    "ast_hash": "50d01d0545e011046f00de9669e8c537",
     "semantic_hash": ""
   },
   "src/server/routes/source-intelligence.ts": {
@@ -1920,8 +1920,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/evaluation/cli-process.test.ts": {
-    "mtime": 1784470546.0,
-    "ast_hash": "bdeace53d07a1284bd62f6c28d9772b9",
+    "mtime": 1785565143.775775,
+    "ast_hash": "a9a4ba12464f6696f23474f4308db053",
     "semantic_hash": ""
   },
   "src/smartcheck/evaluation/cli.test.ts": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1785564734.1132154,
-    "ast_hash": "f643d2072c2b24fce18d0458a57c5e73",
+    "mtime": 1785565199.7631774,
+    "ast_hash": "dc5839a3d08bc509c2511cbed44a6754",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4587,6 +4587,11 @@
   "src/ifc/evidence-policy.ts": {
     "mtime": 1785564032.9576354,
     "ast_hash": "22979be6d3fb40fa60fabc9a8160af8c",
+    "semantic_hash": ""
+  },
+  "src/server/routes/test-db-reachability.ts": {
+    "mtime": 1785565110.314287,
+    "ast_hash": "55003fa60069f36e7239fb18a12b599a",
     "semantic_hash": ""
   }
 }

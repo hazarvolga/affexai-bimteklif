@@ -1,38 +1,15 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import http from "node:http";
-import net from "node:net";
 import test from "node:test";
 import dotenv from "dotenv";
+import { skipIfDatabaseUnavailable } from "./test-db-reachability";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
-async function canReachDatabase(databaseUrl: string): Promise<boolean> {
-  try {
-    const url = new URL(databaseUrl);
-    const port = Number(url.port || 5432);
-    const host = url.hostname || "127.0.0.1";
-    return await new Promise<boolean>((resolve) => {
-      const socket = net.createConnection({ host, port });
-      const done = (reachable: boolean) => {
-        socket.removeAllListeners();
-        socket.destroy();
-        resolve(reachable);
-      };
-      socket.setTimeout(500);
-      socket.once("connect", () => done(true));
-      socket.once("error", () => done(false));
-      socket.once("timeout", () => done(false));
-    });
-  } catch {
-    return true;
-  }
-}
-
 test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout: 30_000 }, async (t) => {
-  if (!process.env.DATABASE_URL) return t.skip("DATABASE_URL is required for the isolated HTTP integration test");
-  if (!(await canReachDatabase(process.env.DATABASE_URL))) return t.skip("DATABASE_URL database is not reachable for the isolated HTTP integration test");
+  if (await skipIfDatabaseUnavailable(t)) return;
   process.env.SMARTCHECK_IMPORT_ENABLED = "true";
   process.env.SMARTCHECK_LOCAL_STORAGE_DIR = ".data/smartcheck-integration-test";
   const [{ createApiApp }, schema, dbModule, { AuthService }, processor] = await Promise.all([
@@ -126,8 +103,7 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
 });
 
 test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { timeout: 30_000 }, async (t) => {
-  if (!process.env.DATABASE_URL) return t.skip("DATABASE_URL is required for the isolated HTTP integration test");
-  if (!(await canReachDatabase(process.env.DATABASE_URL))) return t.skip("DATABASE_URL database is not reachable for the isolated HTTP integration test");
+  if (await skipIfDatabaseUnavailable(t)) return;
   process.env.SMARTCHECK_IMPORT_ENABLED = "true";
   process.env.SMARTCHECK_LOCAL_STORAGE_DIR = ".data/smartcheck-ifc-integration-test";
   const [{ createApiApp }, schema, dbModule, { AuthService }, processor] = await Promise.all([

@@ -13,17 +13,13 @@ interface ChildProcessResult {
   stderr: string;
 }
 
-// Cross-platform npm command resolver
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-
 // Helper: Child process spawn helper
 function runEvaluateCliProcess(
   args: string[],
   timeoutMs = 90000
 ): Promise<ChildProcessResult> {
   return new Promise((resolve, reject) => {
-    // npm run smartcheck:evaluate -- <args>
-    const child = spawn(npmCommand, ['run', '--silent', 'smartcheck:evaluate', '--', ...args], {
+    const child = spawn(process.execPath, ['--import', 'tsx', 'src/smartcheck/evaluation/cli-main.ts', ...args], {
       cwd: process.cwd(),
       shell: false,
       env: { ...process.env }

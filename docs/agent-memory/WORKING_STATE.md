@@ -495,10 +495,45 @@ Verified:
 - `git diff --check` passed after each code phase.
 - `graphify update .` succeeded after each code phase.
 
+### Phase - Full Verification Harness Cleanup
+
+Status: completed first pass.
+
+Changes:
+
+- Added a shared PostgreSQL reachability test helper for DB-backed route
+  integration tests.
+- Updated market intelligence, pilot evidence, pricing, regulation impact,
+  regulation alerts, source intelligence, and SmartCheck HTTP integration tests
+  to skip cleanly when `DATABASE_URL` exists but local PostgreSQL is not
+  reachable.
+- Removed the SmartCheck evaluation process test dependency on a globally
+  discoverable `npm` binary; the child process now launches through the current
+  Node executable with the repo-local `tsx` loader.
+
+Verified:
+
+- Targeted harness check:
+  `pnpm exec tsx --test src/server/routes/pricing.integration.test.ts
+  src/server/routes/market-intelligence.integration.test.ts
+  src/server/routes/pilot-evidence.integration.test.ts
+  src/server/routes/regulation-impact.integration.test.ts
+  src/server/routes/regulations.integration.test.ts
+  src/server/routes/source-intelligence.integration.test.ts
+  src/server/routes/smartcheck.integration.test.ts
+  src/smartcheck/evaluation/cli-process.test.ts` -> 7/7 passing CLI process
+  tests and 8 DB-backed tests skipped because local PostgreSQL at
+  `DATABASE_URL` was not reachable in this session.
+- `pnpm test` -> 333 tests, 325 passing, 8 skipped, 0 failed. The 8 skipped
+  tests are DB-backed HTTP integration tests skipped because local PostgreSQL at
+  `DATABASE_URL` was not reachable in this session.
+- `pnpm run build` -> passed.
+- `pnpm lint` -> passed (`tsc --noEmit`).
+
 Not verified / still blocked:
 
-- Full `pnpm test`, production build, browser UI verification, authenticated
-  upload/process route E2E, real Graphile worker execution, and database-backed
+- Browser UI verification, authenticated upload/process route E2E with a real
+  local PostgreSQL database, real Graphile worker execution, and database-backed
   review/transfer flow were not completed in this slice.
 - The local sample IFC remains untracked under `ifc-document-sample/`.
 

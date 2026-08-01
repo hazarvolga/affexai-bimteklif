@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1784847822.0,
-    "ast_hash": "7cf3432ac973052024301ad4b6da4d6c",
+    "mtime": 1785564331.340876,
+    "ast_hash": "2694d9921f6dbdd87aa97969112c4bde",
     "semantic_hash": ""
   },
   "scripts/academy-parity-check.mjs": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "src/components/academy/CertificatesViewer.tsx": {
-    "mtime": 1785002124.1507418,
-    "ast_hash": "9519a9670413babf4c7a14c8204d46b1",
+    "mtime": 1785564296.502148,
+    "ast_hash": "ac32aca90ff1fbf5dd249a6b09e2ec1b",
     "semantic_hash": ""
   },
   "src/components/academy/CoordinateCalculator.tsx": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "src/components/academy/StudentProfile.tsx": {
-    "mtime": 1785002126.6906943,
-    "ast_hash": "0551fef9ca116123a8bb6dd5f338ca21",
+    "mtime": 1785564296.5896752,
+    "ast_hash": "e1a18c9f696fe8bb0b77d59b1828d97b",
     "semantic_hash": ""
   },
   "src/components/academy/TechnicalUI.tsx": {
@@ -1120,33 +1120,33 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
-    "mtime": 1784996130.0,
-    "ast_hash": "06e86e9f4093a0765ee282b83ed191b5",
+    "mtime": 1785564296.6756825,
+    "ast_hash": "abe2c213664a5835fa2b82daf994fc1d",
     "semantic_hash": ""
   },
   "src/components/bimplan/Footer.tsx": {
-    "mtime": 1784996130.0,
-    "ast_hash": "da3f644be128cd748dd7065ab9dfba7f",
+    "mtime": 1785564296.7617743,
+    "ast_hash": "c137b84fc92ac28aaf06369417823056",
     "semantic_hash": ""
   },
   "src/components/bimplan/Header.tsx": {
-    "mtime": 1784996130.0,
-    "ast_hash": "eca2f3f0a2d599c55317cb70b9ce6501",
+    "mtime": 1785564296.8500102,
+    "ast_hash": "aaee48288874a1ef381b53a9491f6843",
     "semantic_hash": ""
   },
   "src/components/bimplan/HomeView.tsx": {
-    "mtime": 1784996130.0,
-    "ast_hash": "fb2230be4bce406a0fe2d1bad6abb7e0",
+    "mtime": 1785564296.939127,
+    "ast_hash": "823cddbab81e1834d2abd5150e6b2911",
     "semantic_hash": ""
   },
   "src/components/bimplan/LegislationView.tsx": {
-    "mtime": 1784996130.0,
-    "ast_hash": "1c50066af8b1b674f8eb8887ad7c37d8",
+    "mtime": 1785564297.0290568,
+    "ast_hash": "60fdfff7bc97f917d1254f27c7187a8f",
     "semantic_hash": ""
   },
   "src/components/bimplan/StandardsView.tsx": {
-    "mtime": 1784996130.0,
-    "ast_hash": "240d6d17235b4ab9fb114389a6244be1",
+    "mtime": 1785564297.1133337,
+    "ast_hash": "3d09d47e6c1c09a44d129289ceb8bb6f",
     "semantic_hash": ""
   },
   "src/components/business/ProfitabilityBadge.tsx": {
@@ -2175,8 +2175,8 @@
     "semantic_hash": ""
   },
   "src/types.ts": {
-    "mtime": 1785560555.6094804,
-    "ast_hash": "27c2fe5e6861e6799f6fd49ee2dec97b",
+    "mtime": 1785564535.9144473,
+    "ast_hash": "012c5e9cf0a2bafaf4b209e0b0e13404",
     "semantic_hash": ""
   },
   "src/utils/CertificateGenerator.ts": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1785564124.088806,
-    "ast_hash": "b8d5828171eda6f34730d2401df06a56",
+    "mtime": 1785564734.1132154,
+    "ast_hash": "f643d2072c2b24fce18d0458a57c5e73",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4320,8 +4320,8 @@
     "semantic_hash": ""
   },
   "pnpm-workspace.yaml": {
-    "mtime": 1785001615.0962687,
-    "ast_hash": "6fd75405695381e2ae4408e827d51071",
+    "mtime": 1785564452.5218706,
+    "ast_hash": "077bf34d89a53af16bca409a6bca0658",
     "semantic_hash": ""
   },
   "src/academy/reference/bim-master-platform.source.html": {

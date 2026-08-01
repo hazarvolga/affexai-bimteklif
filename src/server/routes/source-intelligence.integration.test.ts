@@ -3,12 +3,13 @@ import crypto from "node:crypto";
 import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
+import { skipIfDatabaseUnavailable } from "./test-db-reachability";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 test("official source adapter ingest is hash-bound, review-gated, and tenant-isolated", { timeout: 30_000 }, async (t) => {
-  if (!process.env.DATABASE_URL) return t.skip("DATABASE_URL is required for the isolated HTTP integration test");
+  if (await skipIfDatabaseUnavailable(t)) return;
   const [{ createApiApp }, schema, dbModule, { AuthService }] = await Promise.all([
     import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"),
   ]);
