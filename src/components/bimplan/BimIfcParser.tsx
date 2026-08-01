@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { extractAllplanVolumeQuantities } from '@/ifc/parser/quantity-extractor';
+import { extractIfcStoreyContainment } from '@/ifc/parser/spatial-extractor';
 
 export interface ParsedIfcElement {
   id: string;
@@ -26,6 +27,8 @@ export interface ParsedIfcElement {
   type: 'IfcBeam' | 'IfcColumn' | 'IfcSlab' | 'IfcWall' | 'IfcReinforcingBar';
   name: string;
   storey: string;
+  storeySource: 'estimate' | 'ifc_spatial';
+  storeySourcePath?: string;
   volumeM3: number;
   formworkM2: number;
   rebarKg: number;
@@ -93,6 +96,9 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
   const propertyQuantityByStepId = new Map(
     extractAllplanVolumeQuantities(ifcText).quantities.map((quantity) => [quantity.stepId, quantity])
   );
+  const storeyByStepId = new Map(
+    extractIfcStoreyContainment(ifcText).elementStoreys.map((assignment) => [assignment.elementStepId, assignment])
+  );
 
   // Match STEP entities e.g. #123= IFCBEAM('3vX082y...', #12, 'Kiris-K101', ...);
   const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
@@ -124,6 +130,8 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     let formworkM2 = 0;
     let rebarKg = 0;
     let storey = 'Kat 1 (Zemin)';
+    let storeySource: ParsedIfcElement['storeySource'] = 'estimate';
+    let storeySourcePath: string | undefined = undefined;
     let rebarDiameterMm: number | undefined = undefined;
 
     // Estimate geometric values if not explicitly declared in text property set
@@ -194,12 +202,21 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       smartCheckNote = `${propertyQuantity.quantityName} ${propertyQuantity.propertySetName} property kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`;
     }
 
+    const storeyAssignment = storeyByStepId.get(stepId);
+    if (storeyAssignment) {
+      storey = storeyAssignment.storeyName;
+      storeySource = 'ifc_spatial';
+      storeySourcePath = storeyAssignment.sourcePath;
+    }
+
     elements.push({
       id: stepId,
       guid,
       type,
       name: name || `${type}_${stepId}`,
       storey,
+      storeySource,
+      storeySourcePath,
       volumeM3,
       formworkM2,
       rebarKg,
@@ -237,6 +254,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       type: 'IfcBeam',
       name: `Kiriş K-${100 + i}`,
       storey: i <= 12 ? 'Kat 1' : 'Kat 2',
+      storeySource: 'estimate',
       volumeM3: vol,
       formworkM2: parseFloat((vol * 4.4).toFixed(2)),
       rebarKg: rebar,
@@ -256,6 +274,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       type: 'IfcColumn',
       name: `Kolon S-${100 + i}`,
       storey: i <= 9 ? 'Kat 1' : 'Kat 2',
+      storeySource: 'estimate',
       volumeM3: vol,
       formworkM2: parseFloat((vol * 5.2).toFixed(2)),
       rebarKg: rebar,
@@ -275,6 +294,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       type: 'IfcSlab',
       name: `Döşeme D-${100 + i}`,
       storey: i <= 6 ? 'Kat 1' : 'Kat 2',
+      storeySource: 'estimate',
       volumeM3: vol,
       formworkM2: parseFloat((vol / 0.18).toFixed(2)),
       rebarKg: rebar,
@@ -294,6 +314,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       type: 'IfcWall',
       name: `Perde Duvar P-${100 + i}`,
       storey: i <= 5 ? 'Bodrum Kat' : 'Kat 1',
+      storeySource: 'estimate',
       volumeM3: vol,
       formworkM2: parseFloat((vol * 6.0).toFixed(2)),
       rebarKg: rebar,
@@ -315,6 +336,7 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       type: 'IfcReinforcingBar',
       name: `Donatı Demeti ∅${d}`,
       storey: 'Tüm Katlar',
+      storeySource: 'estimate',
       volumeM3: parseFloat((rebarKg / 7850).toFixed(3)),
       formworkM2: 0,
       rebarKg,
@@ -518,13 +540,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   // Export CSV Metraj Raporu
   const handleExportCsv = () => {
     if (!parsedData) return;
-    const headers = ['STEP ID', 'GUID', 'Nesne Tipi', 'Eleman Adı', 'Kat', 'Hacim (m3)', 'Kalıp Alanı (m2)', 'Donatı (kg)', 'Miktar Kaynağı', 'SmartCheck Durumu'];
+    const headers = ['STEP ID', 'GUID', 'Nesne Tipi', 'Eleman Adı', 'Kat', 'Kat Kaynağı', 'Hacim (m3)', 'Kalıp Alanı (m2)', 'Donatı (kg)', 'Miktar Kaynağı', 'SmartCheck Durumu'];
     const rows = parsedData.elements.map(e => [
       e.id,
       e.guid,
       e.type,
       `"${e.name}"`,
       `"${e.storey}"`,
+      e.storeySourcePath ? `"${e.storeySourcePath}"` : e.storeySource,
       e.volumeM3,
       e.formworkM2,
       e.rebarKg,
@@ -928,6 +951,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     <th className="p-3">Nesne Tipi</th>
                     <th className="p-3">Eleman Adı</th>
                     <th className="p-3">Kat</th>
+                    <th className="p-3">Kat Kaynağı</th>
                     <th className="p-3">Hacim ($m^3$)</th>
                     <th className="p-3">Kalıp ($m^2$)</th>
                     <th className="p-3">Donatı (kg)</th>
@@ -938,7 +962,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <tbody className="divide-y divide-zinc-800/60 font-mono">
                   {filteredElements.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-zinc-500">
+                      <td colSpan={11} className="p-8 text-center text-zinc-500">
                         Arama kriterlerine uygun IFC nesnesi bulunamadı.
                       </td>
                     </tr>
@@ -960,6 +984,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                         </td>
                         <td className="p-3 font-semibold text-white">{el.name}</td>
                         <td className="p-3 text-zinc-400">{el.storey}</td>
+                        <td className="p-3 text-[11px] text-zinc-400">{el.storeySource === 'ifc_spatial' ? 'IFC spatial' : 'estimate'}</td>
                         <td className="p-3 font-bold text-emerald-400">{el.volumeM3} $m^3$</td>
                         <td className="p-3">{el.formworkM2} $m^2$</td>
                         <td className="p-3 font-bold text-orange-400">{el.rebarKg} kg</td>

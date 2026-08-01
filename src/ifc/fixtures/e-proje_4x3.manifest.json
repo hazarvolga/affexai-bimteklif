@@ -22,6 +22,7 @@
     "quoteTransferStatus": "needs_review"
   },
   "expectedIfcEntityCounts": {
+    "IfcBuildingStorey": 5,
     "IfcBeam": 293,
     "IfcColumn": 177,
     "IfcSlab": 173,

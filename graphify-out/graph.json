@@ -71,7 +71,7 @@
       "_origin": "ast",
       "id": "api_index",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "api/index.ts"
     },
     {
@@ -82,7 +82,7 @@
       "_origin": "ast",
       "id": "api_index_app",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "app"
     },
     {
@@ -4679,8 +4679,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "package_dependencies_aws_sdk_client_s3",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 741,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -4690,8 +4690,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "aws_sdk_client_s3",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 741,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -4723,8 +4723,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "package_dependencies_base_ui_react",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 742,
+      "community_name": "@base-ui/react",
       "norm_label": "@base-ui/react"
     },
     {
@@ -4734,8 +4734,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "base_ui_react",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 742,
+      "community_name": "@base-ui/react",
       "norm_label": "@base-ui/react"
     },
     {
@@ -4745,8 +4745,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "package_dependencies_fontsource_variable_geist",
-      "community": 754,
-      "community_name": "@fontsource-variable/geist",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@fontsource-variable/geist"
     },
     {
@@ -4756,8 +4756,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "fontsource_variable_geist",
-      "community": 754,
-      "community_name": "@fontsource-variable/geist",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@fontsource-variable/geist"
     },
     {
@@ -4767,8 +4767,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "package_dependencies_google_genai",
-      "community": 742,
-      "community_name": "@google/genai",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@google/genai"
     },
     {
@@ -4778,8 +4778,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "google_genai",
-      "community": 742,
-      "community_name": "@google/genai",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@google/genai"
     },
     {
@@ -4789,8 +4789,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "package_dependencies_google_generative_ai",
-      "community": 746,
-      "community_name": "@google/generative-ai",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@google/generative-ai"
     },
     {
@@ -4800,8 +4800,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "google_generative_ai",
-      "community": 746,
-      "community_name": "@google/generative-ai",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@google/generative-ai"
     },
     {
@@ -4833,8 +4833,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "package_dependencies_tailwindcss_vite",
-      "community": 756,
-      "community_name": "@tailwindcss/vite",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@tailwindcss/vite"
     },
     {
@@ -4844,8 +4844,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "tailwindcss_vite",
-      "community": 756,
-      "community_name": "@tailwindcss/vite",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@tailwindcss/vite"
     },
     {
@@ -4855,8 +4855,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "package_dependencies_types_bcryptjs",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 752,
+      "community_name": "@types/bcryptjs",
       "norm_label": "@types/bcryptjs"
     },
     {
@@ -4866,8 +4866,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "types_bcryptjs",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 752,
+      "community_name": "@types/bcryptjs",
       "norm_label": "@types/bcryptjs"
     },
     {
@@ -4877,8 +4877,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "package_dependencies_types_jsonwebtoken",
-      "community": 762,
-      "community_name": "@types/jsonwebtoken",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@types/jsonwebtoken"
     },
     {
@@ -4888,8 +4888,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "types_jsonwebtoken",
-      "community": 762,
-      "community_name": "@types/jsonwebtoken",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@types/jsonwebtoken"
     },
     {
@@ -4899,8 +4899,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "package_dependencies_vitejs_plugin_react",
-      "community": 763,
-      "community_name": "@vitejs/plugin-react",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@vitejs/plugin-react"
     },
     {
@@ -4910,8 +4910,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "vitejs_plugin_react",
-      "community": 763,
-      "community_name": "@vitejs/plugin-react",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "@vitejs/plugin-react"
     },
     {
@@ -4921,8 +4921,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "package_dependencies_bcryptjs",
-      "community": 527,
-      "community_name": "bcryptjs",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "bcryptjs"
     },
     {
@@ -4932,8 +4932,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "bcryptjs",
-      "community": 527,
-      "community_name": "bcryptjs",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "bcryptjs"
     },
     {
@@ -4987,8 +4987,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "package_dependencies_csv_parse",
-      "community": 745,
-      "community_name": "csv-parse",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "csv-parse"
     },
     {
@@ -4998,8 +4998,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "csv_parse",
-      "community": 745,
-      "community_name": "csv-parse",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "csv-parse"
     },
     {
@@ -5009,8 +5009,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "package_dependencies_date_fns",
-      "community": 715,
-      "community_name": "date-fns",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "date-fns"
     },
     {
@@ -5020,8 +5020,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "date_fns",
-      "community": 715,
-      "community_name": "date-fns",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "date-fns"
     },
     {
@@ -5031,8 +5031,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "package_dependencies_dotenv",
-      "community": 716,
-      "community_name": "dotenv",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "dotenv"
     },
     {
@@ -5042,8 +5042,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "dotenv",
-      "community": 716,
-      "community_name": "dotenv",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "dotenv"
     },
     {
@@ -5053,8 +5053,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "package_dependencies_drizzle_orm",
-      "community": 730,
-      "community_name": "drizzle-orm",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "drizzle-orm"
     },
     {
@@ -5064,8 +5064,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "drizzle_orm",
-      "community": 730,
-      "community_name": "drizzle-orm",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "drizzle-orm"
     },
     {
@@ -5075,8 +5075,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "package_dependencies_exceljs",
-      "community": 741,
-      "community_name": "exceljs",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "exceljs"
     },
     {
@@ -5086,8 +5086,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "exceljs",
-      "community": 741,
-      "community_name": "exceljs",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "exceljs"
     },
     {
@@ -5097,8 +5097,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "package_dependencies_express",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 745,
+      "community_name": "express",
       "norm_label": "express"
     },
     {
@@ -5108,8 +5108,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "express",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 745,
+      "community_name": "express",
       "norm_label": "express"
     },
     {
@@ -5163,8 +5163,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "package_dependencies_lucide_react",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 746,
+      "community_name": "lucide-react",
       "norm_label": "lucide-react"
     },
     {
@@ -5174,8 +5174,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "lucide_react",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 746,
+      "community_name": "lucide-react",
       "norm_label": "lucide-react"
     },
     {
@@ -5405,8 +5405,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "package_dependencies_sonner",
-      "community": 753,
-      "community_name": "sonner",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "sonner"
     },
     {
@@ -5416,8 +5416,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "sonner",
-      "community": 753,
-      "community_name": "sonner",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "sonner"
     },
     {
@@ -5427,8 +5427,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "package_dependencies_tailwind_merge",
-      "community": 755,
-      "community_name": "tailwind-merge",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "tailwind-merge"
     },
     {
@@ -5438,8 +5438,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "tailwind_merge",
-      "community": 755,
-      "community_name": "tailwind-merge",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "tailwind-merge"
     },
     {
@@ -5449,8 +5449,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "package_dependencies_tw_animate_css",
-      "community": 761,
-      "community_name": "tw-animate-css",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "tw-animate-css"
     },
     {
@@ -5460,8 +5460,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "tw_animate_css",
-      "community": 761,
-      "community_name": "tw-animate-css",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "tw-animate-css"
     },
     {
@@ -5493,8 +5493,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "package_dependencies_zod",
-      "community": 765,
-      "community_name": "zod",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "zod"
     },
     {
@@ -5504,8 +5504,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "zod",
-      "community": 765,
-      "community_name": "zod",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "zod"
     },
     {
@@ -5537,8 +5537,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "package_dependencies_yauzl",
-      "community": 764,
-      "community_name": "yauzl",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "yauzl"
     },
     {
@@ -5548,8 +5548,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "yauzl",
-      "community": 764,
-      "community_name": "yauzl",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "yauzl"
     },
     {
@@ -6263,8 +6263,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "scripts_allplan_structural_audit_evaluateevidencefiles",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "evaluateevidencefiles()"
     },
     {
@@ -7319,8 +7319,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "validate-allplan-content-review.mjs"
     },
     {
@@ -7330,8 +7330,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review_cliargs",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "cliargs"
     },
     {
@@ -7341,8 +7341,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review_absolutepath",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "absolutepath"
     },
     {
@@ -7352,8 +7352,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review_parsed",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "parsed"
     },
     {
@@ -7363,8 +7363,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review_evidenceroot",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "evidenceroot"
     },
     {
@@ -7374,8 +7374,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review_resolveevidencefile",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "resolveevidencefile()"
     },
     {
@@ -7385,8 +7385,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "scripts_validate_allplan_content_review_validaterecord",
-      "community": 10,
-      "community_name": "releaseGate.ts",
+      "community": 83,
+      "community_name": "validate-allplan-content-review.mjs",
       "norm_label": "validaterecord()"
     },
     {
@@ -7463,7 +7463,7 @@
       "_origin": "ast",
       "id": "server",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "server.ts"
     },
     {
@@ -8089,8 +8089,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_test",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "certification.test.ts"
     },
     {
@@ -8100,8 +8100,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_certification",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "certification.ts"
     },
     {
@@ -8111,8 +8111,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_allplan_assessment",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplan_assessment"
     },
     {
@@ -8122,8 +8122,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_publicassessment",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "publicassessment()"
     },
     {
@@ -8133,8 +8133,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_certificationprogress",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "certificationprogress"
     },
     {
@@ -8144,8 +8144,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_certificationeligibility",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "certificationeligibility"
     },
     {
@@ -8155,8 +8155,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_evaluatecertificationeligibility",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "evaluatecertificationeligibility()"
     },
     {
@@ -8166,8 +8166,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_scoreassessment",
-      "community": 83,
-      "community_name": "certification.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "scoreassessment()"
     },
     {
@@ -8177,8 +8177,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_checkpoint_test",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "checkpoint.test.ts"
     },
     {
@@ -8188,8 +8188,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_checkpoint",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "checkpoint.ts"
     },
     {
@@ -8199,8 +8199,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_academy_allplan_checkpoint_numericrecord",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "numericrecord"
     },
     {
@@ -8210,8 +8210,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_academy_allplan_checkpoint_finite",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "finite()"
     },
     {
@@ -8221,8 +8221,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_academy_allplan_checkpoint_validatecheckpointevidence",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "validatecheckpointevidence()"
     },
     {
@@ -8243,8 +8243,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_academy_allplan_checkpoint_acceptedstudydelta",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "acceptedstudydelta()"
     },
     {
@@ -8255,7 +8255,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_test",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "companion.test.ts"
     },
     {
@@ -8266,7 +8266,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_test_lessons",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "lessons"
     },
     {
@@ -8277,7 +8277,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "companion.ts"
     },
     {
@@ -8288,7 +8288,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_companioncitation",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "companioncitation"
     },
     {
@@ -8299,7 +8299,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_companionanswer",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "companionanswer"
     },
     {
@@ -8310,7 +8310,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_stopwords",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "stopwords"
     },
     {
@@ -8321,7 +8321,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_tokens",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "tokens()"
     },
     {
@@ -8332,7 +8332,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_excerpt",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "excerpt()"
     },
     {
@@ -8343,7 +8343,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_companion_answerfromallplanlessons",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "answerfromallplanlessons()"
     },
     {
@@ -8386,8 +8386,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_test",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "paymentwebhook.test.ts"
     },
     {
@@ -8397,8 +8397,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_test_validpayload",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "validpayload"
     },
     {
@@ -8408,8 +8408,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "paymentwebhook.ts"
     },
     {
@@ -8419,8 +8419,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_academypaymenteventtype",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academypaymenteventtype"
     },
     {
@@ -8430,8 +8430,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_academypaymentevent",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academypaymentevent"
     },
     {
@@ -8441,8 +8441,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_unsafesecretvalues",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "unsafesecretvalues"
     },
     {
@@ -8452,8 +8452,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_isacademypaymentwebhooksecretconfigured",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "isacademypaymentwebhooksecretconfigured()"
     },
     {
@@ -8463,8 +8463,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_parseacademypaymentevent",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "parseacademypaymentevent()"
     },
     {
@@ -8474,8 +8474,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_academy_allplan_paymentwebhook_verifyacademypaymentsignature",
-      "community": 66,
-      "community_name": "paymentWebhook.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "verifyacademypaymentsignature()"
     },
     {
@@ -8771,8 +8771,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_source_constants",
-      "community": 71,
-      "community_name": "track.ts",
+      "community": 503,
+      "community_name": "constants.ts",
       "norm_label": "constants.ts"
     },
     {
@@ -8782,8 +8782,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_academy_allplan_source_constants_screentype",
-      "community": 71,
-      "community_name": "track.ts",
+      "community": 503,
+      "community_name": "constants.ts",
       "norm_label": "screentype"
     },
     {
@@ -8793,8 +8793,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_academy_allplan_source_constants_navitem",
-      "community": 71,
-      "community_name": "track.ts",
+      "community": 503,
+      "community_name": "constants.ts",
       "norm_label": "navitem"
     },
     {
@@ -8804,8 +8804,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_academy_allplan_source_constants_nav_items",
-      "community": 71,
-      "community_name": "track.ts",
+      "community": 503,
+      "community_name": "constants.ts",
       "norm_label": "nav_items"
     },
     {
@@ -8815,8 +8815,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_academy_allplan_source_constants_lessonnode",
-      "community": 71,
-      "community_name": "track.ts",
+      "community": 503,
+      "community_name": "constants.ts",
       "norm_label": "lessonnode"
     },
     {
@@ -8826,8 +8826,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_academy_allplan_source_constants_course_tree",
-      "community": 71,
-      "community_name": "track.ts",
+      "community": 503,
+      "community_name": "constants.ts",
       "norm_label": "course_tree"
     },
     {
@@ -8991,7 +8991,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_types",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplan/types.ts"
     },
@@ -9002,7 +9002,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplancontentstatus",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplancontentstatus"
     },
@@ -9013,8 +9013,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplaninteractivetool",
-      "community": 255,
-      "community_name": "checkpoint.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplaninteractivetool"
     },
     {
@@ -9024,7 +9024,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplanlessonstep",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplanlessonstep"
     },
@@ -9036,7 +9036,7 @@
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplanlesson",
       "community": 40,
-      "community_name": "allplan/types.ts",
+      "community_name": "companion.ts",
       "norm_label": "allplanlesson"
     },
     {
@@ -9046,7 +9046,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplanmodulenode",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplanmodulenode"
     },
@@ -9057,7 +9057,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplantrack",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplantrack"
     },
@@ -9068,7 +9068,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplancoveragereport",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplancoveragereport"
     },
@@ -9079,7 +9079,7 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplanlessonsummary",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplanlessonsummary"
     },
@@ -9090,7 +9090,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "src_academy_allplan_types_allplancurriculumnode",
-      "community": 40,
+      "community": 255,
       "community_name": "allplan/types.ts",
       "norm_label": "allplancurriculumnode"
     },
@@ -10088,7 +10088,7 @@
       "label": "ParsedIfcElement",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L23",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_parsedifcelement",
       "community": 303,
@@ -10099,7 +10099,7 @@
       "label": "IfcParseSummary",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L40",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_ifcparsesummary",
       "community": 303,
@@ -10110,7 +10110,7 @@
       "label": "DEMO_IFC_DATASETS",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L65",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_demo_ifc_datasets",
       "community": 303,
@@ -10121,7 +10121,7 @@
       "label": "parseIfcText()",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L90",
+      "source_location": "L93",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_parseifctext",
       "community": 303,
@@ -10132,7 +10132,7 @@
       "label": "generateSyntheticIfcDataset()",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L227",
+      "source_location": "L244",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_generatesyntheticifcdataset",
       "community": 303,
@@ -10143,7 +10143,7 @@
       "label": "calculateSummary()",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L331",
+      "source_location": "L353",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_calculatesummary",
       "community": 303,
@@ -10154,7 +10154,7 @@
       "label": "createFailedIfcParseResult()",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L408",
+      "source_location": "L430",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_createfailedifcparseresult",
       "community": 303,
@@ -10165,7 +10165,7 @@
       "label": "BimIfcParserProps",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L439",
+      "source_location": "L461",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_bimifcparserprops",
       "community": 303,
@@ -10176,7 +10176,7 @@
       "label": "BimIfcParser()",
       "file_type": "code",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L443",
+      "source_location": "L465",
       "_origin": "ast",
       "id": "src_components_bimplan_bimifcparser_bimifcparser",
       "community": 303,
@@ -10355,8 +10355,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_business_profitabilitybadge",
-      "community": 103,
-      "community_name": "QuoteDetail.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "src/components/business/profitabilitybadge.tsx"
     },
     {
@@ -10366,8 +10366,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_business_profitabilitybadge_profitabilitybadgeprops",
-      "community": 103,
-      "community_name": "QuoteDetail.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "profitabilitybadgeprops"
     },
     {
@@ -10377,8 +10377,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_components_business_profitabilitybadge_profitabilitybadge",
-      "community": 103,
-      "community_name": "QuoteDetail.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "profitabilitybadge()"
     },
     {
@@ -10388,8 +10388,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_business_quotationcard",
-      "community": 103,
-      "community_name": "QuoteDetail.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "src/components/business/quotationcard.tsx"
     },
     {
@@ -10399,8 +10399,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_business_quotationcard_quotationcardprops",
-      "community": 103,
-      "community_name": "QuoteDetail.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "quotationcardprops"
     },
     {
@@ -10410,8 +10410,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_components_business_quotationcard_quotationcard",
-      "community": 103,
-      "community_name": "QuoteDetail.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "quotationcard()"
     },
     {
@@ -10586,8 +10586,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_layout_sectionwrapper",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 28,
+      "community_name": "Clients.tsx",
       "norm_label": "src/components/layout/sectionwrapper.tsx"
     },
     {
@@ -10597,8 +10597,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_components_layout_sectionwrapper_sectionwrapperprops",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 28,
+      "community_name": "Clients.tsx",
       "norm_label": "sectionwrapperprops"
     },
     {
@@ -10608,8 +10608,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_components_layout_sectionwrapper_sectionwrapper",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 28,
+      "community_name": "Clients.tsx",
       "norm_label": "sectionwrapper()"
     },
     {
@@ -11411,8 +11411,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_input",
-      "community": 18,
-      "community_name": "Settings.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "src/components/ui/input.tsx"
     },
     {
@@ -11422,8 +11422,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_components_ui_input_input",
-      "community": 18,
-      "community_name": "Settings.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "input()"
     },
     {
@@ -11477,8 +11477,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_scroll_area",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "src/components/ui/scroll-area.tsx"
     },
     {
@@ -11488,8 +11488,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_components_ui_scroll_area_scrollarea",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "scrollarea()"
     },
     {
@@ -12401,8 +12401,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_db_index",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "db/index.ts"
     },
     {
@@ -12412,8 +12412,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_db_index_pool",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "pool"
     },
     {
@@ -12423,8 +12423,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_db_index_db",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "db"
     },
     {
@@ -12665,8 +12665,8 @@
       "source_location": "L125",
       "_origin": "ast",
       "id": "src_db_schema_users",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "users"
     },
     {
@@ -12698,8 +12698,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "src_db_schema_companies",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "companies"
     },
     {
@@ -12709,8 +12709,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "src_db_schema_memberships",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "memberships"
     },
     {
@@ -12720,8 +12720,8 @@
       "source_location": "L191",
       "_origin": "ast",
       "id": "src_db_schema_subscriptions",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "subscriptions"
     },
     {
@@ -12731,8 +12731,8 @@
       "source_location": "L203",
       "_origin": "ast",
       "id": "src_db_schema_usagelogs",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "usagelogs"
     },
     {
@@ -12742,8 +12742,8 @@
       "source_location": "L223",
       "_origin": "ast",
       "id": "src_db_schema_usagealerts",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "usagealerts"
     },
     {
@@ -12775,8 +12775,8 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "src_db_schema_pilotapplications",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "pilotapplications"
     },
     {
@@ -12786,8 +12786,8 @@
       "source_location": "L283",
       "_origin": "ast",
       "id": "src_db_schema_clients",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "clients"
     },
     {
@@ -12797,8 +12797,8 @@
       "source_location": "L296",
       "_origin": "ast",
       "id": "src_db_schema_quotations",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "quotations"
     },
     {
@@ -12885,8 +12885,8 @@
       "source_location": "L620",
       "_origin": "ast",
       "id": "src_db_schema_quotationitems",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "quotationitems"
     },
     {
@@ -12896,8 +12896,8 @@
       "source_location": "L664",
       "_origin": "ast",
       "id": "src_db_schema_quotationitemevidence",
-      "community": 25,
-      "community_name": "market-intelligence.ts",
+      "community": 7,
+      "community_name": "routes/smartcheck.ts",
       "norm_label": "quotationitemevidence"
     },
     {
@@ -12973,8 +12973,8 @@
       "source_location": "L788",
       "_origin": "ast",
       "id": "src_db_schema_quotationfinancials",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "quotationfinancials"
     },
     {
@@ -13182,8 +13182,8 @@
       "source_location": "L1505",
       "_origin": "ast",
       "id": "src_db_schema_allplanlessonprogress",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplanlessonprogress"
     },
     {
@@ -13193,8 +13193,8 @@
       "source_location": "L1527",
       "_origin": "ast",
       "id": "src_db_schema_allplanlessonactivity",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplanlessonactivity"
     },
     {
@@ -13204,8 +13204,8 @@
       "source_location": "L1544",
       "_origin": "ast",
       "id": "src_db_schema_allplanlessonnotes",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplanlessonnotes"
     },
     {
@@ -13215,8 +13215,8 @@
       "source_location": "L1560",
       "_origin": "ast",
       "id": "src_db_schema_allplanlessonbookmarks",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplanlessonbookmarks"
     },
     {
@@ -13226,8 +13226,8 @@
       "source_location": "L1574",
       "_origin": "ast",
       "id": "src_db_schema_allplancheckpointattempts",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplancheckpointattempts"
     },
     {
@@ -13237,8 +13237,8 @@
       "source_location": "L1590",
       "_origin": "ast",
       "id": "src_db_schema_allplanexamattempts",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplanexamattempts"
     },
     {
@@ -13248,8 +13248,8 @@
       "source_location": "L1606",
       "_origin": "ast",
       "id": "src_db_schema_allplancertificates",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplancertificates"
     },
     {
@@ -13259,8 +13259,8 @@
       "source_location": "L1629",
       "_origin": "ast",
       "id": "src_db_schema_allplancertificateauditlogs",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "allplancertificateauditlogs"
     },
     {
@@ -13303,8 +13303,8 @@
       "source_location": "L1687",
       "_origin": "ast",
       "id": "src_db_schema_academylearnerprofiles",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academylearnerprofiles"
     },
     {
@@ -13314,8 +13314,8 @@
       "source_location": "L1707",
       "_origin": "ast",
       "id": "src_db_schema_academyactivationevents",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academyactivationevents"
     },
     {
@@ -13325,8 +13325,8 @@
       "source_location": "L1722",
       "_origin": "ast",
       "id": "src_db_schema_academyacquisitionevents",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academyacquisitionevents"
     },
     {
@@ -13336,8 +13336,8 @@
       "source_location": "L1732",
       "_origin": "ast",
       "id": "src_db_schema_academyenrollmentauditlogs",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academyenrollmentauditlogs"
     },
     {
@@ -13347,8 +13347,8 @@
       "source_location": "L1748",
       "_origin": "ast",
       "id": "src_db_schema_academypaymentevents",
-      "community": 11,
-      "community_name": "schema.ts",
+      "community": 2,
+      "community_name": "academy.ts",
       "norm_label": "academypaymentevents"
     },
     {
@@ -13660,6 +13660,116 @@
       "norm_label": "extractallplanvolumequantities()"
     },
     {
+      "label": "spatial-extractor.test.ts",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_test",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "spatial-extractor.test.ts"
+    },
+    {
+      "label": "manifest",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_test_manifest",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "manifest"
+    },
+    {
+      "label": "samplePath",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_test_samplepath",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "samplepath"
+    },
+    {
+      "label": "spatial-extractor.ts",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "spatial-extractor.ts"
+    },
+    {
+      "label": "IfcStoreyInfo",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_ifcstoreyinfo",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "ifcstoreyinfo"
+    },
+    {
+      "label": "IfcElementStoreyAssignment",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_ifcelementstoreyassignment",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "ifcelementstoreyassignment"
+    },
+    {
+      "label": "IfcSpatialExtraction",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_ifcspatialextraction",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "ifcspatialextraction"
+    },
+    {
+      "label": "parseReferences()",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_parsereferences",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "parsereferences()"
+    },
+    {
+      "label": "formatStoreyName()",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_formatstoreyname",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "formatstoreyname()"
+    },
+    {
+      "label": "extractIfcStoreyContainment()",
+      "file_type": "code",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment",
+      "community": 303,
+      "community_name": "BimIfcParser.tsx",
+      "norm_label": "extractifcstoreycontainment()"
+    },
+    {
       "label": "quotation-transfer.test.ts",
       "file_type": "code",
       "source_file": "src/ifc/quotation-transfer.test.ts",
@@ -13788,7 +13898,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_test",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "calculations.test.ts"
     },
     {
@@ -13799,7 +13909,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "calculations.ts"
     },
     {
@@ -13810,7 +13920,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_lineitem",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "lineitem"
     },
     {
@@ -13821,7 +13931,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_calculationresult",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "calculationresult"
     },
     {
@@ -13832,7 +13942,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_normalizedlineitem",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "normalizedlineitem"
     },
     {
@@ -13843,7 +13953,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_validationissue",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "validationissue"
     },
     {
@@ -13854,7 +13964,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_tofinitenumber",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "tofinitenumber()"
     },
     {
@@ -13865,7 +13975,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_roundmoney",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "roundmoney()"
     },
     {
@@ -13875,8 +13985,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_lib_calculations_normalizelineitem",
-      "community": 7,
-      "community_name": "routes/smartcheck.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "normalizelineitem()"
     },
     {
@@ -13887,7 +13997,7 @@
       "_origin": "ast",
       "id": "src_lib_calculations_validatelineitem",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "validatelineitem()"
     },
     {
@@ -13897,8 +14007,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "src_lib_calculations_validatequotationitems",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "validatequotationitems()"
     },
     {
@@ -13908,8 +14018,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "src_lib_calculations_calculatelineitemtotal",
-      "community": 7,
-      "community_name": "routes/smartcheck.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "calculatelineitemtotal()"
     },
     {
@@ -13919,8 +14029,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "src_lib_calculations_calculatequotationtotals",
-      "community": 7,
-      "community_name": "routes/smartcheck.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "calculatequotationtotals()"
     },
     {
@@ -13931,7 +14041,7 @@
       "_origin": "ast",
       "id": "src_lib_financial_calculations",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "financial-calculations.ts"
     },
     {
@@ -13942,7 +14052,7 @@
       "_origin": "ast",
       "id": "src_lib_financial_calculations_costcategory",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "costcategory"
     },
     {
@@ -13953,7 +14063,7 @@
       "_origin": "ast",
       "id": "src_lib_financial_calculations_financiallineitem",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "financiallineitem"
     },
     {
@@ -13964,7 +14074,7 @@
       "_origin": "ast",
       "id": "src_lib_financial_calculations_quotationfinancialcalculation",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "quotationfinancialcalculation"
     },
     {
@@ -13975,7 +14085,7 @@
       "_origin": "ast",
       "id": "src_lib_financial_calculations_categories",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "categories"
     },
     {
@@ -13986,7 +14096,7 @@
       "_origin": "ast",
       "id": "src_lib_financial_calculations_calculatequotationfinancials",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "calculatequotationfinancials()"
     },
     {
@@ -14503,7 +14613,7 @@
       "_origin": "ast",
       "id": "src_lib_quotation_audit",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "quotation-audit.ts"
     },
     {
@@ -14514,7 +14624,7 @@
       "_origin": "ast",
       "id": "src_lib_quotation_audit_auditseverity",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "auditseverity"
     },
     {
@@ -14525,7 +14635,7 @@
       "_origin": "ast",
       "id": "src_lib_quotation_audit_quotationauditissue",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "quotationauditissue"
     },
     {
@@ -14536,7 +14646,7 @@
       "_origin": "ast",
       "id": "src_lib_quotation_audit_sourceguidance",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "sourceguidance"
     },
     {
@@ -14547,7 +14657,7 @@
       "_origin": "ast",
       "id": "src_lib_quotation_audit_costguidance",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "costguidance"
     },
     {
@@ -14558,7 +14668,7 @@
       "_origin": "ast",
       "id": "src_lib_quotation_audit_auditquotationitems",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "auditquotationitems()"
     },
     {
@@ -14569,7 +14679,7 @@
       "_origin": "ast",
       "id": "src_lib_tax_advisory_test",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "tax-advisory.test.ts"
     },
     {
@@ -14580,7 +14690,7 @@
       "_origin": "ast",
       "id": "src_lib_tax_advisory",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "tax-advisory.ts"
     },
     {
@@ -14591,7 +14701,7 @@
       "_origin": "ast",
       "id": "src_lib_tax_advisory_calculatetaxadvisory",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "calculatetaxadvisory()"
     },
     {
@@ -14601,8 +14711,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_lib_utils",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 14,
+      "community_name": "cn",
       "norm_label": "src/lib/utils.ts"
     },
     {
@@ -15503,8 +15613,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_marketintelligence",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "marketintelligence.tsx"
     },
     {
@@ -15514,8 +15624,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_supplierentry",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "supplierentry"
     },
     {
@@ -15525,8 +15635,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_suppliersubmission",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "suppliersubmission"
     },
     {
@@ -15536,8 +15646,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_emptyform",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "emptyform"
     },
     {
@@ -15547,8 +15657,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_emptyentry",
-      "community": 58,
-      "community_name": "src/components/ui/button.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "emptyentry"
     },
     {
@@ -15558,8 +15668,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_readjson",
-      "community": 159,
-      "community_name": "fetchWithAuth",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "readjson()"
     },
     {
@@ -15569,8 +15679,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_sha256",
-      "community": 159,
-      "community_name": "fetchWithAuth",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "sha256()"
     },
     {
@@ -15580,8 +15690,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_uploadsourcefile",
-      "community": 159,
-      "community_name": "fetchWithAuth",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "uploadsourcefile()"
     },
     {
@@ -15591,8 +15701,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "src_pages_marketintelligence_marketintelligence",
-      "community": 159,
-      "community_name": "fetchWithAuth",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "marketintelligence()"
     },
     {
@@ -15602,8 +15712,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_passwordrecovery",
-      "community": 18,
-      "community_name": "Settings.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "passwordrecovery.tsx"
     },
     {
@@ -15613,8 +15723,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_pages_passwordrecovery_passwordrecovery",
-      "community": 18,
-      "community_name": "Settings.tsx",
+      "community": 53,
+      "community_name": "MarketIntelligence.tsx",
       "norm_label": "passwordrecovery()"
     },
     {
@@ -16295,7 +16405,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_app",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "app.ts"
     },
@@ -16306,7 +16416,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_server_app_canmutate",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "canmutate"
     },
@@ -16318,7 +16428,7 @@
       "_origin": "ast",
       "id": "src_server_app_createapiapp",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "createapiapp()"
     },
     {
@@ -16329,7 +16439,7 @@
       "_origin": "ast",
       "id": "src_server_app_startserver",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "startserver()"
     },
     {
@@ -16493,8 +16603,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_server_auth_security_pruneexpiredratelimits",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 39,
+      "community_name": "app.ts",
       "norm_label": "pruneexpiredratelimits()"
     },
     {
@@ -16735,8 +16845,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_middleware_auth",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "middleware/auth.ts"
     },
     {
@@ -16746,8 +16856,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_server_middleware_auth_express",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "express"
     },
     {
@@ -16757,8 +16867,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_server_middleware_auth_request",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "request"
     },
     {
@@ -16768,7 +16878,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_server_middleware_auth_authenticate",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "authenticate()"
     },
@@ -16791,7 +16901,7 @@
       "_origin": "ast",
       "id": "src_server_middleware_auth_checkrole",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "checkrole()"
     },
     {
@@ -16801,8 +16911,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_middleware_usage",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "src/server/middleware/usage.ts"
     },
     {
@@ -16812,8 +16922,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_server_middleware_usage_plan_limits",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "plan_limits"
     },
     {
@@ -16823,7 +16933,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "src_server_middleware_usage_usagetracker",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "usagetracker()"
     },
@@ -17186,7 +17296,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_ai",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "ai.ts"
     },
@@ -17198,7 +17308,7 @@
       "_origin": "ast",
       "id": "src_server_routes_ai_registerairoutes",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "registerairoutes()"
     },
     {
@@ -17274,8 +17384,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_billing",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "src/server/routes/billing.ts"
     },
     {
@@ -17285,7 +17395,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_server_routes_billing_registerbillingroutes",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "registerbillingroutes()"
     },
@@ -17296,8 +17406,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_clients",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "src/server/routes/clients.ts"
     },
     {
@@ -17307,7 +17417,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_server_routes_clients_registerclientroutes",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "registerclientroutes()"
     },
@@ -17318,8 +17428,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_company",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "company.ts"
     },
     {
@@ -17330,7 +17440,7 @@
       "_origin": "ast",
       "id": "src_server_routes_company_registercompanyroutes",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "registercompanyroutes()"
     },
     {
@@ -17340,8 +17450,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_crm",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "src/server/routes/crm.ts"
     },
     {
@@ -17351,7 +17461,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_server_routes_crm_registercrmroutes",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "registercrmroutes()"
     },
@@ -17428,8 +17538,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_server_routes_market_intelligence_ratelimit",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 25,
+      "community_name": "market-intelligence.ts",
       "norm_label": "ratelimit()"
     },
     {
@@ -17582,8 +17692,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_server_routes_pilot_evidence_featuregate",
-      "community": 116,
-      "community_name": "pilot-evidence.ts",
+      "community": 7,
+      "community_name": "routes/smartcheck.ts",
       "norm_label": "featuregate()"
     },
     {
@@ -17593,8 +17703,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_server_routes_pilot_evidence_ratelimit",
-      "community": 9,
-      "community_name": "routes/auth.ts",
+      "community": 116,
+      "community_name": "pilot-evidence.ts",
       "norm_label": "ratelimit()"
     },
     {
@@ -17714,7 +17824,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_pilot",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "pilot.ts"
     },
@@ -17726,7 +17836,7 @@
       "_origin": "ast",
       "id": "src_server_routes_pilot_clean",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "clean()"
     },
     {
@@ -17737,7 +17847,7 @@
       "_origin": "ast",
       "id": "src_server_routes_pilot_registerpilotroutes",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "registerpilotroutes()"
     },
     {
@@ -17901,8 +18011,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_profit",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "profit.ts"
     },
     {
@@ -17913,7 +18023,7 @@
       "_origin": "ast",
       "id": "src_server_routes_profit_registerprofitroutes",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "registerprofitroutes()"
     },
     {
@@ -17923,8 +18033,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_quotations",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "quotations.ts"
     },
     {
@@ -17934,8 +18044,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_server_routes_quotations_registerquotationroutes",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "registerquotationroutes()"
     },
     {
@@ -17967,8 +18077,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_regulations",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "src/server/routes/regulations.ts"
     },
     {
@@ -17978,7 +18088,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_server_routes_regulations_registerregulationroutes",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "registerregulationroutes()"
     },
@@ -18353,7 +18463,7 @@
       "_origin": "ast",
       "id": "src_services_ai_aiservice_aiservice",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": "aiservice"
     },
     {
@@ -18364,7 +18474,7 @@
       "_origin": "ast",
       "id": "src_services_ai_aiservice_aiservice_constructor",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -18375,7 +18485,7 @@
       "_origin": "ast",
       "id": "src_services_ai_aiservice_aiservice_detectindustry",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": ".detectindustry()"
     },
     {
@@ -18386,7 +18496,7 @@
       "_origin": "ast",
       "id": "src_services_ai_aiservice_aiservice_generatequotation",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": ".generatequotation()"
     },
     {
@@ -18397,7 +18507,7 @@
       "_origin": "ast",
       "id": "src_services_ai_aiservice_aiservice_improvequotation",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": ".improvequotation()"
     },
     {
@@ -18792,8 +18902,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_auth_authservice",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 9,
+      "community_name": "routes/auth.ts",
       "norm_label": "src/services/auth/authservice.ts"
     },
     {
@@ -18858,7 +18968,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_crm_crmservice",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "src/services/crm/crmservice.ts"
     },
@@ -18869,7 +18979,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_services_crm_crmservice_dealintelligence",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "dealintelligence"
     },
@@ -18880,7 +18990,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_services_crm_crmservice_crmintelligenceservice",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "crmintelligenceservice"
     },
@@ -18891,7 +19001,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_services_crm_crmservice_crmintelligenceservice_constructor",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": ".constructor()"
     },
@@ -18902,7 +19012,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_services_crm_crmservice_crmintelligenceservice_analyzedeal",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": ".analyzedeal()"
     },
@@ -18913,7 +19023,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "src_services_crm_crmservice_crmintelligenceservice_generatefollowupmessage",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": ".generatefollowupmessage()"
     },
@@ -18925,7 +19035,7 @@
       "_origin": "ast",
       "id": "src_services_financials_profitservice",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "profitservice.ts"
     },
     {
@@ -18936,7 +19046,7 @@
       "_origin": "ast",
       "id": "src_services_financials_profitservice_financialanalysis",
       "community": 29,
-      "community_name": "calculations.ts",
+      "community_name": "quotations.ts",
       "norm_label": "financialanalysis"
     },
     {
@@ -18946,8 +19056,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_services_financials_profitservice_profitservice",
-      "community": 29,
-      "community_name": "calculations.ts",
+      "community": 39,
+      "community_name": "app.ts",
       "norm_label": "profitservice"
     },
     {
@@ -18957,8 +19067,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_services_financials_profitservice_profitservice_constructor",
-      "community": 29,
-      "community_name": "calculations.ts",
+      "community": 39,
+      "community_name": "app.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -18968,8 +19078,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_financials_profitservice_profitservice_analyzeprofitability",
-      "community": 29,
-      "community_name": "calculations.ts",
+      "community": 39,
+      "community_name": "app.ts",
       "norm_label": ".analyzeprofitability()"
     },
     {
@@ -18979,8 +19089,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_pdf_generate",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "generate.ts"
     },
     {
@@ -18990,8 +19100,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_services_pdf_generate_generatequotationpdf",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 29,
+      "community_name": "quotations.ts",
       "norm_label": "generatequotationpdf()"
     },
     {
@@ -19001,8 +19111,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_pdf_templates",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "templates.ts"
     },
     {
@@ -19012,8 +19122,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_services_pdf_templates_pdftemplate",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "pdftemplate"
     },
     {
@@ -19023,8 +19133,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_services_pdf_templates_pdfdata",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "pdfdata"
     },
     {
@@ -19034,8 +19144,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "src_services_pdf_templates_evidencesummaryhtml",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "evidencesummaryhtml()"
     },
     {
@@ -19045,8 +19155,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "src_services_pdf_templates_templates",
-      "community": 53,
-      "community_name": "app.ts",
+      "community": 11,
+      "community_name": "schema.ts",
       "norm_label": "templates"
     },
     {
@@ -19056,7 +19166,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_regulations_regulatoryservice",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "src/services/regulations/regulatoryservice.ts"
     },
@@ -19067,7 +19177,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_services_regulations_regulatoryservice_regulationalert",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "regulationalert"
     },
@@ -19078,7 +19188,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_services_regulations_regulatoryservice_regulatoryintelligenceservice",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": "regulatoryintelligenceservice"
     },
@@ -19089,7 +19199,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_services_regulations_regulatoryservice_regulatoryintelligenceservice_constructor",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": ".constructor()"
     },
@@ -19100,7 +19210,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_services_regulations_regulatoryservice_regulatoryintelligenceservice_crawlandanalyze",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": ".crawlandanalyze()"
     },
@@ -19111,7 +19221,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "src_services_regulations_regulatoryservice_regulatoryintelligenceservice_checkquotationimpact",
-      "community": 53,
+      "community": 39,
       "community_name": "app.ts",
       "norm_label": ".checkquotationimpact()"
     },
@@ -21322,8 +21432,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_smartcheck_import_config_smartcheckimportenabled",
-      "community": 116,
-      "community_name": "pilot-evidence.ts",
+      "community": 7,
+      "community_name": "routes/smartcheck.ts",
       "norm_label": "smartcheckimportenabled()"
     },
     {
@@ -22170,7 +22280,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_import_storage_s3storageadapter_get",
       "community": 39,
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "norm_label": ".get()"
     },
     {
@@ -22191,8 +22301,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "src_smartcheck_import_storage_createstorageadapter",
-      "community": 7,
-      "community_name": "routes/smartcheck.ts",
+      "community": 27,
+      "community_name": "storage.ts",
       "norm_label": "createstorageadapter()"
     },
     {
@@ -27240,8 +27350,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill",
-      "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community": 228,
+      "community_name": "The Hook System",
       "norm_label": "ad-creative/skill.md"
     },
     {
@@ -27262,8 +27372,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_before_starting",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 413,
+      "community_name": "Before Starting",
       "norm_label": "before starting"
     },
     {
@@ -27273,8 +27383,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_1_platform_format",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 413,
+      "community_name": "Before Starting",
       "norm_label": "1. platform & format"
     },
     {
@@ -27284,8 +27394,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_2_product_offer",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 413,
+      "community_name": "Before Starting",
       "norm_label": "2. product & offer"
     },
     {
@@ -27295,8 +27405,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_3_audience_intent",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 413,
+      "community_name": "Before Starting",
       "norm_label": "3. audience & intent"
     },
     {
@@ -27306,8 +27416,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_4_performance_data_if_iterating",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 413,
+      "community_name": "Before Starting",
       "norm_label": "4. performance data (if iterating)"
     },
     {
@@ -27317,8 +27427,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_5_constraints",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 413,
+      "community_name": "Before Starting",
       "norm_label": "5. constraints"
     },
     {
@@ -27328,8 +27438,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_how_this_skill_works",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 528,
+      "community_name": "How This Skill Works",
       "norm_label": "how this skill works"
     },
     {
@@ -27339,8 +27449,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_mode_1_generate_from_scratch",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 528,
+      "community_name": "How This Skill Works",
       "norm_label": "mode 1: generate from scratch"
     },
     {
@@ -27350,8 +27460,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_mode_2_iterate_from_performance_data",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 528,
+      "community_name": "How This Skill Works",
       "norm_label": "mode 2: iterate from performance data"
     },
     {
@@ -27361,8 +27471,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_mode_3_scaled_static_batches_grounded",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 528,
+      "community_name": "How This Skill Works",
       "norm_label": "mode 3: scaled static batches (grounded)"
     },
     {
@@ -27372,8 +27482,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_mode_4_creative_strategy_loop",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 528,
+      "community_name": "How This Skill Works",
       "norm_label": "mode 4: creative strategy loop"
     },
     {
@@ -27471,8 +27581,8 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_generating_ad_copy",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 527,
+      "community_name": "Generating Ad Copy",
       "norm_label": "generating ad copy"
     },
     {
@@ -27482,8 +27592,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_1_define_your_angles",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 527,
+      "community_name": "Generating Ad Copy",
       "norm_label": "step 1: define your angles"
     },
     {
@@ -27493,8 +27603,8 @@
       "source_location": "L196",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_2_generate_variations_per_angle",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 527,
+      "community_name": "Generating Ad Copy",
       "norm_label": "step 2: generate variations per angle"
     },
     {
@@ -27504,8 +27614,8 @@
       "source_location": "L204",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_3_validate_against_specs",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 527,
+      "community_name": "Generating Ad Copy",
       "norm_label": "step 3: validate against specs"
     },
     {
@@ -27515,8 +27625,8 @@
       "source_location": "L208",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_4_organize_for_upload",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 527,
+      "community_name": "Generating Ad Copy",
       "norm_label": "step 4: organize for upload"
     },
     {
@@ -27526,8 +27636,8 @@
       "source_location": "L214",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_iterating_from_performance_data",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 599,
+      "community_name": "Iterating from Performance Data",
       "norm_label": "iterating from performance data"
     },
     {
@@ -27537,8 +27647,8 @@
       "source_location": "L218",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_1_analyze_winners",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 599,
+      "community_name": "Iterating from Performance Data",
       "norm_label": "step 1: analyze winners"
     },
     {
@@ -27548,8 +27658,8 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_2_analyze_losers",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 599,
+      "community_name": "Iterating from Performance Data",
       "norm_label": "step 2: analyze losers"
     },
     {
@@ -27559,8 +27669,8 @@
       "source_location": "L234",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_3_generate_new_variations",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 599,
+      "community_name": "Iterating from Performance Data",
       "norm_label": "step 3: generate new variations"
     },
     {
@@ -27570,8 +27680,8 @@
       "source_location": "L242",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_step_4_document_the_iteration",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 599,
+      "community_name": "Iterating from Performance Data",
       "norm_label": "step 4: document the iteration"
     },
     {
@@ -27614,8 +27724,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_output_formats",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 452,
+      "community_name": "Output Formats",
       "norm_label": "output formats"
     },
     {
@@ -27625,8 +27735,8 @@
       "source_location": "L287",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_standard_output",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 452,
+      "community_name": "Output Formats",
       "norm_label": "standard output"
     },
     {
@@ -27636,8 +27746,8 @@
       "source_location": "L305",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_bulk_csv_output",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 452,
+      "community_name": "Output Formats",
       "norm_label": "bulk csv output"
     },
     {
@@ -27647,8 +27757,8 @@
       "source_location": "L314",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_static_batch_output_mode_3",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 452,
+      "community_name": "Output Formats",
       "norm_label": "static batch output (mode 3)"
     },
     {
@@ -27658,8 +27768,8 @@
       "source_location": "L327",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_creative_review_page_client_stakeholder_approval",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 452,
+      "community_name": "Output Formats",
       "norm_label": "creative review page (client / stakeholder approval)"
     },
     {
@@ -27669,8 +27779,8 @@
       "source_location": "L331",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_skill_iteration_report",
-      "community": 160,
-      "community_name": "Ad Creative",
+      "community": 452,
+      "community_name": "Output Formats",
       "norm_label": "iteration report"
     },
     {
@@ -27889,8 +27999,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_creative_roadmap",
-      "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community": 228,
+      "community_name": "The Hook System",
       "norm_label": "creative-roadmap.md"
     },
     {
@@ -27977,8 +28087,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_generative_tools",
-      "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community": 228,
+      "community_name": "The Hook System",
       "norm_label": "generative-tools.md"
     },
     {
@@ -28373,8 +28483,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_hook_system",
-      "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community": 228,
+      "community_name": "The Hook System",
       "norm_label": "hook-system.md"
     },
     {
@@ -28483,8 +28593,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_imessage_video_ads",
-      "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community": 228,
+      "community_name": "The Hook System",
       "norm_label": "imessage-video-ads.md"
     },
     {
@@ -29111,7 +29221,7 @@
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_static_ad_templates",
       "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community_name": "Static Ad Template Library",
       "norm_label": "static-ad-templates.md"
     },
     {
@@ -29122,7 +29232,7 @@
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_static_ad_templates_static_ad_template_library",
       "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community_name": "Static Ad Template Library",
       "norm_label": "static ad template library"
     },
     {
@@ -29133,7 +29243,7 @@
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_static_ad_templates_how_to_use_this_library",
       "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community_name": "Static Ad Template Library",
       "norm_label": "how to use this library"
     },
     {
@@ -29144,7 +29254,7 @@
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_static_ad_templates_generation_rules",
       "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community_name": "Static Ad Template Library",
       "norm_label": "generation rules"
     },
     {
@@ -29331,7 +29441,7 @@
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_static_ad_templates_per_concept_output_format",
       "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community_name": "Static Ad Template Library",
       "norm_label": "per-concept output format"
     },
     {
@@ -29342,7 +29452,7 @@
       "_origin": "ast",
       "id": "agent_skills_ad_creative_references_static_ad_templates_batch_distribution",
       "community": 448,
-      "community_name": "ad-creative/SKILL.md",
+      "community_name": "Static Ad Template Library",
       "norm_label": "batch distribution"
     },
     {
@@ -29649,8 +29759,8 @@
       "source_location": "L219",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_creative_best_practices",
-      "community": 630,
-      "community_name": "Creative Best Practices",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "creative best practices"
     },
     {
@@ -29660,8 +29770,8 @@
       "source_location": "L221",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_image_ads",
-      "community": 630,
-      "community_name": "Creative Best Practices",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "image ads"
     },
     {
@@ -29671,8 +29781,8 @@
       "source_location": "L228",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_video_ads_structure_15_30_sec",
-      "community": 630,
-      "community_name": "Creative Best Practices",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "video ads structure (15-30 sec)"
     },
     {
@@ -29682,8 +29792,8 @@
       "source_location": "L240",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_creative_testing_hierarchy",
-      "community": 630,
-      "community_name": "Creative Best Practices",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "creative testing hierarchy"
     },
     {
@@ -29693,8 +29803,8 @@
       "source_location": "L249",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_campaign_optimization",
-      "community": 629,
-      "community_name": "Campaign Optimization",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "campaign optimization"
     },
     {
@@ -29704,8 +29814,8 @@
       "source_location": "L253",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_key_metrics_by_objective",
-      "community": 629,
-      "community_name": "Campaign Optimization",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "key metrics by objective"
     },
     {
@@ -29715,8 +29825,8 @@
       "source_location": "L261",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_optimization_levers",
-      "community": 629,
-      "community_name": "Campaign Optimization",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "optimization levers"
     },
     {
@@ -29726,8 +29836,8 @@
       "source_location": "L280",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_bid_strategy_progression",
-      "community": 629,
-      "community_name": "Campaign Optimization",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "bid strategy progression"
     },
     {
@@ -29737,8 +29847,8 @@
       "source_location": "L288",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_retargeting_strategies",
-      "community": 452,
-      "community_name": "Retargeting Strategies",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "retargeting strategies"
     },
     {
@@ -29748,8 +29858,8 @@
       "source_location": "L290",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_funnel_based_approach",
-      "community": 452,
-      "community_name": "Retargeting Strategies",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "funnel-based approach"
     },
     {
@@ -29759,8 +29869,8 @@
       "source_location": "L298",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_retargeting_windows",
-      "community": 452,
-      "community_name": "Retargeting Strategies",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "retargeting windows"
     },
     {
@@ -29770,8 +29880,8 @@
       "source_location": "L306",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_exclusions_to_set_up",
-      "community": 452,
-      "community_name": "Retargeting Strategies",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "exclusions to set up"
     },
     {
@@ -29781,8 +29891,8 @@
       "source_location": "L312",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_retarget_with_different_offers_not_the_same_one",
-      "community": 452,
-      "community_name": "Retargeting Strategies",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "retarget with different offers (not the same one)"
     },
     {
@@ -29792,8 +29902,8 @@
       "source_location": "L323",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_the_4_component_retargeting_framework",
-      "community": 452,
-      "community_name": "Retargeting Strategies",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "the 4-component retargeting framework"
     },
     {
@@ -29803,8 +29913,8 @@
       "source_location": "L336",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_landing_page_alignment_the_headline_mirror_trick",
-      "community": 714,
-      "community_name": "Landing Page Alignment (the headline-mirror trick)",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "landing page alignment (the headline-mirror trick)"
     },
     {
@@ -29814,8 +29924,8 @@
       "source_location": "L340",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_headline_mirroring",
-      "community": 714,
-      "community_name": "Landing Page Alignment (the headline-mirror trick)",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "headline mirroring"
     },
     {
@@ -29825,8 +29935,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_three_split_tests_minimum_at_all_times",
-      "community": 714,
-      "community_name": "Landing Page Alignment (the headline-mirror trick)",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "three split tests minimum at all times"
     },
     {
@@ -29836,8 +29946,8 @@
       "source_location": "L359",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_reporting_analysis",
-      "community": 628,
-      "community_name": "Reporting & Analysis",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "reporting & analysis"
     },
     {
@@ -29847,8 +29957,8 @@
       "source_location": "L361",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_weekly_review",
-      "community": 628,
-      "community_name": "Reporting & Analysis",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "weekly review"
     },
     {
@@ -29858,8 +29968,8 @@
       "source_location": "L369",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_attribution_considerations",
-      "community": 628,
-      "community_name": "Reporting & Analysis",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "attribution considerations"
     },
     {
@@ -29869,8 +29979,8 @@
       "source_location": "L375",
       "_origin": "ast",
       "id": "agent_skills_ads_skill_scaling_discipline_net_cash_roas_percentage",
-      "community": 628,
-      "community_name": "Reporting & Analysis",
+      "community": 282,
+      "community_name": "Paid Ads",
       "norm_label": "scaling discipline (net cash > roas percentage)"
     },
     {
@@ -30155,8 +30265,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "agent_skills_ads_references_ad_copy_templates_primary_text_formulas",
-      "community": 347,
-      "community_name": "Primary Text Formulas",
+      "community": 145,
+      "community_name": "Ad Copy Templates Reference",
       "norm_label": "primary text formulas"
     },
     {
@@ -30166,8 +30276,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "agent_skills_ads_references_ad_copy_templates_problem_agitate_solve_pas",
-      "community": 347,
-      "community_name": "Primary Text Formulas",
+      "community": 145,
+      "community_name": "Ad Copy Templates Reference",
       "norm_label": "problem-agitate-solve (pas)"
     },
     {
@@ -30177,8 +30287,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "agent_skills_ads_references_ad_copy_templates_before_after_bridge_bab",
-      "community": 347,
-      "community_name": "Primary Text Formulas",
+      "community": 145,
+      "community_name": "Ad Copy Templates Reference",
       "norm_label": "before-after-bridge (bab)"
     },
     {
@@ -30188,8 +30298,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_ads_references_ad_copy_templates_social_proof_lead",
-      "community": 347,
-      "community_name": "Primary Text Formulas",
+      "community": 145,
+      "community_name": "Ad Copy Templates Reference",
       "norm_label": "social proof lead"
     },
     {
@@ -30199,8 +30309,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "agent_skills_ads_references_ad_copy_templates_feature_benefit_bridge",
-      "community": 347,
-      "community_name": "Primary Text Formulas",
+      "community": 145,
+      "community_name": "Ad Copy Templates Reference",
       "norm_label": "feature-benefit bridge"
     },
     {
@@ -30210,8 +30320,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "agent_skills_ads_references_ad_copy_templates_direct_response",
-      "community": 347,
-      "community_name": "Primary Text Formulas",
+      "community": 145,
+      "community_name": "Ad Copy Templates Reference",
       "norm_label": "direct response"
     },
     {
@@ -30958,8 +31068,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_tiktok",
-      "community": 413,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "tiktok"
     },
     {
@@ -30969,8 +31079,8 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_tiktok_pixel",
-      "community": 413,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "install the tiktok pixel"
     },
     {
@@ -30980,8 +31090,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_standard_events_250",
-      "community": 413,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "standard events"
     },
     {
@@ -30991,8 +31101,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_events_api_server_side",
-      "community": 413,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "events api (server-side)"
     },
     {
@@ -31002,8 +31112,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_advanced_matching",
-      "community": 413,
-      "community_name": "TikTok",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "advanced matching"
     },
     {
@@ -57347,8 +57457,8 @@
       "source_location": "L238",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_plan_template_section_8_revenue",
-      "community": 217,
-      "community_name": "Plan Template \u2014 The 13-Section Structure",
+      "community": 716,
+      "community_name": "Section 8 \u2014 Revenue",
       "norm_label": "section 8 \u2014 revenue"
     },
     {
@@ -57358,8 +57468,8 @@
       "source_location": "L254",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_plan_template_unit_economics",
-      "community": 217,
-      "community_name": "Plan Template \u2014 The 13-Section Structure",
+      "community": 716,
+      "community_name": "Section 8 \u2014 Revenue",
       "norm_label": "unit economics"
     },
     {
@@ -57369,8 +57479,8 @@
       "source_location": "L267",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_plan_template_skills_tools_267",
-      "community": 217,
-      "community_name": "Plan Template \u2014 The 13-Section Structure",
+      "community": 716,
+      "community_name": "Section 8 \u2014 Revenue",
       "norm_label": "skills + tools"
     },
     {
@@ -69161,8 +69271,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_core_principles",
-      "community": 496,
-      "community_name": "Core Principles",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "core principles"
     },
     {
@@ -69172,8 +69282,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_sales_uses_what_sales_trusts",
-      "community": 496,
-      "community_name": "Core Principles",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "sales uses what sales trusts"
     },
     {
@@ -69183,8 +69293,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_situation_specific_not_generic",
-      "community": 496,
-      "community_name": "Core Principles",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "situation-specific, not generic"
     },
     {
@@ -69194,8 +69304,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_scannable_over_comprehensive",
-      "community": 496,
-      "community_name": "Core Principles",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "scannable over comprehensive"
     },
     {
@@ -69205,8 +69315,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_tie_back_to_business_outcomes",
-      "community": 496,
-      "community_name": "Core Principles",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "tie back to business outcomes"
     },
     {
@@ -69260,8 +69370,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_one_pagers_leave_behinds",
-      "community": 503,
-      "community_name": "One-Pagers / Leave-Behinds",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "one-pagers / leave-behinds"
     },
     {
@@ -69271,8 +69381,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_when_to_use",
-      "community": 503,
-      "community_name": "One-Pagers / Leave-Behinds",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "when to use"
     },
     {
@@ -69282,8 +69392,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure",
-      "community": 503,
-      "community_name": "One-Pagers / Leave-Behinds",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "structure"
     },
     {
@@ -69293,8 +69403,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_design_principles",
-      "community": 503,
-      "community_name": "One-Pagers / Leave-Behinds",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "design principles"
     },
     {
@@ -69304,8 +69414,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_handling_docs",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 700,
+      "community_name": "Objection Handling Docs",
       "norm_label": "objection handling docs"
     },
     {
@@ -69315,8 +69425,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_categories",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 700,
+      "community_name": "Objection Handling Docs",
       "norm_label": "objection categories"
     },
     {
@@ -69326,8 +69436,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_response_framework",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 700,
+      "community_name": "Objection Handling Docs",
       "norm_label": "response framework"
     },
     {
@@ -69337,8 +69447,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_two_formats",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 700,
+      "community_name": "Objection Handling Docs",
       "norm_label": "two formats"
     },
     {
@@ -69480,8 +69590,8 @@
       "source_location": "L240",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_proposal_templates",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 699,
+      "community_name": "Proposal Templates",
       "norm_label": "proposal templates"
     },
     {
@@ -69491,8 +69601,8 @@
       "source_location": "L242",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure_242",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 699,
+      "community_name": "Proposal Templates",
       "norm_label": "structure"
     },
     {
@@ -69502,8 +69612,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_customization_guidance",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 699,
+      "community_name": "Proposal Templates",
       "norm_label": "customization guidance"
     },
     {
@@ -69513,8 +69623,8 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_common_mistakes",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 699,
+      "community_name": "Proposal Templates",
       "norm_label": "common mistakes"
     },
     {
@@ -73869,8 +73979,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_header_navigation",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 701,
+      "community_name": "Header Navigation",
       "norm_label": "header navigation"
     },
     {
@@ -73880,8 +73990,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_simple_header_4_6_items",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 701,
+      "community_name": "Header Navigation",
       "norm_label": "simple header (4-6 items)"
     },
     {
@@ -73891,8 +74001,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_mega_menu_header",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 701,
+      "community_name": "Header Navigation",
       "norm_label": "mega menu header"
     },
     {
@@ -73902,8 +74012,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_split_navigation",
-      "community": 187,
-      "community_name": "Navigation Patterns",
+      "community": 701,
+      "community_name": "Header Navigation",
       "norm_label": "split navigation"
     },
     {
@@ -73913,8 +74023,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_footer_navigation",
-      "community": 697,
-      "community_name": "Footer Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "footer navigation"
     },
     {
@@ -73924,8 +74034,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_column_based_footer_standard",
-      "community": 697,
-      "community_name": "Footer Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "column-based footer (standard)"
     },
     {
@@ -73935,8 +74045,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_minimal_footer",
-      "community": 697,
-      "community_name": "Footer Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "minimal footer"
     },
     {
@@ -73946,8 +74056,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_navigation_patterns_expanded_footer",
-      "community": 697,
-      "community_name": "Footer Navigation",
+      "community": 187,
+      "community_name": "Navigation Patterns",
       "norm_label": "expanded footer"
     },
     {
@@ -74375,8 +74485,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_skill",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 714,
+      "community_name": "sms/SKILL.md",
       "norm_label": "sms/skill.md"
     },
     {
@@ -74397,8 +74507,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_before_starting",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 628,
+      "community_name": "Before Starting",
       "norm_label": "before starting"
     },
     {
@@ -74408,8 +74518,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_1_business_type",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 628,
+      "community_name": "Before Starting",
       "norm_label": "1. business type"
     },
     {
@@ -74419,8 +74529,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_2_current_state",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 628,
+      "community_name": "Before Starting",
       "norm_label": "2. current state"
     },
     {
@@ -74430,8 +74540,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_3_compliance_posture",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 628,
+      "community_name": "Before Starting",
       "norm_label": "3. compliance posture"
     },
     {
@@ -74441,8 +74551,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_4_goal",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 628,
+      "community_name": "Before Starting",
       "norm_label": "4. goal"
     },
     {
@@ -74463,8 +74573,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_compliance_read_first",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 629,
+      "community_name": "Compliance \u2014 Read First",
       "norm_label": "compliance \u2014 read first"
     },
     {
@@ -74474,8 +74584,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_us_tcpa_telephone_consumer_protection_act",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 629,
+      "community_name": "Compliance \u2014 Read First",
       "norm_label": "us \u2014 tcpa (telephone consumer protection act)"
     },
     {
@@ -74485,8 +74595,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_us_a2p_10dlc_registration_required_since_2022",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 629,
+      "community_name": "Compliance \u2014 Read First",
       "norm_label": "us \u2014 a2p 10dlc registration (required since 2022)"
     },
     {
@@ -74496,8 +74606,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_eu_uk_gdpr_derived_consent",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 629,
+      "community_name": "Compliance \u2014 Read First",
       "norm_label": "eu/uk \u2014 gdpr-derived consent"
     },
     {
@@ -74507,8 +74617,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_canada_casl",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 629,
+      "community_name": "Compliance \u2014 Read First",
       "norm_label": "canada \u2014 casl"
     },
     {
@@ -74529,8 +74639,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_core_principles",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "core principles"
     },
     {
@@ -74540,8 +74650,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_1_every_send_has_a_real_cost",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "1. every send has a real cost"
     },
     {
@@ -74551,8 +74661,8 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_2_opt_in_is_your_most_valuable_asset",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "2. opt-in is your most valuable asset"
     },
     {
@@ -74562,8 +74672,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_3_each_message_must_justify_itself",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "3. each message must justify itself"
     },
     {
@@ -74573,8 +74683,8 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_4_brevity_clarity",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "4. brevity + clarity"
     },
     {
@@ -74584,8 +74694,8 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_5_one_cta_one_link",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "5. one cta, one link"
     },
     {
@@ -74595,8 +74705,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_6_sender_identity_every_send",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 347,
+      "community_name": "Core Principles",
       "norm_label": "6. sender identity, every send"
     },
     {
@@ -74606,8 +74716,8 @@
       "source_location": "L134",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_sms_sequence_types",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "sms sequence types"
     },
     {
@@ -74617,8 +74727,8 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_welcome_opt_in_confirmation_immediate",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "welcome / opt-in confirmation (immediate)"
     },
     {
@@ -74628,8 +74738,8 @@
       "source_location": "L143",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_abandoned_cart_highest_roi_flow_for_ecom",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "abandoned cart (highest-roi flow for ecom)"
     },
     {
@@ -74639,8 +74749,8 @@
       "source_location": "L151",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_browse_abandonment",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "browse abandonment"
     },
     {
@@ -74650,8 +74760,8 @@
       "source_location": "L155",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_post_purchase",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "post-purchase"
     },
     {
@@ -74661,8 +74771,8 @@
       "source_location": "L160",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_win_back_lapsed",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "win-back (lapsed)"
     },
     {
@@ -74672,8 +74782,8 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_promotional_campaign_sends",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "promotional / campaign sends"
     },
     {
@@ -74683,8 +74793,8 @@
       "source_location": "L172",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_transactional_separate_compliance_bucket",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 66,
+      "community_name": "SMS Sequence Types",
       "norm_label": "transactional (separate compliance bucket)"
     },
     {
@@ -74694,8 +74804,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_sms_copy_guidelines",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 630,
+      "community_name": "SMS Copy Guidelines",
       "norm_label": "sms copy guidelines"
     },
     {
@@ -74705,8 +74815,8 @@
       "source_location": "L184",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_structure",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 630,
+      "community_name": "SMS Copy Guidelines",
       "norm_label": "structure"
     },
     {
@@ -74716,8 +74826,8 @@
       "source_location": "L191",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_length",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 630,
+      "community_name": "SMS Copy Guidelines",
       "norm_label": "length"
     },
     {
@@ -74727,8 +74837,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_voice",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 630,
+      "community_name": "SMS Copy Guidelines",
       "norm_label": "voice"
     },
     {
@@ -74738,8 +74848,8 @@
       "source_location": "L205",
       "_origin": "ast",
       "id": "agent_skills_sms_skill_personalization",
-      "community": 68,
-      "community_name": "SMS Marketing",
+      "community": 630,
+      "community_name": "SMS Copy Guidelines",
       "norm_label": "personalization"
     },
     {
@@ -74859,8 +74969,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_compliance",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 714,
+      "community_name": "sms/SKILL.md",
       "norm_label": "sms/references/compliance.md"
     },
     {
@@ -75145,8 +75255,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 714,
+      "community_name": "sms/SKILL.md",
       "norm_label": "sms/references/platforms.md"
     },
     {
@@ -75156,7 +75266,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_sms_platform_reference",
-      "community": 342,
+      "community": 730,
       "community_name": "SMS Platform Reference",
       "norm_label": "sms platform reference"
     },
@@ -75630,7 +75740,7 @@
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_audiencetap",
       "community": 342,
-      "community_name": "SMS Platform Reference",
+      "community_name": "AudienceTap",
       "norm_label": "audiencetap"
     },
     {
@@ -75641,7 +75751,7 @@
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_key_features_233",
       "community": 342,
-      "community_name": "SMS Platform Reference",
+      "community_name": "AudienceTap",
       "norm_label": "key features"
     },
     {
@@ -75652,7 +75762,7 @@
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_pricing_241",
       "community": 342,
-      "community_name": "SMS Platform Reference",
+      "community_name": "AudienceTap",
       "norm_label": "pricing"
     },
     {
@@ -75663,7 +75773,7 @@
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_integration_paths_245",
       "community": 342,
-      "community_name": "SMS Platform Reference",
+      "community_name": "AudienceTap",
       "norm_label": "integration paths"
     },
     {
@@ -75674,7 +75784,7 @@
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_compliance_250",
       "community": 342,
-      "community_name": "SMS Platform Reference",
+      "community_name": "AudienceTap",
       "norm_label": "compliance"
     },
     {
@@ -75685,7 +75795,7 @@
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_watch_out_for_254",
       "community": 342,
-      "community_name": "SMS Platform Reference",
+      "community_name": "AudienceTap",
       "norm_label": "watch out for"
     },
     {
@@ -75761,7 +75871,7 @@
       "source_location": "L288",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_quick_selection_table",
-      "community": 342,
+      "community": 730,
       "community_name": "SMS Platform Reference",
       "norm_label": "quick selection table"
     },
@@ -75772,7 +75882,7 @@
       "source_location": "L304",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_a2p_10dlc_what_your_platform_should_handle",
-      "community": 342,
+      "community": 730,
       "community_name": "SMS Platform Reference",
       "norm_label": "a2p 10dlc: what your platform should handle"
     },
@@ -75783,8 +75893,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 714,
+      "community_name": "sms/SKILL.md",
       "norm_label": "sms/references/sequence-templates.md"
     },
     {
@@ -75805,8 +75915,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_welcome_opt_in_confirmation",
-      "community": 701,
-      "community_name": "Welcome / Opt-In Confirmation",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "welcome / opt-in confirmation"
     },
     {
@@ -75816,8 +75926,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_1_immediate_after_opt_in",
-      "community": 701,
-      "community_name": "Welcome / Opt-In Confirmation",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 1 \u2014 immediate (after opt-in)"
     },
     {
@@ -75827,8 +75937,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_2_24_hours_later_optional",
-      "community": 701,
-      "community_name": "Welcome / Opt-In Confirmation",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 2 \u2014 24 hours later (optional)"
     },
     {
@@ -75838,8 +75948,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_3_7_days_later_optional_conditional_on_no_purchase",
-      "community": 701,
-      "community_name": "Welcome / Opt-In Confirmation",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 3 \u2014 7 days later (optional, conditional on no purchase)"
     },
     {
@@ -75915,8 +76025,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_post_purchase_flow",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 496,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "post-purchase flow"
     },
     {
@@ -75926,8 +76036,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_1_immediately_after_purchase_transactional_separate_consent",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 496,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 1 \u2014 immediately after purchase (transactional, separate consent)"
     },
     {
@@ -75937,8 +76047,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_2_day_of_shipment",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 496,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 2 \u2014 day of shipment"
     },
     {
@@ -75948,8 +76058,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_3_day_of_delivery",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 496,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 3 \u2014 day of delivery"
     },
     {
@@ -75959,8 +76069,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_4_2_days_after_delivery_marketing_consent_required",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 496,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 4 \u2014 2 days after delivery (marketing consent required)"
     },
     {
@@ -75970,8 +76080,8 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_5_14_days_after_delivery_cross_sell_marketing_consent",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 496,
+      "community_name": "Post-Purchase Flow",
       "norm_label": "send 5 \u2014 14 days after delivery (cross-sell, marketing consent)"
     },
     {
@@ -75981,8 +76091,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_win_back_lapsed_customers",
-      "community": 700,
-      "community_name": "Win-Back (Lapsed Customers)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "win-back (lapsed customers)"
     },
     {
@@ -75992,8 +76102,8 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_1_60_90_days_after_last_purchase",
-      "community": 700,
-      "community_name": "Win-Back (Lapsed Customers)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 1 \u2014 60-90 days after last purchase"
     },
     {
@@ -76003,8 +76113,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_2_14_days_later_if_no_purchase",
-      "community": 700,
-      "community_name": "Win-Back (Lapsed Customers)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 2 \u2014 14 days later (if no purchase)"
     },
     {
@@ -76014,8 +76124,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_send_3_14_days_after_send_2_final_if_no_purchase",
-      "community": 700,
-      "community_name": "Win-Back (Lapsed Customers)",
+      "community": 136,
+      "community_name": "SMS Sequence Templates",
       "norm_label": "send 3 \u2014 14 days after send 2 (final, if no purchase)"
     },
     {
@@ -76025,8 +76135,8 @@
       "source_location": "L148",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_promotional_campaign_sends",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 715,
+      "community_name": "Promotional / Campaign Sends",
       "norm_label": "promotional / campaign sends"
     },
     {
@@ -76036,8 +76146,8 @@
       "source_location": "L150",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_flash_sale_single_send",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 715,
+      "community_name": "Promotional / Campaign Sends",
       "norm_label": "flash sale (single send)"
     },
     {
@@ -76047,8 +76157,8 @@
       "source_location": "L157",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_limited_drop_launch",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 715,
+      "community_name": "Promotional / Campaign Sends",
       "norm_label": "limited drop / launch"
     },
     {
@@ -76058,8 +76168,8 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates_holiday_bfcm_2_send_sequence",
-      "community": 136,
-      "community_name": "SMS Sequence Templates",
+      "community": 715,
+      "community_name": "Promotional / Campaign Sends",
       "norm_label": "holiday / bfcm (2-send sequence)"
     },
     {
@@ -78126,8 +78236,8 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_visual_patterns",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 697,
+      "community_name": "Visual Patterns",
       "norm_label": "visual patterns"
     },
     {
@@ -78137,8 +78247,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_talking_head",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 697,
+      "community_name": "Visual Patterns",
       "norm_label": "talking head"
     },
     {
@@ -78148,8 +78258,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_slideshow_carousel_video",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 697,
+      "community_name": "Visual Patterns",
       "norm_label": "slideshow/carousel video"
     },
     {
@@ -78159,8 +78269,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_screen_recording",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 697,
+      "community_name": "Visual Patterns",
       "norm_label": "screen recording"
     },
     {
@@ -78170,8 +78280,8 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_b_roll_heavy",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 697,
+      "community_name": "Visual Patterns",
       "norm_label": "b-roll heavy"
     },
     {
@@ -78280,8 +78390,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_analytics_iteration",
-      "community": 501,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "analytics & iteration"
     },
     {
@@ -78291,8 +78401,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_metrics_that_matter",
-      "community": 501,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "metrics that matter"
     },
     {
@@ -78302,8 +78412,8 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_what_to_test",
-      "community": 501,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "what to test"
     },
     {
@@ -78313,8 +78423,8 @@
       "source_location": "L232",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_when_to_pivot",
-      "community": 501,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "when to pivot"
     },
     {
@@ -91407,7 +91517,7 @@
       "source_location": "L1",
       "community": 39,
       "norm_label": "teklifpro-repo/src/server/middleware/usage.ts",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_middleware_usage_ts"
     },
     {
@@ -91417,7 +91527,7 @@
       "source_location": "L40",
       "community": 39,
       "norm_label": "usagetracker()",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "usage_usagetracker"
     },
     {
@@ -91427,7 +91537,7 @@
       "source_location": "L1",
       "community": 39,
       "norm_label": "teklifpro-repo/src/server/routes/clients.ts",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_clients_ts"
     },
     {
@@ -91437,7 +91547,7 @@
       "source_location": "L7",
       "community": 39,
       "norm_label": "registerclientroutes()",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "clients_registerclientroutes"
     },
     {
@@ -91447,7 +91557,7 @@
       "source_location": "L1",
       "community": 39,
       "norm_label": "teklifpro-repo/src/server/routes/crm.ts",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_crm_ts"
     },
     {
@@ -91457,7 +91567,7 @@
       "source_location": "L9",
       "community": 39,
       "norm_label": "registercrmroutes()",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "crm_registercrmroutes"
     },
     {
@@ -91467,7 +91577,7 @@
       "source_location": "L1",
       "community": 39,
       "norm_label": "teklifpro-repo/src/server/routes/billing.ts",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_billing_ts"
     },
     {
@@ -91477,7 +91587,7 @@
       "source_location": "L8",
       "community": 39,
       "norm_label": "registerbillingroutes()",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "billing_registerbillingroutes"
     },
     {
@@ -91497,7 +91607,7 @@
       "source_location": "L1",
       "community": 39,
       "norm_label": "teklifpro-repo/src/server/routes/regulations.ts",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_server_routes_regulations_ts"
     },
     {
@@ -91507,7 +91617,7 @@
       "source_location": "L9",
       "community": 39,
       "norm_label": "registerregulationroutes()",
-      "community_name": "createApiApp",
+      "community_name": "app.ts",
       "id": "regulations_registerregulationroutes"
     },
     {
@@ -92015,9 +92125,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L1",
-      "community": 29,
+      "community": 501,
       "norm_label": "teklifpro-repo/src/lib/plugins/registry.ts",
-      "community_name": "calculations.ts",
+      "community_name": "IndustryRegistry",
       "id": "users_hazarekiz_projects_teklifpro_teklifpro_repo_src_lib_plugins_registry_ts"
     },
     {
@@ -92025,9 +92135,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L4",
-      "community": 29,
+      "community": 501,
       "norm_label": "industryregistry",
-      "community_name": "calculations.ts",
+      "community_name": "IndustryRegistry",
       "id": "registry_industryregistry"
     },
     {
@@ -92035,9 +92145,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L7",
-      "community": 29,
+      "community": 501,
       "norm_label": ".constructor()",
-      "community_name": "calculations.ts",
+      "community_name": "IndustryRegistry",
       "id": "registry_industryregistry_constructor"
     },
     {
@@ -92045,9 +92155,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L11",
-      "community": 29,
+      "community": 501,
       "norm_label": ".register()",
-      "community_name": "calculations.ts",
+      "community_name": "IndustryRegistry",
       "id": "registry_industryregistry_register"
     },
     {
@@ -92055,9 +92165,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L15",
-      "community": 29,
+      "community": 39,
       "norm_label": ".getindustry()",
-      "community_name": "calculations.ts",
+      "community_name": "app.ts",
       "id": "registry_industryregistry_getindustry"
     },
     {
@@ -92065,9 +92175,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L19",
-      "community": 29,
+      "community": 501,
       "norm_label": ".listindustries()",
-      "community_name": "calculations.ts",
+      "community_name": "IndustryRegistry",
       "id": "registry_industryregistry_listindustries"
     },
     {
@@ -92075,9 +92185,9 @@
       "file_type": "code",
       "source_file": "/Users/hazarekiz/Projects/TeklifPro/TeklifPro-repo/src/lib/plugins/registry.ts",
       "source_location": "L23",
-      "community": 29,
+      "community": 501,
       "norm_label": ".detectindustry()",
-      "community_name": "calculations.ts",
+      "community_name": "IndustryRegistry",
       "id": "registry_industryregistry_detectindustry"
     },
     {
@@ -92445,9 +92555,9 @@
       "file_type": "code",
       "source_file": "src/pages/CreateQuote.tsx",
       "source_location": "L144",
-      "community": 159,
+      "community": 28,
       "norm_label": "removeitem()",
-      "community_name": "fetchWithAuth",
+      "community_name": "Clients.tsx",
       "id": "src_pages_createquote_removeitem"
     },
     {
@@ -92485,9 +92595,9 @@
       "file_type": "code",
       "source_file": "src/pages/AcademyActivation.tsx",
       "source_location": "L19",
-      "community": 7,
+      "community": 159,
       "norm_label": "load()",
-      "community_name": "routes/smartcheck.ts",
+      "community_name": "fetchWithAuth",
       "id": "src_pages_academyactivation_load"
     },
     {
@@ -109029,7 +109139,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L443",
+      "source_location": "L465",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109040,7 +109150,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L439",
+      "source_location": "L461",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109051,7 +109161,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L331",
+      "source_location": "L353",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109062,7 +109172,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L408",
+      "source_location": "L430",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109073,7 +109183,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L65",
+      "source_location": "L68",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109084,7 +109194,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L227",
+      "source_location": "L244",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109095,7 +109205,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L40",
+      "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109106,7 +109216,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L23",
+      "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109117,7 +109227,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L90",
+      "source_location": "L93",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser",
@@ -109200,6 +109310,30 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/components/bimplan/BimIfcParser.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_bimplan_bimifcparser",
+      "target": "src_ifc_parser_spatial_extractor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/bimplan/BimIfcParser.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_bimplan_bimifcparser",
+      "target": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/ifc/parser-gates.test.ts",
       "source_location": "L6",
       "weight": 1.0,
@@ -109217,6 +109351,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_ifc_parser_quantity_extractor_test",
+      "target": "src_components_bimplan_bimifcparser",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_test",
       "target": "src_components_bimplan_bimifcparser",
       "confidence_score": 1.0
     },
@@ -109238,7 +109384,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L481",
+      "source_location": "L503",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_bimifcparser",
@@ -109249,7 +109395,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L465",
+      "source_location": "L487",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_bimifcparser",
@@ -109261,7 +109407,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L223",
+      "source_location": "L240",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_parseifctext",
@@ -109273,7 +109419,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L217",
+      "source_location": "L234",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_parseifctext",
@@ -109286,11 +109432,23 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L94",
+      "source_location": "L97",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_parseifctext",
       "target": "src_ifc_parser_quantity_extractor_extractallplanvolumequantities"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/bimplan/BimIfcParser.tsx",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_bimplan_bimifcparser_parseifctext",
+      "target": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment"
     },
     {
       "relation": "imports",
@@ -109317,11 +109475,23 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_test",
+      "target": "src_components_bimplan_bimifcparser_parseifctext",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L488",
+      "source_location": "L510",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_bimifcparser",
@@ -109333,7 +109503,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/bimplan/BimIfcParser.tsx",
-      "source_location": "L328",
+      "source_location": "L350",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_bimplan_bimifcparser_generatesyntheticifcdataset",
@@ -123131,6 +123301,142 @@
       "_origin": "ast",
       "source": "src_ifc_parser_quantity_extractor_extractallplanvolumequantities",
       "target": "src_ifc_parser_quantity_extractor_roundm3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_test",
+      "target": "src_ifc_parser_spatial_extractor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_test",
+      "target": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_test",
+      "target": "src_ifc_parser_spatial_extractor_test_manifest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.test.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_test",
+      "target": "src_ifc_parser_spatial_extractor_test_samplepath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor",
+      "target": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor",
+      "target": "src_ifc_parser_spatial_extractor_formatstoreyname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor",
+      "target": "src_ifc_parser_spatial_extractor_ifcelementstoreyassignment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor",
+      "target": "src_ifc_parser_spatial_extractor_ifcspatialextraction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor",
+      "target": "src_ifc_parser_spatial_extractor_ifcstoreyinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor",
+      "target": "src_ifc_parser_spatial_extractor_parsereferences",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L62",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment",
+      "target": "src_ifc_parser_spatial_extractor_parsereferences",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ifc/parser/spatial-extractor.ts",
+      "source_location": "L66",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_ifc_parser_spatial_extractor_extractifcstoreycontainment",
+      "target": "src_ifc_parser_spatial_extractor_formatstoreyname",
       "confidence_score": 1.0
     },
     {
@@ -211686,5 +211992,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "d9e871efd57f9deeee0766cdd25b69be64084717"
+  "built_at_commit": "0359851654394597fe4c73c0bca9f3f703156b92"
 }
