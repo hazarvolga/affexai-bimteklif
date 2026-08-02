@@ -827,6 +827,14 @@ Verified:
 - `pnpm lint` -> passed (`tsc --noEmit`).
 - Focused deterministic pricing test passed:
   `pnpm exec tsx --test src/smartcheck/pricing/snapshots.test.ts`.
+- DB-backed pricing integration passed against local Docker Postgres:
+  `pnpm exec tsx --test src/server/routes/pricing.integration.test.ts` -> 2
+  tests, 2 pass, 0 skipped.
+- Headless browser smoke on `http://127.0.0.1:3013/app/smartcheck` registered a
+  temporary verified workspace, uploaded and processed a CSV SmartCheck file via
+  the real worker, approved the resulting row, imported a matching advisory
+  price catalog, fetched price suggestions from the rendered UI, displayed a
+  `Güvenli aday`, and bulk-applied the selected snapshot.
 - Full test suite passed:
   `pnpm test` -> 337 tests, 328 pass, 0 fail, 9 skipped.
 - Production build passed:
@@ -834,11 +842,9 @@ Verified:
 
 Not verified / still open:
 
-- DB-backed pricing HTTP integration contains coverage for the new endpoint, but
-  it was skipped in this run because `DATABASE_URL` was not reachable and Docker
-  daemon was not available from the local environment.
-- Rendered browser smoke for the new suggestion UI remains pending until the
-  TeklifPro PostgreSQL service/dev server are available again.
+- Quote transfer after accepting a suggested snapshot is covered by earlier
+  manual snapshot transfer tests, but the exact browser smoke above stops after
+  applying the suggested snapshot in the SmartCheck UI.
 
 ## Do Not Touch
 
