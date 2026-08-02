@@ -76,11 +76,14 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     await processor.processSmartCheckDocument({ companyId: companyA.id, documentId, processingRunId: runId });
     const rowsResponse = await request(`/api/smartcheck/documents/${documentId}/rows`);
     assert.equal(rowsResponse.status, 200);
-    const rows = await rowsResponse.json() as Array<{ id: string; findingsJson: unknown[] }>;
+    const rows = await rowsResponse.json() as Array<{ id: string; findingsJson: unknown[]; reviewStatus: string }>;
     assert.equal(rows.length, 1);
     assert.equal(rows[0].findingsJson.length, 0);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/rows`, {}, tokenB)).status, 404);
-    assert.equal((await request(`/api/smartcheck/rows/${rows[0].id}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved" }) })).status, 200);
+    assert.equal((await request(`/api/smartcheck/documents/${documentId}/bulk-review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", rowIds: [rows[0].id] }) }, tokenB)).status, 404);
+    const bulkReview = await request(`/api/smartcheck/documents/${documentId}/bulk-review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", rowIds: [rows[0].id] }) });
+    assert.equal(bulkReview.status, 200);
+    assert.equal((await bulkReview.json() as { approvedCount: number; rows: Array<{ reviewStatus: string }> }).approvedCount, 1);
     const sourceResponse = await request("/api/pricing/sources", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sourceType: "manual_override", name: "SmartCheck manual price", authority: "Estimator", sourceDocumentIdentifier: `smartcheck-${suffix}`, sourceDocumentPayload: { rowId: rows[0].id, amount: 777, currency: "TRY" }, licenseStatus: "not_applicable" }) });
     assert.equal(sourceResponse.status, 201);
     const sourceBody = await sourceResponse.json() as { id: string; sourceDocumentHash: string };
@@ -205,6 +208,9 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     assert.equal(rows[0].normalizedUnit, "m³");
     assert.deepEqual(rows[0].findingsJson.map((finding) => finding.code), ["MISSING_PRICE_SOURCE"]);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/rows`, {}, tokenB)).status, 404);
+    const blockedBulkReview = await request(`/api/smartcheck/documents/${documentId}/bulk-review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", rowIds: [rows[0].id] }) });
+    assert.equal(blockedBulkReview.status, 409);
+    assert.equal((await blockedBulkReview.json() as { code: string }).code, "BULK_REVIEW_FINDINGS_PRESENT");
     const [artifact] = await db.select().from(schema.documentProcessingArtifacts).where(and(eq(schema.documentProcessingArtifacts.processingRunId, runId), eq(schema.documentProcessingArtifacts.companyId, companyA.id), eq(schema.documentProcessingArtifacts.artifactType, "ifc_evidence")));
     assert.equal(Boolean(artifact), true);
     assert.equal((artifact.metadataJson as { summary?: { evidenceRowCount?: number; blockedElementCount?: number } }).summary?.evidenceRowCount, 1);

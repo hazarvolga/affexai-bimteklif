@@ -216,6 +216,7 @@ export function SmartCheckImportWorkspace() {
   const [catalogImportRows, setCatalogImportRows] = useState<PriceCatalogImportRow[]>([]);
   const [catalogImportBusy, setCatalogImportBusy] = useState(false);
   const [suggestionBusy, setSuggestionBusy] = useState(false);
+  const [bulkReviewBusy, setBulkReviewBusy] = useState(false);
   const [priceSuggestionsByRow, setPriceSuggestionsByRow] = useState<Record<string, PriceSuggestionResult>>({});
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
@@ -225,6 +226,7 @@ export function SmartCheckImportWorkspace() {
   const isIfcFile = isIfcSmartCheckFile(file);
   const reviewedRows = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
   const pendingReviewCount = rows.filter((row) => row.reviewStatus === "pending_review").length;
+  const bulkApprovableRows = rows.filter((row) => row.reviewStatus === "pending_review" && row.findingsJson.length === 0);
   const openFindingCount = rows.reduce((count, row) => count + row.findingsJson.length, 0);
   const suggestionResults = Object.values(priceSuggestionsByRow) as PriceSuggestionResult[];
   const matchedSuggestionCount = suggestionResults.filter((suggestion) => suggestion.bestSuggestion).length;
@@ -427,6 +429,30 @@ export function SmartCheckImportWorkspace() {
     if (!response.ok) return toast.error(body.error ?? "Review kararı kaydedilemedi.");
     setReviewDraft(null);
     if (documentId) await loadRows(documentId);
+  };
+
+  const bulkApproveClearRows = async () => {
+    if (!documentId || !bulkApprovableRows.length) return;
+    setBulkReviewBusy(true);
+    try {
+      const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/bulk-review`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "approved",
+          rowIds: bulkApprovableRows.map((row) => row.id),
+          notes: "Bulgusuz satırlar toplu onaylandı.",
+        }),
+      });
+      const body = await readJsonBody<{ error?: string; approvedCount?: number }>(response);
+      if (!response.ok) return toast.error(body.error ?? "Toplu review kaydedilemedi.");
+      await loadRows(documentId);
+      toast.success(`${body.approvedCount ?? bulkApprovableRows.length} bulgusuz satır onaylandı.`);
+    } catch {
+      toast.error("Toplu review kaydedilemedi.");
+    } finally {
+      setBulkReviewBusy(false);
+    }
   };
 
   const transferOverrides = (reviewed: Row[]) => Object.fromEntries(reviewed.map((row) => [row.id, {
@@ -677,9 +703,15 @@ export function SmartCheckImportWorkspace() {
             <p className="text-xs font-black text-zinc-100">Operasyon özeti</p>
             <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{nextAction}</p>
           </div>
-          <Badge className={workflowStatusClass(selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting")}>
-            {selectedPriceEvidenceCount ? `${selectedPriceEvidenceCount} fiyat kanıtı bağlı` : reviewedRows.length ? "Fiyat kararı bekliyor" : "Review bekliyor"}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" disabled={!bulkApprovableRows.length || bulkReviewBusy} onClick={bulkApproveClearRows} className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">
+              {bulkReviewBusy ? <Loader2 className="animate-spin" size={13} /> : <CheckCircle2 size={13} />}
+              Bulgusuzları toplu onayla ({bulkApprovableRows.length})
+            </Button>
+            <Badge className={workflowStatusClass(selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting")}>
+              {selectedPriceEvidenceCount ? `${selectedPriceEvidenceCount} fiyat kanıtı bağlı` : reviewedRows.length ? "Fiyat kararı bekliyor" : "Review bekliyor"}
+            </Badge>
+          </div>
         </div>
         <div className="grid gap-2 md:grid-cols-4">
           {workflowSteps.map((step) => (

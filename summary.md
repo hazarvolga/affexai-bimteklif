@@ -1,4 +1,57 @@
-# TeklifPro Ara Özet
+# TeklifPro Ara Özet / Handoff
+
+Tarih: 2026-08-02
+
+## Güncel Handoff — SmartCheck Safe Bulk Review
+
+Branch: `feat/smartcheck-evaluation-baseline`
+
+Son çalışma fazı:
+
+- SmartCheck operasyon özetinden güvenli toplu review akışı eklendi.
+- Yeni endpoint: `PATCH /api/smartcheck/documents/:id/bulk-review`.
+- Endpoint yalnız `status=approved` kabul eder.
+- Yalnız aynı tenant/dokümana ait, `pending_review`, açık bulgusu olmayan
+  satırlar toplu onaylanır.
+- Açık bulgulu IFC satırları toplu onaylanmaz; düzeltme veya gerekçeli istisna
+  gerektirir.
+- `/app/smartcheck` ekranında `Bulgusuzları toplu onayla (...)` butonu eklendi.
+
+Doğrulandı:
+
+- `pnpm exec tsx --test src/contracts/smartcheck.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 4/4 geçti.
+- `pnpm lint` -> geçti.
+- `pnpm run build` -> geçti.
+- Headless browser smoke, geçici iki satırlı SmartCheck dokümanında yalnız
+  bulgusuz satırın toplu onaylandığını ve bulgulu satırın `pending_review`
+  kaldığını doğruladı.
+- `graphify update .` çalıştırıldı.
+
+Bilerek stage/commit dışı bırakılacaklar:
+
+- `ifc-document-sample/`
+- `graphify-out/2026-08-02/` backup klasörü
+
+Devam için önerilen sıradaki faz:
+
+1. Populated IFC ekranında 160 satırlık görsel/performans smoke.
+2. Sonra fiyat kanıtı tarafında daha iyi bulk bağlama/filtreleme UX'i:
+   yalnız `safe_candidate` + uyarısız fiyat snapshotlarını otomatik bağla,
+   kalanları ayrı “insan kararı gerekir” kuyruğunda göster.
+3. Ardından teklif taslağına aktarım öncesi “eksik fiyat kanıtı / risk özeti”
+   confirmation paneli.
+
+Servis notu:
+
+- Bu fazın tarayıcı smoke’u için geçici `PORT=3014` server açıldı ve test
+  sonrası kapatıldı.
+- `3013` portu dolu göründü fakat health cevap vermedi; ara sonrası yerel
+  server durumu kontrol edilerek devam edilmeli.
+
+---
+
+# Eski Ara Özet
 
 Tarih: 2026-05-14
 

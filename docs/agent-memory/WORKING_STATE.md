@@ -928,6 +928,39 @@ Not verified / still open:
   copy-density checks, but the populated IFC transfer behavior was already
   verified in the previous phase.
 
+### Phase - SmartCheck Safe Bulk Review
+
+Status: completed first pass.
+
+Changes:
+
+- Added a tenant-scoped bulk review endpoint:
+  `/api/smartcheck/documents/:id/bulk-review`.
+- Bulk review is intentionally narrow: it only accepts `status=approved`, only
+  for rows in `pending_review`, and blocks any row with open findings.
+- `/app/smartcheck` now shows a `Bulgusuzları toplu onayla` action in the
+  operation summary so clean CSV/XLSX rows can move through review faster.
+- IFC rows with missing price/source-policy findings still require explicit
+  row-level correction or justified exception before transfer.
+
+Verified:
+
+- `pnpm exec tsx --test src/contracts/smartcheck.test.ts
+  src/server/routes/smartcheck.integration.test.ts` -> 4/4 passing against
+  local Docker PostgreSQL, including tenant-boundary checks and the IFC
+  open-finding bulk-review block.
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- `pnpm run build` -> passed.
+- Headless browser smoke on `http://127.0.0.1:3014/app/smartcheck` with a
+  temporary verified tenant/document confirmed the rendered bulk-review button
+  approved only the bulgusuz row and left the bulgulu row in `pending_review`.
+
+Not verified / still open:
+
+- The browser smoke used a seeded two-row document for speed. A later populated
+  160-row IFC visual pass is still useful for spacing/performance, but IFC rows
+  with policy findings are deliberately excluded from bulk approval.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

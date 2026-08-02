@@ -48,6 +48,12 @@ export const smartcheckRowReviewRequestSchema = z.object({
   correction: correctionSchema.optional(),
 }).passthrough();
 
+export const smartcheckBulkReviewRequestSchema = z.object({
+  status: z.literal("approved"),
+  rowIds: z.array(z.string().trim().min(1)).min(1).max(5000),
+  notes: z.string().trim().max(2000).nullable().optional(),
+}).passthrough();
+
 const transferOverrideSchema = z.object({
   quantity: z.unknown().optional(),
   unitPrice: z.unknown().optional(),
@@ -81,5 +87,6 @@ export type SmartCheckUploadRequest = z.infer<typeof smartcheckUploadRequestSche
 export type SmartCheckCompleteRequest = z.infer<typeof smartcheckCompleteRequestSchema>;
 export type SmartCheckMappingRequest = z.infer<typeof smartcheckMappingRequestSchema>;
 export type SmartCheckRowReviewRequest = z.infer<typeof smartcheckRowReviewRequestSchema>;
+export type SmartCheckBulkReviewRequest = z.infer<typeof smartcheckBulkReviewRequestSchema>;
 export type SmartCheckTransferRequest = z.infer<typeof smartcheckTransferRequestSchema>;
 export type SmartCheckTransferToNewQuotationRequest = z.infer<typeof smartcheckTransferToNewQuotationRequestSchema>;

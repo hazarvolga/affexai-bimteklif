@@ -17,6 +17,7 @@ import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calc
 import { sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import {
+  smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
   smartcheckMappingRequestSchema,
   smartcheckRowReviewRequestSchema,
@@ -259,6 +260,37 @@ export function registerSmartCheckRoutes(app: Express) {
     }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning();
     await audit(req, `row_${status}`, "normalized_quantity_row", current.id, { documentId: current.documentId, correction: patch, findingCodes: validated.findings.map((finding) => finding.code) });
     res.json(updated);
+  });
+
+  app.patch("/api/smartcheck/documents/:id/bulk-review", ...protectedStack, async (req, res) => {
+    const parsedRequest = smartcheckBulkReviewRequestSchema.safeParse(req.body);
+    if (!parsedRequest.success) return res.status(400).json({ error: "Toplu review için status=approved ve en az bir rowId zorunludur." });
+    const { rowIds, notes } = parsedRequest.data;
+    const uniqueRowIds = [...new Set(rowIds)];
+    if (uniqueRowIds.length !== rowIds.length) return res.status(400).json({ error: "Tekrarlı satır seçimi yapılamaz." });
+    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    const rows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds)));
+    if (rows.length !== uniqueRowIds.length) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
+    if (rows.some((row) => row.reviewStatus !== "pending_review")) return res.status(409).json({ error: "Yalnız inceleme bekleyen satırlar toplu onaylanabilir.", code: "BULK_REVIEW_STATUS_NOT_PENDING" });
+    const blockedRows = rows.filter((row) => Array.isArray(row.findingsJson) && row.findingsJson.length > 0);
+    if (blockedRows.length) {
+      return res.status(409).json({
+        error: "Açık bulgusu olan satırlar toplu onaylanamaz; düzeltme veya gerekçeli istisna gerekir.",
+        code: "BULK_REVIEW_FINDINGS_PRESENT",
+        blockedRowIds: blockedRows.map((row) => row.id),
+      });
+    }
+    const now = new Date();
+    const updated = await db.update(normalizedQuantityRows).set({
+      reviewStatus: "approved",
+      reviewerUserId: req.user.userId,
+      reviewedAt: now,
+      reviewerNotes: notes ?? "Bulgusuz satırlar toplu onaylandı.",
+      updatedAt: now,
+    }).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds))).returning();
+    await audit(req, "rows_bulk_approved", "document", document.id, { rowIds: uniqueRowIds, approvedCount: updated.length });
+    res.json({ approvedCount: updated.length, rows: updated });
   });
 
   app.post("/api/smartcheck/documents/:id/transfer-to-quotation", ...protectedStack, async (req, res) => {
