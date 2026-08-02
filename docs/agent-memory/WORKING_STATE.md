@@ -862,9 +862,40 @@ Verified:
 Not verified / still open:
 
 - This smoke used CSV SmartCheck rows as the fast worker-backed path. The same
-  suggested-snapshot transfer behavior still needs a rendered browser smoke with
-  the user's larger IFC sample after IFC worker runtime is stable enough for a
-  long local run.
+  suggested-snapshot transfer behavior is now also covered with the user's
+  larger IFC sample in the next phase.
+
+### Phase - SmartCheck IFC Suggested Price Transfer Smoke
+
+Status: completed.
+
+Verified:
+
+- Headless browser smoke used the real local
+  `ifc-document-sample/e-proje_4x3.ifc` file through the SmartCheck HTTP upload
+  and worker path. The worker completed successfully and returned 160 admitted
+  IFC evidence rows.
+- The selected IFC row was `IFC-SLAB-CONCRETE`, unit `m³`, quantity source
+  `ifc_property`, quantity `0.0174`. Because the row had 2 open IFC policy
+  findings, the smoke used explicit `accepted_exception` review before transfer
+  rather than silently approving it.
+- A tenant-scoped advisory price catalog snapshot was imported for the selected
+  IFC row's position/unit, the rendered SmartCheck UI displayed a
+  `Güvenli aday`, bulk-applied it, created a new draft quote, and opened the
+  quote detail route without a blank page.
+- Direct DB verification confirmed the quote item preserved IFC row provenance
+  and the selected advisory price evidence: `sourceQuantityRowId` matched the
+  IFC row, `priceSnapshotId` matched the suggested snapshot,
+  `priceSnapshotStatus="attached"`, and `unitPrice=3210`.
+- Temporary smoke users/companies with `smartcheck-ifc-transfer-*`,
+  `smartcheck-transfer-*`, and `smartcheck-suggestion-*` prefixes were checked
+  and cleaned after the run.
+
+Not verified / still open:
+
+- The quote detail page rendered the generated project name, but the raw `3210`
+  price text was not asserted from the page because visible formatting can vary.
+  Price correctness was verified directly from the database item record.
 
 ## Do Not Touch
 
