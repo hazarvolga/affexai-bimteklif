@@ -798,6 +798,48 @@ Not verified / still open:
 - Automatic fuzzy matching from imported catalog rows to IFC/SmartCheck rows is
   still the next logical phase.
 
+### Phase - SmartCheck Price Snapshot Suggestions
+
+Status: completed first pass.
+
+Changes:
+
+- Added a tenant-scoped read-only `POST /api/pricing/snapshot-suggestions`
+  endpoint. It evaluates up to 100 reviewed SmartCheck rows against the tenant's
+  advisory/approved price snapshots and returns ranked suggestions without
+  mutating quotation prices.
+- Added deterministic price matching rules:
+  exact position + normalized unit is a high-confidence safe candidate;
+  description + normalized unit can become a fuzzy/strong advisory candidate;
+  position matches with unit mismatch are returned as `review_required` with an
+  explicit `UNIT_MISMATCH` warning.
+- Normalized common Turkish/BIM pricing units including `Ad.`, `mt`, `m²` and
+  `m^3`, and added light Turkish suffix stemming so descriptions like
+  `Bakır tesisat borusu` can match `Bakır boru` without inventing a price.
+- `/app/smartcheck` now lets the reviewer fetch price suggestions after row
+  approval, inspect match confidence/source/warnings per row, manually select a
+  suggested snapshot, or bulk-apply only uyarısız high-confidence suggestions.
+- CSV catalog import clears stale suggestion UI state so users explicitly
+  refresh suggestions after adding new price evidence.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- Focused deterministic pricing test passed:
+  `pnpm exec tsx --test src/smartcheck/pricing/snapshots.test.ts`.
+- Full test suite passed:
+  `pnpm test` -> 337 tests, 328 pass, 0 fail, 9 skipped.
+- Production build passed:
+  `pnpm run build`.
+
+Not verified / still open:
+
+- DB-backed pricing HTTP integration contains coverage for the new endpoint, but
+  it was skipped in this run because `DATABASE_URL` was not reachable and Docker
+  daemon was not available from the local environment.
+- Rendered browser smoke for the new suggestion UI remains pending until the
+  TeklifPro PostgreSQL service/dev server are available again.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or

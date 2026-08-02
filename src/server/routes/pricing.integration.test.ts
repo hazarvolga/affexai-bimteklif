@@ -143,6 +143,29 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
     const tenantBSnapshots = await request("/api/pricing/snapshots?positionCode=M-CSV-001", {}, tokenB);
     assert.equal(tenantBSnapshots.status, 200);
     assert.equal((await tenantBSnapshots.json() as unknown[]).length, 0);
+    const suggestionResponse = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rows: [
+      { rowId: "exact-row", positionCode: "M-CSV-001", description: "VRF dış ünite", unit: "adet", region: "İstanbul" },
+      { rowId: "fuzzy-row", description: "Bakır tesisat borusu", unit: "m" },
+      { rowId: "unit-warning-row", positionCode: "M-CSV-001", description: "VRF dış ünite", unit: "m" },
+    ] }) });
+    assert.equal(suggestionResponse.status, 200);
+    const suggestionBody = await suggestionResponse.json() as { suggestions: Array<{ rowId: string; decision: string; bestSuggestion: null | { score: number; matchType: string; warnings: string[]; snapshot: { id: string; positionCode: string | null } } }> };
+    const exactSuggestion = suggestionBody.suggestions.find((suggestion) => suggestion.rowId === "exact-row")!;
+    assert.equal(exactSuggestion.decision, "safe_candidate");
+    assert.equal(exactSuggestion.bestSuggestion?.snapshot.positionCode, "M-CSV-001");
+    assert.ok((exactSuggestion.bestSuggestion?.score ?? 0) >= 0.9);
+    const fuzzySuggestion = suggestionBody.suggestions.find((suggestion) => suggestion.rowId === "fuzzy-row")!;
+    assert.equal(fuzzySuggestion.bestSuggestion?.snapshot.positionCode, "M-CSV-002");
+    assert.match(fuzzySuggestion.bestSuggestion?.matchType ?? "", /^description_unit_/);
+    const unitWarningSuggestion = suggestionBody.suggestions.find((suggestion) => suggestion.rowId === "unit-warning-row")!;
+    assert.equal(unitWarningSuggestion.decision, "review_required");
+    assert.equal(unitWarningSuggestion.bestSuggestion?.matchType, "position_only_unit_mismatch");
+    assert.ok(unitWarningSuggestion.bestSuggestion?.warnings.includes("UNIT_MISMATCH"));
+    const tenantBSuggestionResponse = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rows: [{ rowId: "tenant-b-row", positionCode: "M-CSV-001", description: "VRF dış ünite", unit: "adet" }] }) }, tokenB);
+    assert.equal(tenantBSuggestionResponse.status, 200);
+    const tenantBSuggestionBody = await tenantBSuggestionResponse.json() as { suggestions: Array<{ decision: string; bestSuggestion: unknown | null }> };
+    assert.equal(tenantBSuggestionBody.suggestions[0].decision, "no_match");
+    assert.equal(tenantBSuggestionBody.suggestions[0].bestSuggestion, null);
     const invalidImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid catalog", sourceType: "official_reference" }) });
     assert.equal(invalidImport.status, 400);
     const invalidDateImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid date catalog", validUntil: "+061231-02-19T21:00:00.000Z" }) });

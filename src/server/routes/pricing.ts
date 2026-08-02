@@ -10,6 +10,7 @@ import {
   smartcheckAuditLogs,
 } from "../../db/schema";
 import { buildPriceSnapshotKey, computePricingLockHash, isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { suggestPriceSnapshotsForRow, type PriceMatchRowInput } from "../../smartcheck/pricing/matching";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
 
@@ -119,6 +120,41 @@ export function registerPricingRoutes(app: Express) {
     const rows = await db.select().from(priceSnapshots).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(Math.min(Math.max(Number(req.query.limit) || 100, 1), 500));
     const now = new Date();
     res.json(rows.map((row) => ({ ...row, stale: isPriceSnapshotStale(row, now) })));
+  });
+
+  app.post("/api/pricing/snapshot-suggestions", authenticate, rateLimit, async (req, res) => {
+    const rows = Array.isArray(req.body?.rows) ? req.body.rows : [];
+    if (rows.length === 0 || rows.length > 100) return res.status(400).json({ error: "1-100 fiyat önerisi satırı zorunludur." });
+    const requestRows: PriceMatchRowInput[] = [];
+    for (const [index, row] of rows.entries()) {
+      const rowId = trimText(row?.rowId, 120);
+      const description = optionalText(row?.description, 500);
+      const unit = optionalText(row?.unit, 40);
+      if (!rowId || !description || !unit) return res.status(400).json({ error: `${index + 1}. öneri satırında rowId, açıklama ve birim zorunludur.`, rowIndex: index });
+      requestRows.push({
+        rowId,
+        description,
+        unit,
+        positionCode: optionalText(row?.positionCode, 120),
+        region: optionalText(row?.region, 120),
+      });
+    }
+    const candidates = await db.select({ snapshot: priceSnapshots, source: priceSources })
+      .from(priceSnapshots)
+      .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
+      .where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.reviewStatus, ["advisory", "approved"])))
+      .orderBy(desc(priceSnapshots.capturedAt))
+      .limit(500);
+    const suggestions = requestRows.map((row) => {
+      const matches = suggestPriceSnapshotsForRow(row, candidates, { limit: 3 });
+      return {
+        rowId: row.rowId,
+        bestSuggestion: matches[0] ?? null,
+        suggestions: matches,
+        decision: matches[0] && matches[0].score >= 0.8 && matches[0].warnings.length === 0 ? "safe_candidate" : matches[0] ? "review_required" : "no_match",
+      };
+    });
+    res.json({ suggestions });
   });
 
   app.post("/api/pricing/catalog/import", ...mutateStack, async (req, res) => {

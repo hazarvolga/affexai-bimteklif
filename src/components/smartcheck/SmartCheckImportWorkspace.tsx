@@ -63,6 +63,8 @@ type QueueItem = {
 
 type PriceSnapshotOption = { id: string; positionCode: string | null; description: string; unit: string; amount: string; currency: string; stale: boolean; reviewStatus: string };
 type PriceCatalogImportRow = { positionCode?: string; description: string; unit: string; amount: number; currency?: string; validUntil?: string; externalReference?: string };
+type PriceSnapshotSuggestion = { snapshot: PriceSnapshotOption; source: { name: string; sourceType: string }; score: number; matchType: string; warnings: string[]; explanation: string };
+type PriceSuggestionResult = { rowId: string; decision: "safe_candidate" | "review_required" | "no_match"; bestSuggestion: PriceSnapshotSuggestion | null; suggestions: PriceSnapshotSuggestion[] };
 type ReviewDraft = { row: Row; status: "approved" | "rejected" | "accepted_exception"; notes: string; quantity: string };
 
 const mappingFields: Array<keyof ColumnMapping> = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"];
@@ -86,6 +88,10 @@ function smartCheckMimeType(file: File): string {
 
 function statusLabel(status: string) {
   return ({ pending_review: "İnceleme bekliyor", approved: "Onaylandı", accepted_exception: "İstisna onaylı", rejected: "Reddedildi" } as Record<string, string>)[status] ?? status;
+}
+
+function priceSuggestionWarningLabel(warning: string) {
+  return ({ LOW_CONFIDENCE: "Düşük güven", STALE_PRICE: "Süresi geçmiş", UNIT_MISMATCH: "Birim uyarısı" } as Record<string, string>)[warning] ?? warning;
 }
 
 async function readJsonBody<T extends Record<string, unknown> = Record<string, unknown>>(response: Response): Promise<T> {
@@ -203,12 +209,15 @@ export function SmartCheckImportWorkspace() {
   const [catalogImportText, setCatalogImportText] = useState("");
   const [catalogImportRows, setCatalogImportRows] = useState<PriceCatalogImportRow[]>([]);
   const [catalogImportBusy, setCatalogImportBusy] = useState(false);
+  const [suggestionBusy, setSuggestionBusy] = useState(false);
+  const [priceSuggestionsByRow, setPriceSuggestionsByRow] = useState<Record<string, PriceSuggestionResult>>({});
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
   const polling = useRef<number | null>(null);
   const pollInFlight = useRef(false);
   const isIfcFile = isIfcSmartCheckFile(file);
+  const reviewedRows = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
 
   const loadQueue = async () => {
     const response = await fetchWithAuth("/api/smartcheck/queue");
@@ -517,12 +526,54 @@ export function SmartCheckImportWorkspace() {
         ...body.snapshots!,
         ...current.filter((candidate) => !body.snapshots!.some((snapshot) => snapshot.id === candidate.id)),
       ]);
+      setPriceSuggestionsByRow({});
       toast.success(`${(body.insertedCount ?? 0) + (body.reusedCount ?? 0)} fiyat snapshot kataloğa eklendi.`);
     } catch {
       toast.error("CSV fiyat kataloğu içe aktarılamadı.");
     } finally {
       setCatalogImportBusy(false);
     }
+  };
+
+  const loadPriceSuggestions = async () => {
+    if (!reviewedRows.length) return toast.error("Öneri için önce en az bir satırı onaylayın veya istisna ile kabul edin.");
+    setSuggestionBusy(true);
+    try {
+      const response = await fetchWithAuth("/api/pricing/snapshot-suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rows: reviewedRows.map((row) => ({
+            rowId: row.id,
+            positionCode: row.normalizedPositionCode ?? row.rawPositionCode,
+            description: row.normalizedDescription ?? row.rawDescription,
+            unit: row.normalizedUnit ?? row.rawUnit,
+            region: catalogImportDraft.region || undefined,
+          })),
+        }),
+      });
+      const body = await readJsonBody<{ error?: string; suggestions?: PriceSuggestionResult[] }>(response);
+      if (!response.ok || !body.suggestions) return toast.error(body.error ?? "Fiyat önerileri alınamadı.");
+      setPriceSuggestionsByRow(Object.fromEntries(body.suggestions.map((suggestion) => [suggestion.rowId, suggestion])));
+      const matchedCount = body.suggestions.filter((suggestion) => suggestion.bestSuggestion).length;
+      toast.success(`${matchedCount}/${body.suggestions.length} satır için fiyat önerisi bulundu.`);
+    } catch {
+      toast.error("Fiyat önerileri alınamadı.");
+    } finally {
+      setSuggestionBusy(false);
+    }
+  };
+
+  const applySafePriceSuggestions = () => {
+    const safeSuggestions = reviewedRows
+      .map((row) => priceSuggestionsByRow[row.id])
+      .filter((suggestion): suggestion is PriceSuggestionResult => Boolean(suggestion?.bestSuggestion && suggestion.decision === "safe_candidate" && suggestion.bestSuggestion.warnings.length === 0));
+    if (!safeSuggestions.length) return toast.error("Uyarısız ve yüksek güvenli fiyat önerisi bulunamadı.");
+    setSnapshotByRow((current) => ({
+      ...current,
+      ...Object.fromEntries(safeSuggestions.map((suggestion) => [suggestion.rowId, suggestion.bestSuggestion!.snapshot.id])),
+    }));
+    toast.success(`${safeSuggestions.length} güvenli fiyat önerisi satırlara bağlandı.`);
   };
 
   const transfer = async () => {
@@ -560,7 +611,6 @@ export function SmartCheckImportWorkspace() {
   };
 
   const activeSheet = preview?.sheets.find((sheet) => sheet.name === selectedSheet) ?? preview?.sheets[0];
-  const reviewedRows = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
   const snapshotOptionsForRow = (row: Row) => priceSnapshots.filter((snapshot) => !snapshot.positionCode || snapshot.positionCode === row.normalizedPositionCode || snapshot.positionCode === row.rawPositionCode);
   const catalogImportCard = (
     <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4">
@@ -646,7 +696,11 @@ export function SmartCheckImportWorkspace() {
       {reviewedRows.length > 0 && <div className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
         <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div><p className="text-xs font-bold text-sky-200">Fiyat kanıtı / katalog tohumu</p><p className="mt-1 text-[10px] text-zinc-500">Fiyat bilinmiyorsa sistem uydurmaz. Bildiğiniz fiyatı manuel snapshot olarak kaydedip satıra bağlayabilirsiniz; aktarımda bu snapshot birim fiyat olarak uygulanır.</p></div>
-          <Badge className="w-fit border-sky-500/30 bg-sky-500/10 text-sky-300">{priceSnapshots.length} snapshot</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="w-fit border-sky-500/30 bg-sky-500/10 text-sky-300">{priceSnapshots.length} snapshot</Badge>
+            <Button size="sm" disabled={suggestionBusy || !reviewedRows.length} onClick={loadPriceSuggestions} variant="outline" className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10">{suggestionBusy ? <Loader2 className="animate-spin" size={13} /> : <Eye size={13} />} Fiyat önerilerini getir</Button>
+            <Button size="sm" disabled={!Object.keys(priceSuggestionsByRow).length} onClick={applySafePriceSuggestions} className="bg-sky-600 text-white hover:bg-sky-700">Güvenli önerileri uygula</Button>
+          </div>
         </div>
         <div className="grid gap-2 md:grid-cols-5">
           <select aria-label="Manuel fiyat satırı" value={manualSnapshotDraft.rowId || reviewedRows[0]?.id || ""} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, rowId: event.target.value }))} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 md:col-span-2">
@@ -661,7 +715,39 @@ export function SmartCheckImportWorkspace() {
           <Input aria-label="Manuel fiyat geçerlilik tarihi" type="date" value={manualSnapshotDraft.validUntil} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, validUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
         </div>
         {catalogImportCard}
-        <div className="mt-4 grid gap-2 md:grid-cols-2">{reviewedRows.map((row) => <label key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400"><span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span><select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300"><option value="">Snapshot seç</option>{snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}</select></label>)}</div>
+        <div className="mt-4 grid gap-2 md:grid-cols-2">
+          {reviewedRows.map((row) => {
+            const result = priceSuggestionsByRow[row.id];
+            const suggestion = result?.bestSuggestion;
+            return (
+              <div key={row.id} className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span>
+                  <select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300">
+                    <option value="">Snapshot seç</option>
+                    {snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}
+                  </select>
+                </div>
+                {result && !suggestion && <p className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-500">Bu satır için güvenilir katalog eşleşmesi bulunamadı; manuel fiyat kanıtı oluşturun veya katalog satırını genişletin.</p>}
+                {suggestion && (
+                  <div className="mt-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="min-w-0 flex-1 truncate text-sky-100">Öneri: {suggestion.snapshot.description} · {Number(suggestion.snapshot.amount).toLocaleString("tr-TR")} {suggestion.snapshot.currency} · %{Math.round(suggestion.score * 100)}</p>
+                      <Button size="sm" variant="outline" onClick={() => setSnapshotByRow((current) => ({ ...current, [row.id]: suggestion.snapshot.id }))} className="h-7 border-sky-500/30 text-sky-300 hover:bg-sky-500/10">Öneriyi seç</Button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1">
+                      <Badge className={result.decision === "safe_candidate" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300"}>{result.decision === "safe_candidate" ? "Güvenli aday" : "İnsan kontrolü"}</Badge>
+                      <Badge className="border-zinc-700 bg-zinc-900 text-zinc-400">{suggestion.source.name}</Badge>
+                      <Badge className="border-zinc-700 bg-zinc-900 text-zinc-400">{suggestion.matchType}</Badge>
+                      {suggestion.warnings.map((warning) => <Badge key={warning} className="border-amber-500/20 bg-amber-500/10 text-amber-300">{priceSuggestionWarningLabel(warning)}</Badge>)}
+                    </div>
+                    <p className="mt-2 text-zinc-500">{suggestion.explanation}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>}
 
       {queue.length > 0 && <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">İşleme kuyruğu</p><p className="mt-1 text-[10px] text-zinc-500">Tenant içindeki son SmartCheck işlemleri; başarısız run yalnızca açık retry ile tekrar başlar.</p></div><Button size="sm" variant="ghost" onClick={loadQueue}><RefreshCw size={13} />Yenile</Button></div><div className="grid gap-2 md:grid-cols-2">{queue.slice(0, 6).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 p-3"><div className="min-w-0"><p className="truncate text-xs text-zinc-300">{item.fileName ?? "Dosya"}</p><p className="mt-1 text-[10px] text-zinc-500">{item.progressMessage ?? item.currentStage} · %{item.progressPercent}</p>{item.errorCode && <p className="mt-1 truncate text-[10px] text-rose-300" title={item.errorMessage ?? item.errorCode}>{item.errorCode}</p>}</div><div className="flex shrink-0 flex-wrap items-center justify-end gap-2"><Badge className={item.status === "failed" ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : item.status === "succeeded" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-sky-500/30 bg-sky-500/10 text-sky-300"}>{item.status}</Badge>{item.status === "succeeded" && <Button size="sm" variant="outline" onClick={() => openQueueDocument(item.documentId, item.fileName, item.status)}>Sonuçları aç</Button>}{item.status === "failed" && <Button size="sm" variant="outline" onClick={() => retry(item.documentId)}>Retry</Button>}</div></div>)}</div></div>}
