@@ -840,11 +840,31 @@ Verified:
 - Production build passed:
   `pnpm run build`.
 
+### Phase - SmartCheck Suggested Price Transfer Smoke
+
+Status: completed.
+
+Verified:
+
+- Headless browser smoke on `http://127.0.0.1:3013/app/smartcheck` seeded a
+  temporary verified tenant, uploaded and processed a CSV SmartCheck file via
+  the real worker, approved the row, imported a matching advisory catalog
+  snapshot, fetched/applied the UI `Güvenli aday`, created a new draft quote
+  from the rendered UI, opened the quote detail page, and verified the project
+  name rendered without a blank page.
+- Direct DB verification after the UI transfer confirmed the generated
+  quotation item kept the SmartCheck row provenance and selected price evidence:
+  `sourceQuantityRowId` matched the reviewed row, `priceSnapshotId` matched the
+  suggested snapshot, `priceSnapshotStatus="attached"`, and `unitPrice=12500`.
+- Temporary smoke users/companies with `smartcheck-transfer-*` and
+  `smartcheck-suggestion-*` prefixes were checked and cleaned after the run.
+
 Not verified / still open:
 
-- Quote transfer after accepting a suggested snapshot is covered by earlier
-  manual snapshot transfer tests, but the exact browser smoke above stops after
-  applying the suggested snapshot in the SmartCheck UI.
+- This smoke used CSV SmartCheck rows as the fast worker-backed path. The same
+  suggested-snapshot transfer behavior still needs a rendered browser smoke with
+  the user's larger IFC sample after IFC worker runtime is stable enough for a
+  long local run.
 
 ## Do Not Touch
 
