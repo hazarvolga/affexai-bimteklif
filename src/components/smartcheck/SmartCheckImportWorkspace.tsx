@@ -94,6 +94,12 @@ function priceSuggestionWarningLabel(warning: string) {
   return ({ LOW_CONFIDENCE: "Düşük güven", STALE_PRICE: "Süresi geçmiş", UNIT_MISMATCH: "Birim uyarısı" } as Record<string, string>)[warning] ?? warning;
 }
 
+function workflowStatusClass(status: "done" | "active" | "waiting") {
+  if (status === "done") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  if (status === "active") return "border-orange-500/30 bg-orange-500/10 text-orange-300";
+  return "border-zinc-800 bg-zinc-950 text-zinc-500";
+}
+
 async function readJsonBody<T extends Record<string, unknown> = Record<string, unknown>>(response: Response): Promise<T> {
   const text = await response.text();
   if (!text) return {} as T;
@@ -218,6 +224,25 @@ export function SmartCheckImportWorkspace() {
   const pollInFlight = useRef(false);
   const isIfcFile = isIfcSmartCheckFile(file);
   const reviewedRows = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
+  const pendingReviewCount = rows.filter((row) => row.reviewStatus === "pending_review").length;
+  const openFindingCount = rows.reduce((count, row) => count + row.findingsJson.length, 0);
+  const suggestionResults = Object.values(priceSuggestionsByRow) as PriceSuggestionResult[];
+  const matchedSuggestionCount = suggestionResults.filter((suggestion) => suggestion.bestSuggestion).length;
+  const safeSuggestionCount = suggestionResults.filter((suggestion) => suggestion.decision === "safe_candidate").length;
+  const selectedPriceEvidenceCount = reviewedRows.filter((row) => snapshotByRow[row.id]).length;
+  const nextAction = rows.length === 0
+    ? "Dosyayı yükleyin veya kuyruktan tamamlanan bir işi açın."
+    : reviewedRows.length === 0
+      ? "Önce satırları inceleyin: bulgusuz satırları onaylayın, bulgulu IFC satırlarında düzeltme veya gerekçeli istisna girin."
+      : selectedPriceEvidenceCount === 0
+        ? "Fiyatı sistem uydurmaz: katalog/snapshot ekleyin, önerileri getirin ve uygun kanıtı satıra bağlayın."
+        : "Fiyat kanıtı bağlı satırlar teklife aktarılabilir; yeni taslak oluşturabilir veya mevcut taslağı seçebilirsiniz.";
+  const workflowSteps: Array<{ label: string; value: string; hint: string; status: "done" | "active" | "waiting" }> = [
+    { label: "1 · Kanıt satırları", value: rows.length ? `${rows.length} satır` : "Bekliyor", hint: rows.length ? `${openFindingCount} açık bulgu` : "Upload / kuyruk", status: rows.length ? "done" : documentId || busy ? "active" : "waiting" },
+    { label: "2 · İnsan review", value: `${reviewedRows.length}/${rows.length || 0}`, hint: pendingReviewCount ? `${pendingReviewCount} bekliyor` : "Aktarım kilidi açık", status: reviewedRows.length ? "done" : rows.length ? "active" : "waiting" },
+    { label: "3 · Fiyat kanıtı", value: `${selectedPriceEvidenceCount}/${reviewedRows.length || 0}`, hint: suggestionResults.length ? `${matchedSuggestionCount} öneri · ${safeSuggestionCount} güvenli` : `${priceSnapshots.length} snapshot`, status: selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting" },
+    { label: "4 · Teklif taslağı", value: transferredQuotationId ? "Oluştu" : reviewedRows.length ? "Hazır" : "Bekliyor", hint: transferredQuotationId ? "Taslak açılabilir" : "İnsan onayı sonrası", status: transferredQuotationId ? "done" : reviewedRows.length ? "active" : "waiting" },
+  ];
 
   const loadQueue = async () => {
     const response = await fetchWithAuth("/api/smartcheck/queue");
@@ -644,6 +669,27 @@ export function SmartCheckImportWorkspace() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">Evidence-first pilot</p><h2 className="mt-2 text-xl font-black text-white">Excel/CSV/IFC SmartCheck çalışma alanı</h2><p className="mt-1 text-xs text-zinc-500">Excel/CSV: önizle → eşle → işle. IFC: yükle → property/QTO kanıt satırlarını işle → bulguları incele → aktar.</p></div>
         <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{stage}</Badge>
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4">
+        <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-xs font-black text-zinc-100">Operasyon özeti</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{nextAction}</p>
+          </div>
+          <Badge className={workflowStatusClass(selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting")}>
+            {selectedPriceEvidenceCount ? `${selectedPriceEvidenceCount} fiyat kanıtı bağlı` : reviewedRows.length ? "Fiyat kararı bekliyor" : "Review bekliyor"}
+          </Badge>
+        </div>
+        <div className="grid gap-2 md:grid-cols-4">
+          {workflowSteps.map((step) => (
+            <div key={step.label} className={`rounded-xl border p-3 ${workflowStatusClass(step.status)}`}>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{step.label}</p>
+              <p className="mt-2 text-lg font-black">{step.value}</p>
+              <p className="mt-1 text-[10px] opacity-70">{step.hint}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">

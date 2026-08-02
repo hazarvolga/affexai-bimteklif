@@ -1,6 +1,6 @@
 # Working State
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
 
 ## Repository
 
@@ -896,6 +896,37 @@ Not verified / still open:
 - The quote detail page rendered the generated project name, but the raw `3210`
   price text was not asserted from the page because visible formatting can vary.
   Price correctness was verified directly from the database item record.
+
+### Phase - SmartCheck Workflow Summary UI
+
+Status: completed first pass.
+
+Changes:
+
+- Added an `Operasyon özeti` strip to `/app/smartcheck` so users can see the
+  current workflow gate before taking the next action.
+- The summary shows four human-controlled gates: evidence rows, human review,
+  price evidence, and draft quotation.
+- The next-action text is derived from the current state and keeps the key pilot
+  rule visible: SmartCheck can suggest or attach price evidence, but it does not
+  invent final prices.
+- The UI now counts open findings, pending reviews, matched/safe price
+  suggestions, and selected price evidence.
+
+Verified:
+
+- `pnpm lint` -> passed (`tsc --noEmit`).
+- `pnpm run build` -> passed.
+- Headless browser smoke on `http://127.0.0.1:3013/app/smartcheck` with a
+  temporary verified tenant confirmed the rendered UI contains
+  `Operasyon özeti` and all four workflow steps.
+
+Not verified / still open:
+
+- Browser smoke covered the initial/empty workflow state. A second visual pass
+  with a populated 160-row IFC run would still be useful for spacing and
+  copy-density checks, but the populated IFC transfer behavior was already
+  verified in the previous phase.
 
 ## Do Not Touch
 
