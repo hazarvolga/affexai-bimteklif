@@ -961,6 +961,143 @@ Not verified / still open:
   160-row IFC visual pass is still useful for spacing/performance, but IFC rows
   with policy findings are deliberately excluded from bulk approval.
 
+### Phase - 2026-08-21 UX Production-Readiness Pass + First Customer Simulation
+
+Status: paused mid-session by user request ("ara verelim biraz" — take a break).
+This section is the handoff for continuing next session.
+
+Branch: `feat/smartcheck-evaluation-baseline`. All work below is pushed to the
+existing Draft PR `#1` (https://github.com/hazarvolga/TeklifPro/pull/1) —
+never created a new PR, always pushed incrementally to update it.
+
+#### Completed and committed this session
+
+1. Full UX/IA audit (via `/frontend-developer`) → fixed mock-data dashboards,
+   fake stats, dead controls, guest-login fallback masking real auth failures,
+   `window.confirm` usage, missing 404/error boundary, nav taxonomy
+   (`refactor(nav)`, `a18cefa`, `04de039`, `3c0bb72`, `fdd1a43`, `342a70a`).
+2. `cedac47 feat(ifc): read Tr_Pset_CSB property set for e-PYS regulation
+   readiness` — IFC parser now extracts PozNo/TAKS/KAKS/ÇekmeÖn/ÇekmeYan per
+   the draft Turkish e-Proje-Teslim regulation
+   (`E-Proje-Teslim/ozet.md`, effective 01 Ekim 2026). This directly matters
+   because the app's "5 dakikada 2D ön-keşif" marketing claim needs real data
+   backing once the regulation is enforced — this feature is the first step,
+   not a full compliance solution.
+3. `e5d13b1 feat(pilot): auto-provision company/user account on pilot
+   conversion` — `/pilot` funnel now has a real "convert application to
+   account" path (`POST /api/pilot-applications/:id/convert`), reusing the
+   existing `authActionTokens` password-set flow. Full integration test at
+   `src/server/routes/pilot.integration.test.ts`, passing against real
+   Postgres.
+4. `ac0c81e feat(ifc): replace flat 1000+ row element list with grouped
+   review summary` — `/app/ifc-parser`'s element table was unreviewable at
+   1180 rows on the real sample file; now grouped by IFC type (max 5 groups)
+   with drill-down. Plan file (now stale/complete):
+   `~/.claude/plans/temporal-kindling-marshmallow.md`.
+
+#### First-customer simulation — completed and verified, not a code change
+
+Ran `/private/tmp/claude-501/.../scratchpad/seed-first-customer.mjs`
+(scratchpad only, not committed — script content is in the prior session
+transcript if it needs to be re-run) against real local Postgres:
+
+- Public pilot form → admin converts → real company/user/membership/
+  subscription provisioned → customer sets password via existing
+  reset-password flow → customer logs in for real
+  (`mehmet.aydin@aydinyapi.example.com` / `AydinYapi2026!`,
+  company "Aydın Yapı İnşaat Ltd. Şti.").
+- Customer created 3 real CRM clients, 3 real quotations with realistic
+  construction line items (concrete, rebar, formwork, brick, steel structure,
+  insulation), moved through real status lifecycle (draft/sent/won).
+- Verified live in browser: Dashboard aggregates, Quotes list, QuoteDetail's
+  AI Financial Intelligence panel (real computed margin: Toplam Maliyet
+  3.616.218 TRY, Brüt Kâr 926.732 TRY, Kâr Marjı %20,4 — not a placeholder),
+  Clients list, and the Kârlılık Analizi aggregate page. All render correct,
+  non-mocked data end to end.
+- Confirmed working-as-intended (not a bug): unauthenticated `/app/pilot-
+  applications` 401s without a forced redirect loop, per the Faz 2 session-
+  expiry fix.
+
+#### New bugs discovered during this deep real-data testing — NOT yet fixed
+
+User said (2026-08-21): "sen karar ver, her başarılı adımdan sonra commit
+ederek ilerleyelim, temiz bir git yapımız olsun" — agent decides fix order,
+one commit per successfully-verified fix. Chosen order:
+
+1. **Invite-accept membership bug (IN PROGRESS — investigated, not yet
+   coded)** — `POST /api/invitations/:token/accept`
+   (`src/server/routes/company.ts:191-224`) creates a `users` row but never
+   inserts into `memberships`, so an accepted invite leaves the user
+   authenticated with `companyId: null, role: null` (every other
+   provisioning path — `auth.ts` register, `pilot.ts` conversion — does
+   insert `memberships`). **Second, independent bug found in the same
+   handler**: both the lookup at `company.ts:177-179` (GET
+   `/api/invitations/:token`) and `company.ts:196-198` (the accept handler)
+   use `eq(invitations.acceptedAt, null)`, which compiles to `= NULL` in
+   Postgres (always false/unknown) instead of `IS NULL` — confirmed against
+   the installed `drizzle-orm@0.45.2` dialect. This may mean the invite
+   lookup never matches any row at all, i.e. invite-accept could be
+   completely non-functional today, not just missing memberships. Fix must:
+   swap both `eq(invitations.acceptedAt, null)` → `isNull(invitations.acceptedAt)`,
+   wrap the accept handler in a transaction that also does
+   `tx.insert(memberships).values({ userId: newUser.id, companyId:
+   invite.companyId, role: <validated invite.role> })` (mirror
+   `pilot.ts:88-93`'s pattern), and validate `invite.role` against
+   `userRoleEnum` (`owner|admin|manager|viewer`) before use — `invitations.role`
+   is a loose `text` column defaulting to `"member"`, which is NOT a valid
+   membership role enum value and would throw if ever passed through
+   unvalidated (today's real invite-creation path always writes an explicit
+   valid role, so this is a latent risk, not an active failure). No existing
+   test coverage for invite-accept at all (`grep -ri invit` across
+   `*.test.ts` → zero matches) — add one, modeled on
+   `pilot.integration.test.ts`.
+2. `src/server/middleware/auth.ts:29` — JWT `iat` (second precision) vs
+   `users.passwordChangedAt` (millisecond precision) comparison can produce a
+   false "Session expired" 401 when login happens in the same wall-clock
+   second as a password change. Sidestepped in the seed script with a 1200ms
+   delay; underlying bug not fixed.
+3. `CertificatesViewer` — "reduce of undefined" crash, not yet root-caused in
+   this session; needs investigation before fixing.
+4. CRM `deals` table has list (`GET /api/crm/pipeline`) and update-stage
+   routes but **no creation endpoint anywhere** (`grep -r "insert(deals)"` →
+   zero matches). This is a real product gap requiring a new endpoint (and
+   possibly UI), larger scope than the other items.
+5. `@types/react` is not installed anywhere in the project — no `.d.ts` for
+   React/JSX, so JSX/React types are effectively `any` throughout. Flagged as
+   highest-risk item (fixing could surface a large number of previously-
+   hidden `tsc` errors) — deliberately last, needs careful scoping/its own
+   session possibly.
+
+Next action when resuming: implement fix #1 (invite-accept), verify against
+real Postgres (integration test + browser), commit, then proceed down the
+list in order, one commit per verified fix.
+
+#### Local environment notes (this session, reusable)
+
+- Docker Postgres: container `teklifpro-postgres`, image `postgres:16`, env
+  `POSTGRES_USER=hazarekiz POSTGRES_DB=teklifpro_local
+  POSTGRES_HOST_AUTH_METHOD=trust`, port 5432 — matches `.env.local`'s
+  `DATABASE_URL=postgres://hazarekiz@localhost:5432/teklifpro_local`.
+- **Critical**: the 36 tracked Drizzle migrations are deltas against a
+  baseline that was never itself captured as a migration. Fresh-DB bootstrap
+  order: restore
+  `backups/teklifpro_local_pre_smartcheck_schema_20260719_114911.sql` first
+  (schema-only `pg_dump`), THEN run `drizzle-kit migrate`. Migrating from
+  empty fails with `relation "memberships" does not exist`.
+- `tsx server.ts` (dev command, no `--watch`) does not hot-reload backend
+  Express route changes — Vite HMR only covers the frontend. After editing
+  anything under `src/server/`, do a `preview_stop`/`preview_start` cycle (or
+  restart the process) before testing new/changed routes in the browser.
+- `.claude/launch.json` has the `teklifpro-dev` preview config (port 3000,
+  `autoPort: true`).
+
+#### Untracked files present in git status — not part of this session's work, do not commit blindly
+
+`E-Proje-Teslim/`, `e-proje_4x3.ifc` (39MB sample IFC, user-provided),
+`graphify-out/2026-08-02/`, `ifc-document-sample/`. These predate/are
+separate from the fixes above — stage explicit file lists for the invite-
+accept fix and later work, never `git add -A`.
+
 ## Do Not Touch
 
 Do not stop, migrate, seed, truncate, or otherwise modify unrelated services or
