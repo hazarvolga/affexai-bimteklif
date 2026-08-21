@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Zap, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { Currency } from '@/types';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -26,6 +27,8 @@ export function Login() {
     const demoCompany = {
       id: 'demo-company-id',
       name: 'BIMPlan & TeklifPro Demo Şirketi',
+      defaultCurrency: Currency.TRY,
+      defaultVatRate: 20,
     };
     login('demo-token', demoUser, demoCompany, 'owner', 'workspace');
     toast.success("Misafir / Demo Modunda Giriş Yapıldı!");
@@ -46,11 +49,11 @@ export function Login() {
         login(data.token, data.user, data.company, data.role, data.accountType);
         navigate(data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
       } else {
-        // Fallback to instant guest login in dev / demo mode
-        handleGuestLogin();
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error ?? 'E-posta veya şifre hatalı.');
       }
     } catch (e) {
-      handleGuestLogin();
+      toast.error('Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.');
     } finally {
       setLoading(false);
     }
@@ -97,7 +100,7 @@ export function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="admin@teklifpro.ai (İsteğe bağlı)"
+                    placeholder="admin@teklifpro.ai"
                    />
                 </div>
               </div>
@@ -111,7 +114,7 @@ export function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="•••••••• (İsteğe bağlı)"
+                    placeholder="••••••••"
                    />
                 </div>
               </div>

@@ -10,6 +10,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Shell } from '@/components/layout/Shell';
 import { Toaster } from '@/components/ui/sonner';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(async () => ({ default: (await loader())[name] as ComponentType<any> }));
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
@@ -125,11 +126,13 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster />
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <AppRoutes />
+          <Toaster />
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }

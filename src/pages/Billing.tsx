@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { 
-  CreditCard, 
+import {
+  CreditCard,
   AlertCircle,
-  Lock
+  Lock,
+  RefreshCw
 } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,7 +24,6 @@ import {
   PieChart,
   Pie
 } from "recharts";
-import { toast } from "sonner";
 
 interface UsageStat {
   feature: string;
@@ -44,31 +45,51 @@ interface BillingData {
 export function Billing() {
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchData = () => {
+    setLoading(true);
+    setError(false);
+    fetchWithAuth("/api/billing/usage-stats")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch billing data");
+        return res.json();
+      })
+      .then((json) => setData(json))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/billing/usage-stats", {
-          headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed to fetch billing data");
-        const json = await res.json();
-        setData(json);
-      } catch (error) {
-        toast.error("Billing bilgileri yüklenemedi");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <PageContainer>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
         </div>
+      </PageContainer>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <PageContainer>
+        <PageHeader title="Faturalandırma & Kullanım" description="Sistem kaynak kullanımınızı takip edin." icon={CreditCard} />
+        <Card className="bg-[#0c0c0e] border-zinc-800">
+          <CardContent className="py-16 flex flex-col items-center gap-4 text-center">
+            <AlertCircle className="text-red-500" size={32} />
+            <div>
+              <p className="text-sm font-black text-white uppercase tracking-widest">Faturalandırma verileri yüklenemedi</p>
+              <p className="text-xs text-zinc-500 mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
+            </div>
+            <Button onClick={fetchData} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
+              <RefreshCw size={14} /> Tekrar Dene
+            </Button>
+          </CardContent>
+        </Card>
       </PageContainer>
     );
   }

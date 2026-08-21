@@ -1,3 +1,17 @@
+import { toast } from 'sonner';
+
+let sessionExpiredHandled = false;
+
+function handleSessionExpired() {
+  if (sessionExpiredHandled) return;
+  if (window.location.pathname.startsWith('/login')) return;
+  sessionExpiredHandled = true;
+  localStorage.removeItem('token');
+  toast.error('Oturumunuz sona erdi. Devam etmek için tekrar giriş yapın.');
+  const next = encodeURIComponent(window.location.pathname + window.location.search);
+  window.location.assign(`/login?next=${next}`);
+}
+
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token');
   const headers = new Headers(options.headers);
@@ -11,9 +25,8 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     headers,
   });
 
-  if (response.status === 401) {
-    // In dev / demo review mode, do not kick user out to login on background API 401s
-    console.warn('API returned 401 Unauthorized for:', url);
+  if (response.status === 401 && token) {
+    handleSessionExpired();
   }
 
   return response;

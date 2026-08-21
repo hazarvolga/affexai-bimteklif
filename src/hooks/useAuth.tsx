@@ -1,16 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Currency, type Company } from '@/types';
 
 interface User {
   id: string;
   email: string;
   fullName: string;
   emailVerified: string | null;
-}
-
-interface Company {
-  id: string;
-  name: string;
 }
 
 interface AuthContextType {
@@ -20,11 +16,26 @@ interface AuthContextType {
   accountType: 'workspace' | 'academy_learner' | null;
   learnerProfile: { onboardingCompletedAt: string | null; selectedLessonSlug: string | null } | null;
   loading: boolean;
+  isDemoMode: boolean;
   login: (token: string, user: User, company: Company, role: string, accountType?: 'workspace' | 'academy_learner') => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const DEFAULT_DEMO_USER: User = {
+  id: 'demo-user-id',
+  email: 'admin@teklifpro.ai',
+  fullName: 'Demo Kullanıcı / Misafir İnceleyen',
+  emailVerified: new Date().toISOString(),
+};
+
+const DEFAULT_DEMO_COMPANY: Company = {
+  id: 'demo-company-id',
+  name: 'BIMPlan & TeklifPro Demo Şirketi',
+  defaultCurrency: Currency.TRY,
+  defaultVatRate: 20,
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -33,31 +44,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accountType, setAccountType] = useState<'workspace' | 'academy_learner' | null>(null);
   const [learnerProfile, setLearnerProfile] = useState<AuthContextType['learnerProfile']>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
-  const DEFAULT_DEMO_USER = {
-    id: 'demo-user-id',
-    email: 'admin@teklifpro.ai',
-    fullName: 'Demo Kullanıcı / Misafir İnceleyen',
-    emailVerified: new Date().toISOString(),
-  };
-
-  const DEFAULT_DEMO_COMPANY = {
-    id: 'demo-company-id',
-    name: 'BIMPlan & TeklifPro Demo Şirketi',
+  const enterDemoMode = () => {
+    setUser(DEFAULT_DEMO_USER);
+    setCompany(DEFAULT_DEMO_COMPANY);
+    setRole('owner');
+    setAccountType('workspace');
+    setIsDemoMode(true);
   };
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      // In development / demo review mode, auto-grant access
-      setUser(DEFAULT_DEMO_USER);
-      setCompany(DEFAULT_DEMO_COMPANY);
-      setRole('owner');
-      setAccountType('workspace');
+      // Yalnızca geliştirme sunucusunda (npm run dev) otomatik demo erişimi sağlanır.
+      // Üretim build'inde (import.meta.env.DEV === false) kullanıcı null kalır ve
+      // ProtectedRoute normal şekilde /login'e yönlendirir.
+      if (import.meta.env.DEV) enterDemoMode();
       setLoading(false);
       return;
     }
@@ -73,30 +80,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRole(data.role);
         setAccountType(data.accountType ?? 'workspace');
         setLearnerProfile(data.learnerProfile ?? null);
-      } else {
-        setUser(DEFAULT_DEMO_USER);
-        setCompany(DEFAULT_DEMO_COMPANY);
-        setRole('owner');
-        setAccountType('workspace');
+      } else if (import.meta.env.DEV) {
+        enterDemoMode();
       }
     } catch (e) {
-      console.error("Auth check fallback to demo mode", e);
-      setUser(DEFAULT_DEMO_USER);
-      setCompany(DEFAULT_DEMO_COMPANY);
-      setRole('owner');
-      setAccountType('workspace');
+      if (import.meta.env.DEV) enterDemoMode();
     } finally {
       setLoading(false);
     }
   };
 
-  const login = (token: string, user: User, company: Company, role: string, nextAccountType: 'workspace' | 'academy_learner' = 'workspace') => {
+  const login = (token: string, nextUser: User, nextCompany: Company, nextRole: string, nextAccountType: 'workspace' | 'academy_learner' = 'workspace') => {
     localStorage.setItem('token', token);
-    setUser(user);
-    setCompany(company);
-    setRole(role);
+    setUser(nextUser);
+    setCompany(nextCompany);
+    setRole(nextRole);
     setAccountType(nextAccountType);
     setLearnerProfile(null);
+    setIsDemoMode(token === 'demo-token');
     toast.success("Hizmete erişim sağlandı.");
   };
 
@@ -107,17 +108,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(null);
     setAccountType(null);
     setLearnerProfile(null);
+    setIsDemoMode(false);
     toast.info("Oturum kapatıldı.");
   };
 
   return (
-    <AuthContext.Provider value={{ user, company, role, accountType, learnerProfile, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, company, role, accountType, learnerProfile, loading, isDemoMode, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
