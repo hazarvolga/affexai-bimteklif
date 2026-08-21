@@ -8,9 +8,9 @@ import { authenticate } from "../middleware/auth";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
 
-const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
+export const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
 
-async function deliverAuthLink(template: 'verify_email' | 'reset_password', email: string, url: string) {
+export async function deliverAuthLink(template: 'verify_email' | 'reset_password', email: string, url: string) {
   if (!process.env.AUTH_EMAIL_WEBHOOK_URL) return process.env.NODE_ENV === 'production' ? null : url;
   const response = await fetch(process.env.AUTH_EMAIL_WEBHOOK_URL, {
     method: 'POST', headers: { 'Content-Type': 'application/json', ...(process.env.AUTH_EMAIL_WEBHOOK_SECRET ? { Authorization: `Bearer ${process.env.AUTH_EMAIL_WEBHOOK_SECRET}` } : {}) },
@@ -21,7 +21,7 @@ async function deliverAuthLink(template: 'verify_email' | 'reset_password', emai
   return null;
 }
 
-async function issueAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
+export async function issueAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
   const created = createActionToken();
   await db.delete(authActionTokens).where(and(eq(authActionTokens.userId, userId), eq(authActionTokens.type, type), isNull(authActionTokens.consumedAt)));
   await db.insert(authActionTokens).values({ userId, type, tokenHash: created.tokenHash, expiresAt: new Date(Date.now() + lifetimeMs) });

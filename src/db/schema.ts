@@ -273,6 +273,8 @@ export const pilotApplications = pgTable("pilot_applications", {
   qualifiedAt: timestamp("qualified_at"),
   convertedAt: timestamp("converted_at"),
   consentAt: timestamp("consent_at").notNull(),
+  provisionedCompanyId: uuid("provisioned_company_id").references(() => companies.id),
+  provisionedUserId: uuid("provisioned_user_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

@@ -1,0 +1,4 @@
+ALTER TABLE "pilot_applications" ADD COLUMN "provisioned_company_id" uuid;--> statement-breakpoint
+ALTER TABLE "pilot_applications" ADD COLUMN "provisioned_user_id" uuid;--> statement-breakpoint
+ALTER TABLE "pilot_applications" ADD CONSTRAINT "pilot_applications_provisioned_company_id_companies_id_fk" FOREIGN KEY ("provisioned_company_id") REFERENCES "public"."companies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "pilot_applications" ADD CONSTRAINT "pilot_applications_provisioned_user_id_users_id_fk" FOREIGN KEY ("provisioned_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;

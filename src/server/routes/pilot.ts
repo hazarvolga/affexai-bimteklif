@@ -1,8 +1,10 @@
 import type { Express } from "express";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { pilotApplications } from "../../db/schema";
+import { companies, memberships, pilotApplications, subscriptions, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
+import { actionUrl, deliverAuthLink, issueAuthAction } from "./auth";
+import { publicRegisteredUser } from "../auth/registration";
 
 function clean(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -71,6 +73,51 @@ export function registerPilotRoutes(app: Express) {
     } catch (error) {
       console.error("Pilot application update error:", error);
       return res.status(500).json({ error: "Pilot başvurusu güncellenemedi." });
+    }
+  });
+
+  app.post("/api/pilot-applications/:id/convert", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+    try {
+      const [application] = await db.select().from(pilotApplications).where(eq(pilotApplications.id, req.params.id));
+      if (!application) return res.status(404).json({ error: "Pilot başvurusu bulunamadı." });
+      if (application.provisionedCompanyId) return res.status(409).json({ error: "Bu başvuru zaten bir hesaba dönüştürülmüş." });
+
+      const [existingUser] = await db.select().from(users).where(eq(users.email, application.email));
+      if (existingUser) return res.status(409).json({ error: "Bu e-postayla zaten bir hesap var. Yeni şirket için mevcut kullanıcıyı elle davet edin." });
+
+      const result = await db.transaction(async (tx) => {
+        const [company] = await tx.insert(companies).values({ name: application.companyName, phone: application.phone ?? undefined }).returning();
+        const [user] = await tx.insert(users).values({ email: application.email, fullName: application.fullName, passwordHash: null, emailVerified: new Date() }).returning();
+        await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
+        await tx.insert(subscriptions).values({ companyId: company.id, plan: "starter" });
+        return { company, user };
+      });
+
+      const resetToken = await issueAuthAction(result.user.id, "reset_password", 7 * 24 * 60 * 60 * 1000);
+      const setPasswordUrl = await deliverAuthLink("reset_password", result.user.email, actionUrl(`/reset-password/${resetToken}`));
+
+      const now = new Date();
+      const [updatedApplication] = await db.update(pilotApplications)
+        .set({
+          status: "converted",
+          convertedAt: application.convertedAt ?? now,
+          provisionedCompanyId: result.company.id,
+          provisionedUserId: result.user.id,
+          updatedAt: now,
+        })
+        .where(eq(pilotApplications.id, req.params.id))
+        .returning();
+
+      return res.status(201).json({
+        application: updatedApplication,
+        company: result.company,
+        user: publicRegisteredUser(result.user),
+        ...(setPasswordUrl ? { setPasswordUrl } : {}),
+      });
+    } catch (error) {
+      console.error("Pilot application conversion error:", error);
+      if ((error as { code?: string })?.code === "23505") return res.status(409).json({ error: "Bu e-postayla zaten bir hesap var." });
+      return res.status(500).json({ error: "Pilot başvurusu hesaba dönüştürülemedi." });
     }
   });
 
