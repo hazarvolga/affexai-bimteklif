@@ -1,168 +1,141 @@
-import React, { useState, useEffect } from "react";
-import { 
-  ChartBarIncreasing, 
-  TrendingUp, 
-  DollarSign, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  PieChart,
-  Target,
-  FileDown,
-  RefreshCw
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { ChartBarIncreasing, DollarSign, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  Cell,
-  LineChart,
-  Line
-} from 'recharts';
+import { Link } from "react-router-dom";
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatCard } from '@/components/data/StatCard';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
-
-const profitData = [
-  { name: 'Ocak', profit: 45000, margin: 22 },
-  { name: 'Şubat', profit: 52000, margin: 24 },
-  { name: 'Mart', profit: 48000, margin: 21 },
-  { name: 'Nisan', profit: 61000, margin: 26 },
-  { name: 'Mayıs', profit: 55000, margin: 23 },
-  { name: 'Haziran', profit: 67000, margin: 28 },
-];
+import { EmptyState } from '@/components/ui/EmptyState';
+import { StatusBadge } from '@/components/business/StatusBadge';
+import { fetchWithAuth } from "@/lib/api";
+import { Quote, QuoteStatus } from "@/types";
 
 export function Profitability() {
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    setError(false);
+    fetchWithAuth('/api/quotations')
+      .then((res) => {
+        if (!res.ok) throw new Error('İstek başarısız');
+        return res.json();
+      })
+      .then((data) => {
+        setQuotes(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const wonQuotes = quotes.filter((q) => q.status === QuoteStatus.WON);
+  const lostQuotes = quotes.filter((q) => q.status === QuoteStatus.LOST);
+  const wonVolumeByCurrency = wonQuotes.reduce<Record<string, number>>((acc, q) => {
+    acc[q.currency] = (acc[q.currency] ?? 0) + Number(q.grandTotal || 0);
+    return acc;
+  }, {});
+  const lostVolumeByCurrency = lostQuotes.reduce<Record<string, number>>((acc, q) => {
+    acc[q.currency] = (acc[q.currency] ?? 0) + Number(q.grandTotal || 0);
+    return acc;
+  }, {});
+  const formatByCurrency = (byCurrency: Record<string, number>) => {
+    const entries = Object.entries(byCurrency);
+    if (entries.length === 0) return '—';
+    return entries.map(([currency, amount]) => `${amount.toLocaleString('tr-TR')} ${currency}`).join(' · ');
+  };
+
+  const decidedQuotes = [...wonQuotes, ...lostQuotes].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+  if (error) {
+    return (
+      <PageContainer>
+        <PageHeader title="Kârlılık Analizi" description="Kazanılan ve kaybedilen tekliflerin hacim özeti." icon={ChartBarIncreasing} />
+        <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+          <CardContent className="py-16 flex flex-col items-center gap-4 text-center">
+            <AlertTriangle className="text-red-500" size={32} />
+            <div>
+              <p className="text-sm font-black text-white uppercase tracking-widest">Veriler yüklenemedi</p>
+              <p className="text-xs text-zinc-500 mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
+            </div>
+            <Button onClick={load} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
+              <RefreshCw size={14} /> Tekrar Dene
+            </Button>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
-      <PageHeader 
-        title="Kârlılık Analizi" 
-        description="Gerçek zamanlı kâr marjı, finansal performans takibi ve sektörel karşılaştırmalar."
+      <PageHeader
+        title="Kârlılık Analizi"
+        description="Kazanılan ve kaybedilen tekliflerin hacim özeti. Marj hesabı, maliyet verisi tam girilen tekliflerde teklif detayında görüntülenir."
         icon={ChartBarIncreasing}
-        actions={
-          <>
-            <Button variant="outline" className="border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-300 font-bold text-xs uppercase tracking-widest px-4 h-10 gap-2">
-              <FileDown size={16} /> Dışa Aktar
-            </Button>
-            <Button className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-widest px-6 h-10 gap-2">
-              <RefreshCw size={16} /> Yeni Analiz
-            </Button>
-          </>
-        }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard 
-          title="Net Kâr (YTD)" 
-          value="₺328.000" 
-          trend="14.2%" 
-          isPositive={true} 
-          icon={DollarSign} 
-          color="emerald"
-        />
-        <StatCard 
-          title="Ort. Kâr Marjı" 
-          value="%24.8" 
-          trend="2.1%" 
-          isPositive={true} 
-          icon={TrendingUp} 
-          color="orange"
-        />
-        <StatCard 
-          title="Kaybedilen Hacim" 
-          value="₺124.500" 
-          trend="5.4%" 
-          isPositive={false} 
-          icon={ArrowDownRight} 
-          color="zinc"
-        />
-      </div>
+      {!loading && quotes.length === 0 ? (
+        <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+          <CardContent className="py-16">
+            <EmptyState
+              icon={ChartBarIncreasing}
+              title="Henüz kârlılık verisi yok"
+              description="Bir teklif kazanıldı veya kaybedildi olarak işaretlendiğinde burada görünecek."
+              actionText="TEKLİFLERİ GÖR"
+              onAction={() => { window.location.href = '/app/quotes'; }}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <StatCard title="Kazanılan Hacim" value={loading ? '—' : formatByCurrency(wonVolumeByCurrency)} icon={DollarSign} color="emerald" description={`${wonQuotes.length} teklif`} />
+            <StatCard title="Kaybedilen Hacim" value={loading ? '—' : formatByCurrency(lostVolumeByCurrency)} icon={TrendingUp} color="zinc" description={`${lostQuotes.length} teklif`} />
+            <StatCard
+              title="Kazanma Oranı"
+              value={loading || wonQuotes.length + lostQuotes.length === 0 ? '—' : `%${Math.round((wonQuotes.length / (wonQuotes.length + lostQuotes.length)) * 100)}`}
+              icon={ChartBarIncreasing}
+              color="orange"
+            />
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <SectionWrapper title="Aylık Kâr Gelişimi" description="Aylık bazda net kâr rakamlarının değişimi.">
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-            <CardContent className="h-[350px] pt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={profitData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fontSize: 10, fill: '#71717a', fontWeight: 900}} 
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fontSize: 10, fill: '#71717a', fontWeight: 900}} 
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#09090b', 
-                      borderRadius: '12px', 
-                      border: '1px solid #27272a',
-                      color: '#f4f4f5',
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-                    }}
-                    cursor={{ fill: '#27272a', opacity: 0.1 }}
-                  />
-                  <Bar dataKey="profit" radius={[6, 6, 0, 0]}>
-                    {profitData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === profitData.length - 1 ? '#ea580c' : '#18181b'} stroke={index === profitData.length - 1 ? '#ea580c' : '#27272a'} />
+          <SectionWrapper title="Kazanılan / Kaybedilen Teklifler" description="Marj görmek için bir teklife girin — maliyet verisi eksikse teklif detayı bunu açıkça belirtir.">
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="p-0">
+                {decidedQuotes.length === 0 ? (
+                  <p className="text-xs text-zinc-600 py-12 text-center">Henüz sonuçlanmış (kazanılan/kaybedilen) teklif yok.</p>
+                ) : (
+                  <div className="divide-y divide-zinc-800">
+                    {decidedQuotes.map((quote) => (
+                      <Link key={quote.id} to={`/app/quotes/${quote.id}`} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-zinc-800/20 transition-all">
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-white uppercase tracking-tight truncate">{quote.projectName}</p>
+                          <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{quote.quoteNumber}</p>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                          <span className="font-mono text-sm text-white font-black">{Number(quote.grandTotal).toLocaleString('tr-TR')} <span className="text-[10px] text-zinc-600">{quote.currency}</span></span>
+                          <StatusBadge status={quote.status} />
+                        </div>
+                      </Link>
                     ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </SectionWrapper>
-
-        <SectionWrapper title="Marj Karşılaştırması (%)" description="Karlılık oranlarının aylık gelişim trendi.">
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-            <CardContent className="h-[350px] pt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={profitData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fontSize: 10, fill: '#71717a', fontWeight: 900}} 
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fontSize: 10, fill: '#71717a', fontWeight: 900}} 
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#09090b', 
-                      borderRadius: '12px', 
-                      border: '1px solid #27272a',
-                      color: '#f4f4f5',
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="margin" 
-                    stroke="#ea580c" 
-                    strokeWidth={4} 
-                    dot={{ r: 6, fill: '#ea580c', strokeWidth: 3, stroke: '#09090b' }}
-                    activeDot={{ r: 8, fill: '#ea580c', strokeWidth: 0 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </SectionWrapper>
-      </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+        </>
+      )}
     </PageContainer>
   );
 }

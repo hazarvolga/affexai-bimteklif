@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Shield, Play, FileText, CheckCircle2, AlertTriangle, Zap } from 'lucide-react';
+import { Shield, Play, FileText, CheckCircle2, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -69,7 +69,7 @@ export function SmartCheck() {
         <div className="col-span-12 lg:col-span-4 space-y-6">
           <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Genel İstatistikler</CardTitle>
+              <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Demo Denetim Durumu</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center border-b border-zinc-800/50 pb-2">
@@ -78,35 +78,11 @@ export function SmartCheck() {
                   {demoState.checkRunStatus === 'completed' ? 'Bugün' : 'Bulunmuyor'}
                 </span>
               </div>
-              <div className="flex justify-between items-center border-b border-zinc-800/50 pb-2">
+              <div className="flex justify-between items-center pb-2">
                 <span className="text-xs text-zinc-500 font-sans">Toplam Bulgular</span>
                 <span className="text-xs text-zinc-300 font-mono">
-                  {demoState.checkRunStatus === 'completed' ? '3 adet' : '0 adet'}
+                  {demoState.checkRunStatus === 'completed' ? `${demoState.findings.length} adet` : '0 adet'}
                 </span>
-              </div>
-              <div className="flex justify-between items-center pb-2">
-                <span className="text-xs text-zinc-500 font-sans">Ortalama Çözüm Hızı</span>
-                <span className="text-xs text-emerald-500 font-mono font-bold">12 Dk</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">En Sık Karşılaşılan Hatalar</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between text-xs font-mono p-2 bg-zinc-950 rounded-lg">
-                <span className="text-zinc-400 flex items-center gap-1.5 uppercase text-[9px] font-bold">
-                  <AlertTriangle size={12} className="text-red-500" /> Poz/Birim
-                </span>
-                <span className="text-zinc-500 text-[10px]">42 Kez</span>
-              </div>
-              <div className="flex items-center justify-between text-xs font-mono p-2 bg-zinc-950 rounded-lg">
-                <span className="text-zinc-400 flex items-center gap-1.5 uppercase text-[9px] font-bold">
-                  <AlertTriangle size={12} className="text-orange-500" /> Paspayı
-                </span>
-                <span className="text-zinc-500 text-[10px]">28 Kez</span>
               </div>
             </CardContent>
           </Card>

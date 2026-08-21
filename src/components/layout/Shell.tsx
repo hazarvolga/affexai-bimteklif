@@ -93,22 +93,6 @@ export function Shell() {
         {isLearner && user && !user.emailVerified && <div className="flex flex-col gap-3 border-b border-amber-500/25 bg-amber-500/[0.07] px-6 py-3 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between"><p>E-posta adresinizi doğrulayın. Dersleri kullanabilirsiniz; sertifika işlemleri doğrulama tamamlanana kadar kilitlidir.</p><Button type="button" variant="outline" disabled={verificationSent} onClick={async () => { const response = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: user.email }) }); if (response.ok) setVerificationSent(true); }} className="border-amber-500/30 bg-transparent text-amber-100 hover:bg-amber-500/10">{verificationSent ? 'Bağlantı gönderildi' : 'Doğrulama bağlantısı gönder'}</Button></div>}
         {/* Header */}
         <header className="h-20 border-b border-zinc-900 bg-[#09090b]/80 backdrop-blur-md px-10 flex items-center justify-between sticky top-0 z-30">
-          {!isLearner && <div className="flex items-center gap-8">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">SİSTEM DURUMU</span>
-              <div className="flex items-center gap-4 text-[11px] font-black text-white mt-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
-                  USD: 32.42 ₺
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
-                  EUR: 35.15 ₺
-                </span>
-              </div>
-            </div>
-          </div>}
-
           <div className="flex items-center gap-6">
             <div className="hidden lg:flex items-center gap-6 pr-6 border-r border-zinc-900">
                <div className="flex flex-col items-end">
@@ -135,17 +119,8 @@ export function Shell() {
         </div>
         
         {/* Footer */}
-        <footer className="px-10 py-5 border-t border-zinc-950 bg-[#0c0c0e] flex justify-between items-center text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">
-          <div className="flex items-center gap-8">
-            <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'TeklifPro AI'}</span>
-            <span className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-orange-600"></span>
-              SaaS Layer v1.0.4
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-             <span className="text-emerald-500/50">GÜVENLİ BAĞLANTI AKTİF</span>
-          </div>
+        <footer className="px-10 py-5 border-t border-zinc-950 bg-[#0c0c0e] flex items-center text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">
+          <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'TeklifPro AI'}</span>
         </footer>
       </main>
     </div>
