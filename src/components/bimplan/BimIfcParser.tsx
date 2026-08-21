@@ -24,6 +24,14 @@ import { describeIfcQuantityEvidence, summarizeIfcEvidencePolicy } from '@/ifc/e
 import { calculateSummary, parseIfcText } from '@/ifc/parser/legacy-parser';
 import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
 
+const IFC_TYPE_LABELS: Record<ParsedIfcElement['type'], string> = {
+  IfcBeam: 'IfcBeam (Kiriş)',
+  IfcColumn: 'IfcColumn (Kolon)',
+  IfcSlab: 'IfcSlab (Döşeme)',
+  IfcWall: 'IfcWall (Perde/Duvar)',
+  IfcReinforcingBar: 'IfcReinforcingBar (Donatı)',
+};
+
 // Sample OpenBIM IFC Demo Datasets
 const DEMO_IFC_DATASETS = [
   {
@@ -170,6 +178,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStorey, setSelectedStorey] = useState<string>('all');
+  const [expandedType, setExpandedType] = useState<ParsedIfcElement['type'] | null>(null);
 
   // Handle Drag & Drop or File Select
   const handleFileUpload = (file: File) => {
@@ -242,6 +251,33 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
     if (!parsedData) return null;
     return summarizeIfcEvidencePolicy(parsedData.elements);
   }, [parsedData]);
+
+  const hasActiveFilter = searchQuery.trim() !== '' || selectedType !== 'all' || selectedStorey !== 'all';
+
+  const groupedByType = useMemo(() => {
+    const groups = new Map<ParsedIfcElement['type'], {
+      type: ParsedIfcElement['type'];
+      count: number;
+      byStatus: Record<ParsedIfcElement['smartCheckStatus'], number>;
+      admittedCount: number;
+      missingPozNoCount: number;
+    }>();
+    for (const el of filteredElements) {
+      const group = groups.get(el.type) ?? {
+        type: el.type,
+        count: 0,
+        byStatus: { pass: 0, warning: 0, review: 0 },
+        admittedCount: 0,
+        missingPozNoCount: 0,
+      };
+      group.count += 1;
+      group.byStatus[el.smartCheckStatus] += 1;
+      if (describeIfcQuantityEvidence(el).admittedToSmartCheck) group.admittedCount += 1;
+      if (!el.pozNo) group.missingPozNoCount += 1;
+      groups.set(el.type, group);
+    }
+    return Array.from(groups.values()).sort((a, b) => b.byStatus.review - a.byStatus.review || b.count - a.count);
+  }, [filteredElements]);
 
   // Export CSV Metraj Raporu
   const handleExportCsv = () => {
@@ -731,7 +767,51 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
               </div>
             </div>
 
-            {/* Table */}
+            {/* Grouped summary — default review surface, replaces scanning 1000+ raw rows */}
+            {!hasActiveFilter && groupedByType.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-zinc-800">
+                <table className="w-full text-left text-xs text-zinc-300">
+                  <thead className="bg-zinc-900 text-[11px] font-bold uppercase text-zinc-400 font-mono">
+                    <tr>
+                      <th className="p-3">Nesne Tipi</th>
+                      <th className="p-3">Toplam</th>
+                      <th className="p-3">Uyumlu</th>
+                      <th className="p-3">Uyarı</th>
+                      <th className="p-3">İncele</th>
+                      <th className="p-3">SmartCheck'e Alınabilir</th>
+                      <th className="p-3">Poz No Eksik</th>
+                      <th className="p-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/60 font-mono">
+                    {groupedByType.map((group) => (
+                      <tr key={group.type} className="hover:bg-zinc-900/40 transition-colors">
+                        <td className="p-3 font-semibold text-white">{IFC_TYPE_LABELS[group.type]}</td>
+                        <td className="p-3">{group.count}</td>
+                        <td className="p-3 text-emerald-400">{group.byStatus.pass}</td>
+                        <td className="p-3 text-amber-400">{group.byStatus.warning}</td>
+                        <td className="p-3 text-rose-400">{group.byStatus.review}</td>
+                        <td className="p-3">{group.admittedCount} / {group.count}</td>
+                        <td className={group.missingPozNoCount > 0 ? 'p-3 text-rose-400 font-bold' : 'p-3 text-zinc-500'}>{group.missingPozNoCount}</td>
+                        <td className="p-3 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setExpandedType(expandedType === group.type ? null : group.type)}
+                            className="h-7 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-300 hover:bg-zinc-800"
+                          >
+                            {expandedType === group.type ? 'Kapat' : 'Detayları Gör'}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Table — shown when a group is expanded, or when search/type/floor filters are active */}
+            {(hasActiveFilter || expandedType) && (
             <div className="overflow-x-auto rounded-xl border border-zinc-800">
               <table className="w-full text-left text-xs text-zinc-300">
                 <thead className="bg-zinc-900 text-[11px] font-bold uppercase text-zinc-400 font-mono">
@@ -751,14 +831,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/60 font-mono">
-                  {filteredElements.length === 0 ? (
+                  {(hasActiveFilter ? filteredElements : filteredElements.filter((el) => el.type === expandedType)).length === 0 ? (
                     <tr>
                       <td colSpan={12} className="p-8 text-center text-zinc-500">
                         Arama kriterlerine uygun IFC nesnesi bulunamadı.
                       </td>
                     </tr>
                   ) : (
-                    filteredElements.map((el) => (
+                    (hasActiveFilter ? filteredElements : filteredElements.filter((el) => el.type === expandedType)).map((el) => (
                       <tr key={el.id} className="hover:bg-zinc-900/40 transition-colors">
                         <td className="p-3 text-zinc-500">#{el.id}</td>
                         <td className="p-3 text-zinc-400 text-[11px]">{el.guid}</td>
@@ -823,6 +903,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </div>
       )}
