@@ -1,6 +1,6 @@
 import type { Finding, ParsedQuantityRow } from "@/smartcheck/import/normalize";
 import { validateRows } from "@/smartcheck/import/normalize";
-import type { IfcParseSummary, ParsedIfcElement } from "./types";
+import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "./types";
 
 export interface IfcEvidenceDocumentContext {
   fileName: string;
@@ -62,18 +62,13 @@ export interface IfcSmartCheckEvidenceArtifact {
     rebarBlockedCount: number;
     formworkEstimateBlockedCount: number;
     spatiallyAssignedEvidenceRowCount: number;
+    elementsWithPozNoCount: number;
+    elementsMissingPozNoCount: number;
+    trPsetCsb: TrPsetCsbProjectCompliance;
   };
   rows: IfcSmartCheckEvidenceRow[];
   blockedElements: IfcBlockedEvidenceElement[];
 }
-
-const POSITION_BY_TYPE: Record<ParsedIfcElement["type"], string> = {
-  IfcBeam: "IFC-BEAM-CONCRETE",
-  IfcColumn: "IFC-COLUMN-CONCRETE",
-  IfcSlab: "IFC-SLAB-CONCRETE",
-  IfcWall: "IFC-WALL-CONCRETE",
-  IfcReinforcingBar: "IFC-REBAR",
-};
 
 function formatQuantity(value: number): string {
   return Number.isFinite(value) ? Number(value.toFixed(12)).toString() : "";
@@ -86,7 +81,10 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
     sourceRowNumber,
     sourceCellRange: `IFC#${element.id}`,
     rawDescription: `${element.type} ${element.name} beton hacmi · ${element.storey} · ${evidencePath}`,
-    rawPositionCode: POSITION_BY_TYPE[element.type],
+    // Tr_Pset_CSB.PozNo IFC dosyasından okunur; bulunamazsa boş bırakılır ve
+    // validateRows() bunu MISSING_POSITION_CODE bulgusu olarak işaretler —
+    // tip-bazlı bir yer tutucu (örn. "IFC-BEAM-CONCRETE") kullanılmaz.
+    rawPositionCode: element.pozNo ?? "",
     rawUnit: "m3",
     rawQuantity: formatQuantity(element.volumeM3),
     rawPrice: "",
@@ -96,6 +94,7 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
       globalId: element.guid,
       quantitySourcePath: element.quantitySourcePath ?? "",
       storeySourcePath: element.storeySourcePath ?? "",
+      pozNoSourcePath: element.pozNoSourcePath ?? "",
     },
   };
 }
@@ -176,6 +175,9 @@ export function buildIfcSmartCheckEvidenceArtifact(
         rebarBlockedCount: 0,
         formworkEstimateBlockedCount: 0,
         spatiallyAssignedEvidenceRowCount: 0,
+        elementsWithPozNoCount: summary.elementsWithPozNoCount,
+        elementsMissingPozNoCount: summary.elementsMissingPozNoCount,
+        trPsetCsb: summary.trPsetCsb,
       },
       rows: [],
       blockedElements: elements.map((element) => ({
@@ -228,6 +230,9 @@ export function buildIfcSmartCheckEvidenceArtifact(
       rebarBlockedCount: blockedElements.filter((element) => element.code === "IFC_REBAR_EVIDENCE_POLICY_PENDING").length,
       formworkEstimateBlockedCount: elements.filter((element) => element.formworkM2 > 0).length,
       spatiallyAssignedEvidenceRowCount: evidenceElements.filter((element) => element.storeySource === "ifc_spatial").length,
+      elementsWithPozNoCount: summary.elementsWithPozNoCount,
+      elementsMissingPozNoCount: summary.elementsMissingPozNoCount,
+      trPsetCsb: summary.trPsetCsb,
     },
     rows,
     blockedElements,

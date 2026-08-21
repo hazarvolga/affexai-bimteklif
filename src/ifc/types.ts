@@ -15,6 +15,17 @@ export interface ParsedIfcElement {
   quantityConfidence?: number;
   smartCheckStatus: "pass" | "warning" | "review";
   smartCheckNote?: string;
+  pozNo?: string;
+  pozNoSourcePath?: string;
+}
+
+export interface TrPsetCsbProjectCompliance {
+  taks?: number;
+  kaks?: number;
+  cekmeOn?: number;
+  cekmeYan?: number;
+  source: "ifc_site" | "ifc_building" | null;
+  sourcePath?: string;
 }
 
 export interface IfcParseSummary {
@@ -39,4 +50,7 @@ export interface IfcParseSummary {
   wallVolumeM3: number;
   rebarCount: number;
   rebarByDiameter: Record<number, { lengthM: number; weightKg: number }>;
+  trPsetCsb: TrPsetCsbProjectCompliance;
+  elementsWithPozNoCount: number;
+  elementsMissingPozNoCount: number;
 }

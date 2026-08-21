@@ -44,6 +44,9 @@ const succeededSummary: IfcParseSummary = {
   wallVolumeM3: 0,
   rebarCount: 0,
   rebarByDiameter: {},
+  trPsetCsb: { source: null },
+  elementsWithPozNoCount: 0,
+  elementsMissingPozNoCount: 0,
 };
 
 describe("IFC SmartCheck evidence adapter", () => {

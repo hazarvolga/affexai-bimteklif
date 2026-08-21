@@ -13,7 +13,9 @@ import {
   Building,
   Sparkles,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck,
+  MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -467,6 +469,42 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </div>
           </div>
 
+          {/* e-PYS / Tr_Pset_CSB COMPLIANCE SUMMARY */}
+          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
+            <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <ShieldCheck className="h-4 w-4 text-sky-400" />
+              e-PYS Uyum Özeti (Tr_Pset_CSB)
+              <span className="ml-auto text-[10px] font-normal normal-case text-zinc-600">01 Ekim 2026 ruhsat yönetmeliği taslağına göre</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {([
+                ['TAKS', parsedData.summary.trPsetCsb.taks],
+                ['KAKS', parsedData.summary.trPsetCsb.kaks],
+                ['Ön Çekme (m)', parsedData.summary.trPsetCsb.cekmeOn],
+                ['Yan Çekme (m)', parsedData.summary.trPsetCsb.cekmeYan],
+              ] as const).map(([label, value]) => (
+                <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{label}</div>
+                  <div className={value !== undefined ? 'mt-1 text-lg font-black text-white' : 'mt-1 text-xs font-bold text-red-400'}>
+                    {value !== undefined ? value.toLocaleString('tr-TR') : 'IFC dosyasında bulunamadı'}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {parsedData.summary.trPsetCsb.source && (
+              <div className="mt-3 flex items-center gap-1.5 text-[10px] text-zinc-500">
+                <MapPin className="h-3 w-3" />
+                Kaynak: {parsedData.summary.trPsetCsb.source === 'ifc_site' ? 'IfcSite' : 'IfcBuilding'} · {parsedData.summary.trPsetCsb.sourcePath}
+              </div>
+            )}
+            <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-3 text-xs">
+              <span className="text-zinc-400">Poz No (Tr_Pset_CSB.PozNo) atanmış eleman</span>
+              <span className={parsedData.summary.elementsMissingPozNoCount > 0 ? 'font-bold text-amber-400' : 'font-bold text-emerald-400'}>
+                {parsedData.summary.elementsWithPozNoCount} / {parsedData.summary.elementsWithPozNoCount + parsedData.summary.elementsMissingPozNoCount}
+              </span>
+            </div>
+          </div>
+
           {/* OBJECT BREAKDOWN CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Beams */}
@@ -708,13 +746,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     <th className="p-3">Kalıp ($m^2$)</th>
                     <th className="p-3">Donatı (kg)</th>
                     <th className="p-3">Kaynak</th>
+                    <th className="p-3">Poz No</th>
                     <th className="p-3">SmartCheck Durumu</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/60 font-mono">
                   {filteredElements.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="p-8 text-center text-zinc-500">
+                      <td colSpan={12} className="p-8 text-center text-zinc-500">
                         Arama kriterlerine uygun IFC nesnesi bulunamadı.
                       </td>
                     </tr>
@@ -755,6 +794,17 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                             );
                           })()}
                           {el.quantitySourcePath && <div className="mt-1 max-w-44 truncate text-[10px] text-zinc-600" title={el.quantitySourcePath}>{el.quantitySourcePath.split(':')[1] ?? el.quantitySourcePath}</div>}
+                        </td>
+                        <td className="p-3">
+                          {el.pozNo ? (
+                            <span className="inline-flex rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-bold text-sky-300" title={el.pozNoSourcePath}>
+                              {el.pozNo}
+                            </span>
+                          ) : (
+                            <span className="inline-flex rounded border border-red-800 bg-red-950 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                              Eksik
+                            </span>
+                          )}
                         </td>
                         <td className="p-3">
                           <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${

@@ -1,7 +1,8 @@
 import { extractAllplanVolumeQuantities } from "./quantity-extractor";
 import { extractIfcQtoVolumeQuantities } from "./qto-extractor";
 import { extractIfcStoreyContainment } from "./spatial-extractor";
-import type { IfcParseSummary, ParsedIfcElement } from "../types";
+import { extractElementPozNo, extractProjectComplianceData } from "./tr-pset-csb-extractor";
+import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "../types";
 
 export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   const lines = ifcText.split("\n");
@@ -15,6 +16,8 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
   const storeyByStepId = new Map(
     extractIfcStoreyContainment(ifcText).elementStoreys.map((assignment) => [assignment.elementStepId, assignment]),
   );
+  const pozNoByStepId = extractElementPozNo(ifcText).pozNoByStepId;
+  const trPsetCsb = extractProjectComplianceData(ifcText);
 
   const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
 
@@ -117,6 +120,8 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       storeySourcePath = storeyAssignment.sourcePath;
     }
 
+    const pozNoEntry = pozNoByStepId.get(stepId);
+
     elements.push({
       id: stepId,
       guid,
@@ -134,6 +139,8 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       quantityConfidence: explicitQuantity?.confidence,
       smartCheckStatus,
       smartCheckNote,
+      pozNo: pozNoEntry?.value,
+      pozNoSourcePath: pozNoEntry?.sourcePath,
     });
   }
 
@@ -144,10 +151,13 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     ]);
   }
 
-  return calculateSummary(elements);
+  return calculateSummary(elements, trPsetCsb);
 }
 
-export function calculateSummary(elements: ParsedIfcElement[]): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
+export function calculateSummary(
+  elements: ParsedIfcElement[],
+  trPsetCsb: TrPsetCsbProjectCompliance = { source: null },
+): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   let totalVolumeM3 = 0;
   let totalFormworkM2 = 0;
   let totalRebarKg = 0;
@@ -216,6 +226,9 @@ export function calculateSummary(elements: ParsedIfcElement[]): { elements: Pars
       wallVolumeM3: parseFloat(wallVolumeM3.toFixed(2)),
       rebarCount,
       rebarByDiameter,
+      trPsetCsb,
+      elementsWithPozNoCount: elements.filter((el) => Boolean(el.pozNo)).length,
+      elementsMissingPozNoCount: elements.filter((el) => !el.pozNo).length,
     },
   };
 }
@@ -245,6 +258,9 @@ function createFailedIfcParseResult(unsupportedReasons: string[]): { elements: P
       wallVolumeM3: 0,
       rebarCount: 0,
       rebarByDiameter: {},
+      trPsetCsb: { source: null },
+      elementsWithPozNoCount: 0,
+      elementsMissingPozNoCount: 0,
     },
   };
 }
