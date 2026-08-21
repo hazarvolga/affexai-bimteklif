@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
-import { navigationConfig, type NavItem } from '@/constants/navigation';
+import { navigationConfig, navGroupOrder, type NavItem } from '@/constants/navigation';
 
 function isNavItemActive(pathname: string, itemPath: string): boolean {
   if (pathname === itemPath) return true;
@@ -19,31 +19,42 @@ function isNavItemActive(pathname: string, itemPath: string): boolean {
 }
 
 function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate?: () => void }) {
+  const groups = navGroupOrder
+    .map((group) => ({ group, items: items.filter((item) => item.group === group) }))
+    .filter((g) => g.items.length > 0);
+
   return (
-    <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-      {items.map((item) => {
-        const isActive = isNavItemActive(pathname, item.path);
-        return (
-          <Link
-            key={item.path}
-            to={item.path}
-            onClick={onNavigate}
-            aria-current={isActive ? 'page' : undefined}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 group",
-              isActive
-                ? "bg-primary text-primary-foreground shadow-xl shadow-orange-900/20"
-                : "text-zinc-500 hover:text-white hover:bg-zinc-900/50"
-            )}
-          >
-            <item.icon size={18} className={cn(
-              "transition-transform duration-300 group-hover:scale-110",
-              isActive ? "text-white" : "text-zinc-600 group-hover:text-orange-500"
-            )} />
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav className="flex-1 px-4 space-y-5 overflow-y-auto custom-scrollbar">
+      {groups.map(({ group, items: groupItems }) => (
+        <div key={group} className="space-y-1.5">
+          {groups.length > 1 && (
+            <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-700">{group}</p>
+          )}
+          {groupItems.map((item) => {
+            const isActive = isNavItemActive(pathname, item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={onNavigate}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 group",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-xl shadow-orange-900/20"
+                    : "text-zinc-500 hover:text-white hover:bg-zinc-900/50"
+                )}
+              >
+                <item.icon size={18} className={cn(
+                  "transition-transform duration-300 group-hover:scale-110",
+                  isActive ? "text-white" : "text-zinc-600 group-hover:text-orange-500"
+                )} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }

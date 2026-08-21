@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, GraduationCap, Award, ChevronRight, Layers, FileText } from 'lucide-react';
+import { BookOpen, GraduationCap, Award, ChevronRight, Layers, FileText, ClipboardCheck, Users as UsersIcon, PenSquare, ClipboardList } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -42,6 +42,27 @@ export function Academy() {
             SmartCheck denetimleri sırasında tespit edilen modelleme ve metraj uyumsuzluklarını, interaktif simülatörler ve eğitim içerikleri ile bu alanda çözebilirsiniz.
           </p>
         </div>
+      </div>
+
+      {/* Quick Access */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+        {[
+          { label: 'Sertifikalarım', path: '/app/academy/certificates', icon: Award },
+          { label: 'Sertifika Sınavı', path: '/app/academy/exam', icon: ClipboardCheck },
+          { label: 'Akademi Profili', path: '/app/academy/profile', icon: UsersIcon },
+          { label: 'CAD Detay Viewer', path: '/app/academy/cad-viewer', icon: PenSquare },
+          { label: 'BIM Standartları', path: '/app/bim-standards', icon: ClipboardList },
+          { label: 'BIM Sözlüğü', path: '/app/bim-glossary', icon: BookOpen },
+        ].map((link) => (
+          <Link
+            key={link.path}
+            to={link.path}
+            className="flex flex-col items-center gap-2 p-4 bg-zinc-900/30 border border-zinc-800 rounded-2xl hover:border-orange-500/30 hover:bg-zinc-900/50 transition-all text-center"
+          >
+            <link.icon size={18} className="text-orange-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-300 leading-tight">{link.label}</span>
+          </Link>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
