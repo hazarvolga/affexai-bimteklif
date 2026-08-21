@@ -28,7 +28,8 @@ import {
   DollarSign,
   RefreshCw,
   FileSearch,
-  BookOpen
+  BookOpen,
+  Archive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +41,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +77,7 @@ export function QuoteDetail() {
   const [pricingLoading, setPricingLoading] = useState(false);
   const [calibrationForm, setCalibrationForm] = useState({ actualCost: '', actualDurationMonths: '', note: '' });
   const [calibrationSaving, setCalibrationSaving] = useState(false);
+  const [revisionDialogOpen, setRevisionDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -199,8 +209,7 @@ export function QuoteDetail() {
   };
 
   const handleCreateRevision = async () => {
-    if (!window.confirm("Bu tekliften yeni bir versiyon (V" + (data.revisionVersion + 1) + ") oluşturmak istediğinize emin misiniz?")) return;
-    
+    setRevisionDialogOpen(false);
     setActionLoading(true);
     try {
       const res = await fetchWithAuth(`/api/quotations/${id}/revision`, { 
@@ -243,6 +252,14 @@ export function QuoteDetail() {
       </div>
     );
   }
+
+  const quoteExpiryFlag = (() => {
+    if (!['sent', 'negotiation'].includes(data?.status)) return null;
+    const diff = new Date(data.expiryDate).getTime() - Date.now();
+    if (diff < 0) return 'expired' as const;
+    if (diff <= 7 * 24 * 60 * 60 * 1000) return 'soon' as const;
+    return null;
+  })();
 
   return (
     <PageContainer>
@@ -296,13 +313,34 @@ export function QuoteDetail() {
                 </Button>
               </>
             )}
-            <Button onClick={handleCreateRevision} disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
+            {['won', 'lost'].includes(data.status) && (
+              <Button onClick={() => handleStatusChange('archived')} disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
+                <Archive size={18} />
+                Arşivle
+              </Button>
+            )}
+            <Button onClick={() => setRevisionDialogOpen(true)} disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
               <History size={18} />
               Yeni Revizyon Oluştur
             </Button>
           </div>
         }
       />
+
+      <Dialog open={revisionDialogOpen} onOpenChange={setRevisionDialogOpen}>
+        <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-black uppercase tracking-widest">Yeni versiyon oluşturulsun mu?</DialogTitle>
+            <DialogDescription className="text-zinc-500">
+              Bu tekliften V{data.revisionVersion + 1} oluşturulacak. Mevcut versiyon değişmeden kalır.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" className="border-zinc-800 hover:bg-zinc-800 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={() => setRevisionDialogOpen(false)}>İptal</Button>
+            <Button disabled={actionLoading} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={handleCreateRevision}>Versiyon Oluştur</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Content */}
@@ -320,14 +358,19 @@ export function QuoteDetail() {
                  </div>
                </CardContent>
              </Card>
-             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+             <Card className={cn("bg-zinc-900/30 border-zinc-800 shadow-none", quoteExpiryFlag && (quoteExpiryFlag === 'expired' ? "border-red-500/30" : "border-amber-500/30"))}>
                <CardContent className="p-4 flex items-center gap-4">
-                 <div className="p-2 rounded-lg bg-zinc-800 text-blue-500">
+                 <div className={cn("p-2 rounded-lg bg-zinc-800", quoteExpiryFlag === 'expired' ? "text-red-500" : quoteExpiryFlag === 'soon' ? "text-amber-500" : "text-blue-500")}>
                     <Clock size={20} />
                  </div>
                  <div>
                     <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Geçerlilik Tarihi</p>
                     <p className="text-sm font-medium text-zinc-200 mt-0.5">{new Date(data.expiryDate).toLocaleDateString('tr-TR')}</p>
+                    {quoteExpiryFlag && (
+                      <p className={cn("text-[9px] font-black uppercase tracking-widest mt-0.5", quoteExpiryFlag === 'expired' ? "text-red-400" : "text-amber-400")}>
+                        {quoteExpiryFlag === 'expired' ? 'Süresi doldu' : 'Süresi yakında doluyor'}
+                      </p>
+                    )}
                  </div>
                </CardContent>
              </Card>
@@ -341,6 +384,7 @@ export function QuoteDetail() {
                     <div className="mt-1">
                       <span className="text-xs font-mono text-zinc-300">{data.projectDurationMonths || 1} ay · %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} eskalasyon · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} karbon · {data.informationDeliveryLevel || 'none'} teslim</span>
                       <div className="mt-1"><StatusBadge status={data.status} /></div>
+                      {data.updatedAt && <p className="text-[9px] text-zinc-600 mt-1.5">Son güncelleme: {new Date(data.updatedAt).toLocaleString('tr-TR')}</p>}
                     </div>
                  </div>
                </CardContent>

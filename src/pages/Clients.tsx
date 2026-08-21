@@ -5,24 +5,23 @@
 
 import { useState, useEffect } from 'react';
 import { fetchWithAuth } from '@/lib/api';
-import { 
+import {
   Users,
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Mail, 
-  Phone, 
-  MapPin,
+  Plus,
+  Search,
+  Mail,
+  Phone,
   Building2,
   User,
-  Filter,
   TrendingUp,
   MessageSquare,
   FileText,
   Handshake,
   CheckCircle,
   XCircle,
-  Briefcase
+  Briefcase,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -64,6 +63,8 @@ import { StatCard } from '@/components/data/StatCard';
 export function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
   const [newClient, setNewClient] = useState<Partial<Client>>({
     name: '',
@@ -76,16 +77,24 @@ export function Clients() {
 
   const fetchClients = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await fetchWithAuth('/api/clients');
+      if (!res.ok) throw new Error('İstek başarısız');
       const data = await res.json();
       setClients(Array.isArray(data) ? data : []);
     } catch (err) {
-      toast.error('Müşteriler yüklenemedi.');
+      setError(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const filteredClients = clients.filter((client) => {
+    const term = searchTerm.trim().toLocaleLowerCase('tr-TR');
+    if (!term) return true;
+    return client.name.toLocaleLowerCase('tr-TR').includes(term) || (client.email ?? '').toLocaleLowerCase('tr-TR').includes(term);
+  });
 
   useEffect(() => {
     fetchClients();
@@ -239,14 +248,13 @@ export function Clients() {
           <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-4 bg-zinc-900/50">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
-              <Input 
-                placeholder="Müşteri listesinde ara..." 
-                className="pl-10 h-10 bg-zinc-950/50 border-zinc-800 focus:border-orange-500/50 transition-all text-sm font-medium" 
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Müşteri adı veya e-postaya göre ara..."
+                className="pl-10 h-10 bg-zinc-950/50 border-zinc-800 focus:border-orange-500/50 transition-all text-sm font-medium"
               />
             </div>
-            <Button variant="outline" size="sm" className="border-zinc-800 bg-zinc-900 text-zinc-400 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-4">
-              <Filter size={16} /> Filtrele
-            </Button>
           </div>
 
           <div className="overflow-x-auto">
@@ -257,23 +265,37 @@ export function Clients() {
                   <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">İLETİŞİM KANALLARI</TableHead>
                   <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">PIPELINE ADIMI</TableHead>
                   <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">KAYIT TARİHİ</TableHead>
-                  <TableHead className="py-4 text-right text-zinc-500 font-black text-[10px] uppercase tracking-widest pr-6">İŞLEM</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow className="border-zinc-800 bg-zinc-900/10">
-                    <TableCell colSpan={5} className="text-center py-24">
+                    <TableCell colSpan={4} className="text-center py-24">
                        <div className="flex flex-col items-center gap-4">
                         <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                         <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Müşteri Verileri Çekiliyor...</span>
                       </div>
                     </TableCell>
                   </TableRow>
+                ) : error ? (
+                  <TableRow className="border-zinc-800 hover:bg-transparent">
+                    <TableCell colSpan={4} className="text-center py-24">
+                      <div className="flex flex-col items-center gap-4">
+                        <AlertTriangle className="text-red-500" size={28} />
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-widest">Müşteriler yüklenemedi</p>
+                          <p className="text-[10px] text-zinc-500 mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
+                        </div>
+                        <Button onClick={fetchClients} variant="outline" size="sm" className="border-zinc-800 bg-zinc-900 text-zinc-300 gap-2 font-black text-[10px] uppercase tracking-widest h-9 px-4">
+                          <RefreshCw size={14} /> Tekrar Dene
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ) : clients.length === 0 ? (
                   <TableRow className="border-zinc-800 hover:bg-transparent">
-                    <TableCell colSpan={5} className="text-center py-24 px-8">
-                      <EmptyState 
+                    <TableCell colSpan={4} className="text-center py-24 px-8">
+                      <EmptyState
                         icon={Users}
                         title="Müşteri Kaydı Bulunmuyor"
                         description="Satış sürecini başlatmak için ilk müşterinizi veya potansiyel fırsatınızı ekleyin."
@@ -282,8 +304,14 @@ export function Clients() {
                       />
                     </TableCell>
                   </TableRow>
+                ) : filteredClients.length === 0 ? (
+                  <TableRow className="border-zinc-800 hover:bg-transparent">
+                    <TableCell colSpan={4} className="text-center py-16 text-xs text-zinc-600">
+                      "{searchTerm}" için sonuç bulunamadı.
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  clients.map((client, idx) => (
+                  filteredClients.map((client, idx) => (
                     <TableRow 
                       key={client.id} 
                       className={cn(
@@ -324,11 +352,6 @@ export function Clients() {
                       </TableCell>
                       <TableCell className="py-4 text-zinc-500 text-[10px] text-center font-black uppercase tracking-widest font-mono">
                         {new Date(client.createdAt).toLocaleDateString('tr-TR')}
-                      </TableCell>
-                      <TableCell className="py-4 text-right pr-6">
-                        <Button variant="ghost" size="icon" className="hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors">
-                          <MoreHorizontal size={18} />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
