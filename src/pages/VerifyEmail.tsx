@@ -65,7 +65,7 @@ export function VerifyEmail() {
               <p className="text-sm text-zinc-400">
                 Hesabınız doğrulandı. Academy derslerinize güvenle devam edebilirsiniz.
               </p>
-              <Button render={<Link to="/login" />} className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg shadow-orange-900/30">Giriş Yap ve Başla</Button>
+              <Button render={<Link to="/login" />} className="w-full h-12 bg-orange-700 hover:bg-orange-800 text-white font-bold shadow-lg shadow-orange-900/30">Giriş Yap ve Başla</Button>
             </div>
           )}
           

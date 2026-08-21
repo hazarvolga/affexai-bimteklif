@@ -100,7 +100,7 @@ export function QuoteEditor({ onClose }: { onClose: () => void }) {
         <h1 className="text-2xl font-bold text-white font-heading tracking-tight">Teklif Düzenleyici</h1>
         <div className="flex gap-3">
           <Button variant="ghost" className="text-zinc-400 hover:text-white" onClick={onClose}>İptal</Button>
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white gap-2 shadow-lg shadow-orange-900/20">
+          <Button className="bg-orange-700 hover:bg-orange-800 text-white gap-2 shadow-lg shadow-orange-900/20">
             <Save size={18} />
             Teklifi Kaydet
           </Button>

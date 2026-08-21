@@ -107,7 +107,7 @@ export function SmartCheckDemo() {
         <Button
           onClick={handleRecheck}
           disabled={isRechecking}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl gap-2 shadow-lg hover:shadow-orange-600/20 transition-all cursor-pointer"
+          className="bg-orange-700 hover:bg-orange-800 text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl gap-2 shadow-lg hover:shadow-orange-600/20 transition-all cursor-pointer"
         >
           <RefreshCw size={14} className={isRechecking ? 'animate-spin' : ''} /> {isRechecking ? 'Kontrol Ediliyor...' : 'Re-check Çalıştır'}
         </Button>
@@ -331,7 +331,7 @@ export function SmartCheckDemo() {
                       <CardContent className="pt-2">
                         <Link to={matchingLesson.domain === 'proposal_quantity' ? `/app/academy/content/${matchingLesson.slug}` : `/app/academy/allplan/content/${matchingLesson.slug}`}>
                           <Button
-                            className="w-full bg-orange-600 hover:bg-orange-700 text-white text-[9px] font-black uppercase tracking-widest h-9 rounded-xl gap-2 transition-all cursor-pointer"
+                            className="w-full bg-orange-700 hover:bg-orange-800 text-white text-[9px] font-black uppercase tracking-widest h-9 rounded-xl gap-2 transition-all cursor-pointer"
                           >
                             <BookOpen size={12} /> Eğitime Git <ExternalLink size={10} />
                           </Button>

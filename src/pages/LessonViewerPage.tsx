@@ -140,7 +140,7 @@ export function LessonViewerPage() {
                   <Button
                     onClick={handleFixUnit}
                     disabled={demoState.values.quantityUnit === 'm³'}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black uppercase tracking-widest text-[9px] h-8 mt-2 rounded-lg"
+                    className="w-full bg-orange-700 hover:bg-orange-800 text-white font-black uppercase tracking-widest text-[9px] h-8 mt-2 rounded-lg"
                   >
                     {demoState.values.quantityUnit === 'm³' ? 'm³ Olarak Eşitlendi' : 'm³ Olarak Eşitle'}
                   </Button>

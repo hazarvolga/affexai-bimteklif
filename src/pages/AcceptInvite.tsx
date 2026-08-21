@@ -125,7 +125,7 @@ export function AcceptInvite() {
             <Button 
               type="submit" 
               disabled={submitting} 
-              className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg shadow-orange-900/30"
+              className="w-full h-12 bg-orange-700 hover:bg-orange-800 text-white font-bold shadow-lg shadow-orange-900/30"
             >
               {submitting ? "Tamamlanıyor..." : "Daveti Kabul Et ve Başla"}
             </Button>

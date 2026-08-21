@@ -337,7 +337,7 @@ export function QuoteDetail() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" className="border-zinc-800 hover:bg-zinc-800 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={() => setRevisionDialogOpen(false)}>İptal</Button>
-            <Button disabled={actionLoading} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={handleCreateRevision}>Versiyon Oluştur</Button>
+            <Button disabled={actionLoading} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={handleCreateRevision}>Versiyon Oluştur</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -400,7 +400,7 @@ export function QuoteDetail() {
                   <div><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gerçekleşen süre (ay)</label><input type="number" min="1" step="1" value={calibrationForm.actualDurationMonths} onChange={(e) => setCalibrationForm({...calibrationForm, actualDurationMonths: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 font-mono text-sm text-white" placeholder="Örn. 18" /></div>
                 </div>
                 <textarea value={calibrationForm.note} onChange={(e) => setCalibrationForm({...calibrationForm, note: e.target.value})} rows={2} maxLength={2000} className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white" placeholder="Katsayı incelemesine yardımcı olacak kısa not..." />
-                <Button onClick={saveCalibrationObservation} disabled={calibrationSaving} className="bg-orange-600 hover:bg-orange-700 text-white text-[10px] font-black uppercase tracking-widest">{calibrationSaving ? 'Kaydediliyor...' : 'Gözlemi Kaydet'}</Button>
+                <Button onClick={saveCalibrationObservation} disabled={calibrationSaving} className="bg-orange-700 hover:bg-orange-800 text-white text-[10px] font-black uppercase tracking-widest">{calibrationSaving ? 'Kaydediliyor...' : 'Gözlemi Kaydet'}</Button>
               </CardContent>
             </Card>
           </SectionWrapper>

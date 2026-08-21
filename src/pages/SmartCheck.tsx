@@ -51,7 +51,7 @@ export function SmartCheck() {
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button
                 onClick={handleStartDemoCheck}
-                className="bg-orange-600 hover:bg-orange-700 text-white font-black uppercase tracking-widest text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg hover:shadow-orange-600/20 transition-all"
+                className="bg-orange-700 hover:bg-orange-800 text-white font-black uppercase tracking-widest text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg hover:shadow-orange-600/20 transition-all"
               >
                 <Play size={14} fill="currentColor" />
                 {demoState.checkRunStatus === 'completed' ? 'Demo Denetimi Yeniden Başlat' : 'Demo Denetimi Başlat'}

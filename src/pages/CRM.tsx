@@ -251,7 +251,7 @@ export function CRM() {
                 Leads
               </Button>
             </div>
-            <Button className="bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-widest gap-2 h-10 px-6">
+            <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-xs uppercase tracking-widest gap-2 h-10 px-6">
               <Plus size={16} /> Yeni Fırsat
             </Button>
           </>

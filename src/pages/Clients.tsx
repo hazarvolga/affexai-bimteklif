@@ -44,6 +44,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/field';
 import { 
   Select, 
   SelectContent, 
@@ -153,23 +154,22 @@ export function Clients() {
                 </DialogTitle>
               </DialogHeader>
               <div className="p-6 space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Müşteri Adı / Ünvan</Label>
-                  <Input 
-                    placeholder="Örn: Aras Yapı Denetim Ltd." 
+                <Field label="Müşteri Adı / Ünvan" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                  <Input
+                    placeholder="Örn: Aras Yapı Denetim Ltd."
                     value={newClient.name}
                     className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
                     onChange={(e) => setNewClient({...newClient, name: e.target.value})}
                   />
-                </div>
+                </Field>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tip</Label>
-                    <Select 
-                      value={newClient.type} 
+                    <Label htmlFor="client-type" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tip</Label>
+                    <Select
+                      value={newClient.type}
                       onValueChange={(v) => setNewClient({...newClient, type: v as any})}
                     >
-                      <SelectTrigger className="h-12 bg-zinc-900 border-zinc-800">
+                      <SelectTrigger id="client-type" className="h-12 bg-zinc-900 border-zinc-800">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -179,12 +179,12 @@ export function Clients() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pipeline Durumu</Label>
-                    <Select 
-                      value={newClient.pipelineStage} 
+                    <Label htmlFor="client-pipeline-stage" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pipeline Durumu</Label>
+                    <Select
+                      value={newClient.pipelineStage}
                       onValueChange={(v) => setNewClient({...newClient, pipelineStage: v as PipelineStage})}
                     >
-                      <SelectTrigger className="h-12 bg-zinc-900 border-zinc-800">
+                      <SelectTrigger id="client-pipeline-stage" className="h-12 bg-zinc-900 border-zinc-800">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -198,29 +198,27 @@ export function Clients() {
                     </Select>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">İletişim E-posta</Label>
-                  <Input 
-                    type="email" 
-                    placeholder="info@sirket.com" 
+                <Field label="İletişim E-posta" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                  <Input
+                    type="email"
+                    placeholder="info@sirket.com"
                     value={newClient.email}
                     className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
                     onChange={(e) => setNewClient({...newClient, email: e.target.value})}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Telefon</Label>
-                  <Input 
-                    placeholder="+90 5XX XXX XX XX" 
+                </Field>
+                <Field label="Telefon" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                  <Input
+                    placeholder="+90 5XX XXX XX XX"
                     value={newClient.phone}
                     className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
                     onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
                   />
-                </div>
+                </Field>
               </div>
               <DialogFooter className="p-6 bg-zinc-900/50 border-t border-zinc-900">
                 <Button variant="outline" className="border-zinc-800 hover:bg-zinc-800 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setOpen(false)}>İptal</Button>
-                <Button className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-11 px-8 shadow-lg shadow-orange-900/20" onClick={handleCreate}>Müşteriyi Kaydet</Button>
+                <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-11 px-8 shadow-lg shadow-orange-900/20" onClick={handleCreate}>Müşteriyi Kaydet</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

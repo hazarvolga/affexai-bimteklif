@@ -640,7 +640,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <Button 
                   onClick={handleTransfer}
                   disabled={parsedData.summary.parseStatus !== 'succeeded'}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-lg shadow-orange-950/40"
+                  className="flex-1 bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold shadow-lg shadow-orange-950/40"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Review İçin Teklife Aktar

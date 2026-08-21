@@ -79,7 +79,7 @@ export default function HomeView({ setView }: HomeViewProps) {
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
                 onClick={() => setView('dokumanlar')}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-7 py-4 rounded-xl font-extrabold text-xs tracking-widest uppercase transition-all shadow-lg shadow-orange-100 hover:shadow-orange-200 cursor-pointer text-center"
+                className="bg-orange-700 hover:bg-orange-800 text-white px-7 py-4 rounded-xl font-extrabold text-xs tracking-widest uppercase transition-all shadow-lg shadow-orange-100 hover:shadow-orange-200 cursor-pointer text-center"
               >
                 Dokümanları İncele
               </button>
@@ -270,7 +270,7 @@ export default function HomeView({ setView }: HomeViewProps) {
               <div className="sm:col-span-2 pt-2 text-center">
                 <button
                   onClick={() => setView('dashboard')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs tracking-wider uppercase px-6 py-3.5 rounded-xl transition-all cursor-pointer shadow-md shadow-orange-100 hover:shadow-orange-200"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-orange-700 hover:bg-orange-800 text-white font-black text-xs tracking-wider uppercase px-6 py-3.5 rounded-xl transition-all cursor-pointer shadow-md shadow-orange-100 hover:shadow-orange-200"
                   id="home-goto-dashboard-btn"
                 >
                   <span>Gelişmiş Verimlilik &amp; ROI Simülatörünü Aç</span>

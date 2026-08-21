@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <h1 className="text-lg font-black text-white uppercase tracking-widest">Bir sorun oluştu</h1>
               <p className="text-xs text-zinc-500 mt-2 leading-relaxed">Sayfa yüklenemedi. Bu genellikle yeni bir sürüm yayınlandığında olur — sayfayı yenilemek sorunu çözer.</p>
             </div>
-            <Button onClick={() => window.location.reload()} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-11 px-6 gap-2">
+            <Button onClick={() => window.location.reload()} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-11 px-6 gap-2">
               <RefreshCw size={14} /> Sayfayı Yenile
             </Button>
           </div>

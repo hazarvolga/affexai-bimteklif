@@ -4,13 +4,14 @@
  */
 
 import { lazy, Suspense, type ComponentType } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Shell } from '@/components/layout/Shell';
 import { Toaster } from '@/components/ui/sonner';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { NotFound } from '@/pages/NotFound';
 
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(async () => ({ default: (await loader())[name] as ComponentType<any> }));
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
@@ -118,7 +119,7 @@ function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/app" replace />} />
+      <Route path="*" element={<NotFound />} />
       </Routes></Suspense>
     </SmartCheckDemoProvider>
   );

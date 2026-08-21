@@ -180,7 +180,7 @@ export function Settings() {
         description="Şirket profili, ekip yönetimi ve uygulama tercihlerini yapılandırın."
         icon={SettingsIcon}
         actions={
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20">
+          <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20">
             <Save size={16} /> Değişiklikleri Kaydet
           </Button>
         }
@@ -260,7 +260,7 @@ export function Settings() {
                     </div>
                   ))}
                 </div>
-                <Button onClick={saveRiskSettings} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest"><Save size={16} className="mr-2" /> Varsayımları Kaydet</Button>
+                <Button onClick={saveRiskSettings} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest"><Save size={16} className="mr-2" /> Varsayımları Kaydet</Button>
               </CardContent>
             </Card>
           </SectionWrapper>
@@ -307,7 +307,7 @@ export function Settings() {
                       onChange={(e) => setInviteEmail(e.target.value)}
                     />
                   </div>
-                  <Button type="submit" disabled={loading} className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-2">
+                  <Button type="submit" disabled={loading} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-2">
                     <UserPlus size={18} /> Davet Gönder
                   </Button>
                 </form>
@@ -389,7 +389,7 @@ export function Settings() {
                     Ekip İşbirliği (3 Kullanıcı)
                   </div>
                 </div>
-                <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-12 shadow-lg shadow-orange-900/20" onClick={() => handleUpgrade('pro')}>
+                <Button className="w-full bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-12 shadow-lg shadow-orange-900/20" onClick={() => handleUpgrade('pro')}>
                   PLANI YÜKSELT & ÖZELLİKLERİ AÇ
                 </Button>
               </CardContent>
@@ -450,7 +450,7 @@ export function Settings() {
                         className={cn(
                           "text-[9px] h-8 px-4 font-black uppercase tracking-widest transition-all",
                           industryEnabled(industry.id) 
-                            ? "bg-orange-600 hover:bg-orange-700 text-white shadow-[0_0_15px_rgba(234,88,12,0.3)]" 
+                            ? "bg-orange-700 hover:bg-orange-800 text-white shadow-[0_0_15px_rgba(234,88,12,0.3)]" 
                             : "border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:text-zinc-400"
                         )}
                         onClick={() => toggleIndustry(industry.id)}

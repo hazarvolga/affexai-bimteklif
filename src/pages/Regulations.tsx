@@ -90,7 +90,7 @@ export function Regulations() {
           <Button 
             onClick={handleSync} 
             disabled={syncing}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20"
+            className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20"
           >
             {syncing ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
             Advisory tarama

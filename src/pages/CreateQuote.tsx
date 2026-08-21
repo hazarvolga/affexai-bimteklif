@@ -39,6 +39,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/field';
 import { 
   Select, 
   SelectContent, 
@@ -144,12 +145,14 @@ export function CreateQuote() {
 
     fetchWithAuth('/api/ai/industries')
       .then(res => res.json())
-      .then(async (allIndustries) => {
+      .then(async (rawIndustries) => {
+        const allIndustries = Array.isArray(rawIndustries) ? rawIndustries : [];
         const settingsRes = await fetchWithAuth(`/api/company/industry-settings`);
         if (settingsRes.ok) {
           const settingsData = await settingsRes.json();
+          const settingsList = Array.isArray(settingsData) ? settingsData : [];
           const filtered = allIndustries.filter((ind: any) => {
-            const setting = settingsData.find((s: any) => s.industryId === ind.id);
+            const setting = settingsList.find((s: any) => s.industryId === ind.id);
             return setting ? setting.isEnabled : true;
           });
           setIndustries(filtered);
@@ -157,7 +160,7 @@ export function CreateQuote() {
           setIndustries(allIndustries);
         }
       })
-      .catch(console.error);
+      .catch(() => setIndustries([]));
   }, []);
 
   const calculateItemTotal = (item: Partial<QuoteItem>) => {
@@ -357,7 +360,7 @@ export function CreateQuote() {
               <Save size={16} /> Taslak Kaydet
             </Button>
             <Button 
-              className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-8 gap-2 shadow-lg shadow-orange-900/20" 
+              className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-8 gap-2 shadow-lg shadow-orange-900/20" 
               onClick={() => handleSave(QuoteStatus.SENT)} 
               disabled={loading}
             >
@@ -383,9 +386,9 @@ export function CreateQuote() {
             <CardContent className="space-y-6 p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-full md:w-48 shrink-0">
-                  <Label className="text-[10px] font-black text-orange-600/70 uppercase tracking-widest mb-1.5 block">Sektör</Label>
+                  <Label htmlFor="quote-industry" className="text-[10px] font-black text-orange-600/70 uppercase tracking-widest mb-1.5 block">Sektör</Label>
                   <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800 text-zinc-300 h-12">
+                    <SelectTrigger id="quote-industry" className="bg-zinc-950 border-zinc-800 text-zinc-300 h-12">
                       <SelectValue placeholder="Sektör" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
@@ -396,10 +399,11 @@ export function CreateQuote() {
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <Label className="text-[10px] font-black text-orange-600/70 uppercase tracking-widest mb-1.5 block">Proje Detayları</Label>
+                  <Label htmlFor="quote-description" className="text-[10px] font-black text-orange-600/70 uppercase tracking-widest mb-1.5 block">Proje Detayları</Label>
                   <div className="flex gap-2">
-                    <Input 
-                      placeholder="Proje tipini anlatın... (Örn: 200m2 villa kaba inşaat)" 
+                    <Input
+                      id="quote-description"
+                      placeholder="Proje tipini anlatın... (Örn: 200m2 villa kaba inşaat)"
                       className="bg-zinc-950 border-zinc-800 focus:border-orange-500/50 text-zinc-200 h-12 font-medium"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -408,7 +412,7 @@ export function CreateQuote() {
                     <Button 
                       onClick={generateWithAi} 
                       disabled={aiLoading}
-                      className="bg-orange-600 hover:bg-orange-700 text-white shrink-0 font-black text-[10px] uppercase tracking-widest h-12 px-8"
+                      className="bg-orange-700 hover:bg-orange-800 text-white shrink-0 font-black text-[10px] uppercase tracking-widest h-12 px-8"
                     >
                       {aiLoading ? <Loader2 className="animate-spin" size={18} /> : 'Oluştur'}
                     </Button>
@@ -582,11 +586,11 @@ export function CreateQuote() {
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="space-y-6 pt-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                  <Label htmlFor="quote-client" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <Users size={12} className="text-orange-500" /> Müşteri İlişkilendirme
                   </Label>
                   <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})}>
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800 focus:ring-orange-500 h-12 text-sm font-bold">
+                    <SelectTrigger id="quote-client" className="bg-zinc-950 border-zinc-800 focus:ring-orange-500 h-12 text-sm font-bold">
                       <SelectValue placeholder="Bir müşteri atayın..." />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
@@ -596,22 +600,22 @@ export function CreateQuote() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <Calculator size={12} className="text-orange-500" /> Proje Başlığı
-                  </Label>
-                  <Input 
-                    value={formData.projectName} 
+                <Field
+                  label={<span className="flex items-center gap-2"><Calculator size={12} className="text-orange-500" /> Proje Başlığı</span>}
+                  labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+                >
+                  <Input
+                    value={formData.projectName}
                     onChange={(e) => setFormData({...formData, projectName: e.target.value})}
                     className="bg-zinc-950 border-zinc-800 focus:border-orange-500 h-12 text-sm font-bold"
                     placeholder="Örn: Villa Restorasyonu Faz 1"
                   />
-                </div>
+                </Field>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Para Birimi</Label>
+                    <Label htmlFor="quote-currency" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Para Birimi</Label>
                     <Select value={formData.currency} onValueChange={(v) => setFormData({...formData, currency: v as Currency})}>
-                      <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12">
+                      <SelectTrigger id="quote-currency" className="bg-zinc-950 border-zinc-800 h-12">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -630,9 +634,9 @@ export function CreateQuote() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Bilgi Teslimi</Label>
+                    <Label htmlFor="quote-delivery-level" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Bilgi Teslimi</Label>
                     <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})}>
-                      <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
+                      <SelectTrigger id="quote-delivery-level" className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
                         <SelectItem value="none" className="text-xs font-bold">Kapsam yok</SelectItem>
                         <SelectItem value="as_built" className="text-xs font-bold">As-built teslim</SelectItem>
@@ -641,17 +645,15 @@ export function CreateQuote() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Teslim Maliyeti %</Label>
+                  <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
                     <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
-                    <p className="text-[9px] leading-relaxed text-zinc-600">Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.</p>
-                  </div>
+                  </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tedarik Profili</Label>
+                    <Label htmlFor="quote-procurement-profile" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tedarik Profili</Label>
                     <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})}>
-                      <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
+                      <SelectTrigger id="quote-procurement-profile" className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
                         <SelectItem value="standard" className="text-xs font-bold">Standart</SelectItem>
                         <SelectItem value="low_carbon" className="text-xs font-bold">Düşük karbon hedefi</SelectItem>
@@ -659,22 +661,17 @@ export function CreateQuote() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Karbon Risk Primi %</Label>
+                  <Field label="Karbon Risk Primi %" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest" hint="Senaryo katsayısıdır; vergi/uyum kararı değildir.">
                     <Input type="number" min="0" step="0.1" value={formData.carbonRiskPremiumPercent} onChange={(e) => setFormData({...formData, carbonRiskPremiumPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
-                    <p className="text-[9px] leading-relaxed text-zinc-600">Senaryo katsayısıdır; vergi/uyum kararı değildir.</p>
-                  </div>
+                  </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Süre (Ay)</Label>
+                  <Field label="Süre (Ay)" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                     <Input type="number" min="1" value={formData.projectDurationMonths} onChange={(e) => setFormData({...formData, projectDurationMonths: Math.max(1, Number(e.target.value) || 1)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aylık Volatilite %</Label>
+                  </Field>
+                  <Field label="Aylık Volatilite %" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest" hint="Şirket varsayımıdır; otomatik piyasa verisi değildir.">
                     <Input type="number" min="0" step="0.1" value={formData.escalationVolatilityPercent} onChange={(e) => setFormData({...formData, escalationVolatilityPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
-                    <p className="text-[9px] leading-relaxed text-zinc-600">Şirket varsayımıdır; otomatik piyasa verisi değildir.</p>
-                  </div>
+                  </Field>
                 </div>
               </CardContent>
             </Card>
