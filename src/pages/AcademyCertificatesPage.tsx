@@ -9,7 +9,7 @@ export default function AcademyCertificatesPage() {
         title="BIM & ALLPLAN Sertifikalarım"
         description="Tamamlanan eğitimlerin doğrulanmış başarı sertifikaları ve dijital rozetleri."
       />
-      <CertificatesViewer completedLessons={[]} trainee={null} onVerifyCertificate={() => {}} />
+      <CertificatesViewer completedLessons={[]} examAttempts={[]} trainee={null} />
     </div>
   );
 }
