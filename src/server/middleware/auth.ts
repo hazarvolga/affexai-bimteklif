@@ -26,7 +26,10 @@ export const authenticate = async (req: any, res: any, next: any) => {
 
   const [user] = await db.select({ email: users.email, emailVerified: users.emailVerified, passwordChangedAt: users.passwordChangedAt }).from(users).where(eq(users.id, decoded.userId));
   if (!user) return res.status(401).json({ error: "Invalid token" });
-  if (user.passwordChangedAt && (!decoded.iat || decoded.iat * 1000 < user.passwordChangedAt.getTime())) return res.status(401).json({ error: "Session expired" });
+  // JWT `iat` has second precision; compare against passwordChangedAt floored to
+  // the same second so a login issued in the same second as a password change
+  // (the common "just reset my password, now logging in" case) is not rejected.
+  if (user.passwordChangedAt && (!decoded.iat || decoded.iat < Math.floor(user.passwordChangedAt.getTime() / 1000))) return res.status(401).json({ error: "Session expired" });
 
   req.user = { ...decoded, email: user.email, emailVerified: user.emailVerified };
   next();
