@@ -96,17 +96,18 @@ export const TechnicalProgressBar: React.FC<TechnicalProgressBarProps> = ({ prog
   );
 };
 
-export const TechnicalPanel: React.FC<{ 
-  children: React.ReactNode; 
-  title?: string; 
-  header?: string; 
-  headerRight?: React.ReactNode; 
-  accentColor?: string; 
-  className?: string; 
-}> = ({ children, title, header, headerRight, accentColor, className = '' }) => {
+export const TechnicalPanel: React.FC<{
+  children: React.ReactNode;
+  id?: string;
+  title?: string;
+  header?: string;
+  headerRight?: React.ReactNode;
+  accentColor?: string;
+  className?: string;
+}> = ({ children, id, title, header, headerRight, accentColor, className = '' }) => {
   const displayTitle = title || header;
   return (
-    <div className={`bg-graphite-900 border border-graphite-800 shadow-lg relative rounded-[1px] ${className}`}>
+    <div id={id} className={`bg-graphite-900 border border-graphite-800 shadow-lg relative rounded-[1px] ${className}`}>
       {accentColor && <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: accentColor }} />}
       {displayTitle && (
         <div className="bg-graphite-850 px-4 py-2 border-b border-graphite-800 flex items-center justify-between">

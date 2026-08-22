@@ -15,8 +15,8 @@ export default function AcademyProfilePage() {
         notes={[]}
         bookmarks={[]}
         examAttempts={[]}
-        onSelectLesson={() => {}}
-        onViewCertificate={() => {}}
+        lessonTimes={{}}
+        onUpdateTrainee={async () => {}}
       />
     </div>
   );

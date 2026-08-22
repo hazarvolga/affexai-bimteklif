@@ -197,7 +197,7 @@ export function LessonViewerPage() {
 
           {/* AI BIM Companion Chat */}
           <div className="mt-6">
-            <AIBIMCompanion lessonTitle={course.title} />
+            <AIBIMCompanion lessonTitle={course.title} courseTitle={course.title} />
           </div>
         </div>
 
@@ -248,7 +248,7 @@ export function LessonViewerPage() {
           )}
 
           {/* Interactive CAD Diagram & Rebar View */}
-          <CADDiagramViewer />
+          <CADDiagramViewer lessonTitle={course.title} />
         </div>
       </div>
     </PageContainer>
