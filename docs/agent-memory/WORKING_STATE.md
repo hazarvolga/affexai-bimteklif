@@ -1018,59 +1018,72 @@ transcript if it needs to be re-run) against real local Postgres:
   applications` 401s without a forced redirect loop, per the Faz 2 session-
   expiry fix.
 
-#### New bugs discovered during this deep real-data testing — NOT yet fixed
+#### New bugs discovered during this deep real-data testing — ALL 5 FIXED
 
 User said (2026-08-21): "sen karar ver, her başarılı adımdan sonra commit
-ederek ilerleyelim, temiz bir git yapımız olsun" — agent decides fix order,
-one commit per successfully-verified fix. Chosen order:
+ederek ilerleyelim, temiz bir git yapımız olsun" — agent decided fix order,
+one commit per successfully-verified fix. All 5 are now done, each its own
+pushed commit on `feat/smartcheck-evaluation-baseline`:
 
-1. **Invite-accept membership bug (IN PROGRESS — investigated, not yet
-   coded)** — `POST /api/invitations/:token/accept`
-   (`src/server/routes/company.ts:191-224`) creates a `users` row but never
-   inserts into `memberships`, so an accepted invite leaves the user
-   authenticated with `companyId: null, role: null` (every other
-   provisioning path — `auth.ts` register, `pilot.ts` conversion — does
-   insert `memberships`). **Second, independent bug found in the same
-   handler**: both the lookup at `company.ts:177-179` (GET
-   `/api/invitations/:token`) and `company.ts:196-198` (the accept handler)
-   use `eq(invitations.acceptedAt, null)`, which compiles to `= NULL` in
-   Postgres (always false/unknown) instead of `IS NULL` — confirmed against
-   the installed `drizzle-orm@0.45.2` dialect. This may mean the invite
-   lookup never matches any row at all, i.e. invite-accept could be
-   completely non-functional today, not just missing memberships. Fix must:
-   swap both `eq(invitations.acceptedAt, null)` → `isNull(invitations.acceptedAt)`,
-   wrap the accept handler in a transaction that also does
-   `tx.insert(memberships).values({ userId: newUser.id, companyId:
-   invite.companyId, role: <validated invite.role> })` (mirror
-   `pilot.ts:88-93`'s pattern), and validate `invite.role` against
-   `userRoleEnum` (`owner|admin|manager|viewer`) before use — `invitations.role`
-   is a loose `text` column defaulting to `"member"`, which is NOT a valid
-   membership role enum value and would throw if ever passed through
-   unvalidated (today's real invite-creation path always writes an explicit
-   valid role, so this is a latent risk, not an active failure). No existing
-   test coverage for invite-accept at all (`grep -ri invit` across
-   `*.test.ts` → zero matches) — add one, modeled on
-   `pilot.integration.test.ts`.
-2. `src/server/middleware/auth.ts:29` — JWT `iat` (second precision) vs
-   `users.passwordChangedAt` (millisecond precision) comparison can produce a
-   false "Session expired" 401 when login happens in the same wall-clock
-   second as a password change. Sidestepped in the seed script with a 1200ms
-   delay; underlying bug not fixed.
-3. `CertificatesViewer` — "reduce of undefined" crash, not yet root-caused in
-   this session; needs investigation before fixing.
-4. CRM `deals` table has list (`GET /api/crm/pipeline`) and update-stage
-   routes but **no creation endpoint anywhere** (`grep -r "insert(deals)"` →
-   zero matches). This is a real product gap requiring a new endpoint (and
-   possibly UI), larger scope than the other items.
-5. `@types/react` is not installed anywhere in the project — no `.d.ts` for
-   React/JSX, so JSX/React types are effectively `any` throughout. Flagged as
-   highest-risk item (fixing could surface a large number of previously-
-   hidden `tsc` errors) — deliberately last, needs careful scoping/its own
-   session possibly.
+1. **`aad9ab0` fix(auth): provision membership on invite accept and fix
+   null-check bug** — `POST /api/invitations/:token/accept`
+   (`src/server/routes/company.ts`) never inserted into `memberships`, so an
+   accepted invite left the user authenticated with `companyId: null, role:
+   null`. A second, independent bug in the same handler: both the lookup and
+   accept queries used `eq(invitations.acceptedAt, null)`, which compiles to
+   `= NULL` in Postgres (always false) instead of `IS NULL` — invite lookup
+   could never match any row. Fixed both; added
+   `src/server/routes/company-invitation.integration.test.ts` (new file, 0
+   prior invite-accept coverage existed) covering same-second issuance,
+   duplicate accept, expired invite, and the loose `invitations.role`
+   ("member", not a valid membership role enum value) falling back safely to
+   `"viewer"`.
+2. **`b8ae87e` fix(auth): stop false session-expiry on same-second password
+   reset** — `src/server/middleware/auth.ts:29` compared JWT `iat` (second
+   precision) directly against `passwordChangedAt` (ms precision); floored
+   `passwordChangedAt` to the same second before comparing. New test:
+   `src/server/middleware/auth.integration.test.ts`.
+3. **`06b1be2` fix(academy): stop /app/academy/certificates crashing on
+   load** — `AcademyCertificatesPage.tsx` never passed `examAttempts` to
+   `CertificatesViewer` (and passed a nonexistent `onVerifyCertificate` prop
+   instead of `onUpdateTrainee`), so `examAttempts.reduce(...)` threw on
+   every load. Root-caused via an Explore agent that also flagged this was
+   invisible to `tsc` because `@types/react` was missing (see #5).
+4. **`7ddc908` feat(crm): add deal creation endpoint and wire the "Yeni
+   Fırsat" flow** — `POST /api/crm/deals` did not exist anywhere
+   (`grep -r "insert(deals)"` was zero matches); added a tenant-scoped
+   creation endpoint plus a create-deal dialog on `/app/crm`, wired to both
+   the header button and the empty-pipeline CTA. Verified live: created a
+   real deal against a seeded client, confirmed it renders in the Lead
+   column with the correct value. Still open/not wired (flagged, not
+   fixed): the per-lead "FIRSATA DÖNÜŞTÜR" (lead→deal convert) button, the
+   per-stage-column "KART EKLE" quick-add, and the "Yenİ Lead Ekle" card are
+   all still dead no-op buttons on `/app/crm` — separate follow-up.
+5. **`29291b1` fix(types): install @types/react and fix the 10 latent bugs
+   it exposed** — installed `@types/react`/`@types/react-dom` (React 19
+   versions). This surfaced exactly 10 `tsc` errors, all genuine bugs, none
+   noise: `Lock` icon used but never imported in `StudentProfile.tsx`
+   (silently resolved to the ambient DOM lib's unrelated global `Lock`
+   interface); `TechnicalPanel` didn't forward the `id` prop 4 call sites
+   were already passing; `AcademyProfilePage.tsx` passed nonexistent
+   `onSelectLesson`/`onViewCertificate` props to `StudentProfile` and
+   omitted the two actually-required ones (`lessonTimes`, `onUpdateTrainee`)
+   — the missing `lessonTimes` crashed `/app/academy/profile` on every load
+   with `Object.values(undefined)`, same bug class as #3 on a sibling page;
+   `CreateQuote.tsx`'s demo template used `costCategory: "service"`, not a
+   member of the real 5-value union (fixed to `"labor"`); `LessonViewerPage`
+   was missing `AIBIMCompanion`'s `courseTitle` and `CADDiagramViewer`'s
+   `lessonTitle`. Verified 0 `tsc` errors, full suite, build, and live
+   browser checks on all three previously-broken pages.
 
-Next action when resuming: implement fix #1 (invite-accept), verify against
-real Postgres (integration test + browser), commit, then proceed down the
-list in order, one commit per verified fix.
+New, separate finding surfaced while verifying #5 in the browser (not
+fixed, flagged only): `CADDiagramViewer.tsx`'s `/api/lesson-diagram` fetch
+(`src/components/academy/CADDiagramViewer.tsx:47-58`) 500s locally (almost
+certainly a missing local Gemini API key) and then throws
+`SyntaxError: Unexpected end of JSON input` trying to `res.json()` an empty
+error body — caught by the component's own try/catch, so it degrades
+gracefully to an "OFFLINE CAD MATRIX" fallback rather than crashing the
+page, but the fetch call should still check `res.ok` before parsing JSON.
 
 #### Local environment notes (this session, reusable)
 
