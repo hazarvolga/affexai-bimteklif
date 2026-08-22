@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import crypto from "crypto";
-import { and, count, desc, eq, isNotNull } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "../../db";
-import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
+import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, userRoleEnum, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 
 export function registerCompanyRoutes(app: Express) {
@@ -175,7 +175,7 @@ export function registerCompanyRoutes(app: Express) {
     try {
       const { token } = req.params;
       const invite = await db.query.invitations.findFirst({
-        where: and(eq(invitations.token, token), eq(invitations.acceptedAt, null))
+        where: and(eq(invitations.token, token), isNull(invitations.acceptedAt))
       });
 
       if (!invite || new Date() > new Date(invite.expiresAt)) {
@@ -194,7 +194,7 @@ export function registerCompanyRoutes(app: Express) {
       const { fullName } = req.body;
 
       const invite = await db.query.invitations.findFirst({
-        where: and(eq(invitations.token, token), eq(invitations.acceptedAt, null))
+        where: and(eq(invitations.token, token), isNull(invitations.acceptedAt))
       });
 
       if (!invite || new Date() > new Date(invite.expiresAt)) {
@@ -202,17 +202,30 @@ export function registerCompanyRoutes(app: Express) {
       }
 
       const verificationToken = crypto.randomBytes(32).toString("hex");
+      const membershipRole = userRoleEnum.enumValues.includes(invite.role as typeof userRoleEnum.enumValues[number])
+        ? (invite.role as typeof userRoleEnum.enumValues[number])
+        : "viewer";
 
-      const [newUser] = await db.insert(users).values({
-        email: invite.email,
-        fullName,
-        verificationToken,
-        emailVerified: null,
-      } as any).returning();
+      const newUser = await db.transaction(async (tx) => {
+        const [user] = await tx.insert(users).values({
+          email: invite.email,
+          fullName,
+          verificationToken,
+          emailVerified: null,
+        } as any).returning();
 
-      await db.update(invitations)
-        .set({ acceptedAt: new Date() })
-        .where(eq(invitations.id, invite.id));
+        await tx.insert(memberships).values({
+          userId: user.id,
+          companyId: invite.companyId,
+          role: membershipRole,
+        });
+
+        await tx.update(invitations)
+          .set({ acceptedAt: new Date() })
+          .where(eq(invitations.id, invite.id));
+
+        return user;
+      });
 
       console.log(`Verification link: http://0.0.0.0:3000/verify-email/${verificationToken}`);
 
