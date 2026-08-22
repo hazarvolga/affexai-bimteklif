@@ -14,6 +14,11 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -34,8 +39,12 @@ const STAGES = [
 export function CRM() {
   const [deals, setDeals] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pipeline' | 'leads'>('pipeline');
+  const [dealDialogOpen, setDealDialogOpen] = useState(false);
+  const [creatingDeal, setCreatingDeal] = useState(false);
+  const [newDeal, setNewDeal] = useState({ clientId: '', name: '', value: '' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,20 +56,47 @@ export function CRM() {
     try {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
-      const [dealsRes, leadsRes] = await Promise.all([
+      const [dealsRes, leadsRes, clientsRes] = await Promise.all([
         fetch(`/api/crm/pipeline`, { headers }),
-        fetch(`/api/crm/leads`, { headers })
+        fetch(`/api/crm/leads`, { headers }),
+        fetch(`/api/clients`, { headers }),
       ]);
-      
+
       const dealsData = dealsRes.ok ? await dealsRes.json() : [];
       const leadsData = leadsRes.ok ? await leadsRes.json() : [];
-      
+      const clientsData = clientsRes.ok ? await clientsRes.json() : [];
+
       setDeals(dealsData);
       setLeads(leadsData);
+      setClients(Array.isArray(clientsData) ? clientsData : []);
     } catch (e) {
       toast.error("CRM verileri yüklenemedi.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateDeal = async () => {
+    if (!newDeal.clientId || !newDeal.name) {
+      toast.error("Müşteri ve fırsat adı zorunludur.");
+      return;
+    }
+    setCreatingDeal(true);
+    try {
+      const response = await fetchWithAuth("/api/crm/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: newDeal.clientId, name: newDeal.name, value: newDeal.value || undefined }),
+      });
+      if (!response.ok) throw new Error();
+      toast.success("Fırsat oluşturuldu.");
+      setDealDialogOpen(false);
+      setNewDeal({ clientId: '', name: '', value: '' });
+      fetchData();
+    } catch (e) {
+      toast.error("Fırsat oluşturulamadı.");
+    } finally {
+      setCreatingDeal(false);
     }
   };
 
@@ -99,7 +135,7 @@ export function CRM() {
             title="Pipeline Henüz Boş"
             description="Satış sürecinizi yönetmek için yeni fırsatlar ekleyin veya tekliflerinizi buraya aktarın."
             actionText="YENİ FIRSAT EKLE"
-            onAction={() => {}}
+            onAction={() => setDealDialogOpen(true)}
           />
         );
       }
@@ -251,7 +287,10 @@ export function CRM() {
                 Leads
               </Button>
             </div>
-            <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-xs uppercase tracking-widest gap-2 h-10 px-6">
+            <Button
+              className="bg-orange-700 hover:bg-orange-800 text-white font-black text-xs uppercase tracking-widest gap-2 h-10 px-6"
+              onClick={() => setDealDialogOpen(true)}
+            >
               <Plus size={16} /> Yeni Fırsat
             </Button>
           </>
@@ -259,6 +298,58 @@ export function CRM() {
       />
 
       {renderContent()}
+
+      <Dialog open={dealDialogOpen} onOpenChange={setDealDialogOpen}>
+        <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 sm:max-w-md p-0 overflow-hidden">
+          <DialogHeader className="p-6 border-b border-zinc-900 bg-zinc-900/50">
+            <DialogTitle className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+              <Target size={18} className="text-orange-500" /> Yeni Fırsat
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="deal-client" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Müşteri</Label>
+              <Select value={newDeal.clientId} onValueChange={(v) => setNewDeal({ ...newDeal, clientId: v })}>
+                <SelectTrigger id="deal-client" className="h-12 bg-zinc-900 border-zinc-800">
+                  <SelectValue placeholder="Müşteri seçin" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-zinc-800">
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id} className="text-xs font-bold">{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Field label="Fırsat Adı" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+              <Input
+                placeholder="Örn: Vega Residence B Blok Kaba İnşaat"
+                value={newDeal.name}
+                className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
+                onChange={(e) => setNewDeal({ ...newDeal, name: e.target.value })}
+              />
+            </Field>
+            <Field label="Tahmini Değer (TRY)" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+              <Input
+                type="number"
+                placeholder="Örn: 500000"
+                value={newDeal.value}
+                className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
+                onChange={(e) => setNewDeal({ ...newDeal, value: e.target.value })}
+              />
+            </Field>
+          </div>
+          <DialogFooter className="p-6 bg-zinc-900/50 border-t border-zinc-900">
+            <Button variant="outline" className="border-zinc-800 hover:bg-zinc-800 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setDealDialogOpen(false)}>İptal</Button>
+            <Button
+              className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-11 px-8 shadow-lg shadow-orange-900/20"
+              onClick={handleCreateDeal}
+              disabled={creatingDeal}
+            >
+              {creatingDeal ? 'Kaydediliyor...' : 'Fırsatı Kaydet'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   );
 }

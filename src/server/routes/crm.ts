@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { activities, deals, leads, quotationFinancials, quotationItems, quotations } from "../../db/schema";
+import { activities, clients, deals, leads, quotationFinancials, quotationItems, quotations } from "../../db/schema";
 import { CRMIntelligenceService } from "../../services/crm/crmService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
@@ -14,6 +14,38 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
       res.json(allDeals);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch pipeline" });
+    }
+  });
+
+  app.post("/api/crm/deals", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
+    try {
+      const { clientId, name, value, expectedCloseDate, stage } = req.body;
+      if (!clientId || !name) return res.status(400).json({ error: "clientId ve name zorunludur" });
+
+      const [client] = await db.select({ id: clients.id }).from(clients)
+        .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId)));
+      if (!client) return res.status(404).json({ error: "Müşteri bulunamadı" });
+
+      const [newDeal] = await db.insert(deals).values({
+        companyId: req.user.companyId,
+        clientId,
+        name,
+        stage: stage || "lead",
+        value: value != null ? String(value) : "0",
+        expectedCloseDate: expectedCloseDate ? new Date(expectedCloseDate) : null,
+      }).returning();
+
+      await db.insert(activities).values({
+        companyId: newDeal.companyId,
+        dealId: newDeal.id,
+        userId: req.user.userId,
+        type: "note",
+        description: "Fırsat oluşturuldu.",
+      });
+
+      res.status(201).json(newDeal);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create deal" });
     }
   });
 
