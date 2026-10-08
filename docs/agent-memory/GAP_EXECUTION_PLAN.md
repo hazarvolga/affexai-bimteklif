@@ -24,10 +24,10 @@ verified commits and restore points. Final user acceptance follows implementatio
 | 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | Completed |
 | 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Completed |
 | 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Completed |
-| 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | Verified |
-| 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Review in progress |
-| 06 | Plan and quota integrity | Atomic period quota, unique counters, validated admin actions, audit and suspension; concurrency tests | Pending |
-| 07 | Reproducible schema | Reviewed bootstrap and additive migrations, disposable TeklifPro test DB upgrade/restore evidence | Pending |
+| 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | Completed |
+| 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Verified |
+| 06 | Plan and quota integrity | Atomic period quota, unique counters, validated admin actions, audit and inactive-account enforcement; concurrency tests | In progress |
+| 07 | Reproducible schema | Reviewed bootstrap and additive migrations, disposable TeklifPro test DB upgrade/restore evidence | In progress |
 | 08 | Dependencies and release automation | Triage runtime advisories, pinned tooling, typecheck build gate and CI | Pending |
 | 09 | Worker and deployment | Reliable enqueue/recovery, bounded S3 reads, app/worker topology, health and rollback checks | Pending |
 | 10 | Core product completion | CRM authenticated flows, quote edit/send/follow-up, clear payment capability, mobile validation | Pending |
@@ -90,3 +90,11 @@ Updated after each verified step with commands, results and checkpoint name.
   Rolling source back before this step cannot make newly hashed links work in
   old code; retain hashes and reissue after forward recovery, never weaken token
   storage. Checkpoint: `restore/gap-20261008-04`.
+- Step 04 commit: `8ea33b9`.
+- Step 05: tenant-owned client validation, editable-field DTO, atomic quote/item
+  writes, root-serialized revisions with stale-source 409, atomic evidence copy
+  and rollback. Copied verification needs current matching quantity evidence;
+  price-only, stale, superseded and mismatched records do not confer authority.
+  Revision pricing locks are cleared, not silently reused. Final parent-focused
+  suite: 18/18 tests passed; lint passed. Independent code/security review
+  approved. Checkpoint: `restore/gap-20261008-05`.

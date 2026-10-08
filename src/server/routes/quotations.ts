@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { quotationItems, quotations } from "../../db/schema";
-import { calculateLineItemTotal, calculateQuotationTotals, normalizeLineItem, validateQuotationItems } from "../../lib/calculations";
+import { manualQuotationInput, quotationStatusInput } from "../../services/quotations/input";
+import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
 import { authenticate } from "../middleware/auth";
@@ -65,53 +66,12 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
 
   app.post("/api/quotations", authenticate, canMutate, usageTracker("QUOTATION_CREATED"), async (req, res) => {
     try {
-      const { items, ...quoteData } = req.body;
-      const validationIssues = validateQuotationItems(items);
-      if (validationIssues.length > 0) return res.status(400).json({ error: "Teklif kalemleri doğrulanamadı.", issues: validationIssues });
-      const normalizedItems = Array.isArray(items)
-        ? items.map((item: any) => ({
-            ...item,
-            ...normalizeLineItem(item),
-          }))
-        : [];
-      const totals = calculateQuotationTotals(normalizedItems);
-
-      const [newQuote] = await db.insert(quotations).values({
-        ...quoteData,
-        companyId: req.user.companyId,
-        subtotal: String(totals.subtotal),
-        discountTotal: String(totals.discountTotal),
-        vatTotal: String(totals.vatTotal),
-        grandTotal: String(totals.grandTotal),
-        date: new Date(quoteData.date),
-        expiryDate: new Date(quoteData.expiryDate),
-        revisionVersion: 1,
-        isLatest: true
-      }).returning();
-
-      if (normalizedItems.length > 0) {
-        const itemsWithExtras = normalizedItems.map((item: any) => ({
-          ...item,
-          quotationId: newQuote.id,
-          companyId: newQuote.companyId,
-          quantity: String(item.quantity),
-          unitPrice: String(item.unitPrice),
-          discountPercent: String(item.discountPercent),
-          vatPercent: String(item.vatPercent),
-          costUnitPrice: item.costUnitPrice == null || item.costUnitPrice === "" ? null : String(item.costUnitPrice),
-          wastePercent: String(item.wastePercent ?? 0),
-          costCategory: item.costCategory || "material",
-          quantitySource: item.quantitySource || "manual",
-          priceSource: item.priceSource || "manual",
-          sourceReference: item.sourceReference || null,
-          verificationStatus: item.verificationStatus || "unverified",
-          total: String(calculateLineItemTotal(item)),
-        }));
-        await db.insert(quotationItems).values(itemsWithExtras);
-      }
-
+      const parsed = manualQuotationInput.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid quotation input", issues: parsed.error.issues });
+      const newQuote = await createManualQuotation(req.user.companyId, parsed.data);
       res.json(newQuote);
     } catch (error) {
+      if (error instanceof QuotationIntegrityError) return res.status(error.status).json({ error: error.message });
       console.error("Quote creation error:", error);
       res.status(500).json({ error: "Failed to create quotation" });
     }
@@ -119,47 +79,10 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
 
   app.post("/api/quotations/:id/revision", authenticate, canMutate, async (req, res) => {
     try {
-      const { id } = req.params;
-
-      const original = await db.query.quotations.findFirst({
-        where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)),
-      });
-
-      if (!original) return res.status(404).json({ error: "Original quote not found" });
-
-      const originalItems = await db.select()
-        .from(quotationItems)
-        .where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
-
-      await db.update(quotations)
-        .set({ isLatest: false })
-        .where(and(
-          eq(quotations.parentId, original.parentId || original.id),
-          eq(quotations.companyId, req.user.companyId)
-        ));
-
-      const [newQuote] = await db.insert(quotations).values({
-        ...original,
-        id: undefined,
-        parentId: original.parentId || original.id,
-        revisionVersion: original.revisionVersion + 1,
-        isLatest: true,
-        status: "draft",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as any).returning();
-
-      if (originalItems.length > 0) {
-        const clonedItems = originalItems.map(item => ({
-          ...item,
-          id: undefined,
-          quotationId: newQuote.id,
-        }));
-        await db.insert(quotationItems).values(clonedItems);
-      }
-
+      const newQuote = await createQuotationRevision(req.user.companyId, req.params.id);
       res.json(newQuote);
     } catch (error) {
+      if (error instanceof QuotationIntegrityError) return res.status(error.status).json({ error: error.message });
       console.error("Revision error:", error);
       res.status(500).json({ error: "Failed to create revision" });
     }
@@ -168,7 +91,9 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
   app.patch("/api/quotations/:id/status", authenticate, canMutate, async (req, res) => {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const parsed = quotationStatusInput.safeParse(req.body?.status);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid quotation status" });
+      const status = parsed.data;
 
       const [updated] = await db.update(quotations)
         .set({ status, updatedAt: new Date() })
