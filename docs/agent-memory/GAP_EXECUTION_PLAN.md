@@ -21,8 +21,8 @@ verified commits and restore points. Final user acceptance follows implementatio
 | Step | Scope | Acceptance | Status |
 |---|---|---|---|
 | 00 | Record audit and execution baseline | Reviewed plan, clean document diff, commit and tag | Completed |
-| 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | Verified |
-| 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Verified, checkpoint next |
+| 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | Completed |
+| 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Verified |
 | 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Verified, checkpoint next |
 | 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | In progress |
 | 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Review in progress |
@@ -62,3 +62,9 @@ Updated after each verified step with commands, results and checkpoint name.
   callbacks catch persistence rejections (three RED-to-GREEN regressions).
   Independent code/security review approved after fixes. Source checkpoint:
   `restore/gap-20261008-01`. Quota atomicity remains Step 06.
+- Step 01 commit: `aa50a5a`.
+- Step 02: live membership and role authority, private company DTO and shared
+  production preflight. Four focused files passed 14/14 tests; production config
+  tests bring focused count to 18. Included in the 484-test stable baseline.
+  SQL-conjunction assertion strengthened after independent review. Scoped
+  security review approved. Checkpoint: `restore/gap-20261008-02`.

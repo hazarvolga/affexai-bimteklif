@@ -37,8 +37,10 @@ dotenv.config();
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
 export function createApiApp() {
+  const productionConfig = assertProductionEnvironment();
   const app = express();
   app.disable('x-powered-by');
+  if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
   app.use(express.json({
     limit: "1mb",
@@ -97,10 +99,8 @@ export function createApiApp() {
 }
 
 export async function startServer() {
-  const productionConfig = assertProductionEnvironment();
   const app = createApiApp();
   const PORT = Number(process.env.PORT || 3000);
-  if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

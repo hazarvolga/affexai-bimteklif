@@ -1,7 +1,8 @@
 import { AuthService } from "../../services/auth/authService";
 import { db } from "../../db";
-import { users } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { memberships, users } from "../../db/schema";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 
 declare global {
   namespace Express {
@@ -18,26 +19,59 @@ declare global {
   }
 }
 
-export const authenticate = async (req: any, res: any, next: any) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Unauthorized" });
-
-  const decoded = AuthService.verifyToken(token);
-  if (!decoded) return res.status(401).json({ error: "Invalid token" });
-
-  const [user] = await db.select({ 
-    email: users.email, 
-    emailVerified: users.emailVerified, 
-    passwordChangedAt: users.passwordChangedAt,
-    isSuperAdmin: users.isSuperAdmin 
-  }).from(users).where(eq(users.id, decoded.userId));
-  
-  if (!user) return res.status(401).json({ error: "Invalid token" });
-  if (user.passwordChangedAt && (!decoded.iat || decoded.iat < Math.floor(user.passwordChangedAt.getTime() / 1000))) return res.status(401).json({ error: "Session expired" });
-
-  req.user = { ...decoded, email: user.email, emailVerified: user.emailVerified, isSuperAdmin: user.isSuperAdmin };
-  next();
+type AuthUser = Pick<typeof users.$inferSelect, "email" | "emailVerified" | "passwordChangedAt" | "isSuperAdmin">;
+type AuthMembership = Pick<typeof memberships.$inferSelect, "role">;
+type AuthDependencies = {
+  findUser(userId: string): Promise<AuthUser | undefined>;
+  findMembership(userId: string, companyId: string): Promise<AuthMembership | undefined>;
 };
+
+const sessionClaims = z.object({
+  userId: z.string().uuid(),
+  companyId: z.string().uuid().nullable(),
+  iat: z.number().int().positive(),
+});
+
+const authDependencies: AuthDependencies = {
+  async findUser(userId) {
+    const [user] = await db.select({
+      email: users.email,
+      emailVerified: users.emailVerified,
+      passwordChangedAt: users.passwordChangedAt,
+      isSuperAdmin: users.isSuperAdmin,
+    }).from(users).where(eq(users.id, userId));
+    return user;
+  },
+  async findMembership(userId, companyId) {
+    const [membership] = await db.select({ role: memberships.role }).from(memberships)
+      .where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
+    return membership;
+  },
+};
+
+export const createAuthenticate = (dependencies: AuthDependencies = authDependencies) => async (req: any, res: any, next: any) => {
+  try {
+    const header = req.headers.authorization;
+    const token = typeof header === "string" ? /^Bearer ([^\s]+)$/i.exec(header)?.[1] : undefined;
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    const parsed = sessionClaims.safeParse(AuthService.verifyToken(token));
+    if (!parsed.success) return res.status(401).json({ error: "Invalid token" });
+    const { userId, companyId, iat } = parsed.data;
+    const user = await dependencies.findUser(userId);
+    if (!user) return res.status(401).json({ error: "Invalid token" });
+    if (user.passwordChangedAt && iat < Math.floor(user.passwordChangedAt.getTime() / 1000)) return res.status(401).json({ error: "Session expired" });
+
+    // Tenant roles are live DB authority, never claims carried over from the JWT.
+    const membership = companyId ? await dependencies.findMembership(userId, companyId) : undefined;
+    if (companyId && !membership) return res.status(403).json({ error: "Forbidden: Company membership required" });
+    req.user = { userId, companyId, role: membership?.role ?? null, email: user.email, emailVerified: user.emailVerified, isSuperAdmin: user.isSuperAdmin };
+  } catch (error) {
+    return next(error);
+  }
+  return next();
+};
+
+export const authenticate = createAuthenticate();
 
 export const requireVerifiedEmail = (req: any, res: any, next: any) => {
   if (!req.user?.emailVerified) return res.status(403).json({ error: "Bu işlem için e-posta adresinizi doğrulamalısınız.", code: "EMAIL_VERIFICATION_REQUIRED" });

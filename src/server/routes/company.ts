@@ -128,9 +128,13 @@ export function registerCompanyRoutes(app: Express) {
     }
   });
 
-  app.get("/api/company", async (req, res) => {
+  app.get("/api/company", authenticate, async (req, res) => {
     try {
-      const company = await db.query.companies.findFirst();
+      if (!req.user.companyId) return res.status(403).json({ error: "Forbidden: Company membership required" });
+      const company = await db.query.companies.findFirst({
+        where: eq(companies.id, req.user.companyId),
+        columns: { id: true, name: true, logoUrl: true, defaultCurrency: true, defaultVatRate: true },
+      });
       res.json(company || null);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch company" });

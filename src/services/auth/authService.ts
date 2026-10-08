@@ -1,7 +1,14 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-teklifpro";
+function jwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === "production" &&
+      (!secret || secret.trim().length < 32 || /^(change-me|super-secret|secret|password)/i.test(secret.trim()))) {
+    throw new Error("JWT_SECRET must be a non-placeholder secret of at least 32 characters.");
+  }
+  return secret || "super-secret-key-teklifpro";
+}
 
 export class AuthService {
   static async hashPassword(password: string): Promise<string> {
@@ -13,12 +20,12 @@ export class AuthService {
   }
 
   static generateToken(payload: { userId: string; companyId: string | null; role: string | null }): string {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+    return jwt.sign(payload, jwtSecret(), { expiresIn: "7d", algorithm: "HS256" });
   }
 
   static verifyToken(token: string): any {
     try {
-      return jwt.verify(token, JWT_SECRET);
+      return jwt.verify(token, jwtSecret(), { algorithms: ["HS256"] });
     } catch {
       return null;
     }
