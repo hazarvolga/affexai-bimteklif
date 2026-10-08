@@ -16,9 +16,23 @@ export interface NavItem {
   group: NavGroup;
 }
 
-export const navGroupOrder: NavGroup[] = ['Ana Menü', 'Araçlar'];
+export const navGroupOrder: NavGroup[] = ['Ana Menü', 'Araçlar', 'Sistem Yönetimi'];
 
 export const navigationConfig: NavItem[] = [
+  {
+    label: "Deneme & Müşteriler",
+    path: "/app/pilot-applications",
+    icon: Users,
+    roles: ["super_admin"],
+    group: "Sistem Yönetimi",
+  },
+  {
+    label: "Faturalandırma",
+    path: "/app/billing",
+    icon: LayoutDashboard,
+    roles: ["super_admin"],
+    group: "Sistem Yönetimi",
+  },
   {
     label: "Panel",
     path: "/app",

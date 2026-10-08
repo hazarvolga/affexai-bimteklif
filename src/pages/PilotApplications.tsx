@@ -27,7 +27,7 @@ const statuses = [
   { value: 'new', label: 'Yeni', className: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
   { value: 'contacted', label: 'İletişimde', className: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
   { value: 'qualified', label: 'Nitelikli', className: 'border-purple-500/30 bg-purple-500/10 text-purple-300' },
-  { value: 'converted', label: 'Pilota dönüştü', className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+  { value: 'converted', label: 'Müşteriye Dönüştü', className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
   { value: 'rejected', label: 'Uygun değil', className: 'border-zinc-700 bg-zinc-800/50 text-zinc-400' },
 ];
 // "converted" statüsüne yalnızca gerçek hesap oluşturma eylemiyle ulaşılır — dropdown'dan seçilemez.
@@ -102,29 +102,52 @@ export function PilotApplications() {
   return (
     <PageContainer>
       <PageHeader
-        title="Pilot Başvuruları"
-        description="BIMPlan Academy pilot başvurularını takip edin, niteliklendirin ve gerçek pilot dönüşümünü ölçün."
+        title="Deneme Sürümü & Müşteriler"
+        description="Platformunuza başvuran deneme sürümü taleplerini yönetin ve ödeme yapan müşterilere (SaaS kiracılarına) dönüştürün."
         icon={ClipboardList}
         actions={<Button variant="outline" onClick={loadApplications} disabled={loading} className="border-zinc-800 text-zinc-300 hover:bg-zinc-900"><RefreshCw size={16} className={loading ? 'mr-2 animate-spin' : 'mr-2'} />Yenile</Button>}
       />
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-        {['new', 'contacted', 'qualified', 'converted'].map((status) => {
-          const meta = statuses.find((item) => item.value === status)!;
-          return (
-            <div key={status} className="border border-zinc-800 bg-zinc-900/40 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{meta.label}</p>
-              <p className="mt-2 text-2xl font-semibold text-white">{applications.filter((application) => application.status === status).length}</p>
-            </div>
-          );
-        })}
-        <div className="border border-orange-500/20 bg-orange-500/[0.04] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-orange-300">Dönüşüm</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{metrics ? `${Math.round(metrics.conversionRate * 100)}%` : '—'}</p>
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Health / Overview */}
+        <div className="border border-zinc-800 bg-zinc-950 p-5 rounded-xl flex flex-col justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Dönüşüm Sağlığı</p>
+            <p className="text-3xl font-black text-white">{metrics ? `${metrics.conversionRate.toFixed(1)}%` : '—'}</p>
+          </div>
+          <p className="text-xs text-zinc-500 mt-4 border-t border-zinc-800/50 pt-3">Toplam <span className="text-white font-medium">{metrics?.total || 0}</span> başvurudan <span className="text-emerald-400 font-medium">{metrics?.converted || 0}</span> firma pilota alındı.</p>
         </div>
-        <div className="border border-emerald-500/20 bg-emerald-500/[0.04] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Ödenen pilot</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{metrics?.paid ?? '—'}</p>
+
+        {/* Actionable / New */}
+        <div className="border border-blue-500/30 bg-blue-500/5 p-5 rounded-xl flex flex-col justify-between relative overflow-hidden">
+          {(metrics?.newLeads || 0) > 0 && <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/20 blur-2xl rounded-full -mr-8 -mt-8" />}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Aksiyon Bekleyen (Yeni)</p>
+            <p className="text-3xl font-black text-white">{metrics?.newLeads || 0}</p>
+          </div>
+          <p className="text-xs text-zinc-500 mt-4 border-t border-blue-500/10 pt-3">Hemen iletişime geçip nitelendirmeniz gereken taze başvurular.</p>
+        </div>
+
+        {/* Bottleneck */}
+        <div className="border border-amber-500/30 bg-amber-500/5 p-5 rounded-xl flex flex-col justify-between relative overflow-hidden">
+          {(metrics?.bottleneckContacted || 0) > 0 && <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/20 blur-2xl rounded-full -mr-8 -mt-8" />}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">Darboğaz: İletişimde Bekleyen</p>
+            <p className="text-3xl font-black text-white">{metrics?.bottleneckContacted || 0}</p>
+          </div>
+          <p className="text-xs text-zinc-500 mt-4 border-t border-amber-500/10 pt-3">Görüşülen ama "Pilota Dönüştürülmeyen" firmalar. Takip maili atın.</p>
+        </div>
+
+        {/* Performance */}
+        <div className="border border-emerald-500/30 bg-emerald-500/5 p-5 rounded-xl flex flex-col justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Ödeme Performansı</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-black text-white">{metrics?.paid || 0}</p>
+              <span className="text-sm font-medium text-emerald-500">({metrics ? `${metrics.paidRate.toFixed(1)}%` : '—'})</span>
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 mt-4 border-t border-emerald-500/10 pt-3">Pilota alınan firmalar içinden ödeme yapanların oranı.</p>
         </div>
       </div>
 
@@ -173,7 +196,7 @@ export function PilotApplications() {
                     </label>
                     {isConverted ? (
                       <div className="mt-1 flex items-center gap-2 text-xs font-medium text-emerald-400">
-                        <CheckCircle2 size={14} /> Pilot hesabı oluşturuldu
+                        <CheckCircle2 size={14} /> Müşteri hesabı oluşturuldu
                       </div>
                     ) : (
                       <Button
@@ -181,7 +204,7 @@ export function PilotApplications() {
                         disabled={convertingId === application.id}
                         className="h-10 min-w-44 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
                       >
-                        <UserPlus size={14} /> {convertingId === application.id ? 'Oluşturuluyor…' : 'Hesap Oluştur ve Pilota Al'}
+                        <UserPlus size={14} /> {convertingId === application.id ? 'Oluşturuluyor…' : 'Hesap Oluştur (Deneme Başlat)'}
                       </Button>
                     )}
                   </div>

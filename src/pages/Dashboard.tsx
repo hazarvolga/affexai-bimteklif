@@ -19,7 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -53,10 +53,16 @@ function buildMonthlyPipeline(quotes: Quote[]) {
 }
 
 export function Dashboard() {
-  const { company } = useAuth();
+  const { company, user } = useAuth();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  // Redirect super admins to their operational dashboard
+  const superAdmins = ['admin@teklifpro.ai', 'hazarvolga@gmail.com'];
+  if (user?.email && superAdmins.includes(user.email)) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const loadQuotes = () => {
     setLoading(true);

@@ -189,11 +189,14 @@ export function CRM() {
                                </div>
                              ))}
                            </div>
-                           <div className="flex items-center gap-2">
-                             <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-500 hover:text-orange-500" onClick={(e) => { e.stopPropagation(); analyzeDeal(deal.id); }}>
+                           <div className="flex items-center gap-1">
+                             <Button variant="ghost" size="icon" title="3D IFC Modeli Yükle & Teklif Hazırla" className="h-6 w-6 text-zinc-500 hover:text-primary" onClick={(e) => { e.stopPropagation(); navigate(`/app/dosyadan-teklif-demo?dealId=${deal.id}`); }}>
+                               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                             </Button>
+                             <Button variant="ghost" size="icon" title="AI Analizi" className="h-6 w-6 text-zinc-500 hover:text-orange-500" onClick={(e) => { e.stopPropagation(); analyzeDeal(deal.id); }}>
                                <Zap size={12} />
                              </Button>
-                             <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-500 hover:text-white" onClick={() => navigate(`/app/crm/deals/${deal.id}`)}>
+                             <Button variant="ghost" size="icon" title="Detay" className="h-6 w-6 text-zinc-500 hover:text-white" onClick={() => navigate(`/app/crm/deals/${deal.id}`)}>
                                <ChevronRight size={14} />
                              </Button>
                            </div>
@@ -264,8 +267,8 @@ export function CRM() {
   return (
     <PageContainer>
       <PageHeader 
-        title="Sales CRM" 
-        description="Teklif odaklı satış hattı ve fırsat yönetimi. Fırsatları pipeline üzerinde sürükle bırak ile yönetin."
+        title="Müşteriler & Fırsatlar (CRM)" 
+        description="Müşteri portföyünüzü ve devam eden satış fırsatlarınızı yönetin."
         icon={Target}
         actions={
           <>

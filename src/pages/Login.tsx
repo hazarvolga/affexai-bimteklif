@@ -47,7 +47,8 @@ export function Login() {
       if (res.ok) {
         const data = await res.json();
         login(data.token, data.user, data.company, data.role, data.accountType);
-        navigate(data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
+        const finalPath = data.user.isSuperAdmin ? '/admin' : (data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
+        navigate(finalPath);
       } else {
         const body = await res.json().catch(() => ({}));
         toast.error(body.error ?? 'E-posta veya şifre hatalı.');

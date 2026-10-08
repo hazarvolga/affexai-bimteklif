@@ -15,6 +15,10 @@ import { NotFound } from '@/pages/NotFound';
 
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(async () => ({ default: (await loader())[name] as ComponentType<any> }));
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
+const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminShell');
+const AdminDashboard = page(() => import('@/pages/admin/AdminDashboard'), 'AdminDashboard');
+const TenantsList = page(() => import('@/pages/admin/TenantsList'), 'TenantsList');
+const PlansList = page(() => import('@/pages/admin/PlansList'), 'PlansList');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
 const QuoteDetail = page(() => import('@/pages/QuoteDetail'), 'QuoteDetail');
@@ -86,6 +90,14 @@ function AppRoutes() {
 
       {/* Protected App Routes */}
       <Route element={<ProtectedRoute />}>
+        {/* SÜPER ADMIN (PLATFORM YÖNETİMİ) ROTASI */}
+        <Route path="/admin" element={<AdminShell />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="tenants" element={<TenantsList />} />
+          <Route path="plans" element={<PlansList />} />
+        </Route>
+
+        {/* TENANT (MÜŞTERİ) ROTASI */}
         <Route path="/app" element={<Shell />}>
           <Route index element={<Dashboard />} />
           <Route path="ifc-parser" element={<BimIfcParserPage />} />

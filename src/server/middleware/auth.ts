@@ -12,6 +12,7 @@ declare global {
         role: string;
         email: string;
         emailVerified: Date | null;
+        isSuperAdmin?: boolean;
       };
     }
   }
@@ -24,14 +25,17 @@ export const authenticate = async (req: any, res: any, next: any) => {
   const decoded = AuthService.verifyToken(token);
   if (!decoded) return res.status(401).json({ error: "Invalid token" });
 
-  const [user] = await db.select({ email: users.email, emailVerified: users.emailVerified, passwordChangedAt: users.passwordChangedAt }).from(users).where(eq(users.id, decoded.userId));
+  const [user] = await db.select({ 
+    email: users.email, 
+    emailVerified: users.emailVerified, 
+    passwordChangedAt: users.passwordChangedAt,
+    isSuperAdmin: users.isSuperAdmin 
+  }).from(users).where(eq(users.id, decoded.userId));
+  
   if (!user) return res.status(401).json({ error: "Invalid token" });
-  // JWT `iat` has second precision; compare against passwordChangedAt floored to
-  // the same second so a login issued in the same second as a password change
-  // (the common "just reset my password, now logging in" case) is not rejected.
   if (user.passwordChangedAt && (!decoded.iat || decoded.iat < Math.floor(user.passwordChangedAt.getTime() / 1000))) return res.status(401).json({ error: "Session expired" });
 
-  req.user = { ...decoded, email: user.email, emailVerified: user.emailVerified };
+  req.user = { ...decoded, email: user.email, emailVerified: user.emailVerified, isSuperAdmin: user.isSuperAdmin };
   next();
 };
 
@@ -43,6 +47,13 @@ export const requireVerifiedEmail = (req: any, res: any, next: any) => {
 export const checkRole = (roles: string[]) => (req: any, res: any, next: any) => {
   if (!req.user || !roles.includes(req.user.role)) {
     return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
+  }
+  next();
+};
+
+export const checkSuperAdmin = () => (req: any, res: any, next: any) => {
+  if (!req.user || !req.user.isSuperAdmin) {
+    return res.status(403).json({ error: "Forbidden: Super Admin only" });
   }
   next();
 };

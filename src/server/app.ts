@@ -21,6 +21,7 @@ import { registerAiRoutes } from "./routes/ai";
 import { registerClientRoutes } from "./routes/clients";
 import { registerQuotationRoutes } from "./routes/quotations";
 import { registerPilotRoutes } from "./routes/pilot";
+import { registerAdminRoutes } from "./routes/admin";
 import { registerAcademyRoutes } from "./routes/academy";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
@@ -78,6 +79,7 @@ export function createApiApp() {
   registerClientRoutes(app, canMutate);
   registerQuotationRoutes(app, canMutate);
   registerPilotRoutes(app);
+  registerAdminRoutes(app);
   registerAcademyRoutes(app);
   registerSmartCheckRoutes(app);
   registerPricingRoutes(app);

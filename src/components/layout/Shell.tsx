@@ -66,9 +66,20 @@ export function Shell() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const filteredNavItems = navigationConfig.filter(item =>
-    (!role || item.roles.includes(role)) && (!isLearner || item.path === '/app/academy')
-  );
+  const superAdmins = ['admin@teklifpro.ai', 'hazarvolga@gmail.com'];
+  const isSuperAdmin = Boolean(user?.email && superAdmins.includes(user.email));
+
+  const filteredNavItems = navigationConfig.filter(item => {
+    // If the user is a super admin, they should ONLY see system management and settings tools
+    if (isSuperAdmin) {
+      return item.roles.includes("super_admin") || item.path === '/app/settings';
+    }
+    // Normal tenants should NOT see super admin tools
+    if (item.roles.includes("super_admin")) return false;
+    
+    // Normal role checks for tenants
+    return (!role || item.roles.includes(role)) && (!isLearner || item.path === '/app/academy');
+  });
 
   const brandBlock = (
     <div className="p-8 pb-10">

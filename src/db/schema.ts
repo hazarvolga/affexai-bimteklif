@@ -130,6 +130,7 @@ export const users = pgTable("users", {
   emailVerified: timestamp("email_verified"),
   verificationToken: text("verification_token"),
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
+  isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -188,12 +189,24 @@ export const memberships = pgTable("memberships", {
   };
 });
 
+export const plans = pgTable("plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  monthlyQuoteLimit: integer("monthly_quote_limit").notNull(),
+  monthlyPrice: integer("monthly_price").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const subscriptions = pgTable("subscriptions", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull().unique(),
-  plan: subscriptionPlanEnum("plan").default("starter").notNull(),
+  plan: subscriptionPlanEnum("plan").default("starter").notNull(), // Keep for legacy fallback
+  planId: uuid("plan_id").references(() => plans.id),
   status: subscriptionStatusEnum("status").default("active").notNull(),
   billingCycle: text("billing_cycle").default("monthly").notNull(),
+  bonusQuoteLimit: integer("bonus_quote_limit").default(0).notNull(),
+  currentPeriodStart: timestamp("current_period_start").defaultNow().notNull(),
   currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1767,3 +1780,19 @@ export const academyPaymentEvents = pgTable("academy_payment_events", {
   eventTypeCheck: check("academy_payment_events_type_check", sql`${table.eventType} in ('academy.purchase.completed', 'academy.purchase.refunded')`),
   idxPaymentReference: index("idx_academy_payment_events_reference").on(table.provider, table.paymentReference),
 }));
+
+export const usageRecords = pgTable("usage_records", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  period: text("period").notNull(), // Format: YYYY-MM
+  quoteCount: integer("quote_count").default(0).notNull(),
+});
+
+export const adminAuditLogs = pgTable("admin_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  adminId: uuid("admin_id").references(() => users.id).notNull(),
+  targetCompanyId: uuid("target_company_id").references(() => companies.id),
+  action: text("action").notNull(),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
