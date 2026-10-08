@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm";
 async function run() {
   try {
     const plansCount = await db.execute(sql`SELECT count(*) FROM plans;`);
-    const c = plansCount[0]?.count || 0;
+    const c = plansCount.rows[0]?.count || 0;
     if (Number(c) === 0) {
       console.log("Seeding plans...");
       const plans = await db.execute(sql`
@@ -17,9 +17,9 @@ async function run() {
       `);
       
       const compRes = await db.execute(sql`SELECT id FROM companies LIMIT 1;`);
-      if (compRes.length > 0) {
-        const compId = compRes[0].id;
-        const profPlanId = plans.find(p => p.name === 'Profesyonel').id;
+      if (compRes.rows.length > 0) {
+        const compId = compRes.rows[0].id;
+        const profPlanId = plans.rows.find(p => p.name === 'Profesyonel').id;
         
         await db.execute(sql`
           UPDATE subscriptions 

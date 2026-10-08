@@ -4,9 +4,11 @@ import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
 import { skipIfDatabaseUnavailable } from "./test-db-reachability";
+import { useTestIsolation } from "./test-isolation";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+useTestIsolation();
 
 test("regulation impact query is tenant-scoped and respects effective date", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;

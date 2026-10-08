@@ -4,9 +4,11 @@ import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
 import { skipIfDatabaseUnavailable } from "./test-db-reachability";
+import { useTestIsolation } from "./test-isolation";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+useTestIsolation();
 
 test("invitation accept verifies the token, provisions a membership, and rejects re-use", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;

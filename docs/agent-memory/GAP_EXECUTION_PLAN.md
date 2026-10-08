@@ -20,12 +20,12 @@ verified commits and restore points. Final user acceptance follows implementatio
 
 | Step | Scope | Acceptance | Status |
 |---|---|---|---|
-| 00 | Record audit and execution baseline | Reviewed plan, clean document diff, commit and tag | In progress |
-| 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | In progress |
-| 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Pending |
-| 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Pending |
-| 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | Pending |
-| 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Pending |
+| 00 | Record audit and execution baseline | Reviewed plan, clean document diff, commit and tag | Completed |
+| 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | Verified |
+| 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Verified, checkpoint next |
+| 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Verified, checkpoint next |
+| 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | In progress |
+| 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Review in progress |
 | 06 | Plan and quota integrity | Atomic period quota, unique counters, validated admin actions, audit and suspension; concurrency tests | Pending |
 | 07 | Reproducible schema | Reviewed bootstrap and additive migrations, disposable TeklifPro test DB upgrade/restore evidence | Pending |
 | 08 | Dependencies and release automation | Triage runtime advisories, pinned tooling, typecheck build gate and CI | Pending |
@@ -48,3 +48,17 @@ The previous interrupted test count is diagnostic, not a completed green run.
 ## Completion ledger
 
 Updated after each verified step with commands, results and checkpoint name.
+
+- Step 00: `git diff --check` passed. Commit `d703a83`, annotated source
+  checkpoint `restore/gap-20261008-00`. Existing application failures were
+  recorded, not declared resolved.
+- Step 01: initial 14 type errors fixed; `pnpm run lint` and `pnpm run build`
+  passed. Selected stable baseline: 484/484 tests passed, zero skips/cancellations,
+  with `PUPPETEER_EXECUTABLE_PATH` pointing to installed Google Chrome. New
+  in-progress invitation/quotation tests were excluded from this checkpoint run.
+  Ten existing DB integration files now use fresh local schemas, FK parity,
+  isolated worker schemas and temporary storage. Missing/unreachable isolation
+  aborts tests. Target-override query parameters are rejected. Usage finish
+  callbacks catch persistence rejections (three RED-to-GREEN regressions).
+  Independent code/security review approved after fixes. Source checkpoint:
+  `restore/gap-20261008-01`. Quota atomicity remains Step 06.

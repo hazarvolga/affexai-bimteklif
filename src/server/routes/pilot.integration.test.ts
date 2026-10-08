@@ -4,12 +4,15 @@ import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
 import { skipIfDatabaseUnavailable } from "./test-db-reachability";
+import { useTestIsolation } from "./test-isolation";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+useTestIsolation();
 
 test("pilot application conversion provisions a real company, user, and membership", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;
+  assert.equal(process.env.AUTH_EMAIL_WEBHOOK_URL, "", "integration must never send external auth email");
   const [{ createApiApp }, schema, dbModule, { AuthService }] = await Promise.all([
     import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"),
   ]);
@@ -18,12 +21,15 @@ test("pilot application conversion provisions a real company, user, and membersh
   const suffix = crypto.randomUUID();
 
   const [adminCompany] = await db.insert(schema.companies).values({ name: `Admin Co ${suffix}` }).returning();
-  const [adminUser] = await db.insert(schema.users).values({ email: `pilot-admin-${suffix}@example.test`, fullName: "Pilot Admin", emailVerified: new Date() }).returning();
+  const [adminUser] = await db.insert(schema.users).values({ email: `pilot-admin-${suffix}@example.test`, fullName: "Pilot Admin", emailVerified: new Date(), isSuperAdmin: true }).returning();
   await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: adminUser.id, role: "owner" });
   const [viewerUser] = await db.insert(schema.users).values({ email: `pilot-viewer-${suffix}@example.test`, fullName: "Pilot Viewer", emailVerified: new Date() }).returning();
   await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: viewerUser.id, role: "viewer" });
   const ownerToken = AuthService.generateToken({ userId: adminUser.id, companyId: adminCompany.id, role: "owner" });
   const viewerToken = AuthService.generateToken({ userId: viewerUser.id, companyId: adminCompany.id, role: "viewer" });
+  const [ownerUser] = await db.insert(schema.users).values({ email: `pilot-owner-${suffix}@example.test`, fullName: "Regular Owner", emailVerified: new Date() }).returning();
+  await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: ownerUser.id, role: "owner" });
+  const regularOwnerToken = AuthService.generateToken({ userId: ownerUser.id, companyId: adminCompany.id, role: "owner" });
 
   const [existingCollisionUser] = await db.insert(schema.users).values({ email: `pilot-collision-${suffix}@example.test`, fullName: "Existing User" }).returning();
 
@@ -31,6 +37,10 @@ test("pilot application conversion provisions a real company, user, and membersh
   const [collisionApplication] = await db.insert(schema.pilotApplications).values({ fullName: `Collision Contact ${suffix}`, companyName: `Collision Firma ${suffix}`, email: existingCollisionUser.email, consentAt: new Date() }).returning();
 
   const server = http.createServer(createApiApp());
+  t.after(() => new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve());
+    server.closeAllConnections();
+  }));
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
@@ -38,9 +48,10 @@ test("pilot application conversion provisions a real company, user, and membersh
 
   let provisionedCompanyId = "";
   let provisionedUserId = "";
-  try {
+  {
     const forbidden = await request(`/api/pilot-applications/${application.id}/convert`, {}, viewerToken);
     assert.equal(forbidden.status, 403);
+    assert.equal((await request(`/api/pilot-applications/${application.id}/convert`, {}, regularOwnerToken)).status, 403);
 
     const converted = await request(`/api/pilot-applications/${application.id}/convert`);
     assert.equal(converted.status, 201);
@@ -65,23 +76,5 @@ test("pilot application conversion provisions a real company, user, and membersh
 
     const collisionAttempt = await request(`/api/pilot-applications/${collisionApplication.id}/convert`);
     assert.equal(collisionAttempt.status, 409);
-  } finally {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
-    await db.delete(schema.pilotApplications).where(eq(schema.pilotApplications.id, application.id));
-    await db.delete(schema.pilotApplications).where(eq(schema.pilotApplications.id, collisionApplication.id));
-    if (provisionedUserId) {
-      await db.delete(schema.memberships).where(eq(schema.memberships.userId, provisionedUserId));
-      await db.delete(schema.users).where(eq(schema.users.id, provisionedUserId));
-    }
-    if (provisionedCompanyId) {
-      await db.delete(schema.subscriptions).where(eq(schema.subscriptions.companyId, provisionedCompanyId));
-      await db.delete(schema.companies).where(eq(schema.companies.id, provisionedCompanyId));
-    }
-    await db.delete(schema.users).where(eq(schema.users.id, existingCollisionUser.id));
-    await db.delete(schema.memberships).where(eq(schema.memberships.userId, adminUser.id));
-    await db.delete(schema.memberships).where(eq(schema.memberships.userId, viewerUser.id));
-    await db.delete(schema.users).where(eq(schema.users.id, adminUser.id));
-    await db.delete(schema.users).where(eq(schema.users.id, viewerUser.id));
-    await db.delete(schema.companies).where(eq(schema.companies.id, adminCompany.id));
   }
 });

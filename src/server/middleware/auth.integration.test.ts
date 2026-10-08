@@ -4,9 +4,11 @@ import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
 import { skipIfDatabaseUnavailable } from "../routes/test-db-reachability";
+import { useTestIsolation } from "../routes/test-isolation";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+useTestIsolation();
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-teklifpro";
 

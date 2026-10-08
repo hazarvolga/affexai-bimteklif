@@ -6,7 +6,7 @@ import {
   BookOpen
 } from 'lucide-react';
 
-export type NavGroup = 'Ana Menü' | 'Araçlar';
+export type NavGroup = 'Ana Menü' | 'Araçlar' | 'Sistem Yönetimi';
 
 export interface NavItem {
   label: string;

@@ -6,7 +6,7 @@ export const usageTracker = (feature: string) => async (req: any, res: any, next
   try {
     const { companyId, userId } = req.user;
 
-    const [subData] = await db.execute(sql`
+    const { rows: [subData] } = await db.execute(sql`
       SELECT s.id, p.monthly_quote_limit, s.bonus_quote_limit
       FROM subscriptions s
       LEFT JOIN plans p ON p.id = s.plan_id
@@ -18,7 +18,7 @@ export const usageTracker = (feature: string) => async (req: any, res: any, next
     if (feature === "QUOTATION_CREATED") {
       const currentPeriod = new Date().toISOString().slice(0, 7);
       
-      const [usageData] = await db.execute(sql`
+      const { rows: [usageData] } = await db.execute(sql`
         SELECT quote_count FROM usage_records 
         WHERE company_id = ${companyId} AND period = ${currentPeriod}
       `);
@@ -35,32 +35,40 @@ export const usageTracker = (feature: string) => async (req: any, res: any, next
       }
 
       res.on("finish", async () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          const [updated] = await db.execute(sql`
-            UPDATE usage_records 
-            SET quote_count = quote_count + 1 
-            WHERE company_id = ${companyId} AND period = ${currentPeriod}
-            RETURNING id
-          `);
-          if (!updated) {
-            await db.execute(sql`
-              INSERT INTO usage_records (company_id, period, quote_count)
-              VALUES (${companyId}, ${currentPeriod}, 1)
+        try {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            const { rows: [updated] } = await db.execute(sql`
+              UPDATE usage_records
+              SET quote_count = quote_count + 1
+              WHERE company_id = ${companyId} AND period = ${currentPeriod}
+              RETURNING id
             `);
+            if (!updated) {
+              await db.execute(sql`
+                INSERT INTO usage_records (company_id, period, quote_count)
+                VALUES (${companyId}, ${currentPeriod}, 1)
+              `);
+            }
           }
+        } catch {
+          console.error("Usage counter persistence failed", { companyId, feature });
         }
       });
     }
 
     res.on("finish", async () => {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        await db.insert(usageLogs).values({
-          companyId,
-          userId,
-          feature,
-          count: 1,
-          costEstimate: "0"
-        });
+      try {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          await db.insert(usageLogs).values({
+            companyId,
+            userId,
+            feature,
+            count: 1,
+            costEstimate: "0"
+          });
+        }
+      } catch {
+        console.error("Usage log persistence failed", { companyId, feature });
       }
     });
 

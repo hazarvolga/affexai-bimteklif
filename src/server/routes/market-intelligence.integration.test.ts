@@ -5,9 +5,11 @@ import test from "node:test";
 import dotenv from "dotenv";
 import { buildPriceSnapshotKey } from "../../smartcheck/pricing/snapshots";
 import { skipIfDatabaseUnavailable } from "./test-db-reachability";
+import { useTestIsolation } from "./test-isolation";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+useTestIsolation();
 
 test("supplier quote market intelligence is review-gated, outlier-aware, and tenant-isolated", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;

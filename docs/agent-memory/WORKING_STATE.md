@@ -1147,7 +1147,7 @@ Current decision:
   NO-GO until the report's P0 gates are closed.
 - `pnpm run build` and Drizzle metadata check passed.
 - `pnpm run lint` failed with 14 TypeScript errors.
-- The full test run reported 349 tests: 344 passed, 4 failed and 1 cancelled.
+- The interrupted full test run reported 349 tests: 344 passed, 4 failed and 1 cancelled; this was not a cleanly completed run.
   Registration DTO and super-admin pilot-conversion contract failures were
   reproduced in isolation. SmartCheck HTTP integration also failed on the
   local Graphile Worker schema and did not terminate cleanly.
@@ -1158,6 +1158,9 @@ Current decision:
   integrity, invitation security, reproducible app/worker deployment and real
   five-file/S3/reviewer pilot evidence.
 
-No application code, production service or database data was changed during
-the GAP analysis. The recommended next step is report Phase 0: restore a green
-lint/test baseline before feature expansion.
+No application code or production service was changed during the GAP analysis.
+Integration checks did write temporary records to `teklifpro_local`; complete
+cleanup of interrupted checks was not established. The next step is report
+Phase 0: restore an isolated, green lint/test baseline before feature expansion.
+Autonomous remediation and source restore checkpoints are tracked in
+`GAP_EXECUTION_PLAN.md`.

@@ -49,7 +49,7 @@ Buna rağmen güncel dal release edilebilir değil. En kritik nedenler:
 | `git diff --check` | Geçti | Yeşil |
 | `pnpm run lint` | Başarısız, 14 TypeScript hatası | P0 blokaj |
 | `pnpm run build` | Başarılı, Vite 3114 modül, 6.72 sn | Kısmi; build typecheck içermiyor |
-| `pnpm test` | 349 test: 344 geçti, 4 başarısız, 1 iptal | P0 blokaj |
+| `pnpm test` | Kesilen koşu: 349 test, 344 geçti, 4 başarısız, 1 iptal; temiz tamamlanma kanıtı değil | P0 blokaj |
 | Odak testleri | Registration DTO testi ve pilot conversion testi tekrar üretilebilir biçimde başarısız | P0/P1 |
 | SmartCheck HTTP testi | `graphile_worker.jobs already exists`; 2 fail + kapanmayan süreç | P0 test izolasyonu/migration |
 | `drizzle-kit check` | Migration metadata kontrolü geçti | Baseline bootstrap kanıtı değildir |

@@ -21,7 +21,7 @@ type PilotApplication = {
   provisionedCompanyId: string | null;
   createdAt: string;
 };
-type PilotMetrics = { total: number; converted: number; paid: number; conversionRate: number; paidRate: number; averageDaysToConvert: number | null };
+type PilotMetrics = { total: number; converted: number; paid: number; newLeads: number; bottleneckContacted: number; conversionRate: number; paidRate: number; averageDaysToConvert: number | null };
 
 const statuses = [
   { value: 'new', label: 'Yeni', className: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },

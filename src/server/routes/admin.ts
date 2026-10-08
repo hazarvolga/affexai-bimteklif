@@ -15,7 +15,7 @@ export function registerAdminRoutes(app: Express) {
         LEFT JOIN subscriptions s ON s.company_id = c.id
         GROUP BY s.status
       `);
-      const statusCounts = (tenantsRes.rows || tenantsRes).reduce((acc: any, row: any) => {
+      const statusCounts = tenantsRes.rows.reduce((acc: any, row: any) => {
         acc[row.status || 'unknown'] = Number(row.count);
         return acc;
       }, {});
@@ -31,7 +31,7 @@ export function registerAdminRoutes(app: Express) {
       `);
       
       let totalMRR = 0;
-      const planDistribution = (mrrRes.rows || mrrRes).map((row: any) => {
+      const planDistribution = mrrRes.rows.map((row: any) => {
         const count = Number(row.active_count);
         const price = Number(row.monthly_price);
         totalMRR += (count * price);
@@ -43,7 +43,7 @@ export function registerAdminRoutes(app: Express) {
       const usageRes = await db.execute(sql`
         SELECT SUM(quote_count) as total_quotes FROM usage_records WHERE period = ${currentPeriod}
       `);
-      const totalQuotesThisMonth = Number((usageRes.rows || usageRes)[0]?.total_quotes || 0);
+      const totalQuotesThisMonth = Number(usageRes.rows[0]?.total_quotes || 0);
 
       return res.json({
         totalTenants,
@@ -80,7 +80,7 @@ export function registerAdminRoutes(app: Express) {
         LEFT JOIN usage_records ur ON ur.company_id = c.id AND ur.period = to_char(CURRENT_DATE, 'YYYY-MM')
         ORDER BY c.created_at DESC
       `);
-      return res.json(tenants.rows || tenants);
+      return res.json(tenants.rows);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: "Tenants fetch failed." });

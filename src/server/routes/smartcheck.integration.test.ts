@@ -4,14 +4,15 @@ import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
 import { skipIfDatabaseUnavailable } from "./test-db-reachability";
+import { useTestIsolation } from "./test-isolation";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+useTestIsolation();
 
 test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;
   process.env.SMARTCHECK_IMPORT_ENABLED = "true";
-  process.env.SMARTCHECK_LOCAL_STORAGE_DIR = ".data/smartcheck-integration-test";
   const [{ createApiApp }, schema, dbModule, { AuthService }, processor] = await Promise.all([
     import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"), import("../../smartcheck/import/processor"),
   ]);
@@ -31,6 +32,10 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
   const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
   const app = createApiApp();
   const server = http.createServer(app);
+  t.after(() => new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve());
+    server.closeAllConnections();
+  }));
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
@@ -43,7 +48,7 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
   let generatedClientId = "";
   let priceSourceId = "";
   let snapshotId = "";
-  try {
+  {
     const create = await request("/api/smartcheck/documents/uploads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fileName: "mep.csv", mimeType: "text/csv", fileSizeBytes: csv.length }) });
     assert.equal(create.status, 201);
     const target = await create.json() as { documentId: string; uploadUrl: string };
@@ -109,38 +114,12 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     assert.equal(generatedItems[0].priceSnapshotStatus, "attached");
     assert.equal(Number(generatedItems[0].unitPrice), 777);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientName: "Tenant B Client", projectName: "Tenant B Quote", rowIds: [rows[0].id] }) }, tokenB)).status, 404);
-  } finally {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
-    await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.companyId, companyA.id), eq(schema.quotationItemEvidence.quotationId, quote.id)));
-    if (generatedQuoteId) await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.companyId, companyA.id), eq(schema.quotationItemEvidence.quotationId, generatedQuoteId)));
-    if (runId) await db.delete(schema.normalizedQuantityRows).where(and(eq(schema.normalizedQuantityRows.processingRunId, runId), eq(schema.normalizedQuantityRows.companyId, companyA.id)));
-    if (documentId) {
-      await db.delete(schema.documentProcessingArtifacts).where(and(eq(schema.documentProcessingArtifacts.documentId, documentId), eq(schema.documentProcessingArtifacts.companyId, companyA.id)));
-      await db.delete(schema.documentProcessingRuns).where(and(eq(schema.documentProcessingRuns.documentId, documentId), eq(schema.documentProcessingRuns.companyId, companyA.id)));
-      await db.delete(schema.documents).where(and(eq(schema.documents.id, documentId), eq(schema.documents.companyId, companyA.id)));
-    }
-    await db.delete(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, quote.id), eq(schema.quotationItems.companyId, companyA.id)));
-    if (generatedQuoteId) await db.delete(schema.quotationItems).where(and(eq(schema.quotationItems.quotationId, generatedQuoteId), eq(schema.quotationItems.companyId, companyA.id)));
-    if (generatedQuoteId) await db.delete(schema.quotations).where(eq(schema.quotations.id, generatedQuoteId));
-    if (generatedClientId) await db.delete(schema.clients).where(eq(schema.clients.id, generatedClientId));
-    if (snapshotId) await db.delete(schema.priceSnapshots).where(and(eq(schema.priceSnapshots.id, snapshotId), eq(schema.priceSnapshots.companyId, companyA.id)));
-    if (priceSourceId) await db.delete(schema.priceSources).where(and(eq(schema.priceSources.id, priceSourceId), eq(schema.priceSources.companyId, companyA.id)));
-    await db.delete(schema.quotations).where(eq(schema.quotations.id, quote.id));
-    await db.delete(schema.clients).where(eq(schema.clients.id, client.id));
-    await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));
-    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userA.id));
-    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userB.id));
-    await db.delete(schema.users).where(eq(schema.users.id, userA.id));
-    await db.delete(schema.users).where(eq(schema.users.id, userB.id));
-    await db.delete(schema.companies).where(eq(schema.companies.id, companyA.id));
-    await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));
   }
 });
 
 test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;
   process.env.SMARTCHECK_IMPORT_ENABLED = "true";
-  process.env.SMARTCHECK_LOCAL_STORAGE_DIR = ".data/smartcheck-ifc-integration-test";
   const [{ createApiApp }, schema, dbModule, { AuthService }, processor] = await Promise.all([
     import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"), import("../../smartcheck/import/processor"),
   ]);
@@ -158,6 +137,10 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
   const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
   const app = createApiApp();
   const server = http.createServer(app);
+  t.after(() => new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve());
+    server.closeAllConnections();
+  }));
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
@@ -181,7 +164,7 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
   const checksum = crypto.createHash("sha256").update(ifc).digest("hex");
   let documentId = "";
   let runId = "";
-  try {
+  {
     const create = await request("/api/smartcheck/documents/uploads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fileName: "model.ifc", mimeType: "model/ifc", fileSizeBytes: ifc.length }) });
     assert.equal(create.status, 201);
     const target = await create.json() as { documentId: string; uploadUrl: string; maxFileSizeBytes: number };
@@ -206,7 +189,7 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     assert.equal(rows[0].reviewStatus, "pending_review");
     assert.equal(Number(rows[0].normalizedQuantity), 7.5);
     assert.equal(rows[0].normalizedUnit, "m³");
-    assert.deepEqual(rows[0].findingsJson.map((finding) => finding.code), ["MISSING_PRICE_SOURCE"]);
+    assert.deepEqual(rows[0].findingsJson.map((finding) => finding.code), ["MISSING_POSITION_CODE", "MISSING_PRICE_SOURCE"]);
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/rows`, {}, tokenB)).status, 404);
     const blockedBulkReview = await request(`/api/smartcheck/documents/${documentId}/bulk-review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", rowIds: [rows[0].id] }) });
     assert.equal(blockedBulkReview.status, 409);
@@ -215,20 +198,5 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     assert.equal(Boolean(artifact), true);
     assert.equal((artifact.metadataJson as { summary?: { evidenceRowCount?: number; blockedElementCount?: number } }).summary?.evidenceRowCount, 1);
     assert.equal((artifact.metadataJson as { summary?: { blockedElementCount?: number } }).summary?.blockedElementCount, 0);
-  } finally {
-    await new Promise<void>((resolve) => server.close(() => resolve()));
-    if (runId) await db.delete(schema.normalizedQuantityRows).where(and(eq(schema.normalizedQuantityRows.processingRunId, runId), eq(schema.normalizedQuantityRows.companyId, companyA.id)));
-    if (documentId) {
-      await db.delete(schema.documentProcessingArtifacts).where(and(eq(schema.documentProcessingArtifacts.documentId, documentId), eq(schema.documentProcessingArtifacts.companyId, companyA.id)));
-      await db.delete(schema.documentProcessingRuns).where(and(eq(schema.documentProcessingRuns.documentId, documentId), eq(schema.documentProcessingRuns.companyId, companyA.id)));
-      await db.delete(schema.documents).where(and(eq(schema.documents.id, documentId), eq(schema.documents.companyId, companyA.id)));
-    }
-    await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));
-    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userA.id));
-    await db.delete(schema.memberships).where(eq(schema.memberships.userId, userB.id));
-    await db.delete(schema.users).where(eq(schema.users.id, userA.id));
-    await db.delete(schema.users).where(eq(schema.users.id, userB.id));
-    await db.delete(schema.companies).where(eq(schema.companies.id, companyA.id));
-    await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));
   }
 });
