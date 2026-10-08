@@ -1,4 +1,5 @@
 import { QuoteStatus } from "../../types";
+import { escapeHtml } from './escape';
 
 export interface PdfTemplate {
   id: string;
@@ -53,13 +54,12 @@ export interface PdfData {
 const evidenceSummaryHtml = (data: PdfData) => data.evidenceSummary ? `
   <div class="terms" style="border: 1px solid #e4e4e7; border-radius: 8px; padding: 14px;">
     <div style="font-weight: 800; color: #18181b;">Kaynak ve doğrulama özeti</div>
-    <div>${data.evidenceSummary.verifiedItemCount} kalem insan onaylı kaynak iziyle aktarıldı; ${data.evidenceSummary.sourceDocumentCount} kaynak doküman kullanıldı.</div>
-    <div>Kural sürümleri: ${data.evidenceSummary.ruleVersions.join(", ") || "Pilot bütünlük kontrolleri"}. Ham dosya ve hassas iç maliyet verisi bu özete eklenmemiştir.</div>
+    <div>${escapeHtml(data.evidenceSummary.verifiedItemCount)} kalem insan onaylı kaynak iziyle aktarıldı; ${escapeHtml(data.evidenceSummary.sourceDocumentCount)} kaynak doküman kullanıldı.</div>
+    <div>Kural sürümleri: ${escapeHtml(data.evidenceSummary.ruleVersions.join(", ") || "Pilot bütünlük kontrolleri")}. Ham dosya ve hassas iç maliyet verisi bu özete eklenmemiştir.</div>
   </div>` : "";
 
 const commonStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-  body { font-family: 'Inter', sans-serif; color: #18181b; margin: 0; padding: 40px; font-size: 11pt; line-height: 1.5; }
+  body { font-family: Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif; color: #18181b; margin: 0; padding: 40px; font-size: 11pt; line-height: 1.5; }
   .header { display: flex; justify-content: space-between; border-bottom: 2px solid #f4f4f5; padding-bottom: 20px; margin-bottom: 30px; }
   .logo { font-size: 24pt; font-weight: 800; color: #ea580c; }
   .company-info { text-align: right; font-size: 9pt; color: #71717a; }
@@ -101,10 +101,10 @@ export const templates: PdfTemplate[] = [
         <div class="header">
           <div class="logo">TeklifPro AI</div>
           <div class="company-info">
-            <div style="font-weight: 800; color: #18181b; font-size: 12pt;">${data.company.name}</div>
-            <div>${data.company.address || ""}</div>
-            <div>${data.company.phone || ""} | ${data.company.email || ""}</div>
-            <div>Vergi No: ${data.company.taxNumber || "-"}</div>
+            <div style="font-weight: 800; color: #18181b; font-size: 12pt;">${escapeHtml(data.company.name)}</div>
+            <div>${escapeHtml(data.company.address || "")}</div>
+            <div>${escapeHtml(data.company.phone || "")} | ${escapeHtml(data.company.email || "")}</div>
+            <div>Vergi No: ${escapeHtml(data.company.taxNumber || "-")}</div>
           </div>
         </div>
 
@@ -112,18 +112,18 @@ export const templates: PdfTemplate[] = [
           <div>
             <div class="section-title">Müşteri Bilgileri</div>
             <div class="info-box">
-              <div class="info-item"><span class="info-label">İsim:</span> ${data.client.name}</div>
-              <div class="info-item"><span class="info-label">Adres:</span> ${data.client.address || "-"}</div>
-              <div class="info-item"><span class="info-label">E-posta:</span> ${data.client.email || "-"}</div>
+              <div class="info-item"><span class="info-label">İsim:</span> ${escapeHtml(data.client.name)}</div>
+              <div class="info-item"><span class="info-label">Adres:</span> ${escapeHtml(data.client.address || "-")}</div>
+              <div class="info-item"><span class="info-label">E-posta:</span> ${escapeHtml(data.client.email || "-")}</div>
             </div>
           </div>
           <div>
             <div class="section-title">Teklif Detayları</div>
             <div class="info-box">
-              <div class="info-item"><span class="info-label">Proje:</span> ${data.quotation.projectName}</div>
-              <div class="info-item"><span class="info-label">Teklif No:</span> #${data.quotation.quoteNumber} (v${data.quotation.revisionVersion})</div>
-              <div class="info-item"><span class="info-label">Tarih:</span> ${data.quotation.date}</div>
-              <div class="info-item"><span class="info-label">Geçerlilik:</span> ${data.quotation.expiryDate}</div>
+              <div class="info-item"><span class="info-label">Proje:</span> ${escapeHtml(data.quotation.projectName)}</div>
+              <div class="info-item"><span class="info-label">Teklif No:</span> #${escapeHtml(data.quotation.quoteNumber)} (v${escapeHtml(data.quotation.revisionVersion)})</div>
+              <div class="info-item"><span class="info-label">Tarih:</span> ${escapeHtml(data.quotation.date)}</div>
+              <div class="info-item"><span class="info-label">Geçerlilik:</span> ${escapeHtml(data.quotation.expiryDate)}</div>
             </div>
           </div>
         </div>
@@ -141,11 +141,11 @@ export const templates: PdfTemplate[] = [
           <tbody>
             ${data.items.map(item => `
               <tr>
-                <td>${item.description}</td>
-                <td class="text-center">${item.unit}</td>
-                <td class="text-right font-mono">${item.quantity}</td>
-                <td class="text-right font-mono">${item.unitPrice.toLocaleString('tr-TR')} ${data.quotation.currency}</td>
-                <td class="text-right font-mono" style="font-weight: 700;">${item.total.toLocaleString('tr-TR')} ${data.quotation.currency}</td>
+                <td>${escapeHtml(item.description)}</td>
+                <td class="text-center">${escapeHtml(item.unit)}</td>
+                <td class="text-right font-mono">${escapeHtml(item.quantity)}</td>
+                <td class="text-right font-mono">${escapeHtml(item.unitPrice.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</td>
+                <td class="text-right font-mono" style="font-weight: 700;">${escapeHtml(item.total.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -153,10 +153,10 @@ export const templates: PdfTemplate[] = [
 
         <div class="totals-container">
           <div class="totals-box">
-            <div class="total-row"><span>Ara Toplam:</span> <span class="font-mono">${data.quotation.subtotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
-            <div class="total-row"><span>İndirim:</span> <span class="font-mono" style="color: #ea580c">-${data.quotation.discountTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
-            <div class="total-row"><span>KDV:</span> <span class="font-mono">${data.quotation.vatTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
-            <div class="total-row grand-total"><span>TOPLAM:</span> <span class="font-mono">${data.quotation.grandTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
+            <div class="total-row"><span>Ara Toplam:</span> <span class="font-mono">${escapeHtml(data.quotation.subtotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            <div class="total-row"><span>İndirim:</span> <span class="font-mono" style="color: #ea580c">-${escapeHtml(data.quotation.discountTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            <div class="total-row"><span>KDV:</span> <span class="font-mono">${escapeHtml(data.quotation.vatTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            <div class="total-row grand-total"><span>TOPLAM:</span> <span class="font-mono">${escapeHtml(data.quotation.grandTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
           </div>
         </div>
 
@@ -203,10 +203,10 @@ export const templates: PdfTemplate[] = [
         <div class="header">
           <div class="logo">LUXURY ESTATES</div>
           <div class="company-info">
-            <div style="font-weight: 800; color: #18181b; font-size: 12pt;">${data.company.name}</div>
-            <div>${data.company.address || ""}</div>
-            <div>${data.company.phone || ""} | ${data.company.email || ""}</div>
-            <div>Vergi No: ${data.company.taxNumber || "-"}</div>
+            <div style="font-weight: 800; color: #18181b; font-size: 12pt;">${escapeHtml(data.company.name)}</div>
+            <div>${escapeHtml(data.company.address || "")}</div>
+            <div>${escapeHtml(data.company.phone || "")} | ${escapeHtml(data.company.email || "")}</div>
+            <div>Vergi No: ${escapeHtml(data.company.taxNumber || "-")}</div>
           </div>
         </div>
 
@@ -214,16 +214,16 @@ export const templates: PdfTemplate[] = [
           <div>
             <div class="section-title">Sayın</div>
             <div class="info-box">
-              <div class="info-item"><span style="font-size: 14pt; font-weight: 700;">${data.client.name}</span></div>
-              <div class="info-item">${data.client.address || "-"}</div>
+              <div class="info-item"><span style="font-size: 14pt; font-weight: 700;">${escapeHtml(data.client.name)}</span></div>
+              <div class="info-item">${escapeHtml(data.client.address || "-")}</div>
             </div>
           </div>
           <div>
             <div class="section-title">Teklif Referans</div>
             <div class="info-box">
-              <div class="info-item"><span class="info-label">PROJE:</span> ${data.quotation.projectName}</div>
-              <div class="info-item"><span class="info-label">REF:</span> ${data.quotation.quoteNumber}</div>
-              <div class="info-item"><span class="info-label">TARİH:</span> ${data.quotation.date}</div>
+              <div class="info-item"><span class="info-label">PROJE:</span> ${escapeHtml(data.quotation.projectName)}</div>
+              <div class="info-item"><span class="info-label">REF:</span> ${escapeHtml(data.quotation.quoteNumber)}</div>
+              <div class="info-item"><span class="info-label">TARİH:</span> ${escapeHtml(data.quotation.date)}</div>
             </div>
           </div>
         </div>
@@ -241,11 +241,11 @@ export const templates: PdfTemplate[] = [
           <tbody>
             ${data.items.map(item => `
               <tr>
-                <td><div style="font-weight: 700;">${item.description}</div></td>
-                <td class="text-center">${item.unit}</td>
-                <td class="text-right">${item.quantity}</td>
-                <td class="text-right">${item.unitPrice.toLocaleString('tr-TR')} ${data.quotation.currency}</td>
-                <td class="text-right" style="font-weight: 700;">${item.total.toLocaleString('tr-TR')} ${data.quotation.currency}</td>
+                <td><div style="font-weight: 700;">${escapeHtml(item.description)}</div></td>
+                <td class="text-center">${escapeHtml(item.unit)}</td>
+                <td class="text-right">${escapeHtml(item.quantity)}</td>
+                <td class="text-right">${escapeHtml(item.unitPrice.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</td>
+                <td class="text-right" style="font-weight: 700;">${escapeHtml(item.total.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -253,10 +253,10 @@ export const templates: PdfTemplate[] = [
 
         <div class="totals-container">
           <div class="totals-box">
-            <div class="total-row"><span>Hakediş Toplamı:</span> <span>${data.quotation.subtotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
-            <div class="total-row"><span>İskonto Kamu:</span> <span style="color: #ea580c">-${data.quotation.discountTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
-            <div class="total-row"><span>KDV Tevkifat (%20):</span> <span>${data.quotation.vatTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
-            <div class="total-row grand-total"><span>GENEL YEKÜN:</span> <span>${data.quotation.grandTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
+            <div class="total-row"><span>Hakediş Toplamı:</span> <span>${escapeHtml(data.quotation.subtotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            <div class="total-row"><span>İskonto Kamu:</span> <span style="color: #ea580c">-${escapeHtml(data.quotation.discountTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            <div class="total-row"><span>KDV Tevkifat (%20):</span> <span>${escapeHtml(data.quotation.vatTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            <div class="total-row grand-total"><span>GENEL YEKÜN:</span> <span>${escapeHtml(data.quotation.grandTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
           </div>
         </div>
 
@@ -293,28 +293,28 @@ export const templates: PdfTemplate[] = [
       </head>
       <body>
         <div class="header">
-          <div class="logo">${data.company.name.split(' ')[0]}</div>
+          <div class="logo">${escapeHtml(data.company.name.split(' ')[0])}</div>
           <div class="company-info">
-            <div>${data.company.address || ""}</div>
-            <div>${data.company.phone || ""} | ${data.company.email || ""}</div>
+            <div>${escapeHtml(data.company.address || "")}</div>
+            <div>${escapeHtml(data.company.phone || "")} | ${escapeHtml(data.company.email || "")}</div>
           </div>
         </div>
 
         <div style="margin: 60px 0;">
           <div style="font-size: 24pt; font-weight: 800;">TEKLİF</div>
-          <div style="color: #71717a;">NO: ${data.quotation.quoteNumber} | ${data.quotation.date}</div>
+          <div style="color: #71717a;">NO: ${escapeHtml(data.quotation.quoteNumber)} | ${escapeHtml(data.quotation.date)}</div>
         </div>
 
         <div class="client-project-grid">
            <div>
              <div class="section-title">KİME</div>
              <div class="info-box">
-              <div style="font-weight: 700; font-size: 12pt;">${data.client.name}</div>
+              <div style="font-weight: 700; font-size: 12pt;">${escapeHtml(data.client.name)}</div>
              </div>
            </div>
            <div>
              <div class="section-title">PROJE</div>
-             <div class="info-box">${data.quotation.projectName}</div>
+             <div class="info-box">${escapeHtml(data.quotation.projectName)}</div>
            </div>
         </div>
 
@@ -330,10 +330,10 @@ export const templates: PdfTemplate[] = [
           <tbody>
             ${data.items.map(item => `
               <tr>
-                <td>${item.description}</td>
-                <td class="text-right">${item.quantity} ${item.unit}</td>
-                <td class="text-right">${item.unitPrice.toLocaleString('tr-TR')}</td>
-                <td class="text-right" style="font-weight: 700;">${item.total.toLocaleString('tr-TR')}</td>
+                <td>${escapeHtml(item.description)}</td>
+                <td class="text-right">${escapeHtml(item.quantity)} ${escapeHtml(item.unit)}</td>
+                <td class="text-right">${escapeHtml(item.unitPrice.toLocaleString('tr-TR'))}</td>
+                <td class="text-right" style="font-weight: 700;">${escapeHtml(item.total.toLocaleString('tr-TR'))}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -341,7 +341,7 @@ export const templates: PdfTemplate[] = [
 
         <div class="totals-container">
           <div class="totals-box">
-            <div class="total-row"><span>TOPLAM</span> <span style="font-weight: 700;">${data.quotation.grandTotal.toLocaleString('tr-TR')} ${data.quotation.currency}</span></div>
+            <div class="total-row"><span>TOPLAM</span> <span style="font-weight: 700;">${escapeHtml(data.quotation.grandTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
             <div style="font-size: 7pt; color: #a1a1aa; text-align: right; margin-top: 5px;">KDV DAHİLDİR</div>
           </div>
         </div>

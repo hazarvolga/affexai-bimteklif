@@ -22,8 +22,8 @@ verified commits and restore points. Final user acceptance follows implementatio
 |---|---|---|---|
 | 00 | Record audit and execution baseline | Reviewed plan, clean document diff, commit and tag | Completed |
 | 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | Completed |
-| 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Verified |
-| 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Verified, checkpoint next |
+| 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Completed |
+| 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Verified |
 | 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | In progress |
 | 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Review in progress |
 | 06 | Plan and quota integrity | Atomic period quota, unique counters, validated admin actions, audit and suspension; concurrency tests | Pending |
@@ -68,3 +68,11 @@ Updated after each verified step with commands, results and checkpoint name.
   tests bring focused count to 18. Included in the 484-test stable baseline.
   SQL-conjunction assertion strengthened after independent review. Scoped
   security review approved. Checkpoint: `restore/gap-20261008-02`.
+- Step 02 commit: `26de91b`.
+- Step 03: escaped all three templates and evidence summaries, disabled scripts
+  and network/file loading, retained Chromium sandbox, bounded render/cleanup.
+  PDF suite: 109 deterministic tests plus five real Chrome tests passed; also
+  included in the 484-test baseline. Real smoke verified literal markup,
+  Turkish text, totals, valid PDF bytes and zero requests to the probe server.
+  Independent code/security review found no blockers. Deployment must supply
+  sandbox-capable Chromium and local fonts. Checkpoint: `restore/gap-20261008-03`.
