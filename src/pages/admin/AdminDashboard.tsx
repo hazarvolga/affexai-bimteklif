@@ -1,15 +1,81 @@
+import { useEffect, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Building2, CreditCard, Activity, Users } from 'lucide-react';
+import { fetchWithAuth } from '../../lib/api';
 
 export function AdminDashboard() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWithAuth('/api/admin/dashboard')
+      .then(res => res.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <PageContainer>
       <PageHeader title="Platform Genel Bakış" description="TeklifPro platformunun genel durumunu, aktif firmaları ve gelir metriklerini takip edin." icon={LayoutDashboard} />
-      <div className="border border-indigo-500/20 bg-indigo-500/5 p-12 text-center rounded-xl">
-        <h3 className="text-lg font-medium text-white">Süper Admin Dashboard</h3>
-        <p className="mt-2 text-zinc-400">Yakında: MRR grafikleri, paket kullanım oranları ve kota doluluk uyarıları burada yer alacak.</p>
-      </div>
+      
+      {loading ? (
+        <div className="flex h-40 items-center justify-center text-zinc-500">Yükleniyor...</div>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            
+            <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 size={16} className="text-indigo-400" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Toplam Tenant</p>
+              </div>
+              <p className="text-3xl font-black text-white">{data?.totalTenants || 0}</p>
+              <div className="mt-4 flex gap-3 text-xs text-zinc-500 border-t border-indigo-500/10 pt-3">
+                <span className="text-emerald-400">{data?.statusCounts?.active || 0} aktif</span>
+                <span className="text-amber-400">{data?.statusCounts?.suspended || 0} askıda</span>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard size={16} className="text-emerald-400" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Tahmini MRR (Aylık Gelir)</p>
+              </div>
+              <p className="text-3xl font-black text-white">₺{(data?.totalMRR || 0).toLocaleString()}</p>
+              <p className="text-xs text-zinc-500 mt-4 border-t border-emerald-500/10 pt-3">Aktif aboneliklerin aylık bedel toplamı.</p>
+            </div>
+
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity size={16} className="text-blue-400" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-blue-400">Bu Ay Oluşturulan Teklif</p>
+              </div>
+              <p className="text-3xl font-black text-white">{data?.totalQuotesThisMonth || 0}</p>
+              <p className="text-xs text-zinc-500 mt-4 border-t border-blue-500/10 pt-3">Platform genelinde sistem yükü.</p>
+            </div>
+
+            <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-5 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <Users size={16} className="text-purple-400" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-purple-400">Paket Dağılımı</p>
+              </div>
+              <div className="flex flex-col gap-1 text-sm text-zinc-300">
+                {data?.planDistribution?.length ? data.planDistribution.map((p: any) => (
+                  <div key={p.name} className="flex justify-between border-b border-purple-500/10 pb-1 last:border-0">
+                    <span>{p.name}</span>
+                    <span className="font-bold text-white">{p.count}</span>
+                  </div>
+                )) : (
+                  <span className="text-zinc-500">Kayıtlı paket yok</span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-500 mt-4 border-t border-purple-500/10 pt-3">Hangi paket daha çok satıyor?</p>
+            </div>
+
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 }

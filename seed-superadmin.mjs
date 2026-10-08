@@ -1,38 +1,46 @@
-import { db } from "./src/db/index.js";
-import { users, companies, memberships } from "./src/db/schema.js";
-import { AuthService } from "./src/services/auth/authService.js";
+import postgres from "postgres";
+
+const sql = postgres("postgres://hazarekiz@localhost:5432/teklifpro_local");
 
 async function run() {
-  const email = "admin@teklifpro.ai";
-  const password = "admin123";
-  const name = "Sistem Super Admin";
-  
-  const hash = await AuthService.hashPassword(password);
-  
-  // Create user
-  const [user] = await db.insert(users).values({
-    email,
-    passwordHash: hash,
-    fullName: name,
-    emailVerified: new Date(),
-  }).returning();
-  
-  // Create system company
-  const [company] = await db.insert(companies).values({
-    name: "TeklifPro System",
-    industry: "Software",
-    tenantType: "enterprise",
-  }).returning();
-  
-  // Create membership
-  await db.insert(memberships).values({
-    userId: user.id,
-    companyId: company.id,
-    role: "owner"
-  });
-  
-  console.log("Super admin created: admin@teklifpro.ai / admin123");
-  process.exit(0);
-}
+  try {
+    const plansCount = await sql`SELECT count(*) FROM plans;`;
+    if (Number(plansCount[0].count) === 0) {
+      console.log("Seeding plans...");
+      const plans = await sql`
+        INSERT INTO plans (name, monthly_quote_limit, monthly_price, is_active)
+        VALUES 
+        ('Başlangıç', 15, 499, true),
+        ('Profesyonel', 50, 1299, true),
+        ('Kurumsal', 99999, 2999, true)
+        RETURNING id, name;
+      `;
+      
+      const compRes = await sql`SELECT id FROM companies LIMIT 1;`;
+      if (compRes.length > 0) {
+        const compId = compRes[0].id;
+        const profPlanId = plans.find(p => p.name === 'Profesyonel').id;
+        
+        await sql`
+          UPDATE subscriptions 
+          SET plan_id = ${profPlanId}, status = 'active'
+          WHERE company_id = ${compId};
+        `;
 
-run().catch(console.error);
+        await sql`
+          INSERT INTO usage_records (company_id, period, quote_count)
+          VALUES (${compId}, to_char(CURRENT_DATE, 'YYYY-MM'), 12)
+          ON CONFLICT DO NOTHING;
+        `;
+      }
+      console.log("Seeded plans.");
+    } else {
+      console.log("Plans already exist.");
+    }
+  } catch (error) {
+    console.error("Seeding failed:", error);
+  } finally {
+    await sql.end();
+  }
+}
+run();
