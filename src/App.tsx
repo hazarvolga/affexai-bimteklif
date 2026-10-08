@@ -55,6 +55,7 @@ const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'def
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
 const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
 const BimIfcParserPage = page(() => import('@/pages/BimIfcParserPage'), 'default');
+const DosyadanTeklifDemo = page(() => import('@/pages/DosyadanTeklifDemo'), 'default');
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ function AppRoutes() {
           <Route path="billing" element={<Billing />} />
           <Route path="pilot-applications" element={<PilotApplications />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="dosyadan-teklif-demo" element={<DosyadanTeklifDemo />} />
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
           <Route path="academy" element={<Academy />} />
