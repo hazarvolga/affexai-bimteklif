@@ -18,7 +18,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Copy,
   ExternalLink,
   Layout,
   Settings as SettingsIcon,
@@ -38,6 +37,9 @@ import { SectionWrapper } from "@/components/layout/SectionWrapper";
 export function Settings() {
   const { company, role } = useAuth();
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState('viewer');
+  const [inviteDelivery, setInviteDelivery] = useState<{ status: string; devInvitationUrl?: string } | null>(null);
+  const canInvite = role === 'owner' || role === 'admin';
   const [invites, setInvites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [industriesList, setIndustriesList] = useState<any[]>([]);
@@ -50,7 +52,7 @@ export function Settings() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [role]);
 
   const fetchData = async () => {
     const token = localStorage.getItem('token');
@@ -61,7 +63,7 @@ export function Settings() {
     
     try {
       const [invRes, indRes, setRes, subRes, usageRes, riskRes, calibrationRes, reportRes] = await Promise.all([
-        fetch("/api/invitations", { headers }),
+        canInvite ? fetch("/api/invitations", { headers }) : Promise.resolve(null),
         fetch("/api/ai/industries", { headers }),
         fetch("/api/company/industry-settings", { headers }),
         fetch("/api/billing/subscription", { headers }),
@@ -71,7 +73,8 @@ export function Settings() {
         fetch("/api/company/risk-calibration/report", { headers })
       ]);
 
-      if (invRes.ok) setInvites(await invRes.json());
+      if (invRes?.ok) setInvites(await invRes.json());
+      else setInvites([]);
       if (indRes.ok) setIndustriesList(await indRes.json());
       if (setRes.ok) setCompanyIndustrySettings(await setRes.json());
       if (subRes.ok) setSubscription(await subRes.json());
@@ -122,6 +125,7 @@ export function Settings() {
     if (!inviteEmail) return;
 
     setLoading(true);
+    setInviteDelivery(null);
     const token = localStorage.getItem('token');
     try {
       const res = await fetch("/api/invitations", {
@@ -130,11 +134,12 @@ export function Settings() {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ email: inviteEmail, role: "viewer" }),
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
       });
 
       if (res.ok) {
-        toast.success("Davetiye başarıyla oluşturuldu.");
+        const result = await res.json();
+        setInviteDelivery(result.delivery);
         setInviteEmail("");
         fetchData();
       } else {
@@ -165,12 +170,6 @@ export function Settings() {
     } catch (e) {
       toast.error("Yükseltme başarısız.");
     }
-  };
-
-  const copyInviteLink = (token: string) => {
-    const link = `${window.location.origin}/accept-invite/${token}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Davet bağlantısı kopyalandı.");
   };
 
   return (
@@ -297,9 +296,11 @@ export function Settings() {
                 <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Yeni Üye Davet Et</CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-8">
-                <form onSubmit={handleInvite} className="flex gap-4">
-                  <div className="flex-1">
+                {canInvite ? <form onSubmit={handleInvite} className="flex flex-wrap gap-4">
+                  <div className="flex-1 min-w-0">
                     <Input 
+                      aria-label="Davet e-posta adresi"
+                      required
                       type="email"
                       placeholder="davet@e-posta.com" 
                       className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold"
@@ -307,32 +308,41 @@ export function Settings() {
                       onChange={(e) => setInviteEmail(e.target.value)}
                     />
                   </div>
+                  <select aria-label="Davet rolü" value={inviteRole} onChange={event => setInviteRole(event.target.value)} className="h-12 max-w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200">
+                    <option value="viewer">Görüntüleyici</option><option value="manager">Yönetici</option><option value="admin">Admin</option>
+                  </select>
                   <Button type="submit" disabled={loading} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-2">
                     <UserPlus size={18} /> Davet Gönder
                   </Button>
-                </form>
+                </form> : <p className="text-sm text-zinc-400">Davet yönetimi yalnızca şirket sahibi ve adminlere açıktır.</p>}
+                {inviteDelivery && <div role="status" className="text-sm text-zinc-300 break-words">
+                  {inviteDelivery.status === 'accepted' ? 'E-posta hizmeti daveti kabul etti. Gelen kutusuna teslim henüz doğrulanmadı.'
+                    : inviteDelivery.status === 'development' ? 'Geliştirme bağlantısı oluşturuldu; e-posta gönderilmedi.'
+                    : 'E-posta teslimi başlatılamadı. Bağlantı iptal edildi; yeniden davet oluşturun.'}
+                  {inviteDelivery.devInvitationUrl && <a className="block underline break-all mt-2" href={inviteDelivery.devInvitationUrl}>Geliştirme davetini aç</a>}
+                </div>}
 
                 <div className="space-y-4">
                   <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <Clock size={12} className="text-orange-500" /> Bekleyen Davetiyeler
+                    <Clock size={12} className="text-orange-500" /> Davetiyeler
                   </Label>
                   <div className="rounded-2xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-                    {invites.length === 0 ? (
+                    {invites.filter(invite => !invite.acceptedAt).length === 0 ? (
                       <div className="p-12 text-center text-zinc-600 text-xs font-bold uppercase tracking-widest italic">
                         Henüz aktif bir davetiye bulunmuyor.
                       </div>
                     ) : (
                       invites.filter(i => !i.acceptedAt).map((invite) => (
-                        <div key={invite.id} className="p-6 flex items-center justify-between bg-zinc-900/10 group hover:bg-zinc-900/30 transition-colors">
-                          <div className="flex items-center gap-5">
+                        <div key={invite.id} className="p-6 flex flex-wrap gap-3 items-center justify-between bg-zinc-900/10 group hover:bg-zinc-900/30 transition-colors">
+                          <div className="flex min-w-0 items-center gap-5">
                             <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center text-zinc-400 group-hover:scale-110 transition-transform">
                               <Mail size={20} />
                             </div>
-                            <div>
-                              <p className="text-sm font-black text-white">{invite.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
+                            <div className="min-w-0">
+                              <p className="text-sm font-black text-white break-all">{invite.email}</p>
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
                                 <Badge className="bg-zinc-800 text-zinc-500 border-none font-black text-[9px] px-2 py-0">ROLE: {invite.role.toUpperCase()}</Badge>
-                                <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">GÖNDERİLDİ: 12.05.2024</span>
+                                <span className="text-[10px] text-zinc-400">{invite.status === 'reissue_required' ? 'Eski bağlantı: yeniden davet gerekli' : invite.status === 'expired' ? 'Süresi doldu' : 'Kabul bekleniyor'} · {new Date(invite.createdAt).toLocaleDateString('tr-TR')}</span>
                               </div>
                             </div>
                           </div>
@@ -340,9 +350,9 @@ export function Settings() {
                             variant="ghost" 
                             size="sm" 
                             className="bg-zinc-800/50 text-zinc-400 hover:text-white font-black text-[10px] uppercase tracking-widest h-9 px-4 gap-2"
-                            onClick={() => copyInviteLink(invite.token)}
+                            onClick={() => { setInviteEmail(invite.email); setInviteRole(['admin', 'manager', 'viewer'].includes(invite.role) ? invite.role : 'viewer'); }}
                           >
-                            <Copy size={14} /> Linki Kopyala
+                            <UserPlus size={14} /> Yeniden Davet
                           </Button>
                         </div>
                       ))

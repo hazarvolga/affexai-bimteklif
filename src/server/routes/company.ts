@@ -1,9 +1,9 @@
 import type { Express } from "express";
-import crypto from "crypto";
-import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
-import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, userRoleEnum, users } from "../../db/schema";
+import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
+import { acceptInvitation, invitationErrorResponse, invitationRateLimit, issueInvitation, previewInvitation, publicInvitation } from '../auth/invitations';
 
 export function registerCompanyRoutes(app: Express) {
   app.get("/api/company/risk-calibration", authenticate, async (req, res) => {
@@ -141,102 +141,40 @@ export function registerCompanyRoutes(app: Express) {
     }
   });
 
-  app.get("/api/invitations", authenticate, async (req, res) => {
+  app.get("/api/invitations", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     try {
       const invites = await db.select().from(invitations).where(eq(invitations.companyId, req.user.companyId)).orderBy(desc(invitations.createdAt));
-      res.json(invites);
+      res.json(invites.map(publicInvitation));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch invitations" });
     }
   });
 
-  app.post("/api/invitations", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+  app.post("/api/invitations", authenticate, checkRole(["owner", "admin"]), invitationRateLimit('issue'), async (req, res) => {
     try {
-      const { email, role } = req.body;
-      const companyId = req.user.companyId;
-
-      const token = crypto.randomBytes(32).toString("hex");
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      const [newInvite] = await db.insert(invitations).values({
-        companyId,
-        email,
-        role: role || "viewer",
-        token,
-        invitedBy: req.user.userId,
-        expiresAt,
-      } as any).returning();
-
-      console.log(`Invitation link: http://0.0.0.0:3000/accept-invite/${token}`);
-      res.json(newInvite);
+      const result = await issueInvitation(req.user.companyId, req.user.userId, req.body);
+      res.status(201).json(result);
     } catch (error) {
-      res.status(500).json({ error: "Failed to create invitation" });
+      invitationErrorResponse(error, res);
     }
   });
 
-  app.get("/api/invitations/:token", async (req, res) => {
+  app.get("/api/invitations/:token", invitationRateLimit('preview'), async (req, res) => {
     try {
-      const { token } = req.params;
-      const invite = await db.query.invitations.findFirst({
-        where: and(eq(invitations.token, token), isNull(invitations.acceptedAt))
-      });
-
-      if (!invite || new Date() > new Date(invite.expiresAt)) {
-        return res.status(404).json({ error: "Invalid or expired invitation" });
-      }
-
-      res.json(invite);
+      res.json(await previewInvitation(req.params.token));
     } catch (error) {
-      res.status(500).json({ error: "Failed to verify invitation" });
+      invitationErrorResponse(error, res);
     }
   });
 
-  app.post("/api/invitations/:token/accept", async (req, res) => {
+  app.post("/api/invitations/:token/accept", (req, res, next) => {
+    if (req.headers.authorization) return authenticate(req, res, next);
+    next();
+  }, invitationRateLimit('accept'), async (req, res) => {
     try {
-      const { token } = req.params;
-      const { fullName } = req.body;
-
-      const invite = await db.query.invitations.findFirst({
-        where: and(eq(invitations.token, token), isNull(invitations.acceptedAt))
-      });
-
-      if (!invite || new Date() > new Date(invite.expiresAt)) {
-        return res.status(400).json({ error: "Invalid or expired invitation" });
-      }
-
-      const verificationToken = crypto.randomBytes(32).toString("hex");
-      const membershipRole = userRoleEnum.enumValues.includes(invite.role as typeof userRoleEnum.enumValues[number])
-        ? (invite.role as typeof userRoleEnum.enumValues[number])
-        : "viewer";
-
-      const newUser = await db.transaction(async (tx) => {
-        const [user] = await tx.insert(users).values({
-          email: invite.email,
-          fullName,
-          verificationToken,
-          emailVerified: null,
-        } as any).returning();
-
-        await tx.insert(memberships).values({
-          userId: user.id,
-          companyId: invite.companyId,
-          role: membershipRole,
-        });
-
-        await tx.update(invitations)
-          .set({ acceptedAt: new Date() })
-          .where(eq(invitations.id, invite.id));
-
-        return user;
-      });
-
-      console.log(`Verification link: http://0.0.0.0:3000/verify-email/${verificationToken}`);
-
-      res.json(newUser);
+      res.json(await acceptInvitation(req.params.token, req.body, req.user));
     } catch (error) {
-      console.error("Accept invite error:", error);
-      res.status(500).json({ error: "Failed to accept invitation" });
+      invitationErrorResponse(error, res);
     }
   });
 

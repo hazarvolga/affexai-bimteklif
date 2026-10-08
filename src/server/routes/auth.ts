@@ -184,10 +184,17 @@ export function registerAuthRoutes(app: Express) {
   app.get("/api/auth/me", authenticate, async (req, res) => {
     try {
       const user = await db.query.users.findFirst({ where: eq(users.id, req.user.userId) });
-      const [membership] = await db.select().from(memberships).where(eq(memberships.userId, req.user.userId));
+      if (!user) return res.status(401).json({ error: "Invalid token" });
+      const [membership] = req.user.companyId
+        ? await db.select().from(memberships).where(and(eq(memberships.userId, req.user.userId), eq(memberships.companyId, req.user.companyId)))
+        : [];
+      if (req.user.companyId && !membership) return res.status(403).json({ error: "Forbidden: Company membership required" });
       const company = membership ? await db.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }) : null;
-      const learner = await db.query.academyLearnerProfiles.findFirst({ where: eq(academyLearnerProfiles.userId, req.user.userId) });
-      res.json({ user: user ? publicRegisteredUser(user) : null, company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace', learnerProfile: learner ? { onboardingCompletedAt: learner.onboardingCompletedAt, selectedLessonSlug: learner.selectedLessonSlug } : null });
+      if (membership && !company) return res.status(403).json({ error: "Forbidden: Company unavailable" });
+      const learner = await db.query.academyLearnerProfiles.findFirst({ where: req.user.companyId
+        ? and(eq(academyLearnerProfiles.userId, req.user.userId), eq(academyLearnerProfiles.companyId, req.user.companyId))
+        : eq(academyLearnerProfiles.userId, req.user.userId) });
+      res.json({ user: publicRegisteredUser(user), company, role: membership?.role ?? null, accountType: learner ? 'academy_learner' : 'workspace', learnerProfile: learner ? { onboardingCompletedAt: learner.onboardingCompletedAt, selectedLessonSlug: learner.selectedLessonSlug } : null });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch profile" });
     }

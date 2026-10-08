@@ -23,8 +23,8 @@ verified commits and restore points. Final user acceptance follows implementatio
 | 00 | Record audit and execution baseline | Reviewed plan, clean document diff, commit and tag | Completed |
 | 01 | Restore release checks | Fix 14 type errors, updated auth contracts, isolated SmartCheck tests; lint/test/build pass | Completed |
 | 02 | Auth and tenant boundaries | Shared production bootstrap, no production JWT fallback, current membership authorization, private company DTO; negative tests | Completed |
-| 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Verified |
-| 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | In progress |
+| 03 | PDF isolation | Escaped content, network denial, bounded renderer lifecycle; injection tests and normal PDF smoke | Completed |
+| 04 | Invitations and onboarding | Hashed single-use tokens, redacted responses, password setup and delivery; role/reuse tests | Verified |
 | 05 | Quote integrity | Atomic creation/revision, tenant ownership checks, evidence fields protected; rollback tests | Review in progress |
 | 06 | Plan and quota integrity | Atomic period quota, unique counters, validated admin actions, audit and suspension; concurrency tests | Pending |
 | 07 | Reproducible schema | Reviewed bootstrap and additive migrations, disposable TeklifPro test DB upgrade/restore evidence | Pending |
@@ -76,3 +76,17 @@ Updated after each verified step with commands, results and checkpoint name.
   Turkish text, totals, valid PDF bytes and zero requests to the probe server.
   Independent code/security review found no blockers. Deployment must supply
   sandbox-capable Chromium and local fonts. Checkpoint: `restore/gap-20261008-03`.
+- Step 03 commit: `95816f7`.
+- Step 04: hash-only single-use invitations, manager ACL, password provisioning,
+  matching existing-account authentication, honest delivery state and correct
+  invited-company session across reload. Existing membership roles cannot be
+  elevated by re-invitation. Independent security/UI review blockers resolved.
+  Combined suite at this checkpoint: 523/523, zero skipped, plus lint and build.
+  `scripts/gap-invitation-ui-smoke.ts` passed real Chrome at 1440/390 widths,
+  new-user login, existing-account acceptance, A-to-B manager session across
+  reload (API and rendered company), and Settings invitation delivery state.
+  Plaintext invitations require reissue. Production webhook needs the
+  `invitation` template; acceptance by webhook is not inbox-delivery evidence.
+  Rolling source back before this step cannot make newly hashed links work in
+  old code; retain hashes and reissue after forward recovery, never weaken token
+  storage. Checkpoint: `restore/gap-20261008-04`.
