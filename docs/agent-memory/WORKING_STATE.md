@@ -1133,3 +1133,31 @@ As of 2026-10-08, the project has formally adopted the "Iceberg UX" (Buzdağı M
 - **Flow:** Simple, wizard-like (tunnel) processes. E.g., the IFC Quote process is now a strict 4-step wizard: Upload -> Review (SmartCheck) -> Price -> Quote.
 - **Hidden Power:** Advanced BIM features (3D viewing, SmartCheck rules, ISO 19650 compliance) are completely hidden under the hood. They are only exposed contextually via slide-over panels or tooltips when action is required (e.g., "3 elements missing POZ numbers").
 - **Implementation Status:** The IFC parser flow is now fully migrated to this paradigm (`DosyadanTeklifDemo.tsx`), connected to the real `legacy-parser`, and routes properly to `/app/quotes/new` for final Drizzle insertion.
+
+## 2026-10-08 Current-State GAP Rebaseline
+
+The repository-wide GAP report was refreshed at
+`docs/GAP_RAPORU_2026-10-08.md` against commit `74e52f4`.
+
+Current decision:
+
+- Local development remains viable; local `/api/health` returned 200 with the
+  TeklifPro PostgreSQL database connected.
+- Customer pilot, production release and Next.js/NestJS strangler cutover are
+  NO-GO until the report's P0 gates are closed.
+- `pnpm run build` and Drizzle metadata check passed.
+- `pnpm run lint` failed with 14 TypeScript errors.
+- The full test run reported 349 tests: 344 passed, 4 failed and 1 cancelled.
+  Registration DTO and super-admin pilot-conversion contract failures were
+  reproduced in isolation. SmartCheck HTTP integration also failed on the
+  local Graphile Worker schema and did not terminate cleanly.
+- `pnpm audit --prod` reported 65 advisories: 1 critical, 32 high, 27 moderate
+  and 5 low.
+- Primary P0 themes: release gates, auth/membership verification, fresh-DB
+  migrations, quotation transactionality, PDF renderer isolation, quota
+  integrity, invitation security, reproducible app/worker deployment and real
+  five-file/S3/reviewer pilot evidence.
+
+No application code, production service or database data was changed during
+the GAP analysis. The recommended next step is report Phase 0: restore a green
+lint/test baseline before feature expansion.

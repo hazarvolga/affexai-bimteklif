@@ -1,132 +1,232 @@
-# TeklifPro / BIMPlan Academy — Mevcut Durum GAP Raporu
+# TeklifPro / BIMPlan Academy - Güncel Durum ve GAP Raporu
 
 **Tarih:** 8 Ekim 2026
-**İncelenen commit:** `9e39e92` (`feat/smartcheck-evaluation-baseline`, tag `restore-point-2026-08-22`)
-**Önceki referans:** `4f8dea4` → aradaki **42 commit, 117 dosya**
-**Yöntem:** Kod + test + build doğrulaması, `docs/agent-memory/WORKING_STATE.md`, `IFC_GAP_RAPORU.md`, `E-Proje-Teslim/` ekleri (PDF metin çıkarımı) ve **5 Ağustos 2026 tarihli, 33331 sayılı Resmî Gazete'deki nihai yönetmelik metinleri**.
-**Kapsam sınırı:** Salt-okunur analiz. Kod, veritabanı ve servisler değiştirilmedi.
 
----
+**Dal / commit:** `feat/smartcheck-evaluation-baseline` / `74e52f4`
 
-## 0. Doğrulama sonuçları (bugün çalıştırıldı)
+**Remote farkı:** `origin/feat/smartcheck-evaluation-baseline` dalından 6 commit ileride
 
-| Kontrol | Sonuç |
-|---|---|
-| `pnpm run lint` (`tsc --noEmit`) | ✅ 0 hata |
-| `pnpm run build` | ✅ başarılı (3,43 sn) |
-| `pnpm test` | ✅ 348 test · **336 geçti · 0 başarısız · 12 atlandı** |
-| Atlanan 12 test | Hepsi DB'ye bağlı HTTP entegrasyon testleri. Sebep: yerel PostgreSQL bu oturumda çalışmıyordu. **Bugün tekrar doğrulanmadılar.** |
+**Karar:** Yerel geliştirme sürdürülebilir; müşteri pilotu, production ve Next.js/NestJS strangler cutover için **NO-GO**.
 
----
+## 1. Kapsam ve yöntem
 
-## 1. Yönetici özeti
+Bu rapor aşağıdaki kanıtların birlikte incelenmesiyle güncellenmiştir:
 
-**Teknik temel ciddi biçimde güçlendi.** IFC hattı "STEP ID'den hacim tahmini" yaklaşımından çıktı. Artık kanıt-önce çalışan, insan onaylı bir SmartCheck → teklif zincirine dönüştü. Auth, davet, pilot dönüşümü ve tip güvenliğindeki 5 gerçek hata kapatıldı. Dashboard'daki sahte veriler kaldırıldı.
+- Repo agent memory, ADR ve pilot planı.
+- Güncel kod, migration zinciri, API rotaları, ürün ekranları ve son 20 commit.
+- Graphify raporu ve kaynak envanteri. Graph `86fb20ee` commitinden üretildiği için güncel HEAD açısından yalnızca navigasyon amacıyla kullanıldı.
+- Dört paralel inceleme: mimari, güvenlik/tenant izolasyonu, BIM/IFC/SmartCheck ve ürün/UX/monetizasyon.
+- Canlı `lint`, `build`, test, migration metadata, dependency audit ve yerel health kontrolleri.
 
-Buna karşılık **üç kritik açık** var:
+Durum sınıfları:
 
-1. **Mevzuat tabanı eski.** Repo'daki `E-Proje-Teslim/` belgeleri **taslak**. Nihai yönetmelikler 05.08.2026'da yayımlandı ve taslaktan önemli noktalarda ayrılıyor: yürürlük tarihleri, DXF yerine **PDF/A** zorunluluğu ve **2029–2033 arası kademeli geçiş**. `ozet.md`, `WORKING_STATE.md` ve ürün mesajları hâlâ taslak tarihlerini (01.10.2026) kullanıyor.
-2. **Pazarlama iddiaları ürünle çelişiyor.** Landing page "%100 kesin" hacim ve **donatı tonajı** vaat ediyor. Oysa ürün donatıyı bilinçli olarak blokluyor. Örnek dosyada 1.180 elemandan yalnızca 160'ı kanıtla kabul ediliyor.
-3. **`Tr_Pset_CSB` okuyucusu resmî ek ile uyuşmuyor.** Özellik adları (`ÇekmeÖn`/`ÇekmeYan`/`ÇekmeArka`) ve kapsam (67 IFC sınıfı) resmî Ek-6'dan farklı uygulanmış. Testler resmî eke göre değil, kodun kendisine göre yazılmış.
+- **Uygulandı:** Kodda çalışan ve en az bir doğrulaması bulunan kapsam.
+- **Kısmi:** Temel akış var, ancak önemli güvenlik, bütünlük veya ürün davranışı eksik.
+- **Sentetik:** Demo/fixture düzeyinde kanıt var; gerçek müşteri ve production kanıtı yok.
+- **Harici/kanıtsız:** Kod dışındaki müşteri dosyası, reviewer, S3 veya operasyon kanıtı bekleniyor.
+- **Eksik:** Runtime davranışı veya release kapısı bulunmuyor.
 
-> [!IMPORTANT]
-> Bu açıkların bir kısmı önceki oturumlarda benim ürettiğim içerikten geliyor. Bunlar: landing page'deki "%100 kesin" metni, `ozet.md` ve Academy alt rehberlerindeki doğrulanmamış rakamlar. `ozet.md` taslak metinlere ve bir **satıcı kılavuzuna** (Allplan) dayanıyordu. Aşağıda bunları ayrıca işaretledim.
+## 2. Yönetici özeti
 
----
+TeklifPro artık basit bir prototip değil. Tenant filtreli teklif akışları, kanıt-önce SmartCheck hattı, IFC QTO/property kabul politikası, insan review süreci, fiyat snapshot/provenance modeli, Academy entitlement ve yeni süper-admin iskeleti bulunuyor. Vite production bundle oluşuyor ve yerel API PostgreSQL'e bağlanarak health yanıtı veriyor.
 
-## 2. Son dönemde kapanan açıklar (42 commit)
+Buna rağmen güncel dal release edilebilir değil. En kritik nedenler:
 
-| Alan | Kapanan açık | Kanıt |
+1. Typecheck 14 hata ile kırık; test paketi yeşil değil.
+2. Vercel API entrypoint production environment kontrolünü atlıyor; sabit JWT fallback ve token içindeki tenant/rol iddialarına güvenilmesi koşullu kritik tenant ele geçirme yolu oluşturuyor.
+3. Boş veritabanından tekrarlanabilir migration/bootstrap zinciri yok; son süper-admin şema değişiklikleri migration olarak yakalanmamış.
+4. Teklif/revizyon yazımları ve worker enqueue/storage akışları atomik değil.
+5. PDF üretimi escape edilmemiş kullanıcı verisini ağ erişimi açık, sandbox kapalı Chromium'a veriyor.
+6. Kota sistemi hata halinde fail-open; ödeme/checkout zinciri ve gerçek plan enforcement tamamlanmamış.
+7. IFC/SmartCheck güvenli şekilde “bilmediğini biliyor”, fakat production BIM doğruluğu için geometry, 3x3 kuralları, teknik reviewer yetkinliği ve gerçek MEP dosyaları eksik.
+8. F10-F12 pilot kabul kanıtları halen yok: 5 müşteri izinli dosya, reviewer kararları, production S3 lifecycle/encryption ve restore.
+
+## 3. Canlı doğrulama sonuçları
+
+| Kontrol | Güncel sonuç | Karar |
 |---|---|---|
-| IFC doğruluğu | STEP-ID modulo hacim tahmini kaldırıldı. Kaynak önceliği artık QTO → onaylı Pset/Allplan property → blok. | `src/ifc/parser/*`, `evidence-policy.ts`, `IFC_GAP_RAPORU.md` |
-| IFC → SmartCheck | Sunucu tarafında IFC yükleme (100 MB, STEP imza kontrolü), worker, `pending_review` satırları, kat ilişkisi | `smartcheck-processing.ts`, integration test |
-| Güvenlik kapıları | Geometri, donatı ve kalıp tahminleri kanıt satırına giremiyor. Demo verisi gerçek dosyada fallback olarak kullanılmıyor. | `parser-gates.test.ts` |
-| Fiyat kanıtı | Manuel snapshot, CSV katalog içe aktarma, deterministik eşleştirme önerisi, toplu güvenli uygulama | `pricing.ts`, `matching.ts` |
-| İnsan onayı | Satır içi inceleme, bulgusuz satırlarda toplu onay, yeni veya mevcut taslak teklife aktarım | `SmartCheckImportWorkspace.tsx` |
-| e-PYS | `Tr_Pset_CSB` (PozNo/TAKS/KAKS/Çekme) okuma, ilk adım | `tr-pset-csb-extractor.ts` (bkz. §3-B) |
-| Auth/CRM/Academy hataları | Davet kabulünde üyelik oluşmaması ve `= NULL` hatası, aynı saniyede oturum düşmesi, sertifika ve profil sayfası çökmeleri, CRM fırsat oluşturma, `@types/react` ile 10 gizli hata | `aad9ab0`…`29291b1` |
-| UX | Sahte dashboard verisi kaldırıldı, demo login fallback'i kaldırıldı, 404 + ErrorBoundary eklendi, nav sadeleştirildi, a11y (skip link, kontrast) | `fdd1a43`, `a18cefa`, `342a70a` |
+| `git status --short --branch` | Worktree temiz; dal remote'dan 6 commit ileride | Bilgi |
+| `git diff --check` | Geçti | Yeşil |
+| `pnpm run lint` | Başarısız, 14 TypeScript hatası | P0 blokaj |
+| `pnpm run build` | Başarılı, Vite 3114 modül, 6.72 sn | Kısmi; build typecheck içermiyor |
+| `pnpm test` | 349 test: 344 geçti, 4 başarısız, 1 iptal | P0 blokaj |
+| Odak testleri | Registration DTO testi ve pilot conversion testi tekrar üretilebilir biçimde başarısız | P0/P1 |
+| SmartCheck HTTP testi | `graphile_worker.jobs already exists`; 2 fail + kapanmayan süreç | P0 test izolasyonu/migration |
+| `drizzle-kit check` | Migration metadata kontrolü geçti | Baseline bootstrap kanıtı değildir |
+| `pnpm audit --prod` | 65 bulgu: 1 kritik, 32 yüksek, 27 orta, 5 düşük | P0 güvenlik |
+| `GET /api/health` | HTTP 200, DB bağlı | Yerel runtime yeşil |
+| Health readiness | E-posta yok, public URL yok, SmartCheck storage kanıtı yok, revision null | Production NO-GO |
 
----
+Lint kırıkları dört kümeye ayrılıyor:
 
-## 3. GAP tablosu
+- `seed-superadmin.ts`, `usage.ts`, `admin.ts`: `db.execute()` dönüş tipi yanlış kullanılıyor.
+- `navigation.tsx`: `Sistem Yönetimi`, `NavGroup` union tipinde yok.
+- `PilotApplications.tsx`: UI, `PilotMetrics` sözleşmesinde olmayan alanları kullanıyor.
+- Build komutu `tsc --noEmit` çalıştırmadığı için kırık tipler production bundle'ı durdurmuyor.
 
-Öncelikler: **P0** = gerçek kullanıcıya/pilota açmadan önce · **P1** = sonraki sprint · **P2** = planlı iyileştirme
+Test kırıkları:
 
-### A. Mevzuat uyumu
+- `publicRegisteredUser()` artık `isSuperAdmin` döndürüyor; test sözleşmesi güncellenmemiş.
+- Pilot conversion artık super-admin gerektiriyor; test normal owner token ile `201` bekliyor ve `403` alıyor.
+- SmartCheck integration testi mevcut yerel Graphile Worker şemasında migration çakışmasına giriyor ve süreç temiz kapanmıyor.
 
-| ID | Öncelik | Açık | Kanıt | Önerilen aksiyon |
-|---|---|---|---|---|
-| **MEV-01** | ✅ Kapandı (08.10) | Repo taslağı baz alıyordu. Nihai yürürlük: Dijital Hazırlama **01.09.2027**, Elektronik Teslim **01.09.2028**. | RG 05.08.2026 / 33331 | Nihai metinler ve EKLER (241 sayfa, OCR metniyle birlikte) `E-Proje-Teslim/nihai-RG-2026-08-05/`'e kondu. Taslaklar `taslak-2026-oncesi/`'ne taşındı. `ozet.md` yeniden yazıldı. Kalan iş: `WORKING_STATE.md`. |
-| **MEV-02** | P0 | **Kademeli geçiş** (Geçici Md.1) hiçbir yerde modellenmemiş. PDF/A 2B teslim, nüfusu 2M+ illerin 600k+ belediyelerinde 5.000 m² üstü binalar dışında **01.03.2029**'a kadar uygulanmıyor. IFC teslimi en erken **01.09.2029** (aynı metropoller, 10.000 m² üstü), diğer tüm binalar için **01.09.2032**. Konut ve ticaret+konut dışındaki binalar **01.09.2033**'e kadar kapsam dışı. | Nihai metin Geçici Md.1–2 | Ürün mesajında "aciliyet" söylemini düzelt. "Hazırlık / ön-kontrol" konumlandırmasına geç. Bir **kapsam/tarih hesaplayıcı** ekle (il, belediye nüfusu, m², kullanım). |
-| **MEV-03** | ✅ `ozet.md` düzeltildi | **2B format değişti:** taslakta DXF + PDF vardı, nihaide **PDF/A** var. CAD çizimleri **BIM modelinden üretilmek zorunda** ve PDF/A nüshası modelle uyumlu olmalı (Md.9). | Nihai Md.4(2), Md.9 | `ozet.md` ve Academy'deki DXF referanslarını düzelt. Model ↔ PDF/A tutarlılığı bir ürün fırsatı. |
-| **MEV-04** | P1 | **Kapsam ve istisnalar** eksik: bodrum hariç en çok 2 katlı ve 200 m²'yi geçmeyen müstakil yapılar, tarım/hayvancılık yapıları ve İmar K. 4/26/27 kapsamındakiler hariç. Yalnızca uygulama imar planlı alanlarda **yeni** binalar kapsamda. | Nihai Md.1(2) | Kapsam hesaplayıcıya ekle. |
-| **MEV-05** | ✅ `ozet.md` düzeltildi | **Nihai EK-1:** proje kodu idarenin ürettiği **6 haneli sayı** (yıl + sıra no); il, ilçe, ada ve parsel meta-veri. **Nihai EK-2:** alanlar **`_`** ile ayrılıyor, sonda Revizyon No (3) alanı var. Taslaktaki `YIL_IL_…` biçimi ve Y0/P0 kodları **yok**. | Nihai EKLER s.1–3 | Academy ve ileride yazılacak isimlendirme denetleyicisi nihai EK-1/EK-2'ye göre yazılmalı. |
-| **MEV-06** | P1 | **IDS formatı yanlış aktarılmış.** buildingSMART IDS 1.0 bir **XML** (`.ids`) standardı. `ozet.md` ve Allplan kılavuzu ".json" diyor. | buildingSMART IDS 1.0 | Ürün/Academy'de IDS'i XML olarak ele al. Satıcı kılavuzunu resmî kaynak gibi kullanma. |
+## 4. Kanıtlanmış güçlü alanlar
 
-### B. IFC / e-PYS teknik
-
-| ID | Öncelik | Açık | Kanıt | Önerilen aksiyon |
-|---|---|---|---|---|
-| **IFC-01** | P0 | **Nihai EK-6 Türkiye Pset adlarını değiştirdi.** `Tr_Pset_CSB.PozNo` artık **`TREpys_PozOzellikSeti.CSBPozNo`**. TAKS, KAKS, `CekmeOn`, `CekmeYan`, **`CekmeArka`** artık **`TREpys_ParselOzellikSeti`** altında ve **IfcSite** üzerinde (Tablo 6.55). Yeni bir set var: `TREpys_EmsalOzellikSeti.EmsalDurumu` (DAHIL/HARIC/DIGER). Kod hâlâ taslak adları arıyor, bu yüzden nihai yönetmeliğe uygun bir dosyada **hiçbir şey okumaz**. | Nihai EKLER (OCR), `tr-pset-csb-extractor.ts:3,28,40-41` | Nihai adları oku, taslak adları "eski ad" uyarısıyla kabul et. `CekmeArka` ve `EmsalDurumu`'nu ekle. STEP string decode (`\X2\`) yine gerekli. Testleri nihai eke göre yeniden yaz. |
-| **IFC-02** | P1 | `CSBPozNo` nihai EK-6'da çok sayıda sınıfta zorunlu (OCR'da 51 tablo; EK-6 artık Tablo 6.1–**6.135**). Okuyucu yalnızca 6 tipe bakıyor. Regex yalnızca `IFCTEXT` kabul ediyor. | Nihai EK-6 | Sınıf listesini EK-5 Tablo 5.1/5.2'den türet. `IfcLabel`/`IfcIdentifier` desteği ekle. |
-| **IFC-03** | P2 | Parsel değerleri nihai metinde **IfcSite**'ta. Okuyucunun IfcSite önceliği bu yüzden **doğru**, taslağa göre yaptığım IfcBuilding önerisini geri alıyorum. EK-7'nin proje alanları nihai Tablo 7.1–7.12'ye göre yeniden eşlenmeli. | Nihai EK-6 Tablo 6.55, EK-7 | EK-7 alanlarını PDF'ten teyit ederek ekle. |
-| **IFC-04** | P1 | `TREpys_*` setlerini içeren gerçek bir örnek dosya yok. `e-proje_4x3.ifc` içinde 0 eşleşme var. | `grep` | Allplan, Revit ve Archicad'den nihai Pset'lerle dışa aktarılmış birer örnek dosya edin. |
-| **IFC-05** | P1 (fırsat) | Nihai **EK-9 formundaki 21 kontrolün çoğu otomatikleştirilebilir.** Örnekler: Proje/Saha/Bina/Kat hiyerarşisi, **IfcProxy + IfcBuildingElementProxy yasağı** (6.1.3), alt sınıf varken üst sınıf yasağı (6.1.2), zorunlu özellikler, IFC versiyonu, yinelenen varlıklar, isimlendirme, IfcSpace varlığı. Ruhsat için **LOD 300** (EK-8). | Nihai EK-6, EK-8, EK-9 | Bir "e-PYS ön-kontrol" özelliği kur (bkz. UI/UX raporu: tek akışa entegre). |
-| **IFC-06** | P1 | Parser hâlâ **satır bazlı regex** kullanıyor (`IFC_GAP_RAPORU` GAP-IFC-01). Örnek dosyada QTO yok. Geometri fallback'i ve donatı tasarım gereği bloklu. | `legacy-parser.ts` | web-ifc veya IfcOpenShell tabanlı gerçek tokenizer/graph'a geçişi planla. |
-
-### C. Ürün iddiaları / pazarlama
-
-| ID | Öncelik | Açık | Kanıt | Önerilen aksiyon |
-|---|---|---|---|---|
-| **CLM-01** | ✅ Düzeltildi (08.10) | Landing page "**%100 Kesin** 5D BIM Metraj Motoru" diyor ve "IfcBeam/Column/Slab hacimlerini ve **donatı tonajlarını %100 kesinlikle**" hesapladığını söylüyor. Ürün donatıyı blokluyor, örnek dosyada 1.180 elemandan 160'ı kabul ediliyor. Ayrıca `$m^3$` ve `$Ton$` JSX içinde ham metin olarak görünüyor. *(Bu metni ben yazmıştım.)* | `LandingPage.tsx:38-53,134,152` | Metni "kanıt-önce, insan onaylı IFC metrajı" olarak değiştir. Donatı vaadini kaldır. LaTeX'i düz metne çevir. |
-| **CLM-02** | P1 | Kaynaksız karşılaştırmalar var: "Allplan 0 sapma / Revit ±%10-15", "2D ±%8-12 toleranslı". Bunlar tarafsızlık ilkesiyle de çelişiyor. | `PublicAcademy.tsx:67`, `Academy.tsx:151-158`, `LandingPage.tsx:54` | Ölçülmüş benchmark gelene kadar kaldır ya da "örnek/varsayım" olarak etiketle. |
-
-### D. Academy içerik doğruluğu
-
-| ID | Öncelik | Açık | Kanıt | Önerilen aksiyon |
-|---|---|---|---|---|
-| **ACD-01** | P1 | Hedef 36+ rehberdi, mevcut **24**. Checkpoint quiz yalnızca **3 rehberde** var. Önceki özetimde "ÇŞB poz kodları ve IFC 4.3 alt rehberlere eklendi" demiştim. Bu bilgiler `subGuidesData.ts`'te yok, yalnızca sözlükte var. *(Önceki özetim fazla iddialıydı.)* | `subGuidesData.ts` (24 anahtar, 3 `checkpointQuestions`) | Eksik 12+ rehberi ve rehber başına quiz'i planla. |
-| **ACD-02** | P1 | Doğrulanmamış teknik içerik var. "BVBS Code 15/21/31/51" BVBS'in şekil kodlama yöntemi değil (BVBS geometri dizisi formatıdır). TBDY sarılma aralığı formülü yönetmelikle birebir değil. `Pset_ElementCost.CostCode` standart bir IFC Pset'i değil. 25 "pratik vaka" kaynaksız ve somut yüzdeler içeriyor. | `subGuidesData.ts:684-697`, `BimGlossary.tsx:96` | Uzman incelemesi yap (TBDY 2018 Böl. 7, BVBS 2.0, IFC 4.3 Pset listesi). Vakaları "örnek senaryo" olarak etiketle. |
-| **ACD-03** | P1 | Nihai e-PYS yönetmelikleri için Academy modülü yok. | — | "Dijital Ruhsat 2027–2033 Geçiş Takvimi" modülü ekle: kapsam, PDF/A, IFC, Ek-5/6/7, IDS. |
-
-### E. Uygulama / operasyon
-
-| ID | Öncelik | Açık | Kanıt | Önerilen aksiyon |
-|---|---|---|---|---|
-| **OPS-01** | P0 | Pilot üretim kapıları açık. Eksikler: prod S3 kimlik bilgileri, saklama ve şifreleme politikası, restore drill, 5 müşteri izinli MEP dosyası, reviewer kayıtları. | `WORKING_STATE.md` §2026-07-24 | F10 pilot kabul kapısını tamamla. |
-| **OPS-02** | P1 | Drizzle baseline bir migration olarak yakalanmamış. Boş bir DB'de migration `memberships does not exist` hatasıyla düşüyor. | `WORKING_STATE.md` yerel ortam notları | Baseline migration oluştur veya kurulum betiği yaz. |
-| **OPS-03** | P2 | CRM'de 3 buton işlevsiz: "FIRSATA DÖNÜŞTÜR", "KART EKLE", "Yeni Lead Ekle". `CADDiagramViewer` `res.ok` kontrolü yapmadan `res.json()` çağırıyor. | `CRM.tsx:205,248,256`, `CADDiagramViewer.tsx:47-58` | Butonları bağla veya gizle. `res.ok` kontrolü ekle. |
-| **OPS-04** | P2 | 12 DB entegrasyon testi bugün atlandı. | test çıktısı | Docker PG'yi başlatıp tam paketi yeniden koş. |
-| **OPS-05** | Kısmen (kökteki IFC kopyası silindi) | Repo düzeni: 39 MB `e-proje_4x3.ifc` kökte ve `ifc-document-sample/` altında **iki kez** var. `.pnpm-store/`, `graphify-out/2026-08-02/` ve `E-Proje-Teslim/` izlenmiyor ve `.gitignore`'da değil. | `git status` | Kökteki kopyayı sil. `.pnpm-store`, `*.ifc` ve tarihli graphify yedeklerini `.gitignore`'a ekle. `E-Proje-Teslim/`'in commit'lenip commit'lenmeyeceğine karar ver. |
-| **OPS-06** | P2 | Agent memory güncel değil: başlık "Last updated: 2026-08-02", workspace yolu eski kullanıcı (`/Users/hazarekiz/...`), mevzuat tarihleri taslaktan. | `WORKING_STATE.md:3,9,982` | Güncelle. |
-
----
-
-## 4. Stratejik çıkarım
-
-Nihai takvim şunu gösteriyor: **IFC teslimi hiçbir bina için 01.09.2029'dan önce zorunlu değil.** 2B PDF/A teslimi ise büyük metropollerde 5.000 m² üstü binalar için 01.09.2027'de başlıyor. Bu durum:
-
-- "1 Ekim 2026'dan itibaren zorunlu" söylemini **geçersiz** kılıyor. Bu söylem ürün ve Academy mesajlarından çıkarılmalı.
-- Yaklaşık **2–3 yıllık bir hazırlık penceresi** açıyor. TeklifPro için doğru konum "e-PYS **ön-kontrol ve hazırlık**" aracı olmak. Kademeli takvime göre kimin ne zaman etkileneceğini gösteren bir hesaplayıcı güçlü bir giriş noktası olur.
-- Model ↔ PDF/A tutarlılığı (Md.9) ve Ek-6 zorunlu özellik denetimi, IFC metrajından **daha erken** ihtiyaç duyulacak özellikler.
-
----
-
-## 5. Önerilen sıralama
-
-| Sprint | İşler |
+| Alan | Kanıtlanmış mevcut durum |
 |---|---|
-| **1 (P0)** | MEV-01/02/03 nihai metin ve ekleri temin et, `ozet.md`'yi yeniden yaz · CLM-01 landing metnini düzelt · IFC-01 `Ç…` adları ve STEP decode · OPS-05 repo düzeni |
-| **2 (P1)** | IFC-02/03/04 PozNo kapsamı, IfcBuilding/IfcProject alanları, gerçek örnek dosyalar · MEV-04/05/06 · CLM-02 · ACD-02 uzman incelemesi · OPS-02 |
-| **3 (P1/P2)** | IFC-05 e-PYS ön-kontrol kural seti + kapsam/tarih hesaplayıcı · ACD-01/03 Academy genişletme · IFC-06 parser stratejisi · OPS-03/04/06 |
+| Teklif çekirdeği | Listeleme, oluşturma, revizyon, durum, PDF ve server-side finansal yeniden hesaplama var. |
+| Tenant güvenliği | SmartCheck ve birçok çekirdek rotada `companyId` filtreleri, RBAC ve composite tenant FK'leri var. |
+| SmartCheck | Upload, checksum, normalization, artifact, review, audit ve teklife transfer iskeleti mevcut. |
+| IFC güvenlik politikası | QTO/property kanıtı kabul ediliyor; geometry, rebar, formwork ve demo tahminleri bilinçli olarak bloke ediliyor. |
+| Fiyat kanıtı | Immutable snapshot, source hash, review ve quotation lock modeli bulunuyor. |
+| Auth temeli | Password hashing, hashed reset/verification tokenları, persistent rate-limit bucket ve password-change invalidation var. |
+| Academy | Entitlement, progress, checkpoint, sınav, certificate ve webhook sınırları için testli çekirdekler var. |
+| Süper admin | DB flag, server-side guard, dashboard/tenant/plan ekranları ve temel endpointler eklendi. |
+| Strangler hazırlığı | Versioned SmartCheck contractları, Prisma shadow şeması ve schema-only parity/restore araçları var. |
 
-**Blokaj:** OPS-01 (pilot üretim kapıları) sprintlerden bağımsız. Pilotu gerçek müşteriye açmanın ön koşulu.
+## 5. P0 GAP'ler - pilot/production öncesi zorunlu
 
----
+| ID | GAP | Risk | Çıkış kriteri |
+|---|---|---|---|
+| P0-01 | Release kapıları kırık: lint ve test yeşil değil | Regresyonlu sürüm yayınlama | Lint, unit/integration, build ve kritik E2E tek komutta yeşil; build typecheck'e bağlı |
+| P0-02 | Vercel entrypoint `assertProductionEnvironment()` çağırmıyor; JWT sabit fallback içeriyor | Sahte token ile tenant/rol iddiası | Tüm entrypointler ortak bootstrap kullanmalı; fallback kaldırılmalı; eksik secret startup'ı durdurmalı |
+| P0-03 | Auth middleware token içindeki `companyId` ve `role` değerini güncel membership ile doğrulamıyor | Üyeliği kaldırılmış/düşürülmüş kullanıcının 7 gün yetkili kalması | Her istekte `(userId, companyId)` membership doğrulaması; session version/short TTL; tenant switch modeli |
+| P0-04 | `/api/company` anonim olarak ilk şirket kaydını döndürüyor | Vergi, adres, iletişim ve imza/stamp verisi sızıntısı | Endpoint auth + tenant scope; gerekiyorsa ayrı minimal public branding DTO |
+| P0-05 | Migration zinciri boş DB'den kurulabilir değil; admin/billing şema deltaları migration değil ad-hoc script | Yeni ortam ve rollback başarısızlığı | Boş DB bootstrap + mevcut DB upgrade + rollback kanıtı; `db_update.*` emekli edilmeli |
+| P0-06 | Teklif ve revizyon aggregate yazımları transaction değil | Boş teklif veya `isLatest` kaybı | Quote + items ve revision + items tek transaction; failure-injection rollback testleri |
+| P0-07 | PDF HTML escape yok; Puppeteer ağ erişimi açık ve `--no-sandbox` kullanıyor | HTML injection, SSRF, içeriden veri erişimi | Escape/sanitize, embedded font, request interception, container sandbox ve kötü niyetli fixture testleri |
+| P0-08 | Kota kontrolü hata halinde `next()` ile fail-open; sayaç response sonrasında asenkron ve company/period unique değil | Ücretsiz sınırsız kullanım ve yarış koşulu | Atomic reservation/upsert, unique `(company_id, period)`, fail-closed `503`, AI/PDF için concurrency/rate limit |
+| P0-09 | Davet tokenı plaintext saklanıyor, listeleniyor/loglanıyor; invite edilen kullanıcıya parola oluşturma akışı yok | Hesap ele geçirme ve tamamlanamayan onboarding | Hash token, redacted DTO, gerçek e-posta, set-password akışı, rate limit ve tek kullanımlık transaction |
+| P0-10 | Production deployment topolojisi yok: app/worker/migration/S3/rollback birlikte tanımlı değil | Worker olmadan release, yanlış lockfile, şemasız deploy | `pnpm` pinli Docker app+worker, migration job, health/readiness, immutable image ve rollback runbook |
+| P0-11 | Dependency audit kritik/yüksek açıklar içeriyor; `proxy-addr` kritik bulgu trust proxy/rate limit ile ilişkili | IP spoofing ve DoS | Kritik/yüksek bulgular upgrade/override ile kapalı veya yazılı risk kabulü; spoof testleri |
+| P0-12 | F10-F12 harici pilot kanıtı tamamlanmamış | Sentetik başarıyı gerçek müşteri başarısı sanma | 5 izinli MEP dosyası, reviewer kayıtları, production S3 encryption/lifecycle/restore ve KPI eşiği |
 
-## 6. Kaynaklar
+Başlıca kod kanıtları:
 
-- Resmî Gazete 05.08.2026 / 33331: [fihrist](https://www.resmigazete.gov.tr/eskiler/2026/08/20260805.htm) · [Dijital Hazırlama](https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2.htm) · [Elektronik Teslim](https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-3.htm)
-- `E-Proje-Teslim/nihai-RG-2026-08-05/`: nihai metinler, EKLER PDF'i ve OCR metni. **OCR uyarısı:** ekler taranmış görüntü. Tablo içindeki adlar (ör. `CSBPozNo`, `TREpys_*`) OCR'dan okundu ve kod yazmadan önce PDF'te gözle teyit edilmeli.
-- `IFC_GAP_RAPORU.md`, `docs/agent-memory/WORKING_STATE.md`
+- `src/services/auth/authService.ts:4`, `src/server/middleware/auth.ts:25`, `api/index.ts:1`
+- `src/server/routes/company.ts:131`, `src/server/routes/company.ts:149`
+- `drizzle/0000_fair_thing.sql:1`, `drizzle/0036_married_the_professor.sql:1`
+- `src/server/routes/quotations.ts:79`, `src/server/routes/quotations.ts:134`
+- `src/services/pdf/templates.ts:104`, `src/services/pdf/generate.ts:81`
+- `src/server/middleware/usage.ts:5`, `src/db/schema.ts:1784`
+
+## 6. P1 GAP'ler - pilot kalitesi ve ticari kullanılabilirlik
+
+### Mimari ve operasyon
+
+1. Contract inventory 104 API rotasının yalnızca küçük bir bölümünü kapsıyor ve parity kontrolü tek yönlü. Fazladan/şemasız route drift'i testi bozmuyor.
+2. Route modülleri bounded context değil; 15 route modülü doğrudan Drizzle'a bağlı, `schema.ts` 66 tabloyu tek dosyada topluyor.
+3. SmartCheck processing run DB'ye yazıldıktan sonra job enqueue ediliyor. Storage ve DB yazımları arasında outbox/reconciliation yok.
+4. Worker liveness health endpointinde yok; Sentry/structured logging/tracing uygulanmamış.
+5. CI workflow, PostgreSQL + worker + S3 emulator E2E ve yüzde 80 coverage gate bulunmuyor.
+6. Graphify raporu ve `WORKING_STATE.md` güncel commit/path ile senkron değil.
+
+### Süper admin ve billing
+
+1. UI `suspended` ve `trial` gönderiyor; subscription enum bu değerleri kabul etmiyor.
+2. Askıya alınmış tenant auth katmanında engellenmiyor.
+3. `admin_audit_logs` tablosu var, fakat plan/tenant mutasyonları audit yazmıyor.
+4. `/admin/logs` menüsü var, route yok. Tenant detail, impersonation ve CSV raporu PRD'de var, uygulanmamış.
+5. Plan CRUD inputları schema ile doğrulanmıyor; negatif fiyat/kota ve geçersiz status sınırları yok.
+6. Gerçek checkout, tahsilat, subscription lifecycle, idempotent ödeme zinciri ve upgrade endpointi yok.
+
+### Ürün akışları
+
+1. Teklif create/list/detail/revision/status/PDF var; genel edit, gerçek e-posta ile gönderim, teslimat kaydı ve takip scheduler'ı eksik.
+2. CRM ana ekranı kısmi; deal detail auth header kullanmıyor, görünen birçok aksiyonun handler'ı yok.
+3. Kârlılık motoru deterministik, fakat üst seviye rapor ciroyu kâr gibi özetleyebiliyor ve kaynaksız benchmark metinleri var.
+4. Onboarding registration ve pilot conversion düzeyinde var; ekip daveti ve ilk değer akışı tamamlanmamış.
+5. Mobil/a11y temeli iyileşti; CRM geniş board ve hover-only kontroller için 375 px E2E/axe kanıtı yok.
+
+## 7. BIM / IFC / SmartCheck GAP matrisi
+
+| Alan | Durum | GAP |
+|---|---|---|
+| IFC STEP parser | Kısmi | Regex tabanlı; gerçek STEP graph, units, placement ve representation çözümü yok |
+| IFC QTO | Kısmi | `IfcQuantityVolume` ve sınırlı volume adları var; area/length/weight ve geniş QTO setleri yok |
+| Property evidence | Kısmi/gerçek fixture | 1.180 elemanlı örnekte 160 property volume eşleşmesi var; QTO ve rebar kanıtı yok |
+| Geometry QTO | Eksik ve bloklu | Opening, net/gross, unit, tolerance ve reviewer politikası uygulanmadığı için doğru biçimde kabul edilmiyor |
+| SmartCheck evidence | Uygulandı/kısmi | Fail-closed pipeline var; production worker/storage bütünlüğü ve gerçek dosya KPI kanıtı yok |
+| 3x3 kuralları | Eksik | `%3` metraj/birim/paspayı hedefleri runtime versioned rule ve boundary test olarak yok |
+| ÇŞB/e-PYS Pset | Kısmi | Yeni/eski set adlarının bir bölümü var; `CekmeArka`, emsal seti, escaped STEP ve geniş sınıf desteği eksik |
+| ÇŞB/YFK fiyat | Kısmi/harici | Provenance modeli var; gerçek crawler, lisans ve credential kanıtı yok |
+| Donatı/kalıp | Sentetik ve bloklu | Sabit oranlı demo tahmini var; BVBS, çap/mass, lap/anchorage ve yüzey motoru yok |
+| Reviewer governance | Kısmi | Review/audit var; teknik yetkinlik ve disiplin scope authorization yok |
+| ISO 19650 | İçerik düzeyi | EIR/BEP, suitability/status, container-state ve CDE workflow runtime'da yok |
+| Pilot admission | Harici/kanıtsız | 5 dosya, bağımsız reviewer ve production S3 operasyon kanıtı yok |
+
+Özel risk: `accepted_exception` durumundaki satırın quotation transferinde `verified` sayılması, istisna ile doğrulanmış kanıtı birbirine karıştırıyor. Review kararı, reviewer scope'u ve gerçek rule-version seti quotation evidence'a taşınmalı.
+
+## 8. Mevzuat ve bilgi kalitesi GAP'leri
+
+Repoda 5 Ağustos 2026 tarihli nihai yönetmelik ve ekleri ayrıştırılmış; eski taslaklar ayrı klasöre alınmış. Bu iyi bir kaynak hijyeni adımıdır. Ancak runtime ve Academy eşlemesi tamamlanmış değildir.
+
+Öncelikli kalan işler:
+
+1. Kademeli e-PYS geçiş takvimini il, belediye nüfusu, yapı alanı ve kullanım türüne göre hesaplayan kapsam/tarih motoru.
+2. Nihai `TREpys_*` Pset/property setlerinin resmi eklerden versioned kural paketine dönüştürülmesi.
+3. EK-9 kontrol listesinin otomatik/manuel ayrımı ve reviewer kanıtı.
+4. Academy'deki Eurocode, TBDY, BVBS, IFC Pset ve piyasa sapma iddiaları için madde/kaynak bazlı teknik review.
+5. Mevzuat içeriğinin hukuki uygunluk kararı değil, teknik ön-kontrol/advisory olarak etiketlenmesi.
+
+## 9. Önerilen yürütme sırası
+
+### Faz 0 - 48/72 saat: release tabanını geri getir
+
+- 14 TypeScript hatasını düzelt.
+- Registration ve pilot conversion test sözleşmelerini güvenlik kararıyla hizala.
+- Graphile Worker migration/test izolasyonunu düzelt; full test süreci temiz kapansın.
+- Build komutunu typecheck kapısına bağla.
+- Kritik `proxy-addr` ve yüksek dependency bulgularını triage et.
+
+### Faz 1 - Güvenlik ve veri bütünlüğü
+
+- Ortak production bootstrap, JWT fallback kaldırma ve DB membership authorization.
+- Anonim company endpointini kapat.
+- PDF escape/network isolation/sandbox.
+- Invitation token ve set-password akışını düzelt.
+- Quote/revision transactionları ve client tenant ownership doğrulaması.
+- Atomic quota reservation ve unique usage period.
+
+### Faz 2 - Deploy edilebilir pilot
+
+- Tek migration zinciri ve boş DB bootstrap.
+- Coolify için app + worker + migration Docker topolojisi.
+- Sentry, structured log, request ID, worker metrics ve alerts.
+- Super-admin audit, geçerli status modeli, tenant detail ve suspension enforcement.
+- CRM, teklif gönderim/takip ve ödeme sandbox akışlarını tamamla.
+
+### Faz 3 - BIM pilot kabulü
+
+- 3x3 versioned rule seti.
+- Reviewer competency/scope modeli.
+- Final e-PYS Pset + EK-9 kural paketi.
+- 5 izinli dosyada parse, correction, provenance ve süre KPI ölçümü.
+- Production S3 encryption/lifecycle/restore drill.
+
+### Faz 4 - Strangler kararı
+
+Yalnızca Faz 0-3 çıkış kriterleri geçince Next.js facade ve NestJS bounded context migration başlatılmalı. Express/Drizzle tek write owner olarak kalmalı; dual-write yapılmamalı.
+
+## 10. Pilot kabul kriterleri
+
+Pilot için minimum kapı:
+
+1. Lint, build, unit, DB integration, worker integration ve E2E tamamen yeşil.
+2. Kritik domainlerde ölçülmüş coverage en az `%80`.
+3. Boş DB kurulumu ve production-like upgrade/rollback tekrarlanabilir.
+4. Cross-tenant CRUD matrisi, auth demotion ve super-admin testleri sıfır sızıntı gösteriyor.
+5. 20 teklif senaryosunda create/edit/revise/PDF/send akışı veri kaybı olmadan tamamlanıyor.
+6. PDF kötü niyetli içerik testinde dış ağ isteği üretmiyor.
+7. Kota, plan yenileme, bonus, suspension ve ödeme webhook testleri deterministik.
+8. 5 müşteri izinli MEP dosyasında manuel yeniden giriş olmadan parse oranı hedefi karşılanıyor.
+9. Her kabul edilen metraj satırında source hash/path, rule version ve reviewer kararı var.
+10. Production S3 restore drill ve worker recovery kanıtı var.
+11. Sentry/alerting ve rollback runbook operasyon ekibi tarafından denenmiş.
+12. Graphify ve agent memory güncel HEAD ile yenilenmiş.
+
+## 11. Son karar
+
+**Bugünkü doğru yatırım sırası framework migration değil, release tabanı + güvenlik + gerçek pilot kanıtıdır.** Ürün, özellikle SmartCheck kanıt mimarisi açısından güçlü bir farklılaşma potansiyeline sahip. Ancak mevcut dalın yeşil olmayan doğrulama durumu, auth/tenant sınırı, migration zinciri, PDF renderer ve operasyon kanıtları çözülmeden gerçek müşteri verisiyle açılması kabul edilebilir değildir.
+
+Next.js/NestJS hedefi korunmalı; fakat ADR-007'deki gibi pilot parity ve rollback kanıtından sonra strangler yöntemiyle uygulanmalıdır.
