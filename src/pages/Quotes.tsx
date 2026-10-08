@@ -119,13 +119,18 @@ export function Quotes() {
   return (
     <PageContainer>
       <PageHeader
-        title="Teklifler"
-        description="Tüm inşaat ve proje tekliflerinizi buradan yönetin."
+        title="Teklifler & Projeler"
+        description="BIM modellerinizden veya manuel olarak tekliflerinizi yönetin."
         icon={FileText}
         actions={
-          <Button nativeButton={false} render={<Link to="/app/quotes/new" />} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-orange-900/20 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
-            <Plus size={16} /> Yeni Teklif
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" nativeButton={false} render={<Link to="/app/quotes/new" />} className="border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 gap-2 font-bold h-10 px-5">
+              <Plus size={16} /> Manuel Teklif
+            </Button>
+            <Button nativeButton={false} render={<Link to="/app/dosyadan-teklif-demo" />} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-orange-900/20 gap-2 font-bold h-10 px-6">
+              <FilePlus size={16} /> 3D IFC ile Teklif Hazırla
+            </Button>
+          </div>
         }
       />
 

@@ -132,11 +132,18 @@ export function Dashboard() {
         title="Panel"
         description="Satış performansınız ve finansal özetiniz."
         actions={
-          <Link to="/app/quotes/new">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-orange-900/20 font-bold text-xs uppercase tracking-widest px-6 h-10">
-              Yeni Teklif +
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to="/app/quotes/new">
+              <Button variant="outline" className="border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 gap-2 font-bold h-10 px-5">
+                Manuel Teklif
+              </Button>
+            </Link>
+            <Link to="/app/dosyadan-teklif-demo">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-orange-900/20 gap-2 font-bold h-10 px-6">
+                3D IFC ile Teklif Hazırla
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -147,8 +154,8 @@ export function Dashboard() {
               icon={FileText}
               title="Henüz teklif verisi yok"
               description="İlk teklifinizi oluşturduğunuzda panel gerçek satış performansınızı göstermeye başlar."
-              actionText="YENİ TEKLİF OLUŞTUR"
-              onAction={() => { window.location.href = '/app/quotes/new'; }}
+              actionText="İLK IFC MODELİNİ YÜKLE"
+              onAction={() => { window.location.href = '/app/dosyadan-teklif-demo'; }}
             />
           </CardContent>
         </Card>
@@ -274,13 +281,13 @@ export function Dashboard() {
               </Card>
             </SectionWrapper>
 
-            <SectionWrapper title="Mevzuat Takibi" description="İşinizi etkileyecek yasal güncellemeleri görüntüleyin.">
+            <SectionWrapper title="BIM ile Hızlanın" description="Maliyet hesaplamalarınızı saniyeler içinde tamamlayın.">
               <Card className="bg-zinc-900/30 border-zinc-800 shadow-none h-full">
                 <CardContent className="pt-6 flex flex-col h-full">
-                  <p className="text-xs text-zinc-400 leading-relaxed">Güncel mevzuat değişikliklerini ve tekliflerinizi nasıl etkileyebileceklerini Mevzuat sayfasından takip edin.</p>
-                  <Link to="/app/regulations" className="mt-auto pt-6">
+                  <p className="text-xs text-zinc-400 leading-relaxed">Projelerinizi (Revit, Allplan, Archicad) IFC formatında yükleyin. SmartCheck motorumuz eksik pozları bulsun ve metrajları otomatik çıkarsın.</p>
+                  <Link to="/app/dosyadan-teklif-demo" className="mt-auto pt-6">
                     <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black h-10 uppercase tracking-widest">
-                      MEVZUATI GÖRÜNTÜLE
+                      HEMEN YÜKLE
                     </Button>
                   </Link>
                 </CardContent>
