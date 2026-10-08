@@ -1126,3 +1126,10 @@ Avoid destructive commands unless explicitly requested and confirmed.
 4. Add tenant/RBAC/usage-limit hardening around current API routes.
 5. Add multi AI provider abstraction to the existing AI flows.
 6. Add PDF/AI/auth security checks and tests.
+
+### UX Rearchitecture: Iceberg Model & Premium SaaS Approach
+As of 2026-10-08, the project has formally adopted the "Iceberg UX" (Buzdağı Modeli) strategy for all user-facing flows:
+- **Design:** Apple/Stripe-tier premium SaaS UI with extensive whitespace, clean typography, and micro-interactions. No more raw Excel grids or complex dashboard clutter.
+- **Flow:** Simple, wizard-like (tunnel) processes. E.g., the IFC Quote process is now a strict 4-step wizard: Upload -> Review (SmartCheck) -> Price -> Quote.
+- **Hidden Power:** Advanced BIM features (3D viewing, SmartCheck rules, ISO 19650 compliance) are completely hidden under the hood. They are only exposed contextually via slide-over panels or tooltips when action is required (e.g., "3 elements missing POZ numbers").
+- **Implementation Status:** The IFC parser flow is now fully migrated to this paradigm (`DosyadanTeklifDemo.tsx`), connected to the real `legacy-parser`, and routes properly to `/app/quotes/new` for final Drizzle insertion.

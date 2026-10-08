@@ -1,6 +1,8 @@
 import type { TrPsetCsbProjectCompliance } from "../types";
 
-const TR_PSET_CSB_NAME = "Tr_Pset_CSB";
+const OLD_PSET_NAME = "Tr_Pset_CSB";
+const NEW_PSET_NAME = "TREpys_PozOzellikSeti";
+const PARCEL_PSET_NAME = "TREpys_ParselOzellikSeti"; // For TAKS, KAKS, etc in the new regulation
 
 export interface ElementPozNo {
   stepId: string;
@@ -37,7 +39,9 @@ interface IfcPropertyRelation {
 
 const elementRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\(/i;
 const siteOrBuildingRegex = /^#(\d+)\s*=\s*(IFCSITE|IFCBUILDING)\s*\(/i;
-const pozNoValueRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('PozNo'\s*,\s*\$\s*,\s*IFCTEXT\('([^']*)'\)\s*,\s*\$\s*\);/i;
+
+// Match both "PozNo" (old) and "CSBPozNo" (new)
+const pozNoValueRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(PozNo|CSBPozNo)'\s*,\s*\$\s*,\s*IFCTEXT\('([^']*)'\)\s*,\s*\$\s*\);/i;
 const realValueRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(TAKS|KAKS|CekmeOn|CekmeYan)'\s*,\s*\$\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*\$\s*\);/i;
 const propertySetRegex = /^#(\d+)\s*=\s*IFCPROPERTYSET\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'\s*,\s*\$\s*,\s*\(([^)]*)\)\s*\);/i;
 const relationRegex = /^#(\d+)\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*\$\s*,\s*\$\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
@@ -46,15 +50,17 @@ function parseReferences(value: string): string[] {
   return Array.from(value.matchAll(/#(\d+)/g), (match) => match[1]);
 }
 
-function isTrPsetCsb(name: string): boolean {
-  return name === TR_PSET_CSB_NAME;
+function isPozPset(name: string): boolean {
+  return name === OLD_PSET_NAME || name === NEW_PSET_NAME;
+}
+
+function isParcelPset(name: string): boolean {
+  return name === OLD_PSET_NAME || name === PARCEL_PSET_NAME;
 }
 
 /**
- * Reads the per-element `Tr_Pset_CSB.PozNo` value (ÇŞB position code) off
- * IfcBeam/Column/Slab/Wall/ReinforcingBar entities. Matches the property
- * name exactly so it does not confuse the regulation's `PozNo` with
- * unrelated Allplan-internal properties like `PozNoListe`.
+ * Reads the per-element `Tr_Pset_CSB.PozNo` or `TREpys_PozOzellikSeti.CSBPozNo`
+ * value (ÇŞB position code) off IfcBeam/Column/Slab/Wall/ReinforcingBar entities.
  */
 export function extractElementPozNo(ifcText: string): ElementPozNoExtraction {
   const elementIds = new Set<string>();
@@ -74,7 +80,8 @@ export function extractElementPozNo(ifcText: string): ElementPozNoExtraction {
 
     const pozNoMatch = line.match(pozNoValueRegex);
     if (pozNoMatch) {
-      textProperties.set(pozNoMatch[1], { stepId: pozNoMatch[1], value: pozNoMatch[2] });
+      // pozNoMatch[1] = stepId, pozNoMatch[2] = property name, pozNoMatch[3] = value
+      textProperties.set(pozNoMatch[1], { stepId: pozNoMatch[1], value: pozNoMatch[3] });
       continue;
     }
 
@@ -100,7 +107,7 @@ export function extractElementPozNo(ifcText: string): ElementPozNoExtraction {
 
   for (const relation of relations) {
     const propertySet = propertySets.get(relation.propertySetId);
-    if (!propertySet || !isTrPsetCsb(propertySet.name)) continue;
+    if (!propertySet || !isPozPset(propertySet.name)) continue;
 
     const pozNoProperty = propertySet.propertyIds
       .map((propertyId) => textProperties.get(propertyId))
@@ -121,11 +128,8 @@ export function extractElementPozNo(ifcText: string): ElementPozNoExtraction {
 }
 
 /**
- * Reads project/parcel-level `Tr_Pset_CSB` compliance values (TAKS, KAKS,
- * CekmeOn, CekmeYan) off IfcSite or IfcBuilding entities. These are not
- * per-element properties — the current parser does not otherwise read
- * IfcSite/IfcBuilding entities at all, so this is an independent pass over
- * the raw IFC text.
+ * Reads project/parcel-level compliance values (TAKS, KAKS, CekmeOn, CekmeYan)
+ * off IfcSite or IfcBuilding entities from `TREpys_ParselOzellikSeti` or `Tr_Pset_CSB`.
  */
 export function extractProjectComplianceData(ifcText: string): TrPsetCsbProjectCompliance {
   const siteIds = new Set<string>();
@@ -177,7 +181,7 @@ export function extractProjectComplianceData(ifcText: string): TrPsetCsbProjectC
 
   for (const relation of relations) {
     const propertySet = propertySets.get(relation.propertySetId);
-    if (!propertySet || !isTrPsetCsb(propertySet.name)) continue;
+    if (!propertySet || !isParcelPset(propertySet.name)) continue;
 
     const properties = propertySet.propertyIds
       .map((propertyId) => realProperties.get(propertyId))

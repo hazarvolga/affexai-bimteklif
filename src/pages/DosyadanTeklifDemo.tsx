@@ -1,18 +1,83 @@
-import React, { useState } from 'react';
-import { Upload, CheckCircle2, ChevronRight, FileText, Calculator, FileCheck2, Loader2 } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Upload, CheckCircle2, ChevronRight, FileText, Calculator, FileCheck2, Loader2, FileCode, AlertTriangle, Box } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { parseIfcText } from '@/ifc/parser/legacy-parser';
+import { toast } from 'sonner';
+
+type ParsedIfcData = ReturnType<typeof parseIfcText>;
 
 type Step = 'upload' | 'review' | 'price' | 'quote';
 
 export function DosyadanTeklifDemo() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>('upload');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [parsedData, setParsedData] = useState<ParsedIfcData | null>(null);
+  const [fileName, setFileName] = useState<string>('');
+  
+  // Slide-over 3D viewer state
+  const [isSlideoverOpen, setIsSlideoverOpen] = useState(false);
+  const [selectedElements, setSelectedElements] = useState<any[]>([]);
 
-  const handleNextStep = (next: Step) => {
+  // Fiyatlama mock state'leri (ileride api'ye baglanabilir)
+  const [unitPrices, setUnitPrices] = useState<Record<string, number>>({
+    'beton': 2450.00,
+    'donati': 24500.00,
+    'kalip': 1250.00,
+  });
+
+  const handleFileUpload = (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.ifc')) {
+      toast.error('Şimdilik sadece geçerli bir .ifc uzantılı dosya desteklenmektedir.');
+      return;
+    }
+
+    setFileName(file.name);
     setIsProcessing(true);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      setTimeout(() => {
+        try {
+          const result = parseIfcText(text);
+          if (result.summary.parseStatus === 'failed') {
+            toast.error('Dosya okunamadı veya desteklenen IFC elemanı bulunamadı.');
+            setIsProcessing(false);
+            return;
+          }
+          
+          setParsedData(result);
+          setIsProcessing(false);
+          setCurrentStep('review');
+          toast.success('IFC başarıyla analiz edildi.');
+        } catch (err) {
+          console.error(err);
+          toast.error('Dosya ayrıştırılırken bir hata oluştu.');
+          setIsProcessing(false);
+        }
+      }, 500); // UI transition delay
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCreateQuote = () => {
+    if (!parsedData) return;
+    setIsProcessing(true);
+    
+    // Legacy aktarim uyumlulugu
+    const evidenceElementCount = parsedData.elements.filter((e) => e.quantitySource === 'qto' || e.quantitySource === 'property').length;
+    sessionStorage.setItem('teklifpro_ifc_extracted', JSON.stringify({
+      source: 'dosyadan-teklif',
+      transferredAt: new Date().toISOString(),
+      evidenceElementCount,
+      summary: parsedData.summary,
+    }));
+
     setTimeout(() => {
       setIsProcessing(false);
-      setCurrentStep(next);
-    }, 800); // Simulate processing time
+      setCurrentStep('quote');
+    }, 1000);
   };
 
   const StepIndicator = () => (
@@ -45,16 +110,26 @@ export function DosyadanTeklifDemo() {
     </div>
   );
 
+  const getConcreteVol = () => parsedData?.summary?.totalVolumeM3 || 0;
+  const getSteelTon = () => parsedData?.summary?.totalRebarTon || 0;
+  const getFormworkArea = () => parsedData?.summary?.totalFormworkM2 || 0;
+  const getPozCount = () => parsedData?.summary?.elementsWithPozNoCount || 0;
+  
+  const totalPrice = 
+    (getConcreteVol() * unitPrices.beton) + 
+    (getSteelTon() * unitPrices.donati) + 
+    (getFormworkArea() * unitPrices.kalip);
+
   return (
     <div className="p-8 max-w-5xl mx-auto text-zinc-100">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Dosyadan Teklif (Prototip)</h1>
-        <p className="text-zinc-400">Tek tıkla IFC veya Excel dosyalarınızdan metraj çıkarıp teklif hazırlayın.</p>
+        <h1 className="text-3xl font-bold mb-2">Dosyadan Teklif Oluştur</h1>
+        <p className="text-zinc-400">Tek tıkla IFC dosyalarınızdan metraj çıkarıp teklif hazırlayın.</p>
       </div>
 
       <StepIndicator />
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 min-h-[400px] flex flex-col justify-center relative">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 min-h-[400px] flex flex-col justify-center relative shadow-2xl">
         {isProcessing && (
           <div className="absolute inset-0 bg-zinc-950/80 rounded-xl flex flex-col items-center justify-center z-10 backdrop-blur-sm">
             <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
@@ -63,145 +138,272 @@ export function DosyadanTeklifDemo() {
         )}
 
         {currentStep === 'upload' && (
-          <div className="text-center">
-            <div className="border-2 border-dashed border-zinc-700 rounded-xl p-12 hover:border-primary/50 transition-colors cursor-pointer bg-zinc-950/50" onClick={() => handleNextStep('review')}>
-              <Upload className="w-16 h-16 text-zinc-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Dosyanızı Buraya Bırakın</h3>
-              <p className="text-zinc-500 mb-6">IFC veya Excel dosyaları desteklenir (Maks. 50MB)</p>
-              <button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90">
+          <div className="text-center max-w-2xl mx-auto w-full">
+            <div 
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                  handleFileUpload(e.dataTransfer.files[0]);
+                }
+              }}
+              className="border-2 border-dashed border-zinc-700 rounded-xl p-16 hover:border-primary/50 transition-colors cursor-pointer bg-zinc-950/50 flex flex-col items-center justify-center group"
+            >
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <FileCode className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">BIM Dosyanızı Buraya Bırakın</h3>
+              <p className="text-zinc-400 mb-8 max-w-sm">IFC formatındaki Allplan, Revit veya Archicad modelinizi sürükleyip bırakın.</p>
+              
+              <label className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 cursor-pointer shadow-lg">
                 Dosya Seç
+                <input type="file" accept=".ifc" className="hidden" onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) handleFileUpload(e.target.files[0]);
+                }} />
+              </label>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'review' && parsedData && (
+          <div className="space-y-6 max-w-3xl mx-auto w-full">
+            <div className="flex justify-between items-end mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-1">Metraj Özeti</h3>
+                <p className="text-zinc-400">"{fileName}" dosyasından çıkarılan temel değerler.</p>
+              </div>
+              {getPozCount() > 0 ? (
+                <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" /> {getPozCount()} ÇŞB Pozu Yakalandı
+                </span>
+              ) : (
+                <span className="bg-orange-500/10 text-orange-400 border border-orange-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" /> ÇŞB Pozu Bulunamadı
+                </span>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
+                <div className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Toplam Beton</div>
+                <div className="text-2xl font-black text-white">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-500">m³</span></div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
+                <div className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Toplam Donatı</div>
+                <div className="text-2xl font-black text-white">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-500">Ton</span></div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
+                <div className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Toplam Kalıp</div>
+                <div className="text-2xl font-black text-white">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-500">m²</span></div>
+              </div>
+            </div>
+            
+            {(() => {
+              const missingPozElements = parsedData.elements.filter(e => !e.pozNo);
+              if (missingPozElements.length > 0) {
+                return (
+                  <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-5 mt-6 transition-all hover:bg-orange-500/10">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-2 bg-orange-500/20 text-orange-400 rounded-lg">
+                          <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-orange-400 font-bold text-lg">Uçuş Öncesi Kontrol: {missingPozElements.length} Sorun Bulundu</h4>
+                          <p className="text-zinc-400 text-sm mt-1 mb-3">Modeldeki bazı elemanlarda ÇŞB poz numarası eksik. Bu durum fiyatlandırmada sapmalara yol açabilir.</p>
+                          <button 
+                            onClick={() => { setSelectedElements(missingPozElements); setIsSlideoverOpen(true); }}
+                            className="bg-orange-500/20 text-orange-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-500/30 transition-colors"
+                          >
+                            Sorunları İncele & Çöz ({missingPozElements.length} Eleman)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5 mt-6 flex items-center gap-3">
+                  <div className="p-2 bg-green-500/20 text-green-400 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-green-400 font-bold text-base">Tüm Kontroller Başarılı</h4>
+                    <p className="text-green-400/80 text-sm">Modeldeki tüm taşıyıcı elemanlar ÇŞB pozlarıyla tam uyumlu.</p>
+                  </div>
+                </div>
+              );
+            })()}
+            
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-zinc-800">
+               <button onClick={() => setCurrentStep('upload')} className="text-zinc-400 hover:text-white font-medium px-4 py-2 transition-colors">
+                İptal Et
+              </button>
+              <button onClick={() => setCurrentStep('price')} className="bg-white text-zinc-950 px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 flex items-center transition-colors">
+                Devam Et: Fiyatlandır <ChevronRight className="w-5 h-5 ml-2" />
               </button>
             </div>
           </div>
         )}
 
-        {currentStep === 'review' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-end mb-4">
-              <div>
-                <h3 className="text-xl font-semibold">Çıkarılan Metraj Verileri</h3>
-                <p className="text-zinc-400">Sistem dosyanızdaki elemanları tespit etti.</p>
-              </div>
-              <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">35 Kalem Bulundu</span>
+        {currentStep === 'price' && parsedData && (
+          <div className="space-y-6 max-w-4xl mx-auto w-full">
+            <div>
+              <h3 className="text-2xl font-bold mb-1">Birim Fiyatlandırma</h3>
+              <p className="text-zinc-400">Güncel poz fiyatları üzerinden maliyetinizi hesaplayın.</p>
             </div>
             
-            <div className="border border-zinc-800 rounded-lg overflow-hidden">
+            <div className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-950 text-zinc-400">
+                <thead className="bg-zinc-900 border-b border-zinc-800">
                   <tr>
-                    <th className="p-4 font-medium">Poz No</th>
-                    <th className="p-4 font-medium">Tanım</th>
-                    <th className="p-4 font-medium text-right">Miktar</th>
-                    <th className="p-4 font-medium">Birim</th>
+                    <th className="p-4 font-bold text-zinc-300">Kalem</th>
+                    <th className="p-4 font-bold text-zinc-300 text-right">Miktar</th>
+                    <th className="p-4 font-bold text-zinc-300 text-right">Birim Fiyat (₺)</th>
+                    <th className="p-4 font-bold text-zinc-300 text-right">Toplam (₺)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
-                  <tr className="bg-zinc-900 hover:bg-zinc-800/50">
-                    <td className="p-4">15.120.1001</td>
-                    <td className="p-4">C25/30 Hazır Beton</td>
-                    <td className="p-4 text-right">450.5</td>
-                    <td className="p-4">m³</td>
-                  </tr>
-                  <tr className="bg-zinc-900 hover:bg-zinc-800/50">
-                    <td className="p-4">15.130.1005</td>
-                    <td className="p-4">Ø 14-32 mm Nervürlü Çelik</td>
-                    <td className="p-4 text-right">32.4</td>
-                    <td className="p-4">Ton</td>
-                  </tr>
-                  <tr className="bg-zinc-900 hover:bg-zinc-800/50">
-                    <td className="p-4">15.150.1002</td>
-                    <td className="p-4">Ahşap Kalıp</td>
-                    <td className="p-4 text-right">1250.0</td>
-                    <td className="p-4">m²</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="flex justify-end mt-6">
-              <button onClick={() => handleNextStep('price')} className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 flex items-center">
-                Onayla ve Fiyatlandır <ChevronRight className="w-4 h-4 ml-2" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {currentStep === 'price' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-end mb-4">
-              <div>
-                <h3 className="text-xl font-semibold">Fiyatlandırma</h3>
-                <p className="text-zinc-400">Birim fiyatları belirleyin veya otomatik pazar fiyatlarını kullanın.</p>
-              </div>
-            </div>
-            
-            <div className="border border-zinc-800 rounded-lg overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-950 text-zinc-400">
-                  <tr>
-                    <th className="p-4 font-medium">Tanım</th>
-                    <th className="p-4 font-medium text-right">Miktar</th>
-                    <th className="p-4 font-medium text-right">Birim Fiyat (₺)</th>
-                    <th className="p-4 font-medium text-right">Toplam (₺)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800">
-                  <tr className="bg-zinc-900">
-                    <td className="p-4">C25/30 Hazır Beton</td>
-                    <td className="p-4 text-right">450.5 m³</td>
+                <tbody className="divide-y divide-zinc-800/50">
+                  <tr className="hover:bg-zinc-900/50 transition-colors">
+                    <td className="p-4 font-medium text-white">Hazır Beton</td>
+                    <td className="p-4 text-right text-zinc-400">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m³</td>
                     <td className="p-4 text-right">
-                      <input type="text" defaultValue="2,450.00" className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-right w-24 text-zinc-100" />
+                      <input 
+                        type="number" 
+                        value={unitPrices.beton} 
+                        onChange={(e) => setUnitPrices({...unitPrices, beton: Number(e.target.value)})}
+                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-right w-32 text-white focus:outline-none focus:border-primary" 
+                      />
                     </td>
-                    <td className="p-4 text-right font-medium">1,103,725.00</td>
+                    <td className="p-4 text-right font-bold text-white">
+                      {(getConcreteVol() * unitPrices.beton).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
                   </tr>
-                  <tr className="bg-zinc-900">
-                    <td className="p-4">Ø 14-32 mm Nervürlü Çelik</td>
-                    <td className="p-4 text-right">32.4 Ton</td>
+                  <tr className="hover:bg-zinc-900/50 transition-colors">
+                    <td className="p-4 font-medium text-white">Nervürlü Çelik (Donatı)</td>
+                    <td className="p-4 text-right text-zinc-400">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} Ton</td>
                     <td className="p-4 text-right">
-                      <input type="text" defaultValue="24,500.00" className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-right w-24 text-zinc-100" />
+                      <input 
+                        type="number" 
+                        value={unitPrices.donati} 
+                        onChange={(e) => setUnitPrices({...unitPrices, donati: Number(e.target.value)})}
+                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-right w-32 text-white focus:outline-none focus:border-primary" 
+                      />
                     </td>
-                    <td className="p-4 text-right font-medium">793,800.00</td>
+                    <td className="p-4 text-right font-bold text-white">
+                       {(getSteelTon() * unitPrices.donati).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                   <tr className="hover:bg-zinc-900/50 transition-colors">
+                    <td className="p-4 font-medium text-white">Kalıp İskelesi & Yüzeyi</td>
+                    <td className="p-4 text-right text-zinc-400">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²</td>
+                    <td className="p-4 text-right">
+                      <input 
+                        type="number" 
+                        value={unitPrices.kalip} 
+                        onChange={(e) => setUnitPrices({...unitPrices, kalip: Number(e.target.value)})}
+                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-right w-32 text-white focus:outline-none focus:border-primary" 
+                      />
+                    </td>
+                    <td className="p-4 text-right font-bold text-white">
+                       {(getFormworkArea() * unitPrices.kalip).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div className="bg-zinc-950 p-4 rounded-lg flex justify-between items-center border border-zinc-800">
+            <div className="bg-zinc-950 p-6 rounded-xl flex justify-between items-center border border-zinc-800">
                <span className="text-zinc-400 font-medium">Ara Toplam:</span>
-               <span className="text-xl font-bold">₺ 1,897,525.00</span>
+               <span className="text-3xl font-black text-white">₺ {totalPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             
-            <div className="flex justify-between mt-6">
-              <button onClick={() => setCurrentStep('review')} className="text-zinc-400 hover:text-zinc-200 font-medium px-4 py-2">
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-zinc-800">
+              <button onClick={() => setCurrentStep('review')} className="text-zinc-400 hover:text-white font-medium px-4 py-2 transition-colors">
                 Geri Dön
               </button>
-              <button onClick={() => handleNextStep('quote')} className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 flex items-center">
-                Teklifi Hazırla <CheckCircle2 className="w-4 h-4 ml-2" />
+              <button onClick={handleCreateQuote} className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 flex items-center shadow-lg transition-colors">
+                Teklifi Hazırla <CheckCircle2 className="w-5 h-5 ml-2" />
               </button>
             </div>
           </div>
         )}
 
         {currentStep === 'quote' && (
-          <div className="text-center py-8">
-            <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="text-center py-12 max-w-md mx-auto">
+            <div className="w-24 h-24 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-green-500/20">
+              <CheckCircle2 className="w-12 h-12" />
             </div>
-            <h3 className="text-2xl font-bold mb-2">Teklifiniz Hazır!</h3>
-            <p className="text-zinc-400 mb-8 max-w-md mx-auto">
-              TKF-2026-0045 numaralı teklifiniz başarıyla oluşturuldu. Müşterinize PDF olarak gönderebilirsiniz.
+            <h3 className="text-3xl font-black text-white mb-3">Teklifiniz Hazır!</h3>
+            <p className="text-zinc-400 mb-10 leading-relaxed">
+              Arka planda taslak teklifiniz oluşturuldu. Şimdi detaylı teklif yönetim ekranına geçip PDF olarak indirebilir veya müşterinize sunabilirsiniz.
             </p>
-            <div className="flex justify-center space-x-4">
-              <button className="bg-zinc-800 text-zinc-100 px-6 py-2 rounded-lg font-medium hover:bg-zinc-700">
-                PDF Olarak İndir
+            <div className="flex flex-col gap-3">
+              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-zinc-950 px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
+                Teklif Detayına Git
               </button>
-              <button onClick={() => setCurrentStep('upload')} className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90">
-                Yeni Teklif Başlat
+              <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-8 py-4 rounded-xl font-bold hover:bg-zinc-800 transition-colors w-full">
+                Yeni Dosya Yükle
               </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Slide-over 3D Viewer Panel */}
+      {isSlideoverOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsSlideoverOpen(false)} />
+          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-zinc-950 border-l border-zinc-800 shadow-2xl z-50 flex flex-col transform transition-transform duration-300">
+            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Box className="w-5 h-5 text-primary" /> Sorunlu Elemanlar (3D)
+              </h3>
+              <button onClick={() => setIsSlideoverOpen(false)} className="text-zinc-400 hover:text-white transition-colors">
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Fake 3D Canvas Area */}
+              <div className="w-full h-64 bg-zinc-900 border border-zinc-800 rounded-xl relative overflow-hidden flex items-center justify-center group">
+                <div className="absolute inset-0 bg-grid-zinc-800/[0.2] bg-[size:20px_20px]" />
+                <div className="relative z-10 text-center">
+                  <Box className="w-16 h-16 text-zinc-700 mx-auto mb-3 group-hover:scale-110 transition-transform duration-500 group-hover:text-primary" />
+                  <span className="text-zinc-500 font-medium text-sm">3D Modeli Yükleniyor...</span>
+                  <p className="text-zinc-600 text-xs mt-1">(Sadece sorunlu {selectedElements.length} eleman izole edildi)</p>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-bold text-zinc-300 mb-3 uppercase tracking-wider">Eksik Poz Listesi</h4>
+                <div className="space-y-3">
+                  {selectedElements.slice(0, 10).map((el, i) => (
+                    <div key={i} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-orange-500/30 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-white font-medium text-sm">{el.name || el.type}</span>
+                        <span className="text-zinc-500 text-xs font-mono">GUID: {el.guid.substring(0,8)}...</span>
+                      </div>
+                      <div className="text-zinc-400 text-xs mb-3">Hacim: {el.volumeM3.toFixed(2)} m³</div>
+                      
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="15.120.1001" className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-white focus:border-primary focus:outline-none" />
+                        <button className="bg-primary text-primary-foreground px-3 py-1.5 rounded font-bold text-sm hover:bg-primary/90">Ata</button>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedElements.length > 10 && (
+                    <div className="text-center text-zinc-500 text-xs mt-4">
+                      + {selectedElements.length - 10} eleman daha...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
