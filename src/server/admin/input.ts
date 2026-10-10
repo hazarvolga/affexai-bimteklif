@@ -26,6 +26,12 @@ export const updateSubscriptionInput = z.object({
 }).strict().refine(value => Object.keys(value).length > 0);
 
 export const updateCompanyAdminInput = z.object({
+  name: z.string().trim().min(1).max(200).optional(),
+  phone: z.string().trim().max(50).nullable().optional(),
+  email: z.string().trim().email().max(120).nullable().optional(),
+  taxNumber: z.string().trim().max(50).nullable().optional(),
+  taxOffice: z.string().trim().max(100).nullable().optional(),
+  address: z.string().trim().max(1000).nullable().optional(),
   isSmartcheckEnabled: z.boolean().optional(),
   adminNotes: z.string().max(4000).nullable().optional(),
 }).strict().refine(value => Object.keys(value).length > 0);

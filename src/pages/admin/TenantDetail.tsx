@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/button';
 import { fetchWithAuth } from '../../lib/api';
 import { toast } from 'sonner';
@@ -19,16 +18,33 @@ import {
   AlertTriangle,
   Clock,
   Sparkles,
-  ShieldAlert
+  ShieldAlert,
+  Phone,
+  Mail,
+  MapPin,
+  Receipt,
+  UserCheck,
+  Calendar,
+  Layers,
+  ChevronRight
 } from 'lucide-react';
 
 interface TenantDetailData {
   company: {
     id: string;
     name: string;
+    phone: string | null;
+    email: string | null;
+    taxNumber: string | null;
+    taxOffice: string | null;
+    address: string | null;
+    defaultCurrency: string;
+    defaultVatRate: number;
     createdAt: string;
-    is_smartcheck_enabled: boolean;
-    admin_notes: string | null;
+    is_smartcheck_enabled?: boolean;
+    isSmartcheckEnabled?: boolean;
+    admin_notes?: string | null;
+    adminNotes?: string | null;
   };
   subscription: {
     id: string;
@@ -48,8 +64,8 @@ interface TenantDetailData {
     ifcMaxFileMb: number;
     ifcMaxConcurrent: number;
   } | null;
-  users: Array<{
-    id: string;
+  members: Array<{
+    userId: string;
     fullName: string;
     email: string;
     role: string;
@@ -62,14 +78,15 @@ interface TenantDetailData {
     lastActiveAt: string | null;
   }>;
   recentRuns: Array<{
-    id: string;
-    kind: string;
+    runId: string;
+    documentId: string;
     fileName: string;
     status: string;
-    attempts: number;
-    createdAt: string;
-    finishedAt: string | null;
+    currentStage: string | null;
+    errorCode: string | null;
     errorMessage: string | null;
+    createdAt: string;
+    completedAt: string | null;
   }>;
 }
 
@@ -80,18 +97,26 @@ export function TenantDetail() {
   const [data, setData] = useState<TenantDetailData | null>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingNotes, setSavingNotes] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [savingSubscription, setSavingSubscription] = useState(false);
 
-  // Form states
+  // Editable Profile States
+  const [companyName, setCompanyName] = useState('');
+  const [companyPhone, setCompanyPhone] = useState('');
+  const [companyEmail, setCompanyEmail] = useState('');
+  const [taxOffice, setTaxOffice] = useState('');
+  const [taxNumber, setTaxNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [isSmartcheckEnabled, setIsSmartcheckEnabled] = useState(false);
+
+  // Subscription States
   const [editPlanId, setEditPlanId] = useState('');
   const [editStatus, setEditStatus] = useState('active');
   const [editBonusQuotes, setEditBonusQuotes] = useState(0);
   const [editBonusIfc, setEditBonusIfc] = useState(0);
 
-  // Impersonation modal
+  // Impersonation Modal
   const [impersonateModalOpen, setImpersonateModalOpen] = useState(false);
   const [impersonateReadOnly, setImpersonateReadOnly] = useState(true);
   const [impersonating, setImpersonating] = useState(false);
@@ -106,7 +131,7 @@ export function TenantDetail() {
       ]);
 
       if (!tenantRes.ok) {
-        throw new Error('Firma bilgileri alınamadı');
+        throw new Error('Firma profil bilgileri alınamadı');
       }
 
       const tenantData: TenantDetailData = await tenantRes.json();
@@ -115,8 +140,16 @@ export function TenantDetail() {
       setData(tenantData);
       setPlans(plansData);
 
-      setAdminNotes(tenantData.company.admin_notes || '');
-      setIsSmartcheckEnabled(Boolean(tenantData.company.is_smartcheck_enabled));
+      // Populate form fields
+      setCompanyName(tenantData.company.name || '');
+      setCompanyPhone(tenantData.company.phone || '');
+      setCompanyEmail(tenantData.company.email || '');
+      setTaxOffice(tenantData.company.taxOffice || '');
+      setTaxNumber(tenantData.company.taxNumber || '');
+      setAddress(tenantData.company.address || '');
+      setAdminNotes(tenantData.company.admin_notes || tenantData.company.adminNotes || '');
+      setIsSmartcheckEnabled(Boolean(tenantData.company.is_smartcheck_enabled ?? tenantData.company.isSmartcheckEnabled));
+
       setEditPlanId(tenantData.subscription?.planId || '');
       setEditStatus(tenantData.subscription?.status || 'active');
       setEditBonusQuotes(tenantData.subscription?.bonusQuoteLimit || 0);
@@ -132,29 +165,35 @@ export function TenantDetail() {
     loadTenant();
   }, [companyId]);
 
-  const handleSaveCompanySettings = async () => {
+  const handleSaveProfile = async () => {
     if (!companyId) return;
     try {
-      setSavingNotes(true);
+      setSavingProfile(true);
       const res = await fetchWithAuth(`/api/admin/tenants/${companyId}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          adminNotes,
+          name: companyName.trim(),
+          phone: companyPhone.trim() || null,
+          email: companyEmail.trim() || null,
+          taxOffice: taxOffice.trim() || null,
+          taxNumber: taxNumber.trim() || null,
+          address: address.trim() || null,
+          adminNotes: adminNotes.trim() || null,
           isSmartcheckEnabled
         })
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Ayarlar kaydedilemedi');
+        throw new Error(err.error || 'Profil güncellenemedi');
       }
 
-      toast.success('Firma ayarları başarıyla güncellendi');
+      toast.success('Firma iletişim ve profil bilgileri kaydedildi');
       loadTenant();
     } catch (err: any) {
       toast.error(err.message || 'Güncelleme başarısız');
     } finally {
-      setSavingNotes(false);
+      setSavingProfile(false);
     }
   };
 
@@ -177,7 +216,7 @@ export function TenantDetail() {
         throw new Error(err.error || 'Abonelik kaydedilemedi');
       }
 
-      toast.success('Abonelik ve limitler güncellendi');
+      toast.success('Abonelik paketi ve limitler güncellendi');
       loadTenant();
     } catch (err: any) {
       toast.error(err.message || 'Güncelleme başarısız');
@@ -208,7 +247,7 @@ export function TenantDetail() {
       localStorage.setItem('admin_session_backup', currentToken);
       localStorage.setItem('token', resData.token);
 
-      toast.success(`${data?.company.name} adına oturum açıldı`);
+      toast.success(`${data?.company.name} adına geçiş yapıldı`);
       window.location.href = '/app';
     } catch (err: any) {
       toast.error(err.message || 'Geçiş başarısız');
@@ -221,7 +260,7 @@ export function TenantDetail() {
       <PageContainer>
         <div className="flex h-64 items-center justify-center text-zinc-400">
           <Clock className="animate-spin mr-2" size={20} />
-          Firma detayları yükleniyor...
+          Firma profili ve detayları yükleniyor...
         </div>
       </PageContainer>
     );
@@ -232,7 +271,7 @@ export function TenantDetail() {
       <PageContainer>
         <div className="p-8 text-center text-zinc-400">
           <AlertTriangle className="mx-auto mb-3 text-amber-400" size={32} />
-          Firma bulunamadı veya yüklenirken bir sorun oluştu.
+          Firma bulunamadı.
           <div className="mt-4">
             <Link to="/admin/tenants">
               <Button variant="outline">Firmalar Listesine Dön</Button>
@@ -243,8 +282,12 @@ export function TenantDetail() {
     );
   }
 
+  // Primary contact / owner
+  const primaryOwner = data.members.find((m) => m.role === 'owner') || data.members[0];
+
   return (
     <PageContainer>
+      {/* Top Breadcrumb & Action Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button
@@ -253,15 +296,27 @@ export function TenantDetail() {
             onClick={() => navigate('/admin/tenants')}
             className="text-zinc-400 hover:text-white"
           >
-            <ArrowLeft size={18} className="mr-1" /> Geri
+            <ArrowLeft size={18} className="mr-1" /> Firmalar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-              <Building2 className="text-indigo-400" size={24} />
-              {data.company.name}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <Building2 className="text-indigo-400" size={26} />
+                {data.company.name}
+              </h1>
+              {data.subscription?.status === 'active' ? (
+                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
+                  Aktif Firma
+                </span>
+              ) : (
+                <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[11px] font-bold text-zinc-400">
+                  {data.subscription?.status || 'Paketsiz'}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-zinc-500 mt-0.5">
-              ID: {data.company.id} • Kayıt: {new Date(data.company.createdAt).toLocaleDateString('tr-TR')}
+              Firma ID: <span className="font-mono text-zinc-400">{data.company.id}</span> • Kayıt:{' '}
+              {new Date(data.company.createdAt).toLocaleDateString('tr-TR')}
             </p>
           </div>
         </div>
@@ -270,25 +325,150 @@ export function TenantDetail() {
           onClick={() => setImpersonateModalOpen(true)}
           className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg text-xs font-bold"
         >
-          <LogIn size={16} className="mr-2" />
+          <LogIn size={15} className="mr-2" />
           Firmaya Giriş Yap (Impersonate)
         </Button>
       </div>
 
+      {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sol Kolon: Firma Ayarları & Notlar */}
-        <div className="space-y-6">
+        {/* Sol Kolon: Firma Yetkilisi & İletişim Bilgileri (Düzenlenebilir) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* 1. Birincil Yetkili Kartı */}
+          <div className="rounded-xl border border-indigo-900/40 bg-indigo-950/20 p-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-3 flex items-center gap-2">
+              <UserCheck size={16} className="text-indigo-400" />
+              Firma Sahibi / Birincil Yetkili
+            </h3>
+            {primaryOwner ? (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/80 rounded-lg p-4 border border-zinc-800">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-lg">
+                    {primaryOwner.fullName?.charAt(0).toUpperCase() || 'Y'}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      {primaryOwner.fullName}
+                      <span className="rounded bg-indigo-500/20 border border-indigo-500/40 px-1.5 py-0.5 text-[10px] font-bold text-indigo-300 uppercase">
+                        {primaryOwner.role === 'owner' ? 'Firma Sahibi' : primaryOwner.role}
+                      </span>
+                    </h4>
+                    <p className="text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                      <Mail size={12} className="text-zinc-500" />
+                      {primaryOwner.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right text-xs text-zinc-400 border-t sm:border-t-0 pt-2 sm:pt-0 border-zinc-800">
+                  <span className="text-[10px] text-zinc-500 block uppercase font-semibold">Yetkili Kayıt Tarihi</span>
+                  <span>{new Date(primaryOwner.createdAt).toLocaleDateString('tr-TR')}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500">Bu firmaya henüz yetkili kullanıcı atanmamış.</p>
+            )}
+          </div>
+
+          {/* 2. Firma İletişim & Profil Bilgileri Formu */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300 mb-4 flex items-center gap-2">
-              <Sparkles size={16} className="text-indigo-400" />
-              Firma Özellikleri & SmartCheck
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-4 flex items-center gap-2">
+              <Building2 size={17} className="text-indigo-400" />
+              Firma Profil & İletişim Bilgileri
             </h3>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">Firma Resmi Ünvanı</label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="Örn: ABC İnşaat A.Ş."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                  <Phone size={12} className="inline mr-1 text-zinc-500" />
+                  Telefon Numarası
+                </label>
+                <input
+                  type="text"
+                  value={companyPhone}
+                  onChange={(e) => setCompanyPhone(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="+90 (___) ___ __ __"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                  <Mail size={12} className="inline mr-1 text-zinc-500" />
+                  Firma İletişim E-Postası
+                </label>
+                <input
+                  type="email"
+                  value={companyEmail}
+                  onChange={(e) => setCompanyEmail(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="info@sirketiniz.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                  <Receipt size={12} className="inline mr-1 text-zinc-500" />
+                  Vergi Dairesi
+                </label>
+                <input
+                  type="text"
+                  value={taxOffice}
+                  onChange={(e) => setTaxOffice(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="Kadıköy V.D."
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                  <Receipt size={12} className="inline mr-1 text-zinc-500" />
+                  Vergi Kimlik Numarası (VKN / TCKN)
+                </label>
+                <input
+                  type="text"
+                  value={taxNumber}
+                  onChange={(e) => setTaxNumber(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="10 veya 11 haneli vergi numarası"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                  <MapPin size={12} className="inline mr-1 text-zinc-500" />
+                  Resmi Tebligat & Şirket Adresi
+                </label>
+                <textarea
+                  rows={2}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="Şirket resmi fatura adresi..."
+                />
+              </div>
+
+              {/* SmartCheck Modül Anahtarı */}
+              <div className="sm:col-span-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3.5 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white">SmartCheck Modülü</div>
-                  <div className="text-[11px] text-zinc-500">IFC kural denetimi ve metraj aktarımı</div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-indigo-400" />
+                    SmartCheck BIM & Kural Doğrulama Modülü
+                  </div>
+                  <div className="text-[11px] text-zinc-500 mt-0.5">
+                    Bu firmanın IFC ve Excel kural denetimi, e-PYS ve metraj aktarım modülüne erişimi
+                  </div>
                 </div>
                 <label className="relative inline-flex cursor-pointer items-center">
                   <input
@@ -301,64 +481,123 @@ export function TenantDetail() {
                 </label>
               </div>
 
-              <div>
+              {/* Admin Notları */}
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  Platform Admin Notları (Dahili)
+                  Platform Admin Notları (Yalnızca Süper Admin Görür)
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Müşteriyle ilgili operasyonel notlar, özel talepler vb."
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  placeholder="Müşteriyle yapılan görüşmeler, özel indirimler, taahhütler vb."
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
+            </div>
 
+            <div className="mt-5 flex justify-end">
               <Button
-                onClick={handleSaveCompanySettings}
-                disabled={savingNotes}
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
                 size="sm"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold"
               >
                 <Save size={14} className="mr-1.5" />
-                {savingNotes ? 'Kaydediliyor...' : 'Firma Ayarlarını Kaydet'}
+                {savingProfile ? 'Kaydediliyor...' : 'Firma Bilgilerini Kaydet'}
               </Button>
             </div>
           </div>
 
-          {/* Kullanıcılar Listesi */}
+          {/* 3. Firma Kullanıcıları Tablosu */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-3 flex items-center gap-2">
               <Users size={16} className="text-indigo-400" />
-              Firma Kullanıcıları ({data.users.length})
+              Firma Kullanıcıları ({data.members.length})
             </h3>
-            <div className="divide-y divide-zinc-800">
-              {data.users.map((u) => (
-                <div key={u.id} className="py-2.5 flex items-center justify-between">
-                  <div className="min-w-0 pr-2">
-                    <p className="text-xs font-medium text-white truncate">{u.fullName}</p>
-                    <p className="text-[11px] text-zinc-500 truncate">{u.email}</p>
-                  </div>
-                  <span className="shrink-0 rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold text-zinc-300">
-                    {u.role}
-                  </span>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-800 text-zinc-400">
+                  <tr>
+                    <th className="pb-2.5 font-medium">Kullanıcı</th>
+                    <th className="pb-2.5 font-medium">E-Posta</th>
+                    <th className="pb-2.5 font-medium">Rol</th>
+                    <th className="pb-2.5 font-medium">Kayıt Tarihi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+                  {data.members.map((u) => (
+                    <tr key={u.userId}>
+                      <td className="py-2.5 font-medium text-white">{u.fullName}</td>
+                      <td className="py-2.5 text-zinc-400">{u.email}</td>
+                      <td className="py-2.5">
+                        <span className="rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-zinc-300 uppercase">
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-zinc-500">
+                        {new Date(u.createdAt).toLocaleDateString('tr-TR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        {/* Sağ Kolon: Abonelik & IFC Limitleri & Kullanım Geçmişi */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Sağ Kolon: Paket, Kotalar & İşlemler */}
+        <div className="space-y-6">
+          {/* Sahip Olduğu Paket & Kota Yönetimi */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300 mb-4 flex items-center gap-2">
-              <CreditCard size={16} className="text-indigo-400" />
-              Abonelik ve Kota Yönetimi
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                <CreditCard size={16} className="text-indigo-400" />
+                Mevcut Paket & Kotalar
+              </h3>
+              {data.plan ? (
+                <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300 uppercase">
+                  {data.plan.name}
+                </span>
+              ) : (
+                <span className="rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-500">
+                  Paket Yok
+                </span>
+              )}
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            {/* Paket Fiyat ve Özellik Özeti */}
+            {data.plan && (
+              <div className="rounded-lg border border-indigo-950/70 bg-indigo-950/20 p-4 mb-4 space-y-2.5">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs text-zinc-400">Aylık Ücret</span>
+                  <span className="text-lg font-black text-white">₺{data.plan.monthlyPrice} <span className="text-xs text-zinc-500 font-normal">/ ay</span></span>
+                </div>
+                <div className="border-t border-indigo-900/40 pt-2 space-y-1 text-xs text-indigo-300">
+                  <div className="flex justify-between">
+                    <span>Aylık Teklif Kotası:</span>
+                    <strong>{data.plan.quotesLimit ?? 'Sınırsız'} adet</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Aylık IFC Analiz:</span>
+                    <strong>{data.plan.monthlyIfcLimit ?? 'Sınırsız'} adet</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Maksimum IFC Boyutu:</span>
+                    <strong>{data.plan.ifcMaxFileMb} MB</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Eşzamanlı İş:</span>
+                    <strong>{data.plan.ifcMaxConcurrent}</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Abonelik Ayar Formu */}
+            <div className="space-y-3.5 pt-1">
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Paket</label>
+                <label className="block text-xs font-medium text-zinc-400 mb-1">Paket Değiştir</label>
                 <select
                   value={editPlanId}
                   onChange={(e) => setEditPlanId(e.target.value)}
@@ -367,7 +606,7 @@ export function TenantDetail() {
                   <option value="">Paket Atanmamış</option>
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.monthlyPrice} ₺ / ay)
+                      {p.name} (₺{p.monthlyPrice} / ay)
                     </option>
                   ))}
                 </select>
@@ -386,140 +625,105 @@ export function TenantDetail() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Bonus Teklif Kotası</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={editBonusQuotes}
-                  onChange={(e) => setEditBonusQuotes(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                />
-                <p className="text-[10px] text-zinc-500 mt-1">Paket kotasına ilave hak</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1">Bonus Teklif</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editBonusQuotes}
+                    onChange={(e) => setEditBonusQuotes(Number(e.target.value))}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  />
+                  <span className="text-[10px] text-zinc-500 mt-0.5 block">+Hak</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1">Bonus IFC</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editBonusIfc}
+                    onChange={(e) => setEditBonusIfc(Number(e.target.value))}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  />
+                  <span className="text-[10px] text-zinc-500 mt-0.5 block">+Hak</span>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Bonus IFC Kotası</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={editBonusIfc}
-                  onChange={(e) => setEditBonusIfc(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                />
-                <p className="text-[10px] text-zinc-500 mt-1">Paket IFC sınırına ilave hak</p>
-              </div>
-            </div>
-
-            {data.plan && (
-              <div className="rounded-lg border border-indigo-950/60 bg-indigo-950/20 p-3 mb-4 text-xs text-indigo-300 flex flex-wrap gap-4">
-                <div>Paket Kotası: <strong>{data.plan.quotesLimit ?? 'Sınırsız'}</strong> teklif</div>
-                <div>Aylık IFC: <strong>{data.plan.monthlyIfcLimit ?? 'Sınırsız'}</strong> adet</div>
-                <div>Maks Dosya: <strong>{data.plan.ifcMaxFileMb} MB</strong></div>
-                <div>Eşzamanlı İş: <strong>{data.plan.ifcMaxConcurrent}</strong></div>
-              </div>
-            )}
-
-            <div className="flex justify-end">
               <Button
                 onClick={handleSaveSubscription}
                 disabled={savingSubscription}
                 size="sm"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+                className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold"
               >
                 <Save size={14} className="mr-1.5" />
-                {savingSubscription ? 'Kaydediliyor...' : 'Abonelik Değişikliklerini Kaydet'}
+                {savingSubscription ? 'Kaydediliyor...' : 'Aboneliği & Kotaları Güncelle'}
               </Button>
             </div>
           </div>
 
-          {/* Kullanım Geçmişi */}
+          {/* Aylık Kullanım Geçmişi */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-3 flex items-center gap-2">
               <FileSpreadsheet size={16} className="text-indigo-400" />
               Aylık Kullanım Geçmişi
             </h3>
             {data.usageHistory.length === 0 ? (
-              <p className="text-xs text-zinc-500 py-3">Henüz kayıtlı kullanım kaydı yok.</p>
+              <p className="text-xs text-zinc-500 py-2">Kayıtlı kullanım bulunmuyor.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-zinc-800 text-zinc-500">
-                    <tr>
-                      <th className="pb-2 font-medium">Dönem</th>
-                      <th className="pb-2 font-medium">Oluşturulan Teklif</th>
-                      <th className="pb-2 font-medium">İşlenen IFC</th>
-                      <th className="pb-2 font-medium">Son Aktivite</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                    {data.usageHistory.map((u, i) => (
-                      <tr key={i}>
-                        <td className="py-2.5 font-medium text-white">{u.period}</td>
-                        <td className="py-2.5">{u.quoteCount}</td>
-                        <td className="py-2.5">{u.ifcCount}</td>
-                        <td className="py-2.5 text-zinc-500">
-                          {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleString('tr-TR') : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-2.5">
+                {data.usageHistory.map((u, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-xs">
+                    <div>
+                      <span className="font-semibold text-white">{u.period}</span>
+                      <div className="text-[10px] text-zinc-500">
+                        {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString('tr-TR') : 'Aktif'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-indigo-400 font-bold">{u.quoteCount} Teklif</div>
+                      <div className="text-amber-400 font-bold text-[11px]">{u.ifcCount} IFC</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
           {/* Son IFC / Belge İşlemleri */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-3 flex items-center gap-2">
               <Cpu size={16} className="text-indigo-400" />
-              Son IFC & SmartCheck İşlemleri
+              Son İşlemler
             </h3>
             {data.recentRuns.length === 0 ? (
-              <p className="text-xs text-zinc-500 py-3">Henüz işlem bulunmuyor.</p>
+              <p className="text-xs text-zinc-500 py-2">Henüz işlem kaydı yok.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-zinc-800 text-zinc-500">
-                    <tr>
-                      <th className="pb-2 font-medium">Tür / Dosya</th>
-                      <th className="pb-2 font-medium">Durum</th>
-                      <th className="pb-2 font-medium">Deneme</th>
-                      <th className="pb-2 font-medium">Tarih</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                    {data.recentRuns.map((r) => (
-                      <tr key={r.id}>
-                        <td className="py-2.5">
-                          <span className="font-medium text-white">{r.fileName}</span>
-                          <span className="block text-[10px] text-zinc-500">{r.kind}</span>
-                        </td>
-                        <td className="py-2.5">
-                          {r.status === 'completed' ? (
-                            <span className="inline-flex items-center gap-1 text-emerald-400 text-[11px]">
-                              <CheckCircle2 size={13} /> Başarılı
-                            </span>
-                          ) : r.status === 'failed' ? (
-                            <span className="inline-flex items-center gap-1 text-red-400 text-[11px]" title={r.errorMessage || ''}>
-                              <XCircle size={13} /> Hatalı
-                            </span>
-                          ) : r.status === 'running' ? (
-                            <span className="inline-flex items-center gap-1 text-amber-400 text-[11px]">
-                              <Clock size={13} className="animate-spin" /> Çalışıyor
-                            </span>
-                          ) : (
-                            <span className="text-zinc-500 text-[11px]">{r.status}</span>
-                          )}
-                        </td>
-                        <td className="py-2.5">{r.attempts}</td>
-                        <td className="py-2.5 text-zinc-500">
-                          {new Date(r.createdAt).toLocaleString('tr-TR')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-2">
+                {data.recentRuns.map((r) => (
+                  <div key={r.runId} className="rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-white truncate max-w-[140px]">{r.fileName}</span>
+                      {r.status === 'completed' ? (
+                        <span className="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+                          <CheckCircle2 size={11} /> Başarılı
+                        </span>
+                      ) : r.status === 'failed' ? (
+                        <span className="text-red-400 font-bold text-[10px] flex items-center gap-1">
+                          <XCircle size={11} /> Hata
+                        </span>
+                      ) : (
+                        <span className="text-amber-400 font-bold text-[10px] flex items-center gap-1">
+                          <Clock size={11} className="animate-spin" /> {r.status}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-zinc-500">
+                      {new Date(r.createdAt).toLocaleString('tr-TR')}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -550,7 +754,7 @@ export function TenantDetail() {
                 <div>
                   <span className="text-xs font-bold text-amber-200">Salt-Okunur Mod (Önerilen)</span>
                   <p className="text-[11px] text-zinc-400 mt-0.5">
-                    Müşterinin verilerinde herhangi bir değişiklik (silme, ekleme, güncelleme) yapılmasını engeller. Yalnızca inceleme amaçlıdır.
+                    Müşterinin verilerinde herhangi bir değişiklik yapılmasını engeller. Yalnızca inceleme amaçlıdır.
                   </p>
                 </div>
               </label>
