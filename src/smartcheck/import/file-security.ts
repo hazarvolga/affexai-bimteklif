@@ -54,7 +54,7 @@ export async function validateXlsxArchive(buffer: Buffer): Promise<void> {
         entries += 1;
         totalUncompressed += entry.uncompressedSize;
         if ((entry.generalPurposeBitFlag & 0x1) !== 0) return fail("XLSX_ENCRYPTED");
-        if (entries > 10_000 || totalUncompressed > 250 * 1024 * 1024 || totalUncompressed / Math.max(buffer.length, 1) > 100) {
+        if (entries > 10_000 || totalUncompressed > 100 * 1024 * 1024 || totalUncompressed / Math.max(buffer.length, 1) > 100) {
           return fail("XLSX_ZIP_BOMB_RISK");
         }
         zipFile.readEntry();

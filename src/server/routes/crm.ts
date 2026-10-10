@@ -5,7 +5,7 @@ import { activities, clients, deals, leads, quotationFinancials, quotationItems,
 import { CRMIntelligenceService } from "../../services/crm/crmService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
-import { activityInput, dealIdInput, dealInput, stageInput } from '../../services/crm/input';
+import { activityInput, dealIdInput, dealInput, leadInput, stageInput } from '../../services/crm/input';
 
 export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceService, canMutate: any) {
   app.get('/api/crm/deals/:id', authenticate, async (req, res) => {
@@ -22,7 +22,14 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
   app.get("/api/crm/pipeline", authenticate, async (req, res) => {
     try {
       const companyId = req.user.companyId;
-      const allDeals = await db.select().from(deals).where(eq(deals.companyId, companyId)).orderBy(desc(deals.createdAt));
+      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
+      const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+      const allDeals = await db.select()
+        .from(deals)
+        .where(eq(deals.companyId, companyId))
+        .orderBy(desc(deals.createdAt))
+        .limit(limit)
+        .offset(offset);
       res.json(allDeals);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch pipeline" });
@@ -51,7 +58,19 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
 
   app.post("/api/crm/leads", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
     try {
-      const data = { ...req.body, companyId: req.user.companyId };
+      const parsed = leadInput.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Invalid lead input' });
+      }
+      const data = {
+        name: parsed.data.name,
+        email: parsed.data.email || null,
+        phone: parsed.data.phone || null,
+        source: parsed.data.source || null,
+        status: parsed.data.status,
+        notes: parsed.data.notes || null,
+        companyId: req.user.companyId,
+      };
       const [newLead] = await db.insert(leads).values(data).returning();
       res.json(newLead);
     } catch (error) {
@@ -62,7 +81,14 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
   app.get("/api/crm/leads", authenticate, async (req, res) => {
     try {
       const companyId = req.user.companyId;
-      const allLeads = await db.select().from(leads).where(eq(leads.companyId, companyId)).orderBy(desc(leads.createdAt));
+      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
+      const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+      const allLeads = await db.select()
+        .from(leads)
+        .where(eq(leads.companyId, companyId))
+        .orderBy(desc(leads.createdAt))
+        .limit(limit)
+        .offset(offset);
       res.json(allLeads);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch leads" });
@@ -91,7 +117,14 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
   app.get("/api/crm/deals/:id/activities", authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const dealActivities = await db.select().from(activities).where(and(eq(activities.dealId, id), eq(activities.companyId, req.user.companyId))).orderBy(desc(activities.createdAt));
+      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
+      const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+      const dealActivities = await db.select()
+        .from(activities)
+        .where(and(eq(activities.dealId, id), eq(activities.companyId, req.user.companyId)))
+        .orderBy(desc(activities.createdAt))
+        .limit(limit)
+        .offset(offset);
       res.json(dealActivities);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch activities" });

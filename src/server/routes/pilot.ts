@@ -27,9 +27,11 @@ export function registerPilotRoutes(app: Express) {
     }
   });
 
-  app.get("/api/pilot-applications", authenticate, checkSuperAdmin(), async (_req, res) => {
+  app.get("/api/pilot-applications", authenticate, checkSuperAdmin(), async (req, res) => {
     try {
-      const applications = await pilotRepository.findAll();
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const applications = await pilotRepository.findAll(limit, offset);
       return res.json(applications);
     } catch (error) {
       return errorHandler(error, res);

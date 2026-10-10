@@ -163,6 +163,15 @@ async function updateRun(runId: string, companyId: string, values: Partial<typeo
   await db.update(documentProcessingRuns).set({ ...values, updatedAt: new Date() }).where(and(eq(documentProcessingRuns.id, runId), eq(documentProcessingRuns.companyId, companyId)));
 }
 
+async function chunkedInsert<T extends Record<string, any>>(tx: any, table: any, items: T[], chunkSize = 500) {
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    if (chunk.length > 0) {
+      await tx.insert(table).values(chunk);
+    }
+  }
+}
+
 async function processIfcSmartCheckDocument(payload: {
   companyId: string;
   documentId: string;
@@ -296,7 +305,7 @@ async function processIfcSmartCheckDocument(payload: {
   await db.transaction(async (tx) => {
     await tx.delete(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.processingRunId, processingRunId), eq(normalizedQuantityRows.companyId, companyId)));
     if (artifact.rows.length) {
-      await tx.insert(normalizedQuantityRows).values(artifact.rows.map((row) => ({
+      const rowsToInsert = artifact.rows.map((row) => ({
         companyId,
         documentId,
         processingRunId,
@@ -321,8 +330,10 @@ async function processIfcSmartCheckDocument(payload: {
         mappingConfidence: row.mappingConfidence,
         reviewStatus: row.reviewStatus,
         findingsJson: row.findingsJson,
-      })));
+      }));
+      await chunkedInsert(tx, normalizedQuantityRows, rowsToInsert, 500);
     }
+
     await tx.insert(documentProcessingArtifacts).values({
       companyId,
       documentId,
@@ -421,13 +432,17 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     await updateRun(run.id, companyId, { currentStage: "validating", progressPercent: 70, progressMessage: "Deterministik kontroller çalışıyor" });
     await db.transaction(async (tx) => {
       await tx.delete(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.processingRunId, run.id), eq(normalizedQuantityRows.companyId, companyId)));
-      if (results.length) await tx.insert(normalizedQuantityRows).values(results.map(({ row, normalized, findings }) => ({
-        companyId, documentId, processingRunId: run.id, ...row,
-        normalizedDescription: normalized.description, normalizedPositionCode: normalized.positionCode, normalizedUnit: normalized.unit,
-        normalizedQuantity: normalized.quantity?.toString(), normalizedPrice: normalized.price?.toString(), normalizedWastePercent: normalized.wastePercent.toString(),
-        mappingConfidence: "0.90", findingsJson: findings,
-      })));
+      if (results.length) {
+        const rowsToInsert = results.map(({ row, normalized, findings }) => ({
+          companyId, documentId, processingRunId: run.id, ...row,
+          normalizedDescription: normalized.description, normalizedPositionCode: normalized.positionCode, normalizedUnit: normalized.unit,
+          normalizedQuantity: normalized.quantity?.toString(), normalizedPrice: normalized.price?.toString(), normalizedWastePercent: normalized.wastePercent.toString(),
+          mappingConfidence: "0.90", findingsJson: findings,
+        }));
+        await chunkedInsert(tx, normalizedQuantityRows, rowsToInsert, 500);
+      }
     });
+
     const artifactContent = Buffer.from(JSON.stringify({ mapping: parsed.mapping, rowCount: results.length, rows: results }, null, 2));
     const artifactKey = `${companyId}/${documentId}/${run.id}/normalized.json`;
     await storage.put(artifactKey, artifactContent, "application/json");

@@ -22,10 +22,14 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
 
   app.get("/api/quotations", authenticate, async (req, res) => {
     try {
+      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 100);
+      const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
       const allQuotes = await db.select()
         .from(quotations)
         .where(and(eq(quotations.isLatest, true), eq(quotations.companyId, req.user.companyId)))
-        .orderBy(desc(quotations.createdAt));
+        .orderBy(desc(quotations.createdAt))
+        .limit(limit)
+        .offset(offset);
       res.json(allQuotes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch quotations" });

@@ -172,10 +172,9 @@ export const companies = pgTable("companies", {
   defaultEscalationVolatilityPercent: numeric("default_escalation_volatility_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   defaultCarbonRiskPremiumPercent: numeric("default_carbon_risk_premium_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   defaultInformationDeliveryCostPercent: numeric("default_information_delivery_cost_percent", { precision: 5, scale: 2 }).default("0").notNull(),
-  adminNotes: text("admin_notes"),
-
   phone: text("phone"),
   email: text("email"),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -198,7 +197,10 @@ export const plans = pgTable("plans", {
   monthlyPrice: integer("monthly_price").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  monthlyQuoteLimitNonnegative: check("plans_monthly_quote_limit_nonnegative", sql`${table.monthlyQuoteLimit} >= 0`),
+  monthlyPriceNonnegative: check("plans_monthly_price_nonnegative", sql`${table.monthlyPrice} >= 0`),
+}));
 
 export const subscriptions = pgTable("subscriptions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -212,7 +214,10 @@ export const subscriptions = pgTable("subscriptions", {
   currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  bonusQuoteLimitNonnegative: check("subscriptions_bonus_quote_limit_nonnegative", sql`${table.bonusQuoteLimit} >= 0`),
+}));
+
 
 // 12. usage_logs (Kept in original order, lazy evaluation for FK to avoid TDZ & Drizzle TTY Prompt)
 export const usageLogs = pgTable("usage_logs", {
@@ -1788,7 +1793,11 @@ export const usageRecords = pgTable("usage_records", {
   companyId: uuid("company_id").references(() => companies.id).notNull(),
   period: text("period").notNull(), // Format: YYYY-MM
   quoteCount: integer("quote_count").default(0).notNull(),
-});
+}, (table) => ({
+  companyPeriodUnique: unique("usage_records_company_id_period_key").on(table.companyId, table.period),
+  quoteCountNonnegative: check("usage_records_quote_count_nonnegative", sql`${table.quoteCount} >= 0`),
+}));
+
 
 export const adminAuditLogs = pgTable("admin_audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),

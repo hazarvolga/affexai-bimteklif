@@ -11,6 +11,14 @@ export const dealInput = z.object({
 export const activityInput = z.object({ dealId: id, description: z.string().trim().min(1).max(4000) });
 export const stageInput = z.object({ dealId: id, stage: z.enum(crmStages) });
 export const dealIdInput = z.object({ dealId: id });
+export const leadInput = z.object({
+  name: z.string().trim().min(1, 'Lead adı zorunludur.').max(255),
+  email: z.string().trim().max(255).nullable().optional(),
+  phone: z.string().trim().max(50).nullable().optional(),
+  source: z.string().trim().max(100).nullable().optional(),
+  status: z.string().trim().max(50).default('new'),
+  notes: z.string().trim().max(5000).nullable().optional(),
+});
 export const dealIntelligenceInput = z.object({
   probability: z.number().finite().min(0).max(1), riskLevel: z.enum(['low', 'medium', 'high']),
   recommendedAction: z.string().trim().min(1), expectedCloseValue: z.number().finite().nonnegative(),

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { pipeline } from 'node:stream/promises';
 import type { Express, Request, RequestHandler } from "express";
 import express from "express";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { changeProcessingRun, ProcessingConflict } from "../../smartcheck/import/service";
 import { db } from "../../db";
 import { clients, companies, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
@@ -252,7 +252,14 @@ export function registerSmartCheckRoutes(app: Express) {
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const rows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).orderBy(normalizedQuantityRows.sheetName, normalizedQuantityRows.sourceRowNumber);
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 1000, 1), 2000);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+    const rows = await db.select()
+      .from(normalizedQuantityRows)
+      .where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId)))
+      .orderBy(normalizedQuantityRows.sheetName, normalizedQuantityRows.sourceRowNumber)
+      .limit(limit)
+      .offset(offset);
     res.json(rows);
   });
 
@@ -267,20 +274,31 @@ export function registerSmartCheckRoutes(app: Express) {
     const patch = parsedRequest.data.correction ?? {};
     const allowedCorrection = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
     if (Object.keys(patch).some((key) => !allowedCorrection.includes(key as typeof allowedCorrection[number]))) return res.status(400).json({ error: "Geçersiz düzeltme alanı." });
-    const allRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, current.documentId), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     const corrected: ParsedQuantityRow = {
       sheetName: current.sheetName, sourceRowNumber: current.sourceRowNumber, sourceCellRange: current.sourceCellRange,
       rawDescription: String(patch.description ?? current.rawDescription ?? ""), rawPositionCode: String(patch.positionCode ?? current.rawPositionCode ?? ""),
       rawUnit: String(patch.unit ?? current.rawUnit ?? ""), rawQuantity: String(patch.quantity ?? current.rawQuantity ?? ""),
       rawPrice: String(patch.price ?? current.rawPrice ?? ""), rawWastePercent: String(patch.wastePercent ?? current.rawWastePercent ?? ""), formulaJson: current.formulaJson,
     };
-    const validationRows = allRows.map((row) => row.id === current.id ? corrected : {
-      sheetName: row.sheetName, sourceRowNumber: row.sourceRowNumber, sourceCellRange: row.sourceCellRange,
-      rawDescription: row.rawDescription ?? "", rawPositionCode: row.rawPositionCode ?? "", rawUnit: row.rawUnit ?? "", rawQuantity: row.rawQuantity ?? "", rawPrice: row.rawPrice ?? "", rawWastePercent: row.rawWastePercent ?? "", formulaJson: row.formulaJson,
-    });
+    const targetPositionCode = corrected.rawPositionCode.trim();
+    let isDuplicate = false;
+    if (targetPositionCode) {
+      const [dup] = await db.select({ count: sql<number>`count(*)::int` })
+        .from(normalizedQuantityRows)
+        .where(and(
+          eq(normalizedQuantityRows.documentId, current.documentId),
+          eq(normalizedQuantityRows.companyId, req.user.companyId),
+          eq(normalizedQuantityRows.rawPositionCode, targetPositionCode),
+          ne(normalizedQuantityRows.id, current.id)
+        ));
+      isDuplicate = (dup?.count ?? 0) > 0;
+    }
     const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
-    const [validated] = validateRows(validationRows, Number(company?.maxWaste ?? 20)).filter((result) => result.row.sourceRowNumber === current.sourceRowNumber && result.row.sheetName === current.sheetName);
+    const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20));
     if (!validated) return res.status(500).json({ error: "Satır yeniden doğrulanamadı." });
+    if (isDuplicate && !validated.findings.some((f) => f.code === "DUPLICATE_POSITION_CODE")) {
+      validated.findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
+    }
     if (status === "approved" && validated.findings.length > 0) return res.status(409).json({ error: "Açık bulgular çözülmeden satır onaylanamaz.", findings: validated.findings });
     const [updated] = await db.update(normalizedQuantityRows).set({
       rawDescription: corrected.rawDescription, rawPositionCode: corrected.rawPositionCode, rawUnit: corrected.rawUnit, rawQuantity: corrected.rawQuantity, rawPrice: corrected.rawPrice, rawWastePercent: corrected.rawWastePercent,
@@ -327,6 +345,7 @@ export function registerSmartCheckRoutes(app: Express) {
     const parsedRequest = smartcheckTransferRequestSchema.safeParse(req.body);
     if (!parsedRequest.success) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
     const { quotationId, rowIds } = parsedRequest.data;
+    if (rowIds.length > 1000) return res.status(400).json({ error: "Tek seferde en fazla 1000 satır aktarılabilir." });
     const [quotation] = await db.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")));
     if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
     const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
@@ -370,19 +389,28 @@ export function registerSmartCheckRoutes(app: Express) {
         };
       });
       let insertedCount = 0;
-      for (const insert of inserts) insertedCount += (await tx.insert(quotationItems).values(insert).onConflictDoNothing().returning({ id: quotationItems.id })).length;
+      for (let i = 0; i < inserts.length; i += 500) {
+        const chunk = inserts.slice(i, i + 500);
+        const res = await tx.insert(quotationItems).values(chunk).onConflictDoNothing().returning({ id: quotationItems.id });
+        insertedCount += res.length;
+      }
       const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
+      const itemBySourceRowId = new Map(allItems.filter((it) => it.sourceQuantityRowId).map((it) => [it.sourceQuantityRowId!, it]));
+      const allEvidences: any[] = [];
       for (const row of selected) {
-        const item = allItems.find((candidate) => candidate.sourceQuantityRowId === row.id);
+        const item = itemBySourceRowId.get(row.id);
         if (!item) continue;
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
-        await tx.insert(quotationItemEvidence).values([
+        allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
-        ]).onConflictDoNothing();
+        );
+      }
+      for (let i = 0; i < allEvidences.length; i += 500) {
+        await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
       }
       const totals = calculateQuotationTotals(allItems);
       await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
@@ -401,6 +429,7 @@ export function registerSmartCheckRoutes(app: Express) {
     if (!parsedRequest.success) return res.status(400).json({ error: "clientName/clientId ve en az bir rowId zorunludur." });
     try {
       const { rowIds } = parsedRequest.data;
+      if (rowIds.length > 1000) return res.status(400).json({ error: "Tek seferde en fazla 1000 satır aktarılabilir." });
       const overrides = parsedRequest.data.overrides ?? {};
       const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
       const selected = documentRows.filter((row) => rowIds.includes(row.id));
@@ -473,19 +502,28 @@ export function registerSmartCheckRoutes(app: Express) {
       });
 
       let insertedCount = 0;
-      for (const insert of inserts) insertedCount += (await tx.insert(quotationItems).values(insert).onConflictDoNothing().returning({ id: quotationItems.id })).length;
+      for (let i = 0; i < inserts.length; i += 500) {
+        const chunk = inserts.slice(i, i + 500);
+        const res = await tx.insert(quotationItems).values(chunk).onConflictDoNothing().returning({ id: quotationItems.id });
+        insertedCount += res.length;
+      }
       const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
+      const itemBySourceRowId = new Map(allItems.filter((it) => it.sourceQuantityRowId).map((it) => [it.sourceQuantityRowId!, it]));
+      const allEvidences: any[] = [];
       for (const row of selected) {
-        const item = allItems.find((candidate) => candidate.sourceQuantityRowId === row.id);
+        const item = itemBySourceRowId.get(row.id);
         if (!item) continue;
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
-        await tx.insert(quotationItemEvidence).values([
+        allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
-        ]).onConflictDoNothing();
+        );
+      }
+      for (let i = 0; i < allEvidences.length; i += 500) {
+        await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
       }
       const totals = calculateQuotationTotals(allItems);
       await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));

@@ -3,8 +3,10 @@ import { pilotApplications } from "../../db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 
 export class PilotRepository {
-  async findAll() {
-    return await db.select().from(pilotApplications).orderBy(desc(pilotApplications.createdAt));
+  async findAll(limit = 100, offset = 0) {
+    const safeLimit = Math.min(Math.max(limit, 1), 200);
+    const safeOffset = Math.max(offset, 0);
+    return await db.select().from(pilotApplications).orderBy(desc(pilotApplications.createdAt)).limit(safeLimit).offset(safeOffset);
   }
 
   async findById(id: string) {
