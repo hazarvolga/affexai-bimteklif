@@ -49,9 +49,26 @@ export function TenantsList() {
   };
 
 
+function escapeCsvCell(value: unknown): string {
+  if (value === null || value === undefined) return '""';
+  let str = String(value);
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
   const handleCsvExport = () => {
     const csvHeader = "Firma Adi,Email,Paket,Durum,Kota,Kullanilan,Bonus\n";
-    const csvContent = tenants.map(t => `"${t.name}","${t.owner_email || ''}","${t.plan_name || ''}","${t.subscription_status}","${t.plan_quota || 0}","${t.usage_count || 0}","${t.bonus_quota || 0}"`).join('\n');
+    const csvContent = tenants.map(t => [
+      escapeCsvCell(t.name),
+      escapeCsvCell(t.owner_email || ''),
+      escapeCsvCell(t.plan_name || ''),
+      escapeCsvCell(t.subscription_status),
+      escapeCsvCell(t.plan_quota || 0),
+      escapeCsvCell(t.usage_count || 0),
+      escapeCsvCell(t.bonus_quota || 0),
+    ].join(',')).join('\n');
     const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

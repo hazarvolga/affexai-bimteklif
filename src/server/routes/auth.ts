@@ -1,5 +1,5 @@
 import type { Express, Response } from "express";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { db } from "../../db";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, authActionTokens, companies, memberships, subscriptions, users } from "../../db/schema";
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
@@ -165,7 +165,7 @@ export function registerAuthRoutes(app: Express) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const [membership] = await db.select().from(memberships).where(eq(memberships.userId, user.id));
+      const [membership] = await db.select().from(memberships).where(eq(memberships.userId, user.id)).orderBy(desc(memberships.createdAt));
       const company = membership ? await db.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }) : null;
 
       const token = AuthService.generateToken({

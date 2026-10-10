@@ -177,28 +177,4 @@ export function registerCompanyRoutes(app: Express) {
       invitationErrorResponse(error, res);
     }
   });
-
-  app.get("/api/verify-email/:token", async (req, res) => {
-    try {
-      const { token } = req.params;
-      const user = await db.query.users.findFirst({
-        where: eq(users.verificationToken, token)
-      });
-
-      if (!user) {
-        return res.status(404).json({ error: "Invalid verification token" });
-      }
-
-      await db.update(users)
-        .set({
-          emailVerified: new Date(),
-          verificationToken: null
-        })
-        .where(eq(users.id, user.id));
-
-      res.json({ message: "Email successfully verified!" });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to verify email" });
-    }
-  });
 }
