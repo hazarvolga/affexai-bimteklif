@@ -8,9 +8,8 @@ import { db } from "../../db";
 import { clients, companies, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
-import { SMARTCHECK_MAX_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
+import { getTenantIfcLimits, SMARTCHECK_MAX_FILE_BYTES, SMARTCHECK_MAX_IFC_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
-import { SMARTCHECK_MAX_IFC_FILE_BYTES } from "../../smartcheck/import/config";
 import { detectAndValidateFile, maxBytesForSmartCheckFileName, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
 import { inspectDocument } from "../../smartcheck/import/processor";
 import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
@@ -68,7 +67,11 @@ export function registerSmartCheckRoutes(app: Express) {
 
   app.post("/api/smartcheck/documents/uploads", ...protectedStack, async (req, res) => {
     const parsedRequest = smartcheckUploadRequestSchema.safeParse(req.body);
-    if (!parsedRequest.success || parsedRequest.data.fileSizeBytes > maxBytesForSmartCheckFileName(parsedRequest.data.fileName)) {
+    const isIfc = Boolean(parsedRequest.data?.fileName?.toLowerCase().endsWith(".ifc"));
+    const maxAllowedBytes = isIfc
+      ? getTenantIfcLimits(req.user.companyId).maxFileBytes
+      : maxBytesForSmartCheckFileName(parsedRequest.data?.fileName || "");
+    if (!parsedRequest.success || parsedRequest.data.fileSizeBytes > maxAllowedBytes) {
       return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
     }
     const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
@@ -90,7 +93,7 @@ export function registerSmartCheckRoutes(app: Express) {
       ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType } }
       : await storage.createUploadTarget(storageKey, mimeType);
     await audit(req, "upload_created", "document", document.id, { fileName: originalFileName, fileSizeBytes });
-    res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: maxBytesForSmartCheckFileName(originalFileName) });
+    res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: maxAllowedBytes });
   });
 
   app.put("/api/smartcheck/documents/:id/content", authenticate, requireVerifiedEmail, featureGate, rateLimit, canReview, uploadBody, async (req, res) => {
@@ -129,7 +132,7 @@ export function registerSmartCheckRoutes(app: Express) {
             }
             hash.update(chunk);
             size += chunk.length;
-            if (size > SMARTCHECK_MAX_IFC_FILE_BYTES) throw new Error('FILE_SIZE_INVALID');
+            if (size > getTenantIfcLimits(document.companyId).maxFileBytes) throw new Error('FILE_SIZE_INVALID');
           }
           if (size === 0) throw new Error('FILE_SIZE_INVALID');
           if (size !== document.fileSizeBytes || hash.digest('hex') !== checksum) {

@@ -20,3 +20,20 @@ export function localStorageRoot(): string {
 export function graphileWorkerSchema(): string {
   return process.env.GRAPHILE_WORKER_SCHEMA || "teklifpro_queue";
 }
+
+export interface TenantIfcLimits {
+  maxFileBytes: number;
+  maxConcurrent: number;
+  monthlyLimit: number | null;
+}
+
+export function getTenantIfcLimits(_companyId: string): TenantIfcLimits {
+  const maxMb = parseInt(process.env.SMARTCHECK_MAX_IFC_FILE_MB || "100", 10);
+  const maxConcurrent = parseInt(process.env.SMARTCHECK_IFC_MAX_CONCURRENT || "2", 10);
+  const monthly = process.env.SMARTCHECK_IFC_MONTHLY_LIMIT ? parseInt(process.env.SMARTCHECK_IFC_MONTHLY_LIMIT, 10) : null;
+  return {
+    maxFileBytes: maxMb * 1024 * 1024,
+    maxConcurrent,
+    monthlyLimit: monthly,
+  };
+}

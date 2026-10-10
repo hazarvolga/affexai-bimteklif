@@ -8,7 +8,7 @@ import { documents, documentProcessingRuns, smartcheckAuditLogs } from '../../db
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
-import { graphileWorkerSchema } from './config';
+import { getTenantIfcLimits, graphileWorkerSchema } from './config';
 const graphileSchema = () => graphileWorkerSchema();
 
 export class ProcessingConflict extends Error {
@@ -76,6 +76,24 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
     }
     if (action === 'recover' && (!latest || !isProcessingRunStale(latest))) throw new ProcessingConflict('PROCESSING_RUN_NOT_STALE');
     if (action === 'retry' && latest?.status !== 'failed') throw new ProcessingConflict('PROCESSING_RUN_NOT_FAILED');
+
+    if (kind === 'ifc' && (action === 'process' || action === 'retry')) {
+      const limits = getTenantIfcLimits(companyId);
+      const activeIfcRuns = await tx.select({ id: documentProcessingRuns.id })
+        .from(documentProcessingRuns)
+        .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
+        .where(
+          and(
+            eq(documentProcessingRuns.companyId, companyId),
+            sql`${documentProcessingRuns.status} IN ('queued', 'running')`,
+            sql`(${documents.originalFileName} ILIKE '%.ifc' OR ${documents.mimeType} = 'application/ifc')`
+          )
+        );
+      if (activeIfcRuns.length >= limits.maxConcurrent) {
+        throw new ProcessingConflict('TENANT_IFC_CONCURRENCY_LIMIT_EXCEEDED');
+      }
+    }
+
     // Retire previous automatic retries before creating a successor. Active jobs require operator investigation.
     for (const run of runs) await removePendingJob(tx, run.id);
     const now = new Date();
