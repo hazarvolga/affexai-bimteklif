@@ -1179,3 +1179,23 @@ Autonomous remediation and source restore checkpoints are tracked in
 - **Automatic Trial Assignment:** New registrations in `src/server/routes/auth.ts` automatically receive the 14-day trial plan with a 14-day expiry date.
 - **Admin Plans UI (`PlansList.tsx`):** Responsive 5-column grid with tier badges (Trial, Mikro, Popüler, Kurumsal).
 
+## 2026-10-10 Update: ÇŞB & Market Pricing Sources with Crawler Governance
+
+- **Migration 0038 Applied:** Created `pricing_data_sources` and `price_feed_staging` tables in `teklifpro_local`.
+- **Seeded 5 Baseline Data Sources:**
+  1. ÇŞB 2026/1 İnşaat & Tesisat Birim Fiyat Kitabı (14.280 Poz, SHA-256 mühürlü).
+  2. TÜİK İnşaat Maliyet Endeksi (İME - Aylık bülten).
+  3. Serbest Piyasa Nervürlü Donatı Çeliği (Karabük/Payas tüccar rayiçleri).
+  4. THBB Marmara Bölgesi Hazır Beton Rayici (C25/30 pompa ve transmikser).
+  5. ÇŞB e-PYS Ek-6 Zorunlu Poz & Nitelik Sözlüğü (v2.4).
+- **Backend Admin API:**
+  - `GET /api/admin/pricing-sources`: Lists data sources with validity ranges, hashes, and pending review counts.
+  - `GET /api/admin/pricing-sources/staging`: Lists crawler-detected price differences with confidence scores and source URLs.
+  - `POST /api/admin/pricing-sources/staging/:id/review`: Human-in-the-loop approve/reject gate with audit logging.
+  - `POST /api/admin/pricing-sources/:id/sync`: On-demand crawler sync trigger.
+- **Super Admin UI (`PricingSources.tsx`):**
+  - Navigation item added to `AdminShell` (`/admin/pricing-sources`).
+  - 3 Tabs: "Veri Kaynakları & Botlar", "Crawler İnceleme Havuzu (Staging Diff)", "Poz Doğrulama & Teftiş".
+  - Interactive audit diagnostic tool allowing instant lookup of any poz code.
+
+
