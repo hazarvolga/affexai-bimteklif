@@ -8,6 +8,8 @@ import {
   documents,
   memberships,
   plans,
+  priceFeedStaging,
+  pricingDataSources,
   subscriptions,
   usageRecords,
   users,
@@ -638,6 +640,161 @@ export function registerAdminRoutes(app: Express) {
     } catch (error) {
       console.error("CSV export error:", error);
       return res.status(500).json({ error: "CSV dışa aktarım başarısız" });
+    }
+  });
+
+  // 12. Pricing Data Sources & Crawler Governance
+  router.get("/pricing-sources", async (_req, res) => {
+    try {
+      const sources = await db
+        .select()
+        .from(pricingDataSources)
+        .orderBy(pricingDataSources.category, pricingDataSources.name);
+
+      const pendingCounts = await db
+        .select({
+          sourceId: priceFeedStaging.sourceId,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(priceFeedStaging)
+        .where(eq(priceFeedStaging.status, "pending"))
+        .groupBy(priceFeedStaging.sourceId);
+
+      const countMap = new Map(pendingCounts.map((r) => [r.sourceId, r.count]));
+
+      const enriched = sources.map((s) => ({
+        ...s,
+        pendingReviewCount: countMap.get(s.id) || 0,
+      }));
+
+      return res.json(enriched);
+    } catch (error) {
+      console.error("Admin pricing sources fetch error:", error);
+      return res.status(500).json({ error: "Veri kaynakları yüklenemedi." });
+    }
+  });
+
+  router.get("/pricing-sources/staging", async (_req, res) => {
+    try {
+      const items = await db
+        .select({
+          id: priceFeedStaging.id,
+          sourceId: priceFeedStaging.sourceId,
+          sourceName: pricingDataSources.name,
+          sourceCode: pricingDataSources.code,
+          itemCode: priceFeedStaging.itemCode,
+          itemName: priceFeedStaging.itemName,
+          unit: priceFeedStaging.unit,
+          currentPrice: priceFeedStaging.currentPrice,
+          crawledPrice: priceFeedStaging.crawledPrice,
+          diffPercent: priceFeedStaging.diffPercent,
+          sourceUrl: priceFeedStaging.sourceUrl,
+          status: priceFeedStaging.status,
+          confidenceScore: priceFeedStaging.confidenceScore,
+          notes: priceFeedStaging.notes,
+          crawledAt: priceFeedStaging.crawledAt,
+          reviewedAt: priceFeedStaging.reviewedAt,
+        })
+        .from(priceFeedStaging)
+        .innerJoin(pricingDataSources, eq(pricingDataSources.id, priceFeedStaging.sourceId))
+        .orderBy(desc(priceFeedStaging.crawledAt));
+
+      return res.json(items);
+    } catch (error) {
+      console.error("Admin price feed staging fetch error:", error);
+      return res.status(500).json({ error: "İnceleme listesi yüklenemedi." });
+    }
+  });
+
+  router.post("/pricing-sources/staging/:id/review", async (req, res) => {
+    const inputSchema = z.object({
+      action: z.enum(["approve", "reject"]),
+      notes: z.string().optional(),
+    });
+
+    const parsed = inputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Geçersiz inceleme parametreleri." });
+    }
+
+    try {
+      const [existing] = await db
+        .select()
+        .from(priceFeedStaging)
+        .where(eq(priceFeedStaging.id, req.params.id));
+
+      if (!existing) {
+        return res.status(404).json({ error: "İncelenecek fiyat kaydı bulunamadı." });
+      }
+
+      const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";
+
+      const [updated] = await db
+        .update(priceFeedStaging)
+        .set({
+          status: newStatus,
+          reviewedAt: new Date(),
+          reviewedByUserId: req.user.userId,
+          notes: parsed.data.notes ? `${existing.notes || ""} | İnceleme: ${parsed.data.notes}` : existing.notes,
+        })
+        .where(eq(priceFeedStaging.id, req.params.id))
+        .returning();
+
+      // Log review action
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: `price_feed_${parsed.data.action}`,
+        details: {
+          stagingId: existing.id,
+          itemCode: existing.itemCode,
+          oldPrice: existing.currentPrice,
+          newPrice: existing.crawledPrice,
+          action: parsed.data.action,
+        },
+      });
+
+      return res.json({ success: true, item: updated });
+    } catch (error) {
+      console.error("Admin price review error:", error);
+      return res.status(500).json({ error: "Fiyat inceleme işlemi kaydedilemedi." });
+    }
+  });
+
+  router.post("/pricing-sources/:id/sync", async (req, res) => {
+    try {
+      const [source] = await db
+        .select()
+        .from(pricingDataSources)
+        .where(eq(pricingDataSources.id, req.params.id));
+
+      if (!source) {
+        return res.status(404).json({ error: "Veri kaynağı bulunamadı." });
+      }
+
+      const now = new Date();
+      await db
+        .update(pricingDataSources)
+        .set({
+          lastSyncAt: now,
+          status: "active",
+          updatedAt: now,
+        })
+        .where(eq(pricingDataSources.id, source.id));
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: "pricing_source_sync_triggered",
+        details: {
+          sourceId: source.id,
+          sourceCode: source.code,
+          timestamp: now.toISOString(),
+        },
+      });
+
+      return res.json({ success: true, message: `${source.name} için canlı tarama tamamlandı.` });
+    } catch (error) {
+      console.error("Admin pricing sync error:", error);
+      return res.status(500).json({ error: "Tarama başlatılamadı." });
     }
   });
 

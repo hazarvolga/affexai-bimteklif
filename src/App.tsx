@@ -21,6 +21,7 @@ const TenantsList = page(() => import('@/pages/admin/TenantsList'), 'TenantsList
 const TenantDetail = page(() => import('@/pages/admin/TenantDetail'), 'TenantDetail');
 const AdminQueue = page(() => import('@/pages/admin/AdminQueue'), 'AdminQueue');
 const PlansList = page(() => import('@/pages/admin/PlansList'), 'PlansList');
+const PricingSources = page(() => import('@/pages/admin/PricingSources'), 'PricingSources');
 const AdminReports = page(() => import('@/pages/admin/AdminReports'), 'AdminReports');
 const AdminLogs = page(() => import('@/pages/admin/AdminLogs'), 'AdminLogs');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
@@ -100,6 +101,7 @@ function AppRoutes() {
           <Route path="tenants" element={<TenantsList />} />
           <Route path="tenants/:companyId" element={<TenantDetail />} />
           <Route path="queue" element={<AdminQueue />} />
+          <Route path="pricing-sources" element={<PricingSources />} />
           <Route path="plans" element={<PlansList />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="logs" element={<AdminLogs />} />

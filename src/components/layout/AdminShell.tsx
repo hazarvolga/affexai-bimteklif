@@ -1,6 +1,6 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3 } from 'lucide-react';
+import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
@@ -8,6 +8,7 @@ const adminNavigation = [
   { label: 'Genel Bakış', path: '/admin', icon: LayoutDashboard },
   { label: 'Firmalar', path: '/admin/tenants', icon: Building2 },
   { label: 'IFC Kuyruk', path: '/admin/queue', icon: Cpu },
+  { label: 'Fiyat & Poz Kaynakları', path: '/admin/pricing-sources', icon: Database },
   { label: 'Paket Yönetimi', path: '/admin/plans', icon: Package },
   { label: 'Raporlar', path: '/admin/reports', icon: BarChart3 },
   { label: 'Denetim Logları', path: '/admin/logs', icon: Activity },

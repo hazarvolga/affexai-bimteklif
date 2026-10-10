@@ -1814,3 +1814,50 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   details: jsonb("details"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const pricingDataSources = pgTable("pricing_data_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  authority: text("authority"),
+  category: text("category").notNull(),
+  sourceUrl: text("source_url"),
+  status: text("status").default("active").notNull(),
+  syncFrequency: text("sync_frequency").default("monthly").notNull(),
+  itemCount: integer("item_count").default(0).notNull(),
+  validityStart: timestamp("validity_start", { withTimezone: true }),
+  validityEnd: timestamp("validity_end", { withTimezone: true }),
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+  versionTag: text("version_tag").default("2026/1").notNull(),
+  dataHash: text("data_hash"),
+  crawlerConfig: jsonb("crawler_config").default({}).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  categoryCheck: check("pricing_data_sources_category_check", sql`${table.category} in ('official_gazette', 'tuik_index', 'market_commodity', 'epys_standard')`),
+  statusCheck: check("pricing_data_sources_status_check", sql`${table.status} in ('active', 'syncing', 'error', 'stale')`),
+  syncFreqCheck: check("pricing_data_sources_sync_freq_check", sql`${table.syncFrequency} in ('realtime', 'daily', 'weekly', 'monthly', 'annually')`),
+  categoryIdx: index("idx_pricing_data_sources_category").on(table.category),
+}));
+
+export const priceFeedStaging = pgTable("price_feed_staging", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sourceId: uuid("source_id").references(() => pricingDataSources.id, { onDelete: "cascade" }).notNull(),
+  itemCode: text("item_code").notNull(),
+  itemName: text("item_name").notNull(),
+  unit: text("unit").notNull(),
+  currentPrice: numeric("current_price", { precision: 20, scale: 2 }),
+  crawledPrice: numeric("crawled_price", { precision: 20, scale: 2 }).notNull(),
+  diffPercent: numeric("diff_percent", { precision: 6, scale: 2 }),
+  sourceUrl: text("source_url"),
+  status: text("status").default("pending").notNull(),
+  confidenceScore: numeric("confidence_score", { precision: 4, scale: 2 }).default("0.90").notNull(),
+  notes: text("notes"),
+  crawledAt: timestamp("crawled_at", { withTimezone: true }).defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id),
+}, (table) => ({
+  statusCheck: check("price_feed_staging_status_check", sql`${table.status} in ('pending', 'approved', 'rejected')`),
+  statusIdx: index("idx_price_feed_staging_status").on(table.status),
+}));
+
