@@ -43,8 +43,24 @@ services:
     environment:
       NODE_ENV: production
       NODE_OPTIONS: --max-old-space-size=768
-      SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-1}
-      GRAPHILE_WORKER_SCHEMA: ${GRAPHILE_WORKER_SCHEMA:-graphile_worker}
+      SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-2}
+      GRAPHILE_WORKER_SCHEMA: ${GRAPHILE_WORKER_SCHEMA:-teklifpro_queue}
+    mem_limit: 1024m
+    cpus: 1.0
+    pids_limit: 128
+
+  ifc-worker:
+    <<: *runtime
+    image: teklifpro-ifc-worker:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: ifc-worker
+    env_file: [./.env.worker]
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=768
+      SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
+      GRAPHILE_WORKER_SCHEMA: ${GRAPHILE_WORKER_SCHEMA:-teklifpro_queue}
     mem_limit: 1024m
     cpus: 1.0
     pids_limit: 128

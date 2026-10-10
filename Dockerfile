@@ -9,7 +9,8 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 FROM dependencies AS build
 COPY . .
 RUN pnpm run build \
-    && pnpm exec esbuild src/smartcheck/import/worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/worker.mjs
+    && pnpm exec esbuild src/smartcheck/import/worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/worker.mjs \
+    && pnpm exec esbuild src/smartcheck/import/ifc-worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/ifc-worker.mjs
 
 FROM dependencies AS production-dependencies
 RUN pnpm prune --prod --ignore-scripts
@@ -33,6 +34,9 @@ CMD ["node", "dist/server.cjs"]
 
 FROM runtime AS worker
 CMD ["node", "dist/worker.mjs"]
+
+FROM runtime AS ifc-worker
+CMD ["node", "dist/ifc-worker.mjs"]
 
 FROM runtime AS app
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \

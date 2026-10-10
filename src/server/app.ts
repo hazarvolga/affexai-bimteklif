@@ -2,9 +2,32 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { db } from "../db";
+import { db, pool } from "../db";
 import { companies, memberships, rateLimitBuckets, users } from "../db/schema";
 import { sql } from "drizzle-orm";
+import Layer from "express/lib/router/layer";
+
+// Ensure Express 4 catches rejected promises from async route handlers and forwards to error middleware
+// (Prevents Node 24 process crash from unhandledRejection on any database/route error)
+const originalHandleRequest = (Layer as any).prototype.handle_request;
+if (!(Layer as any).__asyncErrorsPatched) {
+  (Layer as any).prototype.handle_request = function (req: any, res: any, next: any) {
+    const fn = this.handle;
+    if (fn.length > 3) {
+      return originalHandleRequest.call(this, req, res, next);
+    }
+    try {
+      const maybePromise = fn.call(this, req, res, next);
+      if (maybePromise && typeof maybePromise.catch === "function") {
+        maybePromise.catch(next);
+      }
+      return maybePromise;
+    } catch (err) {
+      next(err);
+    }
+  };
+  (Layer as any).__asyncErrorsPatched = true;
+}
 import { AIService } from "../services/ai/aiService";
 import { RegulatoryIntelligenceService } from "../services/regulations/regulatoryService";
 import { ProfitService } from "../services/financials/profitService";
@@ -38,7 +61,7 @@ dotenv.config();
 
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
-export function createApiApp() {
+export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void }) {
   const productionConfig = assertProductionEnvironment();
   const app = express();
   app.disable('x-powered-by');
@@ -93,6 +116,16 @@ export function createApiApp() {
   registerMarketIntelligenceRoutes(app);
   registerPilotEvidenceRoutes(app);
 
+  if (options?.configureRoutes) {
+    options.configureRoutes(app);
+  }
+
+  // 404 JSON fallback for any unhandled /api/* route
+  app.all("/api/*", (_req, res) => {
+    res.status(404).json({ error: "Endpoint bulunamadı." });
+  });
+
+  // Central API error handler
   app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error("Unhandled API error:", error);
     if (res.headersSent) return next(error);
@@ -121,7 +154,7 @@ export async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", async () => {
+  const server = app.listen(PORT, "0.0.0.0", async () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
     
     // Basic seeding if empty
@@ -153,4 +186,34 @@ export async function startServer() {
       console.error("Seeding failed (this is expected if DB is not provisioned yet):", err);
     }
   });
+
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
+  server.requestTimeout = 300000;
+
+  let isShuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`Received ${signal}. Shutting down gracefully...`);
+    server.close(async () => {
+      try {
+        await pool.end();
+        console.log("DB pool closed. Server exited.");
+        process.exit(0);
+      } catch (err) {
+        console.error("Error during pool termination:", err);
+        process.exit(1);
+      }
+    });
+    setTimeout(() => {
+      console.error("Forced exit due to shutdown timeout.");
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  return server;
 }

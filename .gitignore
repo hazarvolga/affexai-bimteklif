@@ -11,3 +11,9 @@ backups/
 .data/
 
 TeklifPro-Stratejik-Oneri-Raporu.docx
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

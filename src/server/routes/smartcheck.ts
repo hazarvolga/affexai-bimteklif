@@ -20,6 +20,7 @@ import { sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota";
 import { recordUsage } from "../../services/billing/usage-audit";
+import { transferReviewEvidence } from "../../smartcheck/import/transfer-evidence";
 import {
   smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
@@ -175,6 +176,9 @@ export function registerSmartCheckRoutes(app: Express) {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Önizleme için yükleme tamamlanmalı." });
+    if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc") {
+      return res.status(409).json({ error: "IFC önizleme için işleme kuyruğunu başlatın; kanıt artifact'i run sonunda oluşur.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
+    }
     try {
       const content = await createStorageAdapter().get(document.storageKey);
       if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
@@ -315,7 +319,8 @@ export function registerSmartCheckRoutes(app: Express) {
     res.json({ approvedCount: updated.length, rows: updated });
   });
 
-  app.post("/api/smartcheck/documents/:id/transfer-to-quotation", ...protectedStack, async (req, res) => {
+  app.post("/api/smartcheck/documents/:id/transfer-to-quotation", ...protectedStack, async (req, res, next) => {
+    try {
     const parsedRequest = smartcheckTransferRequestSchema.safeParse(req.body);
     if (!parsedRequest.success) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
     const { quotationId, rowIds } = parsedRequest.data;
@@ -333,6 +338,12 @@ export function registerSmartCheckRoutes(app: Express) {
     const sourceDocuments = await db.select({ id: documents.id, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
     const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
     const transferResult = await db.transaction(async (tx) => {
+      // Use the revision series lock before inspecting the current draft/items.
+      await tx.select({ id: quotations.id }).from(quotations).where(and(eq(quotations.id, quotation.parentId ?? quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
+      const [currentQuote] = await tx.select().from(quotations).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
+      if (!currentQuote?.isLatest || currentQuote.status !== "draft" || currentQuote.pricingSnapshotLockStatus === "locked") throw new Error("TRANSFER_QUOTE_CHANGED");
+      const selected = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, rowIds))).for("share");
+      if (selected.length !== new Set(rowIds).size || selected.some(row => !["approved", "accepted_exception"].includes(row.reviewStatus))) throw new Error("TRANSFER_REVIEW_CHANGED");
       const inserts = selected.map((row) => {
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
@@ -349,9 +360,9 @@ export function registerSmartCheckRoutes(app: Express) {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
           wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
-          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: "verified", discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
+          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
-          sourceRuleVersion: "pilot-integrity-v1", transferIdempotencyKey: idempotencyKey,
+          sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
           priceSnapshotId: priceSnapshot?.id ?? null, priceSnapshotStatus: priceSnapshot ? "attached" : "missing",
         };
       });
@@ -364,7 +375,7 @@ export function registerSmartCheckRoutes(app: Express) {
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
-        const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null };
+        const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         await tx.insert(quotationItemEvidence).values([
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
@@ -376,6 +387,10 @@ export function registerSmartCheckRoutes(app: Express) {
     });
     await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
     res.json({ quotationId: quotation.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
+    } catch (error) {
+      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı veya taslak değişti; yeniden inceleyin.", code: error.message });
+      next(error);
+    }
   });
 
   app.post("/api/smartcheck/documents/:id/transfer-to-new-quotation", ...protectedStack, async (req, res) => {
@@ -399,6 +414,8 @@ export function registerSmartCheckRoutes(app: Express) {
 
     const transferResult = await db.transaction(async (tx) => {
       await consumeQuotationQuota(tx, req.user.companyId);
+      const selected = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, rowIds))).for("share");
+      if (selected.length !== new Set(rowIds).size || selected.some(row => !["approved", "accepted_exception"].includes(row.reviewStatus))) throw new Error("TRANSFER_REVIEW_CHANGED");
       const client = parsedRequest.data.clientId
         ? (await tx.select().from(clients).where(and(eq(clients.id, parsedRequest.data.clientId), eq(clients.companyId, req.user.companyId)))).at(0)
         : (await tx.insert(clients).values({
@@ -445,9 +462,9 @@ export function registerSmartCheckRoutes(app: Express) {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
           wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
-          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: "verified", discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
+          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
-          sourceRuleVersion: "pilot-integrity-v1", transferIdempotencyKey: idempotencyKey,
+          sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
           priceSnapshotId: priceSnapshot?.id ?? null, priceSnapshotStatus: priceSnapshot ? "attached" : "missing",
         };
       });
@@ -461,7 +478,7 @@ export function registerSmartCheckRoutes(app: Express) {
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
-        const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null };
+        const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         await tx.insert(quotationItemEvidence).values([
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
@@ -479,6 +496,7 @@ export function registerSmartCheckRoutes(app: Express) {
       res.status(201).json({ quotationId: transferResult.quotation.id, clientId: transferResult.client.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
     } catch (error) {
       if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
+      if (error instanceof Error && error.message === "TRANSFER_REVIEW_CHANGED") return res.status(409).json({ error: "İnceleme kararı değişti; yeniden yükleyin.", code: error.message });
       if (error instanceof Error && error.message === "SMARTCHECK_CLIENT_NOT_FOUND") return res.status(404).json({ error: "Seçili müşteri bulunamadı." });
       if (error instanceof Error && error.message === "INVALID_TRANSFER_VALUES") return res.status(409).json({ error: "Aktarım miktar/fiyat değerleri geçersiz veya eksik.", code: "INVALID_TRANSFER_VALUES" });
       console.error("SmartCheck new quotation transfer failed", error);
