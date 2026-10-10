@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1791649446.32465,
-    "ast_hash": "cb7e3cb5ba31400fa1062ae6992fb5a9",
+    "mtime": 1791651557.6318786,
+    "ast_hash": "00f29dd8521a32359019a3b9bf6bfb23",
     "semantic_hash": ""
   },
   "src/academy/activation.test.ts": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/Shell.tsx": {
-    "mtime": 1791649357.54856,
-    "ast_hash": "40a5ca5e3948e768be16105fd29afe65",
+    "mtime": 1791652214.8560967,
+    "ast_hash": "16afcb6ae50bc639dbdc5a15551c7212",
     "semantic_hash": ""
   },
   "src/components/smartcheck/RegulationImpactPanel.tsx": {
@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "src/db/schema.ts": {
-    "mtime": 1791648936.475827,
-    "ast_hash": "cc043ed56d2417abcf74db57f1975271",
+    "mtime": 1791651473.3170452,
+    "ast_hash": "f39919e4946009b460d12f7c3d71b412",
     "semantic_hash": ""
   },
   "src/hooks/useAuth.tsx": {
@@ -1515,8 +1515,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
-    "mtime": 1791442446.0966594,
-    "ast_hash": "701ba5ce15608122e0521c5e10c9a1db",
+    "mtime": 1791652211.8267517,
+    "ast_hash": "d6a4428df41efb73c59d5100b70359ff",
     "semantic_hash": ""
   },
   "src/pages/DealDetail.tsx": {
@@ -1525,8 +1525,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1791434798.0902226,
-    "ast_hash": "72d8aff1d038a468c48a652eef203836",
+    "mtime": 1791652263.5952775,
+    "ast_hash": "4a756e063baf002280e2f6681cfb07b1",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -1540,8 +1540,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.tsx": {
-    "mtime": 1791442668.4364772,
-    "ast_hash": "53f0da35f5b287c2f28ee46b6daafd7d",
+    "mtime": 1791651702.1257138,
+    "ast_hash": "0cc92dec430ea596fb9e5f7fa6225a87",
     "semantic_hash": ""
   },
   "src/pages/MarketIntelligence.tsx": {
@@ -1630,8 +1630,8 @@
     "semantic_hash": ""
   },
   "src/server/app.ts": {
-    "mtime": 1791647870.2045047,
-    "ast_hash": "5208a8149d188b5085845a01f33b0ac1",
+    "mtime": 1791653400.809448,
+    "ast_hash": "4d6a9d84f3482ebda38835c38fa12601",
     "semantic_hash": ""
   },
   "src/server/auth/registration.test.ts": {
@@ -1715,8 +1715,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/auth.ts": {
-    "mtime": 1791649334.377251,
-    "ast_hash": "6dd7c6b374fd44a638cbaf95152927c2",
+    "mtime": 1791650695.890189,
+    "ast_hash": "f74cd884229ba9801e4ca4302705c9d8",
     "semantic_hash": ""
   },
   "src/server/routes/billing.ts": {
@@ -2210,8 +2210,8 @@
     "semantic_hash": ""
   },
   "vite.config.ts": {
-    "mtime": 1791647690.5813751,
-    "ast_hash": "44f348ad7c3de41ee901f54ad7cb1dd4",
+    "mtime": 1791652208.6631336,
+    "ast_hash": "596332f92f2c29f18245fc8749d44e00",
     "semantic_hash": ""
   },
   ".agent/agents/architect.md": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1791445008.8367774,
-    "ast_hash": "91116d6e0021795c20cd3d02df205d08",
+    "mtime": 1791651612.4450073,
+    "ast_hash": "2a980265d95d55c09ac074ebfaa0e94e",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4640,8 +4640,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/AdminShell.tsx": {
-    "mtime": 1791649363.2100568,
-    "ast_hash": "6241774f884e590f078b217a416e20ac",
+    "mtime": 1791651545.468063,
+    "ast_hash": "3e32e0b27b0d637f67e86fe4a3ee4fe6",
     "semantic_hash": ""
   },
   "src/components/ui/field.tsx": {
@@ -4675,8 +4675,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/PlansList.tsx": {
-    "mtime": 1791649472.3911552,
-    "ast_hash": "9d2bfc213d697d0a0e22b7392ed43831",
+    "mtime": 1791650799.997885,
+    "ast_hash": "5f0c2a5e8d8fd6187c852f17ff6425c4",
     "semantic_hash": ""
   },
   "src/pages/admin/TenantsList.tsx": {
@@ -4700,8 +4700,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/admin.ts": {
-    "mtime": 1791649142.197085,
-    "ast_hash": "14b37cf808bfa2ce34d828d639789ed8",
+    "mtime": 1791653527.1654892,
+    "ast_hash": "50606c483f2d1588d3cf05d0df81091a",
     "semantic_hash": ""
   },
   "src/server/routes/company-invitation.integration.test.ts": {
@@ -5040,8 +5040,8 @@
     "semantic_hash": ""
   },
   "src/server/admin/input.ts": {
-    "mtime": 1791648953.3643594,
-    "ast_hash": "5e0f720a234c906ece7b042e2ed73959",
+    "mtime": 1791649913.7174833,
+    "ast_hash": "7d729576191d74833758a7d05a728664",
     "semantic_hash": ""
   },
   "src/server/auth/invitations.test.ts": {
@@ -5520,13 +5520,38 @@
     "semantic_hash": ""
   },
   "src/pages/admin/TenantDetail.tsx": {
-    "mtime": 1791649384.2748559,
-    "ast_hash": "7b52175852014646785d311c44f0b81a",
+    "mtime": 1791650225.2207737,
+    "ast_hash": "2681b7f0042ee3f826d6a1b007186ecd",
     "semantic_hash": ""
   },
   "src/server/routes/admin-features.test.ts": {
     "mtime": 1791649215.3613327,
     "ast_hash": "106a08cd73122bfcd6e1d9941a01976a",
+    "semantic_hash": ""
+  },
+  "drizzle/0038_pricing_sources_and_crawler_staging.sql": {
+    "mtime": 1791651438.5812182,
+    "ast_hash": "227872f055c9a205d9631382a2f4411d",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/PricingSources.tsx": {
+    "mtime": 1791653442.9408462,
+    "ast_hash": "124899ce82544de665b5bc2b9ab4082f",
+    "semantic_hash": ""
+  },
+  "src/server/crawler/priceCrawlerService.test.ts": {
+    "mtime": 1791653163.677589,
+    "ast_hash": "0a100fc88244fd362364d709568d9e19",
+    "semantic_hash": ""
+  },
+  "src/server/crawler/priceCrawlerService.ts": {
+    "mtime": 1791653081.1502016,
+    "ast_hash": "3d53d4c4a8b9c40923a4267f4186d67c",
+    "semantic_hash": ""
+  },
+  "src/server/crawler/priceSchedulerService.ts": {
+    "mtime": 1791653519.8968291,
+    "ast_hash": "d10949a097de7bea6b502d5b2810995a",
     "semantic_hash": ""
   }
 }

@@ -1198,4 +1198,28 @@ Autonomous remediation and source restore checkpoints are tracked in
   - 3 Tabs: "Veri Kaynakları & Botlar", "Crawler İnceleme Havuzu (Staging Diff)", "Poz Doğrulama & Teftiş".
   - Interactive audit diagnostic tool allowing instant lookup of any poz code.
 
+## 2026-10-10 Update: Universal Price Crawler, Nightly Batch Sync & Quotation Integration
+
+- **Real Universal Price Crawler Engine (`src/server/crawler/priceCrawlerService.ts`):**
+  - Replaced stub sync handler with a real network fetcher and multi-tier extractor.
+  - **Tier 1 (Built-in Dedicated Adapters):** Live scrapers for `demirfiyatlari.com` (Karabük/Payas steel Q8-Q32, wire mesh, rebar coils) and `insaatgundemi.com` (C20-C50 ready-mix concrete).
+  - **Tier 2 (Universal Zero-Code Extractor):** For any new user-added URL, automatically parses HTML tables (`<tr>`, `<td>`) and price cards without requiring any code rewrite or server redeploy.
+  - **Currency & Unit Normalization:** Robust parser handling both Turkish dot-thousand/comma-decimal notation and currency symbols (`₺`, `TL`, `$`, `€`).
+  - **Staging Diff & Auditing:** Writes newly discovered prices to `price_feed_staging` with calculated deviation percentages against official ÇŞB baseline prices.
+- **Automated Nightly Scheduler with Polite Sequential Queue (`src/server/crawler/priceSchedulerService.ts`):**
+  - Runs automatically every night at 03:00 TSİ.
+  - **Zero-Spike Polite Queue:** Processes all active pricing sources sequentially with a 2.5-second delay between sources, protecting server CPU and avoiding target site rate limits.
+  - Server lifecycle hook: Started on boot in `src/server/app.ts` and gracefully stopped on `SIGINT`/`SIGTERM`.
+  - Admin endpoints added: `GET /api/admin/pricing-sources/scheduler/status` and `POST /api/admin/pricing-sources/scheduler/trigger`.
+  - Super Admin UI: Added "Otomatik Gece Taraması (Nightly Batch Sync)" status card with badges and manual batch trigger button.
+- **Quotation Builder Integration & Price Validity Disclaimer (`CreateQuote.tsx` + `pricing.ts`):**
+  - Backend endpoint `GET /api/pricing/benchmarks`: Returns active pricing sources, their validity date ranges, and live crawled items.
+  - **Price Validity & Disclaimer Banner:** Displays prominent notice on `/app/quotes/new` informing the contractor of data validity ranges (ÇŞB 2026/1 annual validity, weekly commodity crawl dates) with a strong disclaimer advising manual supplier proforma verification.
+  - **Canlı Rayiçleri Gör Drawer:** Interactive quick-picker allows estimators to view crawled market prices and insert items directly into quotation line items with a single click (+ Ekle).
+- **Verification:**
+  - Automated tests passing (`src/server/crawler/priceCrawlerService.test.ts`).
+  - Full TypeScript clean build (`tsc --noEmit` zero errors).
+  - Puppeteer verified: Live crawl trigger, Staging review, Nightly batch sync, and Quote line quick-insertion.
+
+
 
