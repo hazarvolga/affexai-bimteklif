@@ -58,12 +58,33 @@ services:
     env_file: [./.env.worker]
     environment:
       NODE_ENV: production
-      NODE_OPTIONS: --max-old-space-size=768
+      NODE_OPTIONS: --max-old-space-size=1024
       SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
       GRAPHILE_WORKER_SCHEMA: ${GRAPHILE_WORKER_SCHEMA:-teklifpro_queue}
-    mem_limit: 1024m
-    cpus: 1.0
+      SMARTCHECK_IFC_ENGINE: ${SMARTCHECK_IFC_ENGINE:-legacy}
+      SMARTCHECK_IFC_TIMEOUT_SEC: ${SMARTCHECK_IFC_TIMEOUT_SEC:-600}
+      PYTHON_BIN: /opt/venv/bin/python3
+    tmpfs:
+      - /tmp:size=536870912,mode=1777
+      - /home/node/.cache:size=67108864,uid=1000,gid=1000
+    mem_limit: 2048m
+    cpus: 1.5
     pids_limit: 128
+
+  migrate:
+    image: teklifpro-app:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: migrate
+    env_file: [./.env.app]
+    environment:
+      NODE_ENV: production
+      RELEASE_DATABASE_URL: ${DATABASE_URL}
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 
   postgres:
     image: postgres:16-bookworm

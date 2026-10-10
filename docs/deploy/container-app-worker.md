@@ -13,16 +13,22 @@ Puppeteer browser download. Debian Chromium supplies the runtime browser.
 The Debian packages and PostgreSQL tag are not immutable digest pins; record
 resolved image digests and vulnerability scan results for an actual release.
 
-`compose.example.yaml` is intended for Coolify on an Oracle VPS with sufficient
-RAM. It budgets up to 1.5 GiB app, 1 GiB worker, and 512 MiB PostgreSQL, plus host
-and Docker overhead. This is not a realistic concurrent workload for a 1 GiB
-instance. Begin with worker concurrency 1; valid tuning range is 1 through 4.
-Increase only after measuring IFC/parser peak RSS, DB connections and PDF load.
+`compose.example.yaml` is intended for Coolify on a VPS (e.g. Contabo) with sufficient
+RAM. It budgets up to 1.5 GiB app, 1 GiB worker, 2 GiB ifc-worker, and 512 MiB PostgreSQL, plus host
+and Docker overhead. Total required RAM for this composition is ~6 GiB minimum.
+- `worker`: processes CSV/XLSX documents (`process_smartcheck_document`). Defaults to concurrency 2.
+- `ifc-worker`: dedicated container with Python 3 + IfcOpenShell (`process_smartcheck_ifc_document`). Defaults to concurrency 1, up to 2. Allocated 2 GiB RAM, 1.5 CPUs, and 512 MiB writable `/tmp` tmpfs.
+- `migrate`: one-shot service executing `node dist/release-cli.mjs apply` before app boot.
+
+Note on Vercel: Vercel serverless functions cannot run long-lived Graphile background workers,
+persistent Puppeteer Chromium pools, or Python IfcOpenShell subprocesses. Vercel is strictly for
+SPA/API edge routing if ever used; production background workers MUST run in Docker containers (Coolify/VPS).
 
 Do not run this Compose project over an existing deployment without checking
 project name, ports, target database and volumes. PostgreSQL has no host port.
 The app binds to localhost port 3002 by default; Coolify should route its proxy
-to app port 3000 on the project network. Worker exposes no HTTP endpoint.
+to app port 3000 on the project network. Worker services expose no HTTP endpoint.
+
 
 ## Environment Separation
 
