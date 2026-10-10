@@ -246,8 +246,10 @@ export function TenantDetail() {
       const res = await fetchWithAuth('/api/admin/impersonate', {
         method: 'POST',
         body: JSON.stringify({
+          targetCompanyId: companyId,
           companyId,
-          readOnly: impersonateReadOnly
+          readOnly: impersonateReadOnly,
+          allowWrite: !impersonateReadOnly
         })
       });
 
