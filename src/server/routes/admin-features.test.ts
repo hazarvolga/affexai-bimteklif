@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApiApp } from '../app';
 import { AuthService } from '../../services/auth/authService';
@@ -8,6 +8,10 @@ describe('Super Admin Security & Features Integration', () => {
   const server = app.listen(0);
   const address = server.address() as { port: number };
   const baseUrl = `http://127.0.0.1:${address.port}`;
+
+  after(() => {
+    server.close();
+  });
 
   const superAdminUserId = '11111111-1111-4111-a111-111111111111';
   const superAdminCompanyId = '22222222-2222-4222-a222-222222222222';

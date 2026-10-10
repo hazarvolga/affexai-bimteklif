@@ -297,18 +297,31 @@ export function registerAdminRoutes(app: Express) {
   router.post("/impersonate", async (req, res) => {
     try {
       const schema = z.object({
-        targetCompanyId: z.string().uuid(),
+        targetCompanyId: z.string().uuid().optional(),
+        companyId: z.string().uuid().optional(),
         targetUserId: z.string().uuid().optional(),
-        allowWrite: z.boolean().optional().default(false),
+        userId: z.string().uuid().optional(),
+        allowWrite: z.boolean().optional(),
+        readOnly: z.boolean().optional(),
+      }).refine((data) => Boolean(data.targetCompanyId || data.companyId), {
+        message: "targetCompanyId veya companyId parametresi gereklidir.",
       });
 
       const parsed = schema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ error: "Geçersiz istek parametreleri" });
+        return res.status(400).json({ 
+          error: "Geçersiz istek parametreleri",
+          details: parsed.error.issues 
+        });
       }
 
-      const { targetCompanyId, allowWrite } = parsed.data;
-      let targetUserId = parsed.data.targetUserId;
+      const targetCompanyId = (parsed.data.targetCompanyId || parsed.data.companyId)!;
+      let targetUserId = parsed.data.targetUserId || parsed.data.userId;
+      const allowWrite = parsed.data.allowWrite !== undefined
+        ? parsed.data.allowWrite
+        : parsed.data.readOnly !== undefined
+          ? !parsed.data.readOnly
+          : false;
 
       if (!targetUserId) {
         // Find owner or admin of the company
