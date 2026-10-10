@@ -23,6 +23,10 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     db.insert(schema.companies).values({ name: `HTTP Integration A ${suffix}`, smartcheckMaxWastePercent: "20" }).returning(),
     db.insert(schema.companies).values({ name: `HTTP Integration B ${suffix}`, smartcheckMaxWastePercent: "20" }).returning(),
   ]).then(([a, b]) => [a[0], b[0]] as const);
+  await db.insert(schema.subscriptions).values([companyA, companyB].map(company => ({
+    companyId: company.id, plan: "starter" as const, status: "active" as const,
+    currentPeriodStart: new Date("2020-01-01T00:00:00Z"),
+  })));
   const [userA] = await db.insert(schema.users).values({ email: `http-a-${suffix}@example.test`, fullName: "HTTP Tenant A", emailVerified: new Date() }).returning();
   const [userB] = await db.insert(schema.users).values({ email: `http-b-${suffix}@example.test`, fullName: "HTTP Tenant B", emailVerified: new Date() }).returning();
   await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);

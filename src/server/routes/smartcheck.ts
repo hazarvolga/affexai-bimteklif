@@ -1,16 +1,18 @@
 import crypto from "node:crypto";
+import { pipeline } from 'node:stream/promises';
 import type { Express, Request, RequestHandler } from "express";
 import express from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { quickAddJob } from "graphile-worker";
+import { changeProcessingRun, ProcessingConflict } from "../../smartcheck/import/service";
 import { db } from "../../db";
 import { clients, companies, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
 import { SMARTCHECK_MAX_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
+import { SMARTCHECK_MAX_IFC_FILE_BYTES } from "../../smartcheck/import/config";
 import { detectAndValidateFile, maxBytesForSmartCheckFileName, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
-import { inspectDocument, processingIdempotencyKey } from "../../smartcheck/import/processor";
+import { inspectDocument } from "../../smartcheck/import/processor";
 import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
 import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
@@ -109,11 +111,57 @@ export function registerSmartCheckRoutes(app: Express) {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     const storage = createStorageAdapter();
-    const content = await storage.get(document.storageKey);
-    if (content.length !== document.fileSizeBytes || sha256(content) !== checksum) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
-    const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-    if (kind === "xlsx") {
-      await validateXlsxArchive(content);
+    let kind: "ifc" | "xlsx" | "csv" = "ifc";
+    if (document.originalFileName.toLowerCase().endsWith('.ifc')) {
+      if (storage.getStream) {
+        const stream = await storage.getStream(document.storageKey);
+        const hash = crypto.createHash('sha256');
+        let firstChunk: Buffer | null = null;
+        let size = 0;
+        try {
+          let headChunks = [];
+          let headSize = 0;
+          for await (const chunk of stream) {
+            if (headSize < 8192) {
+              headChunks.push(chunk);
+              headSize += chunk.length;
+            }
+            hash.update(chunk);
+            size += chunk.length;
+            if (size > SMARTCHECK_MAX_IFC_FILE_BYTES) throw new Error('FILE_SIZE_INVALID');
+          }
+          if (size === 0) throw new Error('FILE_SIZE_INVALID');
+          if (size !== document.fileSizeBytes || hash.digest('hex') !== checksum) {
+             throw new Error('CHECKSUM_MISMATCH');
+          }
+          const headBuffer = Buffer.concat(headChunks);
+          kind = detectAndValidateFile(headBuffer, document.originalFileName, document.mimeType);
+        } catch (error) {
+          if (typeof stream.destroy === 'function') stream.destroy();
+          if (['FILE_SIZE_INVALID', 'CHECKSUM_MISMATCH'].includes(error.message)) {
+            await Promise.all([
+              storage.delete(document.storageKey).catch(() => {}),
+              db.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(eq(documents.id, document.id))
+            ]);
+          }
+          if (error.message === 'FILE_SIZE_INVALID') return res.status(400).json({ error: "Dosya boyutu geçersiz." });
+          if (error.message === 'CHECKSUM_MISMATCH') return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
+          throw error;
+        }
+      }
+    } else {
+      const content = await storage.get(document.storageKey);
+      if (content.length !== document.fileSizeBytes || sha256(content) !== checksum) {
+        await Promise.all([
+          storage.delete(document.storageKey).catch(() => {}),
+          db.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(eq(documents.id, document.id))
+        ]);
+        return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
+      }
+      kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
+      if (kind === "xlsx") {
+        await validateXlsxArchive(content);
+      }
     }
     if (kind === "ifc") {
       await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_enabled" });
@@ -165,45 +213,17 @@ export function registerSmartCheckRoutes(app: Express) {
     res.json({ mapping });
   });
 
-  app.post("/api/smartcheck/documents/:id/process", ...protectedStack, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
-    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Yükleme henüz tamamlanmadı." });
-    const idempotencyKey = processingIdempotencyKey(document.checksumSha256, document.importMappingJson as ColumnMapping);
-    const [existing] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.companyId, req.user.companyId), eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.idempotencyKey, idempotencyKey)));
-    if (existing) return res.status(200).json(existing);
-    const [run] = await db.insert(documentProcessingRuns).values({ companyId: req.user.companyId, documentId: document.id, idempotencyKey, pipelineVersion: 1, progressMessage: "Kuyruğa alındı" }).returning();
-    await db.update(documents).set({ status: "queued", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)));
-    await quickAddJob({ connectionString: process.env.DATABASE_URL! }, "process_smartcheck_document", { companyId: req.user.companyId, documentId: document.id, processingRunId: run.id }, { jobKey: `smartcheck:${run.id}`, maxAttempts: 3 });
-    await audit(req, "processing_queued", "processing_run", run.id, { documentId: document.id, idempotencyKey });
-    res.status(202).json(run);
-  });
-
-  app.post("/api/smartcheck/documents/:id/retry", ...protectedStack, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
-    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Yükleme henüz tamamlanmadı." });
-    const [latestRun] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
-    if (!latestRun || latestRun.status !== "failed") return res.status(409).json({ error: "Yalnızca başarısız son işlem tekrar kuyruğa alınabilir." });
-    const idempotencyKey = `${processingIdempotencyKey(document.checksumSha256, document.importMappingJson as ColumnMapping)}:retry:${crypto.randomUUID()}`;
-    const [run] = await db.insert(documentProcessingRuns).values({ companyId: req.user.companyId, documentId: document.id, idempotencyKey, pipelineVersion: latestRun.pipelineVersion, progressMessage: "Tekrar kuyruğa alındı" }).returning();
-    await db.update(documents).set({ status: "queued", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)));
-    await quickAddJob({ connectionString: process.env.DATABASE_URL! }, "process_smartcheck_document", { companyId: req.user.companyId, documentId: document.id, processingRunId: run.id }, { jobKey: `smartcheck:${run.id}`, maxAttempts: 3 });
-    await audit(req, "processing_retried", "processing_run", run.id, { documentId: document.id, previousRunId: latestRun.id });
-    res.status(202).json(run);
-  });
-
-  app.post("/api/smartcheck/documents/:id/recover-stale", ...protectedStack, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
-    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [latestRun] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
-    if (!latestRun || !isProcessingRunStale(latestRun)) return res.status(409).json({ error: "Yalnız stale queued/running işlem kurtarılabilir.", code: "PROCESSING_RUN_NOT_STALE" });
-    const recoveredAt = new Date();
-    const [recovered] = await db.update(documentProcessingRuns).set({ status: "failed", currentStage: "failed", progressMessage: "Worker stale; operatör kurtarma kararı bekleniyor", errorCode: "WORKER_STALE", errorMessage: "Worker heartbeat eşiği aşıldı; işlem operatör kararıyla yeniden kuyruğa alınmalı.", completedAt: recoveredAt, updatedAt: recoveredAt }).where(and(eq(documentProcessingRuns.id, latestRun.id), eq(documentProcessingRuns.companyId, req.user.companyId))).returning();
-    await db.update(documents).set({ status: "failed", updatedAt: recoveredAt }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)));
-    await audit(req, "processing_stale_recovered", "processing_run", latestRun.id, { documentId: document.id, errorCode: "WORKER_STALE" });
-    res.json(recovered);
-  });
+  for (const [path, action] of [["process", "process"], ["retry", "retry"], ["recover-stale", "recover"]] as const) {
+    app.post(`/api/smartcheck/documents/:id/${path}`, ...protectedStack, async (req, res, next) => {
+      try {
+        const result = await changeProcessingRun({ companyId: req.user.companyId, userId: req.user.userId, documentId: req.params.id, action });
+        res.status(result.status).json(result.run);
+      } catch (error) {
+        if (error instanceof ProcessingConflict) return res.status(error.status).json({ error: "İşlem mevcut durumda gerçekleştirilemiyor.", code: error.code });
+        next(error);
+      }
+    });
+  }
 
   app.get("/api/smartcheck/queue", authenticate, featureGate, readRateLimit, canReview, async (req, res) => {
     const queue = await db.select({
