@@ -9,8 +9,17 @@ import { generateQuotationPdf } from "../../services/pdf/generate";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { QuotaError } from "../../services/billing/quota";
+import { consumeRateLimit } from "../auth/security";
 
 export function registerQuotationRoutes(app: Express, canMutate: any) {
+  const pdfRateLimit = async (req: any, res: any, next: any) => {
+    const result = await consumeRateLimit(`pdf:${req.user.companyId}`, 10, 60_000);
+    if (!result.allowed) {
+      return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "PDF üretim limiti aşıldı. Lütfen bir dakika bekleyin." });
+    }
+    next();
+  };
+
   app.get("/api/quotations", authenticate, async (req, res) => {
     try {
       const allQuotes = await db.select()
@@ -129,7 +138,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
     }
   });
 
-  app.get("/api/quotations/:id/pdf", authenticate, canMutate, usageTracker("PDF_GENERATED"), async (req, res) => {
+  app.get("/api/quotations/:id/pdf", authenticate, pdfRateLimit, canMutate, usageTracker("PDF_GENERATED"), async (req, res) => {
     try {
       const { id } = req.params;
       const { templateId } = req.query;

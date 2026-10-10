@@ -191,14 +191,21 @@ export async function startServer() {
   server.headersTimeout = 66000;
   server.requestTimeout = 300000;
 
+  const pruneInterval = setInterval(() => {
+    pruneExpiredRateLimits().catch(err => console.error("Rate limit pruning failed:", err));
+  }, 3600_000);
+  pruneInterval.unref();
+
   let isShuttingDown = false;
   const shutdown = async (signal: string) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
+    clearInterval(pruneInterval);
     console.log(`Received ${signal}. Shutting down gracefully...`);
     server.close(async () => {
       try {
         await pool.end();
+
         console.log("DB pool closed. Server exited.");
         process.exit(0);
       } catch (err) {

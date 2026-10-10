@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { pilotService, ApiError } from "../../services/pilot/PilotService";
 import { pilotRepository } from "../../services/pilot/PilotRepository";
+import { consumeRateLimit } from "../auth/security";
+
 
 function clean(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -57,12 +59,23 @@ export function registerPilotRoutes(app: Express) {
   });
 
   app.post("/api/pilot-applications", async (req, res) => {
+
     try {
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+
+      const rate = await consumeRateLimit(`pilot-app:${ip}`, 5, 3600_000);
+      if (!rate.allowed) {
+        return res.status(429).set("Retry-After", String(rate.retryAfterSeconds)).json({ error: "Çok fazla başvuru yapıldı. Lütfen daha sonra tekrar deneyin." });
+      }
+
       const fullName = clean(req.body?.fullName, 120);
       const companyName = clean(req.body?.companyName, 160);
       const email = clean(req.body?.email, 240).toLowerCase();
       
-      if (!fullName || !companyName || !email) throw new ApiError(400, "Eksik bilgi.");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!fullName || !companyName || !email || !emailRegex.test(email)) {
+        throw new ApiError(400, "Eksik veya geçersiz bilgi.");
+      }
       
       const application = await pilotRepository.create({ fullName, companyName, email });
       return res.status(201).json(application);
@@ -71,3 +84,4 @@ export function registerPilotRoutes(app: Express) {
     }
   });
 }
+

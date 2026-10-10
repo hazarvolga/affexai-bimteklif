@@ -14,7 +14,7 @@ export class GeminiProvider implements AIProvider {
   }
 
   async generateQuotation(input: AIQuotationInput): Promise<AIQuotationResult> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { timeout: 30_000 });
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: buildQuotationPrompt(input) }] }],
       generationConfig: {
@@ -26,7 +26,9 @@ export class GeminiProvider implements AIProvider {
   }
 
   async improveQuotation(items: any[], instructions: string): Promise<any[]> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { timeout: 30_000 });
+
+
     const prompt = `
       Aşağıdaki inşaat teklif kalemlerini, verilen talimatlara göre iyileştir veya güncelle.
       Mevcut Kalemler: ${JSON.stringify(items)}

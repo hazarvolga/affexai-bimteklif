@@ -1,17 +1,43 @@
 import type { Express } from "express";
+import { z } from "zod";
 import { registry } from "../../lib/plugins/registry";
 import { AIService } from "../../services/ai/aiService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
+import { consumeRateLimit } from "../auth/security";
+
+const detectIndustrySchema = z.object({
+  description: z.string().min(1).max(4096),
+});
+
+const generateQuotationSchema = z.object({
+  description: z.string().min(1).max(4096),
+  industryId: z.string().max(64).optional(),
+});
+
+const improveQuotationSchema = z.object({
+  items: z.array(z.record(z.unknown())).max(200),
+  instructions: z.string().min(1).max(2048),
+});
 
 export function registerAiRoutes(app: Express, aiService: AIService, canMutate: any) {
+  const aiRateLimit = async (req: any, res: any, next: any) => {
+    const result = await consumeRateLimit(`ai:${req.user.companyId}:${req.user.userId}`, 30, 60_000);
+    if (!result.allowed) {
+      return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "Çok fazla AI isteği. Lütfen biraz bekleyin." });
+    }
+    next();
+  };
+
   app.get("/api/ai/industries", authenticate, (req, res) => {
     res.json(registry.listIndustries());
   });
 
-  app.post("/api/ai/detect-industry", authenticate, canMutate, async (req, res) => {
+  app.post("/api/ai/detect-industry", authenticate, aiRateLimit, canMutate, async (req, res) => {
+    const parsed = detectIndustrySchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Geçersiz veya 4096 karakterden uzun açıklama." });
     try {
-      const { description } = req.body;
+      const { description } = parsed.data;
       const industryId = await aiService.detectIndustry(description);
       res.json({ industryId });
     } catch (error) {
@@ -19,9 +45,11 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 
-  app.post("/api/ai/generate-quotation", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/generate-quotation", authenticate, aiRateLimit, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+    const parsed = generateQuotationSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Geçersiz veya 4096 karakterden uzun açıklama." });
     try {
-      const { description, industryId } = req.body;
+      const { description, industryId } = parsed.data;
       const result = await aiService.generateQuotation(description, industryId);
       res.json({
         ...result,
@@ -39,9 +67,11 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 
-  app.post("/api/ai/improve-quotation", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/improve-quotation", authenticate, aiRateLimit, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+    const parsed = improveQuotationSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Geçersiz kalemler (maks 200) veya 2048 karakterden uzun talimat." });
     try {
-      const { items, instructions } = req.body;
+      const { items, instructions } = parsed.data;
       const improvedItems = await aiService.improveQuotation(items, instructions);
       res.json(improvedItems);
     } catch (error) {
@@ -49,9 +79,11 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 
-  app.post("/api/ai/generate-quote", authenticate, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/generate-quote", authenticate, aiRateLimit, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+    const parsed = detectIndustrySchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Geçersiz veya 4096 karakterden uzun açıklama." });
     try {
-      const { description } = req.body;
+      const { description } = parsed.data;
       const quotation = await aiService.generateQuotation(description, "residential");
       res.json(quotation.lineItems);
     } catch (error) {
@@ -60,3 +92,4 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 }
+

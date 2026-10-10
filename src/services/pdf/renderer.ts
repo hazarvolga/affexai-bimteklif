@@ -59,13 +59,53 @@ async function renderPage(browser: Browser, html: string, timeoutMs: number): Pr
   return Promise.race([work(), policyFailure]);
 }
 
+class Semaphore {
+  private queue: (() => void)[] = [];
+  constructor(private capacity: number) {}
+  async acquire(): Promise<() => void> {
+    if (this.capacity > 0) {
+      this.capacity--;
+      let released = false;
+      return () => {
+        if (!released) {
+          released = true;
+          this.release();
+        }
+      };
+    }
+    return new Promise(resolve => {
+      this.queue.push(() => {
+        let released = false;
+        resolve(() => {
+          if (!released) {
+            released = true;
+            this.release();
+          }
+        });
+      });
+    });
+  }
+  private release() {
+    const next = this.queue.shift();
+    if (next) {
+      next();
+    } else {
+      this.capacity++;
+    }
+  }
+}
+
+const renderSemaphore = new Semaphore(2);
+
 /** Offline, scriptless, sandboxed rendering with a deadline covering every stage. */
 export async function renderPdf(html: string, options: RenderOptions = {}): Promise<Buffer> {
   const timeoutMs = limit(options.timeoutMs ?? RENDER_TIMEOUT_MS, RENDER_TIMEOUT_MS);
   const closeTimeoutMs = limit(options.closeTimeoutMs ?? CLOSE_TIMEOUT_MS, CLOSE_TIMEOUT_MS);
+  const release = await renderSemaphore.acquire();
   let browser: Browser | undefined;
   let expired = false;
   let timer: ReturnType<typeof setTimeout>;
+
   const work = async () => {
     const launched = await (options.launch ?? (opts => puppeteer.launch(opts)))({
       headless: true, timeout: timeoutMs, protocolTimeout: timeoutMs,
@@ -92,5 +132,7 @@ export async function renderPdf(html: string, options: RenderOptions = {}): Prom
   } finally {
     clearTimeout(timer!);
     if (browser) await closeBrowser(browser, closeTimeoutMs);
+    release();
   }
 }
+

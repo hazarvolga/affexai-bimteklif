@@ -44,6 +44,7 @@ export class OpenAIProvider implements AIProvider {
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(30_000),
       headers: {
         "Authorization": `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
@@ -57,6 +58,7 @@ export class OpenAIProvider implements AIProvider {
         ],
       }),
     });
+
 
     if (!response.ok) {
       const errorBody = await response.text();
