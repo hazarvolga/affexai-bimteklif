@@ -1251,5 +1251,20 @@ Autonomous remediation and source restore checkpoints are tracked in
   - Updated helper `describeIfcQuantityEvidence()` output labels and reason strings to Turkish.
   - Tests updated and verified passing (100% pass across all 33 IFC tests).
 
+## 2026-10-10 Update: Super Admin Tenant Impersonation Parameter Bug Fix
+
+- **Problem:**
+  - On `/admin/tenants/:companyId`, clicking "Firmaya Giriş Yap (Impersonate)" and confirming the modal resulted in a toast error: *"Geçersiz istek parametreleri"*.
+  - **Root Cause:** Schema mismatch between frontend and backend. `TenantDetail.tsx` sent `{ companyId, readOnly }` whereas the endpoint `/api/admin/impersonate` in `admin.ts` strictly required `targetCompanyId` and `allowWrite`.
+- **Backend Fix (`src/server/routes/admin.ts`):**
+  - Updated Zod validation schema to accept both naming conventions (`targetCompanyId` or `companyId`, `readOnly` or `allowWrite`).
+  - Correctly defaults and normalizes parameters: `targetCompanyId = parsed.data.targetCompanyId || parsed.data.companyId`, `allowWrite = parsed.data.allowWrite ?? !parsed.data.readOnly ?? false`.
+- **Frontend Fix (`src/pages/admin/TenantDetail.tsx`):**
+  - Updated `handleImpersonate` payload to send both `targetCompanyId` and `companyId`, along with `readOnly` and `allowWrite`.
+- **Verification:**
+  - Automated integration tests passing (`admin-features.test.ts`).
+  - Puppeteer end-to-end test verified: successfully transitioned from `/admin/tenants/717ee553-4af2-47ce-adf7-af3db75b8d70` into `/app` with the impersonation banner active.
+
+
 
 
