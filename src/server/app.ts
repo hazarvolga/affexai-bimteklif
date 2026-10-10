@@ -55,6 +55,7 @@ import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { pruneExpiredRateLimits } from "./auth/security";
+import { requestIdMiddleware } from "./logger";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -79,12 +80,34 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
     next();
   });
 
+  app.use(requestIdMiddleware);
+
   app.use(express.json({
     limit: "1mb",
     verify: (req: any, _res, buffer) => {
       if (req.originalUrl?.split("?")[0] === "/api/academy/allplan/webhooks/payment") req.rawBody = Buffer.from(buffer);
     },
   }));
+
+  // Liveness probe (fast, no external dependencies) - OPS-12
+  app.get("/healthz", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+
+  // Readiness probe (verifies database & storage) - OPS-12
+  app.get("/readyz", async (_req, res) => {
+    try {
+      await db.execute(sql`select 1`);
+      await db.select({ bucketKey: rateLimitBuckets.bucketKey }).from(rateLimitBuckets).limit(1);
+      const storageReadiness = process.env.SMARTCHECK_IMPORT_ENABLED === "true" ? validateSmartcheckStorageEnvironment(process.env).valid : true;
+      if (storageReadiness === false) {
+        return res.status(503).json({ status: "error", reason: "storage_not_ready" });
+      }
+      res.json({ status: "ready", db: "connected", storage: storageReadiness ? "ready" : "disabled" });
+    } catch (error) {
+      res.status(503).json({ status: "error", db: "failed" });
+    }
+  });
 
   // AI service uses OpenAI when configured and falls back to Gemini.
   const aiService = new AIService({
