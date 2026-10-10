@@ -14261,7 +14261,7 @@
       "_origin": "ast",
       "id": "src_db_schema_users",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "users"
     },
     {
@@ -14272,7 +14272,7 @@
       "_origin": "ast",
       "id": "src_db_schema_authactiontokens",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "authactiontokens"
     },
     {
@@ -14283,7 +14283,7 @@
       "_origin": "ast",
       "id": "src_db_schema_ratelimitbuckets",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "ratelimitbuckets"
     },
     {
@@ -14294,7 +14294,7 @@
       "_origin": "ast",
       "id": "src_db_schema_companies",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "companies"
     },
     {
@@ -14305,7 +14305,7 @@
       "_origin": "ast",
       "id": "src_db_schema_memberships",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "memberships"
     },
     {
@@ -14360,7 +14360,7 @@
       "_origin": "ast",
       "id": "src_db_schema_invitations",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitations"
     },
     {
@@ -14910,7 +14910,7 @@
       "_origin": "ast",
       "id": "src_db_schema_academylearnerprofiles",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "academylearnerprofiles"
     },
     {
@@ -19130,7 +19130,7 @@
       "label": "TenantDetailData",
       "file_type": "code",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L25",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "src_pages_admin_tenantdetail_tenantdetaildata",
       "community": 803,
@@ -19141,7 +19141,7 @@
       "label": "TenantDetail()",
       "file_type": "code",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L76",
+      "source_location": "L93",
       "_origin": "ast",
       "id": "src_pages_admin_tenantdetail_tenantdetail",
       "community": 159,
@@ -19618,7 +19618,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_test",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitations.test.ts"
     },
     {
@@ -19629,7 +19629,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_test_acceptancestore",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "acceptancestore()"
     },
     {
@@ -19640,7 +19640,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_test_set",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "set()"
     },
     {
@@ -19651,7 +19651,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_test_status",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "status()"
     },
     {
@@ -19662,7 +19662,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_test_json",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "json()"
     },
     {
@@ -19673,7 +19673,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitations.ts"
     },
     {
@@ -19684,7 +19684,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationrole",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitationrole"
     },
     {
@@ -19695,7 +19695,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationinput",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitationinput"
     },
     {
@@ -19706,7 +19706,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_newaccountinput",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "newaccountinput"
     },
     {
@@ -19717,7 +19717,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationerror",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitationerror"
     },
     {
@@ -19728,7 +19728,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationerror_constructor",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -19739,7 +19739,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationratelimit",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitationratelimit()"
     },
     {
@@ -19750,7 +19750,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationerrorresponse",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitationerrorresponse()"
     },
     {
@@ -19761,7 +19761,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_invitationtokenhash",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "invitationtokenhash()"
     },
     {
@@ -19772,7 +19772,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_publicinvitation",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "publicinvitation()"
     },
     {
@@ -19783,7 +19783,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_deliverinvitation",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "deliverinvitation()"
     },
     {
@@ -19794,7 +19794,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_issueinvitation",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "issueinvitation()"
     },
     {
@@ -19805,7 +19805,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_previewinvitation",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "previewinvitation()"
     },
     {
@@ -19816,7 +19816,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_assertusableinvitation",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "assertusableinvitation()"
     },
     {
@@ -19827,7 +19827,7 @@
       "_origin": "ast",
       "id": "src_server_auth_invitations_acceptinvitation",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "acceptinvitation()"
     },
     {
@@ -19838,7 +19838,7 @@
       "_origin": "ast",
       "id": "src_server_auth_registration_test",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "registration.test.ts"
     },
     {
@@ -19849,7 +19849,7 @@
       "_origin": "ast",
       "id": "src_server_auth_registration",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "registration.ts"
     },
     {
@@ -19860,7 +19860,7 @@
       "_origin": "ast",
       "id": "src_server_auth_registration_registrationintent",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "registrationintent"
     },
     {
@@ -19871,7 +19871,7 @@
       "_origin": "ast",
       "id": "src_server_auth_registration_registrationinput",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "registrationinput"
     },
     {
@@ -19882,7 +19882,7 @@
       "_origin": "ast",
       "id": "src_server_auth_registration_parseregistrationinput",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "parseregistrationinput()"
     },
     {
@@ -19893,7 +19893,7 @@
       "_origin": "ast",
       "id": "src_server_auth_registration_publicregistereduser",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "publicregistereduser()"
     },
     {
@@ -19904,7 +19904,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_test",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "security.test.ts"
     },
     {
@@ -19915,7 +19915,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "security.ts"
     },
     {
@@ -19926,7 +19926,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_hashactiontoken",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "hashactiontoken()"
     },
     {
@@ -19937,7 +19937,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_ratelimitstoragekey",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "ratelimitstoragekey()"
     },
     {
@@ -19948,7 +19948,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_createactiontoken",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "createactiontoken()"
     },
     {
@@ -19959,7 +19959,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_bucket",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "bucket"
     },
     {
@@ -19970,7 +19970,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_nextratelimitbucket",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "nextratelimitbucket()"
     },
     {
@@ -19981,7 +19981,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_consumeratelimit",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "consumeratelimit()"
     },
     {
@@ -20003,7 +20003,7 @@
       "_origin": "ast",
       "id": "src_server_auth_security_clientaddress",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "clientaddress()"
     },
     {
@@ -20398,7 +20398,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "auth.tenant.test.ts"
     },
@@ -20409,7 +20409,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test_user",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "user"
     },
@@ -20420,7 +20420,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test_token",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "token()"
     },
@@ -20431,7 +20431,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test_request",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "request()"
     },
@@ -20442,7 +20442,7 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test_from",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "from()"
     },
@@ -20453,7 +20453,7 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test_status",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "status()"
     },
@@ -20464,7 +20464,7 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "src_server_middleware_auth_tenant_test_json",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "json()"
     },
@@ -20475,7 +20475,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_middleware_auth",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "middleware/auth.ts"
     },
@@ -20486,7 +20486,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_server_middleware_auth_express",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "express"
     },
@@ -20497,7 +20497,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_server_middleware_auth_request",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "request"
     },
@@ -20508,7 +20508,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_server_middleware_auth_authuser",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "authuser"
     },
@@ -20519,7 +20519,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_server_middleware_auth_authmembership",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "authmembership"
     },
@@ -20530,7 +20530,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_server_middleware_auth_authdependencies",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "authdependencies"
     },
@@ -20541,7 +20541,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_server_middleware_auth_sessionclaims",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "sessionclaims"
     },
@@ -20552,7 +20552,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "src_server_middleware_auth_createauthenticate",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "createauthenticate()"
     },
@@ -21025,7 +21025,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_admin_features_test",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "admin-features.test.ts"
     },
@@ -21312,7 +21312,7 @@
       "_origin": "ast",
       "id": "src_server_routes_auth",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "routes/auth.ts"
     },
     {
@@ -21323,7 +21323,7 @@
       "_origin": "ast",
       "id": "src_server_routes_auth_actionurl",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "actionurl()"
     },
     {
@@ -21334,7 +21334,7 @@
       "_origin": "ast",
       "id": "src_server_routes_auth_deliverauthlink",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "deliverauthlink()"
     },
     {
@@ -21345,7 +21345,7 @@
       "_origin": "ast",
       "id": "src_server_routes_auth_issueauthaction",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "issueauthaction()"
     },
     {
@@ -21356,7 +21356,7 @@
       "_origin": "ast",
       "id": "src_server_routes_auth_guardedratelimit",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "guardedratelimit()"
     },
     {
@@ -21367,7 +21367,7 @@
       "_origin": "ast",
       "id": "src_server_routes_auth_registerauthroutes",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "registerauthroutes()"
     },
     {
@@ -21444,7 +21444,7 @@
       "_origin": "ast",
       "id": "src_server_routes_company_privacy_test",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "company.privacy.test.ts"
     },
     {
@@ -21455,7 +21455,7 @@
       "_origin": "ast",
       "id": "src_server_routes_company_privacy_test_handlers",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "handlers()"
     },
     {
@@ -21466,7 +21466,7 @@
       "_origin": "ast",
       "id": "src_server_routes_company_privacy_test_response",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "response()"
     },
     {
@@ -21477,7 +21477,7 @@
       "_origin": "ast",
       "id": "src_server_routes_company",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "company.ts"
     },
     {
@@ -21488,7 +21488,7 @@
       "_origin": "ast",
       "id": "src_server_routes_company_registercompanyroutes",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "registercompanyroutes()"
     },
     {
@@ -23346,7 +23346,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_auth_authservice_safety_test",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "authservice.safety.test.ts"
     },
@@ -23357,7 +23357,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_auth_authservice",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "src/services/auth/authservice.ts"
     },
@@ -23368,7 +23368,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_services_auth_authservice_jwtsecret",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "jwtsecret()"
     },
@@ -23379,7 +23379,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_services_auth_authservice_authservice",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": "authservice"
     },
@@ -23390,7 +23390,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_services_auth_authservice_authservice_hashpassword",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": ".hashpassword()"
     },
@@ -23401,7 +23401,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_services_auth_authservice_authservice_comparepassword",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": ".comparepassword()"
     },
@@ -23412,7 +23412,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_services_auth_authservice_authservice_generatetoken",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": ".generatetoken()"
     },
@@ -23423,7 +23423,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_services_auth_authservice_authservice_generateimpersonationtoken",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": ".generateimpersonationtoken()"
     },
@@ -23434,7 +23434,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_services_auth_authservice_authservice_verifytoken",
-      "community": 500,
+      "community": 9,
       "community_name": "middleware/auth.ts",
       "norm_label": ".verifytoken()"
     },
@@ -24425,7 +24425,7 @@
       "_origin": "ast",
       "id": "src_services_pilot_pilotservice",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "pilotservice.ts"
     },
     {
@@ -24458,7 +24458,7 @@
       "_origin": "ast",
       "id": "src_services_pilot_pilotservice_pilotservice",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": "pilotservice"
     },
     {
@@ -24469,7 +24469,7 @@
       "_origin": "ast",
       "id": "src_services_pilot_pilotservice_pilotservice_getdashboarddata",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": ".getdashboarddata()"
     },
     {
@@ -24480,7 +24480,7 @@
       "_origin": "ast",
       "id": "src_services_pilot_pilotservice_pilotservice_updateapplication",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": ".updateapplication()"
     },
     {
@@ -24491,7 +24491,7 @@
       "_origin": "ast",
       "id": "src_services_pilot_pilotservice_pilotservice_converttotenant",
       "community": 9,
-      "community_name": "routes/auth.ts",
+      "community_name": "middleware/auth.ts",
       "norm_label": ".converttotenant()"
     },
     {
@@ -37833,8 +37833,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_google_ads",
-      "community": 765,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "google ads"
     },
     {
@@ -37844,8 +37844,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_google_tag",
-      "community": 765,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "install the google tag"
     },
     {
@@ -37855,8 +37855,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_set_up_conversion_actions",
-      "community": 765,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "set up conversion actions"
     },
     {
@@ -37866,8 +37866,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_fire_conversion_events",
-      "community": 765,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "fire conversion events"
     },
     {
@@ -37877,8 +37877,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_enhanced_conversions",
-      "community": 765,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "enhanced conversions"
     },
     {
@@ -37888,8 +37888,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_google_tag_manager_alternative",
-      "community": 765,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "google tag manager alternative"
     },
     {
@@ -37998,8 +37998,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_tiktok",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 346,
+      "community_name": "TikTok",
       "norm_label": "tiktok"
     },
     {
@@ -38009,8 +38009,8 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_tiktok_pixel",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 346,
+      "community_name": "TikTok",
       "norm_label": "install the tiktok pixel"
     },
     {
@@ -38020,8 +38020,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_standard_events_250",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 346,
+      "community_name": "TikTok",
       "norm_label": "standard events"
     },
     {
@@ -38031,8 +38031,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_events_api_server_side",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 346,
+      "community_name": "TikTok",
       "norm_label": "events api (server-side)"
     },
     {
@@ -38042,8 +38042,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_advanced_matching",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 346,
+      "community_name": "TikTok",
       "norm_label": "advanced matching"
     },
     {
@@ -39186,8 +39186,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_skill",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "ai-seo/skill.md"
     },
     {
@@ -39593,8 +39593,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_citations_vs_recommendations",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "citations-vs-recommendations.md"
     },
     {
@@ -39670,8 +39670,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "content-patterns.md"
     },
     {
@@ -39681,7 +39681,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_aeo_and_geo_content_patterns",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "aeo and geo content patterns"
     },
@@ -39692,7 +39692,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_contents",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "contents"
     },
@@ -39781,7 +39781,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_generative_engine_optimization_geo_patterns",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "generative engine optimization (geo) patterns"
     },
     {
@@ -39792,7 +39792,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_statistic_citation_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "statistic citation block"
     },
     {
@@ -39803,7 +39803,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_expert_quote_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "expert quote block"
     },
     {
@@ -39814,7 +39814,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_authoritative_claim_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "authoritative claim block"
     },
     {
@@ -39825,7 +39825,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_self_contained_answer_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "self-contained answer block"
     },
     {
@@ -39836,7 +39836,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_evidence_sandwich_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "evidence sandwich block"
     },
     {
@@ -39847,7 +39847,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_domain_specific_geo_tactics",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "domain-specific geo tactics"
     },
     {
@@ -39858,7 +39858,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_technology_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "technology content"
     },
     {
@@ -39869,7 +39869,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_health_medical_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "health/medical content"
     },
     {
@@ -39880,7 +39880,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_financial_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "financial content"
     },
     {
@@ -39891,7 +39891,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_legal_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "legal content"
     },
     {
@@ -39902,7 +39902,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_business_marketing_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "business/marketing content"
     },
     {
@@ -39912,7 +39912,7 @@
       "source_location": "L270",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_voice_search_optimization",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "voice search optimization"
     },
@@ -39923,7 +39923,7 @@
       "source_location": "L274",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_question_formats_for_voice",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "question formats for voice"
     },
@@ -39934,7 +39934,7 @@
       "source_location": "L282",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_voice_optimized_answer_structure",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "voice-optimized answer structure"
     },
@@ -39945,8 +39945,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_types",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "content-types.md"
     },
     {
@@ -40176,8 +40176,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_platform_ranking_factors",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "platform-ranking-factors.md"
     },
     {
@@ -41562,8 +41562,8 @@
       "source_location": "L201",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_common_tag_configurations",
-      "community": 756,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "common tag configurations"
     },
     {
@@ -41573,8 +41573,8 @@
       "source_location": "L203",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_ga4_configuration_tag",
-      "community": 756,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "ga4 configuration tag"
     },
     {
@@ -41584,8 +41584,8 @@
       "source_location": "L214",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_ga4_event_tag",
-      "community": 756,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "ga4 event tag"
     },
     {
@@ -41595,8 +41595,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_facebook_pixel_base",
-      "community": 756,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "facebook pixel - base"
     },
     {
@@ -41606,8 +41606,8 @@
       "source_location": "L246",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_facebook_pixel_event",
-      "community": 756,
-      "community_name": "Common Tag Configurations",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "facebook pixel - event"
     },
     {
@@ -41716,8 +41716,8 @@
       "source_location": "L351",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_advanced_patterns",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 500,
+      "community_name": "Advanced Patterns",
       "norm_label": "advanced patterns"
     },
     {
@@ -41727,8 +41727,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_tag_sequencing",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 500,
+      "community_name": "Advanced Patterns",
       "norm_label": "tag sequencing"
     },
     {
@@ -41738,8 +41738,8 @@
       "source_location": "L363",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_exception_handling",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 500,
+      "community_name": "Advanced Patterns",
       "norm_label": "exception handling"
     },
     {
@@ -41749,8 +41749,8 @@
       "source_location": "L370",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_custom_javascript_variables",
-      "community": 148,
-      "community_name": "Google Tag Manager Implementation Reference",
+      "community": 500,
+      "community_name": "Advanced Patterns",
       "norm_label": "custom javascript variables"
     },
     {
@@ -66621,7 +66621,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_guarantee_design",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "guarantee design"
     },
     {
@@ -66632,7 +66632,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_the_eight_guarantee_types",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "the eight guarantee types"
     },
     {
@@ -66643,7 +66643,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_picking_the_right_one",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "picking the right one"
     },
     {
@@ -66653,7 +66653,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_examples_by_business_type",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "examples by business type"
     },
@@ -66664,7 +66664,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_course_cohort",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "course / cohort"
     },
@@ -66675,7 +66675,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_coaching_consulting",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "coaching / consulting"
     },
@@ -66686,7 +66686,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_productized_service_agency_retainer",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "productized service / agency retainer"
     },
@@ -66697,7 +66697,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_high_ticket_info_product_community_mastermind",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "high-ticket info product (community, mastermind)"
     },
@@ -66708,7 +66708,7 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_low_ticket_info_product_template_swipe_file",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "low-ticket info product (template, swipe file)"
     },
@@ -66719,7 +66719,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_saas",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "saas"
     },
@@ -66730,7 +66730,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_direct_response_paid_traffic",
-      "community": 346,
+      "community": 267,
       "community_name": "Examples by business type",
       "norm_label": "direct response / paid traffic"
     },
@@ -66742,7 +66742,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_writing_the_guarantee",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "writing the guarantee"
     },
     {
@@ -66753,7 +66753,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_common_mistakes",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "common mistakes"
     },
     {
@@ -66764,7 +66764,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_promising_more_than_you_can_deliver",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "promising more than you can deliver"
     },
     {
@@ -66775,7 +66775,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_conditional_guarantees_with_too_many_conditions",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "conditional guarantees with too many conditions"
     },
     {
@@ -66786,7 +66786,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_hiding_the_guarantee_in_the_fine_print",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "hiding the guarantee in the fine print"
     },
     {
@@ -66797,7 +66797,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_forgetting_to_test_it",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "forgetting to test it"
     },
     {
@@ -66808,7 +66808,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_treating_guarantees_as_a_substitute_for_proof",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "treating guarantees as a substitute for proof"
     },
     {
@@ -66819,7 +66819,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_the_honest_case_for_no_guarantee",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "the honest case for no guarantee"
     },
     {
@@ -66830,7 +66830,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_guarantee_design_the_diagnostic",
       "community": 267,
-      "community_name": "Guarantee Design",
+      "community_name": "Examples by business type",
       "norm_label": "the diagnostic"
     },
     {
@@ -67126,8 +67126,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "agent_skills_offers_references_offer_formats_course_async_cohort_based_live",
-      "community": 725,
-      "community_name": "Course (async, cohort-based, live)",
+      "community": 122,
+      "community_name": "Offer Formats by Business Type",
       "norm_label": "course (async, cohort-based, live)"
     },
     {
@@ -67137,8 +67137,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_offers_references_offer_formats_default_format_49",
-      "community": 725,
-      "community_name": "Course (async, cohort-based, live)",
+      "community": 122,
+      "community_name": "Offer Formats by Business Type",
       "norm_label": "default format"
     },
     {
@@ -67148,8 +67148,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_offers_references_offer_formats_async_vs_cohort_based",
-      "community": 725,
-      "community_name": "Course (async, cohort-based, live)",
+      "community": 122,
+      "community_name": "Offer Formats by Business Type",
       "norm_label": "async vs cohort-based"
     },
     {
@@ -67159,8 +67159,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "agent_skills_offers_references_offer_formats_what_to_watch_70",
-      "community": 725,
-      "community_name": "Course (async, cohort-based, live)",
+      "community": 122,
+      "community_name": "Offer Formats by Business Type",
       "norm_label": "what to watch"
     },
     {
@@ -67402,7 +67402,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_scarcity_urgency",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "scarcity & urgency"
     },
     {
@@ -67413,7 +67413,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_scarcity_vs_urgency",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "scarcity vs urgency"
     },
     {
@@ -67423,7 +67423,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_honest_scarcity_formats",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "honest scarcity formats"
     },
@@ -67434,7 +67434,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_capacity_based_scarcity",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "capacity-based scarcity"
     },
@@ -67445,7 +67445,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_cohort_scarcity",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "cohort scarcity"
     },
@@ -67456,7 +67456,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_founding_member_pricing",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "founding-member pricing"
     },
@@ -67467,7 +67467,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_inventory_based_scarcity",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "inventory-based scarcity"
     },
@@ -67478,7 +67478,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_seasonal_scarcity",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "seasonal scarcity"
     },
@@ -67489,7 +67489,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_bonus_expiry",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "bonus expiry"
     },
@@ -67500,7 +67500,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_price_increase_scheduling",
-      "community": 348,
+      "community": 268,
       "community_name": "Honest scarcity formats",
       "norm_label": "price-increase scheduling"
     },
@@ -67512,7 +67512,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_fake_scarcity_to_avoid",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "fake scarcity to avoid"
     },
     {
@@ -67523,7 +67523,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_countdown_timers_that_reset",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "countdown timers that reset"
     },
     {
@@ -67534,7 +67534,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_only_3_spots_left",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "\"only 3 spots left\""
     },
     {
@@ -67545,7 +67545,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_manufactured_fomo",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "manufactured fomo"
     },
     {
@@ -67556,7 +67556,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_bonus_stacking_that_s_always_available",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "bonus \"stacking\" that's always available"
     },
     {
@@ -67567,7 +67567,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_last_chance_emails_for_things_that_aren_t_actually_last_chance",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "\"last chance\" emails for things that aren't actually last chance"
     },
     {
@@ -67578,7 +67578,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_why_fake_scarcity_is_uniquely_costly",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "why fake scarcity is uniquely costly"
     },
     {
@@ -67589,7 +67589,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_when_scarcity_isn_t_needed",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "when scarcity isn't needed"
     },
     {
@@ -67600,7 +67600,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_the_diagnostic",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "the diagnostic"
     },
     {
@@ -67611,7 +67611,7 @@
       "_origin": "ast",
       "id": "agent_skills_offers_references_scarcity_urgency_pairing_with_the_rest_of_the_offer",
       "community": 268,
-      "community_name": "Scarcity & Urgency",
+      "community_name": "Honest scarcity formats",
       "norm_label": "pairing with the rest of the offer"
     },
     {
@@ -69854,8 +69854,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill",
-      "community": 290,
-      "community_name": "Pricing Research Methods",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "pricing/skill.md"
     },
     {
@@ -69876,8 +69876,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_before_starting",
-      "community": 715,
-      "community_name": "Before Starting",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "before starting"
     },
     {
@@ -69887,8 +69887,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_1_business_context",
-      "community": 715,
-      "community_name": "Before Starting",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "1. business context"
     },
     {
@@ -69898,8 +69898,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_2_value_competition",
-      "community": 715,
-      "community_name": "Before Starting",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "2. value & competition"
     },
     {
@@ -69909,8 +69909,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_3_current_performance",
-      "community": 715,
-      "community_name": "Before Starting",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "3. current performance"
     },
     {
@@ -69920,8 +69920,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_4_goals",
-      "community": 715,
-      "community_name": "Before Starting",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "4. goals"
     },
     {
@@ -69931,8 +69931,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_pricing_fundamentals",
-      "community": 764,
-      "community_name": "Pricing Fundamentals",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "pricing fundamentals"
     },
     {
@@ -69942,8 +69942,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_the_three_pricing_axes",
-      "community": 764,
-      "community_name": "Pricing Fundamentals",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "the three pricing axes"
     },
     {
@@ -69953,8 +69953,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_value_based_pricing",
-      "community": 764,
-      "community_name": "Pricing Fundamentals",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "value-based pricing"
     },
     {
@@ -69964,8 +69964,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_value_metrics",
-      "community": 736,
-      "community_name": "Value Metrics",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "value metrics"
     },
     {
@@ -69975,8 +69975,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_what_is_a_value_metric",
-      "community": 736,
-      "community_name": "Value Metrics",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "what is a value metric?"
     },
     {
@@ -69986,8 +69986,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_common_value_metrics",
-      "community": 736,
-      "community_name": "Value Metrics",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "common value metrics"
     },
     {
@@ -69997,8 +69997,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_choosing_your_value_metric",
-      "community": 736,
-      "community_name": "Value Metrics",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "choosing your value metric"
     },
     {
@@ -70008,8 +70008,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_tier_structure_overview",
-      "community": 761,
-      "community_name": "Tier Structure Overview",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "tier structure overview"
     },
     {
@@ -70019,8 +70019,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_good_better_best_framework",
-      "community": 761,
-      "community_name": "Tier Structure Overview",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "good-better-best framework"
     },
     {
@@ -70030,8 +70030,8 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_tier_differentiation",
-      "community": 761,
-      "community_name": "Tier Structure Overview",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "tier differentiation"
     },
     {
@@ -70041,8 +70041,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_pricing_research",
-      "community": 763,
-      "community_name": "Pricing Research",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "pricing research"
     },
     {
@@ -70052,8 +70052,8 @@
       "source_location": "L122",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_van_westendorp_method",
-      "community": 763,
-      "community_name": "Pricing Research",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "van westendorp method"
     },
     {
@@ -70063,8 +70063,8 @@
       "source_location": "L132",
       "_origin": "ast",
       "id": "agent_skills_pricing_skill_maxdiff_analysis",
-      "community": 763,
-      "community_name": "Pricing Research",
+      "community": 249,
+      "community_name": "Pricing Strategy",
       "norm_label": "maxdiff analysis"
     },
     {
@@ -70206,8 +70206,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods",
-      "community": 290,
-      "community_name": "Pricing Research Methods",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "research-methods.md"
     },
     {
@@ -70294,8 +70294,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_maxdiff_analysis_best_worst_scaling",
-      "community": 700,
-      "community_name": "MaxDiff Analysis (Best-Worst Scaling)",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "maxdiff analysis (best-worst scaling)"
     },
     {
@@ -70305,8 +70305,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_how_it_works",
-      "community": 700,
-      "community_name": "MaxDiff Analysis (Best-Worst Scaling)",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "how it works"
     },
     {
@@ -70316,8 +70316,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_example_survey_question",
-      "community": 700,
-      "community_name": "MaxDiff Analysis (Best-Worst Scaling)",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "example survey question"
     },
     {
@@ -70327,8 +70327,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_analyzing_results",
-      "community": 700,
-      "community_name": "MaxDiff Analysis (Best-Worst Scaling)",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "analyzing results"
     },
     {
@@ -70338,8 +70338,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_using_maxdiff_for_packaging",
-      "community": 700,
-      "community_name": "MaxDiff Analysis (Best-Worst Scaling)",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "using maxdiff for packaging"
     },
     {
@@ -70360,8 +70360,8 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_usage_value_correlation_analysis",
-      "community": 666,
-      "community_name": "Usage-Value Correlation Analysis",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "usage-value correlation analysis"
     },
     {
@@ -70371,8 +70371,8 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_1_instrument_usage_data",
-      "community": 666,
-      "community_name": "Usage-Value Correlation Analysis",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "1. instrument usage data"
     },
     {
@@ -70382,8 +70382,8 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_2_correlate_with_customer_success",
-      "community": 666,
-      "community_name": "Usage-Value Correlation Analysis",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "2. correlate with customer success"
     },
     {
@@ -70393,8 +70393,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_3_identify_value_thresholds",
-      "community": 666,
-      "community_name": "Usage-Value Correlation Analysis",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "3. identify value thresholds"
     },
     {
@@ -70404,8 +70404,8 @@
       "source_location": "L133",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_research_methods_example_analysis",
-      "community": 666,
-      "community_name": "Usage-Value Correlation Analysis",
+      "community": 290,
+      "community_name": "Pricing Research Methods",
       "norm_label": "example analysis"
     },
     {
@@ -70415,8 +70415,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_tier_structure",
-      "community": 290,
-      "community_name": "Pricing Research Methods",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "tier-structure.md"
     },
     {
@@ -70525,8 +70525,8 @@
       "source_location": "L140",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_tier_structure_freemium_vs_free_trial",
-      "community": 726,
-      "community_name": "Freemium vs. Free Trial",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "freemium vs. free trial"
     },
     {
@@ -70536,8 +70536,8 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_tier_structure_when_to_use_freemium",
-      "community": 726,
-      "community_name": "Freemium vs. Free Trial",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "when to use freemium"
     },
     {
@@ -70547,8 +70547,8 @@
       "source_location": "L157",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_tier_structure_when_to_use_free_trial",
-      "community": 726,
-      "community_name": "Freemium vs. Free Trial",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "when to use free trial"
     },
     {
@@ -70558,8 +70558,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "agent_skills_pricing_references_tier_structure_hybrid_approaches",
-      "community": 726,
-      "community_name": "Freemium vs. Free Trial",
+      "community": 248,
+      "community_name": "Tier Structure and Packaging",
       "norm_label": "hybrid approaches"
     },
     {
@@ -75937,8 +75937,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_revops_references_scoring_models",
-      "community": 238,
-      "community_name": "Automation Playbooks",
+      "community": 209,
+      "community_name": "Lead Scoring Models",
       "norm_label": "scoring-models.md"
     },
     {
@@ -76201,8 +76201,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_core_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 348,
+      "community_name": "Core Principles",
       "norm_label": "core principles"
     },
     {
@@ -76212,8 +76212,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_sales_uses_what_sales_trusts",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 348,
+      "community_name": "Core Principles",
       "norm_label": "sales uses what sales trusts"
     },
     {
@@ -76223,8 +76223,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_situation_specific_not_generic",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 348,
+      "community_name": "Core Principles",
       "norm_label": "situation-specific, not generic"
     },
     {
@@ -76234,8 +76234,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_scannable_over_comprehensive",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 348,
+      "community_name": "Core Principles",
       "norm_label": "scannable over comprehensive"
     },
     {
@@ -76245,8 +76245,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_tie_back_to_business_outcomes",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 348,
+      "community_name": "Core Principles",
       "norm_label": "tie back to business outcomes"
     },
     {
@@ -76300,8 +76300,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_one_pagers_leave_behinds",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 666,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "one-pagers / leave-behinds"
     },
     {
@@ -76311,8 +76311,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_when_to_use",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 666,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "when to use"
     },
     {
@@ -76322,8 +76322,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 666,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "structure"
     },
     {
@@ -76333,8 +76333,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_design_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 666,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "design principles"
     },
     {
@@ -76344,8 +76344,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_handling_docs",
-      "community": 783,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection handling docs"
     },
     {
@@ -76355,8 +76355,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_categories",
-      "community": 783,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection categories"
     },
     {
@@ -76366,8 +76366,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_response_framework",
-      "community": 783,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "response framework"
     },
     {
@@ -76377,8 +76377,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_two_formats",
-      "community": 783,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "two formats"
     },
     {
@@ -76520,8 +76520,8 @@
       "source_location": "L240",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_proposal_templates",
-      "community": 781,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "proposal templates"
     },
     {
@@ -76531,8 +76531,8 @@
       "source_location": "L242",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure_242",
-      "community": 781,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "structure"
     },
     {
@@ -76542,8 +76542,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_customization_guidance",
-      "community": 781,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "customization guidance"
     },
     {
@@ -76553,8 +76553,8 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_common_mistakes",
-      "community": 781,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "common mistakes"
     },
     {
@@ -123089,18 +123089,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_pages_admin_tenantdetail",
-      "target": "src_components_layout_pageheader",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantsList.tsx",
       "source_location": "L4",
       "weight": 1.0,
@@ -123418,18 +123406,6 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_planslist",
-      "target": "src_components_layout_pageheader_pageheader",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_pages_admin_tenantdetail",
       "target": "src_components_layout_pageheader_pageheader",
       "confidence_score": 1.0
     },
@@ -126118,7 +126094,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail",
@@ -126598,7 +126574,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail",
@@ -139946,7 +139922,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail",
@@ -140484,7 +140460,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail",
@@ -140497,7 +140473,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L104",
+      "source_location": "L129",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail_tenantdetail",
@@ -145671,7 +145647,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L76",
+      "source_location": "L93",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail",
@@ -145682,7 +145658,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/admin/TenantDetail.tsx",
-      "source_location": "L25",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_admin_tenantdetail",
@@ -240635,5 +240611,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "09caed92084de258d15030619c3be6c2c12c7c48"
+  "built_at_commit": "db335a152dd61ad284a5d3c7295d1b34600aa82e"
 }

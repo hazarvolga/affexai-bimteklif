@@ -5040,8 +5040,8 @@
     "semantic_hash": ""
   },
   "src/server/admin/input.ts": {
-    "mtime": 1791648953.3643594,
-    "ast_hash": "5e0f720a234c906ece7b042e2ed73959",
+    "mtime": 1791649913.7174833,
+    "ast_hash": "7d729576191d74833758a7d05a728664",
     "semantic_hash": ""
   },
   "src/server/auth/invitations.test.ts": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/TenantDetail.tsx": {
-    "mtime": 1791649384.2748559,
-    "ast_hash": "7b52175852014646785d311c44f0b81a",
+    "mtime": 1791649943.1882303,
+    "ast_hash": "e010d7da26a4382cc0afaee4a952d989",
     "semantic_hash": ""
   },
   "src/server/routes/admin-features.test.ts": {
