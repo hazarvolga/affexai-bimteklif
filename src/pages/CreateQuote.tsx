@@ -26,7 +26,12 @@ import {
   Users,
   Box,
   Loader2,
-  Info
+  Info,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -98,6 +103,43 @@ export function CreateQuote() {
     { id: crypto.randomUUID(), description: '', unit: 'm2', quantity: 0, unitPrice: 0, costUnitPrice: null, wastePercent: 0, costCategory: 'material', discountPercent: 0, vatPercent: 20, total: 0 }
   ]);
 
+  const [benchmarksData, setBenchmarksData] = useState<{
+    sourcesSummary: Array<{ name: string; code: string; lastSyncAt: string; versionTag: string; validityRange: string; status: string }>;
+    disclaimer: string;
+    items: Array<{
+      id: string;
+      itemCode: string;
+      itemName: string;
+      unit: string;
+      currentPrice: string | null;
+      crawledPrice: string;
+      diffPercent: string | null;
+      sourceName: string;
+      notes: string;
+      crawledAt: string;
+    }>;
+  } | null>(null);
+  const [showBenchmarkDrawer, setShowBenchmarkDrawer] = useState(false);
+
+  const applyBenchmarkItem = (bm: any) => {
+    const price = Number(bm.crawledPrice) || Number(bm.currentPrice) || 0;
+    const newItem: Partial<QuoteItem> = {
+      id: crypto.randomUUID(),
+      description: `${bm.itemCode} - ${bm.itemName}`,
+      unit: bm.unit || 'adet',
+      quantity: 1,
+      unitPrice: price,
+      costUnitPrice: price > 0 ? Number((price * 0.85).toFixed(2)) : null,
+      wastePercent: 3,
+      costCategory: 'material',
+      discountPercent: 0,
+      vatPercent: 20,
+      total: price * 1.20,
+    };
+    setItems((prev) => [...prev.filter((i) => i.description?.trim()), newItem]);
+    toast.success(`"${bm.itemName}" canlı rayiç fiyatıyla (${price.toLocaleString('tr-TR')} ₺) teklife eklendi.`);
+  };
+
   useEffect(() => {
     // Check if openBIM IFC parsed metraj data exists in sessionStorage
     const ifcData = id ? null : sessionStorage.getItem('teklifpro_ifc_extracted');
@@ -138,6 +180,13 @@ export function CreateQuote() {
     fetchWithAuth('/api/clients')
       .then(res => res.json())
       .then((data) => setClients(Array.isArray(data) ? data : []))
+      .catch(console.error);
+
+    fetchWithAuth('/api/pricing/benchmarks')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.sourcesSummary) setBenchmarksData(data);
+      })
       .catch(console.error);
 
     if (!id) fetchWithAuth('/api/company/risk-settings')
@@ -533,6 +582,91 @@ export function CreateQuote() {
                 </CardContent>
               </Card>
             )}
+            {/* PRICE VALIDITY & DISCLAIMER BANNER */}
+            {benchmarksData && (
+              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-amber-500/20">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={16} className="text-amber-400 shrink-0" />
+                    <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
+                      Piyasa Rayiçleri & Fiyat Geçerlilik Bildirimi
+                    </span>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                      Önemli Uyarı
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => setShowBenchmarkDrawer(!showBenchmarkDrawer)}
+                    variant="outline"
+                    className="border-amber-500/40 bg-amber-900/30 text-amber-200 hover:bg-amber-900/50 text-[11px] font-bold h-7 gap-1.5"
+                  >
+                    <Sparkles size={12} className="text-amber-400" />
+                    {showBenchmarkDrawer ? 'Rayiç Havuzunu Gizle' : `Canlı Rayiçleri Gör (${benchmarksData.items.length} Kalem)`}
+                    {showBenchmarkDrawer ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  </Button>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mt-3 text-[11px] text-zinc-300">
+                  {benchmarksData.sourcesSummary.slice(0, 3).map((s, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800">
+                      <Calendar size={13} className="text-amber-400 shrink-0" />
+                      <div className="truncate">
+                        <span className="font-bold text-white block truncate">{s.name}</span>
+                        <span className="text-[10px] text-zinc-400">Geçerlilik: {s.validityRange}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-[11px] text-amber-200/80 leading-relaxed bg-amber-950/40 p-2.5 rounded-lg border border-amber-500/20">
+                  <strong>⚠️ Kullanıcı Sorumluluğu & Manuel Teyit:</strong> {benchmarksData.disclaimer}
+                </p>
+
+                {/* BENCHMARK QUICK PICKER DRAWER */}
+                {showBenchmarkDrawer && (
+                  <div className="mt-4 pt-3 border-t border-amber-500/20">
+                    <p className="text-[11px] font-bold text-white mb-2 flex items-center gap-1.5">
+                      <Zap size={13} className="text-amber-400" /> Taranmış Güncel Rayiçlerden Teklife Ekle:
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2 max-h-60 overflow-y-auto pr-1">
+                      {benchmarksData.items.map((bm) => (
+                        <div
+                          key={bm.id}
+                          className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-amber-500/50 transition-all text-xs"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-bold">
+                                {bm.itemCode}
+                              </span>
+                              <span className="font-bold text-white truncate text-[11px]">{bm.itemName}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-400">
+                              <span>Canlı: <strong className="text-white">₺{Number(bm.crawledPrice).toLocaleString('tr-TR')}</strong> /{bm.unit}</span>
+                              {bm.diffPercent && Number(bm.diffPercent) !== 0 && (
+                                <span className={Number(bm.diffPercent) > 0 ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}>
+                                  {Number(bm.diffPercent) > 0 ? `+${bm.diffPercent}%` : `${bm.diffPercent}%`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => applyBenchmarkItem(bm)}
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold h-7 px-2.5 shrink-0"
+                          >
+                            + Ekle
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">

@@ -1,9 +1,11 @@
 import type { Express, RequestHandler } from "express";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db";
 import {
+  priceFeedStaging,
   priceSnapshots,
   priceSources,
+  pricingDataSources,
   quotationItemEvidence,
   quotationItems,
   quotations,
@@ -79,6 +81,87 @@ async function audit(req: any, action: string, entityType: string, entityId: str
 }
 
 export function registerPricingRoutes(app: Express) {
+  app.get("/api/pricing/benchmarks", authenticate, rateLimit, async (req, res) => {
+    try {
+      const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+
+      // 1. Get active pricing sources and their validity dates
+      const sources = await db
+        .select({
+          id: pricingDataSources.id,
+          code: pricingDataSources.code,
+          name: pricingDataSources.name,
+          authority: pricingDataSources.authority,
+          category: pricingDataSources.category,
+          sourceUrl: pricingDataSources.sourceUrl,
+          versionTag: pricingDataSources.versionTag,
+          validityStart: pricingDataSources.validityStart,
+          validityEnd: pricingDataSources.validityEnd,
+          lastSyncAt: pricingDataSources.lastSyncAt,
+          status: pricingDataSources.status,
+        })
+        .from(pricingDataSources)
+        .where(sql`${pricingDataSources.status} != 'disabled'`);
+
+      // 2. Query price feed staging items (approved or pending from active sources)
+      const itemsQuery = db
+        .select({
+          id: priceFeedStaging.id,
+          sourceId: priceFeedStaging.sourceId,
+          sourceCode: pricingDataSources.code,
+          sourceName: pricingDataSources.name,
+          itemCode: priceFeedStaging.itemCode,
+          itemName: priceFeedStaging.itemName,
+          unit: priceFeedStaging.unit,
+          currentPrice: priceFeedStaging.currentPrice,
+          crawledPrice: priceFeedStaging.crawledPrice,
+          diffPercent: priceFeedStaging.diffPercent,
+          sourceUrl: priceFeedStaging.sourceUrl,
+          status: priceFeedStaging.status,
+          confidenceScore: priceFeedStaging.confidenceScore,
+          notes: priceFeedStaging.notes,
+          crawledAt: priceFeedStaging.crawledAt,
+          validityStart: pricingDataSources.validityStart,
+          validityEnd: pricingDataSources.validityEnd,
+        })
+        .from(priceFeedStaging)
+        .innerJoin(pricingDataSources, eq(priceFeedStaging.sourceId, pricingDataSources.id))
+        .orderBy(desc(priceFeedStaging.crawledAt));
+
+      let items = await itemsQuery;
+
+      if (q) {
+        const queryLower = q.toLowerCase();
+        items = items.filter(
+          (i) =>
+            i.itemCode.toLowerCase().includes(queryLower) ||
+            i.itemName.toLowerCase().includes(queryLower) ||
+            i.sourceName.toLowerCase().includes(queryLower)
+        );
+      }
+
+      return res.json({
+        sourcesSummary: sources.map((s) => ({
+          name: s.name,
+          code: s.code,
+          lastSyncAt: s.lastSyncAt,
+          versionTag: s.versionTag,
+          validityRange:
+            s.validityStart && s.validityEnd
+              ? `${new Date(s.validityStart).toLocaleDateString("tr-TR")} – ${new Date(s.validityEnd).toLocaleDateString("tr-TR")}`
+              : "2026 Yürürlükte",
+          status: s.status,
+        })),
+        disclaimer:
+          "TeklifPro rayiç motoru, resmi ÇŞB birim fiyatları ve canlı piyasa tarayıcı verilerini gösterge niteliğinde sunar. Şantiye mesafesi, nakliye, pompa ve tedarik koşullarına göre sapmalar olabileceğinden nihai teklif mektubunu vermeden önce tedarikçinizden güncel proforma almanızı ve birim maliyetleri manuel teyit etmenizi önemle tavsiye ederiz.",
+        items: items.slice(0, 50),
+      });
+    } catch (error) {
+      console.error("Benchmarks query error:", error);
+      return res.status(500).json({ error: "Fiyat rayiçleri sorgulanamadı." });
+    }
+  });
+
   app.get("/api/pricing/sources", authenticate, rateLimit, async (req, res) => {
     const rows = await db.select().from(priceSources).where(eq(priceSources.companyId, req.user.companyId)).orderBy(desc(priceSources.updatedAt)).limit(200);
     res.json(rows);
