@@ -1221,5 +1221,35 @@ Autonomous remediation and source restore checkpoints are tracked in
   - Full TypeScript clean build (`tsc --noEmit` zero errors).
   - Puppeteer verified: Live crawl trigger, Staging review, Nightly batch sync, and Quote line quick-insertion.
 
+## 2026-10-10 Update: Turkish Terminology & Industry Standard Localization
+
+- **Eliminated Unrendered LaTeX Math Strings Across UI:**
+  - Replaced all raw `$m^3$` and `$m^2$` with proper Turkish construction engineering units `m³`, `m²`, and `kg/m³` across summary cards, object breakdowns, element tables, and preview badges in `src/components/bimplan/BimIfcParser.tsx`.
+- **Localized Technical Jargon to ÇŞB / İMO / TSE Construction Industry Standards:**
+  - Banner & Evidence Policies:
+    - `IFC Evidence Engine - Demo Estimate Mode` -> `IFC Kanıt Denetim Motoru - Ön İnceleme Modu`
+    - `Tarayıcı İçi IFC Ön Analiz ve Review Hazırlığı` -> `Tarayıcı İçi IFC Ön Metraj ve İnceleme Hazırlığı`
+    - `Demo estimate` -> `Ön Tahmin`
+    - `Review gerekli` -> `Teknik İnceleme Gerekli`
+    - `Verified değil` -> `Onay Bekliyor`
+    - `SmartCheck Evidence Policy` -> `SmartCheck Kanıt ve Denetim Politikası`
+    - `Kabul edilen ve bloklanan IFC miktar kaynakları` -> `Kabul Edilen ve Askıya Alınan IFC Metraj Kaynakları`
+    - `QTO accepted` -> `Kabul Edilen Metraj (QTO)` / `Doğrulanmış Hacim`
+    - `Property accepted` -> `Kabul Edilen Nitelik` / `Onaylı Nitelik Seti`
+    - `Estimate blocked` -> `Tahmini Metraj (Askıda)` / `Kural Öncesi Tahmin`
+    - `Geometry blocked` -> `Geometri Uyumsuz (Askıda)` / `Geometrik Doğrulama Bekliyor`
+    - `Rebar blocked` -> `Donatı Kanıtı Eksik (Askıda)` / `TS 708 Donatı Kanıtı Bekliyor`
+    - `Formwork blocked` -> `Kalıp Kanıtı Eksik (Askıda)` / `Net/Brüt Kalıp Ayrımı Bekliyor`
+    - `Review Gerektiren Veri Kalitesi` -> `İnceleme ve Doğrulama Bekleyen Veri Kalitesi`
+    - `Teknik Review Kapısı Açık` -> `Teknik İnceleme ve Doğrulama Gerekli`
+    - `Review İçin Teklife Aktar` -> `Metrajı İncele ve Teklife Aktar`
+    - `el.storeySource === 'ifc_spatial' ? 'IFC spatial' : 'estimate'` -> `el.storeySource === 'ifc_spatial' ? 'IFC Katı' : 'Tahmini Kat'`
+  - Quotation Builder (`CreateQuote.tsx`):
+    - Localized AI risk badge (`YÜKSEK RİSK ETKİSİ`, `ORTA RİSK ETKİSİ`, `DÜŞÜK RİSK ETKİSİ`).
+    - Localized IFC notice banner (`IFC Ön Metraj Aktarımı Teknik İnceleme Bekliyor`, badge: `Onay Bekliyor`).
+- **Evidence Policy Engine & Unit Tests Synchronized (`src/ifc/evidence-policy.ts` & `src/ifc/evidence-policy.test.ts`):**
+  - Updated helper `describeIfcQuantityEvidence()` output labels and reason strings to Turkish.
+  - Tests updated and verified passing (100% pass across all 33 IFC tests).
+
 
 

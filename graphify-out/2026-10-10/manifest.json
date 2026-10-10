@@ -1510,8 +1510,8 @@
     "semantic_hash": ""
   },
   "src/pages/CreateQuote.tsx": {
-    "mtime": 1791642669.1681128,
-    "ast_hash": "0525a52c463a6d48948a85323a69e40d",
+    "mtime": 1791653837.5705884,
+    "ast_hash": "3d601f7b826cd5a776e9d04f4bc88911",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
@@ -1770,8 +1770,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/pricing.ts": {
-    "mtime": 1785656386.8127081,
-    "ast_hash": "feb7cd7a9c2f50a6048c6c57b9bc2ff6",
+    "mtime": 1791653764.7390835,
+    "ast_hash": "dcacbf7f6a746096d30a0e94e69bb7e6",
     "semantic_hash": ""
   },
   "src/server/routes/profit.ts": {

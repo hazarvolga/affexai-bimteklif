@@ -36,40 +36,40 @@ export function summarizeIfcEvidencePolicy(elements: ParsedIfcElement[]): IfcEvi
 export function describeIfcQuantityEvidence(element: ParsedIfcElement): IfcQuantityEvidenceDisplay {
   if (element.type === "IfcReinforcingBar") {
     return {
-      label: "Rebar blocked",
+      label: "Donatı Askıda",
       tone: "rose",
       admittedToSmartCheck: false,
-      reason: "Donatı için bar length/mass, diameter grouping, lap/waste ve reviewer-backed validation gerekir.",
+      reason: "Donatı için çubuk metrajı/kütlesi, çap gruplandırması, bindirme payı ve uzman denetçi doğrulaması gerekir.",
     };
   }
   if (element.quantitySource === "qto") {
     return {
-      label: "QTO accepted",
+      label: "Kabul Edilen Metraj (QTO)",
       tone: "emerald",
       admittedToSmartCheck: true,
-      reason: "IfcElementQuantity / IfcQuantityVolume kanıtı SmartCheck review satırına alınabilir.",
+      reason: "IfcElementQuantity / IfcQuantityVolume kanıtı SmartCheck inceleme satırına aktarılabilir.",
     };
   }
   if (element.quantitySource === "property") {
     return {
-      label: "Property accepted",
+      label: "Kabul Edilen Nitelik",
       tone: "sky",
       admittedToSmartCheck: true,
-      reason: "Approved property evidence SmartCheck review satırına alınabilir.",
+      reason: "Onaylı nitelik (özellik) kanıtı SmartCheck inceleme satırına aktarılabilir.",
     };
   }
   if (element.quantitySource === "geometry") {
     return {
-      label: "Geometry blocked",
+      label: "Geometri Uyumsuz",
       tone: "rose",
       admittedToSmartCheck: false,
-      reason: "Geometry fallback için unit, opening, net/gross ve tolerance rules henüz tamamlanmadı.",
+      reason: "Geometrik hesaplama için birim, boşluk minha, net/brüt ve tolerans kuralları henüz tamamlanmadı.",
     };
   }
   return {
-    label: "Estimate blocked",
+    label: "Tahmin Askıda",
     tone: "amber",
     admittedToSmartCheck: false,
-    reason: "Demo/estimated quantity SmartCheck evidence satırına alınmaz.",
+    reason: "Demo veya yaklaşık tahmin metrajı SmartCheck kanıt satırına doğrudan aktarılmaz.",
   };
 }

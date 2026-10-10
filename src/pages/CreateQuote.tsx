@@ -535,7 +535,7 @@ export function CreateQuote() {
                         aiResult.riskLevel === 'medium' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
                         'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                       )}>
-                        {aiResult.riskLevel} IMPACT
+                        {aiResult.riskLevel === 'high' ? 'YÜKSEK RİSK ETKİSİ' : aiResult.riskLevel === 'medium' ? 'ORTA RİSK ETKİSİ' : 'DÜŞÜK RİSK ETKİSİ'}
                       </Badge>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -570,15 +570,15 @@ export function CreateQuote() {
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                     <div>
-                      <p className="font-black uppercase tracking-widest text-amber-300">IFC ön analiz aktarımı review bekliyor</p>
+                      <p className="font-black uppercase tracking-widest text-amber-300">IFC Ön Metraj Aktarımı Teknik İnceleme Bekliyor</p>
                       <p className="mt-1 leading-relaxed text-amber-100/80">
                         {ifcTransferNotice.importedItems} tahmini betonarme kalem teklife aktarıldı.
                         {ifcTransferNotice.skippedItems > 0 ? ` ${ifcTransferNotice.skippedItems} türev kalem kanıt eksikliği nedeniyle aktarılmadı.` : ''}
-                        {ifcTransferNotice.evidenceElementCount ? ` ${ifcTransferNotice.evidenceElementCount} IFC property/QTO kanıtlı eleman bulundu.` : ''}
+                        {ifcTransferNotice.evidenceElementCount ? ` ${ifcTransferNotice.evidenceElementCount} IFC özellik/QTO kanıtlı eleman bulundu.` : ''}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="w-fit border-amber-500/30 text-amber-300">Verified değil</Badge>
+                  <Badge variant="outline" className="w-fit border-amber-500/30 text-amber-300">Onay Bekliyor</Badge>
                 </CardContent>
               </Card>
             )}

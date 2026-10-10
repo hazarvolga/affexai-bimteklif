@@ -40,10 +40,10 @@ describe("IFC evidence policy display", () => {
   });
 
   it("labels each quantity source with its SmartCheck admission status", () => {
-    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "qto" })).label, "QTO accepted");
-    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "property" })).label, "Property accepted");
-    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "geometry" })).label, "Geometry blocked");
-    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "estimate" })).label, "Estimate blocked");
-    assert.equal(describeIfcQuantityEvidence(element({ type: "IfcReinforcingBar", quantitySource: "qto" })).label, "Rebar blocked");
+    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "qto" })).label, "Kabul Edilen Metraj (QTO)");
+    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "property" })).label, "Kabul Edilen Nitelik");
+    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "geometry" })).label, "Geometri Uyumsuz");
+    assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "estimate" })).label, "Tahmin Askıda");
+    assert.equal(describeIfcQuantityEvidence(element({ type: "IfcReinforcingBar", quantitySource: "qto" })).label, "Donatı Askıda");
   });
 });
