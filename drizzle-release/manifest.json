@@ -22,6 +22,13 @@
       "sha256": "0d4520be2cd97dcb87b312fbaec53e8f2227e973baa01cf6edda0ba81e9d721d",
       "snapshotSha256": "f903c4f85b18fe1b7e731d77e41d4ad1dfe6e2f6175cb6da8c4224a75b63d560",
       "statements": 5
+    },
+    {
+      "idx": 3,
+      "tag": "0003_super_admin_ifc_limits",
+      "sha256": "3426f48be90e4849ca947d1de7457bff6c34572a830454f0db82ce96ffab7634",
+      "snapshotSha256": "18e2108edefc9cf2573299167ad8ade3624ab9a7acb69170ea03e61bfc52620d",
+      "statements": 7
     }
   ]
 }

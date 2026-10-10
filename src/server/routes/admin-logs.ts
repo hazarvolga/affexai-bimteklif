@@ -70,7 +70,7 @@ export function registerAdminLogRoutes(app: Express, dependencies: { authenticat
       const last = visible.at(-1);
       const items = visible.map((row): AuditItem => ({
         id: row.id, adminId: row.adminId, targetCompanyId: row.targetCompanyId, createdAt: `${row.createdAt}Z`,
-        action: ['plan.created', 'plan.updated', 'subscription.updated'].includes(row.action) ? row.action : 'other',
+        action: ['plan.created', 'plan.updated', 'subscription.updated', 'company.updated', 'impersonation.started', 'processing_stale_recovered', 'processing_retried'].includes(row.action) ? row.action : 'other',
         details: safeAuditDetails(row.details),
       }));
       const nextCursor = rows.length > query.limit && last

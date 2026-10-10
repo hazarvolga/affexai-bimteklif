@@ -174,6 +174,8 @@ export const companies = pgTable("companies", {
   defaultInformationDeliveryCostPercent: numeric("default_information_delivery_cost_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   phone: text("phone"),
   email: text("email"),
+  isSmartcheckEnabled: boolean("is_smartcheck_enabled").default(false).notNull(),
+  adminNotes: text("admin_notes"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -195,6 +197,9 @@ export const plans = pgTable("plans", {
   name: text("name").notNull(),
   monthlyQuoteLimit: integer("monthly_quote_limit").notNull(),
   monthlyPrice: integer("monthly_price").notNull(),
+  monthlyIfcLimit: integer("monthly_ifc_limit"),
+  ifcMaxFileMb: integer("ifc_max_file_mb").default(50).notNull(),
+  ifcMaxConcurrent: integer("ifc_max_concurrent").default(1).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
@@ -210,6 +215,7 @@ export const subscriptions = pgTable("subscriptions", {
   status: subscriptionStatusEnum("status").default("active").notNull(),
   billingCycle: text("billing_cycle").default("monthly").notNull(),
   bonusQuoteLimit: integer("bonus_quote_limit").default(0).notNull(),
+  bonusIfcLimit: integer("bonus_ifc_limit").default(0).notNull(),
   currentPeriodStart: timestamp("current_period_start").defaultNow().notNull(),
   currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1791,8 +1797,9 @@ export const academyPaymentEvents = pgTable("academy_payment_events", {
 export const usageRecords = pgTable("usage_records", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").references(() => companies.id).notNull(),
-  period: text("period").notNull(), // Format: YYYY-MM
+  period: text("period").notNull(), // Format: YYYY-MM or YYYY-MM-DD
   quoteCount: integer("quote_count").default(0).notNull(),
+  ifcCount: integer("ifc_count").default(0).notNull(),
 }, (table) => ({
   companyPeriodUnique: unique("usage_records_company_id_period_key").on(table.companyId, table.period),
   quoteCountNonnegative: check("usage_records_quote_count_nonnegative", sql`${table.quoteCount} >= 0`),

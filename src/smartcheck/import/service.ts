@@ -34,7 +34,7 @@ export async function ensureQueueSchema() {
 }
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
-async function removePendingJob(tx: Transaction, runId: string) {
+export async function removePendingJob(tx: Transaction, runId: string) {
   const schema = sql.identifier(graphileSchema());
   // remove_job locks/mutates atomically. Roll back even its key clearing if a worker owns the job.
   const result = await tx.execute<{ locked_at: Date | null }>(sql`select locked_at from ${schema}.remove_job(${`smartcheck:${runId}`})`);

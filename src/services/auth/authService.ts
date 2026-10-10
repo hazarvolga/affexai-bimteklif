@@ -23,6 +23,15 @@ export class AuthService {
     return jwt.sign(payload, jwtSecret(), { expiresIn: "7d", algorithm: "HS256" });
   }
 
+  static generateImpersonationToken(payload: {
+    userId: string;
+    companyId: string;
+    impersonatedBy: string;
+    readOnly?: boolean;
+  }): string {
+    return jwt.sign(payload, jwtSecret(), { expiresIn: "15m", algorithm: "HS256" });
+  }
+
   static verifyToken(token: string): any {
     try {
       return jwt.verify(token, jwtSecret(), { algorithms: ["HS256"] });

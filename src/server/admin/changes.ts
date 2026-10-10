@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import type { z } from 'zod';
 import { db } from '../../db';
 import { adminAuditLogs, companies, plans, subscriptions } from '../../db/schema';
-import type { createPlanInput, updatePlanInput, updateSubscriptionInput } from './input';
+import type { createPlanInput, updateCompanyAdminInput, updatePlanInput, updateSubscriptionInput } from './input';
 
 export class AdminChangeError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
@@ -11,8 +11,13 @@ export class AdminChangeError extends Error {
 export async function createPlan(adminId: string, input: z.infer<typeof createPlanInput>) {
   return db.transaction(async tx => {
     const [after] = await tx.insert(plans).values({
-      name: input.name, monthlyQuoteLimit: input.monthlyQuoteLimit,
-      monthlyPrice: input.monthlyPrice, isActive: input.isActive,
+      name: input.name,
+      monthlyQuoteLimit: input.monthlyQuoteLimit,
+      monthlyPrice: input.monthlyPrice,
+      monthlyIfcLimit: input.monthlyIfcLimit,
+      ifcMaxFileMb: input.ifcMaxFileMb,
+      ifcMaxConcurrent: input.ifcMaxConcurrent,
+      isActive: input.isActive,
     }).returning();
     await tx.insert(adminAuditLogs).values({ adminId, action: 'plan.created', details: { before: null, after } });
     return after;
@@ -45,6 +50,21 @@ export async function updateSubscription(adminId: string, companyId: string, inp
       ? await tx.update(subscriptions).set({ ...input, updatedAt: new Date() }).where(eq(subscriptions.id, before.id)).returning()
       : await tx.insert(subscriptions).values({ ...input, companyId }).returning();
     await tx.insert(adminAuditLogs).values({ adminId, targetCompanyId: companyId, action: 'subscription.updated', details: { before: before ?? null, after } });
+    return after;
+  });
+}
+
+export async function updateCompanyAdmin(adminId: string, companyId: string, input: z.infer<typeof updateCompanyAdminInput>) {
+  return db.transaction(async tx => {
+    const [before] = await tx.select().from(companies).where(eq(companies.id, companyId)).for('update');
+    if (!before) throw new AdminChangeError(404, 'Company not found');
+    const [after] = await tx.update(companies).set(input).where(eq(companies.id, companyId)).returning();
+    await tx.insert(adminAuditLogs).values({
+      adminId,
+      targetCompanyId: companyId,
+      action: 'company.updated',
+      details: { before, after }
+    });
     return after;
   });
 }
