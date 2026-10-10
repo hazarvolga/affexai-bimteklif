@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1791642669.1672623,
-    "ast_hash": "e23a7223b77802c5758a94e9363cbfda",
+    "mtime": 1791649446.32465,
+    "ast_hash": "cb7e3cb5ba31400fa1062ae6992fb5a9",
     "semantic_hash": ""
   },
   "src/academy/activation.test.ts": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/Shell.tsx": {
-    "mtime": 1791441557.2812402,
-    "ast_hash": "a67a1145cf11df8b101578d5f9ec035b",
+    "mtime": 1791649357.54856,
+    "ast_hash": "40a5ca5e3948e768be16105fd29afe65",
     "semantic_hash": ""
   },
   "src/components/smartcheck/RegulationImpactPanel.tsx": {
@@ -1350,13 +1350,13 @@
     "semantic_hash": ""
   },
   "src/db/schema.ts": {
-    "mtime": 1791647350.7544777,
-    "ast_hash": "6dc1e3c7877d37d6d9009afcf61049f8",
+    "mtime": 1791648936.475827,
+    "ast_hash": "cc043ed56d2417abcf74db57f1975271",
     "semantic_hash": ""
   },
   "src/hooks/useAuth.tsx": {
-    "mtime": 1791442647.2862592,
-    "ast_hash": "23e3ad2897c344e19cf7f61e4ba72e6d",
+    "mtime": 1791649346.212867,
+    "ast_hash": "1f9164e3d239ceea143b9b9752ebc934",
     "semantic_hash": ""
   },
   "src/lib/api.ts": {
@@ -1680,8 +1680,8 @@
     "semantic_hash": ""
   },
   "src/server/middleware/auth.ts": {
-    "mtime": 1791444938.8460402,
-    "ast_hash": "10c535d83abc44e20f53aa0c294d6ddb",
+    "mtime": 1791649035.70621,
+    "ast_hash": "2b0b3ee8d353c5c9eabb090d4a6ab4c2",
     "semantic_hash": ""
   },
   "src/server/middleware/usage.ts": {
@@ -1715,8 +1715,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/auth.ts": {
-    "mtime": 1791647785.645408,
-    "ast_hash": "c9f32c7693ad4d501036f6b5c98f85b7",
+    "mtime": 1791649334.377251,
+    "ast_hash": "6dd7c6b374fd44a638cbaf95152927c2",
     "semantic_hash": ""
   },
   "src/server/routes/billing.ts": {
@@ -1860,8 +1860,8 @@
     "semantic_hash": ""
   },
   "src/services/auth/authService.ts": {
-    "mtime": 1791444938.8455603,
-    "ast_hash": "83240b7bae21b4ecd191c8422ea6423c",
+    "mtime": 1791649042.609662,
+    "ast_hash": "a1c35b74066e209ad31f48662074b935",
     "semantic_hash": ""
   },
   "src/services/crm/crmService.ts": {
@@ -2035,8 +2035,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/import/config.ts": {
-    "mtime": 1791646563.4861696,
-    "ast_hash": "f0c1dead4420b61abc74625c5dade3a4",
+    "mtime": 1791648991.2071579,
+    "ast_hash": "042047f6f91197b711281faad80c278f",
     "semantic_hash": ""
   },
   "src/smartcheck/import/file-security.test.ts": {
@@ -4640,8 +4640,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/AdminShell.tsx": {
-    "mtime": 1791642669.1674492,
-    "ast_hash": "1ff19618b6265c10a39e98c97b47505c",
+    "mtime": 1791649363.2100568,
+    "ast_hash": "6241774f884e590f078b217a416e20ac",
     "semantic_hash": ""
   },
   "src/components/ui/field.tsx": {
@@ -4670,18 +4670,18 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminDashboard.tsx": {
-    "mtime": 1791642669.1687388,
-    "ast_hash": "f23e4dd16952f34a7d1e1cbca05b60d4",
+    "mtime": 1791649453.427988,
+    "ast_hash": "fc0195d4ddc94512d16c4bb535956a46",
     "semantic_hash": ""
   },
   "src/pages/admin/PlansList.tsx": {
-    "mtime": 1791443385.4569154,
-    "ast_hash": "2f697bbe9f7fac2362b5f099ab135ac9",
+    "mtime": 1791649472.3911552,
+    "ast_hash": "9d2bfc213d697d0a0e22b7392ed43831",
     "semantic_hash": ""
   },
   "src/pages/admin/TenantsList.tsx": {
-    "mtime": 1791647719.6764944,
-    "ast_hash": "d74ad3b422fb07fb0e85cfed6dacae15",
+    "mtime": 1791649433.3262506,
+    "ast_hash": "4b92b304db5df32b23514448ba403b92",
     "semantic_hash": ""
   },
   "src/server/app.preflight.test.ts": {
@@ -4700,8 +4700,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/admin.ts": {
-    "mtime": 1791639415.818374,
-    "ast_hash": "17cc4f9d5cbf9fe33f5d7a20d0c768e7",
+    "mtime": 1791649142.197085,
+    "ast_hash": "14b37cf808bfa2ce34d828d639789ed8",
     "semantic_hash": ""
   },
   "src/server/routes/company-invitation.integration.test.ts": {
@@ -4920,8 +4920,8 @@
     "semantic_hash": ""
   },
   "drizzle-release/manifest.json": {
-    "mtime": 1791647290.8126197,
-    "ast_hash": "10d5ccf13c139691a091ea187b0b29c7",
+    "mtime": 1791649169.7742033,
+    "ast_hash": "4e7cc034bde877bdd7564dc8ea034bd1",
     "semantic_hash": ""
   },
   "drizzle-release/meta/0000_snapshot.json": {
@@ -4940,8 +4940,8 @@
     "semantic_hash": ""
   },
   "drizzle-release/meta/_journal.json": {
-    "mtime": 1791647290.8128343,
-    "ast_hash": "a767fe201007b391e362486ae32e87ae",
+    "mtime": 1791649169.7740119,
+    "ast_hash": "26d88f2290f2cac19eeaeaef422b699d",
     "semantic_hash": ""
   },
   "scripts/dependency-audit-policy.mjs": {
@@ -4955,8 +4955,8 @@
     "semantic_hash": ""
   },
   "scripts/release-migrations/artifacts.test.ts": {
-    "mtime": 1791642669.2156663,
-    "ast_hash": "6c2a0870df7c2409bfac70e8460fbc1b",
+    "mtime": 1791649190.1943555,
+    "ast_hash": "6925b19ca5451368277762f7a88f6b8e",
     "semantic_hash": ""
   },
   "scripts/release-migrations/backup-docker.test.ts": {
@@ -5030,8 +5030,8 @@
     "semantic_hash": ""
   },
   "src/server/admin/changes.ts": {
-    "mtime": 1791642669.2183871,
-    "ast_hash": "485395bf4960a64635c25274dabfe078",
+    "mtime": 1791648962.2848792,
+    "ast_hash": "8298aab9bed0201ca98ff26292468262",
     "semantic_hash": ""
   },
   "src/server/admin/input.test.ts": {
@@ -5040,8 +5040,8 @@
     "semantic_hash": ""
   },
   "src/server/admin/input.ts": {
-    "mtime": 1791642669.2186325,
-    "ast_hash": "d58a73a268d7871f4182737e2e130292",
+    "mtime": 1791648953.3643594,
+    "ast_hash": "5e0f720a234c906ece7b042e2ed73959",
     "semantic_hash": ""
   },
   "src/server/auth/invitations.test.ts": {
@@ -5200,8 +5200,8 @@
     "semantic_hash": ""
   },
   "scripts/release-migrations/stage-signatures.ts": {
-    "mtime": 1791642669.2173584,
-    "ast_hash": "3d71c108b901e92dc58ea3d85bfa95bb",
+    "mtime": 1791649178.9586687,
+    "ast_hash": "ff8ef4b6eaaed3a5d91a0f3883c99e67",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminLogs.tsx": {
@@ -5235,8 +5235,8 @@
     "semantic_hash": ""
   },
   "src/server/admin/stats.ts": {
-    "mtime": 1791642669.2189994,
-    "ast_hash": "901178f80add6fb486e336c85b885204",
+    "mtime": 1791648976.0995014,
+    "ast_hash": "89626c954b25d890e1e7b61f7f3391d7",
     "semantic_hash": ""
   },
   "src/server/logger.test.ts": {
@@ -5260,8 +5260,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/admin-logs.ts": {
-    "mtime": 1791642946.516544,
-    "ast_hash": "af7abbd47e83571041a2c5dc7c8a592e",
+    "mtime": 1791649076.963125,
+    "ast_hash": "62ae7bbb06cc29144497c839416879d8",
     "semantic_hash": ""
   },
   "src/server/routes/app-resilience.test.ts": {
@@ -5350,8 +5350,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/import/service.ts": {
-    "mtime": 1791646576.2865655,
-    "ast_hash": "903fb4c3004245dde0933ce2d9406b80",
+    "mtime": 1791649120.69159,
+    "ast_hash": "73c6110e90384aacc00ee28fde2e62bf",
     "semantic_hash": ""
   },
   "src/smartcheck/import/storage-advanced.test.ts": {
@@ -5492,6 +5492,41 @@
   "docs/kaynaklar/Projelerin Elektronik Ortamda Teslimi ve Y\u00f6netilmesi Hakk\u0131nda Y\u00f6netmelik T/PROJELER\u0130N ELEKTRON\u0130K TESL\u0130M\u0130 VE Y\u00d6NET\u0130LMES\u0130 Y\u00d6NETMEL\u0130K TASLA\u011eI GEREK\u00c7ES\u0130.pdf": {
     "mtime": 1770812775.0,
     "ast_hash": "be88cd13f6cc36d78e61731072168f89",
+    "semantic_hash": ""
+  },
+  "drizzle-release/0003_super_admin_ifc_limits.sql": {
+    "mtime": 1791649169.772609,
+    "ast_hash": "1424bc1884b41512db4094ddf17257e8",
+    "semantic_hash": ""
+  },
+  "drizzle-release/meta/0003_snapshot.json": {
+    "mtime": 1791649169.77315,
+    "ast_hash": "04119e178e08e5386a752401eddcfcea",
+    "semantic_hash": ""
+  },
+  "drizzle/0037_super_admin_ifc_limits.sql": {
+    "mtime": 1791648940.3363461,
+    "ast_hash": "049391cdcf710085bf5a90af4d5270e1",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/AdminQueue.tsx": {
+    "mtime": 1791649396.6914084,
+    "ast_hash": "985363df1dfff861b2418416bbb190a6",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/AdminReports.tsx": {
+    "mtime": 1791649416.1792588,
+    "ast_hash": "f39f2a12574b72a854d151a19fac85af",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/TenantDetail.tsx": {
+    "mtime": 1791649384.2748559,
+    "ast_hash": "7b52175852014646785d311c44f0b81a",
+    "semantic_hash": ""
+  },
+  "src/server/routes/admin-features.test.ts": {
+    "mtime": 1791649215.3613327,
+    "ast_hash": "106a08cd73122bfcd6e1d9941a01976a",
     "semantic_hash": ""
   }
 }
