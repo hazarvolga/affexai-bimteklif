@@ -43,5 +43,8 @@ describe("e-PYS Validation Rules", () => {
       elementsData: mockElements
     });
     assert.ok(result.errors.some(e => e.includes("EK-6 İhlali")));
+    assert.equal(result.label, "Teknik Ön-Kontrol (e-PYS)");
+    assert.equal(result.rulePackVersion, "epys-2024-ek6-v1");
+    assert.ok(result.sourceCitation.includes("Çevre, Şehircilik ve İklim Değişikliği Bakanlığı"));
   });
 });

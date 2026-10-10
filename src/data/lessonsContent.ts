@@ -420,7 +420,7 @@ export const LESSONS_CONTENT: Record<string, LessonDetail> = {
   'Standard hooks & bends': {
     title: 'Standard Hooks & Bends',
     subtitle: 'Eurocode 2 (EN 1992-1-1) bar bending radii, hook extensions, and minimum mandrel diameters.',
-    introduction: 'In reinforced concrete modeling, steel bars cannot be bent sharply to avoid cracking the steel or crushing the concrete. In this lesson, we cover minimum mandrel diameters (4\u03a6 for \u03a6 < 16mm, 7\u03a6 for \u03a6 >= 16mm) and standard hook geometries matching Eurocode 2.',
+    introduction: 'In reinforced concrete modeling, steel bars cannot be bent sharply to avoid cracking the steel or crushing the concrete. In this lesson, we cover minimum mandrel diameters (4\u03a6 for \u03a6 <= 16mm, 7\u03a6 for \u03a6 > 16mm) and standard hook geometries matching Eurocode 2 (EN 1992-1-1:2004 Table 8.1N).',
     steps: [
       { step: 1, title: 'Calculate Minimum Mandrel Diameters', desc: 'Determine the minimum bending pin diameter matching Eurocode 2 standards based on steel grades and active bar diameters.' },
       { step: 2, title: 'Model Standard Hooks (90\u00b0, 135\u00b0, 180\u00b0)', desc: 'Define hooks in Allplan bar attributes. Enforce the max(10\u03a6, 100mm) extension rules for 135\u00b0 stirrups.' },

@@ -55,6 +55,10 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
           })
         });
 
+        if (!res.ok) {
+          throw new Error(`DIAGRAM_HTTP_${res.status}`);
+        }
+
         const data = await res.json();
 
         if (active) {

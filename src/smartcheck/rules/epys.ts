@@ -7,6 +7,9 @@ export interface EpysValidationResult {
   errors: string[];
   warnings: string[];
   score: number;
+  label: string;
+  rulePackVersion: string;
+  sourceCitation: string;
 }
 
 export interface IfcElementData {
@@ -102,6 +105,9 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
     isValid: errors.length === 0,
     errors,
     warnings,
-    score
+    score,
+    label: "Teknik Ön-Kontrol (e-PYS)",
+    rulePackVersion: "epys-2024-ek6-v1",
+    sourceCitation: "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı e-PYS Teknik Kılavuzu (Ek-3, Ek-6, Ek-7)",
   };
 }

@@ -6,6 +6,7 @@ type ReviewedRow = {
   normalizedQuantity: string | null;
   normalizedUnit: string | null;
   findingsJson: Array<Record<string, unknown>>;
+  executedRuleSet?: string[] | null;
 };
 
 export function transferReviewEvidence(row: ReviewedRow, quantity: number, unit: string) {
@@ -27,8 +28,8 @@ export function transferReviewEvidence(row: ReviewedRow, quantity: number, unit:
       sourceUnit: row.normalizedUnit,
       findingRuleVersions: [...new Set(row.findingsJson.flatMap(finding =>
         typeof finding.ruleVersion === "string" ? [finding.ruleVersion] : []))].sort(),
-      // Findings only identify failed checks, not the complete executed rule set.
-      executedRuleSet: null,
+      // Findings only identify failed checks, or row.executedRuleSet records full rule execution
+      executedRuleSet: row.executedRuleSet ?? null,
       competencyVerified: false,
     },
   };
