@@ -1,4 +1,7 @@
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import ExcelJS from "exceljs";
 import { parse as parseCsv } from "csv-parse/sync";
 import { and, eq } from "drizzle-orm";
@@ -8,6 +11,9 @@ import { createStorageAdapter } from "./storage";
 import { detectAndValidateFile, sanitizeSpreadsheetText, sha256, validateXlsxArchive } from "./file-security";
 import { type ColumnMapping, type ParsedQuantityRow, suggestMapping, validateRows } from "./normalize";
 import { buildIfcSmartCheckEvidenceFromContent } from "../../ifc/smartcheck-processing";
+import { parseIfcText } from "../../ifc/parser/legacy-parser";
+import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidence";
+import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 
 export type PreviewSheet = {
   name: string;
@@ -163,15 +169,113 @@ async function processIfcSmartCheckDocument(payload: {
   processingRunId: string;
   originalFileName: string;
   checksumSha256: string;
-  content: Buffer;
+  content?: Buffer;
+  filePath?: string;
 }) {
-  const { companyId, documentId, processingRunId, originalFileName, checksumSha256, content } = payload;
-  const artifact = buildIfcSmartCheckEvidenceFromContent({
-    fileName: originalFileName,
-    checksumSha256,
-    content,
-  });
+  const { companyId, documentId, processingRunId, originalFileName, checksumSha256, content, filePath } = payload;
+  const engine = (process.env.SMARTCHECK_IFC_ENGINE || "legacy").toLowerCase();
   const storage = createStorageAdapter();
+
+  let artifact: ReturnType<typeof buildIfcSmartCheckEvidenceFromContent>;
+
+  if (engine === "ifcopenshell") {
+    let resolvedPath = filePath;
+    let cleanupDir: string | null = null;
+    if (!resolvedPath) {
+      if (!content) throw new Error("IFC_CONTENT_OR_FILE_REQUIRED");
+      cleanupDir = await fs.mkdtemp(path.join(os.tmpdir(), "teklifpro-ifc-tmp-"));
+      resolvedPath = path.join(cleanupDir, "model.ifc");
+      await fs.writeFile(resolvedPath, content);
+    }
+    try {
+      const pythonResult = await runPythonIfcExtractor({
+        inputPath: resolvedPath,
+        fileName: originalFileName,
+      });
+      artifact = buildIfcSmartCheckEvidenceArtifact(pythonResult.elements, pythonResult.summary, {
+        fileName: originalFileName,
+        checksumSha256,
+        parserVersion: pythonResult.parserVersion,
+      });
+    } finally {
+      if (cleanupDir) {
+        await fs.rm(cleanupDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+  } else if (engine === "shadow") {
+    let resolvedPath = filePath;
+    let cleanupDir: string | null = null;
+    if (!resolvedPath) {
+      if (!content) throw new Error("IFC_CONTENT_OR_FILE_REQUIRED");
+      cleanupDir = await fs.mkdtemp(path.join(os.tmpdir(), "teklifpro-ifc-tmp-"));
+      resolvedPath = path.join(cleanupDir, "model.ifc");
+      await fs.writeFile(resolvedPath, content);
+    }
+
+    const legacyContent = content ?? await fs.readFile(resolvedPath);
+    artifact = buildIfcSmartCheckEvidenceFromContent({
+      fileName: originalFileName,
+      checksumSha256,
+      content: legacyContent,
+    });
+
+    try {
+      const pythonResult = await runPythonIfcExtractor({
+        inputPath: resolvedPath,
+        fileName: originalFileName,
+      });
+
+      const legacyParsed = parseIfcText(legacyContent.toString("utf8"));
+      const shadowReport = {
+        mode: "shadow",
+        timestamp: new Date().toISOString(),
+        legacySummary: legacyParsed.summary,
+        pythonSummary: pythonResult.summary,
+        elementCountDiff: Math.abs(legacyParsed.summary.totalElements - pythonResult.summary.totalElements),
+        volumeDeltaM3: Number(Math.abs(legacyParsed.summary.totalVolumeM3 - pythonResult.summary.totalVolumeM3).toFixed(2)),
+        parityStatus: Math.abs(legacyParsed.summary.totalElements - pythonResult.summary.totalElements) === 0 ? "match" : "divergence",
+      };
+
+      const shadowContent = Buffer.from(JSON.stringify(shadowReport, null, 2));
+      const shadowKey = `${companyId}/${documentId}/${processingRunId}/ifc-shadow-report.json`;
+      await storage.put(shadowKey, shadowContent, "application/json");
+
+      await db.insert(documentProcessingArtifacts).values({
+        companyId,
+        documentId,
+        processingRunId,
+        artifactType: "ifc_shadow_report",
+        storageKey: shadowKey,
+        checksumSha256: sha256(shadowContent),
+        contentType: "application/json",
+        sizeBytes: shadowContent.length,
+        metadataJson: shadowReport,
+      }).onConflictDoUpdate({
+        target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+        set: {
+          storageKey: shadowKey,
+          checksumSha256: sha256(shadowContent),
+          sizeBytes: shadowContent.length,
+          metadataJson: shadowReport,
+        },
+      });
+    } catch (shadowErr) {
+      console.error("IFC shadow comparison execution failed, continuing with legacy artifact:", shadowErr);
+    } finally {
+      if (cleanupDir) {
+        await fs.rm(cleanupDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+  } else {
+    // Default legacy parser
+    const legacyContent = content ?? (filePath ? await fs.readFile(filePath) : null);
+    if (!legacyContent) throw new Error("IFC_CONTENT_OR_FILE_REQUIRED");
+    artifact = buildIfcSmartCheckEvidenceFromContent({
+      fileName: originalFileName,
+      checksumSha256,
+      content: legacyContent,
+    });
+  }
 
   await updateRun(processingRunId, companyId, {
     currentStage: "normalizing",
@@ -284,20 +388,32 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     await updateRun(run.id, companyId, { status: "running", currentStage: "parsing", progressPercent: 10, progressMessage: "Dosya ayrıştırılıyor", startedAt: run.startedAt ?? new Date() });
     await db.update(documents).set({ status: "processing", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
     const storage = createStorageAdapter();
+
+    const isIfc = document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc";
+    if (isIfc) {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "teklifpro-ifc-job-"));
+      const localIfcPath = path.join(tmpDir, "model.ifc");
+      try {
+        await storage.downloadToFile(document.storageKey, localIfcPath, document.checksumSha256);
+        await processIfcSmartCheckDocument({
+          companyId,
+          documentId: document.id,
+          processingRunId: run.id,
+          originalFileName: document.originalFileName,
+          checksumSha256: document.checksumSha256,
+          filePath: localIfcPath,
+        });
+        return;
+      } finally {
+        await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+
     const content = await storage.get(document.storageKey);
     if (sha256(content) !== document.checksumSha256) throw new Error("CHECKSUM_MISMATCH");
     const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-    if (kind === "ifc") {
-      await processIfcSmartCheckDocument({
-        companyId,
-        documentId: document.id,
-        processingRunId: run.id,
-        originalFileName: document.originalFileName,
-        checksumSha256: document.checksumSha256,
-        content,
-      });
-      return;
-    }
+    if (kind === "ifc") throw new Error("UNEXPECTED_IFC_DOCUMENT");
+
     const parsed = await parseDocument(content, kind, document.importMappingJson as ColumnMapping);
     await updateRun(run.id, companyId, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });
     const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, companyId));
@@ -319,8 +435,9 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     await updateRun(run.id, companyId, { status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: "İnsan incelemesi bekleniyor", completedAt: new Date() });
     await db.update(documents).set({ status: "awaiting_review", importMappingJson: parsed.mapping, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "PROCESSING_FAILED";
-    await updateRun(run.id, companyId, { status: "failed", currentStage: "failed", progressMessage: "İşleme başarısız", errorCode: message, errorMessage: message, completedAt: new Date() });
+    const errorCode = error instanceof IfcWorkerError ? error.code : error instanceof Error ? error.message : "PROCESSING_FAILED";
+    const errorMessage = error instanceof Error ? error.message : "PROCESSING_FAILED";
+    await updateRun(run.id, companyId, { status: "failed", currentStage: "failed", progressMessage: "İşleme başarısız", errorCode, errorMessage, completedAt: new Date() });
     await db.update(documents).set({ status: "failed", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
     throw error;
   }
