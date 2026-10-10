@@ -16,8 +16,9 @@ export function isolatedDatabaseUrl(databaseUrl: string, schema: string) {
       throw new Error("Connection parameter overrides are not allowed for test isolation");
     }
   }
-  if (!["postgres:", "postgresql:"].includes(url.protocol) || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || url.pathname !== "/teklifpro_local") {
-    throw new Error("Integration isolation requires the local teklifpro_local database");
+  const databases = ["/teklifpro_local", "/teklifpro_bootstrap_test", "/teklifpro_upgrade_test", "/teklifpro_migration_restore_test"];
+  if (!["postgres:", "postgresql:"].includes(url.protocol) || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || !databases.includes(url.pathname)) {
+    throw new Error("Integration isolation requires an explicitly named local TeklifPro database");
   }
   if (!/^teklifpro_test_[a-f0-9]{32}$/.test(schema)) throw new Error("Unsafe test schema");
   // No public fallback: a missing fixture table must fail, never write shared data.

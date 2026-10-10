@@ -5,8 +5,20 @@ import { activities, clients, deals, leads, quotationFinancials, quotationItems,
 import { CRMIntelligenceService } from "../../services/crm/crmService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
+import { activityInput, dealIdInput, dealInput, stageInput } from '../../services/crm/input';
 
 export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceService, canMutate: any) {
+  app.get('/api/crm/deals/:id', authenticate, async (req, res) => {
+    const parsed = dealIdInput.safeParse({ dealId: req.params.id });
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid deal ID' });
+    try {
+      const deal = await db.query.deals.findFirst({ where: and(eq(deals.id, parsed.data.dealId), eq(deals.companyId, req.user.companyId)) });
+      if (!deal) return res.status(404).json({ error: 'Deal not found' });
+      return res.json(deal);
+    } catch {
+      return res.status(500).json({ error: 'Failed to fetch deal' });
+    }
+  });
   app.get("/api/crm/pipeline", authenticate, async (req, res) => {
     try {
       const companyId = req.user.companyId;
@@ -19,30 +31,18 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
 
   app.post("/api/crm/deals", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
     try {
-      const { clientId, name, value, expectedCloseDate, stage } = req.body;
-      if (!clientId || !name) return res.status(400).json({ error: "clientId ve name zorunludur" });
-
-      const [client] = await db.select({ id: clients.id }).from(clients)
-        .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId)));
-      if (!client) return res.status(404).json({ error: "Müşteri bulunamadı" });
-
-      const [newDeal] = await db.insert(deals).values({
-        companyId: req.user.companyId,
-        clientId,
-        name,
-        stage: stage || "lead",
-        value: value != null ? String(value) : "0",
-        expectedCloseDate: expectedCloseDate ? new Date(expectedCloseDate) : null,
-      }).returning();
-
-      await db.insert(activities).values({
-        companyId: newDeal.companyId,
-        dealId: newDeal.id,
-        userId: req.user.userId,
-        type: "note",
-        description: "Fırsat oluşturuldu.",
+      const parsed = dealInput.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: 'Invalid deal input' });
+      const newDeal = await db.transaction(async tx => {
+        const [client] = await tx.select({ id: clients.id }).from(clients)
+          .where(and(eq(clients.id, parsed.data.clientId), eq(clients.companyId, req.user.companyId))).for('share');
+        if (!client) return null;
+        const [created] = await tx.insert(deals).values({ ...parsed.data, name: parsed.data.name, clientId: parsed.data.clientId,
+          value: String(parsed.data.value), companyId: req.user.companyId }).returning();
+        await tx.insert(activities).values({ companyId: created.companyId, dealId: created.id, userId: req.user.userId, type: 'note', description: 'Fırsat oluşturuldu.' });
+        return created;
       });
-
+      if (!newDeal) return res.status(404).json({ error: 'Müşteri bulunamadı' });
       res.status(201).json(newDeal);
     } catch (error) {
       res.status(500).json({ error: "Failed to create deal" });
@@ -71,9 +71,18 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
 
   app.post("/api/crm/activities", authenticate, canMutate, async (req, res) => {
     try {
-      const data = { ...req.body, companyId: req.user.companyId, userId: req.user.userId };
-      const [activity] = await db.insert(activities).values(data).returning();
-      res.json(activity);
+      const parsed = activityInput.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: 'Invalid activity input' });
+      const activity = await db.transaction(async tx => {
+        const [deal] = await tx.select({ id: deals.id }).from(deals)
+          .where(and(eq(deals.id, parsed.data.dealId), eq(deals.companyId, req.user.companyId))).for('share');
+        if (!deal) return null;
+        const [created] = await tx.insert(activities).values({ dealId: parsed.data.dealId, description: parsed.data.description,
+          companyId: req.user.companyId, userId: req.user.userId, type: 'note' }).returning();
+        return created;
+      });
+      if (!activity) return res.status(404).json({ error: 'Deal not found' });
+      res.status(201).json(activity);
     } catch (error) {
       res.status(500).json({ error: "Failed to create activity" });
     }
@@ -91,19 +100,20 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
 
   app.post("/api/crm/deals/update-stage", authenticate, canMutate, async (req, res) => {
     try {
-      const { dealId, stage } = req.body;
-      const [updatedDeal] = await db.update(deals)
-        .set({ stage, updatedAt: new Date() })
-        .where(and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId)))
-        .returning();
-
-      await db.insert(activities).values({
-        companyId: updatedDeal.companyId,
-        dealId: updatedDeal.id,
-        type: "stage_change",
-        description: `Satış aşaması ${stage.toUpperCase()} olarak güncellendi.`
+      const parsed = stageInput.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: 'Invalid stage input' });
+      const { dealId, stage } = parsed.data;
+      const updatedDeal = await db.transaction(async tx => {
+        const where = and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId));
+        const [deal] = await tx.select().from(deals).where(where).for('update');
+        if (!deal) return null;
+        if (deal.stage === stage) return deal;
+        const [updated] = await tx.update(deals).set({ stage, updatedAt: new Date() }).where(where).returning();
+        await tx.insert(activities).values({ companyId: req.user.companyId, dealId, userId: req.user.userId,
+          type: 'stage_change', description: `Satış aşaması ${stage} olarak güncellendi.` });
+        return updated;
       });
-
+      if (!updatedDeal) return res.status(404).json({ error: 'Deal not found' });
       res.json(updatedDeal);
     } catch (error) {
       res.status(500).json({ error: "Failed to update deal stage" });
@@ -112,7 +122,9 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
 
   app.post("/api/crm/analyze-deal", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
     try {
-      const { dealId } = req.body;
+      const parsed = dealIdInput.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: 'Invalid deal ID' });
+      const { dealId } = parsed.data;
       const deal = await db.query.deals.findFirst({
         where: and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId))
       });
@@ -121,6 +133,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
       const quote = await db.query.quotations.findFirst({
         where: and(eq(quotations.id, deal.quotationId), eq(quotations.companyId, req.user.companyId)),
       });
+      if (!quote) return res.status(404).json({ error: 'Quotation not found' });
       const qItems = await db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, deal.quotationId), eq(quotationItems.companyId, req.user.companyId)));
       const financials = await db.query.quotationFinancials.findFirst({
         where: eq(quotationFinancials.quotationId, deal.quotationId)
@@ -135,7 +148,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
           aiInsights: analysis.insights,
           updatedAt: new Date()
         })
-        .where(eq(deals.id, dealId));
+        .where(and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId)));
 
       res.json(analysis);
     } catch (error) {

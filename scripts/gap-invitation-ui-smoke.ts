@@ -109,8 +109,65 @@ try {
   const link = await page.$eval('[role="status"] a', element => (element as HTMLAnchorElement).href);
   assert.ok(link.startsWith(`${base}/accept-invite/`));
   await page.screenshot({ path: `${output}/settings-invitation.png`, fullPage: true });
+  if (process.env.GAP_ADMIN_SMOKE === 'true') {
+    const [admin] = await db.insert(schema.users).values({ email: 'ui-admin@example.test', fullName: 'UI Admin', isSuperAdmin: true }).returning();
+    const [plan] = await db.insert(schema.plans).values({ name: 'Zero Limit', monthlyQuoteLimit: 0, monthlyPrice: 0 }).returning();
+    const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
+    await page.evaluate(token => localStorage.setItem('token', token), adminToken);
+    await page.goto(`${base}/admin/tenants`, { waitUntil: 'networkidle0' });
+    await page.waitForFunction(() => document.body.innerText.includes('Firmalar (Tenants)'));
+    await page.$$eval('tr', rows => (rows.find(row => row.textContent?.includes('Isolated UI Test'))!.querySelector('button') as HTMLButtonElement).click());
+    await page.waitForSelector('select');
+    const selects = await page.$$('select');
+    await selects[0].select(plan.id);
+    await selects[1].select('past_due');
+    await page.$$eval('button', buttons => buttons.find(button => button.textContent?.includes('Değişiklikleri Kaydet'))!.click());
+    await page.waitForFunction(() => !document.body.innerText.includes('Isolated UI Test Yönetimi'));
+    const { eq } = await import('drizzle-orm');
+    const saved = await db.query.subscriptions.findFirst({ where: eq(schema.subscriptions.companyId, company.id) });
+    assert.equal(saved?.planId, plan.id);
+    assert.equal(saved?.status, 'past_due');
+    assert.equal(saved?.bonusQuoteLimit, 0);
+    await page.screenshot({ path: `${output}/admin-tenants.png`, fullPage: true });
+    await page.setViewport({ width: 390, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'admin viewport must not overflow');
+    assert.ok(await page.$eval('main', main => main.getBoundingClientRect().width) >= 374, 'mobile admin content must use the viewport');
+    await page.screenshot({ path: `${output}/admin-tenants-mobile.png`, fullPage: true });
+    const menuTrigger = 'button[aria-label="Yönetim menüsü"]';
+    await page.focus(menuTrigger);
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('[role="dialog"]', { visible: true });
+    await page.waitForFunction(() => Boolean(document.activeElement?.closest('[role="dialog"]')));
+    for (let index = 0; index < 10; index++) {
+      await page.keyboard.press('Tab');
+      await page.waitForFunction(() => Boolean(document.activeElement?.closest('[role="dialog"]')), { timeout: 2000 });
+    }
+    await page.keyboard.down('Shift');
+    for (let index = 0; index < 10; index++) {
+      await page.keyboard.press('Tab');
+      await page.waitForFunction(() => Boolean(document.activeElement?.closest('[role="dialog"]')), { timeout: 2000 });
+    }
+    await page.keyboard.up('Shift');
+    await page.waitForFunction(() => {
+      const dialog = document.querySelector('[role="dialog"]');
+      return dialog && !dialog.hasAttribute('data-starting-style') && getComputedStyle(dialog).opacity === '1';
+    });
+    await page.$eval('[role="dialog"]', async dialog => {
+      await Promise.all(dialog.getAnimations().map(animation => animation.finished));
+    });
+    await page.screenshot({ path: `${output}/admin-drawer-mobile.png`, fullPage: true });
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('[role="dialog"]', { hidden: true });
+    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Yönetim menüsü');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('[role="dialog"] nav a[href="/admin/plans"]', { visible: true });
+    await page.click('[role="dialog"] nav a[href="/admin/plans"]');
+    await page.waitForFunction(() => location.pathname === '/admin/plans');
+    await page.waitForSelector('[role="dialog"]', { hidden: true });
+    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Yönetim menüsü');
+  }
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ passed: true, viewports: [1440, 390], newAccountLogin: true, existingAccountAcceptance: true, invitedTenantAfterReload: true, settingsDeliveryState: true, screenshots: output }));
+  console.log(JSON.stringify({ passed: true, viewports: [1440, 390], newAccountLogin: true, existingAccountAcceptance: true, invitedTenantAfterReload: true, settingsDeliveryState: true, adminDrawer: process.env.GAP_ADMIN_SMOKE === 'true', screenshots: output }));
 } finally {
   try { await browser?.close(); } finally {
     try {

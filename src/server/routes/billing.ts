@@ -1,9 +1,10 @@
 import type { Express } from "express";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { subscriptions, usageAlerts, usageLogs } from "../../db/schema";
+import { subscriptions, usageAlerts } from "../../db/schema";
 import { authenticate } from "../middleware/auth";
 import { PLAN_LIMITS } from "../middleware/usage";
+import { readBillingUsage } from "../../services/billing/usage-report";
 
 export function registerBillingRoutes(app: Express) {
   app.get("/api/billing/subscription", authenticate, async (req, res) => {
@@ -17,47 +18,9 @@ export function registerBillingRoutes(app: Express) {
 
   app.get("/api/billing/usage-stats", authenticate, async (req, res) => {
     try {
-      const { companyId } = req.user;
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      const stats = await db.select({
-        feature: usageLogs.feature,
-        currentCount: sql<number>`sum(${usageLogs.count})`,
-        totalCost: sql<number>`sum(${usageLogs.costEstimate})`,
-      })
-      .from(usageLogs)
-      .where(and(
-        eq(usageLogs.companyId, companyId),
-        sql`${usageLogs.date} >= ${startOfMonth}`
-      ))
-      .groupBy(usageLogs.feature);
-
-      const sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.companyId, companyId) });
-      const plan = (sub?.plan || "starter") as keyof typeof PLAN_LIMITS;
-      const limits = PLAN_LIMITS[plan];
-
-      const report = Object.keys(limits).map(feature => {
-        const stat = stats.find(s => s.feature === feature);
-        return {
-          feature,
-          current: Number(stat?.currentCount || 0),
-          limit: limits[feature as keyof typeof limits],
-          cost: Number(stat?.totalCost || 0),
-        };
-      });
-
-      res.json({
-        plan,
-        usage: report,
-        totalMonthlyCost: report.reduce((acc, curr) => acc + curr.cost, 0),
-        period: {
-          start: startOfMonth,
-          end: now
-        }
-      });
+      res.json(await readBillingUsage(req.user.companyId));
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch usage stats" });
+      res.status(503).json({ error: "Failed to fetch usage stats", code: "BILLING_USAGE_UNAVAILABLE" });
     }
   });
 

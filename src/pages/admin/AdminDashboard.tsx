@@ -33,7 +33,7 @@ export function AdminDashboard() {
               <p className="text-3xl font-black text-white">{data?.totalTenants || 0}</p>
               <div className="mt-4 flex gap-3 text-xs text-zinc-500 border-t border-indigo-500/10 pt-3">
                 <span className="text-emerald-400">{data?.statusCounts?.active || 0} aktif</span>
-                <span className="text-amber-400">{data?.statusCounts?.suspended || 0} askıda</span>
+                <span className="text-amber-400">{data?.statusCounts?.past_due || 0} ödeme bekliyor</span>
               </div>
             </div>
 

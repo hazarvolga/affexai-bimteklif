@@ -4,6 +4,7 @@ import { clients, quotationItemEvidence, quotationItems, quotations } from "../.
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import type { ManualQuotationInput } from "./input";
 import { copyRevisionItems } from "./revision-copy";
+import { consumeQuotationQuota } from "../billing/quota";
 
 export class QuotationIntegrityError extends Error {
   constructor(readonly status: number, message: string) {
@@ -13,6 +14,7 @@ export class QuotationIntegrityError extends Error {
 
 export async function createManualQuotation(companyId: string, input: ManualQuotationInput) {
   return db.transaction(async tx => {
+    await consumeQuotationQuota(tx, companyId);
     const [client] = await tx.select({ id: clients.id }).from(clients)
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for("share");
     if (!client) throw new QuotationIntegrityError(400, "Client not available in this company");
@@ -47,6 +49,7 @@ export async function createManualQuotation(companyId: string, input: ManualQuot
 }
 
 export async function createQuotationRevision(companyId: string, sourceId: string) {
+  // Revisions preserve an existing quote series and do not consume new-quote quota.
   return db.transaction(async tx => {
     const [source] = await tx.select().from(quotations)
       .where(and(eq(quotations.id, sourceId), eq(quotations.companyId, companyId)));

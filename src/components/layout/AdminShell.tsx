@@ -1,7 +1,8 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Building2, Package, Activity } from 'lucide-react';
+import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu } from 'lucide-react';
 import { useState } from 'react';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const adminNavigation = [
   { label: 'Genel Bakış', path: '/admin', icon: LayoutDashboard },
@@ -11,18 +12,20 @@ const adminNavigation = [
 ];
 
 export function AdminShell() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  if (loading) return <div role="status" className="min-h-screen bg-zinc-950 p-6 text-zinc-300">Yükleniyor...</div>;
 
   if (!user || !user.isSuperAdmin) {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <div className="flex h-screen bg-zinc-950">
-      <aside className="flex w-64 flex-col border-r border-indigo-900/30 bg-zinc-950">
+  const navigation = (
+    <>
         <div className="flex h-16 items-center border-b border-indigo-900/30 px-6">
-          <Link to="/admin" className="flex items-center gap-3 transition-opacity hover:opacity-80">
+          <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
               <span className="font-bold text-white">S</span>
             </div>
@@ -42,6 +45,7 @@ export function AdminShell() {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => setMenuOpen(false)}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                     isActive 
                       ? 'bg-indigo-500/10 text-indigo-400' 
@@ -74,11 +78,31 @@ export function AdminShell() {
             Çıkış Yap
           </button>
         </div>
-      </aside>
+    </>
+  );
 
-      <main className="flex-1 overflow-auto bg-zinc-950">
+  return (
+    <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+    <div className="flex h-screen bg-zinc-950">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-indigo-900/30 bg-zinc-950 md:flex">
+        {navigation}
+      </aside>
+      <SheetContent side="left" className="gap-0 bg-zinc-950 p-0 text-zinc-200" aria-describedby={undefined}>
+        <SheetTitle className="sr-only">TeklifPro Yönetim</SheetTitle>
+        {navigation}
+      </SheetContent>
+
+      <main className="min-w-0 flex-1 overflow-auto bg-zinc-950">
+        <div className="flex h-14 items-center gap-3 border-b border-zinc-800 px-4 md:hidden">
+          <SheetTrigger aria-label="Yönetim menüsü" title="Yönetim menüsü"
+            className="flex h-9 w-9 items-center justify-center text-zinc-200">
+            <Menu size={20} />
+          </SheetTrigger>
+          <span className="text-sm font-semibold text-zinc-200">TeklifPro Yönetim</span>
+        </div>
         <Outlet />
       </main>
     </div>
+    </Sheet>
   );
 }

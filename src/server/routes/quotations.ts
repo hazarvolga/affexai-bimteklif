@@ -8,6 +8,7 @@ import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
+import { QuotaError } from "../../services/billing/quota";
 
 export function registerQuotationRoutes(app: Express, canMutate: any) {
   app.get("/api/quotations", authenticate, async (req, res) => {
@@ -71,6 +72,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       const newQuote = await createManualQuotation(req.user.companyId, parsed.data);
       res.json(newQuote);
     } catch (error) {
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       if (error instanceof QuotationIntegrityError) return res.status(error.status).json({ error: error.message });
       console.error("Quote creation error:", error);
       res.status(500).json({ error: "Failed to create quotation" });

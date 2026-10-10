@@ -19,6 +19,7 @@ const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminSh
 const AdminDashboard = page(() => import('@/pages/admin/AdminDashboard'), 'AdminDashboard');
 const TenantsList = page(() => import('@/pages/admin/TenantsList'), 'TenantsList');
 const PlansList = page(() => import('@/pages/admin/PlansList'), 'PlansList');
+const AdminLogs = page(() => import('@/pages/admin/AdminLogs'), 'AdminLogs');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
 const QuoteDetail = page(() => import('@/pages/QuoteDetail'), 'QuoteDetail');
@@ -95,6 +96,7 @@ function AppRoutes() {
           <Route index element={<AdminDashboard />} />
           <Route path="tenants" element={<TenantsList />} />
           <Route path="plans" element={<PlansList />} />
+          <Route path="logs" element={<AdminLogs />} />
         </Route>
 
         {/* TENANT (MÜŞTERİ) ROTASI */}
@@ -103,6 +105,7 @@ function AppRoutes() {
           <Route path="ifc-parser" element={<BimIfcParserPage />} />
           <Route path="quotes" element={<Quotes />} />
           <Route path="quotes/new" element={<CreateQuote />} />
+          <Route path="quotes/:id/edit" element={<CreateQuote />} />
           <Route path="quotes/:id" element={<QuoteDetail />} />
           <Route path="clients" element={<Clients />} />
           <Route path="regulations" element={<Regulations />} />

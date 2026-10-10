@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { dealIntelligenceInput } from './input';
 
 export interface DealIntelligence {
   probability: number;
@@ -49,17 +50,11 @@ export class CRMIntelligenceService {
         }
       });
 
-      const analysis = JSON.parse(result.response.text());
-      return analysis as DealIntelligence;
+      const resultData = dealIntelligenceInput.parse(JSON.parse(result.response.text()));
+      return { probability: resultData.probability, riskLevel: resultData.riskLevel,
+        recommendedAction: resultData.recommendedAction, expectedCloseValue: resultData.expectedCloseValue, insights: resultData.insights };
     } catch (e) {
-      console.error("Deal analysis failed", e);
-      return {
-        probability: 0.5,
-        riskLevel: "medium",
-        recommendedAction: "Müşteri ile iletişime geçin.",
-        expectedCloseValue: Number(dealData.value || 0),
-        insights: "Analiz yapılamadı, manuel kontrol önerilir."
-      };
+      throw new Error('Deal analysis unavailable', { cause: e });
     }
   }
 

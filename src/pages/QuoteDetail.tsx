@@ -62,8 +62,10 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { StatusBadge } from '@/components/business/StatusBadge';
 import { ProfitabilityBadge } from '@/components/business/ProfitabilityBadge';
+import { useAuth } from '@/hooks/useAuth';
 
 export function QuoteDetail() {
+  const { role } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
@@ -273,6 +275,11 @@ export function QuoteDetail() {
         }}
         actions={
           <div className="flex flex-wrap gap-2">
+            {data.status === 'draft' && data.isLatest && ['owner', 'admin', 'manager'].includes(role ?? '') && (
+              <Button variant="outline" onClick={() => navigate(`/app/quotes/${id}/edit`)} className="gap-2">
+                <FileEdit size={16} /> Taslağı Düzenle
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-zinc-500" /></Button>} />
               <DropdownMenuContent className="bg-zinc-900 border-zinc-800 text-zinc-300 w-56">

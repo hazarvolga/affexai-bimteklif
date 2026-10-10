@@ -4,7 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { fetchWithAuth } from '@/lib/api';
 import { 
   Plus, 
@@ -58,6 +59,12 @@ import { buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
 
 export function CreateQuote() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { role } = useAuth();
+  const [editVersion, setEditVersion] = useState('');
+  const [editError, setEditError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [editLoading, setEditLoading] = useState(Boolean(id));
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -93,7 +100,7 @@ export function CreateQuote() {
 
   useEffect(() => {
     // Check if openBIM IFC parsed metraj data exists in sessionStorage
-    const ifcData = sessionStorage.getItem('teklifpro_ifc_extracted');
+    const ifcData = id ? null : sessionStorage.getItem('teklifpro_ifc_extracted');
     if (ifcData) {
       try {
         const parsedTransfer = JSON.parse(ifcData);
@@ -133,7 +140,7 @@ export function CreateQuote() {
       .then((data) => setClients(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    fetchWithAuth('/api/company/risk-settings')
+    if (!id) fetchWithAuth('/api/company/risk-settings')
       .then(res => res.ok ? res.json() : null)
       .then((settings) => settings && setFormData((current) => ({
         ...current,
@@ -162,6 +169,31 @@ export function CreateQuote() {
       })
       .catch(() => setIndustries([]));
   }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setEditLoading(true);
+    setEditError('');
+    fetchWithAuth(`/api/quotations/${id}/edit`).then(async res => {
+      const quote = await res.json();
+      if (!res.ok) throw new Error(quote.error || 'Teklif yüklenemedi.');
+      if (cancelled) return;
+      setFormData({
+        clientId: quote.clientId, projectName: quote.projectName, quoteNumber: quote.quoteNumber,
+        date: quote.date, expiryDate: quote.expiryDate, currency: quote.currency,
+        projectDurationMonths: quote.projectDurationMonths, escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
+        procurementProfile: quote.procurementProfile, carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
+        informationDeliveryLevel: quote.informationDeliveryLevel, informationDeliveryCostPercent: Number(quote.informationDeliveryCostPercent),
+        notes: quote.notes ?? '',
+      });
+      setItems(quote.items);
+      setSelectedIndustry(quote.industryId ?? '');
+      setEditVersion(quote.updatedAt);
+    }).catch(error => { if (!cancelled) setEditError(error instanceof Error ? error.message : 'Teklif yüklenemedi.'); })
+      .finally(() => { if (!cancelled) setEditLoading(false); });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const calculateItemTotal = (item: Partial<QuoteItem>) => {
     const qty = Number(item.quantity) || 0;
@@ -267,21 +299,24 @@ export function CreateQuote() {
     : 0;
 
   const handleSave = async (status: QuoteStatus = QuoteStatus.DRAFT) => {
+    if (id && (!editVersion || editLoading || editError)) return;
     if (!formData.clientId || !formData.projectName) {
       toast.error('Lütfen zorunlu alanları doldurun.');
       return;
     }
 
     setLoading(true);
+    setSaveError('');
     try {
-      const res = await fetchWithAuth('/api/quotations', {
-        method: 'POST',
+      const res = await fetchWithAuth(id ? `/api/quotations/${id}/edit` : '/api/quotations', {
+        method: id ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           ...totals,
-          status,
-          industryId: selectedIndustry,
+          status: QuoteStatus.DRAFT,
+          ...(id ? { updatedAt: editVersion } : {}),
+          industryId: selectedIndustry || null,
           items: items.map(({ id, ...i }) => i)
         }),
       });
@@ -291,10 +326,13 @@ export function CreateQuote() {
         toast.success('Teklif başarıyla kaydedildi.');
         navigate(`/app/quotes/${newQuote.id}`);
       } else {
-        throw new Error('Kayıt başarısız');
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || 'Teklif kaydedilemedi.');
       }
     } catch (error) {
-      toast.error('Teklif kaydedilemedi.');
+      const message = error instanceof Error ? error.message : 'Teklif kaydedilemedi.';
+      setSaveError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -325,11 +363,18 @@ export function CreateQuote() {
     toast.success("Kentsel Dönüşüm & Mühendislik Demo Şablonu Yüklendi!");
   };
 
+  if (id && (editLoading || editError || !['owner', 'admin', 'manager'].includes(role ?? ''))) return (
+    <PageContainer>
+      <p role={editLoading ? 'status' : 'alert'}>{editLoading ? 'Teklif yükleniyor...' : editError || 'Düzenleme yetkiniz yok.'}</p>
+      {!editLoading && <Button onClick={() => navigate(`/app/quotes/${id}`)}>Teklife dön</Button>}
+    </PageContainer>
+  );
+
   return (
     <PageContainer>
       <PageHeader 
-        title="Yeni Teklif Oluştur" 
-        description="AI destekli kalem sihirbazı ile saniyeler içinde profesyonel teklifler hazırlayın."
+        title={id ? 'Taslağı Düzenle' : 'Yeni Teklif Oluştur'}
+        description={id ? formData.quoteNumber : 'AI destekli kalem sihirbazı ile saniyeler içinde profesyonel teklifler hazırlayın.'}
         icon={Plus}
         backButton={{
           label: "Tekliflere Dön",
@@ -337,7 +382,7 @@ export function CreateQuote() {
         }}
         actions={
           <div className="flex flex-wrap gap-3">
-            <Button 
+            {!id && <><Button
               variant="outline" 
               onClick={() => navigate('/app/ifc-parser')}
               className="border-emerald-500/30 bg-emerald-950/30 text-emerald-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-emerald-900/50"
@@ -350,30 +395,23 @@ export function CreateQuote() {
               className="border-orange-500/30 bg-orange-950/30 text-orange-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-orange-900/50"
             >
               <Sparkles size={14} /> Demo Şablon Yükle
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleSave(QuoteStatus.DRAFT)} 
-              disabled={loading}
-              className="border-zinc-800 bg-zinc-900/50 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2"
-            >
-              <Save size={16} /> Taslak Kaydet
-            </Button>
+            </Button></>}
             <Button 
               className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-8 gap-2 shadow-lg shadow-orange-900/20" 
-              onClick={() => handleSave(QuoteStatus.SENT)} 
+              onClick={() => handleSave()}
               disabled={loading}
             >
-              Yayınla & Gönder
+              <Save size={16} /> {loading ? 'Kaydediliyor...' : 'Taslağı Kaydet'}
             </Button>
           </div>
         }
       />
+      {saveError && <div role="alert" className="mb-4 text-red-400">{saveError} {id && <Button variant="outline" onClick={() => window.location.reload()}>Yeniden yükle</Button>}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-8">
+        <div className="min-w-0 lg:col-span-8 space-y-8">
           {/* AI Wizard Section */}
-          <Card className="border-orange-500/20 bg-orange-600/5 overflow-hidden shadow-none transition-all hover:bg-orange-600/10 group relative">
+          {!id && <Card className="border-orange-500/20 bg-orange-600/5 overflow-hidden shadow-none transition-all hover:bg-orange-600/10 group relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
             <CardHeader className="pb-3 border-b border-orange-500/10">
               <CardTitle className="text-orange-500 flex items-center gap-3 text-[10px] uppercase tracking-widest font-black">
@@ -473,7 +511,7 @@ export function CreateQuote() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card>}
 
           {/* Line Items Table */}
           <SectionWrapper title="Teklif Kalemleri" description="Proje kapsamında sunacağınız iş kalemleri ve birim fiyatlar.">
@@ -498,7 +536,7 @@ export function CreateQuote() {
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="min-w-[800px]">
                     <TableHeader className="bg-zinc-950/50">
                       <TableRow className="border-zinc-800 hover:bg-transparent">
                         <TableHead className="w-[45%] text-zinc-500 font-black text-[10px] uppercase tracking-widest pl-6 py-4">DETAY / İŞ KALEMİ</TableHead>
@@ -581,7 +619,7 @@ export function CreateQuote() {
         </div>
 
         {/* Sidebar Controls */}
-        <div className="lg:col-span-4 space-y-8">
+        <div className="min-w-0 lg:col-span-4 space-y-8">
           <SectionWrapper title="Genel Taslak Bilgileri" description="Teklifin temel parametrelerini belirleyin.">
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="space-y-6 pt-6">
@@ -605,6 +643,7 @@ export function CreateQuote() {
                   labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
                 >
                   <Input
+                    aria-label="Proje başlığı"
                     value={formData.projectName}
                     onChange={(e) => setFormData({...formData, projectName: e.target.value})}
                     className="bg-zinc-950 border-zinc-800 focus:border-orange-500 h-12 text-sm font-bold"

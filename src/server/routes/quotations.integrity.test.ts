@@ -13,7 +13,7 @@ useTestIsolation();
 
 test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;
-  const [{ db }, { companies, clients, quotations, quotationItems, quotationItemEvidence, users, memberships,
+  const [{ db }, { companies, clients, quotations, quotationItems, quotationItemEvidence, users, memberships, subscriptions,
     documents, documentProcessingRuns, normalizedQuantityRows, priceSources, priceSnapshots }, { registerQuotationRoutes }] = await Promise.all([
     import("../../db"), import("../../db/schema"), import("./quotations"),
   ]);
@@ -25,6 +25,8 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   ]));
   registerQuotationRoutes(app, () => {});
   const [company, other] = await db.insert(companies).values([{ name: "Quotes A" }, { name: "Quotes B" }]).returning();
+  await db.insert(subscriptions).values([company, other].map(tenant => ({ companyId: tenant.id, plan: "starter" as const,
+    bonusQuoteLimit: 1000, currentPeriodStart: new Date("2020-01-01T00:00:00Z") })));
   const [client, foreignClient] = await db.insert(clients).values([
     { name: "Own client", companyId: company.id, type: "company" },
     { name: "Other client", companyId: other.id, type: "company" },

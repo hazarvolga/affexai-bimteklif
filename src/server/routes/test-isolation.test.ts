@@ -56,6 +56,14 @@ test("test isolation refuses unrelated databases and shared schema names", () =>
   assert.equal(url.searchParams.get("options"), `-csearch_path=${schema}`);
 });
 
+test("CI isolation accepts only the explicitly named disposable TeklifPro databases", () => {
+  const schema = `teklifpro_test_${"c".repeat(32)}`;
+  for (const name of ["teklifpro_bootstrap_test", "teklifpro_upgrade_test", "teklifpro_migration_restore_test"]) {
+    assert.equal(new URL(isolatedDatabaseUrl(`postgres://localhost/${name}`, schema)).pathname, `/${name}`);
+  }
+  assert.throws(() => isolatedDatabaseUrl("postgres://localhost/teklifpro_random_test", schema));
+});
+
 test("isolated schemas and storage are removed after a failed fixture setup", async (t) => {
   dotenv.config({ path: ".env.local", quiet: true });
   if (await skipIfDatabaseUnavailable(t)) return;
