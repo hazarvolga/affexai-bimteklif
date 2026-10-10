@@ -17,6 +17,7 @@ export function TenantsList() {
   const [editPlanId, setEditPlanId] = useState('');
   const [editStatus, setEditStatus] = useState('');
   const [editBonus, setEditBonus] = useState(0);
+  const [editAdminNotes, setEditAdminNotes] = useState('');
 
   const loadData = () => {
     setLoading(true);
@@ -33,9 +34,39 @@ export function TenantsList() {
     loadData();
   }, []);
 
+  const handleUpdateNotes = async () => {
+    try {
+      const res = await fetchWithAuth(`/api/admin/tenants/${selectedTenant.id}/notes`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminNotes: editAdminNotes })
+      });
+      if (res.ok) {
+        toast.success('Admin notu güncellendi');
+        loadData();
+      }
+    } catch (e) { toast.error('Hata oluştu'); }
+  };
+
+
+  const handleCsvExport = () => {
+    const csvHeader = "Firma Adi,Email,Paket,Durum,Kota,Kullanilan,Bonus\n";
+    const csvContent = tenants.map(t => `"${t.name}","${t.owner_email || ''}","${t.plan_name || ''}","${t.subscription_status}","${t.plan_quota || 0}","${t.usage_count || 0}","${t.bonus_quota || 0}"`).join('\n');
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "tenants_export.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
   const openManageModal = (tenant: any) => {
     setSelectedTenant(tenant);
-    setEditPlanId(plans.find(p => p.name === tenant.plan_name)?.id || '');
+    setEditPlanId(tenant.plan_id || '');
     setEditStatus(tenant.subscription_status || 'active');
     setEditBonus(tenant.bonus_quote_limit || 0);
     setIsModalOpen(true);
@@ -74,8 +105,8 @@ export function TenantsList() {
         </div>
       </div>
 
-      <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden">
-        <table className="w-full text-left text-sm text-zinc-400">
+      <div className="bg-zinc-900/40 border border-zinc-800 rounded-lg overflow-x-auto">
+        <table className="w-full min-w-[700px] text-left text-sm text-zinc-400">
           <thead className="bg-zinc-900/80 text-xs uppercase text-zinc-500 border-b border-zinc-800">
             <tr>
               <th className="px-6 py-4 font-medium">Firma / Yetkili</th>
@@ -91,11 +122,9 @@ export function TenantsList() {
             ) : tenants.length === 0 ? (
               <tr><td colSpan={5} className="p-8 text-center">Henüz müşteri firması yok.</td></tr>
             ) : tenants.map((tenant) => {
-              const limit = tenant.monthly_quote_limit || 0;
-              const usage = tenant.current_usage || 0;
-              const bonus = tenant.bonus_quote_limit || 0;
-              const totalLimit = limit + bonus;
-              const ratio = totalLimit > 0 ? usage / totalLimit : 0;
+              const usage = tenant.current_usage;
+              const totalLimit = tenant.quota_limit;
+              const ratio = totalLimit === null ? 0 : totalLimit > 0 ? usage / totalLimit : 1;
               const isWarning = ratio > 0.8;
               const isDanger = ratio >= 1;
               
@@ -112,7 +141,7 @@ export function TenantsList() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="text-white font-medium">{usage} <span className="text-zinc-600 font-normal">/ {totalLimit}</span></div>
+                      <div className="text-white font-medium">{usage} <span className="text-zinc-600 font-normal">/ {totalLimit ?? 'Belirsiz'}</span></div>
                       <div className="h-1.5 w-24 bg-zinc-800 rounded-full overflow-hidden">
                         <div className={`h-full ${isDanger ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-indigo-500'}`} style={{ width: `${Math.min(ratio * 100, 100)}%` }} />
                       </div>
@@ -121,14 +150,17 @@ export function TenantsList() {
                   <td className="px-6 py-4">
                     {tenant.subscription_status === 'active' ? (
                       <span className="text-emerald-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400"/> Aktif</span>
-                    ) : tenant.subscription_status === 'suspended' ? (
-                      <span className="text-red-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-400"/> Askıda</span>
+                    ) : tenant.subscription_status === 'canceled' ? (
+                      <span className="text-red-400">İptal</span>
+                    ) : tenant.subscription_status === 'past_due' ? (
+                      <span className="text-amber-400">Ödeme bekliyor</span>
                     ) : (
                       <span className="text-zinc-500 capitalize">{tenant.subscription_status}</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <Button variant="outline" size="sm" onClick={() => openManageModal(tenant)} className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800">
+                    <Button variant="outline" size="sm" onClick={() => handleImpersonate(tenant.id, tenant.name)} className="mr-2 border-indigo-700/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20">İçine Gir</Button>
+                      <Button variant="outline" size="sm" onClick={() => openManageModal(tenant)} className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800">
                       Yönet
                     </Button>
                   </td>
@@ -162,14 +194,14 @@ export function TenantsList() {
                 <label className="block text-sm font-medium text-zinc-400 mb-1">Abonelik Durumu</label>
                 <select value={editStatus} onChange={e => setEditStatus(e.target.value)} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white">
                   <option value="active">Aktif</option>
-                  <option value="suspended">Askıda (Giriş Yapılamaz/İşlem Yapılamaz)</option>
-                  <option value="trial">Deneme Sürümü</option>
+                  <option value="past_due">Ödeme bekliyor</option>
+                  <option value="canceled">İptal</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-zinc-400 mb-1">Bonus Kota Ekle</label>
-                <input type="number" value={editBonus} onChange={e => setEditBonus(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white" />
+                <input type="number" min={0} max={2147483647} step={1} value={editBonus} onChange={e => setEditBonus(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white" />
                 <p className="text-xs text-zinc-500 mt-1">Paket limitine ek olarak verilecek ekstra teklif hakkı.</p>
               </div>
             </div>

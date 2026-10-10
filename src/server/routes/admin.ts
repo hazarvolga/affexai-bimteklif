@@ -1,8 +1,12 @@
 import type { Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
-import { companies, subscriptions, plans, users, memberships, usageRecords } from "../../db/schema";
-import { eq, sql } from "drizzle-orm";
+import { plans } from "../../db/schema";
+import { sql } from "drizzle-orm";
+import { z } from 'zod';
+import { createPlanInput, updatePlanInput, updateSubscriptionInput } from '../admin/input';
+import { AdminChangeError, createPlan, updatePlan, updateSubscription } from '../admin/changes';
+import { readAdminTenants } from '../admin/stats';
 
 export function registerAdminRoutes(app: Express) {
   // 1. Dashboard Metrics
@@ -39,9 +43,9 @@ export function registerAdminRoutes(app: Express) {
       });
 
       // Bu ayki toplam teklif sayısı (usage_records üzerinden, mevcut ay formatı YYYY-MM)
-      const currentPeriod = new Date().toISOString().slice(0, 7);
       const usageRes = await db.execute(sql`
-        SELECT SUM(quote_count) as total_quotes FROM usage_records WHERE period = ${currentPeriod}
+        SELECT SUM(quote_count) as total_quotes FROM usage_records
+        WHERE period = to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM')
       `);
       const totalQuotesThisMonth = Number(usageRes.rows[0]?.total_quotes || 0);
 
@@ -61,29 +65,9 @@ export function registerAdminRoutes(app: Express) {
   // Get all tenants
   app.get("/api/admin/tenants", authenticate, checkSuperAdmin(), async (req, res) => {
     try {
-      const tenants = await db.execute(sql`
-        SELECT 
-          c.id, c.name, c.created_at,
-          u.email as owner_email,
-          s.status as subscription_status,
-          p.name as plan_name,
-          p.monthly_quote_limit,
-          s.bonus_quote_limit,
-          s.current_period_start,
-          s.current_period_end,
-          COALESCE(ur.quote_count, 0) as current_usage
-        FROM companies c
-        LEFT JOIN subscriptions s ON s.company_id = c.id
-        LEFT JOIN plans p ON p.id = s.plan_id
-        LEFT JOIN memberships m ON m.company_id = c.id AND m.role = 'owner'
-        LEFT JOIN users u ON u.id = m.user_id
-        LEFT JOIN usage_records ur ON ur.company_id = c.id AND ur.period = to_char(CURRENT_DATE, 'YYYY-MM')
-        ORDER BY c.created_at DESC
-      `);
-      return res.json(tenants.rows);
+      return res.json(await readAdminTenants());
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Tenants fetch failed." });
+      return res.status(503).json({ error: 'Tenant quota stats unavailable' });
     }
   });
 
@@ -100,10 +84,9 @@ export function registerAdminRoutes(app: Express) {
   // Create a plan
   app.post("/api/admin/plans", authenticate, checkSuperAdmin(), async (req, res) => {
     try {
-      const { name, monthlyQuoteLimit, monthlyPrice, isActive } = req.body;
-      const [newPlan] = await db.insert(plans).values({
-        name, monthlyQuoteLimit, monthlyPrice, isActive
-      }).returning();
+      const input = createPlanInput.safeParse(req.body);
+      if (!input.success) return res.status(400).json({ error: 'Invalid plan fields' });
+      const newPlan = await createPlan(req.user.userId, input.data);
       return res.status(201).json(newPlan);
     } catch (error) {
       return res.status(500).json({ error: "Plan creation failed." });
@@ -113,13 +96,12 @@ export function registerAdminRoutes(app: Express) {
   // Update a plan
   app.patch("/api/admin/plans/:id", authenticate, checkSuperAdmin(), async (req, res) => {
     try {
-      const { id } = req.params;
-      const { name, monthlyQuoteLimit, monthlyPrice, isActive } = req.body;
-      const [updatedPlan] = await db.update(plans).set({
-        name, monthlyQuoteLimit, monthlyPrice, isActive
-      }).where(eq(plans.id, id)).returning();
+      const input = updatePlanInput.safeParse(req.body);
+      if (!input.success || !z.string().uuid().safeParse(req.params.id).success) return res.status(400).json({ error: 'Invalid plan fields' });
+      const updatedPlan = await updatePlan(req.user.userId, req.params.id, input.data);
       return res.json(updatedPlan);
     } catch (error) {
+      if (error instanceof AdminChangeError) return res.status(error.status).json({ error: error.message });
       return res.status(500).json({ error: "Plan update failed." });
     }
   });
@@ -127,33 +109,13 @@ export function registerAdminRoutes(app: Express) {
   // Update tenant subscription (plan, status, bonus quote limit)
   app.patch("/api/admin/tenants/:companyId", authenticate, checkSuperAdmin(), async (req, res) => {
     try {
-      const { companyId } = req.params;
-      const { planId, status, bonusQuoteLimit } = req.body;
-      
-      const [updatedSub] = await db.update(subscriptions)
-        .set({
-          planId: planId || null,
-          status: status || 'active',
-          bonusQuoteLimit: bonusQuoteLimit || 0
-        })
-        .where(eq(subscriptions.companyId, companyId))
-        .returning();
-        
-      if (!updatedSub) {
-        // if no subscription exists for company, create one
-        await db.insert(subscriptions).values({
-          companyId,
-          planId: planId || null,
-          status: status || 'active',
-          bonusQuoteLimit: bonusQuoteLimit || 0,
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-        });
-      }
+      const input = updateSubscriptionInput.safeParse(req.body);
+      if (!input.success || !z.string().uuid().safeParse(req.params.companyId).success) return res.status(400).json({ error: 'Invalid subscription fields' });
+      await updateSubscription(req.user.userId, req.params.companyId, input.data);
       
       return res.json({ success: true });
     } catch (error) {
-      console.error(error);
+      if (error instanceof AdminChangeError) return res.status(error.status).json({ error: error.message });
       return res.status(500).json({ error: "Tenant update failed." });
     }
   });

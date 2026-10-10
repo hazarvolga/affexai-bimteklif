@@ -172,6 +172,8 @@ export const companies = pgTable("companies", {
   defaultEscalationVolatilityPercent: numeric("default_escalation_volatility_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   defaultCarbonRiskPremiumPercent: numeric("default_carbon_risk_premium_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   defaultInformationDeliveryCostPercent: numeric("default_information_delivery_cost_percent", { precision: 5, scale: 2 }).default("0").notNull(),
+  adminNotes: text("admin_notes"),
+
   phone: text("phone"),
   email: text("email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
