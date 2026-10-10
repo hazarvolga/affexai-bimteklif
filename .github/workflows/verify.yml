@@ -1,0 +1,53 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: teklifpro_bootstrap_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d teklifpro_bootstrap_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test
+      RELEASE_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test
+      NODE_ENV: test
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+      GAP_ADMIN_SMOKE: 'true'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24.18.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 11.17.0
+          run_install: false
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: test -x "$PUPPETEER_EXECUTABLE_PATH"
+      - run: pnpm exec tsx scripts/release-migrations/cli.ts apply
+      - run: pnpm exec tsc --noEmit -p scripts/release-migrations/tsconfig.json
+      - run: pnpm exec tsx --test scripts/release-migrations/artifacts.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/backup-docker.test.ts
+      - run: pnpm run verify
+      - run: pnpm run prisma:validate:shadow
+      - run: pnpm run prisma:shadow-contract
+      - run: pnpm exec tsx scripts/gap-invitation-ui-smoke.ts
+      - run: node scripts/dependency-audit-policy.mjs

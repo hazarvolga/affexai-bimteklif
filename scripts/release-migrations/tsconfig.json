@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "./*.ts",
+    "../../src/server/routes/test-isolation.ts",
+    "../../src/server/routes/test-isolation.test.ts"
+  ],
+  "exclude": []
+}

@@ -1,0 +1,29 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import * as schema from '../../src/db/schema';
+import { releaseDirectory, drizzleApi } from './config';
+import { loadMigrations } from './runner';
+import { sha256 } from './catalog';
+
+const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+const [argument, ...extra] = process.argv.slice(2);
+if (!argument?.startsWith('--name=') || extra.length) throw new Error('Append only: generate.ts --name=descriptive_name');
+const name = argument.slice('--name='.length);
+if (!/^[a-z][a-z_]{1,60}$/.test(name)) throw new Error('Invalid migration name');
+const existing = await loadMigrations();
+const manifest = JSON.parse(await readFile(`${releaseDirectory}/manifest.json`, 'utf8'));
+const journal = JSON.parse(await readFile(`${releaseDirectory}/meta/_journal.json`, 'utf8'));
+const idx = existing.length;
+const previous = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(idx - 1).padStart(4, '0')}_snapshot.json`, 'utf8'));
+const current = drizzleApi.generateDrizzleJson(schema, previous.id);
+const statements = await drizzleApi.generateMigration(previous, current);
+if (!statements.length) throw new Error('No schema changes to append');
+const tag = `${String(idx).padStart(4, '0')}_${name}`;
+const sql = `${statements.join('\n--> statement-breakpoint\n')}\n`;
+const snapshot = json(current);
+await writeFile(`${releaseDirectory}/${tag}.sql`, sql, { flag: 'wx' });
+await writeFile(`${releaseDirectory}/meta/${String(idx).padStart(4, '0')}_snapshot.json`, snapshot, { flag: 'wx' });
+const entry = { idx, tag, sha256: sha256(sql), snapshotSha256: sha256(snapshot), statements: statements.length };
+await writeFile(`${releaseDirectory}/meta/_journal.json`, json({ ...journal, entries: [...journal.entries,
+  { idx, version: '7', when: journal.entries.at(-1).when + 1, tag, breakpoints: true }] }));
+await writeFile(`${releaseDirectory}/manifest.json`, json({ ...manifest, migrations: [...manifest.migrations, entry] }));
+console.log(JSON.stringify(entry, null, 2));

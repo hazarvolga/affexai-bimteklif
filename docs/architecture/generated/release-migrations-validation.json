@@ -1,0 +1,26 @@
+{
+  "contract": "teklifpro-release-validation.v1",
+  "source": "versioned release SQL only; no cloned schema",
+  "verifiedStageSignatures": {
+    "0000_baseline": "ee012a21f5e1e5aa36418e52e3797201537457c9533e96d8936fecc13278c071",
+    "0001_admin_billing": "3c04027a9691cb5dc9803687058a63446bc6a72f4a387f7d08f6f0e3d871652b",
+    "0002_quota_constraints": "4af9c0f3de75b11a7a55091b03c55245ce1a186d94156022e45a978c017908e6"
+  },
+  "baselineSignature": "ee012a21f5e1e5aa36418e52e3797201537457c9533e96d8936fecc13278c071",
+  "headSignature": "4af9c0f3de75b11a7a55091b03c55245ce1a186d94156022e45a978c017908e6",
+  "schemaParity": "pass",
+  "signatureAnchoring": "pass: forged complete ledger and head-as-baseline rejected",
+  "ciIsolation": "pass",
+  "adoption": "pass",
+  "upgrade": "pass",
+  "rollback": "pass",
+  "idempotency": "pass",
+  "quotaConstraints": "pass: five invalid-data rollbacks, five write guards, zero and independent periods/tenants",
+  "backupRestore": {
+    "status": "restored",
+    "transport": "verified-docker-exec",
+    "container": "teklifpro-postgres",
+    "archiveBytes": 255157
+  },
+  "disposableCleanup": "completed"
+}

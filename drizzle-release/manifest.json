@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "baselineSourceSha256": "d417c184bbaed12c39298ee5f5d72992c94554a4377bb1ff95e45aeb21b94ea5",
+  "migrations": [
+    {
+      "idx": 0,
+      "tag": "0000_baseline",
+      "sha256": "32765484c0e9ed02676301fca55a1930c21cb287cdbdd1c7e533a223fc48263d",
+      "snapshotSha256": "6e273fb83c2810206e4d006c31912a46343bacffa99b347e579d3a324500fe29",
+      "statements": 274
+    },
+    {
+      "idx": 1,
+      "tag": "0001_admin_billing",
+      "sha256": "be59a2fc754c26a894adfbe1ac9f72913c3ae15777c4bdaba3dba3b68d858d38",
+      "snapshotSha256": "05ded3b2cd5c1d32c530a6ec7572226d19a2292d932eb3d7590e5ef715fe8534",
+      "statements": 11
+    },
+    {
+      "idx": 2,
+      "tag": "0002_quota_constraints",
+      "sha256": "0d4520be2cd97dcb87b312fbaec53e8f2227e973baa01cf6edda0ba81e9d721d",
+      "snapshotSha256": "f903c4f85b18fe1b7e731d77e41d4ad1dfe6e2f6175cb6da8c4224a75b63d560",
+      "statements": 5
+    }
+  ]
+}
