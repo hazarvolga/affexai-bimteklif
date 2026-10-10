@@ -96,6 +96,91 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
       assert.equal(attempts, 2);
     } finally { await runner.stop(); }
   });
+
+  await t.test("IFC document routes to process_smartcheck_ifc_document while CSV routes to process_smartcheck_document", async () => {
+    // 1. Create an IFC document
+    const ifcContent = Buffer.from("ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');\nFILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\nENDSEC;\nEND-ISO-10303-21;");
+    const [ifcDoc] = await db.insert(documents).values({
+      companyId: company.id, uploadedByUserId: user.id, originalFileName: "model.ifc", displayName: "model", mimeType: "application/ifc",
+      fileSizeBytes: ifcContent.length, storageKey: "model.ifc", checksumSha256: "b".repeat(64)
+    }).returning();
+    await adapter.put("model.ifc", ifcContent, "application/ifc");
+
+    await changeProcessingRun({ companyId: company.id, userId: user.id, documentId: ifcDoc.id, action: "process" });
+    const ifcJobRows = (await db.execute(sql`select task_identifier from ${worker}.jobs where key = ${"smartcheck:" + (await db.select().from(documentProcessingRuns).where(eq(documentProcessingRuns.documentId, ifcDoc.id)))[0].id}`)).rows;
+    assert.equal(ifcJobRows[0]?.task_identifier, "process_smartcheck_ifc_document");
+
+    // 2. CSV document routes to process_smartcheck_document
+    const [csvDoc] = await db.insert(documents).values({
+      companyId: company.id, uploadedByUserId: user.id, originalFileName: "data.csv", displayName: "data", mimeType: "text/csv",
+      fileSizeBytes: 10, storageKey: "data.csv", checksumSha256: "e".repeat(64)
+    }).returning();
+    await adapter.put("data.csv", Buffer.from("a,b,c\n1,2,3"), "text/csv");
+    const csvRun = await changeProcessingRun({ companyId: company.id, userId: user.id, documentId: csvDoc.id, action: "process" });
+    const csvJobRows = (await db.execute(sql`select task_identifier from ${worker}.jobs where key = ${"smartcheck:" + csvRun.run.id}`)).rows;
+    assert.equal(csvJobRows[0]?.task_identifier, "process_smartcheck_document");
+  });
+
+  await t.test("worker.ts does not register process_smartcheck_ifc_document task", async () => {
+    const { workerTaskList } = await import("./worker");
+    assert.equal("process_smartcheck_document" in workerTaskList, true);
+    assert.equal("process_smartcheck_ifc_document" in workerTaskList, false);
+  });
+
+  await t.test("recover succeeds without storage access even if file is missing in storage", async () => {
+    const [missingDoc] = await db.insert(documents).values({
+      companyId: company.id, uploadedByUserId: user.id, originalFileName: "missing.csv", displayName: "missing", mimeType: "text/csv",
+      fileSizeBytes: 10, storageKey: "missing_from_disk.csv", checksumSha256: "c".repeat(64)
+    }).returning();
+    const [staleRun] = await db.insert(documentProcessingRuns).values({
+      companyId: company.id, documentId: missingDoc.id, idempotencyKey: "missing:stale", pipelineVersion: 1, status: "running",
+      progressMessage: "running", createdAt: new Date(0), updatedAt: new Date(0)
+    }).returning();
+
+    // Storage does NOT have missing_from_disk.csv, but recover MUST still succeed
+    const res = await changeProcessingRun({ companyId: company.id, userId: user.id, documentId: missingDoc.id, action: "recover" });
+    assert.equal(res.status, 200);
+    assert.equal(res.run.status, "failed");
+    assert.equal(res.run.errorCode, "WORKER_STALE");
+  });
+
+  await t.test("real ifc-worker picks up and processes process_smartcheck_ifc_document task", { timeout: 20_000 }, async () => {
+    const { run, Logger } = await import("graphile-worker");
+    const [ifcDoc] = await db.insert(documents).values({
+      companyId: company.id, uploadedByUserId: user.id, originalFileName: "worker_test.ifc", displayName: "worker_test", mimeType: "application/ifc",
+      fileSizeBytes: 100, storageKey: "worker_test.ifc", checksumSha256: "d".repeat(64)
+    }).returning();
+    const ifcContent = Buffer.from("ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');\nFILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\nENDSEC;\nEND-ISO-10303-21;");
+    await adapter.put("worker_test.ifc", ifcContent, "application/ifc");
+
+    const runResult = await changeProcessingRun({ companyId: company.id, userId: user.id, documentId: ifcDoc.id, action: "process" });
+    assert.equal(runResult.status, 202);
+
+    let executed = false;
+    const runner = await run({
+      connectionString: process.env.DATABASE_URL,
+      schema: process.env.GRAPHILE_WORKER_SCHEMA,
+      concurrency: 1,
+      pollInterval: 100,
+      noHandleSignals: true,
+      logger: new Logger(() => () => {}),
+      taskList: {
+        process_smartcheck_ifc_document: async (payload) => {
+          const { documentId } = payload as { documentId: string };
+          assert.equal(documentId, ifcDoc.id);
+          executed = true;
+        },
+      },
+    });
+
+    try {
+      const deadline = Date.now() + 15_000;
+      while (!executed && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
+      assert.equal(executed, true, "ifc worker task should have executed");
+    } finally {
+      await runner.stop();
+    }
+  });
 });
 
 import fs from 'node:fs';

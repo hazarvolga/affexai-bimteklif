@@ -8,7 +8,8 @@ import { documents, documentProcessingRuns, smartcheckAuditLogs } from '../../db
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
-const graphileSchema = () => process.env.GRAPHILE_WORKER_SCHEMA || 'teklifpro_queue';
+import { graphileWorkerSchema } from './config';
+const graphileSchema = () => graphileWorkerSchema();
 
 export class ProcessingConflict extends Error {
   constructor(public readonly code: string, public readonly status = 409) { super(code); }
@@ -48,12 +49,17 @@ export async function enqueueSmartCheckProcessing(tx: Transaction, kind: 'ifc' |
 export async function changeProcessingRun(input: { companyId: string; userId: string; documentId: string; action: 'process' | 'retry' | 'recover' }) {
   await ensureQueueSchema();
   const { companyId, userId, documentId, action } = input;
-  const storage = createStorageAdapter();
-  const docInfo = await db.select({ storageKey: documents.storageKey, originalFileName: documents.originalFileName, mimeType: documents.mimeType, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId))).then(rows => rows[0]);
-  if (!docInfo) throw new ProcessingConflict("DOCUMENT_NOT_FOUND", 404);
-  if (docInfo.checksumSha256 === "pending") throw new ProcessingConflict("UPLOAD_INCOMPLETE");
-  const sample = await storage.get(docInfo.storageKey, { maxBytes: 8192 });
-  const kind = detectAndValidateFile(sample, docInfo.originalFileName, docInfo.mimeType);
+
+  let kind: "ifc" | "xlsx" | "csv" = "ifc";
+  if (action !== "recover") {
+    const docInfo = await db.select({ storageKey: documents.storageKey, originalFileName: documents.originalFileName, mimeType: documents.mimeType, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId))).then(rows => rows[0]);
+    if (!docInfo) throw new ProcessingConflict("DOCUMENT_NOT_FOUND", 404);
+    if (docInfo.checksumSha256 === "pending") throw new ProcessingConflict("UPLOAD_INCOMPLETE");
+
+    const storage = createStorageAdapter();
+    const sample = await storage.get(docInfo.storageKey, { prefixBytes: 8192 });
+    kind = detectAndValidateFile(sample, docInfo.originalFileName, docInfo.mimeType);
+  }
 
   return db.transaction(async (tx) => {
     // Serialize request-side state changes for this tenant document, including concurrent retries.

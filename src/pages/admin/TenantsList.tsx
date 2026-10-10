@@ -159,8 +159,7 @@ export function TenantsList() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <Button variant="outline" size="sm" onClick={() => handleImpersonate(tenant.id, tenant.name)} className="mr-2 border-indigo-700/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20">İçine Gir</Button>
-                      <Button variant="outline" size="sm" onClick={() => openManageModal(tenant)} className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800">
+                    <Button variant="outline" size="sm" onClick={() => openManageModal(tenant)} className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800">
                       Yönet
                     </Button>
                   </td>

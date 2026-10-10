@@ -16,3 +16,7 @@ export function smartcheckImportEnabled(companyId: string): boolean {
 export function localStorageRoot(): string {
   return path.resolve(process.env.SMARTCHECK_LOCAL_STORAGE_DIR ?? ".data/smartcheck");
 }
+
+export function graphileWorkerSchema(): string {
+  return process.env.GRAPHILE_WORKER_SCHEMA || "teklifpro_queue";
+}

@@ -58,7 +58,9 @@ export async function editManualQuotation(companyId: string, id: string, input: 
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for('share');
     if (!client) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
     const { items, updatedAt: _version, ...fields } = input;
-    const totals = calculateQuotationTotals(items);
+    const totals = calculateQuotationTotals(items.map(item => ({
+      quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
+    })));
     const updatedAt = new Date(Math.max(Date.now(), quote.updatedAt.getTime() + 1));
     const [saved] = await tx.update(quotations).set({
       ...fields, updatedAt,
@@ -71,10 +73,13 @@ export async function editManualQuotation(companyId: string, id: string, input: 
     await tx.delete(quotationItems).where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, companyId)));
     await tx.insert(quotationItems).values(items.map(item => ({
       ...item, companyId, quotationId: id,
+      description: item.description, unit: item.unit,
       quantity: String(item.quantity), unitPrice: String(item.unitPrice),
       costUnitPrice: item.costUnitPrice == null ? null : String(item.costUnitPrice),
       wastePercent: String(item.wastePercent), discountPercent: String(item.discountPercent), vatPercent: String(item.vatPercent),
-      total: String(calculateLineItemTotal(item)), quantitySource: 'manual', priceSource: 'manual', verificationStatus: 'unverified', })));
+      total: String(calculateLineItemTotal({
+        quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
+      })), quantitySource: 'manual', priceSource: 'manual', verificationStatus: 'unverified', })));
     await tx.delete(quotationFinancials).where(eq(quotationFinancials.quotationId, id));
     return saved;
   });

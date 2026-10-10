@@ -5,4 +5,14 @@ allowBuilds:
   esbuild: true
   prisma: true
   protobufjs: true
-  puppeteer: true
+  puppeteer: false
+overrides:
+  'proxy-addr@<2.0.8': 2.0.8
+  'fast-uri@>=3.0.0 <3.1.8': 3.1.8
+  'ip-address@>=10.0.0 <10.7.1': 10.7.1
+  'deepmerge-ts@<8.0.0': 8.0.0
+  'qs@>=6.0.0 <6.16.0': 6.16.0
+  'hono@>=4.0.0 <4.13.7': 4.13.7
+  '@grpc/grpc-js@>=1.0.0 <1.13.6': 1.13.6
+  'basic-ftp@<6.2.1': 6.2.1
+  'uuid@>=8.0.0 <11.1.1': 11.1.1

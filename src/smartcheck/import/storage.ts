@@ -1,31 +1,27 @@
 import { Readable } from "node:stream";
-import crypto from 'node:crypto';
-import { createWriteStream } from "node:fs";
+import crypto from "node:crypto";
+import { createWriteStream, createReadStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import fs from "node:fs/promises";
-import { createReadStream } from "node:fs";
 import path from "node:path";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { localStorageRoot } from "./config";
-import { readBoundedBody, withReadDeadline, type StorageReadOptions } from './bounded-read';
+import { localStorageRoot, SMARTCHECK_MAX_FILE_BYTES } from "./config";
+import { readBoundedBody, readPrefixBody, withReadDeadline, type StorageReadOptions } from "./bounded-read";
 
 export interface StorageAdapter {
   createUploadTarget(storageKey: string, contentType: string): Promise<{ uploadUrl: string; method: "PUT"; headers?: Record<string, string> }>;
-  put(storageKey: string, content: Buffer, contentType: string): Promise<void>;
+  put(storageKey: string, content: Buffer, contentType?: string): Promise<void>;
   get(storageKey: string, options?: StorageReadOptions): Promise<Buffer>;
   delete(storageKey: string): Promise<void>;
   localPath?(storageKey: string): string;
 
   downloadToFile?(storageKey: string, targetPath: string, expectedHash: string): Promise<void>;
-
   getStream?(storageKey: string): Promise<Readable>;
 }
 
-
-
 function safeKey(storageKey: string): string {
-  if (!/^[a-zA-Z0-9/_\-.]+$/.test(storageKey) || storageKey.includes("..") || path.isAbsolute(storageKey)) throw new Error("INVALID_STORAGE_KEY");
+  if (!/^[a-zA-Z0-9/_.-]+$/.test(storageKey) || storageKey.includes("..") || path.isAbsolute(storageKey)) throw new Error("INVALID_STORAGE_KEY");
   return storageKey;
 }
 
@@ -36,26 +32,35 @@ export class LocalStorageAdapter implements StorageAdapter {
     safeKey(storageKey);
     return { uploadUrl: "", method: "PUT" as const };
   }
-  async put(storageKey: string, content: Buffer): Promise<void> {
+  async put(storageKey: string, content: Buffer, _contentType?: string): Promise<void> {
     const target = this.localPath(storageKey);
     await fs.mkdir(path.dirname(target), { recursive: true, mode: 0o700 });
     await fs.writeFile(target, content, { mode: 0o600 });
   }
+
   async get(storageKey: string, options: StorageReadOptions = {}): Promise<Buffer> {
     return withReadDeadline(options, async (signal, maxBytes) => {
       const filePath = this.localPath(storageKey);
+      const isPrefix = options.prefixBytes !== undefined || options.mode === "prefix";
+      const prefixLimit = options.prefixBytes ?? (options.mode === "prefix" ? options.maxBytes : undefined);
+
+      if (isPrefix && prefixLimit !== undefined) {
+        const stream = createReadStream(filePath, { start: 0, end: prefixLimit - 1, signal });
+        return readPrefixBody(stream, prefixLimit, signal);
+      }
+
       const stat = await fs.stat(filePath);
-      return readBoundedBody(createReadStream(filePath, { signal, highWaterMark: 64 * 1024 }), maxBytes, signal, stat.size);
+      return readBoundedBody(createReadStream(filePath, { signal, highWaterMark: 64 * 1024 }), maxBytes ?? SMARTCHECK_MAX_FILE_BYTES, signal, stat.size);
     });
   }
+
   async delete(storageKey: string): Promise<void> { await fs.rm(this.localPath(storageKey), { force: true }); }
 
   async getStream(storageKey: string): Promise<Readable> {
     return createReadStream(this.localPath(storageKey));
   }
 
-
-    async downloadToFile(storageKey: string, targetPath: string, expectedHash: string): Promise<void> {
+  async downloadToFile(storageKey: string, targetPath: string, expectedHash: string): Promise<void> {
     if (!expectedHash) throw new Error("EXPECTED_HASH_REQUIRED");
     const hash = crypto.createHash("sha256");
     const source = createReadStream(this.localPath(storageKey));
@@ -71,7 +76,6 @@ export class LocalStorageAdapter implements StorageAdapter {
       throw err;
     }
   }
-
 }
 
 export class S3StorageAdapter implements StorageAdapter {
@@ -90,33 +94,49 @@ export class S3StorageAdapter implements StorageAdapter {
       } : undefined,
     });
   }
+
   async createUploadTarget(storageKey: string, contentType: string) {
     const command = new PutObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey), ContentType: contentType });
     return { uploadUrl: await getSignedUrl(this.client, command, { expiresIn: 900 }), method: "PUT" as const, headers: { "content-type": contentType } };
   }
-  async put(storageKey: string, content: Buffer, contentType: string): Promise<void> {
-    await this.client.send(new PutObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey), Body: content, ContentType: contentType }));
+
+  async put(storageKey: string, content: Buffer, contentType?: string): Promise<void> {
+    await this.client.send(new PutObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey), Body: content, ContentType: contentType ?? "application/octet-stream" }));
   }
+
   async get(storageKey: string, options: StorageReadOptions = {}): Promise<Buffer> {
     return withReadDeadline(options, async (signal, maxBytes) => {
+      const isPrefix = options.prefixBytes !== undefined || options.mode === "prefix";
+      const prefixLimit = options.prefixBytes ?? (options.mode === "prefix" ? options.maxBytes : undefined);
+
       const getParams: any = { Bucket: this.bucket, Key: safeKey(storageKey) };
-      if (maxBytes) getParams.Range = `bytes=0-${maxBytes - 1}`;
+      if (prefixLimit !== undefined) {
+        getParams.Range = `bytes=0-${prefixLimit - 1}`;
+      } else if (options.maxBytes !== undefined) {
+        getParams.Range = `bytes=0-${options.maxBytes - 1}`;
+      }
+
       const result = await this.client.send(new GetObjectCommand(getParams), { abortSignal: signal });
-      return readBoundedBody(result.Body, maxBytes, signal, result.ContentLength);
+      if (!result.Body) throw new Error("STORAGE_BODY_MISSING");
+
+      if (isPrefix && prefixLimit !== undefined) {
+        return readPrefixBody(result.Body, prefixLimit, signal);
+      }
+      return readBoundedBody(result.Body, maxBytes ?? SMARTCHECK_MAX_FILE_BYTES, signal, result.ContentLength);
     });
   }
+
   async delete(storageKey: string): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
   }
 
   async getStream(storageKey: string): Promise<Readable> {
     const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
-    if (!result.Body) throw new Error('EMPTY_BODY');
+    if (!result.Body) throw new Error("EMPTY_BODY");
     return result.Body as Readable;
   }
 
-
-    async downloadToFile(storageKey: string, targetPath: string, expectedHash: string): Promise<void> {
+  async downloadToFile(storageKey: string, targetPath: string, expectedHash: string): Promise<void> {
     if (!expectedHash) throw new Error("EXPECTED_HASH_REQUIRED");
     const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
     if (!result.Body) throw new Error("EMPTY_BODY");
@@ -136,7 +156,6 @@ export class S3StorageAdapter implements StorageAdapter {
       throw err;
     }
   }
-
 }
 
 export function createStorageAdapter(): StorageAdapter {
