@@ -35,6 +35,7 @@ import { consumeRateLimit } from "../auth/security";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { enqueueSmartCheckProcessing, removePendingJob } from "../../smartcheck/import/service";
 import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
+import { priceCrawlerService } from "../crawler/priceCrawlerService";
 
 export function registerAdminRoutes(app: Express) {
   const router = Router();
@@ -875,30 +876,98 @@ export function registerAdminRoutes(app: Express) {
         return res.status(404).json({ error: "Veri kaynağı bulunamadı." });
       }
 
-      const now = new Date();
+      // 1. Mark as syncing
+      await db
+        .update(pricingDataSources)
+        .set({ status: "syncing", updatedAt: new Date() })
+        .where(eq(pricingDataSources.id, source.id));
+
+      // 2. Execute real crawler engine
+      const crawlResult = await priceCrawlerService.crawlSource({
+        id: source.id,
+        code: source.code,
+        name: source.name,
+        category: source.category,
+        sourceUrl: source.sourceUrl,
+        crawlerConfig: source.crawlerConfig as Record<string, unknown> | null,
+      });
+
+      if (crawlResult.status === "error") {
+        await db
+          .update(pricingDataSources)
+          .set({ status: "error", updatedAt: new Date() })
+          .where(eq(pricingDataSources.id, source.id));
+
+        return res.status(502).json({
+          error: `Canlı tarama başarısız oldu: ${crawlResult.errorMessage || "Kaynağa ulaşılamadı"}`,
+        });
+      }
+
+      // 3. Clear older pending items for this source and insert fresh crawled items
+      if (crawlResult.items.length > 0) {
+        await db
+          .delete(priceFeedStaging)
+          .where(
+            and(
+              eq(priceFeedStaging.sourceId, source.id),
+              eq(priceFeedStaging.status, "pending")
+            )
+          );
+
+        for (const item of crawlResult.items) {
+          await db.insert(priceFeedStaging).values({
+            sourceId: source.id,
+            itemCode: item.itemCode,
+            itemName: item.itemName,
+            unit: item.unit,
+            currentPrice: item.currentPrice !== null ? String(item.currentPrice) : null,
+            crawledPrice: String(item.crawledPrice),
+            diffPercent: item.diffPercent !== null ? String(item.diffPercent) : null,
+            sourceUrl: item.sourceUrl,
+            status: "pending",
+            confidenceScore: String(item.confidenceScore),
+            notes: item.notes,
+            crawledAt: crawlResult.crawledAt,
+          });
+        }
+      }
+
+      // 4. Update data source metadata
       await db
         .update(pricingDataSources)
         .set({
-          lastSyncAt: now,
+          lastSyncAt: crawlResult.crawledAt,
           status: "active",
-          updatedAt: now,
+          itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
+          dataHash: crawlResult.dataHash || source.dataHash,
+          updatedAt: new Date(),
         })
         .where(eq(pricingDataSources.id, source.id));
 
+      // 5. Audit log
       await db.insert(adminAuditLogs).values({
         adminId: req.user.userId,
-        action: "pricing_source_sync_triggered",
+        action: "pricing_source_crawled",
         details: {
           sourceId: source.id,
           sourceCode: source.code,
-          timestamp: now.toISOString(),
+          itemsCount: crawlResult.itemsCount,
+          durationMs: crawlResult.durationMs,
+          timestamp: crawlResult.crawledAt.toISOString(),
         },
       });
 
-      return res.json({ success: true, message: `${source.name} için canlı tarama tamamlandı.` });
+      return res.json({
+        success: true,
+        message: `${source.name} canlı olarak tarandı (${crawlResult.durationMs}ms). ${crawlResult.itemsCount} adet güncel fiyat çekildi ve İnceleme Havuzu'na (Staging) eklendi.`,
+        crawlResult: {
+          itemsCount: crawlResult.itemsCount,
+          durationMs: crawlResult.durationMs,
+        },
+      });
     } catch (error) {
       console.error("Admin pricing sync error:", error);
-      return res.status(500).json({ error: "Tarama başlatılamadı." });
+      return res.status(500).json({ error: "Tarama sırasında sunucu hatası oluştu." });
     }
   });
 
