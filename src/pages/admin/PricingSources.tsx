@@ -16,7 +16,12 @@ import {
   Building2,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  Plus,
+  Trash2,
+  Globe,
+  Link as LinkIcon,
+  HelpCircle
 } from 'lucide-react';
 import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
@@ -69,6 +74,83 @@ export function PricingSources() {
   // Audit Diagnostic State
   const [auditQuery, setAuditQuery] = useState('');
   const [auditResult, setAuditResult] = useState<any | null>(null);
+
+  // New Source Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [creatingSource, setCreatingSource] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [newSource, setNewSource] = useState({
+    name: '',
+    code: '',
+    authority: '',
+    category: 'market_commodity',
+    sourceUrl: '',
+    syncFrequency: 'weekly',
+    versionTag: '2026/1',
+  });
+
+  const handleCreateSource = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSource.name.trim() || !newSource.sourceUrl.trim()) {
+      toast.error('Kaynak adı ve URL zorunludur.');
+      return;
+    }
+    // Auto-generate code if empty
+    const code = newSource.code.trim() 
+      ? newSource.code.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_')
+      : newSource.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 30);
+
+    setCreatingSource(true);
+    try {
+      const res = await fetchWithAuth('/api/admin/pricing-sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newSource, code }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`"${data.name}" veri kaynağı başarıyla eklendi.`);
+        setShowAddModal(false);
+        setNewSource({
+          name: '',
+          code: '',
+          authority: '',
+          category: 'market_commodity',
+          sourceUrl: '',
+          syncFrequency: 'weekly',
+          versionTag: '2026/1',
+        });
+        loadData();
+      } else {
+        toast.error(data.error || 'Kaynak eklenemedi.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setCreatingSource(false);
+    }
+  };
+
+  const handleDeleteSource = async (sourceId: string, name: string) => {
+    if (!window.confirm(`"${name}" veri kaynağını ve bağlı kayıtları silmek istediğinize emin misiniz?`)) return;
+    setDeletingId(sourceId);
+    try {
+      const res = await fetchWithAuth(`/api/admin/pricing-sources/${sourceId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        toast.success(`"${name}" kaynağı silindi.`);
+        loadData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Silme işlemi başarısız.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -188,12 +270,44 @@ export function PricingSources() {
         />
         <div className="flex items-center gap-2 mt-2 sm:mt-0">
           <Button 
+            onClick={() => setShowAddModal(true)} 
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/20"
+          >
+            <Plus size={14} className="mr-1.5" /> Yeni Kaynak Ekle
+          </Button>
+          <Button 
             onClick={loadData} 
             variant="outline" 
             className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 text-xs"
           >
             <RefreshCw size={14} className={`mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Yenile
           </Button>
+        </div>
+      </div>
+
+      {/* WORKFLOW EXPLANATION BANNER */}
+      <div className="mt-6 rounded-xl border border-indigo-900/30 bg-indigo-950/20 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <HelpCircle size={18} className="text-indigo-400" />
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">ÇŞB & Piyasa Crawler Mekanizması Nasıl Çalışır?</h3>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs text-zinc-300">
+          <div className="border-l-2 border-indigo-500 pl-3">
+            <span className="font-bold text-white block mb-0.5">1. Kaynak & URL Tanımı</span>
+            <span>Resmi Gazete, ÇŞB YFK, TÜİK veya serbest piyasa demir/beton web adresleri sisteme tanımlanır.</span>
+          </div>
+          <div className="border-l-2 border-amber-500 pl-3">
+            <span className="font-bold text-white block mb-0.5">2. Canlı Web Taraması (Bot)</span>
+            <span>Belirlenen sıklıkla veya "Şimdi Tara" butonuyla web sayfalarından güncel fiyat ve endeksler çekilir.</span>
+          </div>
+          <div className="border-l-2 border-purple-500 pl-3">
+            <span className="font-bold text-white block mb-0.5">3. İnceleme Havuzu (Staging Diff)</span>
+            <span>Fiyat farkları doğrudan tekliflere yansıtılmaz. Önce süper admin onayına (Human-in-the-loop) sunulur.</span>
+          </div>
+          <div className="border-l-2 border-emerald-500 pl-3">
+            <span className="font-bold text-white block mb-0.5">4. Mühürlü Poz Kataloğu</span>
+            <span>Onaylanan pozlar SHA-256 hash imzasıyla yürürlüğe girer ve şantiyelerin teklif mektuplarında kullanılır.</span>
+          </div>
         </div>
       </div>
 
@@ -275,83 +389,247 @@ export function PricingSources() {
 
       {/* TAB CONTENT 1: SOURCES */}
       {activeTab === 'sources' && (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-6">
-          {sources.map((s) => (
-            <div key={s.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
-                    s.category === 'official_gazette' 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      : s.category === 'market_commodity'
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      : s.category === 'tuik_index'
-                      ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                      : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                  }`}>
-                    {s.category === 'official_gazette' ? 'Resmi Gazete / ÇŞB' : s.category === 'market_commodity' ? 'Serbest Piyasa' : s.category === 'tuik_index' ? 'TÜİK Endeks' : 'e-PYS Standart'}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-[11px] font-medium text-emerald-400 capitalize">{s.status}</span>
+        <div className="mt-6">
+          {sources.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 p-12 text-center">
+              <Database size={40} className="mx-auto text-zinc-600 mb-3" />
+              <h3 className="text-base font-bold text-white mb-1">Henüz Kayıtlı Veri Kaynağı Bulunmuyor</h3>
+              <p className="text-xs text-zinc-400 max-w-md mx-auto mb-5">
+                Çevre Şehircilik Bakanlığı YFK birim fiyatları, TÜİK endeksleri veya serbest piyasa demir/beton fiyat bağlantılarını ekleyerek botları devreye alabilirsiniz.
+              </p>
+              <Button 
+                onClick={() => setShowAddModal(true)} 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
+              >
+                <Plus size={14} className="mr-1.5" /> İlk Kaynağı / Linki Ekle
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {sources.map((s) => (
+                <div key={s.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                        s.category === 'official_gazette' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          : s.category === 'market_commodity'
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          : s.category === 'tuik_index'
+                          ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                          : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                      }`}>
+                        {s.category === 'official_gazette' ? 'Resmi Gazete / ÇŞB' : s.category === 'market_commodity' ? 'Serbest Piyasa' : s.category === 'tuik_index' ? 'TÜİK Endeks' : 'e-PYS Standart'}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span className="text-[11px] font-medium text-emerald-400 capitalize">{s.status}</span>
+                      </div>
+                    </div>
+
+                    <h4 className="text-base font-bold text-white mb-1 leading-snug">{s.name}</h4>
+                    <p className="text-xs text-zinc-400 mb-4">{s.authority}</p>
+
+                    <div className="space-y-2 text-xs text-zinc-300 border-t border-zinc-800/80 pt-3">
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">Sürüm & Etiket:</span>
+                        <span className="font-semibold text-white font-mono">{s.versionTag}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">Kapsam / Poz:</span>
+                        <span className="font-semibold text-white">{s.itemCount.toLocaleString('tr-TR')} Kalem</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">Yürürlük:</span>
+                        <span className="text-zinc-300">
+                          {s.validityStart ? new Date(s.validityStart).toLocaleDateString('tr-TR') : '-'} – {s.validityEnd ? new Date(s.validityEnd).toLocaleDateString('tr-TR') : 'Süresiz'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">Tarama Sıklığı:</span>
+                        <span className="capitalize text-zinc-300">{s.syncFrequency}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="text-zinc-500">SHA-256 Hash:</span>
+                        <span className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 truncate max-w-[120px]" title={s.dataHash || ''}>
+                          {s.dataHash ? s.dataHash.slice(0, 12) + '...' : '-'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-zinc-800 flex items-center justify-between gap-2">
+                    {s.sourceUrl && (
+                      <a 
+                        href={s.sourceUrl} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="inline-flex items-center text-xs text-zinc-400 hover:text-white transition-colors truncate max-w-[150px]"
+                        title={s.sourceUrl}
+                      >
+                        <Globe size={12} className="mr-1 shrink-0" />
+                        <span className="truncate">Kaynak Linki</span>
+                        <ExternalLink size={10} className="ml-1 shrink-0" />
+                      </a>
+                    )}
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleSync(s.id, s.name)}
+                        disabled={syncingId === s.id}
+                        className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 text-xs py-1 h-7"
+                      >
+                        <RefreshCw size={12} className={`mr-1.5 ${syncingId === s.id ? 'animate-spin' : ''}`} />
+                        {syncingId === s.id ? 'Taranıyor...' : 'Şimdi Tara'}
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSource(s.id, s.name)}
+                        disabled={deletingId === s.id}
+                        className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                        title="Kaynağı Sil"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-                <h4 className="text-base font-bold text-white mb-1 leading-snug">{s.name}</h4>
-                <p className="text-xs text-zinc-400 mb-4">{s.authority}</p>
+      {/* MODAL: YENİ VERİ KAYNAĞI / LİNKİ EKLE */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Database size={18} className="text-indigo-400" />
+                <h3 className="text-base font-bold text-white">Yeni Fiyat Kaynağı / Linki Ekle</h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowAddModal(false)}
+                className="text-zinc-500 hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-                <div className="space-y-2 text-xs text-zinc-300 border-t border-zinc-800/80 pt-3">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Sürüm & Etiket:</span>
-                    <span className="font-semibold text-white font-mono">{s.versionTag}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Kapsam / Poz:</span>
-                    <span className="font-semibold text-white">{s.itemCount.toLocaleString('tr-TR')} Kalem</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Yürürlük:</span>
-                    <span className="text-zinc-300">
-                      {s.validityStart ? new Date(s.validityStart).toLocaleDateString('tr-TR') : '-'} – {s.validityEnd ? new Date(s.validityEnd).toLocaleDateString('tr-TR') : 'Süresiz'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Tarama Sıklığı:</span>
-                    <span className="capitalize text-zinc-300">{s.syncFrequency}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-1">
-                    <span className="text-zinc-500">SHA-256 Hash:</span>
-                    <span className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 truncate max-w-[120px]" title={s.dataHash || ''}>
-                      {s.dataHash ? s.dataHash.slice(0, 12) + '...' : '-'}
-                    </span>
-                  </div>
+            <form onSubmit={handleCreateSource} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-zinc-400 mb-1 font-semibold">Kaynak / Liste Adı *</label>
+                <input 
+                  type="text" 
+                  value={newSource.name}
+                  onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
+                  placeholder="örn: TÇMB Çimento Endeksi veya Kayseri Demir Borsası"
+                  required
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Kaynak Kodu (Slug)</label>
+                  <input 
+                    type="text" 
+                    value={newSource.code}
+                    onChange={(e) => setNewSource({ ...newSource, code: e.target.value })}
+                    placeholder="örn: market_cement_central"
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                  />
+                  <span className="text-[10px] text-zinc-500">Boş bırakılırsa addan üretilir.</span>
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Yetkili / Kurum</label>
+                  <input 
+                    type="text" 
+                    value={newSource.authority}
+                    onChange={(e) => setNewSource({ ...newSource, authority: e.target.value })}
+                    placeholder="örn: Türkiye Çimento Üreticileri Birliği"
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-zinc-800 flex items-center justify-between gap-2">
-                {s.sourceUrl && (
-                  <a 
-                    href={s.sourceUrl} 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="inline-flex items-center text-xs text-zinc-400 hover:text-white transition-colors"
+              <div>
+                <label className="block text-zinc-400 mb-1 font-semibold">Kaynak URL / Web Sayfası Linki *</label>
+                <div className="relative">
+                  <LinkIcon size={14} className="absolute left-3 top-2.5 text-zinc-500" />
+                  <input 
+                    type="url" 
+                    value={newSource.sourceUrl}
+                    onChange={(e) => setNewSource({ ...newSource, sourceUrl: e.target.value })}
+                    placeholder="https://www.ornek.gov.tr/fiyatlar"
+                    required
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 pl-9 pr-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Kategori</label>
+                  <select 
+                    value={newSource.category}
+                    onChange={(e) => setNewSource({ ...newSource, category: e.target.value })}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                   >
-                    Kaynak Linki <ExternalLink size={12} className="ml-1" />
-                  </a>
-                )}
+                    <option value="market_commodity">Serbest Piyasa</option>
+                    <option value="official_gazette">Resmi Gazete / ÇŞB</option>
+                    <option value="tuik_index">TÜİK Endeksi</option>
+                    <option value="epys_standard">e-PYS Standart</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Tarama Sıklığı</label>
+                  <select 
+                    value={newSource.syncFrequency}
+                    onChange={(e) => setNewSource({ ...newSource, syncFrequency: e.target.value })}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  >
+                    <option value="daily">Günlük</option>
+                    <option value="weekly">Haftalık</option>
+                    <option value="monthly">Aylık</option>
+                    <option value="realtime">Canlı (Anlık)</option>
+                    <option value="annually">Yıllık</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Sürüm Etiketi</label>
+                  <input 
+                    type="text" 
+                    value={newSource.versionTag}
+                    onChange={(e) => setNewSource({ ...newSource, versionTag: e.target.value })}
+                    placeholder="2026/1"
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-800 flex justify-end gap-2">
                 <Button 
-                  size="sm" 
+                  type="button" 
                   variant="outline" 
-                  onClick={() => handleSync(s.id, s.name)}
-                  disabled={syncingId === s.id}
-                  className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 text-xs py-1 h-7 ml-auto"
+                  onClick={() => setShowAddModal(false)}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                 >
-                  <RefreshCw size={12} className={`mr-1.5 ${syncingId === s.id ? 'animate-spin' : ''}`} />
-                  {syncingId === s.id ? 'Taranıyor...' : 'Şimdi Tara'}
+                  İptal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={creatingSource}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                >
+                  {creatingSource ? 'Ekleniyor...' : 'Kaydet ve Başlat'}
                 </Button>
               </div>
-            </div>
-          ))}
+            </form>
+          </div>
         </div>
       )}
 

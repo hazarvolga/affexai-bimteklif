@@ -674,6 +674,110 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // 12a. Create New Pricing Source Manually
+  router.post("/pricing-sources", async (req, res) => {
+    try {
+      const createSchema = z.object({
+        name: z.string().min(2, "Kaynak adı en az 2 karakter olmalıdır"),
+        code: z.string().min(2).regex(/^[a-z0-9_]+$/, "Kod yalnızca küçük harf, rakam ve alt çizgi içerebilir"),
+        authority: z.string().optional().default(""),
+        category: z.enum(["official_gazette", "tuik_index", "market_commodity", "epys_standard"]),
+        sourceUrl: z.string().url("Geçerli bir web adresi giriniz"),
+        syncFrequency: z.enum(["realtime", "daily", "weekly", "monthly", "annually"]).default("monthly"),
+        versionTag: z.string().default("2026/1"),
+      });
+
+      const parsed = createSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Geçersiz veri" });
+      }
+
+      const { name, code, authority, category, sourceUrl, syncFrequency, versionTag } = parsed.data;
+
+      // Check code uniqueness
+      const existing = await db
+        .select({ id: pricingDataSources.id })
+        .from(pricingDataSources)
+        .where(eq(pricingDataSources.code, code))
+        .limit(1);
+
+      if (existing.length > 0) {
+        return res.status(409).json({ error: "Bu kod adına sahip bir veri kaynağı zaten mevcut." });
+      }
+
+      const now = new Date();
+      const [inserted] = await db
+        .insert(pricingDataSources)
+        .values({
+          name,
+          code,
+          authority: authority || "Yetkili Kurum Belirtilmedi",
+          category,
+          sourceUrl,
+          syncFrequency,
+          versionTag,
+          status: "active",
+          itemCount: 0,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: "pricing_source_created",
+        details: {
+          sourceId: inserted.id,
+          code: inserted.code,
+          name: inserted.name,
+          url: inserted.sourceUrl,
+        },
+      });
+
+      return res.status(201).json(inserted);
+    } catch (error) {
+      console.error("Admin create pricing source error:", error);
+      return res.status(500).json({ error: "Veri kaynağı eklenemedi." });
+    }
+  });
+
+  // 12b. Delete Pricing Source
+  router.delete("/pricing-sources/:id", async (req, res) => {
+    try {
+      const id = req.params.id;
+      if (!z.string().uuid().safeParse(id).success) {
+        return res.status(400).json({ error: "Geçersiz kaynak ID" });
+      }
+
+      const [existing] = await db
+        .select()
+        .from(pricingDataSources)
+        .where(eq(pricingDataSources.id, id))
+        .limit(1);
+
+      if (!existing) {
+        return res.status(404).json({ error: "Kaynak bulunamadı." });
+      }
+
+      await db.delete(pricingDataSources).where(eq(pricingDataSources.id, id));
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: "pricing_source_deleted",
+        details: {
+          sourceId: existing.id,
+          code: existing.code,
+          name: existing.name,
+        },
+      });
+
+      return res.json({ success: true, message: `${existing.name} kaynağı silindi.` });
+    } catch (error) {
+      console.error("Admin delete pricing source error:", error);
+      return res.status(500).json({ error: "Kaynak silinirken bir hata oluştu." });
+    }
+  });
+
   router.get("/pricing-sources/staging", async (_req, res) => {
     try {
       const items = await db
