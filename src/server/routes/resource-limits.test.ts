@@ -10,7 +10,10 @@ test('pilot applications rejects missing or invalid email format', async () => {
   try {
     const res = await fetch(`http://127.0.0.1:${address.port}/api/pilot-applications`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-forwarded-for': '127.0.0.99',
+      },
       body: JSON.stringify({ fullName: 'Ali Veli', companyName: 'Insaat A.S.', email: 'not-an-email' }),
     });
     assert.equal(res.status, 400);

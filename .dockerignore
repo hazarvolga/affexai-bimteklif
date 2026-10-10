@@ -18,7 +18,13 @@ playwright-report
 .claude
 .agents
 notebooklm
-ifc-document-sample
 **/*.ifc
 **/*.log
+**/*.docx
+**/*.pdf
+**/*.patch
+db_update.*
+summary.md
+walkthrough.md
 .DS_Store
+

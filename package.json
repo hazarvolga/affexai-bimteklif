@@ -42,7 +42,6 @@
     "@aws-sdk/s3-request-presigner": "^3.1092.0",
     "@base-ui/react": "^1.4.1",
     "@fontsource-variable/geist": "^5.2.8",
-    "@google/genai": "^1.29.0",
     "@google/generative-ai": "^0.23.0",
     "@radix-ui/react-progress": "^1.1.8",
     "@tailwindcss/vite": "^4.1.14",
