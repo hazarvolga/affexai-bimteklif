@@ -50,55 +50,23 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
 
     if (rawType === "IFCBEAM") {
       type = "IfcBeam";
-      volumeM3 = parseFloat((0.8 + (parseInt(stepId) % 7) * 0.15).toFixed(2));
-      formworkM2 = parseFloat((volumeM3 * 4.2).toFixed(2));
-      rebarKg = parseFloat((volumeM3 * 115).toFixed(1));
-      storey = parseInt(stepId) % 2 === 0 ? "Kat 1" : "Kat 2";
-      nameMatch ? null : `Kiriş K-${100 + beamIdx++}`;
+      storey = "Kat 1";
     } else if (rawType === "IFCCOLUMN") {
       type = "IfcColumn";
-      volumeM3 = parseFloat((0.6 + (parseInt(stepId) % 5) * 0.12).toFixed(2));
-      formworkM2 = parseFloat((volumeM3 * 5.0).toFixed(2));
-      rebarKg = parseFloat((volumeM3 * 140).toFixed(1));
-      storey = parseInt(stepId) % 3 === 0 ? "Kat 1" : parseInt(stepId) % 3 === 1 ? "Kat 2" : "Kat 3";
-      nameMatch ? null : `Kolon S-${100 + colIdx++}`;
+      storey = "Kat 1";
     } else if (rawType === "IFCSLAB") {
       type = "IfcSlab";
-      volumeM3 = parseFloat((3.5 + (parseInt(stepId) % 8) * 0.8).toFixed(2));
-      formworkM2 = parseFloat((volumeM3 / 0.18).toFixed(2));
-      rebarKg = parseFloat((volumeM3 * 85).toFixed(1));
-      storey = parseInt(stepId) % 2 === 0 ? "Kat 1" : "Kat 2";
-      nameMatch ? null : `Döşeme D-${100 + slabIdx++}`;
+      storey = "Kat 1";
     } else if (rawType === "IFCWALL" || rawType === "IFCWALLSTANDARDCASE") {
       type = "IfcWall";
-      volumeM3 = parseFloat((2.2 + (parseInt(stepId) % 6) * 0.5).toFixed(2));
-      formworkM2 = parseFloat((volumeM3 * 6.5).toFixed(2));
-      rebarKg = parseFloat((volumeM3 * 95).toFixed(1));
-      storey = parseInt(stepId) % 2 === 0 ? "Bodrum Kat" : "Kat 1";
-      nameMatch ? null : `Perde Duvar P-${100 + wallIdx++}`;
+      storey = "Kat 1";
     } else if (rawType === "IFCREINFORCINGBAR") {
       type = "IfcReinforcingBar";
-      const diameters = [10, 12, 14, 16, 20, 25, 32];
-      rebarDiameterMm = diameters[parseInt(stepId) % diameters.length];
-      const lengthM = 12;
-      const count = 10 + (parseInt(stepId) % 20);
-      const nominalKgPerM = (Math.PI * Math.pow(rebarDiameterMm, 2) / 4) * 0.00785;
-      rebarKg = parseFloat((nominalKgPerM * lengthM * count).toFixed(1));
-      volumeM3 = parseFloat((rebarKg / 7850).toFixed(3));
-      formworkM2 = 0;
       storey = "Genel Donatı";
     }
 
-    let smartCheckStatus: ParsedIfcElement["smartCheckStatus"] = "pass";
-    let smartCheckNote = "Eurocode 2 & TS 708 donatı ve hacim standartlarına %100 uyumlu";
-    const steelRatio = volumeM3 > 0 ? rebarKg / volumeM3 : 0;
-    if (type === "IfcBeam" && (steelRatio < 70 || steelRatio > 180)) {
-      smartCheckStatus = "warning";
-      smartCheckNote = `Donatı oranı (${steelRatio.toFixed(1)} kg/m³) TS 500 ideal aralığının (80-160 kg/m³) sınırında`;
-    } else if (type === "IfcColumn" && steelRatio < 90) {
-      smartCheckStatus = "review";
-      smartCheckNote = `Kolon donatı oranı (${steelRatio.toFixed(1)} kg/m³) minimum yönetmelik şartının altında`;
-    }
+    let smartCheckStatus: ParsedIfcElement["smartCheckStatus"] = "review";
+    let smartCheckNote = "QTO veya PropertySet metrajı bulunamadı; teknik inceleme gereklidir.";
 
     const qtoQuantity = qtoQuantityByStepId.get(stepId);
     const propertyQuantity = propertyQuantityByStepId.get(stepId);
@@ -207,8 +175,8 @@ export function calculateSummary(
       quantitySource: "estimate",
       quoteTransferStatus: "needs_review",
       warnings: [
-        "Legacy browser parser uses estimated quantities; technical review is required before quotation approval.",
-        "Rebar and formwork values are derived estimates unless explicit IFC rebar/QTO/property evidence is implemented.",
+        "Legacy ayrıştırıcı QTO veya onaylı property bulunamadığında tahmini metraj üretmez.",
+        "Metrajı bulunamayan elemanlar için miktar 0 olarak atanmıştır; teknik inceleme gereklidir.",
       ],
       unsupportedReasons: [],
       totalElements: elements.length,
