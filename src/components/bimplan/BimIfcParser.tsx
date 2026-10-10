@@ -22,6 +22,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { describeIfcQuantityEvidence, summarizeIfcEvidencePolicy } from '@/ifc/evidence-policy';
 import { calculateSummary, parseIfcText } from '@/ifc/parser/legacy-parser';
+import { validateEpysRules } from "@/smartcheck/rules/epys";
+
 import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
 
 const IFC_TYPE_LABELS: Record<ParsedIfcElement['type'], string> = {
@@ -179,6 +181,22 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStorey, setSelectedStorey] = useState<string>('all');
   const [expandedType, setExpandedType] = useState<ParsedIfcElement['type'] | null>(null);
+  const epysResult = useMemo(() => {
+    if (!parsedData) return null;
+    // Mock pozExtraction for now using elements
+    const pozMap = new Map();
+    parsedData.elements.forEach(el => {
+      if (el.pozNo) pozMap.set(el.id, { stepId: el.id, value: el.pozNo, sourcePath: "" });
+    });
+    return validateEpysRules({
+      complianceData: parsedData.summary.trPsetCsb,
+      pozExtraction: { pozNoByStepId: pozMap },
+      totalElementsCount: parsedData.elements.length,
+      spaceNames: [],
+      materialNames: []
+    });
+  }, [parsedData]);
+
 
   // Handle Drag & Drop or File Select
   const handleFileUpload = (file: File) => {
@@ -507,12 +525,20 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
           {/* e-PYS / Tr_Pset_CSB COMPLIANCE SUMMARY */}
           <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
-            <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
-              <ShieldCheck className="h-4 w-4 text-sky-400" />
-              e-PYS Uyum Özeti (Tr_Pset_CSB)
-              <span className="ml-auto text-[10px] font-normal normal-case text-zinc-600">01 Ekim 2026 ruhsat yönetmeliği taslağına göre</span>
+            <div className="mb-4 flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-sky-400" />
+                e-PYS Uyum Özeti
+              </div>
+              {epysResult && (
+                <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black tracking-widest ${epysResult.score >= 80 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : epysResult.score >= 50 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                  SKOR: {epysResult.score}/100
+                </div>
+              )}
+              <span className="ml-auto text-[10px] font-normal normal-case text-zinc-600">01 Ekim 2026 ruhsat yönetmeliğine göre AI Otonom Denetimi</span>
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
               {([
                 ['TAKS', parsedData.summary.trPsetCsb.taks],
                 ['KAKS', parsedData.summary.trPsetCsb.kaks],
@@ -522,19 +548,31 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{label}</div>
                   <div className={value !== undefined ? 'mt-1 text-lg font-black text-white' : 'mt-1 text-xs font-bold text-red-400'}>
-                    {value !== undefined ? value.toLocaleString('tr-TR') : 'IFC dosyasında bulunamadı'}
+                    {value !== undefined ? value.toLocaleString('tr-TR') : 'Eksik'}
                   </div>
                 </div>
               ))}
             </div>
-            {parsedData.summary.trPsetCsb.source && (
-              <div className="mt-3 flex items-center gap-1.5 text-[10px] text-zinc-500">
-                <MapPin className="h-3 w-3" />
-                Kaynak: {parsedData.summary.trPsetCsb.source === 'ifc_site' ? 'IfcSite' : 'IfcBuilding'} · {parsedData.summary.trPsetCsb.sourcePath}
+
+            {epysResult && (epysResult.errors.length > 0 || epysResult.warnings.length > 0) && (
+              <div className="space-y-2 border-t border-zinc-800 pt-4">
+                {epysResult.errors.map((err, i) => (
+                  <div key={'err'+i} className="flex items-start gap-2 rounded bg-red-500/10 px-3 py-2 text-xs text-red-400 border border-red-500/20">
+                    <span className="font-bold shrink-0 mt-0.5">HATA:</span>
+                    <span>{err}</span>
+                  </div>
+                ))}
+                {epysResult.warnings.map((warn, i) => (
+                  <div key={'warn'+i} className="flex items-start gap-2 rounded bg-amber-500/10 px-3 py-2 text-xs text-amber-400 border border-amber-500/20">
+                    <span className="font-bold shrink-0 mt-0.5">UYARI:</span>
+                    <span>{warn}</span>
+                  </div>
+                ))}
               </div>
             )}
+
             <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-3 text-xs">
-              <span className="text-zinc-400">Poz No (Tr_Pset_CSB.PozNo) atanmış eleman</span>
+              <span className="text-zinc-400">ÇŞB Poz No atanan eleman oranı (Ek-6)</span>
               <span className={parsedData.summary.elementsMissingPozNoCount > 0 ? 'font-bold text-amber-400' : 'font-bold text-emerald-400'}>
                 {parsedData.summary.elementsWithPozNoCount} / {parsedData.summary.elementsWithPozNoCount + parsedData.summary.elementsMissingPozNoCount}
               </span>
