@@ -16,6 +16,8 @@ import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import { sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
+import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota";
+import { recordUsage } from "../../services/billing/usage-audit";
 import {
   smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
@@ -376,6 +378,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const sourceFileName = sourceDocuments[0]?.originalFileName ?? "SmartCheck dosyası";
 
     const transferResult = await db.transaction(async (tx) => {
+      await consumeQuotationQuota(tx, req.user.companyId);
       const client = parsedRequest.data.clientId
         ? (await tx.select().from(clients).where(and(eq(clients.id, parsedRequest.data.clientId), eq(clients.companyId, req.user.companyId)))).at(0)
         : (await tx.insert(clients).values({
@@ -449,9 +452,13 @@ export function registerSmartCheckRoutes(app: Express) {
       return { quotation, client, insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
 
-      await audit(req, "quotation_created_from_smartcheck", "quotation", transferResult.quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount, clientId: transferResult.client.id });
+      void audit(req, "quotation_created_from_smartcheck", "quotation", transferResult.quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount, clientId: transferResult.client.id })
+        .catch(() => console.error("SmartCheck quotation audit persistence failed", { companyId: req.user.companyId }));
+      void recordUsage(req.user.companyId, req.user.userId, "QUOTATION_CREATED")
+        .catch(() => console.error("Usage audit persistence failed", { companyId: req.user.companyId, feature: "QUOTATION_CREATED" }));
       res.status(201).json({ quotationId: transferResult.quotation.id, clientId: transferResult.client.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
     } catch (error) {
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       if (error instanceof Error && error.message === "SMARTCHECK_CLIENT_NOT_FOUND") return res.status(404).json({ error: "Seçili müşteri bulunamadı." });
       if (error instanceof Error && error.message === "INVALID_TRANSFER_VALUES") return res.status(409).json({ error: "Aktarım miktar/fiyat değerleri geçersiz veya eksik.", code: "INVALID_TRANSFER_VALUES" });
       console.error("SmartCheck new quotation transfer failed", error);
