@@ -59,8 +59,7 @@ export function Dashboard() {
   const [error, setError] = useState(false);
 
   // Redirect super admins to their operational dashboard
-  const superAdmins = ['admin@teklifpro.ai', 'hazarvolga@gmail.com'];
-  if (user?.email && superAdmins.includes(user.email)) {
+  if (user?.isSuperAdmin) {
     return <Navigate to="/admin" replace />;
   }
 

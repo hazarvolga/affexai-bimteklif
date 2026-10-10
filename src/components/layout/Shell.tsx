@@ -66,8 +66,7 @@ export function Shell() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const superAdmins = ['admin@teklifpro.ai', 'hazarvolga@gmail.com'];
-  const isSuperAdmin = Boolean(user?.email && superAdmins.includes(user.email));
+  const isSuperAdmin = Boolean(user?.isSuperAdmin);
 
   const filteredNavItems = navigationConfig.filter(item => {
     // If the user is a super admin, they should ONLY see system management and settings tools

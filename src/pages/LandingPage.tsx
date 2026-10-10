@@ -11,10 +11,12 @@ import {
   FileCheck2, 
   Sparkles,
   Building2,
-  FileText
+  FileText,
+  Menu,
+  X
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type LandingPageProps = {
   onGetStarted: () => void;
@@ -23,6 +25,7 @@ type LandingPageProps = {
 
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#09090b] font-sans text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
@@ -35,18 +38,83 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <span className="text-[10px] text-zinc-400 font-mono tracking-wider uppercase">openBIM & 5D Teklif</span>
           </div>
         </a>
+
+        {/* Desktop Nav */}
         <div className="hidden items-center gap-7 md:flex">
           <a href="#workflow" className="text-sm text-zinc-400 transition-colors hover:text-white">Nasıl çalışır?</a>
           <a href="#features" className="text-sm text-zinc-400 transition-colors hover:text-white">Özellikler</a>
           <a href="#pricing" className="text-sm text-zinc-400 transition-colors hover:text-white">Fiyatlandırma</a>
           <Button variant="ghost" className="text-zinc-300 hover:bg-zinc-800 hover:text-white text-sm" onClick={onGetStarted}>Giriş yap</Button>
-          <Link to="/register">
-            <Button className="bg-orange-600 px-5 text-white hover:bg-orange-700 font-medium text-sm shadow-md shadow-orange-600/20">
-              14 Gün Ücretsiz Başla
-            </Button>
-          </Link>
+          <Button 
+            onClick={() => navigate('/register')}
+            className="bg-orange-600 px-5 text-white hover:bg-orange-700 font-medium text-sm shadow-md shadow-orange-600/20"
+          >
+            14 Gün Ücretsiz Başla
+          </Button>
+        </div>
+
+        {/* Mobile Nav Toggle */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={onGetStarted}
+            className="text-xs text-zinc-300"
+          >
+            Giriş
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={() => navigate('/register')}
+            className="bg-orange-600 text-xs text-white px-3 font-semibold"
+          >
+            Ücretsiz Başla
+          </Button>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-zinc-400 hover:text-white focus:outline-none"
+            aria-label="Menüyü aç/kapat"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Dropdown Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-zinc-800 bg-[#0c0c0e] px-6 py-4 space-y-3 sticky top-20 z-40">
+          <a 
+            href="#workflow" 
+            onClick={() => setMobileMenuOpen(false)}
+            className="block text-sm text-zinc-300 py-1 hover:text-orange-400"
+          >
+            Nasıl çalışır?
+          </a>
+          <a 
+            href="#features" 
+            onClick={() => setMobileMenuOpen(false)}
+            className="block text-sm text-zinc-300 py-1 hover:text-orange-400"
+          >
+            Özellikler
+          </a>
+          <a 
+            href="#pricing" 
+            onClick={() => setMobileMenuOpen(false)}
+            className="block text-sm text-zinc-300 py-1 hover:text-orange-400"
+          >
+            Fiyatlandırma
+          </a>
+          <div className="pt-2 flex flex-col gap-2">
+            <Button variant="outline" className="w-full text-zinc-200 border-zinc-700" onClick={() => { setMobileMenuOpen(false); onGetStarted(); }}>
+              Giriş yap
+            </Button>
+            <Button className="w-full bg-orange-600 text-white font-bold" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}>
+              14 Gün Ücretsiz Başla
+            </Button>
+          </div>
+        </div>
+      )}
 
       <main id="top">
         {/* HERO SECTION */}
@@ -66,11 +134,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               Allplan, Revit veya Archicad <code className="text-orange-400 font-mono bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800 text-sm">.ifc</code> modelinizi ya da Excel metrajınızı yükleyin. TeklifPro, geometriden otomatik metraj çıkarır, ÇŞB 2026 pozlarıyla eşleştirir, kamu e-PYS standartlarına göre denetler ve onaylı kalemlerle anında resmi teklif mektubunuzu üretir.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Link to="/register">
-                <Button size="lg" className="h-13 bg-orange-600 px-7 text-white hover:bg-orange-700 font-bold w-full sm:w-auto shadow-lg shadow-orange-600/20">
-                  14 Gün Ücretsiz Başlayın <ArrowRight size={18} className="ml-2" />
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => navigate('/register')}
+                size="lg" 
+                className="h-13 bg-orange-600 px-7 text-white hover:bg-orange-700 font-bold w-full sm:w-auto shadow-lg shadow-orange-600/20"
+              >
+                14 Gün Ücretsiz Başlayın <ArrowRight size={18} className="ml-2" />
+              </Button>
               <a href="#pricing" className="inline-flex h-13 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900/80 px-7 text-sm font-semibold text-zinc-200 transition-colors hover:bg-zinc-800 hover:text-white">
                 Paketleri ve Fiyatları Görün
               </a>
@@ -216,11 +286,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                   </ul>
                 </div>
-                <Link to="/register" className="w-full mt-6">
-                  <Button variant="outline" className="w-full border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 text-xs py-2">
-                    Ücretsiz Başlayın
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => navigate('/register')}
+                  variant="outline" 
+                  className="w-full mt-6 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 text-xs py-2"
+                >
+                  Ücretsiz Başlayın
+                </Button>
               </div>
 
               {/* PLAN 1: e-PYS MİKRO */}
@@ -253,11 +325,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                   </ul>
                 </div>
-                <Link to="/register" className="w-full mt-6">
-                  <Button variant="outline" className="w-full border-sky-500/30 text-sky-300 hover:bg-sky-500/10 text-xs py-2">
-                    Denetçiyi Seçin
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => navigate('/register')}
+                  variant="outline" 
+                  className="w-full mt-6 border-sky-500/30 text-sky-300 hover:bg-sky-500/10 text-xs py-2"
+                >
+                  Denetçiyi Seçin
+                </Button>
               </div>
 
               {/* PLAN 2: TEKLİF & ŞANTİYE */}
@@ -290,11 +364,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                   </ul>
                 </div>
-                <Link to="/register" className="w-full mt-6">
-                  <Button variant="outline" className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs py-2">
-                    Hemen Başlayın
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => navigate('/register')}
+                  variant="outline" 
+                  className="w-full mt-6 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs py-2"
+                >
+                  Hemen Başlayın
+                </Button>
               </div>
 
               {/* PLAN 3: 5D BIM (POPÜLER) */}
@@ -333,11 +409,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                   </ul>
                 </div>
-                <Link to="/register" className="w-full mt-6">
-                  <Button className="w-full bg-orange-600 text-white hover:bg-orange-700 text-xs py-2 font-bold shadow-md shadow-orange-600/20">
-                    5D BIM'e Başlayın
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => navigate('/register')}
+                  className="w-full mt-6 bg-orange-600 text-white hover:bg-orange-700 text-xs py-2 font-bold shadow-md shadow-orange-600/20"
+                >
+                  5D BIM'e Başlayın
+                </Button>
               </div>
 
               {/* PLAN 4: KURUMSAL */}
@@ -374,11 +451,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                   </ul>
                 </div>
-                <a href="mailto:info@teklifpro.ai" className="w-full mt-6">
-                  <Button variant="outline" className="w-full border-purple-500/30 text-purple-300 hover:bg-purple-500/10 text-xs py-2">
-                    İletişime Geçin
-                  </Button>
-                </a>
+                <Button 
+                  onClick={() => { window.location.href = 'mailto:info@teklifpro.ai'; }}
+                  variant="outline" 
+                  className="w-full mt-6 border-purple-500/30 text-purple-300 hover:bg-purple-500/10 text-xs py-2"
+                >
+                  İletişime Geçin
+                </Button>
               </div>
             </div>
           </div>
@@ -423,11 +502,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 Allplan, Revit veya Archicad IFC modelinizi ya da Excel metrajınızı hemen sisteme yükleyin. 14 gün boyunca 5 teklifinizi, otonom metrajınızı ve e-PYS denetiminizi hiçbir taahhüt olmadan test edin.
               </p>
             </div>
-            <Link to="/register" className="shrink-0">
-              <Button size="lg" className="h-13 bg-orange-600 px-8 text-white hover:bg-orange-700 font-bold shadow-lg shadow-orange-600/20">
-                Hemen Ücretsiz Başlayın <ArrowRight size={18} className="ml-2" />
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => navigate('/register')}
+              size="lg" 
+              className="h-13 shrink-0 bg-orange-600 px-8 text-white hover:bg-orange-700 font-bold shadow-lg shadow-orange-600/20"
+            >
+              Hemen Ücretsiz Başlayın <ArrowRight size={18} className="ml-2" />
+            </Button>
           </div>
         </section>
       </main>
