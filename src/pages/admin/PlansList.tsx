@@ -97,43 +97,84 @@ export function PlansList() {
         </Button>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-3 mt-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mt-4">
         {loading ? (
           <div className="text-zinc-500">Yükleniyor...</div>
         ) : plans.map((plan) => (
-          <div key={plan.id} className={`rounded-xl border p-6 flex flex-col ${plan.isActive ? 'border-zinc-700 bg-zinc-900/60' : 'border-red-500/20 bg-red-500/5'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-              {!plan.isActive && <span className="text-[10px] uppercase font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Pasif</span>}
-            </div>
-            
-            <div className="mb-6">
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-white">₺{plan.monthlyPrice}</span>
-                <span className="text-zinc-500 text-sm">/ ay</span>
+          <div key={plan.id} className={`rounded-xl border p-5 flex flex-col justify-between ${plan.isActive ? 'border-zinc-700 bg-zinc-900/60' : 'border-red-500/20 bg-red-500/5'}`}>
+            <div>
+              <div className="flex items-center justify-between gap-1 mb-2">
+                <h3 className="text-base font-bold text-white leading-tight">{plan.name}</h3>
+                {!plan.isActive ? (
+                  <span className="text-[10px] uppercase font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Pasif</span>
+                ) : plan.monthlyPrice === 0 ? (
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20 shrink-0">Trial</span>
+                ) : plan.name.includes("Standart Denetçi") ? (
+                  <span className="text-[10px] font-bold text-sky-400 bg-sky-400/10 px-1.5 py-0.5 rounded border border-sky-400/20 shrink-0">Mikro</span>
+                ) : plan.name.includes("5D BIM") ? (
+                  <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded border border-indigo-400/20 shrink-0">Popüler</span>
+                ) : plan.name.includes("Kurumsal") ? (
+                  <span className="text-[10px] font-bold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded border border-purple-400/20 shrink-0">Kurumsal</span>
+                ) : null}
               </div>
+              
+              <div className="mb-5 mt-3">
+                <div className="flex items-baseline gap-1">
+                  {plan.monthlyPrice === 0 ? (
+                    <span className="text-2xl font-black text-emerald-400">Ücretsiz</span>
+                  ) : (
+                    <>
+                      <span className="text-2xl font-black text-white">₺{plan.monthlyPrice}</span>
+                      <span className="text-zinc-500 text-xs">/ ay</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <ul className="space-y-2.5">
+                <li className="flex items-center gap-2 text-xs text-zinc-300">
+                  {plan.monthlyQuoteLimit === 0 ? (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                      <span className="text-zinc-400">Teklif Modülü Dahil Değil</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                      <span>
+                        <strong className="text-white">
+                          {plan.monthlyQuoteLimit >= 99999 ? 'Sınırsız' : `${plan.monthlyQuoteLimit} Adet`}
+                        </strong>{' '}
+                        Teklif Kotası
+                      </span>
+                    </>
+                  )}
+                </li>
+                <li className="flex items-center gap-2 text-xs text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>
+                    <strong className="text-white">
+                      {plan.monthlyIfcLimit ? `${plan.monthlyIfcLimit} Adet` : 'Sınırsız'}
+                    </strong>{' '}
+                    {plan.monthlyQuoteLimit === 0 ? 'İsimlendirme Denetimi' : 'IFC Analizi'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-xs text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>
+                    Maks <strong className="text-white">{plan.ifcMaxFileMb ?? 50} MB</strong> Dosya
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-xs text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                  <span>
+                    <strong className="text-white">{plan.ifcMaxConcurrent ?? 1}</strong> Eşzamanlı İş
+                  </span>
+                </li>
+              </ul>
             </div>
 
-            <ul className="space-y-3 flex-1">
-              <li className="flex items-center gap-2 text-sm text-zinc-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                <strong className="text-white">{plan.monthlyQuoteLimit}</strong> Aylık Teklif Kotası
-              </li>
-              <li className="flex items-center gap-2 text-sm text-zinc-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                <strong className="text-white">{plan.monthlyIfcLimit ?? 5}</strong> Aylık IFC Analizi
-              </li>
-              <li className="flex items-center gap-2 text-sm text-zinc-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                Maks <strong className="text-white">{plan.ifcMaxFileMb ?? 100} MB</strong> IFC Boyutu
-              </li>
-              <li className="flex items-center gap-2 text-sm text-zinc-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                Sınırsız Kullanıcı Ekleme
-              </li>
-            </ul>
-
-            <Button onClick={() => openModal(plan)} variant="outline" className="w-full mt-6 border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800">
+            <Button onClick={() => openModal(plan)} variant="outline" className="w-full mt-5 border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs py-1.5">
               Düzenle
             </Button>
           </div>
