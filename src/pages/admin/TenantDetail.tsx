@@ -131,11 +131,25 @@ export function TenantDetail() {
       ]);
 
       if (!tenantRes.ok) {
-        throw new Error('Firma profil bilgileri alınamadı');
+        let errMessage = 'Firma profil bilgileri alınamadı';
+        try {
+          const errData = await tenantRes.json();
+          if (errData.error) errMessage = errData.error;
+        } catch {
+          // Ignore non-json body
+        }
+        throw new Error(errMessage);
       }
 
       const tenantData: TenantDetailData = await tenantRes.json();
-      const plansData = await plansRes.json();
+      let plansData = [];
+      try {
+        if (plansRes.ok) {
+          plansData = await plansRes.json();
+        }
+      } catch {
+        // Fallback to empty plans
+      }
 
       setData(tenantData);
       setPlans(plansData);
