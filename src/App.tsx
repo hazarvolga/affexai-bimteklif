@@ -18,7 +18,10 @@ const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
 const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminShell');
 const AdminDashboard = page(() => import('@/pages/admin/AdminDashboard'), 'AdminDashboard');
 const TenantsList = page(() => import('@/pages/admin/TenantsList'), 'TenantsList');
+const TenantDetail = page(() => import('@/pages/admin/TenantDetail'), 'TenantDetail');
+const AdminQueue = page(() => import('@/pages/admin/AdminQueue'), 'AdminQueue');
 const PlansList = page(() => import('@/pages/admin/PlansList'), 'PlansList');
+const AdminReports = page(() => import('@/pages/admin/AdminReports'), 'AdminReports');
 const AdminLogs = page(() => import('@/pages/admin/AdminLogs'), 'AdminLogs');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
@@ -95,7 +98,10 @@ function AppRoutes() {
         <Route path="/admin" element={<AdminShell />}>
           <Route index element={<AdminDashboard />} />
           <Route path="tenants" element={<TenantsList />} />
+          <Route path="tenants/:companyId" element={<TenantDetail />} />
+          <Route path="queue" element={<AdminQueue />} />
           <Route path="plans" element={<PlansList />} />
+          <Route path="reports" element={<AdminReports />} />
           <Route path="logs" element={<AdminLogs />} />
         </Route>
 

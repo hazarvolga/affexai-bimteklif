@@ -194,7 +194,16 @@ export function registerAuthRoutes(app: Express) {
       const learner = await db.query.academyLearnerProfiles.findFirst({ where: req.user.companyId
         ? and(eq(academyLearnerProfiles.userId, req.user.userId), eq(academyLearnerProfiles.companyId, req.user.companyId))
         : eq(academyLearnerProfiles.userId, req.user.userId) });
-      res.json({ user: publicRegisteredUser(user), company, role: membership?.role ?? null, accountType: learner ? 'academy_learner' : 'workspace', learnerProfile: learner ? { onboardingCompletedAt: learner.onboardingCompletedAt, selectedLessonSlug: learner.selectedLessonSlug } : null });
+      res.json({
+        user: {
+          ...publicRegisteredUser(user),
+          ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy, readOnly: req.user.readOnly } : {})
+        },
+        company,
+        role: membership?.role ?? null,
+        accountType: learner ? 'academy_learner' : 'workspace',
+        learnerProfile: learner ? { onboardingCompletedAt: learner.onboardingCompletedAt, selectedLessonSlug: learner.selectedLessonSlug } : null
+      });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch profile" });
     }

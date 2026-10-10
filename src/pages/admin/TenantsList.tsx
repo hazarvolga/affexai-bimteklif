@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Building2, Search, X } from 'lucide-react';
@@ -148,7 +149,9 @@ function escapeCsvCell(value: unknown): string {
               return (
                 <tr key={tenant.id} className="hover:bg-zinc-800/30 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-white">{tenant.name}</div>
+                    <Link to={`/admin/tenants/${tenant.id}`} className="font-semibold text-white hover:text-indigo-400 transition-colors">
+                      {tenant.name}
+                    </Link>
                     <div className="text-xs text-zinc-500 mt-1">{tenant.owner_email || 'Kullanıcı atanmamış'}</div>
                   </td>
                   <td className="px-6 py-4">
@@ -176,9 +179,16 @@ function escapeCsvCell(value: unknown): string {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <Button variant="outline" size="sm" onClick={() => openManageModal(tenant)} className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800">
-                      Yönet
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Link to={`/admin/tenants/${tenant.id}`}>
+                        <Button variant="outline" size="sm" className="border-indigo-600/40 bg-indigo-600/10 text-indigo-300 hover:bg-indigo-600/20 text-xs">
+                          Detay
+                        </Button>
+                      </Link>
+                      <Button variant="outline" size="sm" onClick={() => openManageModal(tenant)} className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs">
+                        Hızlı Düzenle
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               );

@@ -55,6 +55,15 @@ export function AdminDashboard() {
               <p className="text-xs text-zinc-500 mt-4 border-t border-blue-500/10 pt-3">Platform genelinde sistem yükü.</p>
             </div>
 
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity size={16} className="text-amber-400" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Bu Ay İşlenen IFC</p>
+              </div>
+              <p className="text-3xl font-black text-white">{data?.totalIfcThisMonth || 0}</p>
+              <p className="text-xs text-zinc-500 mt-4 border-t border-amber-500/10 pt-3">Python IfcOpenShell BIM analiz yükü.</p>
+            </div>
+
             <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-5 flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <Users size={16} className="text-purple-400" />
@@ -70,9 +79,34 @@ export function AdminDashboard() {
                   <span className="text-zinc-500">Kayıtlı paket yok</span>
                 )}
               </div>
-              <p className="text-xs text-zinc-500 mt-4 border-t border-purple-500/10 pt-3">Hangi paket daha çok satıyor?</p>
+              <p className="text-xs text-zinc-500 mt-4 border-t border-purple-500/10 pt-3">Paket dağılım oranları.</p>
             </div>
 
+          </div>
+
+          {/* Kuyruk Özeti Kartı */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                </span>
+                IFC ve Belge Kuyruk Durumu
+              </h3>
+              <div className="flex items-center gap-5 text-xs text-zinc-400 mt-2">
+                <span>Bekleyen: <strong className="text-white">{data?.queue?.queued || 0}</strong></span>
+                <span>Çalışan: <strong className="text-amber-400">{data?.queue?.running || 0}</strong></span>
+                <span>Kilitli: <strong className={data?.queue?.stale ? "text-red-400" : "text-zinc-400"}>{data?.queue?.stale || 0}</strong></span>
+              </div>
+            </div>
+
+            <a
+              href="/admin/queue"
+              className="inline-flex items-center justify-center rounded-lg bg-indigo-600/20 border border-indigo-500/30 px-4 py-2 text-xs font-bold text-indigo-300 hover:bg-indigo-600/30 transition-colors"
+            >
+              Kuyruğu İzle & Yönet →
+            </a>
           </div>
         </div>
       )}

@@ -8,6 +8,8 @@ interface User {
   fullName: string;
   emailVerified: string | null;
   isSuperAdmin?: boolean;
+  impersonatedBy?: string;
+  readOnly?: boolean;
 }
 
 interface AuthContextType {
@@ -20,6 +22,7 @@ interface AuthContextType {
   isDemoMode: boolean;
   login: (token: string, user: User, company: Company, role: string, accountType?: 'workspace' | 'academy_learner') => void;
   logout: () => void;
+  exitImpersonation: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -104,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('admin_session_backup');
     setUser(null);
     setCompany(null);
     setRole(null);
@@ -113,8 +117,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     toast.info("Oturum kapatıldı.");
   };
 
+  const exitImpersonation = () => {
+    const backup = localStorage.getItem('admin_session_backup');
+    if (backup) {
+      localStorage.setItem('token', backup);
+      localStorage.removeItem('admin_session_backup');
+      toast.info("Admin oturumuna dönülüyor...");
+      window.location.href = '/admin/tenants';
+    } else {
+      logout();
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, company, role, accountType, learnerProfile, loading, isDemoMode, login, logout }}>
+    <AuthContext.Provider value={{ user, company, role, accountType, learnerProfile, loading, isDemoMode, login, logout, exitImpersonation }}>
       {children}
     </AuthContext.Provider>
   );

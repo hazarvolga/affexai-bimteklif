@@ -61,7 +61,7 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
 
 export function Shell() {
   const location = useLocation();
-  const { user, company, role, accountType, isDemoMode, logout } = useAuth();
+  const { user, company, role, accountType, isDemoMode, logout, exitImpersonation } = useAuth();
   const isLearner = accountType === 'academy_learner';
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -143,6 +143,25 @@ export function Shell() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
+        {(user?.impersonatedBy || Boolean(localStorage.getItem('admin_session_backup'))) && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-amber-500/40 bg-amber-500/15 px-6 py-2.5 text-xs text-amber-200">
+            <div className="flex items-center gap-2 font-medium">
+              <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>
+                Şu anda <strong>{company?.name || 'Müşteri'}</strong> adına impersonate modundasınız
+                {user?.readOnly && <span className="ml-2 rounded bg-amber-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-600/50">SALT-OKUNUR</span>}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exitImpersonation}
+              className="border-amber-400/50 bg-amber-500/20 text-amber-100 hover:bg-amber-500/30 text-[10px] font-black uppercase tracking-wider h-8 px-3"
+            >
+              Çıkış Yap / Admin Paneline Dön
+            </Button>
+          </div>
+        )}
         {isLearner && user && !user.emailVerified && <div className="flex flex-col gap-3 border-b border-amber-500/25 bg-amber-500/[0.07] px-6 py-3 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between"><p>E-posta adresinizi doğrulayın. Dersleri kullanabilirsiniz; sertifika işlemleri doğrulama tamamlanana kadar kilitlidir.</p><Button type="button" variant="outline" disabled={verificationSent} onClick={async () => { const response = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: user.email }) }); if (response.ok) setVerificationSent(true); }} className="border-amber-500/30 bg-transparent text-amber-100 hover:bg-amber-500/10">{verificationSent ? 'Bağlantı gönderildi' : 'Doğrulama bağlantısı gönder'}</Button></div>}
         {isDemoMode && <div className="border-b border-orange-500/25 bg-orange-500/[0.06] px-6 py-2 text-center text-[10px] font-black uppercase tracking-widest text-orange-300">Demo modu — geliştirme ortamında otomatik erişim aktif</div>}
         {/* Header */}

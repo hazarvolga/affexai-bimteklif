@@ -16,6 +16,9 @@ export function PlansList() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
   const [limit, setLimit] = useState(0);
+  const [monthlyIfcLimit, setMonthlyIfcLimit] = useState(5);
+  const [ifcMaxFileMb, setIfcMaxFileMb] = useState(100);
+  const [ifcMaxConcurrent, setIfcMaxConcurrent] = useState(1);
   const [isActive, setIsActive] = useState(true);
 
   const loadPlans = () => {
@@ -36,12 +39,18 @@ export function PlansList() {
       setName(plan.name);
       setPrice(plan.monthlyPrice);
       setLimit(plan.monthlyQuoteLimit);
+      setMonthlyIfcLimit(plan.monthlyIfcLimit ?? 5);
+      setIfcMaxFileMb(plan.ifcMaxFileMb ?? 100);
+      setIfcMaxConcurrent(plan.ifcMaxConcurrent ?? 1);
       setIsActive(plan.isActive);
     } else {
       setEditingPlan(null);
       setName('');
       setPrice(0);
       setLimit(15);
+      setMonthlyIfcLimit(5);
+      setIfcMaxFileMb(100);
+      setIfcMaxConcurrent(1);
       setIsActive(true);
     }
     setIsModalOpen(true);
@@ -52,6 +61,9 @@ export function PlansList() {
       name,
       monthlyPrice: Number(price),
       monthlyQuoteLimit: Number(limit),
+      monthlyIfcLimit: Number(monthlyIfcLimit),
+      ifcMaxFileMb: Number(ifcMaxFileMb),
+      ifcMaxConcurrent: Number(ifcMaxConcurrent),
       isActive
     };
 
@@ -108,12 +120,16 @@ export function PlansList() {
                 <strong className="text-white">{plan.monthlyQuoteLimit}</strong> Aylık Teklif Kotası
               </li>
               <li className="flex items-center gap-2 text-sm text-zinc-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                Sınırsız Kullanıcı Ekleme
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <strong className="text-white">{plan.monthlyIfcLimit ?? 5}</strong> Aylık IFC Analizi
+              </li>
+              <li className="flex items-center gap-2 text-sm text-zinc-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                Maks <strong className="text-white">{plan.ifcMaxFileMb ?? 100} MB</strong> IFC Boyutu
               </li>
               <li className="flex items-center gap-2 text-sm text-zinc-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                Sınırsız Malzeme Kütüphanesi
+                Sınırsız Kullanıcı Ekleme
               </li>
             </ul>
 
@@ -146,6 +162,21 @@ export function PlansList() {
                 <div>
                   <label className="block text-sm font-medium text-zinc-400 mb-1">Aylık Teklif Kotası</label>
                   <input type="number" value={limit} onChange={e => setLimit(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1">Aylık IFC Kotası</label>
+                  <input type="number" min={0} value={monthlyIfcLimit} onChange={e => setMonthlyIfcLimit(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1">Maks IFC (MB)</label>
+                  <input type="number" min={1} max={500} value={ifcMaxFileMb} onChange={e => setIfcMaxFileMb(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1">Eşzamanlı İş</label>
+                  <input type="number" min={1} max={10} value={ifcMaxConcurrent} onChange={e => setIfcMaxConcurrent(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
                 </div>
               </div>
 
