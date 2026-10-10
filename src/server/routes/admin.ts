@@ -36,6 +36,7 @@ import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { enqueueSmartCheckProcessing, removePendingJob } from "../../smartcheck/import/service";
 import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
+import { priceSchedulerService } from "../crawler/priceSchedulerService";
 
 export function registerAdminRoutes(app: Express) {
   const router = Router();
@@ -968,6 +969,36 @@ export function registerAdminRoutes(app: Express) {
     } catch (error) {
       console.error("Admin pricing sync error:", error);
       return res.status(500).json({ error: "Tarama sırasında sunucu hatası oluştu." });
+    }
+  });
+
+  router.get("/pricing-sources/scheduler/status", async (_req, res) => {
+    try {
+      const status = priceSchedulerService.getStatus();
+      return res.json(status);
+    } catch (error) {
+      console.error("Admin scheduler status error:", error);
+      return res.status(500).json({ error: "Zamanlayıcı durumu alınamadı." });
+    }
+  });
+
+  router.post("/pricing-sources/scheduler/trigger", async (req, res) => {
+    try {
+      const status = priceSchedulerService.getStatus();
+      if (status.isRunningBatch) {
+        return res.status(409).json({ error: "Sıralı tarama şu anda zaten çalışmaktadır." });
+      }
+
+      const summary = await priceSchedulerService.runSequentialBatch("manual_admin", req.user.userId);
+      return res.json({
+        success: true,
+        message: `Sıralı toplu tarama tamamlandı: ${summary.successfulSources}/${summary.totalSources} kaynak tarandı, ${summary.totalItemsStaged} yeni fiyat havuza eklendi.`,
+        summary,
+      });
+    } catch (error) {
+      console.error("Admin batch trigger error:", error);
+      const msg = error instanceof Error ? error.message : "Toplu tarama başlatılamadı.";
+      return res.status(500).json({ error: msg });
     }
   });
 

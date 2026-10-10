@@ -21,7 +21,10 @@ import {
   Trash2,
   Globe,
   Link as LinkIcon,
-  HelpCircle
+  HelpCircle,
+  Moon,
+  Play,
+  Cpu
 } from 'lucide-react';
 import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
@@ -152,20 +155,46 @@ export function PricingSources() {
     }
   };
 
+  const [schedulerStatus, setSchedulerStatus] = useState<any | null>(null);
+  const [runningBatch, setRunningBatch] = useState(false);
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const [srcRes, stgRes] = await Promise.all([
+      const [srcRes, stgRes, schRes] = await Promise.all([
         fetchWithAuth('/api/admin/pricing-sources').then((r) => r.json()),
         fetchWithAuth('/api/admin/pricing-sources/staging').then((r) => r.json()),
+        fetchWithAuth('/api/admin/pricing-sources/scheduler/status').then((r) => r.json()).catch(() => null),
       ]);
       setSources(Array.isArray(srcRes) ? srcRes : []);
       setStagingItems(Array.isArray(stgRes) ? stgRes : []);
+      if (schRes) setSchedulerStatus(schRes);
     } catch (error) {
       console.error(error);
       toast.error('Fiyat kaynakları yüklenirken hata oluştu.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTriggerBatch = async () => {
+    setRunningBatch(true);
+    toast.info('Sıralı gece taraması başlatıldı. Kaynaklar sırayla taranıyor (3sn nezaket beklemesiyle)...');
+    try {
+      const res = await fetchWithAuth('/api/admin/pricing-sources/scheduler/trigger', {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Sıralı toplu tarama tamamlandı.');
+        loadData();
+      } else {
+        toast.error(data.error || 'Toplu tarama başlatılamadı.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setRunningBatch(false);
     }
   };
 
@@ -308,6 +337,51 @@ export function PricingSources() {
             <span className="font-bold text-white block mb-0.5">4. Mühürlü Poz Kataloğu</span>
             <span>Onaylanan pozlar SHA-256 hash imzasıyla yürürlüğe girer ve şantiyelerin teklif mektuplarında kullanılır.</span>
           </div>
+        </div>
+      </div>
+
+      {/* NIGHTLY BATCH SCHEDULER BANNER */}
+      <div className="mt-4 rounded-xl border border-blue-900/30 bg-blue-950/20 p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2.5 rounded-lg bg-blue-900/40 text-blue-400 border border-blue-800/40 shrink-0 mt-0.5 md:mt-0">
+            <Moon size={20} />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-sm font-bold text-white">Otomatik Gece Taraması (Nightly Batch Sync)</h4>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <CheckCircle2 size={10} className="mr-1" /> Aktif (Her Gece 03:00 TSİ)
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                <Cpu size={10} className="mr-1" /> Sıralı Nezaket Kuyruğu (Zero-Spike)
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+              Sunucuya ve hedef portallara yük bindirmemek için tüm kaynaklar her gece 03:00'te 2.5 sn aralıklarla sırayla taranır ve onay havuzuna aktarılır.
+              {schedulerStatus?.lastRunAt ? (
+                <span className="text-zinc-300 ml-1">
+                  Son çalışma: <strong className="text-white">{new Date(schedulerStatus.lastRunAt).toLocaleDateString('tr-TR')} {new Date(schedulerStatus.lastRunAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</strong> ({schedulerStatus.lastSummary?.successfulSources || 0}/{schedulerStatus.lastSummary?.totalSources || 0} kaynak, {schedulerStatus.lastSummary?.totalItemsStaged || 0} yeni fiyat).
+                </span>
+              ) : (
+                <span className="text-zinc-500 ml-1"> (İlk döngü bu gece 03:00'te başlayacak).</span>
+              )}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+          <Button
+            onClick={handleTriggerBatch}
+            disabled={runningBatch}
+            variant="outline"
+            className="border-blue-800/50 bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 text-xs font-semibold"
+          >
+            {runningBatch ? (
+              <RefreshCw size={13} className="mr-1.5 animate-spin text-blue-400" />
+            ) : (
+              <Play size={13} className="mr-1.5 text-blue-400" />
+            )}
+            {runningBatch ? 'Sırayla Taranıyor...' : 'Toplu Taramayı Şimdi Çalıştır'}
+          </Button>
         </div>
       </div>
 

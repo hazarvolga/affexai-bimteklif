@@ -56,6 +56,7 @@ import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { pruneExpiredRateLimits } from "./auth/security";
 import { requestIdMiddleware } from "./logger";
+import { priceSchedulerService } from "./crawler/priceSchedulerService";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -237,11 +238,15 @@ export async function startServer() {
   }, 3600_000);
   pruneInterval.unref();
 
+  // Start automated nightly crawler scheduler (OPS-CRAWLER)
+  priceSchedulerService.start();
+
   let isShuttingDown = false;
   const shutdown = async (signal: string) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
     clearInterval(pruneInterval);
+    priceSchedulerService.stop();
     console.log(`Received ${signal}. Shutting down gracefully...`);
     server.close(async () => {
       try {
