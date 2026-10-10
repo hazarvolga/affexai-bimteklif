@@ -1,6 +1,6 @@
 # Working State
 
-Last updated: 2026-08-02
+Last updated: 2026-10-10
 
 ## Repository
 
@@ -1164,3 +1164,18 @@ cleanup of interrupted checks was not established. The next step is report
 Phase 0: restore an isolated, green lint/test baseline before feature expansion.
 Autonomous remediation and source restore checkpoints are tracked in
 `GAP_EXECUTION_PLAN.md`.
+
+## 2026-10-10 Update: SaaS Pricing, 14-Day Free Trial & e-PYS Micro-SaaS
+
+- **Tenant Cleanup:** Removed 12 leftover automated test companies, leaving 5 legitimate active tenants.
+- **Migration 0037 Executed:** Added super admin IFC limits and smartcheck fields to `teklifpro_local`.
+- **Tenant Profile Page (`TenantDetail.tsx`):** Added company contact, tax office/number, authorized owner details, and plan quota summary.
+- **SaaS 5-Tier Pricing Implemented:**
+  1. `14 Günlük Ücretsiz Deneme (Trial)` - 0 ₺ / ay (5 Teklif, 1 IFC 35 MB)
+  2. `e-PYS & BIM Standart Denetçi` - 390 ₺ / ay (0 Teklif, 50 IFC İsimlendirme & e-PYS Denetimi 50 MB)
+  3. `Teklif & Şantiye` - 1.450 ₺ / ay (30 Teklif, 2 IFC 30 MB)
+  4. `5D BIM & SmartCheck` - 3.950 ₺ / ay (150 Teklif, 25 IFC 100 MB)
+  5. `Kurumsal Taahhüt & e-PYS` - 8.900 ₺ / ay (99.999 Sınırsız Teklif, 100 IFC 250 MB)
+- **Automatic Trial Assignment:** New registrations in `src/server/routes/auth.ts` automatically receive the 14-day trial plan with a 14-day expiry date.
+- **Admin Plans UI (`PlansList.tsx`):** Responsive 5-column grid with tier badges (Trial, Mikro, Popüler, Kurumsal).
+
