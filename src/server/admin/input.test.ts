@@ -4,7 +4,7 @@ import { createPlanInput, updatePlanInput, updateSubscriptionInput } from './inp
 
 test('admin plan boundary accepts zero limits but rejects unsafe fields and values', () => {
   assert.deepEqual(createPlanInput.parse({ name: 'Free', monthlyQuoteLimit: 0, monthlyPrice: 0 }), {
-    name: 'Free', monthlyQuoteLimit: 0, monthlyPrice: 0, isActive: true,
+    name: 'Free', monthlyQuoteLimit: 0, monthlyPrice: 0, isActive: true, ifcMaxFileMb: 50, ifcMaxConcurrent: 1,
   });
   for (const input of [
     { name: '', monthlyQuoteLimit: 1, monthlyPrice: 0 },

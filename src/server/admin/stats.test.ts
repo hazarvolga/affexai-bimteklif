@@ -26,7 +26,20 @@ async function read(t: TestContext, rows: unknown[]) {
     return callback({ execute });
   }) as any);
   let handler: any;
-  const app: any = { get(path: string, ...handlers: any[]) { if (path === '/api/admin/tenants') handler = handlers.at(-1); }, post() {}, patch() {} };
+  const app: any = {
+    use(prefix: string, router: any) {
+      if (prefix === '/api/admin' && router?.stack) {
+        for (const layer of router.stack) {
+          if (layer.route?.path === '/tenants') {
+            handler = layer.route.stack.at(-1)?.handle;
+          }
+        }
+      }
+    },
+    get(path: string, ...handlers: any[]) { if (path === '/api/admin/tenants') handler = handlers.at(-1); },
+    post() {},
+    patch() {}
+  };
   registerAdminRoutes(app);
   const res: any = { statusCode: 200, body: undefined, status(code: number) { this.statusCode = code; return this; }, json(body: unknown) { this.body = body; return this; } };
   await handler({}, res);
