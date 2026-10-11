@@ -8,7 +8,7 @@ import { db } from "../../db";
 import { clients, companies, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
-import { getTenantIfcLimits, SMARTCHECK_MAX_FILE_BYTES, SMARTCHECK_MAX_IFC_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
+import { fetchTenantIfcLimits, IfcNotAvailableError, IfcLimitsUnavailableError, SMARTCHECK_MAX_FILE_BYTES, SMARTCHECK_MAX_IFC_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
 import { detectAndValidateFile, maxBytesForSmartCheckFileName, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
 import { inspectDocument } from "../../smartcheck/import/processor";
@@ -67,11 +67,26 @@ export function registerSmartCheckRoutes(app: Express) {
 
   app.post("/api/smartcheck/documents/uploads", ...protectedStack, async (req, res) => {
     const parsedRequest = smartcheckUploadRequestSchema.safeParse(req.body);
+    if (!parsedRequest.success) {
+      return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
+    }
     const isIfc = Boolean(parsedRequest.data?.fileName?.toLowerCase().endsWith(".ifc"));
-    const maxAllowedBytes = isIfc
-      ? getTenantIfcLimits(req.user.companyId).maxFileBytes
-      : maxBytesForSmartCheckFileName(parsedRequest.data?.fileName || "");
-    if (!parsedRequest.success || parsedRequest.data.fileSizeBytes > maxAllowedBytes) {
+    let maxAllowedBytes = maxBytesForSmartCheckFileName(parsedRequest.data?.fileName || "");
+    if (isIfc) {
+      try {
+        const limits = await fetchTenantIfcLimits(req.user.companyId);
+        maxAllowedBytes = limits.maxFileBytes;
+      } catch (error) {
+        if (error instanceof IfcNotAvailableError) {
+          return res.status(error.status).json({ error: error.message, code: error.code });
+        }
+        if (error instanceof IfcLimitsUnavailableError) {
+          return res.status(error.status).json({ error: error.message, code: error.code });
+        }
+        throw error;
+      }
+    }
+    if (parsedRequest.data.fileSizeBytes > maxAllowedBytes) {
       return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
     }
     const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
@@ -114,65 +129,98 @@ export function registerSmartCheckRoutes(app: Express) {
     const checksum = parsedRequest.data.checksumSha256;
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+
     const storage = createStorageAdapter();
-    let kind: "ifc" | "xlsx" | "csv" = "ifc";
-    if (document.originalFileName.toLowerCase().endsWith('.ifc')) {
-      if (storage.getStream) {
+    let activeStream: any = null;
+    try {
+      let kind: "ifc" | "xlsx" | "csv" = "ifc";
+      if (document.originalFileName.toLowerCase().endsWith('.ifc')) {
+        if (!storage.getStream) {
+          throw new Error("STORAGE_STREAM_UNSUPPORTED");
+        }
         const stream = await storage.getStream(document.storageKey);
+        activeStream = stream;
         const hash = crypto.createHash('sha256');
-        let firstChunk: Buffer | null = null;
         let size = 0;
-        try {
-          let headChunks = [];
-          let headSize = 0;
-          for await (const chunk of stream) {
-            if (headSize < 8192) {
-              headChunks.push(chunk);
-              headSize += chunk.length;
-            }
-            hash.update(chunk);
-            size += chunk.length;
-            if (size > getTenantIfcLimits(document.companyId).maxFileBytes) throw new Error('FILE_SIZE_INVALID');
+        const headChunks: Buffer[] = [];
+        let headSize = 0;
+        const limits = await fetchTenantIfcLimits(document.companyId);
+        const maxIfcBytes = limits.maxFileBytes;
+        for await (const chunk of stream) {
+          const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+          if (headSize < 8192) {
+            headChunks.push(buf);
+            headSize += buf.length;
           }
-          if (size === 0) throw new Error('FILE_SIZE_INVALID');
-          if (size !== document.fileSizeBytes || hash.digest('hex') !== checksum) {
-             throw new Error('CHECKSUM_MISMATCH');
-          }
-          const headBuffer = Buffer.concat(headChunks);
-          kind = detectAndValidateFile(headBuffer, document.originalFileName, document.mimeType);
-        } catch (error) {
-          if (typeof stream.destroy === 'function') stream.destroy();
-          if (['FILE_SIZE_INVALID', 'CHECKSUM_MISMATCH'].includes(error.message)) {
-            await Promise.all([
-              storage.delete(document.storageKey).catch(() => {}),
-              db.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(eq(documents.id, document.id))
-            ]);
-          }
-          if (error.message === 'FILE_SIZE_INVALID') return res.status(400).json({ error: "Dosya boyutu geçersiz." });
-          if (error.message === 'CHECKSUM_MISMATCH') return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
-          throw error;
+          hash.update(buf);
+          size += buf.length;
+          if (size > maxIfcBytes) throw new Error('FILE_SIZE_INVALID');
+        }
+        if (size === 0) throw new Error('FILE_SIZE_INVALID');
+        if (size !== document.fileSizeBytes || hash.digest('hex') !== checksum) {
+          throw new Error('CHECKSUM_MISMATCH');
+        }
+        const headBuffer = Buffer.concat(headChunks);
+        kind = detectAndValidateFile(headBuffer, document.originalFileName, document.mimeType);
+      } else {
+        const content = await storage.get(document.storageKey);
+        if (content.length === 0) throw new Error('FILE_SIZE_INVALID');
+        if (content.length !== document.fileSizeBytes || sha256(content) !== checksum) {
+          throw new Error('CHECKSUM_MISMATCH');
+        }
+        kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
+        if (kind === "xlsx") {
+          await validateXlsxArchive(content);
         }
       }
-    } else {
-      const content = await storage.get(document.storageKey);
-      if (content.length !== document.fileSizeBytes || sha256(content) !== checksum) {
-        await Promise.all([
-          storage.delete(document.storageKey).catch(() => {}),
-          db.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(eq(documents.id, document.id))
-        ]);
-        return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
+
+      if (kind === "ifc") {
+        await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_enabled" });
       }
-      kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-      if (kind === "xlsx") {
-        await validateXlsxArchive(content);
+      const [updated] = await db.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning();
+      if (kind !== "ifc") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
+      return res.json(updated);
+    } catch (error: unknown) {
+      if (activeStream && typeof activeStream.destroy === 'function') {
+        activeStream.destroy();
+      }
+
+      await Promise.allSettled([
+        storage.delete(document.storageKey),
+        db.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)))
+      ]);
+
+      if (error instanceof IfcNotAvailableError) {
+        return res.status(error.status).json({ error: error.message, code: error.code, message: error.message });
+      }
+      if (error instanceof IfcLimitsUnavailableError) {
+        return res.status(error.status).json({ error: error.message, code: error.code, message: error.message });
+      }
+
+      const code = error instanceof Error ? error.message : String(error);
+
+      switch (code) {
+        case 'FILE_SIZE_INVALID':
+          return res.status(400).json({ error: "Dosya boyutu geçersiz.", code: "FILE_SIZE_INVALID", message: "Dosya boyutu geçersiz." });
+        case 'FILE_SIGNATURE_MISMATCH':
+          return res.status(400).json({ error: "Dosya formatı veya imzası geçersiz.", code: "FILE_SIGNATURE_MISMATCH", message: "Dosya formatı veya imzası geçersiz." });
+        case 'UNSUPPORTED_FILE_TYPE':
+          return res.status(415).json({ error: "Desteklenmeyen dosya türü.", code: "UNSUPPORTED_FILE_TYPE", message: "Desteklenmeyen dosya türü." });
+        case 'CHECKSUM_MISMATCH':
+          return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı.", code: "CHECKSUM_MISMATCH", message: "Dosya bütünlüğü doğrulanamadı." });
+        case 'XLSX_CORRUPT':
+          return res.status(400).json({ error: "XLSX arşiv yapısı bozuk veya okunamıyor.", code: "XLSX_CORRUPT", message: "XLSX arşiv yapısı bozuk veya okunamıyor." });
+        case 'XLSX_ENCRYPTED':
+          return res.status(400).json({ error: "Şifreli XLSX dosyaları desteklenmez.", code: "XLSX_ENCRYPTED", message: "Şifreli XLSX dosyaları desteklenmez." });
+        case 'XLSX_ZIP_BOMB_RISK':
+        case 'XLSX_ENTRY_COUNT_EXCEEDED':
+        case 'XLSX_TOTAL_UNCOMPRESSED_EXCEEDED':
+          return res.status(400).json({ error: "XLSX arşiv sınırları aşıldı.", code: "XLSX_ZIP_BOMB_RISK", message: "XLSX arşiv sınırları aşıldı." });
+        default:
+          console.error(`[SmartCheck /complete] Unexpected error for document ${document.id}:`, error);
+          return res.status(500).json({ error: "Dosya doğrulama işlemi sırasında beklenmeyen bir hata oluştu.", code: "INTERNAL_SERVER_ERROR", message: "Dosya doğrulama işlemi sırasında beklenmeyen bir hata oluştu." });
       }
     }
-    if (kind === "ifc") {
-      await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_enabled" });
-    }
-    const [updated] = await db.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning();
-    if (kind !== "ifc") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
-    res.json(updated);
   });
 
   app.get("/api/smartcheck/documents/:id/preview", authenticate, featureGate, readRateLimit, async (req, res) => {
@@ -226,7 +274,17 @@ export function registerSmartCheckRoutes(app: Express) {
         const result = await changeProcessingRun({ companyId: req.user.companyId, userId: req.user.userId, documentId: req.params.id, action });
         res.status(result.status).json(result.run);
       } catch (error) {
-        if (error instanceof ProcessingConflict) return res.status(error.status).json({ error: "İşlem mevcut durumda gerçekleştirilemiyor.", code: error.code });
+        if (error instanceof ProcessingConflict) {
+          const defaultMessage = error.code === 'IFC_QUOTA_EXCEEDED'
+            ? 'Aylık IFC işleme kotanız dolmuştur.'
+            : 'İşlem mevcut durumda gerçekleştirilemiyor.';
+          return res.status(error.status).json({
+            error: error.message && error.message !== error.code ? error.message : defaultMessage,
+            code: error.code,
+          });
+        }
+        if (error instanceof IfcNotAvailableError) return res.status(error.status).json({ error: error.message, code: error.code });
+        if (error instanceof IfcLimitsUnavailableError) return res.status(error.status).json({ error: error.message, code: error.code });
         next(error);
       }
     });

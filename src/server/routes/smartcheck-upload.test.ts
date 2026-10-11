@@ -19,8 +19,17 @@ test("SmartCheck Complete Upload Checks", { timeout: 30_000 }, async (t) => {
   
   const suffix = crypto.randomUUID();
   const [company] = await db.insert(schema.companies).values({ name: `HTTP Integration ${suffix}`, smartcheckMaxWastePercent: "20" }).returning();
+  const [plan] = await db.insert(schema.plans).values({
+    name: `Test Plan ${suffix}`,
+    monthlyPrice: 1000,
+    monthlyQuoteLimit: 100,
+    monthlyIfcLimit: 50,
+    ifcMaxFileMb: 100,
+    ifcMaxConcurrent: 2,
+    isActive: true,
+  }).returning();
   await db.insert(schema.subscriptions).values({
-    companyId: company.id, plan: "starter", status: "active", currentPeriodStart: new Date("2020-01-01T00:00:00Z"),
+    companyId: company.id, planId: plan.id, plan: "starter", status: "active", currentPeriodStart: new Date("2020-01-01T00:00:00Z"),
   });
   const [user] = await db.insert(schema.users).values({ email: `http-upload-${suffix}@example.test`, fullName: "Upload Tenant", emailVerified: new Date() }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: user.id, role: "owner" });
@@ -107,7 +116,103 @@ test("SmartCheck Complete Upload Checks", { timeout: 30_000 }, async (t) => {
     await adapter.put(key, realContent, 'text/csv');
     const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: doc.checksumSha256 }) });
     if (oldGetStream) adapter.getStream = oldGetStream;
-    
     assert.strictEqual(res.status, 200);
   });
+
+  await t.test("file signature mismatch (corrupt IFC header) is rejected with 400, doc marked failed, and file deleted", async () => {
+    const fakeIfc = Buffer.from("NOT_AN_IFC_FILE_HEADER; SOME_DATA;\n");
+    const fakeHash = crypto.createHash('sha256').update(fakeIfc).digest('hex');
+    const { doc, key } = await mockUpload(fakeIfc.length, fakeHash, 'corrupt.ifc', fakeIfc.length, fakeHash);
+
+    await adapter.put(key, fakeIfc, 'application/octet-stream');
+
+    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, {
+      method: "POST",
+      headers: { ...reqAuth, "Content-Type": "application/json" },
+      body: JSON.stringify({ checksumSha256: fakeHash })
+    });
+
+    assert.strictEqual(res.status, 400);
+    const body = await res.json() as { error: string; code: string };
+    assert.strictEqual(body.code, "FILE_SIGNATURE_MISMATCH");
+    assert.strictEqual(body.error, "Dosya formatı veya imzası geçersiz.");
+
+    const freshDoc = await db.select().from(schema.documents).where((await import('drizzle-orm')).eq(schema.documents.id, doc.id)).then(r => r[0]);
+    assert.strictEqual(freshDoc.status, 'failed');
+
+    let exists = true;
+    try {
+      await adapter.get(key, { maxBytes: 1 });
+    } catch {
+      exists = false;
+    }
+    assert.strictEqual(exists, false, 'Corrupted IFC file should be deleted from storage');
+  });
+
+  await t.test("corrupt XLSX archive is rejected with 400, doc marked failed, and file deleted", async () => {
+    // Valid ZIP header but truncated/corrupted archive
+    const corruptZip = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00, 0x08, 0x00]);
+    const zipHash = crypto.createHash('sha256').update(corruptZip).digest('hex');
+    const { doc, key } = await mockUpload(corruptZip.length, zipHash, 'broken.xlsx', corruptZip.length, zipHash);
+
+    // Update doc mimeType to valid xlsx mime so it passes detectAndValidateFile and triggers validateXlsxArchive
+    await db.update(schema.documents).set({
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }).where((await import('drizzle-orm')).eq(schema.documents.id, doc.id));
+
+    await adapter.put(key, corruptZip, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, {
+      method: "POST",
+      headers: { ...reqAuth, "Content-Type": "application/json" },
+      body: JSON.stringify({ checksumSha256: zipHash })
+    });
+
+    assert.strictEqual(res.status, 400);
+    const body = await res.json() as { error: string; code: string };
+    assert.strictEqual(body.code, "XLSX_CORRUPT");
+
+    const freshDoc = await db.select().from(schema.documents).where((await import('drizzle-orm')).eq(schema.documents.id, doc.id)).then(r => r[0]);
+    assert.strictEqual(freshDoc.status, 'failed');
+
+    let exists = true;
+    try {
+      await adapter.get(key, { maxBytes: 1 });
+    } catch {
+      exists = false;
+    }
+    assert.strictEqual(exists, false, 'Corrupt XLSX file should be deleted from storage');
+  });
+
+  await t.test("unexpected error in /complete returns 500 JSON, marks doc failed, and deletes storage file", async () => {
+    const content = Buffer.from("a,b,c\n1,2,3");
+    const hash = crypto.createHash('sha256').update(content).digest('hex');
+    const { doc, key } = await mockUpload(content.length, hash, 'test.csv', content.length, hash);
+    await adapter.put(key, content, 'text/csv');
+
+    // Force an unexpected error inside LocalStorageAdapter.prototype.get
+    const originalGet = storage.LocalStorageAdapter.prototype.get;
+    storage.LocalStorageAdapter.prototype.get = async function() {
+      throw new Error("SIMULATED_UNEXPECTED_STORAGE_CRASH");
+    };
+
+    try {
+      const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, {
+        method: "POST",
+        headers: { ...reqAuth, "Content-Type": "application/json" },
+        body: JSON.stringify({ checksumSha256: hash })
+      });
+
+      assert.strictEqual(res.status, 500);
+      const body = await res.json() as { error: string; code: string };
+      assert.strictEqual(body.code, "INTERNAL_SERVER_ERROR");
+      assert.strictEqual(body.error, "Dosya doğrulama işlemi sırasında beklenmeyen bir hata oluştu.");
+
+      const freshDoc = await db.select().from(schema.documents).where((await import('drizzle-orm')).eq(schema.documents.id, doc.id)).then(r => r[0]);
+      assert.strictEqual(freshDoc.status, 'failed');
+    } finally {
+      storage.LocalStorageAdapter.prototype.get = originalGet;
+    }
+  });
 });
+
