@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { quotationItems, quotations } from "../../db/schema";
+import { quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { manualQuotationInput, quotationStatusInput } from "../../services/quotations/input";
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
@@ -18,6 +18,25 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "PDF üretim limiti aşıldı. Lütfen bir dakika bekleyin." });
     }
     next();
+  };
+
+  const auditQuotation = async (req: any, action: string, quotationId: string, metadataJson: Record<string, unknown> = {}) => {
+    try {
+      const mergedMetadata = {
+        ...metadataJson,
+        ...(req.user?.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}),
+      };
+      await db.insert(smartcheckAuditLogs).values({
+        companyId: req.user.companyId,
+        userId: req.user.userId,
+        action,
+        entityType: "quotation",
+        entityId: quotationId,
+        metadataJson: mergedMetadata,
+      });
+    } catch (auditErr) {
+      console.error("Failed to write quotation audit log:", auditErr);
+    }
   };
 
   app.get("/api/quotations", authenticate, async (req, res) => {
@@ -83,6 +102,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       const parsed = manualQuotationInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: "Invalid quotation input", issues: parsed.error.issues });
       const newQuote = await createManualQuotation(req.user.companyId, parsed.data);
+      await auditQuotation(req, "quotation.created", newQuote.id);
       res.json(newQuote);
     } catch (error) {
       if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
@@ -95,6 +115,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
   app.post("/api/quotations/:id/revision", authenticate, canMutate, async (req, res) => {
     try {
       const newQuote = await createQuotationRevision(req.user.companyId, req.params.id);
+      await auditQuotation(req, "quotation.revision_created", newQuote.id, { parentId: req.params.id });
       res.json(newQuote);
     } catch (error) {
       if (error instanceof QuotationIntegrityError) return res.status(error.status).json({ error: error.message });
@@ -116,6 +137,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
         .returning();
 
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
+      await auditQuotation(req, "quotation.status_updated", updated.id, { status });
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: "Failed to update status" });
@@ -136,6 +158,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
         updatedAt: new Date(),
       }).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).returning();
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
+      await auditQuotation(req, "quotation.calibrated", updated.id);
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: "Calibration observation could not be saved" });

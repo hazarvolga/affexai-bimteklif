@@ -1,7 +1,7 @@
 import type { Express, Response } from "express";
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { db } from "../../db";
-import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, authActionTokens, companies, memberships, plans, subscriptions, users } from "../../db/schema";
+import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, adminAuditLogs, authActionTokens, companies, memberships, plans, subscriptions, users } from "../../db/schema";
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
 import { AuthService } from "../../services/auth/authService";
 import { authenticate } from "../middleware/auth";
@@ -215,6 +215,29 @@ export function registerAuthRoutes(app: Express) {
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  app.post("/api/auth/impersonate/exit", authenticate, async (req, res) => {
+    try {
+      if (!req.user?.impersonatedBy) {
+        return res.status(400).json({ error: "Aktif bir impersonasyon oturumu bulunmuyor." });
+      }
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.impersonatedBy,
+        targetCompanyId: req.user.companyId ?? null,
+        action: "impersonation.ended",
+        details: {
+          impersonatedUserId: req.user.userId,
+          endedAt: new Date().toISOString(),
+        },
+      });
+
+      res.json({ success: true, message: "Impersonasyon oturumu başarıyla sonlandırıldı." });
+    } catch (error) {
+      console.error("Failed to exit impersonation:", error);
+      res.status(500).json({ error: "Impersonasyon oturumu sonlandırılırken hata oluştu." });
     }
   });
 }

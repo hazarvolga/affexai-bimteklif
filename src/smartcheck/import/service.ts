@@ -55,6 +55,7 @@ export async function changeProcessingRun(input: {
   action: 'process' | 'retry' | 'recover';
   isAdmin?: boolean;
   targetRunId?: string;
+  impersonatedBy?: string;
 }) {
   await ensureQueueSchema();
   const { companyId, userId, documentId, action, isAdmin, targetRunId } = input;
@@ -156,7 +157,18 @@ export async function changeProcessingRun(input: {
         details: { oldRunId: latest?.id, newRunId: run.id, documentId },
       });
     } else {
-      await tx.insert(smartcheckAuditLogs).values({ companyId, userId, action: action === 'recover' ? 'processing_stale_recovered' : action === 'retry' ? 'processing_retried' : 'processing_queued', entityType: 'processing_run', entityId: run.id, metadataJson: { documentId, previousRunId: latest?.id } });
+      await tx.insert(smartcheckAuditLogs).values({
+        companyId,
+        userId,
+        action: action === 'recover' ? 'processing_stale_recovered' : action === 'retry' ? 'processing_retried' : 'processing_queued',
+        entityType: 'processing_run',
+        entityId: run.id,
+        metadataJson: {
+          documentId,
+          previousRunId: latest?.id,
+          ...(input.impersonatedBy ? { impersonatedBy: input.impersonatedBy } : {}),
+        },
+      });
     }
 
     return { status: action === 'recover' ? 200 : 202, run };

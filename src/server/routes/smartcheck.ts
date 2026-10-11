@@ -54,7 +54,11 @@ const readRateLimit: RequestHandler = async (req, res, next) => {
 };
 
 async function audit(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {
-  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson });
+  const mergedMetadata = {
+    ...metadataJson,
+    ...(req.user?.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}),
+  };
+  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson: mergedMetadata });
 }
 
 function smartcheckQuoteNumber() {
@@ -271,7 +275,13 @@ export function registerSmartCheckRoutes(app: Express) {
   for (const [path, action] of [["process", "process"], ["retry", "retry"], ["recover-stale", "recover"]] as const) {
     app.post(`/api/smartcheck/documents/:id/${path}`, ...protectedStack, async (req, res, next) => {
       try {
-        const result = await changeProcessingRun({ companyId: req.user.companyId, userId: req.user.userId, documentId: req.params.id, action });
+        const result = await changeProcessingRun({
+          companyId: req.user.companyId,
+          userId: req.user.userId,
+          documentId: req.params.id,
+          action,
+          impersonatedBy: req.user?.impersonatedBy,
+        });
         res.status(result.status).json(result.run);
       } catch (error) {
         if (error instanceof ProcessingConflict) {

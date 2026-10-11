@@ -117,7 +117,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     toast.info("Oturum kapatıldı.");
   };
 
-  const exitImpersonation = () => {
+  const exitImpersonation = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch('/api/auth/impersonate/exit', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+    } catch (e) {
+      console.error('Failed to notify impersonation exit:', e);
+    }
     const backup = localStorage.getItem('admin_session_backup');
     if (backup) {
       localStorage.setItem('token', backup);
