@@ -171,3 +171,118 @@ def test_turkish_characters_and_escapes():
         assert slab_data["pozNo"] == "15.120.1001/A-Demir"
         assert data["summary"]["elementsWithPozNoCount"] == 1
 
+
+def test_formwork_m2_buildingsmart_rules():
+    import ifcopenshell
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ifc_path = os.path.join(tmpdir, "formwork.ifc")
+        m = ifcopenshell.file(schema="IFC2X3")
+        proj = m.create_entity("IFCPROJECT", GlobalId="0000000000000000000001", Name="Formwork Project")
+
+        # 1. Slab with explicit FormworkArea (Priority 1: explicit)
+        slab_exp = m.create_entity("IFCSLAB", GlobalId="1111111111111111111111", Name="Slab Explicit")
+        q_exp = m.create_entity("IFCQUANTITYAREA", Name="FormworkArea", AreaValue=45.5)
+        qto_exp = m.create_entity("IFCELEMENTQUANTITY", GlobalId="1111111111111111111112", Name="Qto_SlabBaseQuantities", Quantities=[q_exp])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="1111111111111111111113", RelatedObjects=[slab_exp], RelatingPropertyDefinition=qto_exp)
+
+        # 2. Slab with NetArea (Alt yüzey kalıbı)
+        slab_net = m.create_entity("IFCSLAB", GlobalId="2222222222222222222221", Name="Slab NetArea")
+        q_net = m.create_entity("IFCQUANTITYAREA", Name="NetArea", AreaValue=50.0)
+        qto_net = m.create_entity("IFCELEMENTQUANTITY", GlobalId="2222222222222222222222", Name="Qto_SlabBaseQuantities", Quantities=[q_net])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="2222222222222222222223", RelatedObjects=[slab_net], RelatingPropertyDefinition=qto_net)
+
+        # 3. Slab with GrossArea only (Boşluklar düşülmemiş)
+        slab_gross = m.create_entity("IFCSLAB", GlobalId="3333333333333333333331", Name="Slab GrossArea")
+        q_gross = m.create_entity("IFCQUANTITYAREA", Name="GrossArea", AreaValue=60.0)
+        qto_gross = m.create_entity("IFCELEMENTQUANTITY", GlobalId="3333333333333333333332", Name="Qto_SlabBaseQuantities", Quantities=[q_gross])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="3333333333333333333333", RelatedObjects=[slab_gross], RelatingPropertyDefinition=qto_gross)
+
+        # 4. Wall with NetSideArea (İki yüz = 2 * NetSideArea)
+        wall_net = m.create_entity("IFCWALL", GlobalId="4444444444444444444441", Name="Wall NetSideArea")
+        q_wnet = m.create_entity("IFCQUANTITYAREA", Name="NetSideArea", AreaValue=20.0)
+        qto_wnet = m.create_entity("IFCELEMENTQUANTITY", GlobalId="4444444444444444444442", Name="Qto_WallBaseQuantities", Quantities=[q_wnet])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="4444444444444444444443", RelatedObjects=[wall_net], RelatingPropertyDefinition=qto_wnet)
+
+        # 5. Wall with GrossSideArea only (2 * GrossSideArea, Boşluklar düşülmemiş)
+        wall_gross = m.create_entity("IFCWALL", GlobalId="5555555555555555555551", Name="Wall GrossSideArea")
+        q_wgross = m.create_entity("IFCQUANTITYAREA", Name="GrossSideArea", AreaValue=25.0)
+        qto_wgross = m.create_entity("IFCELEMENTQUANTITY", GlobalId="5555555555555555555552", Name="Qto_WallBaseQuantities", Quantities=[q_wgross])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="5555555555555555555553", RelatedObjects=[wall_gross], RelatingPropertyDefinition=qto_wgross)
+
+        # 6. Column with OuterSurfaceArea
+        col_outer = m.create_entity("IFCCOLUMN", GlobalId="6666666666666666666661", Name="Column OuterSurface")
+        q_couter = m.create_entity("IFCQUANTITYAREA", Name="OuterSurfaceArea", AreaValue=12.0)
+        qto_couter = m.create_entity("IFCELEMENTQUANTITY", GlobalId="6666666666666666666662", Name="Qto_ColumnBaseQuantities", Quantities=[q_couter])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="6666666666666666666663", RelatedObjects=[col_outer], RelatingPropertyDefinition=qto_couter)
+
+        # 7. Column with only NetSurfaceArea (MUST NOT be used, formwork = 0)
+        col_net = m.create_entity("IFCCOLUMN", GlobalId="7777777777777777777771", Name="Column NetSurface (Disallowed)")
+        q_cnet = m.create_entity("IFCQUANTITYAREA", Name="NetSurfaceArea", AreaValue=15.0)
+        qto_cnet = m.create_entity("IFCELEMENTQUANTITY", GlobalId="7777777777777777777772", Name="Qto_ColumnBaseQuantities", Quantities=[q_cnet])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="7777777777777777777773", RelatedObjects=[col_net], RelatingPropertyDefinition=qto_cnet)
+
+        # 8. Beam (formwork = 0, kesit boyutu gerekli)
+        beam = m.create_entity("IFCBEAM", GlobalId="8888888888888888888881", Name="Beam K101")
+        q_bouter = m.create_entity("IFCQUANTITYAREA", Name="OuterSurfaceArea", AreaValue=18.0)
+        qto_bouter = m.create_entity("IFCELEMENTQUANTITY", GlobalId="8888888888888888888882", Name="Qto_BeamBaseQuantities", Quantities=[q_bouter])
+        m.create_entity("IFCRELDEFINESBYPROPERTIES", GlobalId="8888888888888888888883", RelatedObjects=[beam], RelatingPropertyDefinition=qto_bouter)
+
+        # 9. ReinforcingBar (formwork = 0, Kalıp yok)
+        rebar = m.create_entity("IFCREINFORCINGBAR", GlobalId="9999999999999999999991", Name="Rebar Q14", NominalDiameter=14.0, BarLength=6.0)
+
+        m.write(ifc_path)
+
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(ifc_path, out_json)
+        assert res.returncode == 0, f"CLI failed: {res.stderr}"
+
+        with open(out_json, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        els = {e["name"]: e for e in data["elements"]}
+
+        # 1. Explicit FormworkArea on Slab
+        assert els["Slab Explicit"]["formworkM2"] == 45.5
+        assert els["Slab Explicit"]["formworkBasis"] == "explicit"
+        assert "Açık kalıp niceliğinden" in els["Slab Explicit"]["formworkNote"]
+
+        # 2. Slab with NetArea
+        assert els["Slab NetArea"]["formworkM2"] == 50.0
+        assert els["Slab NetArea"]["formworkBasis"] == "derived"
+        assert "Kenar kalıbı dahil değil" in els["Slab NetArea"]["formworkNote"]
+
+        # 3. Slab with GrossArea
+        assert els["Slab GrossArea"]["formworkM2"] == 60.0
+        assert els["Slab GrossArea"]["formworkBasis"] == "derived"
+        assert "Boşluklar düşülmemiş" in els["Slab GrossArea"]["formworkNote"]
+
+        # 4. Wall with NetSideArea (2 * 20.0 = 40.0)
+        assert els["Wall NetSideArea"]["formworkM2"] == 40.0
+        assert els["Wall NetSideArea"]["formworkBasis"] == "derived"
+        assert "Tek yüz toprağa/komşu betona dayalıysa" in els["Wall NetSideArea"]["formworkNote"]
+
+        # 5. Wall with GrossSideArea (2 * 25.0 = 50.0)
+        assert els["Wall GrossSideArea"]["formworkM2"] == 50.0
+        assert els["Wall GrossSideArea"]["formworkBasis"] == "derived"
+        assert "Boşluklar düşülmemiş" in els["Wall GrossSideArea"]["formworkNote"]
+
+        # 6. Column with OuterSurfaceArea
+        assert els["Column OuterSurface"]["formworkM2"] == 12.0
+        assert els["Column OuterSurface"]["formworkBasis"] == "derived"
+        assert "NetSurfaceArea ve GrossSurfaceArea kullanılmaz" in els["Column OuterSurface"]["formworkNote"]
+
+        # 7. Column with NetSurfaceArea only (Must be 0.0, none)
+        assert els["Column NetSurface (Disallowed)"]["formworkM2"] == 0.0
+        assert els["Column NetSurface (Disallowed)"]["formworkBasis"] == "none"
+
+        # 8. Beam (Must be 0.0, none)
+        assert els["Beam K101"]["formworkM2"] == 0.0
+        assert els["Beam K101"]["formworkBasis"] == "none"
+        assert "Kiriş kalıbı için kesit boyutu gerekli" in els["Beam K101"]["formworkNote"]
+
+        # 9. Rebar (Must be 0.0, none)
+        assert els["Rebar Q14"]["formworkM2"] == 0.0
+        assert els["Rebar Q14"]["formworkBasis"] == "none"
+        assert "Kalıp yok" in els["Rebar Q14"]["formworkNote"]
+
+

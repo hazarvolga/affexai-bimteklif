@@ -113,11 +113,35 @@ def get_unit_scale_factors(model: ifcopenshell.file) -> Tuple[float, float, floa
     return length_scale, vol_scale, area_scale
 
 
+EXPLICIT_FORMWORK_QTY_NAMES = {
+    "formworkarea",
+    "grossformworkarea",
+    "netformworkarea",
+    "kalıp alanı",
+    "kalip alani",
+    "kalıp_alanı",
+    "kalip_alani",
+}
+
+
+def pset_rank(pset_name: str) -> int:
+    name = (pset_name or "").lower()
+    if name.startswith("qto_") and name.endswith("basequantities"):
+        return 1
+    if name == "basequantities":
+        return 2
+    if any(name.startswith(prefix) for prefix in APPROVED_PROPERTY_SETS):
+        return 3
+    return 4
+
+
 def extract_quantities_and_properties(
     elem: Any, vol_scale: float, area_scale: float
 ) -> Tuple[
     float,  # volumeM3
     float,  # formworkM2
+    str,    # formworkBasis ("explicit" | "derived" | "none")
+    Optional[str],  # formworkNote
     float,  # rebarKg
     str,    # quantitySource ("qto" | "property" | "estimate")
     Optional[str],  # quantitySourcePath
@@ -127,20 +151,29 @@ def extract_quantities_and_properties(
     Optional[str],  # pozNo
     Optional[str],  # pozNoSourcePath
 ]:
+    raw_type = elem.is_a()
+    elem_type = "IfcWall" if raw_type == "IfcWallStandardCase" else raw_type
+
     qto_volume = None
-    qto_area = None
     qto_weight = None
     qto_source_path = None
     qto_conf = 0.9
 
     prop_volume = None
-    prop_area = None
     prop_weight = None
     prop_source_path = None
     prop_conf = 0.85
 
     poz_no = None
     poz_source_path = None
+
+    # Track area quantities with set priority for formwork derivation
+    explicit_formwork: List[Tuple[int, float, str]] = []
+    net_area: List[Tuple[int, float, str]] = []
+    gross_area: List[Tuple[int, float, str]] = []
+    net_side_area: List[Tuple[int, float, str]] = []
+    gross_side_area: List[Tuple[int, float, str]] = []
+    outer_surface_area: List[Tuple[int, float, str]] = []
 
     for rel in getattr(elem, "IsDefinedBy", []):
         if not rel.is_a("IfcRelDefinesByProperties"):
@@ -152,6 +185,7 @@ def extract_quantities_and_properties(
         pset_id = prop_def.id()
         pset_name = str(getattr(prop_def, "Name", "") or "")
         pset_name_lower = pset_name.lower()
+        rank = pset_rank(pset_name)
 
         # Handle IfcElementQuantity
         if prop_def.is_a("IfcElementQuantity"):
@@ -159,19 +193,32 @@ def extract_quantities_and_properties(
                 qty_id = qty.id()
                 qty_name = str(getattr(qty, "Name", "") or "")
                 qty_name_lower = qty_name.lower()
+                source_path_item = f"#{rel_id}/#{pset_id}/#{qty_id}:{pset_name}/{qty_name}"
 
                 if qty.is_a("IfcQuantityVolume") and qty_name_lower in APPROVED_VOLUME_QTY_NAMES:
                     val = safe_float(getattr(qty, "VolumeValue", None))
                     if val is not None and val > 0:
                         qto_volume = val * vol_scale
-                        qto_source_path = f"#{rel_id}/#{pset_id}/#{qty_id}:{pset_name}/{qty_name}"
+                        qto_source_path = source_path_item
                         if "net" in qty_name_lower:
                             qto_conf = 0.95
 
-                elif qty.is_a("IfcQuantityArea") and qty_name_lower in APPROVED_AREA_QTY_NAMES:
+                elif qty.is_a("IfcQuantityArea"):
                     val = safe_float(getattr(qty, "AreaValue", None))
                     if val is not None and val > 0:
-                        qto_area = val * area_scale
+                        scaled_area = val * area_scale
+                        if qty_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
+                            explicit_formwork.append((rank, scaled_area, source_path_item))
+                        elif qty_name_lower == "netarea":
+                            net_area.append((rank, scaled_area, source_path_item))
+                        elif qty_name_lower == "grossarea":
+                            gross_area.append((rank, scaled_area, source_path_item))
+                        elif qty_name_lower == "netsidearea":
+                            net_side_area.append((rank, scaled_area, source_path_item))
+                        elif qty_name_lower == "grosssidearea":
+                            gross_side_area.append((rank, scaled_area, source_path_item))
+                        elif qty_name_lower == "outersurfacearea":
+                            outer_surface_area.append((rank, scaled_area, source_path_item))
 
                 elif qty.is_a("IfcQuantityWeight") and qty_name_lower in APPROVED_WEIGHT_QTY_NAMES:
                     val = safe_float(getattr(qty, "WeightValue", None))
@@ -188,12 +235,13 @@ def extract_quantities_and_properties(
                 p_name_lower = p_name.lower()
                 nominal_val = getattr(prop, "NominalValue", None)
                 wrapped_val = getattr(nominal_val, "wrappedValue", None) if nominal_val else None
+                source_path_item = f"#{rel_id}/#{pset_id}/#{p_id}:{pset_name}/{p_name}"
 
                 # Poz No detection
                 if p_name_lower in {"pozno", "poz_no", "csbpozno", "csb_pozno", "pozisyonno"}:
                     if wrapped_val:
                         poz_no = str(wrapped_val).strip()
-                        poz_source_path = f"#{rel_id}/#{pset_id}/#{p_id}:{pset_name}/{p_name}"
+                        poz_source_path = source_path_item
 
                 # Property volume/area/weight
                 is_approved = any(pset_name_lower.startswith(prefix) for prefix in APPROVED_PROPERTY_SETS)
@@ -202,19 +250,105 @@ def extract_quantities_and_properties(
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             prop_volume = val * vol_scale
-                            prop_source_path = f"#{rel_id}/#{pset_id}/#{p_id}:{pset_name}/{p_name}"
-                    elif p_name_lower in APPROVED_AREA_QTY_NAMES:
+                            prop_source_path = source_path_item
+                    elif p_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            prop_area = val * area_scale
+                            explicit_formwork.append((rank, val * area_scale, source_path_item))
+                    elif p_name_lower == "netarea":
+                        val = safe_float(wrapped_val)
+                        if val is not None and val > 0:
+                            net_area.append((rank, val * area_scale, source_path_item))
+                    elif p_name_lower == "grossarea":
+                        val = safe_float(wrapped_val)
+                        if val is not None and val > 0:
+                            gross_area.append((rank, val * area_scale, source_path_item))
+                    elif p_name_lower == "netsidearea":
+                        val = safe_float(wrapped_val)
+                        if val is not None and val > 0:
+                            net_side_area.append((rank, val * area_scale, source_path_item))
+                    elif p_name_lower == "grosssidearea":
+                        val = safe_float(wrapped_val)
+                        if val is not None and val > 0:
+                            gross_side_area.append((rank, val * area_scale, source_path_item))
+                    elif p_name_lower == "outersurfacearea":
+                        val = safe_float(wrapped_val)
+                        if val is not None and val > 0:
+                            outer_surface_area.append((rank, val * area_scale, source_path_item))
                     elif p_name_lower in APPROVED_WEIGHT_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             prop_weight = val
 
+    # Formwork (formworkM2) Resolution adhering to buildingSMART standards:
+    formwork_m2 = 0.0
+    formwork_basis = "none"
+    formwork_note = None
+
+    if explicit_formwork:
+        explicit_formwork.sort(key=lambda x: x[0])
+        formwork_m2 = explicit_formwork[0][1]
+        formwork_basis = "explicit"
+        formwork_note = "Açık kalıp niceliğinden (FormworkArea) alındı."
+    elif elem_type == "IfcSlab":
+        if net_area:
+            net_area.sort(key=lambda x: x[0])
+            formwork_m2 = net_area[0][1]
+            formwork_basis = "derived"
+            formwork_note = "Kenar kalıbı dahil değil; kiriş/kolon altları düşülmemiş olabilir."
+        elif gross_area:
+            gross_area.sort(key=lambda x: x[0])
+            formwork_m2 = gross_area[0][1]
+            formwork_basis = "derived"
+            formwork_note = "Kenar kalıbı dahil değil; kiriş/kolon altları düşülmemiş olabilir. Boşluklar düşülmemiş."
+        else:
+            formwork_m2 = 0.0
+            formwork_basis = "none"
+            formwork_note = "Döşeme için kalıp alanı hesaplanamadı (NetArea veya GrossArea bulunamadı)."
+    elif elem_type in {"IfcWall", "IfcWallStandardCase"}:
+        if net_side_area:
+            net_side_area.sort(key=lambda x: x[0])
+            formwork_m2 = 2.0 * net_side_area[0][1]
+            formwork_basis = "derived"
+            formwork_note = "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç."
+        elif gross_side_area:
+            gross_side_area.sort(key=lambda x: x[0])
+            formwork_m2 = 2.0 * gross_side_area[0][1]
+            formwork_basis = "derived"
+            formwork_note = "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç. Boşluklar düşülmemiş."
+        else:
+            formwork_m2 = 0.0
+            formwork_basis = "none"
+            formwork_note = "Duvar için kalıp alanı hesaplanamadı (NetSideArea veya GrossSideArea bulunamadı)."
+    elif elem_type == "IfcColumn":
+        if outer_surface_area:
+            outer_surface_area.sort(key=lambda x: x[0])
+            formwork_m2 = outer_surface_area[0][1]
+            formwork_basis = "derived"
+            formwork_note = "NetSurfaceArea ve GrossSurfaceArea kullanılmaz (2 × kesit alanı = uç kapakları içerir). Kiriş/döşeme birleşimi düşülmemiş."
+        else:
+            formwork_m2 = 0.0
+            formwork_basis = "none"
+            formwork_note = "Kolon kalıp alanı için OuterSurfaceArea bulunamadı (NetSurfaceArea/GrossSurfaceArea uç kapakları içerdiği için kullanılmaz)."
+    elif elem_type == "IfcBeam":
+        formwork_m2 = 0.0
+        formwork_basis = "none"
+        formwork_note = "Kiriş kalıbı için kesit boyutu gerekli."
+    elif elem_type == "IfcReinforcingBar":
+        formwork_m2 = 0.0
+        formwork_basis = "none"
+        formwork_note = "Kalıp yok."
+    else:
+        formwork_m2 = 0.0
+        formwork_basis = "none"
+        formwork_note = "Kalıp alanı için uygun nicelik bulunamadı."
+
+    if formwork_m2 <= 0.0:
+        formwork_m2 = 0.0
+        formwork_basis = "none"
+
     # Quantity Source Resolution (Priority: 1. QTO, 2. Property, 3. Empty/No guessing)
     volume_m3 = 0.0
-    formwork_m2 = 0.0
     rebar_kg = 0.0
     quantity_source = "estimate"
     source_path = None
@@ -224,7 +358,6 @@ def extract_quantities_and_properties(
 
     if qto_volume is not None:
         volume_m3 = round(qto_volume, 4)
-        formwork_m2 = round(qto_area, 2) if qto_area is not None else 0.0
         rebar_kg = round(qto_weight, 1) if qto_weight is not None else 0.0
         quantity_source = "qto"
         source_path = qto_source_path
@@ -236,7 +369,6 @@ def extract_quantities_and_properties(
 
     elif prop_volume is not None:
         volume_m3 = round(prop_volume, 4)
-        formwork_m2 = round(prop_area, 2) if prop_area is not None else 0.0
         rebar_kg = round(prop_weight, 1) if prop_weight is not None else 0.0
         quantity_source = "property"
         source_path = prop_source_path
@@ -247,7 +379,6 @@ def extract_quantities_and_properties(
     else:
         # NO STEP-ID GUESSING.
         volume_m3 = 0.0
-        formwork_m2 = 0.0
         rebar_kg = 0.0
         quantity_source = "estimate"
         source_path = None
@@ -255,9 +386,14 @@ def extract_quantities_and_properties(
         status = "review"
         note = "QTO veya PropertySet metrajı bulunamadı. Geometrik veya manuel metraj girişi gereklidir."
 
+    if formwork_note:
+        note = f"{note} | {formwork_note}" if note else formwork_note
+
     return (
         volume_m3,
-        formwork_m2,
+        round(formwork_m2, 2),
+        formwork_basis,
+        formwork_note,
         rebar_kg,
         quantity_source,
         source_path,
@@ -431,6 +567,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         (
             volume_m3,
             formwork_m2,
+            formwork_basis,
+            formwork_note,
             rebar_kg,
             quantity_source,
             quantity_source_path,
@@ -477,6 +615,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 nom_kg_m = (math.pi * (rebar_diameter_mm ** 2) / 4.0) * 0.00785
                 rebar_by_diameter[rebar_diameter_mm]["lengthM"] += round(rebar_kg / nom_kg_m, 1)
 
+        review_notes = [formwork_note] if formwork_note else []
+
         el_dict: Dict[str, Any] = {
             "id": step_id,
             "guid": guid,
@@ -486,10 +626,15 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             "storeySource": storey_source,
             "volumeM3": round(volume_m3, 3),
             "formworkM2": round(formwork_m2, 2),
+            "formworkBasis": formwork_basis,
             "rebarKg": round(rebar_kg, 1),
             "quantitySource": quantity_source,
             "smartCheckStatus": status,
         }
+        if formwork_note:
+            el_dict["formworkNote"] = formwork_note
+        if review_notes:
+            el_dict["reviewNotes"] = review_notes
         if storey_source_path:
             el_dict["storeySourcePath"] = storey_source_path
         if rebar_diameter_mm is not None:
