@@ -8,7 +8,7 @@ import { documents, documentProcessingRuns, smartcheckAuditLogs } from '../../db
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
-import { getTenantIfcLimits, graphileWorkerSchema } from './config';
+import { fetchTenantIfcLimits, graphileWorkerSchema } from './config';
 const graphileSchema = () => graphileWorkerSchema();
 
 export class ProcessingConflict extends Error {
@@ -62,7 +62,13 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
   }
 
   return db.transaction(async (tx) => {
-    // Serialize request-side state changes for this tenant document, including concurrent retries.
+    // Advisory locks at the VERY BEGINNING of the transaction, before document row lock.
+    // 1. Company-level advisory lock (serializes tenant processing runs & IFC concurrency checks)
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('smartcheck_company'), hashtext(${companyId}))`);
+    // 2. Document-level advisory lock (serializes state changes for this specific document)
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('smartcheck_document'), hashtext(${documentId}))`);
+
+    // 3. Document row lock to serialize request-side state changes for this tenant document
     const [document] = await tx.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId))).for('update');
     if (!document) throw new ProcessingConflict('DOCUMENT_NOT_FOUND', 404);
     if (document.checksumSha256 === 'pending') throw new ProcessingConflict('UPLOAD_INCOMPLETE');
@@ -78,7 +84,7 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
     if (action === 'retry' && latest?.status !== 'failed') throw new ProcessingConflict('PROCESSING_RUN_NOT_FAILED');
 
     if (kind === 'ifc' && (action === 'process' || action === 'retry')) {
-      const limits = getTenantIfcLimits(companyId);
+      const limits = await fetchTenantIfcLimits(companyId, tx);
       const activeIfcRuns = await tx.select({ id: documentProcessingRuns.id })
         .from(documentProcessingRuns)
         .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))

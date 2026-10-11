@@ -9,12 +9,26 @@ useTestIsolation();
 
 test('atomic enqueue, retry and recovery in isolated application and worker schemas', async (t) => {
   const { db } = await import('../../db');
-  const { companies, users, memberships, documents, documentProcessingRuns, smartcheckAuditLogs } = await import('../../db/schema');
+  const { companies, users, memberships, documents, documentProcessingRuns, smartcheckAuditLogs, plans, subscriptions } = await import('../../db/schema');
   const { eq, sql } = await import('drizzle-orm');
   const { changeProcessingRun, ensureQueueSchema } = await import('./service');
   await ensureQueueSchema();
   const worker = sql.identifier(process.env.GRAPHILE_WORKER_SCHEMA!);
   const [company] = await db.insert(companies).values({ name: 'Queue test' }).returning();
+  const [plan] = await db.insert(plans).values({
+    name: 'Queue Test Plan',
+    monthlyPrice: 1000,
+    monthlyQuoteLimit: 100,
+    monthlyIfcLimit: 50,
+    ifcMaxFileMb: 100,
+    ifcMaxConcurrent: 5,
+    isActive: true,
+  }).returning();
+  await db.insert(subscriptions).values({
+    companyId: company.id,
+    planId: plan.id,
+    status: 'active',
+  });
   const [user] = await db.insert(users).values({ email: 'queue@example.test', fullName: 'Queue test' }).returning();
   await db.insert(memberships).values({ companyId: company.id, userId: user.id, role: 'owner' });
   const [document] = await db.insert(documents).values({ companyId: company.id, uploadedByUserId: user.id, originalFileName: 'test.csv', displayName: 'test', mimeType: 'text/csv', fileSizeBytes: 1, storageKey: 'test.csv', checksumSha256: 'a'.repeat(64) }).returning();
@@ -181,6 +195,52 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
       await runner.stop();
     }
   });
-});
 
-import fs from 'node:fs';
+  await t.test("parallel process requests for two different IFC documents with maxConcurrent=1: exactly one gets 202, other rejected with TENANT_IFC_CONCURRENCY_LIMIT_EXCEEDED", async () => {
+    const [c1Company] = await db.insert(companies).values({ name: "C1 Company" }).returning();
+    const [c1Plan] = await db.insert(plans).values({
+      name: "Concurrency 1 Plan",
+      monthlyPrice: 500,
+      monthlyQuoteLimit: 100,
+      monthlyIfcLimit: 50,
+      ifcMaxFileMb: 100,
+      ifcMaxConcurrent: 1,
+      isActive: true,
+    }).returning();
+    await db.insert(subscriptions).values({
+      companyId: c1Company.id,
+      planId: c1Plan.id,
+      status: "active",
+    });
+    const [c1User] = await db.insert(users).values({ email: "c1@example.test", fullName: "C1 User" }).returning();
+    await db.insert(memberships).values({ companyId: c1Company.id, userId: c1User.id, role: "owner" });
+
+    const ifcContent = Buffer.from("ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');\nFILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\nENDSEC;\nEND-ISO-10303-21;");
+    const [doc1] = await db.insert(documents).values({
+      companyId: c1Company.id, uploadedByUserId: c1User.id, originalFileName: "concurrent1.ifc", displayName: "concurrent1", mimeType: "application/ifc",
+      fileSizeBytes: ifcContent.length, storageKey: "concurrent1.ifc", checksumSha256: "1".repeat(64)
+    }).returning();
+    await adapter.put("concurrent1.ifc", ifcContent, "application/ifc");
+
+    const [doc2] = await db.insert(documents).values({
+      companyId: c1Company.id, uploadedByUserId: c1User.id, originalFileName: "concurrent2.ifc", displayName: "concurrent2", mimeType: "application/ifc",
+      fileSizeBytes: ifcContent.length, storageKey: "concurrent2.ifc", checksumSha256: "2".repeat(64)
+    }).returning();
+    await adapter.put("concurrent2.ifc", ifcContent, "application/ifc");
+
+    const results = await Promise.allSettled([
+      changeProcessingRun({ companyId: c1Company.id, userId: c1User.id, documentId: doc1.id, action: "process" }),
+      changeProcessingRun({ companyId: c1Company.id, userId: c1User.id, documentId: doc2.id, action: "process" }),
+    ]);
+
+    const fulfilled = results.filter((r): r is PromiseFulfilledResult<{ status: number; run: any }> => r.status === "fulfilled");
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+
+    assert.equal(fulfilled.length, 1, "exactly one request should succeed");
+    assert.equal(fulfilled[0].value.status, 202);
+    assert.equal(rejected.length, 1, "exactly one request should be rejected");
+    assert.match(rejected[0].reason?.message || "", /TENANT_IFC_CONCURRENCY_LIMIT_EXCEEDED/);
+    assert.equal(rejected[0].reason?.code, "TENANT_IFC_CONCURRENCY_LIMIT_EXCEEDED");
+    assert.equal(rejected[0].reason?.status, 409);
+  });
+});
