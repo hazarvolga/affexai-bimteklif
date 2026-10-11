@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { makeWorkerUtils } from 'graphile-worker';
 import { db } from '../../db';
-import { documents, documentProcessingRuns, smartcheckAuditLogs, usageRecords } from '../../db/schema';
+import { adminAuditLogs, documents, documentProcessingRuns, smartcheckAuditLogs, usageRecords } from '../../db/schema';
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
@@ -48,9 +48,16 @@ export async function enqueueSmartCheckProcessing(tx: Transaction, kind: 'ifc' |
   await tx.execute(sql`select ${sql.identifier(graphileSchema())}.add_job(${taskName}, ${JSON.stringify(payload)}::json, job_key := ${`smartcheck:${runId}`}, max_attempts := 3)`);
 }
 
-export async function changeProcessingRun(input: { companyId: string; userId: string; documentId: string; action: 'process' | 'retry' | 'recover' }) {
+export async function changeProcessingRun(input: {
+  companyId: string;
+  userId: string;
+  documentId: string;
+  action: 'process' | 'retry' | 'recover';
+  isAdmin?: boolean;
+  targetRunId?: string;
+}) {
   await ensureQueueSchema();
-  const { companyId, userId, documentId, action } = input;
+  const { companyId, userId, documentId, action, isAdmin, targetRunId } = input;
 
   let kind: "ifc" | "xlsx" | "csv" = "ifc";
   if (action !== "recover") {
@@ -76,6 +83,11 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
     if (document.checksumSha256 === 'pending') throw new ProcessingConflict('UPLOAD_INCOMPLETE');
     const runs = await tx.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, documentId), eq(documentProcessingRuns.companyId, companyId))).orderBy(desc(documentProcessingRuns.createdAt));
     const latest = runs[0];
+
+    if (targetRunId && latest?.id !== targetRunId) {
+      throw new ProcessingConflict('PROCESSING_RUN_SUPERSEDED', 409, 'Yalnızca dokümanın en son işlemi için yeniden deneme yapılabilir.');
+    }
+
     const baseKey = processingIdempotencyKey(document.checksumSha256, document.importMappingJson as ColumnMapping);
     if (action === 'process') {
       const existing = runs.find(run => run.idempotencyKey === baseKey);
@@ -83,7 +95,14 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
       if (runs.some(run => run.status === 'queued' || run.status === 'running')) throw new ProcessingConflict('PROCESSING_RUN_ACTIVE');
     }
     if (action === 'recover' && (!latest || !isProcessingRunStale(latest))) throw new ProcessingConflict('PROCESSING_RUN_NOT_STALE');
-    if (action === 'retry' && latest?.status !== 'failed') throw new ProcessingConflict('PROCESSING_RUN_NOT_FAILED');
+    if (action === 'retry') {
+      if (runs.some(run => run.status === 'queued' || run.status === 'running')) {
+        throw new ProcessingConflict('PROCESSING_RUN_ACTIVE', 409, 'Dokümana ait aktif bir işlem varken yeniden deneme yapılamaz.');
+      }
+      if (latest?.status !== 'failed') {
+        throw new ProcessingConflict('PROCESSING_RUN_NOT_FAILED', 409, 'Yalnızca başarısız işler yeniden denenebilir.');
+      }
+    }
 
     if (kind === 'ifc' && (action === 'process' || action === 'retry')) {
       const limits = await fetchTenantIfcLimits(companyId, tx);
@@ -121,13 +140,25 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
       [run] = await tx.update(documentProcessingRuns).set({ status: 'failed', currentStage: 'failed', errorCode: 'WORKER_STALE', errorMessage: 'Worker heartbeat expired; operator retry required.', progressMessage: 'Worker stale; retry required', completedAt: now, updatedAt: now }).where(eq(documentProcessingRuns.id, latest.id)).returning();
     } else {
       const idempotencyKey = action === 'retry' ? `${baseKey}:retry:${crypto.randomUUID()}` : baseKey;
-      [run] = await tx.insert(documentProcessingRuns).values({ companyId, documentId, idempotencyKey, pipelineVersion: latest?.pipelineVersion ?? 1, progressMessage: 'Kuyruga alindi' }).returning();
+      const progressMessage = isAdmin ? 'Süper admin tarafından yeniden kuyruğa alındı' : 'Kuyruga alindi';
+      [run] = await tx.insert(documentProcessingRuns).values({ companyId, documentId, idempotencyKey, pipelineVersion: latest?.pipelineVersion ?? 1, progressMessage }).returning();
       
       await enqueueSmartCheckProcessing(tx, kind, { companyId, documentId, processingRunId: run.id }, run.id);
 
     }
     await tx.update(documents).set({ status: action === 'recover' ? 'failed' : 'queued', updatedAt: now }).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));
-    await tx.insert(smartcheckAuditLogs).values({ companyId, userId, action: action === 'recover' ? 'processing_stale_recovered' : action === 'retry' ? 'processing_retried' : 'processing_queued', entityType: 'processing_run', entityId: run.id, metadataJson: { documentId, previousRunId: latest?.id } });
+    
+    if (isAdmin) {
+      await tx.insert(adminAuditLogs).values({
+        adminId: userId,
+        targetCompanyId: companyId,
+        action: action === 'recover' ? 'processing_stale_recovered' : 'processing_retried',
+        details: { oldRunId: latest?.id, newRunId: run.id, documentId },
+      });
+    } else {
+      await tx.insert(smartcheckAuditLogs).values({ companyId, userId, action: action === 'recover' ? 'processing_stale_recovered' : action === 'retry' ? 'processing_retried' : 'processing_queued', entityType: 'processing_run', entityId: run.id, metadataJson: { documentId, previousRunId: latest?.id } });
+    }
+
     return { status: action === 'recover' ? 200 : 202, run };
   });
 }

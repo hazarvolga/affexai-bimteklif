@@ -33,7 +33,8 @@ import { readAdminTenants } from "../admin/stats";
 import { AuthService } from "../../services/auth/authService";
 import { consumeRateLimit } from "../auth/security";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
-import { enqueueSmartCheckProcessing, removePendingJob } from "../../smartcheck/import/service";
+import { changeProcessingRun, enqueueSmartCheckProcessing, ProcessingConflict, removePendingJob } from "../../smartcheck/import/service";
+import { IfcNotAvailableError, IfcLimitsUnavailableError } from "../../smartcheck/import/config";
 import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
 import { priceSchedulerService } from "../crawler/priceSchedulerService";
@@ -498,6 +499,12 @@ export function registerAdminRoutes(app: Express) {
 
       return res.json({ success: true, run: result });
     } catch (error) {
+      if (error instanceof ProcessingConflict) {
+        return res.status(error.status).json({
+          error: error.code === 'PROCESSING_JOB_ACTIVE' ? "İşlem halen bir çalışan tarafından yürütülüyor." : error.message,
+          code: error.code,
+        });
+      }
       if (error instanceof AdminChangeError) return res.status(error.status).json({ error: error.message });
       console.error("Queue recover error:", error);
       return res.status(500).json({ error: "İşlem kurtarılamadı" });
@@ -512,61 +519,39 @@ export function registerAdminRoutes(app: Express) {
         return res.status(400).json({ error: "Geçersiz işlem ID" });
       }
 
-      const result = await db.transaction(async (tx) => {
-        const [run] = await tx
-          .select()
-          .from(documentProcessingRuns)
-          .where(eq(documentProcessingRuns.id, runId))
-          .for("update");
+      const [run] = await db
+        .select({
+          id: documentProcessingRuns.id,
+          companyId: documentProcessingRuns.companyId,
+          documentId: documentProcessingRuns.documentId,
+        })
+        .from(documentProcessingRuns)
+        .where(eq(documentProcessingRuns.id, runId));
 
-        if (!run) throw new AdminChangeError(404, "İşlem bulunamadı");
-        if (run.status !== "failed") {
-          throw new AdminChangeError(400, "Yalnızca başarısız işler yeniden denenebilir");
-        }
+      if (!run) {
+        return res.status(404).json({ error: "İşlem bulunamadı" });
+      }
 
-        const [document] = await tx.select().from(documents).where(eq(documents.id, run.documentId));
-        if (!document) throw new AdminChangeError(404, "Doküman bulunamadı");
-
-        const isIfc = document.originalFileName.toLowerCase().endsWith(".ifc");
-        const isCsv = document.originalFileName.toLowerCase().endsWith(".csv");
-        const kind: "ifc" | "xlsx" | "csv" = isIfc ? "ifc" : isCsv ? "csv" : "xlsx";
-        const successorKey = `${run.id}:admin-retry:${crypto.randomUUID()}`;
-        const [newRun] = await tx
-          .insert(documentProcessingRuns)
-          .values({
-            companyId: run.companyId,
-            documentId: run.documentId,
-            idempotencyKey: successorKey,
-            pipelineVersion: run.pipelineVersion,
-            progressMessage: "Süper admin tarafından yeniden kuyruğa alındı",
-          })
-          .returning();
-
-        await enqueueSmartCheckProcessing(
-          tx,
-          kind,
-          {
-            companyId: run.companyId,
-            documentId: run.documentId,
-            processingRunId: newRun.id,
-          },
-          newRun.id
-        );
-
-        await tx.update(documents).set({ status: "queued", updatedAt: new Date() }).where(eq(documents.id, document.id));
-
-        await tx.insert(adminAuditLogs).values({
-          adminId: req.user.userId,
-          targetCompanyId: run.companyId,
-          action: "processing_retried",
-          details: { oldRunId: run.id, newRunId: newRun.id, documentId: run.documentId },
-        });
-
-        return newRun;
+      const result = await changeProcessingRun({
+        companyId: run.companyId,
+        userId: req.user.userId,
+        documentId: run.documentId,
+        action: "retry",
+        isAdmin: true,
+        targetRunId: run.id,
       });
 
-      return res.status(202).json({ success: true, run: result });
+      return res.status(202).json({ success: true, run: result.run });
     } catch (error) {
+      if (error instanceof ProcessingConflict) {
+        return res.status(error.status).json({
+          error: error.message && error.message !== error.code ? error.message : "İşlem yeniden başlatılamadı",
+          code: error.code,
+        });
+      }
+      if (error instanceof IfcNotAvailableError || error instanceof IfcLimitsUnavailableError) {
+        return res.status(error.status).json({ error: error.message, code: error.code });
+      }
       if (error instanceof AdminChangeError) return res.status(error.status).json({ error: error.message });
       console.error("Queue retry error:", error);
       return res.status(500).json({ error: "İşlem yeniden başlatılamadı" });

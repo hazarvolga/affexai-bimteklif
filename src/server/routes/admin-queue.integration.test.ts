@@ -1,0 +1,238 @@
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import test from 'node:test';
+import crypto from 'node:crypto';
+import dotenv from 'dotenv';
+import { and, eq, sql } from 'drizzle-orm';
+import { useTestIsolation } from './test-isolation';
+
+dotenv.config({ path: '.env.local', quiet: true });
+dotenv.config({ quiet: true });
+useTestIsolation();
+
+const sha256 = (buf: Buffer) => crypto.createHash('sha256').update(buf).digest('hex');
+
+test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
+  const [{ db }, schema, { createApiApp }, { AuthService }, { createStorageAdapter }, { ensureQueueSchema }] = await Promise.all([
+    import('../../db'),
+    import('../../db/schema'),
+    import('../app'),
+    import('../../services/auth/authService'),
+    import('../../smartcheck/import/storage'),
+    import('../../smartcheck/import/service'),
+  ]);
+
+  await ensureQueueSchema();
+  const workerSchema = process.env.GRAPHILE_WORKER_SCHEMA!;
+
+  const [admin] = await db.insert(schema.users).values({
+    email: 'queue-admin@example.test',
+    fullName: 'Queue Admin',
+    isSuperAdmin: true,
+  }).returning();
+
+  const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
+
+  const server = createServer(createApiApp());
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise<void>((resolve) => { server.close(() => resolve()); server.closeAllConnections(); }));
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+
+  const postRetry = (runId: string) => fetch(`${baseUrl}/api/admin/queue/retry`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ runId }),
+  });
+
+  const postRecover = (runId: string) => fetch(`${baseUrl}/api/admin/queue/recover`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({ runId }),
+  });
+
+  const [company] = await db.insert(schema.companies).values({ name: 'Admin Queue Co' }).returning();
+  const [tenantUser] = await db.insert(schema.users).values({ email: 'tenant@example.test', fullName: 'Tenant User' }).returning();
+  await db.insert(schema.memberships).values({ companyId: company.id, userId: tenantUser.id, role: 'owner' });
+
+  const [plan] = await db.insert(schema.plans).values({
+    name: 'Admin Queue Plan',
+    monthlyPrice: 1000,
+    monthlyQuoteLimit: 100,
+    monthlyIfcLimit: 5,
+    ifcMaxFileMb: 100,
+    ifcMaxConcurrent: 1,
+    isActive: true,
+  }).returning();
+
+  await db.insert(schema.subscriptions).values({
+    companyId: company.id,
+    planId: plan.id,
+    status: 'active',
+    bonusIfcLimit: 0,
+  });
+
+  const validIfcContent = Buffer.from(
+    "ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');\nFILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\n" +
+    "#1=IFCPROJECT('0YvctVUKr0kuhdA1mMGL7b',#2,'Project',$,$,$,$,(#3),#4);\n" +
+    "#2=IFCOWNERHISTORY(#5,#6,$,.ADDED.,$,$,$,1700000000);\n" +
+    "#3=IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,#7,$);\n" +
+    "#4=IFCUNITASSIGNMENT((#8));\n" +
+    "#5=IFCPERSONANDORGANIZATION(#9,#10,$);\n" +
+    "#6=IFCAPPLICATION(#10,'2024','App','App');\n" +
+    "#7=IFCAXIS2PLACEMENT3D(#11,$,$);\n" +
+    "#8=IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.);\n" +
+    "#9=IFCPERSON($,'User',$,$,$,$,$,$);\n" +
+    "#10=IFCORGANIZATION($,'Org',$,$,$);\n" +
+    "#11=IFCCARTESIANPOINT((0.,0.,0.));\n" +
+    "#12=IFCWALL('2O2Fr$t4X7Zf8NOew3FL9r',#2,'Wall-01',$,$,#13,#14,'guid-wall-01');\n" +
+    "#13=IFCLOCALPLACEMENT($,#7);\n" +
+    "#14=IFCPRODUCTDEFINITIONSHAPE($,$,(#15));\n" +
+    "#15=IFCSHAPEREPRESENTATION(#3,'Body','SweptSolid',(#16));\n" +
+    "#16=IFCEXTRUDEDAREASOLID(#17,#7,#18,3.0);\n" +
+    "#17=IFCRECTANGLEPROFILEDEF(.AREA.,$,#19,5.0,0.2);\n" +
+    "#18=IFCDIRECTION((0.,0.,1.));\n" +
+    "#19=IFCAXIS2PLACEMENT2D(#20,$);\n" +
+    "#20=IFCCARTESIANPOINT((0.,0.));\n" +
+    "#21=IFCQUANTITYVOLUME('NetVolume',$,$,3.0);\n" +
+    "#22=IFCELEMENTQUANTITY('3k9F8H5t14$vJ6L4M1P3Q5',#2,'BaseQuantities',$,$,(#21));\n" +
+    "#23=IFCRELDEFINESBYPROPERTIES('1a2b3c4d5e6f7a8b9c0d1e',#2,$,$,(#12),#22);\n" +
+    "ENDSEC;\nEND-ISO-10303-21;\n"
+  );
+  const validIfcHash = sha256(validIfcContent);
+  const storage = createStorageAdapter();
+
+  const [document] = await db.insert(schema.documents).values({
+    companyId: company.id,
+    uploadedByUserId: tenantUser.id,
+    originalFileName: 'admin_test.ifc',
+    displayName: 'admin_test',
+    mimeType: 'application/ifc',
+    fileSizeBytes: validIfcContent.length,
+    storageKey: 'admin_test.ifc',
+    checksumSha256: validIfcHash,
+    status: 'failed',
+  }).returning();
+  await storage.put('admin_test.ifc', validIfcContent, 'application/ifc');
+
+  const [failedRun] = await db.insert(schema.documentProcessingRuns).values({
+    companyId: company.id,
+    documentId: document.id,
+    idempotencyKey: 'test:failed:1',
+    pipelineVersion: 1,
+    status: 'failed',
+    currentStage: 'failed',
+    errorCode: 'IFC_WORKER_CRASHED',
+    errorMessage: 'Worker crashed',
+    progressMessage: 'Failed',
+    completedAt: new Date(),
+  }).returning();
+
+  let newRunId = '';
+
+  await t.test('1. Admin retry on failed run succeeds, audits in adminAuditLogs and NOT smartcheckAuditLogs', async () => {
+    const res = await postRetry(failedRun.id);
+    assert.equal(res.status, 202);
+    const body = await res.json() as { success: boolean; run: { id: string; status: string } };
+    assert.equal(body.success, true);
+    assert.equal(body.run.status, 'queued');
+    newRunId = body.run.id;
+
+    // Verify adminAuditLogs
+    const adminLogs = await db.select().from(schema.adminAuditLogs).where(
+      and(
+        eq(schema.adminAuditLogs.adminId, admin.id),
+        eq(schema.adminAuditLogs.action, 'processing_retried')
+      )
+    );
+    assert.equal(adminLogs.length, 1);
+    assert.equal(adminLogs[0].targetCompanyId, company.id);
+    assert.equal((adminLogs[0].details as any)?.newRunId, newRunId);
+
+    // Verify smartcheckAuditLogs has NOT been written for this admin retry
+    const smartcheckLogs = await db.select().from(schema.smartcheckAuditLogs).where(
+      and(
+        eq(schema.smartcheckAuditLogs.companyId, company.id),
+        eq(schema.smartcheckAuditLogs.action, 'processing_retried')
+      )
+    );
+    assert.equal(smartcheckLogs.length, 0, 'admin retry must not write to smartcheckAuditLogs as tenant');
+  });
+
+  await t.test('2. Admin retry while a run is active is rejected with 409 PROCESSING_RUN_ACTIVE', async () => {
+    // newRunId is currently queued
+    const res = await postRetry(failedRun.id);
+    assert.equal(res.status, 409);
+    const body = await res.json() as { error: string; code: string };
+    assert.ok(body.code === 'PROCESSING_RUN_ACTIVE' || body.code === 'PROCESSING_RUN_SUPERSEDED');
+  });
+
+  await t.test('3. Admin retry on superseded (not latest) run is rejected with 409 PROCESSING_RUN_SUPERSEDED', async () => {
+    // Mark newRunId as failed so it is no longer active
+    await db.update(schema.documentProcessingRuns).set({ status: 'failed' }).where(eq(schema.documentProcessingRuns.id, newRunId));
+    await db.update(schema.documents).set({ status: 'failed' }).where(eq(schema.documents.id, document.id));
+
+    // Now try to retry the OLD failedRun (not the latest run)
+    const res = await postRetry(failedRun.id);
+    assert.equal(res.status, 409);
+    const body = await res.json() as { error: string; code: string };
+    assert.equal(body.code, 'PROCESSING_RUN_SUPERSEDED');
+  });
+
+  await t.test('4. Admin retry when tenant IFC monthly quota is exceeded is rejected with 403 IFC_QUOTA_EXCEEDED', async () => {
+    const period = new Date().toISOString().slice(0, 7);
+    // Fill up quota: monthlyIfcLimit = 5
+    await db.delete(schema.usageRecords).where(and(eq(schema.usageRecords.companyId, company.id), eq(schema.usageRecords.period, period)));
+    await db.insert(schema.usageRecords).values({
+      companyId: company.id,
+      period,
+      quoteCount: 0,
+      ifcCount: 5,
+    });
+
+    const res = await postRetry(newRunId);
+    assert.equal(res.status, 403);
+    const body = await res.json() as { error: string; code: string };
+    assert.equal(body.code, 'IFC_QUOTA_EXCEEDED');
+  });
+
+  await t.test('5. Admin /queue/recover returns 409 when job is actively locked by worker', async () => {
+    // Create a stale-looking run
+    const [staleRun] = await db.insert(schema.documentProcessingRuns).values({
+      companyId: company.id,
+      documentId: document.id,
+      idempotencyKey: 'test:stale:1',
+      pipelineVersion: 1,
+      status: 'running',
+      currentStage: 'parsing',
+      progressMessage: 'Running',
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    }).returning();
+
+    // Insert a locked job in Graphile Worker schema via add_job
+    await db.execute(sql`
+      select ${sql.identifier(workerSchema)}.add_job('process_smartcheck_ifc_document', '{}'::json, job_key := ${'smartcheck:' + staleRun.id})
+    `);
+    await db.execute(sql`
+      update ${sql.identifier(workerSchema)}._private_jobs
+      set locked_at = now(), locked_by = 'test-worker-node'
+      where key = ${'smartcheck:' + staleRun.id}
+    `);
+
+    try {
+      const res = await postRecover(staleRun.id);
+      assert.equal(res.status, 409, 'locked job must return 409, not 500');
+      const body = await res.json() as { error: string; code?: string };
+      assert.equal(body.code, 'PROCESSING_JOB_ACTIVE');
+    } finally {
+      await db.execute(sql`
+        update ${sql.identifier(workerSchema)}._private_jobs
+        set locked_at = null, locked_by = null
+        where key = ${'smartcheck:' + staleRun.id}
+      `);
+      await db.execute(sql`select ${sql.identifier(workerSchema)}.remove_job(${'smartcheck:' + staleRun.id})`);
+    }
+  });
+});
