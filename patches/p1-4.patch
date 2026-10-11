@@ -1,0 +1,252 @@
+diff --git a/src/server/routes/resource-limits.test.ts b/src/server/routes/resource-limits.test.ts
+index c2da676..f170467 100644
+--- a/src/server/routes/resource-limits.test.ts
++++ b/src/server/routes/resource-limits.test.ts
+@@ -8,11 +8,12 @@ test('pilot applications rejects missing or invalid email format', async () => {
+   const server = app.listen(0);
+   const address = server.address() as { port: number };
+   try {
++    const ip = `127.0.0.${Math.floor(Math.random() * 200 + 10)}`;
+     const res = await fetch(`http://127.0.0.1:${address.port}/api/pilot-applications`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+-        'x-forwarded-for': '127.0.0.99',
++        'x-forwarded-for': ip,
+       },
+       body: JSON.stringify({ fullName: 'Ali Veli', companyName: 'Insaat A.S.', email: 'not-an-email' }),
+     });
+diff --git a/src/server/routes/smartcheck.ts b/src/server/routes/smartcheck.ts
+index e0e85b2..97348cc 100644
+--- a/src/server/routes/smartcheck.ts
++++ b/src/server/routes/smartcheck.ts
+@@ -105,8 +105,8 @@ export function registerSmartCheckRoutes(app: Express) {
+     }).returning();
+     const storage = createStorageAdapter();
+     const target = storage instanceof LocalStorageAdapter
+-      ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType } }
+-      : await storage.createUploadTarget(storageKey, mimeType);
++      ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType, "content-length": String(fileSizeBytes) } }
++      : await storage.createUploadTarget(storageKey, mimeType, { contentLength: fileSizeBytes });
+     await audit(req, "upload_created", "document", document.id, { fileName: originalFileName, fileSizeBytes });
+     res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: maxAllowedBytes });
+   });
+diff --git a/src/smartcheck/import/storage-presigned.test.ts b/src/smartcheck/import/storage-presigned.test.ts
+new file mode 100644
+index 0000000..a7acec0
+--- /dev/null
++++ b/src/smartcheck/import/storage-presigned.test.ts
+@@ -0,0 +1,135 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { createServer } from "node:http";
++import { S3Client } from "@aws-sdk/client-s3";
++import { S3StorageAdapter, uploadUrlExpirySeconds } from "./storage";
++
++test("S3 Presigned URL - Content-Length and Expiry (P1-4)", async (t) => {
++  await t.test("uploadUrlExpirySeconds defaults to 24 hours (86400s) and respects env", () => {
++    assert.equal(uploadUrlExpirySeconds({}), 86400);
++    assert.equal(uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: "3600" }), 3600);
++    assert.equal(uploadUrlExpirySeconds({ SMARTCHECK_UPLOAD_URL_EXPIRY_SECONDS: "7200" }), 7200);
++    assert.equal(uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: "invalid" }), 86400);
++    assert.equal(uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: "-50" }), 86400);
++  });
++
++  await t.test("S3StorageAdapter.createUploadTarget signs Content-Length and sets 24h expiry", async () => {
++    const s3 = new S3Client({
++      region: "eu-central-1",
++      credentials: { accessKeyId: "mock-key", secretAccessKey: "mock-secret" },
++    });
++    const adapter = new S3StorageAdapter({ bucket: "test-ifc-bucket", client: s3 });
++
++    const target = await adapter.createUploadTarget("tenant/models/project.ifc", "model/ifc", {
++      contentLength: 52428800, // 50 MB
++    });
++
++    assert.equal(target.method, "PUT");
++    assert.equal(target.headers?.["content-type"], "model/ifc");
++    assert.equal(target.headers?.["content-length"], "52428800");
++
++    const parsedUrl = new URL(target.uploadUrl);
++    // Expiry default 86400s (24h)
++    assert.equal(parsedUrl.searchParams.get("X-Amz-Expires"), "86400");
++    // SignedHeaders MUST include content-length, content-type, and host
++    const signedHeaders = parsedUrl.searchParams.get("X-Amz-SignedHeaders") || "";
++    assert.ok(signedHeaders.includes("content-length"), `SignedHeaders (${signedHeaders}) must include content-length`);
++    assert.ok(signedHeaders.includes("content-type"), `SignedHeaders (${signedHeaders}) must include content-type`);
++    assert.ok(signedHeaders.includes("host"), `SignedHeaders (${signedHeaders}) must include host`);
++  });
++
++  await t.test("S3 Mock server enforces URL expiration and signed Content-Length", async () => {
++    // S3-compatible mock server that simulates AWS SigV4 expiration and signed-headers checks
++    const server = createServer((req, res) => {
++      const url = new URL(req.url ?? "", `http://${req.headers.host}`);
++      const amzDateStr = url.searchParams.get("X-Amz-Date"); // e.g. 20261011T052220Z
++      const amzExpires = parseInt(url.searchParams.get("X-Amz-Expires") || "0", 10);
++      const signedHeaders = (url.searchParams.get("X-Amz-SignedHeaders") || "").split(";");
++
++      if (amzDateStr && amzExpires) {
++        const year = parseInt(amzDateStr.slice(0, 4), 10);
++        const month = parseInt(amzDateStr.slice(4, 6), 10) - 1;
++        const day = parseInt(amzDateStr.slice(6, 8), 10);
++        const hour = parseInt(amzDateStr.slice(9, 11), 10);
++        const min = parseInt(amzDateStr.slice(11, 13), 10);
++        const sec = parseInt(amzDateStr.slice(13, 15), 10);
++        const requestTime = Date.UTC(year, month, day, hour, min, sec);
++
++        // Check if expired (simulated via query override for testing)
++        const simulateExpired = url.searchParams.get("simulate_expired") === "true";
++        if (simulateExpired || Date.now() > requestTime + amzExpires * 1000) {
++          res.writeHead(403, { "Content-Type": "application/xml" });
++          res.end("<Error><Code>AccessDenied</Code><Message>Request has expired</Message></Error>");
++          return;
++        }
++      }
++
++      // If content-length was signed, the incoming Content-Length must match the signed expectation
++      if (signedHeaders.includes("content-length")) {
++        const expectedLength = url.searchParams.get("expected_length");
++        const actualLength = req.headers["content-length"];
++        if (expectedLength && actualLength !== expectedLength) {
++          res.writeHead(403, { "Content-Type": "application/xml" });
++          res.end("<Error><Code>SignatureDoesNotMatch</Code><Message>The request signature we calculated does not match</Message></Error>");
++          return;
++        }
++      }
++
++      res.writeHead(200);
++      res.end();
++    });
++
++    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
++    t.after(() => new Promise<void>((resolve) => { server.close(() => resolve()); server.closeAllConnections(); }));
++
++    const address = server.address();
++    assert.ok(address && typeof address !== "string");
++    const endpoint = `http://127.0.0.1:${address.port}`;
++
++    const s3 = new S3Client({
++      region: "us-east-1",
++      endpoint,
++      forcePathStyle: true,
++      credentials: { accessKeyId: "mock-key", secretAccessKey: "mock-secret" },
++    });
++
++    const adapter = new S3StorageAdapter({ bucket: "mock-bucket", client: s3 });
++    const signedTarget = await adapter.createUploadTarget("test.ifc", "model/ifc", {
++      contentLength: 1024,
++      expiresInSeconds: 86400,
++    });
++
++    // 1. Valid upload with exact Content-Length succeeds (200)
++    const validUrl = `${signedTarget.uploadUrl}&expected_length=1024`;
++    const resValid = await fetch(validUrl, {
++      method: "PUT",
++      headers: signedTarget.headers,
++      body: Buffer.alloc(1024, "a"),
++    });
++    assert.equal(resValid.status, 200);
++
++    // 2. Oversized or mismatched Content-Length is rejected (403 SignatureDoesNotMatch)
++    const resMismatched = await fetch(validUrl, {
++      method: "PUT",
++      headers: {
++        "content-type": "model/ifc",
++        "content-length": "2048",
++      },
++      body: Buffer.alloc(2048, "b"),
++    });
++    assert.equal(resMismatched.status, 403);
++    const mismatchedBody = await resMismatched.text();
++    assert.ok(mismatchedBody.includes("SignatureDoesNotMatch"));
++
++    // 3. Expired URL is rejected (403 Request has expired)
++    const expiredUrl = `${signedTarget.uploadUrl}&simulate_expired=true`;
++    const resExpired = await fetch(expiredUrl, {
++      method: "PUT",
++      headers: signedTarget.headers,
++      body: Buffer.alloc(1024, "a"),
++    });
++    assert.equal(resExpired.status, 403);
++    const expiredBody = await resExpired.text();
++    assert.ok(expiredBody.includes("Request has expired"));
++  });
++});
+diff --git a/src/smartcheck/import/storage.ts b/src/smartcheck/import/storage.ts
+index 05dbe3a..2996e70 100644
+--- a/src/smartcheck/import/storage.ts
++++ b/src/smartcheck/import/storage.ts
+@@ -9,8 +9,17 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+ import { localStorageRoot, SMARTCHECK_MAX_FILE_BYTES } from "./config";
+ import { readBoundedBody, readPrefixBody, withReadDeadline, type StorageReadOptions } from "./bounded-read";
+ 
++export function uploadUrlExpirySeconds(env: Record<string, string | undefined> = process.env): number {
++  const configured = Number(env.IFC_UPLOAD_URL_EXPIRY_SECONDS ?? env.SMARTCHECK_UPLOAD_URL_EXPIRY_SECONDS ?? 86400);
++  return Number.isFinite(configured) && configured > 0 ? configured : 86400;
++}
++
+ export interface StorageAdapter {
+-  createUploadTarget(storageKey: string, contentType: string): Promise<{ uploadUrl: string; method: "PUT"; headers?: Record<string, string> }>;
++  createUploadTarget(
++    storageKey: string,
++    contentType: string,
++    options?: { contentLength?: number; expiresInSeconds?: number }
++  ): Promise<{ uploadUrl: string; method: "PUT"; headers?: Record<string, string> }>;
+   put(storageKey: string, content: Buffer, contentType?: string): Promise<void>;
+   get(storageKey: string, options?: StorageReadOptions): Promise<Buffer>;
+   delete(storageKey: string): Promise<void>;
+@@ -28,9 +37,17 @@ function safeKey(storageKey: string): string {
+ export class LocalStorageAdapter implements StorageAdapter {
+   constructor(private readonly root = localStorageRoot()) {}
+   localPath(storageKey: string): string { return path.join(this.root, safeKey(storageKey)); }
+-  async createUploadTarget(storageKey: string, _contentType: string) {
++  async createUploadTarget(
++    storageKey: string,
++    _contentType: string,
++    options?: { contentLength?: number; expiresInSeconds?: number }
++  ) {
+     safeKey(storageKey);
+-    return { uploadUrl: "", method: "PUT" as const };
++    return {
++      uploadUrl: "",
++      method: "PUT" as const,
++      headers: options?.contentLength !== undefined ? { "content-length": String(options.contentLength) } : undefined,
++    };
+   }
+   async put(storageKey: string, content: Buffer, _contentType?: string): Promise<void> {
+     const target = this.localPath(storageKey);
+@@ -95,9 +112,31 @@ export class S3StorageAdapter implements StorageAdapter {
+     });
+   }
+ 
+-  async createUploadTarget(storageKey: string, contentType: string) {
+-    const command = new PutObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey), ContentType: contentType });
+-    return { uploadUrl: await getSignedUrl(this.client, command, { expiresIn: 900 }), method: "PUT" as const, headers: { "content-type": contentType } };
++  async createUploadTarget(
++    storageKey: string,
++    contentType: string,
++    options?: { contentLength?: number; expiresInSeconds?: number }
++  ) {
++    const expiresIn = options?.expiresInSeconds ?? uploadUrlExpirySeconds();
++    const command = new PutObjectCommand({
++      Bucket: this.bucket,
++      Key: safeKey(storageKey),
++      ContentType: contentType,
++      ...(options?.contentLength !== undefined ? { ContentLength: options.contentLength } : {}),
++    });
++    const headers: Record<string, string> = { "content-type": contentType };
++    if (options?.contentLength !== undefined) {
++      headers["content-length"] = String(options.contentLength);
++    }
++    const uploadUrl = await getSignedUrl(this.client, command, {
++      expiresIn,
++      signableHeaders: new Set([
++        "content-type",
++        "host",
++        ...(options?.contentLength !== undefined ? ["content-length"] : []),
++      ]),
++    });
++    return { uploadUrl, method: "PUT" as const, headers };
+   }
+ 
+   async put(storageKey: string, content: Buffer, contentType?: string): Promise<void> {

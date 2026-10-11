@@ -1,0 +1,502 @@
+diff --git a/src/server/routes/admin-queue.integration.test.ts b/src/server/routes/admin-queue.integration.test.ts
+index 8ffc9e3..53547e8 100644
+--- a/src/server/routes/admin-queue.integration.test.ts
++++ b/src/server/routes/admin-queue.integration.test.ts
+@@ -235,4 +235,190 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
+       await db.execute(sql`select ${sql.identifier(workerSchema)}.remove_job(${'smartcheck:' + staleRun.id})`);
+     }
+   });
++
++  await t.test('6. GET /queue computes metrics across 150+ jobs, paginates and filters correctly (P1-2, P1-3)', async () => {
++    // Clean up existing test runs
++    await db.delete(schema.documentProcessingRuns);
++
++    // Create a 2nd company and documents of different kinds
++    const [company2] = await db.insert(schema.companies).values({ name: 'Queue Co 2' }).returning();
++    await db.insert(schema.memberships).values({ companyId: company2.id, userId: tenantUser.id, role: 'owner' });
++    const [ifcDoc] = await db.insert(schema.documents).values({
++      companyId: company.id,
++      uploadedByUserId: tenantUser.id,
++      originalFileName: 'building.ifc',
++      displayName: 'building.ifc',
++      mimeType: 'model/ifc',
++      fileSizeBytes: 1024,
++      storageKey: 'keys/b.ifc',
++      checksumSha256: '0000000000000000000000000000000000000000000000000000000000000001',
++    }).returning();
++
++    const [xlsxDoc] = await db.insert(schema.documents).values({
++      companyId: company2.id,
++      uploadedByUserId: tenantUser.id,
++      originalFileName: 'quantities.xlsx',
++      displayName: 'quantities.xlsx',
++      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
++      fileSizeBytes: 2048,
++      storageKey: 'keys/q.xlsx',
++      checksumSha256: '0000000000000000000000000000000000000000000000000000000000000002',
++    }).returning();
++
++    const now = Date.now();
++    const runRows: Array<typeof schema.documentProcessingRuns.$inferInsert> = [];
++
++    // 50 queued normal (5m old -> not stale, since queued stale is 60m)
++    for (let i = 0; i < 50; i++) {
++      runRows.push({
++        companyId: company.id,
++        documentId: ifcDoc.id,
++        idempotencyKey: `q:norm:${i}`,
++        pipelineVersion: 1,
++        status: 'queued',
++        currentStage: 'queued',
++        createdAt: new Date(now - 5 * 60_000),
++        updatedAt: new Date(now - 5 * 60_000),
++      });
++    }
++
++    // 1 queued stale (65m old -> stale, since 65m >= 60m)
++    runRows.push({
++      companyId: company.id,
++      documentId: ifcDoc.id,
++      idempotencyKey: 'q:stale:1',
++      pipelineVersion: 1,
++      status: 'queued',
++      currentStage: 'queued',
++      createdAt: new Date(now - 65 * 60_000),
++      updatedAt: new Date(now - 65 * 60_000),
++    });
++
++    // 30 running normal (3m old -> not stale, running stale is 10m)
++    for (let i = 0; i < 30; i++) {
++      runRows.push({
++        companyId: company.id,
++        documentId: ifcDoc.id,
++        idempotencyKey: `r:norm:${i}`,
++        pipelineVersion: 1,
++        status: 'running',
++        currentStage: 'parsing',
++        startedAt: new Date(now - 3 * 60_000),
++        createdAt: new Date(now - 3 * 60_000),
++        updatedAt: new Date(now - 3 * 60_000),
++      });
++    }
++
++    // 10 running stale (15m old -> stale, since 15m >= 10m)
++    for (let i = 0; i < 10; i++) {
++      runRows.push({
++        companyId: company2.id,
++        documentId: xlsxDoc.id,
++        idempotencyKey: `r:stale:${i}`,
++        pipelineVersion: 1,
++        status: 'running',
++        currentStage: 'parsing',
++        startedAt: new Date(now - 15 * 60_000),
++        createdAt: new Date(now - 15 * 60_000),
++        updatedAt: new Date(now - 15 * 60_000),
++      });
++    }
++
++    // 30 succeeded in last 24h
++    for (let i = 0; i < 30; i++) {
++      runRows.push({
++        companyId: company.id,
++        documentId: ifcDoc.id,
++        idempotencyKey: `s:recent:${i}`,
++        pipelineVersion: 1,
++        status: 'succeeded',
++        currentStage: 'completed',
++        completedAt: new Date(now - 1 * 3600_000),
++        createdAt: new Date(now - 2 * 3600_000),
++        updatedAt: new Date(now - 1 * 3600_000),
++      });
++    }
++
++    // 30 failed in last 24h
++    for (let i = 0; i < 30; i++) {
++      runRows.push({
++        companyId: company2.id,
++        documentId: xlsxDoc.id,
++        idempotencyKey: `f:recent:${i}`,
++        pipelineVersion: 1,
++        status: 'failed',
++        currentStage: 'failed',
++        completedAt: new Date(now - 2 * 3600_000),
++        createdAt: new Date(now - 3 * 3600_000),
++        updatedAt: new Date(now - 2 * 3600_000),
++      });
++    }
++
++    // Total: 50 + 1 + 30 + 10 + 30 + 30 = 151 jobs
++    assert.equal(runRows.length, 151);
++    await db.insert(schema.documentProcessingRuns).values(runRows);
++
++    // 1. Unfiltered request with default pagination (limit 50)
++    const resAll = await fetch(`${baseUrl}/api/admin/queue`, {
++      headers: { Authorization: `Bearer ${adminToken}` },
++    });
++    assert.equal(resAll.status, 200);
++    const dataAll = await resAll.json() as any;
++
++    // Verify summary metrics calculated from all 151 jobs in SQL
++    assert.equal(dataAll.summary.pending, 51);
++    assert.equal(dataAll.summary.running, 40);
++    assert.equal(dataAll.summary.stale, 11); // 1 queued (>60m) + 10 running (>10m)
++    assert.equal(dataAll.summary.failed24h, 30);
++    assert.equal(dataAll.summary.completed24h, 30);
++    assert.equal(dataAll.summary.succeeded24h, 30);
++
++    // Verify pagination
++    assert.equal(dataAll.pagination.total, 151);
++    assert.equal(dataAll.pagination.page, 1);
++    assert.equal(dataAll.pagination.limit, 50);
++    assert.equal(dataAll.pagination.totalPages, 4);
++    assert.equal(dataAll.runs.length, 50);
++
++    // Verify page 4
++    const resP4 = await fetch(`${baseUrl}/api/admin/queue?page=4&limit=50`, {
++      headers: { Authorization: `Bearer ${adminToken}` },
++    });
++    const dataP4 = await resP4.json() as any;
++    assert.equal(dataP4.pagination.page, 4);
++    assert.equal(dataP4.runs.length, 1);
++
++    // 2. Filter by status: stale
++    const resStale = await fetch(`${baseUrl}/api/admin/queue?status=stale`, {
++      headers: { Authorization: `Bearer ${adminToken}` },
++    });
++    const dataStale = await resStale.json() as any;
++    assert.equal(dataStale.pagination.total, 11);
++    assert.ok(dataStale.runs.every((r: any) => r.isStale === true));
++
++    // 3. Filter by companyId
++    const resCo2 = await fetch(`${baseUrl}/api/admin/queue?companyId=${company2.id}`, {
++      headers: { Authorization: `Bearer ${adminToken}` },
++    });
++    const dataCo2 = await resCo2.json() as any;
++    // company2 has 10 running + 30 failed = 40
++    assert.equal(dataCo2.pagination.total, 40);
++    assert.ok(dataCo2.runs.every((r: any) => r.companyId === company2.id));
++
++    // 4. Filter by kind: xlsx vs ifc
++    const resXlsx = await fetch(`${baseUrl}/api/admin/queue?kind=xlsx`, {
++      headers: { Authorization: `Bearer ${adminToken}` },
++    });
++    const dataXlsx = await resXlsx.json() as any;
++    assert.equal(dataXlsx.pagination.total, 40);
++    assert.ok(dataXlsx.runs.every((r: any) => r.kind === 'xlsx'));
++
++    const resIfc = await fetch(`${baseUrl}/api/admin/queue?kind=ifc`, {
++      headers: { Authorization: `Bearer ${adminToken}` },
++    });
++    const dataIfc = await resIfc.json() as any;
++    // ifc: 50 + 1 + 30 + 30 = 111
++    assert.equal(dataIfc.pagination.total, 111);
++    assert.ok(dataIfc.runs.every((r: any) => r.kind === 'ifc'));
++  });
+ });
+diff --git a/src/server/routes/admin.ts b/src/server/routes/admin.ts
+index c44b371..4cc77da 100644
+--- a/src/server/routes/admin.ts
++++ b/src/server/routes/admin.ts
+@@ -14,7 +14,7 @@ import {
+   usageRecords,
+   users,
+ } from "../../db/schema";
+-import { and, desc, eq, sql } from "drizzle-orm";
++import { and, desc, eq, sql, type SQL } from "drizzle-orm";
+ import { z } from "zod";
+ import {
+   createPlanInput,
+@@ -32,7 +32,7 @@ import {
+ import { readAdminTenants } from "../admin/stats";
+ import { AuthService } from "../../services/auth/authService";
+ import { consumeRateLimit } from "../auth/security";
+-import { isProcessingRunStale } from "../../smartcheck/import/run-health";
++import { isProcessingRunStale, processingRunningStaleMinutes, processingQueuedStaleMinutes } from "../../smartcheck/import/run-health";
+ import { changeProcessingRun, enqueueSmartCheckProcessing, ProcessingConflict, removePendingJob } from "../../smartcheck/import/service";
+ import { IfcNotAvailableError, IfcLimitsUnavailableError } from "../../smartcheck/import/config";
+ import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
+@@ -375,8 +375,91 @@ export function registerAdminRoutes(app: Express) {
+   });
+ 
+   // 9. IFC Queue Monitoring (/api/admin/queue)
+-  router.get("/queue", async (_req, res) => {
++  router.get("/queue", async (req, res) => {
+     try {
++      const { status, companyId, kind, page = "1", limit = "50" } = req.query as Record<string, string | undefined>;
++
++      const pageNum = Math.max(1, parseInt(page, 10) || 1);
++      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
++      const offset = (pageNum - 1) * limitNum;
++
++      const runningMinutes = processingRunningStaleMinutes();
++      const queuedMinutes = processingQueuedStaleMinutes();
++
++      // Compute summary metrics across the entire table via SQL aggregation
++      const summaryExec = await db.execute<{
++        pending: string;
++        running: string;
++        stale: string;
++        failed24h: string;
++        completed24h: string;
++      }>(sql`
++        SELECT
++          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') AS pending,
++          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'running') AS running,
++          COUNT(*) FILTER (
++            WHERE (${documentProcessingRuns.status} = 'running' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.startedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${runningMinutes})
++               OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes})
++          ) AS stale,
++          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'failed' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS failed24h,
++          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'succeeded' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS completed24h
++        FROM ${documentProcessingRuns}
++      `);
++      const summaryResult = summaryExec.rows[0];
++
++      const summary = {
++        queued: Number(summaryResult?.pending ?? 0),
++        pending: Number(summaryResult?.pending ?? 0),
++        running: Number(summaryResult?.running ?? 0),
++        stale: Number(summaryResult?.stale ?? 0),
++        failed24h: Number(summaryResult?.failed24h ?? 0),
++        completed24h: Number(summaryResult?.completed24h ?? 0),
++        succeeded24h: Number(summaryResult?.completed24h ?? 0),
++      };
++
++      const whereConditions: SQL[] = [];
++
++      if (companyId) {
++        if (!z.string().uuid().safeParse(companyId).success) {
++          return res.status(400).json({ error: "Geçersiz firma ID formatı" });
++        }
++        whereConditions.push(eq(documentProcessingRuns.companyId, companyId));
++      }
++
++      if (status) {
++        if (status === 'stale') {
++          whereConditions.push(sql`
++            ((${documentProcessingRuns.status} = 'running' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.startedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${runningMinutes})
++             OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes}))
++          `);
++        } else if (['queued', 'running', 'succeeded', 'failed'].includes(status)) {
++          whereConditions.push(eq(documentProcessingRuns.status, status as any));
++        } else {
++          return res.status(400).json({ error: "Geçersiz durum filtresi" });
++        }
++      }
++
++      if (kind) {
++        if (kind === 'ifc') {
++          whereConditions.push(sql`(${documents.originalFileName} ILIKE '%.ifc' OR ${documents.mimeType} IN ('model/ifc', 'application/ifc'))`);
++        } else if (kind === 'xlsx') {
++          whereConditions.push(sql`(${documents.originalFileName} ILIKE '%.xlsx')`);
++        } else if (kind === 'csv') {
++          whereConditions.push(sql`(${documents.originalFileName} ILIKE '%.csv' OR ${documents.mimeType} = 'text/csv')`);
++        } else {
++          return res.status(400).json({ error: "Geçersiz tür filtresi" });
++        }
++      }
++
++      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
++
++      const [{ total }] = await db
++        .select({ total: sql<number>`count(*)::int` })
++        .from(documentProcessingRuns)
++        .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
++        .innerJoin(companies, eq(companies.id, documentProcessingRuns.companyId))
++        .where(whereClause);
++
+       const runs = await db
+         .select({
+           runId: documentProcessingRuns.id,
+@@ -398,48 +481,35 @@ export function registerAdminRoutes(app: Express) {
+         .from(documentProcessingRuns)
+         .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
+         .innerJoin(companies, eq(companies.id, documentProcessingRuns.companyId))
++        .where(whereClause)
+         .orderBy(desc(documentProcessingRuns.createdAt))
+-        .limit(100);
++        .limit(limitNum)
++        .offset(offset);
+ 
+       const now = new Date();
+-      let pendingCount = 0;
+-      let runningCount = 0;
+-      let staleCount = 0;
+-      let failed24hCount = 0;
+-      let completed24hCount = 0;
+-
+       const enrichedRuns = runs.map((r) => {
+-        const isStale = isProcessingRunStale(r, now);
+-        if (r.status === "queued") pendingCount++;
+-        if (r.status === "running") runningCount++;
+-        if (isStale) staleCount++;
+-        if (
+-          r.status === "failed" &&
+-          r.completedAt &&
+-          now.getTime() - r.completedAt.getTime() <= 86400000
+-        ) {
+-          failed24hCount++;
+-        }
+-        if (
+-          r.status === "succeeded" &&
+-          r.completedAt &&
+-          now.getTime() - r.completedAt.getTime() <= 86400000
+-        ) {
+-          completed24hCount++;
+-        }
+-
+-        return { ...r, isStale };
++        const ext = r.fileName.toLowerCase().split('.').pop() || '';
++        const itemKind = ext === 'ifc' ? 'ifc' : ext === 'xlsx' ? 'xlsx' : ext === 'csv' ? 'csv' : 'document';
++        const isStale = isProcessingRunStale(r, now, { runningMinutes, queuedMinutes });
++        return {
++          ...r,
++          id: r.runId,
++          kind: itemKind,
++          finishedAt: r.completedAt,
++          isStale,
++        };
+       });
+ 
+       return res.json({
+-        summary: {
+-          pending: pendingCount,
+-          running: runningCount,
+-          stale: staleCount,
+-          failed24h: failed24hCount,
+-          completed24h: completed24hCount,
++        summary,
++        pagination: {
++          page: pageNum,
++          limit: limitNum,
++          total,
++          totalPages: Math.ceil(total / limitNum) || 1,
+         },
+         runs: enrichedRuns,
++        jobs: enrichedRuns,
+       });
+     } catch (error) {
+       console.error("Queue monitoring error:", error);
+diff --git a/src/smartcheck/import/run-health.test.ts b/src/smartcheck/import/run-health.test.ts
+index d1bb46d..bcdc6c3 100644
+--- a/src/smartcheck/import/run-health.test.ts
++++ b/src/smartcheck/import/run-health.test.ts
+@@ -1,6 +1,11 @@
+ import assert from "node:assert/strict";
+ import test from "node:test";
+-import { isProcessingRunStale, processingStaleMinutes } from "./run-health";
++import {
++  isProcessingRunStale,
++  processingStaleMinutes,
++  processingRunningStaleMinutes,
++  processingQueuedStaleMinutes,
++} from "./run-health";
+ 
+ test("processing run health marks only old queued/running runs as stale", () => {
+   const now = new Date("2026-07-24T12:00:00Z");
+@@ -9,8 +14,42 @@ test("processing run health marks only old queued/running runs as stale", () =>
+   assert.equal(isProcessingRunStale({ status: "failed", updatedAt: new Date("2026-07-24T10:00:00Z") }, now, 15), false);
+ });
+ 
++test("processing run health distinguishes running (10m) and queued (60m) default timeouts", () => {
++  const now = new Date("2026-07-24T12:00:00Z");
++  // 15 dakikadır kuyrukta bekleyen iş stale DEĞİL (queued timeout 60m)
++  assert.equal(
++    isProcessingRunStale({ status: "queued", updatedAt: new Date("2026-07-24T11:45:00Z") }, now),
++    false,
++    "15 min queued job should NOT be stale",
++  );
++
++  // 15 dakikadır çalışan iş stale (running timeout 10m)
++  assert.equal(
++    isProcessingRunStale({ status: "running", updatedAt: new Date("2026-07-24T11:45:00Z") }, now),
++    true,
++    "15 min running job should be stale",
++  );
++
++  // 65 dakikadır kuyrukta bekleyen iş stale (queued timeout 60m)
++  assert.equal(
++    isProcessingRunStale({ status: "queued", updatedAt: new Date("2026-07-24T10:55:00Z") }, now),
++    true,
++    "65 min queued job should be stale",
++  );
++});
++
+ test("processing run health falls back for unsafe stale thresholds", () => {
+   assert.equal(processingStaleMinutes({ SMARTCHECK_PROCESSING_STALE_MINUTES: "4" }), 15);
+   assert.equal(processingStaleMinutes({ SMARTCHECK_PROCESSING_STALE_MINUTES: "241" }), 15);
+   assert.equal(processingStaleMinutes({ SMARTCHECK_PROCESSING_STALE_MINUTES: "30" }), 30);
++
++  // Running
++  assert.equal(processingRunningStaleMinutes({ SMARTCHECK_PROCESSING_RUNNING_STALE_MINUTES: "0" }), 10);
++  assert.equal(processingRunningStaleMinutes({ IFC_RUNNING_STALE_MS: "600000" }), 10);
++  assert.equal(processingRunningStaleMinutes({ SMARTCHECK_PROCESSING_RUNNING_STALE_MINUTES: "20" }), 20);
++
++  // Queued
++  assert.equal(processingQueuedStaleMinutes({ SMARTCHECK_PROCESSING_QUEUED_STALE_MINUTES: "3" }), 60);
++  assert.equal(processingQueuedStaleMinutes({ IFC_QUEUED_STALE_MS: "7200000" }), 120);
++  assert.equal(processingQueuedStaleMinutes({ SMARTCHECK_PROCESSING_QUEUED_STALE_MINUTES: "45" }), 45);
+ });
+diff --git a/src/smartcheck/import/run-health.ts b/src/smartcheck/import/run-health.ts
+index 90eaa0b..5999a19 100644
+--- a/src/smartcheck/import/run-health.ts
++++ b/src/smartcheck/import/run-health.ts
+@@ -1,11 +1,32 @@
+ export const DEFAULT_PROCESSING_STALE_MINUTES = 15;
++export const DEFAULT_RUNNING_STALE_MINUTES = 10;
++export const DEFAULT_QUEUED_STALE_MINUTES = 60;
+ 
+ export type ProcessingRunHealthInput = {
+   status: string;
+   updatedAt: Date | null;
+   startedAt?: Date | null;
++  createdAt?: Date | null;
+ };
+ 
++export function processingRunningStaleMinutes(env: Record<string, string | undefined> = process.env): number {
++  if (env.IFC_RUNNING_STALE_MS) {
++    const ms = Number(env.IFC_RUNNING_STALE_MS);
++    if (Number.isFinite(ms) && ms > 0) return ms / 60_000;
++  }
++  const configured = Number(env.SMARTCHECK_PROCESSING_RUNNING_STALE_MINUTES ?? DEFAULT_RUNNING_STALE_MINUTES);
++  return Number.isFinite(configured) && configured >= 1 && configured <= 240 ? configured : DEFAULT_RUNNING_STALE_MINUTES;
++}
++
++export function processingQueuedStaleMinutes(env: Record<string, string | undefined> = process.env): number {
++  if (env.IFC_QUEUED_STALE_MS) {
++    const ms = Number(env.IFC_QUEUED_STALE_MS);
++    if (Number.isFinite(ms) && ms > 0) return ms / 60_000;
++  }
++  const configured = Number(env.SMARTCHECK_PROCESSING_QUEUED_STALE_MINUTES ?? DEFAULT_QUEUED_STALE_MINUTES);
++  return Number.isFinite(configured) && configured >= 5 && configured <= 1440 ? configured : DEFAULT_QUEUED_STALE_MINUTES;
++}
++
+ export function processingStaleMinutes(env: Record<string, string | undefined> = process.env): number {
+   const configured = Number(env.SMARTCHECK_PROCESSING_STALE_MINUTES ?? DEFAULT_PROCESSING_STALE_MINUTES);
+   return Number.isFinite(configured) && configured >= 5 && configured <= 240 ? configured : DEFAULT_PROCESSING_STALE_MINUTES;
+@@ -14,10 +35,23 @@ export function processingStaleMinutes(env: Record<string, string | undefined> =
+ export function isProcessingRunStale(
+   run: ProcessingRunHealthInput,
+   now = new Date(),
+-  staleMinutes = processingStaleMinutes(),
++  customThresholds?: { runningMinutes?: number; queuedMinutes?: number } | number,
+ ): boolean {
+   if (run.status !== "queued" && run.status !== "running") return false;
+-  const heartbeat = run.updatedAt ?? run.startedAt;
++
++  let staleMinutes: number;
++  if (typeof customThresholds === "number") {
++    staleMinutes = customThresholds;
++  } else if (run.status === "running") {
++    staleMinutes = customThresholds?.runningMinutes ?? processingRunningStaleMinutes();
++  } else {
++    staleMinutes = customThresholds?.queuedMinutes ?? processingQueuedStaleMinutes();
++  }
++
++  const heartbeat = run.status === "running"
++    ? (run.updatedAt ?? run.startedAt ?? run.createdAt)
++    : (run.updatedAt ?? run.createdAt);
++
+   if (!heartbeat || Number.isNaN(heartbeat.getTime()) || Number.isNaN(now.getTime())) return false;
+   return now.getTime() - heartbeat.getTime() >= staleMinutes * 60_000;
+ }

@@ -1,0 +1,458 @@
+diff --git a/scripts/compare-ifc-parsers.ts b/scripts/compare-ifc-parsers.ts
+new file mode 100644
+index 0000000..f2a9281
+--- /dev/null
++++ b/scripts/compare-ifc-parsers.ts
+@@ -0,0 +1,243 @@
++#!/usr/bin/env tsx
++/**
++ * scripts/compare-ifc-parsers.ts
++ *
++ * Parity and benchmarking tool comparing the Legacy TypeScript IFC parser
++ * against the Python IfcOpenShell extractor.
++ *
++ * Usage:
++ *   pnpm tsx scripts/compare-ifc-parsers.ts [--file <path-to-ifc>]
++ *   pnpm tsx scripts/compare-ifc-parsers.ts --synthetic-100mb
++ */
++
++import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { parseIfcText } from "../src/ifc/parser/legacy-parser";
++import { runPythonIfcExtractor } from "../src/smartcheck/import/ifc-python-runner";
++
++function formatBytes(bytes: number): string {
++  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
++}
++
++function generateSynthetic100MbIfc(targetPath: string): number {
++  console.log(`Generating ~100MB synthetic IFC file at ${targetPath}...`);
++  const lines: string[] = [
++    "ISO-10303-21;",
++    "HEADER;",
++    "FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');",
++    "FILE_NAME('synthetic_100mb.ifc','2026-10-10T12:00:00',('TeklifPro'),('Platform'),'','','');",
++    "FILE_SCHEMA(('IFC2X3'));",
++    "ENDSEC;",
++    "DATA;",
++    "#1=IFCPROJECT('0000000000000000000001',$,'Synthetic 100MB Project',$,$,$,$,$,$);",
++    "#2=IFCSITE('0000000000000000000002',$,'Site',$,$,$,$,$,.ELEMENT.,$,$,$,$,$);",
++    "#3=IFCBUILDING('0000000000000000000003',$,'Building',$,$,$,$,$,.ELEMENT.,$,$,$);",
++    "#4=IFCBUILDINGSTOREY('0000000000000000000004',$,'Zemin Kat',$,$,$,$,$,.ELEMENT.,3.0);",
++  ];
++
++  let currentId = 10;
++  // Each element group is ~500 bytes. ~200,000 groups would be ~100MB.
++  // We can write in chunks to target ~100MB accurately.
++  const targetSizeBytes = 100 * 1024 * 1024;
++  let currentBytes = 0;
++
++  for (const l of lines) {
++    currentBytes += Buffer.byteLength(l + "\n");
++  }
++
++  // Generate repetitive structural elements until target size reached
++  const elementTypes = ["IFCCOLUMN", "IFCBEAM", "IFCSLAB", "IFCWALL"];
++  const chunk: string[] = [];
++
++  while (currentBytes < targetSizeBytes) {
++    const elemId = currentId++;
++    const qtoId = currentId++;
++    const relId = currentId++;
++    const propId = currentId++;
++    const type = elementTypes[elemId % elementTypes.length];
++    const guid = `G${elemId.toString().padStart(21, "0")}`;
++
++    const eLine = `#${elemId}=${type}('${guid}',$,'Elem-${elemId}',$,$,$,$,$,$);`;
++    const pLine = `#${propId}=IFCQUANTITYVOLUME('NetVolume',$,$,1.25,$);`;
++    const qLine = `#${qtoId}=IFCELEMENTQUANTITY('Q${elemId.toString().padStart(21, "0")}',$,'BaseQuantities',$,$,(#${propId}));`;
++    const rLine = `#${relId}=IFCRELDEFINESBYPROPERTIES('R${elemId.toString().padStart(21, "0")}',$,$,$,(#${elemId}),#${qtoId});`;
++
++    chunk.push(eLine, pLine, qLine, rLine);
++    currentBytes += Buffer.byteLength(eLine + "\n" + pLine + "\n" + qLine + "\n" + rLine + "\n");
++
++    if (chunk.length >= 10000) {
++      lines.push(...chunk);
++      chunk.length = 0;
++    }
++  }
++
++  if (chunk.length > 0) {
++    lines.push(...chunk);
++  }
++
++  lines.push("ENDSEC;");
++  lines.push("END-ISO-10303-21;");
++
++  const fullContent = lines.join("\n");
++  writeFileSync(targetPath, fullContent, "utf8");
++  return fullContent.length;
++}
++
++export async function runSyntheticMemoryBenchmark(): Promise<{
++  fileSizeMb: number;
++  initialRssMb: number;
++  peakRssMb: number;
++  initialHeapMb: number;
++  peakHeapMb: number;
++  memLimitSafe: boolean;
++  heapLimitSafe: boolean;
++}> {
++  console.log(`\n===============================================================`);
++  console.log(` TeklifPro IFC Worker 100 MB RSS Memory Benchmark`);
++  console.log(` Target limits: RSS < 2048 MB (Docker mem_limit), Heap < 1024 MB`);
++  console.log(`===============================================================\n`);
++
++  const tmpDir = path.join(os.tmpdir(), `teklifpro-benchmark-${Date.now()}`);
++  mkdirSync(tmpDir, { recursive: true });
++  const tmpFile = path.join(tmpDir, "synthetic_100mb.ifc");
++
++  try {
++    if (global.gc) global.gc();
++    const initialMem = process.memoryUsage();
++    console.log(`Baseline Memory: RSS=${formatBytes(initialMem.rss)}, HeapUsed=${formatBytes(initialMem.heapUsed)}`);
++
++    const sizeBytes = generateSynthetic100MbIfc(tmpFile);
++    console.log(`Created synthetic IFC file: ${formatBytes(sizeBytes)}`);
++
++    const startMem = process.memoryUsage();
++    console.log(`Memory after file generation: RSS=${formatBytes(startMem.rss)}, HeapUsed=${formatBytes(startMem.heapUsed)}`);
++
++    console.log(`Running Legacy Parser on 100 MB file...`);
++    const startLegacy = Date.now();
++    const ifcContent = readFileSync(tmpFile, "utf8");
++    const parsedLegacy = parseIfcText(ifcContent);
++    const legacyDuration = Date.now() - startLegacy;
++
++    const legacyMem = process.memoryUsage();
++    console.log(`Legacy Parser parsed ${parsedLegacy.elements.length} elements in ${legacyDuration}ms.`);
++    console.log(`Memory after Legacy parse: RSS=${formatBytes(legacyMem.rss)}, HeapUsed=${formatBytes(legacyMem.heapUsed)}`);
++
++    const peakRssMb = legacyMem.rss / (1024 * 1024);
++    const peakHeapMb = legacyMem.heapUsed / (1024 * 1024);
++
++    const memLimitSafe = peakRssMb < 2048;
++    const heapLimitSafe = peakHeapMb < 1024;
++
++    console.log(`\n---------------------------------------------------------------`);
++    console.log(`Benchmark Sonuçları:`);
++    console.log(`- Dosya Boyutu: ${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`);
++    console.log(`- Peak RSS: ${peakRssMb.toFixed(2)} MB (Limit: 2048 MB) -> ${memLimitSafe ? "✅ GÜVENLİ" : "❌ AŞILDI"}`);
++    console.log(`- Peak Heap: ${peakHeapMb.toFixed(2)} MB (Limit: 1024 MB) -> ${heapLimitSafe ? "✅ GÜVENLİ" : "❌ AŞILDI"}`);
++    console.log(`---------------------------------------------------------------\n`);
++
++    return {
++      fileSizeMb: sizeBytes / (1024 * 1024),
++      initialRssMb: initialMem.rss / (1024 * 1024),
++      peakRssMb,
++      initialHeapMb: initialMem.heapUsed / (1024 * 1024),
++      peakHeapMb,
++      memLimitSafe,
++      heapLimitSafe,
++    };
++  } finally {
++    try {
++      rmSync(tmpDir, { recursive: true, force: true });
++    } catch {}
++  }
++}
++
++export async function compareIfcParsers(filePath: string) {
++  if (!existsSync(filePath)) {
++    console.error(`ERROR: IFC file not found at: ${filePath}`);
++    process.exit(1);
++  }
++
++  const fileSizeMb = (readFileSync(filePath).length / (1024 * 1024)).toFixed(2);
++  console.log(`\n===============================================================`);
++  console.log(` TeklifPro IFC Parser Parity Comparison`);
++  console.log(` Target File: ${path.basename(filePath)} (${fileSizeMb} MB)`);
++  console.log(`===============================================================\n`);
++
++  // 1. Run Legacy Parser
++  console.log(`[1/2] Running Legacy TypeScript Parser...`);
++  const startLegacy = Date.now();
++  const fileText = readFileSync(filePath, "utf8");
++  const legacyResult = parseIfcText(fileText);
++  const legacyDuration = Date.now() - startLegacy;
++  console.log(`  -> Finished in ${legacyDuration}ms. Found ${legacyResult.elements.length} elements.`);
++
++  // 2. Run Python IfcOpenShell Extractor
++  console.log(`[2/2] Running Python IfcOpenShell Extractor...`);
++  const startPython = Date.now();
++  const pythonResult = await runPythonIfcExtractor({
++    inputPath: filePath,
++    fileName: path.basename(filePath),
++  });
++  const pythonDuration = Date.now() - startPython;
++  console.log(`  -> Finished in ${pythonDuration}ms. Found ${pythonResult.elements.length} elements.\n`);
++
++  const ls = legacyResult.summary;
++  const ps = pythonResult.summary;
++
++  const rows = [
++    { category: "Genel", metric: "Toplam Eleman", legacy: ls.totalElements, python: ps.totalElements, unit: "adet" },
++    { category: "Eleman Sayısı", metric: "Kiriş (IfcBeam)", legacy: ls.beamCount, python: ps.beamCount, unit: "adet" },
++    { category: "Eleman Sayısı", metric: "Kolon (IfcColumn)", legacy: ls.columnCount, python: ps.columnCount, unit: "adet" },
++    { category: "Eleman Sayısı", metric: "Döşeme (IfcSlab)", legacy: ls.slabCount, python: ps.slabCount, unit: "adet" },
++    { category: "Eleman Sayısı", metric: "Perde / Duvar (IfcWall)", legacy: ls.wallCount, python: ps.wallCount, unit: "adet" },
++    { category: "Eleman Sayısı", metric: "Donatı (IfcReinforcingBar)", legacy: ls.rebarCount, python: ps.rebarCount, unit: "adet" },
++    { category: "Hacim Dağılımı", metric: "Kiriş Hacmi", legacy: ls.beamVolumeM3.toFixed(2), python: ps.beamVolumeM3.toFixed(2), unit: "m³" },
++    { category: "Hacim Dağılımı", metric: "Kolon Hacmi", legacy: ls.columnVolumeM3.toFixed(2), python: ps.columnVolumeM3.toFixed(2), unit: "m³" },
++    { category: "Hacim Dağılımı", metric: "Döşeme Hacmi", legacy: ls.slabVolumeM3.toFixed(2), python: ps.slabVolumeM3.toFixed(2), unit: "m³" },
++    { category: "Hacim Dağılımı", metric: "Duvar Hacmi", legacy: ls.wallVolumeM3.toFixed(2), python: ps.wallVolumeM3.toFixed(2), unit: "m³" },
++    { category: "Toplam Hacim", metric: "Toplam Beton Hacmi", legacy: ls.totalVolumeM3.toFixed(2), python: ps.totalVolumeM3.toFixed(2), unit: "m³" },
++    { category: "Kalıp Alanı", metric: "Toplam Kalıp Alanı (Ön Metraj)", legacy: ls.totalFormworkM2.toFixed(2), python: ps.totalFormworkM2.toFixed(2), unit: "m²" },
++    { category: "Donatı Ağırlığı", metric: "Toplam Donatı Ağırlığı", legacy: ls.totalRebarKg.toFixed(2), python: ps.totalRebarKg.toFixed(2), unit: "kg" },
++    { category: "Poz Bilgisi", metric: "Poz No Olan Elemanlar", legacy: ls.elementsWithPozNoCount, python: ps.elementsWithPozNoCount, unit: "adet" },
++    { category: "e-PYS Uyum", metric: "TR Pset TAKS", legacy: ls.trPsetCsb?.taks ?? "-", python: ps.trPsetCsb?.taks ?? "-", unit: "" },
++    { category: "e-PYS Uyum", metric: "TR Pset KAKS", legacy: ls.trPsetCsb?.kaks ?? "-", python: ps.trPsetCsb?.kaks ?? "-", unit: "" },
++  ];
++
++  console.log(`| Kategori | Metrik | Legacy Parser | IfcOpenShell | Birim | Durum |`);
++  console.log(`|---|---|---|---|---|---|`);
++  let totalDivergences = 0;
++  for (const r of rows) {
++    const match = String(r.legacy) === String(r.python);
++    if (!match) totalDivergences++;
++    const status = match ? "✅ Eşit" : "⚠️ Farklı";
++    console.log(`| ${r.category} | ${r.metric} | ${r.legacy} | ${r.python} | ${r.unit} | ${status} |`);
++  }
++
++  console.log(`\nPerformans & Parite Durumu:`);
++  console.log(`- Legacy Parser Çalışma Süresi: ${legacyDuration}ms`);
++  console.log(`- IfcOpenShell Çalışma Süresi: ${pythonDuration}ms`);
++  console.log(`- IfcOpenShell Sürümü: ${pythonResult.parserVersion}`);
++  console.log(`- Genel Parite Durumu: ${totalDivergences === 0 ? "✅ TAM EŞLEŞME (MATCH)" : `⚠️ ${totalDivergences} METRİKTE FARK (DIVERGENCE)`}\n`);
++}
++
++async function main() {
++  if (process.argv.includes("--synthetic-100mb") || process.argv.includes("--synthetic")) {
++    await runSyntheticMemoryBenchmark();
++    return;
++  }
++
++  const fileArgIdx = process.argv.indexOf("--file");
++  const filePath = fileArgIdx !== -1 && process.argv[fileArgIdx + 1]
++    ? path.resolve(process.argv[fileArgIdx + 1])
++    : path.resolve(process.cwd(), "ifc-document-sample/e-proje_4x3.ifc");
++
++  await compareIfcParsers(filePath);
++}
++
++if (process.argv[1] && process.argv[1].endsWith("compare-ifc-parsers.ts")) {
++  main().catch((err) => {
++    console.error("Comparison failed:", err);
++    process.exit(1);
++  });
++}
+diff --git a/src/smartcheck/import/ifc-orchestration.test.ts b/src/smartcheck/import/ifc-orchestration.test.ts
+index 6346f20..b3a664d 100644
+--- a/src/smartcheck/import/ifc-orchestration.test.ts
++++ b/src/smartcheck/import/ifc-orchestration.test.ts
+@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
+ import fs from "node:fs/promises";
+ import os from "node:os";
+ import path from "node:path";
+-import { IfcWorkerError, resolvePythonBin, runPythonIfcExtractor } from "./ifc-python-runner";
++import { IfcWorkerError, resolvePythonBin, runPythonIfcExtractor, sanitizeIfcErrorMessage } from "./ifc-python-runner";
+ 
+ test("resolvePythonBin finds Python executable", () => {
+   const bin = resolvePythonBin();
+@@ -139,6 +139,7 @@ test("runPythonIfcExtractor enforces timeout with IFC_TIMEOUT error", async () =
+       (err: unknown) => {
+         assert.ok(err instanceof IfcWorkerError);
+         assert.equal(err.code, "IFC_TIMEOUT");
++        assert.match(err.sanitizedMessage, /İşlem zaman aşımına uğradı/);
+         return true;
+       }
+     );
+@@ -146,3 +147,39 @@ test("runPythonIfcExtractor enforces timeout with IFC_TIMEOUT error", async () =
+     await fs.rm(tmpDir, { recursive: true, force: true });
+   }
+ });
++
++test("sanitizeIfcErrorMessage sanitizes internal paths and provides clean Turkish messages", () => {
++  const timeoutMsg = sanitizeIfcErrorMessage("IFC_TIMEOUT", undefined, 120);
++  assert.equal(timeoutMsg, "İşlem zaman aşımına uğradı (120 saniye). Dosya çok karmaşık olabilir.");
++  assert.ok(!timeoutMsg.includes("/app") && !timeoutMsg.includes(".py"));
++
++  const oomMsg = sanitizeIfcErrorMessage("IFC_OOM", "Killed process 1234 (python3) total-vm:2097152kB");
++  assert.equal(oomMsg, "Yetersiz bellek. Dosya boyutu veya eleman sayısı sistem sınırını aştı.");
++
++  const schemaMsg = sanitizeIfcErrorMessage("IFC_SCHEMA_UNSUPPORTED", "Unsupported schema IFC4X3_ADD2 in file /app/test.ifc");
++  assert.ok(schemaMsg.includes("Desteklenmeyen IFC şeması"));
++  assert.ok(!schemaMsg.includes("/app"));
++
++  const emptyMsg = sanitizeIfcErrorMessage("IFC_EMPTY_MODEL", "No elements in /root/model.ifc");
++  assert.equal(emptyMsg, "IFC dosyasında desteklenen yapısal eleman bulunamadı.");
++
++  const parseFailMsg = sanitizeIfcErrorMessage("IFC_PARSE_FAILED", 'Traceback: File "/var/task/workers/ifc/ifc_extract.py", line 42');
++  assert.equal(parseFailMsg, "IFC dosyası okunamadı veya dosya bozuk.");
++  assert.ok(!parseFailMsg.includes("Traceback") && !parseFailMsg.includes("/var/task"));
++
++  const crashMsg = sanitizeIfcErrorMessage("IFC_WORKER_CRASH", "Segmentation fault at 0x00007fff");
++  assert.equal(crashMsg, "IFC işlenirken beklenmeyen bir hata oluştu.");
++});
++
++test("IfcWorkerError attaches sanitizedMessage and avoids leaking stack or paths", () => {
++  const err = new IfcWorkerError(
++    "IFC_PARSE_FAILED",
++    'Crash details: File "/var/app/workers/ifc/ifc_extract.py", line 99, in main',
++    'Traceback (most recent call last):\n  File "/var/app/workers/ifc/ifc_extract.py", line 99',
++  );
++
++  assert.equal(err.code, "IFC_PARSE_FAILED");
++  assert.equal(err.sanitizedMessage, "IFC dosyası okunamadı veya dosya bozuk.");
++  assert.ok(!err.sanitizedMessage.includes("/var/app"));
++  assert.ok(!err.sanitizedMessage.includes("Traceback"));
++});
+diff --git a/src/smartcheck/import/ifc-python-runner.ts b/src/smartcheck/import/ifc-python-runner.ts
+index 53ca42e..b462128 100644
+--- a/src/smartcheck/import/ifc-python-runner.ts
++++ b/src/smartcheck/import/ifc-python-runner.ts
+@@ -76,14 +76,45 @@ export interface PythonIfcExtractOptions {
+   cliScriptPath?: string;
+ }
+ 
++export function sanitizeIfcErrorMessage(
++  code: "IFC_PARSE_FAILED" | "IFC_SCHEMA_UNSUPPORTED" | "IFC_EMPTY_MODEL" | "IFC_TIMEOUT" | "IFC_OOM" | "IFC_WORKER_CRASH",
++  rawDetails?: string,
++  timeoutSec?: number,
++): string {
++  switch (code) {
++    case "IFC_TIMEOUT":
++      return `İşlem zaman aşımına uğradı (${timeoutSec ?? 600} saniye). Dosya çok karmaşık olabilir.`;
++    case "IFC_OOM":
++      return "Yetersiz bellek. Dosya boyutu veya eleman sayısı sistem sınırını aştı.";
++    case "IFC_SCHEMA_UNSUPPORTED": {
++      const match = rawDetails?.match(/schema\s*[:=]?\s*([A-Za-z0-9_]+)/i) || rawDetails?.match(/(IFC[A-Z0-9]+)/i);
++      const schemaName = match ? match[1] : "";
++      return schemaName
++        ? `Desteklenmeyen IFC şeması (${schemaName}). Yalnız IFC2X3 ve IFC4 desteklenir.`
++        : "Desteklenmeyen IFC şeması. Yalnız IFC2X3 ve IFC4 desteklenir.";
++    }
++    case "IFC_EMPTY_MODEL":
++      return "IFC dosyasında desteklenen yapısal eleman bulunamadı.";
++    case "IFC_PARSE_FAILED":
++      return "IFC dosyası okunamadı veya dosya bozuk.";
++    case "IFC_WORKER_CRASH":
++    default:
++      return "IFC işlenirken beklenmeyen bir hata oluştu.";
++  }
++}
++
+ export class IfcWorkerError extends Error {
++  public readonly sanitizedMessage: string;
++
+   constructor(
+     public readonly code: "IFC_PARSE_FAILED" | "IFC_SCHEMA_UNSUPPORTED" | "IFC_EMPTY_MODEL" | "IFC_TIMEOUT" | "IFC_OOM" | "IFC_WORKER_CRASH",
+     message: string,
+     public readonly stderr?: string,
++    sanitizedMessage?: string,
+   ) {
+     super(message);
+     this.name = "IfcWorkerError";
++    this.sanitizedMessage = sanitizedMessage ?? sanitizeIfcErrorMessage(code, stderr ?? message);
+   }
+ }
+ 
+@@ -133,7 +164,8 @@ export async function runPythonIfcExtractor(options: PythonIfcExtractOptions): P
+             try { child.kill("SIGKILL"); } catch {}
+           }, 3000).unref();
+         } catch {}
+-        reject(new IfcWorkerError("IFC_TIMEOUT", `IFC extraction timed out after ${timeoutMs / 1000}s`, stderr));
++        const timeoutSec = Math.round(timeoutMs / 1000);
++        reject(new IfcWorkerError("IFC_TIMEOUT", `IFC extraction timed out after ${timeoutSec}s`, stderr, sanitizeIfcErrorMessage("IFC_TIMEOUT", undefined, timeoutSec)));
+       }, timeoutMs);
+ 
+       child.on("error", (err) => {
+diff --git a/src/smartcheck/import/processor.ts b/src/smartcheck/import/processor.ts
+index a098055..8c765ec 100644
+--- a/src/smartcheck/import/processor.ts
++++ b/src/smartcheck/import/processor.ts
+@@ -223,10 +223,13 @@ async function processIfcSmartCheckDocument(payload: {
+     }
+ 
+     const legacyContent = content ?? await fs.readFile(resolvedPath);
+-    artifact = buildIfcSmartCheckEvidenceFromContent({
++    const legacyText = legacyContent.toString("utf8");
++    const legacyParsed = parseIfcText(legacyText);
++    artifact = buildIfcSmartCheckEvidenceArtifact(legacyParsed.elements, legacyParsed.summary, {
+       fileName: originalFileName,
+       checksumSha256,
+-      content: legacyContent,
++      schemaName: legacyText.match(/FILE_SCHEMA\s*\(\s*\(\s*'([^']+)'/i)?.[1],
++      parserVersion: "legacy-ifc-evidence-v1",
+     });
+ 
+     try {
+@@ -235,15 +238,48 @@ async function processIfcSmartCheckDocument(payload: {
+         fileName: originalFileName,
+       });
+ 
+-      const legacyParsed = parseIfcText(legacyContent.toString("utf8"));
++      const ls = legacyParsed.summary;
++      const ps = pythonResult.summary;
++
++      const beamCountDiff = Math.abs(ls.beamCount - ps.beamCount);
++      const beamVolumeDiff = Number(Math.abs(ls.beamVolumeM3 - ps.beamVolumeM3).toFixed(3));
++      const columnCountDiff = Math.abs(ls.columnCount - ps.columnCount);
++      const columnVolumeDiff = Number(Math.abs(ls.columnVolumeM3 - ps.columnVolumeM3).toFixed(3));
++      const slabCountDiff = Math.abs(ls.slabCount - ps.slabCount);
++      const slabVolumeDiff = Number(Math.abs(ls.slabVolumeM3 - ps.slabVolumeM3).toFixed(3));
++      const wallCountDiff = Math.abs(ls.wallCount - ps.wallCount);
++      const wallVolumeDiff = Number(Math.abs(ls.wallVolumeM3 - ps.wallVolumeM3).toFixed(3));
++      const rebarCountDiff = Math.abs(ls.rebarCount - ps.rebarCount);
++      const rebarWeightDiff = Number(Math.abs(ls.totalRebarKg - ps.totalRebarKg).toFixed(3));
++      const formworkDiff = Number(Math.abs(ls.totalFormworkM2 - ps.totalFormworkM2).toFixed(3));
++      const totalVolumeDiff = Number(Math.abs(ls.totalVolumeM3 - ps.totalVolumeM3).toFixed(3));
++      const totalElementCountDiff = Math.abs(ls.totalElements - ps.totalElements);
++
++      const isDivergent =
++        totalElementCountDiff > 0 ||
++        beamCountDiff > 0 || columnCountDiff > 0 || slabCountDiff > 0 || wallCountDiff > 0 || rebarCountDiff > 0 ||
++        totalVolumeDiff > 0.05 ||
++        beamVolumeDiff > 0.05 || columnVolumeDiff > 0.05 || slabVolumeDiff > 0.05 || wallVolumeDiff > 0.05 ||
++        formworkDiff > 0.05 ||
++        rebarWeightDiff > 0.5;
++
+       const shadowReport = {
+         mode: "shadow",
+         timestamp: new Date().toISOString(),
+-        legacySummary: legacyParsed.summary,
+-        pythonSummary: pythonResult.summary,
+-        elementCountDiff: Math.abs(legacyParsed.summary.totalElements - pythonResult.summary.totalElements),
+-        volumeDeltaM3: Number(Math.abs(legacyParsed.summary.totalVolumeM3 - pythonResult.summary.totalVolumeM3).toFixed(2)),
+-        parityStatus: Math.abs(legacyParsed.summary.totalElements - pythonResult.summary.totalElements) === 0 ? "match" : "divergence",
++        legacySummary: ls,
++        pythonSummary: ps,
++        totalElementCountDiff,
++        totalVolumeDeltaM3: totalVolumeDiff,
++        totalFormworkDeltaM2: formworkDiff,
++        totalRebarWeightDeltaKg: rebarWeightDiff,
++        parityStatus: isDivergent ? "divergence" : "match",
++        typeBreakdown: {
++          beam: { legacyCount: ls.beamCount, pythonCount: ps.beamCount, legacyVolumeM3: ls.beamVolumeM3, pythonVolumeM3: ps.beamVolumeM3, countDelta: beamCountDiff, volumeDeltaM3: beamVolumeDiff },
++          column: { legacyCount: ls.columnCount, pythonCount: ps.columnCount, legacyVolumeM3: ls.columnVolumeM3, pythonVolumeM3: ps.columnVolumeM3, countDelta: columnCountDiff, volumeDeltaM3: columnVolumeDiff },
++          slab: { legacyCount: ls.slabCount, pythonCount: ps.slabCount, legacyVolumeM3: ls.slabVolumeM3, pythonVolumeM3: ps.slabVolumeM3, countDelta: slabCountDiff, volumeDeltaM3: slabVolumeDiff },
++          wall: { legacyCount: ls.wallCount, pythonCount: ps.wallCount, legacyVolumeM3: ls.wallVolumeM3, pythonVolumeM3: ps.wallVolumeM3, countDelta: wallCountDiff, volumeDeltaM3: wallVolumeDiff },
++          rebar: { legacyCount: ls.rebarCount, pythonCount: ps.rebarCount, legacyWeightKg: ls.totalRebarKg, pythonWeightKg: ps.totalRebarKg, countDelta: rebarCountDiff, weightDeltaKg: rebarWeightDiff },
++        },
+       };
+ 
+       const shadowContent = Buffer.from(JSON.stringify(shadowReport, null, 2));
+@@ -480,7 +516,11 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
+     await db.update(documents).set({ status: "awaiting_review", importMappingJson: parsed.mapping, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+   } catch (error) {
+     const errorCode = error instanceof IfcWorkerError ? error.code : error instanceof Error ? error.message : "PROCESSING_FAILED";
+-    const errorMessage = error instanceof Error ? error.message : "PROCESSING_FAILED";
++    const errorMessage = error instanceof IfcWorkerError
++      ? error.sanitizedMessage
++      : error instanceof Error
++        ? (error.message.includes("/") || error.message.includes("\\") || error.message.includes("Traceback") ? "İşlem sırasında beklenmeyen bir hata oluştu." : error.message)
++        : "PROCESSING_FAILED";
+     await updateRun(run.id, companyId, { status: "failed", currentStage: "failed", progressMessage: "İşleme başarısız", errorCode, errorMessage, completedAt: new Date() });
+     await db.update(documents).set({ status: "failed", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+     throw error;
