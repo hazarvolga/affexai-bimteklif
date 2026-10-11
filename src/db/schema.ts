@@ -883,6 +883,7 @@ export const documentProcessingRuns = pgTable("document_processing_runs", {
   model: text("model"),
   progressPercent: integer("progress_percent").default(0).notNull(),
   progressMessage: text("progress_message"),
+  quotaConsumed: boolean("quota_consumed").default(false).notNull(),
   errorCode: text("error_code"),
   errorMessage: text("error_message"),
   startedAt: timestamp("started_at", { withTimezone: true }),

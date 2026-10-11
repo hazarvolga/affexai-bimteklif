@@ -55,3 +55,47 @@ export async function consumeQuotationQuota(tx: Transaction, companyId: string, 
     throw quotaUnavailable();
   }
 }
+
+async function lockedIfcUsage(tx: Transaction, companyId: string, at?: Date) {
+  // Same order as admin subscription changes: company -> plan -> subscription.
+  const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for("update");
+  if (!company) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
+
+  const [pointer] = await tx.select({ planId: subscriptions.planId }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
+  if (pointer?.planId) {
+    await tx.select().from(plans).where(eq(plans.id, pointer.planId)).for("share");
+    const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId)).for("update");
+    if (subscription?.planId !== pointer?.planId) throw quotaUnavailable();
+  }
+
+  const now = at ?? new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
+  const period = now.toISOString().slice(0, 7);
+  const counters = await tx.select().from(usageRecords)
+    .where(and(eq(usageRecords.companyId, companyId), eq(usageRecords.period, period)))
+    .orderBy(asc(usageRecords.id)).for("update");
+
+  if (counters.some(row => !Number.isSafeInteger(row.ifcCount) || row.ifcCount < 0)) throw quotaUnavailable();
+  const current = counters.reduce((sum, row) => sum + row.ifcCount, 0);
+  if (!Number.isSafeInteger(current)) throw quotaUnavailable();
+
+  return { period, counters, current };
+}
+
+// Call only within the run's successful completion transaction.
+export async function consumeIfcUsage(tx: Transaction, companyId: string, at?: Date) {
+  try {
+    const { period, counters, current } = await lockedIfcUsage(tx, companyId, at);
+    if (counters.length) {
+      const counter = counters.find(row => row.ifcCount < 2147483647);
+      if (!counter) throw quotaUnavailable();
+      await tx.update(usageRecords).set({ ifcCount: counter.ifcCount + 1 }).where(eq(usageRecords.id, counter.id));
+    } else {
+      await tx.insert(usageRecords).values({ companyId, period, quoteCount: 0, ifcCount: 1 });
+    }
+    return { period, current: current + 1 };
+  } catch (error) {
+    if (error instanceof QuotaError) throw error;
+    throw quotaUnavailable();
+  }
+}
+

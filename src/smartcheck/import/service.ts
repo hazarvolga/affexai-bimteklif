@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { makeWorkerUtils } from 'graphile-worker';
 import { db } from '../../db';
-import { documents, documentProcessingRuns, smartcheckAuditLogs } from '../../db/schema';
+import { documents, documentProcessingRuns, smartcheckAuditLogs, usageRecords } from '../../db/schema';
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
@@ -12,7 +12,9 @@ import { fetchTenantIfcLimits, graphileWorkerSchema } from './config';
 const graphileSchema = () => graphileWorkerSchema();
 
 export class ProcessingConflict extends Error {
-  constructor(public readonly code: string, public readonly status = 409) { super(code); }
+  constructor(public readonly code: string, public readonly status = 409, message?: string) {
+    super(message || code);
+  }
 }
 
 let readiness: { key: string; promise: Promise<void> } | undefined;
@@ -97,6 +99,17 @@ export async function changeProcessingRun(input: { companyId: string; userId: st
         );
       if (activeIfcRuns.length >= limits.maxConcurrent) {
         throw new ProcessingConflict('TENANT_IFC_CONCURRENCY_LIMIT_EXCEEDED');
+      }
+
+      if (limits.monthlyLimit !== null) {
+        const period = new Date().toISOString().slice(0, 7);
+        const counters = await tx.select({ ifcCount: usageRecords.ifcCount })
+          .from(usageRecords)
+          .where(and(eq(usageRecords.companyId, companyId), eq(usageRecords.period, period)));
+        const completedThisPeriod = counters.reduce((sum, row) => sum + (row.ifcCount ?? 0), 0);
+        if (completedThisPeriod + activeIfcRuns.length >= limits.monthlyLimit) {
+          throw new ProcessingConflict('IFC_QUOTA_EXCEEDED', 403, 'Aylık IFC işleme kotanız dolmuştur.');
+        }
       }
     }
 

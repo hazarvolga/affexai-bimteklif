@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import ExcelJS from "exceljs";
 import { parse as parseCsv } from "csv-parse/sync";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { companies, documentProcessingArtifacts, documentProcessingRuns, documents, normalizedQuantityRows } from "../../db/schema";
 import { createStorageAdapter } from "./storage";
@@ -14,6 +14,7 @@ import { buildIfcSmartCheckEvidenceFromContent } from "../../ifc/smartcheck-proc
 import { parseIfcText } from "../../ifc/parser/legacy-parser";
 import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidence";
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
+import { consumeIfcUsage } from "../../services/billing/quota";
 
 export type PreviewSheet = {
   name: string;
@@ -369,24 +370,52 @@ async function processIfcSmartCheckDocument(payload: {
     throw new Error("IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE");
   }
 
-  await updateRun(processingRunId, companyId, {
-    status: "succeeded",
-    currentStage: "awaiting_review",
-    progressPercent: 100,
-    progressMessage: "IFC property evidence insan incelemesi bekliyor",
-    completedAt: new Date(),
+  await db.transaction(async (tx) => {
+    const now = new Date();
+    const updatedRuns = await tx.update(documentProcessingRuns)
+      .set({
+        status: "succeeded",
+        currentStage: "awaiting_review",
+        progressPercent: 100,
+        progressMessage: "IFC property evidence insan incelemesi bekliyor",
+        completedAt: now,
+        updatedAt: now,
+        quotaConsumed: true,
+      })
+      .where(
+        and(
+          eq(documentProcessingRuns.id, processingRunId),
+          eq(documentProcessingRuns.companyId, companyId),
+          eq(documentProcessingRuns.quotaConsumed, false),
+        )
+      )
+      .returning({ id: documentProcessingRuns.id });
+
+    if (updatedRuns.length > 0) {
+      await consumeIfcUsage(tx, companyId, now);
+    } else {
+      await tx.update(documentProcessingRuns).set({
+        status: "succeeded",
+        currentStage: "awaiting_review",
+        progressPercent: 100,
+        progressMessage: "IFC property evidence insan incelemesi bekliyor",
+        completedAt: now,
+        updatedAt: now,
+      }).where(and(eq(documentProcessingRuns.id, processingRunId), eq(documentProcessingRuns.companyId, companyId)));
+    }
+
+    await tx.update(documents).set({
+      status: "awaiting_review",
+      importMappingJson: {
+        source: "ifc_property",
+        artifactType: "ifc_evidence",
+        schemaVersion: artifact.schemaVersion,
+        evidenceRowCount: artifact.summary.evidenceRowCount,
+        blockedElementCount: artifact.summary.blockedElementCount,
+      },
+      updatedAt: now,
+    }).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));
   });
-  await db.update(documents).set({
-    status: "awaiting_review",
-    importMappingJson: {
-      source: "ifc_property",
-      artifactType: "ifc_evidence",
-      schemaVersion: artifact.schemaVersion,
-      evidenceRowCount: artifact.summary.evidenceRowCount,
-      blockedElementCount: artifact.summary.blockedElementCount,
-    },
-    updatedAt: new Date(),
-  }).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));
 }
 
 export async function processSmartCheckDocument(payload: { companyId: string; documentId: string; processingRunId: string }) {
