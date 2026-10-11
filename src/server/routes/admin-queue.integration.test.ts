@@ -235,4 +235,190 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
       await db.execute(sql`select ${sql.identifier(workerSchema)}.remove_job(${'smartcheck:' + staleRun.id})`);
     }
   });
+
+  await t.test('6. GET /queue computes metrics across 150+ jobs, paginates and filters correctly (P1-2, P1-3)', async () => {
+    // Clean up existing test runs
+    await db.delete(schema.documentProcessingRuns);
+
+    // Create a 2nd company and documents of different kinds
+    const [company2] = await db.insert(schema.companies).values({ name: 'Queue Co 2' }).returning();
+    await db.insert(schema.memberships).values({ companyId: company2.id, userId: tenantUser.id, role: 'owner' });
+    const [ifcDoc] = await db.insert(schema.documents).values({
+      companyId: company.id,
+      uploadedByUserId: tenantUser.id,
+      originalFileName: 'building.ifc',
+      displayName: 'building.ifc',
+      mimeType: 'model/ifc',
+      fileSizeBytes: 1024,
+      storageKey: 'keys/b.ifc',
+      checksumSha256: '0000000000000000000000000000000000000000000000000000000000000001',
+    }).returning();
+
+    const [xlsxDoc] = await db.insert(schema.documents).values({
+      companyId: company2.id,
+      uploadedByUserId: tenantUser.id,
+      originalFileName: 'quantities.xlsx',
+      displayName: 'quantities.xlsx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      fileSizeBytes: 2048,
+      storageKey: 'keys/q.xlsx',
+      checksumSha256: '0000000000000000000000000000000000000000000000000000000000000002',
+    }).returning();
+
+    const now = Date.now();
+    const runRows: Array<typeof schema.documentProcessingRuns.$inferInsert> = [];
+
+    // 50 queued normal (5m old -> not stale, since queued stale is 60m)
+    for (let i = 0; i < 50; i++) {
+      runRows.push({
+        companyId: company.id,
+        documentId: ifcDoc.id,
+        idempotencyKey: `q:norm:${i}`,
+        pipelineVersion: 1,
+        status: 'queued',
+        currentStage: 'queued',
+        createdAt: new Date(now - 5 * 60_000),
+        updatedAt: new Date(now - 5 * 60_000),
+      });
+    }
+
+    // 1 queued stale (65m old -> stale, since 65m >= 60m)
+    runRows.push({
+      companyId: company.id,
+      documentId: ifcDoc.id,
+      idempotencyKey: 'q:stale:1',
+      pipelineVersion: 1,
+      status: 'queued',
+      currentStage: 'queued',
+      createdAt: new Date(now - 65 * 60_000),
+      updatedAt: new Date(now - 65 * 60_000),
+    });
+
+    // 30 running normal (3m old -> not stale, running stale is 10m)
+    for (let i = 0; i < 30; i++) {
+      runRows.push({
+        companyId: company.id,
+        documentId: ifcDoc.id,
+        idempotencyKey: `r:norm:${i}`,
+        pipelineVersion: 1,
+        status: 'running',
+        currentStage: 'parsing',
+        startedAt: new Date(now - 3 * 60_000),
+        createdAt: new Date(now - 3 * 60_000),
+        updatedAt: new Date(now - 3 * 60_000),
+      });
+    }
+
+    // 10 running stale (15m old -> stale, since 15m >= 10m)
+    for (let i = 0; i < 10; i++) {
+      runRows.push({
+        companyId: company2.id,
+        documentId: xlsxDoc.id,
+        idempotencyKey: `r:stale:${i}`,
+        pipelineVersion: 1,
+        status: 'running',
+        currentStage: 'parsing',
+        startedAt: new Date(now - 15 * 60_000),
+        createdAt: new Date(now - 15 * 60_000),
+        updatedAt: new Date(now - 15 * 60_000),
+      });
+    }
+
+    // 30 succeeded in last 24h
+    for (let i = 0; i < 30; i++) {
+      runRows.push({
+        companyId: company.id,
+        documentId: ifcDoc.id,
+        idempotencyKey: `s:recent:${i}`,
+        pipelineVersion: 1,
+        status: 'succeeded',
+        currentStage: 'completed',
+        completedAt: new Date(now - 1 * 3600_000),
+        createdAt: new Date(now - 2 * 3600_000),
+        updatedAt: new Date(now - 1 * 3600_000),
+      });
+    }
+
+    // 30 failed in last 24h
+    for (let i = 0; i < 30; i++) {
+      runRows.push({
+        companyId: company2.id,
+        documentId: xlsxDoc.id,
+        idempotencyKey: `f:recent:${i}`,
+        pipelineVersion: 1,
+        status: 'failed',
+        currentStage: 'failed',
+        completedAt: new Date(now - 2 * 3600_000),
+        createdAt: new Date(now - 3 * 3600_000),
+        updatedAt: new Date(now - 2 * 3600_000),
+      });
+    }
+
+    // Total: 50 + 1 + 30 + 10 + 30 + 30 = 151 jobs
+    assert.equal(runRows.length, 151);
+    await db.insert(schema.documentProcessingRuns).values(runRows);
+
+    // 1. Unfiltered request with default pagination (limit 50)
+    const resAll = await fetch(`${baseUrl}/api/admin/queue`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.equal(resAll.status, 200);
+    const dataAll = await resAll.json() as any;
+
+    // Verify summary metrics calculated from all 151 jobs in SQL
+    assert.equal(dataAll.summary.pending, 51);
+    assert.equal(dataAll.summary.running, 40);
+    assert.equal(dataAll.summary.stale, 11); // 1 queued (>60m) + 10 running (>10m)
+    assert.equal(dataAll.summary.failed24h, 30);
+    assert.equal(dataAll.summary.completed24h, 30);
+    assert.equal(dataAll.summary.succeeded24h, 30);
+
+    // Verify pagination
+    assert.equal(dataAll.pagination.total, 151);
+    assert.equal(dataAll.pagination.page, 1);
+    assert.equal(dataAll.pagination.limit, 50);
+    assert.equal(dataAll.pagination.totalPages, 4);
+    assert.equal(dataAll.runs.length, 50);
+
+    // Verify page 4
+    const resP4 = await fetch(`${baseUrl}/api/admin/queue?page=4&limit=50`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const dataP4 = await resP4.json() as any;
+    assert.equal(dataP4.pagination.page, 4);
+    assert.equal(dataP4.runs.length, 1);
+
+    // 2. Filter by status: stale
+    const resStale = await fetch(`${baseUrl}/api/admin/queue?status=stale`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const dataStale = await resStale.json() as any;
+    assert.equal(dataStale.pagination.total, 11);
+    assert.ok(dataStale.runs.every((r: any) => r.isStale === true));
+
+    // 3. Filter by companyId
+    const resCo2 = await fetch(`${baseUrl}/api/admin/queue?companyId=${company2.id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const dataCo2 = await resCo2.json() as any;
+    // company2 has 10 running + 30 failed = 40
+    assert.equal(dataCo2.pagination.total, 40);
+    assert.ok(dataCo2.runs.every((r: any) => r.companyId === company2.id));
+
+    // 4. Filter by kind: xlsx vs ifc
+    const resXlsx = await fetch(`${baseUrl}/api/admin/queue?kind=xlsx`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const dataXlsx = await resXlsx.json() as any;
+    assert.equal(dataXlsx.pagination.total, 40);
+    assert.ok(dataXlsx.runs.every((r: any) => r.kind === 'xlsx'));
+
+    const resIfc = await fetch(`${baseUrl}/api/admin/queue?kind=ifc`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const dataIfc = await resIfc.json() as any;
+    // ifc: 50 + 1 + 30 + 30 = 111
+    assert.equal(dataIfc.pagination.total, 111);
+    assert.ok(dataIfc.runs.every((r: any) => r.kind === 'ifc'));
+  });
 });

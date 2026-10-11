@@ -14,7 +14,7 @@ import {
   usageRecords,
   users,
 } from "../../db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import {
   createPlanInput,
@@ -32,7 +32,7 @@ import {
 import { readAdminTenants } from "../admin/stats";
 import { AuthService } from "../../services/auth/authService";
 import { consumeRateLimit } from "../auth/security";
-import { isProcessingRunStale } from "../../smartcheck/import/run-health";
+import { isProcessingRunStale, processingRunningStaleMinutes, processingQueuedStaleMinutes } from "../../smartcheck/import/run-health";
 import { changeProcessingRun, enqueueSmartCheckProcessing, ProcessingConflict, removePendingJob } from "../../smartcheck/import/service";
 import { IfcNotAvailableError, IfcLimitsUnavailableError } from "../../smartcheck/import/config";
 import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
@@ -375,8 +375,91 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // 9. IFC Queue Monitoring (/api/admin/queue)
-  router.get("/queue", async (_req, res) => {
+  router.get("/queue", async (req, res) => {
     try {
+      const { status, companyId, kind, page = "1", limit = "50" } = req.query as Record<string, string | undefined>;
+
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+      const offset = (pageNum - 1) * limitNum;
+
+      const runningMinutes = processingRunningStaleMinutes();
+      const queuedMinutes = processingQueuedStaleMinutes();
+
+      // Compute summary metrics across the entire table via SQL aggregation
+      const summaryExec = await db.execute<{
+        pending: string;
+        running: string;
+        stale: string;
+        failed24h: string;
+        completed24h: string;
+      }>(sql`
+        SELECT
+          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') AS pending,
+          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'running') AS running,
+          COUNT(*) FILTER (
+            WHERE (${documentProcessingRuns.status} = 'running' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.startedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${runningMinutes})
+               OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes})
+          ) AS stale,
+          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'failed' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS failed24h,
+          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'succeeded' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS completed24h
+        FROM ${documentProcessingRuns}
+      `);
+      const summaryResult = summaryExec.rows[0];
+
+      const summary = {
+        queued: Number(summaryResult?.pending ?? 0),
+        pending: Number(summaryResult?.pending ?? 0),
+        running: Number(summaryResult?.running ?? 0),
+        stale: Number(summaryResult?.stale ?? 0),
+        failed24h: Number(summaryResult?.failed24h ?? 0),
+        completed24h: Number(summaryResult?.completed24h ?? 0),
+        succeeded24h: Number(summaryResult?.completed24h ?? 0),
+      };
+
+      const whereConditions: SQL[] = [];
+
+      if (companyId) {
+        if (!z.string().uuid().safeParse(companyId).success) {
+          return res.status(400).json({ error: "Geçersiz firma ID formatı" });
+        }
+        whereConditions.push(eq(documentProcessingRuns.companyId, companyId));
+      }
+
+      if (status) {
+        if (status === 'stale') {
+          whereConditions.push(sql`
+            ((${documentProcessingRuns.status} = 'running' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.startedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${runningMinutes})
+             OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes}))
+          `);
+        } else if (['queued', 'running', 'succeeded', 'failed'].includes(status)) {
+          whereConditions.push(eq(documentProcessingRuns.status, status as any));
+        } else {
+          return res.status(400).json({ error: "Geçersiz durum filtresi" });
+        }
+      }
+
+      if (kind) {
+        if (kind === 'ifc') {
+          whereConditions.push(sql`(${documents.originalFileName} ILIKE '%.ifc' OR ${documents.mimeType} IN ('model/ifc', 'application/ifc'))`);
+        } else if (kind === 'xlsx') {
+          whereConditions.push(sql`(${documents.originalFileName} ILIKE '%.xlsx')`);
+        } else if (kind === 'csv') {
+          whereConditions.push(sql`(${documents.originalFileName} ILIKE '%.csv' OR ${documents.mimeType} = 'text/csv')`);
+        } else {
+          return res.status(400).json({ error: "Geçersiz tür filtresi" });
+        }
+      }
+
+      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+      const [{ total }] = await db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(documentProcessingRuns)
+        .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
+        .innerJoin(companies, eq(companies.id, documentProcessingRuns.companyId))
+        .where(whereClause);
+
       const runs = await db
         .select({
           runId: documentProcessingRuns.id,
@@ -398,48 +481,35 @@ export function registerAdminRoutes(app: Express) {
         .from(documentProcessingRuns)
         .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
         .innerJoin(companies, eq(companies.id, documentProcessingRuns.companyId))
+        .where(whereClause)
         .orderBy(desc(documentProcessingRuns.createdAt))
-        .limit(100);
+        .limit(limitNum)
+        .offset(offset);
 
       const now = new Date();
-      let pendingCount = 0;
-      let runningCount = 0;
-      let staleCount = 0;
-      let failed24hCount = 0;
-      let completed24hCount = 0;
-
       const enrichedRuns = runs.map((r) => {
-        const isStale = isProcessingRunStale(r, now);
-        if (r.status === "queued") pendingCount++;
-        if (r.status === "running") runningCount++;
-        if (isStale) staleCount++;
-        if (
-          r.status === "failed" &&
-          r.completedAt &&
-          now.getTime() - r.completedAt.getTime() <= 86400000
-        ) {
-          failed24hCount++;
-        }
-        if (
-          r.status === "succeeded" &&
-          r.completedAt &&
-          now.getTime() - r.completedAt.getTime() <= 86400000
-        ) {
-          completed24hCount++;
-        }
-
-        return { ...r, isStale };
+        const ext = r.fileName.toLowerCase().split('.').pop() || '';
+        const itemKind = ext === 'ifc' ? 'ifc' : ext === 'xlsx' ? 'xlsx' : ext === 'csv' ? 'csv' : 'document';
+        const isStale = isProcessingRunStale(r, now, { runningMinutes, queuedMinutes });
+        return {
+          ...r,
+          id: r.runId,
+          kind: itemKind,
+          finishedAt: r.completedAt,
+          isStale,
+        };
       });
 
       return res.json({
-        summary: {
-          pending: pendingCount,
-          running: runningCount,
-          stale: staleCount,
-          failed24h: failed24hCount,
-          completed24h: completed24hCount,
+        summary,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum) || 1,
         },
         runs: enrichedRuns,
+        jobs: enrichedRuns,
       });
     } catch (error) {
       console.error("Queue monitoring error:", error);
