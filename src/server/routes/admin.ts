@@ -39,6 +39,7 @@ import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
 import { canApproveCrawlerPrice } from "../crawler/provenance";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
 import { priceSchedulerService } from "../crawler/priceSchedulerService";
+import { isAutomaticPricingSource } from "../crawler/source-eligibility";
 
 export function registerAdminRoutes(app: Express) {
   const router = Router();
@@ -948,6 +949,13 @@ export function registerAdminRoutes(app: Express) {
 
       if (!source) {
         return res.status(404).json({ error: "Veri kaynağı bulunamadı." });
+      }
+
+      if (!isAutomaticPricingSource(source.status)) {
+        return res.status(409).json({
+          code: "PRICING_SOURCE_REVIEW_REQUIRED",
+          error: "Kaynak doğrulanıp aktif edilmeden tarama başlatılamaz.",
+        });
       }
 
       // 1. Mark as syncing

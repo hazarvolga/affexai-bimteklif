@@ -259,6 +259,9 @@ export function PricingSources() {
   };
 
   const pendingStagingCount = stagingItems.filter((i) => i.status === 'pending').length;
+  const activeSources = sources.filter((source) => source.status === 'active');
+  const sealedSources = sources.filter((source) => Boolean(source.dataHash));
+  const totalSourceItems = sources.reduce((sum, source) => sum + source.itemCount, 0);
 
   return (
     <PageContainer>
@@ -320,21 +323,23 @@ export function PricingSources() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="text-sm font-bold text-white">Otomatik Gece Taraması (Nightly Batch Sync)</h4>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 size={10} className="mr-1" /> Aktif (Her Gece 03:00 TSİ)
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${activeSources.length > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
+                <CheckCircle2 size={10} className="mr-1" /> {activeSources.length} Aktif Kaynak · Her Gece 03:00 TSİ
               </span>
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
                 <Cpu size={10} className="mr-1" /> Sıralı Nezaket Kuyruğu (Zero-Spike)
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-              Sunucuya ve hedef portallara yük bindirmemek için tüm kaynaklar her gece 03:00'te 2.5 sn aralıklarla sırayla taranır ve onay havuzuna aktarılır.
+              Yalnız doğrulanıp aktif edilen kaynaklar her gece 03:00'te 2.5 sn aralıklarla sırayla taranır ve onay havuzuna aktarılır.
               {schedulerStatus?.lastRunAt ? (
                 <span className="text-zinc-300 ml-1">
                   Son çalışma: <strong className="text-white">{new Date(schedulerStatus.lastRunAt).toLocaleDateString('tr-TR')} {new Date(schedulerStatus.lastRunAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</strong> ({schedulerStatus.lastSummary?.successfulSources || 0}/{schedulerStatus.lastSummary?.totalSources || 0} kaynak, {schedulerStatus.lastSummary?.totalItemsStaged || 0} yeni fiyat).
                 </span>
-              ) : (
+              ) : activeSources.length > 0 ? (
                 <span className="text-zinc-500 ml-1"> (İlk döngü bu gece 03:00'te başlayacak).</span>
+              ) : (
+                <span className="text-amber-400 ml-1"> Aktif kaynak olmadığı için tarama beklemede.</span>
               )}
             </p>
           </div>
@@ -342,7 +347,7 @@ export function PricingSources() {
         <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
           <Button
             onClick={handleTriggerBatch}
-            disabled={runningBatch}
+            disabled={runningBatch || activeSources.length === 0}
             variant="outline"
             className="border-blue-800/50 bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 text-xs font-semibold"
           >
@@ -351,7 +356,7 @@ export function PricingSources() {
             ) : (
               <Play size={13} className="mr-1.5 text-blue-400" />
             )}
-            {runningBatch ? 'Sırayla Taranıyor...' : 'Toplu Taramayı Şimdi Çalıştır'}
+            {runningBatch ? 'Sırayla Taranıyor...' : activeSources.length === 0 ? 'Aktif Kaynak Yok' : 'Toplu Taramayı Şimdi Çalıştır'}
           </Button>
         </div>
       </div>
@@ -360,7 +365,7 @@ export function PricingSources() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-6">
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Aktif Veri Kaynakları</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Tanımlı Veri Kaynakları</span>
             <Building2 size={16} className="text-indigo-400" />
           </div>
           <div className="text-2xl font-black text-white">{sources.length} Kaynak</div>
@@ -369,13 +374,15 @@ export function PricingSources() {
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Kayıtlı Poz & Rayiç</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Kaynak Veri Satırı</span>
             <Layers size={16} className="text-emerald-400" />
           </div>
           <div className="text-2xl font-black text-white">
-            {sources.reduce((sum, s) => sum + s.itemCount, 0).toLocaleString('tr-TR')}
+            {totalSourceItems.toLocaleString('tr-TR')}
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1">2026/1 ÇŞB & Serbest Piyasa</p>
+          <p className={`text-[11px] mt-1 ${totalSourceItems > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            {totalSourceItems > 0 ? 'Kaynak kayıtlarındaki toplam kalem' : 'Doğrulanmış fiyat verisi yok'}
+          </p>
         </div>
 
         <div className="rounded-xl border border-amber-500/20 bg-amber-950/10 p-5">
@@ -392,10 +399,10 @@ export function PricingSources() {
             <span className="text-xs font-semibold uppercase tracking-wider">Veri Bütünlüğü (SHA-256)</span>
             <ShieldCheck size={16} className="text-sky-400" />
           </div>
-          <div className="text-sm font-mono font-bold text-sky-400 truncate mt-1">
-            Mühürlü & Aktif
+          <div className={`text-sm font-mono font-bold truncate mt-1 ${sealedSources.length > 0 ? 'text-sky-400' : 'text-amber-400'}`}>
+            {sealedSources.length}/{sources.length} Kaynak Mühürlü
           </div>
-          <p className="text-[11px] text-zinc-500 mt-1">Teklif denetim izine doğrudan bağlı</p>
+          <p className="text-[11px] text-zinc-500 mt-1">SHA-256 kanıtı olan kaynaklar</p>
         </div>
       </div>
 
@@ -467,8 +474,10 @@ export function PricingSources() {
                         {s.category === 'official_gazette' ? 'Resmi Gazete / ÇŞB' : s.category === 'market_commodity' ? 'Serbest Piyasa' : s.category === 'tuik_index' ? 'TÜİK Endeks' : 'e-PYS Standart'}
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span className="text-[11px] font-medium text-emerald-400 capitalize">{s.status}</span>
+                        <span className={`w-2 h-2 rounded-full ${s.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                        <span className={`text-[11px] font-medium ${s.status === 'active' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {s.status === 'active' ? 'Aktif' : s.status === 'stale' ? 'Doğrulanmadı' : s.status === 'syncing' ? 'Taranıyor' : 'Hata'}
+                        </span>
                       </div>
                     </div>
 
@@ -482,12 +491,12 @@ export function PricingSources() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Kapsam / Poz:</span>
-                        <span className="font-semibold text-white">{s.itemCount.toLocaleString('tr-TR')} Kalem</span>
+                        <span className="font-semibold text-white">{s.itemCount > 0 ? `${s.itemCount.toLocaleString('tr-TR')} Kalem` : 'Henüz veri yok'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Yürürlük:</span>
                         <span className="text-zinc-300">
-                          {s.validityStart ? new Date(s.validityStart).toLocaleDateString('tr-TR') : '-'} – {s.validityEnd ? new Date(s.validityEnd).toLocaleDateString('tr-TR') : 'Süresiz'}
+                          {!s.validityStart && !s.validityEnd ? 'Geçerlilik kanıtı yok' : `${s.validityStart ? new Date(s.validityStart).toLocaleDateString('tr-TR') : '-'} – ${s.validityEnd ? new Date(s.validityEnd).toLocaleDateString('tr-TR') : 'Bitiş tarihi yok'}`}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -522,11 +531,12 @@ export function PricingSources() {
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleSync(s.id, s.name)}
-                        disabled={syncingId === s.id}
+                        disabled={syncingId === s.id || s.status !== 'active'}
+                        title={s.status === 'active' ? 'Kaynağı şimdi tara' : 'Kaynak doğrulanıp aktif edilmeden tarama başlatılamaz'}
                         className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 text-xs py-1 h-7"
                       >
                         <RefreshCw size={12} className={`mr-1.5 ${syncingId === s.id ? 'animate-spin' : ''}`} />
-                        {syncingId === s.id ? 'Taranıyor...' : 'Şimdi Tara'}
+                        {syncingId === s.id ? 'Taranıyor...' : s.status === 'active' ? 'Şimdi Tara' : 'Doğrulama Gerekli'}
                       </Button>
                       <button
                         type="button"

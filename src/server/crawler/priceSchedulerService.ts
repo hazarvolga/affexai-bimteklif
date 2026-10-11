@@ -4,6 +4,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { acquireCrawlerScheduleLock } from "./scheduler-lock";
 import { priceCrawlerService } from "./priceCrawlerService";
 import { CRAWLER_TIMEZONE, crawlerDayStart, crawlerScheduleDue, nextCrawlerRun } from "./scheduler-time";
+import { isAutomaticPricingSource } from './source-eligibility';
 
 export interface BatchRunSummary {
   startedAt: string;
@@ -146,7 +147,9 @@ export class PriceSchedulerService {
       const sources = await db
         .select()
         .from(pricingDataSources)
-        .where(sql`${pricingDataSources.status} != 'disabled'`);
+        .where(eq(pricingDataSources.status, 'active'));
+
+      if (!sources.every(source => isAutomaticPricingSource(source.status))) throw new Error('CRAWLER_SOURCE_STATUS_INVALID');
 
       summary.totalSources = sources.length;
 
