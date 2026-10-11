@@ -10,6 +10,7 @@ function handlers() {
   const app: any = {
     get(path: string, ...route: any[]) { if (path === '/api/company') companyHandlers = route; },
     post() {},
+    patch() {},
   };
   registerCompanyRoutes(app);
   assert.equal(companyHandlers[0], authenticate);

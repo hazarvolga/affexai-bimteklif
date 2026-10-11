@@ -23,7 +23,11 @@ import {
   Settings as SettingsIcon,
   Zap,
   TrendingUp,
-  Briefcase
+  Briefcase,
+  Ruler,
+  Scale,
+  BookOpen,
+  Loader2
 } from 'lucide-react';
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -33,6 +37,89 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
+
+interface CompanyProfileState {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  taxOffice: string;
+  taxNumber: string;
+  defaultCurrency: string;
+  defaultVatRate: number;
+  countryCode: string;
+  measurementSystem: string;
+  activeStandard: string;
+  classificationSystem: string;
+}
+
+const JURISDICTION_PRESETS: Record<string, {
+  label: string;
+  flag: string;
+  currency: string;
+  measurement: string;
+  standard: string;
+  classification: string;
+  standardLabel: string;
+  classificationLabel: string;
+  description: string;
+}> = {
+  TR: {
+    label: "Türkiye (TR)",
+    flag: "🇹🇷",
+    currency: "TRY",
+    measurement: "metric",
+    standard: "TBDY_TS500",
+    classification: "CSB_TR",
+    standardLabel: "TBDY 2018 / TS 500",
+    classificationLabel: "ÇŞB Ek-6 Poz Sistemi",
+    description: "T.C. ÇŞB poz kütüphanesi, TBDY 2018 / TS 500 betonarme & deprem standardı, Metrik sistem, TRY."
+  },
+  DE: {
+    label: "Almanya / DACH (DE)",
+    flag: "🇩🇪",
+    currency: "EUR",
+    measurement: "metric",
+    standard: "EUROCODE_2",
+    classification: "DIN_276",
+    standardLabel: "Eurocode 2 (EN 1992)",
+    classificationLabel: "DIN 276 Maliyet Grupları",
+    description: "DIN 276 bina maliyet kırılımı (Kostengruppen), Eurocode 2 (EN 1992) betonarme tasarımı, Metrik, EUR."
+  },
+  GB: {
+    label: "Birleşik Krallık (GB)",
+    flag: "🇬🇧",
+    currency: "EUR",
+    measurement: "metric",
+    standard: "EUROCODE_2",
+    classification: "NRM2_UK",
+    standardLabel: "Eurocode / BS EN 1992",
+    classificationLabel: "RICS NRM2 (New Rules of Measurement)",
+    description: "RICS NRM2 detaylı metraj ve keşif kuralları, BS EN / Eurocode standartları, Metrik sistem."
+  },
+  US: {
+    label: "Amerika Birleşik Devletleri (US)",
+    flag: "🇺🇸",
+    currency: "USD",
+    measurement: "imperial",
+    standard: "ACI_318",
+    classification: "CSI_MASTERFORMAT",
+    standardLabel: "ACI 318 (Building Code)",
+    classificationLabel: "CSI MasterFormat (50 Division)",
+    description: "CSI MasterFormat iş kırılımı, ACI 318 yapısal betonarme tasarımı, İmperyal (cu. yd., sq. ft., lbs), USD."
+  },
+  AE: {
+    label: "Körfez / BAE (AE)",
+    flag: "🇦🇪",
+    currency: "USD",
+    measurement: "metric",
+    standard: "ACI_318",
+    classification: "CSI_MASTERFORMAT",
+    standardLabel: "ACI 318 / BS EN Normları",
+    classificationLabel: "CSI / FIDIC Formatı",
+    description: "Körfez / GCC FIDIC ve CSI sözleşme normları, ACI 318 / BS EN standartları, Metrik sistem, USD."
+  }
+};
 
 export function Settings() {
   const { company, role } = useAuth();
@@ -50,6 +137,22 @@ export function Settings() {
   const [calibration, setCalibration] = useState<any>(null);
   const [calibrationReport, setCalibrationReport] = useState<any>(null);
 
+  const [profile, setProfile] = useState<CompanyProfileState>({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    taxOffice: "",
+    taxNumber: "",
+    defaultCurrency: "TRY",
+    defaultVatRate: 20,
+    countryCode: "TR",
+    measurementSystem: "metric",
+    activeStandard: "TBDY_TS500",
+    classificationSystem: "CSB_TR",
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, [role]);
@@ -62,7 +165,7 @@ export function Settings() {
     };
     
     try {
-      const [invRes, indRes, setRes, subRes, usageRes, riskRes, calibrationRes, reportRes] = await Promise.all([
+      const [invRes, indRes, setRes, subRes, usageRes, riskRes, calibrationRes, reportRes, profileRes] = await Promise.all([
         canInvite ? fetch("/api/invitations", { headers }) : Promise.resolve(null),
         fetch("/api/ai/industries", { headers }),
         fetch("/api/company/industry-settings", { headers }),
@@ -70,7 +173,8 @@ export function Settings() {
         fetch("/api/usage/report", { headers }),
         fetch("/api/company/risk-settings", { headers }),
         fetch("/api/company/risk-calibration", { headers }),
-        fetch("/api/company/risk-calibration/report", { headers })
+        fetch("/api/company/risk-calibration/report", { headers }),
+        fetch("/api/company/profile", { headers }),
       ]);
 
       if (invRes?.ok) setInvites(await invRes.json());
@@ -82,8 +186,82 @@ export function Settings() {
       if (riskRes.ok) setRiskSettings(await riskRes.json());
       if (calibrationRes.ok) setCalibration(await calibrationRes.json());
       if (reportRes.ok) setCalibrationReport(await reportRes.json());
+      if (profileRes?.ok) {
+        const prof = await profileRes.json();
+        setProfile({
+          name: prof.name || "",
+          email: prof.email || "",
+          phone: prof.phone || "",
+          address: prof.address || "",
+          taxOffice: prof.taxOffice || "",
+          taxNumber: prof.taxNumber || "",
+          defaultCurrency: prof.defaultCurrency || "TRY",
+          defaultVatRate: prof.defaultVatRate ?? 20,
+          countryCode: prof.countryCode || "TR",
+          measurementSystem: prof.measurementSystem || "metric",
+          activeStandard: prof.activeStandard || "TBDY_TS500",
+          classificationSystem: prof.classificationSystem || "CSB_TR",
+        });
+      }
     } catch (e) {
       toast.error("Veriler yüklenemedi.");
+    }
+  };
+
+  const handleCountryChange = (newCountry: string) => {
+    const preset = JURISDICTION_PRESETS[newCountry];
+    if (preset) {
+      setProfile(prev => ({
+        ...prev,
+        countryCode: newCountry,
+        defaultCurrency: preset.currency,
+        measurementSystem: preset.measurement,
+        activeStandard: preset.standard,
+        classificationSystem: preset.classification,
+      }));
+      toast.info(`${preset.label} standartları (${preset.standardLabel} & ${preset.classificationLabel}) varsayılan olarak seçildi.`);
+    } else {
+      setProfile(prev => ({ ...prev, countryCode: newCountry }));
+    }
+  };
+
+  const saveCompanyProfile = async () => {
+    setSavingProfile(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('/api/company/profile', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profile),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProfile({
+          name: updated.name || "",
+          email: updated.email || "",
+          phone: updated.phone || "",
+          address: updated.address || "",
+          taxOffice: updated.taxOffice || "",
+          taxNumber: updated.taxNumber || "",
+          defaultCurrency: updated.defaultCurrency || "TRY",
+          defaultVatRate: updated.defaultVatRate ?? 20,
+          countryCode: updated.countryCode || "TR",
+          measurementSystem: updated.measurementSystem || "metric",
+          activeStandard: updated.activeStandard || "TBDY_TS500",
+          classificationSystem: updated.classificationSystem || "CSB_TR",
+        });
+        toast.success("Şirket profili ve uluslararası standartlar kaydedildi.");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Şirket profili kaydedilemedi.");
+      }
+    } catch {
+      toast.error("Bağlantı hatası: profil kaydedilemedi.");
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -179,8 +357,13 @@ export function Settings() {
         description="Şirket profili, ekip yönetimi ve uygulama tercihlerini yapılandırın."
         icon={SettingsIcon}
         actions={
-          <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20">
-            <Save size={16} /> Değişiklikleri Kaydet
+          <Button 
+            onClick={saveCompanyProfile}
+            disabled={savingProfile || !canInvite}
+            className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20"
+          >
+            {savingProfile ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            Değişiklikleri Kaydet
           </Button>
         }
       />
@@ -202,47 +385,214 @@ export function Settings() {
         </TabsList>
 
         <TabsContent value="company" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
-          <SectionWrapper title="Genel Şirket Bilgileri" description="Resmi yazışmalarda ve teklif başlıklarında görünecek bilgiler.">
+          <SectionWrapper title="Genel Şirket Bilgileri" description="Resmi yazışmalarda ve teklif başlıklarında görünecek doğrulanmış şirket bilgileri.">
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="pt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resmi Şirket Ünvanı</Label>
-                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue={company?.name || ""} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Marka Adı (Görünen)</Label>
-                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue={company?.name || ""} />
+                    <Input 
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.name}
+                      onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Örn: Atlas Yapı İnşaat A.Ş."
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">İletişim E-posta</Label>
-                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="info@atlasyapi.com.tr" />
+                    <Input 
+                      type="email"
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.email}
+                      onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="info@sirketiniz.com"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Telefon</Label>
-                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="+90 212 555 0123" />
+                    <Input 
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.phone}
+                      onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="+90 212 000 0000"
+                    />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Merkez Ofis Adresi</Label>
-                  <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="Levent Mah. Plaza Sok. No:12 Kat:4 Beşiktaş, İstanbul" />
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Merkez Ofis Adresi</Label>
+                    <Input 
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.address}
+                      onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="Şirket tebligat adresi"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </SectionWrapper>
 
-          <SectionWrapper title="Mali Bilgiler" description="Fatura ve yasal dokümanlar için gerekli vergi detayları.">
+          <SectionWrapper title="Mali ve Vergi Bilgileri" description="Teklif ve fatura oluştururken esas alınacak yasal mali parametreler.">
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Vergi Dairesi</Label>
-                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="Zincirlikuyu V.D." />
+                    <Input 
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.taxOffice}
+                      onChange={(e) => setProfile(prev => ({ ...prev, taxOffice: e.target.value }))}
+                      placeholder="Vergi Dairesi Adı"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Vergi Numarası</Label>
-                    <Input className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" defaultValue="1234567890" />
+                    <Input 
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.taxNumber}
+                      onChange={(e) => setProfile(prev => ({ ...prev, taxNumber: e.target.value }))}
+                      placeholder="10 Haneli VKN / TC"
+                    />
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Varsayılan Para Birimi</Label>
+                    <select
+                      aria-label="Varsayılan Para Birimi"
+                      value={profile.defaultCurrency}
+                      onChange={(e) => setProfile(prev => ({ ...prev, defaultCurrency: e.target.value }))}
+                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold"
+                    >
+                      <option value="TRY">Türk Lirası (₺ - TRY)</option>
+                      <option value="USD">Amerikan Doları ($ - USD)</option>
+                      <option value="EUR">Euro (€ - EUR)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Varsayılan KDV Oranı (%)</Label>
+                    <Input 
+                      type="number"
+                      min="0"
+                      max="100"
+                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      value={profile.defaultVatRate}
+                      onChange={(e) => setProfile(prev => ({ ...prev, defaultVatRate: Number(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </SectionWrapper>
+
+          <SectionWrapper 
+            title="Bölge & Uluslararası Standartlar" 
+            description="Teklif motoru, metraj ve SmartCheck kural setinin hangi hukuki bölge ve teknik standartlara göre çalışacağını belirleyin."
+          >
+            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <CardContent className="pt-6 space-y-6">
+                <div className="flex items-center gap-2 pb-2 border-b border-zinc-800/80">
+                  <Badge variant="outline" className="border-orange-500/30 bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest">
+                    <Globe size={12} className="mr-1.5" /> ÇOKLU BÖLGE VE STANDART YÖNETİMİ
+                  </Badge>
+                  <span className="text-xs text-zinc-400">
+                    Bölge seçimi poz kütüphanesi, tasarım formülleri ve birim sistemini senkronize eder.
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* 1. Jurisdiction / Country */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                      <Globe size={12} className="text-orange-400" /> Ülke / Hukuki Bölge
+                    </Label>
+                    <select
+                      aria-label="Ülke / Hukuki Bölge"
+                      value={profile.countryCode}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                    >
+                      <option value="TR">🇹🇷 Türkiye (TR)</option>
+                      <option value="DE">🇩🇪 Almanya / DACH (DE)</option>
+                      <option value="GB">🇬🇧 Birleşik Krallık (GB)</option>
+                      <option value="US">🇺🇸 Amerika Birleşik Devletleri (US)</option>
+                      <option value="AE">🇦🇪 Körfez / BAE (AE)</option>
+                    </select>
+                  </div>
+
+                  {/* 2. Measurement System */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                      <Ruler size={12} className="text-blue-400" /> Birim Sistemi
+                    </Label>
+                    <select
+                      aria-label="Birim Sistemi"
+                      value={profile.measurementSystem}
+                      onChange={(e) => setProfile(prev => ({ ...prev, measurementSystem: e.target.value }))}
+                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                    >
+                      <option value="metric">Metrik (m³, m², m, kg, ton, mm)</option>
+                      <option value="imperial">İmperyal (cu. yd., sq. ft., lf, lbs, in)</option>
+                    </select>
+                  </div>
+
+                  {/* 3. Structural Standard */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                      <Scale size={12} className="text-emerald-400" /> Hesap & Tasarım Standardı
+                    </Label>
+                    <select
+                      aria-label="Tasarım Standardı"
+                      value={profile.activeStandard}
+                      onChange={(e) => setProfile(prev => ({ ...prev, activeStandard: e.target.value }))}
+                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                    >
+                      <option value="TBDY_TS500">TBDY 2018 / TS 500 (Türkiye Deprem & Betonarme)</option>
+                      <option value="EUROCODE_2">Eurocode 2 / EN 1992 (Avrupa Betonarme Standardı)</option>
+                      <option value="ACI_318">ACI 318 (Amerikan Beton Enstitüsü Standardı)</option>
+                    </select>
+                  </div>
+
+                  {/* 4. Classification System */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                      <BookOpen size={12} className="text-amber-400" /> Poz & Sınıflandırma
+                    </Label>
+                    <select
+                      aria-label="Poz & Sınıflandırma Sistemi"
+                      value={profile.classificationSystem}
+                      onChange={(e) => setProfile(prev => ({ ...prev, classificationSystem: e.target.value }))}
+                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                    >
+                      <option value="CSB_TR">ÇŞB Ek-6 Poz Sistemi (T.C. Çevre ve Şehircilik)</option>
+                      <option value="DIN_276">DIN 276 (Alman Yapı Maliyet Grupları - KG 300/400)</option>
+                      <option value="CSI_MASTERFORMAT">CSI MasterFormat (Kuzey Amerika 50 Division)</option>
+                      <option value="NRM2_UK">RICS NRM2 (Birleşik Krallık Keşif & Metraj)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Preset detail callout */}
+                {JURISDICTION_PRESETS[profile.countryCode] && (
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{JURISDICTION_PRESETS[profile.countryCode].flag}</span>
+                      <span className="text-xs font-bold text-zinc-200">
+                        {JURISDICTION_PRESETS[profile.countryCode].label} — Aktif Kural ve Standart Profili
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400 pl-6">
+                      {JURISDICTION_PRESETS[profile.countryCode].description}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end pt-2">
+                  <Button 
+                    onClick={saveCompanyProfile} 
+                    disabled={savingProfile || !canInvite}
+                    className="bg-orange-600 hover:bg-orange-700 text-white font-black text-[11px] uppercase tracking-widest px-6 h-12 gap-2 shadow-lg shadow-orange-950/40"
+                  >
+                    {savingProfile ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    Şirket ve Bölge Standartlarını Kaydet
+                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -141,6 +141,130 @@ export function registerCompanyRoutes(app: Express) {
     }
   });
 
+  app.get("/api/company/profile", authenticate, async (req, res) => {
+    try {
+      if (!req.user.companyId) return res.status(403).json({ error: "Forbidden: Company membership required" });
+      const company = await db.query.companies.findFirst({
+        where: eq(companies.id, req.user.companyId),
+      });
+      if (!company) return res.status(404).json({ error: "Company not found" });
+
+      res.json({
+        id: company.id,
+        name: company.name,
+        email: company.email || "",
+        phone: company.phone || "",
+        address: company.address || "",
+        taxOffice: company.taxOffice || "",
+        taxNumber: company.taxNumber || "",
+        logoUrl: company.logoUrl || null,
+        defaultCurrency: company.defaultCurrency,
+        defaultVatRate: company.defaultVatRate,
+        countryCode: company.countryCode,
+        measurementSystem: company.measurementSystem,
+        activeStandard: company.activeStandard,
+        classificationSystem: company.classificationSystem,
+        isSmartcheckEnabled: company.isSmartcheckEnabled,
+        createdAt: company.createdAt,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch company profile" });
+    }
+  });
+
+  app.patch("/api/company/profile", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+    try {
+      if (!req.user.companyId) return res.status(403).json({ error: "Forbidden: Company membership required" });
+
+      const {
+        name,
+        email,
+        phone,
+        address,
+        taxOffice,
+        taxNumber,
+        defaultCurrency,
+        defaultVatRate,
+        countryCode,
+        measurementSystem,
+        activeStandard,
+        classificationSystem,
+      } = req.body;
+
+      const updateData: Record<string, any> = {};
+
+      if (typeof name === "string" && name.trim().length > 0) {
+        updateData.name = name.trim();
+      }
+      if (email !== undefined) {
+        updateData.email = typeof email === "string" ? email.trim() : null;
+      }
+      if (phone !== undefined) {
+        updateData.phone = typeof phone === "string" ? phone.trim() : null;
+      }
+      if (address !== undefined) {
+        updateData.address = typeof address === "string" ? address.trim() : null;
+      }
+      if (taxOffice !== undefined) {
+        updateData.taxOffice = typeof taxOffice === "string" ? taxOffice.trim() : null;
+      }
+      if (taxNumber !== undefined) {
+        updateData.taxNumber = typeof taxNumber === "string" ? taxNumber.trim() : null;
+      }
+      if (defaultCurrency && ["TRY", "USD", "EUR"].includes(defaultCurrency)) {
+        updateData.defaultCurrency = defaultCurrency;
+      }
+      if (defaultVatRate !== undefined) {
+        const vat = Number(defaultVatRate);
+        if (Number.isFinite(vat) && vat >= 0 && vat <= 100) {
+          updateData.defaultVatRate = Math.round(vat);
+        }
+      }
+      if (countryCode && ["TR", "DE", "GB", "US", "AE"].includes(countryCode)) {
+        updateData.countryCode = countryCode;
+      }
+      if (measurementSystem && ["metric", "imperial"].includes(measurementSystem)) {
+        updateData.measurementSystem = measurementSystem;
+      }
+      if (activeStandard && ["TBDY_TS500", "EUROCODE_2", "ACI_318"].includes(activeStandard)) {
+        updateData.activeStandard = activeStandard;
+      }
+      if (classificationSystem && ["CSB_TR", "DIN_276", "CSI_MASTERFORMAT", "NRM2_UK"].includes(classificationSystem)) {
+        updateData.classificationSystem = classificationSystem;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: "No valid fields provided for update" });
+      }
+
+      const [updated] = await db.update(companies)
+        .set(updateData)
+        .where(eq(companies.id, req.user.companyId))
+        .returning();
+
+      res.json({
+        id: updated.id,
+        name: updated.name,
+        email: updated.email || "",
+        phone: updated.phone || "",
+        address: updated.address || "",
+        taxOffice: updated.taxOffice || "",
+        taxNumber: updated.taxNumber || "",
+        logoUrl: updated.logoUrl || null,
+        defaultCurrency: updated.defaultCurrency,
+        defaultVatRate: updated.defaultVatRate,
+        countryCode: updated.countryCode,
+        measurementSystem: updated.measurementSystem,
+        activeStandard: updated.activeStandard,
+        classificationSystem: updated.classificationSystem,
+        isSmartcheckEnabled: updated.isSmartcheckEnabled,
+        createdAt: updated.createdAt,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update company profile" });
+    }
+  });
+
   app.get("/api/invitations", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     try {
       const invites = await db.select().from(invitations).where(eq(invitations.companyId, req.user.companyId)).orderBy(desc(invitations.createdAt));

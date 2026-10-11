@@ -1261,9 +1261,36 @@ Autonomous remediation and source restore checkpoints are tracked in
   - Correctly defaults and normalizes parameters: `targetCompanyId = parsed.data.targetCompanyId || parsed.data.companyId`, `allowWrite = parsed.data.allowWrite ?? !parsed.data.readOnly ?? false`.
 - **Frontend Fix (`src/pages/admin/TenantDetail.tsx`):**
   - Updated `handleImpersonate` payload to send both `targetCompanyId` and `companyId`, along with `readOnly` and `allowWrite`.
-- **Verification:**
-  - Automated integration tests passing (`admin-features.test.ts`).
-  - Puppeteer end-to-end test verified: successfully transitioned from `/admin/tenants/717ee553-4af2-47ce-adf7-af3db75b8d70` into `/app` with the impersonation banner active.
+## 2026-10-11 Update: Multi-Region International Architecture Foundation & Live DB Settings
+
+- **Git Restore Point Created:**
+  - Tag: `restore-point-multi-region-baseline` on branch `feat/smartcheck-evaluation-baseline`.
+- **Database Schema & Migration (`src/db/schema.ts` & `teklifpro_local`):**
+  - Added multi-region internationalization columns to `companies` table:
+    - `country_code text DEFAULT 'TR' NOT NULL` with check in `('TR', 'DE', 'GB', 'US', 'AE')`.
+    - `measurement_system text DEFAULT 'metric' NOT NULL` with check in `('metric', 'imperial')`.
+    - `active_standard text DEFAULT 'TBDY_TS500' NOT NULL` with check in `('TBDY_TS500', 'EUROCODE_2', 'ACI_318')`.
+    - `classification_system text DEFAULT 'CSB_TR' NOT NULL` with check in `('CSB_TR', 'DIN_276', 'CSI_MASTERFORMAT', 'NRM2_UK')`.
+  - Added `country_code` and `currency` columns to `pricing_data_sources` table.
+  - Successfully executed zero-downtime `ALTER TABLE` and constraints on local PostgreSQL database (`teklifpro_local`).
+- **Backend API Endpoints (`src/server/routes/company.ts`):**
+  - Implemented `GET /api/company/profile`: Returns full tenant company profile including legal details and multi-region standards.
+  - Implemented `PATCH /api/company/profile`: Authenticated and role-gated (`owner`, `admin`) endpoint allowing updating of company profile and jurisdiction/standards presets.
+  - Maintained minimal projection on `GET /api/company` for tenant isolation and privacy compliance.
+- **Frontend Settings UI (`src/pages/Settings.tsx`):**
+  - Completely replaced hardcoded mock inputs (`info@atlasyapi.com.tr`, `Zincirlikuyu V.D.`, `+90 212 555 0123`) with live PostgreSQL DB data.
+  - Added dedicated **"Bölge & Uluslararası Standartlar" (Jurisdiction & Regional Standards)** section with preset mappings:
+    - 🇹🇷 Türkiye: ÇŞB Ek-6 Pozları, TBDY 2018 / TS 500 Betonarme, Metrik, TRY.
+    - 🇩🇪 Almanya / DACH: DIN 276 Maliyet Yapısı, Eurocode 2 (EN 1992) Betonarme, Metrik, EUR.
+    - 🇬🇧 Birleşik Krallık: RICS NRM2 Keşif & Metraj, Eurocode / BS EN 1992, Metrik.
+    - 🇺🇸 ABD: CSI MasterFormat (50 Division), ACI 318 Yapısal Tasarım, İmperyal (cu. yd., sq. ft., lbs), USD.
+    - 🇦🇪 Körfez / BAE: CSI / FIDIC Formatı, ACI 318 / BS EN Normları, Metrik, USD.
+  - Wired both section and header "Değişiklikleri Kaydet" buttons to real DB PATCH with loading feedback and toasts.
+- **Verification & Testing:**
+  - Automated database round-trip test passed 100% (`scratch/test-multi-region.ts`).
+  - Unit/route test suite passed 100% (`src/server/routes/company.multiregion.test.ts`, `company.privacy.test.ts`).
+  - Headless Puppeteer browser test passed 100% verifying real data rendering and zero mock strings (`scratch/verify-ui-settings.ts`).
+  - TypeScript compilation `tsc --noEmit` passed with 0 errors.
 
 
 

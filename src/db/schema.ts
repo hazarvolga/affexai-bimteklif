@@ -168,6 +168,10 @@ export const companies = pgTable("companies", {
   stampUrl: text("stamp_url"),
   defaultCurrency: currencyEnum("default_currency").default("TRY").notNull(),
   defaultVatRate: integer("default_vat_rate").default(20).notNull(),
+  countryCode: text("country_code").default("TR").notNull(),
+  measurementSystem: text("measurement_system").default("metric").notNull(),
+  activeStandard: text("active_standard").default("TBDY_TS500").notNull(),
+  classificationSystem: text("classification_system").default("CSB_TR").notNull(),
   smartcheckMaxWastePercent: numeric("smartcheck_max_waste_percent", { precision: 5, scale: 2 }).default("20").notNull(),
   defaultEscalationVolatilityPercent: numeric("default_escalation_volatility_percent", { precision: 5, scale: 2 }).default("0").notNull(),
   defaultCarbonRiskPremiumPercent: numeric("default_carbon_risk_premium_percent", { precision: 5, scale: 2 }).default("0").notNull(),
@@ -178,7 +182,12 @@ export const companies = pgTable("companies", {
   adminNotes: text("admin_notes"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  countryCodeCheck: check("companies_country_code_check", sql`${table.countryCode} in ('TR', 'DE', 'GB', 'US', 'AE')`),
+  measurementSystemCheck: check("companies_measurement_system_check", sql`${table.measurementSystem} in ('metric', 'imperial')`),
+  activeStandardCheck: check("companies_active_standard_check", sql`${table.activeStandard} in ('TBDY_TS500', 'EUROCODE_2', 'ACI_318')`),
+  classificationSystemCheck: check("companies_classification_system_check", sql`${table.classificationSystem} in ('CSB_TR', 'DIN_276', 'CSI_MASTERFORMAT', 'NRM2_UK')`),
+}));
 
 export const memberships = pgTable("memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1822,6 +1831,8 @@ export const pricingDataSources = pgTable("pricing_data_sources", {
   authority: text("authority"),
   category: text("category").notNull(),
   sourceUrl: text("source_url"),
+  countryCode: text("country_code").default("TR").notNull(),
+  currency: text("currency").default("TRY").notNull(),
   status: text("status").default("active").notNull(),
   syncFrequency: text("sync_frequency").default("monthly").notNull(),
   itemCount: integer("item_count").default(0).notNull(),
