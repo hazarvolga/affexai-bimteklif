@@ -1525,8 +1525,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1791652263.5952775,
-    "ast_hash": "4a756e063baf002280e2f6681cfb07b1",
+    "mtime": 1791700011.9459002,
+    "ast_hash": "a03a4c4202e572e5480ebd05e127913c",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -1630,8 +1630,8 @@
     "semantic_hash": ""
   },
   "src/server/app.ts": {
-    "mtime": 1791653400.809448,
-    "ast_hash": "4d6a9d84f3482ebda38835c38fa12601",
+    "mtime": 1791699922.7426782,
+    "ast_hash": "bd09120cc4ac9b5c10e262b2adb7ddaa",
     "semantic_hash": ""
   },
   "src/server/auth/registration.test.ts": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1791697631.8546693,
-    "ast_hash": "a2b0d4eeba20aefb7e8665bdde28b098",
+    "mtime": 1791699702.4912755,
+    "ast_hash": "81a5cec046a9280a1cd48a105516bad6",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -5165,8 +5165,8 @@
     "semantic_hash": ""
   },
   ".github/workflows/verify.yml": {
-    "mtime": 1791698823.6416266,
-    "ast_hash": "c539c7dec6304fa9cc0234f11ac07a6a",
+    "mtime": 1791699868.3645666,
+    "ast_hash": "81041288a88f072cc515f4295eb0e9a1",
     "semantic_hash": ""
   },
   "compose.example.yaml": {
@@ -5185,8 +5185,8 @@
     "semantic_hash": ""
   },
   "docs/deploy/container-app-worker.md": {
-    "mtime": 1791699075.6041741,
-    "ast_hash": "26b9da7fe79e0d01c2d112cbd665d7bb",
+    "mtime": 1791700107.61978,
+    "ast_hash": "b054e3d4de085a0fc7fd53ebb6c972ab",
     "semantic_hash": ""
   },
   "scripts/gap-crm-billing-ui-smoke.ts": {
@@ -5767,6 +5767,16 @@
   "src/smartcheck/import/upload-quota.ts": {
     "mtime": 1791698424.3237278,
     "ast_hash": "193144845077fa1f6b4249ca8ca76437",
+    "semantic_hash": ""
+  },
+  "src/server/production-frontend.test.ts": {
+    "mtime": 1791699887.560144,
+    "ast_hash": "e123b06e25bcc7c98c8c49d7df375ccb",
+    "semantic_hash": ""
+  },
+  "compose.coolify.yaml": {
+    "mtime": 1791700107.6192715,
+    "ast_hash": "3b4b8177d696873f2952fab2a4df5ad8",
     "semantic_hash": ""
   }
 }

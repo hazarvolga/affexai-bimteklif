@@ -185,20 +185,55 @@ disable flag, privileged mode, a broad capability grant, or an unconfined
 security profile. App/worker drop capabilities, use a read-only root filesystem
 and mount bounded writable tmpfs locations. The app has dedicated shared memory.
 
-The target host must support unprivileged user namespaces under its actual
-seccomp/AppArmor policy. Standard Docker restrictions on some hosts may prevent
-sandboxed Chromium startup. Treat that as a PDF release blocker: have an operator
-review a narrowly scoped namespace policy or use a sandbox-capable host. Do not
-disable Chromium's sandbox to obtain a green smoke. A successful image build
-does not prove this runtime requirement.
+The app alone uses `deploy/chromium-seccomp.json`. Its default action and all 60
+upstream rules are preserved from Docker/Moby's
+[default profile at commit 6fe7deb1b9fb7c0397a4593480d7d22b9ee8caef](https://github.com/moby/profiles/blob/6fe7deb1b9fb7c0397a4593480d7d22b9ee8caef/seccomp/default.json).
+Upstream file SHA256: `6416b47770785a41ac59073cdc77d9fe98517df2799dc83ef207e622de3053f6`.
+The only additions are unconditional syscall permits for `clone`, `setns`,
+`unshare` (the [official Playwright sandbox pattern](https://playwright.dev/docs/docker#crawling-and-scraping))
+and `chroot`. The latter permits Chromium to complete its chroot inside its new
+user namespace under `cap_drop: ALL`; it grants no host/container capability.
+`clone3` retains the upstream ENOSYS rule. This expands these four syscall
+permissions for the app container, so keep the profile app-only and review it
+when updating Docker/Chromium. Workers and PostgreSQL retain their default
+profiles. No global daemon, sysctl or AppArmor policy changes are required by
+this setup.
 
-Local Docker Desktop validation on 2026-10-08 built the app image and confirmed
-Node v24.18.0, UID 1000, and no `/app/.env.local` in the runtime image. A disposable
-network-disabled PDF smoke with the Compose capability/read-only/tmpfs settings
-failed at Chromium namespace creation (`Operation not permitted`; setuid sandbox
-also reported the no-new-privileges restriction). The sandbox was not disabled
-and host policy was not changed. PDF runtime acceptance is therefore **blocked
-on the tested host**, not verified by the successful build.
+Committed profile SHA256:
+`be5d68008bb4bb67f5eb662fc1d18d0013bbd390e2641290bbc6d7ae44c9e4ce`.
+
+For local Compose the default path is `./deploy/chromium-seccomp.json`. For
+Coolify, install the reviewed file on the **Docker daemon host** before deploying;
+a checkout inside Coolify's helper container is not necessarily a persistent host
+path. The default is `/data/bimmetraj/security/chromium-seccomp.json`, overridden
+only by `CHROMIUM_SECCOMP_PROFILE`. After copying the exact reviewed repository
+file to the host, an operator can install it using:
+
+```bash
+sudo install -d -m 0755 /data/bimmetraj/security
+sudo install -m 0644 deploy/chromium-seccomp.json /data/bimmetraj/security/chromium-seccomp.json
+sha256sum /data/bimmetraj/security/chromium-seccomp.json
+```
+
+Compare the printed hash with the committed hash above before deployment.
+Keep the file root-owned and non-writable by the application. Docker fails closed
+if the configured profile is missing. Apply the profile by recreating only the
+app through the normal reviewed deployment; do not modify Docker's global default.
+
+On 2026-10-11 the production host allowed unprivileged user namespaces, but the
+unmodified Docker seccomp policy blocked sandbox startup (`Operation not
+permitted`). The three Playwright syscall exceptions advanced startup to
+`sys_chroot` failure; adding only the fourth exception resolved it. A separate,
+network-disabled Bimmetraj acceptance container using the deployed app image,
+UID 1000, `cap_drop: ALL`, `no-new-privileges`, read-only root filesystem, bounded
+tmpfs and 256 MiB shared memory passed **5/5 real renderer tests**: default PDF,
+three quotation templates including Turkish text/literal injection content,
+and remote/local-resource blocking. No sandbox-disable flags, privileged mode,
+or capability grants were used. Evidence: `/tmp/bimmetraj-pdf-seccomp-v2-20261011.log`
+on the deployment host. This is isolated image/profile acceptance; verify the
+app's effective `HostConfig.SecurityOpt` and repeat the renderer smoke after the
+profile is wired into the deployed service. The previously recorded Docker Desktop
+failure used the unmodified default profile and does not prove acceptance there.
 
 ## Storage, Parsers And Quotas
 

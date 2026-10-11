@@ -19,6 +19,9 @@ x-runtime: &runtime
 services:
   app:
     <<: *runtime
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=${CHROMIUM_SECCOMP_PROFILE:-./deploy/chromium-seccomp.json}
     image: teklifpro-app:${IMAGE_TAG:-local}
     build:
       context: .

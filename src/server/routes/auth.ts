@@ -1,6 +1,6 @@
 import { assertAuthEmailAvailable, requireAuthEmailDelivery } from "../auth/email-policy";
 import type { Express, Response } from "express";
-import { and, desc, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, adminAuditLogs, authActionTokens, companies, memberships, plans, subscriptions, users } from "../../db/schema";
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
@@ -108,18 +108,25 @@ export function registerAuthRoutes(app: Express) {
 
   app.get('/api/auth/verify-email/:token', async (req, res) => {
     const tokenHash = hashActionToken(req.params.token || '');
-    const [record] = await db.select().from(authActionTokens).where(and(eq(authActionTokens.tokenHash, tokenHash), eq(authActionTokens.type, 'verify_email'), gt(authActionTokens.expiresAt, new Date())));
-    if (!record) return res.status(400).json({ error: 'Doğrulama bağlantısı geçersiz veya süresi dolmuş.' });
-    if (record.consumedAt) {
-      const [verified] = await db.select({ emailVerified: users.emailVerified }).from(users).where(eq(users.id, record.userId));
-      return verified?.emailVerified ? res.json({ message: 'E-posta adresiniz doğrulandı.' }) : res.status(400).json({ error: 'Doğrulama bağlantısı geçersiz veya süresi dolmuş.' });
-    }
-    const now = new Date();
-    await db.transaction(async tx => {
-      await tx.update(users).set({ emailVerified: now }).where(eq(users.id, record.userId));
-      await tx.update(authActionTokens).set({ consumedAt: now }).where(eq(authActionTokens.id, record.id));
+    const verified = await db.transaction(async tx => {
+      const now = new Date();
+      const [claimed] = await tx.update(authActionTokens).set({ consumedAt: now })
+        .where(and(eq(authActionTokens.tokenHash, tokenHash), eq(authActionTokens.type, 'verify_email'),
+          isNull(authActionTokens.consumedAt), gt(authActionTokens.expiresAt, sql`clock_timestamp()`)))
+        .returning({ userId: authActionTokens.userId });
+      if (claimed) {
+        await tx.update(users).set({ emailVerified: now }).where(eq(users.id, claimed.userId));
+        return true;
+      }
+      // Preserve successful verification-link replay without repeating the mutation.
+      const [record] = await tx.select({ emailVerified: users.emailVerified, consumedAt: authActionTokens.consumedAt })
+        .from(authActionTokens).innerJoin(users, eq(users.id, authActionTokens.userId))
+        .where(and(eq(authActionTokens.tokenHash, tokenHash), eq(authActionTokens.type, 'verify_email'),
+          gt(authActionTokens.expiresAt, sql`clock_timestamp()`)));
+      return Boolean(record?.consumedAt && record.emailVerified);
     });
-    return res.json({ message: 'E-posta adresiniz doğrulandı.' });
+    return verified ? res.json({ message: 'E-posta adresiniz doğrulandı.' })
+      : res.status(400).json({ error: 'Doğrulama bağlantısı geçersiz veya süresi dolmuş.' });
   });
 
   app.post('/api/auth/resend-verification', requireAuthEmailDelivery, async (req, res) => {
@@ -156,12 +163,18 @@ export function registerAuthRoutes(app: Express) {
     const tokenHash = hashActionToken(typeof req.body?.token === 'string' ? req.body.token : '');
     const [record] = await db.select().from(authActionTokens).where(and(eq(authActionTokens.tokenHash, tokenHash), eq(authActionTokens.type, 'reset_password'), isNull(authActionTokens.consumedAt), gt(authActionTokens.expiresAt, new Date())));
     if (!record) return res.status(400).json({ error: 'Parola yenileme bağlantısı geçersiz veya süresi dolmuş.' });
-    const now = new Date();
     const passwordHash = await AuthService.hashPassword(password);
-    await db.transaction(async tx => {
-      await tx.update(users).set({ passwordHash, passwordChangedAt: now }).where(eq(users.id, record.userId));
-      await tx.update(authActionTokens).set({ consumedAt: now }).where(eq(authActionTokens.id, record.id));
+    const consumed = await db.transaction(async tx => {
+      const now = new Date();
+      const [claimed] = await tx.update(authActionTokens).set({ consumedAt: now })
+        .where(and(eq(authActionTokens.id, record.id), eq(authActionTokens.type, 'reset_password'),
+          isNull(authActionTokens.consumedAt), gt(authActionTokens.expiresAt, sql`clock_timestamp()`)))
+        .returning({ userId: authActionTokens.userId });
+      if (!claimed) return false;
+      await tx.update(users).set({ passwordHash, passwordChangedAt: now }).where(eq(users.id, claimed.userId));
+      return true;
     });
+    if (!consumed) return res.status(400).json({ error: 'Parola yenileme bağlantısı geçersiz veya süresi dolmuş.' });
     return res.json({ message: 'Parolanız yenilendi. Yeniden giriş yapabilirsiniz.' });
   });
 
