@@ -8,10 +8,11 @@ function harness(stall?: string, fail?: string) {
   let options: LaunchOptions;
   let content = '';
   let requestHandler: (request: HTTPRequest) => void;
+  let resume: () => void = () => {};
   const action = async (name: string) => {
     calls.push(name);
     if (fail === name) throw new Error(name);
-    if (stall === name) await new Promise(() => {});
+    if (stall === name) await new Promise<void>(resolve => { resume = resolve; });
   };
   const browser = {
     newPage: async () => { await action('newPage'); return page; },
@@ -29,6 +30,7 @@ function harness(stall?: string, fail?: string) {
   };
   return {
     calls, browser,
+    resume: () => resume(),
     launch: async (opts: LaunchOptions) => { options = opts; await action('launch'); return browser; },
     get options() { return options; },
     get content() { return content; },
@@ -64,6 +66,10 @@ for (const stage of ['launch', 'newPage', 'js', 'worker', 'offline', 'intercepti
     const h = harness(stage);
     await assert.rejects(renderPdf('<p/>', { launch: h.launch, timeoutMs: 20, closeTimeoutMs: 10 }), /timed out/);
     assert.equal(h.calls.includes('close'), stage !== 'launch');
+    if (stage === 'launch') {
+      h.resume();
+      await new Promise(resolve => setImmediate(resolve));
+    }
   });
 }
 
@@ -99,4 +105,79 @@ test('invalid or excessive limits fail before launching a browser', async () => 
     await assert.rejects(renderPdf('<p/>', { launch: h.launch, timeoutMs }), /limit/i);
     assert.deepEqual(h.calls, []);
   }
+});
+
+test('PDF waiting queue is bounded, abortable and deadline limited without losing capacity', async () => {
+  const activeControllers = [new AbortController(), new AbortController()];
+  const active = activeControllers.map(controller => renderPdf('<p/>', { launch: harness('pdf').launch, signal: controller.signal } as any));
+  const settledActive = Promise.allSettled(active);
+  await new Promise(resolve => setTimeout(resolve, 5));
+  const waitingControllers = Array.from({ length: 8 }, () => new AbortController());
+  const waiting = waitingControllers.map(controller => renderPdf('<p/>', { launch: async () => assert.fail('aborted waiter launched'), signal: controller.signal } as any));
+  const settledWaiting = Promise.allSettled(waiting);
+  try {
+    await assert.rejects(renderPdf('<p/>', { launch: async () => assert.fail('overflow launched') }), (error: any) => error.code === 'PDF_QUEUE_FULL');
+    waitingControllers.forEach(controller => controller.abort());
+    const results = await settledWaiting;
+    assert.equal(results.filter(result => result.status === 'rejected' && (result.reason as any).code === 'PDF_REQUEST_ABORTED').length, 8);
+    await assert.rejects(renderPdf('<p/>', { launch: async () => assert.fail('expired waiter launched'), acquireTimeoutMs: 10 } as any), (error: any) => error.code === 'PDF_QUEUE_TIMEOUT');
+  } finally {
+    waitingControllers.forEach(controller => controller.abort());
+    activeControllers.forEach(controller => controller.abort());
+    await settledWaiting;
+    await settledActive;
+  }
+  assert.equal((await renderPdf('<p/>', { launch: harness().launch })).toString(), '%PDF-1.7');
+});
+
+test('canceled render does not launch and active cancellation closes the browser', async () => {
+  const canceled = new AbortController();
+  canceled.abort();
+  const unused = harness();
+  await assert.rejects(renderPdf('<p/>', { launch: unused.launch, signal: canceled.signal } as any), (error: any) => error.code === 'PDF_REQUEST_ABORTED');
+  assert.deepEqual(unused.calls, []);
+  const controller = new AbortController();
+  const h = harness('pdf');
+  const pending = renderPdf('<p/>', { launch: h.launch, signal: controller.signal } as any);
+  const rejected = assert.rejects(pending, (error: any) => error.code === 'PDF_REQUEST_ABORTED');
+  while (!h.calls.includes('pdf')) await new Promise(resolve => setTimeout(resolve, 1));
+  controller.abort();
+  await rejected;
+  assert.ok(h.calls.includes('close'));
+});
+
+test('aborted pending launches retain slots until launch settlement and late browser cleanup', async () => {
+  const controllers = [new AbortController(), new AbortController()];
+  const launchResolvers: ((browser: Browser) => void)[] = [];
+  const closeResolvers: (() => void)[] = [];
+  const active = controllers.map(controller => renderPdf('<p/>', {
+    signal: controller.signal,
+    launch: () => new Promise<Browser>(resolve => launchResolvers.push(resolve)),
+  }));
+  const settledActive = Promise.allSettled(active);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(launchResolvers.length, 2);
+  controllers.forEach(controller => controller.abort());
+  await settledActive;
+  let additionalLaunches = 0;
+  const probe = () => renderPdf('<p/>', { acquireTimeoutMs: 10, launch: async () => { additionalLaunches++; return harness().browser; } });
+  try {
+    for (let i = 0; i < 8; i++) {
+      await assert.rejects(probe(), (error: any) => error.code === 'PDF_QUEUE_TIMEOUT');
+    }
+    assert.equal(additionalLaunches, 0);
+    for (const resolve of launchResolvers) resolve({
+      close: () => new Promise<void>(done => closeResolvers.push(done)), process: () => null,
+    } as unknown as Browser);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(closeResolvers.length, 2);
+    await assert.rejects(probe(), (error: any) => error.code === 'PDF_QUEUE_TIMEOUT');
+  } finally {
+    // Settle even when the regression assertion fails so this test cannot leak slots.
+    for (const resolve of launchResolvers) resolve(harness().browser);
+    closeResolvers.forEach(resolve => resolve());
+    await new Promise(resolve => setImmediate(resolve));
+  }
+  assert.equal((await probe()).toString(), '%PDF-1.7');
+  assert.equal(additionalLaunches, 1);
 });

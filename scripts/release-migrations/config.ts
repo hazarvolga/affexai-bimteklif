@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 
 export const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -17,6 +16,3 @@ function resolveReleaseDir(): string {
 export const releaseDirectory = resolveReleaseDir();
 export const baselineSource = fileURLToPath(new URL('../../drizzle/meta/0036_snapshot.json', import.meta.url));
 export const ledgerSchema = 'teklifpro_release';
-export const require = createRequire(import.meta.url);
-export const drizzleApi: typeof import('drizzle-kit/api') = require('drizzle-kit/api');
-

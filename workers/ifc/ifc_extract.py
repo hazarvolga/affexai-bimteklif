@@ -89,28 +89,63 @@ def safe_float(val: Any) -> Optional[float]:
         return None
 
 
-def get_unit_scale_factors(model: ifcopenshell.file) -> Tuple[float, float, float]:
-    """
-    Returns (length_scale_to_meter, volume_scale_to_m3, area_scale_to_m2).
-    Standard buildingSMART units parsing.
-    """
-    length_scale = 1.0
-    for unit_assignment in model.by_type("IfcUnitAssignment"):
-        for unit in getattr(unit_assignment, "Units", []):
-            if hasattr(unit, "UnitType") and unit.UnitType == "LENGTHUNIT":
-                prefix = getattr(unit, "Prefix", None)
-                if prefix == "MILLI":
-                    length_scale = 0.001
-                elif prefix == "CENTI":
-                    length_scale = 0.01
-                elif prefix == "DECI":
-                    length_scale = 0.1
-                elif prefix is None:
-                    length_scale = 1.0
+SI_PREFIXES = {"EXA": 1e18, "PETA": 1e15, "TERA": 1e12, "GIGA": 1e9,
+               "MEGA": 1e6, "KILO": 1e3, "HECTO": 1e2, "DECA": 10.,
+               "DECI": .1, "CENTI": .01, "MILLI": .001, "MICRO": 1e-6,
+               "NANO": 1e-9, "PICO": 1e-12, "FEMTO": 1e-15, "ATTO": 1e-18, None: 1.}
 
-    vol_scale = length_scale ** 3
-    area_scale = length_scale ** 2
-    return length_scale, vol_scale, area_scale
+
+def unit_scale(unit: Any, kind: str, seen=None) -> float:
+    seen = set() if seen is None else seen
+    if unit.id() in seen or len(seen) > 16 or getattr(unit, "UnitType", None) != kind:
+        raise ValueError("IFC_UNIT_UNSUPPORTED: invalid or cyclic unit")
+    seen = seen | {unit.id()}
+    if unit.is_a("IfcSIUnit"):
+        expected, power = {"LENGTHUNIT": ("METRE", 1), "AREAUNIT": ("SQUARE_METRE", 2),
+                           "VOLUMEUNIT": ("CUBIC_METRE", 3), "MASSUNIT": ("GRAM", 1)}[kind]
+        if unit.Name != expected or unit.Prefix not in SI_PREFIXES:
+            raise ValueError("IFC_UNIT_UNSUPPORTED: SI unit")
+        return SI_PREFIXES[unit.Prefix] ** power * (.001 if kind == "MASSUNIT" else 1.)
+    if unit.is_a("IfcConversionBasedUnit"):
+        if getattr(unit, "ConversionOffset", 0):
+            raise ValueError("IFC_UNIT_UNSUPPORTED: offset unit")
+        factor = unit.ConversionFactor
+        value = safe_float(factor.ValueComponent.wrappedValue)
+        if value is None or value <= 0:
+            raise ValueError("IFC_UNIT_UNSUPPORTED: conversion factor")
+        return value * unit_scale(factor.UnitComponent, kind, seen)
+    raise ValueError("IFC_UNIT_UNSUPPORTED: unit type")
+
+
+def project_unit_scale(model: Any, kind: str) -> float:
+    projects = model.by_type("IfcProject")
+    assignments = [p.UnitsInContext for p in projects if p.UnitsInContext]
+    if not assignments:
+        assignments = model.by_type("IfcUnitAssignment")
+    units = [u for a in assignments for u in a.Units if getattr(u, "UnitType", None) == kind]
+    if not units:
+        # Legacy models without unit declarations use the existing SI convention.
+        if assignments:
+            return math.nan
+        return 1.
+    scales = {unit_scale(u, kind) for u in units}
+    if len(scales) != 1:
+        raise ValueError("IFC_UNIT_UNSUPPORTED: ambiguous project units")
+    return scales.pop()
+
+
+def quantity_scale(quantity: Any, kind: str, default: float) -> float:
+    unit = getattr(quantity, "Unit", None)
+    if unit:
+        return unit_scale(unit, kind)
+    if not math.isfinite(default) or default <= 0:
+        raise ValueError(f"IFC_UNIT_UNSUPPORTED: missing {kind}")
+    return default
+
+
+def get_unit_scale_factors(model: ifcopenshell.file) -> Tuple[float, float, float]:
+    return (project_unit_scale(model, "LENGTHUNIT"), project_unit_scale(model, "VOLUMEUNIT"),
+            project_unit_scale(model, "AREAUNIT"))
 
 
 EXPLICIT_FORMWORK_QTY_NAMES = {
@@ -136,7 +171,7 @@ def pset_rank(pset_name: str) -> int:
 
 
 def extract_quantities_and_properties(
-    elem: Any, vol_scale: float, area_scale: float
+    elem: Any, vol_scale: float, area_scale: float, mass_scale: float = 1.
 ) -> Tuple[
     float,  # volumeM3
     float,  # formworkM2
@@ -154,6 +189,8 @@ def extract_quantities_and_properties(
     raw_type = elem.is_a()
     elem_type = "IfcWall" if raw_type == "IfcWallStandardCase" else raw_type
 
+    volume_candidates = []
+    property_candidates = []
     qto_volume = None
     qto_weight = None
     qto_source_path = None
@@ -198,15 +235,12 @@ def extract_quantities_and_properties(
                 if qty.is_a("IfcQuantityVolume") and qty_name_lower in APPROVED_VOLUME_QTY_NAMES:
                     val = safe_float(getattr(qty, "VolumeValue", None))
                     if val is not None and val > 0:
-                        qto_volume = val * vol_scale
-                        qto_source_path = source_path_item
-                        if "net" in qty_name_lower:
-                            qto_conf = 0.95
+                        volume_candidates.append((0 if "net" in qty_name_lower else 1, rank, source_path_item, val * quantity_scale(qty, "VOLUMEUNIT", vol_scale)))
 
                 elif qty.is_a("IfcQuantityArea"):
                     val = safe_float(getattr(qty, "AreaValue", None))
                     if val is not None and val > 0:
-                        scaled_area = val * area_scale
+                        scaled_area = val * quantity_scale(qty, "AREAUNIT", area_scale)
                         if qty_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
                             explicit_formwork.append((rank, scaled_area, source_path_item))
                         elif qty_name_lower == "netarea":
@@ -223,7 +257,7 @@ def extract_quantities_and_properties(
                 elif qty.is_a("IfcQuantityWeight") and qty_name_lower in APPROVED_WEIGHT_QTY_NAMES:
                     val = safe_float(getattr(qty, "WeightValue", None))
                     if val is not None and val > 0:
-                        qto_weight = val
+                        qto_weight = val * quantity_scale(qty, "MASSUNIT", mass_scale)
 
         # Handle IfcPropertySet
         elif prop_def.is_a("IfcPropertySet"):
@@ -249,36 +283,43 @@ def extract_quantities_and_properties(
                     if p_name_lower in APPROVED_VOLUME_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            prop_volume = val * vol_scale
-                            prop_source_path = source_path_item
+                            property_candidates.append((0 if "net" in p_name_lower else 1, rank, source_path_item, val * quantity_scale(prop, "VOLUMEUNIT", vol_scale)))
                     elif p_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            explicit_formwork.append((rank, val * area_scale, source_path_item))
+                            explicit_formwork.append((rank, val * quantity_scale(prop, "AREAUNIT", area_scale), source_path_item))
                     elif p_name_lower == "netarea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            net_area.append((rank, val * area_scale, source_path_item))
+                            net_area.append((rank, val * quantity_scale(prop, "AREAUNIT", area_scale), source_path_item))
                     elif p_name_lower == "grossarea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            gross_area.append((rank, val * area_scale, source_path_item))
+                            gross_area.append((rank, val * quantity_scale(prop, "AREAUNIT", area_scale), source_path_item))
                     elif p_name_lower == "netsidearea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            net_side_area.append((rank, val * area_scale, source_path_item))
+                            net_side_area.append((rank, val * quantity_scale(prop, "AREAUNIT", area_scale), source_path_item))
                     elif p_name_lower == "grosssidearea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            gross_side_area.append((rank, val * area_scale, source_path_item))
+                            gross_side_area.append((rank, val * quantity_scale(prop, "AREAUNIT", area_scale), source_path_item))
                     elif p_name_lower == "outersurfacearea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            outer_surface_area.append((rank, val * area_scale, source_path_item))
+                            outer_surface_area.append((rank, val * quantity_scale(prop, "AREAUNIT", area_scale), source_path_item))
                     elif p_name_lower in APPROVED_WEIGHT_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
-                            prop_weight = val
+                            prop_weight = val * quantity_scale(prop, "MASSUNIT", mass_scale)
+
+    if volume_candidates:
+        selected = sorted(volume_candidates)[0]
+        qto_volume, qto_source_path = selected[3], selected[2]
+        qto_conf = .95 if selected[0] == 0 else .9
+    if property_candidates:
+        selected = sorted(property_candidates)[0]
+        prop_volume, prop_source_path = selected[3], selected[2]
 
     # Formwork (formworkM2) Resolution adhering to buildingSMART standards:
     formwork_m2 = 0.0
@@ -357,7 +398,7 @@ def extract_quantities_and_properties(
     note = "Eurocode 2 & TS 708 donatı ve hacim standartlarına uyumlu"
 
     if qto_volume is not None:
-        volume_m3 = round(qto_volume, 4)
+        volume_m3 = round(qto_volume, 12)
         rebar_kg = round(qto_weight, 1) if qto_weight is not None else 0.0
         quantity_source = "qto"
         source_path = qto_source_path
@@ -368,7 +409,7 @@ def extract_quantities_and_properties(
             note += f" (Uyarı: PropertySet değeri {round(prop_volume, 2)} m³ ile QTO {round(qto_volume, 2)} m³ arasında fark var)."
 
     elif prop_volume is not None:
-        volume_m3 = round(prop_volume, 4)
+        volume_m3 = round(prop_volume, 12)
         rebar_kg = round(prop_weight, 1) if prop_weight is not None else 0.0
         quantity_source = "property"
         source_path = prop_source_path
@@ -386,6 +427,9 @@ def extract_quantities_and_properties(
         status = "review"
         note = "QTO veya PropertySet metrajı bulunamadı. Geometrik veya manuel metraj girişi gereklidir."
 
+    candidates = volume_candidates + property_candidates
+    if candidates and any(abs(c[3] - volume_m3) > max(1e-8, abs(volume_m3) * 1e-6) for c in candidates):
+        note += " | IFC_QUANTITY_CONFLICT: " + "; ".join(f"{c[2]}={c[3]:.12g} m3" for c in sorted(candidates))
     if formwork_note:
         note = f"{note} | {formwork_note}" if note else formwork_note
 
@@ -405,7 +449,7 @@ def extract_quantities_and_properties(
     )
 
 
-def extract_rebar_info(elem: Any) -> Tuple[Optional[float], float, float]:
+def extract_rebar_info(elem: Any, length_scale: float = 1., area_scale: float = 1.) -> Tuple[Optional[float], float, float]:
     """
     For IfcReinforcingBar, extract diameter, weight, and volume from native attributes.
     """
@@ -418,27 +462,31 @@ def extract_rebar_info(elem: Any) -> Tuple[Optional[float], float, float]:
     weight_kg = 0.0
     vol_m3 = 0.0
 
+    if diameter is not None:
+        diameter *= length_scale * 1000.
     if diameter and diameter > 0:
         # standard nominal steel formula: (pi * d^2 / 4) * 0.00785 kg/m
         nominal_kg_per_m = (math.pi * (diameter ** 2) / 4.0) * 0.00785
         if length and length > 0:
-            length_m = length if length < 100 else length / 1000.0  # normalize mm to m if large
+            length_m = length * length_scale  # normalize mm to m if large
             weight_kg = round(nominal_kg_per_m * length_m * count, 1)
-            vol_m3 = round(weight_kg / 7850.0, 4)
+            vol_m3 = round(weight_kg / 7850.0, 12)
     elif hasattr(elem, "CrossSectionArea"):
         area = safe_float(getattr(elem, "CrossSectionArea", None))
+        if area is not None:
+            area *= area_scale * 1e6
         if area and area > 0:
             diameter = round(2.0 * math.sqrt(area / math.pi), 1)
             if length and length > 0:
-                length_m = length if length < 100 else length / 1000.0
+                length_m = length * length_scale
                 # area in mm2: vol in mm3 = area * length_m * 1000
-                vol_m3 = round((area * length_m * 1000.0) / 1e9 * count, 4)
+                vol_m3 = round((area * length_m * 1000.0) / 1e9 * count, 12)
                 weight_kg = round(vol_m3 * 7850.0, 1)
 
     return diameter, weight_kg, vol_m3
 
 
-def extract_spatial_storey(elem: Any) -> Tuple[str, str, Optional[str]]:
+def extract_spatial_storey(elem: Any, length_scale: float = 1.) -> Tuple[str, str, Optional[str]]:
     """
     Returns (storeyName, storeySource, storeySourcePath)
     """
@@ -449,7 +497,7 @@ def extract_spatial_storey(elem: Any) -> Tuple[str, str, Optional[str]]:
                 s_name = str(getattr(structure, "Name", "") or "").strip()
                 elev = safe_float(getattr(structure, "Elevation", None))
                 if elev is not None:
-                    elev_m = round(elev if abs(elev) < 1000 else elev / 1000.0, 2)
+                    elev_m = round(elev * length_scale, 6)
                     formatted_name = f"{s_name} ({elev_m} m)" if s_name else f"Kat ({elev_m} m)"
                 else:
                     formatted_name = s_name or "Kat"
@@ -520,7 +568,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         sys.stderr.write(f"IFC_SCHEMA_UNSUPPORTED: Unsupported IFC schema: {schema}\n")
         sys.exit(EXIT_SCHEMA_UNSUPPORTED)
 
-    _, vol_scale, area_scale = get_unit_scale_factors(model)
+    length_scale, vol_scale, area_scale = get_unit_scale_factors(model)
+    mass_scale = project_unit_scale(model, "MASSUNIT")
 
     target_types = [
         "IfcBeam",
@@ -562,7 +611,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         mapped_type = "IfcWall" if raw_type == "IfcWallStandardCase" else raw_type
         name = str(getattr(elem, "Name", "") or f"{mapped_type}_{step_id}")
 
-        storey, storey_source, storey_source_path = extract_spatial_storey(elem)
+        storey, storey_source, storey_source_path = extract_spatial_storey(elem, length_scale)
 
         (
             volume_m3,
@@ -577,11 +626,11 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             note,
             poz_no,
             poz_source_path,
-        ) = extract_quantities_and_properties(elem, vol_scale, area_scale)
+        ) = extract_quantities_and_properties(elem, vol_scale, area_scale, mass_scale)
 
         rebar_diameter_mm = None
         if mapped_type == "IfcReinforcingBar":
-            diam, explicit_kg, explicit_vol = extract_rebar_info(elem)
+            diam, explicit_kg, explicit_vol = extract_rebar_info(elem, length_scale, area_scale)
             if explicit_kg > 0:
                 rebar_kg = explicit_kg
                 volume_m3 = explicit_vol
@@ -624,7 +673,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             "name": name,
             "storey": storey,
             "storeySource": storey_source,
-            "volumeM3": round(volume_m3, 3),
+            "volumeM3": round(volume_m3, 12),
             "formworkM2": round(formwork_m2, 2),
             "formworkBasis": formwork_basis,
             "rebarKg": round(rebar_kg, 1),

@@ -1,0 +1,138 @@
+# Coolify Git/Docker Compose deployment. Configure the domain on the app service.
+# Inject secrets in Coolify; no host env_file paths or published database ports.
+name: bimmetraj
+
+x-app-environment: &app-environment
+  NODE_ENV: production
+  DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?}@postgres:5432/bimmetraj_production
+  PG_POOL_MAX: '4'
+  JWT_SECRET: ${SERVICE_HEX_64_JWT:?}
+  PUBLIC_APP_URL: https://bimmetraj.com
+  AUTH_EMAIL_DELIVERY_MODE: disabled
+  TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+  GRAPHILE_WORKER_SCHEMA: teklifpro_queue
+  SMARTCHECK_IMPORT_ENABLED: ${SMARTCHECK_IMPORT_ENABLED:-false}
+  SMARTCHECK_PILOT_COMPANY_IDS: ${SMARTCHECK_PILOT_COMPANY_IDS:-}
+  SMARTCHECK_S3_BUCKET: ${SMARTCHECK_S3_BUCKET:?Provision the production object storage bucket}
+  SMARTCHECK_S3_REGION: ${SMARTCHECK_S3_REGION:?Set the object storage region}
+  SMARTCHECK_S3_ENDPOINT: ${SMARTCHECK_S3_ENDPOINT:-}
+  SMARTCHECK_S3_ACCESS_KEY_ID: ${SMARTCHECK_S3_ACCESS_KEY_ID:?Set the object storage access key}
+  SMARTCHECK_S3_SECRET_ACCESS_KEY: ${SMARTCHECK_S3_SECRET_ACCESS_KEY:?Set the object storage secret key}
+  SMARTCHECK_S3_FORCE_PATH_STYLE: ${SMARTCHECK_S3_FORCE_PATH_STYLE:-false}
+  SMARTCHECK_IFC_ENGINE: ifcopenshell
+  SMARTCHECK_MAX_IFC_FILE_MB: ${SMARTCHECK_MAX_IFC_FILE_MB:-100}
+  SMARTCHECK_IFC_MAX_CONCURRENT: ${SMARTCHECK_IFC_MAX_CONCURRENT:-2}
+  SMARTCHECK_TENANT_STORAGE_MAX_BYTES: ${SMARTCHECK_TENANT_STORAGE_MAX_BYTES:-2147483648}
+  SMARTCHECK_TENANT_DOCUMENT_MAX_COUNT: ${SMARTCHECK_TENANT_DOCUMENT_MAX_COUNT:-1000}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+x-runtime: &runtime
+  restart: unless-stopped
+  stop_grace_period: 90s
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  read_only: true
+  tmpfs:
+    - /tmp:size=268435456,mode=1777
+    - /home/node/.cache:size=67108864,uid=1000,gid=1000
+    - /home/node/.config:size=16777216,uid=1000,gid=1000
+  depends_on:
+    postgres:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  app:
+    <<: *runtime
+    image: bimmetraj-app:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: app
+    environment:
+      <<: *app-environment
+      PORT: '3000'
+      NODE_OPTIONS: --max-old-space-size=768
+      SOURCE_COMMIT: ${SOURCE_COMMIT:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    expose: ['3000']
+    shm_size: 256mb
+    mem_limit: 1536m
+    cpus: 1.0
+    pids_limit: 256
+
+  worker:
+    <<: *runtime
+    image: bimmetraj-worker:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: worker
+    environment:
+      <<: *app-environment
+      NODE_OPTIONS: --max-old-space-size=768
+      SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-2}
+    mem_limit: 1024m
+    cpus: 1.0
+    pids_limit: 128
+
+  ifc-worker:
+    <<: *runtime
+    image: bimmetraj-ifc-worker:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: ifc-worker
+    environment:
+      <<: *app-environment
+      NODE_OPTIONS: --max-old-space-size=1024
+      SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
+      SMARTCHECK_IFC_TIMEOUT_SEC: ${SMARTCHECK_IFC_TIMEOUT_SEC:-600}
+      PYTHON_BIN: /opt/venv/bin/python3
+    tmpfs:
+      - /tmp:size=536870912,mode=1777
+      - /home/node/.cache:size=67108864,uid=1000,gid=1000
+    mem_limit: 2048m
+    cpus: 1.5
+    pids_limit: 128
+
+  migrate:
+    image: bimmetraj-migrate:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: migrate
+    environment:
+      NODE_ENV: production
+      PG_POOL_MAX: '4'
+      RELEASE_DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?}@postgres:5432/bimmetraj_production
+      RELEASE_ALLOW_PRODUCTION: 'true'
+      RELEASE_EXPECTED_HOST: postgres
+      RELEASE_EXPECTED_DATABASE: bimmetraj_production
+      RELEASE_EXPECTED_USER: bimmetraj
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bimmetraj_production
+      POSTGRES_USER: bimmetraj
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:?}
+    command: [postgres, -c, shared_buffers=128MB, -c, max_connections=40, -c, work_mem=4MB]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    cpus: 1.0
+    shm_size: 128mb
+
+volumes:
+  postgres-data:

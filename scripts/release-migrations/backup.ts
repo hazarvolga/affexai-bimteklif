@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Target } from './safety';
+import { disposableNames, type Target } from './safety';
 import { restoreViaVerifiedContainer } from './backup-docker';
 
 const exec = promisify(execFile);
@@ -22,6 +22,11 @@ async function binary(name: string, major: number) {
 }
 
 export async function restoreSyntheticBackup(source: Target, target: Target, major: number) {
+  for (const database of [source, target]) {
+    if (!['127.0.0.1', '::1'].includes(database.host) || !(disposableNames as readonly string[]).includes(database.database)) {
+      throw new Error('Synthetic restore only permits named local disposable databases');
+    }
+  }
   const dump = await binary('pg_dump', major);
   const restore = await binary('pg_restore', major);
   if ((!dump || !restore) && process.env.RELEASE_POSTGRES_CONTAINER) return restoreViaVerifiedContainer(source, target, major);

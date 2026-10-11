@@ -1,6 +1,7 @@
+import { drizzleApi } from './generation-api';
 import { readFile, writeFile } from 'node:fs/promises';
 import * as schema from '../../src/db/schema';
-import { releaseDirectory, drizzleApi } from './config';
+import { releaseDirectory } from './config';
 import { loadMigrations } from './runner';
 import { sha256 } from './catalog';
 

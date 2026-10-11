@@ -25,3 +25,7 @@ describe("priceCrawlerService", () => {
     });
   });
 });
+
+it('rejects oversized price fields instead of returning fabricated precision', () => {
+  assert.equal(parseTurkishPrice('1'.repeat(5000) + ' TL'), null);
+});

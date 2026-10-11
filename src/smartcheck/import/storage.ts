@@ -1,4 +1,4 @@
-import { Readable } from "node:stream";
+import { Readable, Transform } from "node:stream";
 import crypto from "node:crypto";
 import { createWriteStream, createReadStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
@@ -11,7 +11,8 @@ import { readBoundedBody, readPrefixBody, withReadDeadline, type StorageReadOpti
 
 export function uploadUrlExpirySeconds(env: Record<string, string | undefined> = process.env): number {
   const configured = Number(env.IFC_UPLOAD_URL_EXPIRY_SECONDS ?? env.SMARTCHECK_UPLOAD_URL_EXPIRY_SECONDS ?? 86400);
-  return Number.isFinite(configured) && configured > 0 ? configured : 86400;
+  if (!Number.isSafeInteger(configured) || configured < 1 || configured > 86400) throw new Error("UPLOAD_URL_EXPIRY_INVALID");
+  return configured;
 }
 
 export interface StorageAdapter {
@@ -25,8 +26,8 @@ export interface StorageAdapter {
   delete(storageKey: string): Promise<void>;
   localPath?(storageKey: string): string;
 
-  downloadToFile?(storageKey: string, targetPath: string, expectedHash: string): Promise<void>;
-  getStream?(storageKey: string): Promise<Readable>;
+  downloadToFile?(storageKey: string, targetPath: string, expectedHash: string, options?: StorageReadOptions): Promise<void>;
+  getStream?(storageKey: string, signal?: AbortSignal): Promise<Readable>;
 }
 
 function safeKey(storageKey: string): string {
@@ -73,26 +74,14 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async delete(storageKey: string): Promise<void> { await fs.rm(this.localPath(storageKey), { force: true }); }
 
-  async getStream(storageKey: string): Promise<Readable> {
-    return createReadStream(this.localPath(storageKey));
+  async getStream(storageKey: string, signal?: AbortSignal): Promise<Readable> {
+    return createReadStream(this.localPath(storageKey), { signal });
   }
 
-  async downloadToFile(storageKey: string, targetPath: string, expectedHash: string): Promise<void> {
-    if (!expectedHash) throw new Error("EXPECTED_HASH_REQUIRED");
-    const hash = crypto.createHash("sha256");
-    const source = createReadStream(this.localPath(storageKey));
-    const target = createWriteStream(targetPath);
-    source.on("data", chunk => hash.update(chunk));
-    try {
-      await pipeline(source, target);
-      if (hash.digest("hex") !== expectedHash) {
-        throw new Error("CHECKSUM_MISMATCH");
-      }
-    } catch (err) {
-      await fs.rm(targetPath, { force: true });
-      throw err;
-    }
+  async downloadToFile(storageKey: string, targetPath: string, expectedHash: string, options: StorageReadOptions = {}): Promise<void> {
+    return downloadBounded(targetPath, expectedHash, options, async signal => createReadStream(this.localPath(storageKey), { signal }));
   }
+
 }
 
 export class S3StorageAdapter implements StorageAdapter {
@@ -166,37 +155,49 @@ export class S3StorageAdapter implements StorageAdapter {
   }
 
   async delete(storageKey: string): Promise<void> {
-    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
+    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }), { abortSignal: AbortSignal.timeout(15_000) });
   }
 
-  async getStream(storageKey: string): Promise<Readable> {
-    const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
+  async getStream(storageKey: string, signal?: AbortSignal): Promise<Readable> {
+    const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }), { abortSignal: signal });
     if (!result.Body) throw new Error("EMPTY_BODY");
     return result.Body as Readable;
   }
 
-  async downloadToFile(storageKey: string, targetPath: string, expectedHash: string): Promise<void> {
-    if (!expectedHash) throw new Error("EXPECTED_HASH_REQUIRED");
-    const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey) }));
-    if (!result.Body) throw new Error("EMPTY_BODY");
-
-    const hash = crypto.createHash("sha256");
-    const target = createWriteStream(targetPath);
-    const source = result.Body as NodeJS.ReadableStream;
-    source.on("data", chunk => hash.update(chunk));
-
-    try {
-      await pipeline(source, target);
-      if (hash.digest("hex") !== expectedHash) {
-        throw new Error("CHECKSUM_MISMATCH");
-      }
-    } catch (err) {
-      await fs.rm(targetPath, { force: true });
-      throw err;
-    }
+  async downloadToFile(storageKey: string, targetPath: string, expectedHash: string, options: StorageReadOptions = {}): Promise<void> {
+    return downloadBounded(targetPath, expectedHash, options, signal => this.getStream(storageKey, signal));
   }
+
 }
 
 export function createStorageAdapter(): StorageAdapter {
   return process.env.NODE_ENV === "production" ? new S3StorageAdapter() : new LocalStorageAdapter();
+}
+
+async function downloadBounded(targetPath: string, expectedHash: string, options: StorageReadOptions, sourceFor: (signal: AbortSignal) => Promise<Readable>): Promise<void> {
+  if (!expectedHash) throw new Error("EXPECTED_HASH_REQUIRED");
+  try {
+    await withReadDeadline(options, async (signal, limit) => {
+      const source = await sourceFor(signal);
+      if (signal.aborted) { source.destroy(); throw signal.reason; }
+      const hash = crypto.createHash("sha256");
+      let size = 0;
+      const meter = new Transform({ transform(chunk, _encoding, done) {
+        size += chunk.length;
+        if (size > (limit ?? SMARTCHECK_MAX_FILE_BYTES)) return done(new Error("FILE_SIZE_INVALID"));
+        hash.update(chunk);
+        done(null, chunk);
+      } });
+      try {
+        await pipeline(source, meter, createWriteStream(targetPath, { mode: 0o600 }), { signal });
+        if (hash.digest("hex") !== expectedHash) throw new Error("CHECKSUM_MISMATCH");
+      } catch (error) {
+        if (signal.aborted) throw signal.reason;
+        throw error;
+      } finally { source.destroy(); }
+    });
+  } catch (error) {
+    await fs.rm(targetPath, { force: true });
+    throw error;
+  }
 }

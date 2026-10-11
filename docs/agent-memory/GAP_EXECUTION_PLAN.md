@@ -98,3 +98,56 @@ Updated after each verified step with commands, results and checkpoint name.
   Revision pricing locks are cleared, not silently reused. Final parent-focused
   suite: 18/18 tests passed; lint passed. Independent code/security review
   approved. Checkpoint: `restore/gap-20261008-05`.
+
+## 2026-10-11 local remediation checkpoint (uncommitted)
+
+This is a local working-tree checkpoint, not completion of Steps 06–12, a new
+restore tag, production readiness, or live deployment evidence. Preserve the
+historical ledger above; final consolidated test/build/review results belong to
+the eventual reviewed source checkpoint.
+
+Implemented in the current remediation working tree:
+
+- Resource isolation: CSV/XLSX preview/parse child process with bounded heap,
+  deadline and admission; PDF bounded waiting queue and client cancellation;
+  IFC upload-complete/download deadlines, stream destruction and size limits.
+- IFC evidence: Compose IfcOpenShell default, explicit unit normalization and
+  fail-closed unsupported units; derived formwork remains review-only metadata.
+  Property/QTO evidence is not an engineering or buildingSMART certification.
+- Tenant/cost boundaries: live-state checks for impersonation, atomic AI usage
+  admission before provider calls, pending-upload storage/count reservations and
+  expiry cleanup; IFC quota reservation and idempotent successful consumption.
+- Crawler truthfulness/security: unsupported official CSB/TUIK adapters fail
+  closed; fixed prices, invented multipliers and official-code guesses removed.
+  Legacy staging approval needs renewed live extraction evidence. DNS-pinned
+  public-only bounded fetch, isolated parse worker and batch advisory lock added.
+- Deployment configuration: separately tagged migration target and successful
+  migration startup dependencies; explicit pool budgets below PostgreSQL's 40
+  connection ceiling at the default replica/concurrency counts.
+- CI preparation: Python 3.11 IFC behavior tests; changed-file-gated app/IFC image
+  builds sharing build cache; offline image artifact/engine smokes without image
+  push. The workflow has not yet been verified by a GitHub Actions run.
+
+Focused evidence from this checkpoint: crawler suite 18/18 passed, TypeScript
+no-emit passed, and CJS-bundled worker parsing smoke passed. Other parallel work
+has separate focused checks; do not sum those into a claimed full-suite result.
+No coverage percentage was measured. The container runbook records a proposed
+coverage-baseline procedure without enforcing an unproven threshold.
+
+Remaining release acceptance: independent final code/security review, complete
+isolated suite/build and CI result for the final commit, actual container runtime
+and sandboxed PDF acceptance, real permissioned pilot IFC/Excel evidence, reviewer
+approval, production S3 acceptance/retention and off-host DB/object restore drill.
+No production configuration, remote source, database or deployment was changed
+by this documentation/CI preparation task.
+
+
+Email-provider deferral (same local checkpoint): user deferred selecting the
+email service. Explicit `AUTH_EMAIL_DELIVERY_MODE=disabled` now permits production
+preflight without webhook credentials. Email-creating registration/invite/resend/
+reset-request actions return 503 before writes, and dispatch helpers refuse to send
+or return development URLs. Existing login and valid previously issued link
+consumption remain available. Default webhook mode still fails closed on missing
+production configuration. Focused email/config/invitation checks: 20/20 passed,
+including real HTTP requests with database spies proving zero access before the
+disabled-mode rejection. No provider was connected or outbound email sent.

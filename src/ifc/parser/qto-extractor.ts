@@ -1,3 +1,4 @@
+import { volumeUnitResolver } from "./units";
 import type { IfcSupportedElementType } from "./quantity-extractor";
 
 export interface IfcQtoVolumeQuantity {
@@ -73,6 +74,7 @@ function roundM3(value: number): number {
 }
 
 export function extractIfcQtoVolumeQuantities(ifcText: string): IfcQtoVolumeExtraction {
+  const resolveVolumeUnit = volumeUnitResolver(ifcText);
   const quantitiesById = new Map<string, IfcQuantityVolumeValue>();
   const quantitySets = new Map<string, IfcElementQuantitySet>();
   const elements = new Map<string, IfcElementIdentity>();
@@ -80,7 +82,7 @@ export function extractIfcQtoVolumeQuantities(ifcText: string): IfcQtoVolumeExtr
   const quantities: IfcQtoVolumeQuantity[] = [];
 
   const elementRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\('([^']*)'/i;
-  const quantityRegex = /^#(\d+)\s*=\s*IFCQUANTITYVOLUME\s*\('([^']+)'\s*,\s*(?:'[^']*'|\$)\s*,\s*(?:#[0-9]+|\$)\s*,\s*([-+0-9.Ee]+)\s*(?:,\s*[^)]*)?\);/i;
+  const quantityRegex = /^#(\d+)\s*=\s*IFCQUANTITYVOLUME\s*\('([^']+)'\s*,\s*(?:'[^']*'|\$)\s*,\s*(#[0-9]+|\$)\s*,\s*([-+0-9.Ee]+)\s*(?:,\s*[^)]*)?\);/i;
   const quantitySetRegex = /^#(\d+)\s*=\s*IFCELEMENTQUANTITY\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'\s*,\s*(?:'[^']*'|\$)\s*,\s*(?:'[^']*'|\$)\s*,\s*\(([^)]*)\)\s*\);/i;
   const relationRegex = /^#(\d+)\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*\$\s*,\s*\$\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
 
@@ -99,7 +101,8 @@ export function extractIfcQtoVolumeQuantities(ifcText: string): IfcQtoVolumeExtr
 
     const quantityMatch = line.match(quantityRegex);
     if (quantityMatch) {
-      const value = Number(quantityMatch[3]);
+      const scale = resolveVolumeUnit(quantityMatch[3]);
+      const value = Number(quantityMatch[4]) * (scale ?? NaN);
       if (Number.isFinite(value) && approvedVolumeQuantityNames.has(quantityMatch[2])) {
         quantitiesById.set(quantityMatch[1], {
           stepId: quantityMatch[1],

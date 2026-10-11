@@ -2,8 +2,6 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import ExcelJS from "exceljs";
-import { parse as parseCsv } from "csv-parse/sync";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { companies, documentProcessingArtifacts, documentProcessingRuns, documents, normalizedQuantityRows } from "../../db/schema";
@@ -16,149 +14,9 @@ import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidenc
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
 
-export type PreviewSheet = {
-  name: string;
-  rowCount: number;
-  columnCount: number;
-  sampleRows: string[][];
-  suggestedMapping: ColumnMapping;
-  formulaCells: string[];
-};
-
-export type DocumentPreview = {
-  kind: "xlsx" | "csv";
-  sheets: PreviewSheet[];
-};
-
-function cellText(cell: ExcelJS.Cell, formulaJson: Record<string, string>): string {
-  const value = cell.value;
-  if (value && typeof value === "object" && "formula" in value) {
-    formulaJson[cell.address] = String(value.formula);
-    return value.result == null ? "" : String(value.result);
-  }
-  return cell.text ?? "";
-}
-
-function headerIndex(headers: string[], mapped?: string): number {
-  return mapped ? headers.findIndex((header) => header.trim() === mapped.trim()) : -1;
-}
-
-function excelColumnName(columnNumber: number): string {
-  let value = Math.max(1, columnNumber);
-  let name = "";
-  while (value > 0) {
-    const remainder = (value - 1) % 26;
-    name = String.fromCharCode(65 + remainder) + name;
-    value = Math.floor((value - 1) / 26);
-  }
-  return name;
-}
-
-function fromMatrix(sheetName: string, matrix: Array<Array<string>>, mappingInput: ColumnMapping = {}, formulas: Record<number, Record<string, string>> = {}) {
-  const headerRow = Math.max(1, mappingInput.headerRow ?? 1);
-  const headers = matrix[headerRow - 1] ?? [];
-  const mapping = { ...suggestMapping(headers), ...mappingInput };
-  const indices = {
-    positionCode: headerIndex(headers, mapping.positionCode), description: headerIndex(headers, mapping.description),
-    unit: headerIndex(headers, mapping.unit), quantity: headerIndex(headers, mapping.quantity),
-    price: headerIndex(headers, mapping.price), wastePercent: headerIndex(headers, mapping.wastePercent),
-  };
-  if (indices.description < 0 || indices.unit < 0 || indices.quantity < 0) throw new Error("COLUMN_MAPPING_REQUIRED");
-  const rows: ParsedQuantityRow[] = [];
-  matrix.slice(headerRow).forEach((values, offset) => {
-    if (values.every((value) => !String(value ?? "").trim())) return;
-    const sourceRowNumber = headerRow + offset + 1;
-    const read = (index: number) => index < 0 ? "" : String(values[index] ?? "");
-    rows.push({
-      sheetName, sourceRowNumber, sourceCellRange: `A${sourceRowNumber}:${excelColumnName(Math.min(headers.length, 256))}${sourceRowNumber}`,
-      rawPositionCode: read(indices.positionCode), rawDescription: read(indices.description), rawUnit: read(indices.unit),
-      rawQuantity: read(indices.quantity), rawPrice: read(indices.price), rawWastePercent: read(indices.wastePercent), formulaJson: formulas[sourceRowNumber] ?? {},
-    });
-  });
-  return { rows, mapping };
-}
-
-function previewSheet(name: string, matrix: string[][], formulaCells: string[] = []): PreviewSheet {
-  const nonEmptyRows = matrix.filter((row) => row.some((value) => String(value ?? "").trim() !== ""));
-  const headers = nonEmptyRows[0] ?? [];
-  const columnCount = nonEmptyRows.reduce((max, row) => Math.max(max, row.length), 0);
-  return {
-    name,
-    rowCount: nonEmptyRows.length,
-    columnCount,
-    sampleRows: nonEmptyRows.slice(0, 21).map((row) => row.slice(0, 32)),
-    suggestedMapping: suggestMapping(headers),
-    formulaCells: formulaCells.slice(0, 50),
-  };
-}
-
-/**
- * Reads only a bounded preview and never writes normalized rows. The route
- * uses this before mapping/process so a reviewer can see the source shape.
- */
-export async function inspectDocument(content: Buffer, kind: "xlsx" | "csv"): Promise<DocumentPreview> {
-  if (kind === "csv") {
-    const records = parseCsv(content, { bom: true, relax_column_count: true, skip_empty_lines: true }) as unknown[][];
-    const formulaCells: string[] = [];
-    const matrix = records.map((record, rowIndex) => record.map((value, columnIndex) => {
-      const raw = String(value ?? "");
-      if (/^[=+\-@]/.test(raw)) formulaCells.push(`CSV!${excelColumnName(columnIndex + 1)}${rowIndex + 1}`);
-      return sanitizeSpreadsheetText(raw);
-    }));
-    return { kind, sheets: [previewSheet("CSV", matrix, formulaCells)] };
-  }
-
-  await validateXlsxArchive(content);
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(content as unknown as ExcelJS.Buffer);
-  const sheets = workbook.worksheets.map((worksheet) => {
-    const matrix: string[][] = [];
-    const formulaCells: string[] = [];
-    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      const values: string[] = [];
-      for (let column = 1; column <= row.cellCount; column += 1) {
-        const cell = row.getCell(column);
-        const value = cell.value;
-        if (value && typeof value === "object" && "formula" in value) formulaCells.push(`${worksheet.name}!${cell.address}`);
-        values.push(sanitizeSpreadsheetText(cellText(cell, {})));
-      }
-      matrix[rowNumber - 1] = values;
-    });
-    return previewSheet(worksheet.name, matrix, formulaCells);
-  });
-  return { kind, sheets };
-}
-
-async function parseDocument(content: Buffer, kind: "xlsx" | "csv", mapping: ColumnMapping) {
-  if (kind === "csv") {
-    const records = parseCsv(content, { bom: true, relax_column_count: true, skip_empty_lines: true }) as unknown[][];
-    const matrix = records.map((record) => record.map((value) => {
-      const raw = String(value ?? "");
-      return sanitizeSpreadsheetText(raw);
-    }));
-    const formulaRows: Record<number, Record<string, string>> = {};
-    records.forEach((record, rowIndex) => record.forEach((value, columnIndex) => {
-      const raw = String(value ?? "");
-      if (/^[=+\-@]/.test(raw)) (formulaRows[rowIndex + 1] ??= {})[`${columnIndex + 1}`] = raw;
-    }));
-    return fromMatrix("CSV", matrix, mapping, formulaRows);
-  }
-  await validateXlsxArchive(content);
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(content as unknown as ExcelJS.Buffer);
-  const worksheet = mapping.sheet ? workbook.getWorksheet(mapping.sheet) : workbook.worksheets[0];
-  if (!worksheet) throw new Error("SHEET_NOT_FOUND");
-  const matrix: string[][] = [];
-  const formulas: Record<number, Record<string, string>> = {};
-  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    const rowFormulas: Record<string, string> = {};
-    const values: string[] = [];
-    for (let column = 1; column <= row.cellCount; column += 1) values.push(cellText(row.getCell(column), rowFormulas));
-    matrix[rowNumber - 1] = values;
-    if (Object.keys(rowFormulas).length) formulas[rowNumber] = rowFormulas;
-  });
-  return fromMatrix(worksheet.name, matrix, mapping, formulas);
-}
+export { inspectDocument } from "./spreadsheet-runner";
+export type { DocumentPreview, PreviewSheet } from "./spreadsheet-parser";
+import { parseDocument } from "./spreadsheet-runner";
 
 async function updateRun(runId: string, companyId: string, values: Partial<typeof documentProcessingRuns.$inferInsert>) {
   await db.update(documentProcessingRuns).set({ ...values, updatedAt: new Date() }).where(and(eq(documentProcessingRuns.id, runId), eq(documentProcessingRuns.companyId, companyId)));
@@ -183,7 +41,8 @@ async function processIfcSmartCheckDocument(payload: {
   filePath?: string;
 }) {
   const { companyId, documentId, processingRunId, originalFileName, checksumSha256, content, filePath } = payload;
-  const engine = (process.env.SMARTCHECK_IFC_ENGINE || "legacy").toLowerCase();
+  const engine = (process.env.SMARTCHECK_IFC_ENGINE || (process.env.NODE_ENV === "production" ? "ifcopenshell" : "legacy")).toLowerCase();
+  if (process.env.NODE_ENV === "production" && engine !== "ifcopenshell") throw new Error("IFC_PRODUCTION_ENGINE_REQUIRED");
   const storage = createStorageAdapter();
 
   let artifact: ReturnType<typeof buildIfcSmartCheckEvidenceFromContent>;

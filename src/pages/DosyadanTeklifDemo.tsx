@@ -1,3 +1,4 @@
+import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
 import React, { useState, useCallback } from 'react';
 import { Upload, CheckCircle2, ChevronRight, FileText, Calculator, FileCheck2, Loader2, FileCode, AlertTriangle, Box } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +28,11 @@ export function DosyadanTeklifDemo() {
   });
 
   const handleFileUpload = (file: File) => {
+    if (!canPreviewIfcInBrowser(file.size)) {
+      toast.warning('Tarayıcı önizleme sınırı 25 MB. Büyük IFC dosyanızı SmartCheck üzerinden yükleyin.');
+      navigate('/app/smartcheck');
+      return;
+    }
     if (!file.name.toLowerCase().endsWith('.ifc')) {
       toast.error('Şimdilik sadece geçerli bir .ifc uzantılı dosya desteklenmektedir.');
       return;
@@ -36,6 +42,7 @@ export function DosyadanTeklifDemo() {
     setIsProcessing(true);
 
     const reader = new FileReader();
+    reader.onerror = () => { setIsProcessing(false); toast.error('Dosya okunamadı.'); };
     reader.onload = (e) => {
       const text = e.target?.result as string;
       setTimeout(() => {
@@ -124,7 +131,7 @@ export function DosyadanTeklifDemo() {
     <div className="p-8 max-w-5xl mx-auto text-zinc-100">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Dosyadan Teklif Oluştur</h1>
-        <p className="text-zinc-400">Tek tıkla IFC dosyalarınızdan metraj çıkarıp teklif hazırlayın.</p>
+        <p className="text-zinc-400">25 MB’a kadar IFC ön incelemesi. Büyük dosyalar için SmartCheck kullanın; miktarlar teknik onay, örnek fiyatlar doğrulama bekler.</p>
       </div>
 
       <StepIndicator />

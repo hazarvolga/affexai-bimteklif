@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, RequestHandler } from "express";
 import { z } from "zod";
 import { registry } from "../../lib/plugins/registry";
 import { AIService } from "../../services/ai/aiService";
@@ -19,6 +19,11 @@ const improveQuotationSchema = z.object({
   items: z.array(z.record(z.unknown())).max(200),
   instructions: z.string().min(1).max(2048),
 });
+
+const validateBeforeReservation = (schema: z.ZodTypeAny): RequestHandler => (req, res, next) => {
+  if (!schema.safeParse(req.body).success) return res.status(400).json({ error: 'Geçersiz AI isteği.' });
+  next();
+};
 
 export function registerAiRoutes(app: Express, aiService: AIService, canMutate: any) {
   const aiRateLimit = async (req: any, res: any, next: any) => {
@@ -45,7 +50,7 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 
-  app.post("/api/ai/generate-quotation", authenticate, aiRateLimit, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/generate-quotation", authenticate, aiRateLimit, canMutate, validateBeforeReservation(generateQuotationSchema), usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     const parsed = generateQuotationSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "Geçersiz veya 4096 karakterden uzun açıklama." });
     try {
@@ -67,7 +72,7 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 
-  app.post("/api/ai/improve-quotation", authenticate, aiRateLimit, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/improve-quotation", authenticate, aiRateLimit, canMutate, validateBeforeReservation(improveQuotationSchema), usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     const parsed = improveQuotationSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "Geçersiz kalemler (maks 200) veya 2048 karakterden uzun talimat." });
     try {
@@ -79,7 +84,7 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     }
   });
 
-  app.post("/api/ai/generate-quote", authenticate, aiRateLimit, canMutate, usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
+  app.post("/api/ai/generate-quote", authenticate, aiRateLimit, canMutate, validateBeforeReservation(detectIndustrySchema), usageTracker("AI_QUOTATION_GENERATED"), async (req, res) => {
     const parsed = detectIndustrySchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "Geçersiz veya 4096 karakterden uzun açıklama." });
     try {

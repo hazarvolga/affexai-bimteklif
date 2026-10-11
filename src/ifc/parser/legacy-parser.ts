@@ -4,15 +4,27 @@ import { extractIfcStoreyContainment } from "./spatial-extractor";
 import { extractElementPozNo, extractProjectComplianceData } from "./tr-pset-csb-extractor";
 import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "../types";
 
+function selectQuantities<T extends { stepId: string; quantityName: string; normalizedValue: number; sourcePath: string }>(items: T[]) {
+  const result = new Map<string, T>();
+  for (const item of [...items].sort((a,b) => Number(!/net/i.test(a.quantityName)) - Number(!/net/i.test(b.quantityName)) || a.sourcePath.localeCompare(b.sourcePath))) {
+    if (!result.has(item.stepId)) result.set(item.stepId, item);
+  }
+  return result;
+}
+
 export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   const lines = ifcText.split("\n");
   const elements: ParsedIfcElement[] = [];
-  const propertyQuantityByStepId = new Map(
-    extractAllplanVolumeQuantities(ifcText).quantities.map((quantity) => [quantity.stepId, quantity]),
-  );
-  const qtoQuantityByStepId = new Map(
-    extractIfcQtoVolumeQuantities(ifcText).quantities.map((quantity) => [quantity.stepId, quantity]),
-  );
+  const properties = extractAllplanVolumeQuantities(ifcText).quantities;
+  const qtos = extractIfcQtoVolumeQuantities(ifcText).quantities;
+  const candidatesByStepId = new Map<string, Array<{ normalizedValue: number; sourcePath: string }>>();
+  for (const quantity of [...qtos, ...properties]) {
+    const existing = candidatesByStepId.get(quantity.stepId);
+    if (existing) existing.push(quantity);
+    else candidatesByStepId.set(quantity.stepId, [quantity]);
+  }
+  const propertyQuantityByStepId = selectQuantities(properties);
+  const qtoQuantityByStepId = selectQuantities(qtos);
   const storeyByStepId = new Map(
     extractIfcStoreyContainment(ifcText).elementStoreys.map((assignment) => [assignment.elementStepId, assignment]),
   );
@@ -79,6 +91,13 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       smartCheckNote = qtoQuantity
         ? `${qtoQuantity.quantityName} ${qtoQuantity.quantitySetName} QTO kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`
         : `${propertyQuantity?.quantityName} ${propertyQuantity?.propertySetName} property kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`;
+    }
+
+    if (explicitQuantity) {
+      const candidates = candidatesByStepId.get(stepId) ?? [];
+      if (candidates.some(q => Math.abs(q.normalizedValue - volumeM3) > Math.max(1e-8, Math.abs(volumeM3) * 1e-6))) {
+        smartCheckNote += ` | IFC_QUANTITY_CONFLICT: ${candidates.map(q => `${q.sourcePath}=${q.normalizedValue} m3`).sort().join('; ')}`;
+      }
     }
 
     const storeyAssignment = storeyByStepId.get(stepId);

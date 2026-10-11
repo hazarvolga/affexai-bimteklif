@@ -1,7 +1,8 @@
 import { AuthService } from "../../services/auth/authService";
 import { db } from "../../db";
-import { memberships, subscriptions, users } from "../../db/schema";
-import { and, eq } from "drizzle-orm";
+import { adminAuditLogs, memberships, subscriptions, users } from "../../db/schema";
+import { and, eq, sql } from "drizzle-orm";
+import { hashActionToken } from "../auth/security";
 import { z } from "zod";
 
 declare global {
@@ -16,6 +17,7 @@ declare global {
         isSuperAdmin?: boolean;
         impersonatedBy?: string;
         readOnly?: boolean;
+        impersonationTokenHash?: string;
       };
     }
   }
@@ -26,6 +28,7 @@ type AuthMembership = Pick<typeof memberships.$inferSelect, "role">;
 type AuthDependencies = {
   findUser(userId: string): Promise<AuthUser | undefined>;
   findMembership(userId: string, companyId: string): Promise<AuthMembership | undefined>;
+  isImpersonationRevoked?(tokenHash: string): Promise<boolean>;
 };
 
 const sessionClaims = z.object({
@@ -37,6 +40,13 @@ const sessionClaims = z.object({
 });
 
 const authDependencies: AuthDependencies = {
+  async isImpersonationRevoked(tokenHash) {
+    const rows = await db.select({ id: adminAuditLogs.id }).from(adminAuditLogs).where(and(
+      eq(adminAuditLogs.action, "impersonation.ended"),
+      sql`${adminAuditLogs.details}->>'tokenHash' = ${tokenHash}`,
+    )).limit(1);
+    return rows.length > 0;
+  },
   async findUser(userId) {
     const [user] = await db.select({
       email: users.email,
@@ -64,6 +74,14 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     const user = await dependencies.findUser(userId);
     if (!user) return res.status(401).json({ error: "Invalid token" });
     if (user.passwordChangedAt && iat < Math.floor(user.passwordChangedAt.getTime() / 1000)) return res.status(401).json({ error: "Session expired" });
+    const impersonationTokenHash = impersonatedBy ? hashActionToken(token) : undefined;
+    if (impersonatedBy) {
+      const admin = await dependencies.findUser(impersonatedBy);
+      if (!admin?.isSuperAdmin || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000))
+          || !dependencies.isImpersonationRevoked || await dependencies.isImpersonationRevoked(impersonationTokenHash!)) {
+        return res.status(401).json({ error: "Impersonation session expired" });
+      }
+    }
 
     // Tenant roles are live DB authority, never claims carried over from the JWT.
     const membership = companyId ? await dependencies.findMembership(userId, companyId) : undefined;
@@ -76,11 +94,13 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       emailVerified: user.emailVerified,
       isSuperAdmin: user.isSuperAdmin,
       impersonatedBy,
-      readOnly,
+      readOnly: impersonatedBy ? readOnly ?? true : readOnly,
+      impersonationTokenHash,
     };
 
     // Impersonation read-only guard: block mutating methods
-    if (req.user.impersonatedBy && req.user.readOnly && !["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    const isImpersonationExit = req.method === "POST" && req.originalUrl?.split("?")[0] === "/api/auth/impersonate/exit";
+    if (req.user.impersonatedBy && req.user.readOnly && !isImpersonationExit && !["GET", "HEAD", "OPTIONS"].includes(req.method)) {
       return res.status(403).json({ error: "Salt-okunur impersonate modundasınız. Değişiklik yapılamaz.", code: "IMPERSONATION_READ_ONLY" });
     }
 

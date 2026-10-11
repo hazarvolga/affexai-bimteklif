@@ -6,6 +6,8 @@ import { RegulatoryIntelligenceService } from "../../services/regulations/regula
 import { findRegulationQuotationImpact } from "../regulations/impact";
 import { authenticate, checkRole } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
+import { reserveAiUsage } from '../../services/billing/ai-quota';
+import { QuotaError } from '../../services/billing/quota-policy';
 
 export function registerRegulationRoutes(app: Express, regulatoryService: RegulatoryIntelligenceService, canMutate: any) {
   app.get("/api/regulations/alerts", authenticate, async (req, res) => {
@@ -55,6 +57,7 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
 
   app.post("/api/regulations/sync", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     try {
+      await reserveAiUsage(req.user.companyId, req.user.userId);
       const newAlerts = await regulatoryService.crawlAndAnalyze();
 
       if (newAlerts && newAlerts.length > 0) {
@@ -68,6 +71,7 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
 
       res.json({ message: "Sync successful", count: newAlerts.length });
     } catch (error) {
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       console.error("Regulatory sync failed:", error);
       res.status(500).json({ error: "Failed to sync regulations" });
     }
@@ -86,9 +90,11 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
 
       if (!quote || !alert) return res.status(404).json({ error: "Quote or Alert not found" });
 
+      await reserveAiUsage(req.user.companyId, req.user.userId);
       const impact = await regulatoryService.checkQuotationImpact(quote, alert as any);
       res.json(impact);
     } catch (error) {
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       res.status(500).json({ error: "Impact analysis failed" });
     }
   });

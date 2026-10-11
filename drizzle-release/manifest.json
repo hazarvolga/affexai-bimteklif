@@ -36,6 +36,13 @@
       "sha256": "91226dadbd2bc002e8a1f8a71e88cbed6cac99edc74b09408316a161bb4f30d2",
       "snapshotSha256": "2484253ecf85ca1b8177974d12471606d3db8fad0e0670ead2f179785794dceb",
       "statements": 1
+    },
+    {
+      "idx": 5,
+      "tag": "0005_regional_pricing_sources",
+      "sha256": "9aaa1793724cde5bcfcf37c0cc322780619a36e70ca769bcc42caf8d0f099828",
+      "snapshotSha256": "df0bf9d804db9072ee7e4ee01f47c1bbf9e41ef84436ec6b26848d27ccfb00a5",
+      "statements": 14
     }
   ]
 }

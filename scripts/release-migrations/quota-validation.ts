@@ -31,7 +31,7 @@ export async function verifyQuotaMigration(client: pg.Client, migrations: Migrat
     // Remove only this test's synthetic rows after proving no migration repaired them.
     await client.query(`delete from ${fixture.table} where id = any($1::uuid[])`, [inserted.map(row => row.id)]);
   }
-  assert.deepEqual(await applyMigrations(client, migrations), ['0002_quota_constraints']);
+  assert.deepEqual(await applyMigrations(client, migrations), migrations.slice(2).map(m => m.tag));
   for (const fixture of cases) {
     await assert.rejects(client.query(fixture.sql), { code: fixture.code, constraint: fixture.constraint });
   }

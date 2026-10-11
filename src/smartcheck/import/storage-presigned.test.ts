@@ -9,8 +9,9 @@ test("S3 Presigned URL - Content-Length and Expiry (P1-4)", async (t) => {
     assert.equal(uploadUrlExpirySeconds({}), 86400);
     assert.equal(uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: "3600" }), 3600);
     assert.equal(uploadUrlExpirySeconds({ SMARTCHECK_UPLOAD_URL_EXPIRY_SECONDS: "7200" }), 7200);
-    assert.equal(uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: "invalid" }), 86400);
-    assert.equal(uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: "-50" }), 86400);
+    for (const invalid of ["invalid", "-50", "0", "86401", "1.5"]) {
+      assert.throws(() => uploadUrlExpirySeconds({ IFC_UPLOAD_URL_EXPIRY_SECONDS: invalid }), /UPLOAD_URL_EXPIRY_INVALID/);
+    }
   });
 
   await t.test("S3StorageAdapter.createUploadTarget signs Content-Length and sets 24h expiry", async () => {

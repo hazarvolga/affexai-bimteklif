@@ -1,5 +1,5 @@
 import { pathToFileURL } from 'node:url';
-import { connect, parseTarget } from './safety';
+import { connect, connectDeployment, parseTarget } from './safety';
 import { adoptBaseline, applyMigrations, loadMigrations } from './runner';
 import { catalog } from './catalog';
 
@@ -11,8 +11,10 @@ export async function main(args = process.argv.slice(2)) {
     console.log(JSON.stringify(migrations.map(({ statements, ...entry }) => ({ ...entry, statements: statements.length })), null, 2));
     return;
   }
-  const target = parseTarget(process.env.RELEASE_DATABASE_URL ?? '', 'target');
-  const client = await connect(target);
+  const raw = process.env.RELEASE_DATABASE_URL ?? '';
+  const client = process.env.RELEASE_ALLOW_PRODUCTION === 'true'
+    ? await connectDeployment(raw)
+    : await connect(parseTarget(raw, 'target'));
   try {
     if (mode === 'inspect') console.log(JSON.stringify(await catalog(client), null, 2));
     else if (mode === 'adopt-baseline') {

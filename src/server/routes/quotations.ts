@@ -6,6 +6,7 @@ import { manualQuotationInput, quotationStatusInput } from "../../services/quota
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
+import { PdfRenderError } from "../../services/pdf/renderer";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { QuotaError } from "../../services/billing/quota";
@@ -166,6 +167,10 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
   });
 
   app.get("/api/quotations/:id/pdf", authenticate, pdfRateLimit, canMutate, usageTracker("PDF_GENERATED"), async (req, res) => {
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    req.once('aborted', cancel);
+    res.once('close', cancel);
     try {
       const { id } = req.params;
       const { templateId } = req.query;
@@ -175,14 +180,20 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       });
       if (!quote) return res.status(404).json({ error: "Quotation not found" });
 
-      const pdfBuffer = await generateQuotationPdf(id, templateId as string, req.user.companyId, req.query.includeEvidence === "true");
+      const pdfBuffer = await generateQuotationPdf(id, templateId as string, req.user.companyId, req.query.includeEvidence === "true", controller.signal);
+      if (controller.signal.aborted || res.destroyed) return;
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=teklif-${id}.pdf`);
       res.send(pdfBuffer);
     } catch (error) {
+      if (controller.signal.aborted || res.destroyed) return;
+      if (error instanceof PdfRenderError) return res.status(error.status).set('Retry-After', '5').json({ error: 'PDF hizmeti meşgul; lütfen tekrar deneyin.', code: error.code });
       console.error("PDF Generation Error:", error);
       res.status(500).json({ error: "Failed to generate PDF" });
+    } finally {
+      req.removeListener('aborted', cancel);
+      res.removeListener('close', cancel);
     }
   });
 }

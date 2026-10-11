@@ -25,3 +25,10 @@ describe('production environment preflight', () => {
     assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ENDPOINT: 'http://s3.example.com' }).valid, false);
   });
 });
+
+it('explicit disabled email permits production startup while default webhook remains fail closed', () => {
+  const base = { NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://app.example.test' };
+  assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_DELIVERY_MODE: 'disabled' }).valid, true);
+  assert.equal(validateProductionEnvironment(base).valid, false);
+  assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_DELIVERY_MODE: 'typo' }).valid, false);
+});

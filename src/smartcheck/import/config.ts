@@ -2,6 +2,7 @@ import path from "node:path";
 import { asc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { plans, subscriptions } from "../../db/schema";
+import { readIfcEnvironmentLimits } from "../../server/config/ifc-limits";
 
 export const SMARTCHECK_MAX_SPREADSHEET_FILE_BYTES = 25 * 1024 * 1024;
 export const SMARTCHECK_MAX_IFC_FILE_BYTES = 100 * 1024 * 1024;
@@ -49,19 +50,10 @@ export interface TenantIfcLimits {
   monthlyLimit: number | null;
 }
 
-function getEnvIfcLimits(overrides?: Partial<TenantIfcLimits>): TenantIfcLimits {
-  const envMaxMb = parseInt(process.env.SMARTCHECK_MAX_IFC_FILE_MB || "100", 10);
-  const envMaxConcurrent = parseInt(process.env.SMARTCHECK_IFC_MAX_CONCURRENT || "2", 10);
-  const envMonthly = process.env.SMARTCHECK_IFC_MONTHLY_LIMIT ? parseInt(process.env.SMARTCHECK_IFC_MONTHLY_LIMIT, 10) : null;
-  return {
-    maxFileBytes: overrides?.maxFileBytes ?? envMaxMb * 1024 * 1024,
-    maxConcurrent: overrides?.maxConcurrent ?? envMaxConcurrent,
-    monthlyLimit: overrides?.monthlyLimit !== undefined ? overrides.monthlyLimit : envMonthly,
-  };
-}
-
 export async function fetchTenantIfcLimits(companyId: string, tx?: any): Promise<TenantIfcLimits> {
-  const envLimits = getEnvIfcLimits();
+  let envLimits: TenantIfcLimits;
+  try { envLimits = readIfcEnvironmentLimits(); }
+  catch { throw new IfcLimitsUnavailableError(); }
   const envMaxMb = Math.floor(envLimits.maxFileBytes / (1024 * 1024));
   const envMaxConcurrent = envLimits.maxConcurrent;
   const envMonthly = envLimits.monthlyLimit;
@@ -156,6 +148,10 @@ export async function fetchTenantIfcLimits(companyId: string, tx?: any): Promise
     effectiveMonthly = envMonthly;
   }
 
+  if (![effectiveMb, effectiveConcurrent].every(value => Number.isSafeInteger(value) && value > 0)
+      || (effectiveMonthly !== null && (!Number.isSafeInteger(effectiveMonthly) || effectiveMonthly < 0))) {
+    throw new IfcLimitsUnavailableError();
+  }
   return {
     maxFileBytes: effectiveMb * 1024 * 1024,
     maxConcurrent: effectiveConcurrent,

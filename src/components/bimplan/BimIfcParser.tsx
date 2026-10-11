@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
 import React, { useState, useMemo } from 'react';
 import { 
   FileCode, 
@@ -78,8 +80,8 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       formworkM2: parseFloat((vol * 4.4).toFixed(2)),
       rebarKg: rebar,
       quantitySource: 'estimate',
-      smartCheckStatus: i % 7 === 0 ? 'warning' : 'pass',
-      smartCheckNote: i % 7 === 0 ? 'Donatı bindirme boyu Eurocode 2 kontrolü gerektirir' : 'Eurocode 2 & TS 708 %100 Uyumlu'
+      smartCheckStatus: 'review',
+      smartCheckNote: 'Sentetik demo verisi; model veya standart uygunluğu doğrulanmamıştır.'
     });
   }
 
@@ -98,8 +100,8 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       formworkM2: parseFloat((vol * 5.2).toFixed(2)),
       rebarKg: rebar,
       quantitySource: 'estimate',
-      smartCheckStatus: 'pass',
-      smartCheckNote: 'TS 708 Nominal Kütle Doğrulaması Başarılı'
+      smartCheckStatus: 'review',
+      smartCheckNote: 'Sentetik demo verisi; model veya standart uygunluğu doğrulanmamıştır.'
     });
   }
 
@@ -118,8 +120,8 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       formworkM2: parseFloat((vol / 0.18).toFixed(2)),
       rebarKg: rebar,
       quantitySource: 'estimate',
-      smartCheckStatus: 'pass',
-      smartCheckNote: 'Net kalıp ve boşluk minha hesabı yapıldı'
+      smartCheckStatus: 'review',
+      smartCheckNote: 'Sentetik demo verisi; model veya standart uygunluğu doğrulanmamıştır.'
     });
   }
 
@@ -138,8 +140,8 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       formworkM2: parseFloat((vol * 6.0).toFixed(2)),
       rebarKg: rebar,
       quantitySource: 'estimate',
-      smartCheckStatus: 'pass',
-      smartCheckNote: 'TS 500 Perde Donatı Oranı Uyumlu'
+      smartCheckStatus: 'review',
+      smartCheckNote: 'Sentetik demo verisi; model veya standart uygunluğu doğrulanmamıştır.'
     });
   }
 
@@ -161,8 +163,8 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
       rebarKg,
       rebarDiameterMm: d,
       quantitySource: 'estimate',
-      smartCheckStatus: 'pass',
-      smartCheckNote: `TS 708 ∅${d} nominal kütle formülü doğrulandı`
+      smartCheckStatus: 'review',
+      smartCheckNote: 'Sentetik demo verisi; model veya standart uygunluğu doğrulanmamıştır.'
     });
   });
 
@@ -174,6 +176,7 @@ export interface BimIfcParserProps {
 }
 
 export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
+  const navigate = useNavigate();
   const [fileName, setFileName] = useState<string | null>(null);
   const [isParsing, setIsParsing] = useState<boolean>(false);
   const [parsedData, setParsedData] = useState<{ elements: ParsedIfcElement[]; summary: IfcParseSummary } | null>(null);
@@ -200,6 +203,11 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
   // Handle Drag & Drop or File Select
   const handleFileUpload = (file: File) => {
+    if (!canPreviewIfcInBrowser(file.size)) {
+      toast.warning('Tarayıcı önizleme sınırı 25 MB. Büyük IFC dosyanızı SmartCheck üzerinden yükleyin.');
+      navigate('/app/smartcheck');
+      return;
+    }
     if (!file.name.toLowerCase().endsWith('.ifc')) {
       toast.error('Lütfen geçerli bir .ifc uzantılı openBIM dosyası seçin.');
       return;
@@ -209,10 +217,13 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
     setIsParsing(true);
 
     const reader = new FileReader();
+    reader.onerror = () => { setIsParsing(false); toast.error('Dosya okunamadı.'); };
     reader.onload = (e) => {
       const text = e.target?.result as string;
       setTimeout(() => {
-        const result = parseIfcText(text);
+        let result;
+        try { result = parseIfcText(text); }
+        catch { setIsParsing(false); toast.error('IFC ayrıştırılamadı.'); return; }
         setParsedData(result);
         setIsParsing(false);
         if (result.summary.parseStatus === 'failed') {
@@ -231,14 +242,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
     const demo = DEMO_IFC_DATASETS.find(d => d.id === demoId);
     if (!demo) return;
 
-    setFileName(`${demo.title} (${demo.source})`);
+    setFileName(`SENTETİK DEMO — ${demo.title}`);
     setIsParsing(true);
 
     setTimeout(() => {
       const result = generateSyntheticIfcDataset();
       setParsedData(result);
       setIsParsing(false);
-      toast.success(`${demo.title} başarıyla yüklendi ve ayrıştırıldı!`);
+      toast.warning('Sentetik demo gösteriliyor; gerçek IFC dosyası işlenmedi.');
     }, 500);
   };
 

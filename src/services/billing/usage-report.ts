@@ -3,6 +3,7 @@ import { db } from "../../db";
 import { plans, subscriptions, usageLogs, usageRecords } from "../../db/schema";
 import { PLAN_LIMITS } from "./limits";
 import { describeQuotationAllowance, quotaUnavailable } from "./quota-policy";
+import { AI_USAGE_FEATURE, aiMonthlyLimit } from './ai-quota';
 
 export async function readBillingUsage(companyId: string, at?: Date) {
   return db.transaction(async tx => {
@@ -24,13 +25,19 @@ export async function readBillingUsage(companyId: string, at?: Date) {
     const reason = allowance.reason ?? (allowance.limit !== null && current >= allowance.limit ? "QUOTA_EXCEEDED" : null);
     const usage = Object.keys(PLAN_LIMITS.starter).map(feature => {
       const stat = stats.find(row => row.feature === feature);
-      const enforced = feature === "QUOTATION_CREATED";
+      const isQuote = feature === "QUOTATION_CREATED";
+      const isAi = feature === AI_USAGE_FEATURE;
+      const enforced = isQuote || isAi;
+      const featureCurrent = isQuote ? current : Number(stat?.count ?? 0);
+      const featureLimit = isQuote ? allowance.limit : isAi && subscription ? aiMonthlyLimit(subscription.plan) : legacyLimits?.[feature as keyof typeof PLAN_LIMITS.starter] ?? null;
+      const featureReason = isQuote ? reason : allowance.reason ?? (featureLimit !== null && featureCurrent >= featureLimit ? 'AI_QUOTA_EXCEEDED' : null);
       return {
-        feature, current: enforced ? current : Number(stat?.count ?? 0),
-        limit: enforced ? allowance.limit : legacyLimits?.[feature as keyof typeof PLAN_LIMITS.starter] ?? null,
+        feature, current: featureCurrent,
+        limit: featureLimit,
         cost: Number(stat?.cost ?? 0), enforced,
-        source: enforced ? "usage_records" : "usage_logs",
-        ...(enforced ? { available: reason === null, reason, remaining: reason === null ? Math.max(0, allowance.limit! - current) : 0 } : {}),
+        source: isQuote ? "usage_records" : "usage_logs",
+        ...(isAi ? { countingPolicy: 'provider_attempts_reserved_before_execution' } : {}),
+        ...(enforced ? { available: featureReason === null, reason: featureReason, remaining: featureReason === null ? Math.max(0, featureLimit! - featureCurrent) : 0 } : {}),
       };
     });
     return {

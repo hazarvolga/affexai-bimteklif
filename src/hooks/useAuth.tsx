@@ -121,16 +121,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await fetch('/api/auth/impersonate/exit', {
+        const response = await fetch('/api/auth/impersonate/exit', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
+        if (!response.ok && response.status !== 401) throw new Error('Impersonation revocation failed');
       }
     } catch (e) {
       console.error('Failed to notify impersonation exit:', e);
+      toast.error('Oturum sunucuda sonlandırılamadı. Lütfen tekrar deneyin.');
+      return;
     }
     const backup = localStorage.getItem('admin_session_backup');
     if (backup) {

@@ -6,6 +6,8 @@ import { CRMIntelligenceService } from "../../services/crm/crmService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { activityInput, dealIdInput, dealInput, leadInput, stageInput } from '../../services/crm/input';
+import { reserveAiUsage } from '../../services/billing/ai-quota';
+import { QuotaError } from '../../services/billing/quota-policy';
 
 export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceService, canMutate: any) {
   app.get('/api/crm/deals/:id', authenticate, async (req, res) => {
@@ -172,6 +174,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
         where: eq(quotationFinancials.quotationId, deal.quotationId)
       });
 
+      await reserveAiUsage(req.user.companyId, req.user.userId);
       const analysis = await crmService.analyzeDeal(deal, { ...quote, items: qItems }, financials);
 
       await db.update(deals)
@@ -185,6 +188,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
 
       res.json(analysis);
     } catch (error) {
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       console.error(error);
       res.status(500).json({ error: "Deal analysis failed" });
     }

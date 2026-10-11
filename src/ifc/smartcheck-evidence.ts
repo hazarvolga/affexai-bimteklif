@@ -101,6 +101,10 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
 
 function buildFindings(element: ParsedIfcElement, validationFindings: Finding[]): Finding[] {
   const findings = [...validationFindings];
+  if (element.smartCheckNote?.includes("IFC_QUANTITY_CONFLICT")) {
+    findings.push({ code: "IFC_QUANTITY_CONFLICT", severity: "high", message: element.smartCheckNote,
+      ruleVersion: "ifc-evidence-v1", suggestion: "Net/gross ve alternatif miktar kaynaklarını inceleyip ölçüm esasını doğrulayın." });
+  }
   if (element.storeySource !== "ifc_spatial") {
     findings.push({
       code: "IFC_SPATIAL_SOURCE_MISSING",

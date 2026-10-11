@@ -155,3 +155,28 @@ Rules:
 Owner: product owner + platform architect
 Date: 2026-07-24
 Status: accepted
+
+
+## 2026-10-11 — IFC units and upload lifetime safety boundary
+
+- IFC quantities use the declared quantity/property Unit first, otherwise the
+  matching project VOLUMEUNIT/AREAUNIT/MASSUNIT/LENGTHUNIT. Never derive declared
+  volume/area units from LENGTHUNIT. Conversion-based units resolve recursively
+  with type/cycle guards.
+- Missing project dimensions are resolved lazily: a volume-only model does not
+  require MASSUNIT. A quantity with an explicit Unit remains supported even if
+  that dimension is absent from the project's defaults. Reading a quantity with
+  neither explicit nor matching declared project unit fails closed.
+- Compatibility limitation remains: models with no unit assignment anywhere
+  retain the legacy SI default. This is not evidence of author intent or IFC
+  conformance; do not promote such data to verified quantities. A later strict
+  admission change must explicitly reject these models or require a recorded
+  reviewer unit decision; do not silently reinterpret historical imports.
+- Net quantities take precedence over gross independently of STEP ordering;
+  conflicting alternatives retain source paths and trigger IFC_QUANTITY_CONFLICT
+  for human review. Derived formwork and reinforcement remain outside admitted
+  quantity rows.
+- Upload URL configuration is an integer between 1 and 86400 seconds. Invalid
+  values fail closed, rather than silently falling back to 24 hours. Pending
+  uploads consume tenant storage/document quotas until safe cleanup after the
+  maximum URL lifetime plus one-hour grace; completed data is never TTL-deleted.

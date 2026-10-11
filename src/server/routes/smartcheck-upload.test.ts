@@ -46,7 +46,7 @@ test("SmartCheck Complete Upload Checks", { timeout: 30_000 }, async (t) => {
     const [doc] = await db.insert(schema.documents).values({
       companyId: company.id, uploadedByUserId: user.id,
       originalFileName, displayName: originalFileName, mimeType: 'application/octet-stream',
-      fileSizeBytes: size, storageKey: key, checksumSha256: expectedHash
+      fileSizeBytes: size, storageKey: key, checksumSha256: "pending"
     }).returning();
     
     // Write the actual real file size/hash
@@ -71,7 +71,7 @@ test("SmartCheck Complete Upload Checks", { timeout: 30_000 }, async (t) => {
     await t.test("limit overrun for IFC is rejected with 400", async () => {
     const { SMARTCHECK_MAX_IFC_FILE_BYTES: limit } = await import('../../smartcheck/import/config');
     const { doc, key } = await mockUpload(limit + 10, 'a'.repeat(64), 'test.ifc', limit + 10, 'realhash');
-    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: doc.checksumSha256 }) });
+    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: "a".repeat(64) }) });
     assert.strictEqual(res.status, 400);
     const body = await res.json();
     assert.strictEqual(body.error, "Dosya boyutu geçersiz.");
@@ -84,7 +84,7 @@ test("SmartCheck Complete Upload Checks", { timeout: 30_000 }, async (t) => {
     
     await adapter.put(key, realContent, 'text/csv');
     
-    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: doc.checksumSha256 }) });
+    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: "b".repeat(64) }) });
     console.log('RES STATUS', res.status); const b = await res.json(); console.log('RES BODY', b); assert.strictEqual(res.status, 422);
     
     const freshDoc = await db.select().from(schema.documents).where((await import('drizzle-orm')).eq(schema.documents.id, doc.id)).then(r => r[0]);
@@ -114,9 +114,12 @@ test("SmartCheck Complete Upload Checks", { timeout: 30_000 }, async (t) => {
     };
     
     await adapter.put(key, realContent, 'text/csv');
-    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: doc.checksumSha256 }) });
+    const res = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: realHash }) });
     if (oldGetStream) adapter.getStream = oldGetStream;
     assert.strictEqual(res.status, 200);
+    const replay = await fetch(`/api/smartcheck/documents/${doc.id}/complete`, { method: "POST", headers: { ...reqAuth, "Content-Type": "application/json" }, body: JSON.stringify({ checksumSha256: "f".repeat(64) }) });
+    assert.equal(replay.status, 409);
+    assert.deepEqual(await adapter.get(key), realContent, "completed evidence is immutable on replay");
   });
 
   await t.test("file signature mismatch (corrupt IFC header) is rejected with 400, doc marked failed, and file deleted", async () => {

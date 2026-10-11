@@ -5,6 +5,8 @@ import { costComponents, quotationFinancials, quotationItems, quotations } from 
 import { ProfitService } from "../../services/financials/profitService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
+import { reserveAiUsage } from "../../services/billing/ai-quota";
+import { QuotaError } from "../../services/billing/quota-policy";
 
 export function registerProfitRoutes(app: Express, profitService: ProfitService, canMutate: any) {
   app.post("/api/profit/calculate", authenticate, canMutate, usageTracker("PROFIT_ANALYSIS_RUN"), async (req, res) => {
@@ -22,7 +24,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
         escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
         carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
         informationDeliveryCostPercent: Number(quote.informationDeliveryCostPercent),
-      });
+      }, () => reserveAiUsage(req.user.companyId, req.user.userId));
 
       await db.insert(quotationFinancials).values({
         quotationId,
@@ -67,6 +69,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
 
       res.json(analysis);
     } catch (error) {
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       console.error(error);
       res.status(500).json({ error: "Financial analysis failed" });
     }

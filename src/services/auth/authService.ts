@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 
 function jwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -29,7 +30,7 @@ export class AuthService {
     impersonatedBy: string;
     readOnly?: boolean;
   }): string {
-    return jwt.sign(payload, jwtSecret(), { expiresIn: "15m", algorithm: "HS256" });
+    return jwt.sign({ ...payload, readOnly: payload.readOnly ?? true }, jwtSecret(), { expiresIn: "15m", algorithm: "HS256", jwtid: randomUUID() });
   }
 
   static verifyToken(token: string): any {

@@ -1,3 +1,6 @@
+import { cleanupExpiredPendingUploads, startPendingUploadCleanup } from "./upload-cleanup";
+import { createStorageAdapter } from "./storage";
+import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "../../server/config/production";
 import { run } from "graphile-worker";
 import { processSmartCheckDocument } from "./processor";
 import { graphileWorkerSchema } from "./config";
@@ -8,16 +11,24 @@ export const workerTaskList = {
 };
 
 export async function startWorker() {
+  assertProductionEnvironment();
+  if (process.env.NODE_ENV === "production" && !validateSmartcheckStorageEnvironment().valid) throw new Error("INVALID_WORKER_STORAGE");
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
 
-  return run({
+  const concurrency = Number(process.env.SMARTCHECK_WORKER_CONCURRENCY || "2");
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 2) throw new Error("INVALID_WORKER_CONCURRENCY");
+  const runner = await run({
     connectionString,
     schema: graphileWorkerSchema(),
-    concurrency: parseInt(process.env.SMARTCHECK_WORKER_CONCURRENCY || "2", 10),
+    concurrency,
+    maxPoolSize: concurrency + 2,
     pollInterval: 1000,
     taskList: workerTaskList,
   });
+  const cleanup = startPendingUploadCleanup(() => cleanupExpiredPendingUploads(createStorageAdapter()), () => console.error("Pending upload cleanup failed"));
+  void runner.promise.then(() => cleanup.stop(), () => cleanup.stop());
+  return runner;
 }
 
 const isDirectRun = Boolean(

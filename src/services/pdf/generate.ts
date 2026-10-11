@@ -7,7 +7,7 @@ import { templates, PdfData } from './templates';
 /**
  * Professional PDF Generation Engine
  */
-export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction", companyId?: string, includeEvidence = false): Promise<Buffer> {
+export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction", companyId?: string, includeEvidence = false, signal?: AbortSignal): Promise<Buffer> {
   // 1. Fetch Data
   const quote = await db.query.quotations.findFirst({
     where: companyId
@@ -75,5 +75,5 @@ export async function generateQuotationPdf(quotationId: string, templateId: stri
   const html = template.htmlTemplate(pdfData);
 
   // 4. Generate PDF
-  return renderPdf(html);
+  return renderPdf(html, { signal });
 }

@@ -1,3 +1,6 @@
+import { validateAuthEmailEnvironment } from "../auth/email-policy";
+import { uploadQuotaLimits } from "../../smartcheck/import/upload-quota";
+import { readIfcEnvironmentLimits } from './ifc-limits';
 type Env = Record<string, string | undefined>;
 
 const placeholderSecret = (value: string) => /^(change-me|super-secret|secret|password)/i.test(value.trim());
@@ -18,11 +21,13 @@ export function validateSmartcheckStorageEnvironment(env: Env = process.env) {
 export function validateProductionEnvironment(env: Env = process.env) {
   const errors: string[] = [];
   if (env.NODE_ENV !== 'production') return { valid: true, errors, trustProxyHops: 0 };
+  try { readIfcEnvironmentLimits(env); }
+  catch (error) { errors.push(error instanceof Error ? error.message : 'INVALID_IFC_LIMIT'); }
+  try { uploadQuotaLimits(env); } catch { errors.push('UPLOAD_QUOTA_CONFIG_INVALID'); }
   if (!env.DATABASE_URL) errors.push('DATABASE_URL is required.');
   if (!env.JWT_SECRET || env.JWT_SECRET.length < 32 || placeholderSecret(env.JWT_SECRET)) errors.push('JWT_SECRET must be a non-placeholder secret of at least 32 characters.');
   if (!env.PUBLIC_APP_URL || !validHttpsUrl(env.PUBLIC_APP_URL)) errors.push('PUBLIC_APP_URL must be an absolute HTTPS URL.');
-  if (!env.AUTH_EMAIL_WEBHOOK_URL || !validHttpsUrl(env.AUTH_EMAIL_WEBHOOK_URL)) errors.push('AUTH_EMAIL_WEBHOOK_URL must be an absolute HTTPS URL.');
-  if (!env.AUTH_EMAIL_WEBHOOK_SECRET || env.AUTH_EMAIL_WEBHOOK_SECRET.length < 32 || placeholderSecret(env.AUTH_EMAIL_WEBHOOK_SECRET)) errors.push('AUTH_EMAIL_WEBHOOK_SECRET must be a non-placeholder secret of at least 32 characters.');
+  errors.push(...validateAuthEmailEnvironment(env));
   if (env.SMARTCHECK_IMPORT_ENABLED === 'true') {
     if (!env.SMARTCHECK_PILOT_COMPANY_IDS) errors.push('SMARTCHECK_PILOT_COMPANY_IDS is required when SmartCheck import is enabled in production.');
     errors.push(...validateSmartcheckStorageEnvironment(env).errors.map((error) => error.replace('when SmartCheck production storage is enabled', 'when SmartCheck import is enabled in production')));

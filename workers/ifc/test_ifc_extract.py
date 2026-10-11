@@ -87,7 +87,7 @@ def test_qto_priority_and_property_extraction():
                 "#32=IFCPROPERTYSET('0_JX4StCj7L8hBtpAcrRP5',$,'AllplanAttributes',$,(#31));\n"
                 "#33=IFCRELDEFINESBYPROPERTIES('1PROPbz1ln0cBIf0n979f2',$,$,$,(#30),#32);\n"
                 "#40=IFCCOLUMN('3333333333333333333333',$,'Kolon S-101 (No QTO)',$,$,$,$,$,.COLUMN.);\n"
-                "#50=IFCREINFORCINGBAR('4444444444444444444444',$,'Rebar Q16',$,$,$,$,$,$,16.0,$,12.0,10,$,$);\n"
+                "#50=IFCREINFORCINGBAR('4444444444444444444444',$,'Rebar Q16',$,$,$,$,$,$,0.016,$,12.0,10,$,$);\n"
                 "#60=IFCPROPERTYSINGLEVALUE('TAKS',$,IFCREAL(0.4),$);\n"
                 "#61=IFCPROPERTYSINGLEVALUE('KAKS',$,IFCREAL(1.5),$);\n"
                 "#62=IFCPROPERTYSET('5555555555555555555555',$,'TREpys_ParselOzellikSeti',$,(#60,#61));\n"
@@ -286,3 +286,85 @@ def test_formwork_m2_buildingsmart_rules():
         assert "Kalıp yok" in els["Rebar Q14"]["formworkNote"]
 
 
+
+
+def test_project_units_and_quantity_override():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import get_unit_scale_factors, extract_quantities_and_properties
+    m = ifcopenshell.file(schema='IFC4')
+    mm = m.create_entity('IfcSIUnit', UnitType='LENGTHUNIT', Prefix='MILLI', Name='METRE')
+    cubic = m.create_entity('IfcSIUnit', UnitType='VOLUMEUNIT', Name='CUBIC_METRE')
+    square = m.create_entity('IfcSIUnit', UnitType='AREAUNIT', Name='SQUARE_METRE')
+    assignment = m.create_entity('IfcUnitAssignment', Units=[mm, cubic, square])
+    m.create_entity('IfcProject', GlobalId='1111111111111111111111', UnitsInContext=assignment)
+    assert get_unit_scale_factors(m) == (0.001, 1.0, 1.0)
+    slab = m.create_entity('IfcSlab', GlobalId='2222222222222222222222')
+    qty = m.create_entity('IfcQuantityVolume', Name='NetVolume', VolumeValue=8000000000., Unit=m.create_entity('IfcSIUnit', UnitType='VOLUMEUNIT', Prefix='MILLI', Name='CUBIC_METRE'))
+    qto = m.create_entity('IfcElementQuantity', GlobalId='3333333333333333333333', Name='Qto_SlabBaseQuantities', Quantities=[qty])
+    m.create_entity('IfcRelDefinesByProperties', GlobalId='4444444444444444444444', RelatedObjects=[slab], RelatingPropertyDefinition=qto)
+    assert extract_quantities_and_properties(slab, 1., 1.)[0] == 8.
+
+
+def test_net_volume_selection_is_order_independent_and_traced():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties
+    m = ifcopenshell.file(schema='IFC4')
+    slab = m.create_entity('IfcSlab', GlobalId='1111111111111111111111')
+    net = m.create_entity('IfcQuantityVolume', Name='NetVolume', VolumeValue=8.)
+    gross = m.create_entity('IfcQuantityVolume', Name='GrossVolume', VolumeValue=10.)
+    qto = m.create_entity('IfcElementQuantity', GlobalId='2222222222222222222222', Name='Qto_SlabBaseQuantities', Quantities=[net,gross])
+    m.create_entity('IfcRelDefinesByProperties', GlobalId='3333333333333333333333', RelatedObjects=[slab], RelatingPropertyDefinition=qto)
+    for order in ([net,gross],[gross,net]):
+        qto.Quantities = order
+        result = extract_quantities_and_properties(slab,1.,1.)
+        assert result[0] == 8.
+        assert 'IFC_QUANTITY_CONFLICT' in result[9]
+
+
+def test_conversion_units_and_property_override():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import unit_scale, extract_quantities_and_properties
+    m = ifcopenshell.file(schema='IFC4')
+    def converted(kind, name, factor, si_name):
+        si = m.create_entity('IfcSIUnit', UnitType=kind, Name=si_name)
+        measure = m.create_entity('IfcMeasureWithUnit', ValueComponent=m.create_entity('IfcReal', factor), UnitComponent=si)
+        return m.create_entity('IfcConversionBasedUnit', UnitType=kind, Name=name, ConversionFactor=measure)
+    assert unit_scale(converted('LENGTHUNIT','foot',.3048,'METRE'),'LENGTHUNIT') == .3048
+    assert unit_scale(converted('AREAUNIT','square foot',.09290304,'SQUARE_METRE'),'AREAUNIT') == .09290304
+    ton = converted('MASSUNIT','ton',1000000.,'GRAM')
+    assert unit_scale(ton,'MASSUNIT') == 1000.
+    cubic = converted('VOLUMEUNIT','cubic foot',.028316846592,'CUBIC_METRE')
+    slab = m.create_entity('IfcSlab', GlobalId='1111111111111111111111')
+    prop = m.create_entity('IfcPropertySingleValue', Name='Hacim', NominalValue=m.create_entity('IfcReal',10.),Unit=cubic)
+    pset = m.create_entity('IfcPropertySet', GlobalId='2222222222222222222222',Name='AllplanAttributes',HasProperties=[prop])
+    m.create_entity('IfcRelDefinesByProperties',GlobalId='3333333333333333333333',RelatedObjects=[slab],RelatingPropertyDefinition=pset)
+    assert extract_quantities_and_properties(slab,1.,1.)[0] == pytest.approx(.28316846592)
+    with pytest.raises(ValueError,match='IFC_UNIT_UNSUPPORTED'):
+        unit_scale(ton,'VOLUMEUNIT')
+
+
+def test_unused_missing_mass_unit_and_explicit_volume_without_project_default():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import project_unit_scale, extract_quantities_and_properties
+    m = ifcopenshell.file(schema='IFC4')
+    length = m.create_entity('IfcSIUnit', UnitType='LENGTHUNIT', Name='METRE')
+    assignment = m.create_entity('IfcUnitAssignment', Units=[length])
+    m.create_entity('IfcProject',GlobalId='1111111111111111111111',UnitsInContext=assignment)
+    volume = m.create_entity('IfcSIUnit',UnitType='VOLUMEUNIT',Name='CUBIC_METRE')
+    slab=m.create_entity('IfcSlab',GlobalId='2222222222222222222222')
+    qty=m.create_entity('IfcQuantityVolume',Name='NetVolume',VolumeValue=8.,Unit=volume)
+    qto=m.create_entity('IfcElementQuantity',GlobalId='3333333333333333333333',Name='Qto_SlabBaseQuantities',Quantities=[qty])
+    m.create_entity('IfcRelDefinesByProperties',GlobalId='4444444444444444444444',RelatedObjects=[slab],RelatingPropertyDefinition=qto)
+    assert extract_quantities_and_properties(slab,project_unit_scale(m,'VOLUMEUNIT'),project_unit_scale(m,'AREAUNIT'),project_unit_scale(m,'MASSUNIT'))[0] == 8.
+    qty.Unit=None
+    with pytest.raises(ValueError,match='missing VOLUMEUNIT'):
+        extract_quantities_and_properties(slab,project_unit_scale(m,'VOLUMEUNIT'),1.)
+
+
+def test_rebar_cross_section_uses_independent_area_unit():
+    from types import SimpleNamespace
+    from workers.ifc.ifc_extract import extract_rebar_info
+    bar = SimpleNamespace(NominalDiameter=None, BarLength=12000., CrossSectionArea=0.00020106192982974675)
+    diameter, mass, _ = extract_rebar_info(bar, .001, 1.)
+    assert diameter == 16.
+    assert mass == 18.9

@@ -36,6 +36,7 @@ import { isProcessingRunStale, processingRunningStaleMinutes, processingQueuedSt
 import { changeProcessingRun, enqueueSmartCheckProcessing, ProcessingConflict, removePendingJob } from "../../smartcheck/import/service";
 import { IfcNotAvailableError, IfcLimitsUnavailableError } from "../../smartcheck/import/config";
 import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
+import { canApproveCrawlerPrice } from "../crawler/provenance";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
 import { priceSchedulerService } from "../crawler/priceSchedulerService";
 
@@ -899,6 +900,10 @@ export function registerAdminRoutes(app: Express) {
 
       if (!existing) {
         return res.status(404).json({ error: "İncelenecek fiyat kaydı bulunamadı." });
+      }
+
+      if (parsed.data.action === "approve" && !canApproveCrawlerPrice(existing)) {
+        return res.status(409).json({ code: "PRICE_SOURCE_EVIDENCE_REQUIRED", error: "Bu kaydın canlı kaynak kanıtı yok. Kaynağı yeniden tarayın; eski örnek fiyatlar onaylanamaz." });
       }
 
       const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";

@@ -171,6 +171,29 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   return app;
 }
 
+export function registerProductionFrontend(app: express.Express, distPath: string) {
+  // The same dist contains server/worker bundles. Never mount its root publicly.
+  app.use((req, res, next) => {
+    let pathname: string;
+    try { pathname = decodeURIComponent(req.path); }
+    catch { return res.status(400).end(); }
+    if (/(^|\/)\./.test(pathname) || /\.(?:map|cjs|mjs)(?:\/|$)/i.test(pathname)) return res.status(404).end();
+    next();
+  });
+  app.use('/assets', express.static(path.join(distPath, 'assets'), {
+    maxAge: '1y', immutable: true, dotfiles: 'deny', index: false, redirect: false,
+  }));
+  // Vite public/ currently contains this single root asset. Add future root assets
+  // explicitly here rather than reopening the mixed frontend/backend dist directory.
+  app.get('/favicon.svg', (_req, res) => { res.sendFile(path.join(distPath, 'favicon.svg')); });
+  app.get('*', (req, res) => {
+    const pathname = decodeURIComponent(req.path);
+    if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 export async function startServer() {
   const app = createApiApp();
   const PORT = Number(process.env.PORT || 3000);
@@ -184,16 +207,7 @@ export async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use('/assets', express.static(path.join(distPath, 'assets'), {
-      maxAge: '1y',
-      immutable: true,
-    }));
-    app.use(express.static(distPath, {
-      maxAge: '1h',
-    }));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+    registerProductionFrontend(app, distPath);
   }
 
   const server = app.listen(PORT, "0.0.0.0", async () => {

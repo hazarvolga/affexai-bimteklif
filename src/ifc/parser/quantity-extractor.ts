@@ -1,3 +1,4 @@
+import { volumeUnitResolver } from "./units";
 export type IfcSupportedElementType = "IfcBeam" | "IfcColumn" | "IfcSlab" | "IfcWall" | "IfcReinforcingBar";
 
 export interface IfcPropertyQuantity {
@@ -70,6 +71,7 @@ function roundM3(value: number): number {
 }
 
 export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuantityExtraction {
+  const resolveVolumeUnit = volumeUnitResolver(ifcText);
   const properties = new Map<string, IfcPropertyValue>();
   const propertySets = new Map<string, IfcPropertySet>();
   const elements = new Map<string, IfcElementIdentity>();
@@ -77,7 +79,7 @@ export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuan
   const quantities: IfcPropertyQuantity[] = [];
 
   const elementRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\('([^']*)'/i;
-  const propertyRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(?:Hacim|Net Hacim)'\s*,\s*\$\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*\$\s*\);/i;
+  const propertyRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(?:Hacim|Net Hacim)'\s*,\s*\$\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*(#[0-9]+|\$)\s*\);/i;
   const propertyNameRegex = /^#\d+\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(Hacim|Net Hacim)'/i;
   const propertySetRegex = /^#(\d+)\s*=\s*IFCPROPERTYSET\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'\s*,\s*\$\s*,\s*\(([^)]*)\)\s*\);/i;
   const relationRegex = /^#(\d+)\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*\$\s*,\s*\$\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
@@ -98,7 +100,8 @@ export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuan
     const propertyMatch = line.match(propertyRegex);
     if (propertyMatch) {
       const nameMatch = line.match(propertyNameRegex);
-      const value = Number(propertyMatch[2]);
+      const scale = resolveVolumeUnit(propertyMatch[3]);
+      const value = Number(propertyMatch[2]) * (scale ?? NaN);
       if (nameMatch && Number.isFinite(value)) {
         properties.set(propertyMatch[1], {
           stepId: propertyMatch[1],

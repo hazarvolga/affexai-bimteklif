@@ -1,3 +1,6 @@
+import { acquireDocumentIo } from "../../smartcheck/import/admission";
+import { UPLOAD_MAX_TTL_MS, reserveUpload, UploadQuotaError } from "../../smartcheck/import/upload-quota";
+import { withReadDeadline } from "../../smartcheck/import/bounded-read";
 import crypto from "node:crypto";
 import { pipeline } from 'node:stream/promises';
 import type { Express, Request, RequestHandler } from "express";
@@ -96,7 +99,9 @@ export function registerSmartCheckRoutes(app: Express) {
     const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
     if (!/\.(xlsx|csv|ifc)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX, CSV ve IFC kabul edilir." });
     const storageKey = `${req.user.companyId}/${crypto.randomUUID()}/original`;
-    const [document] = await db.insert(documents).values({
+    let reservation;
+    try {
+      reservation = await reserveUpload({
       companyId: req.user.companyId,
       uploadedByUserId: req.user.userId,
       originalFileName,
@@ -106,11 +111,17 @@ export function registerSmartCheckRoutes(app: Express) {
       storageKey,
       checksumSha256: "pending",
       status: "uploaded",
-    }).returning();
-    const storage = createStorageAdapter();
-    const target = storage instanceof LocalStorageAdapter
-      ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType, "content-length": String(fileSizeBytes) } }
-      : await storage.createUploadTarget(storageKey, mimeType, { contentLength: fileSizeBytes });
+    }, async document => {
+        const storage = createStorageAdapter();
+        return storage instanceof LocalStorageAdapter
+          ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType, "content-length": String(fileSizeBytes) } }
+          : storage.createUploadTarget(storageKey, mimeType, { contentLength: fileSizeBytes });
+      });
+    } catch (error) {
+      if (error instanceof UploadQuotaError) return res.status(error.status).json({ code: error.code, error: "Dosya yükleme kotası uygun değil." });
+      throw error;
+    }
+    const { document, target } = reservation;
     await audit(req, "upload_created", "document", document.id, { fileName: originalFileName, fileSizeBytes });
     res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: maxAllowedBytes });
   });
@@ -119,6 +130,8 @@ export function registerSmartCheckRoutes(app: Express) {
     if (process.env.NODE_ENV === "production") return res.status(404).end();
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    if (document.checksumSha256 !== "pending") return res.status(409).json({ error: "Dosya zaten tamamlandı.", code: "UPLOAD_ALREADY_COMPLETED" });
+    if (Date.now() - document.createdAt.getTime() >= UPLOAD_MAX_TTL_MS) return res.status(410).json({ error: "Yükleme süresi doldu.", code: "UPLOAD_EXPIRED" });
     const content = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     if (content.length !== document.fileSizeBytes) return res.status(400).json({ error: "Dosya boyutu yükleme kaydıyla eşleşmiyor." });
     detectAndValidateFile(content, document.originalFileName, document.mimeType);
@@ -133,8 +146,12 @@ export function registerSmartCheckRoutes(app: Express) {
     const checksum = parsedRequest.data.checksumSha256;
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    if (document.checksumSha256 !== "pending") return res.status(409).json({ error: "Dosya zaten tamamlandı.", code: "UPLOAD_ALREADY_COMPLETED" });
+    if (Date.now() - document.createdAt.getTime() >= UPLOAD_MAX_TTL_MS) return res.status(410).json({ error: "Yükleme süresi doldu.", code: "UPLOAD_EXPIRED" });
 
     const storage = createStorageAdapter();
+    let releaseIo: (() => void) | undefined;
+    try { releaseIo = acquireDocumentIo(); } catch { return res.status(503).set("Retry-After", "5").json({ code: "DOCUMENT_IO_BUSY", error: "İşlem kapasitesi dolu." }); }
     let activeStream: any = null;
     try {
       let kind: "ifc" | "xlsx" | "csv" = "ifc";
@@ -142,7 +159,12 @@ export function registerSmartCheckRoutes(app: Express) {
         if (!storage.getStream) {
           throw new Error("STORAGE_STREAM_UNSUPPORTED");
         }
-        const stream = await storage.getStream(document.storageKey);
+        await withReadDeadline({ timeoutMs: 120_000 }, async signal => {
+        const stream = await storage.getStream!(document.storageKey, signal);
+        if (signal.aborted) { stream.destroy(); throw signal.reason; }
+        const stop = () => stream.destroy();
+        signal.addEventListener("abort", stop, { once: true });
+        try {
         activeStream = stream;
         const hash = crypto.createHash('sha256');
         let size = 0;
@@ -166,6 +188,8 @@ export function registerSmartCheckRoutes(app: Express) {
         }
         const headBuffer = Buffer.concat(headChunks);
         kind = detectAndValidateFile(headBuffer, document.originalFileName, document.mimeType);
+        } finally { signal.removeEventListener("abort", stop); stream.destroy(); }
+        });
       } else {
         const content = await storage.get(document.storageKey);
         if (content.length === 0) throw new Error('FILE_SIZE_INVALID');
@@ -224,7 +248,7 @@ export function registerSmartCheckRoutes(app: Express) {
           console.error(`[SmartCheck /complete] Unexpected error for document ${document.id}:`, error);
           return res.status(500).json({ error: "Dosya doğrulama işlemi sırasında beklenmeyen bir hata oluştu.", code: "INTERNAL_SERVER_ERROR", message: "Dosya doğrulama işlemi sırasında beklenmeyen bir hata oluştu." });
       }
-    }
+    } finally { releaseIo?.(); }
   });
 
   app.get("/api/smartcheck/documents/:id/preview", authenticate, featureGate, readRateLimit, async (req, res) => {
@@ -234,7 +258,9 @@ export function registerSmartCheckRoutes(app: Express) {
     if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc") {
       return res.status(409).json({ error: "IFC önizleme için işleme kuyruğunu başlatın; kanıt artifact'i run sonunda oluşur.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
     }
+    let release: (() => void) | undefined;
     try {
+      release = acquireDocumentIo();
       const content = await createStorageAdapter().get(document.storageKey);
       if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
       const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
@@ -243,8 +269,9 @@ export function registerSmartCheckRoutes(app: Express) {
       res.json({ document: { id: document.id, fileName: document.originalFileName, fileSizeBytes: document.fileSizeBytes, checksumSha256: document.checksumSha256, mapping: document.importMappingJson }, preview });
     } catch (error) {
       const code = error instanceof Error ? error.message : "PREVIEW_FAILED";
+      if (code === "DOCUMENT_IO_BUSY" || code === "SPREADSHEET_BUSY") return res.status(503).set("Retry-After", "5").json({ error: "İşlem kapasitesi dolu.", code });
       res.status(422).json({ error: "Dosya önizlemesi oluşturulamadı.", code });
-    }
+    } finally { release?.(); }
   });
 
   app.get("/api/smartcheck/documents/:id/status", authenticate, featureGate, readRateLimit, async (req, res) => {

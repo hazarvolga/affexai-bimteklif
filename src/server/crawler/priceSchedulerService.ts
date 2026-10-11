@@ -1,6 +1,7 @@
-import { db } from "../../db";
+import { db, pool } from "../../db";
 import { adminAuditLogs, priceFeedStaging, pricingDataSources, users } from "../../db/schema";
 import { and, eq, sql } from "drizzle-orm";
+import { acquireCrawlerScheduleLock } from "./scheduler-lock";
 import { priceCrawlerService } from "./priceCrawlerService";
 
 export interface BatchRunSummary {
@@ -108,7 +109,22 @@ export class PriceSchedulerService {
       results: [],
     };
 
+    let releaseScheduleLock: (() => Promise<void>) | null = null;
     try {
+      releaseScheduleLock = await acquireCrawlerScheduleLock(pool);
+      if (!releaseScheduleLock) throw new Error("CRAWLER_BATCH_ALREADY_RUNNING");
+      // A completed nightly batch survives API restarts and coordinates replicas.
+      if (triggeredBy === "system_nightly_cron") {
+        const [completed] = await db.select({ id: adminAuditLogs.id }).from(adminAuditLogs).where(and(
+          eq(adminAuditLogs.action, "nightly_batch_crawl_completed"),
+          sql`${adminAuditLogs.details}->>'triggeredBy' = 'system_nightly_cron'`,
+          sql`${adminAuditLogs.createdAt} >= date_trunc('day', now())`,
+        )).limit(1);
+        if (completed) {
+          this.lastRunAt = new Date();
+          return { ...summary, completedAt: new Date().toISOString() };
+        }
+      }
       // 1. Fetch active pricing sources
       const sources = await db
         .select()
@@ -273,6 +289,7 @@ export class PriceSchedulerService {
       return summary;
     } finally {
       this.isRunningBatch = false;
+      if (releaseScheduleLock) await releaseScheduleLock();
     }
   }
 
@@ -287,7 +304,7 @@ export class PriceSchedulerService {
         scheduleTime: "03:00 TSİ",
         queueStrategy: "sequential_polite",
         delayMsBetweenSources: 2500,
-        zeroCpuSpikePolicy: true,
+        boundedWorkerParsing: true,
       },
     };
   }

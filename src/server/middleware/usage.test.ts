@@ -11,6 +11,27 @@ function response() {
     json(body: unknown) { this.body = body; return this; } });
 }
 
+test("AI reserves quota before provider execution, including failed attempts, without duplicate audit", async () => {
+  const events: string[] = [];
+  const middleware = createUsageTracker({ checkQuota: async () => {}, logUsage: async () => { events.push('audit'); },
+    reserveAiQuota: async () => { events.push('reserved'); },
+  } as any)("AI_QUOTATION_GENERATED");
+  const res = response();
+  await middleware({ user: { companyId: 'company', userId: 'user' } } as any, res as any, () => { events.push('provider'); });
+  res.emit('finish');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(events, ['reserved', 'provider']);
+});
+
+test("AI reservation failure never reaches provider", async () => {
+  const middleware = createUsageTracker({ checkQuota: async () => {}, logUsage: async () => {},
+    reserveAiQuota: async () => { throw new QuotaError(403, 'AI_QUOTA_EXCEEDED', 'Monthly AI quota exceeded'); },
+  } as any)("AI_QUOTATION_GENERATED");
+  const res = response();
+  await middleware({ user: { companyId: 'company', userId: 'user' } } as any, res as any, () => assert.fail('provider must not execute'));
+  assert.equal(res.statusCode, 403);
+});
+
 test("usage DB/preflight failure responds 503 without calling next", async () => {
   const middleware = createUsageTracker({ checkQuota: async () => { throw new Error("private db connection details"); }, logUsage: async () => {} })("QUOTATION_CREATED");
   const res = response();

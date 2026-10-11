@@ -1,3 +1,4 @@
+import { assertAuthEmailAvailable, EmailDeliveryError } from './email-policy';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { RequestHandler, Response } from 'express';
@@ -36,6 +37,7 @@ export const invitationRateLimit = (action: 'issue' | 'preview' | 'accept', cons
 };
 
 export function invitationErrorResponse(error: unknown, res: Response) {
+  if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
   const messages: Record<string, string> = {
     INVITATION_REISSUE_REQUIRED: 'Bu davet yeniden oluşturulmalıdır. Şirket yöneticinize başvurun.',
     INVALID_INVITATION: 'Davet geçersiz, kullanılmış veya süresi dolmuş.',
@@ -60,6 +62,7 @@ export function publicInvitation(invite: typeof invitations.$inferSelect) {
 }
 
 export async function deliverInvitation(email: string, url: string, env = process.env, transport = fetch) {
+  assertAuthEmailAvailable(env);
   if (!env.AUTH_EMAIL_WEBHOOK_URL) return env.NODE_ENV === 'production'
     ? { status: 'unconfigured' as const } : { status: 'development' as const, devInvitationUrl: url };
   try {
@@ -76,6 +79,7 @@ export async function deliverInvitation(email: string, url: string, env = proces
 }
 
 export async function issueInvitation(companyId: string, invitedBy: string, value: unknown) {
+  assertAuthEmailAvailable();
   const input = invitationInput.safeParse(value);
   if (!input.success) throw new InvitationError('INVALID_INVITATION_INPUT');
   const { email, role } = input.data;

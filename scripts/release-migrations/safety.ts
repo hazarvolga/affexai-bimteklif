@@ -4,9 +4,20 @@ export const disposableNames = ['teklifpro_bootstrap_test', 'teklifpro_upgrade_t
 export type Target = { host: string; port: number; database: string; user: string; password: string };
 export const identifier = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
-export function parseTarget(raw: string, kind: 'control' | 'target'): Target {
+export function parseTarget(raw: string, kind: 'control' | 'target' | 'deployment'): Target {
   const url = new URL(raw);
   const database = decodeURIComponent(url.pathname.slice(1));
+  if (kind === 'deployment') {
+    if (process.env.RELEASE_ALLOW_PRODUCTION !== 'true'
+      || !process.env.RELEASE_EXPECTED_HOST || !process.env.RELEASE_EXPECTED_DATABASE || !process.env.RELEASE_EXPECTED_USER
+      || !['postgres:', 'postgresql:'].includes(url.protocol) || url.search || url.hash
+      || url.hostname !== process.env.RELEASE_EXPECTED_HOST || database !== process.env.RELEASE_EXPECTED_DATABASE
+      || decodeURIComponent(url.username) !== process.env.RELEASE_EXPECTED_USER || Number(url.port || 5432) !== 5432
+      || ['postgres', 'template0', 'template1', 'teklifpro_local', ...disposableNames].includes(database)) {
+      throw new Error('Production release target requires explicit opt-in and exact approved host/database/user on port 5432');
+    }
+    return { host: url.hostname, port: 5432, database, user: decodeURIComponent(url.username), password: decodeURIComponent(url.password) };
+  }
   const allowed: readonly string[] = kind === 'control' ? ['teklifpro_local'] : disposableNames;
   if (!['postgres:', 'postgresql:'].includes(url.protocol) || !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
     || url.search || url.hash || !url.username || !allowed.includes(database)) {
@@ -46,4 +57,15 @@ export async function requireEmpty(client: pg.Client) {
     union all select p.proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'
     union all select extname from pg_extension where extname <> 'plpgsql'`);
   if (rows.length) throw new Error('Bootstrap requires an empty database; adoption must be explicitly verified');
+}
+
+// Only clients created and verified by this module can receive deployment permission.
+const approvedDeployments = new WeakSet<pg.Client>();
+export async function connectDeployment(raw: string) {
+  const client = await connect(parseTarget(raw, 'deployment'));
+  approvedDeployments.add(client);
+  return client;
+}
+export async function requireMigrationTarget(client: pg.Client) {
+  if (!approvedDeployments.has(client)) return requireDisposable(client);
 }

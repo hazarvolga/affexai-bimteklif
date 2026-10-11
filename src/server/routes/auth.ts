@@ -1,3 +1,4 @@
+import { assertAuthEmailAvailable, requireAuthEmailDelivery } from "../auth/email-policy";
 import type { Express, Response } from "express";
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { db } from "../../db";
@@ -11,6 +12,7 @@ import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } f
 export const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
 
 export async function deliverAuthLink(template: 'verify_email' | 'reset_password', email: string, url: string) {
+  assertAuthEmailAvailable();
   if (!process.env.AUTH_EMAIL_WEBHOOK_URL) return process.env.NODE_ENV === 'production' ? null : url;
   const response = await fetch(process.env.AUTH_EMAIL_WEBHOOK_URL, {
     method: 'POST', headers: { 'Content-Type': 'application/json', ...(process.env.AUTH_EMAIL_WEBHOOK_SECRET ? { Authorization: `Bearer ${process.env.AUTH_EMAIL_WEBHOOK_SECRET}` } : {}) },
@@ -22,6 +24,7 @@ export async function deliverAuthLink(template: 'verify_email' | 'reset_password
 }
 
 export async function issueAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
+  assertAuthEmailAvailable();
   const created = createActionToken();
   await db.delete(authActionTokens).where(and(eq(authActionTokens.userId, userId), eq(authActionTokens.type, type), isNull(authActionTokens.consumedAt)));
   await db.insert(authActionTokens).values({ userId, type, tokenHash: created.tokenHash, expiresAt: new Date(Date.now() + lifetimeMs) });
@@ -50,7 +53,7 @@ export function registerAuthRoutes(app: Express) {
     return res.status(202).json({ accepted: true });
   });
 
-  app.post("/api/auth/register", async (req, res) => {
+  app.post("/api/auth/register", requireAuthEmailDelivery, async (req, res) => {
     try {
       const rate = await guardedRateLimit(res, `register:${clientAddress(req)}`, 5, 15 * 60 * 1000);
       if (!rate) return;
@@ -119,7 +122,7 @@ export function registerAuthRoutes(app: Express) {
     return res.json({ message: 'E-posta adresiniz doğrulandı.' });
   });
 
-  app.post('/api/auth/resend-verification', async (req, res) => {
+  app.post('/api/auth/resend-verification', requireAuthEmailDelivery, async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const rate = await guardedRateLimit(res, `verify:${clientAddress(req)}:${email}`, 3, 60 * 60 * 1000);
     if (!rate) return;
@@ -133,7 +136,7 @@ export function registerAuthRoutes(app: Express) {
     return res.json({ message: 'Hesap uygunsa doğrulama bağlantısı gönderildi.' });
   });
 
-  app.post('/api/auth/forgot-password', async (req, res) => {
+  app.post('/api/auth/forgot-password', requireAuthEmailDelivery, async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const rate = await guardedRateLimit(res, `reset:${clientAddress(req)}:${email}`, 3, 60 * 60 * 1000);
     if (!rate) return;
@@ -230,6 +233,7 @@ export function registerAuthRoutes(app: Express) {
         action: "impersonation.ended",
         details: {
           impersonatedUserId: req.user.userId,
+          tokenHash: req.user.impersonationTokenHash,
           endedAt: new Date().toISOString(),
         },
       });

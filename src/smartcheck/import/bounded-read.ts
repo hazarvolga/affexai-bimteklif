@@ -14,7 +14,7 @@ const MAX_READ_TIMEOUT_MS = 120_000;
 export async function withReadDeadline<T>(options: StorageReadOptions, read: (signal: AbortSignal, maxBytes?: number) => Promise<T>): Promise<T> {
   const maxBytes = options.maxBytes;
   const prefixBytes = options.prefixBytes;
-  const timeoutMs = options.timeoutMs;
+  const timeoutMs = options.timeoutMs ?? 30_000;
   if (maxBytes !== undefined && (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > SMARTCHECK_MAX_FILE_BYTES)) {
     throw new Error("INVALID_STORAGE_READ_LIMIT");
   }

@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import type pg from 'pg';
 import { releaseDirectory, ledgerSchema } from './config';
 import { catalog, sha256 } from './catalog';
-import { requireDisposable, requireEmpty } from './safety';
+import { requireMigrationTarget, requireEmpty } from './safety';
 import { pinnedSignature } from './stage-signatures';
 
 export interface Migration { idx: number; tag: string; sha256: string; snapshotSha256: string; statements: string[] }
@@ -46,7 +46,7 @@ async function history(client: pg.Client, migrations: Migration[]) {
 }
 
 async function transaction<T>(client: pg.Client, action: () => Promise<T>) {
-  await requireDisposable(client);
+  await requireMigrationTarget(client);
   await client.query('begin');
   try {
     await client.query("set local lock_timeout='5s'");

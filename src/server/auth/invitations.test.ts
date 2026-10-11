@@ -100,13 +100,13 @@ test('list DTO redacts secrets and marks legacy invitations for reissue', () => 
 });
 
 test('delivery uses invitation template and reports webhook acceptance, not inbox delivery', async () => {
-  const env = { NODE_ENV: 'production', AUTH_EMAIL_WEBHOOK_URL: 'https://mail.example.test/hook', AUTH_EMAIL_WEBHOOK_SECRET: 'secret' };
+  const env = { NODE_ENV: 'production', AUTH_EMAIL_WEBHOOK_URL: 'https://mail.example.test/hook', AUTH_EMAIL_WEBHOOK_SECRET: 'w'.repeat(48) };
   const calls: any[] = [];
   const transport = async (...args: any[]) => { calls.push(args); return new Response('', { status: 202 }); };
   assert.deepEqual(await deliverInvitation('a@b.test', 'https://app.example.test/invite/token', env, transport as typeof fetch), { status: 'accepted' });
   assert.equal(JSON.parse(calls[0][1].body).template, 'invitation');
-  assert.equal(calls[0][1].headers.Authorization, 'Bearer secret');
-  assert.deepEqual(await deliverInvitation('a@b.test', 'url', { NODE_ENV: 'production' }, transport as typeof fetch), { status: 'unconfigured' });
+  assert.equal(calls[0][1].headers.Authorization, `Bearer ${'w'.repeat(48)}`);
+  await assert.rejects(deliverInvitation('a@b.test', 'url', { NODE_ENV: 'production' }, transport as typeof fetch), { code: 'EMAIL_DELIVERY_UNAVAILABLE' });
   assert.deepEqual(await deliverInvitation('a@b.test', 'url', { NODE_ENV: 'test' }, transport as typeof fetch), { status: 'development', devInvitationUrl: 'url' });
   assert.deepEqual(await deliverInvitation('a@b.test', 'url', env, (async () => { throw new Error('private'); }) as typeof fetch), { status: 'failed' });
 });
@@ -183,4 +183,10 @@ test('invitation errors redact unexpected failure details', () => {
   invitationErrorResponse(new InvitationError('INVITATION_IDENTITY_MISMATCH', 403), res);
   assert.equal(status, 403);
   assert.equal(body.code, 'INVITATION_IDENTITY_MISMATCH');
+});
+
+test('disabled email never dispatches invitations or supplies development links', async () => {
+  let sent = false;
+  await assert.rejects(deliverInvitation('a@b.test', 'url', { NODE_ENV: 'test', AUTH_EMAIL_DELIVERY_MODE: 'disabled' }, (async () => { sent = true; return new Response(); }) as typeof fetch), { code: 'EMAIL_DELIVERY_DISABLED', status: 503 });
+  assert.equal(sent, false);
 });

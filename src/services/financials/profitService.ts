@@ -23,7 +23,7 @@ export class ProfitService {
 
   constructor(apiKey: string) { this.genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null; }
 
-  async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}): Promise<FinancialAnalysis> {
+  async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}, beforePaidCall?: () => Promise<unknown>): Promise<FinancialAnalysis> {
     const calculation = calculateQuotationFinancials(items, riskInputs);
     const costStatus = calculation.missingCostItemIndexes.length === 0 ? "complete" : "incomplete";
     if (costStatus === "incomplete") {
@@ -45,7 +45,9 @@ export class ProfitService {
     const riskLevel = riskScore > 60 ? "HIGH" : riskScore > 30 ? "MEDIUM" : "LOW";
     const fallback = `Maliyet verileri tamamlandı. Net satış ${calculation.salesNet.toLocaleString("tr-TR")} ${currency}, maliyet ${calculation.totalCost.toLocaleString("tr-TR")} ${currency}; hesaplanan marj %${calculation.margin.toFixed(2)} (${riskLevel}).`;
     let insights = fallback;
-    if (this.genAI) {
+    if (this.genAI && beforePaidCall) {
+      // The authorization/reservation must propagate; provider fallback must not hide it.
+      await beforePaidCall();
       try {
         const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(`İnşaat teklifini kısa ve profesyonel değerlendir. Sektör: ${industryId}. Net satış: ${calculation.salesNet} ${currency}. Gerçek maliyet: ${calculation.totalCost} ${currency}. Kâr: ${calculation.profit} ${currency}. Marj: %${calculation.margin.toFixed(2)}. Risk: ${riskLevel}. En fazla üç cümlede marjı, ana maliyet riskini ve teklif kararını belirt.`);

@@ -1,6 +1,22 @@
 # Working State
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
+
+## Active Bimmetraj production preparation
+
+- Current checkout: `/Users/hazarvolgaekiz/dev/products/bimplanacademy/TeklifPro-repo`.
+- Authorized remote: `hazarvolga/affexai-bimteklif` (`affexai` remote), branch `feat/smartcheck-evaluation-baseline`; old `origin` is not the deployment destination.
+- User authorized remediation, push, Coolify deployment and `bimmetraj.com` DNS setup.
+- User deferred email service selection. Initial deployment explicitly uses `AUTH_EMAIL_DELIVERY_MODE=disabled`; new registration, email resend/reset and new invitations reject before mutation. Existing login remains available. Never use historical demo credentials in production.
+- Remediation covers tenant upload/AI quotas, impersonation revocation, bounded spreadsheet subprocesses, storage deadlines, PDF admission/cancellation, crawler limits/provenance, IFC dimensional units and deterministic net quantities. Formwork/rebar transfer remains blocked where evidence is insufficient; unitless legacy IFC assumptions remain documented limitations.
+- Validation: 753/753 TypeScript tests passed with real host Chrome (zero skipped), build/typecheck passed; IFC container Python 11/11; migration lifecycle 15/15 plus 7 targeted tests, 68-table schema parity and backup/restore verification passed.
+- Docker app/migrate builds and production-dependency CLI plan passed. **Local hardened Docker PDF runtime failed Chromium namespace creation (EPERM); target-host PDF acceptance remains required. Do not disable Chromium sandbox to claim success.**
+- Coolify Bimmetraj project and application were created; application UUID `ibjv2zbpecdcbd71lxo1vqd7`, Compose path `/compose.coolify.yaml`. No deployment has been accepted yet.
+- DNS still points to the prior origin. Private R2 bucket `bimmetraj-production` and its user-approved bucket-scoped object read/write credential are provisioned; credentials are saved only in the Bimmetraj Coolify environment. Remaining: generated DB/JWT secrets, backups, target-host acceptance and domain/TLS cutover. Local checks are not live-readiness evidence.
+- Browser verification confirmed corrected landing capability claims and the explicit disabled-email error on forgot-password. Backend bundles/source maps are no longer public static files.
+- Known P2: app/workers currently share the database owner role with migrations. A separate runtime DML role requires pre-initializing Graphile queue migrations and explicit queue RLS policies; this separation is not yet implemented.
+
+Historical notes below describe earlier environments and must not be used as production configuration.
 
 ## Repository
 

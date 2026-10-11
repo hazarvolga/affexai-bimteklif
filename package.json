@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "packageManager": "pnpm@11.17.0",
-  "engines": { "node": ">=24.18.0 <25" },
+  "engines": {
+    "node": ">=24.18.0 <25"
+  },
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "tsc --noEmit && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "tsc --noEmit && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild src/smartcheck/import/spreadsheet-worker.ts --bundle --platform=node --format=cjs --packages=external --outfile=dist/spreadsheet-worker.cjs",
     "verify": "pnpm run lint && pnpm test && pnpm run build",
     "preview": "vite preview",
     "start": "node dist/server.cjs",

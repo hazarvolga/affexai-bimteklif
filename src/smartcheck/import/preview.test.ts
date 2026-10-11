@@ -19,3 +19,8 @@ describe("SmartCheck source preview", () => {
     assert.equal(preview.sheets[0].sampleRows[1][4].startsWith("'="), true);
   });
 });
+
+it('rejects oversized spreadsheet cell before returning preview', async () => {
+  const content = Buffer.from('Açıklama,Birim,Miktar\n' + 'x'.repeat(40_000) + ',m,1');
+  await assert.rejects(inspectDocument(content, 'csv'), /SPREADSHEET_(CELL|RECORD)_LIMIT/);
+});

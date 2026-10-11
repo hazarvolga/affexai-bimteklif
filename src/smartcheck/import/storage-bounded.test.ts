@@ -84,3 +84,24 @@ test('local storage streams with byte cap and retains default caller compatibili
   await assert.rejects(adapter.get('../escape'), /INVALID_STORAGE_KEY/);
   await assert.rejects(adapter.get('tenant/file', { signal: AbortSignal.abort() }), /STORAGE_READ_ABORTED/);
 });
+
+test('streaming download enforces byte cap and removes partial output', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'storage-cap-'));
+  const file = path.join(dir, 'model.ifc');
+  const body = Readable.from([Buffer.alloc(12)]);
+  try {
+    await assert.rejects(s3(async () => ({ Body: body })).downloadToFile('tenant/file', file, 'hash', { maxBytes: 10 }), /FILE_SIZE_INVALID/);
+    await assert.rejects(fs.stat(file), /ENOENT/);
+    assert.equal(body.destroyed, true);
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
+
+test('streaming download aborts stalled body and cleans partial output', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'storage-timeout-'));
+  const file = path.join(dir, 'model.ifc');
+  const body = new Readable({ read() {} });
+  try {
+    await assert.rejects(s3(async () => ({ Body: body })).downloadToFile('tenant/file', file, 'hash', { timeoutMs: 20 }), /STORAGE_READ_TIMEOUT/);
+    assert.equal(body.destroyed, true);
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});

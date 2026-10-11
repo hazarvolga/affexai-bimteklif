@@ -1,3 +1,4 @@
+import { requireAuthEmailDelivery } from "../auth/email-policy";
 import type { Express } from "express";
 import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
@@ -274,7 +275,7 @@ export function registerCompanyRoutes(app: Express) {
     }
   });
 
-  app.post("/api/invitations", authenticate, checkRole(["owner", "admin"]), invitationRateLimit('issue'), async (req, res) => {
+  app.post("/api/invitations", authenticate, checkRole(["owner", "admin"]), requireAuthEmailDelivery, invitationRateLimit('issue'), async (req, res) => {
     try {
       const result = await issueInvitation(req.user.companyId, req.user.userId, req.body);
       res.status(201).json(result);

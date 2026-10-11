@@ -1,3 +1,4 @@
+import { drizzleApi } from './generation-api';
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -8,7 +9,7 @@ import { connect, requireEmpty } from './safety';
 import { provision } from './provision';
 import { catalog } from './catalog';
 import { adoptBaseline, applyMigrations, loadMigrations } from './runner';
-import { drizzleApi, root, releaseDirectory } from './config';
+import { root, releaseDirectory } from './config';
 import { restoreSyntheticBackup } from './backup';
 import { verifyQuotaMigration } from './quota-validation';
 import { pinnedSignature } from './stage-signatures';
@@ -55,10 +56,10 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       baselineSignature = state.signature;
       report.baselineSignature = baselineSignature;
     });
-    await check('additive migration reaches 66 tables and matches current Drizzle schema', async () => {
-      assert.deepEqual(await applyMigrations(fresh, migrations), ['0001_admin_billing', '0002_quota_constraints']);
+    await check('additive migration reaches 68 tables and matches current Drizzle schema', async () => {
+      assert.deepEqual(await applyMigrations(fresh, migrations), migrations.slice(1).map(m => m.tag));
       const state = await catalog(fresh);
-      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 66);
+      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 68);
       // Independently materialize the current structured Drizzle schema, not a dump
       // of the baseline-derived database, then compare complete logical catalogs.
       await restore.query('begin');
@@ -90,7 +91,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         for (const row of original) await fresh.query('update teklifpro_release.migrations set catalog_hash=$1 where idx=$2', [row.catalog_hash, row.idx]);
       }
     });
-    await check('head66 cannot be adopted as baseline63 using either candidate or baseline signatures', async () => {
+    await check('head68 cannot be adopted as baseline63 using either candidate or baseline signatures', async () => {
       await fresh.query('alter schema teklifpro_release rename to saved_release_test');
       try {
         const before = (await catalog(fresh)).signature;

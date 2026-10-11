@@ -122,7 +122,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <div className="relative z-10 mx-auto max-w-5xl">
             <div className="mb-6 inline-flex items-center gap-2 border border-orange-500/25 bg-orange-500/10 px-3.5 py-1.5 text-xs font-semibold text-orange-300 rounded-full">
               <span className="h-2 w-2 rounded-full bg-orange-400" aria-hidden="true" />
-              openBIM IFC, Excel Metrajı ve ÇŞB 2026 Rayiçleriyle 5D Teklif Platformu
+              IFC, Excel metrajı ve kaynak izli fiyatlarla teklif hazırlama
             </div>
             <h1 className="max-w-5xl text-4xl font-black leading-[1.08] tracking-tight text-white md:text-6xl lg:text-7xl">
               Metrajınızı modelden alın,
@@ -131,7 +131,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               </span>
             </h1>
             <p className="mt-8 max-w-3xl text-base leading-relaxed text-zinc-300 md:text-xl font-normal">
-              Allplan, Revit veya Archicad <code className="text-orange-400 font-mono bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800 text-sm">.ifc</code> modelinizi ya da Excel metrajınızı yükleyin. TeklifPro, geometriden otomatik metraj çıkarır, ÇŞB 2026 pozlarıyla eşleştirir, kamu e-PYS standartlarına göre denetler ve onaylı kalemlerle anında resmi teklif mektubunuzu üretir.
+              Allplan, Revit veya Archicad <code className="text-orange-400 font-mono bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800 text-sm">.ifc</code> modelinizi ya da Excel metrajınızı yükleyin. TeklifPro, desteklenen QTO ve özellik setlerinden hacimleri okur. Miktarları ve fiyat kaynaklarını inceleyip onaylayarak teklif taslağı ve PDF oluşturun.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Button 
@@ -146,9 +146,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               </a>
             </div>
             <div className="mt-14 grid max-w-4xl grid-cols-1 gap-4 border-t border-zinc-800/80 pt-6 text-sm text-zinc-400 sm:grid-cols-3">
-              <TrustPoint title="Modelden Doğrudan Okunur" text="Kolon, kiriş ve döşeme hacimleri IFC miktar setlerinden (QTO) okunur; tahmin yapılmaz." />
+              <TrustPoint title="Modelden Doğrudan Okunur" text="Desteklenen eleman hacimleri IFC miktar ve özellik setlerinden kaynak referanslarıyla okunur." />
               <TrustPoint title="Siz Onaylarsınız" text="Her bir metraj kalemi insan onayından geçer; kontrolünüz olmadan teklife girmez." />
-              <TrustPoint title="ÇŞB ve e-PYS Uyumu" text="Bakanlık poz eşleştirmeleri ve kamu ihaleleri için zorunlu e-PYS isimlendirme denetimi." />
+              <TrustPoint title="Poz ve Özellik Ön Kontrolü" text="Modeldeki poz numarası ve desteklenen özellik alanlarını kontrol edin; eksikleri teknik incelemeye alın." />
             </div>
           </div>
         </section>
@@ -160,7 +160,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <p className="mb-3 text-xs font-bold uppercase tracking-widest text-orange-400">GELİŞMİŞ 5D VE KALİTE ÖZELLİKLERİ</p>
               <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl">Şantiye ve İhale İçin Güçlü Araçlar</h2>
               <p className="mt-4 text-base text-zinc-400">
-                TeklifPro, dosya yükleme anından resmi teklif PDF'inin üretimine kadar her adımda mühendislik şeffaflığı sunar.
+                TeklifPro, dosya yüklemeden teklif PDF'i oluşturmaya kadar miktar ve fiyat kaynaklarını incelemenize yardımcı olur.
               </p>
             </div>
 
@@ -172,7 +172,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2">5D BIM Metraj Motoru</h3>
                   <p className="text-sm text-zinc-400 leading-relaxed">
-                    IFC 2x3 ve IFC4 modellerinden kat ve eleman bazında net geometrik miktar ayrıştırması. Eksik veya çift modelleme uyarıları.
+                    Desteklenen IFC elemanlarında QTO ve özellik seti hacimlerini kaynak referanslarıyla okuma ve inceleme.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-zinc-800/80 text-xs text-orange-400 font-mono">
@@ -185,13 +185,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5">
                     <Building2 size={20} />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">ÇŞB 2026 Poz Kataloğu</h3>
+                  <h3 className="text-lg font-bold text-white mb-2">Fiyat Kataloğu ve Kaynak İzi</h3>
                   <p className="text-sm text-zinc-400 leading-relaxed">
-                    Çevre, Şehircilik ve İklim Değişikliği Bakanlığı güncel birim fiyat kütüphanesiyle otomatik poz önerisi ve yaklaşık maliyet analizi.
+                    İçe aktardığınız kataloglardan ve manuel fiyat kayıtlarından yararlanın; kaynağı, tarihi ve birim uyumunu doğrulayın.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-zinc-800/80 text-xs text-emerald-400 font-mono">
-                  Güncel Resmi Rayiçler
+                  Kaynak ve Tarih Kontrolü
                 </div>
               </div>
 
@@ -200,13 +200,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-5">
                     <FileCheck2 size={20} />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">e-PYS & ISO 19650 Denetçi</h3>
+                  <h3 className="text-lg font-bold text-white mb-2">e-PYS Teknik Ön Kontrol</h3>
                   <p className="text-sm text-zinc-400 leading-relaxed">
-                    Kamu projelerinde zorunlu Ek-6 poz no, Ek-3 mahal kodları, 15 karakter malzeme kuralı ve katman isimlendirme doğrulama motoru.
+                    Desteklenen poz, parsel özelliği ve isimlendirme kurallarına göre ön inceleme. Sonuçlar teknik değerlendirme gerektirir.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-zinc-800/80 text-xs text-sky-400 font-mono">
-                  Bakanlık & Ruhsat Uyumu
+                  Sınırlı Kural Kapsamı
                 </div>
               </div>
 
@@ -217,11 +217,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2">SmartCheck Kaynak İzi</h3>
                   <p className="text-sm text-zinc-400 leading-relaxed">
-                    Teklifteki her kalemin arkasındaki IFC nesne kimliği (GUID), miktar kaynağı ve onay geçmişini tutan resmi denetim izi (audit trail).
+                    SmartCheck üzerinden aktarılan kalemlerin miktar kaynağını ve inceleme geçmişini takip edin.
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-zinc-800/80 text-xs text-indigo-400 font-mono">
-                  Hakediş & İhale Kanıtı
+                  Kaynak ve İnceleme Kaydı
                 </div>
               </div>
             </div>
@@ -233,13 +233,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <div className="mx-auto max-w-7xl">
             <div className="max-w-2xl">
               <p className="mb-4 text-sm font-medium text-orange-400">İŞ AKIŞI</p>
-              <h2 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">3 adımda modelden resmi teklif mektubuna.</h2>
+              <h2 className="text-4xl font-semibold tracking-tight text-white md:text-5xl">3 adımda modelden incelenmiş teklif taslağına.</h2>
               <p className="mt-5 text-lg leading-relaxed text-zinc-400">Dosyanızı yükleyin, miktar ve isimlendirmeleri denetleyin, onayladıklarınızı teklife aktarın.</p>
             </div>
             <div className="mt-14 grid gap-5 md:grid-cols-3">
               <WorkflowCard number="01" icon={<FileSpreadsheet />} title="Dosyayı Yükleyin" text="Allplan/Revit IFC modeli ya da Excel/CSV metrajı. Modeliniz güvenli şekilde işlenir." />
-              <WorkflowCard number="02" icon={<ClipboardCheck />} title="Denetleyin & Eşleştirin" text="Hacimleri inceleyin, e-PYS isimlendirme hatalarını görün ve ÇŞB pozlarını tek tıkla eşleştirin." />
-              <WorkflowCard number="03" icon={<ShieldCheck />} title="Teklife Aktarın & PDF Alın" text="Kendi kâr marjınızı ekleyin, kaynak izli profesyonel teklif taslağı ve hakediş PDF'i oluşturun." />
+              <WorkflowCard number="02" icon={<ClipboardCheck />} title="Denetleyin & Eşleştirin" text="Hacimleri, poz alanlarını ve fiyat kaynaklarını inceleyin." />
+              <WorkflowCard number="03" icon={<ShieldCheck />} title="Teklife Aktarın & PDF Alın" text="Onayladığınız kalemlerden, kâr marjınızı ekleyerek teklif taslağı ve PDF oluşturun." />
             </div>
           </div>
         </section>
@@ -251,7 +251,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <p className="mb-3 text-xs font-bold uppercase tracking-widest text-orange-400">ŞEFFAF VE ESNEK PAKETLER</p>
               <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl">Her İhtiyaca Uygun Fiyatlandırma</h2>
               <p className="mt-4 text-base text-zinc-400">
-                İster sadece kamu ihalesi e-PYS isimlendirme denetimi yapın, ister 5D BIM ile tüm projelerinizin metraj ve teklif sürecini otomatikleştirin. Kredi kartı gerekmez.
+                Desteklenen e-PYS kurallarıyla teknik ön kontrol yapın veya model miktarlarını inceleyerek teklif hazırlayın. Kredi kartı gerekmez.
               </p>
             </div>
 
@@ -321,7 +321,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-sky-400 shrink-0" />
-                      <span>ÇŞB Ek-6 / Ek-3 Hata Raporu PDF</span>
+                      <span>Desteklenen e-PYS Kuralları Ön Kontrolü</span>
                     </li>
                   </ul>
                 </div>
@@ -360,7 +360,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-orange-400 shrink-0" />
-                      <span>Excel Metrajı & ÇŞB Poz Kataloğu</span>
+                      <span>Excel Metrajı & Fiyat Kataloğu</span>
                     </li>
                   </ul>
                 </div>
@@ -474,7 +474,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <EvidenceCard title="IFC Kimliği ve Kat" text="Nesnenin IFC GlobalId değeri, sınıfı (IfcWall, IfcBeam) ve bağlı katı." />
               <EvidenceCard title="Miktar Kaynağı" text="Miktarın hangi IFC miktar setinden (Qto_WallBaseQuantities vb.) okunduğu." />
               <EvidenceCard title="Mühendis Onayı" text="Onay, düzeltme veya gerekçeli istisna kararının tarihli kayıt altına alınması." />
-              <EvidenceCard title="ÇŞB Fiyat Kaynağı" text="Resmi poz numarası ve güncel birim fiyatın yürürlük geçerlilik tarihi." />
+              <EvidenceCard title="Fiyat Kaynak Kaydı" text="Kullanılan poz, fiyat, belge ve tarih bilgilerini inceleyin." />
             </div>
           </div>
         </section>
@@ -483,9 +483,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <section className="border-b border-zinc-800 bg-[#0c0c0e] px-6 py-20 md:px-8">
           <div className="mx-auto max-w-7xl">
             <p className="mb-4 text-sm font-medium text-orange-400">DİJİTAL RUHSAT VE KAMU İHALESİ HAZIRLIĞI</p>
-            <h2 className="text-3xl font-semibold text-white">e-PYS ve Yeni BIM Yönetmeliklerine Şimdiden Uyum Sağlayın.</h2>
+            <h2 className="text-3xl font-semibold text-white">Model teslimine teknik ön kontrolle hazırlanın.</h2>
             <p className="mt-4 max-w-3xl leading-relaxed text-zinc-400">
-              Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik ve ÇŞB e-PYS Kılavuzları gereği kamu projelerinde IFC formatında teslim zorunlu hale gelmektedir. TeklifPro ile modellerinizin isimlendirme, özellik setleri (Pset) ve metraj doğruluğunu bugünden garantiye alın.
+              Desteklenen IFC özellik ve miktar kaynaklarını kontrol edin; teslim şartlarını projenizin güncel şartnamesiyle ayrıca doğrulayın.
             </p>
           </div>
         </section>
@@ -499,7 +499,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">Kendi Projenizle 14 Gün Ücretsiz Deneyin.</h2>
               <p className="mt-4 leading-relaxed text-zinc-300">
-                Allplan, Revit veya Archicad IFC modelinizi ya da Excel metrajınızı hemen sisteme yükleyin. 14 gün boyunca 5 teklifinizi, otonom metrajınızı ve e-PYS denetiminizi hiçbir taahhüt olmadan test edin.
+                Allplan, Revit veya Archicad IFC modelinizi ya da Excel metrajınızı hemen sisteme yükleyin. 14 gün boyunca 5 teklifinizi, model miktar incelemenizi ve e-PYS denetiminizi hiçbir taahhüt olmadan test edin.
               </p>
             </div>
             <Button 
