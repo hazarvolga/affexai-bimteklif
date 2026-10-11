@@ -77,6 +77,7 @@ function AppRoutes() {
       <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/pricing" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/features" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
+      <Route path="/smartcheck" element={<SmartCheckDemo />} />
       <Route path="/academy" element={<PublicAcademy />} />
       <Route path="/academy/complete" element={<CompleteAcademyContent />} />
       <Route path="/academy/allplan" element={<AllplanAccessGate />} />

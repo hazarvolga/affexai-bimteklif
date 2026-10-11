@@ -49,7 +49,6 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Özellikler</a>
           <a href="#pricing" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Paketler</a>
           <Link to="/smartcheck" className="text-sm text-muted-foreground transition-colors hover:text-foreground">SmartCheck Demo</Link>
-          <Link to="/academy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Academy</Link>
           
           <div className="h-4 w-px bg-border mx-1" />
 
@@ -123,13 +122,6 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             className="block text-sm text-muted-foreground py-1 hover:text-foreground"
           >
             SmartCheck Demo
-          </Link>
-          <Link 
-            to="/academy"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm text-muted-foreground py-1 hover:text-foreground"
-          >
-            BIMPlan Academy
           </Link>
           <div className="pt-2 flex flex-col gap-2 border-t border-border">
             <Button variant="outline" className="w-full" onClick={() => { setMobileMenuOpen(false); onGetStarted(); }}>
@@ -678,7 +670,6 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <a href="#features" className="block hover:text-foreground">Özellikler</a>
               <a href="#pricing" className="block hover:text-foreground">Paketler</a>
               <Link to="/smartcheck" className="block hover:text-foreground">SmartCheck Doğrulama</Link>
-              <Link to="/academy" className="block hover:text-foreground">BIMPlan Academy</Link>
               <Link to="/register" className="block text-primary hover:underline">14 Gün Ücretsiz Deneme</Link>
             </div>
           </div>
