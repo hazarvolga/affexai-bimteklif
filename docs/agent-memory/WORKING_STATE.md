@@ -1348,6 +1348,16 @@ Autonomous remediation and source restore checkpoints are tracked in
 - **Validation:** `pnpm test` passed (798 pass, 5 skipped), `pnpm lint`, `pnpm run build`, release-artifact tests, public-plan integration test, and `graphify update .` all passed.
 - **Next data-source boundary:** Local `pricing_data_sources` has five source records and 16 approved staging records; production still has no source records. Do not migrate the 16 approved price rows as official data until their source evidence, validity period, and human approvals are independently reviewed. A metadata-only source catalog bootstrap is the safe next implementation.
 
+## 2026-10-11 Update: Metadata-Only Pricing Source Catalog Deployed
+
+- **Commit / deployment:** `11d9800b5fb7f10dee8f3ff7c2c67dab67ec1f75` (`feat(pricing): bootstrap reviewed source metadata`) was pushed to `main`. Coolify recorded two successful deployments of this same commit.
+- **Production catalog:** The production `pricing_data_sources` table now has exactly five `stale` candidate sources: ÇŞB YFK, ÇŞB e-PYS Ek-6, Marmara hazır beton, Karabük/Payas donatı çeliği, and TÜİK inşaat maliyet endeksi. Each starts with `metadata-only`, zero items, no validity evidence, and no SHA-256 hash.
+- **No price migration:** The bootstrap inserted five source definitions and zero `price_feed_staging` rows. Live readback confirmed `{ stale: 5 }` and `staging: 0`; a repeated apply was idempotent with zero inserts.
+- **Crawler boundary:** Scheduled and manual crawling now admit only `active` sources. `stale`, `error`, and `syncing` sources are rejected server-side; the admin UI disables their individual crawl controls and the batch button if there are no active sources.
+- **Admin truthfulness:** The pricing-source dashboard explicitly reports candidate status, missing validity evidence, zero source rows, and `0/5` sealed sources. It no longer presents metadata as current ÇŞB/market price data.
+- **Verification:** `pnpm test` passed (802 pass, 5 skipped), `pnpm lint`, `pnpm run build`, `git diff --check`, Graphify update, security review, and code review all passed. The deployed admin screen showed all five candidate cards with crawl controls disabled.
+- **Known deployment metadata issue:** Coolify deployment history is authoritative for `11d9800`; `/api/health` still returns the older `SOURCE_COMMIT` value `846139e...` because that environment variable is static in Coolify and is not a reliable deployed-revision signal until it is automated or updated per release.
+
 
 
 
