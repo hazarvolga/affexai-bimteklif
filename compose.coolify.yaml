@@ -5,7 +5,16 @@
 # runtime values. Keep both generated secrets enabled for runtime injection.
 name: bimmetraj
 
+# Coolify injects a shared env_file into each service. Explicit empty values win
+# over env_file so backup credentials stay scoped to the backup component.
+x-no-backup-environment: &no-backup-environment
+  BACKUP_S3_BUCKET: ''
+  BACKUP_S3_ENDPOINT: ''
+  BACKUP_S3_ACCESS_KEY_ID: ''
+  BACKUP_S3_SECRET_ACCESS_KEY: ''
+
 x-app-environment: &app-environment
+  <<: *no-backup-environment
   NODE_ENV: production
   DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:-}@postgres:5432/bimmetraj_production
   PG_POOL_MAX: '4'
@@ -110,6 +119,7 @@ services:
       context: .
       target: migrate
     environment:
+      <<: *no-backup-environment
       NODE_ENV: production
       PG_POOL_MAX: '4'
       RELEASE_DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:-}@postgres:5432/bimmetraj_production
@@ -135,6 +145,12 @@ services:
     tmpfs:
       - /tmp:size=67108864,mode=1777
     environment:
+      SMARTCHECK_S3_ACCESS_KEY_ID: ''
+      SMARTCHECK_S3_SECRET_ACCESS_KEY: ''
+      JWT_SECRET: ''
+      SERVICE_HEX_64_JWT: ''
+      OPENAI_API_KEY: ''
+      GEMINI_API_KEY: ''
       PGHOST: postgres
       PGPORT: '5432'
       PGDATABASE: bimmetraj_production
@@ -157,6 +173,7 @@ services:
     image: postgres:16-bookworm
     restart: unless-stopped
     environment:
+      <<: *no-backup-environment
       POSTGRES_DB: bimmetraj_production
       POSTGRES_USER: bimmetraj
       POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:-}
