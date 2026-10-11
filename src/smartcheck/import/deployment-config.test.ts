@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
@@ -7,6 +8,31 @@ test('Coolify resolves the reviewed seccomp profile from its deployment checkout
   const compose = readFileSync(new URL('../../../compose.coolify.yaml', import.meta.url), 'utf8');
   assert.match(compose, /seccomp=\$\{CHROMIUM_SECCOMP_PROFILE:-\.\/deploy\/chromium-seccomp\.json\}/);
   assert.ok(existsSync(new URL('../../../deploy/chromium-seccomp.json', import.meta.url)));
+});
+
+test('Coolify app service has an explicit readiness healthcheck', () => {
+  const composePath = path.resolve(new URL('../../../compose.coolify.yaml', import.meta.url).pathname);
+  const config = JSON.parse(execFileSync(
+    'docker',
+    ['compose', '--env-file', '/dev/null', '-f', composePath, 'config', '--format', 'json'],
+    { encoding: 'utf8', timeout: 15_000 },
+  ));
+  const healthcheck = config.services.app.healthcheck;
+
+  assert.deepEqual(healthcheck.test.slice(0, 2), ['CMD', 'node']);
+  assert.match(healthcheck.test.at(-1), /http:\/\/127\.0\.0\.1:3000\/readyz/);
+  assert.equal(healthcheck.interval, '30s');
+  assert.equal(healthcheck.timeout, '5s');
+  assert.equal(healthcheck.start_period, '30s');
+  assert.equal(healthcheck.retries, 3);
+});
+
+test('Docker image and Coolify use the same readiness endpoint', () => {
+  const dockerfile = readFileSync(new URL('../../../Dockerfile', import.meta.url), 'utf8');
+  const imageHealthcheck = dockerfile.slice(dockerfile.lastIndexOf('HEALTHCHECK'));
+
+  assert.match(imageHealthcheck, /\/readyz/);
+  assert.doesNotMatch(imageHealthcheck, /\/api\/health/);
 });
 
 test('frozen Docker install includes workspace overrides and skips lifecycle scripts', () => {
