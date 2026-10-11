@@ -5,13 +5,14 @@
 # runtime values. Keep both generated secrets enabled for runtime injection.
 name: bimmetraj
 
-# Coolify injects a shared env_file into each service. Explicit empty values win
-# over env_file so backup credentials stay scoped to the backup component.
+# Coolify replaces literal empty values from its environment database. Preserve
+# an empty reference until Compose interpolation; keep BIMMETRAJ_EMPTY_ENV unset
+# or empty. This overrides the shared env_file without exposing backup secrets.
 x-no-backup-environment: &no-backup-environment
-  BACKUP_S3_BUCKET: ''
-  BACKUP_S3_ENDPOINT: ''
-  BACKUP_S3_ACCESS_KEY_ID: ''
-  BACKUP_S3_SECRET_ACCESS_KEY: ''
+  BACKUP_S3_BUCKET: ${BIMMETRAJ_EMPTY_ENV:-}
+  BACKUP_S3_ENDPOINT: ${BIMMETRAJ_EMPTY_ENV:-}
+  BACKUP_S3_ACCESS_KEY_ID: ${BIMMETRAJ_EMPTY_ENV:-}
+  BACKUP_S3_SECRET_ACCESS_KEY: ${BIMMETRAJ_EMPTY_ENV:-}
 
 x-app-environment: &app-environment
   <<: *no-backup-environment
@@ -145,12 +146,12 @@ services:
     tmpfs:
       - /tmp:size=67108864,mode=1777
     environment:
-      SMARTCHECK_S3_ACCESS_KEY_ID: ''
-      SMARTCHECK_S3_SECRET_ACCESS_KEY: ''
-      JWT_SECRET: ''
-      SERVICE_HEX_64_JWT: ''
-      OPENAI_API_KEY: ''
-      GEMINI_API_KEY: ''
+      SMARTCHECK_S3_ACCESS_KEY_ID: ${BIMMETRAJ_EMPTY_ENV:-}
+      SMARTCHECK_S3_SECRET_ACCESS_KEY: ${BIMMETRAJ_EMPTY_ENV:-}
+      JWT_SECRET: ${BIMMETRAJ_EMPTY_ENV:-}
+      SERVICE_HEX_64_JWT: ${BIMMETRAJ_EMPTY_ENV:-}
+      OPENAI_API_KEY: ${BIMMETRAJ_EMPTY_ENV:-}
+      GEMINI_API_KEY: ${BIMMETRAJ_EMPTY_ENV:-}
       PGHOST: postgres
       PGPORT: '5432'
       PGDATABASE: bimmetraj_production

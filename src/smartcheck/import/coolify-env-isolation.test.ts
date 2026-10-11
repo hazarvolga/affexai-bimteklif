@@ -14,11 +14,21 @@ test('Coolify shared env_file cannot expose backup credentials to other services
   try {
     const envFile = path.join(directory, 'runtime.env');
     writeFileSync(envFile, Object.entries(fixtures).map(([key, value]) => `${key}=${value}`).join('\n'));
-    const override = path.join(directory, 'override.json');
-    writeFileSync(override, JSON.stringify({ services: Object.fromEntries(services.map(service => [service, { env_file: [envFile] }])) }));
-    const output = execFileSync('docker', ['compose', '--env-file', envFile, '-f', path.resolve('compose.coolify.yaml'), '-f', override, 'config', '--format', 'json'], {
-      encoding: 'utf8', timeout: 15_000, env: { ...process.env, ...fixtures },
-    });
+    const commandOptions = { encoding: 'utf8' as const, timeout: 15_000, env: { ...process.env, ...fixtures, BIMMETRAJ_EMPTY_ENV: '' } };
+    const raw = JSON.parse(execFileSync('docker', ['compose', '--env-file', envFile, '-f', path.resolve('compose.coolify.yaml'), 'config', '--no-interpolate', '--no-env-resolution', '--format', 'json'], commandOptions));
+    // Installed Coolify applicationParser (parsers.php:1958): literal empty
+    // values are replaced by same-key nonempty database env values. References
+    // remain intact until Compose interpolation; all services receive .env.
+    const transformedServices = Object.fromEntries(services.map(service => {
+      const source = raw.services[service];
+      const environment = Object.fromEntries(Object.entries(source.environment as Record<string, string>).map(([key, value]) => [
+        key, value === '' && fixtures[key] ? fixtures[key] : value,
+      ]));
+      return [service, { ...source, environment, env_file: [envFile] }];
+    }));
+    const generated = path.join(directory, 'generated.json');
+    writeFileSync(generated, JSON.stringify({ ...raw, services: transformedServices }));
+    const output = execFileSync('docker', ['compose', '--env-file', envFile, '-f', generated, 'config', '--format', 'json'], commandOptions);
     const rendered = JSON.parse(output).services as Record<string, { environment: Record<string, string> }>;
     for (const service of services) {
       for (const key of backupKeys) {
