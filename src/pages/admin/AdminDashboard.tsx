@@ -3,17 +3,24 @@ import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { LayoutDashboard, Building2, CreditCard, Activity, Users } from 'lucide-react';
 import { fetchWithAuth } from '../../lib/api';
+import { Button } from '../../components/ui/button';
+import { adminDashboardSchema, readAdminResponse } from './admin-data';
 
 export function AdminDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadDashboard = () => {
+    setLoading(true);
+    setError(null);
     fetchWithAuth('/api/admin/dashboard')
-      .then(res => res.json())
+      .then(res => readAdminResponse(res, adminDashboardSchema))
       .then(setData)
+      .catch(() => { setData(null); setError('Platform metrikleri yüklenemedi. Sıfır değer gösterilmiyor; tekrar deneyin.'); })
       .finally(() => setLoading(false));
-  }, []);
+  };
+  useEffect(() => { loadDashboard(); }, []);
 
   return (
     <PageContainer>
@@ -21,6 +28,10 @@ export function AdminDashboard() {
       
       {loading ? (
         <div className="flex h-40 items-center justify-center text-zinc-500">Yükleniyor...</div>
+      ) : error ? (
+        <div role="alert" className="rounded-xl border border-red-500/30 p-5 text-red-300">
+          <p>{error}</p><Button onClick={loadDashboard} variant="outline" className="mt-3">Tekrar dene</Button>
+        </div>
       ) : (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -76,7 +87,7 @@ export function AdminDashboard() {
                     <span className="font-bold text-white">{p.count}</span>
                   </div>
                 )) : (
-                  <span className="text-zinc-500">Kayıtlı paket yok</span>
+                  <span className="text-zinc-500">Aktif paket aboneliği yok</span>
                 )}
               </div>
               <p className="text-xs text-zinc-500 mt-4 border-t border-purple-500/10 pt-3">Paket dağılım oranları.</p>
@@ -95,9 +106,9 @@ export function AdminDashboard() {
                 IFC ve Belge Kuyruk Durumu
               </h3>
               <div className="flex items-center gap-5 text-xs text-zinc-400 mt-2">
-                <span>Bekleyen: <strong className="text-white">{data?.queue?.queued || 0}</strong></span>
-                <span>Çalışan: <strong className="text-amber-400">{data?.queue?.running || 0}</strong></span>
-                <span>Kilitli: <strong className={data?.queue?.stale ? "text-red-400" : "text-zinc-400"}>{data?.queue?.stale || 0}</strong></span>
+                <span>Bekleyen: <strong className="text-white">{data.queueStats.queued}</strong></span>
+                <span>Çalışan: <strong className="text-amber-400">{data.queueStats.running}</strong></span>
+                <span>Başarısız (24 saat): <strong className={data.queueStats.failed24h ? "text-red-400" : "text-zinc-400"}>{data.queueStats.failed24h}</strong></span>
               </div>
             </div>
 

@@ -31,18 +31,23 @@ interface RegulationAlert {
   affectedModules: string[];
   actionSuggestion?: string;
   createdAt: string;
+  sourceUrl?: string;
 }
 
 export function Regulations() {
   const [alerts, setAlerts] = useState<RegulationAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [lastFetchedAt, setLastFetchedAt] = useState<string | null>(null);
+  const [sourceRefresh, setSourceRefresh] = useState(0);
 
   const fetchAlerts = async () => {
     setLoading(true);
     try {
       const res = await fetchWithAuth("/api/regulations/alerts");
       const data = await res.json();
+      if (!res.ok || !Array.isArray(data)) throw new Error("Mevzuat verileri yüklenemedi.");
       setAlerts(data);
     } catch (e) {
       toast.error("Mevzuat verileri yüklenemedi.");
@@ -58,12 +63,15 @@ export function Regulations() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const res = await fetchWithAuth("/api/regulations/sync", { method: "POST" });
+      const res = await fetchWithAuth("/api/regulations/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sourceUrl }) });
       const data = await res.json();
-      toast.success(`${data.count} yeni mevzuat güncellemesi bulundu.`);
+      if (!res.ok) throw new Error(data.error || "Kaynak okunamadı.");
+      toast.success(data.idempotent ? "Bu belge zaten inceleme kuyruğunda veya incelenmiş." : "Belge insan incelemesi için kuyruğa alındı; hiçbir kural değiştirilmedi.");
+      setLastFetchedAt(new Date().toISOString());
+      setSourceRefresh(value => value + 1);
       fetchAlerts();
     } catch (e) {
-      toast.error("Senkronizasyon başarısız.");
+      toast.error(e instanceof Error ? e.message : "Senkronizasyon başarısız.");
     } finally {
       setSyncing(false);
     }
@@ -89,15 +97,20 @@ export function Regulations() {
         actions={
           <Button 
             onClick={handleSync} 
-            disabled={syncing}
+            disabled={syncing || !sourceUrl.trim()}
             className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 gap-2 shadow-lg shadow-orange-900/20"
           >
             {syncing ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-            Advisory tarama
+            Belgeyi incelemeye al
           </Button>
         }
       />
 
+      <section className="mb-6 space-y-2">
+        <label htmlFor="regulation-source" className="text-sm text-zinc-300">Resmî Gazete HTML belge bağlantısı</label>
+        <input id="regulation-source" type="url" value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} placeholder="https://www.resmigazete.gov.tr/eskiler/2026/10/20261011-4.htm" className="w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm" />
+        <p className="text-xs text-zinc-400">UTF-8 HTML bağlantısından gerçek belge okunur ve kaynak özeti inceleme kuyruğuna alınır. Otomatik güncel mevzuat keşfi, hukuki geçerlilik veya lisans doğrulaması yapılmaz.</p>
+      </section>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Alerts Feed */}
         <div className="lg:col-span-2 space-y-6">
@@ -105,7 +118,7 @@ export function Regulations() {
             <h3 className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-2">
               <Zap size={12} className="text-orange-500" /> Son Mevzuat Gelişmeleri
             </h3>
-            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tight">Son Tarama: {new Date().toLocaleTimeString()}</span>
+            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tight">Son belge okuma: {lastFetchedAt ? new Date(lastFetchedAt).toLocaleTimeString("tr-TR") : "Bu oturumda yapılmadı"}</span>
           </div>
 
           {loading ? (
@@ -119,7 +132,7 @@ export function Regulations() {
                 <FileSearch size={48} className="mb-6 opacity-10" />
                 <p className="text-sm font-bold text-zinc-400 mb-2">Henüz bir mevzuat güncellemesi kayıtlı değil.</p>
                 <p className="text-xs text-zinc-600 mb-6 max-w-xs">Kaynak değişikliğini önce advisory olarak inceleyin; reviewer onayı olmadan hiçbir kural veya fiyat değişmez.</p>
-                <Button onClick={handleSync} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-[10px] tracking-widest uppercase h-9 px-6">Taramayı Başlat</Button>
+                <Button onClick={handleSync} disabled={syncing || !sourceUrl.trim()} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-[10px] tracking-widest uppercase h-9 px-6">Belgeyi İncelemeye Al</Button>
               </CardContent>
             </Card>
           ) : (
@@ -184,9 +197,7 @@ export function Regulations() {
                   )}
 
                   <div className="flex justify-end mt-6 pt-5 border-t border-zinc-800/50">
-                    <Button variant="ghost" className="text-[10px] font-black text-zinc-500 hover:text-white h-8 gap-2 uppercase tracking-widest">
-                      RESMİ KAYNAĞA GİT <ArrowUpRight size={14} className="text-orange-500" />
-                    </Button>
+                    {alert.sourceUrl ? <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-orange-400">Resmî kaynak <ArrowUpRight size={14} /></a> : <span className="text-xs text-zinc-500">Eski kayıtta kaynak bağlantısı bulunmuyor.</span>}
                   </div>
                 </CardContent>
               </Card>
@@ -196,7 +207,7 @@ export function Regulations() {
 
         {/* Right Column: Status & Sources */}
         <div className="space-y-8">
-          <SourceIntelligencePanel />
+          <SourceIntelligencePanel key={sourceRefresh} />
           <RegulationImpactPanel />
 
           <Card className="bg-zinc-900 border-zinc-800 overflow-hidden relative group">
@@ -223,9 +234,7 @@ export function Regulations() {
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ADVISORY
                   </span>
                 </div>
-                <div className="w-10 h-5 bg-orange-600 rounded-full flex items-center justify-end px-1 cursor-pointer">
-                  <div className="w-3.5 h-3.5 bg-white rounded-full shadow-lg"></div>
-                </div>
+                <span className="text-xs text-zinc-500">İnsan incelemesi gerekli</span>
               </div>
             </CardContent>
           </Card>
@@ -234,9 +243,9 @@ export function Regulations() {
              <div className="absolute inset-0 bg-zinc-800/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
              <MessageSquare size={32} className="text-zinc-700 mx-auto mb-4 group-hover:text-orange-500 transition-colors" />
              <h5 className="text-[11px] font-black text-zinc-200 mb-2 uppercase tracking-widest">Hukuki Danışmanlık?</h5>
-             <p className="text-[10px] text-zinc-500 mb-6 px-2 font-medium leading-relaxed uppercase"> Karmaşık mevzuat sorularınız için doğrudan uzman panelimize danışın.</p>
-             <Button variant="outline" className="w-full text-[10px] font-black h-10 border-zinc-800 bg-zinc-950 hover:bg-zinc-900 hover:text-white tracking-widest uppercase transition-all">
-                DANIŞMANA SOR
+             <p className="text-[10px] text-zinc-500 mb-6 px-2 font-medium leading-relaxed uppercase"> Karmaşık mevzuat sorularınız için yetkili bir uzmana danışın. Uygulama içi danışman hizmeti bağlı değildir.</p>
+             <Button disabled variant="outline" className="w-full text-[10px] font-black h-10 border-zinc-800 bg-zinc-950 hover:bg-zinc-900 hover:text-white tracking-widest uppercase transition-all">
+                Danışman hizmeti bağlı değil
              </Button>
           </div>
         </div>

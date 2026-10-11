@@ -25,3 +25,9 @@ test('subscription patch preserves omitted fields and accepts only persisted sta
     assert.equal(updateSubscriptionInput.safeParse(value).success, false);
   }
 });
+
+test('new or updated plans cannot advertise an IFC size above the supported ceiling', () => {
+  assert.equal(createPlanInput.safeParse({ name: 'Too large', monthlyQuoteLimit: 1, monthlyPrice: 1, ifcMaxFileMb: 250 }).success, false);
+  assert.equal(updatePlanInput.safeParse({ ifcMaxFileMb: 101 }).success, false);
+  assert.equal(updatePlanInput.safeParse({ ifcMaxFileMb: 100 }).success, true);
+});

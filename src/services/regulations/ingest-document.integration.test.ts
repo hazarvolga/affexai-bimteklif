@@ -1,0 +1,24 @@
+import dotenv from 'dotenv';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { useTestIsolation } from '../../server/routes/test-isolation';
+import { parseOfficialRegulation } from './official-document';
+dotenv.config({path:'.env.local'});
+useTestIsolation();
+test('official document ingest is tenant-scoped, idempotent and stays pending until review', async () => {
+ const [{ db }, schema, { ingestRegulationDocument }, { eq }] = await Promise.all([import('../../db'),import('../../db/schema'),import('./ingest-document'),import('drizzle-orm')]);
+ const [a,b] = await db.insert(schema.companies).values([{name:'Official source A'},{name:'Official source B'}]).returning();
+ const [user] = await db.insert(schema.users).values({email:'official-document@example.test',fullName:'Reviewer',emailVerified:new Date()}).returning();
+ await db.insert(schema.memberships).values([{companyId:a.id,userId:user.id,role:'owner'},{companyId:b.id,userId:user.id,role:'owner'}]);
+ const document = parseOfficialRegulation('https://www.resmigazete.gov.tr/eskiler/2026/10/20261011-4.htm','<title>Örnek Tebliğ</title><p>Bu belge test içindir. Yürürlük tarihi ve hukuki etkisi bilinmiyor. Gerçek bir düzenleme olarak kullanılamaz.</p>');
+ const [first,second] = await Promise.all([ingestRegulationDocument(a.id,user.id,document),ingestRegulationDocument(a.id,user.id,document)]);
+ assert.equal(first.runId,second.runId); assert.equal(Number(first.idempotent)+Number(second.idempotent),1);
+ const other = await ingestRegulationDocument(b.id,user.id,document); assert.notEqual(first.runId,other.runId);
+ const pending = await db.select().from(schema.sourceReviewItems).where(eq(schema.sourceReviewItems.companyId,a.id));
+ assert.equal(pending.length,1);assert.equal(pending[0].status,'pending');
+ assert.equal((await db.select().from(schema.regulationVersions)).length,0);
+ assert.equal((await db.select().from(schema.regulationAlerts)).length,0);
+ const artifacts = await db.select().from(schema.sourceIngestionArtifacts).where(eq(schema.sourceIngestionArtifacts.companyId,a.id));
+ assert.equal(artifacts.length,2);assert.equal(artifacts.find(x=>x.artifactType==='raw')?.checksumSha256,document.sourceHash);
+ assert.equal(artifacts.find(x=>x.artifactType==='raw')?.payloadJson.licenseStatus,'unknown');
+});

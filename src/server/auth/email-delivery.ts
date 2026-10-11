@@ -1,0 +1,98 @@
+import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { createConnection, type Socket } from 'node:net';
+import { assertAuthEmailAvailable, EmailDeliveryError } from './email-policy';
+
+type Template = 'verify_email' | 'reset_password' | 'invitation';
+type Env = Record<string, string | undefined>;
+type Delivery = { status: 'accepted' } | { status: 'development'; url: string };
+type Message = { from: string; to: string; subject: string; text: string; html: string };
+export type SmtpFactory = (options: SMTPTransport.Options) => {
+  sendMail(message: Message): Promise<{ accepted?: unknown[]; rejected?: unknown[] }>;
+  close(): void;
+};
+const copy = {
+  verify_email: ['Bimmetraj e-posta doğrulaması', 'E-posta adresinizi doğrulamak için aşağıdaki bağlantıyı kullanın.', 'E-posta adresimi doğrula'],
+  reset_password: ['Bimmetraj şifre yenileme', 'Şifrenizi yenilemek için aşağıdaki bağlantıyı kullanın.', 'Şifremi yenile'],
+  invitation: ['Bimmetraj ekip daveti', 'Bimmetraj çalışma alanı davetinizi kabul etmek için aşağıdaki bağlantıyı kullanın.', 'Daveti görüntüle'],
+} as const;
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
+
+function message(template: Template, email: string, url: string, env: Env): Message {
+  const parsed = new URL(url);
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || url.length > 4096) throw new Error('Invalid action URL');
+  if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email) || email.length > 254) throw new Error('Invalid recipient');
+  const [subject, introduction, label] = copy[template];
+  return {
+    from: env.AUTH_EMAIL_FROM!, to: email, subject,
+    text: `${introduction}\n\n${url}\n\nBu işlemi siz başlatmadıysanız bu mesajı yok sayabilirsiniz.`,
+    html: `<html lang="tr"><body><h1>${escapeHtml(subject)}</h1><p>${escapeHtml(introduction)}</p><p><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></p><p>Bu işlemi siz başlatmadıysanız bu mesajı yok sayabilirsiniz.</p></body></html>`,
+  };
+}
+
+// SMTPTransport.close alone does not destroy its in-flight socket. Own the
+// underlying socket so the total deadline also releases TCP/TLS resources.
+const smtpFactory: SmtpFactory = options => {
+  let socket: Socket | undefined;
+  let closed = false;
+  const transport = nodemailer.createTransport({ ...options, getSocket(config, callback) {
+    if (closed) return callback(new Error('Email transport closed'), false);
+    socket = createConnection({ host: config.host!, port: Number(config.port) });
+    const onError = (error: Error) => callback(error, false);
+    socket.once('error', onError);
+    socket.once('connect', () => {
+      socket!.removeListener('error', onError);
+      callback(null, { connection: socket, secured: false });
+    });
+  } } as SMTPTransport.Options);
+  return { sendMail: payload => transport.sendMail(payload), close() { closed = true; socket?.destroy(); transport.close(); } };
+};
+
+function smtpOptions(env: Env): SMTPTransport.Options {
+  const port = Number(env.AUTH_EMAIL_SMTP_PORT);
+  return {
+    host: env.AUTH_EMAIL_SMTP_HOST, port, secure: port === 465, requireTLS: port === 587,
+    auth: { user: env.AUTH_EMAIL_SMTP_USER, pass: env.AUTH_EMAIL_SMTP_PASSWORD },
+    tls: { rejectUnauthorized: true, minVersion: 'TLSv1.2', servername: env.AUTH_EMAIL_SMTP_HOST },
+    connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 5000, dnsTimeout: 5000,
+    logger: false, debug: false, disableFileAccess: true, disableUrlAccess: true,
+  };
+}
+
+async function webhook(template: Template, email: string, url: string, env: Env, transport: typeof fetch, signal: AbortSignal) {
+  const response = await transport(env.AUTH_EMAIL_WEBHOOK_URL!, {
+    method: 'POST', redirect: 'error', signal,
+    headers: { 'Content-Type': 'application/json', ...(env.AUTH_EMAIL_WEBHOOK_SECRET ? { Authorization: `Bearer ${env.AUTH_EMAIL_WEBHOOK_SECRET}` } : {}) },
+    body: JSON.stringify({ template, email, url }),
+  });
+  void response.body?.cancel().catch(() => {});
+  if (!response.ok) throw new Error('Provider rejected request');
+}
+
+export async function deliverTransactionalEmail(template: Template, email: string, url: string, env: Env = process.env, transport: typeof fetch = fetch, createSmtp: SmtpFactory = smtpFactory): Promise<Delivery> {
+  assertAuthEmailAvailable(env);
+  if ((env.AUTH_EMAIL_DELIVERY_MODE ?? 'webhook') === 'webhook' && !env.AUTH_EMAIL_WEBHOOK_URL && env.NODE_ENV !== 'production') return { status: 'development', url };
+  const controller = new AbortController();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  let smtp: ReturnType<SmtpFactory> | undefined;
+  try {
+    const deadline = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => { controller.abort(); reject(new Error('Email deadline exceeded')); }, 5000);
+    });
+    const send = async () => {
+      if (env.AUTH_EMAIL_DELIVERY_MODE !== 'smtp') return webhook(template, email, url, env, transport, controller.signal);
+      const payload = message(template, email, url, env);
+      smtp = createSmtp(smtpOptions(env));
+      const result = await smtp.sendMail(payload);
+      if (!result.accepted?.includes(email) || result.rejected?.includes(email)) throw new Error('SMTP did not accept recipient');
+    };
+    await Promise.race([send(), deadline]);
+    return { status: 'accepted' };
+  } catch {
+    throw new EmailDeliveryError('EMAIL_DELIVERY_UNAVAILABLE');
+  } finally {
+    clearTimeout(timeout);
+    controller.abort();
+    smtp?.close();
+  }
+}

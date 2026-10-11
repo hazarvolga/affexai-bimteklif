@@ -484,7 +484,7 @@ export function Settings() {
 
           <SectionWrapper 
             title="Bölge & Uluslararası Standartlar" 
-            description="Teklif motoru, metraj ve SmartCheck kural setinin hangi hukuki bölge ve teknik standartlara göre çalışacağını belirleyin."
+            description="Şirketin bölge ve teknik standart tercihlerini kaydedin. Uygulanan hesaplama kapsamını aşağıda kontrol edin."
           >
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="pt-6 space-y-6">
@@ -493,9 +493,15 @@ export function Settings() {
                     <Globe size={12} className="mr-1.5" /> ÇOKLU BÖLGE VE STANDART YÖNETİMİ
                   </Badge>
                   <span className="text-xs text-zinc-400">
-                    Bölge seçimi poz kütüphanesi, tasarım formülleri ve birim sistemini senkronize eder.
+                    Bu tercihler şirket profilinde saklanır; otomatik standart uygunluğu sağlamaz.
                   </span>
                 </div>
+
+                <p role="note" className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-relaxed text-amber-200">
+                  IFC miktarları kaynak birimleri okunarak metrik birimlere dönüştürülür. Bölge seçimi
+                  henüz poz kütüphanesini, teklif birimlerini veya betonarme tasarım formüllerini değiştirmez.
+                  TBDY/TS 500, Eurocode 2 ve ACI 318 için mühendislik uygunluk hesabı çalıştırılmaz.
+                </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* 1. Jurisdiction / Country */}

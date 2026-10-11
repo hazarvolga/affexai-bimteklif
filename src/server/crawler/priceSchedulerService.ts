@@ -1,8 +1,9 @@
 import { db, pool } from "../../db";
 import { adminAuditLogs, priceFeedStaging, pricingDataSources, users } from "../../db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { acquireCrawlerScheduleLock } from "./scheduler-lock";
 import { priceCrawlerService } from "./priceCrawlerService";
+import { CRAWLER_TIMEZONE, crawlerDayStart, crawlerScheduleDue, nextCrawlerRun } from "./scheduler-time";
 
 export interface BatchRunSummary {
   startedAt: string;
@@ -22,32 +23,44 @@ export interface BatchRunSummary {
   }>;
 }
 
+interface SchedulerAudit {
+  createdAt: Date;
+  action: string;
+  details: unknown;
+}
+async function latestSchedulerAudit(): Promise<SchedulerAudit | null> {
+  const [record] = await db.select({ createdAt: adminAuditLogs.createdAt, action: adminAuditLogs.action, details: adminAuditLogs.details })
+    .from(adminAuditLogs).where(inArray(adminAuditLogs.action, ['nightly_batch_crawl_completed', 'nightly_batch_crawl_failed']))
+    .orderBy(desc(adminAuditLogs.createdAt), desc(adminAuditLogs.id)).limit(1);
+  return record ?? null;
+}
+function auditSummary(record: SchedulerAudit): BatchRunSummary {
+  const details = record.details && typeof record.details === 'object' ? record.details as Record<string, unknown> : {};
+  const count = (name: string) => typeof details[name] === 'number' && Number.isFinite(details[name]) ? details[name] as number : 0;
+  return { startedAt: typeof details.startedAt === 'string' ? details.startedAt : record.createdAt.toISOString(),
+    completedAt: typeof details.completedAt === 'string' ? details.completedAt : record.createdAt.toISOString(),
+    totalSources: count('totalSources'), successfulSources: count('successfulSources'), failedSources: count('failedSources'),
+    totalItemsStaged: count('totalItemsStaged'), durationMs: count('durationMs'), results: [] };
+}
+
 export class PriceSchedulerService {
   private timer: NodeJS.Timeout | null = null;
   private isRunningBatch = false;
-  private lastRunAt: Date | null = null;
-  private lastSummary: BatchRunSummary | null = null;
+  constructor(private readonly readLatestAudit: () => Promise<SchedulerAudit | null> = latestSchedulerAudit) {}
 
-  /**
-   * Calculate next run time (default: 03:00 AM local time)
-   */
+  /** Next 03:00 Europe/Istanbul, independent of server or database timezone. */
   getNextScheduledRun(): Date {
-    const next = new Date();
-    next.setHours(3, 0, 0, 0);
-    if (next.getTime() <= Date.now()) {
-      next.setDate(next.getDate() + 1);
-    }
-    return next;
+    return nextCrawlerRun(new Date());
   }
 
   /**
-   * Start scheduled check interval (runs every 15 minutes to verify if 03:00 window reached)
+   * Start scheduled check interval (runs every 10 minutes to verify if 03:00 window reached)
    */
   start(): void {
     if (this.timer) return;
 
     console.log(
-      `[PriceScheduler] Gece otomatik tarayıcı zamanlayıcısı başlatıldı. Bir sonraki tarama: ${this.getNextScheduledRun().toLocaleString("tr-TR")}`
+      `[PriceScheduler] Gece otomatik tarayıcı zamanlayıcısı başlatıldı. Bir sonraki tarama: ${this.getNextScheduledRun().toLocaleString("tr-TR", { timeZone: CRAWLER_TIMEZONE })}`
     );
 
     // Check every 10 minutes
@@ -72,11 +85,7 @@ export class PriceSchedulerService {
   private async checkAndExecuteSchedule(): Promise<void> {
     const now = new Date();
     // Window: between 03:00 and 03:20 AM
-    if (now.getHours() === 3 && now.getMinutes() < 20) {
-      // Check if already ran today
-      if (this.lastRunAt && this.lastRunAt.toDateString() === now.toDateString()) {
-        return;
-      }
+    if (crawlerScheduleDue(now)) {
       console.log("[PriceScheduler] 03:00 Gece otomatik sıralı tarama başlatılıyor...");
       await this.runSequentialBatch("system_nightly_cron");
     }
@@ -109,6 +118,8 @@ export class PriceSchedulerService {
       results: [],
     };
 
+    let actorAdminId = adminUserId;
+    let batchStarted = false;
     let releaseScheduleLock: (() => Promise<void>) | null = null;
     try {
       releaseScheduleLock = await acquireCrawlerScheduleLock(pool);
@@ -118,13 +129,19 @@ export class PriceSchedulerService {
         const [completed] = await db.select({ id: adminAuditLogs.id }).from(adminAuditLogs).where(and(
           eq(adminAuditLogs.action, "nightly_batch_crawl_completed"),
           sql`${adminAuditLogs.details}->>'triggeredBy' = 'system_nightly_cron'`,
-          sql`${adminAuditLogs.createdAt} >= date_trunc('day', now())`,
+          sql`${adminAuditLogs.createdAt} >= ${crawlerDayStart(new Date())}`,
         )).limit(1);
         if (completed) {
-          this.lastRunAt = new Date();
           return { ...summary, completedAt: new Date().toISOString() };
         }
       }
+      // Resolve the durable audit actor before doing work; never run an unrecordable batch.
+      if (!actorAdminId) {
+        const [superAdmin] = await db.select({ id: users.id }).from(users).where(eq(users.isSuperAdmin, true)).limit(1);
+        actorAdminId = superAdmin?.id;
+      }
+      if (!actorAdminId) throw new Error('CRAWLER_AUDIT_ACTOR_REQUIRED');
+      batchStarted = true;
       // 1. Fetch active pricing sources
       const sources = await db
         .select()
@@ -252,34 +269,8 @@ export class PriceSchedulerService {
       const totalDuration = Date.now() - startTime;
       summary.durationMs = totalDuration;
       summary.completedAt = new Date().toISOString();
-      this.lastRunAt = new Date();
-      this.lastSummary = summary;
 
-      // Record audit log
-      let actorAdminId = adminUserId;
-      if (!actorAdminId) {
-        const [superAdmin] = await db
-          .select({ id: users.id })
-          .from(users)
-          .where(eq(users.isSuperAdmin, true))
-          .limit(1);
-        actorAdminId = superAdmin?.id;
-      }
-
-      if (actorAdminId) {
-        await db.insert(adminAuditLogs).values({
-          adminId: actorAdminId,
-          action: "nightly_batch_crawl_completed",
-          details: {
-            triggeredBy,
-            totalSources: summary.totalSources,
-            successfulSources: summary.successfulSources,
-            failedSources: summary.failedSources,
-            totalItemsStaged: summary.totalItemsStaged,
-            durationMs: summary.durationMs,
-          },
-        });
-      }
+      await this.recordBatchAudit(actorAdminId, 'nightly_batch_crawl_completed', triggeredBy, summary);
 
       console.log(
         `[PriceScheduler] Toplu tarama başarıyla tamamlandı (${totalDuration}ms). ` +
@@ -287,21 +278,40 @@ export class PriceSchedulerService {
       );
 
       return summary;
+    } catch (error) {
+      if (batchStarted && actorAdminId) {
+        await this.recordBatchAudit(actorAdminId, 'nightly_batch_crawl_failed', triggeredBy, {
+          ...summary, completedAt: new Date().toISOString(), durationMs: Date.now() - startTime,
+        });
+      }
+      throw error;
     } finally {
       this.isRunningBatch = false;
       if (releaseScheduleLock) await releaseScheduleLock();
     }
   }
 
-  getStatus() {
+  private async recordBatchAudit(adminId: string, action: string, triggeredBy: string, summary: BatchRunSummary) {
+    // Keep persisted operational status bounded and free of fetched content or raw errors.
+    await db.insert(adminAuditLogs).values({ adminId, action, details: {
+      triggeredBy, startedAt: summary.startedAt, completedAt: summary.completedAt,
+      totalSources: summary.totalSources, successfulSources: summary.successfulSources,
+      failedSources: summary.failedSources, totalItemsStaged: summary.totalItemsStaged, durationMs: summary.durationMs,
+    } });
+  }
+
+  async getStatus() {
+    const latest = await this.readLatestAudit();
     return {
-      isSchedulerActive: true,
+      isSchedulerActive: this.timer !== null,
       isRunningBatch: this.isRunningBatch,
       nextScheduledRun: this.getNextScheduledRun().toISOString(),
-      lastRunAt: this.lastRunAt ? this.lastRunAt.toISOString() : null,
-      lastSummary: this.lastSummary,
+      lastRunAt: latest?.createdAt.toISOString() ?? null,
+      lastSummary: latest ? auditSummary(latest) : null,
+      lastRunOutcome: latest ? (latest.action === 'nightly_batch_crawl_failed' ? 'failed' : 'completed') : null,
       config: {
         scheduleTime: "03:00 TSİ",
+        timezone: CRAWLER_TIMEZONE,
         queueStrategy: "sequential_polite",
         delayMsBetweenSources: 2500,
         boundedWorkerParsing: true,

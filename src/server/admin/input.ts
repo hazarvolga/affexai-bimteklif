@@ -7,14 +7,14 @@ const planFields = z.object({
   monthlyQuoteLimit: nonnegativeInteger,
   monthlyPrice: nonnegativeInteger,
   monthlyIfcLimit: nonnegativeInteger.nullable().optional(),
-  ifcMaxFileMb: z.number().int().min(1).max(1024).optional(),
+  ifcMaxFileMb: z.number().int().min(1).max(100).optional(),
   ifcMaxConcurrent: z.number().int().min(1).max(10).optional(),
   isActive: z.boolean(),
 }).strict();
 
 export const createPlanInput = planFields.extend({
   isActive: z.boolean().default(true),
-  ifcMaxFileMb: z.number().int().min(1).max(1024).default(50),
+  ifcMaxFileMb: z.number().int().min(1).max(100).default(50),
   ifcMaxConcurrent: z.number().int().min(1).max(10).default(1),
 });
 export const updatePlanInput = planFields.partial().refine(value => Object.keys(value).length > 0);

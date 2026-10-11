@@ -4,9 +4,11 @@ import { db } from "../../db";
 import { quotationItems, quotations, regulationAlerts, regulationVersions } from "../../db/schema";
 import { RegulatoryIntelligenceService } from "../../services/regulations/regulatoryService";
 import { findRegulationQuotationImpact } from "../regulations/impact";
-import { authenticate, checkRole } from "../middleware/auth";
+import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { reserveAiUsage } from '../../services/billing/ai-quota';
+import { consumeRateLimit } from '../auth/security';
+import { ingestRegulationDocument } from '../../services/regulations/ingest-document';
 import { QuotaError } from '../../services/billing/quota-policy';
 
 export function registerRegulationRoutes(app: Express, regulatoryService: RegulatoryIntelligenceService, canMutate: any) {
@@ -55,25 +57,26 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
     }
   });
 
-  app.post("/api/regulations/sync", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+  app.post("/api/regulations/sync", authenticate, requireVerifiedEmail, checkRole(["owner", "admin"]), async (req, res) => {
     try {
-      await reserveAiUsage(req.user.companyId, req.user.userId);
-      const newAlerts = await regulatoryService.crawlAndAnalyze();
-
-      if (newAlerts && newAlerts.length > 0) {
-        const formattedAlerts = newAlerts.map(a => ({
-          ...a,
-          companyId: req.user.companyId,
-          effectiveDate: new Date(a.effectiveDate),
-        }));
-        await db.insert(regulationAlerts).values(formattedAlerts);
-      }
-
-      res.json({ message: "Sync successful", count: newAlerts.length });
+      const rate = await consumeRateLimit(`regulation-fetch:${req.user.companyId}:${req.user.userId}`, 5, 60_000);
+      if (!rate.allowed) return res.status(429).set('Retry-After',String(rate.retryAfterSeconds)).json({ error:'Kaynak okuma sınırına ulaşıldı.' });
+      const document = await regulatoryService.crawlAndAnalyze(req.body?.sourceUrl);
+      const result = await ingestRegulationDocument(req.user.companyId,req.user.userId,document);
+      return res.status(result.idempotent ? 200 : 201).json(result);
     } catch (error) {
-      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
-      console.error("Regulatory sync failed:", error);
-      res.status(500).json({ error: "Failed to sync regulations" });
+      const code = error instanceof Error ? error.message : 'REGULATION_INGEST_FAILED';
+      const messages: Record<string,string> = {
+        REGULATION_SOURCE_REQUIRED:'Resmî Gazete HTML belge bağlantısı zorunludur.',
+        REGULATION_SOURCE_NOT_ALLOWED:'Yalnız Resmî Gazete arşivindeki HTTPS HTML belge bağlantıları kabul edilir.',
+        REGULATION_SOURCE_UNAVAILABLE:'Resmî kaynağa erişilemedi. Hiçbir mevzuat kaydı üretilmedi.',
+        REGULATION_DOCUMENT_ENCODING_UNSUPPORTED:'Belgenin karakter kodlaması desteklenmiyor; UTF-8 HTML belge gerekir.',
+        REGULATION_DOCUMENT_INVALID:'Belge doğrulanamadı; hiçbir mevzuat kaydı üretilmedi.',
+        REGULATION_DOCUMENT_TOO_LARGE:'Belge boyut sınırını aşıyor.',
+        REGULATION_SOURCE_DISABLED:'Bu kaynak şirket için devre dışı.',
+      };
+      const status = code === 'REGULATION_SOURCE_UNAVAILABLE' ? 503 : code === 'REGULATION_SOURCE_DISABLED' ? 409 : code === 'REGULATION_DOCUMENT_TOO_LARGE' ? 413 : messages[code] ? 400 : 500;
+      return res.status(status).json({ error:messages[code] ?? 'Kaynak inceleme kuyruğuna alınamadı.', code:messages[code] ? code : 'REGULATION_INGEST_FAILED' });
     }
   });
 

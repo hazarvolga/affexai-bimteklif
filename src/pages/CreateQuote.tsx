@@ -1,3 +1,4 @@
+import { benchmarkQuoteItem } from '../services/pricing/benchmark-policy';
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -122,22 +123,9 @@ export function CreateQuote() {
   const [showBenchmarkDrawer, setShowBenchmarkDrawer] = useState(false);
 
   const applyBenchmarkItem = (bm: any) => {
-    const price = Number(bm.crawledPrice) || Number(bm.currentPrice) || 0;
-    const newItem: Partial<QuoteItem> = {
-      id: crypto.randomUUID(),
-      description: `${bm.itemCode} - ${bm.itemName}`,
-      unit: bm.unit || 'adet',
-      quantity: 1,
-      unitPrice: price,
-      costUnitPrice: price > 0 ? Number((price * 0.85).toFixed(2)) : null,
-      wastePercent: 3,
-      costCategory: 'material',
-      discountPercent: 0,
-      vatPercent: 20,
-      total: price * 1.20,
-    };
+    const newItem: Partial<QuoteItem> = { id: crypto.randomUUID(), ...benchmarkQuoteItem(bm) };
     setItems((prev) => [...prev.filter((i) => i.description?.trim()), newItem]);
-    toast.success(`"${bm.itemName}" canlı rayiç fiyatıyla (${price.toLocaleString('tr-TR')} ₺) teklife eklendi.`);
+    toast.success(`"${bm.itemName}" onaylı kaynak fiyatıyla (${newItem.unitPrice!.toLocaleString('tr-TR')} ₺) teklife eklendi.`);
   };
 
   useEffect(() => {
@@ -602,7 +590,7 @@ export function CreateQuote() {
                     className="border-amber-500/40 bg-amber-900/30 text-amber-200 hover:bg-amber-900/50 text-[11px] font-bold h-7 gap-1.5"
                   >
                     <Sparkles size={12} className="text-amber-400" />
-                    {showBenchmarkDrawer ? 'Rayiç Havuzunu Gizle' : `Canlı Rayiçleri Gör (${benchmarksData.items.length} Kalem)`}
+                    {showBenchmarkDrawer ? 'Rayiç Havuzunu Gizle' : `Onaylı Rayiçleri Gör (${benchmarksData.items.length} Kalem)`}
                     {showBenchmarkDrawer ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                   </Button>
                 </div>

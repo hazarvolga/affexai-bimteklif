@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GeminiProvider } from "../ai/providers/geminiProvider";
+import type { TextProvider } from "../ai/providers/text-provider";
 import { dealIntelligenceInput } from './input';
 
 export interface DealIntelligence {
@@ -10,14 +11,13 @@ export interface DealIntelligence {
 }
 
 export class CRMIntelligenceService {
-  private genAI: GoogleGenerativeAI;
+  private provider: TextProvider;
 
-  constructor(apiKey: string) {
-    this.genAI = new GoogleGenerativeAI(apiKey);
+  constructor(provider: string | TextProvider) {
+    this.provider = typeof provider === "string" ? new GeminiProvider(provider) : provider;
   }
 
   async analyzeDeal(dealData: any, quotationData: any, financials: any): Promise<DealIntelligence> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
       Sen kıdemli bir inşaat satış stratejistisin. Aşağıdaki satış fırsatı (deal) ve ilgili teklif verilerini analiz et.
@@ -43,14 +43,9 @@ export class CRMIntelligenceService {
     `;
 
     try {
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-        }
-      });
+      const text = await this.provider.generateText(prompt, true);
 
-      const resultData = dealIntelligenceInput.parse(JSON.parse(result.response.text()));
+      const resultData = dealIntelligenceInput.parse(JSON.parse(text));
       return { probability: resultData.probability, riskLevel: resultData.riskLevel,
         recommendedAction: resultData.recommendedAction, expectedCloseValue: resultData.expectedCloseValue, insights: resultData.insights };
     } catch (e) {
@@ -59,7 +54,6 @@ export class CRMIntelligenceService {
   }
 
   async generateFollowUpMessage(dealData: any, reason: string): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `
       Müşteri: ${dealData.clientName}
       Proje: ${dealData.projectName}
@@ -71,10 +65,9 @@ export class CRMIntelligenceService {
     `;
 
     try {
-      const result = await model.generateContent(prompt);
-      return result.response.text();
+      return await this.provider.generateText(prompt);
     } catch (e) {
-      return "Profesyonel bir takip mesajı oluşturulamadı.";
+      throw new Error("CRM_FOLLOWUP_UNAVAILABLE", { cause: e });
     }
   }
 }

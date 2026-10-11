@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GeminiProvider } from "../ai/providers/geminiProvider";
+import type { TextProvider } from "../ai/providers/text-provider";
 import { calculateQuotationFinancials } from "../../lib/financial-calculations";
 
 export interface FinancialAnalysis {
@@ -19,9 +20,9 @@ export interface FinancialAnalysis {
 }
 
 export class ProfitService {
-  private genAI: GoogleGenerativeAI | null;
+  private provider: TextProvider;
 
-  constructor(apiKey: string) { this.genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null; }
+  constructor(provider: string | TextProvider) { this.provider = typeof provider === "string" ? new GeminiProvider(provider) : provider; }
 
   async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}, beforePaidCall?: () => Promise<unknown>): Promise<FinancialAnalysis> {
     const calculation = calculateQuotationFinancials(items, riskInputs);
@@ -45,15 +46,14 @@ export class ProfitService {
     const riskLevel = riskScore > 60 ? "HIGH" : riskScore > 30 ? "MEDIUM" : "LOW";
     const fallback = `Maliyet verileri tamamlandı. Net satış ${calculation.salesNet.toLocaleString("tr-TR")} ${currency}, maliyet ${calculation.totalCost.toLocaleString("tr-TR")} ${currency}; hesaplanan marj %${calculation.margin.toFixed(2)} (${riskLevel}).`;
     let insights = fallback;
-    if (this.genAI && beforePaidCall) {
+    if (this.provider.isConfigured() && beforePaidCall) {
       // The authorization/reservation must propagate; provider fallback must not hide it.
       await beforePaidCall();
       try {
-        const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(`İnşaat teklifini kısa ve profesyonel değerlendir. Sektör: ${industryId}. Net satış: ${calculation.salesNet} ${currency}. Gerçek maliyet: ${calculation.totalCost} ${currency}. Kâr: ${calculation.profit} ${currency}. Marj: %${calculation.margin.toFixed(2)}. Risk: ${riskLevel}. En fazla üç cümlede marjı, ana maliyet riskini ve teklif kararını belirt.`);
-        insights = result.response.text() || fallback;
+        const result = await this.provider.generateText(`İnşaat teklifini kısa ve profesyonel değerlendir. Sektör: ${industryId}. Net satış: ${calculation.salesNet} ${currency}. Gerçek maliyet: ${calculation.totalCost} ${currency}. Kâr: ${calculation.profit} ${currency}. Marj: %${calculation.margin.toFixed(2)}. Risk: ${riskLevel}. En fazla üç cümlede marjı, ana maliyet riskini ve teklif kararını belirt.`);
+        insights = result || fallback;
       } catch (error) {
-        console.error("Financial insight generation failed:", error);
+        console.warn("Financial insight generation unavailable; using deterministic analysis.");
       }
     }
     return {

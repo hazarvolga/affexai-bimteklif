@@ -431,7 +431,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <ul className="space-y-3 text-xs text-zinc-300">
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-purple-400 shrink-0" />
-                      <span><strong>Sınırsız</strong> Teklif Kotası</span>
+                      <span><strong>99.999</strong> Teklif Kotası</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-purple-400 shrink-0" />
@@ -439,7 +439,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-purple-400 shrink-0" />
-                      <span>Maks <strong>250 MB</strong> Büyük Proje</span>
+                      <span>Maks <strong>100 MB</strong> Büyük Proje</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-purple-400 shrink-0" />

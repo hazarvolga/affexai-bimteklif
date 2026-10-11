@@ -1,3 +1,4 @@
+import { registerPricingFileImportRoutes } from './routes/pricing-file-import';
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
@@ -29,6 +30,7 @@ if (!(Layer as any).__asyncErrorsPatched) {
   (Layer as any).__asyncErrorsPatched = true;
 }
 import { AIService } from "../services/ai/aiService";
+import { createTextProvider } from "../services/ai/providers/text-provider";
 import { RegulatoryIntelligenceService } from "../services/regulations/regulatoryService";
 import { ProfitService } from "../services/financials/profitService";
 import { CRMIntelligenceService } from "../services/crm/crmService";
@@ -115,9 +117,10 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
     openAiApiKey: process.env.OPENAI_API_KEY,
     geminiApiKey: process.env.GEMINI_API_KEY,
   });
-  const regulatoryService = new RegulatoryIntelligenceService(process.env.GEMINI_API_KEY || "");
-  const profitService = new ProfitService(process.env.GEMINI_API_KEY || "");
-  const crmService = new CRMIntelligenceService(process.env.GEMINI_API_KEY || "");
+  const textProvider = createTextProvider();
+  const regulatoryService = new RegulatoryIntelligenceService(textProvider);
+  const profitService = new ProfitService(textProvider);
+  const crmService = new CRMIntelligenceService(textProvider);
 
   // API routes go here FIRST
   app.get("/api/health", async (req, res) => {
@@ -148,6 +151,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerAcademyRoutes(app);
   registerSmartCheckRoutes(app);
   registerPricingRoutes(app);
+  registerPricingFileImportRoutes(app);
   registerSourceIntelligenceRoutes(app);
   registerMarketIntelligenceRoutes(app);
   registerPilotEvidenceRoutes(app);

@@ -192,7 +192,22 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     const queued = await request(`/api/smartcheck/documents/${documentId}/process`, { method: "POST" });
     assert.equal(queued.status, 202);
     runId = (await queued.json() as { id: string }).id;
-    await processor.processSmartCheckDocument({ companyId: companyA.id, documentId, processingRunId: runId });
+    const { run, Logger } = await import('graphile-worker');
+    const { ifcWorkerTaskList } = await import('../../smartcheck/import/ifc-worker');
+    const runner = await run({ connectionString: process.env.DATABASE_URL, schema: process.env.GRAPHILE_WORKER_SCHEMA,
+      concurrency: 1, pollInterval: 50, noHandleSignals: true, logger: new Logger(() => () => {}), taskList: ifcWorkerTaskList });
+    try {
+      const deadline = Date.now() + 15_000;
+      let succeeded = false;
+      while (Date.now() < deadline) {
+        const [storedRun] = await db.select().from(schema.documentProcessingRuns).where(eq(schema.documentProcessingRuns.id, runId));
+        if (storedRun?.status === 'succeeded') { succeeded = true; break; }
+        assert.notEqual(storedRun?.status, 'failed', 'real IFC worker failed');
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      assert.ok(succeeded, 'real Graphile IFC worker must consume the committed upload job');
+    } finally { await runner.stop(); }
+
     const rowsResponse = await request(`/api/smartcheck/documents/${documentId}/rows`);
     assert.equal(rowsResponse.status, 200);
     const rows = await rowsResponse.json() as Array<{ id: string; quantitySource: string; priceSource: string; reviewStatus: string; normalizedQuantity: string; normalizedUnit: string; findingsJson: Array<{ code: string }> }>;

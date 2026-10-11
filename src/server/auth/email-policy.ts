@@ -13,7 +13,16 @@ export class EmailDeliveryError extends Error {
 
 export function validateAuthEmailEnvironment(env: Env = process.env): string[] {
   const mode = env.AUTH_EMAIL_DELIVERY_MODE ?? 'webhook';
-  if (!['disabled', 'webhook'].includes(mode)) return ['AUTH_EMAIL_DELIVERY_MODE must be webhook or disabled.'];
+  if (!['disabled', 'webhook', 'smtp'].includes(mode)) return ['AUTH_EMAIL_DELIVERY_MODE must be webhook, smtp or disabled.'];
+  if (mode === 'smtp') {
+    const errors: string[] = [];
+    if (!/^(?=.{1,253}$)[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/i.test(env.AUTH_EMAIL_SMTP_HOST ?? '')) errors.push('AUTH_EMAIL_SMTP_HOST must be a DNS hostname.');
+    if (!['465', '587'].includes(env.AUTH_EMAIL_SMTP_PORT ?? '')) errors.push('AUTH_EMAIL_SMTP_PORT must be 465 (TLS) or 587 (required STARTTLS).');
+    if (!env.AUTH_EMAIL_SMTP_USER?.trim() || /[\r\n]/.test(env.AUTH_EMAIL_SMTP_USER)) errors.push('AUTH_EMAIL_SMTP_USER is required.');
+    if (!env.AUTH_EMAIL_SMTP_PASSWORD?.trim() || /[\r\n]/.test(env.AUTH_EMAIL_SMTP_PASSWORD) || placeholder(env.AUTH_EMAIL_SMTP_PASSWORD)) errors.push('AUTH_EMAIL_SMTP_PASSWORD is required.');
+    if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(env.AUTH_EMAIL_FROM ?? '') || (env.AUTH_EMAIL_FROM?.length ?? 0) > 254) errors.push('AUTH_EMAIL_FROM must be a sender email address on the configured mail domain.');
+    return errors;
+  }
   if (mode === 'disabled' || env.NODE_ENV !== 'production') return [];
   const errors: string[] = [];
   try {

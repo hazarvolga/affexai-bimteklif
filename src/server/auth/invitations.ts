@@ -1,3 +1,4 @@
+import { deliverTransactionalEmail } from './email-delivery';
 import { assertAuthEmailAvailable, EmailDeliveryError } from './email-policy';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
@@ -63,16 +64,11 @@ export function publicInvitation(invite: typeof invitations.$inferSelect) {
 
 export async function deliverInvitation(email: string, url: string, env = process.env, transport = fetch) {
   assertAuthEmailAvailable(env);
-  if (!env.AUTH_EMAIL_WEBHOOK_URL) return env.NODE_ENV === 'production'
-    ? { status: 'unconfigured' as const } : { status: 'development' as const, devInvitationUrl: url };
   try {
-    const response = await transport(env.AUTH_EMAIL_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(env.AUTH_EMAIL_WEBHOOK_SECRET ? { Authorization: `Bearer ${env.AUTH_EMAIL_WEBHOOK_SECRET}` } : {}) },
-      body: JSON.stringify({ template: 'invitation', email, url }),
-      signal: AbortSignal.timeout(5000),
-    });
-    return { status: response.ok ? 'accepted' as const : 'failed' as const };
+    const delivery = await deliverTransactionalEmail('invitation', email, url, env, transport);
+    return delivery.status === 'development'
+      ? { status: 'development' as const, devInvitationUrl: delivery.url }
+      : { status: 'accepted' as const };
   } catch {
     return { status: 'failed' as const };
   }
@@ -94,7 +90,7 @@ export async function issueInvitation(companyId: string, invitedBy: string, valu
   });
   const base = (process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
   const delivery = await deliverInvitation(email, `${base}/accept-invite/${created.token}`);
-  if (delivery.status === 'failed' || delivery.status === 'unconfigured') {
+  if (delivery.status === 'failed') {
     const [expired] = await db.update(invitations).set({ expiresAt: new Date() }).where(eq(invitations.id, invite.id)).returning();
     return { invitation: publicInvitation(expired), delivery };
   }

@@ -24,6 +24,7 @@ export interface AIQuotationInput {
 export interface AIProvider {
   readonly name: string;
   isConfigured(): boolean;
+  generateText?(prompt: string, json?: boolean): Promise<string>;
   generateQuotation(input: AIQuotationInput): Promise<AIQuotationResult>;
   improveQuotation(items: any[], instructions: string): Promise<any[]>;
   estimateMargin?(input: unknown): Promise<unknown>;

@@ -1,3 +1,4 @@
+import { resolveBenchmarkProvenance } from './benchmark-provenance';
 import { and, desc, eq, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
@@ -58,6 +59,7 @@ export async function editManualQuotation(companyId: string, id: string, input: 
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for('share');
     if (!client) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
     const { items, updatedAt: _version, ...fields } = input;
+    const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
     })));
@@ -71,7 +73,7 @@ export async function editManualQuotation(companyId: string, id: string, input: 
       vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal),
     }).where(and(eq(quotations.id, id), eq(quotations.companyId, companyId))).returning();
     await tx.delete(quotationItems).where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, companyId)));
-    await tx.insert(quotationItems).values(items.map(item => ({
+    await tx.insert(quotationItems).values(validatedItems.map(item => ({
       ...item, companyId, quotationId: id,
       description: item.description, unit: item.unit,
       quantity: String(item.quantity), unitPrice: String(item.unitPrice),
@@ -79,7 +81,7 @@ export async function editManualQuotation(companyId: string, id: string, input: 
       wastePercent: String(item.wastePercent), discountPercent: String(item.discountPercent), vatPercent: String(item.vatPercent),
       total: String(calculateLineItemTotal({
         quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
-      })), quantitySource: 'manual', priceSource: 'manual', verificationStatus: 'unverified', })));
+      })), quantitySource: 'manual', })));
     await tx.delete(quotationFinancials).where(eq(quotationFinancials.quotationId, id));
     return saved;
   });

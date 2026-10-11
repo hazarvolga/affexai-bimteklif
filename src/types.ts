@@ -54,6 +54,7 @@ export interface Client {
 }
 
 export interface QuoteItem {
+  benchmarkStagingId?: string;
   id: string;
   description: string;
   unit: string;

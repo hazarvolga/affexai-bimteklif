@@ -1,3 +1,4 @@
+import { resolveBenchmarkProvenance } from './benchmark-provenance';
 import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "../../db";
 import { clients, quotationItemEvidence, quotationItems, quotations } from "../../db/schema";
@@ -19,6 +20,7 @@ export async function createManualQuotation(companyId: string, input: ManualQuot
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for("share");
     if (!client) throw new QuotationIntegrityError(400, "Client not available in this company");
     const { items, ...fields } = input;
+    const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
     })));
@@ -33,7 +35,7 @@ export async function createManualQuotation(companyId: string, input: ManualQuot
       vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal),
       revisionVersion: 1, isLatest: true,
     }).returning();
-    await tx.insert(quotationItems).values(items.map(item => ({
+    await tx.insert(quotationItems).values(validatedItems.map(item => ({
       ...item, companyId, quotationId: quote.id,
       description: item.description, unit: item.unit,
       quantity: String(item.quantity), unitPrice: String(item.unitPrice),
@@ -42,7 +44,7 @@ export async function createManualQuotation(companyId: string, input: ManualQuot
       total: String(calculateLineItemTotal({
         quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
       })),
-      quantitySource: "manual", priceSource: "manual", verificationStatus: "unverified",
+      quantitySource: "manual",
     })));
     return quote;
   });

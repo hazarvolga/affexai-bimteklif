@@ -76,7 +76,9 @@ export function PricingSources() {
 
   // Audit Diagnostic State
   const [auditQuery, setAuditQuery] = useState('');
-  const [auditResult, setAuditResult] = useState<any | null>(null);
+  const [auditResult, setAuditResult] = useState<{ items: Array<{ id: string; itemCode: string; itemName: string; crawledPrice: string; unit: string; sourceName: string; reviewedAt: string; validityStart: string; validityEnd: string }> } | null>(null);
+  const [auditError, setAuditError] = useState('');
+  const [auditLoading, setAuditLoading] = useState(false);
 
   // New Source Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -241,50 +243,19 @@ export function PricingSources() {
     }
   };
 
-  const runAuditSearch = () => {
-    const q = auditQuery.trim().toLowerCase();
-    if (!q) return;
-
-    if (q.includes('15.150.1005') || q.includes('beton')) {
-      setAuditResult({
-        code: '15.150.1005',
-        name: 'C25/30 Hazır Beton (Transmikser ve beton pompası ile döküm dahil)',
-        unit: 'm³',
-        officialPrice: '2.350,00 ₺',
-        marketPrice: '2.480,00 ₺ (Önerilen Piyasa Rayici)',
-        authority: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
-        validity: '01.01.2026 – 31.12.2026 (Yürürlükte)',
-        hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-        epysCompliant: true,
-        notes: 'Resmi Gazete 2026/1 birim fiyat kitabında kayıtlıdır. Son piyasa sapması: +%5.53.'
-      });
-    } else if (q.includes('15.160.1003') || q.includes('demir') || q.includes('çelik')) {
-      setAuditResult({
-        code: '15.160.1003',
-        name: 'Nervürlü Çelik Donatı (Ø 8 - Ø 12 mm)',
-        unit: 'ton',
-        officialPrice: '28.200,00 ₺',
-        marketPrice: '29.450,00 ₺ (Karabük/Payas Tüccar Rayici)',
-        authority: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı / Karabük Endeksi',
-        validity: '2026-W41 Haftalık Bülten',
-        hash: '4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a',
-        epysCompliant: true,
-        notes: 'Ek-6 zorunlu statik donatı pozudur. İnceleme havuzunda onay bekleyen +%4.43 artış mevcuttur.'
-      });
-    } else {
-      setAuditResult({
-        code: auditQuery,
-        name: 'Aranan Poz Bulunamadı',
-        unit: '-',
-        officialPrice: '-',
-        marketPrice: '-',
-        authority: 'Bakanlık Veri Tabanı',
-        validity: 'Kayıt Yok',
-        hash: '-',
-        epysCompliant: false,
-        notes: 'Bu poz kodu ÇŞB 2026/1 kataloğunda veya piyasa emtia listelerinde eşleşmedi.'
-      });
-    }
+  const runAuditSearch = async () => {
+    const q = auditQuery.trim();
+    if (!q || auditLoading) return;
+    setAuditLoading(true); setAuditError(''); setAuditResult(null);
+    try {
+      const response = await fetchWithAuth(`/api/pricing/benchmarks?q=${encodeURIComponent(q)}`);
+      if (!response.ok) throw new Error('Onaylı kaynak kayıtları sorgulanamadı.');
+      const result = await response.json();
+      if (!Array.isArray(result.items)) throw new Error('Kaynak yanıtı geçersiz.');
+      setAuditResult({ items: result.items });
+    } catch (error) {
+      setAuditError(error instanceof Error ? error.message : 'Kaynak sorgusu başarısız.');
+    } finally { setAuditLoading(false); }
   };
 
   const pendingStagingCount = stagingItems.filter((i) => i.status === 'pending').length;
@@ -294,7 +265,7 @@ export function PricingSources() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader 
           title="Fiyat & Poz Kaynakları (Crawler Governance)" 
-          description="ÇŞB resmi birim fiyatları, TÜİK maliyet endeksleri ve piyasa emtia rayiçlerinin canlı takibi ve onay havuzu." 
+          description="Fiyat kaynaklarının, toplanan kayıtların ve insan incelemesinin yönetimi."
           icon={Database} 
         />
         <div className="flex items-center gap-2 mt-2 sm:mt-0">
@@ -335,7 +306,7 @@ export function PricingSources() {
           </div>
           <div className="border-l-2 border-emerald-500 pl-3">
             <span className="font-bold text-white block mb-0.5">4. Mühürlü Poz Kataloğu</span>
-            <span>Onaylanan pozlar SHA-256 hash imzasıyla yürürlüğe girer ve şantiyelerin teklif mektuplarında kullanılır.</span>
+            <span>Onaylanan ve geçerlilik tarihleri uygun kayıtlar teklife aktarılabilir. İnceleme onayı resmî uygunluk belgesi değildir.</span>
           </div>
         </div>
       </div>
@@ -457,7 +428,7 @@ export function PricingSources() {
             activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          Poz Doğrulama & Teftiş
+          Onaylı Kayıt Arama
         </button>
       </div>
 
@@ -815,9 +786,9 @@ export function PricingSources() {
       {activeTab === 'audit' && (
         <div className="mt-6 max-w-3xl space-y-6">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
-            <h3 className="text-base font-bold text-white mb-2">Canlı Poz Teftiş & Doğrulama Aracı</h3>
+            <h3 className="text-base font-bold text-white mb-2">Onaylı Kaynak Kayıtları</h3>
             <p className="text-xs text-zinc-400 mb-6">
-              Sistemdeki herhangi bir resmi ÇŞB poz numarasını veya emtia kodunu yazarak yürürlükteki birim fiyatını, ölçü birimini ve resmi kaynak doğruluğunu sorgulayın.
+              Poz numarası veya açıklaması ile sistemdeki onaylanmış, geçerli tarihli TRY fiyat kayıtlarını arayın.
             </p>
 
             <div className="flex gap-2">
@@ -832,51 +803,23 @@ export function PricingSources() {
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-950 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
-              <Button onClick={runAuditSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5">
-                Sorgula & Doğrula
+              <Button disabled={auditLoading} onClick={runAuditSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5">
+                {auditLoading ? 'Sorgulanıyor…' : 'Onaylı kayıtları ara'}
               </Button>
             </div>
 
-            {auditResult && (
-              <div className="mt-6 rounded-lg border border-zinc-800 bg-zinc-950 p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                  <div>
-                    <span className="text-xs font-mono font-bold text-indigo-400">{auditResult.code}</span>
-                    <h4 className="text-sm font-bold text-white mt-0.5">{auditResult.name}</h4>
-                  </div>
-                  {auditResult.epysCompliant ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded border border-emerald-400/20">
-                      <CheckCircle2 size={13} /> e-PYS Uyumlu
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-zinc-500">Kayıt Bulunamadı</span>
-                  )}
-                </div>
+            <p className="mt-4 text-xs text-zinc-400">Bu arama yalnızca onaylanmış kaynak kayıtlarını listeler; resmî kurum veya e-PYS uygunluk doğrulaması yapmaz.</p>
+            {auditError && <p role="alert" className="mt-4 text-sm text-red-400">{auditError}</p>}
+            {auditResult && <div className="mt-6 space-y-3">
+              {auditResult.items.length === 0 && <p className="text-sm text-zinc-400">Geçerli tarihlere sahip onaylı kayıt bulunamadı. Bu sonuç resmî katalogda kayıt olmadığı anlamına gelmez.</p>}
+              {auditResult.items.map(item => <div key={item.id} className="rounded-lg border border-zinc-800 p-4 text-sm">
+                <h4 className="text-white">{item.itemCode} — {item.itemName}</h4>
+                <p className="text-zinc-300">{Number(item.crawledPrice).toLocaleString('tr-TR')} ₺ / {item.unit}</p>
+                <p className="text-xs text-zinc-400">Kaynak: {item.sourceName} · İnceleme: {new Date(item.reviewedAt).toLocaleDateString('tr-TR')}</p>
+                <p className="text-xs text-zinc-400">Geçerlilik: {new Date(item.validityStart).toLocaleDateString('tr-TR')} – {new Date(item.validityEnd).toLocaleDateString('tr-TR')}</p>
+              </div>)}
+            </div>}
 
-                <div className="grid grid-cols-2 gap-4 text-xs pt-1">
-                  <div>
-                    <span className="text-zinc-500 block">Resmi ÇŞB Fiyatı:</span>
-                    <span className="font-mono font-bold text-white text-sm">{auditResult.officialPrice}</span>
-                  </div>
-                  <div>
-                    <span className="text-zinc-500 block">Güncel Piyasa Rayici:</span>
-                    <span className="font-mono font-bold text-amber-400 text-sm">{auditResult.marketPrice}</span>
-                  </div>
-                  <div>
-                    <span className="text-zinc-500 block">Ölçü Birimi:</span>
-                    <span className="text-zinc-200 font-mono">{auditResult.unit}</span>
-                  </div>
-                  <div>
-                    <span className="text-zinc-500 block">Geçerlilik & Durum:</span>
-                    <span className="text-zinc-200">{auditResult.validity}</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-zinc-800/60 text-[11px] text-zinc-400">
-                  <span className="font-semibold text-zinc-300">Teftiş Notu:</span> {auditResult.notes}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}

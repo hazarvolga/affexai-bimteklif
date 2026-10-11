@@ -1,3 +1,4 @@
+import { benchmarkEligible } from '../../services/pricing/benchmark-policy';
 import type { Express, RequestHandler } from "express";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db";
@@ -101,15 +102,18 @@ export function registerPricingRoutes(app: Express) {
           status: pricingDataSources.status,
         })
         .from(pricingDataSources)
-        .where(sql`${pricingDataSources.status} != 'disabled'`);
+        .where(eq(pricingDataSources.status, 'active'));
 
-      // 2. Query price feed staging items (approved or pending from active sources)
+      // Only reviewed, approved and currently valid prices may enter a quotation.
       const itemsQuery = db
         .select({
           id: priceFeedStaging.id,
           sourceId: priceFeedStaging.sourceId,
           sourceCode: pricingDataSources.code,
           sourceName: pricingDataSources.name,
+          sourceStatus: pricingDataSources.status,
+          reviewedAt: priceFeedStaging.reviewedAt,
+          reviewedByUserId: priceFeedStaging.reviewedByUserId,
           itemCode: priceFeedStaging.itemCode,
           itemName: priceFeedStaging.itemName,
           unit: priceFeedStaging.unit,
@@ -126,9 +130,14 @@ export function registerPricingRoutes(app: Express) {
         })
         .from(priceFeedStaging)
         .innerJoin(pricingDataSources, eq(priceFeedStaging.sourceId, pricingDataSources.id))
-        .orderBy(desc(priceFeedStaging.crawledAt));
+        .where(and(eq(priceFeedStaging.status, 'approved'), eq(pricingDataSources.status, 'active'), eq(pricingDataSources.currency, 'TRY'),
+          sql`${priceFeedStaging.reviewedAt} IS NOT NULL`, sql`${priceFeedStaging.reviewedByUserId} IS NOT NULL`,
+          sql`${priceFeedStaging.crawledPrice} >= 0 AND ${priceFeedStaging.crawledPrice} != 'NaN'::numeric`,
+          q ? sql`position(lower(${q}) in lower(${priceFeedStaging.itemCode} || ' ' || ${priceFeedStaging.itemName} || ' ' || ${pricingDataSources.name})) > 0` : undefined,
+          sql`${pricingDataSources.validityStart} <= CURRENT_TIMESTAMP`, sql`${pricingDataSources.validityEnd} >= CURRENT_TIMESTAMP`))
+        .orderBy(desc(priceFeedStaging.crawledAt)).limit(50);
 
-      let items = await itemsQuery;
+      let items = (await itemsQuery).filter(item => benchmarkEligible(item));
 
       if (q) {
         const queryLower = q.toLowerCase();
@@ -149,11 +158,11 @@ export function registerPricingRoutes(app: Express) {
           validityRange:
             s.validityStart && s.validityEnd
               ? `${new Date(s.validityStart).toLocaleDateString("tr-TR")} – ${new Date(s.validityEnd).toLocaleDateString("tr-TR")}`
-              : "2026 Yürürlükte",
+              : "Geçerlilik tarihi bilinmiyor",
           status: s.status,
         })),
         disclaimer:
-          "TeklifPro rayiç motoru, resmi ÇŞB birim fiyatları ve canlı piyasa tarayıcı verilerini gösterge niteliğinde sunar. Şantiye mesafesi, nakliye, pompa ve tedarik koşullarına göre sapmalar olabileceğinden nihai teklif mektubunu vermeden önce tedarikçinizden güncel proforma almanızı ve birim maliyetleri manuel teyit etmenizi önemle tavsiye ederiz.",
+          "Yalnızca incelemesi onaylanmış ve geçerlilik tarihleri uygun kaynak kayıtları gösterilir. Bu onay resmî kurum veya e-PYS uygunluk doğrulaması değildir. Şantiye mesafesi, nakliye, pompa ve tedarik koşullarına göre sapmalar olabileceğinden nihai teklif mektubunu vermeden önce tedarikçinizden güncel proforma almanızı ve birim maliyetleri manuel teyit etmenizi önemle tavsiye ederiz.",
         items: items.slice(0, 50),
       });
     } catch (error) {

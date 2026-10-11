@@ -13,8 +13,18 @@ export class GeminiProvider implements AIProvider {
     return Boolean(this.apiKey);
   }
 
+  async generateText(prompt: string, json = false): Promise<string> {
+    if (Buffer.byteLength(prompt, 'utf8') > 128 * 1024) throw new Error('AI_INPUT_TOO_LARGE');
+    const model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-2.5-flash' }, { timeout: 30_000 });
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4096, ...(json ? { responseMimeType: 'application/json' } : {}) },
+    });
+    return result.response.text();
+  }
+
   async generateQuotation(input: AIQuotationInput): Promise<AIQuotationResult> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { timeout: 30_000 });
+    const model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" }, { timeout: 30_000 });
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: buildQuotationPrompt(input) }] }],
       generationConfig: {
@@ -26,7 +36,7 @@ export class GeminiProvider implements AIProvider {
   }
 
   async improveQuotation(items: any[], instructions: string): Promise<any[]> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { timeout: 30_000 });
+    const model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" }, { timeout: 30_000 });
 
 
     const prompt = `

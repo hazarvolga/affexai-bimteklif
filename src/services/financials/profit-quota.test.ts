@@ -6,7 +6,7 @@ const items = [{ quantity: 1, unitPrice: 100, costUnitPrice: 50 }];
 test('profit paid insights reserve before provider and quota rejection cannot be swallowed', async () => {
   const events: string[] = [];
   const service = new ProfitService('');
-  (service as any).genAI = { getGenerativeModel: () => ({ generateContent: async () => { events.push('provider'); return { response: { text: () => 'Insight' } }; } }) };
+  (service as any).provider = { isConfigured: () => true, generateText: async () => { events.push('provider'); return 'Insight'; } };
   const analyze = (...args: any[]) => (service.analyzeProfitability as any)(...args);
   await analyze(items, 'residential', 'TRY', {}, async () => { events.push('reserve'); });
   assert.deepEqual(events, ['reserve', 'provider']);
@@ -18,6 +18,6 @@ test('deterministic profit analysis does not reserve AI quota', async () => {
   const service = new ProfitService('');
   const deny = async () => assert.fail('no provider means no AI spending');
   await (service.analyzeProfitability as any)(items, 'residential', 'TRY', {}, deny);
-  (service as any).genAI = { getGenerativeModel: () => assert.fail('missing cost cannot call AI') };
+  (service as any).provider = { isConfigured: () => true, generateText: () => assert.fail('missing cost cannot call AI') };
   await (service.analyzeProfitability as any)([{ ...items[0], costUnitPrice: null }], 'residential', 'TRY', {}, deny);
 });

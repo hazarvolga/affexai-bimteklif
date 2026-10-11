@@ -5,10 +5,12 @@ import { Package, Plus, X } from 'lucide-react';
 import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
+import { adminPlansSchema, readAdminResponse } from './admin-data';
 
 export function PlansList() {
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
@@ -23,9 +25,11 @@ export function PlansList() {
 
   const loadPlans = () => {
     setLoading(true);
+    setError(null);
     fetchWithAuth('/api/admin/plans')
-      .then(res => res.json())
+      .then(res => readAdminResponse(res, adminPlansSchema))
       .then(setPlans)
+      .catch(() => { setPlans([]); setError('Paketler yüklenemedi. Yetkinizi ve bağlantınızı kontrol edip tekrar deneyin.'); })
       .finally(() => setLoading(false));
   };
 
@@ -100,6 +104,14 @@ export function PlansList() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mt-4">
         {loading ? (
           <div className="text-zinc-500">Yükleniyor...</div>
+        ) : error ? (
+          <div role="alert" className="col-span-full rounded-xl border border-red-500/30 p-5 text-red-300">
+            <p>{error}</p><Button onClick={loadPlans} variant="outline" className="mt-3">Tekrar dene</Button>
+          </div>
+        ) : plans.length === 0 ? (
+          <div role="status" className="col-span-full rounded-xl border border-zinc-700 p-5 text-zinc-300">
+            Henüz paket tanımlanmamış. Paket ekleyin veya platform yöneticisinden başlangıç kataloğunu yüklemesini isteyin.
+          </div>
         ) : plans.map((plan) => (
           <div key={plan.id} className={`rounded-xl border p-5 flex flex-col justify-between ${plan.isActive ? 'border-zinc-700 bg-zinc-900/60' : 'border-red-500/20 bg-red-500/5'}`}>
             <div>
@@ -143,7 +155,7 @@ export function PlansList() {
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                       <span>
                         <strong className="text-white">
-                          {plan.monthlyQuoteLimit >= 99999 ? 'Sınırsız' : `${plan.monthlyQuoteLimit} Adet`}
+                          {`${plan.monthlyQuoteLimit.toLocaleString('tr-TR')} Adet`}
                         </strong>{' '}
                         Teklif Kotası
                       </span>
@@ -154,7 +166,7 @@ export function PlansList() {
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                   <span>
                     <strong className="text-white">
-                      {plan.monthlyIfcLimit ? `${plan.monthlyIfcLimit} Adet` : 'Sınırsız'}
+                      {plan.monthlyIfcLimit === null ? 'Paket limiti tanımsız' : `${plan.monthlyIfcLimit} Adet`}
                     </strong>{' '}
                     {plan.monthlyQuoteLimit === 0 ? 'İsimlendirme Denetimi' : 'IFC Analizi'}
                   </span>
@@ -162,7 +174,8 @@ export function PlansList() {
                 <li className="flex items-center gap-2 text-xs text-zinc-300">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                   <span>
-                    Maks <strong className="text-white">{plan.ifcMaxFileMb ?? 50} MB</strong> Dosya
+                    Maks <strong className="text-white">{Math.min(plan.ifcMaxFileMb, 100)} MB</strong> Dosya
+                    {plan.ifcMaxFileMb > 100 && <span className="text-amber-400"> (kayıt {plan.ifcMaxFileMb} MB; sunucu tavanı uygulanır)</span>}
                   </span>
                 </li>
                 <li className="flex items-center gap-2 text-xs text-zinc-300">
@@ -213,7 +226,7 @@ export function PlansList() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1">Maks IFC (MB)</label>
-                  <input type="number" min={1} max={500} value={ifcMaxFileMb} onChange={e => setIfcMaxFileMb(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                  <input type="number" min={1} max={100} value={ifcMaxFileMb} onChange={e => setIfcMaxFileMb(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1">Eşzamanlı İş</label>
@@ -225,7 +238,7 @@ export function PlansList() {
                 <input type="checkbox" id="isActive" checked={isActive} onChange={e => setIsActive(e.target.checked)} className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-zinc-950" />
                 <label htmlFor="isActive" className="text-sm text-zinc-300">Aktif (Satışa ve Kullanıma Açık)</label>
               </div>
-              {!isActive && <p className="text-xs text-red-400 mt-1">Dikkat: Bu paket pasife alındığında, bu paketi kullanan müşteriler etkilenmez ancak yeni atanmalarda görünmez.</p>}
+              {!isActive && <p className="text-xs text-red-400 mt-1">Dikkat: Bu paketi kullanan müşterilerin kota gerektiren işlemleri de engellenir.</p>}
             </div>
 
             <div className="mt-8 flex justify-end gap-3">

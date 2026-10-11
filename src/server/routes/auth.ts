@@ -1,4 +1,5 @@
-import { assertAuthEmailAvailable, requireAuthEmailDelivery } from "../auth/email-policy";
+import { deliverTransactionalEmail } from '../auth/email-delivery';
+import { assertAuthEmailAvailable, requireAuthEmailDelivery, EmailDeliveryError } from "../auth/email-policy";
 import type { Express, Response } from "express";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db";
@@ -12,15 +13,8 @@ import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } f
 export const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
 
 export async function deliverAuthLink(template: 'verify_email' | 'reset_password', email: string, url: string) {
-  assertAuthEmailAvailable();
-  if (!process.env.AUTH_EMAIL_WEBHOOK_URL) return process.env.NODE_ENV === 'production' ? null : url;
-  const response = await fetch(process.env.AUTH_EMAIL_WEBHOOK_URL, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', ...(process.env.AUTH_EMAIL_WEBHOOK_SECRET ? { Authorization: `Bearer ${process.env.AUTH_EMAIL_WEBHOOK_SECRET}` } : {}) },
-    body: JSON.stringify({ template, email, url }),
-    signal: AbortSignal.timeout(5000),
-  });
-  if (!response.ok) throw new Error(`AUTH_EMAIL_DELIVERY_${response.status}`);
-  return null;
+  const delivery = await deliverTransactionalEmail(template, email, url);
+  return delivery.status === 'development' ? delivery.url : null;
 }
 
 export async function issueAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
@@ -99,6 +93,7 @@ export function registerAuthRoutes(app: Express) {
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
       res.status(201).json({ token, user: publicRegisteredUser(result.user), company: result.company, role: "owner", accountType: intent === 'academy' ? 'academy_learner' : 'workspace', academyEnrolled: result.academyEnrolled, emailVerificationRequired: true, ...(devVerificationUrl ? { devVerificationUrl } : {}) });
     } catch (error) {
+      if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
       console.error("Registration error:", error);
       if (error instanceof Error && error.message === "ACADEMY_EDITION_UNAVAILABLE") return res.status(503).json({ error: "Ücretsiz Academy kaydı şu anda kullanılamıyor." });
       if ((error as { code?: string })?.code === "23505") return res.status(409).json({ error: "Bu e-posta adresiyle bir hesap zaten mevcut." });
@@ -137,7 +132,12 @@ export function registerAuthRoutes(app: Express) {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user && !user.emailVerified) {
       const raw = await issueAuthAction(user.id, 'verify_email', 24 * 60 * 60 * 1000);
-      const devVerificationUrl = await deliverAuthLink('verify_email', user.email, actionUrl(`/verify-email/${raw}`));
+      let devVerificationUrl: string | null;
+      try { devVerificationUrl = await deliverAuthLink('verify_email', user.email, actionUrl(`/verify-email/${raw}`)); }
+      catch (error) {
+        if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
+        throw error;
+      }
       return res.json({ message: 'Hesap uygunsa doğrulama bağlantısı gönderildi.', ...(devVerificationUrl ? { devVerificationUrl } : {}) });
     }
     return res.json({ message: 'Hesap uygunsa doğrulama bağlantısı gönderildi.' });
@@ -151,7 +151,12 @@ export function registerAuthRoutes(app: Express) {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user) {
       const raw = await issueAuthAction(user.id, 'reset_password', 60 * 60 * 1000);
-      const devResetUrl = await deliverAuthLink('reset_password', user.email, actionUrl(`/reset-password/${raw}`));
+      let devResetUrl: string | null;
+      try { devResetUrl = await deliverAuthLink('reset_password', user.email, actionUrl(`/reset-password/${raw}`)); }
+      catch (error) {
+        if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
+        throw error;
+      }
       return res.json({ message: 'Hesap uygunsa parola yenileme bağlantısı gönderildi.', ...(devResetUrl ? { devResetUrl } : {}) });
     }
     return res.json({ message: 'Hesap uygunsa parola yenileme bağlantısı gönderildi.' });

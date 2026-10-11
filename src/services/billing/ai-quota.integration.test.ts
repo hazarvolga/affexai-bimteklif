@@ -88,14 +88,14 @@ test('CRM and regulation paid HTTP routes share the monthly AI budget', async ()
   const token = AuthService.generateToken({ userId: user.id, companyId: company.id, role: 'owner' });
   const call = (path: string, body: unknown) => fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
   try {
-    for (const [path, body] of [['/api/crm/analyze-deal', { dealId: deal.id }], ['/api/regulations/sync', {}], ['/api/regulations/check-impact', { quotationId: quote.id, alertId: alert.id }]] as const) {
+    for (const [path, body] of [['/api/crm/analyze-deal', { dealId: deal.id }], ['/api/regulations/check-impact', { quotationId: quote.id, alertId: alert.id }]] as const) {
       const response = await call(path, body);
       assert.equal(response.status, 403);
       assert.equal((await response.json()).code, 'AI_QUOTA_EXCEEDED');
     }
     assert.equal(providerCalls, 0);
     await db.delete(schema.usageLogs).where(eq(schema.usageLogs.companyId, company.id));
-    assert.equal((await call('/api/regulations/sync', {})).status, 200);
+    assert.equal((await call('/api/regulations/check-impact', { quotationId: quote.id, alertId: alert.id })).status, 200);
     assert.equal(providerCalls, 1);
     const rows = await db.select().from(schema.usageLogs).where(and(eq(schema.usageLogs.companyId, company.id), eq(schema.usageLogs.feature, 'AI_QUOTATION_GENERATED')));
     assert.equal(rows.reduce((sum, row) => sum + row.count, 0), 1);

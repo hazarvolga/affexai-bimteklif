@@ -7,6 +7,7 @@ import pytest
 
 PYTHON_BIN = sys.executable
 CLI_PATH = os.path.join(os.path.dirname(__file__), "ifc_extract.py")
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 
 def run_cli(input_path: str, output_path: str, file_name: str = "test.ifc"):

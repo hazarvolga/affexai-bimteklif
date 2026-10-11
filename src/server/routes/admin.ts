@@ -1047,7 +1047,7 @@ export function registerAdminRoutes(app: Express) {
 
   router.get("/pricing-sources/scheduler/status", async (_req, res) => {
     try {
-      const status = priceSchedulerService.getStatus();
+      const status = await priceSchedulerService.getStatus();
       return res.json(status);
     } catch (error) {
       console.error("Admin scheduler status error:", error);
@@ -1057,7 +1057,7 @@ export function registerAdminRoutes(app: Express) {
 
   router.post("/pricing-sources/scheduler/trigger", async (req, res) => {
     try {
-      const status = priceSchedulerService.getStatus();
+      const status = await priceSchedulerService.getStatus();
       if (status.isRunningBatch) {
         return res.status(409).json({ error: "Sıralı tarama şu anda zaten çalışmaktadır." });
       }

@@ -8,7 +8,7 @@ const date = z.string().trim().min(1).pipe(z.coerce.date());
 
 export const quotationStatusInput = z.enum(quoteStatusEnum.enumValues);
 
-// Strip everything outside the editable DTO, including all IDs and provenance.
+// Source snapshots are server-built; only the benchmark lookup ID is accepted.
 export const manualQuotationInput = z.object({
   clientId: z.string().uuid(),
   quoteNumber: text,
@@ -26,6 +26,7 @@ export const manualQuotationInput = z.object({
   informationDeliveryLevel: z.enum(["none", "as_built", "cobie", "digital_twin"]).default("none"),
   informationDeliveryCostPercent: percent.default(0),
   items: z.array(z.object({
+    benchmarkStagingId: z.string().uuid().optional(),
     description: text,
     unit: text,
     quantity: number.refine(value => value > 0, "Quantity must be positive"),

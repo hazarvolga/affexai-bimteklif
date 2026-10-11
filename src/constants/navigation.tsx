@@ -20,6 +20,13 @@ export const navGroupOrder: NavGroup[] = ['Ana Menü', 'Araçlar', 'Sistem Yöne
 
 export const navigationConfig: NavItem[] = [
   {
+    label: 'Platform Yönetimi',
+    path: '/admin',
+    icon: Settings,
+    roles: ['super_admin'],
+    group: 'Sistem Yönetimi',
+  },
+  {
     label: "Deneme & Müşteriler",
     path: "/app/pilot-applications",
     icon: Users,
