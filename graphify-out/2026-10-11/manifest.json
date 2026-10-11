@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "src/db/schema.ts": {
-    "mtime": 1791651473.3170452,
-    "ast_hash": "f39919e4946009b460d12f7c3d71b412",
+    "mtime": 1791690840.619292,
+    "ast_hash": "f99defe0f94bb9f40a78eddfa1175a5b",
     "semantic_hash": ""
   },
   "src/hooks/useAuth.tsx": {
@@ -1610,8 +1610,8 @@
     "semantic_hash": ""
   },
   "src/pages/Settings.tsx": {
-    "mtime": 1791445828.9294038,
-    "ast_hash": "b4d01e487a97220248c334a315aaada9",
+    "mtime": 1791691051.7466404,
+    "ast_hash": "0f205f64329d74b7d61688b3b2b7c3bc",
     "semantic_hash": ""
   },
   "src/pages/SmartCheck.tsx": {
@@ -1730,8 +1730,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/company.ts": {
-    "mtime": 1791647680.946001,
-    "ast_hash": "ccccf3cf72dbaa7dfc8f170b6a1dbfa7",
+    "mtime": 1791691088.4107583,
+    "ast_hash": "969d7c07be713fc7bc58fce521eaf34f",
     "semantic_hash": ""
   },
   "src/server/routes/crm.ts": {
@@ -4040,8 +4040,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1791655015.560355,
-    "ast_hash": "7d9158d2fcf6a6a9daf8b26070ca0af7",
+    "mtime": 1791691133.5893388,
+    "ast_hash": "48988ca434af359ed7893044b04b6246",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4710,8 +4710,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/company.privacy.test.ts": {
-    "mtime": 1791445044.1410198,
-    "ast_hash": "dff567116b8ab053a24be1e5ae600c8d",
+    "mtime": 1791691091.8312976,
+    "ast_hash": "d3e36fbcf0656ee094d24a530ce392e2",
     "semantic_hash": ""
   },
   "src/server/routes/pilot.integration.test.ts": {
@@ -5552,6 +5552,11 @@
   "src/server/crawler/priceSchedulerService.ts": {
     "mtime": 1791653519.8968291,
     "ast_hash": "d10949a097de7bea6b502d5b2810995a",
+    "semantic_hash": ""
+  },
+  "src/server/routes/company.multiregion.test.ts": {
+    "mtime": 1791691102.2340693,
+    "ast_hash": "1761248c993fbd6e6cd5c975df517375",
     "semantic_hash": ""
   }
 }
