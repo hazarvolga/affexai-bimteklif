@@ -9,8 +9,8 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 FROM dependencies AS build
 COPY . .
 RUN pnpm run build \
-    && pnpm exec esbuild src/smartcheck/import/worker.entry.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/worker.mjs \
-    && pnpm exec esbuild src/smartcheck/import/ifc-worker.entry.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/ifc-worker.mjs \
+    && pnpm exec esbuild src/smartcheck/import/worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/worker.mjs \
+    && pnpm exec esbuild src/smartcheck/import/ifc-worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/ifc-worker.mjs \
     && pnpm exec esbuild scripts/release-migrations/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/release-cli.mjs
 
 FROM dependencies AS production-dependencies
@@ -47,7 +47,7 @@ ENV NODE_ENV=production \
 RUN apt-get update \
     && apt-get install --no-install-recommends -y python3 python3-venv python3-pip ca-certificates tini \
     && python3 -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 \
+    && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 pytest \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
