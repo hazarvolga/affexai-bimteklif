@@ -659,70 +659,67 @@ export function CreateQuote() {
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table className="min-w-[800px]">
-                    <TableHeader className="bg-zinc-950/50">
-                      <TableRow className="border-zinc-800 hover:bg-transparent">
-                        <TableHead className="w-[45%] text-zinc-500 font-black text-[10px] uppercase tracking-widest pl-6 py-4">DETAY / İŞ KALEMİ</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center py-4">BİRİM</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center py-4">MİKTAR</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">SATIŞ BİRİM</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">MALİYET BİRİM</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right py-4">ZAYİAT %</TableHead>
-                        <TableHead className="text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right pr-6 py-4">TOPLAM</TableHead>
-                        <TableHead className="w-[50px] py-4"></TableHead>
+                    <TableHeader className="bg-muted/40">
+                      <TableRow className="border-border">
+                        <TableHead className="w-[45%] text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Birim</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Miktar</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">Satış Birim</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">Maliyet Birim</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">Zayiat %</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right pr-5 py-3">Toplam</TableHead>
+                        <TableHead className="w-[40px] py-3"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {items.map((item, idx) => (
                         <TableRow 
                           key={item.id} 
-                          className={cn(
-                            "border-zinc-800 group hover:bg-zinc-800/20 transition-all",
-                            idx % 2 === 0 ? "bg-transparent" : "bg-zinc-900/10"
-                          )}
+                          className="border-border/60 group hover:bg-muted/30 transition-colors"
                         >
-                          <TableCell className="pl-6 py-4">
+                          <TableCell className="pl-5 py-2.5">
                             <Input 
                               value={item.description} 
                               onChange={(e) => updateItem(item.id!, { description: e.target.value })}
-                              className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-sm text-zinc-200 placeholder:text-zinc-800 font-bold"
+                              className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-xs text-foreground placeholder:text-muted-foreground/60 font-medium"
                               placeholder="Burada yeni bir iş kalemi oluşturun..."
                             />
                           </TableCell>
-                          <TableCell className="text-center py-4">
+                          <TableCell className="text-center py-2.5">
                             <Input 
                               value={item.unit} 
                               onChange={(e) => updateItem(item.id!, { unit: e.target.value })}
-                              className="bg-transparent border-none text-center p-0 h-auto focus-visible:ring-0 text-[11px] font-black text-zinc-500 uppercase tracking-widest"
+                              className="bg-transparent border-none text-center p-0 h-auto focus-visible:ring-0 text-xs font-mono text-muted-foreground uppercase"
                             />
                           </TableCell>
-                          <TableCell className="text-center py-4">
+                          <TableCell className="text-center py-2.5">
                             <Input 
                               type="number"
                               value={item.quantity} 
                               onChange={(e) => updateItem(item.id!, { quantity: Number(e.target.value) })}
-                              className="bg-transparent border-none text-center p-0 h-auto focus-visible:ring-0 font-mono text-zinc-300 font-bold text-sm"
+                              className="bg-transparent border-none text-center p-0 h-auto focus-visible:ring-0 font-mono text-foreground text-xs tabular-nums"
                             />
                           </TableCell>
-                          <TableCell className="text-right py-4">
+                          <TableCell className="text-right py-2.5">
                             <Input 
                               type="number"
                               value={item.unitPrice} 
                               onChange={(e) => updateItem(item.id!, { unitPrice: Number(e.target.value) })}
-                              className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-white font-black text-sm"
+                              className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-foreground font-semibold text-xs tabular-nums"
                             />
                           </TableCell>
-                          <TableCell className="text-right py-4">
-                            <Input type="number" min="0" placeholder="Gerekli" value={item.costUnitPrice ?? ''} onChange={(e) => updateItem(item.id!, { costUnitPrice: e.target.value === '' ? null : Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-amber-300 font-black text-sm placeholder:text-zinc-700" />
+                          <TableCell className="text-right py-2.5">
+                            <Input type="number" min="0" placeholder="Gerekli" value={item.costUnitPrice ?? ''} onChange={(e) => updateItem(item.id!, { costUnitPrice: e.target.value === '' ? null : Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-amber-300 font-semibold text-xs placeholder:text-muted-foreground/50 tabular-nums" />
                           </TableCell>
-                          <TableCell className="text-right py-4">
-                            <Input type="number" min="0" value={item.wastePercent ?? 0} onChange={(e) => updateItem(item.id!, { wastePercent: Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-zinc-400 text-sm" />
+                          <TableCell className="text-right py-2.5">
+                            <Input type="number" min="0" value={item.wastePercent ?? 0} onChange={(e) => updateItem(item.id!, { wastePercent: Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-muted-foreground text-xs tabular-nums" />
                           </TableCell>
-                          <TableCell className="text-right font-black text-white pr-6 py-4 font-mono text-sm">
+                          <TableCell className="text-right font-semibold text-foreground pr-5 py-2.5 font-mono text-xs tabular-nums">
                             ₺{(item.total || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                           </TableCell>
-                          <TableCell className="py-4">
-                            <Button variant="ghost" size="icon" onClick={() => removeItem(item.id!)} className="text-zinc-700 hover:text-red-500 hover:bg-red-500/5 opacity-0 group-hover:opacity-100 transition-all">
-                              <Trash2 size={16} />
+                          <TableCell className="py-2.5">
+                            <Button variant="ghost" size="icon" onClick={() => removeItem(item.id!)} className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Trash2 size={14} />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -730,9 +727,9 @@ export function CreateQuote() {
                     </TableBody>
                   </Table>
                 </div>
-                <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-center">
-                  <Button variant="ghost" onClick={addItem} className="text-orange-500 hover:bg-orange-500/10 font-black text-[10px] uppercase tracking-widest h-10 px-8 gap-2">
-                    <Plus size={16} /> Yeni Kalem Ekle
+                <div className="p-3 border-t border-border bg-muted/20 flex justify-center">
+                  <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-6 gap-1.5">
+                    <Plus size={14} /> Yeni Kalem Ekle
                   </Button>
                 </div>
               </CardContent>

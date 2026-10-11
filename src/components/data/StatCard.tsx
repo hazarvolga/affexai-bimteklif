@@ -15,10 +15,10 @@ interface StatCardProps {
 }
 
 const colorMap = {
-  orange: "text-orange-500 bg-orange-500/10 border-orange-500/20",
-  emerald: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-  blue: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-  zinc: "text-zinc-400 bg-zinc-800 border-zinc-700",
+  orange: "text-primary bg-primary/10 border-primary/20",
+  emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+  blue: "text-sky-400 bg-sky-500/10 border-sky-500/20",
+  zinc: "text-muted-foreground bg-muted border-border",
 };
 
 export const StatCard: React.FC<StatCardProps> = ({ 
@@ -32,30 +32,30 @@ export const StatCard: React.FC<StatCardProps> = ({
   color = "orange"
 }) => {
   return (
-    <Card className={cn("bg-zinc-900/30 border-zinc-800 shadow-none hover:bg-zinc-900/50 transition-colors group", className)}>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-2 rounded-xl border transition-transform group-hover:scale-110 duration-300", colorMap[color])}>
-            <Icon size={22} />
+    <Card className={cn("border border-border bg-card shadow-xs rounded-sm hover:border-border/80 transition-colors group", className)}>
+      <CardContent className="p-4 pt-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className={cn("p-2 rounded-xs border", colorMap[color])}>
+            <Icon size={18} />
           </div>
           {trend && (
             <div className={cn(
-              "flex items-center gap-1 text-[10px] font-black tracking-widest uppercase",
-              isPositive ? "text-emerald-500" : "text-red-500"
+              "flex items-center gap-1 text-xs font-mono font-semibold tracking-wide",
+              isPositive ? "text-emerald-400" : "text-destructive"
             )}>
               {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
               {trend}
             </div>
           )}
         </div>
-        <div className="space-y-1">
-          <h3 className="text-2xl font-black text-white font-mono tracking-tight">{value}</h3>
-          <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">{title}</p>
+        <div className="space-y-0.5">
+          <h3 className="text-2xl font-bold text-foreground font-mono tracking-tight tabular-nums">{value}</h3>
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">{title}</p>
         </div>
         {description && (
-          <p className="text-[10px] text-zinc-600 mt-2 italic">{description}</p>
+          <p className="text-xs text-muted-foreground/80 mt-2">{description}</p>
         )}
       </CardContent>
     </Card>
   );
-}
+};

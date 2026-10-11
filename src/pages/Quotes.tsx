@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, MoreHorizontal, Search, Copy, FileText, FilePlus, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Plus, MoreHorizontal, Search, Copy, FileText, FilePlus, AlertTriangle, RefreshCw, Box } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -123,71 +123,78 @@ export function Quotes() {
         description="BIM modellerinizden veya manuel olarak tekliflerinizi yönetin."
         icon={FileText}
         actions={
-          <div className="flex items-center gap-3">
-            <Button variant="outline" nativeButton={false} render={<Link to="/app/quotes/new" />} className="border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 gap-2 font-bold h-10 px-5">
-              <Plus size={16} /> Manuel Teklif
-            </Button>
-            <Button nativeButton={false} render={<Link to="/app/dosyadan-teklif-demo" />} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-orange-900/20 gap-2 font-bold h-10 px-6">
-              <FilePlus size={16} /> 3D IFC ile Teklif Hazırla
-            </Button>
+          <div className="flex items-center gap-2.5">
+            <Link to="/app/quotes/new">
+              <Button variant="outline" size="sm" className="gap-1.5 font-medium">
+                <Plus size={15} /> Manuel Teklif
+              </Button>
+            </Link>
+            <Link to="/app/dosyadan-teklif-demo">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-white gap-1.5 font-semibold shadow-xs">
+                <Box size={15} /> 3D IFC ile Teklif Hazırla
+              </Button>
+            </Link>
           </div>
         }
       />
 
-      <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
+      <Card className="border border-border bg-card shadow-xs rounded-sm overflow-hidden">
         <CardContent className="p-0">
-          <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-4 bg-zinc-900/50">
+          <div className="p-3.5 border-b border-border flex items-center justify-between gap-4 bg-muted/20">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Teklif numarası veya proje adına göre ara..."
-                className="pl-10 h-10 bg-zinc-950/50 border-zinc-800 focus:border-orange-500/50 transition-all text-sm font-medium"
+                placeholder="Teklif no veya proje adına göre ara..."
+                className="pl-9 h-9 bg-card text-xs font-sans"
               />
+            </div>
+            <div className="font-mono text-xs text-muted-foreground">
+              Toplam: <strong className="text-foreground tabular-nums">{filteredQuotes.length}</strong> teklif
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-zinc-950/30">
-                <TableRow className="border-zinc-800 hover:bg-transparent">
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest pl-6">TEKLİF NO</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest">PROJE ADI</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">TARİH</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-right">TUTAR</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">DURUM</TableHead>
-                  <TableHead className="py-4 text-right text-zinc-500 font-black text-[10px] uppercase tracking-widest pr-6">İŞLEM</TableHead>
+              <TableHeader className="bg-muted/40">
+                <TableRow className="border-border">
+                  <TableHead className="py-3 pl-5">TEKLİF NO</TableHead>
+                  <TableHead className="py-3">PROJE ADI</TableHead>
+                  <TableHead className="py-3 text-center">TARİH</TableHead>
+                  <TableHead className="py-3 text-right">TUTAR</TableHead>
+                  <TableHead className="py-3 text-center">DURUM</TableHead>
+                  <TableHead className="py-3 text-right pr-5">İŞLEM</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow className="border-zinc-800 bg-zinc-900/10">
-                    <TableCell colSpan={6} className="text-center py-24">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Veriler Yükleniyor...</span>
+                  <TableRow className="border-border">
+                    <TableCell colSpan={6} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs font-mono text-muted-foreground">Veriler Yükleniyor...</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : error ? (
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
-                    <TableCell colSpan={6} className="text-center py-24">
-                      <div className="flex flex-col items-center gap-4">
-                        <AlertTriangle className="text-red-500" size={28} />
+                  <TableRow className="border-border">
+                    <TableCell colSpan={6} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-3">
+                        <AlertTriangle className="text-destructive" size={24} />
                         <div>
-                          <p className="text-xs font-black text-white uppercase tracking-widest">Teklifler yüklenemedi</p>
-                          <p className="text-[10px] text-zinc-500 mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
+                          <p className="text-xs font-semibold text-foreground">Teklifler yüklenemedi</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
                         </div>
-                        <Button onClick={load} variant="outline" size="sm" className="border-zinc-800 bg-zinc-900 text-zinc-300 gap-2 font-black text-[10px] uppercase tracking-widest h-9 px-4">
-                          <RefreshCw size={14} /> Tekrar Dene
+                        <Button onClick={load} variant="outline" size="sm" className="gap-1.5 mt-2">
+                          <RefreshCw size={13} /> Tekrar Dene
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : quotes.length === 0 ? (
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
-                    <TableCell colSpan={6} className="text-center py-24 px-8">
+                  <TableRow className="border-border">
+                    <TableCell colSpan={6} className="text-center py-20 px-6">
                       <EmptyState
                         icon={FilePlus}
                         title="Henüz Teklif Yok"
@@ -198,65 +205,72 @@ export function Quotes() {
                     </TableCell>
                   </TableRow>
                 ) : filteredQuotes.length === 0 ? (
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
-                    <TableCell colSpan={6} className="text-center py-16 text-xs text-zinc-600">
+                  <TableRow className="border-border">
+                    <TableCell colSpan={6} className="text-center py-16 text-xs text-muted-foreground font-mono">
                       "{searchTerm}" için sonuç bulunamadı.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredQuotes.map((quote, idx) => {
+                  filteredQuotes.map((quote) => {
                     const expiryFlag = getExpiryFlag(quote);
                     return (
-                    <TableRow
-                      key={quote.id}
-                      className={cn(
-                        "border-zinc-800 hover:bg-zinc-800/20 transition-all cursor-pointer group",
-                        idx % 2 === 0 ? "bg-transparent" : "bg-zinc-900/10"
-                      )}
-                      onClick={() => navigate(`/app/quotes/${quote.id}`)}
-                    >
-                      <TableCell className="py-4 font-mono text-xs font-black text-orange-500 pl-6 group-hover:scale-105 transition-transform origin-left">
-                        {quote.quoteNumber}
-                      </TableCell>
-                      <TableCell className="py-4 font-black text-xs text-white uppercase tracking-tight">
-                        {quote.projectName}
-                      </TableCell>
-                      <TableCell className="py-4 text-zinc-500 text-[10px] text-center font-black uppercase tracking-widest">
-                        {new Date(quote.date).toLocaleDateString('tr-TR')}
-                      </TableCell>
-                      <TableCell className="py-4 font-black text-white text-right font-mono text-sm">
-                        {Number(quote.grandTotal).toLocaleString('tr-TR')} <span className="text-[10px] text-zinc-600 ml-1">{quote.currency}</span>
-                      </TableCell>
-                      <TableCell className="py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <StatusBadge status={quote.status} />
-                          {expiryFlag && (
-                            <span className={cn(
-                              "text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border",
-                              expiryFlag === 'expired' ? "text-red-400 border-red-500/30 bg-red-500/10" : "text-amber-400 border-amber-500/30 bg-amber-500/10"
-                            )}>
-                              {expiryFlag === 'expired' ? 'Süresi Doldu' : 'Süre Doluyor'}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4 text-right pr-6" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors"><MoreHorizontal size={18} /></Button>} />
-                          <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-300 w-48 p-1">
-                            <DropdownMenuItem render={<Link to={`/app/quotes/${quote.id}`} className="w-full flex items-center gap-2" />} className="text-[10px] font-black uppercase tracking-widest focus:bg-orange-600 focus:text-white cursor-pointer py-2">Görüntüle</DropdownMenuItem>
-                            <DropdownMenuItem
-                              disabled={duplicatingId === quote.id}
-                              onClick={() => duplicateQuote(quote)}
-                              className="text-[10px] font-black uppercase tracking-widest focus:bg-zinc-800 cursor-pointer py-2 gap-2"
-                            >
-                              <Copy size={12} /> {duplicatingId === quote.id ? 'Kopyalanıyor…' : 'Kopyala'}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );})
+                      <TableRow
+                        key={quote.id}
+                        className="border-border/60 hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/app/quotes/${quote.id}`)}
+                      >
+                        <TableCell className="py-3 pl-5 font-mono text-xs font-semibold text-primary">
+                          {quote.quoteNumber}
+                        </TableCell>
+                        <TableCell className="py-3 text-xs font-medium text-foreground">
+                          {quote.projectName}
+                        </TableCell>
+                        <TableCell className="py-3 text-muted-foreground text-xs text-center font-mono tabular-nums">
+                          {new Date(quote.date).toLocaleDateString('tr-TR')}
+                        </TableCell>
+                        <TableCell className="py-3 font-semibold text-foreground text-right font-mono text-xs tabular-nums">
+                          {Number(quote.grandTotal).toLocaleString('tr-TR')} <span className="text-[11px] text-muted-foreground ml-0.5">{quote.currency}</span>
+                        </TableCell>
+                        <TableCell className="py-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <StatusBadge status={quote.status} />
+                            {expiryFlag && (
+                              <span className={cn(
+                                "text-[10px] font-mono px-1.5 py-0.5 rounded-xs border",
+                                expiryFlag === 'expired' ? "text-destructive border-destructive/30 bg-destructive/10" : "text-amber-400 border-amber-500/30 bg-amber-500/10"
+                              )}>
+                                {expiryFlag === 'expired' ? 'Süresi Doldu' : 'Süre Doluyor'}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3 text-right pr-5" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger render={
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                                <MoreHorizontal size={15} />
+                              </Button>
+                            } />
+                            <DropdownMenuContent align="end" className="w-40 p-1 border-border bg-card">
+                              <DropdownMenuItem 
+                                onClick={() => navigate(`/app/quotes/${quote.id}`)}
+                                className="text-xs font-mono cursor-pointer py-1.5"
+                              >
+                                Görüntüle
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={duplicatingId === quote.id}
+                                onClick={() => duplicateQuote(quote)}
+                                className="text-xs font-mono cursor-pointer py-1.5 gap-2"
+                              >
+                                <Copy size={13} /> {duplicatingId === quote.id ? 'Kopyalanıyor…' : 'Kopyala'}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Shield, Play, FileText, CheckCircle2, Zap } from 'lucide-react';
+import { Shield, Play, FileText, CheckCircle2, Zap, Layers, BadgeCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -27,38 +27,41 @@ export function SmartCheck() {
   return (
     <PageContainer>
       <PageHeader
-        title="SmartCheck Kalite Kontrolü"
-        description="Teklif ve metraj satırlarınızı kaynak, birim ve maliyet bütünlüğü açısından insan onayıyla denetleyin."
+        title="SmartCheck Kalite & Metraj Denetimi"
+        description="Teklif ve metraj satırlarınızı kaynak, birim ve mevzuat bütünlüğü açısından insan onayıyla denetleyin."
       />
 
       <SmartCheckImportWorkspace />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
         {/* Main Banner / Action */}
-        <div className="col-span-12 lg:col-span-8 bg-zinc-900/30 border border-zinc-800 rounded-3xl p-8 sm:p-10 relative overflow-hidden group">
-          <div className="absolute right-0 bottom-0 w-96 h-96 bg-orange-600/5 rounded-full blur-3xl -mr-20 -mb-20 transition-all duration-500 group-hover:bg-orange-600/10"></div>
-          <div className="max-w-2xl space-y-6 relative z-10">
-            <Badge className="bg-orange-500/10 text-orange-500 border-none px-3 py-1 text-[9px] font-black uppercase tracking-widest">
-              SmartCheck v1.0.0
-            </Badge>
-            <h2 className="text-3xl font-black tracking-tight leading-tight text-white uppercase">
-              Kanıta Dayalı Metraj & <br/>
-              <span className="text-orange-500">Teklif Kontrolü</span>
+        <div className="col-span-12 lg:col-span-8 rounded-sm border border-border bg-card p-6 sm:p-8 bg-hairline-grid relative">
+          <div className="max-w-2xl space-y-4">
+            <div className="inline-flex items-center gap-2">
+              <span className="stamp-badge border-primary/40 text-primary bg-primary/10">
+                <BadgeCheck size={12} className="shrink-0" />
+                BIMMetraj SmartCheck v1.0
+              </span>
+              <span className="text-xs font-mono text-muted-foreground">buildingSMART & ÇŞB</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Kanıta Dayalı Metraj & Teklif Kontrolü
             </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed font-sans max-w-xl">
-              Pilot akışta teklif satırlarını, poz kodlarını, birimleri ve kaynak bilgisini inceleyin. Demo bulguları mühendislik onayı değildir; gerçek dosya aktarımı kullanıcı incelemesiyle tamamlanır.
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+              Pilot akışta teklif satırlarını, ÇŞB poz kodlarını, birimleri ve kaynak bilgisini inceleyin. Demo bulguları mühendislik onayı değildir; gerçek dosya aktarımı kullanıcı incelemesiyle tamamlanır.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <Button
                 onClick={handleStartDemoCheck}
-                className="bg-orange-700 hover:bg-orange-800 text-white font-black uppercase tracking-widest text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg hover:shadow-orange-600/20 transition-all"
+                className="bg-primary hover:bg-primary/90 text-white font-mono text-xs h-9 px-5 gap-1.5 shadow-xs"
               >
-                <Play size={14} fill="currentColor" />
+                <Play size={13} fill="currentColor" />
                 {demoState.checkRunStatus === 'completed' ? 'Demo Denetimi Yeniden Başlat' : 'Demo Denetimi Başlat'}
               </Button>
               <Link to="/app/quotes">
-                <Button variant="outline" className="border-zinc-800 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 text-[10px] font-black uppercase tracking-widest h-11 px-6 rounded-xl gap-2">
-                  <FileText size={14} /> Teklifleri Listele
+                <Button variant="outline" size="sm" className="font-mono text-xs h-9 px-4 gap-1.5">
+                  <FileText size={13} /> Teklifleri Listele
                 </Button>
               </Link>
             </div>
@@ -66,21 +69,21 @@ export function SmartCheck() {
         </div>
 
         {/* Quick Stats Column */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Demo Denetim Durumu</CardTitle>
+        <div className="col-span-12 lg:col-span-4 space-y-4">
+          <Card className="border border-border bg-card shadow-xs rounded-sm">
+            <CardHeader className="border-b border-border/80 pb-3">
+              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Denetim Durumu</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center border-b border-zinc-800/50 pb-2">
-                <span className="text-xs text-zinc-500 font-sans">Son Denetim Tarihi</span>
-                <span className="text-xs text-zinc-300 font-mono">
-                  {demoState.checkRunStatus === 'completed' ? 'Bugün' : 'Bulunmuyor'}
+            <CardContent className="space-y-3 pt-4 font-mono text-xs">
+              <div className="flex justify-between items-center border-b border-border/60 pb-2.5">
+                <span className="text-muted-foreground">Son Denetim</span>
+                <span className="text-foreground">
+                  {demoState.checkRunStatus === 'completed' ? 'Tamamlandı' : 'Beklemede'}
                 </span>
               </div>
-              <div className="flex justify-between items-center pb-2">
-                <span className="text-xs text-zinc-500 font-sans">Toplam Bulgular</span>
-                <span className="text-xs text-zinc-300 font-mono">
+              <div className="flex justify-between items-center pb-1">
+                <span className="text-muted-foreground">Toplam Bulgu</span>
+                <span className="text-primary font-semibold tabular-nums">
                   {demoState.checkRunStatus === 'completed' ? `${demoState.findings.length} adet` : '0 adet'}
                 </span>
               </div>
@@ -90,34 +93,36 @@ export function SmartCheck() {
       </div>
 
       {/* Features Grid */}
-      <div className="space-y-4">
-        <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Neden SmartCheck?</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-2xl space-y-3">
-            <div className="w-8 h-8 bg-orange-600/10 rounded-lg flex items-center justify-center text-orange-500">
-              <Zap size={16} />
+      <div className="space-y-3 pt-2">
+        <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">SmartCheck Doğrulama İlkeleri</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-card border border-border rounded-sm space-y-2">
+            <div className="w-7 h-7 bg-primary/10 rounded-xs flex items-center justify-center text-primary">
+              <Zap size={15} />
             </div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-200">Hızlı & Güvenli Tespit</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed font-sans">
-              Proje tekliflerindeki birim, poz, miktar ve kaynak tutarsızlıklarını deterministik kontrollerle görünür kılar.
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">Hızlı & Güvenli Tespit</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Miktar sapmalarını ve poz eşleşme eksikliklerini teklif müşteriye gönderilmeden önce yakalayın.
             </p>
           </div>
-          <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-2xl space-y-3">
-            <div className="w-8 h-8 bg-orange-600/10 rounded-lg flex items-center justify-center text-orange-500">
-              <Shield size={16} />
+
+          <div className="p-4 bg-card border border-border rounded-sm space-y-2">
+            <div className="w-7 h-7 bg-emerald-500/10 rounded-xs flex items-center justify-center text-emerald-400">
+              <CheckCircle2 size={15} />
             </div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-200">Mühendislik Standartları</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed font-sans">
-              Donatı detaylandırma demo simülasyonunu ve paspayı toleranslarını kontrol etmek üzere interaktif kurallar sunar.
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">İnsan Onayı Şartı</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Hiçbir kural otomatik olarak teklife zorlanmaz; her adım mühendisin ve teknik ofisin onayına sunulur.
             </p>
           </div>
-          <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-2xl space-y-3">
-            <div className="w-8 h-8 bg-orange-600/10 rounded-lg flex items-center justify-center text-orange-500">
-              <CheckCircle2 size={16} />
+
+          <div className="p-4 bg-card border border-border rounded-sm space-y-2">
+            <div className="w-7 h-7 bg-sky-500/10 rounded-xs flex items-center justify-center text-sky-400">
+              <Layers size={15} />
             </div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-200">Akademi Desteği</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed font-sans">
-              Hata tespit edilen alanlarda doğrudan o hatayı çözmeye yönelik interaktif simülatörler ve dersler atar.
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">Şeffaf Kaynak İzi</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              IFC eleman GUID'si, QTO miktar seti ve mevzuat maddesi teklif raporunda kaynaklı olarak gösterilir.
             </p>
           </div>
         </div>

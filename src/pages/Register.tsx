@@ -32,7 +32,19 @@ export function Register() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName, companyName, intent: isAcademy ? 'academy' : 'workspace', termsAccepted, privacyAccepted, marketingConsent, website, formStartedAt: formStartedAt.current, acquisitionId: localStorage.getItem('academyAcquisitionId') })
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          fullName, 
+          companyName, 
+          intent: isAcademy ? 'academy' : 'workspace', 
+          termsAccepted, 
+          privacyAccepted, 
+          marketingConsent, 
+          website, 
+          formStartedAt: formStartedAt.current, 
+          acquisitionId: localStorage.getItem('academyAcquisitionId') 
+        })
       });
       const data = await res.json();
       if (res.ok) {
@@ -49,101 +61,122 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/10 blur-[100px] -mr-48 -mt-48 pointer-events-none"></div>
-      
-      <div className="w-full max-w-md space-y-8 relative z-10">
+    <div className="min-h-screen bg-background bg-hairline-grid flex items-center justify-center p-6 relative">
+      <div className="w-full max-w-md space-y-6 relative z-10">
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 mb-6">
-            <span className="flex h-9 w-9 items-center justify-center rounded bg-orange-600 text-sm font-bold text-white">BP</span>
-            <span className="text-2xl font-semibold tracking-tight text-white">BIMPlan Academy</span>
-          </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-white">{isAcademy ? 'Ücretsiz öğrenci hesabı' : isPilot ? 'Pilot hesabınızı oluşturun' : 'Yeni hesap oluşturun'}</h1>
-          <p className="mt-2 text-sm text-zinc-500">{isAcademy ? 'Doğrulanmış Allplan derslerine hemen erişin. Kredi kartı gerekmez.' : isPilot ? 'TeklifPro pilot akışına kontrollü bir başlangıç yapın.' : 'TeklifPro çalışma alanınızı oluşturun.'}</p>
+          <Link to="/" className="inline-flex items-center gap-2.5 mb-5 focus:outline-none">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xs bg-primary text-sm font-mono font-black text-white shadow-xs">
+              {isAcademy ? 'BP' : 'BM'}
+            </span>
+            <span className="text-2xl font-bold text-foreground tracking-tight">
+              {isAcademy ? 'BIMPlan Academy' : 'BIMMetraj'}
+            </span>
+          </Link>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+            {isAcademy ? 'Ücretsiz Öğrenci Hesabı' : isPilot ? 'Pilot Hesabınızı Oluşturun' : 'Yeni Çalışma Alanı Açın'}
+          </h1>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {isAcademy ? 'Doğrulanmış Allplan derslerine hemen erişin. Kredi kartı gerekmez.' : isPilot ? 'BIMMetraj pilot akışına kontrollü bir başlangıç yapın.' : '14 gün boyunca ücretsiz deneyin. Kredi kartı gerekmez.'}
+          </p>
         </div>
 
-        <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
-          <CardContent className="pt-8 space-y-4">
+        <Card className="border border-border bg-card shadow-lg rounded-md">
+          <CardContent className="pt-6 space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="absolute -left-[10000px]" aria-hidden="true"><label>Web sitesi<input tabIndex={-1} autoComplete="off" value={website} onChange={event => setWebsite(event.target.value)} /></label></div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Tam Adınız</label>
+              <div className="absolute -left-[10000px]" aria-hidden="true">
+                <label>Web sitesi<input tabIndex={-1} autoComplete="off" value={website} onChange={event => setWebsite(event.target.value)} /></label>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Ad Soyad</label>
                 <div className="relative group">
-                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-orange-500 transition-colors" size={16} />
+                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                    <input 
                     type="text" 
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="Ad Soyad"
+                    className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    placeholder="Ahmet Yılmaz"
                    />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">{isAcademy ? 'Okul / Şirket (opsiyonel)' : 'Şirket Adı'}</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">{isAcademy ? 'Okul / Şirket (isteğe bağlı)' : 'Şirket Adı'}</label>
                 <div className="relative group">
-                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-orange-500 transition-colors" size={16} />
+                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                    <input 
                     type="text" 
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     required={!isAcademy}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder={isAcademy ? 'Varsa okulunuz veya şirketiniz' : 'Şirketiniz'}
+                    className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    placeholder={isAcademy ? 'Üniversite veya kurumunuz' : 'Örn: Yılmaz İnşaat Taahhüt Ltd.'}
                    />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Email Adresİ</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">E-posta Adresi</label>
                 <div className="relative group">
-                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-orange-500 transition-colors" size={16} />
+                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                    <input 
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
-                    placeholder="email@teklifpro.ai"
+                    className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    placeholder="ahmet@sirketiniz.com"
                    />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Şİfre</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Şifre</label>
                 <div className="relative group">
-                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-orange-500 transition-colors" size={16} />
+                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                    <input 
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg h-12 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-500 transition-all font-medium"
+                    className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                     placeholder="••••••••"
                    />
                 </div>
               </div>
 
-              <div className="space-y-3 border-t border-zinc-800 pt-4 text-xs leading-relaxed text-zinc-400">
-                <label className="flex items-start gap-3"><input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} required className="mt-1 accent-orange-600" /><span><Link to="/terms" target="_blank" className="text-orange-400 hover:underline">Kullanım koşullarını</Link> okudum ve kabul ediyorum.</span></label>
-                <label className="flex items-start gap-3"><input type="checkbox" checked={privacyAccepted} onChange={event => setPrivacyAccepted(event.target.checked)} required className="mt-1 accent-orange-600" /><span><Link to="/privacy" target="_blank" className="text-orange-400 hover:underline">Gizlilik bildirimini</Link> okudum ve kabul ediyorum.</span></label>
-                <label className="flex items-start gap-3"><input type="checkbox" checked={marketingConsent} onChange={event => setMarketingConsent(event.target.checked)} className="mt-1 accent-orange-600" /><span>Ürün ve eğitim duyurularını almak istiyorum. (İsteğe bağlı)</span></label>
+              <div className="space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} required className="mt-0.5 accent-primary" />
+                  <span><Link to="/terms" target="_blank" className="text-primary hover:underline">Kullanım koşullarını</Link> okudum ve kabul ediyorum.</span>
+                </label>
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input type="checkbox" checked={privacyAccepted} onChange={event => setPrivacyAccepted(event.target.checked)} required className="mt-0.5 accent-primary" />
+                  <span><Link to="/privacy" target="_blank" className="text-primary hover:underline">Gizlilik bildirimini</Link> okudum ve kabul ediyorum.</span>
+                </label>
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input type="checkbox" checked={marketingConsent} onChange={event => setMarketingConsent(event.target.checked)} className="mt-0.5 accent-primary" />
+                  <span>Ürün ve teknik eğitim duyurularını e-posta ile almak istiyorum.</span>
+                </label>
               </div>
 
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-orange-600 hover:bg-orange-700 h-12 text-white font-black uppercase tracking-widest text-xs gap-2"
+                className="w-full bg-primary hover:bg-primary/90 h-10 text-white font-semibold text-sm gap-2 shadow-xs"
               >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <>{isAcademy ? 'ÜCRETSİZ ÖĞRENCİ KAYDI' : isPilot ? 'PİLOT HESABI OLUŞTUR' : 'KAYDOL'} <ArrowRight size={18} /></>}
+                {loading ? <Loader2 className="animate-spin" size={16} /> : <>{isAcademy ? 'Ücretsiz Öğrenci Kaydı' : isPilot ? 'Pilot Hesabı Oluştur' : 'Hemen Başlayın'} <ArrowRight size={16} /></>}
               </Button>
             </form>
             
-            <div className="pt-4 text-center">
-              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-                Zaten hesabınız var mı? <Link to="/login" className="text-orange-500 hover:underline">Oturum Açın</Link>
+            <div className="pt-3 border-t border-border text-center">
+              <p className="text-xs text-muted-foreground">
+                Zaten hesabınız var mı?{' '}
+                <Link to="/login" className="text-primary font-medium hover:underline">
+                  Oturum Açın
+                </Link>
               </p>
             </div>
           </CardContent>

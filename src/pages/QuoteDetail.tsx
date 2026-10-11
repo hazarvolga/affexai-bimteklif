@@ -594,51 +594,51 @@ export function QuoteDetail() {
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
               <CardContent className="p-0">
                 <Table>
-                  <TableHeader>
-                    <TableRow className="border-zinc-800 hover:bg-transparent">
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-6">Açıklama</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-center">Birim</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Miktar</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Satış Birim</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Maliyet Birim</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Zayiat</TableHead>
-                      <TableHead className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right pr-6">Toplam</TableHead>
+                  <TableHeader className="bg-muted/40">
+                    <TableRow className="border-border">
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase pl-6 py-3">Açıklama</TableHead>
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase text-center py-3">Birim</TableHead>
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase text-right py-3">Miktar</TableHead>
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase text-right py-3">Satış Birim</TableHead>
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase text-right py-3">Maliyet Birim</TableHead>
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase text-right py-3">Zayiat</TableHead>
+                      <TableHead className="text-xs font-mono text-muted-foreground uppercase text-right pr-6 py-3">Toplam</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.items.map((item: any) => (
-                      <TableRow key={item.id} className="border-zinc-800 hover:bg-zinc-800/20">
-                        <TableCell className="text-zinc-200 font-medium pl-6">{item.description}</TableCell>
-                        <TableCell className="text-center text-zinc-500 text-xs">{item.unit}</TableCell>
-                        <TableCell className="text-right font-mono text-zinc-400">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-mono text-zinc-400 font-semibold">{Number(item.unitPrice).toLocaleString('tr-TR')} {data.currency}</TableCell>
-                        <TableCell className="text-right font-mono text-amber-300 font-semibold">{item.costUnitPrice == null ? '—' : `${Number(item.costUnitPrice).toLocaleString('tr-TR')} ${data.currency}`}</TableCell>
-                        <TableCell className="text-right font-mono text-zinc-500">%{Number(item.wastePercent || 0).toLocaleString('tr-TR')}</TableCell>
-                        <TableCell className="text-right font-mono text-white font-bold pr-6">{Number(item.total).toLocaleString('tr-TR')} {data.currency}</TableCell>
+                      <TableRow key={item.id} className="border-border/60 hover:bg-muted/30">
+                        <TableCell className="text-foreground font-medium pl-6 py-3 text-xs">{item.description}</TableCell>
+                        <TableCell className="text-center text-muted-foreground text-xs font-mono py-3">{item.unit}</TableCell>
+                        <TableCell className="text-right font-mono text-muted-foreground text-xs py-3 tabular-nums">{item.quantity}</TableCell>
+                        <TableCell className="text-right font-mono text-foreground font-semibold text-xs py-3 tabular-nums">{Number(item.unitPrice).toLocaleString('tr-TR')} {data.currency}</TableCell>
+                        <TableCell className="text-right font-mono text-amber-300 font-semibold text-xs py-3 tabular-nums">{item.costUnitPrice == null ? '—' : `${Number(item.costUnitPrice).toLocaleString('tr-TR')} ${data.currency}`}</TableCell>
+                        <TableCell className="text-right font-mono text-muted-foreground text-xs py-3 tabular-nums">%{Number(item.wastePercent || 0).toLocaleString('tr-TR')}</TableCell>
+                        <TableCell className="text-right font-mono text-foreground font-bold text-xs pr-6 py-3 tabular-nums">{Number(item.total).toLocaleString('tr-TR')} {data.currency}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
 
                 {/* Total Calculation Display */}
-                <div className="p-8 flex justify-end bg-zinc-900/5 border-t border-zinc-800">
-                  <div className="w-full max-w-xs space-y-3">
-                    <div className="flex justify-between items-center text-xs text-zinc-500 font-medium tracking-tight">
+                <div className="p-6 flex justify-end bg-muted/20 border-t border-border">
+                  <div className="w-full max-w-xs space-y-2.5 font-mono text-xs">
+                    <div className="flex justify-between items-center text-muted-foreground">
                       <span>ARA TOPLAM</span>
-                      <span className="font-mono text-zinc-300">{Number(data.subtotal).toLocaleString('tr-TR')} {data.currency}</span>
+                      <span className="text-foreground tabular-nums">{Number(data.subtotal).toLocaleString('tr-TR')} {data.currency}</span>
                     </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500 font-medium tracking-tight">
+                    <div className="flex justify-between items-center text-muted-foreground">
                       <span>İNDİRİM</span>
-                      <span className="font-mono text-orange-500">-{Number(data.discountTotal).toLocaleString('tr-TR')} {data.currency}</span>
+                      <span className="text-primary font-semibold tabular-nums">-{Number(data.discountTotal).toLocaleString('tr-TR')} {data.currency}</span>
                     </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500 font-medium tracking-tight">
+                    <div className="flex justify-between items-center text-muted-foreground">
                       <span>KDV</span>
-                      <span className="font-mono text-zinc-300">{Number(data.vatTotal).toLocaleString('tr-TR')} {data.currency}</span>
+                      <span className="text-foreground tabular-nums">{Number(data.vatTotal).toLocaleString('tr-TR')} {data.currency}</span>
                     </div>
-                    <Separator className="bg-zinc-800" />
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">GENEL TOPLAM</span>
-                      <span className="text-2xl font-bold text-orange-500 font-mono">
+                    <Separator className="bg-border" />
+                    <div className="flex justify-between items-center pt-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-foreground">GENEL TOPLAM</span>
+                      <span className="text-xl font-bold text-primary font-mono tabular-nums">
                         {Number(data.grandTotal).toLocaleString('tr-TR')} {data.currency}
                       </span>
                     </div>
