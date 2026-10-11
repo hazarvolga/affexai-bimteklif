@@ -2,6 +2,51 @@
 
 Last updated: 2026-10-11
 
+## Pause handoff — SMTP architecture decision (2026-10-11)
+
+- Work paused at the user's request. No mail provider account, DNS record,
+  Coolify secret, SMTP credential, or application code was created or changed
+  in this session.
+- Production application: `https://bimmetraj.com`; Coolify application UUID:
+  `ibjv2zbpecdcbd71lxo1vqd7`. The deployed pricing-source metadata rollout is
+  commit `11d9800b5fb7f10dee8f3ff7c2c67dab67ec1f75`; its deployment record and
+  readback are documented below.
+- Landing-page pricing is now runtime-driven: the public page displays only
+  super-admin plans that are active and published. It switches to a carousel
+  only after more than five published plans. Deployment commit:
+  `846139e55daba7593aaf4f9d7db3e8c36b8abb43`.
+- Pricing-source candidates are deliberately metadata-only, stale, and
+  disabled until a human verifies source licensing/access and activates a
+  source. Production readback after bootstrap: five candidate sources and zero
+  staging price rows. Do not re-enable crawling or imply an official ÇŞB/YFK
+  feed without written permission and review evidence.
+- SMTP remains disabled in production (`AUTH_EMAIL_DELIVERY_MODE=disabled`).
+  Existing login and valid reset-token redemption work; registration, reset
+  request/resend, and new invitation flows reject before mutation. No email was
+  sent during this phase.
+- The previously inspected `mail.allplan.net.tr` docker-mailserver belongs to a
+  different server and must not be used for Bimmetraj. It is not a Bimmetraj
+  deployment option.
+- Mailpit is a development SMTP capture/preview tool, not an outbound delivery
+  service. It is suitable only for local or isolated test environments.
+- Stalwart Community Edition is license-free and can be self-hosted, but a
+  production deployment on the Bimmetraj host would require a distinct mail
+  service, public-IP/PTR and outbound port-25 validation, TLS, SPF, DKIM,
+  DMARC, monitoring, backup, and sender-reputation ownership. Do not install
+  it into the application host without a dedicated design/operations decision.
+- Recommended launch decision: use Brevo Free for Bimmetraj transactional
+  email. It provides SMTP relay and a current free allowance of 300
+  sends/day; domain verification and account approval are still required.
+  Re-check provider limits and terms at implementation time. Keep Mailpit for
+  development. Revisit Stalwart only when self-hosting is an intentional,
+  separately operated mail platform.
+- Safe resume order: (1) user confirms the provider decision, (2) create the
+  provider account and obtain SMTP credentials outside Git, (3) add the
+  provider-generated SPF/DKIM records in Cloudflare, (4) configure Coolify
+  runtime-only secrets, (5) enable application delivery only after a real
+  verification/reset/invitation acceptance test and failure-path review.
+- Detailed handoff: `docs/agent-memory/SMTP_DECISION_HANDOFF_2026-10-11.md`.
+
 ## Active Bimmetraj production preparation
 
 ### Current remediation order (2026-10-11)
