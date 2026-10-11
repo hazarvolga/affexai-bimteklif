@@ -4,6 +4,7 @@ import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } fro
 import { run } from "graphile-worker";
 import { processSmartCheckDocument } from "./processor";
 import { graphileWorkerSchema } from "./config";
+import { withDisabledGraphileCron } from "./worker-config";
 
 export const workerTaskList = {
   process_smartcheck_document: async (payload: unknown) =>
@@ -18,14 +19,14 @@ export async function startWorker() {
 
   const concurrency = Number(process.env.SMARTCHECK_WORKER_CONCURRENCY || "2");
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 2) throw new Error("INVALID_WORKER_CONCURRENCY");
-  const runner = await run({
+  const runner = await run(withDisabledGraphileCron({
     connectionString,
     schema: graphileWorkerSchema(),
     concurrency,
     maxPoolSize: concurrency + 2,
     pollInterval: 1000,
     taskList: workerTaskList,
-  });
+  }));
   const cleanup = startPendingUploadCleanup(() => cleanupExpiredPendingUploads(createStorageAdapter()), () => console.error("Pending upload cleanup failed"));
   void runner.promise.then(() => cleanup.stop(), () => cleanup.stop());
   return runner;

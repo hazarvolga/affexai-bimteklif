@@ -2,6 +2,7 @@ import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } fro
 import { run } from "graphile-worker";
 import { processSmartCheckDocument } from "./processor";
 import { graphileWorkerSchema } from "./config";
+import { withDisabledGraphileCron } from "./worker-config";
 
 export const ifcWorkerTaskList = {
   process_smartcheck_ifc_document: async (payload: unknown) =>
@@ -16,14 +17,14 @@ export async function startIfcWorker() {
 
   const concurrency = Number(process.env.SMARTCHECK_IFC_WORKER_CONCURRENCY || "1");
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 2) throw new Error("INVALID_WORKER_CONCURRENCY");
-  return run({
+  return run(withDisabledGraphileCron({
     connectionString,
     schema: graphileWorkerSchema(),
     concurrency,
     maxPoolSize: concurrency + 2,
     pollInterval: 1000,
     taskList: ifcWorkerTaskList,
-  });
+  }));
 }
 
 const isDirectRun = Boolean(
