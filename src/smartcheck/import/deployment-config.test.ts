@@ -3,6 +3,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
+test('Coolify resolves the reviewed seccomp profile from its deployment checkout', () => {
+  const compose = readFileSync(new URL('../../../compose.coolify.yaml', import.meta.url), 'utf8');
+  assert.match(compose, /seccomp=\$\{CHROMIUM_SECCOMP_PROFILE:-\.\/deploy\/chromium-seccomp\.json\}/);
+  assert.ok(existsSync(new URL('../../../deploy/chromium-seccomp.json', import.meta.url)));
+});
+
 test('frozen Docker install includes workspace overrides and skips lifecycle scripts', () => {
   const dockerfile = readFileSync(new URL('../../../Dockerfile', import.meta.url), 'utf8');
   const install = dockerfile.indexOf('RUN pnpm install --frozen-lockfile --ignore-scripts');

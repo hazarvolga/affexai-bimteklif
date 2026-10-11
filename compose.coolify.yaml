@@ -51,7 +51,7 @@ services:
     <<: *runtime
     security_opt:
       - no-new-privileges:true
-      - seccomp=${CHROMIUM_SECCOMP_PROFILE:-/data/bimmetraj/security/chromium-seccomp.json}
+      - seccomp=${CHROMIUM_SECCOMP_PROFILE:-./deploy/chromium-seccomp.json}
     image: bimmetraj-app:${IMAGE_TAG:-local}
     build:
       context: .

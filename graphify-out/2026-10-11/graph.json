@@ -9618,8 +9618,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_test",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "certification.test.ts"
     },
     {
@@ -9629,8 +9629,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_academy_allplan_certification",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "certification.ts"
     },
     {
@@ -9640,8 +9640,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_allplan_assessment",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "allplan_assessment"
     },
     {
@@ -9651,8 +9651,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_publicassessment",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "publicassessment()"
     },
     {
@@ -9662,8 +9662,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_certificationprogress",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "certificationprogress"
     },
     {
@@ -9673,8 +9673,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_certificationeligibility",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "certificationeligibility"
     },
     {
@@ -9684,8 +9684,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_evaluatecertificationeligibility",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "evaluatecertificationeligibility()"
     },
     {
@@ -9695,8 +9695,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_academy_allplan_certification_scoreassessment",
-      "community": 413,
-      "community_name": "academy.ts",
+      "community": 488,
+      "community_name": "certification.ts",
       "norm_label": "scoreassessment()"
     },
     {
@@ -20802,7 +20802,7 @@
       "label": "validateProductionEnvironment()",
       "file_type": "code",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L21",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "src_server_config_production_validateproductionenvironment",
       "community": 18,
@@ -20813,7 +20813,7 @@
       "label": "assertProductionEnvironment()",
       "file_type": "code",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L40",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "src_server_config_production_assertproductionenvironment",
       "community": 18,
@@ -22796,8 +22796,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_market_intelligence_integration_test",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "market-intelligence.integration.test.ts"
     },
     {
@@ -23478,8 +23478,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_server_routes_quotations_integrity_test",
-      "community": 69,
-      "community_name": "test-isolation.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "quotations.integrity.test.ts"
     },
     {
@@ -23489,8 +23489,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_server_routes_quotations_integrity_test_status",
-      "community": 69,
-      "community_name": "test-isolation.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "status()"
     },
     {
@@ -23500,8 +23500,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "src_server_routes_quotations_integrity_test_json",
-      "community": 69,
-      "community_name": "test-isolation.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "json()"
     },
     {
@@ -26471,7 +26471,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "cli-entry.test.ts"
     },
     {
@@ -26482,7 +26482,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_createmockruntime",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "createmockruntime()"
     },
     {
@@ -26493,7 +26493,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_writestdout",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "writestdout()"
     },
     {
@@ -26504,7 +26504,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_writestderr",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "writestderr()"
     },
     {
@@ -26515,7 +26515,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_test_setexitcode",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "setexitcode()"
     },
     {
@@ -26526,7 +26526,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "cli-entry.ts"
     },
     {
@@ -26537,7 +26537,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "evaluationcliprocessruntime"
     },
     {
@@ -26548,7 +26548,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_cwd",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": ".cwd()"
     },
     {
@@ -26559,7 +26559,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_writestdout",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": ".writestdout()"
     },
     {
@@ -26570,7 +26570,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_writestderr",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": ".writestderr()"
     },
     {
@@ -26581,7 +26581,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationcliprocessruntime_setexitcode",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": ".setexitcode()"
     },
     {
@@ -26592,7 +26592,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_evaluationclientrydependencies",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "evaluationclientrydependencies"
     },
     {
@@ -26603,7 +26603,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_entry_runevaluationclientry",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "runevaluationclientry()"
     },
     {
@@ -26614,7 +26614,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "cli-main.ts"
     },
     {
@@ -26625,7 +26625,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main_writestdout",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "writestdout()"
     },
     {
@@ -26636,7 +26636,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main_writestderr",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "writestderr()"
     },
     {
@@ -26647,7 +26647,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_main_setexitcode",
       "community": 13,
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "norm_label": "setexitcode()"
     },
     {
@@ -26735,7 +26735,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "cli.test.ts"
     },
     {
@@ -26746,7 +26746,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_defaultcandidate",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "defaultcandidate"
     },
     {
@@ -26757,7 +26757,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createtempfixturedir",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "createtempfixturedir()"
     },
     {
@@ -26768,7 +26768,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_writefixture",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "writefixture()"
     },
     {
@@ -26779,7 +26779,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_cleandir",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "cleandir()"
     },
     {
@@ -26790,7 +26790,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createmockio",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "createmockio()"
     },
     {
@@ -26801,7 +26801,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createmocksuiteresult",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "createmocksuiteresult()"
     },
     {
@@ -26812,7 +26812,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createmockdependencies",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "createmockdependencies()"
     },
     {
@@ -26823,7 +26823,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_createprovider",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "createprovider()"
     },
     {
@@ -26834,7 +26834,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_runsuite",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "runsuite()"
     },
     {
@@ -26845,7 +26845,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_writestdout",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "writestdout()"
     },
     {
@@ -26856,7 +26856,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_test_writestderr",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "writestderr()"
     },
     {
@@ -26866,7 +26866,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "evaluation/cli.ts"
     },
@@ -26877,7 +26877,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliio",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "evaluationcliio"
     },
@@ -26888,7 +26888,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliio_writestdout",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": ".writestdout()"
     },
@@ -26899,7 +26899,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliio_writestderr",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": ".writestderr()"
     },
@@ -26910,7 +26910,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliexecution",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "evaluationcliexecution"
     },
@@ -26921,7 +26921,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationclidependencies",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "evaluationclidependencies"
     },
@@ -26932,7 +26932,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationclidependencies_createprovider",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": ".createprovider()"
     },
@@ -26943,8 +26943,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationclidependencies_runsuite",
-      "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community": 37,
+      "community_name": "CandidateProvider",
       "norm_label": ".runsuite()"
     },
     {
@@ -26954,7 +26954,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliusageerrorcode",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "evaluationcliusageerrorcode"
     },
@@ -26966,7 +26966,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliusageerror",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": "evaluationcliusageerror"
     },
     {
@@ -26977,7 +26977,7 @@
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_evaluationcliusageerror_constructor",
       "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community_name": "cli.test.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -26987,7 +26987,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_defaultdependencies",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "defaultdependencies"
     },
@@ -26998,7 +26998,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_parseargs",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "parseargs()"
     },
@@ -27009,7 +27009,7 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_maperror",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "maperror()"
     },
@@ -27020,7 +27020,7 @@
       "source_location": "L244",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_cli_runevaluationcli",
-      "community": 21,
+      "community": 13,
       "community_name": "evaluation/cli.ts",
       "norm_label": "runevaluationcli()"
     },
@@ -27779,8 +27779,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_smartcheck_evaluation_orchestrator_rundiscoveredevaluationsuiteoptions",
-      "community": 21,
-      "community_name": "evaluation/cli.ts",
+      "community": 37,
+      "community_name": "CandidateProvider",
       "norm_label": "rundiscoveredevaluationsuiteoptions"
     },
     {
@@ -30672,8 +30672,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_test",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "snapshots.test.ts"
     },
     {
@@ -30683,8 +30683,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "snapshots.ts"
     },
     {
@@ -30705,8 +30705,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_pricinglockitem",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "pricinglockitem"
     },
     {
@@ -30716,8 +30716,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_stablejson",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "stablejson()"
     },
     {
@@ -30727,8 +30727,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_sha256payload",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "sha256payload()"
     },
     {
@@ -30738,8 +30738,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_buildpricesnapshotkey",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "buildpricesnapshotkey()"
     },
     {
@@ -30749,8 +30749,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_ispricesnapshotstale",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "ispricesnapshotstale()"
     },
     {
@@ -30760,8 +30760,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "src_smartcheck_pricing_snapshots_computepricinglockhash",
-      "community": 278,
-      "community_name": "pricing.ts",
+      "community": 396,
+      "community_name": "snapshots.ts",
       "norm_label": "computepricinglockhash()"
     },
     {
@@ -51308,8 +51308,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill",
-      "community": 207,
-      "community_name": "Copywriting",
+      "community": 804,
+      "community_name": "copywriting/SKILL.md",
       "norm_label": "copywriting/skill.md"
     },
     {
@@ -51583,8 +51583,8 @@
       "source_location": "L170",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill_page_specific_guidance",
-      "community": 746,
-      "community_name": "Page-Specific Guidance",
+      "community": 207,
+      "community_name": "Copywriting",
       "norm_label": "page-specific guidance"
     },
     {
@@ -51594,8 +51594,8 @@
       "source_location": "L172",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill_homepage",
-      "community": 746,
-      "community_name": "Page-Specific Guidance",
+      "community": 207,
+      "community_name": "Copywriting",
       "norm_label": "homepage"
     },
     {
@@ -51605,8 +51605,8 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill_landing_page",
-      "community": 746,
-      "community_name": "Page-Specific Guidance",
+      "community": 207,
+      "community_name": "Copywriting",
       "norm_label": "landing page"
     },
     {
@@ -51616,8 +51616,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill_pricing_page",
-      "community": 746,
-      "community_name": "Page-Specific Guidance",
+      "community": 207,
+      "community_name": "Copywriting",
       "norm_label": "pricing page"
     },
     {
@@ -51627,8 +51627,8 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill_feature_page",
-      "community": 746,
-      "community_name": "Page-Specific Guidance",
+      "community": 207,
+      "community_name": "Copywriting",
       "norm_label": "feature page"
     },
     {
@@ -51638,8 +51638,8 @@
       "source_location": "L192",
       "_origin": "ast",
       "id": "agent_skills_copywriting_skill_about_page",
-      "community": 746,
-      "community_name": "Page-Specific Guidance",
+      "community": 207,
+      "community_name": "Copywriting",
       "norm_label": "about page"
     },
     {
@@ -51726,8 +51726,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_copywriting_references_copy_frameworks",
-      "community": 207,
-      "community_name": "Copywriting",
+      "community": 804,
+      "community_name": "copywriting/SKILL.md",
       "norm_label": "copy-frameworks.md"
     },
     {
@@ -51990,8 +51990,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_copywriting_references_natural_transitions",
-      "community": 207,
-      "community_name": "Copywriting",
+      "community": 804,
+      "community_name": "copywriting/SKILL.md",
       "norm_label": "natural-transitions.md"
     },
     {
@@ -55719,8 +55719,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_personalization",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 752,
+      "community_name": "Personalization",
       "norm_label": "personalization"
     },
     {
@@ -55730,8 +55730,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_merge_fields",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 752,
+      "community_name": "Personalization",
       "norm_label": "merge fields"
     },
     {
@@ -55741,8 +55741,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_dynamic_content",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 752,
+      "community_name": "Personalization",
       "norm_label": "dynamic content"
     },
     {
@@ -55752,8 +55752,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_triggered_emails",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 752,
+      "community_name": "Personalization",
       "norm_label": "triggered emails"
     },
     {
@@ -55807,8 +55807,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_testing_and_optimization",
-      "community": 752,
-      "community_name": "Testing and Optimization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "testing and optimization"
     },
     {
@@ -55818,8 +55818,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_what_to_test",
-      "community": 752,
-      "community_name": "Testing and Optimization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "what to test"
     },
     {
@@ -55829,8 +55829,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_how_to_test",
-      "community": 752,
-      "community_name": "Testing and Optimization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "how to test"
     },
     {
@@ -55840,8 +55840,8 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_metrics_to_track",
-      "community": 752,
-      "community_name": "Testing and Optimization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "metrics to track"
     },
     {
@@ -74914,8 +74914,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_building_the_media_list",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 784,
+      "community_name": "Building the Media List",
       "norm_label": "building the media list"
     },
     {
@@ -74925,8 +74925,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_discovery_checklist",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 784,
+      "community_name": "Building the Media List",
       "norm_label": "discovery checklist"
     },
     {
@@ -74936,8 +74936,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_where_to_find_candidates",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 784,
+      "community_name": "Building the Media List",
       "norm_label": "where to find candidates"
     },
     {
@@ -74947,8 +74947,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_don_t_waste_time_on",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 784,
+      "community_name": "Building the Media List",
       "norm_label": "don't waste time on"
     },
     {
@@ -74969,8 +74969,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_pitch_templates_by_angle",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "pitch templates by angle"
     },
     {
@@ -74980,8 +74980,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_1_data_story",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "1. data story"
     },
     {
@@ -74991,8 +74991,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_2_exclusive_launch_milestone",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "2. exclusive launch / milestone"
     },
     {
@@ -75002,8 +75002,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_3_op_ed_contributed_piece",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "3. op-ed / contributed piece"
     },
     {
@@ -75013,8 +75013,8 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_4_customer_story",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "4. customer story"
     },
     {
@@ -75024,8 +75024,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_5_trend_piece_connector",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "5. trend piece / connector"
     },
     {
@@ -75035,8 +75035,8 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_6_newsjack_response",
-      "community": 581,
-      "community_name": "Pitch Templates by Angle",
+      "community": 186,
+      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
       "norm_label": "6. newsjack response"
     },
     {
@@ -75167,8 +75167,8 @@
       "source_location": "L315",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_tooling",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 715,
+      "community_name": "Tooling",
       "norm_label": "tooling"
     },
     {
@@ -75178,8 +75178,8 @@
       "source_location": "L317",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_finding_journalist_contact_info",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 715,
+      "community_name": "Tooling",
       "norm_label": "finding journalist contact info"
     },
     {
@@ -75189,8 +75189,8 @@
       "source_location": "L327",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_researching_their_recent_work_browser_driven",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 715,
+      "community_name": "Tooling",
       "norm_label": "researching their recent work (browser-driven)"
     },
     {
@@ -75200,8 +75200,8 @@
       "source_location": "L347",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_maintaining_the_media_list",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 715,
+      "community_name": "Tooling",
       "norm_label": "maintaining the media list"
     },
     {
@@ -75211,8 +75211,8 @@
       "source_location": "L358",
       "_origin": "ast",
       "id": "agent_skills_public_relations_references_journalist_pitching_pitch_tracking",
-      "community": 186,
-      "community_name": "Journalist Pitching \u2014 Proactive PR Workflow",
+      "community": 715,
+      "community_name": "Tooling",
       "norm_label": "pitch tracking"
     },
     {
@@ -76641,8 +76641,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_lead_lifecycle_framework",
-      "community": 715,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "lead lifecycle framework"
     },
     {
@@ -76652,8 +76652,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_stage_definitions",
-      "community": 715,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "stage definitions"
     },
     {
@@ -76663,8 +76663,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_mql_definition",
-      "community": 715,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "mql definition"
     },
     {
@@ -76674,8 +76674,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_mql_to_sql_handoff_sla",
-      "community": 715,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "mql-to-sql handoff sla"
     },
     {
@@ -76817,8 +76817,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_crm_automation_workflows",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 785,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "crm automation workflows"
     },
     {
@@ -76828,8 +76828,8 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_essential_automations",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 785,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "essential automations"
     },
     {
@@ -76839,8 +76839,8 @@
       "source_location": "L195",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_marketing_to_sales_automations",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 785,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "marketing-to-sales automations"
     },
     {
@@ -76850,8 +76850,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_calendar_scheduling_integration",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 785,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "calendar scheduling integration"
     },
     {
@@ -77587,8 +77587,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_revops_references_routing_rules",
-      "community": 224,
-      "community_name": "Lead Routing Rules",
+      "community": 238,
+      "community_name": "Automation Playbooks",
       "norm_label": "routing-rules.md"
     },
     {
@@ -77818,8 +77818,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_revops_references_scoring_models",
-      "community": 238,
-      "community_name": "Automation Playbooks",
+      "community": 209,
+      "community_name": "Lead Scoring Models",
       "norm_label": "scoring-models.md"
     },
     {
@@ -78137,8 +78137,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_sales_deck_pitch_deck",
-      "community": 396,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "sales deck / pitch deck"
     },
     {
@@ -78148,8 +78148,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_10_12_slide_framework",
-      "community": 396,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "10-12 slide framework"
     },
     {
@@ -78159,8 +78159,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_deck_principles",
-      "community": 396,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "deck principles"
     },
     {
@@ -78170,8 +78170,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_customization_by_buyer_type",
-      "community": 396,
-      "community_name": "Sales Deck / Pitch Deck",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "customization by buyer type"
     },
     {
@@ -78181,8 +78181,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_one_pagers_leave_behinds",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 802,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "one-pagers / leave-behinds"
     },
     {
@@ -78192,8 +78192,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_when_to_use",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 802,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "when to use"
     },
     {
@@ -78203,8 +78203,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 802,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "structure"
     },
     {
@@ -78214,8 +78214,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_design_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 802,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "design principles"
     },
     {
@@ -78225,8 +78225,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_handling_docs",
-      "community": 488,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection handling docs"
     },
     {
@@ -78236,8 +78236,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_categories",
-      "community": 488,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection categories"
     },
     {
@@ -78247,8 +78247,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_response_framework",
-      "community": 488,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "response framework"
     },
     {
@@ -78258,8 +78258,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_two_formats",
-      "community": 488,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "two formats"
     },
     {
@@ -78313,8 +78313,8 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_demo_scripts_talk_tracks",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 801,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "demo scripts & talk tracks"
     },
     {
@@ -78324,8 +78324,8 @@
       "source_location": "L189",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_script_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 801,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "script structure"
     },
     {
@@ -78335,8 +78335,8 @@
       "source_location": "L197",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_talk_track_types",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 801,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "talk track types"
     },
     {
@@ -78346,8 +78346,8 @@
       "source_location": "L206",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_key_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 801,
+      "community_name": "Demo Scripts & Talk Tracks",
       "norm_label": "key principles"
     },
     {
@@ -83087,8 +83087,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_content_blog_site",
-      "community": 210,
-      "community_name": "Site Type Templates",
+      "community": 803,
+      "community_name": "Content / Blog Site",
       "norm_label": "content / blog site"
     },
     {
@@ -83098,8 +83098,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_page_hierarchy_75",
-      "community": 210,
-      "community_name": "Site Type Templates",
+      "community": 803,
+      "community_name": "Content / Blog Site",
       "norm_label": "page hierarchy"
     },
     {
@@ -83109,8 +83109,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_url_map_96",
-      "community": 210,
-      "community_name": "Site Type Templates",
+      "community": 803,
+      "community_name": "Content / Blog Site",
       "norm_label": "url map"
     },
     {
@@ -83120,8 +83120,8 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_navigation_108",
-      "community": 210,
-      "community_name": "Site Type Templates",
+      "community": 803,
+      "community_name": "Content / Blog Site",
       "norm_label": "navigation"
     },
     {
@@ -83252,8 +83252,8 @@
       "source_location": "L258",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_small_business_local",
-      "community": 784,
-      "community_name": "Small Business / Local",
+      "community": 210,
+      "community_name": "Site Type Templates",
       "norm_label": "small business / local"
     },
     {
@@ -83263,8 +83263,8 @@
       "source_location": "L260",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_page_hierarchy_260",
-      "community": 784,
-      "community_name": "Small Business / Local",
+      "community": 210,
+      "community_name": "Site Type Templates",
       "norm_label": "page hierarchy"
     },
     {
@@ -83274,8 +83274,8 @@
       "source_location": "L277",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_url_map_277",
-      "community": 784,
-      "community_name": "Small Business / Local",
+      "community": 210,
+      "community_name": "Site Type Templates",
       "norm_label": "url map"
     },
     {
@@ -83285,8 +83285,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "agent_skills_site_architecture_references_site_type_templates_navigation_289",
-      "community": 784,
-      "community_name": "Small Business / Local",
+      "community": 210,
+      "community_name": "Site Type Templates",
       "norm_label": "navigation"
     },
     {
@@ -83296,8 +83296,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_skill",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 376,
+      "community_name": "SMS Platform Reference",
       "norm_label": "sms/skill.md"
     },
     {
@@ -83780,8 +83780,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_compliance",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 376,
+      "community_name": "SMS Platform Reference",
       "norm_label": "sms/references/compliance.md"
     },
     {
@@ -84066,8 +84066,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 376,
+      "community_name": "SMS Platform Reference",
       "norm_label": "sms/references/platforms.md"
     },
     {
@@ -84154,8 +84154,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_postscript",
-      "community": 376,
-      "community_name": "SMS Platform Reference",
+      "community": 581,
+      "community_name": "Postscript",
       "norm_label": "postscript"
     },
     {
@@ -84165,8 +84165,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_key_features_45",
-      "community": 376,
-      "community_name": "SMS Platform Reference",
+      "community": 581,
+      "community_name": "Postscript",
       "norm_label": "key features"
     },
     {
@@ -84176,8 +84176,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_pricing_52",
-      "community": 376,
-      "community_name": "SMS Platform Reference",
+      "community": 581,
+      "community_name": "Postscript",
       "norm_label": "pricing"
     },
     {
@@ -84187,8 +84187,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_integration_paths_56",
-      "community": 376,
-      "community_name": "SMS Platform Reference",
+      "community": 581,
+      "community_name": "Postscript",
       "norm_label": "integration paths"
     },
     {
@@ -84198,8 +84198,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_compliance_60",
-      "community": 376,
-      "community_name": "SMS Platform Reference",
+      "community": 581,
+      "community_name": "Postscript",
       "norm_label": "compliance"
     },
     {
@@ -84209,8 +84209,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "agent_skills_sms_references_platforms_watch_out_for_65",
-      "community": 376,
-      "community_name": "SMS Platform Reference",
+      "community": 581,
+      "community_name": "Postscript",
       "norm_label": "watch out for"
     },
     {
@@ -84704,8 +84704,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_sms_references_sequence_templates",
-      "community": 211,
-      "community_name": "SMS Compliance Reference",
+      "community": 376,
+      "community_name": "SMS Platform Reference",
       "norm_label": "sms/references/sequence-templates.md"
     },
     {
@@ -87047,8 +87047,8 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_visual_patterns",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 746,
+      "community_name": "Visual Patterns",
       "norm_label": "visual patterns"
     },
     {
@@ -87058,8 +87058,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_talking_head",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 746,
+      "community_name": "Visual Patterns",
       "norm_label": "talking head"
     },
     {
@@ -87069,8 +87069,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_slideshow_carousel_video",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 746,
+      "community_name": "Visual Patterns",
       "norm_label": "slideshow/carousel video"
     },
     {
@@ -87080,8 +87080,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_screen_recording",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 746,
+      "community_name": "Visual Patterns",
       "norm_label": "screen recording"
     },
     {
@@ -87091,8 +87091,8 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_b_roll_heavy",
-      "community": 177,
-      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
+      "community": 746,
+      "community_name": "Visual Patterns",
       "norm_label": "b-roll heavy"
     },
     {
@@ -87201,8 +87201,8 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_analytics_iteration",
-      "community": 785,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "analytics & iteration"
     },
     {
@@ -87212,8 +87212,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_metrics_that_matter",
-      "community": 785,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "metrics that matter"
     },
     {
@@ -87223,8 +87223,8 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_what_to_test",
-      "community": 785,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "what to test"
     },
     {
@@ -87234,8 +87234,8 @@
       "source_location": "L232",
       "_origin": "ast",
       "id": "agent_skills_social_references_short_form_video_when_to_pivot",
-      "community": 785,
-      "community_name": "Analytics & Iteration",
+      "community": 177,
+      "community_name": "Short-Form Video: Hooks, Scripts & Strategy",
       "norm_label": "when to pivot"
     },
     {
@@ -102210,7 +102210,7 @@
       "source_location": "L40",
       "community": 13,
       "norm_label": "runclimock()",
-      "community_name": "cli-entry.test.ts",
+      "community_name": "evaluation/cli.ts",
       "id": "src_smartcheck_evaluation_cli_entry_test_runclimock"
     },
     {
@@ -151986,7 +151986,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/config/production.ts",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production_validateproductionenvironment",
@@ -153934,7 +153934,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/config/production.ts",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production_validateproductionenvironment",
@@ -154004,7 +154004,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L40",
+      "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production",
@@ -154037,7 +154037,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production",
@@ -154129,7 +154129,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production_validateproductionenvironment",
@@ -154153,7 +154153,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L33",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production_validateproductionenvironment",
@@ -154213,7 +154213,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/server/config/production.ts",
-      "source_location": "L41",
+      "source_location": "L44",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production_assertproductionenvironment",
@@ -154226,7 +154226,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/config/production.ts",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_config_production_validateproductionenvironment",

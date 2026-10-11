@@ -210,23 +210,19 @@ this setup.
 Committed profile SHA256:
 `be5d68008bb4bb67f5eb662fc1d18d0013bbd390e2641290bbc6d7ae44c9e4ce`.
 
-For local Compose the default path is `./deploy/chromium-seccomp.json`. For
-Coolify, install the reviewed file on the **Docker daemon host** before deploying;
-a checkout inside Coolify's helper container is not necessarily a persistent host
-path. The default is `/data/bimmetraj/security/chromium-seccomp.json`, overridden
-only by `CHROMIUM_SECCOMP_PROFILE`. After copying the exact reviewed repository
-file to the host, an operator can install it using:
+Both local Compose and Coolify use `./deploy/chromium-seccomp.json` from the
+repository checkout. Docker Compose reads the profile on the **client** side and
+passes its contents to the daemon. During a Coolify deployment this client runs
+inside the helper container, so a file that exists only on the daemon host is
+insufficient. No separate host installation is needed: keep the reviewed profile
+in the deployment checkout alongside the Compose file.
 
-```bash
-sudo install -d -m 0755 /data/bimmetraj/security
-sudo install -m 0644 deploy/chromium-seccomp.json /data/bimmetraj/security/chromium-seccomp.json
-sha256sum /data/bimmetraj/security/chromium-seccomp.json
-```
-
-Compare the printed hash with the committed hash above before deployment.
-Keep the file root-owned and non-writable by the application. Docker fails closed
-if the configured profile is missing. Apply the profile by recreating only the
-app through the normal reviewed deployment; do not modify Docker's global default.
+`CHROMIUM_SECCOMP_PROFILE` may override the path only with a location readable by
+the Compose client inside that helper. Remove any previous host-only override
+before deploying. Docker Compose fails closed if the configured file is missing.
+The committed hash above identifies the reviewed file. Apply changes by recreating
+only the app through the normal reviewed deployment; do not modify Docker's global
+default or replace this profile with an unconfined policy.
 
 On 2026-10-11 the production host allowed unprivileged user namespaces, but the
 unmodified Docker seccomp policy blocked sandbox startup (`Operation not
