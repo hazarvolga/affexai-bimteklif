@@ -1338,6 +1338,16 @@ Autonomous remediation and source restore checkpoints are tracked in
 - **P2-1 (Impersonation Exit & Audit Tracking):** Tracked `impersonatedBy` in `smartcheckAuditLogs.metadataJson`, added tenant-side `/api/auth/impersonate/exit` endpoint with `impersonation.ended` audit log.
 - **Test Baseline:** 703 passing tests (0 failures, 5 skipped), 6/6 Python pytest passing, 0 TypeScript/linter errors.
 
+## 2026-10-11 Update: Dynamic Public Plan Catalog Deployed
+
+- **Commit / live revision:** `846139e55daba7593aaf4f9d7db3e8c36b8abb43` (`feat(pricing): publish dynamic plan catalog`).
+- **Public pricing:** Landing-page pricing now reads only active, explicitly published plans from `GET /api/public/plans`; five or fewer cards use the responsive grid and more than five use an accessible horizontal carousel.
+- **Super-admin controls:** Plan management now supports publish, feature, display-order, badge, and short-description fields. The public endpoint exposes no tenant, subscription, or administrative data.
+- **Upgrade safety:** Release migration `0006_public_plan_catalog` adds presentation columns. The controlled catalog bootstrap creates missing canonical plans and backfills presentation metadata only after it verifies every operational entitlement field; every applied change is recorded in `admin_audit_logs`.
+- **Production verification:** Coolify deployment succeeded; `/api/health` returned the new revision, `/api/public/plans` returned the five published packages, and the live landing page rendered all five cards.
+- **Validation:** `pnpm test` passed (798 pass, 5 skipped), `pnpm lint`, `pnpm run build`, release-artifact tests, public-plan integration test, and `graphify update .` all passed.
+- **Next data-source boundary:** Local `pricing_data_sources` has five source records and 16 approved staging records; production still has no source records. Do not migrate the 16 approved price rows as official data until their source evidence, validity period, and human approvals are independently reviewed. A metadata-only source catalog bootstrap is the safe next implementation.
+
 
 
 
