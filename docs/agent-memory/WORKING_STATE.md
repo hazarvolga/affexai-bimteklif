@@ -1292,6 +1292,23 @@ Autonomous remediation and source restore checkpoints are tracked in
   - Headless Puppeteer browser test passed 100% verifying real data rendering and zero mock strings (`scratch/verify-ui-settings.ts`).
   - TypeScript compilation `tsc --noEmit` passed with 0 errors.
 
+## 2026-10-11 Update: Prompt 3 Remediation Turu (P0, P1, P2) & IFC Worker Pipeline
+
+- **Branch & Target:** `feat/smartcheck-evaluation-baseline` on `affexai-bimteklif`.
+- **P0-1 (Docker Build & Worker Entrypoints):** Unified worker entries directly to `src/smartcheck/import/worker.ts` and `ifc-worker.ts`, removed redundant `Dockerfile.ifc-worker`, verified with `deployment-config.test.ts`.
+- **P0-2 (Plan-Based IFC Limits & Fail-Closed):** Enforced async `fetchTenantIfcLimits`, fail-closed `503 IFC_LIMITS_UNAVAILABLE` on DB errors, and assigned lowest-priced active plan to planless tenants (or `403 IFC_NOT_AVAILABLE` if no active plans).
+- **P0-3 (IFC Monthly Quotas & Usage Counter):** Atomic `usage_records.ifc_count` increment on run success in same transaction, deduplicated by `quota_consumed`, fail-closed quota checks.
+- **P0-4 (/complete Stream Destruction & FD Cleanup):** `detectAndValidateFile` timeout and chunk errors destroy streams with `destroy(err)` to prevent file descriptor leaks.
+- **P0-5 (Two-Parameter Advisory Locks):** Serialized processing runs with `pg_advisory_xact_lock(hashtext('company'), hashtext('document'))` at start of transaction.
+- **P1-1 (Admin Retry Routing & Dedicated Audit):** Super Admin `/queue/retry` routed through `changeProcessingRun` with `adminAuditLogs` logging.
+- **P1-2 & P1-3 (Queue SQL Aggregation, Pagination & Stale Timeouts):** Queue stats aggregated in a single SQL query, pagination and filters enabled, separated stale timeouts (900s for IFC, 300s for generic).
+- **P1-4 (S3 URL Expiry & Signed Content-Length):** Configured 24h default presigned URL expiry and enforced signed `Content-Length`.
+- **P1-5 (Formwork Calculation buildingSMART Rules):** Implemented explicit property priorities and strict element-specific formwork calculation rules for `IfcSlab`, `IfcWall`, `IfcColumn`, `IfcBeam`, and `IfcReinforcingBar`.
+- **P1-6 (Subprocess Error Sanitization & Parser Parity CLI):** Clean Turkish errors for subprocess crashes, removed shadow double-parsing, built `scripts/compare-ifc-parsers.ts` with 100MB synthetic memory benchmark.
+- **P2-1 (Impersonation Exit & Audit Tracking):** Tracked `impersonatedBy` in `smartcheckAuditLogs.metadataJson`, added tenant-side `/api/auth/impersonate/exit` endpoint with `impersonation.ended` audit log.
+- **Test Baseline:** 703 passing tests (0 failures, 5 skipped), 6/6 Python pytest passing, 0 TypeScript/linter errors.
+
+
 
 
 
