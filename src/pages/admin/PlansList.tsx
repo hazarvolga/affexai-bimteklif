@@ -22,6 +22,11 @@ export function PlansList() {
   const [ifcMaxFileMb, setIfcMaxFileMb] = useState(100);
   const [ifcMaxConcurrent, setIfcMaxConcurrent] = useState(1);
   const [isActive, setIsActive] = useState(true);
+  const [isPublished, setIsPublished] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [marketingBadge, setMarketingBadge] = useState('');
+  const [marketingDescription, setMarketingDescription] = useState('');
 
   const loadPlans = () => {
     setLoading(true);
@@ -47,6 +52,11 @@ export function PlansList() {
       setIfcMaxFileMb(plan.ifcMaxFileMb ?? 100);
       setIfcMaxConcurrent(plan.ifcMaxConcurrent ?? 1);
       setIsActive(plan.isActive);
+      setIsPublished(plan.isPublished);
+      setIsFeatured(plan.isFeatured);
+      setDisplayOrder(plan.displayOrder);
+      setMarketingBadge(plan.marketingBadge ?? '');
+      setMarketingDescription(plan.marketingDescription ?? '');
     } else {
       setEditingPlan(null);
       setName('');
@@ -56,6 +66,11 @@ export function PlansList() {
       setIfcMaxFileMb(100);
       setIfcMaxConcurrent(1);
       setIsActive(true);
+      setIsPublished(false);
+      setIsFeatured(false);
+      setDisplayOrder(0);
+      setMarketingBadge('');
+      setMarketingDescription('');
     }
     setIsModalOpen(true);
   };
@@ -68,7 +83,12 @@ export function PlansList() {
       monthlyIfcLimit: Number(monthlyIfcLimit),
       ifcMaxFileMb: Number(ifcMaxFileMb),
       ifcMaxConcurrent: Number(ifcMaxConcurrent),
-      isActive
+      isActive,
+      isPublished,
+      isFeatured,
+      displayOrder: Number(displayOrder),
+      marketingBadge: marketingBadge.trim() || null,
+      marketingDescription: marketingDescription.trim() || null,
     };
 
     try {
@@ -239,6 +259,18 @@ export function PlansList() {
                 <label htmlFor="isActive" className="text-sm text-zinc-300">Aktif (Satışa ve Kullanıma Açık)</label>
               </div>
               {!isActive && <p className="text-xs text-red-400 mt-1">Dikkat: Bu paketi kullanan müşterilerin kota gerektiren işlemleri de engellenir.</p>}
+              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3 space-y-3">
+                <p className="text-xs font-semibold text-indigo-200">Web sitesi görünümü</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex items-center gap-2 text-sm text-zinc-300"><input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-indigo-600" />Web sitesinde yayınla</label>
+                  <label className="flex items-center gap-2 text-sm text-zinc-300"><input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-indigo-600" />Öne çıkan paket</label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="mb-1 block text-xs text-zinc-400">Gösterim sırası</label><input type="number" min={0} max={10000} value={displayOrder} onChange={e => setDisplayOrder(Number(e.target.value))} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" /></div>
+                  <div><label className="mb-1 block text-xs text-zinc-400">Rozet</label><input type="text" maxLength={40} value={marketingBadge} onChange={e => setMarketingBadge(e.target.value)} placeholder="Örn: En çok tercih edilen" className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" /></div>
+                </div>
+                <div><label className="mb-1 block text-xs text-zinc-400">Kısa açıklama</label><textarea maxLength={280} value={marketingDescription} onChange={e => setMarketingDescription(e.target.value)} placeholder="Paketin landing sayfasında görünecek kısa açıklaması" className="min-h-20 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" /></div>
+              </div>
             </div>
 
             <div className="mt-8 flex justify-end gap-3">

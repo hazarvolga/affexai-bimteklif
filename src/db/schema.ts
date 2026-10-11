@@ -210,6 +210,11 @@ export const plans = pgTable("plans", {
   ifcMaxFileMb: integer("ifc_max_file_mb").default(50).notNull(),
   ifcMaxConcurrent: integer("ifc_max_concurrent").default(1).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
+  isPublished: boolean("is_published").default(false).notNull(),
+  isFeatured: boolean("is_featured").default(false).notNull(),
+  displayOrder: integer("display_order").default(0).notNull(),
+  marketingBadge: text("marketing_badge"),
+  marketingDescription: text("marketing_description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   monthlyQuoteLimitNonnegative: check("plans_monthly_quote_limit_nonnegative", sql`${table.monthlyQuoteLimit} >= 0`),

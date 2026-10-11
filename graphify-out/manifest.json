@@ -715,7 +715,7 @@
     "semantic_hash": ""
   },
   "drizzle/meta/_journal.json": {
-    "mtime": 1791720672.000086,
+    "mtime": 1791726566.578347,
     "ast_hash": "c88324a9c2ef9bb4010b422cf2e6685d",
     "semantic_hash": ""
   },
@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "src/db/schema.ts": {
-    "mtime": 1791720672.298452,
-    "ast_hash": "6a1d8ff32899ab45e9ac0ae66f3b18e4",
+    "mtime": 1791726322.585526,
+    "ast_hash": "2eca456fbc359c7eb8dc5d23e20469d6",
     "semantic_hash": ""
   },
   "src/hooks/useAuth.tsx": {
@@ -1525,8 +1525,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1791723372.0856242,
-    "ast_hash": "6348ad6a446eddf98eec4bf0685dfd25",
+    "mtime": 1791726322.5870948,
+    "ast_hash": "b7316760635ee244220ea52b492089a1",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -1720,8 +1720,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/billing.ts": {
-    "mtime": 1791720672.3422787,
-    "ast_hash": "1dd882e381672e334366eb0560c7de90",
+    "mtime": 1791726322.586689,
+    "ast_hash": "9c8f342fc14b6f8289b2cb14bab6e9aa",
     "semantic_hash": ""
   },
   "src/server/routes/clients.ts": {
@@ -4605,8 +4605,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/PlansList.tsx": {
-    "mtime": 1791720672.3220441,
-    "ast_hash": "79739d525d28551a942d09b1c8b527b7",
+    "mtime": 1791726364.13344,
+    "ast_hash": "6a5c97e9e9b3fb7705a54deb8d4ac3b0",
     "semantic_hash": ""
   },
   "src/pages/admin/TenantsList.tsx": {
@@ -4850,8 +4850,8 @@
     "semantic_hash": ""
   },
   "drizzle-release/manifest.json": {
-    "mtime": 1791720671.9584854,
-    "ast_hash": "75eb9c5e405b23d5a20287bccd8e8bf3",
+    "mtime": 1791726427.7530134,
+    "ast_hash": "976b1afcc1833492f374e3520c8e3292",
     "semantic_hash": ""
   },
   "drizzle-release/meta/0000_snapshot.json": {
@@ -4870,8 +4870,8 @@
     "semantic_hash": ""
   },
   "drizzle-release/meta/_journal.json": {
-    "mtime": 1791720671.9634378,
-    "ast_hash": "92c80736e6e78f118027a0782e78c6e6",
+    "mtime": 1791726427.7528484,
+    "ast_hash": "8a40a72f02a908b78a8d1dadf055fc9f",
     "semantic_hash": ""
   },
   "scripts/dependency-audit-policy.mjs": {
@@ -4885,8 +4885,8 @@
     "semantic_hash": ""
   },
   "scripts/release-migrations/artifacts.test.ts": {
-    "mtime": 1791720672.2629898,
-    "ast_hash": "09fba913b711118fbffdd1978da1ab2e",
+    "mtime": 1791726511.668231,
+    "ast_hash": "a52787a46a68fa303d672b9f40086c11",
     "semantic_hash": ""
   },
   "scripts/release-migrations/backup-docker.test.ts": {
@@ -4960,18 +4960,18 @@
     "semantic_hash": ""
   },
   "src/server/admin/changes.ts": {
-    "mtime": 1791720672.3246582,
-    "ast_hash": "8298aab9bed0201ca98ff26292468262",
+    "mtime": 1791726322.5862784,
+    "ast_hash": "fd787639a2beb89d6f8a6a83ebc82733",
     "semantic_hash": ""
   },
   "src/server/admin/input.test.ts": {
-    "mtime": 1791720672.3247933,
-    "ast_hash": "91ffcf3c9793f16851e7c73437e58ced",
+    "mtime": 1791726935.0543182,
+    "ast_hash": "4b1280b799249ae2198fafff83b29980",
     "semantic_hash": ""
   },
   "src/server/admin/input.ts": {
-    "mtime": 1791720672.3249173,
-    "ast_hash": "b680e7dd443ee264f46049427f890a37",
+    "mtime": 1791726322.5860622,
+    "ast_hash": "5e01ac63a1dd18cfc037a47d24e75c97",
     "semantic_hash": ""
   },
   "src/server/auth/invitations.test.ts": {
@@ -5130,8 +5130,8 @@
     "semantic_hash": ""
   },
   "scripts/release-migrations/stage-signatures.ts": {
-    "mtime": 1791720672.266392,
-    "ast_hash": "2b1e27ed3f95e7de8016a9789cc8514a",
+    "mtime": 1791726511.6675503,
+    "ast_hash": "e4bf095b1204aaaebc72fb2a364a018d",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminLogs.tsx": {
@@ -5755,8 +5755,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/admin-data.ts": {
-    "mtime": 1791720672.3233953,
-    "ast_hash": "71a5d85cfdf477464f3334abedbe0755",
+    "mtime": 1791726342.7098143,
+    "ast_hash": "fab31c68fa395d6baac1410624a85730",
     "semantic_hash": ""
   },
   "src/server/auth/email-delivery.test.ts": {
@@ -5840,13 +5840,13 @@
     "semantic_hash": ""
   },
   "src/services/billing/catalog-bootstrap.test.ts": {
-    "mtime": 1791720672.3552725,
-    "ast_hash": "a39f4311f9e9a5822dd6a78c0972791f",
+    "mtime": 1791727205.1855195,
+    "ast_hash": "accec8bb4e260e734099741067c4e338",
     "semantic_hash": ""
   },
   "src/services/billing/catalog-bootstrap.ts": {
-    "mtime": 1791720672.3554118,
-    "ast_hash": "39e1c128241abd6bc39dd35e3b521257",
+    "mtime": 1791727169.6243076,
+    "ast_hash": "9a387708aed3555169e67d7eb0f2c7b4",
     "semantic_hash": ""
   },
   "src/services/billing/catalog-target.ts": {
@@ -5855,8 +5855,8 @@
     "semantic_hash": ""
   },
   "src/services/billing/plan-catalog.ts": {
-    "mtime": 1791720672.3558922,
-    "ast_hash": "f11aceabe19dee1e4f6f6070fecbd1a5",
+    "mtime": 1791727169.623905,
+    "ast_hash": "86eedf3ff29c81263ceab653c7e65fe1",
     "semantic_hash": ""
   },
   "src/services/pricing/benchmark-policy.test.ts": {
@@ -5937,6 +5937,36 @@
   "src/smartcheck/import/worker-config.ts": {
     "mtime": 1791725537.9051611,
     "ast_hash": "ff533fde3d55b14233983a64ce4231eb",
+    "semantic_hash": ""
+  },
+  "drizzle-release/0006_public_plan_catalog.sql": {
+    "mtime": 1791726427.7517,
+    "ast_hash": "b577a7be9e368dd7ad9db167a37af742",
+    "semantic_hash": ""
+  },
+  "drizzle-release/meta/0006_snapshot.json": {
+    "mtime": 1791726427.7521994,
+    "ast_hash": "d4a4697c689c3b0b99ed4070e46e810a",
+    "semantic_hash": ""
+  },
+  "src/features/public-pricing/PublicPricingSection.tsx": {
+    "mtime": 1791727231.3758843,
+    "ast_hash": "d50b76f88acb8d07778594ea74031e27",
+    "semantic_hash": ""
+  },
+  "src/features/public-pricing/presentation.test.ts": {
+    "mtime": 1791726182.0111816,
+    "ast_hash": "88cf980479fdf7dbf7125df960c56fe8",
+    "semantic_hash": ""
+  },
+  "src/features/public-pricing/presentation.ts": {
+    "mtime": 1791726414.0241833,
+    "ast_hash": "ec7507a97369bfdc697baf1ff55739f9",
+    "semantic_hash": ""
+  },
+  "src/server/routes/public-plans.integration.test.ts": {
+    "mtime": 1791726589.178975,
+    "ast_hash": "519686c1c41ed6c000bc924d60ae39fb",
     "semantic_hash": ""
   }
 }

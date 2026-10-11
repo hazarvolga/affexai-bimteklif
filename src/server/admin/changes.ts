@@ -18,6 +18,11 @@ export async function createPlan(adminId: string, input: z.infer<typeof createPl
       ifcMaxFileMb: input.ifcMaxFileMb,
       ifcMaxConcurrent: input.ifcMaxConcurrent,
       isActive: input.isActive,
+      isPublished: input.isPublished,
+      isFeatured: input.isFeatured,
+      displayOrder: input.displayOrder,
+      marketingBadge: input.marketingBadge,
+      marketingDescription: input.marketingDescription,
     }).returning();
     await tx.insert(adminAuditLogs).values({ adminId, action: 'plan.created', details: { before: null, after } });
     return after;

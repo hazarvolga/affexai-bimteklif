@@ -10,12 +10,20 @@ const planFields = z.object({
   ifcMaxFileMb: z.number().int().min(1).max(100).optional(),
   ifcMaxConcurrent: z.number().int().min(1).max(10).optional(),
   isActive: z.boolean(),
+  isPublished: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  displayOrder: z.number().int().min(0).max(10000).optional(),
+  marketingBadge: z.string().trim().min(1).max(40).nullable().optional(),
+  marketingDescription: z.string().trim().min(1).max(280).nullable().optional(),
 }).strict();
 
 export const createPlanInput = planFields.extend({
   isActive: z.boolean().default(true),
   ifcMaxFileMb: z.number().int().min(1).max(100).default(50),
   ifcMaxConcurrent: z.number().int().min(1).max(10).default(1),
+  isPublished: z.boolean().default(false),
+  isFeatured: z.boolean().default(false),
+  displayOrder: z.number().int().min(0).max(10000).default(0),
 });
 export const updatePlanInput = planFields.partial().refine(value => Object.keys(value).length > 0);
 export const updateSubscriptionInput = z.object({

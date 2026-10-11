@@ -43,6 +43,13 @@
       "when": 1791417600005,
       "tag": "0005_regional_pricing_sources",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791417600006,
+      "tag": "0006_public_plan_catalog",
+      "breakpoints": true
     }
   ]
 }

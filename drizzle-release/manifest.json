@@ -43,6 +43,13 @@
       "sha256": "9aaa1793724cde5bcfcf37c0cc322780619a36e70ca769bcc42caf8d0f099828",
       "snapshotSha256": "df0bf9d804db9072ee7e4ee01f47c1bbf9e41ef84436ec6b26848d27ccfb00a5",
       "statements": 14
+    },
+    {
+      "idx": 6,
+      "tag": "0006_public_plan_catalog",
+      "sha256": "5ab65226703cd3318eb257afd5ded49dfd162c5d4972a3d501fd5218af1166be",
+      "snapshotSha256": "64343932b71070593f34ec84b4dd24395021affd459212064fad1ab548b6f911",
+      "statements": 5
     }
   ]
 }

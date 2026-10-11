@@ -12,12 +12,14 @@ test('canonical catalog has five precise allowances within supported IFC limits'
   assert.equal(new Set(canonicalPlans.map(p => p.id)).size, 5);
 });
 
-test('bootstrap adopts exact existing names but refuses drift and duplicate identities', () => {
-  const existing = { ...canonicalPlans[0], id: '22222222-2222-4222-8222-222222222222' };
+test('bootstrap adopts exact existing names, backfills public metadata, but refuses drift and duplicate identities', () => {
+  const existing = { ...canonicalPlans[0], id: '22222222-2222-4222-8222-222222222222', isPublished: false, displayOrder: 0, marketingBadge: null, marketingDescription: null };
   const preview = planCatalogChanges([existing]);
   assert.equal(preview.insert.length, 4);
   assert.deepEqual(preview.existing, [existing.id]);
+  assert.deepEqual(preview.presentationUpdates, [{ ...canonicalPlans[0], id: existing.id }]);
   assert.equal(planCatalogChanges(canonicalPlans).insert.length, 0);
+  assert.equal(planCatalogChanges(canonicalPlans).presentationUpdates.length, 0);
   assert.throws(() => planCatalogChanges([{ ...existing, monthlyQuoteLimit: 99 }]), /CATALOG_CONFLICT/);
   assert.throws(() => planCatalogChanges([existing, canonicalPlans[0]]), /CATALOG_CONFLICT/);
 });

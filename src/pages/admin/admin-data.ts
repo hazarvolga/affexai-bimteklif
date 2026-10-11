@@ -3,6 +3,8 @@ const count = z.number().int().nonnegative();
 export const adminPlansSchema = z.array(z.object({
   id: z.string(), name: z.string(), monthlyPrice: count, monthlyQuoteLimit: count,
   monthlyIfcLimit: count.nullable(), ifcMaxFileMb: count, ifcMaxConcurrent: count, isActive: z.boolean(),
+  isPublished: z.boolean(), isFeatured: z.boolean(), displayOrder: count,
+  marketingBadge: z.string().nullable(), marketingDescription: z.string().nullable(),
 }));
 export const adminDashboardSchema = z.object({
   totalTenants: count, statusCounts: z.record(count), totalMRR: z.number().nonnegative(),
