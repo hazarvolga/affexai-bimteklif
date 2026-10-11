@@ -223,10 +223,13 @@ async function processIfcSmartCheckDocument(payload: {
     }
 
     const legacyContent = content ?? await fs.readFile(resolvedPath);
-    artifact = buildIfcSmartCheckEvidenceFromContent({
+    const legacyText = legacyContent.toString("utf8");
+    const legacyParsed = parseIfcText(legacyText);
+    artifact = buildIfcSmartCheckEvidenceArtifact(legacyParsed.elements, legacyParsed.summary, {
       fileName: originalFileName,
       checksumSha256,
-      content: legacyContent,
+      schemaName: legacyText.match(/FILE_SCHEMA\s*\(\s*\(\s*'([^']+)'/i)?.[1],
+      parserVersion: "legacy-ifc-evidence-v1",
     });
 
     try {
@@ -235,15 +238,48 @@ async function processIfcSmartCheckDocument(payload: {
         fileName: originalFileName,
       });
 
-      const legacyParsed = parseIfcText(legacyContent.toString("utf8"));
+      const ls = legacyParsed.summary;
+      const ps = pythonResult.summary;
+
+      const beamCountDiff = Math.abs(ls.beamCount - ps.beamCount);
+      const beamVolumeDiff = Number(Math.abs(ls.beamVolumeM3 - ps.beamVolumeM3).toFixed(3));
+      const columnCountDiff = Math.abs(ls.columnCount - ps.columnCount);
+      const columnVolumeDiff = Number(Math.abs(ls.columnVolumeM3 - ps.columnVolumeM3).toFixed(3));
+      const slabCountDiff = Math.abs(ls.slabCount - ps.slabCount);
+      const slabVolumeDiff = Number(Math.abs(ls.slabVolumeM3 - ps.slabVolumeM3).toFixed(3));
+      const wallCountDiff = Math.abs(ls.wallCount - ps.wallCount);
+      const wallVolumeDiff = Number(Math.abs(ls.wallVolumeM3 - ps.wallVolumeM3).toFixed(3));
+      const rebarCountDiff = Math.abs(ls.rebarCount - ps.rebarCount);
+      const rebarWeightDiff = Number(Math.abs(ls.totalRebarKg - ps.totalRebarKg).toFixed(3));
+      const formworkDiff = Number(Math.abs(ls.totalFormworkM2 - ps.totalFormworkM2).toFixed(3));
+      const totalVolumeDiff = Number(Math.abs(ls.totalVolumeM3 - ps.totalVolumeM3).toFixed(3));
+      const totalElementCountDiff = Math.abs(ls.totalElements - ps.totalElements);
+
+      const isDivergent =
+        totalElementCountDiff > 0 ||
+        beamCountDiff > 0 || columnCountDiff > 0 || slabCountDiff > 0 || wallCountDiff > 0 || rebarCountDiff > 0 ||
+        totalVolumeDiff > 0.05 ||
+        beamVolumeDiff > 0.05 || columnVolumeDiff > 0.05 || slabVolumeDiff > 0.05 || wallVolumeDiff > 0.05 ||
+        formworkDiff > 0.05 ||
+        rebarWeightDiff > 0.5;
+
       const shadowReport = {
         mode: "shadow",
         timestamp: new Date().toISOString(),
-        legacySummary: legacyParsed.summary,
-        pythonSummary: pythonResult.summary,
-        elementCountDiff: Math.abs(legacyParsed.summary.totalElements - pythonResult.summary.totalElements),
-        volumeDeltaM3: Number(Math.abs(legacyParsed.summary.totalVolumeM3 - pythonResult.summary.totalVolumeM3).toFixed(2)),
-        parityStatus: Math.abs(legacyParsed.summary.totalElements - pythonResult.summary.totalElements) === 0 ? "match" : "divergence",
+        legacySummary: ls,
+        pythonSummary: ps,
+        totalElementCountDiff,
+        totalVolumeDeltaM3: totalVolumeDiff,
+        totalFormworkDeltaM2: formworkDiff,
+        totalRebarWeightDeltaKg: rebarWeightDiff,
+        parityStatus: isDivergent ? "divergence" : "match",
+        typeBreakdown: {
+          beam: { legacyCount: ls.beamCount, pythonCount: ps.beamCount, legacyVolumeM3: ls.beamVolumeM3, pythonVolumeM3: ps.beamVolumeM3, countDelta: beamCountDiff, volumeDeltaM3: beamVolumeDiff },
+          column: { legacyCount: ls.columnCount, pythonCount: ps.columnCount, legacyVolumeM3: ls.columnVolumeM3, pythonVolumeM3: ps.columnVolumeM3, countDelta: columnCountDiff, volumeDeltaM3: columnVolumeDiff },
+          slab: { legacyCount: ls.slabCount, pythonCount: ps.slabCount, legacyVolumeM3: ls.slabVolumeM3, pythonVolumeM3: ps.slabVolumeM3, countDelta: slabCountDiff, volumeDeltaM3: slabVolumeDiff },
+          wall: { legacyCount: ls.wallCount, pythonCount: ps.wallCount, legacyVolumeM3: ls.wallVolumeM3, pythonVolumeM3: ps.wallVolumeM3, countDelta: wallCountDiff, volumeDeltaM3: wallVolumeDiff },
+          rebar: { legacyCount: ls.rebarCount, pythonCount: ps.rebarCount, legacyWeightKg: ls.totalRebarKg, pythonWeightKg: ps.totalRebarKg, countDelta: rebarCountDiff, weightDeltaKg: rebarWeightDiff },
+        },
       };
 
       const shadowContent = Buffer.from(JSON.stringify(shadowReport, null, 2));
@@ -480,7 +516,11 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     await db.update(documents).set({ status: "awaiting_review", importMappingJson: parsed.mapping, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
   } catch (error) {
     const errorCode = error instanceof IfcWorkerError ? error.code : error instanceof Error ? error.message : "PROCESSING_FAILED";
-    const errorMessage = error instanceof Error ? error.message : "PROCESSING_FAILED";
+    const errorMessage = error instanceof IfcWorkerError
+      ? error.sanitizedMessage
+      : error instanceof Error
+        ? (error.message.includes("/") || error.message.includes("\\") || error.message.includes("Traceback") ? "İşlem sırasında beklenmeyen bir hata oluştu." : error.message)
+        : "PROCESSING_FAILED";
     await updateRun(run.id, companyId, { status: "failed", currentStage: "failed", progressMessage: "İşleme başarısız", errorCode, errorMessage, completedAt: new Date() });
     await db.update(documents).set({ status: "failed", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
     throw error;

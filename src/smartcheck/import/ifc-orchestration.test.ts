@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { IfcWorkerError, resolvePythonBin, runPythonIfcExtractor } from "./ifc-python-runner";
+import { IfcWorkerError, resolvePythonBin, runPythonIfcExtractor, sanitizeIfcErrorMessage } from "./ifc-python-runner";
 
 test("resolvePythonBin finds Python executable", () => {
   const bin = resolvePythonBin();
@@ -139,10 +139,47 @@ test("runPythonIfcExtractor enforces timeout with IFC_TIMEOUT error", async () =
       (err: unknown) => {
         assert.ok(err instanceof IfcWorkerError);
         assert.equal(err.code, "IFC_TIMEOUT");
+        assert.match(err.sanitizedMessage, /İşlem zaman aşımına uğradı/);
         return true;
       }
     );
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });
   }
+});
+
+test("sanitizeIfcErrorMessage sanitizes internal paths and provides clean Turkish messages", () => {
+  const timeoutMsg = sanitizeIfcErrorMessage("IFC_TIMEOUT", undefined, 120);
+  assert.equal(timeoutMsg, "İşlem zaman aşımına uğradı (120 saniye). Dosya çok karmaşık olabilir.");
+  assert.ok(!timeoutMsg.includes("/app") && !timeoutMsg.includes(".py"));
+
+  const oomMsg = sanitizeIfcErrorMessage("IFC_OOM", "Killed process 1234 (python3) total-vm:2097152kB");
+  assert.equal(oomMsg, "Yetersiz bellek. Dosya boyutu veya eleman sayısı sistem sınırını aştı.");
+
+  const schemaMsg = sanitizeIfcErrorMessage("IFC_SCHEMA_UNSUPPORTED", "Unsupported schema IFC4X3_ADD2 in file /app/test.ifc");
+  assert.ok(schemaMsg.includes("Desteklenmeyen IFC şeması"));
+  assert.ok(!schemaMsg.includes("/app"));
+
+  const emptyMsg = sanitizeIfcErrorMessage("IFC_EMPTY_MODEL", "No elements in /root/model.ifc");
+  assert.equal(emptyMsg, "IFC dosyasında desteklenen yapısal eleman bulunamadı.");
+
+  const parseFailMsg = sanitizeIfcErrorMessage("IFC_PARSE_FAILED", 'Traceback: File "/var/task/workers/ifc/ifc_extract.py", line 42');
+  assert.equal(parseFailMsg, "IFC dosyası okunamadı veya dosya bozuk.");
+  assert.ok(!parseFailMsg.includes("Traceback") && !parseFailMsg.includes("/var/task"));
+
+  const crashMsg = sanitizeIfcErrorMessage("IFC_WORKER_CRASH", "Segmentation fault at 0x00007fff");
+  assert.equal(crashMsg, "IFC işlenirken beklenmeyen bir hata oluştu.");
+});
+
+test("IfcWorkerError attaches sanitizedMessage and avoids leaking stack or paths", () => {
+  const err = new IfcWorkerError(
+    "IFC_PARSE_FAILED",
+    'Crash details: File "/var/app/workers/ifc/ifc_extract.py", line 99, in main',
+    'Traceback (most recent call last):\n  File "/var/app/workers/ifc/ifc_extract.py", line 99',
+  );
+
+  assert.equal(err.code, "IFC_PARSE_FAILED");
+  assert.equal(err.sanitizedMessage, "IFC dosyası okunamadı veya dosya bozuk.");
+  assert.ok(!err.sanitizedMessage.includes("/var/app"));
+  assert.ok(!err.sanitizedMessage.includes("Traceback"));
 });

@@ -76,14 +76,45 @@ export interface PythonIfcExtractOptions {
   cliScriptPath?: string;
 }
 
+export function sanitizeIfcErrorMessage(
+  code: "IFC_PARSE_FAILED" | "IFC_SCHEMA_UNSUPPORTED" | "IFC_EMPTY_MODEL" | "IFC_TIMEOUT" | "IFC_OOM" | "IFC_WORKER_CRASH",
+  rawDetails?: string,
+  timeoutSec?: number,
+): string {
+  switch (code) {
+    case "IFC_TIMEOUT":
+      return `İşlem zaman aşımına uğradı (${timeoutSec ?? 600} saniye). Dosya çok karmaşık olabilir.`;
+    case "IFC_OOM":
+      return "Yetersiz bellek. Dosya boyutu veya eleman sayısı sistem sınırını aştı.";
+    case "IFC_SCHEMA_UNSUPPORTED": {
+      const match = rawDetails?.match(/schema\s*[:=]?\s*([A-Za-z0-9_]+)/i) || rawDetails?.match(/(IFC[A-Z0-9]+)/i);
+      const schemaName = match ? match[1] : "";
+      return schemaName
+        ? `Desteklenmeyen IFC şeması (${schemaName}). Yalnız IFC2X3 ve IFC4 desteklenir.`
+        : "Desteklenmeyen IFC şeması. Yalnız IFC2X3 ve IFC4 desteklenir.";
+    }
+    case "IFC_EMPTY_MODEL":
+      return "IFC dosyasında desteklenen yapısal eleman bulunamadı.";
+    case "IFC_PARSE_FAILED":
+      return "IFC dosyası okunamadı veya dosya bozuk.";
+    case "IFC_WORKER_CRASH":
+    default:
+      return "IFC işlenirken beklenmeyen bir hata oluştu.";
+  }
+}
+
 export class IfcWorkerError extends Error {
+  public readonly sanitizedMessage: string;
+
   constructor(
     public readonly code: "IFC_PARSE_FAILED" | "IFC_SCHEMA_UNSUPPORTED" | "IFC_EMPTY_MODEL" | "IFC_TIMEOUT" | "IFC_OOM" | "IFC_WORKER_CRASH",
     message: string,
     public readonly stderr?: string,
+    sanitizedMessage?: string,
   ) {
     super(message);
     this.name = "IfcWorkerError";
+    this.sanitizedMessage = sanitizedMessage ?? sanitizeIfcErrorMessage(code, stderr ?? message);
   }
 }
 
@@ -133,7 +164,8 @@ export async function runPythonIfcExtractor(options: PythonIfcExtractOptions): P
             try { child.kill("SIGKILL"); } catch {}
           }, 3000).unref();
         } catch {}
-        reject(new IfcWorkerError("IFC_TIMEOUT", `IFC extraction timed out after ${timeoutMs / 1000}s`, stderr));
+        const timeoutSec = Math.round(timeoutMs / 1000);
+        reject(new IfcWorkerError("IFC_TIMEOUT", `IFC extraction timed out after ${timeoutSec}s`, stderr, sanitizeIfcErrorMessage("IFC_TIMEOUT", undefined, timeoutSec)));
       }, timeoutMs);
 
       child.on("error", (err) => {
