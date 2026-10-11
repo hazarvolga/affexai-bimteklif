@@ -24,6 +24,17 @@ describe('production environment preflight', () => {
     assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ACCESS_KEY_ID: 'key', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret', SMARTCHECK_S3_ENDPOINT: 'https://s3.example.com', SMARTCHECK_S3_FORCE_PATH_STYLE: 'true' }).valid, true);
     assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ENDPOINT: 'http://s3.example.com' }).valid, false);
   });
+
+  it('requires explicit credentials when the deployment disables ambient S3 credentials', () => {
+    const base = { SMARTCHECK_S3_BUCKET: 'production-bucket', SMARTCHECK_S3_REGION: 'auto', SMARTCHECK_S3_REQUIRE_STATIC_CREDENTIALS: 'true' };
+    assert.equal(validateSmartcheckStorageEnvironment(base).valid, false);
+    assert.equal(validateSmartcheckStorageEnvironment({ ...base, SMARTCHECK_S3_ACCESS_KEY_ID: '', SMARTCHECK_S3_SECRET_ACCESS_KEY: '' }).valid, false);
+    assert.equal(validateSmartcheckStorageEnvironment({ ...base, SMARTCHECK_S3_ACCESS_KEY_ID: 'access', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret' }).valid, true);
+    const production = { ...base, NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://app.example.test', AUTH_EMAIL_DELIVERY_MODE: 'disabled' };
+    assert.equal(validateProductionEnvironment(production).valid, false, 'static credential deployment must fail even before import enablement');
+    assert.equal(validateProductionEnvironment({ ...production, SMARTCHECK_S3_ACCESS_KEY_ID: 'access', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret' }).valid, true);
+    assert.equal(validateProductionEnvironment({ ...production, SMARTCHECK_S3_ACCESS_KEY_ID: 'access', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret', JWT_SECRET: '' }).valid, false);
+  });
 });
 
 it('explicit disabled email permits production startup while default webhook remains fail closed', () => {

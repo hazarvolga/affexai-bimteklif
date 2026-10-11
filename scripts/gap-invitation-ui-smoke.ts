@@ -116,7 +116,14 @@ try {
     await page.evaluate(token => localStorage.setItem('token', token), adminToken);
     await page.goto(`${base}/admin/tenants`, { waitUntil: 'networkidle0' });
     await page.waitForFunction(() => document.body.innerText.includes('Firmalar (Tenants)'));
-    await page.$$eval('tr', rows => (rows.find(row => row.textContent?.includes('Isolated UI Test'))!.querySelector('button') as HTMLButtonElement).click());
+    await page.$$eval('tr', rows => {
+      const row = rows.find(candidate => candidate.textContent?.includes('Isolated UI Test'));
+      const editButton = Array.from(row?.querySelectorAll('button') ?? [])
+        .find(button => button.textContent?.trim() === 'Hızlı Düzenle');
+      if (!editButton) throw new Error('Tenant quick-edit button not found');
+      editButton.click();
+    });
+    await page.waitForFunction(() => document.body.innerText.includes('Isolated UI Test Yönetimi'));
     await page.waitForSelector('select');
     const selects = await page.$$('select');
     await selects[0].select(plan.id);

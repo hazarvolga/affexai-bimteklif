@@ -57,6 +57,14 @@ Enter the remaining runtime values in Coolify's secret/environment configuration
 Required substitutions reject missing values. Standard Docker Compose does not
 generate these variables, so local validation must supply fabricated values.
 No secret values belong in Git, build arguments, logs or this runbook.
+In Coolify, set **Build time → Not available during build** and keep **Runtime →
+Available in the container** for every application environment variable. Merely
+using the environment-variable UI does not make a value runtime-only: its default
+build availability can place credentials in Docker image history. Verify these
+flags after loading Compose and before building. Compare deployed credentials
+against image history/config without printing either secret values or raw history.
+If any match, rotate the affected credentials, rebuild without cache and repeat
+the check; changing the flags alone does not invalidate old image credentials.
 
 | Runtime input | Requirement |
 |---|---|
@@ -319,3 +327,73 @@ encrypted off-host DB backup, a tested restore into a different database, and
 S3 versioning/retention/lifecycle and restore evidence. None is supplied by this
 Compose example. Keep previous image digests and migration compatibility notes;
 rollback must stop new writes/jobs before a reviewed DB restore or image rollback.
+
+## Compose PostgreSQL Logical Backups
+
+Coolify's installed `ScheduledDatabaseBackup` runner accepts standalone databases
+and `ServiceDatabase`, not a Git Application's Compose PostgreSQL. The application's
+Storage backup archives volumes; do not treat a live PGDATA archive as a consistent
+logical backup. Use the dedicated `backup` service and Coolify **Scheduled Tasks**.
+
+The service uses PostgreSQL 16 `pg_dump`/`pg_restore` plus Debian's packaged AWS CLI.
+It has no Docker socket or PostgreSQL volume mount. UID 10001, read-only root,
+capability drop, no-new-privileges, 512 MiB memory and 0.5 CPU limits apply. Only
+`backup-data:/backups` is writable persistently; `/tmp` is bounded. Its idle process
+does not initiate work before a schedule exists. Empty backup credentials do not
+block core deployment, but the backup command fails closed before connecting.
+
+Provision a **separate** R2 backup bucket named `bimmetraj-backups` or
+`bimmetraj-backups-<suffix>`. Use a credential scoped to that bucket with read,
+write, list and delete permissions. Do not reuse application upload credentials
+or a broad account/Coolify credential. Configure runtime-only variables:
+
+- `BACKUP_S3_BUCKET`
+- `BACKUP_S3_ENDPOINT`: `https://<account>.r2.cloudflarestorage.com`
+- `BACKUP_S3_ACCESS_KEY_ID`
+- `BACKUP_S3_SECRET_ACCESS_KEY`
+
+Region is fixed to R2's `auto`; object prefix is fixed to `bimmetraj/postgres/`.
+Database host/user/name/port are pinned to `postgres`/`bimmetraj`/
+`bimmetraj_production`/5432. Secrets are passed through environment, never command
+arguments or output. Keep all Coolify secret variables unavailable at build time.
+The existing Coolify S3 configuration can identify the R2 provider/backup bucket
+policy, but its stored credential is not automatically injected into this service.
+
+Create one Coolify Application Scheduled Task:
+
+- Container: `backup` (service prefix, not a timestamped container name).
+- Command: `/usr/local/bin/bimmetraj-backup`.
+- Daily schedule: 00:30 UTC / 03:30 Europe/Istanbul; confirm the scheduler timezone.
+- Timeout: 3600 seconds. Enable task-failure notifications.
+
+The command obtains an exclusive file lock; creates a custom-format consistent
+`pg_dump --no-owner --no-acl`; validates its archive listing; writes a SHA256 JSON
+manifest; uploads then downloads and re-hashes the complete dump; publishes the
+completion manifest; and only then applies retention. Remote retention is 14 days,
+local retention 7 days, restricted to exact generated filenames under the fixed
+prefix. Interrupted upload has no remote completion manifest and must not count
+as a valid backup. Failed runs remove only their newly created local dump/manifest
+to avoid disk growth during R2 outages; previous successful backups are retained. Failure logs are deliberately generic to prevent CLI output
+from leaking credentials or tenant data. Inspect task status, disk free space and
+connectivity without printing environment values. Budget local disk for seven
+full dumps plus one dump/download pair; monitor capacity and missing backups.
+No disk quota or off-host encryption key management is supplied by this service;
+confirm the backup store's encryption/access policies before launch.
+
+Acceptance requires more than creating a schedule:
+
+1. Run the task manually and retain its successful execution record, object key,
+   SHA256 and byte size. Do not log credentials or actual database contents.
+2. Download the dump and completion manifest from R2, verify SHA256, then restore
+   using PostgreSQL 16 into a **separate explicitly named disposable database**.
+   Use `pg_restore --exit-on-error --no-owner --no-acl` on that target only.
+3. Compare release ledger and logical schema signature, critical table counts,
+   tenant foreign-key relationships and representative application reads. Never
+   restore into `bimmetraj_production` for a drill.
+4. Remove only the owned disposable target, confirm the next real scheduled
+   execution succeeds, and preserve restore/schedule evidence. Until then,
+   scheduled backup and restore acceptance remain incomplete.
+
+Local script regressions: `python3 -m unittest discover -s deploy/backup -p 'test_*.py'`.
+They cover target validation, failure ordering, redacted errors, checksum gating
+and retention scope; mocks do not establish real R2 or database restore readiness.

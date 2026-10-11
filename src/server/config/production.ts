@@ -14,6 +14,7 @@ export function validateSmartcheckStorageEnvironment(env: Env = process.env) {
   if (!env.SMARTCHECK_S3_REGION) errors.push('SMARTCHECK_S3_REGION is required when SmartCheck production storage is enabled.');
   if (env.SMARTCHECK_S3_ENDPOINT && !validHttpsUrl(env.SMARTCHECK_S3_ENDPOINT)) errors.push('SMARTCHECK_S3_ENDPOINT must be HTTPS when provided.');
   if (Boolean(env.SMARTCHECK_S3_ACCESS_KEY_ID) !== Boolean(env.SMARTCHECK_S3_SECRET_ACCESS_KEY)) errors.push('SMARTCHECK_S3_ACCESS_KEY_ID and SMARTCHECK_S3_SECRET_ACCESS_KEY must be provided together.');
+  if (env.SMARTCHECK_S3_REQUIRE_STATIC_CREDENTIALS === 'true' && (!env.SMARTCHECK_S3_ACCESS_KEY_ID?.trim() || !env.SMARTCHECK_S3_SECRET_ACCESS_KEY?.trim())) errors.push('Explicit S3 access key and secret are required for this deployment.');
   if (env.SMARTCHECK_S3_FORCE_PATH_STYLE && !['true', 'false'].includes(env.SMARTCHECK_S3_FORCE_PATH_STYLE)) errors.push('SMARTCHECK_S3_FORCE_PATH_STYLE must be true or false.');
   return { valid: errors.length === 0, errors };
 }
@@ -30,6 +31,8 @@ export function validateProductionEnvironment(env: Env = process.env) {
   errors.push(...validateAuthEmailEnvironment(env));
   if (env.SMARTCHECK_IMPORT_ENABLED === 'true') {
     if (!env.SMARTCHECK_PILOT_COMPANY_IDS) errors.push('SMARTCHECK_PILOT_COMPANY_IDS is required when SmartCheck import is enabled in production.');
+  }
+  if (env.SMARTCHECK_IMPORT_ENABLED === 'true' || env.SMARTCHECK_S3_REQUIRE_STATIC_CREDENTIALS === 'true') {
     errors.push(...validateSmartcheckStorageEnvironment(env).errors.map((error) => error.replace('when SmartCheck production storage is enabled', 'when SmartCheck import is enabled in production')));
   }
   const trustProxyHops = Number(env.TRUST_PROXY_HOPS ?? '1');

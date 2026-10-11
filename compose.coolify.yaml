@@ -1,24 +1,28 @@
 # Coolify Git/Docker Compose deployment. Configure the domain on the app service.
 # Inject secrets in Coolify; no host env_file paths or published database ports.
+# Runtime-only secrets are absent during Coolify build interpolation. Empty defaults
+# permit image builds; production JWT/storage validation and PostgreSQL auth reject missing
+# runtime values. Keep both generated secrets enabled for runtime injection.
 name: bimmetraj
 
 x-app-environment: &app-environment
   NODE_ENV: production
-  DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?}@postgres:5432/bimmetraj_production
+  DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:-}@postgres:5432/bimmetraj_production
   PG_POOL_MAX: '4'
-  JWT_SECRET: ${SERVICE_HEX_64_JWT:?}
+  JWT_SECRET: ${SERVICE_HEX_64_JWT:-}
   PUBLIC_APP_URL: https://bimmetraj.com
   AUTH_EMAIL_DELIVERY_MODE: disabled
   TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
   GRAPHILE_WORKER_SCHEMA: teklifpro_queue
   SMARTCHECK_IMPORT_ENABLED: ${SMARTCHECK_IMPORT_ENABLED:-false}
   SMARTCHECK_PILOT_COMPANY_IDS: ${SMARTCHECK_PILOT_COMPANY_IDS:-}
-  SMARTCHECK_S3_BUCKET: ${SMARTCHECK_S3_BUCKET:?Provision the production object storage bucket}
-  SMARTCHECK_S3_REGION: ${SMARTCHECK_S3_REGION:?Set the object storage region}
+  SMARTCHECK_S3_BUCKET: ${SMARTCHECK_S3_BUCKET:-}
+  SMARTCHECK_S3_REGION: ${SMARTCHECK_S3_REGION:-}
   SMARTCHECK_S3_ENDPOINT: ${SMARTCHECK_S3_ENDPOINT:-}
-  SMARTCHECK_S3_ACCESS_KEY_ID: ${SMARTCHECK_S3_ACCESS_KEY_ID:?Set the object storage access key}
-  SMARTCHECK_S3_SECRET_ACCESS_KEY: ${SMARTCHECK_S3_SECRET_ACCESS_KEY:?Set the object storage secret key}
+  SMARTCHECK_S3_ACCESS_KEY_ID: ${SMARTCHECK_S3_ACCESS_KEY_ID:-}
+  SMARTCHECK_S3_SECRET_ACCESS_KEY: ${SMARTCHECK_S3_SECRET_ACCESS_KEY:-}
   SMARTCHECK_S3_FORCE_PATH_STYLE: ${SMARTCHECK_S3_FORCE_PATH_STYLE:-false}
+  SMARTCHECK_S3_REQUIRE_STATIC_CREDENTIALS: 'true'
   SMARTCHECK_IFC_ENGINE: ifcopenshell
   SMARTCHECK_MAX_IFC_FILE_MB: ${SMARTCHECK_MAX_IFC_FILE_MB:-100}
   SMARTCHECK_IFC_MAX_CONCURRENT: ${SMARTCHECK_IFC_MAX_CONCURRENT:-2}
@@ -108,7 +112,7 @@ services:
     environment:
       NODE_ENV: production
       PG_POOL_MAX: '4'
-      RELEASE_DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?}@postgres:5432/bimmetraj_production
+      RELEASE_DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:-}@postgres:5432/bimmetraj_production
       RELEASE_ALLOW_PRODUCTION: 'true'
       RELEASE_EXPECTED_HOST: postgres
       RELEASE_EXPECTED_DATABASE: bimmetraj_production
@@ -118,13 +122,44 @@ services:
       postgres:
         condition: service_healthy
 
+  # Coolify Scheduled Task: container=backup, command=/usr/local/bin/bimmetraj-backup.
+  # Idle until scheduled; empty backup credentials fail closed only when invoked.
+  backup:
+    image: bimmetraj-backup:${IMAGE_TAG:-local}
+    build:
+      context: ./deploy/backup
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    environment:
+      PGHOST: postgres
+      PGPORT: '5432'
+      PGDATABASE: bimmetraj_production
+      PGUSER: bimmetraj
+      PGPASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:-}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID:-}
+      BACKUP_S3_SECRET_ACCESS_KEY: ${BACKUP_S3_SECRET_ACCESS_KEY:-}
+    volumes:
+      - backup-data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 64
+
   postgres:
     image: postgres:16-bookworm
     restart: unless-stopped
     environment:
       POSTGRES_DB: bimmetraj_production
       POSTGRES_USER: bimmetraj
-      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:?}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:-}
     command: [postgres, -c, shared_buffers=128MB, -c, max_connections=40, -c, work_mem=4MB]
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -138,4 +173,5 @@ services:
     shm_size: 128mb
 
 volumes:
+  backup-data:
   postgres-data:
