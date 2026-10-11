@@ -8,11 +8,12 @@ test('pilot applications rejects missing or invalid email format', async () => {
   const server = app.listen(0);
   const address = server.address() as { port: number };
   try {
+    const ip = `127.0.0.${Math.floor(Math.random() * 200 + 10)}`;
     const res = await fetch(`http://127.0.0.1:${address.port}/api/pilot-applications`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-forwarded-for': '127.0.0.99',
+        'x-forwarded-for': ip,
       },
       body: JSON.stringify({ fullName: 'Ali Veli', companyName: 'Insaat A.S.', email: 'not-an-email' }),
     });

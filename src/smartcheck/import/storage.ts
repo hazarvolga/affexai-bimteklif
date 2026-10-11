@@ -9,8 +9,17 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { localStorageRoot, SMARTCHECK_MAX_FILE_BYTES } from "./config";
 import { readBoundedBody, readPrefixBody, withReadDeadline, type StorageReadOptions } from "./bounded-read";
 
+export function uploadUrlExpirySeconds(env: Record<string, string | undefined> = process.env): number {
+  const configured = Number(env.IFC_UPLOAD_URL_EXPIRY_SECONDS ?? env.SMARTCHECK_UPLOAD_URL_EXPIRY_SECONDS ?? 86400);
+  return Number.isFinite(configured) && configured > 0 ? configured : 86400;
+}
+
 export interface StorageAdapter {
-  createUploadTarget(storageKey: string, contentType: string): Promise<{ uploadUrl: string; method: "PUT"; headers?: Record<string, string> }>;
+  createUploadTarget(
+    storageKey: string,
+    contentType: string,
+    options?: { contentLength?: number; expiresInSeconds?: number }
+  ): Promise<{ uploadUrl: string; method: "PUT"; headers?: Record<string, string> }>;
   put(storageKey: string, content: Buffer, contentType?: string): Promise<void>;
   get(storageKey: string, options?: StorageReadOptions): Promise<Buffer>;
   delete(storageKey: string): Promise<void>;
@@ -28,9 +37,17 @@ function safeKey(storageKey: string): string {
 export class LocalStorageAdapter implements StorageAdapter {
   constructor(private readonly root = localStorageRoot()) {}
   localPath(storageKey: string): string { return path.join(this.root, safeKey(storageKey)); }
-  async createUploadTarget(storageKey: string, _contentType: string) {
+  async createUploadTarget(
+    storageKey: string,
+    _contentType: string,
+    options?: { contentLength?: number; expiresInSeconds?: number }
+  ) {
     safeKey(storageKey);
-    return { uploadUrl: "", method: "PUT" as const };
+    return {
+      uploadUrl: "",
+      method: "PUT" as const,
+      headers: options?.contentLength !== undefined ? { "content-length": String(options.contentLength) } : undefined,
+    };
   }
   async put(storageKey: string, content: Buffer, _contentType?: string): Promise<void> {
     const target = this.localPath(storageKey);
@@ -95,9 +112,31 @@ export class S3StorageAdapter implements StorageAdapter {
     });
   }
 
-  async createUploadTarget(storageKey: string, contentType: string) {
-    const command = new PutObjectCommand({ Bucket: this.bucket, Key: safeKey(storageKey), ContentType: contentType });
-    return { uploadUrl: await getSignedUrl(this.client, command, { expiresIn: 900 }), method: "PUT" as const, headers: { "content-type": contentType } };
+  async createUploadTarget(
+    storageKey: string,
+    contentType: string,
+    options?: { contentLength?: number; expiresInSeconds?: number }
+  ) {
+    const expiresIn = options?.expiresInSeconds ?? uploadUrlExpirySeconds();
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: safeKey(storageKey),
+      ContentType: contentType,
+      ...(options?.contentLength !== undefined ? { ContentLength: options.contentLength } : {}),
+    });
+    const headers: Record<string, string> = { "content-type": contentType };
+    if (options?.contentLength !== undefined) {
+      headers["content-length"] = String(options.contentLength);
+    }
+    const uploadUrl = await getSignedUrl(this.client, command, {
+      expiresIn,
+      signableHeaders: new Set([
+        "content-type",
+        "host",
+        ...(options?.contentLength !== undefined ? ["content-length"] : []),
+      ]),
+    });
+    return { uploadUrl, method: "PUT" as const, headers };
   }
 
   async put(storageKey: string, content: Buffer, contentType?: string): Promise<void> {

@@ -105,8 +105,8 @@ export function registerSmartCheckRoutes(app: Express) {
     }).returning();
     const storage = createStorageAdapter();
     const target = storage instanceof LocalStorageAdapter
-      ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType } }
-      : await storage.createUploadTarget(storageKey, mimeType);
+      ? { uploadUrl: `/api/smartcheck/documents/${document.id}/content`, method: "PUT" as const, headers: { "content-type": mimeType, "content-length": String(fileSizeBytes) } }
+      : await storage.createUploadTarget(storageKey, mimeType, { contentLength: fileSizeBytes });
     await audit(req, "upload_created", "document", document.id, { fileName: originalFileName, fileSizeBytes });
     res.status(201).json({ documentId: document.id, ...target, maxFileSizeBytes: maxAllowedBytes });
   });
