@@ -1,8 +1,8 @@
 import { db } from "../../db";
-import { users, companies, memberships, subscriptions } from "../../db/schema";
+import { authActionTokens, users, companies, memberships, subscriptions } from "../../db/schema";
 import { pilotRepository } from "./PilotRepository";
 import { eq } from "drizzle-orm";
-import { issueAuthAction, deliverAuthLink, actionUrl } from "../../server/routes/auth";
+import { issueAndDeliverAuthAction } from "../../server/routes/auth";
 import { publicRegisteredUser } from "../../server/auth/registration";
 
 export class ApiError extends Error {
@@ -57,8 +57,27 @@ export class PilotService {
         return { company, user };
       });
 
-      const resetToken = await issueAuthAction(result.user.id, "reset_password", 7 * 24 * 60 * 60 * 1000);
-      const setPasswordUrl = await deliverAuthLink("reset_password", result.user.email, actionUrl(`/reset-password/${resetToken}`));
+      let setPasswordUrl: string | null;
+      try {
+        ({ developmentUrl: setPasswordUrl } = await issueAndDeliverAuthAction({
+          userId: result.user.id,
+          type: "reset_password",
+          lifetimeMs: 7 * 24 * 60 * 60 * 1000,
+          email: result.user.email,
+          path: raw => `/reset-password/${raw}`,
+        }));
+      } catch (error) {
+        try {
+          await db.transaction(async tx => {
+            await tx.delete(authActionTokens).where(eq(authActionTokens.userId, result.user.id));
+            await tx.delete(memberships).where(eq(memberships.userId, result.user.id));
+            await tx.delete(subscriptions).where(eq(subscriptions.companyId, result.company.id));
+            await tx.delete(companies).where(eq(companies.id, result.company.id));
+            await tx.delete(users).where(eq(users.id, result.user.id));
+          });
+        } catch (rollbackError) { console.error('Pilot conversion compensation failed:', rollbackError); }
+        throw error;
+      }
 
       const updatedApplication = await pilotRepository.updateStatus(id, "converted", {
         convertedAt: application.convertedAt ?? new Date(),

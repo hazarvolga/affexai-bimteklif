@@ -19,6 +19,13 @@ describe('production environment preflight', () => {
     assert.equal(result.trustProxyHops, 1);
   });
 
+  it('accepts complete authenticated SMTP and rejects partial SMTP configuration', () => {
+    const base = { NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://bimmetraj.com', TRUST_PROXY_HOPS: '1', AUTH_EMAIL_DELIVERY_MODE: 'smtp', AUTH_EMAIL_SMTP_HOST: 'mail.affexai.tr', AUTH_EMAIL_SMTP_PORT: '465', AUTH_EMAIL_SMTP_USER: 'info@bimmetraj.com', AUTH_EMAIL_SMTP_PASSWORD: 's'.repeat(48), AUTH_EMAIL_FROM: 'info@bimmetraj.com' };
+    assert.equal(validateProductionEnvironment(base).valid, true);
+    assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_SMTP_PASSWORD: '' }).valid, false);
+    assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_SMTP_PORT: '25' }).valid, false);
+  });
+
   it('validates S3-compatible storage credentials as a paired, explicit boundary', () => {
     assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ACCESS_KEY_ID: 'key' }).valid, false);
     assert.equal(validateSmartcheckStorageEnvironment({ SMARTCHECK_S3_BUCKET: 'teklifpro-pilot', SMARTCHECK_S3_REGION: 'eu-central-1', SMARTCHECK_S3_ACCESS_KEY_ID: 'key', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret', SMARTCHECK_S3_ENDPOINT: 'https://s3.example.com', SMARTCHECK_S3_FORCE_PATH_STYLE: 'true' }).valid, true);

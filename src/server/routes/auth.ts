@@ -1,5 +1,6 @@
 import { deliverTransactionalEmail } from '../auth/email-delivery';
 import { assertAuthEmailAvailable, requireAuthEmailDelivery, EmailDeliveryError } from "../auth/email-policy";
+import { stageAndDeliverAuthAction } from '../auth/action-email';
 import type { Express, Response } from "express";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db";
@@ -19,10 +20,54 @@ export async function deliverAuthLink(template: 'verify_email' | 'reset_password
 
 export async function issueAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
   assertAuthEmailAvailable();
+  const staged = await stageAuthAction(userId, type, lifetimeMs);
+  await finalizeAuthAction(userId, type, staged.id);
+  return staged.raw;
+}
+
+async function stageAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
+  assertAuthEmailAvailable();
   const created = createActionToken();
-  await db.delete(authActionTokens).where(and(eq(authActionTokens.userId, userId), eq(authActionTokens.type, type), isNull(authActionTokens.consumedAt)));
-  await db.insert(authActionTokens).values({ userId, type, tokenHash: created.tokenHash, expiresAt: new Date(Date.now() + lifetimeMs) });
-  return created.token;
+  const [record] = await db.insert(authActionTokens).values({ userId, type, tokenHash: created.tokenHash, expiresAt: new Date(Date.now() + lifetimeMs) }).returning({ id: authActionTokens.id });
+  return { id: record.id, raw: created.token };
+}
+
+async function finalizeAuthAction(userId: string, type: 'verify_email' | 'reset_password', id: string) {
+  await db.update(authActionTokens).set({ expiresAt: new Date() }).where(and(
+    eq(authActionTokens.userId, userId), eq(authActionTokens.type, type), isNull(authActionTokens.consumedAt), sql`${authActionTokens.id} <> ${id}`,
+  ));
+}
+
+async function discardAuthAction(id: string) {
+  await db.delete(authActionTokens).where(eq(authActionTokens.id, id));
+}
+
+export async function issueAndDeliverAuthAction(input: {
+  userId: string;
+  type: 'verify_email' | 'reset_password';
+  lifetimeMs: number;
+  email: string;
+  path: (token: string) => string;
+}) {
+  let developmentUrl: string | null = null;
+  const raw = await stageAndDeliverAuthAction({
+    stage: () => stageAuthAction(input.userId, input.type, input.lifetimeMs),
+    deliver: async raw => { developmentUrl = await deliverAuthLink(input.type, input.email, actionUrl(input.path(raw))); },
+    finalize: id => finalizeAuthAction(input.userId, input.type, id),
+    discard: discardAuthAction,
+  });
+  return { raw, developmentUrl };
+}
+
+async function rollbackFailedRegistration(userId: string, companyId: string) {
+  await db.transaction(async tx => {
+    await tx.delete(authActionTokens).where(eq(authActionTokens.userId, userId));
+    await tx.delete(academyEnrollmentAuditLogs).where(and(eq(academyEnrollmentAuditLogs.companyId, companyId), eq(academyEnrollmentAuditLogs.actorUserId, userId)));
+    await tx.delete(memberships).where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
+    await tx.delete(subscriptions).where(eq(subscriptions.companyId, companyId));
+    await tx.delete(companies).where(eq(companies.id, companyId));
+    await tx.delete(users).where(eq(users.id, userId));
+  });
 }
 
 async function guardedRateLimit(res: Response, key: string, limit: number, windowMs: number) {
@@ -88,10 +133,15 @@ export function registerAuthRoutes(app: Express) {
         return { company, user, academyEnrolled: Boolean(edition) };
       });
 
-      const verificationToken = await issueAuthAction(result.user.id, 'verify_email', 24 * 60 * 60 * 1000);
-      const devVerificationUrl = await deliverAuthLink('verify_email', result.user.email, actionUrl(`/verify-email/${verificationToken}`));
+      try {
+        await issueAndDeliverAuthAction({ userId: result.user.id, type: 'verify_email', lifetimeMs: 24 * 60 * 60 * 1000, email: result.user.email, path: raw => `/verify-email/${raw}` });
+      } catch (error) {
+        try { await rollbackFailedRegistration(result.user.id, result.company.id); }
+        catch (rollbackError) { console.error('Registration compensation failed:', rollbackError); }
+        throw error;
+      }
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
-      res.status(201).json({ token, user: publicRegisteredUser(result.user), company: result.company, role: "owner", accountType: intent === 'academy' ? 'academy_learner' : 'workspace', academyEnrolled: result.academyEnrolled, emailVerificationRequired: true, ...(devVerificationUrl ? { devVerificationUrl } : {}) });
+      res.status(201).json({ token, user: publicRegisteredUser(result.user), company: result.company, role: "owner", accountType: intent === 'academy' ? 'academy_learner' : 'workspace', academyEnrolled: result.academyEnrolled, emailVerificationRequired: true });
     } catch (error) {
       if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
       console.error("Registration error:", error);
@@ -131,14 +181,12 @@ export function registerAuthRoutes(app: Express) {
     if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: 'Yeni bağlantı isteme limiti doldu.' });
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user && !user.emailVerified) {
-      const raw = await issueAuthAction(user.id, 'verify_email', 24 * 60 * 60 * 1000);
-      let devVerificationUrl: string | null;
-      try { devVerificationUrl = await deliverAuthLink('verify_email', user.email, actionUrl(`/verify-email/${raw}`)); }
+      try { await issueAndDeliverAuthAction({ userId: user.id, type: 'verify_email', lifetimeMs: 24 * 60 * 60 * 1000, email: user.email, path: raw => `/verify-email/${raw}` }); }
       catch (error) {
         if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
         throw error;
       }
-      return res.json({ message: 'Hesap uygunsa doğrulama bağlantısı gönderildi.', ...(devVerificationUrl ? { devVerificationUrl } : {}) });
+      return res.json({ message: 'Hesap uygunsa doğrulama bağlantısı gönderildi.' });
     }
     return res.json({ message: 'Hesap uygunsa doğrulama bağlantısı gönderildi.' });
   });
@@ -150,14 +198,12 @@ export function registerAuthRoutes(app: Express) {
     if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: 'Yeni bağlantı isteme limiti doldu.' });
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user) {
-      const raw = await issueAuthAction(user.id, 'reset_password', 60 * 60 * 1000);
-      let devResetUrl: string | null;
-      try { devResetUrl = await deliverAuthLink('reset_password', user.email, actionUrl(`/reset-password/${raw}`)); }
+      try { await issueAndDeliverAuthAction({ userId: user.id, type: 'reset_password', lifetimeMs: 60 * 60 * 1000, email: user.email, path: raw => `/reset-password/${raw}` }); }
       catch (error) {
         if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
         throw error;
       }
-      return res.json({ message: 'Hesap uygunsa parola yenileme bağlantısı gönderildi.', ...(devResetUrl ? { devResetUrl } : {}) });
+      return res.json({ message: 'Hesap uygunsa parola yenileme bağlantısı gönderildi.' });
     }
     return res.json({ message: 'Hesap uygunsa parola yenileme bağlantısı gönderildi.' });
   });

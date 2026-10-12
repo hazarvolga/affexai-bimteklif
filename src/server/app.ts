@@ -56,6 +56,7 @@ import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
+import { validateAuthEmailEnvironment } from './auth/email-policy';
 import { pruneExpiredRateLimits } from "./auth/security";
 import { requestIdMiddleware } from "./logger";
 import { priceSchedulerService } from "./crawler/priceSchedulerService";
@@ -128,7 +129,11 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
       await db.execute(sql`select 1`);
       await db.select({ bucketKey: rateLimitBuckets.bucketKey }).from(rateLimitBuckets).limit(1);
       const storageReadiness = process.env.SMARTCHECK_IMPORT_ENABLED === "true" ? validateSmartcheckStorageEnvironment(process.env).valid : null;
-      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured: Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL), publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, revision: process.env.SOURCE_COMMIT || null });
+      const emailMode = process.env.AUTH_EMAIL_DELIVERY_MODE ?? 'webhook';
+      const emailDeliveryConfigured = emailMode !== 'disabled'
+        && validateAuthEmailEnvironment(process.env).length === 0
+        && (emailMode === 'smtp' || Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL));
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, revision: process.env.SOURCE_COMMIT || null });
     } catch (error) {
       console.error("Health check failed:", error);
       res.status(503).json({ status: "error", db: "failed" });
