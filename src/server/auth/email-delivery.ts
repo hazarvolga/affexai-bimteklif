@@ -110,7 +110,16 @@ export async function deliverTransactionalEmail(template: Template, email: strin
     };
     await Promise.race([send(), deadline]);
     return { status: 'accepted' };
-  } catch {
+  } catch (error) {
+    const failure = error as { name?: unknown; code?: unknown; responseCode?: unknown };
+    // Keep SMTP credentials and protocol responses out of logs; the error class
+    // and code are enough to distinguish TLS, auth and timeout failures.
+    console.warn('Transactional email delivery failed', {
+      mode: env.AUTH_EMAIL_DELIVERY_MODE ?? 'webhook',
+      errorName: typeof failure?.name === 'string' ? failure.name : 'UnknownError',
+      errorCode: typeof failure?.code === 'string' ? failure.code : undefined,
+      responseCode: typeof failure?.responseCode === 'number' ? failure.responseCode : undefined,
+    });
     throw new EmailDeliveryError('EMAIL_DELIVERY_UNAVAILABLE');
   } finally {
     clearTimeout(timeout);

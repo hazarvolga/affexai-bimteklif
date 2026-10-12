@@ -38,8 +38,12 @@ test('SMTP templates are escaped; both TLS modes authenticated and connections a
   }
 });
 
-test('SMTP rejection and errors expose no credentials, do not retry and close resources', async () => {
-  for (const result of [{ accepted: [], rejected: [email] }, { accepted: ['other@domain.test'], rejected: [] }, new Error(env.AUTH_EMAIL_SMTP_PASSWORD)]) {
+test('SMTP rejection and errors expose no credentials or provider response text, do not retry and close resources', async t => {
+  const providerResponse = `535 authentication failed for ${env.AUTH_EMAIL_SMTP_PASSWORD}`;
+  const warnings: unknown[][] = [];
+  t.mock.method(console, 'warn', (...args: unknown[]) => { warnings.push(args); });
+  const smtpFailure = Object.assign(new Error(providerResponse), { code: 'EAUTH', responseCode: 535 });
+  for (const result of [{ accepted: [], rejected: [email] }, { accepted: ['other@domain.test'], rejected: [] }, smtpFailure]) {
     let calls=0,closed=0;
     const factory: SmtpFactory = () => ({ close:()=>{closed++;},sendMail:async()=>{calls++;if(result instanceof Error)throw result;return result;} });
     await assert.rejects(deliverTransactionalEmail('verify_email',email,'https://bimmetraj.com/token',env,fetch,factory), error => {
@@ -47,9 +51,19 @@ test('SMTP rejection and errors expose no credentials, do not retry and close re
     });
     assert.equal(calls,1);assert.equal(closed,1);
   }
+  assert.equal(warnings.length, 3);
+  for (const warning of warnings) {
+    assert.equal(warning[0], 'Transactional email delivery failed');
+    assert.ok(!JSON.stringify(warning).includes(env.AUTH_EMAIL_SMTP_PASSWORD));
+    assert.ok(!JSON.stringify(warning).includes(providerResponse));
+  }
+  assert.deepEqual(warnings[2][1], {
+    mode: 'smtp', errorName: 'Error', errorCode: 'EAUTH', responseCode: 535,
+  });
 });
 
 test('SMTP total deadline closes a stalled send', async t => {
+  t.mock.method(console, 'warn', () => {});
   t.mock.timers.enable({apis:['setTimeout']});
   let closed=0;
   const factory: SmtpFactory=()=>({close:()=>{closed++;},sendMail:()=>new Promise(()=>{})});
