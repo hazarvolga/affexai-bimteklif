@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { createConnection, type Socket } from 'node:net';
+import { connect as connectTls } from 'node:tls';
 import { assertAuthEmailAvailable, EmailDeliveryError } from './email-policy';
 
 type Template = 'verify_email' | 'reset_password' | 'invitation';
@@ -32,21 +33,42 @@ function message(template: Template, email: string, url: string, env: Env): Mess
 
 // SMTPTransport.close alone does not destroy its in-flight socket. Own the
 // underlying socket so the total deadline also releases TCP/TLS resources.
-const smtpFactory: SmtpFactory = options => {
+export type SmtpSocketFactory = {
+  openTcp(input: { host: string; port: number }): Socket;
+  openTls(input: { host: string; port: number; servername: string; rejectUnauthorized: boolean; minVersion: 'TLSv1.2' }): Socket;
+};
+
+const defaultSmtpSocketFactory: SmtpSocketFactory = {
+  openTcp: input => createConnection(input),
+  openTls: input => connectTls(input),
+};
+
+export type SmtpTransportCreator = (options: SMTPTransport.Options) => ReturnType<SmtpFactory>;
+
+export function createSmtpFactory(deps: { socketFactory?: SmtpSocketFactory; createTransport?: SmtpTransportCreator } = {}): SmtpFactory {
+  const socketFactory = deps.socketFactory ?? defaultSmtpSocketFactory;
+  const createTransport = deps.createTransport ?? (options => nodemailer.createTransport(options) as ReturnType<SmtpFactory>);
+  return options => {
   let socket: Socket | undefined;
   let closed = false;
-  const transport = nodemailer.createTransport({ ...options, getSocket(config, callback) {
+  const transport = createTransport({ ...options, getSocket(config, callback) {
     if (closed) return callback(new Error('Email transport closed'), false);
-    socket = createConnection({ host: config.host!, port: Number(config.port) });
+    const secured = Boolean(config.secure);
+    socket = secured
+      ? socketFactory.openTls({ host: config.host!, port: Number(config.port), servername: config.host!, rejectUnauthorized: true, minVersion: 'TLSv1.2' })
+      : socketFactory.openTcp({ host: config.host!, port: Number(config.port) });
     const onError = (error: Error) => callback(error, false);
     socket.once('error', onError);
-    socket.once('connect', () => {
+    socket.once(secured ? 'secureConnect' : 'connect', () => {
       socket!.removeListener('error', onError);
-      callback(null, { connection: socket, secured: false });
+      callback(null, { connection: socket!, secured });
     });
   } } as SMTPTransport.Options);
   return { sendMail: payload => transport.sendMail(payload), close() { closed = true; socket?.destroy(); transport.close(); } };
-};
+  };
+}
+
+const smtpFactory: SmtpFactory = createSmtpFactory();
 
 function smtpOptions(env: Env): SMTPTransport.Options {
   const port = Number(env.AUTH_EMAIL_SMTP_PORT);

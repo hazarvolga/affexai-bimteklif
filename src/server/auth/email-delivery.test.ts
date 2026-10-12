@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { deliverTransactionalEmail, type SmtpFactory } from './email-delivery';
+import { deliverTransactionalEmail, createSmtpFactory, type SmtpFactory, type SmtpSocketFactory } from './email-delivery';
+import { EventEmitter } from 'node:events';
 import { validateAuthEmailEnvironment } from './email-policy';
 const email = 'recipient@example.test';
 const env = { NODE_ENV: 'production', AUTH_EMAIL_DELIVERY_MODE: 'smtp', AUTH_EMAIL_SMTP_HOST: 'mail.bimmetraj.com', AUTH_EMAIL_SMTP_PORT: '465', AUTH_EMAIL_SMTP_USER: 'noreply@bimmetraj.com', AUTH_EMAIL_SMTP_PASSWORD: 'test-smtp-credential', AUTH_EMAIL_FROM: 'noreply@bimmetraj.com' };
@@ -64,4 +65,38 @@ test('development/webhook remain supported; disabled never calls transport', asy
   assert.deepEqual(await deliverTransactionalEmail('invitation',email,'https://bimmetraj.com/token',{NODE_ENV:'production',AUTH_EMAIL_WEBHOOK_URL:'https://provider.example.test/hook',AUTH_EMAIL_WEBHOOK_SECRET:'w'.repeat(48)},transport),{status:'accepted'});
   await assert.rejects(deliverTransactionalEmail('invitation',email,'url',{AUTH_EMAIL_DELIVERY_MODE:'disabled'},transport),{code:'EMAIL_DELIVERY_DISABLED'});
   assert.equal(calls,1);
+});
+
+test('custom SMTP sockets use TLS for implicit port 465 and plain TCP for STARTTLS port 587', async () => {
+  for (const [port, secure] of [[465, true], [587, false]] as const) {
+    const opened: Array<{ kind: 'tcp' | 'tls'; input: unknown }> = [];
+    const socket = new EventEmitter() as EventEmitter & { destroy(): void };
+    let getSocket: ((config: { host?: string; port?: number; secure?: boolean }, callback: (error: Error | null, result: unknown) => void) => void) | undefined;
+    const sockets: SmtpSocketFactory = {
+      openTcp: input => { opened.push({ kind: 'tcp', input }); return socket as never; },
+      openTls: input => { opened.push({ kind: 'tls', input }); return socket as never; },
+    };
+    const factory = createSmtpFactory({
+      socketFactory: sockets,
+      createTransport: options => {
+        getSocket = options.getSocket as typeof getSocket;
+        return { sendMail: async () => ({ accepted: [email], rejected: [] }), close() {} };
+      },
+    });
+
+    factory({ host: 'mail.bimmetraj.com', port, secure, requireTLS: !secure });
+    assert.ok(getSocket);
+    const result = await new Promise<{ connection: unknown; secured: boolean }>((resolve, reject) => {
+      getSocket!({ host: 'mail.bimmetraj.com', port, secure }, (error, value) => {
+        if (error) reject(error); else resolve(value as { connection: unknown; secured: boolean });
+      });
+      socket.emit(secure ? 'secureConnect' : 'connect');
+    });
+
+    assert.deepEqual(result, { connection: socket, secured: secure });
+    assert.deepEqual(opened, secure
+      ? [{ kind: 'tls', input: { host: 'mail.bimmetraj.com', port: 465, servername: 'mail.bimmetraj.com', rejectUnauthorized: true, minVersion: 'TLSv1.2' } }]
+      : [{ kind: 'tcp', input: { host: 'mail.bimmetraj.com', port: 587 } }],
+    );
+  }
 });
