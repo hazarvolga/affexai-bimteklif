@@ -21,8 +21,12 @@ only when a decision needs its background; its paths and Vercel notes are stale)
   `hazarvolga@gmail.com` on the free-path 14-day trial. Production `SENTRY_DSN`
   is set in Coolify and present in the running `app`, `worker`, and `ifc-worker`
   containers. A synthetic app-container error was flushed successfully to
-  Sentry (event ID `2fcd9afa9d44f749b537fea86c215bb`); dashboard receipt and
-  alert rules still need verification. The DSN is secret and must stay out of Git.
+  Sentry (event ID `2fcdd9afa9d44f749b537fea86c215bb`); the event appeared in
+  Sentry issue `NODE-EXPRESS-1` (`153422905`). Sentry's default high-priority
+  issue alert fired once for this event. Its recipient was explicitly set to
+  `Hazar Volga Ekiz (hazarvolga@gmail.com)`; Sentry reported "Notification
+  fired!" for a test notification. Inbox arrival is not yet verified. The DSN
+  is secret and must stay out of Git.
 - Daily 03:00 backup, R2 copy, restore drill passed.
 
 ## e-PYS release and current rollout
@@ -92,9 +96,11 @@ Release status (2026-10-13):
   appropriate plan through audited admin flow before uploading it. Do not
   change another tenant's subscription. Keep other tenants gated while the
   pilot is evaluated.
-- Sentry SDK delivery from the production app container succeeded, and all
-  three service containers have the DSN. Confirm the synthetic event in the
-  Sentry Issues UI and configure alert rules before claiming alert coverage.
+- Sentry SDK delivery from the production app container and issue receipt are
+  verified; all three service containers have the DSN. The default
+  high-priority alert is enabled, fired for the synthetic issue, and now targets
+  Hazar's account directly. Sentry accepted a test notification; confirm inbox
+  arrival before claiming end-to-end e-mail delivery.
 - Existing Academy learner accounts land in the normal workspace shell
   while `ACADEMY_ENABLED` is false.
 
@@ -126,4 +132,4 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Sentry dashboard event receipt/alerts and real pilot IFC/PDF acceptance evidence.
+Sentry e-mail alert delivery and real pilot IFC/PDF acceptance evidence.
