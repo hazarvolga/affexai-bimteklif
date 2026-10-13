@@ -37,9 +37,10 @@ export const createUsageTracker = (dependencies: UsageDependencies = {
       if (!dependencies.reserveFeatureQuota || !dependencies.releaseFeatureQuota) throw featureQuotaUnavailable(feature);
       const reservation = await dependencies.reserveFeatureQuota(companyId, userId, feature);
       const release = dependencies.releaseFeatureQuota;
-      // The reservation is the usage event; a failed response never consumed the package allowance.
-      res.once("finish", () => {
-        if (isSuccess(res.statusCode)) return;
+      // The reservation is the usage event; a failed or aborted response never consumed the allowance.
+      // "close" fires for both delivered and aborted responses; "finish" never fires on abort.
+      res.once("close", () => {
+        if (res.writableFinished && isSuccess(res.statusCode)) return;
         void Promise.resolve().then(() => release(companyId, reservation.id)).catch(() => {
           console.error("Usage reservation release failed", { companyId, feature });
         });

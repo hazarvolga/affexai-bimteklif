@@ -91,7 +91,9 @@ for (const feature of ["PDF_GENERATED", "CRM_ACTION_EXECUTED", "REGULATION_CHECK
       const res = response();
       await middleware({ user: { companyId: "company", userId: "actor" } } as any, res as any, () => { events.push("work"); });
       res.statusCode = status;
+      Object.assign(res, { writableFinished: true });
       res.emit("finish");
+      res.emit("close");
     }
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(events, [`reserve:${feature}`, "work", `reserve:${feature}`, "work", "release:r1"]);
@@ -107,4 +109,21 @@ test("metered quota denial blocks the work with the feature's code", async () =>
   await middleware({ user: { companyId: "company", userId: "actor" } } as any, res as any, () => assert.fail("must not generate"));
   assert.equal(res.statusCode, 403);
   assert.deepEqual(res.body, { error: "Monthly feature quota exceeded", code: "PDF_QUOTA_EXCEEDED", limit: 10, current: 10, period: "2026-10" });
+});
+
+test("a client abort before the response finishes releases the reservation", async () => {
+  const events: string[] = [];
+  const middleware = createUsageTracker({ checkQuota: async () => {}, logUsage: async () => {},
+    reserveFeatureQuota: async () => ({ id: "r9" }),
+    releaseFeatureQuota: async (_c, id) => { events.push(`release:${id}`); },
+  })("PDF_GENERATED");
+  const aborted = response();
+  await middleware({ user: { companyId: "company", userId: "actor" } } as any, aborted as any, () => {});
+  aborted.emit("close");
+  const delivered = Object.assign(response(), { writableFinished: true });
+  await middleware({ user: { companyId: "company", userId: "actor" } } as any, delivered as any, () => {});
+  delivered.emit("finish");
+  delivered.emit("close");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(events, ["release:r9"]);
 });
