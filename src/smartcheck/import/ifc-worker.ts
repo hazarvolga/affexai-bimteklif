@@ -3,10 +3,19 @@ import { run } from "graphile-worker";
 import { processSmartCheckDocument } from "./processor";
 import { graphileWorkerSchema } from "./config";
 import { withDisabledGraphileCron } from "./worker-config";
+import { captureError, initErrorTracking } from "../../server/observability/error-tracking";
 
 export const ifcWorkerTaskList = {
-  process_smartcheck_ifc_document: async (payload: unknown) =>
-    processSmartCheckDocument(payload as { companyId: string; documentId: string; processingRunId: string }),
+  process_smartcheck_ifc_document: async (payload: unknown) => {
+    const job = payload as { companyId: string; documentId: string; processingRunId: string };
+    try {
+      return await processSmartCheckDocument(job);
+    } catch (error) {
+      // Graphile retries the job; the failure still reaches error tracking each time.
+      captureError(error, { task: "process_smartcheck_ifc_document", processingRunId: job.processingRunId });
+      throw error;
+    }
+  },
 };
 
 export async function startIfcWorker() {
@@ -38,5 +47,6 @@ const isDirectRun = Boolean(
 );
 
 if (isDirectRun) {
+  initErrorTracking("ifc-worker");
   await startIfcWorker();
 }

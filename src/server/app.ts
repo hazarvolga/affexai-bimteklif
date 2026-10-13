@@ -50,6 +50,7 @@ import { registerPilotRoutes } from "./routes/pilot";
 import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
+import { captureError, readBuildRevision } from "./observability/error-tracking";
 import { canonicalHostRedirect, contentSecurityPolicy, robotsTxt, sitemapXml } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
@@ -77,6 +78,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   // www -> apex 301 before anything else answers (P1-4).
   if (process.env.NODE_ENV === "production") app.use(canonicalHostRedirect(process.env.PUBLIC_APP_URL));
   const csp = contentSecurityPolicy(process.env);
+  const buildRevision = readBuildRevision();
 
   // HTTP hardening headers (SEC-09, OPS-10)
   app.use((_req, res, next) => {
@@ -141,7 +143,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
       const emailDeliveryConfigured = emailMode !== 'disabled'
         && validateAuthEmailEnvironment(process.env).length === 0
         && (emailMode === 'smtp' || Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL));
-      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, revision: process.env.SOURCE_COMMIT || null });
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, ...buildRevision });
     } catch (error) {
       console.error("Health check failed:", error);
       res.status(503).json({ status: "error", db: "failed" });
@@ -180,8 +182,9 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   });
 
   // Central API error handler
-  app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((error: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error("Unhandled API error:", error);
+    captureError(error, { route: req.route?.path ?? req.path, method: req.method });
     if (res.headersSent) return next(error);
     return res.status(500).json({ error: "Beklenmeyen bir sunucu hatası oluştu." });
   });
