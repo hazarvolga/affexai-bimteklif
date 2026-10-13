@@ -1,6 +1,6 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database } from 'lucide-react';
+import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
@@ -12,6 +12,7 @@ const adminNavigation = [
   { label: 'Paket Yönetimi', path: '/admin/plans', icon: Package },
   { label: 'Raporlar', path: '/admin/reports', icon: BarChart3 },
   { label: 'Denetim Logları', path: '/admin/logs', icon: Activity },
+  { label: 'Geliştirici Yol Haritası', path: '/admin/roadmap', icon: MapIcon },
 ];
 
 export function AdminShell() {
@@ -86,8 +87,8 @@ export function AdminShell() {
 
   return (
     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-    <div className="flex h-screen bg-zinc-950">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-indigo-900/30 bg-zinc-950 md:flex">
+    <div className="flex h-screen bg-zinc-950 print:block print:h-auto">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-indigo-900/30 bg-zinc-950 md:flex print:hidden">
         {navigation}
       </aside>
       <SheetContent side="left" className="gap-0 bg-zinc-950 p-0 text-zinc-200" aria-describedby={undefined}>
@@ -95,7 +96,7 @@ export function AdminShell() {
         {navigation}
       </SheetContent>
 
-      <main className="min-w-0 flex-1 overflow-auto bg-zinc-950">
+      <main className="min-w-0 flex-1 overflow-auto bg-zinc-950 print:overflow-visible">
         <div className="flex h-14 items-center gap-3 border-b border-zinc-800 px-4 md:hidden">
           <SheetTrigger aria-label="Yönetim menüsü" title="Yönetim menüsü"
             className="flex h-9 w-9 items-center justify-center text-zinc-200">
