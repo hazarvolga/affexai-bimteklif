@@ -1,6 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
 import type { db } from '../../db';
-import { documents } from '../../db/schema';
+import { documents, plans, subscriptions } from '../../db/schema';
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export const UPLOAD_MAX_TTL_MS = 24 * 60 * 60 * 1000;
 export const UPLOAD_CLEANUP_GRACE_MS = 60 * 60 * 1000;
@@ -16,6 +16,18 @@ export function uploadQuotaLimits(env: Record<string, string | undefined> = proc
   return { maxBytes: integer(env.SMARTCHECK_TENANT_STORAGE_MAX_BYTES, 2 * 1024 ** 3),
     maxDocuments: integer(env.SMARTCHECK_TENANT_DOCUMENT_MAX_COUNT, 1000) };
 }
+type UploadLimits = ReturnType<typeof uploadQuotaLimits>;
+type PlanStorage = Pick<typeof plans.$inferSelect, 'storageMaxBytes' | 'maxDocuments'>;
+
+/** The tenant's package owns storage limits (L-8); unset columns keep the platform default. */
+export function resolveUploadLimits(plan: PlanStorage | undefined, fallback: UploadLimits): UploadLimits {
+  const pick = (value: number | null | undefined, platform: number) => {
+    if (value === null || value === undefined) return platform;
+    if (!Number.isSafeInteger(value) || value <= 0) throw new UploadQuotaError('UPLOAD_QUOTA_CONFIG_INVALID', 503);
+    return value;
+  };
+  return { maxBytes: pick(plan?.storageMaxBytes, fallback.maxBytes), maxDocuments: pick(plan?.maxDocuments, fallback.maxDocuments) };
+}
 export function checkUploadCapacity(usage: { bytes: bigint; count: bigint }, bytes: number, limits = uploadQuotaLimits()) {
   if (!Number.isSafeInteger(bytes) || bytes <= 0) throw new UploadQuotaError('FILE_SIZE_INVALID', 400);
   if (usage.bytes < 0n || usage.count < 0n) throw new UploadQuotaError('UPLOAD_QUOTA_UNAVAILABLE', 503);
@@ -27,10 +39,13 @@ export async function lockTenantUploads(tx: Transaction, companyId: string) {
 }
 export async function reserveUpload<T>(input: typeof documents.$inferInsert,
   createTarget: (document: typeof documents.$inferSelect) => Promise<T>) {
-  const limits = uploadQuotaLimits();
+  const platformLimits = uploadQuotaLimits();
   const { db } = await import('../../db');
   return db.transaction(async tx => {
     await lockTenantUploads(tx, input.companyId);
+    const [plan] = await tx.select({ storageMaxBytes: plans.storageMaxBytes, maxDocuments: plans.maxDocuments })
+      .from(subscriptions).innerJoin(plans, eq(plans.id, subscriptions.planId)).where(eq(subscriptions.companyId, input.companyId));
+    const limits = resolveUploadLimits(plan, platformLimits);
     const result = await tx.select({ bytes: sql<string>`coalesce(sum(${documents.fileSizeBytes}),0)::text`,
       count: sql<string>`count(*)::text` }).from(documents).where(eq(documents.companyId, input.companyId));
     checkUploadCapacity({ bytes: BigInt(result[0].bytes), count: BigInt(result[0].count) }, input.fileSizeBytes, limits);

@@ -35,3 +35,15 @@ test('concurrent upload reservation, rollback, tenant isolation and safe pending
     assert.equal((await db.select().from(schema.documents).where(eq(schema.documents.companyId,b.id))).length,1);
   } finally { if(previous===undefined) delete process.env.SMARTCHECK_TENANT_STORAGE_MAX_BYTES; else process.env.SMARTCHECK_TENANT_STORAGE_MAX_BYTES=previous; }
 });
+
+test('upload reservation enforces the linked package storage limit', async () => {
+  const [{ db }, schema, { reserveUpload }] = await Promise.all([import('../../db'), import('../../db/schema'), import('./upload-quota')]);
+  const [company] = await db.insert(schema.companies).values({ name: 'Upload plan' }).returning();
+  const [user] = await db.insert(schema.users).values({ email: 'upload-plan@example.test', fullName: 'Upload plan tester' }).returning();
+  await db.insert(schema.memberships).values({ companyId: company.id, userId: user.id, role: 'owner' });
+  const [plan] = await db.insert(schema.plans).values({ name: 'Tiny storage', monthlyQuoteLimit: 1, monthlyPrice: 1, storageMaxBytes: 8, maxDocuments: 5 }).returning();
+  await db.insert(schema.subscriptions).values({ companyId: company.id, planId: plan.id, currentPeriodStart: new Date('2020-01-01') });
+  const input = (bytes: number) => ({ companyId: company.id, uploadedByUserId: user.id, originalFileName: 'p.csv', displayName: 'p.csv', mimeType: 'text/csv', fileSizeBytes: bytes, storageKey: `${company.id}/${crypto.randomUUID()}/original`, checksumSha256: 'pending', status: 'uploaded' as const });
+  await reserveUpload(input(6), async () => ({ url: 'ok' }));
+  await assert.rejects(reserveUpload(input(3), async () => ({ url: 'no' })), /STORAGE_QUOTA_EXCEEDED/);
+});
