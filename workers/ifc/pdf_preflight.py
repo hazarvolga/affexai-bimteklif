@@ -70,8 +70,8 @@ def _scanned_pages(reader: PdfReader) -> List[int]:
     return pages
 
 
-def build_report(path: str) -> Dict[str, Any]:
-    file_name = Path(path).name
+def build_report(path: str, file_name: Optional[str] = None) -> Dict[str, Any]:
+    file_name = file_name or Path(path).name
     findings: List[Dict[str, Any]] = []
     claim: Optional[Dict[str, str]] = None
     page_count = 0
@@ -87,9 +87,12 @@ def build_report(path: str) -> Dict[str, Any]:
             claim = _pdfa_claim(reader)
             if claim is None:
                 findings.append(_finding("PDFA_KIMLIGI_YOK", "hata", "XMP meta verisinde PDF/A kimliği (pdfaid:part) yok; dosya PDF/A olarak üretilmemiş görünüyor.", "Elektronik Teslim Yönetmeliği m.3(e), m.6"))
-            scanned = _scanned_pages(reader)
-            if scanned:
-                findings.append(_finding("TARANMIS_SAYFA_OLASI", "hata", "Metin içermeyen, yalnız görüntüden oluşan sayfalar taranmış PDF'e işaret ediyor.", "Elektronik Teslim Yönetmeliği m.6(4)", scanned))
+            if page_count > 500:
+                findings.append(_finding("SAYFA_SINIRI", "uyari", "500 sayfadan büyük PDF için tarama kontrolü yapılmadı; dosyayı bölüp ayrıca inceleyin.", "PDF/A ön kontrol işlem sınırı"))
+            else:
+                scanned = _scanned_pages(reader)
+                if scanned:
+                    findings.append(_finding("TARANMIS_SAYFA_OLASI", "uyari", "Metin içermeyen görüntü sayfaları taranmış PDF'e işaret edebilir; çizim paftalarında elle inceleyin.", "Elektronik Teslim Yönetmeliği m.6(4)", scanned))
     except (PdfReadError, OSError, ValueError, KeyError):
         # Keep the file-name finding; drop partial PDF findings from a half-read file.
         findings = [f for f in findings if f["kod"] == "DOSYA_ADI_EK2"]
@@ -109,11 +112,18 @@ def build_report(path: str) -> Dict[str, Any]:
 
 
 def main() -> None:
+    try:
+        import resource
+        resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024))
+        resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
+    except (ImportError, OSError, ValueError):
+        pass
     parser = argparse.ArgumentParser(description="BIMMetraj PDF/A pre-check (RG 33331)")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--file-name")
     args = parser.parse_args()
-    report = build_report(args.input)
+    report = build_report(args.input, args.file_name)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2)
 

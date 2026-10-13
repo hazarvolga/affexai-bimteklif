@@ -15,6 +15,7 @@ import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
 import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
 import { runEpysPreflight, summarizeEpysPreflight } from "./epys-preflight-runner";
+import { runPdfPreflight } from "./pdf-preflight-runner";
 import { captureError } from "../../server/observability/error-tracking";
 import { isActiveStandard } from "../rules/three-by-three";
 
@@ -401,10 +402,36 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
       }
     }
 
+    if (document.originalFileName.toLowerCase().endsWith(".pdf")) {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "bimmetraj-pdf-job-"));
+      const localPath = path.join(tmpDir, "document.pdf");
+      try {
+        await storage.downloadToFile(document.storageKey, localPath, document.checksumSha256);
+        const report = await runPdfPreflight(localPath, document.originalFileName);
+        const artifactContent = Buffer.from(JSON.stringify(report));
+        const artifactKey = `${companyId}/${documentId}/${run.id}/pdf-preflight.json`;
+        await storage.put(artifactKey, artifactContent, "application/json");
+        await db.insert(documentProcessingArtifacts).values({
+          companyId, documentId, processingRunId: run.id, artifactType: "pdf_preflight",
+          storageKey: artifactKey, checksumSha256: sha256(artifactContent), contentType: "application/json",
+          sizeBytes: artifactContent.length, metadataJson: report,
+        }).onConflictDoUpdate({
+          target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+          set: { storageKey: artifactKey, checksumSha256: sha256(artifactContent), sizeBytes: artifactContent.length, metadataJson: report },
+        });
+        const now = new Date();
+        await updateRun(run.id, companyId, { status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: "PDF/A ön kontrolü tamamlandı", completedAt: now });
+        await db.update(documents).set({ status: "awaiting_review", updatedAt: now }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+        return;
+      } finally {
+        await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+
     const content = await storage.get(document.storageKey);
     if (sha256(content) !== document.checksumSha256) throw new Error("CHECKSUM_MISMATCH");
     const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-    if (kind === "ifc") throw new Error("UNEXPECTED_IFC_DOCUMENT");
+    if (kind === "ifc" || kind === "pdf") throw new Error("UNEXPECTED_DOCUMENT_KIND");
 
     const parsed = await parseDocument(content, kind, document.importMappingJson as ColumnMapping);
     await updateRun(run.id, companyId, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });

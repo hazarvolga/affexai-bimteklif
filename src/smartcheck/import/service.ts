@@ -43,9 +43,9 @@ export async function removePendingJob(tx: Transaction, runId: string) {
   if (result.rows[0]?.locked_at) throw new ProcessingConflict('PROCESSING_JOB_ACTIVE');
 }
 
-export async function enqueueSmartCheckProcessing(tx: Transaction, kind: 'ifc' | 'xlsx' | 'csv', payload: any, runId: string) {
-  const taskName = kind === 'ifc' ? 'process_smartcheck_ifc_document' : 'process_smartcheck_document';
-  await tx.execute(sql`select ${sql.identifier(graphileSchema())}.add_job(${taskName}, ${JSON.stringify(payload)}::json, job_key := ${`smartcheck:${runId}`}, max_attempts := 3)`);
+export async function enqueueSmartCheckProcessing(tx: Transaction, kind: 'ifc' | 'xlsx' | 'csv' | 'pdf', payload: any, runId: string) {
+  const taskName = kind === 'ifc' || kind === 'pdf' ? 'process_smartcheck_ifc_document' : 'process_smartcheck_document';
+  await tx.execute(sql`select ${sql.identifier(graphileSchema())}.add_job(${taskName}, ${JSON.stringify(payload)}::json, job_key := ${`smartcheck:${runId}`}, max_attempts := 3, priority := ${kind === 'pdf' ? 10 : 0})`);
 }
 
 export async function changeProcessingRun(input: {
@@ -60,7 +60,7 @@ export async function changeProcessingRun(input: {
   await ensureQueueSchema();
   const { companyId, userId, documentId, action, isAdmin, targetRunId } = input;
 
-  let kind: "ifc" | "xlsx" | "csv" = "ifc";
+  let kind: "ifc" | "xlsx" | "csv" | "pdf" = "ifc";
   if (action !== "recover") {
     const docInfo = await db.select({ storageKey: documents.storageKey, originalFileName: documents.originalFileName, mimeType: documents.mimeType, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId))).then(rows => rows[0]);
     if (!docInfo) throw new ProcessingConflict("DOCUMENT_NOT_FOUND", 404);
@@ -131,6 +131,22 @@ export async function changeProcessingRun(input: {
           throw new ProcessingConflict('IFC_QUOTA_EXCEEDED', 403, 'Aylık IFC işleme kotanız dolmuştur.');
         }
       }
+    }
+
+    if (kind === 'pdf' && (action === 'process' || action === 'retry')) {
+      const activePdfRuns = await tx.select({ id: documentProcessingRuns.id })
+        .from(documentProcessingRuns)
+        .innerJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, companyId)))
+        .where(and(eq(documentProcessingRuns.companyId, companyId), sql`${documentProcessingRuns.status} IN ('queued', 'running')`, sql`${documents.originalFileName} ILIKE '%.pdf'`));
+      if (activePdfRuns.length >= 2) throw new ProcessingConflict('TENANT_PDF_CONCURRENCY_LIMIT_EXCEEDED', 429, 'Aynı anda en fazla iki PDF/A ön kontrolü yapılabilir.');
+
+      const monthStart = new Date();
+      monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);
+      const completed = await tx.select({ id: documentProcessingRuns.id })
+        .from(documentProcessingRuns)
+        .innerJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, companyId)))
+        .where(and(eq(documentProcessingRuns.companyId, companyId), eq(documentProcessingRuns.status, 'succeeded'), sql`${documents.originalFileName} ILIKE '%.pdf'`, sql`${documentProcessingRuns.completedAt} >= ${monthStart}`));
+      if (completed.length + activePdfRuns.length >= 100) throw new ProcessingConflict('TENANT_PDF_MONTHLY_LIMIT_EXCEEDED', 429, 'Aylık PDF/A ön kontrol sınırına ulaşıldı.');
     }
 
     // Retire previous automatic retries before creating a successor. Active jobs require operator investigation.

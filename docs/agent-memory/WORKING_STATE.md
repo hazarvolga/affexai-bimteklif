@@ -9,18 +9,22 @@ only when a decision needs its background; its paths and Vercel notes are stale)
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Live revision `a0bc784` (transactional e-mail via Stalwart SMTP 465 at
-  `mail.affexai.tr`, sender `info@bimmetraj.com`). Registration is open.
-- Still closed: payments (Stripe test mode only), server SmartCheck import
-  (`SMARTCHECK_IMPORT_ENABLED=false`, no R2 bucket), AI (no provider keys).
+- Last verified live revision before this release: `e006d10` (`/api/health`,
+  `revisionSource: "build"`). Transactional e-mail uses Stalwart SMTP 465 at
+  `mail.affexai.tr`, sender `info@bimmetraj.com`. Registration is open.
+- Still closed at the start of this release: payments (Stripe test mode only),
+  server SmartCheck import (`SMARTCHECK_IMPORT_ENABLED=false`), AI (no provider keys).
+- Production R2 bucket `bimmetraj-production` and scoped app credentials are
+  configured. On 2026-10-13, app-container put/get/checksum/delete smoke passed.
+- Production `SENTRY_DSN` is empty; Sentry events and alert rules are not active.
 - Daily 03:00 backup, R2 copy, restore drill passed.
 
-## Release in progress: `fix/gap-closure-2026-10-13` + `feat/epys-preflight`
+## e-PYS release and current rollout
 
-Both branches go to `main` together (PR from `feat/epys-preflight`, which
-contains the gap-closure commits). Status table: `guncel-gap.md` ("Kapanış
-durumu"). Verified on an isolated PostgreSQL 16 (`pnpm run verify`, release
-migration lifecycle, Prisma shadow, audit) and the Python worker tests.
+`fix/gap-closure-2026-10-13` and `feat/epys-preflight` were merged as PR #1
+(`e006d10`). Status table: `guncel-gap.md` ("Kapanış durumu"). The merge was
+verified on isolated PostgreSQL 16 (`pnpm run verify`, release migration
+lifecycle, Prisma shadow, audit) and Python worker tests.
 
 `feat/epys-preflight` adds:
 - RG 33331 e-PYS pre-check on every IFC run (vendored ifc-ruhsat@cd6d3ce, MIT;
@@ -42,21 +46,29 @@ Release status (2026-10-13):
 - Done: Coolify Advanced → "Source commit availability" set to "Available
   during build"; CSP header, `www` → apex 301, `/sitemap.xml` 200, and the
   `/admin/roadmap*` routes have been checked.
-- Open: catalog v5 is not applied. `/api/public/plans` still shows the
-  e-PYS package as "Mikro" with the old text. Run in the app container
-  (`--plan` first; it rolls back):
-  `CATALOG_DATABASE_URL="$DATABASE_URL" CATALOG_EXPECTED_HOST=postgres
-  CATALOG_EXPECTED_DATABASE=bimmetraj_production CATALOG_EXPECTED_USER=<db user>
-  CATALOG_ALLOW_PRODUCTION=true CATALOG_ACTOR_ID=<superadmin uuid>
-  node dist/bootstrap-plan-catalog.mjs --plan|--apply`.
-  Until then runtime keeps the legacy limits; no tenant is locked out.
-- Open: Sentry alert rules for the existing `SENTRY_DSN`.
+- Catalog v5 applied in the app container after a rolled-back `--plan`:
+  no insertions, one presentation update, five limit backfills. Public plans
+  now show the e-PYS badge "Pilot" and the reviewed description. No prices or
+  core offer quotas changed.
+- Pilot company candidate is the superadmin-owned `Bimmetraj` tenant
+  (`9096aa51-3b1d-4b9e-b7e9-7443a75d5a63`). Its ID was saved as
+  `SMARTCHECK_PILOT_COMPANY_IDS` in Coolify; a redeploy is needed to apply it.
+- This release adds PDF/A upload and pre-check to the SmartCheck flow. It has
+  25 MiB/signature/checksum checks, a 90-second subprocess timeout with Linux
+  CPU/RAM limits, a 500-page scan cap, a tenant PDF concurrency/monthly limit,
+  lower queue priority than IFC, and current-run-only report lookup.
+- Local `pnpm run lint` and `pnpm run build` pass. `pnpm run verify` reaches
+  integration tests but refuses the shared local database by design; require
+  green CI with isolated PostgreSQL before deploying this commit. Python
+  `py_compile` passes; full Python pytest requires the CI/worker environment.
+- Open: deploy this release; enable `SMARTCHECK_IMPORT_ENABLED=true` only with
+  the pilot allowlist present; run real IFC and PDF pilot smoke; configure a
+  Sentry project/DSN and alert rules when account access is available.
 - Existing Academy learner accounts land in the normal workspace shell
   while `ACADEMY_ENABLED` is false.
 
-## Next code work (not started)
+## Next code work
 
-- Wire `pdf_preflight.py` into SmartCheck uploads (accept PDF documents).
 - Independently check the remaining RG annex tables against the official PDF.
 - IFC extractor: read `Pset_*Common` LoadBearing/IsExternal (+ cover if
   modelled) so 3x3 cover/STR checks stop reporting `missingInput`.
@@ -83,4 +95,4 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-SmartCheck pilot tenant and R2 bucket (P0-3 step 4).
+Sentry project access/alerts and real pilot IFC/PDF acceptance evidence.

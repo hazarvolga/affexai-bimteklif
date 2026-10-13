@@ -97,6 +97,13 @@ def test_image_only_pages_are_flagged_as_possibly_scanned(tmp_path):
     finding = next(f for f in report["findings"] if f["kod"] == "TARANMIS_SAYFA_OLASI")
     assert "m.6" in finding["madde"]
     assert finding["sayfalar"] == [1]
+    assert finding["seviye"] == "uyari"
+
+
+def test_uploaded_filename_is_used_instead_of_temporary_worker_filename(tmp_path):
+    report = pdf_preflight.build_report(write(tmp_path, "document.pdf", text_pdf(pdfa=True)), "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf")
+    assert report["file"]["fileName"] == "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf"
+    assert "DOSYA_ADI_EK2" not in codes(report)
 
 
 def test_encrypted_pdf_is_rejected(tmp_path):

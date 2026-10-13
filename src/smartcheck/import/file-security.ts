@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import yauzl from "yauzl";
 import { SMARTCHECK_MAX_IFC_FILE_BYTES, SMARTCHECK_MAX_SPREADSHEET_FILE_BYTES } from "./config";
 
-export type SmartCheckFileKind = "xlsx" | "csv" | "ifc";
+export type SmartCheckFileKind = "xlsx" | "csv" | "ifc" | "pdf";
 
 const XLSX_MIMES = new Set([
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -11,6 +11,7 @@ const XLSX_MIMES = new Set([
 ]);
 const CSV_MIMES = new Set(["text/csv", "text/plain", "application/csv", "application/octet-stream"]);
 const IFC_MIMES = new Set(["model/ifc", "application/ifc", "application/octet-stream", "text/plain"]);
+const PDF_MIMES = new Set(["application/pdf", "application/octet-stream"]);
 
 export function sha256(buffer: Buffer): string {
   return crypto.createHash("sha256").update(buffer).digest("hex");
@@ -22,13 +23,14 @@ export function detectAndValidateFile(buffer: Buffer, fileName: string, claimedM
   const isZip = buffer.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
   const sample = buffer.subarray(0, Math.min(buffer.length, 8192));
   const text = sample.toString("utf8");
-  if ((extension === "xlsx" || extension === "csv") && buffer.length > SMARTCHECK_MAX_SPREADSHEET_FILE_BYTES) throw new Error("FILE_SIZE_INVALID");
+  if ((extension === "xlsx" || extension === "csv" || extension === "pdf") && buffer.length > SMARTCHECK_MAX_SPREADSHEET_FILE_BYTES) throw new Error("FILE_SIZE_INVALID");
   if (extension === "ifc" && buffer.length > SMARTCHECK_MAX_IFC_FILE_BYTES) throw new Error("FILE_SIZE_INVALID");
   if (extension === "xlsx" && isZip && XLSX_MIMES.has(claimedMime)) return "xlsx";
   const isText = !sample.includes(0) && (text.includes(",") || text.includes(";"));
   if (extension === "csv" && !isZip && isText && CSV_MIMES.has(claimedMime)) return "csv";
   const isIfcText = !sample.includes(0) && text.includes("ISO-10303-21") && /FILE_SCHEMA\s*\(\s*\(\s*'IFC/i.test(text);
   if (extension === "ifc" && !isZip && isIfcText && IFC_MIMES.has(claimedMime)) return "ifc";
+  if (extension === "pdf" && sample.subarray(0, 5).equals(Buffer.from("%PDF-")) && PDF_MIMES.has(claimedMime)) return "pdf";
   throw new Error("FILE_SIGNATURE_MISMATCH");
 }
 

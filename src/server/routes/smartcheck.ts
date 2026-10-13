@@ -34,7 +34,7 @@ import {
 } from "../../contracts/smartcheck";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
-const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip", "model/ifc", "application/ifc"], limit: SMARTCHECK_MAX_FILE_BYTES });
+const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip", "model/ifc", "application/ifc", "application/pdf"], limit: SMARTCHECK_MAX_FILE_BYTES });
 
 const featureGate: RequestHandler = (req, res, next) => {
   if (!smartcheckImportEnabled(req.user.companyId)) return res.status(404).json({ error: "SmartCheck import pilot kapsamında etkin değil.", code: "SMARTCHECK_IMPORT_DISABLED" });
@@ -97,7 +97,8 @@ export function registerSmartCheckRoutes(app: Express) {
       return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
     }
     const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
-    if (!/\.(xlsx|csv|ifc)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX, CSV ve IFC kabul edilir." });
+    if (!/\.(xlsx|csv|ifc|pdf)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX, CSV, IFC ve PDF kabul edilir." });
+    if (/[\\/\x00-\x1f]/.test(originalFileName) || originalFileName.startsWith(".")) return res.status(400).json({ error: "Geçersiz dosya adı." });
     const storageKey = `${req.user.companyId}/${crypto.randomUUID()}/original`;
     let reservation;
     try {
@@ -154,7 +155,7 @@ export function registerSmartCheckRoutes(app: Express) {
     try { releaseIo = acquireDocumentIo(); } catch { return res.status(503).set("Retry-After", "5").json({ code: "DOCUMENT_IO_BUSY", error: "İşlem kapasitesi dolu." }); }
     let activeStream: any = null;
     try {
-      let kind: "ifc" | "xlsx" | "csv" = "ifc";
+      let kind: "ifc" | "xlsx" | "csv" | "pdf" = "ifc";
       if (document.originalFileName.toLowerCase().endsWith('.ifc')) {
         if (!storage.getStream) {
           throw new Error("STORAGE_STREAM_UNSUPPORTED");
@@ -202,11 +203,11 @@ export function registerSmartCheckRoutes(app: Express) {
         }
       }
 
-      if (kind === "ifc") {
+      if (kind === "ifc" || kind === "pdf") {
         await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_enabled" });
       }
       const [updated] = await db.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning();
-      if (kind !== "ifc") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
+      if (kind !== "ifc" && kind !== "pdf") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
       return res.json(updated);
     } catch (error: unknown) {
       if (activeStream && typeof activeStream.destroy === 'function') {
@@ -255,8 +256,8 @@ export function registerSmartCheckRoutes(app: Express) {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Önizleme için yükleme tamamlanmalı." });
-    if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc") {
-      return res.status(409).json({ error: "IFC önizleme için işleme kuyruğunu başlatın; kanıt artifact'i run sonunda oluşur.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
+    if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc" || document.originalFileName.toLowerCase().endsWith(".pdf")) {
+      return res.status(409).json({ error: "Dosya ön kontrolü için işleme kuyruğunu başlatın; rapor işleme sonunda oluşur.", code: "PREFLIGHT_USES_PROCESSING_ARTIFACT" });
     }
     let release: (() => void) | undefined;
     try {
@@ -264,7 +265,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const content = await createStorageAdapter().get(document.storageKey);
       if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
       const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-      if (kind === "ifc") return res.status(409).json({ error: "IFC önizleme için işleme kuyruğunu başlatın; kanıt artifact'i run sonunda oluşur.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
+      if (kind === "ifc" || kind === "pdf") return res.status(409).json({ error: "Dosya ön kontrolü için işleme kuyruğunu başlatın.", code: "PREFLIGHT_USES_PROCESSING_ARTIFACT" });
       const preview = await inspectDocument(content, kind);
       res.json({ document: { id: document.id, fileName: document.originalFileName, fileSizeBytes: document.fileSizeBytes, checksumSha256: document.checksumSha256, mapping: document.importMappingJson }, preview });
     } catch (error) {
@@ -348,11 +349,30 @@ export function registerSmartCheckRoutes(app: Express) {
   app.get("/api/smartcheck/documents/:id/epys-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
+      .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
+      .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
     const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
       .from(documentProcessingArtifacts)
-      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.artifactType, "epys_preflight")))
+      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "epys_preflight")))
       .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
     if (!artifact) return res.status(404).json({ error: "Bu doküman için e-PYS ön kontrolü bulunmuyor.", code: "EPYS_PREFLIGHT_NOT_FOUND" });
+    res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
+  });
+
+  app.get("/api/smartcheck/documents/:id/pdf-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
+    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
+      .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
+      .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
+    const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
+      .from(documentProcessingArtifacts)
+      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "pdf_preflight")))
+      .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
+    if (!artifact) return res.status(404).json({ error: "Bu doküman için PDF/A ön kontrolü bulunmuyor.", code: "PDF_PREFLIGHT_NOT_FOUND" });
     res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
   });
 
