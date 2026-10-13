@@ -50,6 +50,7 @@ import { registerPilotRoutes } from "./routes/pilot";
 import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
+import { canonicalHostRedirect, contentSecurityPolicy, robotsTxt, sitemapXml } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
@@ -73,6 +74,10 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   app.disable('x-powered-by');
   if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
+  // www -> apex 301 before anything else answers (P1-4).
+  if (process.env.NODE_ENV === "production") app.use(canonicalHostRedirect(process.env.PUBLIC_APP_URL));
+  const csp = contentSecurityPolicy(process.env);
+
   // HTTP hardening headers (SEC-09, OPS-10)
   app.use((_req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -81,6 +86,8 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     if (process.env.NODE_ENV === "production") {
       res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+      // Dev keeps Vite's inline HMR preamble working; production enforces the policy.
+      res.setHeader("Content-Security-Policy", csp);
     }
     next();
   });
@@ -197,6 +204,14 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
   // Vite public/ currently contains this single root asset. Add future root assets
   // explicitly here rather than reopening the mixed frontend/backend dist directory.
   app.get('/favicon.svg', (_req, res) => { res.sendFile(path.join(distPath, 'favicon.svg')); });
+  app.get('/sitemap.xml', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('application/xml').set('Cache-Control', 'public, max-age=3600').send(sitemapXml(process.env.PUBLIC_APP_URL));
+  });
+  app.get('/robots.txt', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(robotsTxt(process.env.PUBLIC_APP_URL));
+  });
   app.get('*', (req, res) => {
     const pathname = decodeURIComponent(req.path);
     if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();
