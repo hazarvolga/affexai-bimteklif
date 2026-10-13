@@ -1,8 +1,37 @@
 # Working State
 
-Last updated: 2026-10-11
+Last updated: 2026-10-13
 
-## Pause handoff — SMTP architecture decision (2026-10-11)
+
+## Current production state — transactional email live (2026-10-13)
+
+- Bimmetraj application production: `https://bimmetraj.com`; Coolify
+  application UUID: `ibjv2zbpecdcbd71lxo1vqd7`. Transactional delivery is now
+  enabled with authenticated SMTP over implicit TLS (port 465). Credentials are
+  runtime-only Coolify secrets and are never copied into Git, documentation,
+  chat, logs, or test fixtures.
+- Mail transport is the existing AffeXAI Stalwart service at
+  `mail.affexai.tr`. The `info@bimmetraj.com` mailbox is the sender and SMTP
+  identity. This mailbox password is separate from the Bimmetraj web-app
+  superadmin password (`hazarvolga@gmail.com`).
+- Code revisions `52c73c4`, `ee49d2d`, `ebd52f9`, and `a0bc784` harden the
+  mail delivery path: configuration validation, authenticated TLS for 465,
+  sanitized failure logging, explicit socket cleanup, and a 10-second operation
+  / 15-second total deadline. Latest deployed revision is `a0bc784`.
+- Verification: focused auth/email suite passed 18/18; `pnpm lint` and
+  `pnpm run build` passed. After the Coolify deployment, a controlled
+  `POST /api/auth/forgot-password` for the designated superadmin returned HTTP
+  200 with the accepted-delivery response. This proves the application accepted
+  the SMTP submission; mailbox inbox/spam placement remains an operational
+  observation, not a guaranteed claim.
+- A temporary `STALWART_RECOVERY_ADMIN` runtime variable was used only to regain
+  Stalwart management access, then permanently removed from Coolify. The
+  Stalwart service was restarted to apply the removal; do not recreate recovery
+  access unless a documented incident requires it.
+- Handoff: `docs/agent-memory/SMTP_DECISION_HANDOFF_2026-10-11.md` now records
+  the live operating state and safe recovery procedure.
+
+## Historical pause handoff — SMTP architecture decision (2026-10-11)
 
 - Work paused at the user's request. No mail provider account, DNS record,
   Coolify secret, SMTP credential, or application code was created or changed

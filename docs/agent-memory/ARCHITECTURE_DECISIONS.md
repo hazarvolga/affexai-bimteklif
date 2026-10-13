@@ -180,3 +180,27 @@ Status: accepted
   values fail closed, rather than silently falling back to 24 hours. Pending
   uploads consume tenant storage/document quotas until safe cleanup after the
   maximum URL lifetime plus one-hour grace; completed data is never TTL-deleted.
+
+
+## ADR-008: Self-hosted Stalwart as Bimmetraj transactional SMTP relay
+
+Decision: Bimmetraj production uses the existing AffeXAI Stalwart service as
+its transactional SMTP relay over authenticated implicit TLS (port 465), with
+`info@bimmetraj.com` as the sender identity.
+
+Rationale: the user established the mail service and mailbox on the existing
+Coolify estate; application code supports bounded, fail-closed SMTP delivery
+without embedding credentials.
+
+Operational rules:
+
+- SMTP credentials remain runtime-only Bimmetraj Coolify secrets.
+- Mailbox credentials and Bimmetraj app-user credentials are separate.
+- Temporary recovery administrators must be time-bounded, removed after use,
+  and applied with a mail-service restart.
+- Accepted SMTP submission is not evidence of inbox placement; DNS
+  authentication, reputation, monitoring, and restore evidence remain required.
+
+Owner: product owner + platform operator
+Date: 2026-10-13
+Status: accepted
