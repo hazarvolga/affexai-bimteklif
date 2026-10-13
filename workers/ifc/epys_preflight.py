@@ -1,0 +1,106 @@
+"""BIMMetraj e-PYS pre-check (RG 33331) on top of the vendored ifc-ruhsat engine.
+
+Adds what BIMMetraj needs around the upstream rules: regulation provenance, an EK-9
+row summary, masking of personal identifiers before anything is stored, and IDS export.
+The report is a pre-check; the official decision belongs to e-PYS and the authority
+(Elektronik Teslim Yönetmeliği m.5).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+from typing import Any, Dict, List
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor"))
+
+from ifc_ruhsat import SURUM, YONETMELIK, ek9, ids_uret, kontrol  # noqa: E402
+
+UPSTREAM_COMMIT = "cd6d3ce"
+DATA_VERIFICATION = (
+    "Upstream visual verification of the scanned RG 33331 annex PDF (2026-09-17, page "
+    "numbers in each table). BIMMetraj independent spot-check: pending."
+)
+DISCLAIMER = (
+    "Otomatik ön kontroldür; resmî uygunluk kararı değildir. Değerlendirme e-PYS ve "
+    "ilgili idareye, beyanın doğruluğu proje müellifine aittir (Elektronik Teslim "
+    "Yönetmeliği m.5)."
+)
+
+_PATTERNS = [
+    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "[e-posta gizlendi]"),
+    (re.compile(r"(?:\+?90[\s-]?)?\(?0?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}"), "[telefon gizlendi]"),
+    (re.compile(r"\b\d{10,11}\b"), "[kimlik no gizlendi]"),
+]
+
+
+def _mask_text(text: str) -> str:
+    for pattern, replacement in _PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
+
+
+def mask_personal_data(value: Any) -> Any:
+    """Returns a copy with TC/VKN numbers, e-mails and phone numbers masked (KVKK)."""
+    if isinstance(value, str):
+        return _mask_text(value)
+    if isinstance(value, dict):
+        return {key: mask_personal_data(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [mask_personal_data(item) for item in value]
+    return value
+
+
+def build_report(input_path: str, file_name: str, discipline: str | None = None) -> Dict[str, Any]:
+    rapor = kontrol.kontrol_et(input_path, discipline)
+    rows = [
+        {"no": r["no"], "bolum": r["bolum"], "kategori": r["kategori"], "baslik": r["baslik"],
+         "soru": r["soru"], "karar": r["karar"], "elleNotu": r["elleNotu"],
+         "bulgu": len(r["bulgular"])}
+        for r in ek9.satirlar(rapor)
+    ]
+    report = {
+        "schemaVersion": 1,
+        "kind": "epys_preflight",
+        "ruleSource": {
+            "regulation": YONETMELIK,
+            "engine": {"name": "ifc-ruhsat", "version": SURUM, "upstreamCommit": UPSTREAM_COMMIT},
+            "dataVerification": DATA_VERIFICATION,
+        },
+        "model": {"fileName": file_name, "schema": rapor.schema, "sizeBytes": os.path.getsize(input_path)},
+        "summary": rapor.ozet(),
+        "ek9": rows,
+        "findings": [b.sozluk() for b in rapor.bulgular],
+        "disclaimer": DISCLAIMER,
+    }
+    return mask_personal_data(report)
+
+
+def write_ids(directory: str) -> List[str]:
+    return [str(path) for path in ids_uret.yaz(Path(directory))]
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="BIMMetraj e-PYS pre-check (RG 33331)")
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--file-name", default="")
+    parser.add_argument("--discipline", default=None)
+    args = parser.parse_args()
+    try:
+        report = build_report(args.input, args.file_name or os.path.basename(args.input), args.discipline)
+    except Exception as error:  # noqa: BLE001 - surfaced as a coded failure to the Node runner
+        sys.stderr.write(f"EPYS_PREFLIGHT_FAILED: {type(error).__name__}\n")
+        sys.exit(1)
+    os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
+    with open(args.output, "w", encoding="utf-8") as handle:
+        json.dump(report, handle, ensure_ascii=False, indent=2)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

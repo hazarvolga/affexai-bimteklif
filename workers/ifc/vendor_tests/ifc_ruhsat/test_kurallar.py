@@ -1,0 +1,183 @@
+# Vendored from BerkantACUN/ifc-ruhsat@cd6d3ce (MIT); CLI test dropped because cli.py is not vendored.
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import ifcopenshell
+import ifcopenshell.api.project
+import ifcopenshell.api.pset
+import ifcopenshell.api.root
+import pytest
+from ornek_model import iyi_model, kaydet
+
+from ifc_ruhsat import ek9, veri
+from ifc_ruhsat.kontrol import kontrol_et, ozet
+from ifc_ruhsat.kurallar.isim import DOSYA_ADI, VARLIK_ADI
+
+
+def kodlar(rapor, seviye=None):
+    return {b.kod for b in rapor.bulgular if seviye is None or b.seviye == seviye}
+
+
+def test_iyi_model_hatasiz(iyi_dosya):
+    rapor = kontrol_et(iyi_dosya)
+    assert rapor.schema == "IFC4X3"
+    assert rapor.hatalar() == []
+    assert rapor.uyarilar() == []
+    kararlar = {r["no"]: r["karar"] for r in ek9.satirlar(rapor)}
+    for no in (2, 3, 4, 5, 6, 8, 9, 11, 12, 13, 14, 15, 16, 18, 19):
+        assert kararlar[no] == "Evet", no
+    for no in (10,):
+        assert kararlar[no] == "Kısmen (elle tamamlanacak)", no
+    for no in (1, 7, 17, 21):
+        assert kararlar[no] == "Elle", no
+
+
+def test_kotu_model_bilinen_hatalari_yakalar(kotu_dosya):
+    rapor = kontrol_et(kotu_dosya)
+    hata = kodlar(rapor, "hata")
+    assert {
+        "sinif-proxy",
+        "isim-bicim",
+        "isim-kategori",
+        "koordinat-epsg",
+        "ek6-malzeme",
+        "ek6-set",
+        "kat-bagi",
+    } <= hata
+    uyari = kodlar(rapor, "uyari")
+    assert {"yinelenen-eleman", "on-tanimli-tip", "dosya-adi", "mahal-ortusme", "kat-kotu"} <= uyari
+    assert {"mahal-no-bicim", "mahal-isim-bos", "mahal-govde"} <= hata
+    # Duvarın kaldırılan Pset_WallCommon'ı set olarak tek bulgu üretir, iki özelliği de sayar.
+    duvar_bulgulari = [b for b in rapor.bulgular if b.kod == "ek6-set" and "IfcWall" in b.mesaj]
+    assert len(duvar_bulgulari) == 1 and duvar_bulgulari[0].ek9 == 9
+    assert "IsExternal, FireRating" in duvar_bulgulari[0].mesaj and duvar_bulgulari[0].varliklar
+    kararlar = {r["no"]: r["karar"] for r in ek9.satirlar(rapor)}
+    assert kararlar[5] == "Hayır" and kararlar[6] == "Hayır" and kararlar[9] == "Hayır"
+    assert kararlar[15] == "Hayır" and kararlar[17] == "Hayır"
+    assert kararlar[4] == "Hayır" and kararlar[13] == "Evet (uyarıyla)" and kararlar[14] == "Hayır"
+    assert kararlar[16] == "Evet (uyarıyla)"
+
+
+def test_yanlis_sette_ozellik_ek9_madde_20(tmp_path):
+    m = iyi_model()
+    duvar = m.by_type("IfcWall")[0]
+    pset = ifcopenshell.util.element.get_pset(duvar, "Pset_WallCommon")
+    ifcopenshell.api.pset.remove_pset(m, product=duvar, pset=m.by_id(pset["id"]))
+    p = ifcopenshell.api.pset.add_pset(m, product=duvar, name="Ofis_Ozel")
+    ifcopenshell.api.pset.edit_pset(
+        m, pset=p, properties={"IsExternal": True, "FireRating": "REI 60"}
+    )
+    rapor = kontrol_et(kaydet(m, tmp_path))
+    yanlis = [b for b in rapor.bulgular if b.kod == "ek6-ozellik-set"]
+    assert len(yanlis) == 2
+    assert all(b.ek9 == 20 and "Ofis_Ozel" in b.mesaj for b in yanlis)
+
+
+def test_emsal_kaks_asimi(tmp_path):
+    m = iyi_model()
+    zon = m.by_type("IfcSpatialZone")[0]
+    qto = ifcopenshell.util.element.get_pset(zon, "Qto_SpatialZoneBaseQuantities")
+    ifcopenshell.api.pset.edit_qto(m, qto=m.by_id(qto["id"]), properties={"GrossFloorArea": 1600.0})
+    rapor = kontrol_et(kaydet(m, tmp_path))
+    kaks = next(b for b in rapor.bulgular if b.kod == "emsal-kaks")
+    assert kaks.seviye == "hata" and "aşıyor" in kaks.mesaj
+
+
+def test_ifc4_dosya_surum_hatasi(tmp_path):
+    m = ifcopenshell.api.project.create_file(version="IFC4")
+    ifcopenshell.api.root.create_entity(m, ifc_class="IfcProject", name="123456")
+    yol = kaydet(m, tmp_path, "eski.ifc")
+    rapor = kontrol_et(yol)
+    surum = next(b for b in rapor.bulgular if b.kod == "surum")
+    assert surum.seviye == "hata" and "IFC4" in surum.mesaj
+    assert "iskelet" in kodlar(rapor, "hata")
+
+
+@pytest.mark.parametrize(
+    "ad, uygun",
+    [
+        ("MM-DVR-dis_20cm", True),
+        ("ST-KLN-k1", True),
+        ("MM-DVR", True),
+        ("MM-DVR-dis-20cm", False),  # açıklamada orta tire
+        ("MM-DVR-dis 20cm", False),  # boşluk
+        ("mm-DVR-dis", False),  # küçük harf disiplin
+        ("MM_DVR_dis", False),  # alt tire ayırıcı
+        ("Duvar 1", False),
+    ],
+)
+def test_varlik_adi_sablonu(ad, uygun):
+    assert bool(VARLIK_ADI.match(ad)) is uygun
+
+
+@pytest.mark.parametrize(
+    "ad, uygun",
+    [
+        ("123456_00_MM_GNEL_MD_BIM_000_01_000", True),
+        ("123456_00_MM_GNEL_MD_BIM_000_01", False),
+        ("123456-00-MM-GNEL-MD-BIM-000-01-000", False),
+        ("kotu model", False),
+    ],
+)
+def test_dosya_adi_sablonu(ad, uygun):
+    assert bool(DOSYA_ADI.match(ad)) is uygun
+
+
+def test_veri_dosyalari_tutarli():
+    assert len(veri.zorunlu_siniflar()) == 69
+    assert len(veri.istege_bagli_siniflar()) == 67
+    assert set(veri.ek6_tablolar()) <= set(veri.zorunlu_siniflar())
+    assert veri.kategori_kodlari()["DVR"] == "IfcWall"
+    assert veri.ek2_disiplinler()["MM"] == "Mimari"
+    assert len(veri.ek9_maddeler()) == 21
+    for k in veri.kaynaklar().values():
+        assert "33331" in k
+
+
+def test_ozet(iyi_dosya):
+    o = ozet(iyi_dosya)
+    assert o["schema"] == "IFC4X3" and o["proje"] == "123456"
+    assert o["katlar"] == ["MM-BNK-zemin", "MM-BNK-kat1"] and o["mahalSayisi"] == 2
+    assert o["sinifSayilari"]["IfcWall"] == 1
+
+
+def test_ek6_tum_zorunlu_siniflar_ve_semayla_uyum():
+    """68 zorunlu sınıfın tamamı kodlanmış; her öznitelik IFC4X3 şemasında, her Pset özelliği
+    resmî şablonda var (TREpys_ setleri Türkiye'ye özel, şablonda aranmaz)."""
+    import ifcopenshell.util.pset as up
+    from ifcopenshell import ifcopenshell_wrapper as w
+
+    tablolar = veri.ek6_tablolar()
+    zorunlu = [z for z in veri.zorunlu_siniflar() if z != "IfcProject"]
+    assert sorted(tablolar) == sorted(zorunlu)
+    schema = w.schema_by_name("IFC4X3_ADD2")
+    sablon = up.get_template("IFC4X3")
+    for t in tablolar.values():
+        attrs = {a.name() for a in schema.declaration_by_name(t["ifc"]).all_attributes()}
+        for g in t["gerekenler"]:
+            if g["tur"] == "oznitelik":
+                assert g["ad"] in attrs or t["ifc"] == "IfcGroup", (t["ifc"], g["ad"])
+            if g["tur"] == "ozellik" and not g["set"].startswith("TREpys_"):
+                ps = sablon.get_by_name(g["set"])
+                assert ps is not None, g["set"]
+                assert g["ad"] in {p.Name for p in ps.HasPropertyTemplates}, (g["set"], g["ad"])
+        if t["onTanimliTipler"]:
+            enum = set(schema.declaration_by_name(t["ifc"] + "TypeEnum").enumeration_items())
+            assert set(t["onTanimliTipler"]) <= enum, t["ifc"]
+
+
+def test_disiplin_dosya_adindan(tmp_path):
+    from ifc_ruhsat.kontrol import disiplini_sec
+
+    assert disiplini_sec(Path("123456_00_MK_GNEL_MD_BIM_000_01_000.ifc"), None) == "MK"
+    assert disiplini_sec(Path("bina.ifc"), None) == "MM"
+    assert disiplini_sec(Path("bina.ifc"), "st") == "ST"
+    # Mekanik modelde mahal yokluğu hata değildir.
+    m = iyi_model()
+    for s in m.by_type("IfcSpace"):
+        m.remove(s)
+    yol = kaydet(m, tmp_path, "123456_00_MK_GNEL_MD_BIM_000_01_000.ifc")
+    assert "mahal-var" not in kodlar(kontrol_et(yol), "hata")
+    assert "mahal-var" in kodlar(kontrol_et(yol, "MM"), "hata")
