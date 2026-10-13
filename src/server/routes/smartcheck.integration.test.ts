@@ -226,5 +226,9 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     assert.equal(Boolean(artifact), true);
     assert.equal((artifact.metadataJson as { summary?: { evidenceRowCount?: number; blockedElementCount?: number } }).summary?.evidenceRowCount, 1);
     assert.equal((artifact.metadataJson as { summary?: { blockedElementCount?: number } }).summary?.blockedElementCount, 0);
+    const rules = (artifact.metadataJson as { ruleEvaluations?: { threeByThree: { activeStandard: string; rulePackVersion: string }; epys: { score: number } } }).ruleEvaluations;
+    assert.equal(rules?.threeByThree.activeStandard, "TBDY_TS500", "3x3 runs server-side with the company standard");
+    assert.equal(rules?.threeByThree.rulePackVersion, "smartcheck-3x3-2026-10-v2");
+    assert.equal(typeof rules?.epys.score, "number", "e-PYS runs server-side");
   }
 });

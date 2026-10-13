@@ -13,6 +13,8 @@ import { parseIfcText } from "../../ifc/parser/legacy-parser";
 import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidence";
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
+import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
+import type { ActiveStandard } from "../rules/three-by-three";
 
 export { inspectDocument } from "./spreadsheet-runner";
 export type { DocumentPreview, PreviewSheet } from "./spreadsheet-parser";
@@ -188,6 +190,25 @@ async function processIfcSmartCheckDocument(payload: {
     progressMessage: "IFC property evidence satırları hazırlanıyor",
   });
 
+  // 3x3 and e-PYS run on the server for every IFC run; results are stored as run evidence (E-1, E-6).
+  const [company] = await db.select({ activeStandard: companies.activeStandard }).from(companies).where(eq(companies.id, companyId));
+  if (!company) throw new Error("TENANT_COMPANY_MISSING");
+  artifact = applyIfcRuleEvaluations(artifact, evaluateIfcRulePacks(artifact, company.activeStandard as ActiveStandard));
+  const ruleSummary = {
+    threeByThree: {
+      rulePackVersion: artifact.ruleEvaluations!.threeByThree.rulePackVersion,
+      activeStandard: artifact.ruleEvaluations!.threeByThree.activeStandard,
+      isValid: artifact.ruleEvaluations!.threeByThree.isValid,
+      violationCount: artifact.ruleEvaluations!.threeByThree.violations.length,
+      coverage: artifact.ruleEvaluations!.threeByThree.coverage,
+    },
+    epys: {
+      rulePackVersion: artifact.ruleEvaluations!.epys.rulePackVersion,
+      isValid: artifact.ruleEvaluations!.epys.isValid,
+      score: artifact.ruleEvaluations!.epys.score,
+    },
+  };
+
   const artifactContent = Buffer.from(JSON.stringify(artifact, null, 2));
   const artifactKey = `${companyId}/${documentId}/${processingRunId}/ifc-evidence.json`;
   await storage.put(artifactKey, artifactContent, "application/json");
@@ -244,6 +265,7 @@ async function processIfcSmartCheckDocument(payload: {
         kind: artifact.kind,
         document: artifact.document,
         summary: artifact.summary,
+        ruleEvaluations: ruleSummary,
       },
     }).onConflictDoUpdate({
       target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
@@ -256,6 +278,7 @@ async function processIfcSmartCheckDocument(payload: {
           kind: artifact.kind,
           document: artifact.document,
           summary: artifact.summary,
+          ruleEvaluations: ruleSummary,
         },
       },
     });
@@ -307,6 +330,8 @@ async function processIfcSmartCheckDocument(payload: {
         schemaVersion: artifact.schemaVersion,
         evidenceRowCount: artifact.summary.evidenceRowCount,
         blockedElementCount: artifact.summary.blockedElementCount,
+        threeByThreeViolationCount: ruleSummary.threeByThree.violationCount,
+        epysScore: ruleSummary.epys.score,
       },
       updatedAt: now,
     }).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));

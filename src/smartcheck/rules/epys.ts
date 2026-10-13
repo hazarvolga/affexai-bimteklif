@@ -20,7 +20,9 @@ export interface IfcElementData {
 
 export interface EpysRuleInput {
   complianceData: TrPsetCsbProjectCompliance;
-  pozExtraction: ElementPozNoExtraction;
+  /** Browser path: per-element poz map. Server path passes elementsWithPozNoCount instead. */
+  pozExtraction?: ElementPozNoExtraction;
+  elementsWithPozNoCount?: number;
   totalElementsCount: number;
   elementsData?: IfcElementData[];
   materialNames?: string[]; 
@@ -48,7 +50,7 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
   }
 
   // KURAL 2: Ek-6 Poz Numarası
-  const elementsWithPozNo = input.pozExtraction.pozNoByStepId.size;
+  const elementsWithPozNo = input.elementsWithPozNoCount ?? input.pozExtraction?.pozNoByStepId.size ?? 0;
   if (input.totalElementsCount > 0 && elementsWithPozNo === 0) {
     errors.push("[EK-6 İhlali] Modeldeki hiçbir elemanda ÇŞB Poz Numarası (CSBPozNo) tanımlı değil. Otonom e-PYS metraj (QTO) hesaplanamaz.");
     penaltyPoints += 50;
