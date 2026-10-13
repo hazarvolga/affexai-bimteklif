@@ -15,27 +15,30 @@ only when a decision needs its background; its paths and Vercel notes are stale)
   (`SMARTCHECK_IMPORT_ENABLED=false`, no R2 bucket), AI (no provider keys).
 - Daily 03:00 backup, R2 copy, restore drill passed.
 
-## Branch `fix/gap-closure-2026-10-13` (pushed to origin, not merged, not deployed)
+## Release in progress: `fix/gap-closure-2026-10-13` + `feat/epys-preflight`
 
-36 commits, one per GAP item; status table in `guncel-gap.md` ("Kapanış
-durumu"). Verified 2026-10-13 on an isolated PostgreSQL 16: `pnpm run verify`
-861/861 + build, release migration lifecycle 21/21, Prisma shadow valid,
-audit policy 0 blocked. An independent code review found no CRITICAL/HIGH
-issues; its MEDIUM/LOW findings are fixed (abort releases metered quota,
-escalation overflow throws, profit salesNet uses line cents, 3x3
-`status: not_evaluated`, active standard validated, expired trials cannot
-book browser IFC analyses, Docker stamp layer). Known, accepted: browser IFC
-quota is client-enforced (parsing happens in the browser).
+Both branches go to `main` together (PR from `feat/epys-preflight`, which
+contains the gap-closure commits). Status table: `guncel-gap.md` ("Kapanış
+durumu"). Verified on an isolated PostgreSQL 16 (`pnpm run verify`, release
+migration lifecycle, Prisma shadow, audit) and the Python worker tests.
 
-Not run locally: `scripts/gap-invitation-ui-smoke.ts` (CI runs it) and the
-Python IFC worker tests (`ifcopenshell` not installed locally).
+`feat/epys-preflight` adds:
+- RG 33331 e-PYS pre-check on every IFC run (vendored ifc-ruhsat@cd6d3ce, MIT;
+  see `workers/ifc/vendor/ifc_ruhsat/NOTICE.md`), EK-9 panel in SmartCheck,
+  `GET /api/smartcheck/documents/:id/epys-preflight`, IDS export, KVKK masking.
+- PDF/A pre-check library (`workers/ifc/pdf_preflight.py`), not yet wired to upload.
+- Honest quick e-PYS label + CekmeArka; catalog v5 package description.
+- Admin: `/admin/roadmap` (Geliştirici Yol Haritası) and
+  `/admin/roadmap/calculations` (Hesaplama Yöntemleri, expert sign-off page).
+- Annex spot-check: official RG annex PDF (SHA-256 7dc88971…0ecb3) Tablo 6.55,
+  6.60, 9.1 rows 1–9 match the vendored data.
 
-Deploying it requires, in order:
+After merge (push to `main` triggers the Coolify deployment):
 
 1. Merge; the `migrate` job applies release migrations 0007
    (`plans` feature/storage limits, `is_trial`) and 0008 (pilot
    `exception_rows`). Both are additive and pinned.
-2. Run `dist/bootstrap-plan-catalog.mjs --apply` (catalog v4) so the five
+2. Run `dist/bootstrap-plan-catalog.mjs --apply` (catalog v5) so the five
    packages get their limits and the trial flag. Until then runtime keeps the
    legacy limits — no tenant is locked out.
 3. In Coolify: enable "Include Source Commit in Build" so `SOURCE_COMMIT`
@@ -47,6 +50,8 @@ Deploying it requires, in order:
 
 ## Next code work (not started)
 
+- Wire `pdf_preflight.py` into SmartCheck uploads (accept PDF documents).
+- Independently check the remaining RG annex tables against the official PDF.
 - IFC extractor: read `Pset_*Common` LoadBearing/IsExternal (+ cover if
   modelled) so 3x3 cover/STR checks stop reporting `missingInput`.
 - Separate runtime DB role (P1-1), reviewer discipline scope (E-9),
