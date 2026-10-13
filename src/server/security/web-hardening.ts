@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express';
+import { ACADEMY_ENABLED } from '../../config/features';
 
 /** Firebase (Academy profile/certificates) is the only third-party runtime the SPA talks to. */
 const FIREBASE_ORIGINS = [
@@ -53,7 +54,8 @@ export function canonicalHostRedirect(publicAppUrl: string | undefined): Request
   };
 }
 
-const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/academy', '/academy/complete', '/academy/allplan', '/pilot', '/terms', '/privacy'];
+const ACADEMY_PAGES = ['/academy', '/academy/complete', '/academy/allplan'];
+const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
 
 export function sitemapXml(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;

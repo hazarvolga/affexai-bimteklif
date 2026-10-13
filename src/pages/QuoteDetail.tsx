@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ACADEMY_ENABLED } from '@/config/features';
 import { fetchWithAuth } from '@/lib/api';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
@@ -580,7 +581,7 @@ export function QuoteDetail() {
               <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-200">
                 <p className="font-black uppercase tracking-widest">SmartCheck: inceleme gerekli</p>
                 <p className="mt-1 text-amber-200/70">Bu kontrol kaynak izlenebilirliğini gösterir; mühendislik veya mevzuat uygunluğu kararı değildir. {audit.issues.length} uyarı bulundu.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                {ACADEMY_ENABLED && <div className="mt-3 flex flex-wrap gap-2">
                   {Array.from(new Map((audit.issues as any[]).map(issue => [issue.academyGuidance?.lessonSlug, issue.academyGuidance])).values())
                     .filter((guidance: any) => guidance?.lessonSlug)
                     .map((guidance: any) => (
@@ -588,7 +589,7 @@ export function QuoteDetail() {
                         <BookOpen size={12} /> {guidance.label} <ChevronRight size={12} />
                       </Link>
                     ))}
-                </div>
+                </div>}
               </div>
             )}
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">

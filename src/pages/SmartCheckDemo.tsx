@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { ACADEMY_ENABLED } from '@/config/features';
 import { Link } from 'react-router-dom';
 import {
   Shield,
@@ -259,7 +260,7 @@ export function SmartCheckDemo() {
               )}
 
               {/* Matching Academy Lesson Checkpoint */}
-              {matchingLesson && (
+              {ACADEMY_ENABLED && matchingLesson && (
                 <div className="p-4 rounded-xs border border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="space-y-0.5">
                     <span className="text-[11px] font-mono text-primary font-semibold uppercase tracking-wider flex items-center gap-1">

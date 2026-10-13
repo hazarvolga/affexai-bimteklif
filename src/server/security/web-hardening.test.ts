@@ -37,9 +37,10 @@ test('www requests are redirected permanently to the apex with path and query ke
 test('sitemap lists public pages on the canonical origin and robots points to it', () => {
   const xml = sitemapXml('https://bimmetraj.com');
   assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/);
-  for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/academy']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
+  for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/smartcheck']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
   assert.ok(!xml.includes('/app'));
   assert.ok(!xml.includes('/login'));
+  assert.ok(!xml.includes('/academy'), 'Academy is out of scope while ACADEMY_ENABLED is false');
   const robots = robotsTxt('https://bimmetraj.com');
   assert.match(robots, /Sitemap: https:\/\/bimmetraj.com\/sitemap.xml/);
   assert.match(robots, /Disallow: \/app\//);
