@@ -25,8 +25,9 @@ only when a decision needs its background; its paths and Vercel notes are stale)
   Sentry issue `NODE-EXPRESS-1` (`153422905`). Sentry's default high-priority
   issue alert fired once for this event. Its recipient was explicitly set to
   `Hazar Volga Ekiz (hazarvolga@gmail.com)`; Sentry reported "Notification
-  fired!" for a test notification. Inbox arrival is not yet verified. The DSN
-  is secret and must stay out of Git.
+  fired!" for a test notification. Gmail Updates showed both the production
+  smoke alert (`NODE-EXPRESS-1`) and test issue notification (`NODE-EXPRESS-2`)
+  on 2026-10-13. The DSN is secret and must stay out of Git.
 - Daily 03:00 backup, R2 copy, restore drill passed.
 
 ## e-PYS release and current rollout
@@ -99,8 +100,8 @@ Release status (2026-10-13):
 - Sentry SDK delivery from the production app container and issue receipt are
   verified; all three service containers have the DSN. The default
   high-priority alert is enabled, fired for the synthetic issue, and now targets
-  Hazar's account directly. Sentry accepted a test notification; confirm inbox
-  arrival before claiming end-to-end e-mail delivery.
+  Hazar's account directly. Sentry accepted a test notification; both it and
+  the original production smoke alert arrived in Hazar's Gmail Updates inbox.
 - Existing Academy learner accounts land in the normal workspace shell
   while `ACADEMY_ENABLED` is false.
 
@@ -132,4 +133,5 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Sentry e-mail alert delivery and real pilot IFC/PDF acceptance evidence.
+Real pilot IFC/PDF acceptance evidence. Revisit Sentry quota after the trial
+automatically transitions to the free plan; do not enable paid usage.
