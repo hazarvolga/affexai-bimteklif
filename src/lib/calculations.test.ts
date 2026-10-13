@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { calculateLineBreakdown, calculateLineItemTotal, calculateQuotationTotals, roundMoney, validateQuotationItems } from "./calculations";
-import { calculateQuotationFinancials } from "./financial-calculations";
+import { calculateQuotationFinancials, escalationPremiumFor } from "./financial-calculations";
 import { auditQuotationItems } from "./quotation-audit";
 
 describe("quotation calculations", () => {
@@ -166,5 +166,20 @@ describe("fiyatsız kalem denetimi", () => {
     ]);
     assert.deepEqual(issues.filter((issue) => issue.code === "PRICE_MISSING").map((issue) => issue.itemIndex), [0, 1]);
     assert.ok(issues.every((issue) => issue.code !== "PRICE_MISSING" || issue.severity === "warning"));
+  });
+});
+
+describe("inceleme düzeltmeleri", () => {
+  it("eskalasyon taşarsa 0 yerine hata verir", () => {
+    assert.throws(() => escalationPremiumFor(1000, 1e9, 2), /ESCALATION_OUT_OF_RANGE/);
+  });
+
+  it("kârlılık satış tutarı teklif toplamıyla kuruşu kuruşuna eşittir", () => {
+    const items = [
+      { quantity: 3, unitPrice: 0.335, costUnitPrice: 0.1, discountPercent: 0 },
+      { quantity: 1.005, unitPrice: 1, costUnitPrice: 0.5, discountPercent: 12.5 },
+    ];
+    const totals = calculateQuotationTotals(items);
+    assert.equal(calculateQuotationFinancials(items).salesNet, Math.round((totals.subtotal - totals.discountTotal) * 100) / 100);
   });
 });
