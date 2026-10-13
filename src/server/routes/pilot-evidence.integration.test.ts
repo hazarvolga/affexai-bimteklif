@@ -61,10 +61,11 @@ test("pilot evidence control records consent, measurements, reviewer gate, and t
     assert.equal(otherCases.length, 0);
     const measurement = await request(`/api/smartcheck/pilot-cases/${caseId}/measure`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ measurementKey: "run-1", notes: "İlk pilot ölçümü" }) });
     assert.equal(measurement.status, 201);
-    const measurementBody = await measurement.json() as { measurement: { id: string }; metrics: { totalRows: number; parsedRows: number; approvedRows: number; findingCount: number; parseRate: number; manualReentryFreeRate: number; processingDurationSeconds: number; workflowDurationSeconds: number }; pilotCase: { status: string } };
+    const measurementBody = await measurement.json() as { measurement: { id: string }; metrics: { totalRows: number; parsedRows: number; approvedRows: number; exceptionRows: number; findingCount: number; parseRate: number; manualReentryFreeRate: number; processingDurationSeconds: number; workflowDurationSeconds: number }; pilotCase: { status: string } };
     assert.equal(measurementBody.metrics.totalRows, 3);
     assert.equal(measurementBody.metrics.parsedRows, 2);
-    assert.equal(measurementBody.metrics.approvedRows, 2);
+    assert.equal(measurementBody.metrics.approvedRows, 1);
+    assert.equal(measurementBody.metrics.exceptionRows, 1);
     assert.equal(measurementBody.metrics.findingCount, 3);
     assert.equal(measurementBody.metrics.parseRate, 0.6667);
     assert.equal(measurementBody.metrics.manualReentryFreeRate, 0.6667);

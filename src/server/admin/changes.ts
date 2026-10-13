@@ -23,6 +23,14 @@ export async function createPlan(adminId: string, input: z.infer<typeof createPl
       displayOrder: input.displayOrder,
       marketingBadge: input.marketingBadge,
       marketingDescription: input.marketingDescription,
+      monthlyAiLimit: input.monthlyAiLimit,
+      monthlyPdfLimit: input.monthlyPdfLimit,
+      monthlyCrmLimit: input.monthlyCrmLimit,
+      monthlyRegulationLimit: input.monthlyRegulationLimit,
+      monthlyProfitAnalysisLimit: input.monthlyProfitAnalysisLimit,
+      storageMaxBytes: input.storageMaxBytes,
+      maxDocuments: input.maxDocuments,
+      isTrial: input.isTrial,
     }).returning();
     await tx.insert(adminAuditLogs).values({ adminId, action: 'plan.created', details: { before: null, after } });
     return after;

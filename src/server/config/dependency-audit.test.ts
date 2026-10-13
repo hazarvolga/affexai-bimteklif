@@ -8,23 +8,21 @@ const finding = {
 };
 const counts = { info: 0, low: 0, moderate: 0, high: 0, critical: 0 };
 const report = (value = finding) => ({ metadata: { vulnerabilities: { ...counts, [value.severity]: 1 } }, advisories: { one: value } });
-const now = new Date('2026-10-08T00:00:00Z');
 
-test('audit exceptions are narrow, path-scoped and expire automatically', () => {
-  assert.equal(evaluateAudit(report(), now).accepted.length, 1);
+test('every high or critical finding blocks, with no exceptions', () => {
   for (const changed of [
+    finding,
     { ...finding, severity: 'critical' },
     { ...finding, url: 'https://github.com/advisories/new-advisory' },
     { ...finding, module_name: 'other' },
     { ...finding, findings: [{ paths: ['.>extract-zip'] }] },
     { ...finding, findings: [] },
-  ]) assert.equal(evaluateAudit(report(changed), now).blocked.length, 1);
-  assert.equal(evaluateAudit(report(), new Date('2026-10-22T00:00:00Z')).blocked.length, 1);
+  ]) assert.equal(evaluateAudit(report(changed)).blocked.length, 1);
 });
 
 test('audit rejects unavailable reports instead of reporting a clean scan', () => {
   for (const malformed of [{}, { error: 'network unavailable' }, { metadata: { vulnerabilities: {} } }]) {
-    assert.throws(() => evaluateAudit(malformed, now));
+    assert.throws(() => evaluateAudit(malformed));
   }
 });
 
@@ -40,29 +38,28 @@ test('audit rejects malformed containers, counts and advisory fields', () => {
       { ...finding, findings: [{ paths: [null] }] },
     ].map(value => ({ ...valid, advisories: { one: value } })),
   ];
-  for (const value of malformed) assert.throws(() => evaluateAudit(value, now));
+  for (const value of malformed) assert.throws(() => evaluateAudit(value));
 });
 
 test('audit rejects missing and unknown severity instead of silently skipping it', () => {
   for (const severity of [undefined, null, '', 'HIGH', 'unknown']) {
-    assert.throws(() => evaluateAudit({ ...report(), advisories: { one: { ...finding, severity } } }, now));
+    assert.throws(() => evaluateAudit({ ...report(), advisories: { one: { ...finding, severity } } }));
   }
 });
 
 test('audit rejects summary and advisory count inconsistencies', () => {
   for (const high of [0, 2]) {
-    assert.throws(() => evaluateAudit({ ...report(), metadata: { vulnerabilities: { ...counts, high } } }, now));
+    assert.throws(() => evaluateAudit({ ...report(), metadata: { vulnerabilities: { ...counts, high } } }));
   }
   for (const severity of Object.keys(counts)) {
-    assert.throws(() => evaluateAudit({ metadata: { vulnerabilities: { ...counts, [severity]: 1 } }, advisories: {} }, now));
+    assert.throws(() => evaluateAudit({ metadata: { vulnerabilities: { ...counts, [severity]: 1 } }, advisories: {} }));
   }
 });
 
 test('audit accepts a complete clean report and valid lower-severity findings', () => {
-  assert.deepEqual(evaluateAudit({ metadata: { vulnerabilities: counts }, advisories: {} }, now).blocked, []);
+  assert.deepEqual(evaluateAudit({ metadata: { vulnerabilities: counts }, advisories: {} }).blocked, []);
   for (const severity of ['info', 'low', 'moderate']) {
-    const result = evaluateAudit(report({ ...finding, severity }), now);
-    assert.deepEqual(result.accepted, []);
+    const result = evaluateAudit(report({ ...finding, severity }));
     assert.deepEqual(result.blocked, []);
   }
 });

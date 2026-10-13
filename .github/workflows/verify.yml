@@ -67,7 +67,7 @@ jobs:
       - name: Install pinned IFC engine and run Python behavior tests
         run: |
           python -m pip install -r workers/ifc/requirements.txt
-          python -m pytest workers/ifc/test_ifc_extract.py -q
+          python -m pytest workers/ifc -q
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: test -x "$PUPPETEER_EXECUTABLE_PATH"
       - run: pnpm exec tsx scripts/release-migrations/cli.ts apply

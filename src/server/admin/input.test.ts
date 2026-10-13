@@ -32,3 +32,11 @@ test('new or updated plans cannot advertise an IFC size above the supported ceil
   assert.equal(updatePlanInput.safeParse({ ifcMaxFileMb: 101 }).success, false);
   assert.equal(updatePlanInput.safeParse({ ifcMaxFileMb: 100 }).success, true);
 });
+
+test('admins can set per-package feature and storage limits within safe bounds', () => {
+  const limits = { monthlyAiLimit: 0, monthlyPdfLimit: 50, monthlyCrmLimit: null, monthlyRegulationLimit: 10, monthlyProfitAnalysisLimit: 10, storageMaxBytes: 1024 ** 3, maxDocuments: 500, isTrial: false };
+  assert.deepEqual(updatePlanInput.parse(limits), limits);
+  for (const value of [{ monthlyAiLimit: -1 }, { monthlyPdfLimit: 1.5 }, { storageMaxBytes: 0 }, { storageMaxBytes: Number.MAX_SAFE_INTEGER + 1 }, { maxDocuments: 0 }]) {
+    assert.equal(updatePlanInput.safeParse(value).success, false, JSON.stringify(value));
+  }
+});

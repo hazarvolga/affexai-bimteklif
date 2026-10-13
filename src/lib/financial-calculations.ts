@@ -1,11 +1,11 @@
-import { roundMoney, toFiniteNumber } from './calculations';
+import { calculateLineBreakdown, roundMoney, toFiniteNumber } from './calculations';
 
 export type CostCategory = 'material' | 'labor' | 'logistics' | 'subcontractor' | 'overhead';
 
 export interface FinancialLineItem {
-  quantity: number | string | null | undefined;
-  unitPrice: number | string | null | undefined;
-  costUnitPrice: number | string | null | undefined;
+  quantity?: number | string | null;
+  unitPrice?: number | string | null;
+  costUnitPrice?: number | string | null;
   wastePercent?: number | string | null | undefined;
   discountPercent?: number | string | null | undefined;
   costCategory?: string | null | undefined;
@@ -28,6 +28,19 @@ export interface QuotationFinancialCalculation {
 }
 
 const categories: CostCategory[] = ['material', 'labor', 'logistics', 'subcontractor', 'overhead'];
+// Only these cost shares follow monthly price indices; subcontracts and overhead are fixed at award.
+const escalatingCategories: readonly CostCategory[] = ['material', 'labor'];
+
+/**
+ * Spend is assumed to spread evenly over the project, so the average euro is spent at T/2:
+ * premium = escalating cost × ((1 + v)^(T/2) − 1). Linear `cost × T × v` overstated it ~1.9×.
+ */
+export function escalationPremiumFor(escalatingCost: number, durationMonths: number, monthlyPercent: number): number {
+  const premium = escalatingCost * ((1 + monthlyPercent / 100) ** (durationMonths / 2) - 1);
+  // roundMoney maps Infinity to 0, which would silently drop the premium and overstate margin.
+  if (!Number.isFinite(premium)) throw new RangeError('ESCALATION_OUT_OF_RANGE');
+  return roundMoney(premium);
+}
 
 export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}): QuotationFinancialCalculation {
   const costBreakdown = Object.fromEntries(categories.map((category) => [category, 0])) as Record<CostCategory, number>;
@@ -37,14 +50,13 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
 
   items.forEach((item, index) => {
     const quantity = toFiniteNumber(item.quantity);
-    const unitPrice = toFiniteNumber(item.unitPrice);
-    const discount = toFiniteNumber(item.discountPercent);
     const costUnitPrice = item.costUnitPrice === null || item.costUnitPrice === undefined || item.costUnitPrice === ''
       ? Number.NaN
       : Number(item.costUnitPrice);
     const waste = Math.max(0, toFiniteNumber(item.wastePercent));
 
-    salesNet += quantity * unitPrice * (1 - discount / 100);
+    // Same per-line cent rounding as quotation totals, so margin reconciles with the PDF.
+    salesNet += calculateLineBreakdown(item).net;
     if (!Number.isFinite(costUnitPrice) || costUnitPrice < 0) {
       missingCostItemIndexes.push(index);
       return;
@@ -59,7 +71,7 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
   const projectDurationMonths = Math.max(1, toFiniteNumber(riskInputs.projectDurationMonths, 1));
   const escalationVolatilityPercent = Math.max(0, toFiniteNumber(riskInputs.escalationVolatilityPercent));
   const escalationPremium = missingCostItemIndexes.length === 0
-    ? roundMoney(totalCost * projectDurationMonths * escalationVolatilityPercent / 100)
+    ? escalationPremiumFor(escalatingCategories.reduce((sum, category) => sum + costBreakdown[category], 0), projectDurationMonths, escalationVolatilityPercent)
     : 0;
   const carbonRiskPremiumPercent = Math.max(0, toFiniteNumber(riskInputs.carbonRiskPremiumPercent));
   const carbonRiskPremium = missingCostItemIndexes.length === 0

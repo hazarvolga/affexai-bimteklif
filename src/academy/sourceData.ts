@@ -61,7 +61,8 @@ export const data6D = [
             }
         ];
 
-export const rebarData = { 8: 0.395, 12: 0.888, 18: 1.997, 25: 3.853, 32: 6.313 };
+// Nominal mass = π·φ²/4 · 7.85e-3 kg/m (TS 708 / EN 10080 tables round Ø18 to 2.00).
+export const rebarData = { 8: 0.395, 12: 0.888, 18: 1.998, 25: 3.853, 32: 6.313 };
 
 export const data4D = {
             foundation: { title: "Kazı ve Temel", pv: 150, ev: 130, ac: 140, month: "1. Ay Görünümü (Temel)" },

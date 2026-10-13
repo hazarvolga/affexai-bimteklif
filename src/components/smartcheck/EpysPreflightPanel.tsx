@@ -1,0 +1,114 @@
+import { useEffect, useState } from "react";
+import { FileCheck2, Loader2 } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
+
+interface Ek9Row {
+  no: number;
+  bolum: string;
+  kategori: string;
+  baslik: string;
+  soru: string;
+  karar: string;
+  elleNotu: string;
+  bulgu: number;
+}
+
+interface Finding {
+  kod: string;
+  seviye: "hata" | "uyari" | "bilgi" | "elle";
+  mesaj: string;
+  madde: string;
+  ek9: number | null;
+  varliklar: string[];
+  sayi: number | null;
+}
+
+interface PreflightReport {
+  summary: { hata: number; uyari: number; bilgi: number; elle: number };
+  ek9: Ek9Row[];
+  findings: Finding[];
+  findingsTruncated: boolean;
+  disclaimer: string;
+  ruleSource: { regulation: Record<string, string>; engine: { name: string; version: string; upstreamCommit: string } };
+  model: { fileName: string; schema: string };
+}
+
+const DECISION_CLASS: Record<string, string> = {
+  "Evet": "border-emerald-500/30 text-emerald-400",
+  "Evet (uyarıyla)": "border-amber-500/30 text-amber-300",
+  "Hayır": "border-red-500/30 text-red-400",
+  "Elle": "border-zinc-600 text-zinc-400",
+  "Kısmen (elle tamamlanacak)": "border-sky-500/30 text-sky-300",
+};
+
+/** RG 33331 EK-9 pre-check for one IFC document; advisory, never an official decision. */
+export function EpysPreflightPanel({ documentId, refreshKey }: { documentId: string; refreshKey: number }) {
+  const [report, setReport] = useState<PreflightReport | null>(null);
+  const [state, setState] = useState<"loading" | "missing" | "ready" | "error">("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    setState("loading");
+    fetchWithAuth(`/api/smartcheck/documents/${documentId}/epys-preflight`)
+      .then(async response => {
+        if (cancelled) return;
+        if (response.status === 404) return setState("missing");
+        if (!response.ok) return setState("error");
+        setReport(await response.json() as PreflightReport);
+        setState("ready");
+      })
+      .catch(() => { if (!cancelled) setState("error"); });
+    return () => { cancelled = true; };
+  }, [documentId, refreshKey]);
+
+  if (state === "loading") return <div className="flex items-center gap-2 p-4 text-xs text-zinc-500"><Loader2 size={14} className="animate-spin" />e-PYS ön kontrolü yükleniyor…</div>;
+  if (state === "missing") return <div className="p-4 text-xs text-zinc-500">Bu IFC için e-PYS (RG 33331) ön kontrolü henüz yok. Sunucu tarafı IFC işlemesi tamamlandığında burada görünür.</div>;
+  if (state === "error" || !report) return <div className="p-4 text-xs text-amber-400">e-PYS ön kontrolü şu anda okunamıyor.</div>;
+
+  return (
+    <section className="space-y-4 border-t border-zinc-800 p-4" aria-label="e-PYS ön kontrolü">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="flex items-center gap-2 text-xs font-bold text-zinc-200"><FileCheck2 size={14} className="text-sky-400" />e-PYS ön kontrolü · EK-9 Model Kalite Kontrol Formu</p>
+          <p className="mt-1 text-[10px] text-zinc-500">{report.ruleSource.regulation.ad} · RG {report.ruleSource.regulation.resmiGazete} · şema {report.model.schema}</p>
+        </div>
+        <div className="flex gap-2 text-[10px]">
+          <Badge variant="outline" className="border-red-500/30 text-red-400">{report.summary.hata} hata</Badge>
+          <Badge variant="outline" className="border-amber-500/30 text-amber-300">{report.summary.uyari} uyarı</Badge>
+          <Badge variant="outline" className="border-zinc-600 text-zinc-400">{report.summary.elle} elle</Badge>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left text-xs">
+          <thead className="bg-zinc-900 text-zinc-500"><tr><th className="p-2">No</th><th className="p-2">Bölüm</th><th className="p-2">Kontrol</th><th className="p-2">Karar</th><th className="p-2">Bulgu</th></tr></thead>
+          <tbody>
+            {report.ek9.map(row => (
+              <tr key={row.no} className="border-t border-zinc-900 align-top">
+                <td className="p-2 font-mono text-zinc-500">{row.no}</td>
+                <td className="p-2 text-zinc-500">{row.bolum}</td>
+                <td className="p-2 text-zinc-300"><b>{row.baslik}</b><div className="text-[11px] text-zinc-500">{row.soru}</div>{row.elleNotu && <div className="mt-1 text-[11px] text-zinc-400">{row.elleNotu}</div>}</td>
+                <td className="p-2"><Badge variant="outline" className={DECISION_CLASS[row.karar] ?? "border-zinc-700 text-zinc-400"}>{row.karar}</Badge></td>
+                <td className="p-2 text-zinc-400">{row.bulgu}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {report.findings.length > 0 && (
+        <details className="rounded-xl border border-zinc-800 p-3 text-xs">
+          <summary className="cursor-pointer text-zinc-300">Bulgu ayrıntısı ({report.findings.length}{report.findingsTruncated ? "+" : ""})</summary>
+          <ul className="mt-3 space-y-2">
+            {report.findings.map((finding, index) => (
+              <li key={`${finding.kod}-${index}`} className="text-zinc-400">
+                <span className={finding.seviye === "hata" ? "text-red-400" : finding.seviye === "uyari" ? "text-amber-300" : "text-zinc-500"}>{finding.seviye.toUpperCase()}</span> [{finding.madde}] {finding.mesaj}
+                {finding.varliklar.length > 0 && <div className="mt-1 break-all font-mono text-[10px] text-zinc-600">GlobalId: {finding.varliklar.join(", ")}{finding.sayi && finding.sayi > finding.varliklar.length ? ` … toplam ${finding.sayi}` : ""}</div>}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <p className="text-[10px] leading-relaxed text-zinc-500">{report.disclaimer} Kural verisi: {report.ruleSource.engine.name} {report.ruleSource.engine.version} ({report.ruleSource.engine.upstreamCommit}).</p>
+    </section>
+  );
+}

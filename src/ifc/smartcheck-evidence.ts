@@ -1,6 +1,7 @@
 import type { Finding, ParsedQuantityRow } from "@/smartcheck/import/normalize";
 import { validateRows } from "@/smartcheck/import/normalize";
 import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "./types";
+import type { IfcRuleEvaluations } from "@/smartcheck/rules/ifc-rule-run";
 
 export interface IfcEvidenceDocumentContext {
   fileName: string;
@@ -68,6 +69,8 @@ export interface IfcSmartCheckEvidenceArtifact {
   };
   rows: IfcSmartCheckEvidenceRow[];
   blockedElements: IfcBlockedEvidenceElement[];
+  /** Server-side rule pack results (3x3, e-PYS), stored as run evidence. */
+  ruleEvaluations?: IfcRuleEvaluations;
 }
 
 function formatQuantity(value: number): string {

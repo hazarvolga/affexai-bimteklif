@@ -84,6 +84,7 @@ async function buildMeasurement(companyId: string, userId: string, pilotCase: ty
     manuallyCorrectedRows: metrics.manuallyCorrectedRows,
     findingCount: metrics.findingCount,
     approvedRows: metrics.approvedRows,
+    exceptionRows: metrics.exceptionRows,
     transferredRows: metrics.transferredRows,
     provenanceCompleteRows: metrics.provenanceCompleteRows,
     processingDurationSeconds: metrics.processingDurationSeconds,

@@ -28,6 +28,8 @@ export type PilotMetrics = {
   manuallyCorrectedRows: number;
   findingCount: number;
   approvedRows: number;
+  /** accepted_exception rows: transferable with a reason, but never an approval in KPIs (E-9). */
+  exceptionRows: number;
   transferredRows: number;
   provenanceCompleteRows: number;
   processingDurationSeconds: number | null;
@@ -59,7 +61,8 @@ export function calculatePilotMetrics(input: {
   const parsedRows = input.rows.filter((row) => Boolean(row.normalizedDescription && row.normalizedUnit && row.normalizedQuantity !== null && row.normalizedPrice !== null && Number(row.normalizedQuantity) > 0 && Number(row.normalizedPrice) >= 0)).length;
   const manuallyCorrectedRows = Math.min(parsedRows, input.manuallyCorrectedRowIds?.size ?? 0);
   const findingCount = input.rows.reduce((sum, row) => sum + Math.max(0, row.findingsCount), 0);
-  const approvedRows = input.rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception").length;
+  const approvedRows = input.rows.filter((row) => row.reviewStatus === "approved").length;
+  const exceptionRows = input.rows.filter((row) => row.reviewStatus === "accepted_exception").length;
   const transferred = input.transfers.filter((transfer) => Boolean(transfer.sourceQuantityRowId));
   const provenanceCompleteRows = transferred.filter((transfer) => Boolean(transfer.sourceQuantityRowId && transfer.sourceDocumentId && transfer.sourceProcessingRunId && transfer.sourceCellRange && transfer.sourceReference)).length;
   const processingDurationSeconds = durationSeconds(input.processingRun?.startedAt, input.processingRun?.completedAt);
@@ -70,6 +73,7 @@ export function calculatePilotMetrics(input: {
     manuallyCorrectedRows,
     findingCount,
     approvedRows,
+    exceptionRows,
     transferredRows: transferred.length,
     provenanceCompleteRows,
     processingDurationSeconds,
@@ -80,18 +84,19 @@ export function calculatePilotMetrics(input: {
   };
 }
 
-export function summarizePilotMeasurements(measurements: Array<Pick<PilotMetrics, "totalRows" | "parsedRows" | "manuallyCorrectedRows" | "findingCount" | "approvedRows" | "transferredRows" | "provenanceCompleteRows" | "processingDurationSeconds" | "workflowDurationSeconds">>) {
+export function summarizePilotMeasurements(measurements: Array<Pick<PilotMetrics, "totalRows" | "parsedRows" | "manuallyCorrectedRows" | "findingCount" | "approvedRows" | "exceptionRows" | "transferredRows" | "provenanceCompleteRows" | "processingDurationSeconds" | "workflowDurationSeconds">>) {
   const totals = measurements.reduce((sum, measurement) => ({
     totalRows: sum.totalRows + measurement.totalRows,
     parsedRows: sum.parsedRows + measurement.parsedRows,
     manuallyCorrectedRows: sum.manuallyCorrectedRows + measurement.manuallyCorrectedRows,
     findingCount: sum.findingCount + measurement.findingCount,
     approvedRows: sum.approvedRows + measurement.approvedRows,
+    exceptionRows: sum.exceptionRows + measurement.exceptionRows,
     transferredRows: sum.transferredRows + measurement.transferredRows,
     provenanceCompleteRows: sum.provenanceCompleteRows + measurement.provenanceCompleteRows,
     processingDurationSeconds: sum.processingDurationSeconds + (measurement.processingDurationSeconds ?? 0),
     workflowDurationSeconds: sum.workflowDurationSeconds + (measurement.workflowDurationSeconds ?? 0),
-  }), { totalRows: 0, parsedRows: 0, manuallyCorrectedRows: 0, findingCount: 0, approvedRows: 0, transferredRows: 0, provenanceCompleteRows: 0, processingDurationSeconds: 0, workflowDurationSeconds: 0 });
+  }), { totalRows: 0, parsedRows: 0, manuallyCorrectedRows: 0, findingCount: 0, approvedRows: 0, exceptionRows: 0, transferredRows: 0, provenanceCompleteRows: 0, processingDurationSeconds: 0, workflowDurationSeconds: 0 });
   return {
     caseCount: measurements.length,
     ...totals,

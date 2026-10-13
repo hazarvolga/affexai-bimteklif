@@ -24,6 +24,7 @@ export interface TrPsetCsbProjectCompliance {
   kaks?: number;
   cekmeOn?: number;
   cekmeYan?: number;
+  cekmeArka?: number;
   source: "ifc_site" | "ifc_building" | null;
   sourcePath?: string;
 }

@@ -18,15 +18,17 @@ test("pilot metrics calculate parse, correction and provenance rates determinist
     workflowStartedAt: new Date("2026-07-23T09:00:00Z"),
     workflowCompletedAt: new Date("2026-07-23T09:10:00Z"),
   });
-  assert.deepEqual(metrics, { totalRows: 3, parsedRows: 2, manuallyCorrectedRows: 1, findingCount: 3, approvedRows: 2, transferredRows: 2, provenanceCompleteRows: 1, processingDurationSeconds: 90, workflowDurationSeconds: 600, parseRate: 0.6667, manualReentryFreeRate: 0.3333, provenanceCoverage: 0.5 });
+  assert.deepEqual(metrics, { totalRows: 3, parsedRows: 2, manuallyCorrectedRows: 1, findingCount: 3, approvedRows: 1, exceptionRows: 1, transferredRows: 2, provenanceCompleteRows: 1, processingDurationSeconds: 90, workflowDurationSeconds: 600, parseRate: 0.6667, manualReentryFreeRate: 0.3333, provenanceCoverage: 0.5 });
 });
 
 test("pilot metric summaries aggregate rows instead of averaging percentages", () => {
   const summary = summarizePilotMeasurements([
-    { totalRows: 10, parsedRows: 9, manuallyCorrectedRows: 1, findingCount: 2, approvedRows: 9, transferredRows: 8, provenanceCompleteRows: 8, processingDurationSeconds: 20, workflowDurationSeconds: 100 },
-    { totalRows: 2, parsedRows: 1, manuallyCorrectedRows: 0, findingCount: 1, approvedRows: 1, transferredRows: 1, provenanceCompleteRows: 0, processingDurationSeconds: 40, workflowDurationSeconds: 200 },
+    { totalRows: 10, parsedRows: 9, manuallyCorrectedRows: 1, findingCount: 2, approvedRows: 8, exceptionRows: 1, transferredRows: 8, provenanceCompleteRows: 8, processingDurationSeconds: 20, workflowDurationSeconds: 100 },
+    { totalRows: 2, parsedRows: 1, manuallyCorrectedRows: 0, findingCount: 1, approvedRows: 1, exceptionRows: 0, transferredRows: 1, provenanceCompleteRows: 0, processingDurationSeconds: 40, workflowDurationSeconds: 200 },
   ]);
   assert.equal(summary.caseCount, 2);
+  assert.equal(summary.approvedRows, 9, "exceptions are not counted as approvals (E-9)");
+  assert.equal(summary.exceptionRows, 1);
   assert.equal(summary.parseRate, 0.8333);
   assert.equal(summary.manualReentryFreeRate, 0.75);
   assert.equal(summary.provenanceCoverage, 0.8889);

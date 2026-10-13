@@ -28,7 +28,7 @@ Betonarme hesaplamalarında mükerrer hacim ölçümünü engellemek için, yap�
 ### **3.2. Çelik Donatı (Rebar) Ağırlıkları ve TS 708 Standart Çapları**
 
 Çelik donatı işleri metrajı, projeden çıkarılan kesim uzunluklarının (kancalar, pilye kıvrımları ve bindirme boyları dahil) birim ağırlıklar ile çarpılması ve piyasa zayiat katsayılarının (genellikle %3-%5) eklenmesiyle bulunur. Ancak Türkiye'de betonarme donatı çelikleri TS 708:2016 standardına tabidir ve bu standardın dışında yapılan tüm ağırlık kabulleri yasal olarak hatalıdır10.  
-Sektörde pratik hesaplama için sıkça kullanılan ![][image1] veya ![][image2] formülleri teorik ağırlıklar üretir. Ancak kamu ihalelerinde ve hakediş ödemelerinde geçerli olan, TS 708 standardının belirlediği "Nominal Kütle" değerleridir. Sektörde çok sık karşılaşılan hatalardan biri, TS 708 standardında aslında var olmayan nominal üretim çaplarının (örneğin ![][image3]) metrajlara dahil edilmesidir10. Standart üretim çapları 6, 8, 10, 12, 14, 16, 18, 20, 22, 25, 28 ve 32 mm olarak sınırlandırılmıştır. Daha vahim bir hata ise yuvarlama alışkanlıklarıdır; örneğin ![][image4] donatının TS 708 uyarınca net nominal kütlesi 1.997 kg/m iken, piyasada bunun 2.000 kg/m olarak hesaplanması, binlerce tonluk bir projede devasa hak ediş sapmalarına yol açar14.
+Sektörde pratik hesaplama için sıkça kullanılan ![][image1] veya ![][image2] formülleri teorik ağırlıklar üretir. Ancak kamu ihalelerinde ve hakediş ödemelerinde geçerli olan, TS 708 standardının belirlediği "Nominal Kütle" değerleridir. Sektörde çok sık karşılaşılan hatalardan biri, TS 708 standardında aslında var olmayan nominal üretim çaplarının (örneğin ![][image3]) metrajlara dahil edilmesidir10. Standart üretim çapları 6, 8, 10, 12, 14, 16, 18, 20, 22, 25, 28 ve 32 mm olarak sınırlandırılmıştır. Yuvarlama esası sözleşmede açıkça belirtilmelidir; örneğin ![][image4] donatının teorik kütlesi π·18²/4·7,85·10⁻³ = 1,998 kg/m, TS 708 / EN 10080 nominal kütle tablosundaki değeri ise 2,00 kg/m'dir. 2,00 kg/m kullanmak bir hata değildir; hangi değerin esas alındığı metraj ve hakedişte tutarlı uygulanmalıdır (düzeltme: 13 Ekim 2026, önceki metin 1,997 kg/m ve "2,000 hatalı" diyordu)14.
 
 ![][image5]
 
@@ -41,11 +41,11 @@ Bu noktada yasal kesinliğin sağlanması adına, TS 708 standart verileri temel
 | **12** | 113.1 | **0.888** | Temel alt donatı ağı hesaplarında standart. |
 | **14** | 153.9 | **1.208** | Kolon dikey düşey donatıları. |
 | **16** | 201.1 | **1.578** | Ağır yük taşıyıcı eleman temel çapı. |
-| **18** | 254.5 | **1.997** | Piyasada hatalı şekilde 2.000 kg/m olarak yuvarlanır. |
+| **18** | 254.5 | **1.998** | TS 708 / EN 10080 tablo değeri 2,00 kg/m; esas alınan değer sözleşmede belirtilmeli. |
 | **20** | 314.2 | **2.466** | Yüksek katlı yapıların ana kolon donatı çapı. |
 | **22** | 380.1 | **2.984** | Tasarımda ![][image3] yerine tercih edilmesi gereken yasal çap. |
 | **25** | 490.9 | **3.853** | Mega projeler ve radye temel donatı ağı. |
-| **28** | 615.8 | **4.833** | Köprü ve viyadük taşıyıcı kolon standardı. |
+| **28** | 615.8 | **4.834** | Köprü ve viyadük taşıyıcı kolon standardı. |
 | **32** | 804.2 | **6.313** | TS 708 kapsamında genel yaygın en büyük çap. |
 
 ## **4\. Donatı Ek ve Bindirme Boyları (Lap Length): Yasal Ayrışma ve TS 500 Uygulaması**

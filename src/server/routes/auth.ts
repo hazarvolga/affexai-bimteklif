@@ -4,9 +4,10 @@ import { stageAndDeliverAuthAction } from '../auth/action-email';
 import type { Express, Response } from "express";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, adminAuditLogs, authActionTokens, companies, memberships, plans, subscriptions, users } from "../../db/schema";
+import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, adminAuditLogs, authActionTokens, companies, memberships, subscriptions, users } from "../../db/schema";
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
 import { AuthService } from "../../services/auth/authService";
+import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
@@ -112,7 +113,7 @@ export function registerAuthRoutes(app: Express) {
         const [company] = await tx.insert(companies).values({ name: companyName }).returning();
         const [user] = await tx.insert(users).values({ email, fullName, passwordHash }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
-        const [trialPlan] = await tx.select().from(plans).where(and(eq(plans.isActive, true), eq(plans.monthlyPrice, 0))).limit(1);
+        const trialPlan = await selectTrialPlan(tx);
         const now = new Date();
         const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
         await tx.insert(subscriptions).values({

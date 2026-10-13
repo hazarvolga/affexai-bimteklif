@@ -62,6 +62,8 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
+import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculations';
+import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 
 export function CreateQuote() {
   const navigate = useNavigate();
@@ -151,7 +153,7 @@ export function CreateQuote() {
               skippedItems: transfer.skipped.length,
               evidenceElementCount: Number(parsedTransfer.evidenceElementCount) || undefined,
             });
-            toast.warning(`IFC on analizinden ${importedItems.length} tahmini kalem aktarıldı; teknik review olmadan verified sayılmaz.`);
+            toast.warning(`IFC on analizinden ${importedItems.length} tahmini kalem aktarıldı; birim fiyatları onaylı kaynaktan girin, teknik review olmadan verified sayılmaz.`);
           }
           if (transfer.skipped.length > 0) {
             toast.info(`${transfer.skipped.length} IFC türevi kalem kanıt eksikliği nedeniyle aktarılmadı.`);
@@ -232,16 +234,8 @@ export function CreateQuote() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const calculateItemTotal = (item: Partial<QuoteItem>) => {
-    const qty = Number(item.quantity) || 0;
-    const price = Number(item.unitPrice) || 0;
-    const discount = Number(item.discountPercent) || 0;
-    const vat = Number(item.vatPercent) || 0;
-
-    const sub = qty * price;
-    const afterDiscount = sub * (1 - discount / 100);
-    return Number(afterDiscount.toFixed(2));
-  };
+  // Tek hesap kaynağı: sunucu, PDF ve ekran aynı yuvarlama kuralını kullanır.
+  const calculateItemTotal = (item: Partial<QuoteItem>) => calculateLineItemTotal(item);
 
   const updateItem = (id: string, updates: Partial<QuoteItem>) => {
     setItems(items.map(item => {
@@ -317,23 +311,17 @@ export function CreateQuote() {
     }
   };
 
-  const totals = items.reduce((acc, item) => {
-    const sub = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
-    const disc = sub * ((Number(item.discountPercent) || 0) / 100);
-    const vat = (sub - disc) * ((Number(item.vatPercent) || 0) / 100);
-    
-    acc.subtotal += sub;
-    acc.discountTotal += disc;
-    acc.vatTotal += vat;
-    acc.grandTotal += (sub - disc + vat);
-    return acc;
-  }, { subtotal: 0, discountTotal: 0, vatTotal: 0, grandTotal: 0 });
+  const totals = calculateQuotationTotals(items);
 
-  const costInputsComplete = items.length > 0 && items.every((item) => Number.isFinite(Number(item.costUnitPrice)) && Number(item.costUnitPrice) >= 0);
-  const estimatedCost = costInputsComplete ? items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costUnitPrice) || 0) * (1 + (Number(item.wastePercent) || 0) / 100), 0) : 0;
-  const estimatedMargin = costInputsComplete && totals.subtotal - totals.discountTotal > 0
-    ? ((totals.subtotal - totals.discountTotal - estimatedCost) / (totals.subtotal - totals.discountTotal)) * 100
-    : 0;
+  // Same calculation as the server profitability report, including risk premiums (L-4).
+  const financials = calculateQuotationFinancials(items, {
+    projectDurationMonths: formData.projectDurationMonths,
+    escalationVolatilityPercent: formData.escalationVolatilityPercent,
+    carbonRiskPremiumPercent: formData.carbonRiskPremiumPercent,
+    informationDeliveryCostPercent: formData.informationDeliveryCostPercent,
+  });
+  const costInputsComplete = items.length > 0 && financials.missingCostItemIndexes.length === 0;
+  const estimatedMargin = costInputsComplete ? financials.margin : 0;
 
   const handleSave = async (status: QuoteStatus = QuoteStatus.DRAFT) => {
     if (id && (!editVersion || editLoading || editError)) return;
@@ -384,12 +372,12 @@ export function CreateQuote() {
       expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency: Currency.TRY,
       projectDurationMonths: 6,
-      escalationVolatilityPercent: 8,
+      escalationVolatilityPercent: 2,
       procurementProfile: 'low_carbon',
       carbonRiskPremiumPercent: 3,
       informationDeliveryLevel: 'cobie',
       informationDeliveryCostPercent: 2,
-      notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 BIM teslim formatına uygun tekliftir.',
+      notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
     });
 
     setItems([
@@ -868,7 +856,7 @@ export function CreateQuote() {
                 <div className={cn("p-1.5 rounded-lg", costInputsComplete ? "bg-emerald-100" : "bg-amber-100")}>
                   {costInputsComplete ? <TrendingUp size={16} className="text-emerald-600" /> : <AlertCircle size={16} className="text-amber-600" />}
                 </div>
-                {costInputsComplete ? `Gerçek maliyet bazlı marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
+                {costInputsComplete ? `Risk primleri dahil marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
               </div>
             </CardContent>
           </Card>

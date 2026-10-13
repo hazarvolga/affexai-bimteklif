@@ -8,7 +8,7 @@ import express from "express";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { changeProcessingRun, ProcessingConflict } from "../../smartcheck/import/service";
 import { db } from "../../db";
-import { clients, companies, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
+import { clients, companies, documentProcessingArtifacts, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
 import { fetchTenantIfcLimits, IfcNotAvailableError, IfcLimitsUnavailableError, SMARTCHECK_MAX_FILE_BYTES, SMARTCHECK_MAX_IFC_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
@@ -342,6 +342,18 @@ export function registerSmartCheckRoutes(app: Express) {
       fileName: documents.originalFileName,
     }).from(documentProcessingRuns).leftJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, req.user.companyId))).where(eq(documentProcessingRuns.companyId, req.user.companyId)).orderBy(desc(documentProcessingRuns.createdAt)).limit(25);
     res.json(queue.map((run) => ({ ...run, isStale: isProcessingRunStale(run) })));
+  });
+
+  // Latest RG 33331 e-PYS pre-check (EK-9) for the document; advisory, tenant-scoped.
+  app.get("/api/smartcheck/documents/:id/epys-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
+    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
+      .from(documentProcessingArtifacts)
+      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.artifactType, "epys_preflight")))
+      .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
+    if (!artifact) return res.status(404).json({ error: "Bu doküman için e-PYS ön kontrolü bulunmuyor.", code: "EPYS_PREFLIGHT_NOT_FOUND" });
+    res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
   });
 
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {

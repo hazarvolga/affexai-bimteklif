@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ACADEMY_ENABLED } from '@/config/features';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ export function Login() {
       if (res.ok) {
         const data = await res.json();
         login(data.token, data.user, data.company, data.role, data.accountType);
-        const finalPath = data.user.isSuperAdmin ? '/admin' : (data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
+        const finalPath = data.user.isSuperAdmin ? '/admin' : (ACADEMY_ENABLED && data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
         navigate(finalPath);
       } else {
         const body = await res.json().catch(() => ({}));

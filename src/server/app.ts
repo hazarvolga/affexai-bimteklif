@@ -50,6 +50,9 @@ import { registerPilotRoutes } from "./routes/pilot";
 import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
+import { captureError, readBuildRevision } from "./observability/error-tracking";
+import { canonicalHostRedirect, contentSecurityPolicy, robotsTxt, sitemapXml } from "./security/web-hardening";
+import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
 import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
@@ -72,6 +75,11 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   app.disable('x-powered-by');
   if (productionConfig.trustProxyHops > 0) app.set('trust proxy', productionConfig.trustProxyHops);
 
+  // www -> apex 301 before anything else answers (P1-4).
+  if (process.env.NODE_ENV === "production") app.use(canonicalHostRedirect(process.env.PUBLIC_APP_URL));
+  const csp = contentSecurityPolicy(process.env);
+  const buildRevision = readBuildRevision();
+
   // HTTP hardening headers (SEC-09, OPS-10)
   app.use((_req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -80,6 +88,8 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     if (process.env.NODE_ENV === "production") {
       res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+      // Dev keeps Vite's inline HMR preamble working; production enforces the policy.
+      res.setHeader("Content-Security-Policy", csp);
     }
     next();
   });
@@ -133,7 +143,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
       const emailDeliveryConfigured = emailMode !== 'disabled'
         && validateAuthEmailEnvironment(process.env).length === 0
         && (emailMode === 'smtp' || Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL));
-      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, revision: process.env.SOURCE_COMMIT || null });
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, ...buildRevision });
     } catch (error) {
       console.error("Health check failed:", error);
       res.status(503).json({ status: "error", db: "failed" });
@@ -155,6 +165,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerAdminLogRoutes(app);
   registerAcademyRoutes(app);
   registerSmartCheckRoutes(app);
+  registerIfcBrowserAnalysisRoutes(app, canMutate);
   registerPricingRoutes(app);
   registerPricingFileImportRoutes(app);
   registerSourceIntelligenceRoutes(app);
@@ -171,8 +182,9 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   });
 
   // Central API error handler
-  app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((error: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error("Unhandled API error:", error);
+    captureError(error, { route: req.route?.path ?? req.path, method: req.method });
     if (res.headersSent) return next(error);
     return res.status(500).json({ error: "Beklenmeyen bir sunucu hatası oluştu." });
   });
@@ -195,6 +207,14 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
   // Vite public/ currently contains this single root asset. Add future root assets
   // explicitly here rather than reopening the mixed frontend/backend dist directory.
   app.get('/favicon.svg', (_req, res) => { res.sendFile(path.join(distPath, 'favicon.svg')); });
+  app.get('/sitemap.xml', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('application/xml').set('Cache-Control', 'public, max-age=3600').send(sitemapXml(process.env.PUBLIC_APP_URL));
+  });
+  app.get('/robots.txt', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(robotsTxt(process.env.PUBLIC_APP_URL));
+  });
   app.get('*', (req, res) => {
     const pathname = decodeURIComponent(req.path);
     if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();

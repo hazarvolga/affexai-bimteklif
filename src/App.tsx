@@ -4,7 +4,7 @@
  */
 
 import { lazy, Suspense, type ComponentType } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Shell } from '@/components/layout/Shell';
@@ -13,6 +13,7 @@ import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
 
+import { ACADEMY_ENABLED } from '@/config/features';
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(async () => ({ default: (await loader())[name] as ComponentType<any> }));
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
 const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminShell');
@@ -23,6 +24,8 @@ const AdminQueue = page(() => import('@/pages/admin/AdminQueue'), 'AdminQueue');
 const PlansList = page(() => import('@/pages/admin/PlansList'), 'PlansList');
 const PricingSources = page(() => import('@/pages/admin/PricingSources'), 'PricingSources');
 const AdminReports = page(() => import('@/pages/admin/AdminReports'), 'AdminReports');
+const DeveloperRoadmap = page(() => import('@/pages/admin/DeveloperRoadmap'), 'DeveloperRoadmap');
+const CalculationMethods = page(() => import('@/pages/admin/CalculationMethods'), 'CalculationMethods');
 const AdminLogs = page(() => import('@/pages/admin/AdminLogs'), 'AdminLogs');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
@@ -78,12 +81,14 @@ function AppRoutes() {
       <Route path="/pricing" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/features" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/smartcheck" element={<SmartCheckDemo />} />
-      <Route path="/academy" element={<PublicAcademy />} />
-      <Route path="/academy/complete" element={<CompleteAcademyContent />} />
-      <Route path="/academy/allplan" element={<AllplanAccessGate />} />
-      <Route path="/academy/allplan/:pathSlug" element={<AllplanAccessGate />} />
-      <Route path="/academy/allplan/lesson/:lessonSlug" element={<AllplanAccessGate />} />
-      <Route path="/academy/:slug" element={<PublicAcademyDetail />} />
+      {ACADEMY_ENABLED ? <>
+        <Route path="/academy" element={<PublicAcademy />} />
+        <Route path="/academy/complete" element={<CompleteAcademyContent />} />
+        <Route path="/academy/allplan" element={<AllplanAccessGate />} />
+        <Route path="/academy/allplan/:pathSlug" element={<AllplanAccessGate />} />
+        <Route path="/academy/allplan/lesson/:lessonSlug" element={<AllplanAccessGate />} />
+        <Route path="/academy/:slug" element={<PublicAcademyDetail />} />
+      </> : <Route path="/academy/*" element={<Navigate to="/" replace />} />}
       <Route path="/pilot" element={<PilotApplication />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -105,6 +110,8 @@ function AppRoutes() {
           <Route path="pricing-sources" element={<PricingSources />} />
           <Route path="plans" element={<PlansList />} />
           <Route path="reports" element={<AdminReports />} />
+          <Route path="roadmap" element={<DeveloperRoadmap />} />
+          <Route path="roadmap/calculations" element={<CalculationMethods />} />
           <Route path="logs" element={<AdminLogs />} />
         </Route>
 
@@ -130,16 +137,18 @@ function AppRoutes() {
           <Route path="dosyadan-teklif-demo" element={<DosyadanTeklifDemo />} />
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
-          <Route path="academy" element={<Academy />} />
-          <Route path="academy/exam" element={<AcademyExamPage />} />
-          <Route path="academy/certificates" element={<AcademyCertificatesPage />} />
-          <Route path="academy/profile" element={<AcademyProfilePage />} />
-          <Route path="academy/cad-viewer" element={<AcademyCADPage />} />
-          <Route path="academy/activation" element={<AcademyActivation />} />
-          <Route path="academy/content/:slug" element={<LessonViewerPage />} />
-          <Route path="academy/allplan" element={<AllplanAcademy />} />
-          <Route path="academy/allplan/lesson/:lessonSlug" element={<ProtectedAllplanLessonPage />} />
-          <Route path="academy/allplan/content/:slug" element={<LessonViewerPage />} />
+          {ACADEMY_ENABLED ? <>
+            <Route path="academy" element={<Academy />} />
+            <Route path="academy/exam" element={<AcademyExamPage />} />
+            <Route path="academy/certificates" element={<AcademyCertificatesPage />} />
+            <Route path="academy/profile" element={<AcademyProfilePage />} />
+            <Route path="academy/cad-viewer" element={<AcademyCADPage />} />
+            <Route path="academy/activation" element={<AcademyActivation />} />
+            <Route path="academy/content/:slug" element={<LessonViewerPage />} />
+            <Route path="academy/allplan" element={<AllplanAcademy />} />
+            <Route path="academy/allplan/lesson/:lessonSlug" element={<ProtectedAllplanLessonPage />} />
+            <Route path="academy/allplan/content/:slug" element={<LessonViewerPage />} />
+          </> : <Route path="academy/*" element={<Navigate to="/app" replace />} />}
           <Route path="bim-standards" element={<BimStandardsPage />} />
           <Route path="bim-glossary" element={<BimGlossaryPage />} />
         </Route>

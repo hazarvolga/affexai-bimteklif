@@ -1,13 +1,8 @@
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
-// Registry checked 2026-10-08: extract-zip 2.0.2 is not published.
-// Only the disabled Puppeteer browser-download path is temporarily admitted.
-const temporary = new Set([
-  'https://github.com/advisories/GHSA-jmr9-qjv8-65gv',
-  'https://github.com/advisories/GHSA-7pqw-9j4j-h8q3',
-]);
-const expires = new Date('2026-10-22T00:00:00Z');
+// No exceptions: every high or critical production finding blocks CI.
+// The former extract-zip exception ended with Puppeteer 25 (2026-10-13).
 const severities = ['info', 'low', 'moderate', 'high', 'critical'];
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const isText = value => typeof value === 'string' && value.trim().length > 0;
@@ -37,19 +32,11 @@ function validatedFindings(report) {
   return findings;
 }
 
-export function evaluateAudit(report, now = new Date()) {
-  const findings = validatedFindings(report);
-  const accepted = [];
-  const blocked = [];
-  for (const finding of findings) {
-    if (!['high', 'critical'].includes(finding.severity)) continue;
-    const paths = finding.findings.flatMap(entry => entry.paths);
-    const downloadOnly = paths.length > 0 && paths.every(path => /^\.>puppeteer>(?:puppeteer-core>)?@puppeteer\/browsers>extract-zip$/.test(path));
-    if (finding.severity === 'high' && finding.module_name === 'extract-zip' && temporary.has(finding.url) && downloadOnly && now < expires) {
-      accepted.push(finding.url);
-    } else blocked.push({ module: finding.module_name, severity: finding.severity, url: finding.url });
-  }
-  return { accepted, blocked, exceptionExpires: expires.toISOString() };
+export function evaluateAudit(report) {
+  const blocked = validatedFindings(report)
+    .filter(finding => ['high', 'critical'].includes(finding.severity))
+    .map(finding => ({ module: finding.module_name, severity: finding.severity, url: finding.url }));
+  return { blocked };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -82,3 +82,8 @@ test('isolated HTML parser deadline terminates its worker', async () => {
   const { parseHtmlPrices } = await import('./price-parser-worker');
   await assert.rejects(parseHtmlPrices('<table></table>', 'https://example.com', 1), /CRAWLER_PARSE_TIMEOUT/);
 });
+
+test('parsed prices round half-cents away from zero like quotation money', () => {
+  assert.equal(parseTurkishPrice('12.345,675 TL'), 12345.68);
+  assert.equal(parseTurkishPrice('0,335 TL'), 335);
+});

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { ACADEMY_ENABLED } from '@/config/features';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ export function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isPilot = searchParams.get('intent') === 'pilot';
-  const isAcademy = searchParams.get('intent') === 'academy';
+  const isAcademy = ACADEMY_ENABLED && searchParams.get('intent') === 'academy';
   const requestedNext = searchParams.get('next');
   const nextPath = isAcademy ? '/app/academy/allplan' : requestedNext?.startsWith('/app/') ? requestedNext : '/app';
 

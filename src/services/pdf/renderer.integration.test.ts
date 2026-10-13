@@ -7,7 +7,7 @@ import { QuoteStatus } from '../../types';
 import { templates, type PdfData } from './templates';
 import { renderPdf } from './renderer';
 
-const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
+const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || await puppeteer.executablePath();
 const skip = existsSync(executablePath) ? false : 'Chromium unavailable; set PUPPETEER_EXECUTABLE_PATH for real PDF smoke';
 
 test('Chromium smoke: default launcher produces a PDF without sandbox overrides', { skip }, async () => {

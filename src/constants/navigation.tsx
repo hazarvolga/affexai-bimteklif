@@ -5,6 +5,7 @@ import {
   Settings,
   BookOpen
 } from 'lucide-react';
+import { ACADEMY_ENABLED } from '@/config/features';
 
 export type NavGroup = 'Ana Menü' | 'Araçlar' | 'Sistem Yönetimi';
 
@@ -68,11 +69,11 @@ export const navigationConfig: NavItem[] = [
     roles: ["owner", "admin"],
     group: "Araçlar",
   },
-  {
+  ...(ACADEMY_ENABLED ? [{
     label: "Akademi (Yardım)",
     path: "/app/academy",
     icon: BookOpen,
     roles: ["owner", "admin", "manager", "viewer"],
-    group: "Araçlar",
-  }
+    group: "Araçlar" as const,
+  }] : []),
 ];

@@ -3,7 +3,11 @@ import { db } from "../../db";
 import { plans, subscriptions, usageLogs, usageRecords } from "../../db/schema";
 import { PLAN_LIMITS } from "./limits";
 import { describeQuotationAllowance, quotaUnavailable } from "./quota-policy";
-import { AI_USAGE_FEATURE, aiMonthlyLimit } from './ai-quota';
+import { AI_USAGE_FEATURE } from './ai-quota';
+import { featureMonthlyLimit, isMeteredFeature, quotaCodes } from './feature-limits';
+
+// A malformed limit makes that feature unavailable in the report; it never hides the whole report.
+const limitOrNull = (read: () => number) => { try { return read(); } catch { return null; } };
 
 export async function readBillingUsage(companyId: string, at?: Date) {
   return db.transaction(async tx => {
@@ -21,22 +25,24 @@ export async function readBillingUsage(companyId: string, at?: Date) {
     const stats = await tx.select({ feature: usageLogs.feature, count: sql<string>`sum(${usageLogs.count})`, cost: sql<string>`sum(${usageLogs.costEstimate})` })
       .from(usageLogs).where(and(eq(usageLogs.companyId, companyId), gte(usageLogs.date, start), lt(usageLogs.date, end)))
       .groupBy(usageLogs.feature);
-    const legacyLimits = subscription ? PLAN_LIMITS[subscription.plan] : undefined;
     const reason = allowance.reason ?? (allowance.limit !== null && current >= allowance.limit ? "QUOTA_EXCEEDED" : null);
+    // Every feature reads the same plan row that enforcement uses (P0-6).
     const usage = Object.keys(PLAN_LIMITS.starter).map(feature => {
       const stat = stats.find(row => row.feature === feature);
       const isQuote = feature === "QUOTATION_CREATED";
-      const isAi = feature === AI_USAGE_FEATURE;
-      const enforced = isQuote || isAi;
+      const metered = isMeteredFeature(feature) ? feature : null;
+      const enforced = isQuote || metered !== null;
       const featureCurrent = isQuote ? current : Number(stat?.count ?? 0);
-      const featureLimit = isQuote ? allowance.limit : isAi && subscription ? aiMonthlyLimit(subscription.plan) : legacyLimits?.[feature as keyof typeof PLAN_LIMITS.starter] ?? null;
-      const featureReason = isQuote ? reason : allowance.reason ?? (featureLimit !== null && featureCurrent >= featureLimit ? 'AI_QUOTA_EXCEEDED' : null);
+      const featureLimit = isQuote ? allowance.limit : metered && subscription ? limitOrNull(() => featureMonthlyLimit(subscription, plan, metered)) : null;
+      const featureReason = isQuote ? reason : allowance.reason
+        ?? (metered && subscription && featureLimit === null ? quotaCodes(metered).unavailable : null)
+        ?? (metered && featureLimit !== null && featureCurrent >= featureLimit ? quotaCodes(metered).exceeded : null);
       return {
         feature, current: featureCurrent,
         limit: featureLimit,
         cost: Number(stat?.cost ?? 0), enforced,
         source: isQuote ? "usage_records" : "usage_logs",
-        ...(isAi ? { countingPolicy: 'provider_attempts_reserved_before_execution' } : {}),
+        ...(feature === AI_USAGE_FEATURE ? { countingPolicy: 'provider_attempts_reserved_before_execution' } : metered ? { countingPolicy: 'reserved_before_execution_released_on_failure' } : {}),
         ...(enforced ? { available: featureReason === null, reason: featureReason, remaining: featureReason === null ? Math.max(0, featureLimit! - featureCurrent) : 0 } : {}),
       };
     });

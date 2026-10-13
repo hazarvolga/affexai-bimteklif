@@ -14,6 +14,10 @@ RUN pnpm run build \
     && pnpm exec esbuild scripts/bootstrap-plan-catalog.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/bootstrap-plan-catalog.mjs \
     && pnpm exec esbuild scripts/bootstrap-pricing-source-catalog.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/bootstrap-pricing-source-catalog.mjs \
     && pnpm exec esbuild scripts/release-migrations/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/release-cli.mjs
+# Coolify passes the deployed commit; it is stamped into the image so /api/health cannot drift (P0-4).
+# Declared after the build so a new commit only re-runs this layer, not the whole build.
+ARG SOURCE_COMMIT=""
+RUN SOURCE_COMMIT="$SOURCE_COMMIT" node -e "require('fs').writeFileSync('dist/build-info.json', JSON.stringify({ revision: process.env.SOURCE_COMMIT || null, builtAt: new Date().toISOString() }))"
 
 FROM dependencies AS production-dependencies
 RUN pnpm prune --prod --ignore-scripts
@@ -49,7 +53,7 @@ ENV NODE_ENV=production \
 RUN apt-get update \
     && apt-get install --no-install-recommends -y python3 python3-venv python3-pip ca-certificates tini \
     && python3 -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 pytest \
+    && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 ifctester==0.8.4 pypdf==6.19.0 pytest \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules

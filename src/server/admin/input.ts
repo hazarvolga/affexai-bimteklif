@@ -15,6 +15,14 @@ const planFields = z.object({
   displayOrder: z.number().int().min(0).max(10000).optional(),
   marketingBadge: z.string().trim().min(1).max(40).nullable().optional(),
   marketingDescription: z.string().trim().min(1).max(280).nullable().optional(),
+  monthlyAiLimit: nonnegativeInteger.nullable().optional(),
+  monthlyPdfLimit: nonnegativeInteger.nullable().optional(),
+  monthlyCrmLimit: nonnegativeInteger.nullable().optional(),
+  monthlyRegulationLimit: nonnegativeInteger.nullable().optional(),
+  monthlyProfitAnalysisLimit: nonnegativeInteger.nullable().optional(),
+  storageMaxBytes: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER).nullable().optional(),
+  maxDocuments: z.number().int().min(1).max(2147483647).nullable().optional(),
+  isTrial: z.boolean().optional(),
 }).strict();
 
 export const createPlanInput = planFields.extend({

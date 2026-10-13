@@ -453,6 +453,7 @@ model SmartcheckPilotMeasurement {
   manuallyCorrectedRows Int                   @default(0) @map("manually_corrected_rows")
   findingCount        Int                     @default(0) @map("finding_count")
   approvedRows        Int                     @default(0) @map("approved_rows")
+  exceptionRows       Int                     @default(0) @map("exception_rows")
   transferredRows     Int                     @default(0) @map("transferred_rows")
   provenanceCompleteRows Int                  @default(0) @map("provenance_complete_rows")
   processingDurationSeconds Int?              @map("processing_duration_seconds")

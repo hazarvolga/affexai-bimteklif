@@ -13,6 +13,10 @@ import { parseIfcText } from "../../ifc/parser/legacy-parser";
 import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidence";
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
+import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
+import { runEpysPreflight, summarizeEpysPreflight } from "./epys-preflight-runner";
+import { captureError } from "../../server/observability/error-tracking";
+import { isActiveStandard } from "../rules/three-by-three";
 
 export { inspectDocument } from "./spreadsheet-runner";
 export type { DocumentPreview, PreviewSheet } from "./spreadsheet-parser";
@@ -28,6 +32,34 @@ async function chunkedInsert<T extends Record<string, any>>(tx: any, table: any,
     if (chunk.length > 0) {
       await tx.insert(table).values(chunk);
     }
+  }
+}
+
+/**
+ * RG 33331 e-PYS pre-check (EK-9) stored as its own artifact. It is advisory: a failure is
+ * reported to error tracking and never fails the quantity-evidence run.
+ */
+async function storeEpysPreflight(input: {
+  companyId: string; documentId: string; processingRunId: string; inputPath: string; fileName: string;
+  storage: ReturnType<typeof createStorageAdapter>;
+}) {
+  const { companyId, documentId, processingRunId, storage } = input;
+  try {
+    const report = await runEpysPreflight({ inputPath: input.inputPath, fileName: input.fileName });
+    const content = Buffer.from(JSON.stringify(report, null, 2));
+    const storageKey = `${companyId}/${documentId}/${processingRunId}/epys-preflight.json`;
+    await storage.put(storageKey, content, "application/json");
+    const metadataJson = summarizeEpysPreflight(report);
+    await db.insert(documentProcessingArtifacts).values({
+      companyId, documentId, processingRunId, artifactType: "epys_preflight", storageKey,
+      checksumSha256: sha256(content), contentType: "application/json", sizeBytes: content.length, metadataJson,
+    }).onConflictDoUpdate({
+      target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+      set: { storageKey, checksumSha256: sha256(content), sizeBytes: content.length, metadataJson },
+    });
+  } catch (error) {
+    console.error("e-PYS pre-check failed; quantity evidence continues", { processingRunId });
+    captureError(error, { task: "epys_preflight", processingRunId });
   }
 }
 
@@ -66,6 +98,7 @@ async function processIfcSmartCheckDocument(payload: {
         checksumSha256,
         parserVersion: pythonResult.parserVersion,
       });
+      await storeEpysPreflight({ companyId, documentId, processingRunId, inputPath: resolvedPath, fileName: originalFileName, storage });
     } finally {
       if (cleanupDir) {
         await fs.rm(cleanupDir, { recursive: true, force: true }).catch(() => {});
@@ -188,6 +221,26 @@ async function processIfcSmartCheckDocument(payload: {
     progressMessage: "IFC property evidence satırları hazırlanıyor",
   });
 
+  // 3x3 and e-PYS run on the server for every IFC run; results are stored as run evidence (E-1, E-6).
+  const [company] = await db.select({ activeStandard: companies.activeStandard }).from(companies).where(eq(companies.id, companyId));
+  if (!company) throw new Error("TENANT_COMPANY_MISSING");
+  if (!isActiveStandard(company.activeStandard)) throw new Error("UNKNOWN_ACTIVE_STANDARD");
+  artifact = applyIfcRuleEvaluations(artifact, evaluateIfcRulePacks(artifact, company.activeStandard));
+  const ruleSummary = {
+    threeByThree: {
+      rulePackVersion: artifact.ruleEvaluations!.threeByThree.rulePackVersion,
+      activeStandard: artifact.ruleEvaluations!.threeByThree.activeStandard,
+      status: artifact.ruleEvaluations!.threeByThree.status,
+      violationCount: artifact.ruleEvaluations!.threeByThree.violations.length,
+      coverage: artifact.ruleEvaluations!.threeByThree.coverage,
+    },
+    epys: {
+      rulePackVersion: artifact.ruleEvaluations!.epys.rulePackVersion,
+      isValid: artifact.ruleEvaluations!.epys.isValid,
+      score: artifact.ruleEvaluations!.epys.score,
+    },
+  };
+
   const artifactContent = Buffer.from(JSON.stringify(artifact, null, 2));
   const artifactKey = `${companyId}/${documentId}/${processingRunId}/ifc-evidence.json`;
   await storage.put(artifactKey, artifactContent, "application/json");
@@ -244,6 +297,7 @@ async function processIfcSmartCheckDocument(payload: {
         kind: artifact.kind,
         document: artifact.document,
         summary: artifact.summary,
+        ruleEvaluations: ruleSummary,
       },
     }).onConflictDoUpdate({
       target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
@@ -256,6 +310,7 @@ async function processIfcSmartCheckDocument(payload: {
           kind: artifact.kind,
           document: artifact.document,
           summary: artifact.summary,
+          ruleEvaluations: ruleSummary,
         },
       },
     });
@@ -307,6 +362,8 @@ async function processIfcSmartCheckDocument(payload: {
         schemaVersion: artifact.schemaVersion,
         evidenceRowCount: artifact.summary.evidenceRowCount,
         blockedElementCount: artifact.summary.blockedElementCount,
+        threeByThreeViolationCount: ruleSummary.threeByThree.violationCount,
+        epysScore: ruleSummary.epys.score,
       },
       updatedAt: now,
     }).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));

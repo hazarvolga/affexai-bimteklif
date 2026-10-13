@@ -19,7 +19,7 @@ export const manualQuotationInput = z.object({
   status: quotationStatusInput.default("draft"),
   notes: z.string().nullable().optional(),
   industryId: text.nullable().optional(),
-  projectDurationMonths: number.pipe(z.number().int().min(1).max(2147483647)).default(1),
+  projectDurationMonths: number.pipe(z.number().int().min(1).max(600)).default(1),
   escalationVolatilityPercent: percent.default(0),
   procurementProfile: z.enum(["standard", "low_carbon", "high_carbon_risk"]).default("standard"),
   carbonRiskPremiumPercent: percent.default(0),

@@ -6,7 +6,7 @@ The pnpm lockfile is canonical; the stale npm lockfile was removed.
 ## Changes
 
 Compatible production dependency refresh and narrow transitive overrides replace
-published vulnerable versions. Cross-major overrides for deepmerge-ts, basic-ftp
+published vulnerable versions. Cross-major overrides for deepmerge-ts
 and uuid require compatibility checks, not just a passing audit. Shadcn is a
 development CLI and is excluded from the production dependency set.
 
@@ -14,28 +14,18 @@ The original production audit reported 65 findings (1 critical, 32 high,
 27 moderate, 5 low). The updated lockfile audit reports 2 high findings only.
 This is not a zero-vulnerability declaration.
 
-## Temporary exception
+## Exceptions
 
-The two remaining findings concern extract-zip during Puppeteer's browser
-download/unpack operation:
+None. The extract-zip findings (GHSA-jmr9-qjv8-65gv, GHSA-7pqw-9j4j-h8q3) left
+the dependency tree on 2026-10-13 when Puppeteer moved to 25.12.0, whose
+`@puppeteer/browsers` 3.x unpacks with `modern-tar` instead of extract-zip
+and no longer pulls proxy-agent/basic-ftp, so the basic-ftp override was removed.
+`scripts/dependency-audit-policy.mjs` now blocks every high or critical
+production finding and audit transport failures.
 
-- https://github.com/advisories/GHSA-jmr9-qjv8-65gv
-- https://github.com/advisories/GHSA-7pqw-9j4j-h8q3
-
-On the checkpoint date npm lists 2.0.1 as latest; the advisory's 2.0.2 patch is
-not published. Do not invent an installable version or replace it with an
-unreviewed fork. Puppeteer's install hook is disabled in `pnpm-workspace.yaml`.
-Deployment must install Chromium from the operating-system package repository,
-set `PUPPETEER_EXECUTABLE_PATH`, and set `PUPPETEER_SKIP_DOWNLOAD=true`.
-Application rendering calls launch, not archive download or extraction.
-Never run `puppeteer browsers install` in deployment under this exception.
-
-`scripts/dependency-audit-policy.mjs` permits only these two high findings on the
-specific Puppeteer downloader path. Critical findings, other high findings,
-additional vulnerable dependency paths and audit transport failures block CI.
-The exception expires on 2026-10-22 UTC, after which the gate fails closed.
-Recheck the upstream release and remove the exception when a verified patch is
-published. This mitigation is not proof of production container isolation.
+Deployment still installs Chromium from the operating-system package repository,
+sets `PUPPETEER_EXECUTABLE_PATH` and `PUPPETEER_SKIP_DOWNLOAD=true`; the
+Puppeteer install hook stays disabled in `pnpm-workspace.yaml`.
 
 ## Verification
 

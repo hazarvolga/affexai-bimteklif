@@ -132,3 +132,14 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Printable admin documents (Geliştirici Yol Haritası, Hesaplama Yöntemleri): black on white. */
+@media print {
+  .print-doc, .print-doc * {
+    color: #111 !important;
+    background: transparent !important;
+    border-color: #bbb !important;
+    box-shadow: none !important;
+  }
+  body:has(.print-doc) { background: #fff !important; }
+}

@@ -215,10 +215,22 @@ export const plans = pgTable("plans", {
   displayOrder: integer("display_order").default(0).notNull(),
   marketingBadge: text("marketing_badge"),
   marketingDescription: text("marketing_description"),
+  // Per-package feature limits. NULL means "not yet configured": runtime falls back to the
+  // legacy PLAN_LIMITS for the subscription's enum plan until the catalog bootstrap fills it.
+  monthlyAiLimit: integer("monthly_ai_limit"),
+  monthlyPdfLimit: integer("monthly_pdf_limit"),
+  monthlyCrmLimit: integer("monthly_crm_limit"),
+  monthlyRegulationLimit: integer("monthly_regulation_limit"),
+  monthlyProfitAnalysisLimit: integer("monthly_profit_analysis_limit"),
+  storageMaxBytes: bigint("storage_max_bytes", { mode: "number" }),
+  maxDocuments: integer("max_documents"),
+  isTrial: boolean("is_trial").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   monthlyQuoteLimitNonnegative: check("plans_monthly_quote_limit_nonnegative", sql`${table.monthlyQuoteLimit} >= 0`),
   monthlyPriceNonnegative: check("plans_monthly_price_nonnegative", sql`${table.monthlyPrice} >= 0`),
+  featureLimitsNonnegative: check("plans_feature_limits_nonnegative", sql`coalesce(${table.monthlyAiLimit}, 0) >= 0 AND coalesce(${table.monthlyPdfLimit}, 0) >= 0 AND coalesce(${table.monthlyCrmLimit}, 0) >= 0 AND coalesce(${table.monthlyRegulationLimit}, 0) >= 0 AND coalesce(${table.monthlyProfitAnalysisLimit}, 0) >= 0 AND coalesce(${table.storageMaxBytes}, 1) > 0 AND coalesce(${table.maxDocuments}, 1) > 0`),
+  singleTrialPlan: uniqueIndex("plans_single_trial_idx").on(table.isTrial).where(sql`${table.isTrial}`),
 }));
 
 export const subscriptions = pgTable("subscriptions", {
@@ -1058,6 +1070,7 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
   manuallyCorrectedRows: integer("manually_corrected_rows").default(0).notNull(),
   findingCount: integer("finding_count").default(0).notNull(),
   approvedRows: integer("approved_rows").default(0).notNull(),
+  exceptionRows: integer("exception_rows").default(0).notNull(),
   transferredRows: integer("transferred_rows").default(0).notNull(),
   provenanceCompleteRows: integer("provenance_complete_rows").default(0).notNull(),
   processingDurationSeconds: integer("processing_duration_seconds"),
@@ -1084,6 +1097,7 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
   }).onDelete("restrict"),
   nonNegativeCheck: check("smartcheck_pilot_measurements_non_negative_check", sql`${table.totalRows} >= 0 AND ${table.parsedRows} >= 0 AND ${table.manuallyCorrectedRows} >= 0 AND ${table.findingCount} >= 0 AND ${table.approvedRows} >= 0 AND ${table.transferredRows} >= 0 AND ${table.provenanceCompleteRows} >= 0`),
   rateCheck: check("smartcheck_pilot_measurements_rate_check", sql`(${table.parseRate} IS NULL OR (${table.parseRate} >= 0 AND ${table.parseRate} <= 1)) AND (${table.manualReentryFreeRate} IS NULL OR (${table.manualReentryFreeRate} >= 0 AND ${table.manualReentryFreeRate} <= 1)) AND (${table.provenanceCoverage} IS NULL OR (${table.provenanceCoverage} >= 0 AND ${table.provenanceCoverage} <= 1))`),
+  exceptionRowsCheck: check("smartcheck_pilot_measurements_exception_rows_check", sql`${table.exceptionRows} >= 0`),
   durationCheck: check("smartcheck_pilot_measurements_duration_check", sql`(${table.processingDurationSeconds} IS NULL OR ${table.processingDurationSeconds} >= 0) AND (${table.workflowDurationSeconds} IS NULL OR ${table.workflowDurationSeconds} >= 0)`),
   idxLookup: index("idx_smartcheck_pilot_measurements_lookup").on(table.companyId, table.pilotCaseId, table.measuredAt),
 }));

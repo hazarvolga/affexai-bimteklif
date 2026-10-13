@@ -27,7 +27,7 @@ interface IfcTextProperty {
 
 interface IfcRealProperty {
   stepId: string;
-  name: "TAKS" | "KAKS" | "CekmeOn" | "CekmeYan";
+  name: "TAKS" | "KAKS" | "CekmeOn" | "CekmeYan" | "CekmeArka";
   value: number;
 }
 
@@ -42,7 +42,7 @@ const siteOrBuildingRegex = /^#(\d+)\s*=\s*(IFCSITE|IFCBUILDING)\s*\(/i;
 
 // Match both "PozNo" (old) and "CSBPozNo" (new)
 const pozNoValueRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(PozNo|CSBPozNo)'\s*,\s*\$\s*,\s*IFCTEXT\('([^']*)'\)\s*,\s*\$\s*\);/i;
-const realValueRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(TAKS|KAKS|CekmeOn|CekmeYan)'\s*,\s*\$\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*\$\s*\);/i;
+const realValueRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(TAKS|KAKS|CekmeOn|CekmeYan|CekmeArka)'\s*,\s*\$\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*\$\s*\);/i;
 const propertySetRegex = /^#(\d+)\s*=\s*IFCPROPERTYSET\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'\s*,\s*\$\s*,\s*\(([^)]*)\)\s*\);/i;
 const relationRegex = /^#(\d+)\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*\$\s*,\s*\$\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
 
@@ -128,7 +128,7 @@ export function extractElementPozNo(ifcText: string): ElementPozNoExtraction {
 }
 
 /**
- * Reads project/parcel-level compliance values (TAKS, KAKS, CekmeOn, CekmeYan)
+ * Reads project/parcel-level compliance values (TAKS, KAKS, CekmeOn, CekmeYan, CekmeArka)
  * off IfcSite or IfcBuilding entities from `TREpys_ParselOzellikSeti` or `Tr_Pset_CSB`.
  */
 export function extractProjectComplianceData(ifcText: string): TrPsetCsbProjectCompliance {
@@ -210,6 +210,7 @@ export function extractProjectComplianceData(ifcText: string): TrPsetCsbProjectC
     kaks: chosen.values.KAKS,
     cekmeOn: chosen.values.CekmeOn,
     cekmeYan: chosen.values.CekmeYan,
+    cekmeArka: chosen.values.CekmeArka,
     source: siteEntry ? "ifc_site" : "ifc_building",
     sourcePath: chosen.sourcePath,
   };

@@ -47,6 +47,10 @@ export function parseTurkishPrice(raw: string): number | null {
   }
 
   const val = parseFloat(numStr);
-  return !Number.isFinite(val) || val <= 0 ? null : Number(val.toFixed(2));
+  if (!Number.isFinite(val) || val <= 0) return null;
+  // Self-contained (serialized into the parser worker): same half-cent rule as
+  // roundMoney in lib/calculations; toFixed(2) would turn 12345.675 into .67.
+  const text = String(val);
+  return Math.round(text.includes("e") ? val * 100 : Number(`${text}e2`)) / 100;
 }
 

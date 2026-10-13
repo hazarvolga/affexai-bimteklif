@@ -73,6 +73,8 @@ services:
     build:
       context: .
       target: app
+      args:
+        SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
       AUTH_EMAIL_DELIVERY_MODE: ${AUTH_EMAIL_DELIVERY_MODE:-disabled}
@@ -108,10 +110,13 @@ services:
     build:
       context: .
       target: worker
+      args:
+        SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
       NODE_OPTIONS: --max-old-space-size=768
       SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-2}
+      SENTRY_DSN: ${SENTRY_DSN:-}
     mem_limit: 1024m
     cpus: 1.0
     pids_limit: 128
@@ -122,12 +127,15 @@ services:
     build:
       context: .
       target: ifc-worker
+      args:
+        SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
       NODE_OPTIONS: --max-old-space-size=1024
       SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
       SMARTCHECK_IFC_TIMEOUT_SEC: ${SMARTCHECK_IFC_TIMEOUT_SEC:-600}
       PYTHON_BIN: /opt/venv/bin/python3
+      SENTRY_DSN: ${SENTRY_DSN:-}
     tmpfs:
       - /tmp:size=536870912,mode=1777
       - /home/node/.cache:size=67108864,uid=1000,gid=1000

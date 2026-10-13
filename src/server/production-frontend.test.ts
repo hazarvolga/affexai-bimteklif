@@ -49,3 +49,25 @@ test('production static serving keeps frontend assets and SPA while rejecting se
     assert.equal(await response.text(), files['index.html']);
   }
 });
+
+test('production frontend serves sitemap.xml and robots.txt for the canonical origin', async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'teklifpro-seo-'));
+  await writeFile(path.join(root, 'index.html'), '<html>shell</html>');
+  const previous = process.env.PUBLIC_APP_URL;
+  process.env.PUBLIC_APP_URL = 'https://bimmetraj.com';
+  const app = express();
+  registerProductionFrontend(app, root);
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise<void>(resolve => server.once('listening', resolve));
+  t.after(async () => {
+    if (previous === undefined) delete process.env.PUBLIC_APP_URL; else process.env.PUBLIC_APP_URL = previous;
+    await new Promise<void>(resolve => server.close(() => resolve()));
+    await rm(root, { recursive: true, force: true });
+  });
+  const base = `http://127.0.0.1:${(server.address() as any).port}`;
+  const sitemap = await fetch(`${base}/sitemap.xml`);
+  assert.equal(sitemap.status, 200);
+  assert.match(sitemap.headers.get('content-type') ?? '', /xml/);
+  assert.match(await sitemap.text(), /<loc>https:\/\/bimmetraj.com\/pricing<\/loc>/);
+  assert.match(await (await fetch(`${base}/robots.txt`)).text(), /Sitemap: https:\/\/bimmetraj.com\/sitemap.xml/);
+});

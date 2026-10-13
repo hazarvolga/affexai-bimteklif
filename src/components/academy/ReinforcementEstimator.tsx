@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { Scale, Info, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ec2DemoLapLength, ts500LapLength } from '@/academy/lap-length';
 
 interface ReinforcementEstimatorProps {
   onValueChange?: (val: string) => void;
@@ -21,6 +22,8 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
   const [bondCondition, setBondCondition] = useState<'good' | 'poor'>('good');
   const [forceLevel, setForceLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [coverMm, setCoverMm] = useState<number>(initialCover);
+  // Turkish users default to TS 500; the Eurocode demo stays available for EC2 lessons (E-5).
+  const [standard, setStandard] = useState<'TS500' | 'EC2'>('TS500');
 
   const concreteTensileStrengths: Record<string, number> = {
     'C20/25': 1.5,
@@ -31,28 +34,12 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
   };
 
   const calculatedLapLength = useMemo(() => {
-    const fctk = concreteTensileStrengths[concreteGrade] || 2.0;
-    const fctd = fctk / 1.5;
-
-    const eta1 = bondCondition === 'good' ? 1.0 : 0.7;
-    const eta2 = 1.0;
-
-    const fbd = 2.25 * eta1 * eta2 * fctd;
-
-    const loadFactors = { low: 150, medium: 300, high: 435 };
-    const sigmaSd = loadFactors[forceLevel];
-
-    const lbrqd = (barDiameter / 4) * (sigmaSd / fbd);
-
-    const alpha1 = 1.0;
-    const alpha2 = 1.0;
-    const alpha6 = 1.5;
-
-    const l0 = alpha1 * alpha2 * alpha6 * lbrqd;
-    const lmin = Math.max(0.3 * alpha6 * lbrqd, 15 * barDiameter, 200);
-
-    return Math.round(Math.max(l0, lmin));
-  }, [concreteGrade, barDiameter, bondCondition, forceLevel]);
+    if (standard === 'TS500') {
+      const fck = Number(concreteGrade.slice(1, concreteGrade.indexOf('/')));
+      return ts500LapLength({ fck, barDiameterMm: barDiameter, bond: bondCondition, splicedRatio: 1 }).l0Mm;
+    }
+    return ec2DemoLapLength({ fctk: concreteTensileStrengths[concreteGrade] || 2.0, barDiameterMm: barDiameter, bond: bondCondition, force: forceLevel });
+  }, [standard, concreteGrade, barDiameter, bondCondition, forceLevel]);
 
   const handleCoverChange = (val: number) => {
     setCoverMm(val);
@@ -67,6 +54,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
     setBondCondition('good');
     setForceLevel('medium');
     setCoverMm(20);
+    setStandard('TS500');
     if (onValueChange) {
       onValueChange('20 mm');
     }
@@ -81,7 +69,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
           Bu araç, donatı çapı, aderans koşulları ve seçili demo katsayılarının bindirme boyu üzerindeki etkisini görselleştiren etkileşimli bir demodur. Standart uyumluluk hesabı veya proje tasarım aracı değildir. Non-authoritative interactive demo. Not for design or construction decisions.
         </p>
         <p className="leading-relaxed mt-1">
-          Bu araç yalnız etkileşimli demo amacıyla hazırlanmıştır. Tasarım, uygulama veya imalat kararlarında kullanılamaz. İlgili Eurocode 2 standardı, ulusal ek, beton sınıfı, donatı koşulları ve proje gereksinimleri yetkili mühendis tarafından doğrulanmalıdır.
+          Bu araç yalnız etkileşimli demo amacıyla hazırlanmıştır. Tasarım, uygulama veya imalat kararlarında kullanılamaz. İlgili standart (TS 500 / TBDY 2018 veya Eurocode 2 ve ulusal eki), beton sınıfı, donatı koşulları ve proje gereksinimleri yetkili mühendis tarafından doğrulanmalıdır.
         </p>
       </div>
 
@@ -127,6 +115,27 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
                 <span>35 mm (Gerekli)</span>
                 <span>50 mm (Maksimum)</span>
               </div>
+            </div>
+
+            {/* Standard Selection */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Bindirme Hesabı Standardı</label>
+              <div className="grid grid-cols-2 gap-1">
+                {([['TS500', 'TS 500 (Denk. 9.1–9.2)'], ['EC2', 'Eurocode 2 (demo)']] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setStandard(value)}
+                    className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
+                      standard === value ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[8px] text-zinc-600 font-mono">
+                {standard === 'TS500' ? 'B420C, nervürlü, iyi aderans, tüm çubuklar aynı kesitte eklenir (r = 1, α1 = 1,5).' : 'Sabit çelik gerilmesi senaryolu basitleştirilmiş EN 1992-1-1 demosu.'}
+              </p>
             </div>
 
             {/* Concrete Selection */}
@@ -212,7 +221,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
           {/* Results Summary Box */}
           <div className="w-full bg-zinc-900 border border-zinc-800 p-3 flex justify-between items-center font-mono text-[10px] mt-2 rounded-xl">
             <div>
-              <p className="text-zinc-500 uppercase text-[8px] font-bold">Simülasyon sonucu (l0)</p>
+              <p className="text-zinc-500 uppercase text-[8px] font-bold">Simülasyon sonucu (l0) · {standard === 'TS500' ? 'TS 500' : 'EC2 demo'}</p>
               <p className="text-sm font-black text-zinc-100">{calculatedLapLength} mm <span className="text-[9px] text-zinc-400">({(calculatedLapLength/10).toFixed(1)} cm)</span></p>
             </div>
             <div className="text-right">

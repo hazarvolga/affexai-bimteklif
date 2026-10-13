@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { ACADEMY_ENABLED } from '@/config/features';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Plus,
@@ -64,7 +65,8 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
 export function Shell() {
   const location = useLocation();
   const { user, company, role, accountType, isDemoMode, logout, exitImpersonation } = useAuth();
-  const isLearner = accountType === 'academy_learner';
+  // While Academy is out of scope, learner accounts get the normal workspace shell.
+  const isLearner = ACADEMY_ENABLED && accountType === 'academy_learner';
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
