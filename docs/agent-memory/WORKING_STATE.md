@@ -31,7 +31,8 @@ lifecycle, Prisma shadow, audit) and Python worker tests.
 - RG 33331 e-PYS pre-check on every IFC run (vendored ifc-ruhsat@cd6d3ce, MIT;
   see `workers/ifc/vendor/ifc_ruhsat/NOTICE.md`), EK-9 panel in SmartCheck,
   `GET /api/smartcheck/documents/:id/epys-preflight`, IDS export, KVKK masking.
-- PDF/A pre-check library (`workers/ifc/pdf_preflight.py`), not yet wired to upload.
+- PDF/A pre-check library (`workers/ifc/pdf_preflight.py`); its upload wiring
+  was completed in the subsequent `8b86188` release.
 - Honest quick e-PYS label + CekmeArka; catalog v5 package description.
 - Admin: `/admin/roadmap` (Geliştirici Yol Haritası) and
   `/admin/roadmap/calculations` (Hesaplama Yöntemleri, expert sign-off page).
@@ -68,15 +69,23 @@ Release status (2026-10-13):
   earlier failed runs exposed an original-PDF-name bug and a changed IFC
   preview error code; commits `062528a` and `ab46292` fixed these before the
   green run and production deployment.
-- Open acceptance: authenticated upload/process/report smoke for one real IFC
-  and one PDF on the pilot tenant. Chrome was at login, so this was **not**
-  verified in production; container library checks are not a substitute.
+- Authenticated production pilot smoke completed on 2026-10-13 using the
+  existing in-app browser session and synthetic repository fixtures. A valid
+  IFC2X3 QTO fixture (`bimmetraj-qto-valid.ifc`) succeeded at 100%, produced
+  two review rows (including `Qto_SlabBaseQuantities/NetVolume`) and the EK-9
+  e-PYS panel. A one-page synthetic PDF with a template file name succeeded
+  at 100%; the UI showed a PDF/A-2B identity claim, 0 errors, 0 warnings and
+  1 manual full-validation item. These are pipeline checks, **not** expert
+  engineering acceptance or complete PDF/A certification. Two earlier pilot
+  IFC attempts remain as failed queue records: one has no admissible element
+  quantity evidence, the other is an invalid minimal IFC. Neither was retried.
+  Open: run representative real-project IFC/PDF acceptance with reviewer sign-off.
   The internal tenant has an active subscription with `plan_id=null`, and the
   fallback trial plan limits IFC to 35 MB; the local `e-proje_4x3.ifc` sample
   is 37 MB. Use a smaller representative IFC or assign the internal tenant an
   appropriate plan through audited admin flow before uploading it. Do not
-  change another tenant's subscription. After smoke, decide whether to keep
-  the pilot flag on; leave other tenants gated.
+  change another tenant's subscription. Keep other tenants gated while the
+  pilot is evaluated.
 - Production `SENTRY_DSN` remains empty. Code-level Sentry tests are present,
   but no live event or alert rule is verified. Locate/create an owned Sentry
   project and configure DSN/alerts before claiming production monitoring.
