@@ -204,4 +204,16 @@ describe("SmartCheck 3x3 Domain Rules", () => {
       ]);
     });
   });
+
+  describe("Evaluation status", () => {
+    it("reports not_evaluated instead of a pass when no rule had its inputs", () => {
+      assert.equal(validateThreeByThreeRules([{ elementId: "A" }]).status, "not_evaluated");
+      assert.equal(validateThreeByThreeRules([{ elementId: "A", expectedQuantity: 10, actualQuantity: 10 }]).status, "passed");
+      assert.equal(validateThreeByThreeRules([{ elementId: "A", expectedQuantity: 10, actualQuantity: 20 }]).status, "failed");
+    });
+
+    it("rejects an unknown active standard instead of silently dropping the cover rule", () => {
+      assert.throws(() => validateThreeByThreeRules([], { activeStandard: "BS_8110" as never }), /UNKNOWN_ACTIVE_STANDARD/);
+    });
+  });
 });

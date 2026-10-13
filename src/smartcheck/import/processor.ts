@@ -14,7 +14,7 @@ import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidenc
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
 import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
-import type { ActiveStandard } from "../rules/three-by-three";
+import { isActiveStandard } from "../rules/three-by-three";
 
 export { inspectDocument } from "./spreadsheet-runner";
 export type { DocumentPreview, PreviewSheet } from "./spreadsheet-parser";
@@ -193,12 +193,13 @@ async function processIfcSmartCheckDocument(payload: {
   // 3x3 and e-PYS run on the server for every IFC run; results are stored as run evidence (E-1, E-6).
   const [company] = await db.select({ activeStandard: companies.activeStandard }).from(companies).where(eq(companies.id, companyId));
   if (!company) throw new Error("TENANT_COMPANY_MISSING");
-  artifact = applyIfcRuleEvaluations(artifact, evaluateIfcRulePacks(artifact, company.activeStandard as ActiveStandard));
+  if (!isActiveStandard(company.activeStandard)) throw new Error("UNKNOWN_ACTIVE_STANDARD");
+  artifact = applyIfcRuleEvaluations(artifact, evaluateIfcRulePacks(artifact, company.activeStandard));
   const ruleSummary = {
     threeByThree: {
       rulePackVersion: artifact.ruleEvaluations!.threeByThree.rulePackVersion,
       activeStandard: artifact.ruleEvaluations!.threeByThree.activeStandard,
-      isValid: artifact.ruleEvaluations!.threeByThree.isValid,
+      status: artifact.ruleEvaluations!.threeByThree.status,
       violationCount: artifact.ruleEvaluations!.threeByThree.violations.length,
       coverage: artifact.ruleEvaluations!.threeByThree.coverage,
     },

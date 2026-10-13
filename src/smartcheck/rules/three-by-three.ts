@@ -72,6 +72,8 @@ export interface ThreeByThreeValidationResult {
   activeStandard: ActiveStandard;
   executedRules: string[];
   isValid: boolean;
+  /** not_evaluated: no rule had its inputs; isValid alone would read as a false pass. */
+  status: "passed" | "failed" | "not_evaluated";
   violations: ThreeByThreeRuleViolation[];
   /** How many elements each rule could evaluate; missing inputs are never counted as passes. */
   coverage: Record<string, RuleCoverage>;
@@ -112,7 +114,14 @@ const checks: Record<RuleId, Check> = {
   },
 };
 
+const ACTIVE_STANDARDS: readonly ActiveStandard[] = ["TBDY_TS500", "EUROCODE_2", "ACI_318"];
+
+export function isActiveStandard(value: unknown): value is ActiveStandard {
+  return ACTIVE_STANDARDS.includes(value as ActiveStandard);
+}
+
 function rulesFor(activeStandard: ActiveStandard): RuleId[] {
+  if (!isActiveStandard(activeStandard)) throw new Error("UNKNOWN_ACTIVE_STANDARD");
   // ACI 318 cover tables are not sourced in this pack, so no cover threshold is invented for it.
   const cover = activeStandard === "TBDY_TS500" ? [RULE_IDS.COVER_MIN_TS500] : activeStandard === "EUROCODE_2" ? [RULE_IDS.XC3_COVER_35MM] : [];
   return [RULE_IDS.QTO_TOLERANCE_3PCT, ...cover, RULE_IDS.LAYER_PRIORITY];
@@ -141,11 +150,13 @@ export function validateThreeByThreeRules(
     violations.push(...itemViolations);
   }
 
+  const evaluated = Object.values(coverage).some(tally => tally.evaluated > 0);
   return {
     rulePackVersion: SMARTCHECK_3X3_RULE_PACK_VERSION,
     activeStandard,
     executedRules,
     isValid: violations.length === 0,
+    status: violations.length ? "failed" : evaluated ? "passed" : "not_evaluated",
     violations,
     coverage,
     summary: { totalChecked: items.length, passed: items.length - failed, failed },
