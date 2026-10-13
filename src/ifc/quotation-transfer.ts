@@ -36,6 +36,9 @@ const IFC_ESTIMATE_SOURCE_REFERENCE =
 const REVIEW_WARNING =
   "IFC browser parser output is a demo_estimate. Quantities are model estimates and must be technically reviewed before quotation approval.";
 
+const PRICE_WARNING =
+  "Birim fiyat ve maliyet aktarılmaz: her kaleme onaylı bir kaynaktan birim fiyat girilmelidir.";
+
 function positiveNumber(value: unknown): number {
   const numeric = Number(value);
   return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
@@ -45,16 +48,14 @@ function makeEstimateItem(
   id: string,
   description: string,
   quantity: number,
-  unitPrice: number,
-  costUnitPrice: number,
 ): Partial<QuoteItem> {
+  // Prices are left empty on purpose: the browser parser has no approved price source.
   return {
     id,
     description,
     unit: "m3",
     quantity,
-    unitPrice,
-    costUnitPrice,
+    unitPrice: 0,
     costCategory: "material",
     quantitySource: "model_estimate",
     priceSource: "manual",
@@ -62,7 +63,7 @@ function makeEstimateItem(
     verificationStatus: "needs_review",
     discountPercent: 0,
     vatPercent: 20,
-    total: quantity * unitPrice,
+    total: 0,
   };
 }
 
@@ -85,8 +86,6 @@ export function buildIfcEstimateQuoteItems(
       idFactory(),
       `IFC On Analiz: IfcBeam kiris betonarme imalati (${transferSummary.beamCount ?? 0} adet, review gerekli)`,
       beamVolumeM3,
-      3800,
-      2900,
     ));
   }
 
@@ -95,8 +94,6 @@ export function buildIfcEstimateQuoteItems(
       idFactory(),
       `IFC On Analiz: IfcColumn kolon betonarme imalati (${transferSummary.columnCount ?? 0} adet, review gerekli)`,
       columnVolumeM3,
-      4200,
-      3100,
     ));
   }
 
@@ -105,8 +102,6 @@ export function buildIfcEstimateQuoteItems(
       idFactory(),
       `IFC On Analiz: IfcSlab doseme betonarme imalati (${transferSummary.slabCount ?? 0} adet, review gerekli)`,
       slabVolumeM3,
-      3600,
-      2750,
     ));
   }
 
@@ -115,8 +110,6 @@ export function buildIfcEstimateQuoteItems(
       idFactory(),
       `IFC On Analiz: IfcWall perde/duvar imalati (${transferSummary.wallCount ?? 0} adet, review gerekli)`,
       wallVolumeM3,
-      3900,
-      2950,
     ));
   }
 
@@ -139,6 +132,6 @@ export function buildIfcEstimateQuoteItems(
   return {
     items,
     skipped,
-    warnings: [REVIEW_WARNING],
+    warnings: [REVIEW_WARNING, PRICE_WARNING],
   };
 }

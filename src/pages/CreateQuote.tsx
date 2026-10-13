@@ -152,7 +152,7 @@ export function CreateQuote() {
               skippedItems: transfer.skipped.length,
               evidenceElementCount: Number(parsedTransfer.evidenceElementCount) || undefined,
             });
-            toast.warning(`IFC on analizinden ${importedItems.length} tahmini kalem aktarıldı; teknik review olmadan verified sayılmaz.`);
+            toast.warning(`IFC on analizinden ${importedItems.length} tahmini kalem aktarıldı; birim fiyatları onaylı kaynaktan girin, teknik review olmadan verified sayılmaz.`);
           }
           if (transfer.skipped.length > 0) {
             toast.info(`${transfer.skipped.length} IFC türevi kalem kanıt eksikliği nedeniyle aktarılmadı.`);

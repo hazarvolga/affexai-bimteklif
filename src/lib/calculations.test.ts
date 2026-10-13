@@ -147,3 +147,15 @@ describe("kuruş yuvarlama doğruluğu", () => {
     assert.equal(calculateLineItemTotal({ quantity: 3, unitPrice: 0.335, discountPercent: 0, vatPercent: 20 }), 1.01);
   });
 });
+
+describe("fiyatsız kalem denetimi", () => {
+  it("birim fiyatı sıfır veya boş kalemi uyarı olarak işaretler", () => {
+    const issues = auditQuotationItems([
+      { unitPrice: 0, costUnitPrice: 1, verificationStatus: "verified" },
+      { unitPrice: "", costUnitPrice: 1, verificationStatus: "verified" },
+      { unitPrice: 10, costUnitPrice: 1, verificationStatus: "verified" },
+    ]);
+    assert.deepEqual(issues.filter((issue) => issue.code === "PRICE_MISSING").map((issue) => issue.itemIndex), [0, 1]);
+    assert.ok(issues.every((issue) => issue.code !== "PRICE_MISSING" || issue.severity === "warning"));
+  });
+});

@@ -26,6 +26,15 @@ describe("IFC quote transfer safety gate", () => {
     assert.match(result.items[0].description ?? "", /review gerekli/);
   });
 
+  it("never invents unit prices or costs for model estimates", () => {
+    const result = buildIfcEstimateQuoteItems({ beamVolumeM3: 10, columnVolumeM3: 3, slabVolumeM3: 4, wallVolumeM3: 5 }, { idFactory: () => "id" });
+
+    assert.deepEqual(result.items.map((item) => item.unitPrice), [0, 0, 0, 0]);
+    assert.deepEqual(result.items.map((item) => item.total), [0, 0, 0, 0]);
+    assert.ok(result.items.every((item) => item.costUnitPrice === undefined));
+    assert.match(result.warnings.join(" "), /birim fiyat/i);
+  });
+
   it("does not transfer derived rebar or formwork without explicit evidence", () => {
     const result = buildIfcEstimateQuoteItems({
       totalRebarTon: 3.1,
