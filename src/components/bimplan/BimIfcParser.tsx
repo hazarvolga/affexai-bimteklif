@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
+import { reserveBrowserIfcAnalysis } from "@/ifc/browser-quota";
+import { useAuth } from "@/hooks/useAuth";
 import React, { useState, useMemo } from 'react';
 import { 
   FileCode, 
@@ -177,6 +179,7 @@ export interface BimIfcParserProps {
 
 export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   const navigate = useNavigate();
+  const { isDemoMode } = useAuth();
   const [fileName, setFileName] = useState<string | null>(null);
   const [isParsing, setIsParsing] = useState<boolean>(false);
   const [parsedData, setParsedData] = useState<{ elements: ParsedIfcElement[]; summary: IfcParseSummary } | null>(null);
@@ -202,7 +205,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
 
   // Handle Drag & Drop or File Select
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     if (!canPreviewIfcInBrowser(file.size)) {
       toast.warning('Tarayıcı önizleme sınırı 25 MB. Büyük IFC dosyanızı SmartCheck üzerinden yükleyin.');
       navigate('/app/smartcheck');
@@ -215,6 +218,12 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
     setFileName(file.name);
     setIsParsing(true);
+
+    // Each real file counts against the package's monthly IFC quota; demo datasets do not.
+    if (!isDemoMode) {
+      const denial = await reserveBrowserIfcAnalysis();
+      if (denial) { setIsParsing(false); toast.error(denial); return; }
+    }
 
     const reader = new FileReader();
     reader.onerror = () => { setIsParsing(false); toast.error('Dosya okunamadı.'); };

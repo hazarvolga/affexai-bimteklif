@@ -81,17 +81,21 @@ async function lockedIfcUsage(tx: Transaction, companyId: string, at?: Date) {
   return { period, counters, current };
 }
 
+async function incrementIfcCounter(tx: Transaction, companyId: string, period: string, counters: (typeof usageRecords.$inferSelect)[]) {
+  if (counters.length) {
+    const counter = counters.find(row => row.ifcCount < 2147483647);
+    if (!counter) throw quotaUnavailable();
+    await tx.update(usageRecords).set({ ifcCount: counter.ifcCount + 1 }).where(eq(usageRecords.id, counter.id));
+  } else {
+    await tx.insert(usageRecords).values({ companyId, period, quoteCount: 0, ifcCount: 1 });
+  }
+}
+
 // Call only within the run's successful completion transaction.
 export async function consumeIfcUsage(tx: Transaction, companyId: string, at?: Date) {
   try {
     const { period, counters, current } = await lockedIfcUsage(tx, companyId, at);
-    if (counters.length) {
-      const counter = counters.find(row => row.ifcCount < 2147483647);
-      if (!counter) throw quotaUnavailable();
-      await tx.update(usageRecords).set({ ifcCount: counter.ifcCount + 1 }).where(eq(usageRecords.id, counter.id));
-    } else {
-      await tx.insert(usageRecords).values({ companyId, period, quoteCount: 0, ifcCount: 1 });
-    }
+    await incrementIfcCounter(tx, companyId, period, counters);
     return { period, current: current + 1 };
   } catch (error) {
     if (error instanceof QuotaError) throw error;
@@ -99,3 +103,17 @@ export async function consumeIfcUsage(tx: Transaction, companyId: string, at?: D
   }
 }
 
+/** Browser pre-analysis has no server run, so it reserves its IFC slot up front (L-9). */
+export async function consumeBrowserIfcAnalysis(tx: Transaction, companyId: string, monthlyLimit: number | null, at?: Date) {
+  try {
+    const { period, counters, current } = await lockedIfcUsage(tx, companyId, at);
+    if (monthlyLimit !== null && current >= monthlyLimit) {
+      throw new QuotaError(403, "IFC_QUOTA_EXCEEDED", "Monthly IFC quota exceeded", { current, limit: monthlyLimit, period });
+    }
+    await incrementIfcCounter(tx, companyId, period, counters);
+    return { period, current: current + 1, limit: monthlyLimit };
+  } catch (error) {
+    if (error instanceof QuotaError) throw error;
+    throw quotaUnavailable();
+  }
+}

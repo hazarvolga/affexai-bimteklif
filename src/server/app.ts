@@ -50,6 +50,7 @@ import { registerPilotRoutes } from "./routes/pilot";
 import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
+import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
 import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
@@ -155,6 +156,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerAdminLogRoutes(app);
   registerAcademyRoutes(app);
   registerSmartCheckRoutes(app);
+  registerIfcBrowserAnalysisRoutes(app, canMutate);
   registerPricingRoutes(app);
   registerPricingFileImportRoutes(app);
   registerSourceIntelligenceRoutes(app);
