@@ -8,6 +8,8 @@ type Template = 'verify_email' | 'reset_password' | 'invitation';
 type Env = Record<string, string | undefined>;
 type Delivery = { status: 'accepted' } | { status: 'development'; url: string };
 type Message = { from: string; to: string; subject: string; text: string; html: string };
+const SMTP_OPERATION_TIMEOUT_MS = 10_000;
+const EMAIL_DELIVERY_DEADLINE_MS = 15_000;
 export type SmtpFactory = (options: SMTPTransport.Options) => {
   sendMail(message: Message): Promise<{ accepted?: unknown[]; rejected?: unknown[] }>;
   close(): void;
@@ -76,7 +78,7 @@ function smtpOptions(env: Env): SMTPTransport.Options {
     host: env.AUTH_EMAIL_SMTP_HOST, port, secure: port === 465, requireTLS: port === 587,
     auth: { user: env.AUTH_EMAIL_SMTP_USER, pass: env.AUTH_EMAIL_SMTP_PASSWORD },
     tls: { rejectUnauthorized: true, minVersion: 'TLSv1.2', servername: env.AUTH_EMAIL_SMTP_HOST },
-    connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 5000, dnsTimeout: 5000,
+    connectionTimeout: SMTP_OPERATION_TIMEOUT_MS, greetingTimeout: SMTP_OPERATION_TIMEOUT_MS, socketTimeout: SMTP_OPERATION_TIMEOUT_MS, dnsTimeout: SMTP_OPERATION_TIMEOUT_MS,
     logger: false, debug: false, disableFileAccess: true, disableUrlAccess: true,
   };
 }
@@ -99,7 +101,7 @@ export async function deliverTransactionalEmail(template: Template, email: strin
   let smtp: ReturnType<SmtpFactory> | undefined;
   try {
     const deadline = new Promise<never>((_, reject) => {
-      timeout = setTimeout(() => { controller.abort(); reject(new Error('Email deadline exceeded')); }, 5000);
+      timeout = setTimeout(() => { controller.abort(); reject(new Error('Email deadline exceeded')); }, EMAIL_DELIVERY_DEADLINE_MS);
     });
     const send = async () => {
       if (env.AUTH_EMAIL_DELIVERY_MODE !== 'smtp') return webhook(template, email, url, env, transport, controller.signal);

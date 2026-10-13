@@ -24,7 +24,7 @@ test('SMTP templates are escaped; both TLS modes authenticated and connections a
       assert.equal(options.port, Number(port)); assert.equal(options.secure, port === '465');
       assert.equal(options.requireTLS, port === '587'); assert.equal(options.tls?.rejectUnauthorized, true);
       assert.equal(options.auth?.user, env.AUTH_EMAIL_SMTP_USER); assert.equal(options.auth?.pass, env.AUTH_EMAIL_SMTP_PASSWORD);
-      assert.equal(options.socketTimeout, 5000); assert.equal(options.connectionTimeout, 5000); assert.equal(options.dnsTimeout, 5000);
+      assert.equal(options.socketTimeout, 10_000); assert.equal(options.connectionTimeout, 10_000); assert.equal(options.dnsTimeout, 10_000);
       assert.equal(options.logger, false); assert.equal(options.debug, false);
       assert.equal(options.disableFileAccess, true); assert.equal(options.disableUrlAccess, true);
       return { close: () => { closed++; }, sendMail: async payload => {
@@ -62,14 +62,18 @@ test('SMTP rejection and errors expose no credentials or provider response text,
   });
 });
 
-test('SMTP total deadline closes a stalled send', async t => {
+test('SMTP retains a 15-second total deadline and closes a stalled send', async t => {
   t.mock.method(console, 'warn', () => {});
   t.mock.timers.enable({apis:['setTimeout']});
   let closed=0;
   const factory: SmtpFactory=()=>({close:()=>{closed++;},sendMail:()=>new Promise(()=>{})});
   const pending=deliverTransactionalEmail('reset_password',email,'https://bimmetraj.com/token',env,fetch,factory);
+  let settled = false;
+  void pending.then(() => { settled = true; }, () => { settled = true; });
   const rejected=assert.rejects(pending,{code:'EMAIL_DELIVERY_UNAVAILABLE'});
-  t.mock.timers.tick(5000);await rejected;assert.equal(closed,1);
+  t.mock.timers.tick(5_000); await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+  assert.equal(settled, false);
+  t.mock.timers.tick(10_000);await rejected;assert.equal(closed,1);
 });
 
 test('development/webhook remain supported; disabled never calls transport', async () => {
