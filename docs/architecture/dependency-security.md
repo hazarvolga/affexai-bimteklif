@@ -6,7 +6,7 @@ The pnpm lockfile is canonical; the stale npm lockfile was removed.
 ## Changes
 
 Compatible production dependency refresh and narrow transitive overrides replace
-published vulnerable versions. Cross-major overrides for deepmerge-ts, basic-ftp
+published vulnerable versions. Cross-major overrides for deepmerge-ts
 and uuid require compatibility checks, not just a passing audit. Shadcn is a
 development CLI and is excluded from the production dependency set.
 
@@ -18,7 +18,8 @@ This is not a zero-vulnerability declaration.
 
 None. The extract-zip findings (GHSA-jmr9-qjv8-65gv, GHSA-7pqw-9j4j-h8q3) left
 the dependency tree on 2026-10-13 when Puppeteer moved to 25.12.0, whose
-`@puppeteer/browsers` 3.x unpacks with `modern-tar` instead of extract-zip.
+`@puppeteer/browsers` 3.x unpacks with `modern-tar` instead of extract-zip
+and no longer pulls proxy-agent/basic-ftp, so the basic-ftp override was removed.
 `scripts/dependency-audit-policy.mjs` now blocks every high or critical
 production finding and audit transport failures.
 
