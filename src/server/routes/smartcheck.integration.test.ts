@@ -230,5 +230,11 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     assert.equal(rules?.threeByThree.activeStandard, "TBDY_TS500", "3x3 runs server-side with the company standard");
     assert.equal(rules?.threeByThree.rulePackVersion, "smartcheck-3x3-2026-10-v2");
     assert.equal(typeof rules?.epys.score, "number", "e-PYS runs server-side");
+    assert.equal((await request(`/api/smartcheck/documents/${documentId}/epys-preflight`)).status, 404, "legacy engine stores no RG 33331 pre-check");
+    await db.insert(schema.documentProcessingArtifacts).values({ companyId: companyA.id, documentId, processingRunId: runId, artifactType: "epys_preflight", storageKey: `${companyA.id}/${documentId}/${runId}/epys-preflight.json`, checksumSha256: "a".repeat(64), contentType: "application/json", sizeBytes: 1, metadataJson: { kind: "epys_preflight", summary: { hata: 1, uyari: 0, bilgi: 0, elle: 3 }, ek9: [{ no: 1, karar: "Elle" }] } });
+    const preflight = await request(`/api/smartcheck/documents/${documentId}/epys-preflight`);
+    assert.equal(preflight.status, 200);
+    assert.equal((await preflight.json() as { summary: { hata: number } }).summary.hata, 1);
+    assert.equal((await request(`/api/smartcheck/documents/${documentId}/epys-preflight`, {}, tokenB)).status, 404, "other tenants cannot read the pre-check");
   }
 });

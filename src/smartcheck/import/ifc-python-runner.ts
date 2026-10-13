@@ -91,8 +91,8 @@ export function sanitizeIfcErrorMessage(
       const match = rawDetails?.match(/schema\s*[:=]?\s*([A-Za-z0-9_]+)/i) || rawDetails?.match(/(IFC[A-Z0-9]+)/i);
       const schemaName = match ? match[1] : "";
       return schemaName
-        ? `Desteklenmeyen IFC şeması (${schemaName}). Yalnız IFC2X3 ve IFC4 desteklenir.`
-        : "Desteklenmeyen IFC şeması. Yalnız IFC2X3 ve IFC4 desteklenir.";
+        ? `Desteklenmeyen IFC şeması (${schemaName}). Yalnız IFC2X3, IFC4 ve IFC4X3 desteklenir; RG 33331 teslimi IFC 4.3 (IFC4X3) bekler.`
+        : "Desteklenmeyen IFC şeması. Yalnız IFC2X3, IFC4 ve IFC4X3 desteklenir; RG 33331 teslimi IFC 4.3 (IFC4X3) bekler.";
     }
     case "IFC_EMPTY_MODEL":
       return "IFC dosyasında desteklenen yapısal eleman bulunamadı.";

@@ -14,6 +14,8 @@ import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidenc
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
 import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
+import { runEpysPreflight, summarizeEpysPreflight } from "./epys-preflight-runner";
+import { captureError } from "../../server/observability/error-tracking";
 import { isActiveStandard } from "../rules/three-by-three";
 
 export { inspectDocument } from "./spreadsheet-runner";
@@ -30,6 +32,34 @@ async function chunkedInsert<T extends Record<string, any>>(tx: any, table: any,
     if (chunk.length > 0) {
       await tx.insert(table).values(chunk);
     }
+  }
+}
+
+/**
+ * RG 33331 e-PYS pre-check (EK-9) stored as its own artifact. It is advisory: a failure is
+ * reported to error tracking and never fails the quantity-evidence run.
+ */
+async function storeEpysPreflight(input: {
+  companyId: string; documentId: string; processingRunId: string; inputPath: string; fileName: string;
+  storage: ReturnType<typeof createStorageAdapter>;
+}) {
+  const { companyId, documentId, processingRunId, storage } = input;
+  try {
+    const report = await runEpysPreflight({ inputPath: input.inputPath, fileName: input.fileName });
+    const content = Buffer.from(JSON.stringify(report, null, 2));
+    const storageKey = `${companyId}/${documentId}/${processingRunId}/epys-preflight.json`;
+    await storage.put(storageKey, content, "application/json");
+    const metadataJson = summarizeEpysPreflight(report);
+    await db.insert(documentProcessingArtifacts).values({
+      companyId, documentId, processingRunId, artifactType: "epys_preflight", storageKey,
+      checksumSha256: sha256(content), contentType: "application/json", sizeBytes: content.length, metadataJson,
+    }).onConflictDoUpdate({
+      target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+      set: { storageKey, checksumSha256: sha256(content), sizeBytes: content.length, metadataJson },
+    });
+  } catch (error) {
+    console.error("e-PYS pre-check failed; quantity evidence continues", { processingRunId });
+    captureError(error, { task: "epys_preflight", processingRunId });
   }
 }
 
@@ -68,6 +98,7 @@ async function processIfcSmartCheckDocument(payload: {
         checksumSha256,
         parserVersion: pythonResult.parserVersion,
       });
+      await storeEpysPreflight({ companyId, documentId, processingRunId, inputPath: resolvedPath, fileName: originalFileName, storage });
     } finally {
       if (cleanupDir) {
         await fs.rm(cleanupDir, { recursive: true, force: true }).catch(() => {});
