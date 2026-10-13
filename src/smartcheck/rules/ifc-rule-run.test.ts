@@ -34,7 +34,7 @@ describe("server-side IFC rule run (E-1, E-6)", () => {
     assert.equal(missing.isValid, false);
     assert.ok(missing.errors.some(error => error.includes("TREpys_ParselOzellikSeti")));
     assert.ok(missing.errors.some(error => error.includes("CSBPozNo")));
-    const complete = evaluateIfcRulePacks(artifact({ trPsetCsb: { source: "ifc_site", taks: 0.3, kaks: 1.2 }, elementsWithPozNoCount: 4, elementsMissingPozNoCount: 0 }), "TBDY_TS500").epys;
+    const complete = evaluateIfcRulePacks(artifact({ trPsetCsb: { source: "ifc_site", taks: 0.3, kaks: 1.2, cekmeOn: 5, cekmeYan: 3, cekmeArka: 3 }, elementsWithPozNoCount: 4, elementsMissingPozNoCount: 0 }), "TBDY_TS500").epys;
     assert.equal(complete.isValid, true);
     assert.equal(complete.score, 100);
   });

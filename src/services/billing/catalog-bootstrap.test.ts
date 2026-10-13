@@ -40,6 +40,8 @@ test('IFC auditor package is sold as a pilot until server SmartCheck is live', (
   assert.equal(auditor.marketingBadge, 'Pilot');
   assert.match(auditor.marketingDescription ?? '', /pilot/i);
   assert.match(auditor.marketingDescription ?? '', /henüz/i);
+  assert.match(auditor.marketingDescription ?? '', /33331/);
+  assert.match(auditor.marketingDescription ?? '', /resmî uygunluk kararı değildir/i);
 });
 
 test('bootstrap adopts exact existing names, backfills public metadata, but refuses drift and duplicate identities', () => {

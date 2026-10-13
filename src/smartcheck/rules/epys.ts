@@ -10,7 +10,24 @@ export interface EpysValidationResult {
   label: string;
   rulePackVersion: string;
   sourceCitation: string;
+  /** What this quick check covers; the full EK-9 pre-check runs server-side in the IFC worker. */
+  scope: { checked: string[]; notChecked: string[] };
 }
+
+const SCOPE = {
+  checked: [
+    "EK-6 Tablo 6.55: TREpys_ParselOzellikSeti (TAKS, KAKS, CekmeOn, CekmeYan, CekmeArka) varlığı",
+    "TREpys_PozOzellikSeti.CSBPozNo eleman kapsamı",
+    "Madde 12: malzeme adı en fazla 15 karakter (malzeme listesi verilirse)",
+    "EK-3 mahal adı biçimi (mahal listesi verilirse)",
+  ],
+  notChecked: [
+    "EK-9 kalite kontrol formunun tamamı (sunucu tarafı IFC ön kontrolünde)",
+    "EK-5 sınıf listesi ve EK-6 tablolarının tamamı",
+    "EK-7 proje, kişi, kurum ve koordinat bilgileri",
+    "LOD 300 (EK-8), dosya boyutu ve PDF–IFC tutarlılığı (elle değerlendirilir)",
+  ],
+};
 
 export interface IfcElementData {
   id: string;
@@ -34,18 +51,17 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
   const warnings: string[] = [];
   let penaltyPoints = 0;
 
-  // KURAL 1: TREpys_ParselOzellikSeti (TAKS / KAKS) Zorunluluğu
+  // KURAL 1: TREpys_ParselOzellikSeti — RG 33331 EK-6 Tablo 6.55 (IfcSite)
   if (!input.complianceData.source) {
-    errors.push("[EK-7 İhlali] Proje verilerinde e-PYS zorunlu parsel özellik seti (TREpys_ParselOzellikSeti) bulunamadı. TAKS, KAKS ve Çekme Mesafeleri tanımlanmalıdır.");
+    errors.push("[EK-6 Tablo 6.55] IfcSite üzerinde TREpys_ParselOzellikSeti bulunamadı. TAKS, KAKS, CekmeOn, CekmeYan ve CekmeArka tanımlanmalıdır.");
     penaltyPoints += 40;
   } else {
-    if (input.complianceData.taks === undefined) {
-      errors.push("[EK-7 İhlali] TREpys_ParselOzellikSeti.TAKS değeri tanımlanmamış.");
-      penaltyPoints += 10;
-    }
-    if (input.complianceData.kaks === undefined) {
-      errors.push("[EK-7 İhlali] TREpys_ParselOzellikSeti.KAKS değeri tanımlanmamış.");
-      penaltyPoints += 10;
+    for (const [key, name] of [["taks", "TAKS"], ["kaks", "KAKS"], ["cekmeOn", "CekmeOn"], ["cekmeYan", "CekmeYan"], ["cekmeArka", "CekmeArka"]] as const) {
+      const value = input.complianceData[key] as number | null | undefined;
+      if (value === undefined || value === null) {
+        errors.push(`[EK-6 Tablo 6.55] TREpys_ParselOzellikSeti.${name} değeri tanımlanmamış.`);
+        penaltyPoints += 10;
+      }
     }
   }
 
@@ -108,8 +124,9 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
     errors,
     warnings,
     score,
-    label: "Teknik Ön-Kontrol (e-PYS)",
-    rulePackVersion: "epys-2024-ek6-v1",
-    sourceCitation: "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı e-PYS Teknik Kılavuzu (Ek-3, Ek-6, Ek-7)",
+    label: "Hızlı e-PYS ön kontrolü (sınırlı kapsam)",
+    rulePackVersion: "epys-quick-2026-10-v2",
+    sourceCitation: "Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik, RG 5.8.2026/33331, m.12 ve EK-6 Tablo 6.55; resmî uygunluk kararı değildir",
+    scope: SCOPE,
   };
 }

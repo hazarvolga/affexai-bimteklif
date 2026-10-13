@@ -54,6 +54,7 @@ export const IfcParseSummarySchema = z.object({
     kaks: z.number().nullable().optional(),
     cekmeOn: z.number().nullable().optional(),
     cekmeYan: z.number().nullable().optional(),
+    cekmeArka: z.number().nullable().optional(),
     source: z.enum(["ifc_site", "ifc_building"]).nullable(),
     sourcePath: z.string().nullable().optional(),
   }),

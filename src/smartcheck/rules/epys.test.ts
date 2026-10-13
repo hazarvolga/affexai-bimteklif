@@ -43,8 +43,24 @@ describe("e-PYS Validation Rules", () => {
       elementsData: mockElements
     });
     assert.ok(result.errors.some(e => e.includes("EK-6 İhlali")));
-    assert.equal(result.label, "Teknik Ön-Kontrol (e-PYS)");
-    assert.equal(result.rulePackVersion, "epys-2024-ek6-v1");
-    assert.ok(result.sourceCitation.includes("Çevre, Şehircilik ve İklim Değişikliği Bakanlığı"));
+    assert.equal(result.label, "Hızlı e-PYS ön kontrolü (sınırlı kapsam)");
+    assert.equal(result.rulePackVersion, "epys-quick-2026-10-v2");
+    assert.ok(result.sourceCitation.includes("33331"));
+  });
+
+  it("cites EK-6 Tablo 6.55 and requires all three setback distances from the final annex", () => {
+    const result = validateEpysRules({
+      complianceData: { source: "ifc_site", taks: 0.4, kaks: 1.5, cekmeOn: 5, cekmeYan: 3 },
+      pozExtraction: { pozNoByStepId: new Map() },
+      totalElementsCount: 0,
+    });
+    assert.ok(result.errors.some(e => e.includes("CekmeArka") && e.includes("Tablo 6.55")));
+    assert.ok(result.errors.every(e => !e.includes("EK-7")));
+  });
+
+  it("declares its limited scope instead of implying full compliance", () => {
+    const result = validateEpysRules({ complianceData: { source: null }, totalElementsCount: 0 });
+    assert.ok(result.scope.checked.length > 0);
+    assert.ok(result.scope.notChecked.some(item => /EK-9/.test(item)));
   });
 });

@@ -513,6 +513,7 @@ def extract_project_compliance(model: ifcopenshell.file) -> Dict[str, Any]:
         "kaks": None,
         "cekmeOn": None,
         "cekmeYan": None,
+        "cekmeArka": None,
         "source": None,
         "sourcePath": None,
     }
@@ -543,6 +544,8 @@ def extract_project_compliance(model: ifcopenshell.file) -> Dict[str, Any]:
                             compliance["cekmeOn"] = val
                         elif p_name in {"cekmeyan", "cekme_yan"}:
                             compliance["cekmeYan"] = val
+                        elif p_name in {"cekmearka", "cekme_arka"}:
+                            compliance["cekmeArka"] = val
                 
                 compliance["source"] = source_type
                 compliance["sourcePath"] = f"#{rel.id()}/#{prop_def.id()}:{prop_def.Name}"
