@@ -63,6 +63,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
 import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculations';
+import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 
 export function CreateQuote() {
   const navigate = useNavigate();
@@ -312,11 +313,15 @@ export function CreateQuote() {
 
   const totals = calculateQuotationTotals(items);
 
-  const costInputsComplete = items.length > 0 && items.every((item) => Number.isFinite(Number(item.costUnitPrice)) && Number(item.costUnitPrice) >= 0);
-  const estimatedCost = costInputsComplete ? items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costUnitPrice) || 0) * (1 + (Number(item.wastePercent) || 0) / 100), 0) : 0;
-  const estimatedMargin = costInputsComplete && totals.subtotal - totals.discountTotal > 0
-    ? ((totals.subtotal - totals.discountTotal - estimatedCost) / (totals.subtotal - totals.discountTotal)) * 100
-    : 0;
+  // Same calculation as the server profitability report, including risk premiums (L-4).
+  const financials = calculateQuotationFinancials(items, {
+    projectDurationMonths: formData.projectDurationMonths,
+    escalationVolatilityPercent: formData.escalationVolatilityPercent,
+    carbonRiskPremiumPercent: formData.carbonRiskPremiumPercent,
+    informationDeliveryCostPercent: formData.informationDeliveryCostPercent,
+  });
+  const costInputsComplete = items.length > 0 && financials.missingCostItemIndexes.length === 0;
+  const estimatedMargin = costInputsComplete ? financials.margin : 0;
 
   const handleSave = async (status: QuoteStatus = QuoteStatus.DRAFT) => {
     if (id && (!editVersion || editLoading || editError)) return;
@@ -851,7 +856,7 @@ export function CreateQuote() {
                 <div className={cn("p-1.5 rounded-lg", costInputsComplete ? "bg-emerald-100" : "bg-amber-100")}>
                   {costInputsComplete ? <TrendingUp size={16} className="text-emerald-600" /> : <AlertCircle size={16} className="text-amber-600" />}
                 </div>
-                {costInputsComplete ? `Gerçek maliyet bazlı marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
+                {costInputsComplete ? `Risk primleri dahil marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
               </div>
             </CardContent>
           </Card>

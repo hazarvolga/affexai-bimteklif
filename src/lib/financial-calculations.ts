@@ -3,9 +3,9 @@ import { roundMoney, toFiniteNumber } from './calculations';
 export type CostCategory = 'material' | 'labor' | 'logistics' | 'subcontractor' | 'overhead';
 
 export interface FinancialLineItem {
-  quantity: number | string | null | undefined;
-  unitPrice: number | string | null | undefined;
-  costUnitPrice: number | string | null | undefined;
+  quantity?: number | string | null;
+  unitPrice?: number | string | null;
+  costUnitPrice?: number | string | null;
   wastePercent?: number | string | null | undefined;
   discountPercent?: number | string | null | undefined;
   costCategory?: string | null | undefined;
