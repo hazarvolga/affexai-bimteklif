@@ -377,7 +377,7 @@ export function CreateQuote() {
       carbonRiskPremiumPercent: 3,
       informationDeliveryLevel: 'cobie',
       informationDeliveryCostPercent: 2,
-      notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 BIM teslim formatına uygun tekliftir.',
+      notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
     });
 
     setItems([
