@@ -1070,6 +1070,7 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
   manuallyCorrectedRows: integer("manually_corrected_rows").default(0).notNull(),
   findingCount: integer("finding_count").default(0).notNull(),
   approvedRows: integer("approved_rows").default(0).notNull(),
+  exceptionRows: integer("exception_rows").default(0).notNull(),
   transferredRows: integer("transferred_rows").default(0).notNull(),
   provenanceCompleteRows: integer("provenance_complete_rows").default(0).notNull(),
   processingDurationSeconds: integer("processing_duration_seconds"),
@@ -1096,6 +1097,7 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
   }).onDelete("restrict"),
   nonNegativeCheck: check("smartcheck_pilot_measurements_non_negative_check", sql`${table.totalRows} >= 0 AND ${table.parsedRows} >= 0 AND ${table.manuallyCorrectedRows} >= 0 AND ${table.findingCount} >= 0 AND ${table.approvedRows} >= 0 AND ${table.transferredRows} >= 0 AND ${table.provenanceCompleteRows} >= 0`),
   rateCheck: check("smartcheck_pilot_measurements_rate_check", sql`(${table.parseRate} IS NULL OR (${table.parseRate} >= 0 AND ${table.parseRate} <= 1)) AND (${table.manualReentryFreeRate} IS NULL OR (${table.manualReentryFreeRate} >= 0 AND ${table.manualReentryFreeRate} <= 1)) AND (${table.provenanceCoverage} IS NULL OR (${table.provenanceCoverage} >= 0 AND ${table.provenanceCoverage} <= 1))`),
+  exceptionRowsCheck: check("smartcheck_pilot_measurements_exception_rows_check", sql`${table.exceptionRows} >= 0`),
   durationCheck: check("smartcheck_pilot_measurements_duration_check", sql`(${table.processingDurationSeconds} IS NULL OR ${table.processingDurationSeconds} >= 0) AND (${table.workflowDurationSeconds} IS NULL OR ${table.workflowDurationSeconds} >= 0)`),
   idxLookup: index("idx_smartcheck_pilot_measurements_lookup").on(table.companyId, table.pilotCaseId, table.measuredAt),
 }));
