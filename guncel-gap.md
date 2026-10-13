@@ -136,23 +136,55 @@ Sıra önemli: kayıt açılmadan tahsilat, tahsilat ve alarm olmadan pilot mü�
 
 ## Hareket planı
 
-Öncelik sırasıyla; her madde kabul kriteriyle kapanır. Sahip: kodu Codex, karar ve hesapları Hazar, inceleme ve hesap doğrulamasını Claude üstlenir.
+Öncelik sırasıyla; her madde kabul kriteriyle kapanır. İşaretli maddeler kodda kapandı, deploy "Kapanış durumu" bölümündeki sırayla yapılmalı. Sahip: kodu Codex, karar ve hesapları Hazar, inceleme ve hesap doğrulamasını Claude üstlenir.
 
-- [ ] **1. Hesap düzeltmesini commit et ve canlıya al** (Codex) — `calculations.ts`, test dosyası, `CreateQuote.tsx`; lint + tam test + build yeşil; canlıda 3 × 0,335 TL satırı 1,01 TL. Mevcut tekliflerin toplamları yeniden kaydedilene kadar eski değerle kalır.
-- [ ] **2. Paket limitlerini DB kataloğuna taşı** (Codex) — `plans` tablosuna AI, PDF, CRM, mevzuat, kârlılık, depolama limitleri; `ai-quota.ts` ve `usage-report.ts` yalnız plandan okusun; 5 paketin her biri için limit testi; deneme paketi açık bayrakla seçilsin.
-- [ ] **3. IFC/e-PYS vaadi kararı** (Hazar) — SmartCheck açılana kadar "e-PYS & BIM Standart Denetçi" ve IFC kotaları "pilot" diye mi satılacak, yoksa yayından mı kalkacak?
+- [x] **1. Hesap düzeltmesini commit et ve canlıya al** (Codex) — `calculations.ts`, test dosyası, `CreateQuote.tsx`; lint + tam test + build yeşil; canlıda 3 × 0,335 TL satırı 1,01 TL. Mevcut tekliflerin toplamları yeniden kaydedilene kadar eski değerle kalır.
+- [x] **2. Paket limitlerini DB kataloğuna taşı** (Codex) — `plans` tablosuna AI, PDF, CRM, mevzuat, kârlılık, depolama limitleri; `ai-quota.ts` ve `usage-report.ts` yalnız plandan okusun; 5 paketin her biri için limit testi; deneme paketi açık bayrakla seçilsin.
+- [x] **3. IFC/e-PYS vaadi kararı** (Hazar) — *karar: "Pilot" etiketiyle satışta kalır (`58bfac8`).* — SmartCheck açılana kadar "e-PYS & BIM Standart Denetçi" ve IFC kotaları "pilot" diye mi satılacak, yoksa yayından mı kalkacak?
 - [ ] **4. SmartCheck pilot ortamı** (Hazar + Codex) — R2 bucket ve kimlik, `SMARTCHECK_IMPORT_ENABLED=true` yalnız pilot şirket kimliklerinde; 3x3 ve e-PYS kuralları sunucu run'ına bağlı; 5 izinli dosyada parse + review + aktarım.
-- [ ] **5. Eskalasyon formülü ve ekran marjı** (Hazar karar, Codex uygulama) — öneri: harcamanın süreye yayıldığı bileşik formül, *eskalasyona açık maliyet payı* (malzeme + işçilik; sabit/peşin kalemler hariç) × ((1 + v)^(T/2) − 1). T/2 orta nokta yaklaşımıdır; düzgün yayılmış harcamada gerçek değer 1 M TL / 12 ay / %2 örneğinde ≈ 118–140 bin TL aralığındadır; ekran marjı sunucunun `calculateQuotationFinancials` sonucunu göstersin; demo şablonundaki aylık %8 değeri düzeltilsin.
+- [x] **5. Eskalasyon formülü ve ekran marjı** (Hazar karar, Codex uygulama) — öneri: harcamanın süreye yayıldığı bileşik formül, *eskalasyona açık maliyet payı* (malzeme + işçilik; sabit/peşin kalemler hariç) × ((1 + v)^(T/2) − 1). T/2 orta nokta yaklaşımıdır; düzgün yayılmış harcamada gerçek değer 1 M TL / 12 ay / %2 örneğinde ≈ 118–140 bin TL aralığındadır; ekran marjı sunucunun `calculateQuotationFinancials` sonucunu göstersin; demo şablonundaki aylık %8 değeri düzeltilsin.
 - [ ] **6. DKIM ve gelen kutusu testi** (Hazar) — Stalwart'ta bimmetraj.com DKIM anahtarı, DNS kaydı, Gmail ve Outlook'ta spam dışı teslim.
-- [ ] **7. Hata izleme ve alarm** (Codex) — Sentry (veya eşdeğeri), kuyruk/worker metrikleri, bir alarmın gerçekten tetiklenmesi; health revizyonu build'den.
+- [x] **7. Hata izleme ve alarm** (Codex) — Sentry (veya eşdeğeri), kuyruk/worker metrikleri, bir alarmın gerçekten tetiklenmesi; health revizyonu build'den.
 - [ ] **8. Tahsilat** (Codex + Hazar) — Stripe sandbox abonelik döngüsü, webhook imza/replay testleri, mesafeli satış ve KVKK metinleri.
-- [ ] **9. Ajan bağlam dosyaları** (Codex) — `CLAUDE.md`, `AGENTS.md`, `CODEX.md` hâlâ "%3 paspayı" ve "Vercel SPA rewrites" diyor; skill'lerdeki kanonik 3x3 tanımı ve Coolify gerçeğiyle eşitlensin (E-2, skill tablosu).
-- [ ] **10. extract-zip istisnası** (Codex) — CI audit istisnası **22 Ekim 2026**'da doluyor; bağımlılığı yükselt veya istisnayı kaldır, CI'ın kırmızıya düşmesini bekleme.
-- [ ] **11. IFC aktarımında demo fiyatlar** (Codex) — P1-3: `quotation-transfer.ts` sabit m³ fiyatı yazmasın; birim fiyat boş ve `needs_review` gelsin.
-- [ ] **12. 250 MB / 100 MB çelişkisi** (Hazar karar, Codex) — P1-5: paket metni gerçek platform limitine çekilsin ya da limit paket bazlı yapılsın.
+- [x] **9. Ajan bağlam dosyaları** (Codex) — `CLAUDE.md`, `AGENTS.md`, `CODEX.md` hâlâ "%3 paspayı" ve "Vercel SPA rewrites" diyor; skill'lerdeki kanonik 3x3 tanımı ve Coolify gerçeğiyle eşitlensin (E-2, skill tablosu).
+- [x] **10. extract-zip istisnası** (Codex) — CI audit istisnası **22 Ekim 2026**'da doluyor; bağımlılığı yükselt veya istisnayı kaldır, CI'ın kırmızıya düşmesini bekleme.
+- [x] **11. IFC aktarımında demo fiyatlar** (Codex) — P1-3: `quotation-transfer.ts` sabit m³ fiyatı yazmasın; birim fiyat boş ve `needs_review` gelsin.
+- [x] **12. 250 MB / 100 MB çelişkisi** — *canlı katalog zaten 100 MB; kodda 250 MB vaadi yok.* (Hazar karar, Codex) — P1-5: paket metni gerçek platform limitine çekilsin ya da limit paket bazlı yapılsın.
 - [ ] **13. Ayrı runtime DB rolü** (Codex) — P1-1: uygulama ve worker DML yetkili ayrı rolle bağlansın; migration yalnız `migrate` job'ında.
-- [ ] **14. Tarayıcı IFC ön analizi kotası** (Hazar karar) — L-9: sayılsın mı, yoksa pakette "sınırsız ön analiz" mi yazılsın?
-- [ ] **15. Temizlik** (Codex) — `QuoteEditor.tsx` sil; Akademi bindirme simülatörüne TS 500 modu; repodaki `.agent/skills/yuksek-muhendis-mimar.tgz` sil, `.agent/skills/yuksek-muhendis-mimar/` klasörünü diğer skill'ler gibi commit et; `src/server/crawler/price-parser.ts` `toFixed(2)` yerine `roundMoney` kullansın; `www` → apex 301, `sitemap.xml`, CSP.
+- [x] **14. Tarayıcı IFC ön analizi kotası** (Hazar karar) — *karar: kotaya sayılır (`a2d1535`).* — L-9: sayılsın mı, yoksa pakette "sınırsız ön analiz" mi yazılsın?
+- [x] **15. Temizlik** (Codex) — `QuoteEditor.tsx` sil; Akademi bindirme simülatörüne TS 500 modu; repodaki `.agent/skills/yuksek-muhendis-mimar.tgz` sil, `.agent/skills/yuksek-muhendis-mimar/` klasörünü diğer skill'ler gibi commit et; `src/server/crawler/price-parser.ts` `toFixed(2)` yerine `roundMoney` kullansın; `www` → apex 301, `sitemap.xml`, CSP.
+
+## Kapanış durumu — branch `fix/gap-closure-2026-10-13` (13 Ekim)
+
+Kod tarafındaki maddeler ayrı commit'lerle kapandı; branch **henüz merge edilmedi ve canlıda değil**. Doğrulama: `pnpm run verify` (lint + 856/856 test + build), izole PostgreSQL 16'da release migration yaşam döngüsü 21/21, Prisma shadow geçerli, audit politikası 0 engelli bulgu. Ekran değişiklikleri tarayıcıda kontrol edildi (demo teklif marjı %10,9 = sunucu hesabı; eski ekran %19,7 derdi; bindirme simülatörü TS 500 ile 823 mm).
+
+| ID | Durum | Commit |
+| --- | --- | --- |
+| L-1, L-2, L-3 | Kapandı | `d0f2556`, `67d5f35` (QuoteEditor silindi), `9955664` (crawler yuvarlaması) |
+| L-4 | Kapandı — ekran sunucunun risk primli marjını gösteriyor | `adce910` |
+| L-5 | Kapandı — malzeme + işçilik × ((1+v)^(T/2) − 1); demo %2/ay | `1219710` |
+| L-6 / P0-6 | Kapandı — AI/PDF/CRM/mevzuat/kârlılık limitleri plandan; PDF/CRM/mevzuat/kârlılık artık sınırlanıyor (başarısız istekte rezervasyon iade) | `13a5111`, `57ea054` |
+| L-7 | Kapandı — `is_trial` bayrağı (tekil) | `a096635` |
+| L-8 | Kapandı — depolama/doküman limiti paketten | `9f93a6b` |
+| L-9 | Kapandı — tarayıcı ön analizi IFC kotasından düşüyor | `a2d1535` |
+| P0-3 | Kısmen — paket "Pilot" etiketli (katalog v3/v4); pilot ortamı Hazar'da | `58bfac8` |
+| P0-4 | Kod tarafı kapandı — Sentry (app + iki worker, PII temizleme), health revizyonu build'den | `55aca5a` |
+| P0-5 | Kısmen — CSP canlıya hazır; harici güvenlik incelemesi Hazar'da | `8db9595` |
+| P0-11 ek | Kapandı — Puppeteer 25.12; extract-zip ve basic-ftp ağaçtan çıktı, istisna kaldırıldı | `5f973c4`, `55efee4` |
+| P1-3 | Kapandı — IFC aktarımı fiyat uydurmuyor; fiyatsız satıra `PRICE_MISSING` | `5ab5372` |
+| P1-4 | Kapandı — `www` → apex 301, `sitemap.xml`, `robots.txt`, CSP | `8db9595` |
+| P1-5 | Kapandı (kod değişikliği gerekmedi) — canlı katalogda Kurumsal 100 MB; 250 MB vaadi kaynakta yok | — |
+| P1-7 | Kapandı — tek sayfalık `WORKING_STATE.md`, geçmiş `archive/` altında | `a89aafa` |
+| E-1, E-6 | Kapandı — 3x3 ve e-PYS her IFC run'ında sunucuda; sonuç ve kapsam kanıt artifact'ında | `b103991` |
+| E-2, E-3, E-4 | Kapandı — tek tanım, kaynak etiketi, paspayı `activeStandard`'a göre (TS 500 varsayılan) | `6f36307`, `d224c9b`, `f435c24` |
+| E-5 | Kapandı — simülatör TS 500 varsayılan | `5223ed7` |
+| E-9 | Metrik kısmı kapandı — istisna ayrı sayılıyor (migration 0008); reviewer yetki kapsamı modeli açık | `ee37519` |
+| E-10 | Kapandı — ürün adına "ISO 19650 uyumlu" iddiası kaldırıldı | `e863a5d`, `7ef02d6` |
+| E-11 | Kapandı — Ø18 1,998 / tablo 2,00; Ø28 4,834 | `1c5a119` |
+
+**Açık kalanlar (karar veya operasyon gerektiriyor):** P0-2 tahsilat + hukuk metinleri, P0-3 pilot tenant/R2, P0-5 harici güvenlik incelemesi, P1-1 ayrı runtime DB rolü (canlı DB'de rol ve yetki değişikliği; ayrı planla), P1-2 YFK lisansı, P1-6 AI anahtarları ve eval seti, P1-8 DKIM, E-7 donatı/kalıp motoru, E-8 minha motoru, E-9 reviewer yetki kapsamı. IFC çıkarıcısı paspayı/maruziyet/disiplin/LoadBearing üretmediği için 3x3'ün bu kontrolleri şu an `missingInput` raporluyor; çıkarıcıya `Pset_*Common` okuması eklenmeli.
+
+**Deploy sırası:** merge → `migrate` 0007 ve 0008'i uygular → `bootstrap-plan-catalog --apply` (katalog v4: limitler, `is_trial`, Pilot etiketi; o ana kadar eski limitler geçerli) → Coolify'da "Include Source Commit in Build" açık olmalı → Sentry'de alarm kuralı → canlıda CSP, `www` 301 ve `/sitemap.xml` kontrolü.
 
 ## Yöntem ve kaynaklar
 
