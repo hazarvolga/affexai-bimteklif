@@ -28,6 +28,16 @@ export interface QuotationFinancialCalculation {
 }
 
 const categories: CostCategory[] = ['material', 'labor', 'logistics', 'subcontractor', 'overhead'];
+// Only these cost shares follow monthly price indices; subcontracts and overhead are fixed at award.
+const escalatingCategories: readonly CostCategory[] = ['material', 'labor'];
+
+/**
+ * Spend is assumed to spread evenly over the project, so the average euro is spent at T/2:
+ * premium = escalating cost × ((1 + v)^(T/2) − 1). Linear `cost × T × v` overstated it ~1.9×.
+ */
+export function escalationPremiumFor(escalatingCost: number, durationMonths: number, monthlyPercent: number): number {
+  return roundMoney(escalatingCost * ((1 + monthlyPercent / 100) ** (durationMonths / 2) - 1));
+}
 
 export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}): QuotationFinancialCalculation {
   const costBreakdown = Object.fromEntries(categories.map((category) => [category, 0])) as Record<CostCategory, number>;
@@ -59,7 +69,7 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
   const projectDurationMonths = Math.max(1, toFiniteNumber(riskInputs.projectDurationMonths, 1));
   const escalationVolatilityPercent = Math.max(0, toFiniteNumber(riskInputs.escalationVolatilityPercent));
   const escalationPremium = missingCostItemIndexes.length === 0
-    ? roundMoney(totalCost * projectDurationMonths * escalationVolatilityPercent / 100)
+    ? escalationPremiumFor(escalatingCategories.reduce((sum, category) => sum + costBreakdown[category], 0), projectDurationMonths, escalationVolatilityPercent)
     : 0;
   const carbonRiskPremiumPercent = Math.max(0, toFiniteNumber(riskInputs.carbonRiskPremiumPercent));
   const carbonRiskPremium = missingCostItemIndexes.length === 0

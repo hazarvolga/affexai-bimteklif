@@ -367,7 +367,7 @@ export function CreateQuote() {
       expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency: Currency.TRY,
       projectDurationMonths: 6,
-      escalationVolatilityPercent: 8,
+      escalationVolatilityPercent: 2,
       procurementProfile: 'low_carbon',
       carbonRiskPremiumPercent: 3,
       informationDeliveryLevel: 'cobie',

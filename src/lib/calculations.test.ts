@@ -78,11 +78,20 @@ describe("real quotation financials", () => {
     assert.equal(result.margin, 0);
   });
 
-  it("adds an explicit duration-based escalation premium", () => {
-    const result = calculateQuotationFinancials([{ quantity: 1, unitPrice: 200, costUnitPrice: 100 }], { projectDurationMonths: 24, escalationVolatilityPercent: 2 });
-    assert.equal(result.escalationPremium, 48);
-    assert.equal(result.totalCost, 148);
-    assert.equal(result.profit, 52);
+  it("compounds escalation to the spend midpoint instead of the full duration", () => {
+    // 1 M TL malzeme, 12 ay, aylık %2: 1e6 × (1,02^6 − 1) = 126.162,42 TL (doğrusal formül 240.000 TL verirdi).
+    const result = calculateQuotationFinancials([{ quantity: 1, unitPrice: 1_500_000, costUnitPrice: 1_000_000, costCategory: "material" }], { projectDurationMonths: 12, escalationVolatilityPercent: 2 });
+    assert.equal(result.escalationPremium, 126162.42);
+    assert.equal(result.totalCost, 1_126_162.42);
+  });
+
+  it("escalates only material and labor, not fixed-price subcontracts or overhead", () => {
+    const result = calculateQuotationFinancials([
+      { quantity: 1, unitPrice: 200, costUnitPrice: 100, costCategory: "labor" },
+      { quantity: 1, unitPrice: 200, costUnitPrice: 100, costCategory: "subcontractor" },
+      { quantity: 1, unitPrice: 200, costUnitPrice: 100, costCategory: "overhead" },
+    ], { projectDurationMonths: 24, escalationVolatilityPercent: 2 });
+    assert.equal(result.escalationPremium, 26.82);
   });
 
   it("keeps carbon risk as an explicit scenario premium", () => {

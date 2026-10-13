@@ -507,7 +507,7 @@ export function QuoteDetail() {
                     </div>
                     <div className="p-5 bg-zinc-950/30">
                        <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-orange-500">Zaman Risk Primi</p>
-                       <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.escalationPremium || 0).toLocaleString('tr-TR')} {data.currency} · {data.projectDurationMonths || 1} ay × %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')}</p>
+                       <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.escalationPremium || 0).toLocaleString('tr-TR')} {data.currency} · {data.projectDurationMonths || 1} ay · aylık %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} bileşik, malzeme + işçilik</p>
                        <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-emerald-500">Karbon/Tedarik Risk Primi</p>
                        <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.carbonRiskPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} senaryo katsayısı</p>
                        <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-blue-400">Bilgi Teslim Maliyeti</p>
