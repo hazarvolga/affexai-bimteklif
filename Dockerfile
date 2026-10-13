@@ -53,7 +53,7 @@ ENV NODE_ENV=production \
 RUN apt-get update \
     && apt-get install --no-install-recommends -y python3 python3-venv python3-pip ca-certificates tini \
     && python3 -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 ifctester==0.8.4 pytest \
+    && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 ifctester==0.8.4 pypdf==6.19.0 pytest \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
