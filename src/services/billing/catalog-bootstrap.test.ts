@@ -12,6 +12,13 @@ test('canonical catalog has five precise allowances within supported IFC limits'
   assert.equal(new Set(canonicalPlans.map(p => p.id)).size, 5);
 });
 
+test('IFC auditor package is sold as a pilot until server SmartCheck is live', () => {
+  const auditor = canonicalPlans.find(p => p.id.endsWith('000000000002'))!;
+  assert.equal(auditor.marketingBadge, 'Pilot');
+  assert.match(auditor.marketingDescription ?? '', /pilot/i);
+  assert.match(auditor.marketingDescription ?? '', /henüz/i);
+});
+
 test('bootstrap adopts exact existing names, backfills public metadata, but refuses drift and duplicate identities', () => {
   const existing = { ...canonicalPlans[0], id: '22222222-2222-4222-8222-222222222222', isPublished: false, displayOrder: 0, marketingBadge: null, marketingDescription: null };
   const preview = planCatalogChanges([existing]);
