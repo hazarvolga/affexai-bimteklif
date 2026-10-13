@@ -215,10 +215,22 @@ export const plans = pgTable("plans", {
   displayOrder: integer("display_order").default(0).notNull(),
   marketingBadge: text("marketing_badge"),
   marketingDescription: text("marketing_description"),
+  // Per-package feature limits. NULL means "not yet configured": runtime falls back to the
+  // legacy PLAN_LIMITS for the subscription's enum plan until the catalog bootstrap fills it.
+  monthlyAiLimit: integer("monthly_ai_limit"),
+  monthlyPdfLimit: integer("monthly_pdf_limit"),
+  monthlyCrmLimit: integer("monthly_crm_limit"),
+  monthlyRegulationLimit: integer("monthly_regulation_limit"),
+  monthlyProfitAnalysisLimit: integer("monthly_profit_analysis_limit"),
+  storageMaxBytes: bigint("storage_max_bytes", { mode: "number" }),
+  maxDocuments: integer("max_documents"),
+  isTrial: boolean("is_trial").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   monthlyQuoteLimitNonnegative: check("plans_monthly_quote_limit_nonnegative", sql`${table.monthlyQuoteLimit} >= 0`),
   monthlyPriceNonnegative: check("plans_monthly_price_nonnegative", sql`${table.monthlyPrice} >= 0`),
+  featureLimitsNonnegative: check("plans_feature_limits_nonnegative", sql`coalesce(${table.monthlyAiLimit}, 0) >= 0 AND coalesce(${table.monthlyPdfLimit}, 0) >= 0 AND coalesce(${table.monthlyCrmLimit}, 0) >= 0 AND coalesce(${table.monthlyRegulationLimit}, 0) >= 0 AND coalesce(${table.monthlyProfitAnalysisLimit}, 0) >= 0 AND coalesce(${table.storageMaxBytes}, 1) > 0 AND coalesce(${table.maxDocuments}, 1) > 0`),
+  singleTrialPlan: uniqueIndex("plans_single_trial_idx").on(table.isTrial).where(sql`${table.isTrial}`),
 }));
 
 export const subscriptions = pgTable("subscriptions", {

@@ -24,6 +24,7 @@ test('quota schema declares the database uniqueness and nonnegative guards', () 
     ['usage_records', 'usage_records_quote_count_nonnegative'],
     ['plans', 'plans_monthly_quote_limit_nonnegative'],
     ['plans', 'plans_monthly_price_nonnegative'],
+    ['plans', 'plans_feature_limits_nonnegative'],
     ['subscriptions', 'subscriptions_bonus_quote_limit_nonnegative'],
   ]) assert.ok(tables[`public.${table}`].checkConstraints[constraint], constraint);
 });
@@ -32,7 +33,7 @@ test('release artifacts form an append-only chain matching current schema', asyn
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 7);
+  assert.equal(migrations.length, 8);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

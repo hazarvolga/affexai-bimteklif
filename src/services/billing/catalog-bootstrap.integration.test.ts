@@ -36,3 +36,25 @@ test('bootstrap is atomic, idempotent, audited and preserves existing tenant ent
     await assert.rejects(bootstrapPlanCatalog(client, actor.id, true), /CATALOG_SUPERADMIN_REQUIRED/);
   } finally { client.release(); }
 });
+
+test('bootstrap backfills limits on catalog plans created before limit columns existed', async () => {
+  const [{ pool }, { bootstrapPlanCatalog }, { canonicalPlans }] = await Promise.all([
+    import('../../db'), import('./catalog-bootstrap'), import('./plan-catalog'),
+  ]);
+  const client = await pool.connect();
+  try {
+    const { rows: [actor] } = await client.query("INSERT INTO users (email,full_name,is_super_admin) VALUES ('limits@example.test','Limits admin',true) RETURNING id");
+    await client.query('DELETE FROM plans');
+    const legacy = canonicalPlans[3];
+    await client.query(`INSERT INTO plans (id,name,monthly_price,monthly_quote_limit,monthly_ifc_limit,ifc_max_file_mb,ifc_max_concurrent,is_active,is_published,is_featured,display_order,marketing_badge,marketing_description)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`, [legacy.id, legacy.name, legacy.monthlyPrice, legacy.monthlyQuoteLimit, legacy.monthlyIfcLimit, legacy.ifcMaxFileMb, legacy.ifcMaxConcurrent, legacy.isActive, legacy.isPublished, legacy.isFeatured, legacy.displayOrder, legacy.marketingBadge, legacy.marketingDescription]);
+    const result = await bootstrapPlanCatalog(client, actor.id, true);
+    assert.equal(result.insertedCount, 4);
+    assert.equal(result.limitBackfilledCount, 1);
+    const { rows } = await client.query('SELECT id, monthly_ai_limit AS ai, storage_max_bytes::float8 AS storage, is_trial AS trial FROM plans ORDER BY display_order');
+    assert.deepEqual(rows.map(row => [row.ai, row.storage, row.trial]), canonicalPlans.map(p => [p.monthlyAiLimit, p.storageMaxBytes, p.isTrial]));
+    await client.query('UPDATE plans SET monthly_ai_limit=7 WHERE id=$1', [legacy.id]);
+    assert.equal((await bootstrapPlanCatalog(client, actor.id, true)).limitBackfilledCount, 0);
+    assert.equal((await client.query('SELECT monthly_ai_limit AS ai FROM plans WHERE id=$1', [legacy.id])).rows[0].ai, 7, 'admin-set limits survive bootstrap');
+  } finally { client.release(); }
+});

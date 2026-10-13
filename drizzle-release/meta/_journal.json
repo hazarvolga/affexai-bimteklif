@@ -50,6 +50,13 @@
       "when": 1791417600006,
       "tag": "0006_public_plan_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791417600007,
+      "tag": "0007_plan_feature_limits",
+      "breakpoints": true
     }
   ]
 }

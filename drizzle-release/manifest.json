@@ -50,6 +50,13 @@
       "sha256": "5ab65226703cd3318eb257afd5ded49dfd162c5d4972a3d501fd5218af1166be",
       "snapshotSha256": "64343932b71070593f34ec84b4dd24395021affd459212064fad1ab548b6f911",
       "statements": 5
+    },
+    {
+      "idx": 7,
+      "tag": "0007_plan_feature_limits",
+      "sha256": "076267ca8a2af4957c10ce658d1677a71521aa40954c1d4251149b0d506517e0",
+      "snapshotSha256": "0a9e4fb342abff4dc0da2db7c1d672f7b617884c8cb0accccad34ae374452326",
+      "statements": 10
     }
   ]
 }
