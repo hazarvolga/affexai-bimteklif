@@ -4,10 +4,10 @@
  */
 
 export interface LineItem {
-  quantity: number | string | null | undefined;
-  unitPrice: number | string | null | undefined;
-  discountPercent: number | string | null | undefined;
-  vatPercent: number | string | null | undefined;
+  quantity?: number | string | null;
+  unitPrice?: number | string | null;
+  discountPercent?: number | string | null;
+  vatPercent?: number | string | null;
 }
 
 export interface CalculationResult {
@@ -35,8 +35,49 @@ export function toFiniteNumber(value: number | string | null | undefined, fallba
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+/**
+ * Kuruş hassasiyetinde, ikili kayan nokta hatasından arındırılmış yuvarlama.
+ * Yarım değerler sıfırdan uzağa yuvarlanır (1.005 → 1.01, -1.005 → -1.01).
+ * `Number(x.toFixed(2))` bu durumda 1.00 verir; bu fonksiyon onu düzeltir.
+ */
 export function roundMoney(value: number): number {
-  return Number(value.toFixed(2));
+  if (!Number.isFinite(value)) return 0;
+  const sign = value < 0 ? -1 : 1;
+  return (sign * toCents(Math.abs(value))) / 100 || 0;
+}
+
+// Ondalık gösterimi kaydırarak (1.005 → "1.005e2" → 100.5) ikili hatayı önler.
+// Üstel gösterimli çok küçük/büyük sayılarda klasik çarpmaya düşer.
+function toCents(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  const sign = value < 0 ? -1 : 1;
+  const abs = Math.abs(value);
+  const text = String(abs);
+  const shifted = text.includes("e") ? abs * 100 : Number(`${text}e2`);
+  return sign * Math.round(shifted);
+}
+const fromCents = (cents: number) => cents / 100;
+
+export interface LineBreakdown {
+  gross: number;
+  discount: number;
+  net: number;
+  vat: number;
+  total: number;
+}
+
+/**
+ * Tek satırın kuruşa yuvarlanmış bileşenleri. Her bileşen satırda yuvarlanır;
+ * teklif toplamları bu yuvarlanmış satırların toplamıdır. Böylece PDF'te görünen
+ * satır toplamlarının toplamı her zaman ara toplamla birebir eşittir.
+ */
+export function calculateLineBreakdown(item: LineItem): LineBreakdown {
+  const normalized = normalizeLineItem(item);
+  const gross = roundMoney(normalized.quantity * normalized.unitPrice);
+  const discount = roundMoney(gross * (normalized.discountPercent / 100));
+  const net = fromCents(toCents(gross) - toCents(discount));
+  const vat = roundMoney(net * (normalized.vatPercent / 100));
+  return { gross, discount, net, vat, total: fromCents(toCents(net) + toCents(vat)) };
 }
 
 export function normalizeLineItem(item: LineItem): NormalizedLineItem {
@@ -73,10 +114,7 @@ export function validateQuotationItems(items: Array<LineItem & { description?: u
  * Calculates totals for a single line item
  */
 export function calculateLineItemTotal(item: LineItem): number {
-  const normalized = normalizeLineItem(item);
-  const base = normalized.quantity * normalized.unitPrice;
-  const discount = base * (normalized.discountPercent / 100);
-  return roundMoney(base - discount);
+  return calculateLineBreakdown(item).net;
 }
 
 /**
@@ -87,22 +125,17 @@ export function calculateQuotationTotals(items: LineItem[]): CalculationResult {
   let discountTotal = 0;
   let vatTotal = 0;
 
-  items.forEach((item) => {
-    const normalized = normalizeLineItem(item);
-    const rawBase = normalized.quantity * normalized.unitPrice;
-    const discount = rawBase * (normalized.discountPercent / 100);
-    const lineSubtotal = rawBase - discount;
-    const vat = lineSubtotal * (normalized.vatPercent / 100);
-
-    subtotal += rawBase;
-    discountTotal += discount;
-    vatTotal += vat;
-  });
+  for (const item of items) {
+    const line = calculateLineBreakdown(item);
+    subtotal += toCents(line.gross);
+    discountTotal += toCents(line.discount);
+    vatTotal += toCents(line.vat);
+  }
 
   return {
-    subtotal: roundMoney(subtotal),
-    discountTotal: roundMoney(discountTotal),
-    vatTotal: roundMoney(vatTotal),
-    grandTotal: roundMoney(subtotal - discountTotal + vatTotal),
+    subtotal: fromCents(subtotal),
+    discountTotal: fromCents(discountTotal),
+    vatTotal: fromCents(vatTotal),
+    grandTotal: fromCents(subtotal - discountTotal + vatTotal),
   };
 }

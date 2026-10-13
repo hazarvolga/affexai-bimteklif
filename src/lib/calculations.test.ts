@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { calculateLineItemTotal, calculateQuotationTotals, validateQuotationItems } from "./calculations";
+import { calculateLineBreakdown, calculateLineItemTotal, calculateQuotationTotals, roundMoney, validateQuotationItems } from "./calculations";
 import { calculateQuotationFinancials } from "./financial-calculations";
 import { auditQuotationItems } from "./quotation-audit";
 
@@ -111,5 +111,39 @@ describe("quotation source audit", () => {
     const [issue] = auditQuotationItems([{ quantitySource: "model", priceSource: "manual", sourceReference: "", verificationStatus: "verified", costUnitPrice: 10 }]);
     assert.equal(issue.code, "SOURCE_REFERENCE_MISSING");
     assert.equal(issue.academyGuidance.lessonSlug, "bim-basics-openbim");
+  });
+});
+
+describe("kuruş yuvarlama doğruluğu", () => {
+  it("yarım kuruşu ikili kayan nokta hatası olmadan yukarı yuvarlar", () => {
+    assert.equal(roundMoney(1.005), 1.01);
+    assert.equal(roundMoney(2.675), 2.68);
+    assert.equal(roundMoney(1.255), 1.26);
+    assert.equal(roundMoney(-1.005), -1.01);
+    assert.equal(roundMoney(0), 0);
+    assert.equal(roundMoney(1e-7), 0);
+  });
+
+  it("satır toplamlarının toplamı her zaman ara toplam eksi iskontoya eşittir", () => {
+    let seed = 1;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let k = 0; k < 20000; k++) {
+      const items = Array.from({ length: 1 + Math.floor(rnd() * 15) }, () => ({
+        quantity: Math.round(rnd() * 50000) / 1000,
+        unitPrice: Math.round(rnd() * 500000) / 100,
+        discountPercent: [0, 5, 7.5, 10, 12.5][Math.floor(rnd() * 5)],
+        vatPercent: [20, 10, 1][Math.floor(rnd() * 3)],
+      }));
+      const totals = calculateQuotationTotals(items);
+      const lineNetCents = items.reduce((sum, item) => sum + Math.round(calculateLineItemTotal(item) * 100), 0);
+      const lineVatCents = items.reduce((sum, item) => sum + Math.round(calculateLineBreakdown(item).vat * 100), 0);
+      assert.equal(lineNetCents, Math.round((totals.subtotal - totals.discountTotal) * 100));
+      assert.equal(lineVatCents, Math.round(totals.vatTotal * 100));
+      assert.equal(Math.round(totals.grandTotal * 100), lineNetCents + lineVatCents);
+    }
+  });
+
+  it("3 × 0,335 TL satırı 1,01 TL'dir (toFixed hatası 1,00 verirdi)", () => {
+    assert.equal(calculateLineItemTotal({ quantity: 3, unitPrice: 0.335, discountPercent: 0, vatPercent: 20 }), 1.01);
   });
 });

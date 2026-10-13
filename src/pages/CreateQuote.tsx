@@ -62,6 +62,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
+import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculations';
 
 export function CreateQuote() {
   const navigate = useNavigate();
@@ -232,16 +233,8 @@ export function CreateQuote() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const calculateItemTotal = (item: Partial<QuoteItem>) => {
-    const qty = Number(item.quantity) || 0;
-    const price = Number(item.unitPrice) || 0;
-    const discount = Number(item.discountPercent) || 0;
-    const vat = Number(item.vatPercent) || 0;
-
-    const sub = qty * price;
-    const afterDiscount = sub * (1 - discount / 100);
-    return Number(afterDiscount.toFixed(2));
-  };
+  // Tek hesap kaynağı: sunucu, PDF ve ekran aynı yuvarlama kuralını kullanır.
+  const calculateItemTotal = (item: Partial<QuoteItem>) => calculateLineItemTotal(item);
 
   const updateItem = (id: string, updates: Partial<QuoteItem>) => {
     setItems(items.map(item => {
@@ -317,17 +310,7 @@ export function CreateQuote() {
     }
   };
 
-  const totals = items.reduce((acc, item) => {
-    const sub = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
-    const disc = sub * ((Number(item.discountPercent) || 0) / 100);
-    const vat = (sub - disc) * ((Number(item.vatPercent) || 0) / 100);
-    
-    acc.subtotal += sub;
-    acc.discountTotal += disc;
-    acc.vatTotal += vat;
-    acc.grandTotal += (sub - disc + vat);
-    return acc;
-  }, { subtotal: 0, discountTotal: 0, vatTotal: 0, grandTotal: 0 });
+  const totals = calculateQuotationTotals(items);
 
   const costInputsComplete = items.length > 0 && items.every((item) => Number.isFinite(Number(item.costUnitPrice)) && Number(item.costUnitPrice) >= 0);
   const estimatedCost = costInputsComplete ? items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costUnitPrice) || 0) * (1 + (Number(item.wastePercent) || 0) / 100), 0) : 0;
