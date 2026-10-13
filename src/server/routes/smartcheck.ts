@@ -256,8 +256,11 @@ export function registerSmartCheckRoutes(app: Express) {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Önizleme için yükleme tamamlanmalı." });
-    if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc" || document.originalFileName.toLowerCase().endsWith(".pdf")) {
-      return res.status(409).json({ error: "Dosya ön kontrolü için işleme kuyruğunu başlatın; rapor işleme sonunda oluşur.", code: "PREFLIGHT_USES_PROCESSING_ARTIFACT" });
+    if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc") {
+      return res.status(409).json({ error: "IFC önizlemesi için işleme kuyruğunu başlatın; rapor işleme sonunda oluşur.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
+    }
+    if (document.originalFileName.toLowerCase().endsWith(".pdf")) {
+      return res.status(409).json({ error: "PDF ön kontrolü için işleme kuyruğunu başlatın; rapor işleme sonunda oluşur.", code: "PREFLIGHT_USES_PROCESSING_ARTIFACT" });
     }
     let release: (() => void) | undefined;
     try {
@@ -265,7 +268,8 @@ export function registerSmartCheckRoutes(app: Express) {
       const content = await createStorageAdapter().get(document.storageKey);
       if (content.length !== document.fileSizeBytes || sha256(content) !== document.checksumSha256) return res.status(422).json({ error: "Dosya bütünlüğü doğrulanamadı." });
       const kind = detectAndValidateFile(content, document.originalFileName, document.mimeType);
-      if (kind === "ifc" || kind === "pdf") return res.status(409).json({ error: "Dosya ön kontrolü için işleme kuyruğunu başlatın.", code: "PREFLIGHT_USES_PROCESSING_ARTIFACT" });
+      if (kind === "ifc") return res.status(409).json({ error: "IFC önizlemesi için işleme kuyruğunu başlatın.", code: "IFC_PREVIEW_USES_PROCESSING_ARTIFACT" });
+      if (kind === "pdf") return res.status(409).json({ error: "PDF ön kontrolü için işleme kuyruğunu başlatın.", code: "PREFLIGHT_USES_PROCESSING_ARTIFACT" });
       const preview = await inspectDocument(content, kind);
       res.json({ document: { id: document.id, fileName: document.originalFileName, fileSizeBytes: document.fileSizeBytes, checksumSha256: document.checksumSha256, mapping: document.importMappingJson }, preview });
     } catch (error) {

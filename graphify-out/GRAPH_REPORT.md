@@ -1,16 +1,16 @@
 # Graph Report - TeklifPro-repo  (2026-10-13)
 
 ## Corpus Check
-- 1130 files · ~1,714,645 words
+- 1130 files · ~1,714,675 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 10257 nodes · 14586 edges · 883 communities (812 shown, 71 thin omitted)
+- 10257 nodes · 14586 edges · 881 communities (810 shown, 71 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 215 edges (avg confidence: 0.71)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8b861887`
+- Built from commit: `062528a0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -274,7 +274,7 @@
 - Sample Size Guide
 - Paid Ads
 - Citations vs. Recommendations: The AI Visibility Ladder
-- Generative Engine Optimization (GEO) Patterns
+- AEO and GEO Content Patterns
 - ASO Benchmarks & Conversion Data
 - AI Image Prompting Guide
 - Design & Delivery Models
@@ -441,7 +441,7 @@
 - Video Generation
 - postgres-restore-drill.ts
 - The Creative Strategy Loop
-- AEO and GEO Content Patterns
+- Domain-Specific GEO Tactics
 - AI SEO by Content Type
 - Data Layer Patterns
 - Cancel Flow Design
@@ -518,7 +518,7 @@
 - processor.ts
 - routes/smartcheck.ts
 - Before Starting
-- Target Accounts
+- Per-Platform Notes
 - package.json
 - AI BIM Director
 - AI Visibility Audit
@@ -785,7 +785,7 @@
 - Kaynaklar ve doğrulama durumu
 - bcryptjs
 - Google Ads Setup
-- Advanced Patterns
+- TikTok
 - Meta Ads Setup
 - LinkedIn Ads Setup
 - Phase Progress
@@ -805,8 +805,8 @@
 - kot.py
 - content.test.ts
 - ErrorBoundary.tsx
-- Google Ads
-- Sources & Light Tooling (curl recipes)
+- Core Principles
+- One-Pagers / Leave-Behinds
 - Phase - 2026-08-21 UX Production-Readiness Pass + First Customer Simulation
 - Tier Structure Overview
 - Pricing Research
@@ -814,7 +814,7 @@
 - ensure_venv
 - Audience Understanding & Targeting
 - Common Mistakes to Avoid
-- Before Creating Content
+- Engagement Strategy
 - quotation-audit.ts
 - App
 - src/components/ui/sonner.tsx
@@ -823,8 +823,7 @@
 - Reporting & Analysis
 - Creative Best Practices
 - Deal Desk Processes
-- Proposal Templates
-- Objection Handling Docs
+- A/B Testing
 - Footer Navigation
 - PilotApplication.tsx
 - Vendored: ifc-ruhsat
@@ -832,7 +831,6 @@
 - Demo Scripts & Talk Tracks
 - Essential Events
 - ensure_venv_and_run
-- Anti-Patterns to Avoid
 - @aws-sdk/s3-request-presigner
 - clsx
 - date-fns
@@ -875,7 +873,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (883 total, 71 thin omitted)
+## Communities (881 total, 71 thin omitted)
 
 ### Community 0 - "BrowserFactory"
 Cohesion: 0.11
@@ -1022,8 +1020,8 @@ Cohesion: 0.23
 Nodes (8): checkSymlink(), FixtureCandidateProvider, isPathInsideOrEqual(), FixtureInfrastructureError, FixtureInfrastructureErrorCode, CandidateProviderResult, CandidateProviderResultSchema, EvaluationFixture
 
 ### Community 51 - "Listening Sources — Template"
-Cohesion: 0.12
-Nodes (15): Brand mentions, Competitor mentions (monitor for switching language), Do Not Engage, High-intent (someone shopping or switching), ICP (for scoring), Keywords (intent signals), LinkedIn (regular), LinkedIn Sales Navigator (+7 more)
+Cohesion: 0.09
+Nodes (22): Blogs / Newsletters (RSS), Bluesky, Brand mentions, Competitor mentions (monitor for switching language), Do Not Engage, High-intent (someone shopping or switching), ICP (for scoring), Keywords (intent signals) (+14 more)
 
 ### Community 52 - "fixture-loader.ts"
 Cohesion: 0.21
@@ -1263,7 +1261,7 @@ Nodes (23): 1. Analysis Phase, 1. Unused Imports, 2. Dead Code Branches, 2. Risk
 
 ### Community 125 - "Conversion Tracking Setup"
 Cohesion: 0.08
-Nodes (23): Advanced Matching, Aggregated Event Measurement, Browser-side checks, Common Mistakes, Conversion tracking, Conversion Tracking Setup, Conversions API (CAPI), Debugging tools (+15 more)
+Nodes (24): Aggregated Event Measurement, Browser-side checks, Common Mistakes, Conversion tracking, Conversion Tracking Setup, Conversions API (CAPI), Debugging tools, Enhanced Conversions (+16 more)
 
 ### Community 126 - "ASO Audit"
 Cohesion: 0.08
@@ -1318,16 +1316,16 @@ Cohesion: 0.09
 Nodes (22): Audience Examples, Audience Export, Audiences, Common Issues, Contents, Conversion Values, Conversions Setup, Creating Audiences (+14 more)
 
 ### Community 148 - "Google Tag Manager Implementation Reference"
-Cohesion: 0.09
-Nodes (22): Common Tag Configurations, Consent Management, Consent Mode Integration, Container Structure, Contents, Debug Tips, Facebook Pixel - Base, Facebook Pixel - Event (+14 more)
+Cohesion: 0.08
+Nodes (26): Advanced Patterns, Common Tag Configurations, Consent Management, Consent Mode Integration, Container Structure, Contents, Custom JavaScript Variables, Debug Tips (+18 more)
 
 ### Community 151 - "Customer Research"
 Cohesion: 0.09
 Nodes (21): Asset Types, Before Starting, Customer Research, Deliverable Formats, Extraction Framework, Mode 1: Analyze Existing Assets, Mode 1: Analyzing Existing Research Assets, Mode 2: Digital Watering Hole Research (+13 more)
 
 ### Community 152 - "Social Content"
-Cohesion: 0.07
-Nodes (30): Analytics & Optimization, Batching Strategy (2-3 hours weekly), Building Relationships, Content Calendar Structure, Content Ideas by Situation, Content Pillars Framework, Contrarian Hooks, Curiosity Hooks (+22 more)
+Cohesion: 0.06
+Nodes (31): 1. Goals, 2. Audience, 3. Brand Voice, 4. Resources, Analytics & Optimization, Batching Strategy (2-3 hours weekly), Before Creating Content, Content Calendar Structure (+23 more)
 
 ### Community 154 - "components.json"
 Cohesion: 0.09
@@ -1342,8 +1340,8 @@ Cohesion: 0.10
 Nodes (20): 10. Brand Voice, 11. Proof Points, 12. Goals, 1. Product Overview, 2. Target Audience, 3. Personas (B2B only), 4. Problems & Pain Points, 5. Competitive Landscape (+12 more)
 
 ### Community 157 - "Sales Enablement"
-Cohesion: 0.09
-Nodes (22): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Core Principles, Customization by Buyer Type, Deck Principles, Design Principles (+14 more)
+Cohesion: 0.10
+Nodes (21): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Common Mistakes, Customization by Buyer Type, Customization Guidance, Deck Principles (+13 more)
 
 ### Community 158 - "properties"
 Cohesion: 0.11
@@ -1846,12 +1844,12 @@ Cohesion: 0.18
 Nodes (11): Ad Copy Frameworks, Google RSA Output Spec (mandatory when generating RSAs), Key Formulas, Paid Ads, Platform Selection Guide, Platform Setup, Reference Routing, Related Skills (+3 more)
 
 ### Community 283 - "Citations vs. Recommendations: The AI Visibility Ladder"
-Cohesion: 0.33
+Cohesion: 0.22
 Nodes (6): Applying This, Citations vs. Recommendations: The AI Visibility Ladder, The Self-Promotional Listicle Risk, The Visibility Ladder, What a Recommendation Is Worth, What Earns Recommendations
 
-### Community 284 - "Generative Engine Optimization (GEO) Patterns"
-Cohesion: 0.33
-Nodes (6): Authoritative Claim Block, Evidence Sandwich Block, Expert Quote Block, Generative Engine Optimization (GEO) Patterns, Self-Contained Answer Block, Statistic Citation Block
+### Community 284 - "AEO and GEO Content Patterns"
+Cohesion: 0.18
+Nodes (11): AEO and GEO Content Patterns, Authoritative Claim Block, Contents, Evidence Sandwich Block, Expert Quote Block, Generative Engine Optimization (GEO) Patterns, Question Formats for Voice, Self-Contained Answer Block (+3 more)
 
 ### Community 285 - "ASO Benchmarks & Conversion Data"
 Cohesion: 0.18
@@ -1871,7 +1869,7 @@ Nodes (11): Common Patterns by Product Type, Email + In-App Coordination, Experi
 
 ### Community 289 - "Paywall and Upgrade Screen CRO"
 Cohesion: 0.18
-Nodes (11): A/B Testing, From Paywall to Payment, Initial Assessment, Metrics to Track, Paywall and Upgrade Screen CRO, Paywall Screen Components, Post-Upgrade, Related Skills (+3 more)
+Nodes (11): Anti-Patterns to Avoid, Conversion Killers, Dark Patterns, From Paywall to Payment, Initial Assessment, Paywall and Upgrade Screen CRO, Paywall Screen Components, Post-Upgrade (+3 more)
 
 ### Community 290 - "Pricing Research Methods"
 Cohesion: 0.18
@@ -2234,7 +2232,7 @@ Cohesion: 0.25
 Nodes (8): Consent tiers, Express written consent requirements, Opt-in disclosure template (compliant), Quiet hours, Sample TCPA-compliant footer language by sequence type, STOP/HELP handling, United States — TCPA, What it is
 
 ### Community 381 - "social/SKILL.md"
-Cohesion: 0.18
+Cohesion: 0.15
 Nodes (7): Contents, Facebook, Instagram, LinkedIn, Platform-Specific Strategy Guide, TikTok, Twitter/X
 
 ### Community 382 - "Strategic Compact Skill"
@@ -2517,12 +2515,12 @@ Nodes (17): dumpSchema(), ensureTarget(), envFor(), exists(), hasObjects(), main
 Cohesion: 0.29
 Nodes (7): Failure Modes, Step 1: Read the Three Signals, Step 2: Turn Signals into Evidence-Ranked Concepts, Step 3: Branch on Account State, Step 4: The Roadmap Artifact, Step 5: The Monthly Creative Retro, The Creative Strategy Loop
 
-### Community 453 - "AEO and GEO Content Patterns"
-Cohesion: 0.18
-Nodes (11): AEO and GEO Content Patterns, Business/Marketing Content, Contents, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Question Formats for Voice (+3 more)
+### Community 453 - "Domain-Specific GEO Tactics"
+Cohesion: 0.33
+Nodes (6): Business/Marketing Content, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Technology Content
 
 ### Community 454 - "AI SEO by Content Type"
-Cohesion: 0.22
+Cohesion: 0.33
 Nodes (6): AI SEO by Content Type, Blog Content, Comparison / Alternative Pages, Documentation / Help Content, Local Business / Ecom (Google emphasis), SaaS Product Pages
 
 ### Community 455 - "Data Layer Patterns"
@@ -2821,9 +2819,9 @@ Nodes (53): documentProcessingArtifacts, documentProcessingRuns, documents, norm
 Cohesion: 0.40
 Nodes (5): 1. Campaign Goals, 2. Product & Offer, 3. Audience, 4. Current State, Before Starting
 
-### Community 530 - "Target Accounts"
-Cohesion: 0.29
-Nodes (7): Blogs / Newsletters (RSS), Bluesky, LinkedIn (browser-driven — use dev-browser to view feed), Reddit, Target Accounts, X / Twitter (browser-driven), YouTube channels (RSS)
+### Community 530 - "Per-Platform Notes"
+Cohesion: 0.33
+Nodes (6): Bluesky, Hacker News, LinkedIn, Per-Platform Notes, Reddit, Twitter/X
 
 ### Community 531 - "package.json"
 Cohesion: 0.25
@@ -3487,7 +3485,7 @@ Nodes (6): 2026-10-11 local remediation checkpoint (uncommitted), Checkpoint pro
 
 ### Community 700 - "Social Listening & Engagement Triage"
 Cohesion: 0.11
-Nodes (18): Bluesky, Comment Quality Tiers, Common Workflows, Contents, "Find people complaining about [competitor]", "Find target-account posts I missed", "Give me my top 10 posts to comment on today", Hacker News (+10 more)
+Nodes (18): Bluesky (free, public API), Comment Quality Tiers, Common Workflows, Contents, "Find people complaining about [competitor]", "Find target-account posts I missed", "Give me my top 10 posts to comment on today", Hacker News (Algolia search) (+10 more)
 
 ### Community 701 - "Metraj (QTO) ve Ölçü Esasları"
 Cohesion: 0.18
@@ -3761,9 +3759,9 @@ Nodes (8): Birincil metin, Doğrulama yöntemi ve sınırı, EK-6: kodlanmış t
 Cohesion: 0.25
 Nodes (8): Account Foundation, Ad Extensions, Analytics Integration, Audience Setup, Brand Protection, Campaign Readiness, Conversion Tracking, Google Ads Setup
 
-### Community 821 - "Advanced Patterns"
-Cohesion: 0.50
-Nodes (4): Advanced Patterns, Custom JavaScript Variables, Exception Handling, Tag Sequencing
+### Community 821 - "TikTok"
+Cohesion: 0.40
+Nodes (5): Advanced Matching, Events API (server-side), Install the TikTok Pixel, Standard events, TikTok
 
 ### Community 822 - "Meta Ads Setup"
 Cohesion: 0.25
@@ -3829,13 +3827,13 @@ Nodes (3): calculateTaxAdvisory(), CALC_MODULES, moduleText()
 Cohesion: 0.33
 Nodes (3): ErrorBoundary, ErrorBoundaryProps, ErrorBoundaryState
 
-### Community 841 - "Google Ads"
-Cohesion: 0.33
-Nodes (6): Enhanced Conversions, Fire conversion events, Google Ads, Google Tag Manager alternative, Install the Google tag, Set up conversion actions
+### Community 841 - "Core Principles"
+Cohesion: 0.40
+Nodes (5): Core Principles, Sales Uses What Sales Trusts, Scannable Over Comprehensive, Situation-Specific, Not Generic, Tie Back to Business Outcomes
 
-### Community 842 - "Sources & Light Tooling (curl recipes)"
-Cohesion: 0.33
-Nodes (6): Bluesky (free, public API), Hacker News (Algolia search), LinkedIn & X — use the browser, Reddit (free, scriptable), RSS for blogs, podcasts, YouTube channels, Sources & Light Tooling (curl recipes)
+### Community 842 - "One-Pagers / Leave-Behinds"
+Cohesion: 0.50
+Nodes (4): Design Principles, One-Pagers / Leave-Behinds, Structure, When to Use
 
 ### Community 843 - "Phase - 2026-08-21 UX Production-Readiness Pass + First Customer Simulation"
 Cohesion: 0.33
@@ -3865,9 +3863,9 @@ Nodes (5): Applying audience knowledge to creative, Audience Understanding & Tar
 Cohesion: 0.40
 Nodes (5): Budget, Common Mistakes to Avoid, Creative, Strategy, Targeting
 
-### Community 850 - "Before Creating Content"
-Cohesion: 0.40
-Nodes (5): 1. Goals, 2. Audience, 3. Brand Voice, 4. Resources, Before Creating Content
+### Community 850 - "Engagement Strategy"
+Cohesion: 0.50
+Nodes (4): Building Relationships, Daily Engagement Routine (30 min), Engagement Strategy, Quality Comments
 
 ### Community 851 - "quotation-audit.ts"
 Cohesion: 0.40
@@ -3889,13 +3887,9 @@ Nodes (4): Creative Best Practices, Creative Testing Hierarchy, Image Ads, Video
 Cohesion: 0.50
 Nodes (4): Approval Workflow Tiers, Deal Desk Processes, Non-Standard Terms Handling, When You Need a Deal Desk
 
-### Community 859 - "Proposal Templates"
-Cohesion: 0.50
-Nodes (4): Common Mistakes, Customization Guidance, Proposal Templates, Structure
-
-### Community 860 - "Objection Handling Docs"
-Cohesion: 0.50
-Nodes (4): Objection Categories, Objection Handling Docs, Response Framework, Two Formats
+### Community 859 - "A/B Testing"
+Cohesion: 0.67
+Nodes (3): A/B Testing, Metrics to Track, What to Test
 
 ### Community 861 - "Footer Navigation"
 Cohesion: 0.50
@@ -3916,10 +3910,6 @@ Nodes (4): Demo Scripts & Talk Tracks, Key Principles, Script Structure, Talk Tr
 ### Community 866 - "Essential Events"
 Cohesion: 0.67
 Nodes (3): Essential Events, Marketing Site, Product/App
-
-### Community 868 - "Anti-Patterns to Avoid"
-Cohesion: 0.67
-Nodes (3): Anti-Patterns to Avoid, Conversion Killers, Dark Patterns
 
 ## Knowledge Gaps
 - **5797 isolated node(s):** `evaluate-session.sh script`, `suggest-compact.sh script`, `app`, `$schema`, `style` (+5792 more)

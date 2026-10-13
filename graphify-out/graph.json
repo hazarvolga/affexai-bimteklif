@@ -46468,8 +46468,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_google_ads",
-      "community": 841,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "google ads"
     },
     {
@@ -46479,8 +46479,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_google_tag",
-      "community": 841,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "install the google tag"
     },
     {
@@ -46490,8 +46490,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_set_up_conversion_actions",
-      "community": 841,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "set up conversion actions"
     },
     {
@@ -46501,8 +46501,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_fire_conversion_events",
-      "community": 841,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "fire conversion events"
     },
     {
@@ -46512,8 +46512,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_enhanced_conversions",
-      "community": 841,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "enhanced conversions"
     },
     {
@@ -46523,8 +46523,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_google_tag_manager_alternative",
-      "community": 841,
-      "community_name": "Google Ads",
+      "community": 125,
+      "community_name": "Conversion Tracking Setup",
       "norm_label": "google tag manager alternative"
     },
     {
@@ -46633,8 +46633,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_tiktok",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 821,
+      "community_name": "TikTok",
       "norm_label": "tiktok"
     },
     {
@@ -46644,8 +46644,8 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_install_the_tiktok_pixel",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 821,
+      "community_name": "TikTok",
       "norm_label": "install the tiktok pixel"
     },
     {
@@ -46655,8 +46655,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_standard_events_250",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 821,
+      "community_name": "TikTok",
       "norm_label": "standard events"
     },
     {
@@ -46666,8 +46666,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_events_api_server_side",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 821,
+      "community_name": "TikTok",
       "norm_label": "events api (server-side)"
     },
     {
@@ -46677,8 +46677,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "agent_skills_ads_references_conversion_tracking_advanced_matching",
-      "community": 125,
-      "community_name": "Conversion Tracking Setup",
+      "community": 821,
+      "community_name": "TikTok",
       "norm_label": "advanced matching"
     },
     {
@@ -47832,8 +47832,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_skill",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "ai-seo/skill.md"
     },
     {
@@ -48239,8 +48239,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_citations_vs_recommendations",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "citations-vs-recommendations.md"
     },
     {
@@ -48316,8 +48316,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "content-patterns.md"
     },
     {
@@ -48327,7 +48327,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_aeo_and_geo_content_patterns",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "aeo and geo content patterns"
     },
@@ -48338,7 +48338,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_contents",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "contents"
     },
@@ -48427,7 +48427,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_generative_engine_optimization_geo_patterns",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "generative engine optimization (geo) patterns"
     },
     {
@@ -48438,7 +48438,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_statistic_citation_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "statistic citation block"
     },
     {
@@ -48449,7 +48449,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_expert_quote_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "expert quote block"
     },
     {
@@ -48460,7 +48460,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_authoritative_claim_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "authoritative claim block"
     },
     {
@@ -48471,7 +48471,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_self_contained_answer_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "self-contained answer block"
     },
     {
@@ -48482,7 +48482,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_evidence_sandwich_block",
       "community": 284,
-      "community_name": "Generative Engine Optimization (GEO) Patterns",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "evidence sandwich block"
     },
     {
@@ -48493,7 +48493,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_domain_specific_geo_tactics",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "domain-specific geo tactics"
     },
     {
@@ -48504,7 +48504,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_technology_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "technology content"
     },
     {
@@ -48515,7 +48515,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_health_medical_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "health/medical content"
     },
     {
@@ -48526,7 +48526,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_financial_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "financial content"
     },
     {
@@ -48537,7 +48537,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_legal_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "legal content"
     },
     {
@@ -48548,7 +48548,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_business_marketing_content",
       "community": 453,
-      "community_name": "AEO and GEO Content Patterns",
+      "community_name": "Domain-Specific GEO Tactics",
       "norm_label": "business/marketing content"
     },
     {
@@ -48558,7 +48558,7 @@
       "source_location": "L270",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_voice_search_optimization",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "voice search optimization"
     },
@@ -48569,7 +48569,7 @@
       "source_location": "L274",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_question_formats_for_voice",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "question formats for voice"
     },
@@ -48580,7 +48580,7 @@
       "source_location": "L282",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_voice_optimized_answer_structure",
-      "community": 453,
+      "community": 284,
       "community_name": "AEO and GEO Content Patterns",
       "norm_label": "voice-optimized answer structure"
     },
@@ -48591,8 +48591,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_types",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "content-types.md"
     },
     {
@@ -48822,8 +48822,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_platform_ranking_factors",
-      "community": 454,
-      "community_name": "AI SEO by Content Type",
+      "community": 283,
+      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
       "norm_label": "platform-ranking-factors.md"
     },
     {
@@ -50362,8 +50362,8 @@
       "source_location": "L351",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_advanced_patterns",
-      "community": 821,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "advanced patterns"
     },
     {
@@ -50373,8 +50373,8 @@
       "source_location": "L353",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_tag_sequencing",
-      "community": 821,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "tag sequencing"
     },
     {
@@ -50384,8 +50384,8 @@
       "source_location": "L363",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_exception_handling",
-      "community": 821,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "exception handling"
     },
     {
@@ -50395,8 +50395,8 @@
       "source_location": "L370",
       "_origin": "ast",
       "id": "agent_skills_analytics_references_gtm_implementation_custom_javascript_variables",
-      "community": 821,
-      "community_name": "Advanced Patterns",
+      "community": 148,
+      "community_name": "Google Tag Manager Implementation Reference",
       "norm_label": "custom javascript variables"
     },
     {
@@ -77444,8 +77444,8 @@
       "source_location": "L175",
       "_origin": "ast",
       "id": "agent_skills_paywalls_skill_a_b_testing",
-      "community": 289,
-      "community_name": "Paywall and Upgrade Screen CRO",
+      "community": 859,
+      "community_name": "A/B Testing",
       "norm_label": "a/b testing"
     },
     {
@@ -77455,8 +77455,8 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "agent_skills_paywalls_skill_what_to_test",
-      "community": 289,
-      "community_name": "Paywall and Upgrade Screen CRO",
+      "community": 859,
+      "community_name": "A/B Testing",
       "norm_label": "what to test"
     },
     {
@@ -77466,8 +77466,8 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "agent_skills_paywalls_skill_metrics_to_track",
-      "community": 289,
-      "community_name": "Paywall and Upgrade Screen CRO",
+      "community": 859,
+      "community_name": "A/B Testing",
       "norm_label": "metrics to track"
     },
     {
@@ -77477,8 +77477,8 @@
       "source_location": "L196",
       "_origin": "ast",
       "id": "agent_skills_paywalls_skill_anti_patterns_to_avoid",
-      "community": 868,
-      "community_name": "Anti-Patterns to Avoid",
+      "community": 289,
+      "community_name": "Paywall and Upgrade Screen CRO",
       "norm_label": "anti-patterns to avoid"
     },
     {
@@ -77488,8 +77488,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "agent_skills_paywalls_skill_dark_patterns",
-      "community": 868,
-      "community_name": "Anti-Patterns to Avoid",
+      "community": 289,
+      "community_name": "Paywall and Upgrade Screen CRO",
       "norm_label": "dark patterns"
     },
     {
@@ -77499,8 +77499,8 @@
       "source_location": "L203",
       "_origin": "ast",
       "id": "agent_skills_paywalls_skill_conversion_killers",
-      "community": 868,
-      "community_name": "Anti-Patterns to Avoid",
+      "community": 289,
+      "community_name": "Paywall and Upgrade Screen CRO",
       "norm_label": "conversion killers"
     },
     {
@@ -84858,8 +84858,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_core_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 841,
+      "community_name": "Core Principles",
       "norm_label": "core principles"
     },
     {
@@ -84869,8 +84869,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_sales_uses_what_sales_trusts",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 841,
+      "community_name": "Core Principles",
       "norm_label": "sales uses what sales trusts"
     },
     {
@@ -84880,8 +84880,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_situation_specific_not_generic",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 841,
+      "community_name": "Core Principles",
       "norm_label": "situation-specific, not generic"
     },
     {
@@ -84891,8 +84891,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_scannable_over_comprehensive",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 841,
+      "community_name": "Core Principles",
       "norm_label": "scannable over comprehensive"
     },
     {
@@ -84902,8 +84902,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_tie_back_to_business_outcomes",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 841,
+      "community_name": "Core Principles",
       "norm_label": "tie back to business outcomes"
     },
     {
@@ -84957,8 +84957,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_one_pagers_leave_behinds",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 842,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "one-pagers / leave-behinds"
     },
     {
@@ -84968,8 +84968,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_when_to_use",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 842,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "when to use"
     },
     {
@@ -84979,8 +84979,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 842,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "structure"
     },
     {
@@ -84990,8 +84990,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_design_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 842,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "design principles"
     },
     {
@@ -85001,8 +85001,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_handling_docs",
-      "community": 860,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection handling docs"
     },
     {
@@ -85012,8 +85012,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_categories",
-      "community": 860,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection categories"
     },
     {
@@ -85023,8 +85023,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_response_framework",
-      "community": 860,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "response framework"
     },
     {
@@ -85034,8 +85034,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_two_formats",
-      "community": 860,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "two formats"
     },
     {
@@ -85177,8 +85177,8 @@
       "source_location": "L240",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_proposal_templates",
-      "community": 859,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "proposal templates"
     },
     {
@@ -85188,8 +85188,8 @@
       "source_location": "L242",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure_242",
-      "community": 859,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "structure"
     },
     {
@@ -85199,8 +85199,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_customization_guidance",
-      "community": 859,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "customization guidance"
     },
     {
@@ -85210,8 +85210,8 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_common_mistakes",
-      "community": 859,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "common mistakes"
     },
     {
@@ -91964,8 +91964,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "agent_skills_social_skill_before_creating_content",
-      "community": 850,
-      "community_name": "Before Creating Content",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "before creating content"
     },
     {
@@ -91975,8 +91975,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "agent_skills_social_skill_1_goals",
-      "community": 850,
-      "community_name": "Before Creating Content",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "1. goals"
     },
     {
@@ -91986,8 +91986,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "agent_skills_social_skill_2_audience",
-      "community": 850,
-      "community_name": "Before Creating Content",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "2. audience"
     },
     {
@@ -91997,8 +91997,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "agent_skills_social_skill_3_brand_voice",
-      "community": 850,
-      "community_name": "Before Creating Content",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "3. brand voice"
     },
     {
@@ -92008,8 +92008,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "agent_skills_social_skill_4_resources",
-      "community": 850,
-      "community_name": "Before Creating Content",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "4. resources"
     },
     {
@@ -92217,8 +92217,8 @@
       "source_location": "L207",
       "_origin": "ast",
       "id": "agent_skills_social_skill_engagement_strategy",
-      "community": 152,
-      "community_name": "Social Content",
+      "community": 850,
+      "community_name": "Engagement Strategy",
       "norm_label": "engagement strategy"
     },
     {
@@ -92228,8 +92228,8 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "agent_skills_social_skill_daily_engagement_routine_30_min",
-      "community": 152,
-      "community_name": "Social Content",
+      "community": 850,
+      "community_name": "Engagement Strategy",
       "norm_label": "daily engagement routine (30 min)"
     },
     {
@@ -92239,8 +92239,8 @@
       "source_location": "L218",
       "_origin": "ast",
       "id": "agent_skills_social_skill_quality_comments",
-      "community": 152,
-      "community_name": "Social Content",
+      "community": 850,
+      "community_name": "Engagement Strategy",
       "norm_label": "quality comments"
     },
     {
@@ -92250,8 +92250,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "agent_skills_social_skill_building_relationships",
-      "community": 152,
-      "community_name": "Social Content",
+      "community": 850,
+      "community_name": "Engagement Strategy",
       "norm_label": "building relationships"
     },
     {
@@ -92602,8 +92602,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template",
-      "community": 51,
-      "community_name": "Listening Sources \u2014 Template",
+      "community": 381,
+      "community_name": "social/SKILL.md",
       "norm_label": "listening-sources-template.md"
     },
     {
@@ -92646,8 +92646,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_target_accounts",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "target accounts"
     },
     {
@@ -92657,8 +92657,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_linkedin_browser_driven_use_dev_browser_to_view_feed",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "linkedin (browser-driven \u2014 use dev-browser to view feed)"
     },
     {
@@ -92668,8 +92668,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_x_twitter_browser_driven",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "x / twitter (browser-driven)"
     },
     {
@@ -92679,8 +92679,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_reddit",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "reddit"
     },
     {
@@ -92690,8 +92690,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_bluesky",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "bluesky"
     },
     {
@@ -92701,8 +92701,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_blogs_newsletters_rss",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "blogs / newsletters (rss)"
     },
     {
@@ -92712,8 +92712,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template_youtube_channels_rss",
-      "community": 530,
-      "community_name": "Target Accounts",
+      "community": 51,
+      "community_name": "Listening Sources \u2014 Template",
       "norm_label": "youtube channels (rss)"
     },
     {
@@ -92855,8 +92855,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening",
-      "community": 51,
-      "community_name": "Listening Sources \u2014 Template",
+      "community": 381,
+      "community_name": "social/SKILL.md",
       "norm_label": "listening.md"
     },
     {
@@ -92932,8 +92932,8 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_light_tooling_curl_recipes",
-      "community": 842,
-      "community_name": "Sources & Light Tooling (curl recipes)",
+      "community": 700,
+      "community_name": "Social Listening & Engagement Triage",
       "norm_label": "sources & light tooling (curl recipes)"
     },
     {
@@ -92943,8 +92943,8 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_reddit_free_scriptable",
-      "community": 842,
-      "community_name": "Sources & Light Tooling (curl recipes)",
+      "community": 700,
+      "community_name": "Social Listening & Engagement Triage",
       "norm_label": "reddit (free, scriptable)"
     },
     {
@@ -92954,8 +92954,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_hacker_news_algolia_search",
-      "community": 842,
-      "community_name": "Sources & Light Tooling (curl recipes)",
+      "community": 700,
+      "community_name": "Social Listening & Engagement Triage",
       "norm_label": "hacker news (algolia search)"
     },
     {
@@ -92965,8 +92965,8 @@
       "source_location": "L150",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_bluesky_free_public_api",
-      "community": 842,
-      "community_name": "Sources & Light Tooling (curl recipes)",
+      "community": 700,
+      "community_name": "Social Listening & Engagement Triage",
       "norm_label": "bluesky (free, public api)"
     },
     {
@@ -92976,8 +92976,8 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_rss_for_blogs_podcasts_youtube_channels",
-      "community": 842,
-      "community_name": "Sources & Light Tooling (curl recipes)",
+      "community": 700,
+      "community_name": "Social Listening & Engagement Triage",
       "norm_label": "rss for blogs, podcasts, youtube channels"
     },
     {
@@ -92987,8 +92987,8 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_linkedin_x_use_the_browser",
-      "community": 842,
-      "community_name": "Sources & Light Tooling (curl recipes)",
+      "community": 700,
+      "community_name": "Social Listening & Engagement Triage",
       "norm_label": "linkedin & x \u2014 use the browser"
     },
     {
@@ -92998,8 +92998,8 @@
       "source_location": "L208",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_per_platform_notes",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 530,
+      "community_name": "Per-Platform Notes",
       "norm_label": "per-platform notes"
     },
     {
@@ -93009,8 +93009,8 @@
       "source_location": "L210",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_linkedin",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 530,
+      "community_name": "Per-Platform Notes",
       "norm_label": "linkedin"
     },
     {
@@ -93020,8 +93020,8 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_twitter_x",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 530,
+      "community_name": "Per-Platform Notes",
       "norm_label": "twitter/x"
     },
     {
@@ -93031,8 +93031,8 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_reddit",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 530,
+      "community_name": "Per-Platform Notes",
       "norm_label": "reddit"
     },
     {
@@ -93042,8 +93042,8 @@
       "source_location": "L230",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_hacker_news",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 530,
+      "community_name": "Per-Platform Notes",
       "norm_label": "hacker news"
     },
     {
@@ -93053,8 +93053,8 @@
       "source_location": "L235",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_bluesky",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 530,
+      "community_name": "Per-Platform Notes",
       "norm_label": "bluesky"
     },
     {
@@ -157335,7 +157335,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L512",
+      "source_location": "L516",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -157443,7 +157443,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L542",
+      "source_location": "L546",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178549,7 +178549,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L593",
+      "source_location": "L597",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178562,7 +178562,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L575",
+      "source_location": "L579",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178574,7 +178574,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L662",
+      "source_location": "L666",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178670,7 +178670,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L295",
+      "source_location": "L299",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178682,7 +178682,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L424",
+      "source_location": "L428",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178694,7 +178694,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L345",
+      "source_location": "L349",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178706,7 +178706,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L306",
+      "source_location": "L310",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178718,7 +178718,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L269",
+      "source_location": "L273",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178742,7 +178742,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L512",
+      "source_location": "L516",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -178766,7 +178766,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/server/routes/smartcheck.ts",
-      "source_location": "L535",
+      "source_location": "L539",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_server_routes_smartcheck_registersmartcheckroutes",
@@ -277709,5 +277709,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8b861887bf5e5597238497b9650473c4e8081443"
+  "built_at_commit": "062528a0f30521471960254299af3ddab066252a"
 }
