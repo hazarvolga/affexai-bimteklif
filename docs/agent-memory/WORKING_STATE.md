@@ -33,6 +33,10 @@ table. Deploying it requires, in order:
 
 ## Ground rules for agents
 
+- Academy is out of scope (2026-10-13): `ACADEMY_ENABLED = false` in
+  `src/config/features.ts` hides it from menus/links and redirects its routes.
+  Do not build on Academy until the flag is turned back on.
+
 - 3x3 is company policy: metraj ≤ 3%, cover ≥ standard minimum in mm (TS 500
   default; EC2 XC3 35 mm only for `activeStandard = EUROCODE_2`), load-bearing
   in STR. Never "%3 paspayı". Rule pack `smartcheck-3x3-2026-10-v2`.
