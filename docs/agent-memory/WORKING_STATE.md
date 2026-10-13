@@ -33,20 +33,26 @@ migration lifecycle, Prisma shadow, audit) and the Python worker tests.
 - Annex spot-check: official RG annex PDF (SHA-256 7dc88971…0ecb3) Tablo 6.55,
   6.60, 9.1 rows 1–9 match the vendored data.
 
-After merge (push to `main` triggers the Coolify deployment):
+Release status (2026-10-13):
 
-1. Merge; the `migrate` job applies release migrations 0007
-   (`plans` feature/storage limits, `is_trial`) and 0008 (pilot
-   `exception_rows`). Both are additive and pinned.
-2. Run `dist/bootstrap-plan-catalog.mjs --apply` (catalog v5) so the five
-   packages get their limits and the trial flag. Until then runtime keeps the
-   legacy limits — no tenant is locked out.
-3. In Coolify: enable "Include Source Commit in Build" so `SOURCE_COMMIT`
-   reaches the Docker build arg (health shows `revisionSource: "build"`), and
-   create Sentry alert rules for the existing `SENTRY_DSN`.
-4. Check `/sitemap.xml`, the CSP header and `www` → apex 301 after deploy.
-5. Existing Academy learner accounts will land in the normal workspace shell
-   while `ACADEMY_ENABLED` is false.
+- Coolify deploys are manual (history shows "Manual"; a push does not
+  deploy). `e006d10` was deployed by hand and is live: `/api/health` reports
+  `revision e006d101…`, `revisionSource: "build"`. The migrate job ran
+  0007/0008.
+- Done: Coolify Advanced → "Source commit availability" set to "Available
+  during build"; CSP header, `www` → apex 301, `/sitemap.xml` 200, and the
+  `/admin/roadmap*` routes have been checked.
+- Open: catalog v5 is not applied. `/api/public/plans` still shows the
+  e-PYS package as "Mikro" with the old text. Run in the app container
+  (`--plan` first; it rolls back):
+  `CATALOG_DATABASE_URL="$DATABASE_URL" CATALOG_EXPECTED_HOST=postgres
+  CATALOG_EXPECTED_DATABASE=bimmetraj_production CATALOG_EXPECTED_USER=<db user>
+  CATALOG_ALLOW_PRODUCTION=true CATALOG_ACTOR_ID=<superadmin uuid>
+  node dist/bootstrap-plan-catalog.mjs --plan|--apply`.
+  Until then runtime keeps the legacy limits; no tenant is locked out.
+- Open: Sentry alert rules for the existing `SENTRY_DSN`.
+- Existing Academy learner accounts land in the normal workspace shell
+  while `ACADEMY_ENABLED` is false.
 
 ## Next code work (not started)
 
