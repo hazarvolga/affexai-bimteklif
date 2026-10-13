@@ -9,11 +9,12 @@ only when a decision needs its background; its paths and Vercel notes are stale)
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision before this release: `e006d10` (`/api/health`,
-  `revisionSource: "build"`). Transactional e-mail uses Stalwart SMTP 465 at
+- Last verified live revision: `ab4629288ed58e5a757746f2414c2bee1aeb8690`
+  (`/api/health`, `revisionSource: "build"`, 2026-10-13). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`. Registration is open.
-- Still closed at the start of this release: payments (Stripe test mode only),
-  server SmartCheck import (`SMARTCHECK_IMPORT_ENABLED=false`), AI (no provider keys).
+- Still closed: payments (Stripe test mode only), AI (no provider keys).
+  SmartCheck server import is enabled only for the allowlisted internal
+  `Bimmetraj` tenant; this is a pilot, not general availability.
 - Production R2 bucket `bimmetraj-production` and scoped app credentials are
   configured. On 2026-10-13, app-container put/get/checksum/delete smoke passed.
 - Production `SENTRY_DSN` is empty; Sentry events and alert rules are not active.
@@ -39,10 +40,11 @@ lifecycle, Prisma shadow, audit) and Python worker tests.
 
 Release status (2026-10-13):
 
-- Coolify deploys are manual (history shows "Manual"; a push does not
-  deploy). `e006d10` was deployed by hand and is live: `/api/health` reports
-  `revision e006d101…`, `revisionSource: "build"`. The migrate job ran
-  0007/0008.
+- Coolify deploys are manual (a push does not deploy). `ab46292` was deployed
+  manually on 2026-10-13; Coolify history shows Success and `/api/health`
+  reports the full revision above, DB connected, all readiness flags true
+  including `smartcheckStorageConfigured`. The earlier `e006d10` deployment
+  applied migrations 0007/0008.
 - Done: Coolify Advanced → "Source commit availability" set to "Available
   during build"; CSP header, `www` → apex 301, `/sitemap.xml` 200, and the
   `/admin/roadmap*` routes have been checked.
@@ -50,20 +52,34 @@ Release status (2026-10-13):
   no insertions, one presentation update, five limit backfills. Public plans
   now show the e-PYS badge "Pilot" and the reviewed description. No prices or
   core offer quotas changed.
-- Pilot company candidate is the superadmin-owned `Bimmetraj` tenant
-  (`9096aa51-3b1d-4b9e-b7e9-7443a75d5a63`). Its ID was saved as
-  `SMARTCHECK_PILOT_COMPANY_IDS` in Coolify; a redeploy is needed to apply it.
+- Pilot company is the superadmin-owned `Bimmetraj` tenant
+  (`9096aa51-3b1d-4b9e-b7e9-7443a75d5a63`). `SMARTCHECK_IMPORT_ENABLED=true`
+  and `SMARTCHECK_PILOT_COMPANY_IDS` equals only that ID in the running app and
+  queue worker containers. The IFC worker container imports `ifcopenshell` and
+  `pypdf` successfully. No other tenant is allowlisted.
 - This release adds PDF/A upload and pre-check to the SmartCheck flow. It has
   25 MiB/signature/checksum checks, a 90-second subprocess timeout with Linux
   CPU/RAM limits, a 500-page scan cap, a tenant PDF concurrency/monthly limit,
   lower queue priority than IFC, and current-run-only report lookup.
-- Local `pnpm run lint` and `pnpm run build` pass. `pnpm run verify` reaches
-  integration tests but refuses the shared local database by design; require
-  green CI with isolated PostgreSQL before deploying this commit. Python
-  `py_compile` passes; full Python pytest requires the CI/worker environment.
-- Open: deploy this release; enable `SMARTCHECK_IMPORT_ENABLED=true` only with
-  the pilot allowlist present; run real IFC and PDF pilot smoke; configure a
-  Sentry project/DSN and alert rules when account access is available.
+- Local `pnpm run lint` and `pnpm run build` passed. Local DB-backed verify
+  refuses the shared database by design. GitHub Actions Verify run
+  `38424266426` passed with isolated PostgreSQL, Python behavior tests, app
+  tests, Prisma checks, app/IFC-worker image builds and runtime smoke. The two
+  earlier failed runs exposed an original-PDF-name bug and a changed IFC
+  preview error code; commits `062528a` and `ab46292` fixed these before the
+  green run and production deployment.
+- Open acceptance: authenticated upload/process/report smoke for one real IFC
+  and one PDF on the pilot tenant. Chrome was at login, so this was **not**
+  verified in production; container library checks are not a substitute.
+  The internal tenant has an active subscription with `plan_id=null`, and the
+  fallback trial plan limits IFC to 35 MB; the local `e-proje_4x3.ifc` sample
+  is 37 MB. Use a smaller representative IFC or assign the internal tenant an
+  appropriate plan through audited admin flow before uploading it. Do not
+  change another tenant's subscription. After smoke, decide whether to keep
+  the pilot flag on; leave other tenants gated.
+- Production `SENTRY_DSN` remains empty. Code-level Sentry tests are present,
+  but no live event or alert rule is verified. Locate/create an owned Sentry
+  project and configure DSN/alerts before claiming production monitoring.
 - Existing Academy learner accounts land in the normal workspace shell
   while `ACADEMY_ENABLED` is false.
 
