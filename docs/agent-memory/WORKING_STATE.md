@@ -9,7 +9,7 @@ only when a decision needs its background; its paths and Vercel notes are stale)
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `ab4629288ed58e5a757746f2414c2bee1aeb8690`
+- Last verified live revision: `98dd0f9d2b5fcb6c33d9f1d7a216a8dcfbf741f6`
   (`/api/health`, `revisionSource: "build"`, 2026-10-13). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`. Registration is open.
 - Still closed: payments (Stripe test mode only), AI (no provider keys).
@@ -17,7 +17,12 @@ only when a decision needs its background; its paths and Vercel notes are stale)
   `Bimmetraj` tenant; this is a pilot, not general availability.
 - Production R2 bucket `bimmetraj-production` and scoped app credentials are
   configured. On 2026-10-13, app-container put/get/checksum/delete smoke passed.
-- Production `SENTRY_DSN` is empty; Sentry events and alert rules are not active.
+- Sentry organization `BIMMetraj` was created in the EU region via
+  `hazarvolga@gmail.com` on the free-path 14-day trial. Production `SENTRY_DSN`
+  is set in Coolify and present in the running `app`, `worker`, and `ifc-worker`
+  containers. A synthetic app-container error was flushed successfully to
+  Sentry (event ID `2fcd9afa9d44f749b537fea86c215bb`); dashboard receipt and
+  alert rules still need verification. The DSN is secret and must stay out of Git.
 - Daily 03:00 backup, R2 copy, restore drill passed.
 
 ## e-PYS release and current rollout
@@ -41,8 +46,9 @@ lifecycle, Prisma shadow, audit) and Python worker tests.
 
 Release status (2026-10-13):
 
-- Coolify deploys are manual (a push does not deploy). `ab46292` was deployed
-  manually on 2026-10-13; Coolify history shows Success and `/api/health`
+- Coolify deploys are manual (a push does not deploy). `98dd0f9` was deployed
+  manually on 2026-10-13 after the Sentry environment change; Coolify history
+  shows Success and `/api/health`
   reports the full revision above, DB connected, all readiness flags true
   including `smartcheckStorageConfigured`. The earlier `e006d10` deployment
   applied migrations 0007/0008.
@@ -86,9 +92,9 @@ Release status (2026-10-13):
   appropriate plan through audited admin flow before uploading it. Do not
   change another tenant's subscription. Keep other tenants gated while the
   pilot is evaluated.
-- Production `SENTRY_DSN` remains empty. Code-level Sentry tests are present,
-  but no live event or alert rule is verified. Locate/create an owned Sentry
-  project and configure DSN/alerts before claiming production monitoring.
+- Sentry SDK delivery from the production app container succeeded, and all
+  three service containers have the DSN. Confirm the synthetic event in the
+  Sentry Issues UI and configure alert rules before claiming alert coverage.
 - Existing Academy learner accounts land in the normal workspace shell
   while `ACADEMY_ENABLED` is false.
 
@@ -120,4 +126,4 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Sentry project access/alerts and real pilot IFC/PDF acceptance evidence.
+Sentry dashboard event receipt/alerts and real pilot IFC/PDF acceptance evidence.
