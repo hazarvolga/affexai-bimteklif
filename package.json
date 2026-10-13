@@ -69,7 +69,7 @@
     "nodemailer": "10.1.0",
     "pg": "^8.20.0",
     "prisma": "^6.16.2",
-    "puppeteer": "^24.43.1",
+    "puppeteer": "^25.12.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-router-dom": "^7.15.0",
