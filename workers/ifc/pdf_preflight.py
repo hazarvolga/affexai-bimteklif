@@ -76,7 +76,7 @@ def build_report(path: str, file_name: Optional[str] = None) -> Dict[str, Any]:
     claim: Optional[Dict[str, str]] = None
     page_count = 0
 
-    if not DOSYA_ADI.match(Path(path).stem):
+    if not DOSYA_ADI.match(Path(file_name).stem):
         findings.append(_finding("DOSYA_ADI_EK2", "hata", "Dosya adı EK-2'deki 9 alanlı şablona uymuyor (ör. 260001_00_MM_GNEL_PL_MMC_K00_01_000).", "Dijital Hazırlama Yönetmeliği m.6, EK-2"))
     try:
         reader = PdfReader(path)
