@@ -8,7 +8,8 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 ## What To Read First
 
 1. `PROJECT_BRIEF.md` - product and business goal.
-2. `WORKING_STATE.md` - current repo/runtime state and known constraints.
+2. `WORKING_STATE.md` - one-page current repo/runtime state and known constraints
+   (history in `archive/`).
 3. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions.
 4. `PILOT_PLAN.md` - current repo production-hardening plan.
 5. `AGENT_PROTOCOL.md` - how agents should work safely in this repo.
