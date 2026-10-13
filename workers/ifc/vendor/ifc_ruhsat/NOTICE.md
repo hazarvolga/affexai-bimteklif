@@ -22,6 +22,7 @@ Tests that exercised those modules were removed; nothing else was changed.
   annex page number), then re-vendor at a new commit and update this file.
 - The annex data was transcribed by the upstream author from the scanned RG 33331
   annex PDF (visual verification 2026-09-17, page numbers in each JSON `kaynak`).
-  BIMMetraj spot-checks are recorded in `../../epys_preflight.py` (`DATA_VERIFICATION`).
+  BIMMetraj spot-check (2026-10-13, official annex PDF SHA-256 7dc88971…0ecb3): Tablo 6.55,
+  6.60 and 9.1 rows 1–9 match; recorded in `../../epys_preflight.py` (`DATA_VERIFICATION`).
 - BIMMetraj's own behaviour (provenance, personal-data masking, EK-9 summary, artifact
   format) lives outside this folder in `workers/ifc/epys_preflight.py`.

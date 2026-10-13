@@ -23,7 +23,11 @@ from ifc_ruhsat import SURUM, YONETMELIK, ek9, ids_uret, kontrol  # noqa: E402
 UPSTREAM_COMMIT = "cd6d3ce"
 DATA_VERIFICATION = (
     "Upstream visual verification of the scanned RG 33331 annex PDF (2026-09-17, page "
-    "numbers in each table). BIMMetraj independent spot-check: pending."
+    "numbers in each table). BIMMetraj spot-check 2026-10-13 against the official annex "
+    "PDF 20260805-2-1.pdf (SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3): "
+    "Tablo 6.55 (IfcSite, TREpys_ParselOzellikSeti incl. CekmeArka), Tablo 6.60 "
+    "(TREpys_EmsalOzellikSeti.EmsalDurumu) and Tablo 9.1 rows 1-9 match. Other tables: "
+    "upstream verification only."
 )
 DISCLAIMER = (
     "Otomatik ön kontroldür; resmî uygunluk kararı değildir. Değerlendirme e-PYS ve "
