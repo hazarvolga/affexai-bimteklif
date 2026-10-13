@@ -66,7 +66,7 @@ test("successful quote attaches audit only; failed responses do not log", async 
 
 test("detached audit rejection is guarded and unrelated features do not consume quote quota", async (t) => {
   const logged = t.mock.method(console, "error", () => {});
-  const middleware = createUsageTracker({ checkQuota: async () => assert.fail("not quote creation"), logUsage: async () => { throw new Error("private details"); } })("PDF_GENERATED");
+  const middleware = createUsageTracker({ checkQuota: async () => assert.fail("not quote creation"), logUsage: async () => { throw new Error("private details"); } })("DOCUMENT_EXPORTED");
   const res = response();
   let next = false;
   await middleware({ user: { companyId: "company", userId: "actor" } } as any, res as any, () => { next = true; });
@@ -77,4 +77,34 @@ test("detached audit rejection is guarded and unrelated features do not consume 
   assert.equal(logged.mock.callCount(), 1);
   assert.equal(JSON.stringify(logged.mock.calls[0].arguments).includes("private details"), false);
   assert.equal(PLAN_LIMITS, canonicalLimits);
+});
+
+for (const feature of ["PDF_GENERATED", "CRM_ACTION_EXECUTED", "REGULATION_CHECK_RUN", "PROFIT_ANALYSIS_RUN"]) {
+  test(`${feature} reserves package quota before work and releases it only when the response fails`, async () => {
+    const events: string[] = [];
+    const middleware = createUsageTracker({ checkQuota: async () => assert.fail("not quote creation"),
+      logUsage: async () => { events.push("audit"); },
+      reserveFeatureQuota: async (_c, _u, reserved) => { events.push(`reserve:${reserved}`); return { id: "r1" }; },
+      releaseFeatureQuota: async (_c, id) => { events.push(`release:${id}`); },
+    })(feature);
+    for (const status of [200, 404]) {
+      const res = response();
+      await middleware({ user: { companyId: "company", userId: "actor" } } as any, res as any, () => { events.push("work"); });
+      res.statusCode = status;
+      res.emit("finish");
+    }
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(events, [`reserve:${feature}`, "work", `reserve:${feature}`, "work", "release:r1"]);
+  });
+}
+
+test("metered quota denial blocks the work with the feature's code", async () => {
+  const middleware = createUsageTracker({ checkQuota: async () => {}, logUsage: async () => {},
+    reserveFeatureQuota: async () => { throw new QuotaError(403, "PDF_QUOTA_EXCEEDED", "Monthly feature quota exceeded", { limit: 10, current: 10, period: "2026-10" }); },
+    releaseFeatureQuota: async () => assert.fail("nothing to release"),
+  })("PDF_GENERATED");
+  const res = response();
+  await middleware({ user: { companyId: "company", userId: "actor" } } as any, res as any, () => assert.fail("must not generate"));
+  assert.equal(res.statusCode, 403);
+  assert.deepEqual(res.body, { error: "Monthly feature quota exceeded", code: "PDF_QUOTA_EXCEEDED", limit: 10, current: 10, period: "2026-10" });
 });
