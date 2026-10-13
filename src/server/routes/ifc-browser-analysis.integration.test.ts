@@ -33,6 +33,11 @@ test('browser IFC pre-analysis consumes the monthly IFC quota and stops at the p
     const counters = await db.select().from(schema.usageRecords).where(eq(schema.usageRecords.companyId, company.id));
     assert.equal(counters.reduce((sum, row) => sum + row.ifcCount, 0), 1);
     assert.equal((await fetch(`${base}/api/ifc/browser-analyses`, { method: 'POST' })).status, 401);
+    await db.update(schema.subscriptions).set({ currentPeriodEnd: new Date('2021-01-01') }).where(eq(schema.subscriptions.companyId, company.id));
+    await db.update(schema.plans).set({ monthlyIfcLimit: 10 }).where(eq(schema.plans.id, plan.id));
+    const inactive = await analyse();
+    assert.equal(inactive.status, 403);
+    assert.equal((await inactive.json()).code, 'SUBSCRIPTION_INACTIVE', 'an expired trial cannot keep booking analyses');
   } finally {
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }

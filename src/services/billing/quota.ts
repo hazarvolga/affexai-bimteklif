@@ -107,6 +107,10 @@ export async function consumeIfcUsage(tx: Transaction, companyId: string, at?: D
 export async function consumeBrowserIfcAnalysis(tx: Transaction, companyId: string, monthlyLimit: number | null, at?: Date) {
   try {
     const { period, counters, current } = await lockedIfcUsage(tx, companyId, at);
+    // Same entitlement gate as quotations: no active, unexpired subscription means no analysis.
+    const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
+    const [plan] = subscription?.planId ? await tx.select().from(plans).where(eq(plans.id, subscription.planId)) : [];
+    quotationAllowance(subscription, plan, at ?? new Date());
     if (monthlyLimit !== null && current >= monthlyLimit) {
       throw new QuotaError(403, "IFC_QUOTA_EXCEEDED", "Monthly IFC quota exceeded", { current, limit: monthlyLimit, period });
     }
