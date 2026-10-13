@@ -27,7 +27,7 @@ export default function Footer({ setView }: FooterProps) {
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm mb-6">
-              Sektörel dijitalleşme, ISO 19650 uyumlu bilgi yönetimi ve kamu mevzuatı entegrasyonu için Türkiye'nin en kapsamlı teknik referans portalı.
+              Sektörel dijitalleşme, ISO 19650 bilgi yönetimi eğitimi ve kamu mevzuatı entegrasyonu için Türkiye'nin en kapsamlı teknik referans portalı.
             </p>
           </div>
 
@@ -136,7 +136,7 @@ export default function Footer({ setView }: FooterProps) {
           <div className="flex gap-6">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-              ISO 19650 COMPLIANT
+              ISO 19650 EĞİTİM İÇERİĞİ
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>

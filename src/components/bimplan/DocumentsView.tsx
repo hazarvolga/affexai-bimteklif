@@ -103,7 +103,7 @@ export default function DocumentsView() {
   const handleCopyText = () => {
     const textToCopy = `
 =============================================
-ISO 19650 UYUMLU ${generatorDocType} TASLAK ŞABLONU
+ISO 19650 ESASLI ${generatorDocType} TASLAK ŞABLONU (uyum doğrulaması yapılmamıştır)
 =============================================
 PROJE ADI: ${projName}
 İŞVEREN: ${clientName}
@@ -377,7 +377,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                 ISO 19650 Şablon Taslak Üretici
               </h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Aşağıdaki alanları projenize göre özelleştirerek, ihale şartnamelerine ve BIM uygulama planlarına doğrudan ekleyebileceğiniz ISO 19650 uyumlu bir taslak içeriği anında üretin.
+                Aşağıdaki alanları projenize göre özelleştirerek, ihale şartnamelerine ve BIM uygulama planlarına uyarlayabileceğiniz ISO 19650 esaslı bir taslak içeriği üretin. Uyum, proje bilgi yöneticisi tarafından doğrulanmalıdır.
               </p>
             </div>
 
@@ -491,7 +491,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
             {/* Preview preformatted box */}
             <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto pr-2 text-slate-300">
 {`=============================================
-ISO 19650 UYUMLU ${generatorDocType} TASLAK ŞABLONU
+ISO 19650 ESASLI ${generatorDocType} TASLAK ŞABLONU (uyum doğrulaması yapılmamıştır)
 =============================================
 PROJE ADI         : ${projName}
 İŞVEREN           : ${clientName}
