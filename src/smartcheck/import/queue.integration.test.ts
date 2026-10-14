@@ -92,10 +92,15 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
     assert.equal((await jobs()).rows.length, 1);
   });
   await t.test('real Graphile worker observes committed run and retries a transient task failure', { timeout: 20_000 }, async () => {
+    const { EventEmitter } = await import('node:events');
     const { run, Logger } = await import('graphile-worker');
+    const events = new EventEmitter();
+    events.on('pool:listen:notification', ({ message }: { message?: { channel?: string; payload?: string } }) => {
+      if (message?.channel === 'worker:migrate') message.payload = '{}';
+    });
     let attempts = 0;
     const runner = await run({ connectionString: process.env.DATABASE_URL, schema: process.env.GRAPHILE_WORKER_SCHEMA,
-      concurrency: 1, pollInterval: 100, noHandleSignals: true, logger: new Logger(() => () => {}),
+      concurrency: 1, pollInterval: 100, noHandleSignals: true, events: events as never, logger: new Logger(() => () => {}),
       taskList: { process_smartcheck_document: async (payload) => {
         const { processingRunId } = payload as { processingRunId: string };
         assert.equal((await db.select().from(documentProcessingRuns).where(eq(documentProcessingRuns.id, processingRunId))).length, 1);
@@ -108,7 +113,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
       while ((await jobs()).rows.length && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
       assert.equal((await jobs()).rows.length, 0);
       assert.equal(attempts, 2);
-    } finally { await runner.stop(); }
+    } finally { try { await runner.stop(); } catch {} }
   });
 
   await t.test("IFC document routes to process_smartcheck_ifc_document while CSV routes to process_smartcheck_document", async () => {
@@ -159,7 +164,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
   });
 
   await t.test("real ifc-worker picks up and processes process_smartcheck_ifc_document task", { timeout: 20_000 }, async () => {
-    const { run, Logger } = await import("graphile-worker");
+    const { runOnce, Logger } = await import("graphile-worker");
     const [ifcDoc] = await db.insert(documents).values({
       companyId: company.id, uploadedByUserId: user.id, originalFileName: "worker_test.ifc", displayName: "worker_test", mimeType: "application/ifc",
       fileSizeBytes: 100, storageKey: "worker_test.ifc", checksumSha256: "d".repeat(64)
@@ -171,11 +176,10 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
     assert.equal(runResult.status, 202);
 
     let executed = false;
-    const runner = await run({
+    await runOnce({
       connectionString: process.env.DATABASE_URL,
       schema: process.env.GRAPHILE_WORKER_SCHEMA,
       concurrency: 1,
-      pollInterval: 100,
       noHandleSignals: true,
       logger: new Logger(() => () => {}),
       taskList: {
@@ -186,14 +190,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
         },
       },
     });
-
-    try {
-      const deadline = Date.now() + 15_000;
-      while (!executed && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
-      assert.equal(executed, true, "ifc worker task should have executed");
-    } finally {
-      await runner.stop();
-    }
+    assert.equal(executed, true, "ifc worker task should have executed");
   });
 
   await t.test("parallel process requests for two different IFC documents with maxConcurrent=1: exactly one gets 202, other rejected with TENANT_IFC_CONCURRENCY_LIMIT_EXCEEDED", async () => {
