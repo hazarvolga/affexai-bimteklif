@@ -1,6 +1,6 @@
 # Working State
 
-Last updated: 2026-10-13. Keep this file to one page: current truth only.
+Last updated: 2026-10-14. Keep this file to one page: current truth only.
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
 
@@ -105,13 +105,21 @@ Release status (2026-10-13):
 - Existing Academy learner accounts land in the normal workspace shell
   while `ACADEMY_ENABLED` is false.
 
+## 2026-10-14 GAP / BUG / UI-UX Closure (`GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md`)
+
+- **IFC 3x3 & e-PYS Worker Fixes (`workers/ifc/epys_preflight.py`, `workers/ifc/ifc_extract.py`):**
+  Fixed KVKK regex ordering/word boundaries so 11-digit TC Kimlik No is fully masked without corrupting 22-char IFC `GlobalId` strings (`BUG-01`). Replaced misleading EC2 default note (`BUG-09`). Extracted `LoadBearing`, `IsExternal`/`exposure`, `ExposureClass`, `coverMm`, `discipline` (`STR/ARC/MEP`), and `expectedQuantity` from IFC property sets and wired them into `src/smartcheck/rules/ifc-rule-run.ts` (`GAP-08`).
+- **SmartCheck e-PYS Availability & Plan Quota (`processor.ts`, `smartcheck.ts`, `service.ts`):**
+  Stored `epys_preflight` before QTO extraction and updated `GET /api/smartcheck/documents/:id/epys-preflight` + `SmartCheckImportWorkspace.tsx` so queue-opened and architectural IFC files always render the EK-9 panel (`BUG-02`, `BUG-03`). Connected PDF/A monthly quota in `service.ts` to the subscription's plan catalog (`BUG-10`).
+- **Contractual Minha Engine & Rebar/Formwork Transfer (`minha.ts`, `quotation-transfer.ts`, `CreateQuote.tsx`):**
+  Added `src/smartcheck/rules/minha.ts` (`CSB_2026` 0.50 m² vs `DIN_18350` 2.50 m² opening deduction, reveal addition, and structural intersection takeoff) (`GAP-06`). Enabled `needs_review` transfer for formwork (`m2`) and rebar (`ton`) estimates (`GAP-05`), fixed demo template line totals (`BUG-05`), added per-line `costCategory`, `discountPercent`, and `vatPercent` controls (`BUG-06`), and rounded per-line `effectiveCost` with `roundMoney` (`BUG-07`).
+- **Navigation, Honest Public Claims & Legal Pages (`navigation.tsx`, `LandingPage.tsx`, `LegalPage.tsx`, `DosyadanTeklifDemo.tsx`):**
+  Added `/app/smartcheck`, `/app/market-intelligence`, and `/app/profitability` to sidebar navigation and fixed `/app/billing` roles (`BUG-08`). Unified IFC CTAs toward `/app/smartcheck` (`BUG-04`), replaced unverified "42.000+ ÇŞB Poz" claims with truthful catalog/evidence wording (`GAP-01`), and replaced the placeholder `LegalPage.tsx` with full BIMMetraj Terms & KVKK texts (`GAP-04`).
+
 ## Next code work
 
 - Independently check the remaining RG annex tables against the official PDF.
-- IFC extractor: read `Pset_*Common` LoadBearing/IsExternal (+ cover if
-  modelled) so 3x3 cover/STR checks stop reporting `missingInput`.
-- Separate runtime DB role (P1-1), reviewer discipline scope (E-9),
-  rebar/formwork engine (E-7), measurement-rule (minha) engine (E-8).
+- Separate runtime DB role in production deployment (P1-1).
 
 ## Ground rules for agents
 
