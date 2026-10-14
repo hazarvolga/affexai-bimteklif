@@ -62,7 +62,7 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
       return;
     }
 
-    const effectiveCost = quantity * costUnitPrice * (1 + waste / 100);
+    const effectiveCost = roundMoney(quantity * costUnitPrice * (1 + waste / 100));
     totalCost += effectiveCost;
     const category = categories.includes(item.costCategory as CostCategory) ? item.costCategory as CostCategory : 'material';
     costBreakdown[category] += effectiveCost;

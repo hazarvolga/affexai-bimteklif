@@ -138,8 +138,21 @@ export function CreateQuote() {
         const parsedTransfer = JSON.parse(ifcData);
         const summary = parsedTransfer && typeof parsedTransfer === 'object' ? parsedTransfer.summary : null;
         if (summary) {
-          const transfer = buildIfcEstimateQuoteItems(summary);
-          const importedItems = transfer.items;
+          const transfer = buildIfcEstimateQuoteItems(summary, {
+            includeDerivedEstimates: parsedTransfer.includeDerivedEstimates ?? true,
+          });
+          const unitPrices = parsedTransfer.unitPrices && typeof parsedTransfer.unitPrices === 'object'
+            ? parsedTransfer.unitPrices
+            : null;
+          const importedItems = transfer.items.map((item) => {
+            if (!unitPrices) return item;
+            let unitPrice = Number(item.unitPrice) || 0;
+            if (item.unit === 'm3' && Number(unitPrices.concrete) > 0) unitPrice = Number(unitPrices.concrete);
+            if (item.unit === 'ton' && Number(unitPrices.rebar) > 0) unitPrice = Number(unitPrices.rebar);
+            if (item.unit === 'm2' && Number(unitPrices.formwork) > 0) unitPrice = Number(unitPrices.formwork);
+            const updated = { ...item, unitPrice };
+            return { ...updated, total: calculateLineItemTotal(updated) };
+          });
 
           if (importedItems.length > 0) {
             setItems(importedItems);
@@ -153,7 +166,7 @@ export function CreateQuote() {
               skippedItems: transfer.skipped.length,
               evidenceElementCount: Number(parsedTransfer.evidenceElementCount) || undefined,
             });
-            toast.warning(`IFC on analizinden ${importedItems.length} tahmini kalem aktarıldı; birim fiyatları onaylı kaynaktan girin, teknik review olmadan verified sayılmaz.`);
+            toast.warning(`IFC ön analizinden ${importedItems.length} tahmini kalem (beton, kalıp, donatı) aktarıldı; birim fiyatları onaylı kaynaktan doğrulayın.`);
           }
           if (transfer.skipped.length > 0) {
             toast.info(`${transfer.skipped.length} IFC türevi kalem kanıt eksikliği nedeniyle aktarılmadı.`);
@@ -380,11 +393,12 @@ export function CreateQuote() {
       notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
     });
 
-    setItems([
-      { id: crypto.randomUUID(), description: 'Zemin Etüdü ve Statik Rölöve Çalışması (AR/Mobil)', unit: 'adet', quantity: 1, unitPrice: 45000, costUnitPrice: 25000, wastePercent: 0, costCategory: 'labor', discountPercent: 0, vatPercent: 20, total: 54000 },
-      { id: crypto.randomUUID(), description: 'C35/45 Hazır Beton Dökümü ve Donatı Bağlantısı', unit: 'm3', quantity: 450, unitPrice: 3800, costUnitPrice: 2900, wastePercent: 3, costCategory: 'material', discountPercent: 5, vatPercent: 20, total: 1710000 },
-      { id: crypto.randomUUID(), description: 'BIM BEP ve ISO 19650 Dijital İkiz Teslim Paketi', unit: 'paket', quantity: 1, unitPrice: 85000, costUnitPrice: 40000, wastePercent: 0, costCategory: 'subcontractor', discountPercent: 0, vatPercent: 20, total: 102000 },
-    ]);
+    const demoRows: Partial<QuoteItem>[] = [
+      { id: crypto.randomUUID(), description: 'Zemin Etüdü ve Statik Rölöve Çalışması (AR/Mobil)', unit: 'adet', quantity: 1, unitPrice: 45000, costUnitPrice: 25000, wastePercent: 0, costCategory: 'labor', discountPercent: 0, vatPercent: 20 },
+      { id: crypto.randomUUID(), description: 'C35/45 Hazır Beton Dökümü ve Donatı Bağlantısı', unit: 'm3', quantity: 450, unitPrice: 3800, costUnitPrice: 2900, wastePercent: 3, costCategory: 'material', discountPercent: 5, vatPercent: 20 },
+      { id: crypto.randomUUID(), description: 'BIM BEP ve ISO 19650 Dijital İkiz Teslim Paketi', unit: 'paket', quantity: 1, unitPrice: 85000, costUnitPrice: 40000, wastePercent: 0, costCategory: 'subcontractor', discountPercent: 0, vatPercent: 20 },
+    ];
+    setItems(demoRows.map((row) => ({ ...row, total: calculateItemTotal(row) })));
     toast.success("Kentsel Dönüşüm & Mühendislik Demo Şablonu Yüklendi!");
   };
 
@@ -407,7 +421,15 @@ export function CreateQuote() {
         }}
         actions={
           <div className="flex flex-wrap gap-3">
-            {!id && <><Button
+            {!id && <>
+            <Button
+              variant="outline" 
+              onClick={() => navigate('/app/smartcheck')}
+              className="border-sky-500/30 bg-sky-950/30 text-sky-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-sky-900/50"
+            >
+              <ShieldCheck size={14} /> SmartCheck & e-PYS
+            </Button>
+            <Button
               variant="outline" 
               onClick={() => navigate('/app/ifc-parser')}
               className="border-emerald-500/30 bg-emerald-950/30 text-emerald-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-emerald-900/50"
@@ -646,21 +668,24 @@ export function CreateQuote() {
             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table className="min-w-[800px]">
+                  <Table className="min-w-[980px]">
                     <TableHeader className="bg-muted/40">
                       <TableRow className="border-border">
-                        <TableHead className="w-[45%] text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
+                        <TableHead className="w-[30%] text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Kategori</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Birim</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Miktar</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">Satış Birim</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">Maliyet Birim</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">Zayiat %</TableHead>
-                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right pr-5 py-3">Toplam</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">İsk. %</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right py-3">KDV %</TableHead>
+                        <TableHead className="text-muted-foreground font-mono text-xs uppercase text-right pr-5 py-3">Net Toplam</TableHead>
                         <TableHead className="w-[40px] py-3"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {items.map((item, idx) => (
+                      {items.map((item) => (
                         <TableRow 
                           key={item.id} 
                           className="border-border/60 group hover:bg-muted/30 transition-colors"
@@ -672,6 +697,20 @@ export function CreateQuote() {
                               className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-xs text-foreground placeholder:text-muted-foreground/60 font-medium"
                               placeholder="Burada yeni bir iş kalemi oluşturun..."
                             />
+                          </TableCell>
+                          <TableCell className="text-center py-2.5">
+                            <select
+                              aria-label="Maliyet kategorisi"
+                              value={item.costCategory || 'material'}
+                              onChange={(e) => updateItem(item.id!, { costCategory: e.target.value as QuoteItem['costCategory'] })}
+                              className="bg-zinc-950/70 border border-zinc-800 rounded px-1.5 py-1 text-[11px] font-mono text-zinc-300"
+                            >
+                              <option value="material">Malzeme</option>
+                              <option value="labor">İşçilik</option>
+                              <option value="subcontractor">Taşeron</option>
+                              <option value="logistics">Lojistik</option>
+                              <option value="overhead">Genel Gider</option>
+                            </select>
                           </TableCell>
                           <TableCell className="text-center py-2.5">
                             <Input 
@@ -702,11 +741,23 @@ export function CreateQuote() {
                           <TableCell className="text-right py-2.5">
                             <Input type="number" min="0" value={item.wastePercent ?? 0} onChange={(e) => updateItem(item.id!, { wastePercent: Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-muted-foreground text-xs tabular-nums" />
                           </TableCell>
+                          <TableCell className="text-right py-2.5">
+                            <Input type="number" min="0" max="100" value={item.discountPercent ?? 0} onChange={(e) => updateItem(item.id!, { discountPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-orange-300 text-xs tabular-nums" />
+                          </TableCell>
+                          <TableCell className="text-right py-2.5">
+                            <Input type="number" min="0" max="100" value={item.vatPercent ?? 20} onChange={(e) => updateItem(item.id!, { vatPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-muted-foreground text-xs tabular-nums" />
+                          </TableCell>
                           <TableCell className="text-right font-semibold text-foreground pr-5 py-2.5 font-mono text-xs tabular-nums">
                             ₺{(item.total || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                           </TableCell>
                           <TableCell className="py-2.5">
-                            <Button variant="ghost" size="icon" onClick={() => removeItem(item.id!)} className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Kalemi sil"
+                              onClick={() => removeItem(item.id!)}
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 focus-visible:opacity-100 transition-opacity"
+                            >
                               <Trash2 size={14} />
                             </Button>
                           </TableCell>

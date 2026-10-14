@@ -182,4 +182,16 @@ describe("inceleme düzeltmeleri", () => {
     const totals = calculateQuotationTotals(items);
     assert.equal(calculateQuotationFinancials(items).salesNet, Math.round((totals.subtotal - totals.discountTotal) * 100) / 100);
   });
+
+  it("satır bazlı maliyet yuvarlaması kategori kırılımı ve toplam maliyetle kuruşu kuruşuna uzlaşır", () => {
+    const items = [
+      { quantity: 1, unitPrice: 10, costUnitPrice: 0.335, wastePercent: 0, costCategory: "material" },
+      { quantity: 1, unitPrice: 10, costUnitPrice: 0.335, wastePercent: 0, costCategory: "material" },
+      { quantity: 1, unitPrice: 10, costUnitPrice: 0.335, wastePercent: 0, costCategory: "labor" },
+    ];
+    const fin = calculateQuotationFinancials(items);
+    assert.equal(fin.costBreakdown.material, 0.68);
+    assert.equal(fin.costBreakdown.labor, 0.34);
+    assert.equal(fin.totalCost, 1.02);
+  });
 });

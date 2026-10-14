@@ -28,6 +28,7 @@ export interface IfcQuoteTransferResult {
 
 interface BuildIfcEstimateQuoteItemsOptions {
   idFactory?: () => string;
+  includeDerivedEstimates?: boolean;
 }
 
 const IFC_ESTIMATE_SOURCE_REFERENCE =
@@ -48,12 +49,13 @@ function makeEstimateItem(
   id: string,
   description: string,
   quantity: number,
+  unit: "m3" | "m2" | "ton" = "m3",
 ): Partial<QuoteItem> {
   // Prices are left empty on purpose: the browser parser has no approved price source.
   return {
     id,
     description,
-    unit: "m3",
+    unit,
     quantity,
     unitPrice: 0,
     costCategory: "material",
@@ -113,20 +115,40 @@ export function buildIfcEstimateQuoteItems(
     ));
   }
 
-  if (positiveNumber(transferSummary.totalRebarTon) > 0) {
-    skipped.push({
-      code: "REBAR_REQUIRES_MODEL_EVIDENCE",
-      label: "Donati tonaji",
-      reason: "Rebar is not transferred from the legacy IFC estimate path without IfcReinforcingBar, QTO, approved property, or reviewer evidence.",
-    });
+  const totalRebarTon = positiveNumber(transferSummary.totalRebarTon);
+  if (totalRebarTon > 0) {
+    if (options.includeDerivedEstimates) {
+      items.push(makeEstimateItem(
+        idFactory(),
+        "IFC On Analiz: B420C betonarme donati celigi imalati (tahmini tonaj, review gerekli)",
+        totalRebarTon,
+        "ton",
+      ));
+    } else {
+      skipped.push({
+        code: "REBAR_REQUIRES_MODEL_EVIDENCE",
+        label: "Donati tonaji",
+        reason: "Rebar is not transferred from the legacy IFC estimate path without IfcReinforcingBar, QTO, approved property, or reviewer evidence.",
+      });
+    }
   }
 
-  if (positiveNumber(transferSummary.totalFormworkM2) > 0) {
-    skipped.push({
-      code: "FORMWORK_REQUIRES_MODEL_EVIDENCE",
-      label: "Kalip alani",
-      reason: "Formwork is not transferred from the legacy IFC estimate path until opening, contact-surface, and net/gross rules are implemented.",
-    });
+  const totalFormworkM2 = positiveNumber(transferSummary.totalFormworkM2);
+  if (totalFormworkM2 > 0) {
+    if (options.includeDerivedEstimates) {
+      items.push(makeEstimateItem(
+        idFactory(),
+        "IFC On Analiz: Betonarme kalip ve iskele imalati (tahmini alan, review gerekli)",
+        totalFormworkM2,
+        "m2",
+      ));
+    } else {
+      skipped.push({
+        code: "FORMWORK_REQUIRES_MODEL_EVIDENCE",
+        label: "Kalip alani",
+        reason: "Formwork is not transferred from the legacy IFC estimate path until opening, contact-surface, and net/gross rules are implemented.",
+      });
+    }
   }
 
   return {

@@ -85,4 +85,25 @@ describe("IFC quote transfer safety gate", () => {
       "FORMWORK_REQUIRES_MODEL_EVIDENCE",
     ]);
   });
+
+  it("transfers rebar and formwork as needs_review estimates when includeDerivedEstimates is enabled", () => {
+    const result = buildIfcEstimateQuoteItems({
+      beamCount: 2,
+      beamVolumeM3: 10,
+      totalRebarTon: 1.1,
+      totalFormworkM2: 65,
+    }, {
+      includeDerivedEstimates: true,
+      idFactory: (() => {
+        let next = 0;
+        return () => `derived-${++next}`;
+      })(),
+    });
+
+    assert.equal(result.items.length, 3);
+    assert.deepEqual(result.items.map((item) => item.unit), ["m3", "ton", "m2"]);
+    assert.deepEqual(result.items.map((item) => item.verificationStatus), ["needs_review", "needs_review", "needs_review"]);
+    assert.deepEqual(result.items.map((item) => item.unitPrice), [0, 0, 0]);
+    assert.equal(result.skipped.length, 0);
+  });
 });
