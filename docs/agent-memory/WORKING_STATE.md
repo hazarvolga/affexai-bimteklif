@@ -9,8 +9,8 @@ only when a decision needs its background; its paths and Vercel notes are stale)
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `98dd0f9d2b5fcb6c33d9f1d7a216a8dcfbf741f6`
-  (`/api/health`, `revisionSource: "build"`, 2026-10-13). Transactional e-mail uses Stalwart SMTP 465 at
+- Last verified live revision: `9ab9ae5b07f2d3caeb81ea8c185794fc3595ed5e`
+  (`/api/health`, `revisionSource: "build"`, 2026-10-14, Coolify deploy `pk249c4bzn7yml3gny65rlrd`, GitHub Actions `Verify` run `38570914778`). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`. Registration is open.
 - Still closed: payments (Stripe test mode only), AI (no provider keys).
   SmartCheck server import is enabled only for the allowlisted internal
@@ -113,8 +113,12 @@ Release status (2026-10-13):
   Stored `epys_preflight` before QTO extraction and updated `GET /api/smartcheck/documents/:id/epys-preflight` + `SmartCheckImportWorkspace.tsx` so queue-opened and architectural IFC files always render the EK-9 panel (`BUG-02`, `BUG-03`). Connected PDF/A monthly quota in `service.ts` to the subscription's plan catalog (`BUG-10`).
 - **Contractual Minha Engine & Rebar/Formwork Transfer (`minha.ts`, `quotation-transfer.ts`, `CreateQuote.tsx`):**
   Added `src/smartcheck/rules/minha.ts` (`CSB_2026` 0.50 m² vs `DIN_18350` 2.50 m² opening deduction, reveal addition, and structural intersection takeoff) (`GAP-06`). Enabled `needs_review` transfer for formwork (`m2`) and rebar (`ton`) estimates (`GAP-05`), fixed demo template line totals (`BUG-05`), added per-line `costCategory`, `discountPercent`, and `vatPercent` controls (`BUG-06`), and rounded per-line `effectiveCost` with `roundMoney` (`BUG-07`).
-- **Navigation, Honest Public Claims & Legal Pages (`navigation.tsx`, `LandingPage.tsx`, `LegalPage.tsx`, `DosyadanTeklifDemo.tsx`):**
-  Added `/app/smartcheck`, `/app/market-intelligence`, and `/app/profitability` to sidebar navigation and fixed `/app/billing` roles (`BUG-08`). Unified IFC CTAs toward `/app/smartcheck` (`BUG-04`), replaced unverified "42.000+ ÇŞB Poz" claims with truthful catalog/evidence wording (`GAP-01`), and replaced the placeholder `LegalPage.tsx` with full BIMMetraj Terms & KVKK texts (`GAP-04`).
+- **Navigation, Honest Public Claims & Legal Pages (`Navbar.tsx`, `Landing.tsx`, `LegalPage.tsx`, `Dashboard.tsx`, `SmartCheckLab.tsx`):**
+  Added `/app/smartcheck`, `/app/market-intelligence`, and `/app/profitability` to navigation and fixed `/app/billing` roles (`BUG-08`). Unified IFC CTAs toward `/app/smartcheck` (`BUG-04`), replaced unverified "42.000+ ÇŞB Poz" claims with truthful catalog/evidence wording (`GAP-01`), and replaced the placeholder `LegalPage.tsx` with full BIMMetraj Terms & KVKK texts (`GAP-04`).
+- **Reviewer Discipline & Sign-off Metadata (`contracts.ts`, `CalculationMethods.tsx`):**
+  Added optional `reviewerDiscipline` (`ARC` | `STR` | `MEP` | `COST` | `QA`) to `QuantityRowReviewPatchSchema` (`GAP-07`) and structured `signOffEvidence` metadata to `CalculationMethods.tsx` (`GAP-12`).
+- **Release & CI Verification (2026-10-14):**
+  Pushed 9 atomic commits (`bf844d3`, `079b010`, `c97d7e3`, `9521d85`, `2d64619`, `a12d435`, `dd060e4`, `35c63ad`, `9ab9ae5`) to `origin/main`. GitHub Actions `Verify` run `38570914778` passed (879 tests + Python IFC tests + Prisma shadow + Docker builds + runtime smoke). Deployed to Coolify (`pk249c4bzn7yml3gny65rlrd`) and verified live on `https://bimmetraj.com/api/health`.
 
 ## Next code work
 

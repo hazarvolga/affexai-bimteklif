@@ -195,3 +195,21 @@ Repo `main` HEAD `f915099` (13 Ekim 09:09); canlı sürüm `a0bc784`. Çalışma
 - Skill'ler: `ai-bim-director`, `bim-knowledge-engineer`, `bim-software-architect`, `yuksek-muhendis-mimar`
 - Standartlar: TS 500:2000 Madde 7.3, 9.1.2, 9.2.5; TBDY 2018; TS 708 / EN 10080; Binaların Yangından Korunması Hakkında Yönetmelik Md. 23
 - Coolify paneli okunamadı (oturum yok); altyapı bilgisi repo kayıtlarından.
+
+---
+
+## Kapanış durumu — 14 Ekim 2026 (`GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md`)
+
+13 Ekim'de açık kalan mühendislik ve kod eksiklikleri (`E-7`, `E-8`, `E-9`, `Pset_*Common` 3x3 çıkarımı, KVKK TCKN maskeleme, e-PYS ön denetim görünürlüğü, PDF kotası, navigasyon, hukuki sayfalar) 14 Ekim 2026'da atomik commit'lerle kapatıldı, `origin/main` dalına push edildi, GitHub Actions `Verify` (`38570914778`) üzerinde doğrulandı ve Coolify (`pk249c4bzn7yml3gny65rlrd`) ile `https://bimmetraj.com` canlı ortamına alındı:
+
+| ID / Rapor Kodu | Kapanış Özeti | Commit |
+| --- | --- | --- |
+| BUG-01 | KVKK TCKN 11. hane sızıntısı ve IFC `GlobalId` bozulması önlendi | `bf844d3` |
+| GAP-08, BUG-09 | IFC `Pset_*Common` (`LoadBearing`, `IsExternal`, `ExposureClass`, `coverMm`, `discipline`) çıkarımı 3x3 motoruna bağlandı | `079b010` |
+| BUG-02, BUG-03, BUG-10, GAP-11 | QTO'suz IFC'de `epys_preflight` korundu, kuyrukta EK-9 paneli açıldı, PDF kotası DB planına bağlandı | `c97d7e3` |
+| E-8 / GAP-06 | Sözleşmeye dayalı (`CSB_2026` 0.50 m² vs `DIN_18350` 2.50 m²) boşluk minha ve yapısal kesişim motoru eklendi | `9521d85` |
+| E-7 / GAP-05, BUG-05, BUG-06, BUG-07 | Betonarme kalemlerden türetilen kalıp (`m²`) ve donatı (`Ton`) aktarımı (`needs_review`), satır bazlı kuruş yuvarlama ve kategori/iskonto/KDV kontrolleri eklendi | `2d64619` |
+| BUG-04, BUG-08, GAP-01, GAP-04 | SmartCheck/Piyasa/Kârlılık navigasyon linkleri, birleşik IFC CTA'ları, dürüst katalog metni ve tam KVKK/Kullanım Koşulları sayfaları yayına alındı | `a12d435` |
+| E-9 / GAP-07, GAP-12 | `QuantityRowReviewPatchSchema` içine `reviewerDiscipline` (`ARC/STR/MEP/COST/QA`) ve `CalculationMethods.tsx` içine `signOffEvidence` eklendi | `dd060e4` |
+| Rapor & Hafıza | `GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md`, `WORKING_STATE.md`, Graphify ve CI Graphile Worker şema izolasyonu güncellendi | `35c63ad`, `9ab9ae5` |
+

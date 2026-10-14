@@ -16,3 +16,17 @@
 1. **Çekirdek Motor Güncellemesi (Backend):** `src/ifc/parser/tr-pset-csb-extractor.ts` dosyasının güncellenerek yeni mevzuatın zorunlu kıldığı `TREpys_PozOzellikSeti.CSBPozNo` ve `TREpys_ParselOzellikSeti` parametrelerinin de (eski `Tr_Pset_CSB` ile geriye dönük uyumlu olacak şekilde) tanınması.
 2. **Yeni UX'in Gerçek Akışa Entegresi (Frontend):** Oluşturulan `DosyadanTeklifDemo` bileşeninin gerçek veri akışına bağlanması ve karmaşık olan `BimIfcParserPage` ile `SmartCheckImportWorkspace` sayfalarının yerini alması.
 3. **Slide-over 3D Viewer & Hata Kartları:** Metraj ekranındaki bileşenlere 3D model bağlamının ve SmartCheck "uçuş öncesi kontrol" özet kartlarının eklenmesi.
+
+---
+
+## 4. 14.10.2026 Handoff Güncellemesi (Canlıya Alınan Tamamlamalar)
+- **Navigasyon & Keşfedilebilirlik (`Navbar.tsx`, `Dashboard.tsx`, `SmartCheckLab.tsx`):**
+  - Ana navigasyona **SmartCheck**, **Piyasa İstihbaratı** ve **Kârlılık** doğrudan erişim bağlantıları eklendi (`BUG-08`).
+  - IFC yükleme CTA'ları birleştirilerek birincil akış `/app/smartcheck` (Kanıt-Öncelikli SmartCheck & RG 33331 e-PYS Ön Denetimi) ve ikincil akış `/app/ifc-parser` (Tarayıcı Hızlı Ön Analiz) olarak netleştirildi (`BUG-04`).
+- **e-PYS EK-9 Panel Görünürlüğü (`SmartCheckImportWorkspace.tsx`, `smartcheck.ts`, `processor.ts`):**
+  - Kuyruktan açılan veya QTO satırı içermeyen mimari IFC dosyalarında dahi RG 33331 e-PYS ön kontrol (`epys_preflight`) artefaktının korunması ve EK-9 panelinin her zaman görüntülenmesi sağlandı (`BUG-02`, `BUG-03`).
+- **Teklif Oluşturma & Metraj Aktarımı (`QuoteCreate.tsx`, `derived-cost-items.ts`, `minha-engine.ts`):**
+  - Betonarme kalemlerden türetilen kalıp (`m²`) ve donatı (`Ton`) metrajlarının `needs_review` şeffaflığıyla teklife aktarımı (`GAP-05`), satır bazlı maliyet kategorisi / iskonto / KDV kontrolleri (`BUG-06`, `BUG-07`) ve sözleşme bazlı (`CSB_2026` / `DIN_18350`) minha motoru (`GAP-06`) canlıya alındı.
+- **Hukuki & Ticari Şeffaflık (`Landing.tsx`, `LegalPage.tsx`):**
+  - Doğrulanmamış poz adedi iddiaları gerçek katalog/kanıt ifadeleriyle güncellendi (`GAP-01`) ve `/terms` ile `/privacy` (KVKK Aydınlatma Metni) sayfaları tam metin olarak yayına alındı (`GAP-04`).
+

@@ -1,8 +1,41 @@
-# TeklifPro Ara Özet / Handoff
+# TeklifPro / BIMMetraj Ara Özet & Handoff
 
-Tarih: 2026-08-02
+Tarih: 2026-10-14
 
-## Güncel Handoff — SmartCheck Safe Bulk Review
+## Güncel Handoff — 2026-10-14 GAP / BUG / UI-UX Kapanışı & Canlı Dağıtım
+
+- **Rapor:** [`GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md`](./GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md)
+- **Dal (Branch):** `main` (`https://github.com/hazarvolga/affexai-bimteklif.git`)
+- **Uzak Dal Analizi:** `origin/feat/epys-preflight`, `origin/fix/gap-closure-2026-10-13`, `origin/feat/smartcheck-evaluation-baseline` ve `origin/ui/redesign-v2` dallarının tamamı `main` içinde birleşmiş durumdadır (`0` birleşmemiş commit).
+
+### 1. Atomik Commit Zinciri (`origin/main`)
+1. `bf844d3` — `fix(epys): prevent KVKK masking from leaking 11th TCKN digit or corrupting IFC GlobalIds (BUG-01)`
+2. `079b010` — `feat(ifc): extract 3x3 structural properties and wire into validateThreeByThreeRules (GAP-08, BUG-09)`
+3. `c97d7e3` — `fix(smartcheck): preserve epys_preflight on non-QTO IFC runs and bind PDF quota to plan (BUG-02, BUG-03, BUG-10, GAP-11)`
+4. `9521d85` — `feat(smartcheck): add contractual opening deduction (minha) and structural intersection engine (GAP-06)`
+5. `2d64619` — `feat(quotes): support derived rebar/formwork transfer, per-line cost rounding, and category/discount controls (GAP-05, BUG-05, BUG-06, BUG-07)`
+6. `a12d435` — `fix(ui): add SmartCheck/Market/Profitability nav links, unify IFC CTAs, and update legal & landing pages (BUG-04, BUG-08, GAP-01, GAP-04)`
+7. `dd060e4` — `feat(review): add reviewerDiscipline contract and CalculationMethods sign-off evidence metadata (GAP-07, GAP-12)`
+8. `35c63ad` — `docs: add 2026-10-14 GAP/BUG/UI/UX analysis report and update agent memory & graphify`
+9. `9ab9ae5` — `test(smartcheck): isolate Graphile Worker test runners from parallel schema worker:migrate notifications`
+
+### 2. Doğrulama & Canlı Dağıtım (Coolify)
+- **GitHub Actions CI (`Verify`):** Run `38570914778` (`9ab9ae5b07f2d3caeb81ea8c185794fc3595ed5e`) **yeşil (`success`)** — Python IFC motor testleri (25/25), release migration yaşam döngüsü, 879 testlik izole PostgreSQL 16 doğrulaması, Prisma shadow kontratı, bağımlılık denetimi, Docker `app` + `ifc-worker` imaj derlemeleri ve ağ-izole smoke testleri geçti.
+- **Coolify Production (`https://bimmetraj.com`):**
+  - Sunucu: `affexai-prod` (`https://coolify.affexai.tr/project/xxqssmrn4inb7po5nrlwrnnw/environment/egcqcs2v5hwwnpcsghsgi935`, App UUID: `ibjv2zbpecdcbd71lxo1vqd7`)
+  - Deployment UUID: `pk249c4bzn7yml3gny65rlrd` (`status: "finished"`)
+  - Canlı `/api/health`: `status: "ok"`, `db: "connected"`, tüm `readiness` bayrakları `true` (`persistentRateLimit`, `emailDeliveryConfigured`, `publicUrlConfigured`, `smartcheckStorageConfigured`).
+- **Graphify:** `graphify update .` çalıştırıldı (`10,312` düğüm, `14,654` kenar, `885` topluluk).
+
+### 3. Kalan Operasyonel / Ticari Maddeler (Hazar Sahipliğinde)
+1. **P0-2 (Stripe Canlı Tahsilat):** Canlı Stripe anahtarları, sandbox uçtan uca abonelik/webhook replay kabulü ve hukuk müşaviri nihai onayı.
+2. **P0-3 (Gerçek Pilot Saha Kabulü):** 5 müşteri izinli gerçek IFC/PDF dosyasıyla uzman mühendis imzalı (`signOffEvidence`) pilot kabulü.
+3. **P0-5 / P1-1 (Güvenlik & Runtime DB Rolü):** Harici sızma testi ve üretimde migration sahibi rolden ayrılmış DML-only uygulama/worker DB rolü.
+4. **P1-2 / P1-6 / P1-8:** YFK yazılı veri lisansı, üretim AI sağlayıcı anahtarları (`OPENAI_API_KEY` / `GEMINI_API_KEY`) ve `bimmetraj.com` Stalwart DKIM DNS kaydı.
+
+---
+
+## Önceki Handoff — SmartCheck Safe Bulk Review (2026-08-02)
 
 Branch: `feat/smartcheck-evaluation-baseline`
 

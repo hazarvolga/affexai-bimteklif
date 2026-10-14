@@ -1,6 +1,6 @@
 # TeklifPro Agent Memory
 
-Last updated: 2026-05-14
+Last updated: 2026-10-14
 
 This folder is the canonical short memory for agents working on TeklifPro. It is
 intentionally much smaller than the full codebase and `.proje_` archive.
@@ -17,10 +17,10 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 
 ## Source Of Truth Layers
 
-- Product context: `/Users/hazarekiz/Projects/TeklifPro/.proje_`
-- Current prototype code: this repo root, Vite + Express + Drizzle.
+- Latest comprehensive audit & closure report: `GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md` (and `summary.md` handoff).
+- Current production code: this repo root, Vite + Express + Drizzle + Graphile Worker (`compose.coolify.yaml`).
 - Target production app: planned Next.js App Router + PostgreSQL + Prisma app,
-  to be added without breaking the prototype.
+  to be added after pilot evidence gates (ADR-007).
 - Agent memory: this folder plus `AGENTS.md`.
 - Graph memory: `graphify-out/`.
 
