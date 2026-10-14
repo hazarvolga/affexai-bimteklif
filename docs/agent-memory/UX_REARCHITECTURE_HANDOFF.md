@@ -29,4 +29,12 @@
   - Betonarme kalemlerden türetilen kalıp (`m²`) ve donatı (`Ton`) metrajlarının `needs_review` şeffaflığıyla teklife aktarımı (`GAP-05`), satır bazlı maliyet kategorisi / iskonto / KDV kontrolleri (`BUG-06`, `BUG-07`) ve sözleşme bazlı (`CSB_2026` / `DIN_18350`) minha motoru (`GAP-06`) canlıya alındı.
 - **Hukuki & Ticari Şeffaflık (`Landing.tsx`, `LegalPage.tsx`):**
   - Doğrulanmamış poz adedi iddiaları gerçek katalog/kanıt ifadeleriyle güncellendi (`GAP-01`) ve `/terms` ile `/privacy` (KVKK Aydınlatma Metni) sayfaları tam metin olarak yayına alındı (`GAP-04`).
-
+- **ÇŞB 2026 Resmî PDF Katalog Mühürleme & 4 Katmanlı Gece Fiyat Takip Otomasyonu (`PricingSources.tsx`, `csb-pdf-parser.ts`, `price-watcher.ts`):**
+  - `docs/fiyatlandirma-kaynaklari/` altındaki 15 resmî ÇŞB Yüksek Fen Kurulu 2026 PDF dosyası (İnşaat/Mekanik/Elektrik Birim Fiyat & Rayiç, Mimarlık-Mühendislik Hizmet Sınıfları, TÜİK Endeks Eşleştirme) ayrıştırılarak SHA-256 mühürlü katalog olarak (`/admin/pricing-sources`) canlı veritabanına (`active`, `570` onaylı satır) işlendi.
+  - Her gece `03:00`'te çalışan 4 katmanlı otonom fiyat takip mimarisi (TCMB EVDS + TÜİK Yİ-ÜFE/İME + ÇŞB resmî sayfa parmak izi + açık teklifler üzerinde otomatik fiyat farkı/etki simülasyonu) devreye alındı.
+- **RG 33331 Tam Kapsamlı e-PYS Sözlüğü (`EK-1`, `EK-2`, `EK-3`, `EK-7`) & 5D Köprüsü (`ifc_ruhsat`, `ifc_extract.py`, `smartcheck-evidence.ts`, `quotation-transfer.ts`):**
+  - `EK-1` 6 haneli alfanümerik proje kodu ve dosya adı öneki (`ProjeKodu`) çapraz kontrolü, `EK-2` `Tablo 2.3–2.14` (alt disiplin, dosya türü/tipi, kat kodları), `EK-3` `Tablo 3.2` (~130 resmî mahal adı/kısaltması) ve `EK-7` `Tablo 7.8` (`IfcGeometricRepresentationContext` 3B koordinat uzayı) kuralları eklendi.
+  - `TREpys_PozOzellikSeti.PozNo` önceliği, `TREpys_EmsalOzellikSeti` (`DAHIL`/`HARIC`/`YUZDE30`) alan toplamları ve ALLPLAN'ın otonom ürettiği `IfcCovering` kaplama alanlarının (`m²`) SmartCheck kanıt satırlarına ve taslak teklife aktarımı tamamlandı.
+- **ALLPLAN 2026 e-PYS Kiti v1 & Yol Haritası / Hesaplama Yöntemleri Hizalaması (`epys-allplan-kit.ts`, `DeveloperRoadmap.tsx`, `roadmap-content.ts`, `calculation-content.ts`, `calculation-review.ts`):**
+  - `/admin/roadmap` sayfasına tek tıkla indirilebilir SHA-256 mühürlü **ALLPLAN 2026 e-PYS Kiti v1** (`GET /api/smartcheck/epys-allplan-kit`) eklendi.
+  - `/admin/roadmap` ve `/admin/roadmap/calculations` (`BIM-CALC-2026-10-14.2`) sayfalarındaki tüm çelişkiler giderildi; `TS 500 Yapısal Metraj Sihirbazı (E-7)`, `CSB_2026_V1 Minha Motoru (E-8)`, `IfcCovering` ince işler köprüsü ve `ALLPLAN 2026 vs Geleneksel BIM` karşılaştırma matrisi eklendi.

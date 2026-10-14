@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
+import ek2Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek2_disiplinler.json";
+import ek3Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek3_mahaller.json";
+import ek5Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek5_siniflar.json";
 
 export interface AllplanTrepysPropertySpec {
   name: string;
@@ -162,27 +163,22 @@ const APPROVED_15_CHAR_MATERIALS: ApprovedMaterialTemplate[] = [
   { code: "ALCIPAN_TAVAN", charCount: 13, category: "İnce İş (IfcCovering)", defaultCsbPozNo: "15.540.1101", descriptionTr: "12.5 mm alçı levha asma tavan" },
 ];
 
-function readVendorJson<T>(fileName: string): T {
-  const fullPath = path.resolve(process.cwd(), "workers/ifc/vendor/ifc_ruhsat/ekler", fileName);
-  return JSON.parse(fs.readFileSync(fullPath, "utf8")) as T;
-}
-
 export function buildAllplanEpysKitV1(): AllplanEpysKitV1 {
-  const ek2 = readVendorJson<{
+  const ek2 = ek2Raw as {
     disiplinler: Record<string, string>;
     alt_disiplinler: Record<string, string>;
     dosya_turleri: Record<string, string>;
     dosya_tipleri: Record<string, string>;
-  }>("ek2_disiplinler.json");
+  };
 
-  const ek3 = readVendorJson<{
+  const ek3 = ek3Raw as {
     mahaller: Record<string, string>;
-  }>("ek3_mahaller.json");
+  };
 
-  const ek5 = readVendorJson<{
+  const ek5 = ek5Raw as {
     zorunlu: Array<{ ifc: string; kod: string | null; turkce: string }>;
     istege_bagli: Array<{ ifc: string; kod: string | null; turkce: string }>;
-  }>("ek5_siniflar.json");
+  };
 
   const kategoriKodlari: Record<string, string> = {};
   for (const row of [...ek5.zorunlu, ...ek5.istege_bagli]) {

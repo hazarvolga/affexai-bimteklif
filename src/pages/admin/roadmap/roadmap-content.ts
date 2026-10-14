@@ -3,9 +3,9 @@ import type { DocSection, DocSource } from "./doc-types";
 export const ROADMAP_META = {
   title: "e-PYS ve ALLPLAN: Değerlendirme ve Geliştirici Yol Haritası",
   subtitle: "Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik (RG 5.8.2026/33331) kapsamında BIMMetraj ürün ve teknik yol haritası",
-  preparedOn: "13 Ekim 2026",
+  preparedOn: "14 Ekim 2026",
   audience: "ALLPLAN Türkiye (Aluplan) ile paylaşım ve Bakanlık görüşmelerine hazırlık",
-  status: "Çalışma belgesi — resmî görüş değildir. Resmî eklerde örneklem kontrolü yapılmıştır; tüm tabloların bağımsız doğrulaması ve gerçek proje mühendislik kabulü bekliyor.",
+  status: "Çalışma belgesi — resmî görüş değildir. Resmî ekler (EK-1, EK-2, EK-3, EK-5, EK-6, EK-7, EK-9) ve ÇŞB 2026 birim fiyat/rayiç katalogları makine-okunur olarak mühürlenmiştir; gerçek proje saha ve yetkili mühendis kabulü sıradadır.",
 };
 
 export const ROADMAP_SECTIONS: DocSection[] = [
@@ -15,13 +15,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "p", text: "5 Ağustos 2026 tarihli ve 33331 sayılı Resmî Gazete'de iki yönetmelik yayımlandı: projelerin dijital olarak nasıl hazırlanacağını düzenleyen Dijital Hazırlama Yönetmeliği (yürürlük 1 Eylül 2027) ve teslim, inceleme ve onay süreçlerini e-PYS üzerinden yürüten Elektronik Teslim Yönetmeliği (yürürlük 1 Eylül 2028). IFC/BIM teslimi kademeli olarak 1 Eylül 2029'da başlıyor." },
       { type: "list", items: [
-        "Kazanılacak konum 'en iyi kontrol aracı' olmak değil; doğrulanmış, sürümlü ve makine-okunur yönetmelik verisine (EK-2, EK-5, EK-6, EK-7, EK-9) sahip olup bu veriyi her ortama dağıtmaktır.",
-        "ALLPLAN 2026 IDS doğrulamasını kendi içinde yapabildiği için ALLPLAN tarafındaki değer bir 'e-PYS kiti'dir: TREpys nitelik kataloğu, IFC dışa aktarım eşlemesi, 15 karakter kuralına uygun malzeme kütüphanesi, EK-3 mahal listesi ve yönetmelikten üretilmiş IDS dosyası.",
-        "BIMMetraj'ın rolü yazılımdan bağımsız iş akışıdır: her yazılımdan gelen IFC için ön kontrol, EK-9 taslağı, ekip ve sürüm geçmişi, kanıt kaydı ve 5D metraj/teklif köprüsü.",
+        "Kazanılacak konum 'en iyi kontrol aracı' olmak değil; doğrulanmış, sürümlü ve makine-okunur yönetmelik verisine (EK-1, EK-2, EK-3, EK-5, EK-6, EK-7, EK-9) sahip olup bu veriyi her ortama dağıtmaktır.",
+        "ALLPLAN 2026 IDS doğrulamasını kendi içinde yapabildiği için ALLPLAN tarafındaki değer bir 'e-PYS kiti'dir: TREpys nitelik kataloğu, IFC dışa aktarım eşlemesi, 15 karakter kuralına uygun malzeme kütüphanesi, EK-3 mahal listesi ve yönetmelikten üretilmiş IDS dosyası (/api/smartcheck/epys-allplan-kit).",
+        "BIMMetraj'ın rolü yazılımdan bağımsız iş akışıdır: her yazılımdan gelen IFC için ön kontrol, EK-9 taslağı, ekip ve sürüm geçmişi, kanıt kaydı ve 5D metraj/teklif köprüsü (TREpys_PozOzellikSeti + IfcCovering + CSB_2026_V1 Minha).",
         "İlk zorunluluk 2B tarafında: 1 Eylül 2027'den itibaren büyük şehirlerde 5.000 m² üstü projelerde PDF/A. En yakın ödeme isteği burada.",
         "e-PYS uygunluğu kendisi inceler (Elektronik Teslim Yönetmeliği m.5(2)). Ürünün en önemli teknik hedefi, sonuçlarını resmî kontrolle eşit tutmaktır; bu da Bakanlığın kuralları makine-okunur yayımlamasına bağlıdır.",
       ] },
-      { type: "callout", tone: "ok", title: "13 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 eklerine dayalı IFC ön kontrolü (EK-9 21 satır, GlobalId atıflı bulgular), IDS dışa aktarımı, kişisel veri maskeleme ve PDF/A yükleme/ön kontrol akışı uygulanmıştır. Canlı sunucu işleme yalnız izinli kurum içi Bimmetraj tenant’ına açıktır. Sentetik IFC/PDF ile uçtan uca akış denendi; gerçek proje ve yetkili mühendis kabulü bekliyor. Ayrıntılar 'Uygulama durumu' bölümündedir." },
+      { type: "callout", tone: "ok", title: "14 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 eklerine dayalı tam kapsamlı IFC ön kontrolü (EK-1 6 haneli proje kodu, EK-2 Tablo 2.1–2.14, EK-3 ~130 mahal sözlüğü, EK-5/6/7 Tablo 7.1–7.8, EK-9 21 satır), IDS dışa aktarımı, ALLPLAN 2026 e-PYS Kiti v1 indirme uç noktası, TREpys_PozOzellikSeti + IfcCovering 5D metraj/teklif köprüsü, TS 500 Yapısal Metraj Sihirbazı, CSB_2026_V1 Minha motoru, ÇŞB 2026 resmî PDF katalog mühürleme (570 onaylı poz/rayiç) ve PDF/A ön kontrol akışı canlıdadır. Ayrıntılar 'Uygulama durumu (14 Ekim 2026)' bölümündedir." },
     ],
   },
   {

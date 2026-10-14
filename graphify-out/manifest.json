@@ -4735,8 +4735,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/UX_REARCHITECTURE_HANDOFF.md": {
-    "mtime": 1791984499.354843,
-    "ast_hash": "f357b650edc4aecb20c93913e789b5db",
+    "mtime": 1791993529.1974251,
+    "ast_hash": "073308b2e64495fe3e0ddefe14f55b07",
     "semantic_hash": ""
   },
   "implementation_plan.md": {
@@ -5290,8 +5290,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/EPYS_IMPLEMENTATION_PLAN.md": {
-    "mtime": 1791720671.880332,
-    "ast_hash": "722e4a86d81b153ab883fcf9aea1f678",
+    "mtime": 1791993530.7418385,
+    "ast_hash": "978ac708e1fc6627ce993bd7850be786",
     "semantic_hash": ""
   },
   "workers/ifc/requirements.txt": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1791991972.8458853,
-    "ast_hash": "f7f0d9b49cdea6326ac34ea7fc8e810a",
+    "mtime": 1791993527.5308902,
+    "ast_hash": "ea11fce58b2883ed122abf072746c8cf",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6355,8 +6355,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/epys-allplan-kit.ts": {
-    "mtime": 1791992148.3126884,
-    "ast_hash": "257aed0133bc3d7a9fa2343eaa0a7cb7",
+    "mtime": 1791993599.0599456,
+    "ast_hash": "bae021a83fe20dbc940f78b9e24f6e7e",
     "semantic_hash": ""
   }
 }
