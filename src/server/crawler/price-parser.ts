@@ -54,3 +54,29 @@ export function parseTurkishPrice(raw: string): number | null {
   return Math.round(text.includes("e") ? val * 100 : Number(`${text}e2`)) / 100;
 }
 
+export function inferCrawledItemUnit(itemName: string, sourceCode = "", sourceName = "", rawUnit = ""): string {
+  const cleanRaw = rawUnit.trim().toLowerCase();
+  if (cleanRaw === "m3" || cleanRaw === "m³") return "m³";
+  if (cleanRaw === "m2" || cleanRaw === "m²") return "m²";
+  if (
+    cleanRaw &&
+    cleanRaw !== "inceleme gerekli" &&
+    cleanRaw !== "kaynak birimi" &&
+    cleanRaw !== "birim" &&
+    cleanRaw !== "-"
+  ) {
+    return rawUnit.trim();
+  }
+  const combined = `${itemName} ${sourceCode} ${sourceName}`.toLowerCase();
+  if (/\b(m3|m³)\b/i.test(itemName)) return "m³";
+  if (/\b(m2|m²)\b/i.test(itemName)) return "m²";
+  if (/\b(ton)\b/i.test(itemName)) return "ton";
+  if (/\b(kg)\b/i.test(itemName)) return "kg";
+  if (/\b(adet|ad)\b/i.test(itemName)) return "adet";
+  if (/\b(c\s*1[468]|c\s*2[05]|c\s*3[05]|c\s*4[05]|c\s*50|beton|grobeton|şap)\b/i.test(combined) || sourceCode.includes("concrete")) return "m³";
+  if (/\b(demir|çelik|steel|nervür|kangal|filmaşin)\b/i.test(combined) || sourceCode.includes("steel")) return "ton";
+  if (/\b(çimento|kireç|alçı)\b/i.test(combined)) return "ton";
+  if (/\b(kalıp|sıva|boya|duvar|yalıtım)\b/i.test(combined)) return "m²";
+  return "birim";
+}
+

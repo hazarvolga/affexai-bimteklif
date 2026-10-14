@@ -37,6 +37,7 @@ import { changeProcessingRun, enqueueSmartCheckProcessing, ProcessingConflict, r
 import { IfcNotAvailableError, IfcLimitsUnavailableError } from "../../smartcheck/import/config";
 import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
 import { canApproveCrawlerPrice } from "../crawler/provenance";
+import { inferCrawledItemUnit } from "../crawler/price-parser";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
 import { priceSchedulerService } from "../crawler/priceSchedulerService";
 import { isAutomaticPricingSource } from "../crawler/source-eligibility";
@@ -757,6 +758,7 @@ export function registerAdminRoutes(app: Express) {
         sourceUrl: z.string().url("Geçerli bir web adresi giriniz"),
         syncFrequency: z.enum(["realtime", "daily", "weekly", "monthly", "annually"]).default("monthly"),
         versionTag: z.string().default("2026/1"),
+        autoApprove: z.boolean().optional(),
       });
 
       const parsed = createSchema.safeParse(req.body);
@@ -764,7 +766,7 @@ export function registerAdminRoutes(app: Express) {
         return res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Geçersiz veri" });
       }
 
-      const { name, code, authority, category, sourceUrl, syncFrequency, versionTag } = parsed.data;
+      const { name, code, authority, category, sourceUrl, syncFrequency, versionTag, autoApprove } = parsed.data;
 
       // Check code uniqueness
       const existing = await db
@@ -778,6 +780,8 @@ export function registerAdminRoutes(app: Express) {
       }
 
       const now = new Date();
+      const validityDays = category === "market_commodity" ? 90 : 365;
+      const validityEnd = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
       const [inserted] = await db
         .insert(pricingDataSources)
         .values({
@@ -790,6 +794,13 @@ export function registerAdminRoutes(app: Express) {
           versionTag,
           status: "active",
           itemCount: 0,
+          validityStart: now,
+          validityEnd,
+          crawlerConfig: {
+            autoApprove: autoApprove ?? (category === "market_commodity"),
+            verifiedBy: req.user.userId,
+            verifiedAt: now.toISOString(),
+          },
           createdAt: now,
           updatedAt: now,
         })
@@ -813,7 +824,126 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  // 12b. Delete Pricing Source
+  // 12b. Verify & Activate Pricing Source (and configure automatic tracking)
+  router.post("/pricing-sources/:id/verify", async (req, res) => {
+    try {
+      const id = req.params.id;
+      if (!z.string().uuid().safeParse(id).success) {
+        return res.status(400).json({ error: "Geçersiz kaynak ID" });
+      }
+
+      const verifySchema = z.object({
+        versionTag: z.string().min(1).max(60).optional(),
+        sourceUrl: z.string().url("Geçerli bir web adresi giriniz").optional(),
+        authority: z.string().max(150).optional(),
+        syncFrequency: z.enum(["realtime", "daily", "weekly", "monthly", "annually"]).optional(),
+        validityStart: z.string().optional(),
+        validityEnd: z.string().optional(),
+        autoApprove: z.boolean().optional(),
+      });
+
+      const parsed = verifySchema.safeParse(req.body ?? {});
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Geçersiz doğrulama parametreleri" });
+      }
+
+      const [existing] = await db
+        .select()
+        .from(pricingDataSources)
+        .where(eq(pricingDataSources.id, id))
+        .limit(1);
+
+      if (!existing) {
+        return res.status(404).json({ error: "Kaynak bulunamadı." });
+      }
+
+      const now = new Date();
+      const defaultValidityDays = existing.category === "market_commodity" ? 90 : 365;
+      const defaultValidityEnd = new Date(now.getTime() + defaultValidityDays * 24 * 60 * 60 * 1000);
+
+      const parsedStart = parsed.data.validityStart ? new Date(parsed.data.validityStart) : null;
+      const parsedEnd = parsed.data.validityEnd
+        ? new Date(
+            parsed.data.validityEnd.length === 10
+              ? `${parsed.data.validityEnd}T23:59:59.999Z`
+              : parsed.data.validityEnd
+          )
+        : null;
+
+      const validityStart =
+        parsedStart && !Number.isNaN(parsedStart.getTime())
+          ? parsedStart
+          : existing.validityStart ?? now;
+      const validityEnd =
+        parsedEnd && !Number.isNaN(parsedEnd.getTime())
+          ? parsedEnd
+          : existing.validityEnd && existing.validityEnd > now
+          ? existing.validityEnd
+          : defaultValidityEnd;
+
+      const prevConfig =
+        existing.crawlerConfig && typeof existing.crawlerConfig === "object"
+          ? (existing.crawlerConfig as Record<string, unknown>)
+          : {};
+      const autoApprove =
+        parsed.data.autoApprove !== undefined
+          ? parsed.data.autoApprove
+          : typeof prevConfig.autoApprove === "boolean"
+          ? prevConfig.autoApprove
+          : existing.category === "market_commodity";
+
+      const nextVersionTag =
+        parsed.data.versionTag?.trim() ||
+        (existing.versionTag === "metadata-only"
+          ? `${now.getFullYear()}/${now.getMonth() + 1}`
+          : existing.versionTag);
+
+      const [updated] = await db
+        .update(pricingDataSources)
+        .set({
+          status: "active",
+          versionTag: nextVersionTag,
+          sourceUrl: parsed.data.sourceUrl || existing.sourceUrl,
+          authority: parsed.data.authority || existing.authority,
+          syncFrequency: parsed.data.syncFrequency || existing.syncFrequency,
+          validityStart,
+          validityEnd,
+          crawlerConfig: {
+            ...prevConfig,
+            autoApprove,
+            verifiedBy: req.user.userId,
+            verifiedAt: now.toISOString(),
+          },
+          updatedAt: now,
+        })
+        .where(eq(pricingDataSources.id, existing.id))
+        .returning();
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: "pricing_source_verified",
+        details: {
+          sourceId: updated.id,
+          code: updated.code,
+          versionTag: updated.versionTag,
+          autoApprove,
+          validityStart: validityStart.toISOString(),
+          validityEnd: validityEnd.toISOString(),
+        },
+      });
+
+      return res.json({
+        success: true,
+        message: `"${updated.name}" kaynağı doğrulandı ve aktif edildi.`,
+        source: updated,
+      });
+    } catch (error) {
+      console.error("Admin verify pricing source error:", error);
+      return res.status(500).json({ error: "Kaynak doğrulanırken bir hata oluştu." });
+    }
+  });
+
+  // 12c. Delete Pricing Source
   router.delete("/pricing-sources/:id", async (req, res) => {
     try {
       const id = req.params.id;
@@ -882,6 +1012,118 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  router.post("/pricing-sources/staging/bulk-review", async (req, res) => {
+    const inputSchema = z.object({
+      action: z.enum(["approve", "reject"]),
+      sourceId: z.string().uuid().optional(),
+      notes: z.string().optional(),
+    });
+
+    const parsed = inputSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Geçersiz toplu inceleme parametreleri." });
+    }
+
+    try {
+      const pendingRows = await db
+        .select()
+        .from(priceFeedStaging)
+        .where(
+          parsed.data.sourceId
+            ? and(
+                eq(priceFeedStaging.status, "pending"),
+                eq(priceFeedStaging.sourceId, parsed.data.sourceId)
+              )
+            : eq(priceFeedStaging.status, "pending")
+        );
+
+      if (pendingRows.length === 0) {
+        return res.json({ success: true, processedCount: 0, skippedCount: 0 });
+      }
+
+      const now = new Date();
+      let processedCount = 0;
+      let skippedCount = 0;
+      const touchedSourceIds = new Set<string>();
+
+      for (const row of pendingRows) {
+        if (parsed.data.action === "approve" && !canApproveCrawlerPrice(row)) {
+          skippedCount++;
+          continue;
+        }
+
+        if (parsed.data.action === "approve") {
+          await db
+            .update(priceFeedStaging)
+            .set({
+              status: "rejected",
+              notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni onaylanan fiyat ile güncellendi'`,
+            })
+            .where(
+              and(
+                eq(priceFeedStaging.sourceId, row.sourceId),
+                eq(priceFeedStaging.itemCode, row.itemCode),
+                eq(priceFeedStaging.status, "approved")
+              )
+            );
+        }
+
+        await db
+          .update(priceFeedStaging)
+          .set({
+            status: parsed.data.action === "approve" ? "approved" : "rejected",
+            reviewedAt: now,
+            reviewedByUserId: req.user.userId,
+            notes: parsed.data.notes
+              ? `${row.notes || ""} | İnceleme: ${parsed.data.notes}`
+              : row.notes,
+          })
+          .where(eq(priceFeedStaging.id, row.id));
+
+        touchedSourceIds.add(row.sourceId);
+        processedCount++;
+      }
+
+      if (parsed.data.action === "approve" && touchedSourceIds.size > 0) {
+        const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+        for (const sourceId of touchedSourceIds) {
+          await db
+            .update(pricingDataSources)
+            .set({
+              status: "active",
+              validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
+              validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
+              updatedAt: now,
+            })
+            .where(eq(pricingDataSources.id, sourceId));
+        }
+      }
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: `price_feed_bulk_${parsed.data.action}`,
+        details: {
+          processedCount,
+          skippedCount,
+          sourceId: parsed.data.sourceId ?? null,
+        },
+      });
+
+      return res.json({
+        success: true,
+        processedCount,
+        skippedCount,
+        message:
+          parsed.data.action === "approve"
+            ? `${processedCount} adet fiyat kaydı onaylandı ve canlı rayiç havuzuna aktarıldı.`
+            : `${processedCount} adet fiyat kaydı reddedildi.`,
+      });
+    } catch (error) {
+      console.error("Admin bulk price review error:", error);
+      return res.status(500).json({ error: "Toplu inceleme işlemi tamamlanamadı." });
+    }
+  });
+
   router.post("/pricing-sources/staging/:id/review", async (req, res) => {
     const inputSchema = z.object({
       action: z.enum(["approve", "reject"]),
@@ -907,18 +1149,47 @@ export function registerAdminRoutes(app: Express) {
         return res.status(409).json({ code: "PRICE_SOURCE_EVIDENCE_REQUIRED", error: "Bu kaydın canlı kaynak kanıtı yok. Kaynağı yeniden tarayın; eski örnek fiyatlar onaylanamaz." });
       }
 
+      const now = new Date();
       const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";
+
+      if (newStatus === "approved") {
+        await db
+          .update(priceFeedStaging)
+          .set({
+            status: "rejected",
+            notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni onaylanan fiyat ile güncellendi'`,
+          })
+          .where(
+            and(
+              eq(priceFeedStaging.sourceId, existing.sourceId),
+              eq(priceFeedStaging.itemCode, existing.itemCode),
+              eq(priceFeedStaging.status, "approved")
+            )
+          );
+      }
 
       const [updated] = await db
         .update(priceFeedStaging)
         .set({
           status: newStatus,
-          reviewedAt: new Date(),
+          reviewedAt: now,
           reviewedByUserId: req.user.userId,
           notes: parsed.data.notes ? `${existing.notes || ""} | İnceleme: ${parsed.data.notes}` : existing.notes,
         })
         .where(eq(priceFeedStaging.id, req.params.id))
         .returning();
+
+      if (newStatus === "approved") {
+        const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+        await db
+          .update(pricingDataSources)
+          .set({
+            validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
+            validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
+            updatedAt: now,
+          })
+          .where(eq(pricingDataSources.id, existing.sourceId));
+      }
 
       // Log review action
       await db.insert(adminAuditLogs).values({
@@ -985,7 +1256,35 @@ export function registerAdminRoutes(app: Express) {
         });
       }
 
-      // 3. Clear older pending items for this source and insert fresh crawled items
+      const configObj =
+        source.crawlerConfig && typeof source.crawlerConfig === "object"
+          ? (source.crawlerConfig as Record<string, unknown>)
+          : {};
+      const autoApprove = Boolean(configObj.autoApprove);
+
+      const existingApproved = await db
+        .select()
+        .from(priceFeedStaging)
+        .where(
+          and(
+            eq(priceFeedStaging.sourceId, source.id),
+            eq(priceFeedStaging.status, "approved")
+          )
+        )
+        .orderBy(desc(priceFeedStaging.crawledAt));
+
+      const approvedByCode = new Map<string, typeof existingApproved[number]>();
+      for (const row of existingApproved) {
+        if (!approvedByCode.has(row.itemCode)) {
+          approvedByCode.set(row.itemCode, row);
+        }
+      }
+
+      let insertedOrChangedCount = 0;
+      let autoApprovedCount = 0;
+      let unchangedCount = 0;
+
+      // 3. Clear older pending items for this source and insert fresh/changed crawled items
       if (crawlResult.items.length > 0) {
         await db
           .delete(priceFeedStaging)
@@ -997,24 +1296,76 @@ export function registerAdminRoutes(app: Express) {
           );
 
         for (const item of crawlResult.items) {
+          const normalizedUnit = inferCrawledItemUnit(
+            item.itemName,
+            source.code,
+            source.name,
+            item.unit
+          );
+          const prev = approvedByCode.get(item.itemCode);
+          const prevPrice = prev ? Number(prev.crawledPrice) : null;
+          const hasPrevPrice =
+            prevPrice !== null && Number.isFinite(prevPrice) && prevPrice > 0;
+
+          if (prev && hasPrevPrice && Math.abs(item.crawledPrice - prevPrice) < 0.005) {
+            await db
+              .update(priceFeedStaging)
+              .set({
+                crawledAt: crawlResult.crawledAt,
+                unit: normalizedUnit,
+              })
+              .where(eq(priceFeedStaging.id, prev.id));
+            unchangedCount++;
+            continue;
+          }
+
+          const diffPercent = hasPrevPrice
+            ? String(Math.round(((item.crawledPrice - prevPrice) / prevPrice) * 10000) / 100)
+            : null;
+          const shouldAutoApprove =
+            autoApprove &&
+            canApproveCrawlerPrice({
+              notes: item.notes,
+              sourceUrl: item.sourceUrl,
+              crawledPrice: item.crawledPrice,
+            });
+
+          if (shouldAutoApprove && prev) {
+            await db
+              .update(priceFeedStaging)
+              .set({
+                status: "rejected",
+                notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni canlı tarama ile güncellendi'`,
+              })
+              .where(eq(priceFeedStaging.id, prev.id));
+          }
+
           await db.insert(priceFeedStaging).values({
             sourceId: source.id,
             itemCode: item.itemCode,
             itemName: item.itemName,
-            unit: item.unit,
-            currentPrice: item.currentPrice !== null ? String(item.currentPrice) : null,
+            unit: normalizedUnit,
+            currentPrice: hasPrevPrice ? prevPrice.toFixed(2) : null,
             crawledPrice: String(item.crawledPrice),
-            diffPercent: item.diffPercent !== null ? String(item.diffPercent) : null,
+            diffPercent,
             sourceUrl: item.sourceUrl,
-            status: "pending",
+            status: shouldAutoApprove ? "approved" : "pending",
+            reviewedAt: shouldAutoApprove ? crawlResult.crawledAt : null,
+            reviewedByUserId: shouldAutoApprove ? req.user.userId : null,
             confidenceScore: String(item.confidenceScore),
             notes: item.notes,
             crawledAt: crawlResult.crawledAt,
           });
+          insertedOrChangedCount++;
+          if (shouldAutoApprove) autoApprovedCount++;
         }
       }
 
-      // 4. Update data source metadata
+      const rollingValidityEnd = new Date(
+        crawlResult.crawledAt.getTime() + 90 * 24 * 60 * 60 * 1000
+      );
+
+      // 4. Update data source metadata & rolling validity window
       await db
         .update(pricingDataSources)
         .set({
@@ -1022,6 +1373,15 @@ export function registerAdminRoutes(app: Express) {
           status: "active",
           itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
           dataHash: crawlResult.dataHash || source.dataHash,
+          validityStart: source.validityStart ?? crawlResult.crawledAt,
+          validityEnd:
+            source.validityEnd && source.validityEnd > rollingValidityEnd
+              ? source.validityEnd
+              : rollingValidityEnd,
+          versionTag:
+            source.versionTag === "metadata-only"
+              ? `${crawlResult.crawledAt.getFullYear()}/${crawlResult.crawledAt.getMonth() + 1}`
+              : source.versionTag,
           updatedAt: new Date(),
         })
         .where(eq(pricingDataSources.id, source.id));
@@ -1034,16 +1394,28 @@ export function registerAdminRoutes(app: Express) {
           sourceId: source.id,
           sourceCode: source.code,
           itemsCount: crawlResult.itemsCount,
+          insertedOrChangedCount,
+          autoApprovedCount,
+          unchangedCount,
           durationMs: crawlResult.durationMs,
           timestamp: crawlResult.crawledAt.toISOString(),
         },
       });
 
+      const statusNote = autoApprovedCount > 0
+        ? `${autoApprovedCount} adet yeni/değişen fiyat otomatik onaylanarak canlı teklif kataloğuna aktarıldı (${unchangedCount} kalem değişmedi).`
+        : insertedOrChangedCount > 0
+        ? `${insertedOrChangedCount} adet yeni/değişen fiyat İnceleme Havuzu'na (Staging) eklendi (${unchangedCount} kalem değişmedi).`
+        : `Taranan ${crawlResult.itemsCount} kalemin tamamı mevcut onaylı fiyatlarla aynı (fiyat değişikliği yok).`;
+
       return res.json({
         success: true,
-        message: `${source.name} canlı olarak tarandı (${crawlResult.durationMs}ms). ${crawlResult.itemsCount} adet güncel fiyat çekildi ve İnceleme Havuzu'na (Staging) eklendi.`,
+        message: `${source.name} canlı olarak tarandı (${crawlResult.durationMs}ms). ${statusNote}`,
         crawlResult: {
           itemsCount: crawlResult.itemsCount,
+          insertedOrChangedCount,
+          autoApprovedCount,
+          unchangedCount,
           durationMs: crawlResult.durationMs,
         },
       });

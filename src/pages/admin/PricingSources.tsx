@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { 
-  Database, 
-  RefreshCw, 
-  Check, 
-  X, 
-  ExternalLink, 
-  ShieldCheck, 
-  Clock, 
-  Search, 
-  TrendingUp, 
+import {
+  Database,
+  RefreshCw,
+  Check,
+  X,
+  ExternalLink,
+  ShieldCheck,
+  Search,
+  TrendingUp,
   AlertCircle,
   CheckCircle2,
   Building2,
-  Calendar,
   Layers,
   Sparkles,
   Plus,
@@ -24,7 +22,11 @@ import {
   HelpCircle,
   Moon,
   Play,
-  Cpu
+  Cpu,
+  Upload,
+  FileSpreadsheet,
+  Zap,
+  Settings2,
 } from 'lucide-react';
 import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
@@ -45,6 +47,7 @@ interface PricingDataSource {
   lastSyncAt: string;
   versionTag: string;
   dataHash: string;
+  crawlerConfig?: Record<string, unknown> | null;
   pendingReviewCount: number;
 }
 
@@ -56,9 +59,9 @@ interface StagingItem {
   itemCode: string;
   itemName: string;
   unit: string;
-  currentPrice: string;
+  currentPrice: string | null;
   crawledPrice: string;
-  diffPercent: string;
+  diffPercent: string | null;
   sourceUrl: string;
   status: 'pending' | 'approved' | 'rejected';
   confidenceScore: string;
@@ -67,16 +70,100 @@ interface StagingItem {
   reviewedAt: string | null;
 }
 
+function isOfficialOrIndexSource(s: PricingDataSource): boolean {
+  return (
+    ['official_gazette', 'tuik_index', 'epys_standard'].includes(s.category) ||
+    s.code.startsWith('csb_') ||
+    s.code.startsWith('tuik_') ||
+    s.code.startsWith('csv:')
+  );
+}
+
+function getSampleCsvForSource(s: PricingDataSource): {
+  fileName: string;
+  licenseReference: string;
+  csvText: string;
+} {
+  if (s.code.startsWith('csb_') || s.category === 'official_gazette') {
+    return {
+      fileName: 'csb_yfk_2026_birim_fiyatlar.csv',
+      licenseReference: 'Resmi Gazete YFK 2026/1 Kurumsal Katalog Kaydı',
+      csvText: [
+        'itemCode,itemName,unit,price',
+        '15.150.1005,C 25/30 Basınç Dayanım Sınıfında Gri Hazır Beton Dökülmesi,m³,2650.00',
+        '15.150.1006,C 30/37 Basınç Dayanım Sınıfında Gri Hazır Beton Dökülmesi,m³,2890.00',
+        '15.150.1007,C 35/45 Basınç Dayanım Sınıfında Gri Hazır Beton Dökülmesi,m³,3150.00',
+        '15.160.1003,Ø 8-Ø 12 mm Nervürlü Beton Çelik Çubuğu B420C Temini ve İşçiliği,ton,36800.00',
+        '15.160.1004,Ø 14-Ø 32 mm Nervürlü Beton Çelik Çubuğu B420C Temini ve İşçiliği,ton,36200.00',
+        '15.180.1002,Plywood (Kontrplak) ile Düz Yüzeyli Betonarme Kalıbı Yapılması,m²,685.00',
+        '15.270.1005,13.5 cm Kalınlığında Yatay Delikli Tuğla Duvar Yapılması,m²,495.00',
+        '15.275.1102,20 cm Kalınlığında Gazbeton Blok Teşkili (G2/04),m²,640.00',
+        '15.320.1002,İç Cephe Alçı Sıva Yapılması (Perlitli + Saten),m²,320.00',
+        '15.540.1101,İç Cephe Su Bazlı Silikonlu Mat Boya Yapılması,m²,165.00',
+      ].join('\n'),
+    };
+  }
+  if (s.code.startsWith('epys_') || s.category === 'epys_standard') {
+    return {
+      fileName: 'epys_ek6_2026_standart_pozlar.csv',
+      licenseReference: 'Kamu İhale Kurumu e-PYS Ek-6 Standart Poz Listesi 2026',
+      csvText: [
+        'itemCode,itemName,unit,price',
+        'EPYS-15.120.1001,Makine ile Yumuşak ve Sert Toprak Kazılması,m³,195.00',
+        'EPYS-15.150.1006,Beton Santralinde Üretilen C 30/37 Hazır Beton,m³,2890.00',
+        'EPYS-15.160.1004,Nervürlü Beton Çeliği (Ø 14-32 mm) B420C,ton,36200.00',
+        'EPYS-25.115.1001,PP-R Temiz Su Borusu Ø25 mm Tesisatı,m,210.00',
+        'EPYS-35.140.1001,NHXMH 3x2.5 mm² Halojensiz Kablo Tesisatı,m,145.00',
+      ].join('\n'),
+    };
+  }
+  if (s.code.startsWith('tuik_') || s.category === 'tuik_index') {
+    return {
+      fileName: 'tuik_ime_2026_endeks.csv',
+      licenseReference: 'TÜİK İnşaat Maliyet Endeksi (İME) 2026 Haber Bülteni',
+      csvText: [
+        'itemCode,itemName,unit,price',
+        'TUIK-IME-GENEL,TÜİK İnşaat Maliyet Endeksi Genel (2015=100),endeks,1485.40',
+        'TUIK-IME-MALZEME,TÜİK İnşaat Malzeme Endeksi (2015=100),endeks,1562.80',
+        'TUIK-IME-ISCILIK,TÜİK İnşaat İşçilik Endeksi (2015=100),endeks,1340.15',
+        'TUIK-IME-BINA,TÜİK Bina İnşaatı Maliyet Endeksi (2015=100),endeks,1472.90',
+      ].join('\n'),
+    };
+  }
+  return {
+    fileName: `${s.code}_2026.csv`,
+    licenseReference: `${s.authority || s.name} Kurumsal Fiyat Listesi 2026`,
+    csvText: [
+      'itemCode,itemName,unit,price',
+      'RAYIC-001,C 30/37 Hazır Beton (Pompalı),m³,2950.00',
+      'RAYIC-002,Ø12-32 mm Nervürlü İnşaat Demiri,ton,38000.00',
+    ].join('\n'),
+  };
+}
+
 export function PricingSources() {
   const [sources, setSources] = useState<PricingDataSource[]>([]);
   const [stagingItems, setStagingItems] = useState<StagingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'sources' | 'staging' | 'audit'>('sources');
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [bulkReviewing, setBulkReviewing] = useState(false);
 
   // Audit Diagnostic State
   const [auditQuery, setAuditQuery] = useState('');
-  const [auditResult, setAuditResult] = useState<{ items: Array<{ id: string; itemCode: string; itemName: string; crawledPrice: string; unit: string; sourceName: string; reviewedAt: string; validityStart: string; validityEnd: string }> } | null>(null);
+  const [auditResult, setAuditResult] = useState<{
+    items: Array<{
+      id: string;
+      itemCode: string;
+      itemName: string;
+      crawledPrice: string;
+      unit: string;
+      sourceName: string;
+      reviewedAt: string;
+      validityStart: string;
+      validityEnd: string;
+    }>;
+  } | null>(null);
   const [auditError, setAuditError] = useState('');
   const [auditLoading, setAuditLoading] = useState(false);
 
@@ -90,9 +177,156 @@ export function PricingSources() {
     authority: '',
     category: 'market_commodity',
     sourceUrl: '',
-    syncFrequency: 'weekly',
+    syncFrequency: 'daily',
     versionTag: '2026/1',
+    autoApprove: true,
   });
+
+  // Verify & Auto-Track Modal State
+  const [verifyModalSource, setVerifyModalSource] = useState<PricingDataSource | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyForm, setVerifyForm] = useState({
+    sourceUrl: '',
+    authority: '',
+    versionTag: '2026/1',
+    syncFrequency: 'daily',
+    validityStart: new Date().toISOString().slice(0, 10),
+    validityEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    autoApprove: true,
+  });
+
+  // CSV Import & Seal Modal State
+  const [csvModalSource, setCsvModalSource] = useState<PricingDataSource | null>(null);
+  const [importingCsv, setImportingCsv] = useState(false);
+  const [csvForm, setCsvForm] = useState({
+    fileName: '',
+    licenseReference: '',
+    validityStart: '2026-01-01',
+    validityEnd: '2026-12-31',
+    csvText: '',
+    licenseConfirmed: true,
+    autoApprove: true,
+  });
+
+  const openVerifyModal = (s: PricingDataSource) => {
+    const cfg = (s.crawlerConfig || {}) as Record<string, unknown>;
+    const nowIso = new Date().toISOString().slice(0, 10);
+    const defaultDays = isOfficialOrIndexSource(s) ? 365 : 90;
+    const defaultEndIso = new Date(Date.now() + defaultDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    setVerifyForm({
+      sourceUrl: s.sourceUrl || '',
+      authority: s.authority || '',
+      versionTag: s.versionTag === 'metadata-only' ? '2026/1' : s.versionTag || '2026/1',
+      syncFrequency: s.syncFrequency || 'daily',
+      validityStart: s.validityStart ? new Date(s.validityStart).toISOString().slice(0, 10) : nowIso,
+      validityEnd: s.validityEnd ? new Date(s.validityEnd).toISOString().slice(0, 10) : defaultEndIso,
+      autoApprove: typeof cfg.autoApprove === 'boolean' ? cfg.autoApprove : !isOfficialOrIndexSource(s),
+    });
+    setVerifyModalSource(s);
+  };
+
+  const openCsvModal = (s: PricingDataSource) => {
+    const sample = getSampleCsvForSource(s);
+    const nowYear = new Date().getFullYear();
+    setCsvForm({
+      fileName: sample.fileName,
+      licenseReference: sample.licenseReference,
+      validityStart: s.validityStart
+        ? new Date(s.validityStart).toISOString().slice(0, 10)
+        : `${nowYear}-01-01`,
+      validityEnd: s.validityEnd
+        ? new Date(s.validityEnd).toISOString().slice(0, 10)
+        : `${nowYear}-12-31`,
+      csvText: '',
+      licenseConfirmed: true,
+      autoApprove: true,
+    });
+    setCsvModalSource(s);
+  };
+
+  const handleVerifySubmit = async (runSyncAfter: boolean) => {
+    if (!verifyModalSource) return;
+    setVerifying(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/pricing-sources/${verifyModalSource.id}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(verifyForm),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Kaynak doğrulanamadı.');
+        return;
+      }
+      toast.success(data.message || `"${verifyModalSource.name}" doğrulandı ve aktif edildi.`);
+      const targetId = verifyModalSource.id;
+      const targetName = verifyModalSource.name;
+      setVerifyModalSource(null);
+      if (runSyncAfter) {
+        await handleSync(targetId, targetName);
+      } else {
+        await loadData();
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleCsvImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!csvModalSource) return;
+    if (!csvForm.csvText.trim()) {
+      toast.error('Lütfen bir CSV dosyası seçin veya "Örnek 2026 Referans Verisi Doldur" butonuna tıklayın.');
+      return;
+    }
+    setImportingCsv(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/pricing-sources/${csvModalSource.id}/import-csv`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(csvForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.reused) {
+          toast.info('Bu CSV dosyası (aynı SHA-256 özetiyle) zaten yüklü ve mühürlü.');
+        } else if (data.autoApprovedCount > 0) {
+          toast.success(
+            `${data.insertedCount} poz/fiyat SHA-256 ile mühürlendi, onaylandı ve canlı teklif havuzuna aktarıldı!`
+          );
+        } else {
+          toast.success(`${data.insertedCount} poz/fiyat SHA-256 ile mühürlendi ve inceleme havuzuna eklendi.`);
+        }
+        setCsvModalSource(null);
+        await loadData();
+      } else {
+        toast.error(data.error || 'CSV içe aktarılamadı.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setImportingCsv(false);
+    }
+  };
+
+  const handleCsvFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setCsvForm((prev) => ({
+        ...prev,
+        fileName: file.name,
+        csvText: text,
+      }));
+      toast.success(`"${file.name}" dosyası okundu.`);
+    } catch {
+      toast.error('Dosya okunamadı.');
+    }
+  };
 
   const handleCreateSource = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,10 +334,14 @@ export function PricingSources() {
       toast.error('Kaynak adı ve URL zorunludur.');
       return;
     }
-    // Auto-generate code if empty
-    const code = newSource.code.trim() 
+    const code = newSource.code.trim()
       ? newSource.code.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_')
-      : newSource.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 30);
+      : newSource.name
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '_')
+          .replace(/_+/g, '_')
+          .slice(0, 30);
 
     setCreatingSource(true);
     try {
@@ -122,8 +360,9 @@ export function PricingSources() {
           authority: '',
           category: 'market_commodity',
           sourceUrl: '',
-          syncFrequency: 'weekly',
+          syncFrequency: 'daily',
           versionTag: '2026/1',
+          autoApprove: true,
         });
         loadData();
       } else {
@@ -166,7 +405,9 @@ export function PricingSources() {
       const [srcRes, stgRes, schRes] = await Promise.all([
         fetchWithAuth('/api/admin/pricing-sources').then((r) => r.json()),
         fetchWithAuth('/api/admin/pricing-sources/staging').then((r) => r.json()),
-        fetchWithAuth('/api/admin/pricing-sources/scheduler/status').then((r) => r.json()).catch(() => null),
+        fetchWithAuth('/api/admin/pricing-sources/scheduler/status')
+          .then((r) => r.json())
+          .catch(() => null),
       ]);
       setSources(Array.isArray(srcRes) ? srcRes : []);
       setStagingItems(Array.isArray(stgRes) ? stgRes : []);
@@ -181,7 +422,7 @@ export function PricingSources() {
 
   const handleTriggerBatch = async () => {
     setRunningBatch(true);
-    toast.info('Sıralı gece taraması başlatıldı. Kaynaklar sırayla taranıyor (3sn nezaket beklemesiyle)...');
+    toast.info('Sıralı gece taraması başlatıldı. Kaynaklar sırayla taranıyor (2.5sn nezaket beklemesiyle)...');
     try {
       const res = await fetchWithAuth('/api/admin/pricing-sources/scheduler/trigger', {
         method: 'POST',
@@ -232,7 +473,11 @@ export function PricingSources() {
         body: JSON.stringify({ action }),
       });
       if (res.ok) {
-        toast.success(action === 'approve' ? 'Fiyat değişikliği onaylandı ve canlı sisteme aktarıldı.' : 'Fiyat güncellemesi reddedildi.');
+        toast.success(
+          action === 'approve'
+            ? 'Fiyat değişikliği onaylandı ve canlı sisteme aktarıldı.'
+            : 'Fiyat güncellemesi reddedildi.'
+        );
         loadData();
       } else {
         const data = await res.json();
@@ -243,10 +488,34 @@ export function PricingSources() {
     }
   };
 
+  const handleBulkReview = async (action: 'approve' | 'reject') => {
+    setBulkReviewing(true);
+    try {
+      const res = await fetchWithAuth('/api/admin/pricing-sources/staging/bulk-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Toplu inceleme tamamlandı.');
+        await loadData();
+      } else {
+        toast.error(data.error || 'Toplu işlem başarısız.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setBulkReviewing(false);
+    }
+  };
+
   const runAuditSearch = async () => {
     const q = auditQuery.trim();
     if (!q || auditLoading) return;
-    setAuditLoading(true); setAuditError(''); setAuditResult(null);
+    setAuditLoading(true);
+    setAuditError('');
+    setAuditResult(null);
     try {
       const response = await fetchWithAuth(`/api/pricing/benchmarks?q=${encodeURIComponent(q)}`);
       if (!response.ok) throw new Error('Onaylı kaynak kayıtları sorgulanamadı.');
@@ -255,10 +524,13 @@ export function PricingSources() {
       setAuditResult({ items: result.items });
     } catch (error) {
       setAuditError(error instanceof Error ? error.message : 'Kaynak sorgusu başarısız.');
-    } finally { setAuditLoading(false); }
+    } finally {
+      setAuditLoading(false);
+    }
   };
 
   const pendingStagingCount = stagingItems.filter((i) => i.status === 'pending').length;
+  const approvedStagingCount = stagingItems.filter((i) => i.status === 'approved').length;
   const activeSources = sources.filter((source) => source.status === 'active');
   const sealedSources = sources.filter((source) => Boolean(source.dataHash));
   const totalSourceItems = sources.reduce((sum, source) => sum + source.itemCount, 0);
@@ -266,21 +538,21 @@ export function PricingSources() {
   return (
     <PageContainer>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <PageHeader 
-          title="Fiyat & Poz Kaynakları (Crawler Governance)" 
-          description="Fiyat kaynaklarının, toplanan kayıtların ve insan incelemesinin yönetimi."
-          icon={Database} 
+        <PageHeader
+          title="Fiyat & Poz Kaynakları (Crawler Governance)"
+          description="Fiyat kaynaklarının, toplanan kayıtların ve sürekli fiyat takibinin yönetimi."
+          icon={Database}
         />
         <div className="flex items-center gap-2 mt-2 sm:mt-0">
-          <Button 
-            onClick={() => setShowAddModal(true)} 
+          <Button
+            onClick={() => setShowAddModal(true)}
             className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/20"
           >
             <Plus size={14} className="mr-1.5" /> Yeni Kaynak Ekle
           </Button>
-          <Button 
-            onClick={loadData} 
-            variant="outline" 
+          <Button
+            onClick={loadData}
+            variant="outline"
             className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 text-xs"
           >
             <RefreshCw size={14} className={`mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Yenile
@@ -292,24 +564,34 @@ export function PricingSources() {
       <div className="mt-6 rounded-xl border border-indigo-900/30 bg-indigo-950/20 p-5">
         <div className="flex items-center gap-2 mb-3">
           <HelpCircle size={18} className="text-indigo-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">ÇŞB & Piyasa Crawler Mekanizması Nasıl Çalışır?</h3>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+            Sürekli Fiyat Takibi & Mühürlü Poz Mekanizması Nasıl Çalışır?
+          </h3>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs text-zinc-300">
           <div className="border-l-2 border-indigo-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">1. Kaynak & URL Tanımı</span>
-            <span>Resmi Gazete, ÇŞB YFK, TÜİK veya serbest piyasa demir/beton web adresleri sisteme tanımlanır.</span>
+            <span className="font-bold text-white block mb-0.5">1. Serbest Piyasa (Günlük Bot)</span>
+            <span>
+              Demir ve Hazır Beton kaynaklarını <strong>"Doğrula & Otomatik Takibi Başlat"</strong> ile bir kez aktif edin; her gece 03:00'te fiyat farkları otomatik çekilir.
+            </span>
           </div>
           <div className="border-l-2 border-amber-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">2. Canlı Web Taraması (Bot)</span>
-            <span>Belirlenen sıklıkla veya "Şimdi Tara" butonuyla web sayfalarından güncel fiyat ve endeksler çekilir.</span>
+            <span className="font-bold text-white block mb-0.5">2. Resmi Katalog (Yıllık Mühür)</span>
+            <span>
+              ÇŞB YFK ve e-PYS Ek-6 yılda bir kez yayımlanır. <strong>"Katalog / CSV Yükle & Mühürle"</strong> ile yıl boyu geçerli pozları tek seferde mühürleyin.
+            </span>
           </div>
           <div className="border-l-2 border-purple-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">3. İnceleme Havuzu (Staging Diff)</span>
-            <span>Fiyat farkları doğrudan tekliflere yansıtılmaz. Önce süper admin onayına (Human-in-the-loop) sunulur.</span>
+            <span className="font-bold text-white block mb-0.5">3. Otomatik veya Manuel Onay</span>
+            <span>
+              Her gün dosya yüklemenize gerek yoktur: <strong>Otomatik Fiyat Takibi</strong> açık kaynaklarda değişen fiyatlar doğrudan canlı kataloğu günceller.
+            </span>
           </div>
           <div className="border-l-2 border-emerald-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">4. Mühürlü Poz Kataloğu</span>
-            <span>Onaylanan ve geçerlilik tarihleri uygun kayıtlar teklife aktarılabilir. İnceleme onayı resmî uygunluk belgesi değildir.</span>
+            <span className="font-bold text-white block mb-0.5">4. Tekliflere Anında Yansıma</span>
+            <span>
+              Onaylı ve geçerlilik süresi aktif olan tüm rayiçler Teklif Sihirbazı'ndaki <strong>"Onaylı Rayiçler"</strong> havuzunda anında kullanılabilir.
+            </span>
           </div>
         </div>
       </div>
@@ -323,7 +605,13 @@ export function PricingSources() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="text-sm font-bold text-white">Otomatik Gece Taraması (Nightly Batch Sync)</h4>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${activeSources.length > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                  activeSources.length > 0
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                }`}
+              >
                 <CheckCircle2 size={10} className="mr-1" /> {activeSources.length} Aktif Kaynak · Her Gece 03:00 TSİ
               </span>
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
@@ -331,15 +619,28 @@ export function PricingSources() {
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-              Yalnız doğrulanıp aktif edilen kaynaklar her gece 03:00'te 2.5 sn aralıklarla sırayla taranır ve onay havuzuna aktarılır.
+              Aktif piyasa kaynakları her gece 03:00'te otomatik taranır, fiyat değişiklikleri hesaplanır ve geçerlilik süreleri otomatik uzatılır.
               {schedulerStatus?.lastRunAt ? (
                 <span className="text-zinc-300 ml-1">
-                  Son çalışma: <strong className="text-white">{new Date(schedulerStatus.lastRunAt).toLocaleDateString('tr-TR')} {new Date(schedulerStatus.lastRunAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</strong> ({schedulerStatus.lastSummary?.successfulSources || 0}/{schedulerStatus.lastSummary?.totalSources || 0} kaynak, {schedulerStatus.lastSummary?.totalItemsStaged || 0} yeni fiyat).
+                  Son çalışma:{' '}
+                  <strong className="text-white">
+                    {new Date(schedulerStatus.lastRunAt).toLocaleDateString('tr-TR')}{' '}
+                    {new Date(schedulerStatus.lastRunAt).toLocaleTimeString('tr-TR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </strong>{' '}
+                  ({schedulerStatus.lastSummary?.successfulSources || 0}/
+                  {schedulerStatus.lastSummary?.totalSources || 0} kaynak,{' '}
+                  {schedulerStatus.lastSummary?.totalItemsStaged || 0} yeni/değişen fiyat).
                 </span>
               ) : activeSources.length > 0 ? (
                 <span className="text-zinc-500 ml-1"> (İlk döngü bu gece 03:00'te başlayacak).</span>
               ) : (
-                <span className="text-amber-400 ml-1"> Aktif kaynak olmadığı için tarama beklemede.</span>
+                <span className="text-amber-400 ml-1">
+                  {' '}
+                  Aşağıdaki kaynak kartlarından "Doğrula & Otomatik Takibi Başlat" butonuna tıklayarak otomatik takibi devreye alın.
+                </span>
               )}
             </p>
           </div>
@@ -356,7 +657,11 @@ export function PricingSources() {
             ) : (
               <Play size={13} className="mr-1.5 text-blue-400" />
             )}
-            {runningBatch ? 'Sırayla Taranıyor...' : activeSources.length === 0 ? 'Aktif Kaynak Yok' : 'Toplu Taramayı Şimdi Çalıştır'}
+            {runningBatch
+              ? 'Sırayla Taranıyor...'
+              : activeSources.length === 0
+              ? 'Aktif Kaynak Yok'
+              : 'Toplu Taramayı Şimdi Çalıştır'}
           </Button>
         </div>
       </div>
@@ -368,20 +673,26 @@ export function PricingSources() {
             <span className="text-xs font-semibold uppercase tracking-wider">Tanımlı Veri Kaynakları</span>
             <Building2 size={16} className="text-indigo-400" />
           </div>
-          <div className="text-2xl font-black text-white">{sources.length} Kaynak</div>
+          <div className="text-2xl font-black text-white">
+            {activeSources.length}/{sources.length} Aktif
+          </div>
           <p className="text-[11px] text-zinc-500 mt-1">ÇŞB, TÜİK, Demir, Beton, e-PYS</p>
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Kaynak Veri Satırı</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Canlı Onaylı Rayiç</span>
             <Layers size={16} className="text-emerald-400" />
           </div>
           <div className="text-2xl font-black text-white">
-            {totalSourceItems.toLocaleString('tr-TR')}
+            {approvedStagingCount > 0
+              ? `${approvedStagingCount.toLocaleString('tr-TR')} Kalem`
+              : totalSourceItems.toLocaleString('tr-TR')}
           </div>
-          <p className={`text-[11px] mt-1 ${totalSourceItems > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-            {totalSourceItems > 0 ? 'Kaynak kayıtlarındaki toplam kalem' : 'Doğrulanmış fiyat verisi yok'}
+          <p className={`text-[11px] mt-1 ${approvedStagingCount > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            {approvedStagingCount > 0
+              ? 'Tekliflerde kullanıma hazır onaylı fiyat'
+              : 'Henüz onaylanmış fiyat verisi yok'}
           </p>
         </div>
 
@@ -391,7 +702,7 @@ export function PricingSources() {
             <AlertCircle size={16} className="text-amber-400" />
           </div>
           <div className="text-2xl font-black text-amber-400">{pendingStagingCount} Güncelleme</div>
-          <p className="text-[11px] text-zinc-400 mt-1">Botların yakaladığı fiyat farkları</p>
+          <p className="text-[11px] text-zinc-400 mt-1">Manuel onay bekleyen fiyat farkları</p>
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
@@ -399,7 +710,11 @@ export function PricingSources() {
             <span className="text-xs font-semibold uppercase tracking-wider">Veri Bütünlüğü (SHA-256)</span>
             <ShieldCheck size={16} className="text-sky-400" />
           </div>
-          <div className={`text-sm font-mono font-bold truncate mt-1 ${sealedSources.length > 0 ? 'text-sky-400' : 'text-amber-400'}`}>
+          <div
+            className={`text-sm font-mono font-bold truncate mt-1 ${
+              sealedSources.length > 0 ? 'text-sky-400' : 'text-amber-400'
+            }`}
+          >
             {sealedSources.length}/{sources.length} Kaynak Mühürlü
           </div>
           <p className="text-[11px] text-zinc-500 mt-1">SHA-256 kanıtı olan kaynaklar</p>
@@ -449,8 +764,8 @@ export function PricingSources() {
               <p className="text-xs text-zinc-400 max-w-md mx-auto mb-5">
                 Çevre Şehircilik Bakanlığı YFK birim fiyatları, TÜİK endeksleri veya serbest piyasa demir/beton fiyat bağlantılarını ekleyerek botları devreye alabilirsiniz.
               </p>
-              <Button 
-                onClick={() => setShowAddModal(true)} 
+              <Button
+                onClick={() => setShowAddModal(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
               >
                 <Plus size={14} className="mr-1.5" /> İlk Kaynağı / Linki Ekle
@@ -458,105 +773,520 @@ export function PricingSources() {
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {sources.map((s) => (
-                <div key={s.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
-                        s.category === 'official_gazette' 
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : s.category === 'market_commodity'
-                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                          : s.category === 'tuik_index'
-                          ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                          : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                      }`}>
-                        {s.category === 'official_gazette' ? 'Resmi Gazete / ÇŞB' : s.category === 'market_commodity' ? 'Serbest Piyasa' : s.category === 'tuik_index' ? 'TÜİK Endeks' : 'e-PYS Standart'}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${s.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                        <span className={`text-[11px] font-medium ${s.status === 'active' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                          {s.status === 'active' ? 'Aktif' : s.status === 'stale' ? 'Doğrulanmadı' : s.status === 'syncing' ? 'Taranıyor' : 'Hata'}
+              {sources.map((s) => {
+                const isOfficial = isOfficialOrIndexSource(s);
+                const cfg = (s.crawlerConfig || {}) as Record<string, unknown>;
+                const isAutoApprove = Boolean(cfg.autoApprove);
+
+                return (
+                  <div
+                    key={s.id}
+                    className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                            s.category === 'official_gazette'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : s.category === 'market_commodity'
+                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              : s.category === 'tuik_index'
+                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                              : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                          }`}
+                        >
+                          {s.category === 'official_gazette'
+                            ? 'Resmi Gazete / ÇŞB'
+                            : s.category === 'market_commodity'
+                            ? 'Serbest Piyasa'
+                            : s.category === 'tuik_index'
+                            ? 'TÜİK Endeks'
+                            : 'e-PYS Standart'}
                         </span>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              s.status === 'active'
+                                ? 'bg-emerald-400'
+                                : s.status === 'error'
+                                ? 'bg-red-400'
+                                : 'bg-amber-400'
+                            }`}
+                          />
+                          <span
+                            className={`text-[11px] font-medium ${
+                              s.status === 'active'
+                                ? 'text-emerald-400'
+                                : s.status === 'error'
+                                ? 'text-red-400'
+                                : 'text-amber-400'
+                            }`}
+                          >
+                            {s.status === 'active'
+                              ? 'Aktif'
+                              : s.status === 'stale'
+                              ? 'Doğrulanmadı'
+                              : s.status === 'syncing'
+                              ? 'Taranıyor'
+                              : 'Hata'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h4 className="text-base font-bold text-white mb-1 leading-snug">{s.name}</h4>
+                      <p className="text-xs text-zinc-400 mb-3">{s.authority}</p>
+
+                      {/* Mode / Automation Pill */}
+                      <div className="mb-3">
+                        {isOfficial ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                            <FileSpreadsheet size={11} className="text-indigo-400" />
+                            Resmi Katalog · Yıllık/Dönemlik CSV Mühürleme
+                          </span>
+                        ) : isAutoApprove && s.status === 'active' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                            <Zap size={11} className="text-emerald-400" />
+                            Sürekli Otomatik Fiyat Takibi Açık (03:00 TSİ)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
+                            <Globe size={11} className="text-indigo-400" />
+                            Canlı Web Botu {s.status === 'active' ? '(Manuel Onaylı)' : '(Doğrulama Bekliyor)'}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 text-xs text-zinc-300 border-t border-zinc-800/80 pt-3">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Sürüm & Etiket:</span>
+                          <span className="font-semibold text-white font-mono">{s.versionTag}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Kapsam / Poz:</span>
+                          <span className="font-semibold text-white">
+                            {s.itemCount > 0 ? `${s.itemCount.toLocaleString('tr-TR')} Kalem` : 'Henüz veri yok'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Yürürlük:</span>
+                          <span className="text-zinc-300">
+                            {!s.validityStart && !s.validityEnd
+                              ? 'Geçerlilik kanıtı yok'
+                              : `${
+                                  s.validityStart ? new Date(s.validityStart).toLocaleDateString('tr-TR') : '-'
+                                } – ${
+                                  s.validityEnd
+                                    ? new Date(s.validityEnd).toLocaleDateString('tr-TR')
+                                    : 'Bitiş tarihi yok'
+                                }`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Tarama Sıklığı:</span>
+                          <span className="capitalize text-zinc-300">{s.syncFrequency}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1">
+                          <span className="text-zinc-500">SHA-256 Hash:</span>
+                          <span
+                            className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 truncate max-w-[130px]"
+                            title={s.dataHash || ''}
+                          >
+                            {s.dataHash ? s.dataHash.slice(0, 12) + '...' : '-'}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <h4 className="text-base font-bold text-white mb-1 leading-snug">{s.name}</h4>
-                    <p className="text-xs text-zinc-400 mb-4">{s.authority}</p>
-
-                    <div className="space-y-2 text-xs text-zinc-300 border-t border-zinc-800/80 pt-3">
-                      <div className="flex justify-between">
-                        <span className="text-zinc-500">Sürüm & Etiket:</span>
-                        <span className="font-semibold text-white font-mono">{s.versionTag}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-zinc-500">Kapsam / Poz:</span>
-                        <span className="font-semibold text-white">{s.itemCount > 0 ? `${s.itemCount.toLocaleString('tr-TR')} Kalem` : 'Henüz veri yok'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-zinc-500">Yürürlük:</span>
-                        <span className="text-zinc-300">
-                          {!s.validityStart && !s.validityEnd ? 'Geçerlilik kanıtı yok' : `${s.validityStart ? new Date(s.validityStart).toLocaleDateString('tr-TR') : '-'} – ${s.validityEnd ? new Date(s.validityEnd).toLocaleDateString('tr-TR') : 'Bitiş tarihi yok'}`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-zinc-500">Tarama Sıklığı:</span>
-                        <span className="capitalize text-zinc-300">{s.syncFrequency}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-1">
-                        <span className="text-zinc-500">SHA-256 Hash:</span>
-                        <span className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 truncate max-w-[120px]" title={s.dataHash || ''}>
-                          {s.dataHash ? s.dataHash.slice(0, 12) + '...' : '-'}
-                        </span>
+                    <div className="mt-5 pt-3 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-2">
+                      {s.sourceUrl && (
+                        <a
+                          href={s.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center text-xs text-zinc-400 hover:text-white transition-colors truncate max-w-[120px]"
+                          title={s.sourceUrl}
+                        >
+                          <Globe size={12} className="mr-1 shrink-0" />
+                          <span className="truncate">Kaynak Linki</span>
+                          <ExternalLink size={10} className="ml-1 shrink-0" />
+                        </a>
+                      )}
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        {isOfficial ? (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => openCsvModal(s)}
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-7 px-2.5 font-semibold"
+                            >
+                              <Upload size={12} className="mr-1.5" />
+                              {s.status === 'active' && s.itemCount > 0
+                                ? 'Katalog Güncelle (CSV)'
+                                : 'Katalog / CSV Yükle & Mühürle'}
+                            </Button>
+                          </>
+                        ) : s.status !== 'active' ? (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => openVerifyModal(s)}
+                              disabled={syncingId === s.id}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-1 h-7 px-2.5 font-semibold"
+                            >
+                              <ShieldCheck size={12} className="mr-1.5" />
+                              Doğrula & Otomatik Takibi Başlat
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSync(s.id, s.name)}
+                              disabled={syncingId === s.id}
+                              title="Kaynağı şimdi canlı tara"
+                              className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 text-xs py-1 h-7 px-2.5"
+                            >
+                              <RefreshCw
+                                size={12}
+                                className={`mr-1.5 ${syncingId === s.id ? 'animate-spin' : ''}`}
+                              />
+                              {syncingId === s.id ? 'Taranıyor...' : 'Şimdi Tara'}
+                            </Button>
+                            <button
+                              type="button"
+                              onClick={() => openVerifyModal(s)}
+                              className="p-1.5 text-zinc-400 hover:text-indigo-300 transition-colors rounded-lg hover:bg-indigo-500/10"
+                              title="Otomatik Fiyat Takibi & Doğrulama Ayarları"
+                            >
+                              <Settings2 size={14} />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSource(s.id, s.name)}
+                          disabled={deletingId === s.id}
+                          className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                          title="Kaynağı Sil"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   </div>
-
-                  <div className="mt-5 pt-3 border-t border-zinc-800 flex items-center justify-between gap-2">
-                    {s.sourceUrl && (
-                      <a 
-                        href={s.sourceUrl} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="inline-flex items-center text-xs text-zinc-400 hover:text-white transition-colors truncate max-w-[150px]"
-                        title={s.sourceUrl}
-                      >
-                        <Globe size={12} className="mr-1 shrink-0" />
-                        <span className="truncate">Kaynak Linki</span>
-                        <ExternalLink size={10} className="ml-1 shrink-0" />
-                      </a>
-                    )}
-                    <div className="flex items-center gap-1.5 ml-auto">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleSync(s.id, s.name)}
-                        disabled={syncingId === s.id || s.status !== 'active'}
-                        title={s.status === 'active' ? 'Kaynağı şimdi tara' : 'Kaynak doğrulanıp aktif edilmeden tarama başlatılamaz'}
-                        className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 text-xs py-1 h-7"
-                      >
-                        <RefreshCw size={12} className={`mr-1.5 ${syncingId === s.id ? 'animate-spin' : ''}`} />
-                        {syncingId === s.id ? 'Taranıyor...' : s.status === 'active' ? 'Şimdi Tara' : 'Doğrulama Gerekli'}
-                      </Button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSource(s.id, s.name)}
-                        disabled={deletingId === s.id}
-                        className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
-                        title="Kaynağı Sil"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
-      {/* MODAL: YENİ VERİ KAYNAĞI / LİNKİ EKLE */}
+      {/* MODAL 1: KAYNAK DOĞRULAMA & OTOMATİK FİYAT TAKİBİ AYARLARI */}
+      {verifyModalSource && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-emerald-400" />
+                <h3 className="text-base font-bold text-white">
+                  Kaynağı Doğrula & Sürekli Otomatik Fiyat Takibi
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVerifyModalSource(null)}
+                className="text-zinc-500 hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                <div className="font-bold text-white text-sm">{verifyModalSource.name}</div>
+                <div className="text-zinc-400 mt-0.5">{verifyModalSource.authority}</div>
+              </div>
+
+              {/* Zero-touch Auto-Approve Toggle */}
+              <label className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={verifyForm.autoApprove}
+                  onChange={(e) => setVerifyForm({ ...verifyForm, autoApprove: e.target.checked })}
+                  className="mt-0.5 h-4 w-4 rounded border-zinc-700 text-emerald-600 focus:ring-emerald-500"
+                />
+                <div>
+                  <span className="font-bold text-emerald-300 block">
+                    Sürekli Otomatik Fiyat Takibi (Her Gece 03:00 TSİ Otomatik Güncelle & Onayla)
+                  </span>
+                  <span className="text-zinc-300 text-[11px] leading-relaxed block mt-0.5">
+                    Bu seçenek açık olduğunda her gün manuel dosya yüklemenize veya tek tek onay vermenize gerek kalmaz. Bot her gece 03:00'te ve "Şimdi Tara" dediğinizde güncel fiyatları çeker, değişen fiyatları otomatik onaylar ve Teklif Sihirbazı'ndaki canlı rayiç havuzunu günceller.
+                  </span>
+                </div>
+              </label>
+
+              <div>
+                <label className="block text-zinc-400 mb-1 font-semibold">Canlı Web Kaynak Adresi (URL)</label>
+                <input
+                  type="url"
+                  value={verifyForm.sourceUrl}
+                  onChange={(e) => setVerifyForm({ ...verifyForm, sourceUrl: e.target.value })}
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Sürüm Etiketi</label>
+                  <input
+                    type="text"
+                    value={verifyForm.versionTag}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, versionTag: e.target.value })}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Tarama Sıklığı</label>
+                  <select
+                    value={verifyForm.syncFrequency}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, syncFrequency: e.target.value })}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  >
+                    <option value="daily">Günlük (Her Gece 03:00)</option>
+                    <option value="weekly">Haftalık</option>
+                    <option value="monthly">Aylık</option>
+                    <option value="annually">Yıllık</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Geçerlilik Başlangıcı</label>
+                  <input
+                    type="date"
+                    value={verifyForm.validityStart}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, validityStart: e.target.value })}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">
+                    Geçerlilik Bitişi (Her taramada +90 gün uzar)
+                  </label>
+                  <input
+                    type="date"
+                    value={verifyForm.validityEnd}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, validityEnd: e.target.value })}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-800 flex flex-wrap justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setVerifyModalSource(null)}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                >
+                  İptal
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={verifying}
+                  onClick={() => handleVerifySubmit(false)}
+                  className="border-zinc-700 text-zinc-200 hover:bg-zinc-800"
+                >
+                  Yalnızca Kaydet
+                </Button>
+                {!isOfficialOrIndexSource(verifyModalSource) && (
+                  <Button
+                    type="button"
+                    disabled={verifying}
+                    onClick={() => handleVerifySubmit(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  >
+                    <RefreshCw size={13} className={`mr-1.5 ${verifying ? 'animate-spin' : ''}`} />
+                    {verifying ? 'İşleniyor...' : 'Doğrula ve Şimdi Canlı Tara'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: LİSANSLI CSV / REFERANS KATALOG YÜKLEME & SHA-256 MÜHÜRLEME */}
+      {csvModalSource && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet size={18} className="text-indigo-400" />
+                <h3 className="text-base font-bold text-white">
+                  Resmi Katalog / CSV Yükle & SHA-256 ile Mühürle
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCsvModalSource(null)}
+                className="text-zinc-500 hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCsvImportSubmit} className="space-y-4 text-xs">
+              <div className="rounded-lg border border-indigo-500/20 bg-indigo-950/20 p-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-bold text-white">{csvModalSource.name}</div>
+                  <div className="text-zinc-400 text-[11px] mt-0.5">
+                    Resmi Gazete / ÇŞB YFK, e-PYS Ek-6 ve TÜİK endeksleri dönemsel/yıllık yayımlanır. Bir kez mühürlediğinizde yıl boyu aktif kalır; gece tarayıcısı bu kayıtları bozmaz.
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const sample = getSampleCsvForSource(csvModalSource);
+                    setCsvForm((prev) => ({
+                      ...prev,
+                      fileName: sample.fileName,
+                      licenseReference: sample.licenseReference,
+                      csvText: sample.csvText,
+                    }));
+                    toast.success('2026 standart referans poz/endeks verileri dolduruldu.');
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] shrink-0 font-semibold"
+                >
+                  <Sparkles size={12} className="mr-1.5" />
+                  Örnek 2026 Referans Verisi Doldur
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">CSV Dosyası Seç (.csv)</label>
+                  <input
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={handleCsvFileSelect}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Dosya / Sürüm Adı *</label>
+                  <input
+                    type="text"
+                    value={csvForm.fileName}
+                    onChange={(e) => setCsvForm({ ...csvForm, fileName: e.target.value })}
+                    required
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Dayanak / Lisans Referansı *</label>
+                  <input
+                    type="text"
+                    value={csvForm.licenseReference}
+                    onChange={(e) => setCsvForm({ ...csvForm, licenseReference: e.target.value })}
+                    required
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Yürürlük Başlangıcı *</label>
+                  <input
+                    type="date"
+                    value={csvForm.validityStart}
+                    onChange={(e) => setCsvForm({ ...csvForm, validityStart: e.target.value })}
+                    required
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">Yürürlük Bitişi *</label>
+                  <input
+                    type="date"
+                    value={csvForm.validityEnd}
+                    onChange={(e) => setCsvForm({ ...csvForm, validityEnd: e.target.value })}
+                    required
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 mb-1 font-semibold">
+                  CSV İçeriği (Başlık: <code className="text-indigo-300">itemCode,itemName,unit,price</code>) *
+                </label>
+                <textarea
+                  rows={7}
+                  value={csvForm.csvText}
+                  onChange={(e) => setCsvForm({ ...csvForm, csvText: e.target.value })}
+                  placeholder={'itemCode,itemName,unit,price\n15.150.1005,C 25/30 Hazır Beton,m³,2650.00'}
+                  required
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-white font-mono text-[11px] focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={csvForm.autoApprove}
+                    onChange={(e) => setCsvForm({ ...csvForm, autoApprove: e.target.checked })}
+                    className="rounded border-zinc-700"
+                  />
+                  <span className="font-semibold text-emerald-400">
+                    Yüklenen kayıtları otomatik onayla ve doğrudan canlı teklif havuzuna aktar
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 text-zinc-400 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={csvForm.licenseConfirmed}
+                    onChange={(e) => setCsvForm({ ...csvForm, licenseConfirmed: e.target.checked })}
+                    required
+                    className="rounded border-zinc-700"
+                  />
+                  <span>
+                    Bu veri setinin kurum içi teklif hazırlama ve maliyet doğrulama amacıyla kullanımına yetkili olduğumu onaylıyorum.
+                  </span>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCsvModalSource(null)}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                >
+                  İptal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={importingCsv}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                >
+                  <ShieldCheck size={14} className="mr-1.5" />
+                  {importingCsv ? 'Mühürleniyor...' : 'SHA-256 ile Mühürle ve Aktif Et'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: YENİ VERİ KAYNAĞI / LİNKİ EKLE */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
           <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
@@ -565,8 +1295,8 @@ export function PricingSources() {
                 <Database size={18} className="text-indigo-400" />
                 <h3 className="text-base font-bold text-white">Yeni Fiyat Kaynağı / Linki Ekle</h3>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowAddModal(false)}
                 className="text-zinc-500 hover:text-white p-1"
               >
@@ -577,8 +1307,8 @@ export function PricingSources() {
             <form onSubmit={handleCreateSource} className="space-y-4 text-xs">
               <div>
                 <label className="block text-zinc-400 mb-1 font-semibold">Kaynak / Liste Adı *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newSource.name}
                   onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
                   placeholder="örn: TÇMB Çimento Endeksi veya Kayseri Demir Borsası"
@@ -590,8 +1320,8 @@ export function PricingSources() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-zinc-400 mb-1 font-semibold">Kaynak Kodu (Slug)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={newSource.code}
                     onChange={(e) => setNewSource({ ...newSource, code: e.target.value })}
                     placeholder="örn: market_cement_central"
@@ -601,8 +1331,8 @@ export function PricingSources() {
                 </div>
                 <div>
                   <label className="block text-zinc-400 mb-1 font-semibold">Yetkili / Kurum</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={newSource.authority}
                     onChange={(e) => setNewSource({ ...newSource, authority: e.target.value })}
                     placeholder="örn: Türkiye Çimento Üreticileri Birliği"
@@ -615,8 +1345,8 @@ export function PricingSources() {
                 <label className="block text-zinc-400 mb-1 font-semibold">Kaynak URL / Web Sayfası Linki *</label>
                 <div className="relative">
                   <LinkIcon size={14} className="absolute left-3 top-2.5 text-zinc-500" />
-                  <input 
-                    type="url" 
+                  <input
+                    type="url"
                     value={newSource.sourceUrl}
                     onChange={(e) => setNewSource({ ...newSource, sourceUrl: e.target.value })}
                     placeholder="https://www.ornek.gov.tr/fiyatlar"
@@ -629,7 +1359,7 @@ export function PricingSources() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-zinc-400 mb-1 font-semibold">Kategori</label>
-                  <select 
+                  <select
                     value={newSource.category}
                     onChange={(e) => setNewSource({ ...newSource, category: e.target.value })}
                     className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
@@ -642,7 +1372,7 @@ export function PricingSources() {
                 </div>
                 <div>
                   <label className="block text-zinc-400 mb-1 font-semibold">Tarama Sıklığı</label>
-                  <select 
+                  <select
                     value={newSource.syncFrequency}
                     onChange={(e) => setNewSource({ ...newSource, syncFrequency: e.target.value })}
                     className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
@@ -656,8 +1386,8 @@ export function PricingSources() {
                 </div>
                 <div>
                   <label className="block text-zinc-400 mb-1 font-semibold">Sürüm Etiketi</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={newSource.versionTag}
                     onChange={(e) => setNewSource({ ...newSource, versionTag: e.target.value })}
                     placeholder="2026/1"
@@ -666,17 +1396,27 @@ export function PricingSources() {
                 </div>
               </div>
 
+              <label className="flex items-center gap-2 text-zinc-300 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={newSource.autoApprove}
+                  onChange={(e) => setNewSource({ ...newSource, autoApprove: e.target.checked })}
+                  className="rounded border-zinc-700"
+                />
+                <span>Gece taramalarında yakalanan fiyat değişikliklerini otomatik onayla</span>
+              </label>
+
               <div className="pt-3 border-t border-zinc-800 flex justify-end gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setShowAddModal(false)}
                   className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                 >
                   İptal
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={creatingSource}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
                 >
@@ -692,9 +1432,35 @@ export function PricingSources() {
       {activeTab === 'staging' && (
         <div className="mt-6 space-y-4">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles size={18} className="text-amber-400" />
-              <h3 className="text-base font-bold text-white">Botların Tespit Ettiği Fiyat Farkları (İnceleme & Onay)</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles size={18} className="text-amber-400" />
+                <h3 className="text-base font-bold text-white">
+                  Botların Tespit Ettiği Fiyat Farkları (İnceleme & Onay)
+                </h3>
+              </div>
+              {pendingStagingCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    disabled={bulkReviewing}
+                    onClick={() => handleBulkReview('approve')}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-8"
+                  >
+                    <Check size={13} className="mr-1.5" />
+                    Bekleyen Tümünü Onayla ({pendingStagingCount})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={bulkReviewing}
+                    onClick={() => handleBulkReview('reject')}
+                    className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs h-8"
+                  >
+                    <X size={13} className="mr-1" /> Tümünü Reddet
+                  </Button>
+                </div>
+              )}
             </div>
             <p className="text-xs text-zinc-400 mb-6">
               Crawler işçileri tarafından resmi ve serbest piyasa kaynaklarından toplanan fiyat güncellemeleri. Onayladığınız kalemler yeni oluşturulacak tekliflerin fiyat tabanına yansır; geçmiş tekliflerin bütünlüğü korunur.
@@ -726,37 +1492,58 @@ export function PricingSources() {
                         <td className="py-3.5 px-3 font-mono font-bold text-white">{item.itemCode}</td>
                         <td className="py-3.5 px-3 max-w-xs text-zinc-200">
                           <div>{item.itemName}</div>
-                          {item.notes && <div className="text-[10px] text-zinc-500 mt-0.5">{item.notes}</div>}
+                          {item.notes && (
+                            <div className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-[260px]" title={item.notes}>
+                              {item.notes}
+                            </div>
+                          )}
                         </td>
                         <td className="py-3.5 px-3 font-mono text-zinc-400">{item.unit}</td>
                         <td className="py-3.5 px-3 font-mono text-zinc-400">
-                          {item.currentPrice ? `₺${parseFloat(item.currentPrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}` : '-'}
+                          {item.currentPrice
+                            ? `₺${parseFloat(item.currentPrice).toLocaleString('tr-TR', {
+                                minimumFractionDigits: 2,
+                              })}`
+                            : 'İlk Kayıt'}
                         </td>
                         <td className="py-3.5 px-3 font-mono font-bold text-white">
                           ₺{parseFloat(item.crawledPrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3.5 px-3">
-                          <span className={`inline-flex items-center gap-1 font-mono font-bold text-[11px] px-1.5 py-0.5 rounded ${
-                            parseFloat(item.diffPercent || '0') > 0
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          }`}>
-                            <TrendingUp size={12} />
-                            %{item.diffPercent}
-                          </span>
+                          {item.diffPercent !== null && item.diffPercent !== undefined ? (
+                            <span
+                              className={`inline-flex items-center gap-1 font-mono font-bold text-[11px] px-1.5 py-0.5 rounded ${
+                                parseFloat(item.diffPercent || '0') > 0
+                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              }`}
+                            >
+                              <TrendingUp size={12} />%{item.diffPercent}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center font-mono text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                              Yeni Baz Fiyat
+                            </span>
+                          )}
                         </td>
                         <td className="py-3.5 px-3">
                           <span className="text-[11px] text-zinc-400">{item.sourceName}</span>
                         </td>
                         <td className="py-3.5 px-3">
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                            item.status === 'pending'
-                              ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20'
+                          <span
+                            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                              item.status === 'pending'
+                                ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20'
+                                : item.status === 'approved'
+                                ? 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20'
+                                : 'bg-red-400/10 text-red-400 border border-red-400/20'
+                            }`}
+                          >
+                            {item.status === 'pending'
+                              ? 'Bekliyor'
                               : item.status === 'approved'
-                              ? 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20'
-                              : 'bg-red-400/10 text-red-400 border border-red-400/20'
-                          }`}>
-                            {item.status === 'pending' ? 'Bekliyor' : item.status === 'approved' ? 'Onaylandı' : 'Reddedildi'}
+                              ? 'Onaylandı'
+                              : 'Reddedildi'}
                           </span>
                         </td>
                         <td className="py-3.5 px-3 text-right">
@@ -813,23 +1600,49 @@ export function PricingSources() {
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-950 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
-              <Button disabled={auditLoading} onClick={runAuditSearch} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5">
+              <Button
+                disabled={auditLoading}
+                onClick={runAuditSearch}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5"
+              >
                 {auditLoading ? 'Sorgulanıyor…' : 'Onaylı kayıtları ara'}
               </Button>
             </div>
 
-            <p className="mt-4 text-xs text-zinc-400">Bu arama yalnızca onaylanmış kaynak kayıtlarını listeler; resmî kurum veya e-PYS uygunluk doğrulaması yapmaz.</p>
-            {auditError && <p role="alert" className="mt-4 text-sm text-red-400">{auditError}</p>}
-            {auditResult && <div className="mt-6 space-y-3">
-              {auditResult.items.length === 0 && <p className="text-sm text-zinc-400">Geçerli tarihlere sahip onaylı kayıt bulunamadı. Bu sonuç resmî katalogda kayıt olmadığı anlamına gelmez.</p>}
-              {auditResult.items.map(item => <div key={item.id} className="rounded-lg border border-zinc-800 p-4 text-sm">
-                <h4 className="text-white">{item.itemCode} — {item.itemName}</h4>
-                <p className="text-zinc-300">{Number(item.crawledPrice).toLocaleString('tr-TR')} ₺ / {item.unit}</p>
-                <p className="text-xs text-zinc-400">Kaynak: {item.sourceName} · İnceleme: {new Date(item.reviewedAt).toLocaleDateString('tr-TR')}</p>
-                <p className="text-xs text-zinc-400">Geçerlilik: {new Date(item.validityStart).toLocaleDateString('tr-TR')} – {new Date(item.validityEnd).toLocaleDateString('tr-TR')}</p>
-              </div>)}
-            </div>}
-
+            <p className="mt-4 text-xs text-zinc-400">
+              Bu arama yalnızca onaylanmış kaynak kayıtlarını listeler; resmî kurum veya e-PYS uygunluk doğrulaması yapmaz.
+            </p>
+            {auditError && (
+              <p role="alert" className="mt-4 text-sm text-red-400">
+                {auditError}
+              </p>
+            )}
+            {auditResult && (
+              <div className="mt-6 space-y-3">
+                {auditResult.items.length === 0 && (
+                  <p className="text-sm text-zinc-400">
+                    Geçerli tarihlere sahip onaylı kayıt bulunamadı. Bu sonuç resmî katalogda kayıt olmadığı anlamına gelmez.
+                  </p>
+                )}
+                {auditResult.items.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-zinc-800 p-4 text-sm">
+                    <h4 className="text-white">
+                      {item.itemCode} — {item.itemName}
+                    </h4>
+                    <p className="text-zinc-300">
+                      {Number(item.crawledPrice).toLocaleString('tr-TR')} ₺ / {item.unit}
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      Kaynak: {item.sourceName} · İnceleme: {new Date(item.reviewedAt).toLocaleDateString('tr-TR')}
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      Geçerlilik: {new Date(item.validityStart).toLocaleDateString('tr-TR')} –{' '}
+                      {new Date(item.validityEnd).toLocaleDateString('tr-TR')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

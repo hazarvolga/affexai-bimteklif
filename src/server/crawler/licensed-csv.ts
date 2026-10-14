@@ -4,6 +4,7 @@ import { z } from 'zod';
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value);
 const request = z.object({ csv:z.string().min(1).max(512_000),fileName:z.string().trim().min(1).max(200),
  licenseConfirmed:z.literal(true),licenseReference:z.string().trim().min(5).max(1000), validityStart:date,validityEnd:date,
+ autoApprove:z.boolean().optional(),
 }).refine(value=>value.validityStart<=value.validityEnd,'Geçerlilik aralığı hatalı');
 const text=z.string().trim().min(1).max(300).refine(value=>!/[\u0000-\u001f]/.test(value));
 const unitText=z.string().trim().min(1).max(30).refine(value=>!/[\u0000-\u001f]/.test(value));

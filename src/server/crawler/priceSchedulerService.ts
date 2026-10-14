@@ -3,6 +3,8 @@ import { adminAuditLogs, priceFeedStaging, pricingDataSources, users } from "../
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { acquireCrawlerScheduleLock } from "./scheduler-lock";
 import { priceCrawlerService } from "./priceCrawlerService";
+import { inferCrawledItemUnit } from "./price-parser";
+import { canApproveCrawlerPrice } from "./provenance";
 import { CRAWLER_TIMEZONE, crawlerDayStart, crawlerScheduleDue, nextCrawlerRun } from "./scheduler-time";
 import { isAutomaticPricingSource } from './source-eligibility';
 
@@ -162,6 +164,32 @@ export class PriceSchedulerService {
         const source = sources[i];
 
         try {
+          const configObj =
+            source.crawlerConfig && typeof source.crawlerConfig === "object"
+              ? (source.crawlerConfig as Record<string, unknown>)
+              : {};
+          const isFileBackedOrOfficial =
+            source.code.startsWith("csv:") ||
+            configObj.kind === "licensed-csv-v1" ||
+            ["official_gazette", "tuik_index", "epys_standard"].includes(source.category) ||
+            source.code.startsWith("csb_") ||
+            source.code.startsWith("tuik_");
+
+          if (isFileBackedOrOfficial) {
+            console.log(
+              `[PriceScheduler] [${i + 1}/${sources.length}] Dosya/Resmi katalog kaynağı korundu (HTML tarama atlandı): ${source.name} (${source.code})`
+            );
+            summary.successfulSources++;
+            summary.results.push({
+              sourceCode: source.code,
+              sourceName: source.name,
+              status: "success",
+              itemsCount: source.itemCount || 0,
+              durationMs: 0,
+            });
+            continue;
+          }
+
           console.log(
             `[PriceScheduler] [${i + 1}/${sources.length}] Taranıyor: ${source.name} (${source.code})`
           );
@@ -199,7 +227,27 @@ export class PriceSchedulerService {
             });
           } else {
             summary.successfulSources++;
-            summary.totalItemsStaged += crawlResult.itemsCount;
+
+            const existingApproved = await db
+              .select()
+              .from(priceFeedStaging)
+              .where(
+                and(
+                  eq(priceFeedStaging.sourceId, source.id),
+                  eq(priceFeedStaging.status, "approved")
+                )
+              )
+              .orderBy(desc(priceFeedStaging.crawledAt));
+
+            const approvedByCode = new Map<string, typeof existingApproved[number]>();
+            for (const row of existingApproved) {
+              if (!approvedByCode.has(row.itemCode)) {
+                approvedByCode.set(row.itemCode, row);
+              }
+            }
+
+            const autoApprove = Boolean(configObj.autoApprove);
+            let stagedForSource = 0;
 
             // Clear old pending items for this source to avoid duplicates
             if (crawlResult.items.length > 0) {
@@ -213,24 +261,77 @@ export class PriceSchedulerService {
                 );
 
               for (const item of crawlResult.items) {
+                const normalizedUnit = inferCrawledItemUnit(
+                  item.itemName,
+                  source.code,
+                  source.name,
+                  item.unit
+                );
+                const prev = approvedByCode.get(item.itemCode);
+                const prevPrice = prev ? Number(prev.crawledPrice) : null;
+                const hasPrevPrice =
+                  prevPrice !== null && Number.isFinite(prevPrice) && prevPrice > 0;
+
+                // If price is identical to currently approved price, refresh timestamp in place
+                if (prev && hasPrevPrice && Math.abs(item.crawledPrice - prevPrice) < 0.005) {
+                  await db
+                    .update(priceFeedStaging)
+                    .set({
+                      crawledAt: crawlResult.crawledAt,
+                      unit: normalizedUnit,
+                    })
+                    .where(eq(priceFeedStaging.id, prev.id));
+                  continue;
+                }
+
+                const diffPercent = hasPrevPrice
+                  ? String(Math.round(((item.crawledPrice - prevPrice) / prevPrice) * 10000) / 100)
+                  : null;
+                const notes = `[Gece Otomatik Tarama] ${item.notes}`;
+                const shouldAutoApprove =
+                  autoApprove &&
+                  canApproveCrawlerPrice({
+                    notes,
+                    sourceUrl: item.sourceUrl,
+                    crawledPrice: item.crawledPrice,
+                  });
+
+                if (shouldAutoApprove && prev) {
+                  await db
+                    .update(priceFeedStaging)
+                    .set({
+                      status: "rejected",
+                      notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni gece taraması ile güncellendi'`,
+                    })
+                    .where(eq(priceFeedStaging.id, prev.id));
+                }
+
                 await db.insert(priceFeedStaging).values({
                   sourceId: source.id,
                   itemCode: item.itemCode,
                   itemName: item.itemName,
-                  unit: item.unit,
-                  currentPrice: item.currentPrice !== null ? String(item.currentPrice) : null,
+                  unit: normalizedUnit,
+                  currentPrice: hasPrevPrice ? prevPrice.toFixed(2) : null,
                   crawledPrice: String(item.crawledPrice),
-                  diffPercent: item.diffPercent !== null ? String(item.diffPercent) : null,
+                  diffPercent,
                   sourceUrl: item.sourceUrl,
-                  status: "pending",
+                  status: shouldAutoApprove ? "approved" : "pending",
+                  reviewedAt: shouldAutoApprove ? crawlResult.crawledAt : null,
+                  reviewedByUserId: shouldAutoApprove ? actorAdminId : null,
                   confidenceScore: String(item.confidenceScore),
-                  notes: `[Gece Otomatik Tarama] ${item.notes}`,
+                  notes,
                   crawledAt: crawlResult.crawledAt,
                 });
+                stagedForSource++;
               }
             }
 
-            // Update source stats
+            summary.totalItemsStaged += stagedForSource;
+            const rollingValidityEnd = new Date(
+              crawlResult.crawledAt.getTime() + 90 * 24 * 60 * 60 * 1000
+            );
+
+            // Update source stats & rolling validity window
             await db
               .update(pricingDataSources)
               .set({
@@ -238,6 +339,15 @@ export class PriceSchedulerService {
                 status: "active",
                 itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
                 dataHash: crawlResult.dataHash || source.dataHash,
+                validityStart: source.validityStart ?? crawlResult.crawledAt,
+                validityEnd:
+                  source.validityEnd && source.validityEnd > rollingValidityEnd
+                    ? source.validityEnd
+                    : rollingValidityEnd,
+                versionTag:
+                  source.versionTag === "metadata-only"
+                    ? `${crawlResult.crawledAt.getFullYear()}/${crawlResult.crawledAt.getMonth() + 1}`
+                    : source.versionTag,
                 updatedAt: new Date(),
               })
               .where(eq(pricingDataSources.id, source.id));
