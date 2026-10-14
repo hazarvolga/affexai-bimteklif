@@ -136,7 +136,7 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
           status: payload.autoApprove ? 'approved' : 'pending',
           reviewedAt: payload.autoApprove ? now : null,
           reviewedByUserId: payload.autoApprove ? payload.userId : null,
-          confidenceScore: '100',
+          confidenceScore: '1.00',
           sourceUrl: parent.sourceUrl,
           notes: `[${payload.kind}] ` + JSON.stringify({ ...metadata, row: index + 1 }),
           crawledAt: now,
