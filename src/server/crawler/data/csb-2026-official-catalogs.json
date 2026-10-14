@@ -1,0 +1,4208 @@
+{
+  "csb_2026_mart_insaat_bf": {
+    "id": "csb_2026_mart_insaat_bf",
+    "title": "ÇŞB 2026 Mart Ayı Güncel İnşaat Birim Fiyat Listesi (TÜİK Endeksli)",
+    "fileName": "2026-Mart-n-aat-B-F-20260303131312.pdf",
+    "documentHash": "dcf153503f5b487dcaa741228666f6b83a6ed04a28249cbe43f010e41bffe69c",
+    "licenseReference": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK — 2026 Mart Ayı Güncel İnşaat Birim Fiyat Listesi (03.03.2026)",
+    "validityStart": "2026-03-01",
+    "validityEnd": "2026-12-31",
+    "totalMatchedInPdf": 1861,
+    "rows": [
+      {
+        "itemCode": "15.120.1001",
+        "itemName": "Makine ile yumuşak ve sert toprak kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "64.93"
+      },
+      {
+        "itemCode": "15.120.1002",
+        "itemName": "Makine ile yumuşak ve sert küskülük kazılması (serbest kazı)",
+        "unit": "m³",
+        "price": "86.43"
+      },
+      {
+        "itemCode": "15.120.1003",
+        "itemName": "Makine ile batak ve balçık kazılması (serbest kazı)",
+        "unit": "m³",
+        "price": "127.71"
+      },
+      {
+        "itemCode": "15.120.1004",
+        "itemName": "Makine ile patlayıcı madde kullanılarak yumuşak kaya kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "194.85"
+      },
+      {
+        "itemCode": "15.120.1005",
+        "itemName": "Makine ile patlayıcı madde kullanmadan yumuşak kaya kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "144.29"
+      },
+      {
+        "itemCode": "15.120.1006",
+        "itemName": "Makine ile patlayıcı madde kullanılarak sert kaya kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "259.89"
+      },
+      {
+        "itemCode": "15.120.1007",
+        "itemName": "Makine ile patlayıcı madde kullanmadan sert kaya kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "331.71"
+      },
+      {
+        "itemCode": "15.120.1008",
+        "itemName": "Makine ile patlayıcı madde kullanılarak çok sert kaya kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "340.94"
+      },
+      {
+        "itemCode": "15.120.1009",
+        "itemName": "Makine ile patlayıcı madde kullanmadan çok sert kaya kazılması (Serbest kazı)",
+        "unit": "m³",
+        "price": "448.50"
+      },
+      {
+        "itemCode": "15.120.1101",
+        "itemName": "Makine ile her derinlik ve her genişlikte yumuşak ve sert toprak kazılması (Derin kazı)",
+        "unit": "m³",
+        "price": "74.81"
+      },
+      {
+        "itemCode": "15.120.1102",
+        "itemName": "Makine ile her derinlik ve her genişlikte yumuşak ve sert küskülük kazılması (Derin kazı)",
+        "unit": "m³",
+        "price": "110.08"
+      },
+      {
+        "itemCode": "15.120.1103",
+        "itemName": "Makine ile her derinlik ve her genişlikte batak ve balçık kazılması (Derin kazı)",
+        "unit": "m³",
+        "price": "174.56"
+      },
+      {
+        "itemCode": "15.120.1104",
+        "itemName": "Makine ile patlayıcı madde kullanılarak her derinlik ve her genişlikte yumuşak kaya kazılması (Derin kazı)",
+        "unit": "m³",
+        "price": "274.99"
+      },
+      {
+        "itemCode": "15.120.1105",
+        "itemName": "Makine ile patlayıcı madde kullanmadan her derinlik ve her genişlikte yumuşak kaya kazılması (Derin kazı)",
+        "unit": "m³",
+        "price": "179.81"
+      },
+      {
+        "itemCode": "15.120.1106",
+        "itemName": "Makine ile patlayıcı madde kullanılarak her derinlik ve her genişlikte sert kaya kazılması (Derin kazı)",
+        "unit": "m³",
+        "price": "337.73"
+      },
+      {
+        "itemCode": "15.140.1001",
+        "itemName": "Ø 30 cm çapında, her boyda, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması",
+        "unit": "m",
+        "price": "1623.78"
+      },
+      {
+        "itemCode": "15.140.1002",
+        "itemName": "Ø 45 cm çapında, her boyda, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması",
+        "unit": "m",
+        "price": "2123.90"
+      },
+      {
+        "itemCode": "15.140.1003",
+        "itemName": "Ø 65 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (0,00-18,00 m arası, 18,00 m dahil)",
+        "unit": "m",
+        "price": "3544.65"
+      },
+      {
+        "itemCode": "15.140.1004",
+        "itemName": "Ø 65 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (18,01 m ile 36,00m arası, 36,00m dahil )",
+        "unit": "m",
+        "price": "3826.28"
+      },
+      {
+        "itemCode": "15.140.1005",
+        "itemName": "Ø 80 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (0,00-18,00 m arası, 18,00 m dahil)",
+        "unit": "m",
+        "price": "4664.20"
+      },
+      {
+        "itemCode": "15.140.1006",
+        "itemName": "Ø 80 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (18,01 m ile 36,00 m arası, 36,00 m dahil )",
+        "unit": "m",
+        "price": "5133.58"
+      },
+      {
+        "itemCode": "15.140.1007",
+        "itemName": "Ø 100 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (0,00-18,00 m arası, 18,00 m dahil)",
+        "unit": "m",
+        "price": "6967.36"
+      },
+      {
+        "itemCode": "15.140.1008",
+        "itemName": "Ø 100 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (18,01 m ile 36,00 m arası, 36,00 m dahil )",
+        "unit": "m",
+        "price": "7797.16"
+      },
+      {
+        "itemCode": "15.140.1009",
+        "itemName": "Ø 120 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (0,00-18,00 m arası, 18,00 m dahil)",
+        "unit": "m",
+        "price": "9612.91"
+      },
+      {
+        "itemCode": "15.140.1010",
+        "itemName": "Ø 120 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (18,01 m ile 36,00 m arası, 36,00 m dahil )",
+        "unit": "m",
+        "price": "10798.36"
+      },
+      {
+        "itemCode": "15.140.1011",
+        "itemName": "Ø 165 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (0,00-18,00 m arası, 18,00 m dahil)",
+        "unit": "m",
+        "price": "16015.91"
+      },
+      {
+        "itemCode": "15.140.1012",
+        "itemName": "Ø 165 cm çapında, C 20/25 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (18,01 m ile 36,00 m arası, 36,00 m dahil )",
+        "unit": "m",
+        "price": "18386.78"
+      },
+      {
+        "itemCode": "15.140.1101",
+        "itemName": "Ø 30 cm çapında, her boyda, C 25/30 basınç dayanımında yerinde dökme betonarme fore kazık yapılması",
+        "unit": "m",
+        "price": "1634.04"
+      },
+      {
+        "itemCode": "15.140.1102",
+        "itemName": "Ø 45 cm çapında, her boyda, C 25/30 basınç dayanımında yerinde dökme betonarme fore kazık yapılması",
+        "unit": "m",
+        "price": "2145.73"
+      },
+      {
+        "itemCode": "15.140.1103",
+        "itemName": "Ø 65 cm çapında, C 25/30 basınç dayanımında yerinde dökme betonarme fore kazık yapılması (0,00-18,00 m arası, 18,00 m dahil)",
+        "unit": "m",
+        "price": "3590.85"
+      },
+      {
+        "itemCode": "15.150.1001",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 8/10 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3044.81"
+      },
+      {
+        "itemCode": "15.150.1002",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 12/15 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3173.13"
+      },
+      {
+        "itemCode": "15.150.1003",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 16/20 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3363.10"
+      },
+      {
+        "itemCode": "15.150.1004",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 20/25 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3491.43"
+      },
+      {
+        "itemCode": "15.150.1005",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 25/30 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3619.75"
+      },
+      {
+        "itemCode": "15.150.1006",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 30/37 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3748.06"
+      },
+      {
+        "itemCode": "15.150.1007",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 35/45 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3940.55"
+      },
+      {
+        "itemCode": "15.150.1008",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 40/50 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "4068.86"
+      },
+      {
+        "itemCode": "15.150.1009",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 45/55 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "4197.19"
+      },
+      {
+        "itemCode": "15.150.1010",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 50/60 basınç dayanım sınıfında, gri renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "4325.50"
+      },
+      {
+        "itemCode": "15.150.1101",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 8/10 basınç dayanım sınıfında, beyaz renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3590.18"
+      },
+      {
+        "itemCode": "15.150.1102",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 12/15 basınç dayanım sınıfında, beyaz renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3718.49"
+      },
+      {
+        "itemCode": "15.150.1103",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 16/20 basınç dayanım sınıfında, beyaz renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "3940.55"
+      },
+      {
+        "itemCode": "15.150.1104",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 20/25 basınç dayanım sınıfında, beyaz renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "4068.86"
+      },
+      {
+        "itemCode": "15.150.1105",
+        "itemName": "Beton santralinde üretilen veya satın alınan ve beton pompasıyla basılan, C 25/30 basınç dayanım sınıfında, beyaz renkte, normal hazır beton dökülmesi (beton nakli dahil)",
+        "unit": "m³",
+        "price": "4197.19"
+      },
+      {
+        "itemCode": "15.160.1001",
+        "itemName": "Nervürlü çelik hasırın yerine konulması 1,500-3,000 kg/m2 (3,000 kg/m2 dahil)",
+        "unit": "Ton",
+        "price": "45248.31"
+      },
+      {
+        "itemCode": "15.160.1002",
+        "itemName": "Nervürlü çelik hasırın yerine konulması 3,001-10,000 kg/m² (10,000 kg/m² dahil)",
+        "unit": "Ton",
+        "price": "44688.44"
+      },
+      {
+        "itemCode": "15.160.1003",
+        "itemName": "Ø 8 - Ø 12 mm nervürlü beton çelik çubuğu, çubukların kesilmesi, bükülmesi ve yerine konulması",
+        "unit": "Ton",
+        "price": "47285.23"
+      },
+      {
+        "itemCode": "15.160.1004",
+        "itemName": "Ø 14 - Ø 28 mm nervürlü beton çelik çubuğu, çubukların kesilmesi, bükülmesi ve yerine konulması.",
+        "unit": "Ton",
+        "price": "45419.63"
+      },
+      {
+        "itemCode": "15.160.1005",
+        "itemName": "Ø 28 mm den büyük nervürlü beton çelik çubuğu, çubukların kesilmesi, bükülmesi ve yerine konulması.",
+        "unit": "Ton",
+        "price": "44460.76"
+      },
+      {
+        "itemCode": "15.180.1001",
+        "itemName": "Ahşaptan seri kalıp yapılması",
+        "unit": "m²",
+        "price": "341.58"
+      },
+      {
+        "itemCode": "15.180.1002",
+        "itemName": "Ahşaptan düz yüzeyli beton ve betonarme kalıbı yapılması",
+        "unit": "m²",
+        "price": "899.34"
+      },
+      {
+        "itemCode": "15.180.1003",
+        "itemName": "Plywood ile düz yüzeyli betonarme kalıbı yapılması",
+        "unit": "m²",
+        "price": "1058.99"
+      },
+      {
+        "itemCode": "15.180.1004",
+        "itemName": "Sac ile eğri yüzeyli beton ve betonarme kalıbı yapılması",
+        "unit": "m²",
+        "price": "1014.46"
+      },
+      {
+        "itemCode": "15.180.1007",
+        "itemName": "Tünel kalıp sistemi ile betonarme kalıp yapılması",
+        "unit": "m²",
+        "price": "1093.31"
+      },
+      {
+        "itemCode": "15.220.1011",
+        "itemName": "85 mm kalınlığında yatay delikli tuğla (190 x 85 x 190 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "750.09"
+      },
+      {
+        "itemCode": "15.220.1012",
+        "itemName": "100 mm kalınlığında yatay delikli tuğla (200 x 100 x 200 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "773.16"
+      },
+      {
+        "itemCode": "15.220.1013",
+        "itemName": "120 mm kalınlığında yatay delikli tuğla (250 x 120 x 200 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "802.98"
+      },
+      {
+        "itemCode": "15.220.1014",
+        "itemName": "135 mm kalınlığında yatay delikli tuğla (190 x 135 x 190 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "829.11"
+      },
+      {
+        "itemCode": "15.220.1015",
+        "itemName": "190 mm kalınlığında yatay delikli tuğla (190 x 190 x 135 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "945.85"
+      },
+      {
+        "itemCode": "15.220.1016",
+        "itemName": "200 mm kalınlığında yatay delikli tuğla (250 x 200 x 250 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "1018.63"
+      },
+      {
+        "itemCode": "15.220.1017",
+        "itemName": "240 mm kalınlığında yatay delikli tuğla (235 x 240 x 135 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "1137.69"
+      },
+      {
+        "itemCode": "15.220.1018",
+        "itemName": "250 mm kalınlığında yatay delikli tuğla (240 x 250 x 190 mm) ile duvar yapılması",
+        "unit": "m²",
+        "price": "1147.18"
+      },
+      {
+        "itemCode": "15.220.1121",
+        "itemName": "115 mm kalınlığında düşey delikli tuğla (240 x 115 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "924.58"
+      },
+      {
+        "itemCode": "15.220.1122",
+        "itemName": "145 mm kalınlığında düşey delikli tuğla (240 x 145 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "1017.45"
+      },
+      {
+        "itemCode": "15.220.1123",
+        "itemName": "175 mm kalınlığında düşey delikli tuğla (240 x 175 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "1119.06"
+      },
+      {
+        "itemCode": "15.220.1124",
+        "itemName": "190 mm kalınlığında düşey delikli tuğla (290 x 190 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "1170.91"
+      },
+      {
+        "itemCode": "15.220.1125",
+        "itemName": "240 mm kalınlığında düşey delikli tuğla (240 x 240 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "1361.13"
+      },
+      {
+        "itemCode": "15.220.1126",
+        "itemName": "250 mm kalınlığında düşey delikli tuğla (240 x 250 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "1398.78"
+      },
+      {
+        "itemCode": "15.220.1127",
+        "itemName": "300 mm kalınlığında düşey delikli tuğla (240 x 300 x 235 mm) ile duvar yapılması (W Sınıfı - 600-800 kg/m³)",
+        "unit": "m²",
+        "price": "1565.91"
+      },
+      {
+        "itemCode": "15.230.1001",
+        "itemName": "9 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "540.68"
+      },
+      {
+        "itemCode": "15.230.1002",
+        "itemName": "10 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "565.39"
+      },
+      {
+        "itemCode": "15.230.1003",
+        "itemName": "13,5 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "633.04"
+      },
+      {
+        "itemCode": "15.230.1004",
+        "itemName": "15 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "665.79"
+      },
+      {
+        "itemCode": "15.230.1005",
+        "itemName": "17,5 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "716.00"
+      },
+      {
+        "itemCode": "15.230.1006",
+        "itemName": "19 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "752.73"
+      },
+      {
+        "itemCode": "15.230.1007",
+        "itemName": "25 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "879.88"
+      },
+      {
+        "itemCode": "15.230.1008",
+        "itemName": "30 cm kalınlığındaki taşıyıcı olmayan bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 1,50 N/mm² ve 600-900 kg/m³, 900 kg/m³ hariç)",
+        "unit": "m²",
+        "price": "976.35"
+      },
+      {
+        "itemCode": "15.230.1101",
+        "itemName": "10 cm kalınlığındaki taşıyıcı bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 5 N/mm² ve min. 900 kg/m³)",
+        "unit": "m²",
+        "price": "652.79"
+      },
+      {
+        "itemCode": "15.230.1102",
+        "itemName": "15 cm kalınlığındaki taşıyıcı bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 5 N/mm² ve min. 900 kg/m³)",
+        "unit": "m²",
+        "price": "761.78"
+      },
+      {
+        "itemCode": "15.230.1103",
+        "itemName": "19 cm kalınlığındaki taşıyıcı bimsbeton duvar blokları ile duvar yapılması (bimsbeton tutkalı ile) (min. 5 N/mm² ve min. 900 kg/m³)",
+        "unit": "m²",
+        "price": "846.73"
+      },
+      {
+        "itemCode": "15.230.1201",
+        "itemName": "20 cm yüksekliğindeki bimsbeton asmolen blokları ile asmolen döşeme yapılması (min. 400 kg/m³)",
+        "unit": "m²",
+        "price": "682.70"
+      },
+      {
+        "itemCode": "15.230.1202",
+        "itemName": "22 cm yüksekliğindeki bimsbeton asmolen blokları ile asmolen döşeme yapılması (min. 400 kg/m³)",
+        "unit": "m²",
+        "price": "743.99"
+      },
+      {
+        "itemCode": "15.230.1203",
+        "itemName": "23 cm yüksekliğindeki bimsbeton asmolen blokları ile asmolen döşeme yapılması (min. 400 kg/m³)",
+        "unit": "m²",
+        "price": "773.29"
+      },
+      {
+        "itemCode": "15.230.1204",
+        "itemName": "25 cm yüksekliğindeki bimsbeton asmolen blokları ile asmolen döşeme yapılması (min. 400 kg/m³)",
+        "unit": "m²",
+        "price": "831.89"
+      },
+      {
+        "itemCode": "15.250.1011",
+        "itemName": "200 kg çimento dozlu tesviye tabakası yapılması",
+        "unit": "m²",
+        "price": "344.88"
+      },
+      {
+        "itemCode": "15.250.1111",
+        "itemName": "2.5 cm kalınlığında 400 kg çimento dozlu şap yapılması",
+        "unit": "m²",
+        "price": "461.91"
+      },
+      {
+        "itemCode": "15.250.1112",
+        "itemName": "2.5 cm kalınlığında 450 kg çimento dozlu şap yapılması",
+        "unit": "m²",
+        "price": "463.09"
+      },
+      {
+        "itemCode": "15.250.1113",
+        "itemName": "2.5 cm kalınlığında 500 kg çimento dozlu şap yapılması",
+        "unit": "m²",
+        "price": "476.59"
+      },
+      {
+        "itemCode": "15.250.1114",
+        "itemName": "Makina ile ortalama 2,5 cm kalınlıkta alçı esaslı şap yapılması",
+        "unit": "m²",
+        "price": "395.49"
+      },
+      {
+        "itemCode": "15.275.1011",
+        "itemName": "Taş duvar yüzeylerine gömme oluklu derz yapılması",
+        "unit": "m²",
+        "price": "273.41"
+      },
+      {
+        "itemCode": "15.275.1012",
+        "itemName": "Taş duvar yüzeylerine kabartma derz yapılması",
+        "unit": "m²",
+        "price": "298.29"
+      },
+      {
+        "itemCode": "15.275.1111",
+        "itemName": "250/350 kg çimento dozlu kaba ve ince harçla sıva yapılması (dış cephe sıvası)",
+        "unit": "m²",
+        "price": "765.59"
+      },
+      {
+        "itemCode": "15.275.1112",
+        "itemName": "200/250 kg kireç/çimento karışımı kaba ve ince harçla sıva yapılması (iç cephe sıvası)",
+        "unit": "m²",
+        "price": "680.46"
+      },
+      {
+        "itemCode": "15.275.1113",
+        "itemName": "250/350 kg kireç/çimento karışımı kaba ve ince harçla sıva yapılması (tavan sıvası)",
+        "unit": "m²",
+        "price": "713.41"
+      },
+      {
+        "itemCode": "15.275.1114",
+        "itemName": "250/350 kg çimento dozlu kaba ve ince harçla serpme (çarpma) sıva yapılması",
+        "unit": "m²",
+        "price": "531.58"
+      },
+      {
+        "itemCode": "15.275.1115",
+        "itemName": "350 kg çimento dozlu harçla tek kat ince sıva yapılması",
+        "unit": "m²",
+        "price": "497.21"
+      },
+      {
+        "itemCode": "15.275.1116",
+        "itemName": "250 kg çimento dozlu harç ile kaba sıva yapılması",
+        "unit": "m²",
+        "price": "456.05"
+      },
+      {
+        "itemCode": "15.275.1117",
+        "itemName": "200 kg Çimento ve Kireç karşımı harç ile kaba sıva yapılması (iç cephe)",
+        "unit": "m²",
+        "price": "467.04"
+      },
+      {
+        "itemCode": "15.275.9992",
+        "itemName": "Metal kapı kasa arkalarının beton harcı ile doldurulması",
+        "unit": "m²",
+        "price": "641.14"
+      },
+      {
+        "itemCode": "15.300.1001",
+        "itemName": "Ahşaptan oturtma çatı yapılması (çatı örtüsü altı tahta kaplamalı)",
+        "unit": "m²",
+        "price": "1462.18"
+      },
+      {
+        "itemCode": "15.300.1002",
+        "itemName": "Ahşaptan oturtma çatı yapılması (çatı örtüsünün altı OSB/3 kaplamalı)",
+        "unit": "m²",
+        "price": "1613.89"
+      },
+      {
+        "itemCode": "15.300.1003",
+        "itemName": "Ahşaptan makaslı çatı yapılması",
+        "unit": "m³",
+        "price": "29790.13"
+      },
+      {
+        "itemCode": "15.300.1004",
+        "itemName": "Rendeli ahşaptan makaslı çatı yapılması",
+        "unit": "m³",
+        "price": "30683.58"
+      },
+      {
+        "itemCode": "15.300.1005",
+        "itemName": "Çatı üzerine tahta kaplama yapılması",
+        "unit": "m²",
+        "price": "630.31"
+      },
+      {
+        "itemCode": "15.300.1006",
+        "itemName": "Çatı üzerine OSB/3 kaplama yapılması",
+        "unit": "m²",
+        "price": "704.31"
+      },
+      {
+        "itemCode": "15.300.1007",
+        "itemName": "Rendeli ahşaptan saçak altı ve alın kaplaması yapılması",
+        "unit": "m²",
+        "price": "1064.05"
+      },
+      {
+        "itemCode": "15.340.9951",
+        "itemName": "2 mm kalınlıkta, polietilen köpüğünden mamul düz şilte (min. 90 kg/m³ yoğunlukta) ile yatayda (zemin ya da ara kat döşeme betonu üzerinde vb.) ısı ve ses yalıtımı yapılması",
+        "unit": "m²",
+        "price": "92.74"
+      },
+      {
+        "itemCode": "15.340.9952",
+        "itemName": "5 mm kalınlıkta, polietilen köpüğünden mamul düz şilte (min. 90 kg/m³ yoğunlukta) ile yatayda (zemin ya da ara kat döşeme betonu üzerinde vb.) ısı ve ses yalıtımı yapılması",
+        "unit": "m²",
+        "price": "165.25"
+      },
+      {
+        "itemCode": "15.340.9953",
+        "itemName": "8 mm kalınlıkta, polietilen köpüğünden mamul düz şilte (min. 90 kg/m³ yoğunlukta) ile yatayda (zemin ya da ara kat döşeme betonu üzerinde vb.) ısı ve ses yalıtımı yapılması",
+        "unit": "m²",
+        "price": "243.45"
+      },
+      {
+        "itemCode": "15.340.9961",
+        "itemName": "2 mm kalınlıkta, polietilen köpüğünden mamul delikli şilte (min. 90 kg/m³ yoğunlukta) ile yatayda (şap betonu üzerine vb.) ısı ve ses yalıtımı yapılması",
+        "unit": "m²",
+        "price": "143.93"
+      },
+      {
+        "itemCode": "15.340.9962",
+        "itemName": "2,5 mm kalınlıkta, polietilen köpüğünden mamul delikli şilte (min. 90 kg/m³ yoğunlukta) ile yatayda (şap betonu üzerine vb.) ısı ve ses yalıtımı yapılması",
+        "unit": "m²",
+        "price": "179.48"
+      },
+      {
+        "itemCode": "15.340.9963",
+        "itemName": "5 mm kalınlıkta, polietilen köpüğünden mamul delikli şilte (min. 90 kg/m³ yoğunlukta) ile yatayda (şap betonu üzerine vb.) ısı ve ses yalıtımı yapılması",
+        "unit": "m²",
+        "price": "243.45"
+      },
+      {
+        "itemCode": "15.390.1004",
+        "itemName": "(30 x 30 cm) veya (33 x 33 cm) anma ebatlarında, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "877.35"
+      },
+      {
+        "itemCode": "15.390.1005",
+        "itemName": "(40 x 40 cm) anma ebatlarında, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "917.04"
+      },
+      {
+        "itemCode": "15.390.1006",
+        "itemName": "(42,5 x 42,5 cm) veya (45 x 45 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1008.69"
+      },
+      {
+        "itemCode": "15.390.1008",
+        "itemName": "(60 x 60 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1094.60"
+      },
+      {
+        "itemCode": "15.390.1009",
+        "itemName": "(15 x 60 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1094.60"
+      },
+      {
+        "itemCode": "15.390.1010",
+        "itemName": "(30 x 60 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1103.18"
+      },
+      {
+        "itemCode": "15.390.1024",
+        "itemName": "(30 x 30 cm) veya (33 x 33 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, parlak, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1007.84"
+      },
+      {
+        "itemCode": "15.390.1025",
+        "itemName": "(40 x 40 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, parlak, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1054.50"
+      },
+      {
+        "itemCode": "15.390.1026",
+        "itemName": "(42,5 x 42,5 cm) veya (45 x 45 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, parlak, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1177.65"
+      },
+      {
+        "itemCode": "15.390.1028",
+        "itemName": "(60 x 60 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, parlak, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1262.13"
+      },
+      {
+        "itemCode": "15.390.1029",
+        "itemName": "(15 x 60 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, parlak, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1272.15"
+      },
+      {
+        "itemCode": "15.390.1030",
+        "itemName": "(30 x 60 cm) anma ebatlarında, rektifiyeli, her türlü renk, desen ve yüzey özelliğinde, I.kalite, parlak, sırsız porselen karo ile 3 mm derz aralıklı döşeme kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "1316.54"
+      },
+      {
+        "itemCode": "15.390.1043",
+        "itemName": "(20 x 20 cm) anma ebatlarında, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı duvar ve cephe kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "972.56"
+      },
+      {
+        "itemCode": "15.390.1044",
+        "itemName": "(30 x 30 cm) veya (33 x 33 cm) anma ebatlarında, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı duvar ve cephe kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "917.25"
+      },
+      {
+        "itemCode": "15.390.1045",
+        "itemName": "(40 x 40 cm) anma ebatlarında, her türlü renk, desen ve yüzey özelliğinde, I.kalite, mat, sırsız porselen karo ile 3 mm derz aralıklı duvar ve cephe kaplaması yapılması (karo yapıştırıcısı ile)",
+        "unit": "m²",
+        "price": "956.94"
+      },
+      {
+        "itemCode": "15.500.1003",
+        "itemName": "Düz merdiven küpeştesi yapılması ve yerine konulması",
+        "unit": "m",
+        "price": "1166.71"
+      },
+      {
+        "itemCode": "15.500.1004",
+        "itemName": "Eğri merdiven küpeştesi yapılması ve yerine konulması",
+        "unit": "m",
+        "price": "1991.05"
+      },
+      {
+        "itemCode": "15.540.1014",
+        "itemName": "Ahşap yüzeylerin verniklenmesi",
+        "unit": "m²",
+        "price": "298.60"
+      },
+      {
+        "itemCode": "15.540.1015",
+        "itemName": "Ahşap yüzeylerin vernikli renkli ahşap koruyucu ile verniklenmesi",
+        "unit": "m²",
+        "price": "307.19"
+      },
+      {
+        "itemCode": "15.540.1016",
+        "itemName": "Ahşap yüzeylerin renkli ahşap koruyucu ile korunması",
+        "unit": "m²",
+        "price": "279.85"
+      },
+      {
+        "itemCode": "15.540.1017",
+        "itemName": "Her cins ahşap parkenin cilalanması",
+        "unit": "m²",
+        "price": "435.06"
+      },
+      {
+        "itemCode": "15.540.1021",
+        "itemName": "Ahşap yüzeylere bir kat sentetik esaslı parlak boya yapılması",
+        "unit": "m²",
+        "price": "241.46"
+      },
+      {
+        "itemCode": "15.540.1022",
+        "itemName": "Ahşap yüzeylere bir kat sentetik esaslı mat boya yapılması",
+        "unit": "m²",
+        "price": "235.78"
+      },
+      {
+        "itemCode": "15.540.1023",
+        "itemName": "Ahşap yüzeylere iki kat sentetik esaslı parlak boya yapılması",
+        "unit": "m²",
+        "price": "314.98"
+      },
+      {
+        "itemCode": "15.540.1024",
+        "itemName": "Ahşap yüzeylere iki kat sentetik esaslı mat boya yapılması",
+        "unit": "m²",
+        "price": "303.59"
+      },
+      {
+        "itemCode": "15.540.1025",
+        "itemName": "Ahşap dış yüzeylere iki kat su bazlı boya yapılması (ahşap kapı, pencere, camekan doğramaları vb hariç)",
+        "unit": "m²",
+        "price": "487.01"
+      },
+      {
+        "itemCode": "15.540.1111",
+        "itemName": "Demir yüzeylere korozyona karşı iki kat antipas boya yapılması",
+        "unit": "m²",
+        "price": "277.01"
+      },
+      {
+        "itemCode": "15.540.1121",
+        "itemName": "Demir yüzeylere iki kat antipas, iki kat sentetik esaslı parlak boya yapılması",
+        "unit": "m²",
+        "price": "382.71"
+      },
+      {
+        "itemCode": "15.540.1122",
+        "itemName": "Demir yüzeylere iki kat antipas, iki kat sentetik esaslı mat boya yapılması",
+        "unit": "m²",
+        "price": "337.34"
+      },
+      {
+        "itemCode": "15.540.1123",
+        "itemName": "Demir yüzeylere iki kat solvent bazlı epoksi boya yapılması",
+        "unit": "m²",
+        "price": "416.49"
+      },
+      {
+        "itemCode": "15.540.1421",
+        "itemName": "Beton, sıva ve benzeri yüzeylere 1,5 mm kalınlıkta akrilik esaslı renkli kaplama yapılması",
+        "unit": "m²",
+        "price": "577.81"
+      },
+      {
+        "itemCode": "15.540.1422",
+        "itemName": "Beton, sıva ve benzeri yüzeylere 2 mm kalınlıkta akrilik esaslı renkli kaplama yapılması",
+        "unit": "m²",
+        "price": "639.66"
+      },
+      {
+        "itemCode": "15.100.1001",
+        "itemName": "1 ton her cins çimento ve kirecin taşıtlara yükleme, boşaltma ve istifi (Fabrikadan alınan malzemeden yükleme bedeli düşülür.)",
+        "unit": "Ton",
+        "price": "263.85"
+      },
+      {
+        "itemCode": "15.100.1002",
+        "itemName": "1 m³ kum, çakıl, tuvenan, stabilize, kırmataş, hafif agrega ve mermer pirinci taşıtlara yükleme, boşaltma ve figüresi",
+        "unit": "m³",
+        "price": "41.34"
+      },
+      {
+        "itemCode": "15.100.1003",
+        "itemName": "1 m³ her nevi taşın taşıtlara yükleme boşaltma ve figüresi",
+        "unit": "m³",
+        "price": "45.26"
+      },
+      {
+        "itemCode": "15.100.1004",
+        "itemName": "1 ton her cins betonarme demiri, profil ve lama demiri ile sacların taşıtlara yükleme, boşaltma ve istifi (Fabrikadan alınan malzemeden yükleme bedeli düşülür.)",
+        "unit": "Ton",
+        "price": "182.18"
+      },
+      {
+        "itemCode": "15.100.1005",
+        "itemName": "1 ton çelik borunun taşıtlara yükleme, boşaltma ve istifi",
+        "unit": "Ton",
+        "price": "364.35"
+      },
+      {
+        "itemCode": "15.100.1006",
+        "itemName": "1 ton her cins ve ölçüde PE, HDPE ve PVC esaslı borunun taşıtlara yükleme, boşaltma ve istifi",
+        "unit": "Ton",
+        "price": "546.51"
+      },
+      {
+        "itemCode": "15.100.1007",
+        "itemName": "Normal, cephe, modüler dolu veya delikli tuğlalar ve oluklu kiremidin taşıtlara yükleme, boşaltma ve istifi",
+        "unit": "1000 Ad",
+        "price": "241.31"
+      },
+      {
+        "itemCode": "15.100.1008",
+        "itemName": "Her cins hafif gazbeton malzemesi, genleştirilmiş perlit agregası ve bu agrega ile yapılmış (tuğla, pano, hazır kuru harç ve benzeri) malzemenin taşıtlara yükleme, boşaltma ve istifi",
+        "unit": "m³",
+        "price": "68.95"
+      },
+      {
+        "itemCode": "15.105.1001",
+        "itemName": "Kazı alanı içine rastlayan fundaların gerekli el aletleri kullanarak kesilmesi ve temizlenmesi",
+        "unit": "100 m²",
+        "price": "6596.25"
+      },
+      {
+        "itemCode": "15.105.1002",
+        "itemName": "Kazı ve dolgu alanında makine ile temizleme ve sökme işi yapılması",
+        "unit": "100 m²",
+        "price": "673.70"
+      },
+      {
+        "itemCode": "15.105.1101",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 5-10 cm (10 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "131.93"
+      },
+      {
+        "itemCode": "15.105.1102",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 11-20 cm (20cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "263.85"
+      },
+      {
+        "itemCode": "15.105.1103",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 21-30 cm (30 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "527.70"
+      },
+      {
+        "itemCode": "15.105.1104",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 31-40 cm (40 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "791.55"
+      },
+      {
+        "itemCode": "15.105.1105",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 41-50 cm (50 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "1055.40"
+      },
+      {
+        "itemCode": "15.105.1106",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 51-60 cm (60 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "1583.10"
+      },
+      {
+        "itemCode": "15.105.1107",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 61-70 cm (70 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "2374.65"
+      },
+      {
+        "itemCode": "15.105.1108",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 71-80 cm (80 cm dahil) beher ağaç için",
+        "unit": "Ad",
+        "price": "3166.20"
+      },
+      {
+        "itemCode": "15.105.1109",
+        "itemName": "El ile ağaç kesilmesi ve sökme işi, çapı 81 cm den büyük olan beher ağaç için",
+        "unit": "Ad",
+        "price": "5277.00"
+      },
+      {
+        "itemCode": "15.106.1001",
+        "itemName": "Patlayıcı Madde Kullanmadan Harçsız Kagir İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "219.95"
+      },
+      {
+        "itemCode": "15.106.1002",
+        "itemName": "Patlayıcı Madde Kullanmadan Kireç ve Melez Harçlı Kagir İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "279.58"
+      },
+      {
+        "itemCode": "15.106.1003",
+        "itemName": "Patlayıcı Madde Kullanmadan Çimento Harçlı Kargir ve Horasan İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "378.94"
+      },
+      {
+        "itemCode": "15.106.1004",
+        "itemName": "Patlayıcı Madde Kullanmadan Demirli ve Demirsiz Beton İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "696.93"
+      },
+      {
+        "itemCode": "15.106.1005",
+        "itemName": "İnsan Gücü ile (Kompresör vasıtasıyla) Her Cins Harçlı Kargir İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "1028.76"
+      },
+      {
+        "itemCode": "15.106.1006",
+        "itemName": "İnsan Gücü ile (Kompresör Vasıtasıyla) Demirli ve Demirsiz Beton İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "1972.24"
+      },
+      {
+        "itemCode": "15.106.1007",
+        "itemName": "Patlayıcı Madde Kullanarak Her Cins Harçlı Kargir ve Horasan İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "1618.94"
+      },
+      {
+        "itemCode": "15.106.1008",
+        "itemName": "Patlayıcı Madde Kullanarak Demirli ve Demirsiz Beton İnşaatın Yıkılması",
+        "unit": "m³",
+        "price": "2437.09"
+      },
+      {
+        "itemCode": "15.106.1009",
+        "itemName": "Demirli Beton İnşaatın Yıkılmasından Çıkan Demirlerin İnsan Gücü ile Ayrılması",
+        "unit": "Kg",
+        "price": "13.19"
+      },
+      {
+        "itemCode": "15.106.1010",
+        "itemName": "Demirli Beton İnşaatın Yıkılmasından Çıkan Demirlerin Makine Gücü ile Ayrılması",
+        "unit": "Kg",
+        "price": "7.10"
+      },
+      {
+        "itemCode": "15.106.1011",
+        "itemName": "Her Türlü Yıkımdan Çıkan Taş ve Tuğlanın İnsan Gücü ile Ayrılması",
+        "unit": "m³",
+        "price": "791.55"
+      },
+      {
+        "itemCode": "15.106.1101",
+        "itemName": "Doğal parke taşı, beton plak, adi kaldırım ve blokaj sökülmesi",
+        "unit": "m²",
+        "price": "263.85"
+      },
+      {
+        "itemCode": "15.106.1102",
+        "itemName": "Kırma taş, şose ve asfalt sökülmesi",
+        "unit": "m³",
+        "price": "1451.18"
+      },
+      {
+        "itemCode": "15.106.1103",
+        "itemName": "Her türlü bordür sökülmesi",
+        "unit": "m",
+        "price": "65.96"
+      },
+      {
+        "itemCode": "15.106.1104",
+        "itemName": "Her türlü iç sıva sökülmesi",
+        "unit": "m²",
+        "price": "158.31"
+      },
+      {
+        "itemCode": "15.110.1001",
+        "itemName": "Her cins zeminde el ile yapılan (geniş-dar) derin kazılara derinlik zammı (iksasız kazılarda) F=131,925 x H -263,85 (%25 yüklenici karı ve genel giderler dahil) m³ --- 15.110.1002 Her cins zeminde el ile yapılan (geniş-dar) derin kazılara derinlik zammı (karşı",
+        "unit": "m³",
+        "price": "527.70"
+      },
+      {
+        "itemCode": "15.115.1002",
+        "itemName": "El ile sert toprak kazılması (kil, siltli, kumlu ve gevşek kil, killi kum ve çakıl, kürekle atılabilen taşlı toprak ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "686.01"
+      },
+      {
+        "itemCode": "15.115.1003",
+        "itemName": "El ile yumuşak küskülük kazılması (sert kil, yumuşak marn ve tüf, sıkışık gravye, parçalanıp el ile atılabilen 0,100 m³ e kadar büyüklükteki her cins blok taşlar, kazı güçlüğü benzerliğinden dolayı çamur ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "857.51"
+      },
+      {
+        "itemCode": "15.115.1004",
+        "itemName": "El ile sert küskülük kazılması (ayrışmış ve çatlaklı kaya, ayrışmış yapıdaki gre, şist, taşlaşmış marn ve kil, 0,100-0,400 m³ büyüklükte parçalanıp el ile atılabilen her cins blok taşlar ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "989.44"
+      },
+      {
+        "itemCode": "15.115.1005",
+        "itemName": "El veya kompresör ile patlayıcı madde kullanarak yumuşak kaya kazılması (tabakalaşmış kalker, marnlı kalker, marn, şist, gre, gevşek konglomera, alçı taşı, volkanik tüfler (bazalt tüfleri hariç), 0,400 m³ den büyük aynı cins blok taşlar ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "791.71"
+      },
+      {
+        "itemCode": "15.115.1006",
+        "itemName": "El veya kompresörle patlayıcı madde kullanarak sert kaya kazılması (kalın tabaka ve kitle halinde sert gre, betonlaşmış konglomera, kesif kalker, mermer, ayrışmamış serpantin, andezit, trakit bazalt tüfleri, 0,400 m³ den büyük aynı cins blok taşlar ve benzeri ",
+        "unit": "m³",
+        "price": "965.68"
+      },
+      {
+        "itemCode": "15.115.1007",
+        "itemName": "El veya kompresörle patlayıcı madde kullanarak çok sert kaya kazılması (ayrışmamış granit ve benzeri, bazalt, profir, kuvars, 0,400 m³ den büyük aynı cins blok taşlar ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "1173.05"
+      },
+      {
+        "itemCode": "15.115.1008",
+        "itemName": "El veya kompresörle patlayıcı madde kullanmadan yumuşak kaya kazılması (tabakalaşmış kalker, marnlı kalker, marn, şist, gre, gevşek konglomera, alçı taşı, volkanik tüfler (bazalt tüfleri hariç) 0,400 m³ den büyük aynı cins blok taşlar ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "1347.64"
+      },
+      {
+        "itemCode": "15.115.1009",
+        "itemName": "El veya kompresörle patlayıcı madde kullanmadan sert kaya kazılması (sert gre, betonlaşmış konglomera, kesif kalker, mermer, ayrışmamış serpantin, andezit, trakit bazalt tüfleri ve 0,400 m³ den büyük aynı cins blok taşlar ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "1833.96"
+      },
+      {
+        "itemCode": "15.115.1010",
+        "itemName": "El veya kompresörle patlayıcı madde kullanmadan çok sert kaya kazılması (ayrışmamış granit ve benzeri, bazalt, profir, kuvars, 0,400 m³ den büyük aynı cins blok taşlar ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "2767.43"
+      },
+      {
+        "itemCode": "15.115.1011",
+        "itemName": "El ile batak ve balçığın kazılması (su muhtevası yüksek olan ve bu suyu kolay bırakmayan akıcı ve yapışkan nitelikteki zeminler)",
+        "unit": "m³",
+        "price": "1583.10"
+      },
+      {
+        "itemCode": "15.115.1201",
+        "itemName": "El ile her derinlikte yumuşak ve sert toprakta geniş derin kazı yapılması (gevşek ve bitkisel toprak, gevşek silt, kum, kil, siltli, kumlu ve gevşek kil, killi kum ve çakıl, kürekle atılabilen taşlı toprak ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "989.44"
+      },
+      {
+        "itemCode": "15.115.1202",
+        "itemName": "El ile her derinlikte yumuşak ve sert toprakta dar derin kazı yapılması (gevşek ve bitkisel toprak, gevşek silt, kum, kil, siltli, kumlu ve gevşek kil, killi kum ve çakıl, kürekle atılabilen taşlı toprak ve benzeri zeminler)",
+        "unit": "m³",
+        "price": "1088.39"
+      },
+      {
+        "itemCode": "15.115.1203",
+        "itemName": "El ile her derinlikte yumuşak ve sert küskülük zeminde geniş derin kazı yapılması (sert kil, yumuşak marn ve tüf, sıkışık gravye, kazı güçlüğü benzerliğinden dolayı çamur, ayrışmış ve çatlaklı kaya, ayrışmış yapıdaki gre, şist, taşlaşmış marn ve kil, 0-0,400 m",
+        "unit": "m³",
+        "price": "1424.79"
+      },
+      {
+        "itemCode": "15.115.1204",
+        "itemName": "El ile her derinlikte yumuşak ve sert küskülük zeminde dar derin kazı yapılması (sert kil, yumuşak marn ve tüf, sıkışık gravye, kazı güçlüğü benzerliğinden dolayı çamur, ayrışmış ve çatlaklı kaya, ayrışmış yapıdaki gre, şist, taşlaşmış marn ve kil, 0-0,400 m³ ",
+        "unit": "m³",
+        "price": "1567.26"
+      },
+      {
+        "itemCode": "15.115.1205",
+        "itemName": "El veya kompresörle ve patlayıcı madde kullanarak her derinlikte yumuşak, sert, çok sert kayada geniş derin kazı yapılması (tabakalaşmış kalker, marnlı kalker, marn, şist, gre, gevşek konglomera, alçı taşı, volkanik tüfler (bazalt tüfleri hariç) sert gre, beto",
+        "unit": "m³",
+        "price": "1757.56"
+      },
+      {
+        "itemCode": "15.125.1001",
+        "itemName": "Kum temin edilerek, el ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "602.11"
+      },
+      {
+        "itemCode": "15.125.1002",
+        "itemName": "Çakıl temin edilerek, el ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "599.59"
+      },
+      {
+        "itemCode": "15.125.1003",
+        "itemName": "Kum temin edilerek, makine ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "263.13"
+      },
+      {
+        "itemCode": "15.125.1004",
+        "itemName": "Çakıl temin edilerek, makine ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "260.60"
+      },
+      {
+        "itemCode": "15.125.1005",
+        "itemName": "Kum temin edilerek, drenaj yapılması",
+        "unit": "m³",
+        "price": "956.84"
+      },
+      {
+        "itemCode": "15.125.1006",
+        "itemName": "Çakıl temin edilerek, drenaj yapılması",
+        "unit": "m³",
+        "price": "956.84"
+      },
+      {
+        "itemCode": "15.125.1007",
+        "itemName": "32mm'ye kadar kırmataş temin edilerek, el ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "1041.35"
+      },
+      {
+        "itemCode": "15.125.1008",
+        "itemName": "32mm'ye kadar kırmataş temin edilerek, makine ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "702.36"
+      },
+      {
+        "itemCode": "15.125.1009",
+        "itemName": "63mm'ye kadar kırmataş temin edilerek, el ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "965.61"
+      },
+      {
+        "itemCode": "15.125.1010",
+        "itemName": "63mm'ye kadar kırmataş temin edilerek, makine ile serme, sulama ve sıkıştırma yapılması",
+        "unit": "m³",
+        "price": "626.63"
+      },
+      {
+        "itemCode": "15.125.1011",
+        "itemName": "Hafif agrega (elenmiş kömür curufu) ile dolgu yapılması",
+        "unit": "m³",
+        "price": "165.35"
+      },
+      {
+        "itemCode": "15.130.1002",
+        "itemName": "Kazılara tam ahşap kaplamalı iksa yapılması",
+        "unit": "m²",
+        "price": "1169.95"
+      },
+      {
+        "itemCode": "15.130.1003",
+        "itemName": "Kazılara sık aralıklı ahşap iksa yapılması",
+        "unit": "m²",
+        "price": "818.96"
+      },
+      {
+        "itemCode": "15.130.1004",
+        "itemName": "Kazılara aralıklı ahşap kaplamalı iksa yapılması",
+        "unit": "m²",
+        "price": "584.98"
+      },
+      {
+        "itemCode": "15.135.1001",
+        "itemName": "Her uzunluk, her açı ve her türlü zeminde Ø 60 cm jet grout kolonu imalatı yapılması (jet1 yöntemi ile) (delgi dahil)",
+        "unit": "m",
+        "price": "1197.64"
+      },
+      {
+        "itemCode": "15.135.1002",
+        "itemName": "Her uzunluk, her açı ve her türlü zeminde Ø 80 cm jet grout kolonu imalatı yapılması (jet1 yöntemi ile) (delgi dahil)",
+        "unit": "m",
+        "price": "1388.88"
+      },
+      {
+        "itemCode": "15.135.1003",
+        "itemName": "Her uzunluk, her açı ve her türlü zeminde Ø 60 cm jet grout kolonu imalatı yapılması (jet2 yöntemi ile) (delgi dahil)",
+        "unit": "m",
+        "price": "1391.45"
+      },
+      {
+        "itemCode": "15.135.1004",
+        "itemName": "Her uzunluk, her açı ve her türlü zeminde Ø 80 cm jet grout kolonu imalatı yapılması (jet2 yöntemi ile) (delgi dahil)",
+        "unit": "m",
+        "price": "1608.54"
+      },
+      {
+        "itemCode": "15.135.1005",
+        "itemName": "Her uzunluk, her açı ve her türlü zeminde Ø 100 cm jet grout kolonu imalatı yapılması (jet2 yöntemi ile) (delgi dahil)",
+        "unit": "m",
+        "price": "1911.93"
+      },
+      {
+        "itemCode": "15.145.1001",
+        "itemName": "Dikey basınç değeri 0-1 Mpa arası zemin için, grab makinesi ile, hertürlü ölçüde, C30/35 basınç dayanımımda yerinde dökme beton ile diyafram duvar yapılması (0,00 - 36,00 m arası, 36,00 m dahil)",
+        "unit": "m³",
+        "price": "7703.30"
+      },
+      {
+        "itemCode": "15.145.1002",
+        "itemName": "Dikey basınç değeri 0-1 Mpa arası zemin için, grab makinesi ile, hertürlü ölçüde, C30/35 basınç dayanımımda yerinde dökme beton ile diyafram duvar yapılması (36,00 - 72,00 m arası, 72,00 m dahil)",
+        "unit": "m³",
+        "price": "9868.21"
+      },
+      {
+        "itemCode": "15.145.1003",
+        "itemName": "Dikey basınç değeri 0-1 Mpa arası zemin için, hidrofreze makinesi ile, her türlü ölçüde, C30/35 basınç dayanımımda yerinde dökme beton ile diyafram duvar yapılması (0,00 - 36,00 m arası, 36,00 m dahil)",
+        "unit": "m³",
+        "price": "10161.61"
+      },
+      {
+        "itemCode": "15.145.1004",
+        "itemName": "Dikey basınç değeri 0-1 Mpa arası zemin için, hidrofreze makinesi ile, her türlü ölçüde, C30/35 basınç dayanımımda yerinde dökme beton ile diyafram duvar yapılması (36,00 - 72,00 m arası, 72,00 m dahil)",
+        "unit": "m³",
+        "price": "12308.41"
+      },
+      {
+        "itemCode": "15.145.1005",
+        "itemName": "Dikey basınç değeri 0-1 Mpa arası zemin için, hidrofreze makinesi ile, her türlü ölçüde, C30/35 basınç dayanımımda yerinde dökme beton ile diyafram duvar yapılması (72,00 m üzeri)",
+        "unit": "m³",
+        "price": "18748.88"
+      },
+      {
+        "itemCode": "15.145.1006",
+        "itemName": "Dikey basınç değeri 1-2 Mpa arası zemin için, grab makinesi ile, hertürlü ölçüde, C30/35 basınç dayanımımda yerinde dökme beton ile diyafram duvar yapılması (0,00 - 36,00 m arası, 36,00 m dahil)",
+        "unit": "m³",
+        "price": "9868.21"
+      }
+    ]
+  },
+  "csb_2026_mart_insaat_rayic": {
+    "id": "csb_2026_mart_insaat_rayic",
+    "title": "ÇŞB 2026 Mart Ayı Güncel İnşaat Rayiç Fiyat Listesi (İşçilik & Malzeme)",
+    "fileName": "2026-mart-in-aat-rayi-20260303131227.pdf",
+    "documentHash": "0b6c74ce7db06de3f0bf5f7039f8da015e6eba80a39afb5cba0d4c22c211303d",
+    "licenseReference": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK — 2026 Mart Ayı Güncel İnşaat Rayiç Fiyat Listesi (03.03.2026)",
+    "validityStart": "2026-03-01",
+    "validityEnd": "2026-12-31",
+    "totalMatchedInPdf": 5360,
+    "rows": [
+      {
+        "itemCode": "10.100.1001",
+        "itemName": "Taşcı ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1002",
+        "itemName": "Karo kaplama ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1003",
+        "itemName": "Fayans kaplama ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1004",
+        "itemName": "Seramik kaplama ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1005",
+        "itemName": "Mermer kaplama ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1006",
+        "itemName": "Mermer yonucu ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1007",
+        "itemName": "Mozayikci ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1008",
+        "itemName": "Doğramacı ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1009",
+        "itemName": "Marangoz ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1010",
+        "itemName": "Yalıtımcı ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1011",
+        "itemName": "Lağımcı (Ateşleme ustası)",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1012",
+        "itemName": "Sıvacı ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1013",
+        "itemName": "Duvarcı ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1014",
+        "itemName": "Kaldırımcı ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.100.1015",
+        "itemName": "Betoncu ustası",
+        "unit": "Sa",
+        "price": "319.19"
+      },
+      {
+        "itemCode": "10.110.1001",
+        "itemName": "Üç at veya katır ile sürücüden ibaret taşıt katarı (veya beş eşek) (Gündelik) TL 752,85 10.110.1002 Her cins hayvanla çekilen arabalar için taşıma katsayısı 455,80 10.110.1003 Her cins ve tonajda motorlu araç taşıma katsayısı K: 2.422,42 İNŞAAT MAKİNA VE ARAÇL",
+        "unit": "Ad",
+        "price": "4802513.63"
+      },
+      {
+        "itemCode": "10.120.1002",
+        "itemName": "Ekskavatör ve dragline tipi makinalar 140-169 HP (11/2Yd³)",
+        "unit": "Ad",
+        "price": "6504992.00"
+      },
+      {
+        "itemCode": "10.120.1003",
+        "itemName": "Ekskavatör ve dragline tipi makinalar 170-209 HP (2Yd³)",
+        "unit": "Ad",
+        "price": "6860733.75"
+      },
+      {
+        "itemCode": "10.120.1004",
+        "itemName": "Ekskavatör ve dragline tipi makinalar 210-259 HP (21/2Yd³)",
+        "unit": "Ad",
+        "price": "8893543.75"
+      },
+      {
+        "itemCode": "10.120.1005",
+        "itemName": "Ekskavatör (paletli) (210-259 HP) (maksimum 2,5 m³)",
+        "unit": "Ad",
+        "price": "8918953.88"
+      },
+      {
+        "itemCode": "10.120.1006",
+        "itemName": "Ekskavatör ve dragline tipi makinalar 260-299 HP (3Yd³)",
+        "unit": "Ad",
+        "price": "10164050.00"
+      },
+      {
+        "itemCode": "10.120.1007",
+        "itemName": "Ekskavatör (paletli) (260-299 HP) (maksimum 2,5 m³)",
+        "unit": "Ad",
+        "price": "10153885.95"
+      },
+      {
+        "itemCode": "10.120.1008",
+        "itemName": "Ekskavatör beko takriben 125 HP (3/4-15/8 Yd³)",
+        "unit": "Ad",
+        "price": "6606632.50"
+      },
+      {
+        "itemCode": "10.120.1009",
+        "itemName": "Ekskavatör (paletli) (300-329 HP) (maksimum 3,5 m³)",
+        "unit": "Ad",
+        "price": "12349320.75"
+      },
+      {
+        "itemCode": "10.120.1010",
+        "itemName": "Traktör skreyper (TD 20 veya emsali 111 HP+Vagon kova 8Yd3)",
+        "unit": "Ad",
+        "price": "3557417.50"
+      },
+      {
+        "itemCode": "10.120.1011",
+        "itemName": "Traktör ripper (TD25 veya emsali 185HP+Ripper)",
+        "unit": "Ad",
+        "price": "8080419.75"
+      },
+      {
+        "itemCode": "10.120.1012",
+        "itemName": "Motor greyder(80 HP'den yukarı güçte takriben 9 ton)",
+        "unit": "Ad",
+        "price": "3709878.25"
+      },
+      {
+        "itemCode": "10.120.1013",
+        "itemName": "Greyder (190-209 HP)",
+        "unit": "Ad",
+        "price": "11180455.00"
+      },
+      {
+        "itemCode": "10.120.1014",
+        "itemName": "Greyder (210-230 HP)",
+        "unit": "Ad",
+        "price": "13060804.25"
+      },
+      {
+        "itemCode": "10.120.1015",
+        "itemName": "Lastik tekerlekli traktör-skreyper (takriben 250 HP 24 Yd3)",
+        "unit": "Ad",
+        "price": "15093614.25"
+      },
+      {
+        "itemCode": "10.120.1016",
+        "itemName": "Traktör buldozer (70 HP gücünde motor+bıçak)",
+        "unit": "Ad",
+        "price": "2541012.50"
+      },
+      {
+        "itemCode": "10.130.1001",
+        "itemName": "Çakıl (elenmesi gerekmeyen iri agrega)",
+        "unit": "m³",
+        "price": "136.31"
+      },
+      {
+        "itemCode": "10.130.1002",
+        "itemName": "Çakıl (tuvenan agregadan elenmiş ve yıkanmış)",
+        "unit": "m³",
+        "price": "343.31"
+      },
+      {
+        "itemCode": "10.130.1003",
+        "itemName": "Çakıl (tuvenan agregadan elenmiş, yıkanmış ve en az iki tane sınıfı karıştırılarak hazırlanmış)",
+        "unit": "m³",
+        "price": "385.71"
+      },
+      {
+        "itemCode": "10.130.1004",
+        "itemName": "Kum (elenmesi gerekmeyen ince agrega)",
+        "unit": "m³",
+        "price": "138.33"
+      },
+      {
+        "itemCode": "10.130.1005",
+        "itemName": "Kum (tuvenan agregadan elenmiş ve yıkanmış)",
+        "unit": "m³",
+        "price": "343.31"
+      },
+      {
+        "itemCode": "10.130.1006",
+        "itemName": "Kum (tuvenan agregadan elenmiş, yıkanmış ve en az iki tane sınıfı karıştırılarak hazırlanmış)",
+        "unit": "m³",
+        "price": "388.74"
+      },
+      {
+        "itemCode": "10.130.1007",
+        "itemName": "İnce sıva veya derz kumu (elenmiş ve yıkanmış)",
+        "unit": "m³",
+        "price": "435.19"
+      },
+      {
+        "itemCode": "10.130.1008",
+        "itemName": "32 mm'ye kadar kırmataş",
+        "unit": "m³",
+        "price": "489.72"
+      },
+      {
+        "itemCode": "10.130.1009",
+        "itemName": "63 mm'ye kadar kırmataş (en az iki tane sınıfı karıştırılarak hazırlanmış)",
+        "unit": "m³",
+        "price": "429.13"
+      },
+      {
+        "itemCode": "10.130.1021",
+        "itemName": "Çakıl (Elenmesi gerekmeyen iri agrega) (makina ile temin) (19.100.2003) (mazot miktarının %57'si alınmış fiyatı)",
+        "unit": "m³",
+        "price": "137.34"
+      },
+      {
+        "itemCode": "10.130.1022",
+        "itemName": "Çakıl (Tuvenan agregadan elenmiş ve yıkanmış) (Makina ile temin) (19.100.2004) (mazot miktarının %57'si alınmış fiyatı)",
+        "unit": "m³",
+        "price": "347.56"
+      },
+      {
+        "itemCode": "10.130.1023",
+        "itemName": "Çakıl (Tuvenan agregadan elenmiş, yıkanmış ve en az iki tane sınıfı karıştırılarak hazırlanmış) (Makina ile temin) (19.100.2006) (mazot miktarının %57'si alınmış fiyatı)",
+        "unit": "m³",
+        "price": "393.38"
+      },
+      {
+        "itemCode": "10.130.1024",
+        "itemName": "Kum (Elenmesi gerekmeyen ince agrega) (Makina ile temin) (19.100.2003) (mazot miktarının %57'si alınmış fiyatı)",
+        "unit": "m³",
+        "price": "137.34"
+      },
+      {
+        "itemCode": "10.130.1025",
+        "itemName": "Kum (Tuvenan agregadan elenmiş ve yıkanmış) (Makina ile temin) (19.100.2004) (mazot miktarının %57'si alınmış fiyatı)",
+        "unit": "m³",
+        "price": "347.56"
+      },
+      {
+        "itemCode": "10.130.1026",
+        "itemName": "Kum (Tuvenan agregadan elenmiş yıkanmış ve en az iki tane sınıfı karıştırılarak hazırlanmış) (Makina ile temin)(19.100.2006) (mazot miktarının %57'si alınmış fiyatı)",
+        "unit": "m³",
+        "price": "393.38"
+      },
+      {
+        "itemCode": "10.160.1001",
+        "itemName": "Jel Dinamit",
+        "unit": "Kg",
+        "price": "122.91"
+      },
+      {
+        "itemCode": "10.160.1002",
+        "itemName": "Emülsiyon türü patlayıcı (Kapsüle duyarlı,suya dayanıklı)",
+        "unit": "Kg",
+        "price": "42.35"
+      },
+      {
+        "itemCode": "10.160.1003",
+        "itemName": "Amonyum nitrat,fuel-oil karışımı (Kapsüle duyarsız)",
+        "unit": "Kg",
+        "price": "41.74"
+      },
+      {
+        "itemCode": "10.160.1004",
+        "itemName": "Fitil (Katranlı, Emniyetli, İnfilaklı)",
+        "unit": "m",
+        "price": "12.29"
+      },
+      {
+        "itemCode": "10.160.1005",
+        "itemName": "Kapsül (Adi)",
+        "unit": "Ad",
+        "price": "20.23"
+      },
+      {
+        "itemCode": "10.160.1006",
+        "itemName": "Tavikli (Kapsül)",
+        "unit": "Ad",
+        "price": "43.79"
+      },
+      {
+        "itemCode": "10.160.1021",
+        "itemName": "1.50 m tel boylu",
+        "unit": "Ad",
+        "price": "58.69"
+      },
+      {
+        "itemCode": "10.160.1022",
+        "itemName": "2.50 m tel boylu",
+        "unit": "Ad",
+        "price": "66.58"
+      },
+      {
+        "itemCode": "10.160.1023",
+        "itemName": "Kerozen(Gazyağı)",
+        "unit": "Kg",
+        "price": "48.03"
+      },
+      {
+        "itemCode": "10.160.1024",
+        "itemName": "Likit petrol gazı (LPG)",
+        "unit": "Kg",
+        "price": "49.39"
+      },
+      {
+        "itemCode": "10.160.1025",
+        "itemName": "Benzin",
+        "unit": "Kg",
+        "price": "65.25"
+      },
+      {
+        "itemCode": "10.160.1026",
+        "itemName": "Mazot (Motorin)",
+        "unit": "Kg",
+        "price": "61.43"
+      },
+      {
+        "itemCode": "10.160.1027",
+        "itemName": "Makine yağı",
+        "unit": "Kg",
+        "price": "61.48"
+      },
+      {
+        "itemCode": "10.160.1028",
+        "itemName": "Yanmış yağ",
+        "unit": "Kg",
+        "price": "3.98"
+      },
+      {
+        "itemCode": "10.160.1029",
+        "itemName": "Üstübü",
+        "unit": "Kg",
+        "price": "15.51"
+      },
+      {
+        "itemCode": "10.200.1001",
+        "itemName": "Düz siyah sac (1.5 mm kalınlık)",
+        "unit": "Kg",
+        "price": "26.54"
+      },
+      {
+        "itemCode": "10.200.1002",
+        "itemName": "Düz siyah sac (2.0 mm kalınlık)",
+        "unit": "Kg",
+        "price": "25.24"
+      },
+      {
+        "itemCode": "10.200.1003",
+        "itemName": "Düz siyah sac (2.5 mm kalınlık ve yukarısı) (1200 x 2400 HRU) ve diğerleri",
+        "unit": "Kg",
+        "price": "25.67"
+      },
+      {
+        "itemCode": "10.200.1101",
+        "itemName": "0,29mm (dahil, küçük) kalınlıkta",
+        "unit": "Kg",
+        "price": "34.86"
+      },
+      {
+        "itemCode": "10.200.1102",
+        "itemName": "0,30mm - 0,34mm kalınlıkta",
+        "unit": "Kg",
+        "price": "32.08"
+      },
+      {
+        "itemCode": "10.200.1103",
+        "itemName": "0,35mm - 0,39mm kalınlıkta",
+        "unit": "Kg",
+        "price": "32.08"
+      },
+      {
+        "itemCode": "10.200.1104",
+        "itemName": "0,40mm - 0,44mm kalınlıkta",
+        "unit": "Kg",
+        "price": "31.21"
+      },
+      {
+        "itemCode": "10.200.1105",
+        "itemName": "0,45mm - 0,49mm kalınlıkta",
+        "unit": "Kg",
+        "price": "30.29"
+      },
+      {
+        "itemCode": "10.200.1106",
+        "itemName": "0,50mm - 0,59mm kalınlıkta",
+        "unit": "Kg",
+        "price": "29.81"
+      },
+      {
+        "itemCode": "10.200.1107",
+        "itemName": "0,60mm - 0,69mm kalınlıkta",
+        "unit": "Kg",
+        "price": "29.64"
+      },
+      {
+        "itemCode": "10.200.1108",
+        "itemName": "0,70mm - 0,79mm kalınlıkta",
+        "unit": "Kg",
+        "price": "29.55"
+      },
+      {
+        "itemCode": "10.200.1109",
+        "itemName": "0,80mm - 0,89mm kalınlıkta",
+        "unit": "Kg",
+        "price": "29.55"
+      },
+      {
+        "itemCode": "10.200.1110",
+        "itemName": "0,90mm - 0,99mm kalınlıkta",
+        "unit": "Kg",
+        "price": "29.11"
+      },
+      {
+        "itemCode": "10.200.1111",
+        "itemName": "1,00mm - 1,49mm kalınlıkta",
+        "unit": "Kg",
+        "price": "29.11"
+      },
+      {
+        "itemCode": "10.200.1112",
+        "itemName": "1,50mm (dahil, büyük) kalınlıkta",
+        "unit": "Kg",
+        "price": "28.90"
+      },
+      {
+        "itemCode": "10.300.1171",
+        "itemName": "Su bazlı boya astarı",
+        "unit": "lt",
+        "price": "84.12"
+      },
+      {
+        "itemCode": "10.300.1172",
+        "itemName": "Su bazlı silikon esaslı dış cephe astarı",
+        "unit": "lt",
+        "price": "118.76"
+      },
+      {
+        "itemCode": "10.300.1173",
+        "itemName": "Su bazlı brüt beton astarı",
+        "unit": "Kg",
+        "price": "64.33"
+      },
+      {
+        "itemCode": "10.300.1174",
+        "itemName": "Su bazlı ahşap boyası astarı",
+        "unit": "lt",
+        "price": "331.53"
+      },
+      {
+        "itemCode": "10.300.1175",
+        "itemName": "Demir - çelik yüzey koruyucu astar (antipas)",
+        "unit": "lt",
+        "price": "148.45"
+      },
+      {
+        "itemCode": "10.300.1176",
+        "itemName": "Metal ve PVC yüzey astarı",
+        "unit": "lt",
+        "price": "509.66"
+      },
+      {
+        "itemCode": "10.300.1177",
+        "itemName": "Akrilik esaslı su bazlı antibakteriyel solüsyon",
+        "unit": "lt",
+        "price": "54.43"
+      },
+      {
+        "itemCode": "10.300.1178",
+        "itemName": "Akrilik esaslı su bazlı antibakteriyel astar",
+        "unit": "lt",
+        "price": "133.60"
+      },
+      {
+        "itemCode": "10.300.1179",
+        "itemName": "Leke kapatıcı termoplastik reçine esaslı iç cephe astarı",
+        "unit": "lt",
+        "price": "430.49"
+      },
+      {
+        "itemCode": "10.300.1180",
+        "itemName": "Sentetik boya astarı",
+        "unit": "lt",
+        "price": "148.45"
+      },
+      {
+        "itemCode": "10.300.1181",
+        "itemName": "Sentetik esaslı ham ahşap koruyucu astar",
+        "unit": "lt",
+        "price": "168.24"
+      },
+      {
+        "itemCode": "10.300.1182",
+        "itemName": "Sentetik esaslı renkli ahşap koruyucu",
+        "unit": "lt",
+        "price": "183.08"
+      },
+      {
+        "itemCode": "10.300.1183",
+        "itemName": "Termoplastik reçine esaslı astar",
+        "unit": "Kg",
+        "price": "110.84"
+      },
+      {
+        "itemCode": "10.300.1184",
+        "itemName": "Solvent bazlı epoksi astar (çift bileşenli)",
+        "unit": "lt",
+        "price": "209.80"
+      },
+      {
+        "itemCode": "10.300.1185",
+        "itemName": "Akrilik kopolimer reçine esaslı solvent bazlı dış cephe astarı",
+        "unit": "lt",
+        "price": "252.36"
+      },
+      {
+        "itemCode": "10.310.1001",
+        "itemName": "0,035 ≤ Isıl iletkenliği < 0,040W/(m.K) olan",
+        "unit": "m³",
+        "price": "1165.45"
+      },
+      {
+        "itemCode": "10.310.1002",
+        "itemName": "0,040 ≤ Isıl iletkenliği ≤ 0,045W/(m.K) olan",
+        "unit": "m³",
+        "price": "744.87"
+      },
+      {
+        "itemCode": "10.310.1011",
+        "itemName": "8 cm kalınlıkta",
+        "unit": "m²",
+        "price": "121.61"
+      },
+      {
+        "itemCode": "10.310.1012",
+        "itemName": "16 cm kalınlıkta",
+        "unit": "m²",
+        "price": "228.02"
+      },
+      {
+        "itemCode": "10.310.1021",
+        "itemName": "8 cm kalınlıkta",
+        "unit": "m²",
+        "price": "81.07"
+      },
+      {
+        "itemCode": "10.310.1022",
+        "itemName": "16 cm kalınlıkta",
+        "unit": "m²",
+        "price": "152.01"
+      },
+      {
+        "itemCode": "10.310.1031",
+        "itemName": "8 cm kalınlıkta",
+        "unit": "m²",
+        "price": "162.15"
+      },
+      {
+        "itemCode": "10.310.1032",
+        "itemName": "16 cm kalınlıkta",
+        "unit": "m²",
+        "price": "263.49"
+      },
+      {
+        "itemCode": "10.310.1041",
+        "itemName": "8 cm kalınlıkta",
+        "unit": "m²",
+        "price": "121.61"
+      },
+      {
+        "itemCode": "10.310.1042",
+        "itemName": "16 cm kalınlıkta",
+        "unit": "m²",
+        "price": "192.55"
+      },
+      {
+        "itemCode": "10.310.1051",
+        "itemName": "5 cm kalınlıkta",
+        "unit": "m²",
+        "price": "136.81"
+      },
+      {
+        "itemCode": "10.310.1052",
+        "itemName": "10 cm kalınlıkta",
+        "unit": "m²",
+        "price": "228.02"
+      },
+      {
+        "itemCode": "10.310.1053",
+        "itemName": "15 cm kalınlıkta",
+        "unit": "m²",
+        "price": "324.30"
+      },
+      {
+        "itemCode": "10.310.1061",
+        "itemName": "2 cm kalınlıkta",
+        "unit": "m²",
+        "price": "212.82"
+      },
+      {
+        "itemCode": "10.310.1062",
+        "itemName": "2,5 cm kalınlıkta",
+        "unit": "m²",
+        "price": "243.22"
+      },
+      {
+        "itemCode": "10.170.1001",
+        "itemName": "15-16 mm kalınlıkta",
+        "unit": "m²",
+        "price": "1016.41"
+      },
+      {
+        "itemCode": "10.170.1011",
+        "itemName": "15-16 mm kalınlıkta",
+        "unit": "m²",
+        "price": "930.59"
+      },
+      {
+        "itemCode": "10.170.1021",
+        "itemName": "15-16 mm kalınlıkta",
+        "unit": "m²",
+        "price": "825.12"
+      },
+      {
+        "itemCode": "10.170.1031",
+        "itemName": "15-16 mm kalınlıkta",
+        "unit": "m²",
+        "price": "770.32"
+      },
+      {
+        "itemCode": "10.170.1041",
+        "itemName": "15-16 mm kalınlıkta",
+        "unit": "m²",
+        "price": "684.50"
+      },
+      {
+        "itemCode": "10.170.1051",
+        "itemName": "15-16 mm kalınlıkta",
+        "unit": "m²",
+        "price": "599.71"
+      },
+      {
+        "itemCode": "10.170.1201",
+        "itemName": "AC1 Sınıf 21",
+        "unit": "m²",
+        "price": "279.18"
+      },
+      {
+        "itemCode": "10.170.1202",
+        "itemName": "AC3 Sınıf 23-31",
+        "unit": "m²",
+        "price": "320.54"
+      },
+      {
+        "itemCode": "10.170.1203",
+        "itemName": "AC4 Sınıf 32",
+        "unit": "m²",
+        "price": "376.37"
+      },
+      {
+        "itemCode": "10.170.1251",
+        "itemName": "5-6 mm kalınlıkta, AC 4 Sınıf 32 Sudan Etkilenmeyen PVC Parke Heterojen Grup T (TS EN ISO 10581)",
+        "unit": "m²",
+        "price": "682.43"
+      },
+      {
+        "itemCode": "10.170.1301",
+        "itemName": "Mekanik Yolla Kilitlenen, Modüler Yer Kaplamaları (6 mm SPC) (Sınıf 21 – 22 – 23)",
+        "unit": "m²",
+        "price": "352.19"
+      },
+      {
+        "itemCode": "10.170.1302",
+        "itemName": "Mekanik Yolla Kilitlenen, Modüler Yer Kaplamaları (4 mm SPC) (Sınıf 31 – 32 – 33) (Kendinden Şilteli)",
+        "unit": "m²",
+        "price": "418.54"
+      },
+      {
+        "itemCode": "10.170.1303",
+        "itemName": "Mekanik Yolla Kilitlenen, Modüler Yer Kaplamaları (5 mm SPC) (Sınıf 31 – 32 – 33) (Kendinden Şilteli)",
+        "unit": "m²",
+        "price": "469.59"
+      },
+      {
+        "itemCode": "10.170.1304",
+        "itemName": "Mekanik Yolla Kilitlenen, Modüler Yer Kaplamaları (6 mm SPC) (Sınıf 31 – 32 – 33) (Kendinden Şilteli)",
+        "unit": "m²",
+        "price": "520.63"
+      },
+      {
+        "itemCode": "10.170.1305",
+        "itemName": "Mekanik Yolla Kilitlenen, Modüler Yer Kaplamaları (4 mm SPC) (Sınıf 34) (Kendinden Şilteli)",
+        "unit": "m²",
+        "price": "449.17"
+      },
+      {
+        "itemCode": "10.201.3001",
+        "itemName": "Tavan U 28 profilli 0.55 mm kalınlıkta, yanak yüksekliği en az 27 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥100N/mm2 olan sacdan mamul, ≥Z100 (TU28)",
+        "unit": "m",
+        "price": "13.05"
+      },
+      {
+        "itemCode": "10.201.3002",
+        "itemName": "Tavan C 60 profilli en az 60x27 mm ebatlarında ve 0.55 mm kalınlıkta, sıcak daldırma galvanizli, akma dayanımı en az ≥100N/mm2 olan sacdan mamul, ≥Z100 (TC60)",
+        "unit": "m",
+        "price": "22.56"
+      },
+      {
+        "itemCode": "10.201.3003",
+        "itemName": "Duvar C 50 profilli 0.55 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥100N/mm2 olan sacdan mamul, ≥Z100 (DC50)",
+        "unit": "m",
+        "price": "28.63"
+      },
+      {
+        "itemCode": "10.201.3004",
+        "itemName": "Duvar C 50 profilli 0.90 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z275 (DC50)",
+        "unit": "m",
+        "price": "43.50"
+      },
+      {
+        "itemCode": "10.201.3005",
+        "itemName": "Duvar C 75 profilli 0.55 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥100N/mm2 olan sacdan mamul, ≥Z100 (DC75)",
+        "unit": "m",
+        "price": "32.88"
+      },
+      {
+        "itemCode": "10.201.3006",
+        "itemName": "Duvar C 75 profilli 0.90 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z275 (DC100)",
+        "unit": "m",
+        "price": "51.18"
+      },
+      {
+        "itemCode": "10.201.3007",
+        "itemName": "Duvar C 100 profilli 0.55 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥100N/mm2 olan sacdan mamul, ≥Z100 (DC100)",
+        "unit": "m",
+        "price": "37.63"
+      },
+      {
+        "itemCode": "10.201.3008",
+        "itemName": "Duvar C 100 profilli 0.90 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z275 (DC100)",
+        "unit": "m",
+        "price": "66.96"
+      },
+      {
+        "itemCode": "10.201.3009",
+        "itemName": "Duvar C 125 profilli 0.50 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (DC125)",
+        "unit": "m",
+        "price": "42.08"
+      },
+      {
+        "itemCode": "10.201.3010",
+        "itemName": "Duvar C 125 profilli 0.60 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (DC125)",
+        "unit": "m",
+        "price": "46.03"
+      },
+      {
+        "itemCode": "10.201.3011",
+        "itemName": "Duvar C 125 profilli 0.90 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z275 (DC125)",
+        "unit": "m",
+        "price": "72.93"
+      },
+      {
+        "itemCode": "10.201.3012",
+        "itemName": "Duvar C 150 profilli 0.50 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (DC150)",
+        "unit": "m",
+        "price": "43.40"
+      },
+      {
+        "itemCode": "10.201.3013",
+        "itemName": "Duvar C 150 profilli 0.60 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (DC150)",
+        "unit": "m",
+        "price": "50.27"
+      },
+      {
+        "itemCode": "10.201.3014",
+        "itemName": "Duvar C 150 profilli 0.90 mm kalınlıkta, yanak yüksekliği en az 47 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z275 (DC150)",
+        "unit": "m",
+        "price": "78.80"
+      },
+      {
+        "itemCode": "10.201.3015",
+        "itemName": "Duvar U 125 profilli 0.50 mm kalınlıkta, yanak yüksekliği en az 38 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (DU125)",
+        "unit": "m",
+        "price": "34.70"
+      },
+      {
+        "itemCode": "10.202.3001",
+        "itemName": "Duvar U 50 profilli 2 mm kalınlıkta delikli, yanak yüksekliği en az 40 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (U50)",
+        "unit": "m",
+        "price": "137.47"
+      },
+      {
+        "itemCode": "10.202.3002",
+        "itemName": "Duvar U 75 profilli 2 mm kalınlıkta delikli, yanak yüksekliği en az 40 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (U75)",
+        "unit": "m",
+        "price": "160.23"
+      },
+      {
+        "itemCode": "10.202.3003",
+        "itemName": "Duvar U 100 profilli 2 mm kalınlıkta delikli, yanak yüksekliği en az 40 mm, sıcak daldırma galvanizli, akma dayanımı en az ≥140N/mm2 olan sacdan mamul, ≥Z100 (U100)",
+        "unit": "m",
+        "price": "186.93"
+      },
+      {
+        "itemCode": "10.240.1001",
+        "itemName": "Beyaz Mermer",
+        "unit": "m²",
+        "price": "529.89"
+      },
+      {
+        "itemCode": "10.240.1002",
+        "itemName": "Afyon Bal (Afyon)",
+        "unit": "m²",
+        "price": "690.89"
+      },
+      {
+        "itemCode": "10.240.1003",
+        "itemName": "Afyon Beyaz (Afyon)",
+        "unit": "m²",
+        "price": "913.03"
+      },
+      {
+        "itemCode": "10.240.1004",
+        "itemName": "Afyon Gri (Afyon)",
+        "unit": "m²",
+        "price": "448.37"
+      },
+      {
+        "itemCode": "10.240.1005",
+        "itemName": "Afyon Kaplanpostu (Afyon)",
+        "unit": "m²",
+        "price": "448.37"
+      },
+      {
+        "itemCode": "10.240.1006",
+        "itemName": "Afyon Kaymak (Afyon)",
+        "unit": "m²",
+        "price": "761.20"
+      },
+      {
+        "itemCode": "10.240.1007",
+        "itemName": "Afyon Şeker (Afyon)",
+        "unit": "m²",
+        "price": "882.46"
+      },
+      {
+        "itemCode": "10.240.1008",
+        "itemName": "Aydın Gri (Aydın)",
+        "unit": "m²",
+        "price": "564.53"
+      },
+      {
+        "itemCode": "10.240.1009",
+        "itemName": "Bursa Kemalpaşa Beyaz (Bursa)",
+        "unit": "m²",
+        "price": "635.86"
+      },
+      {
+        "itemCode": "10.240.1010",
+        "itemName": "Çanakkale Biga Beyaz (Çanakkale)",
+        "unit": "m²",
+        "price": "709.23"
+      },
+      {
+        "itemCode": "10.240.1011",
+        "itemName": "Çanakkale Sedef (Çanakkale)",
+        "unit": "m²",
+        "price": "709.23"
+      }
+    ]
+  },
+  "csb_2026_mart_mekanik_bf": {
+    "id": "csb_2026_mart_mekanik_bf",
+    "title": "ÇŞB 2026 Mart Ayı Güncel Mekanik Tesisat Birim Fiyat Listesi",
+    "fileName": "2026-MART-MEKAN-K-TES-SAT-F-YAT-L-STES-20260303131328.pdf",
+    "documentHash": "d001ef5b268530f0a73157278db623fa0ce5ceb38b2a5ed7f5767f54ea6ba338",
+    "licenseReference": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK — 2026 Mart Ayı Güncel Mekanik Tesisat Fiyat Listesi (03.03.2026)",
+    "validityStart": "2026-03-01",
+    "validityEnd": "2026-12-31",
+    "totalMatchedInPdf": 5679,
+    "rows": [
+      {
+        "itemCode": "25.100.1001",
+        "itemName": "25x40 cm vidal ı (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1196.58"
+      },
+      {
+        "itemCode": "25.100.1002",
+        "itemName": "28x35 cm vidal ı. (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1128.18"
+      },
+      {
+        "itemCode": "25.100.1003",
+        "itemName": "28x45 cm vidal ı. (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1351.45"
+      },
+      {
+        "itemCode": "25.100.1004",
+        "itemName": "35x45 cm K öş e tipi vidal ı (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1612.14"
+      },
+      {
+        "itemCode": "25.100.1005",
+        "itemName": "35x45 cm vidal ı (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1288.20"
+      },
+      {
+        "itemCode": "25.100.1006",
+        "itemName": "36x44 cm Tezgah alt ı veya üst ü oval lavabo (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1461.14"
+      },
+      {
+        "itemCode": "25.100.1007",
+        "itemName": "37x45 cm Konsollu Yar ım Ayakl ı Tk. (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "2094.81"
+      },
+      {
+        "itemCode": "25.100.1008",
+        "itemName": "41x50 cm Yar ım Ayakl ı Tk vidal ı (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "2050.94"
+      },
+      {
+        "itemCode": "25.100.1009",
+        "itemName": "40x50 cm vidal ı (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1343.70"
+      },
+      {
+        "itemCode": "25.100.1010",
+        "itemName": "40x50 cm. Tezgah alt ı veya üst ü oval lavabo (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1512.76"
+      },
+      {
+        "itemCode": "25.100.1011",
+        "itemName": "45x45 cm K öş e tipi vidal ı (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1828.96"
+      },
+      {
+        "itemCode": "25.100.1012",
+        "itemName": "45x55 cm Yar ım Ayakl ı Tk (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "2154.19"
+      },
+      {
+        "itemCode": "25.120.1101",
+        "itemName": "Bataryalı TS EN 200 veya TSEN 817 ye uygun pirinç sifonlu, TS-EN 274- 1-2-3 (Birinci s ınıf) (Montaj Bedeli: 608,79 TL)",
+        "unit": "Ad",
+        "price": "4189.89"
+      },
+      {
+        "itemCode": "25.120.1102",
+        "itemName": "Bataryal ı, sifonu özel plastik tasl ı (Birinci S ınıf) (Montaj Bedeli: 608,79 TL)",
+        "unit": "Ad",
+        "price": "3338.56"
+      },
+      {
+        "itemCode": "25.120.1103",
+        "itemName": "Uzun musluklu TS EN 200; pirin ç sifonlu TS -EN 274 -1-2-3 (Birinci s ınıf) (Montaj Bedeli: 373,90 TL)",
+        "unit": "Ad",
+        "price": "1870.41"
+      },
+      {
+        "itemCode": "25.120.1104",
+        "itemName": "Uzun musluklu TS EN 200; plastik sifonlu (Birinci s ınıf) (Montaj Bedeli: 373,90 TL)",
+        "unit": "Ad",
+        "price": "1019.09"
+      },
+      {
+        "itemCode": "25.120.1201",
+        "itemName": "Bataryal ı pirin ç sifonlu (Sifon TS -EN 274 -1-2-3) (Birinci s ınıf) (Montaj Bedeli: 608,79 TL)",
+        "unit": "Ad",
+        "price": "4189.89"
+      },
+      {
+        "itemCode": "25.120.1202",
+        "itemName": "Bataryal ı, sifonu özel plastik tasl ı (Birinci s ınıf) (Montaj Bedeli: 608,79 TL)",
+        "unit": "Ad",
+        "price": "3338.56"
+      },
+      {
+        "itemCode": "25.160.1101",
+        "itemName": "0 - 5 20 - 40 (Montaj Bedeli: 3.307,75 TL)",
+        "unit": "Ad",
+        "price": "44527.60"
+      },
+      {
+        "itemCode": "25.160.1102",
+        "itemName": "0 - 5 40 - 60 (Montaj Bedeli: 3.787,19 TL)",
+        "unit": "Ad",
+        "price": "49679.73"
+      },
+      {
+        "itemCode": "25.160.1103",
+        "itemName": "0 - 5 60 - 80 (Montaj Bedeli: 4.134,69 TL)",
+        "unit": "Ad",
+        "price": "54674.25"
+      },
+      {
+        "itemCode": "25.160.1104",
+        "itemName": "5 - 15 20 - 40 (Montaj Bedeli: 4.614,13 TL)",
+        "unit": "Ad",
+        "price": "62483.66"
+      },
+      {
+        "itemCode": "25.160.1105",
+        "itemName": "5 - 15 40 - 60 (Montaj Bedeli: 4.961,63 TL)",
+        "unit": "Ad",
+        "price": "69801.69"
+      },
+      {
+        "itemCode": "25.160.1106",
+        "itemName": "5 - 15 60 - 80 (Montaj Bedeli: 5.441,06 TL)",
+        "unit": "Ad",
+        "price": "81231.15"
+      },
+      {
+        "itemCode": "25.160.1107",
+        "itemName": "15 - 30 20 - 40 (Montaj Bedeli: 5.788,56 TL)",
+        "unit": "Ad",
+        "price": "93529.98"
+      },
+      {
+        "itemCode": "25.160.1108",
+        "itemName": "15 - 30 40 - 60 (Montaj Bedeli: 6.268,00 TL)",
+        "unit": "Ad",
+        "price": "114728.45"
+      },
+      {
+        "itemCode": "25.160.1109",
+        "itemName": "15 - 30 60 - 80 (Montaj Bedeli: 6.615,50 TL)",
+        "unit": "Ad",
+        "price": "121853.93"
+      },
+      {
+        "itemCode": "25.160.1201",
+        "itemName": "0 - 10 30 - 60 (Montaj Bedeli: 4.134,69 TL)",
+        "unit": "Ad",
+        "price": "89680.95"
+      },
+      {
+        "itemCode": "25.160.1202",
+        "itemName": "0 - 10 60 - 90 (Montaj Bedeli: 4.961,63 TL)",
+        "unit": "Ad",
+        "price": "101419.41"
+      },
+      {
+        "itemCode": "25.160.1203",
+        "itemName": "10 - 30 30 - 60 (Montaj Bedeli: 5.375,10 TL)",
+        "unit": "Ad",
+        "price": "110818.84"
+      },
+      {
+        "itemCode": "25.200.1111",
+        "itemName": "(375.000 kcal/h) 436 kW (Montaj Bedeli: 18.499,56 TL)",
+        "unit": "Ad",
+        "price": "355650.39"
+      },
+      {
+        "itemCode": "25.200.1112",
+        "itemName": "(425.000 kcal/h) 494 kW (Montaj Bedeli: 20.562,40 TL)",
+        "unit": "Ad",
+        "price": "393522.58"
+      },
+      {
+        "itemCode": "25.200.1113",
+        "itemName": "(475.000 kcal/h) 552 kW (Montaj Bedeli: 25.167,14 TL)",
+        "unit": "Ad",
+        "price": "436780.73"
+      },
+      {
+        "itemCode": "25.200.1114",
+        "itemName": "(525.000 kcal/h) 611 kW (Montaj Bedeli: 27.036,86 TL)",
+        "unit": "Ad",
+        "price": "471745.01"
+      },
+      {
+        "itemCode": "25.200.1115",
+        "itemName": "(575.000 kcal/h) 669 kW (Montaj Bedeli: 28.642,74 TL)",
+        "unit": "Ad",
+        "price": "508901.69"
+      },
+      {
+        "itemCode": "25.200.1116",
+        "itemName": "(625.000 kcal/h) 727 kW (Montaj Bedeli: 30.248,61 TL)",
+        "unit": "Ad",
+        "price": "670809.34"
+      },
+      {
+        "itemCode": "25.200.1117",
+        "itemName": "(675.000 kcal/h) 785 kW (Montaj Bedeli: 32.813,35 TL)",
+        "unit": "Ad",
+        "price": "707244.29"
+      },
+      {
+        "itemCode": "25.200.1118",
+        "itemName": "(725.000 kcal/h) 843 kW (Montaj Bedeli: 33.508,36 TL)",
+        "unit": "Ad",
+        "price": "760295.93"
+      },
+      {
+        "itemCode": "25.200.1119",
+        "itemName": "(775.000 kcal/h) 901 kW (Montaj Bedeli: 35.378,09 TL)",
+        "unit": "Ad",
+        "price": "774705.39"
+      },
+      {
+        "itemCode": "25.200.1120",
+        "itemName": "(825.000 kcal/h) 959 kW (Montaj Bedeli: 36.073,10 TL)",
+        "unit": "Ad",
+        "price": "781088.53"
+      },
+      {
+        "itemCode": "25.200.1121",
+        "itemName": "(875.000 kcal/h) 1017 kW (Montaj Bedeli: 36.768,11 TL)",
+        "unit": "Ad",
+        "price": "810999.83"
+      },
+      {
+        "itemCode": "25.200.1201",
+        "itemName": "30.000 kcal/h 37 kW (Montaj Bedeli: 5.128,94 TL)",
+        "unit": "Ad",
+        "price": "62579.03"
+      },
+      {
+        "itemCode": "25.240.1101",
+        "itemName": "5.000 1.300 (Montaj Bedeli: 1.306,38 TL)",
+        "unit": "Ad",
+        "price": "31163.36"
+      },
+      {
+        "itemCode": "25.240.1102",
+        "itemName": "6.000 1.300 (Montaj Bedeli: 1.306,38 TL)",
+        "unit": "Ad",
+        "price": "32938.44"
+      },
+      {
+        "itemCode": "25.240.1103",
+        "itemName": "8.000 1.500 (Montaj Bedeli: 1.306,38 TL)",
+        "unit": "Ad",
+        "price": "37037.71"
+      },
+      {
+        "itemCode": "25.240.1104",
+        "itemName": "10.000 1.500 (Montaj Bedeli: 2.001,39 TL)",
+        "unit": "Ad",
+        "price": "40184.63"
+      },
+      {
+        "itemCode": "25.240.1105",
+        "itemName": "12.000 2.500 (Montaj Bedeli: 2.001,39 TL)",
+        "unit": "Ad",
+        "price": "42444.96"
+      },
+      {
+        "itemCode": "25.240.1106",
+        "itemName": "16.000 3.000 (Montaj Bedeli: 2.001,39 TL)",
+        "unit": "Ad",
+        "price": "53006.01"
+      },
+      {
+        "itemCode": "25.240.1107",
+        "itemName": "20.000 3.000 (Montaj Bedeli: 2.348,89 TL)",
+        "unit": "Ad",
+        "price": "63020.64"
+      },
+      {
+        "itemCode": "25.240.1108",
+        "itemName": "24.000 4.000 (Montaj Bedeli: 2.348,89 TL)",
+        "unit": "Ad",
+        "price": "70721.14"
+      },
+      {
+        "itemCode": "25.240.1109",
+        "itemName": "28.000 4.000 (Montaj Bedeli: 2.348,89 TL)",
+        "unit": "Ad",
+        "price": "71678.91"
+      },
+      {
+        "itemCode": "25.240.1110",
+        "itemName": "32.000 5.000 (Montaj Bedeli: 3.307,75 TL)",
+        "unit": "Ad",
+        "price": "76175.15"
+      },
+      {
+        "itemCode": "25.240.1111",
+        "itemName": "40.000 5.500 (Montaj Bedeli: 3.307,75 TL)",
+        "unit": "Ad",
+        "price": "102086.11"
+      },
+      {
+        "itemCode": "25.240.1112",
+        "itemName": "50.000 6.000 (Montaj Bedeli: 3.307,75 TL)",
+        "unit": "Ad",
+        "price": "109441.81"
+      },
+      {
+        "itemCode": "25.300.1101",
+        "itemName": "1/2\" 15 21,3/2,60 1,22 (Montaj Bedeli: 130,64 TL)",
+        "unit": "m",
+        "price": "186.19"
+      },
+      {
+        "itemCode": "25.300.1102",
+        "itemName": "3/4\" 20 26,9/2,60 1,57 (Montaj Bedeli: 165,39 TL)",
+        "unit": "m",
+        "price": "236.58"
+      },
+      {
+        "itemCode": "25.300.1103",
+        "itemName": "1\" 25 33,7/3,20 2,43 (Montaj Bedeli: 200,15 TL)",
+        "unit": "m",
+        "price": "306.30"
+      },
+      {
+        "itemCode": "25.300.1104",
+        "itemName": "1 1/4\" 32 42,4/3,20 3,13 (Montaj Bedeli: 296,04 TL)",
+        "unit": "m",
+        "price": "435.88"
+      },
+      {
+        "itemCode": "25.300.1105",
+        "itemName": "1 1/2\" 40 48,3/3,20 3,60 (Montaj Bedeli: 330,79 TL)",
+        "unit": "m",
+        "price": "492.24"
+      },
+      {
+        "itemCode": "25.300.1106",
+        "itemName": "2\" 50 60,3/3,60 5,10 (Montaj Bedeli: 365,54 TL)",
+        "unit": "m",
+        "price": "593.10"
+      },
+      {
+        "itemCode": "25.300.1107",
+        "itemName": "2 1/2\" 65 76,1/3,60 6,54 (Montaj Bedeli: 365,54 TL)",
+        "unit": "m",
+        "price": "661.75"
+      },
+      {
+        "itemCode": "25.300.1108",
+        "itemName": "3\" 80 88,9/4,00 8,53 (Montaj Bedeli: 400,29 TL)",
+        "unit": "m",
+        "price": "786.76"
+      },
+      {
+        "itemCode": "25.300.1109",
+        "itemName": "4\" 100 114,3/4,50 12,50 (Montaj Bedeli: 435,03 TL)",
+        "unit": "m",
+        "price": "1007.10"
+      },
+      {
+        "itemCode": "25.300.1110",
+        "itemName": "5\" 125 139,7/5,00 17,10 (Montaj Bedeli: 469,78 TL)",
+        "unit": "m",
+        "price": "1256.70"
+      },
+      {
+        "itemCode": "25.300.1111",
+        "itemName": "6\" 150 165,1/5,00 20,40 (Montaj Bedeli: 530,90 TL)",
+        "unit": "m",
+        "price": "1486.91"
+      },
+      {
+        "itemCode": "25.300.1201",
+        "itemName": "44,5/2,5 2,6 (Montaj Bedeli: 296,04 TL)",
+        "unit": "m",
+        "price": "451.14"
+      },
+      {
+        "itemCode": "25.102.1101",
+        "itemName": "Birinci s ınıf: (Musluk TS EN 200; Sifon TS -EN 274 -1-2-3) (Montaj Bedeli: 304,40 TL)",
+        "unit": "Tk",
+        "price": "1607.11"
+      },
+      {
+        "itemCode": "25.102.1201",
+        "itemName": "Birinci s ınıf: (Batarya TS EN 200 veya TS EN 817 ;Sifon TS -EN 274 -1-2-3) (Montaj Bedeli: 478,14 TL)",
+        "unit": "Tk",
+        "price": "2918.95"
+      },
+      {
+        "itemCode": "25.102.1301",
+        "itemName": "Birinci s ınıf: (Batarya TS EN 200 veya TS EN 817 ; Sifon TS -EN 274 -1-2-3) (Montaj Bedeli: 478,14 TL)",
+        "unit": "Tk",
+        "price": "3432.06"
+      },
+      {
+        "itemCode": "25.102.1401",
+        "itemName": "Birinci s ınıf: (Musluk TS EN 200; Sifon TS - EN 274 -1-2-3 ) (Montaj Bedeli: 478,14 TL)",
+        "unit": "Tk",
+        "price": "1648.39"
+      },
+      {
+        "itemCode": "25.102.1501",
+        "itemName": "Birinci sınıf: (Batarya TS EN 200 veyaTS EN 817' e uygun ; Sifon TS-EN 274 -1-2-3) (Montaj Bedeli: 478,14 TL)",
+        "unit": "Tk",
+        "price": "2308.11"
+      },
+      {
+        "itemCode": "25.102.1601",
+        "itemName": "Birinci sınıf: (Batarya TS EN 200 veyaTS EN 817'ye uygun , sifon TS-EN 274 -1-2-3) (Montaj Bedeli: 478,14 TL)",
+        "unit": "Tk",
+        "price": "3016.69"
+      },
+      {
+        "itemCode": "25.102.1701",
+        "itemName": "Birinci sınıf: (Batarya TS EN 200 veyaTS EN 817'ye uygun, sifon TS-EN 274 -1-2-3) (Montaj Bedeli: 478,14 TL)",
+        "unit": "Tk",
+        "price": "4175.38"
+      },
+      {
+        "itemCode": "25.104.1001",
+        "itemName": "Takriben 40x50 cm. (Montaj Bedeli: 269,65 TL)",
+        "unit": "Ad",
+        "price": "1103.28"
+      },
+      {
+        "itemCode": "25.104.1002",
+        "itemName": "Takriben 40x60 cm. (Montaj Bedeli: 269,65 TL)",
+        "unit": "Ad",
+        "price": "1231.53"
+      },
+      {
+        "itemCode": "25.104.1003",
+        "itemName": "Engelli kullan ımına uygun takriben 50x70 cm. ayna (Montaj Bedeli: 347,51 TL)",
+        "unit": "Ad",
+        "price": "2604.71"
+      },
+      {
+        "itemCode": "25.104.1010",
+        "itemName": "Flotal ayna (birimi m ²) (Montaj Bedeli: 695,01 TL)",
+        "unit": "m²",
+        "price": "2105.76"
+      },
+      {
+        "itemCode": "25.106.1101",
+        "itemName": "Takriben 50x10 cm. Ekstra s ınıf (Montaj Bedeli: 269,65 TL)",
+        "unit": "Ad",
+        "price": "660.70"
+      },
+      {
+        "itemCode": "25.106.1102",
+        "itemName": "Takriben 60x15 cm. Ekstra S ınıf (Montaj Bedeli: 269,65 TL)",
+        "unit": "Ad",
+        "price": "725.23"
+      },
+      {
+        "itemCode": "25.106.1103",
+        "itemName": "Takriben 50x15 cm. Ekstra S ınıf (Montaj Bedeli: 269,65 TL)",
+        "unit": "Ad",
+        "price": "676.19"
+      },
+      {
+        "itemCode": "25.106.1104",
+        "itemName": "Takriben 68x15 cm. Ekstra S ınıf (Montaj Bedeli: 269,65 TL)",
+        "unit": "Ad",
+        "price": "823.31"
+      },
+      {
+        "itemCode": "25.108.1101",
+        "itemName": "Plastik sifonlu Takriben 50x60 cm Ekstra S ınıf (Montaj Bedeli: 1.121,68 TL)",
+        "unit": "Ad",
+        "price": "2840.73"
+      },
+      {
+        "itemCode": "25.108.1102",
+        "itemName": "Plastik sifonlu Takriben 60x60 cm Ekstra S ınıf (Montaj Bedeli: 1.121,68 TL)",
+        "unit": "Ad",
+        "price": "2857.50"
+      },
+      {
+        "itemCode": "25.110.1002",
+        "itemName": "Plastik rezervuarl ı: (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "2393.43"
+      },
+      {
+        "itemCode": "25.110.1003",
+        "itemName": "Bas ınçlı hela y ıkay ıcılı (Montaj Bedeli: 903,53 TL)",
+        "unit": "Tk",
+        "price": "6024.56"
+      },
+      {
+        "itemCode": "25.112.1101",
+        "itemName": "Takriben 35x55 cm. (Ekstra kalite) (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "12726.53"
+      },
+      {
+        "itemCode": "25.112.1103",
+        "itemName": "Bedensel engelli için, takriben 35x70 cm. Ekstra kalite. (Klozetin oturma yerinin yerden y üksekli ği 43 cm ile 48 cm aras ında olmal ıdır.) (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "14175.85"
+      },
+      {
+        "itemCode": "25.112.1104",
+        "itemName": "Duvara tam dayal ı tip, Takriben 65x35 cm.(Ekstra kalite) (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "13689.30"
+      },
+      {
+        "itemCode": "25.112.1201",
+        "itemName": "Takriben 35x55 cm. (Ekstra kalite) (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "13117.58"
+      },
+      {
+        "itemCode": "25.112.1203",
+        "itemName": "Bedensel engelli için, takriben 35x70 cm. Ekstra kalite. (Klozetin oturma yerinin yerden y üksekli ği 43 cm ile 48 cm aras ında olmal ıdır.) (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "13449.25"
+      },
+      {
+        "itemCode": "25.112.1204",
+        "itemName": "Duvara tam dayal ı tip, Takriben 65x35 cm.(Ekstra kalite) (Montaj Bedeli: 843,03 TL)",
+        "unit": "Tk",
+        "price": "13678.58"
+      },
+      {
+        "itemCode": "25.112.1250",
+        "itemName": "Çocuk Kullan ımına Uygun Rezervuarl ı Alafranga Hela ve Tesisat ı (Montaj Bedeli: 695,01 TL)",
+        "unit": "Tk",
+        "price": "14541.09"
+      },
+      {
+        "itemCode": "25.112.1260",
+        "itemName": "Gömme Rezervuarl ı Alaturka Tuvalet Seti (Montaj Bedeli: 1.390,03 TL)",
+        "unit": "Tk",
+        "price": "7679.70"
+      },
+      {
+        "itemCode": "25.112.1270",
+        "itemName": "Gömme Rezervuarl ı Alafranga Tuvalet Seti (Montaj Bedeli: 1.529,03 TL)",
+        "unit": "Tk",
+        "price": "9402.34"
+      },
+      {
+        "itemCode": "25.114.1101",
+        "itemName": "Pirin ç sifonlu takriben 30x25x40 cm. Ekstra s ınıf (Montaj Bedeli: 1.035,45 TL)",
+        "unit": "Tk",
+        "price": "6536.10"
+      },
+      {
+        "itemCode": "25.114.1102",
+        "itemName": "Pirin ç sifonlu takriben 35x40x50 cm. Ekstra s ınıf (Montaj Bedeli: 1.035,45 TL)",
+        "unit": "Tk",
+        "price": "6554.18"
+      },
+      {
+        "itemCode": "25.114.1103",
+        "itemName": "Özel plastik tasl ı takriben 30x25x40 cm. Ekstra s ınıf (Montaj Bedeli: 1.035,45 TL)",
+        "unit": "Tk",
+        "price": "5607.78"
+      },
+      {
+        "itemCode": "25.114.1104",
+        "itemName": "Özel plastik tasl ı takriben 35x40x50 cm. Ekstra s ınıf (Montaj Bedeli: 1.035,45 TL)",
+        "unit": "Tk",
+        "price": "5625.85"
+      },
+      {
+        "itemCode": "25.114.1150",
+        "itemName": "Kendinden Sifonlu Pisuvar (Montaj Bedeli: 1.035,45 TL)",
+        "unit": "Tk",
+        "price": "5875.38"
+      },
+      {
+        "itemCode": "25.114.1250",
+        "itemName": "Fotoselli Kendinden Sifonlu Pisuvar ve Tesisat ı (Montaj Bedeli: 1.104,95 TL)",
+        "unit": "Tk",
+        "price": "13365.45"
+      },
+      {
+        "itemCode": "25.114.3101",
+        "itemName": "Takriben 40x50 cm. Ekstra. (Montaj Bedeli: 400,29 TL)",
+        "unit": "Ad",
+        "price": "1693.45"
+      },
+      {
+        "itemCode": "25.118.1101",
+        "itemName": "Paslanmaz çelik takriben 50x50x15 cm. (Montaj Bedeli: 539,28 TL)",
+        "unit": "Ad",
+        "price": "2175.06"
+      },
+      {
+        "itemCode": "25.118.1102",
+        "itemName": "Paslanmaz çelik takriben 50x60x22 cm. (Montaj Bedeli: 539,28 TL)",
+        "unit": "Ad",
+        "price": "2214.65"
+      },
+      {
+        "itemCode": "25.118.1201",
+        "itemName": "Paslanmaz çelik takriben 50x100 cm. (Montaj Bedeli: 539,28 TL)",
+        "unit": "Ad",
+        "price": "2586.24"
+      },
+      {
+        "itemCode": "25.118.1301",
+        "itemName": "Paslanmaz çelik takriben 50x95 cm. (Montaj Bedeli: 539,28 TL)",
+        "unit": "Ad",
+        "price": "3822.34"
+      },
+      {
+        "itemCode": "25.118.1401",
+        "itemName": "Paslanmaz çelik (Takriben 60x140 cm.) (Montaj Bedeli: 539,28 TL)",
+        "unit": "Ad",
+        "price": "4140.30"
+      },
+      {
+        "itemCode": "25.125.1101",
+        "itemName": "Akrilik boy k üveti beyaz 70x150x40 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "9127.38"
+      },
+      {
+        "itemCode": "25.125.1102",
+        "itemName": "Akrilik boy k üveti beyaz 70x160x40 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "9602.60"
+      },
+      {
+        "itemCode": "25.125.1103",
+        "itemName": "Akrilik boy k üveti beyaz 70x170x40 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "9958.38"
+      },
+      {
+        "itemCode": "25.125.1104",
+        "itemName": "Akrilik boy k üveti beyaz 75x150x40 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "10160.41"
+      },
+      {
+        "itemCode": "25.125.1105",
+        "itemName": "Akrilik boy k üveti beyaz 75x170x40 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "10706.79"
+      },
+      {
+        "itemCode": "25.125.1106",
+        "itemName": "Akrilik oturmal ı küvet, beyaz 75x105x30 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "7127.39"
+      },
+      {
+        "itemCode": "25.125.1107",
+        "itemName": "Akrilik oturmal ı küvet,.beyaz 75x120x30 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "9708.06"
+      },
+      {
+        "itemCode": "25.125.1108",
+        "itemName": "Akrilik oturmal ı küvet, beyaz 75x130x30 cm. (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "10328.14"
+      },
+      {
+        "itemCode": "25.125.1201",
+        "itemName": "Akrilik ön panel (Oturmal ı küvet i çin) 105 cm . beyaz (Montaj Bedeli: 304,40 TL)",
+        "unit": "Ad",
+        "price": "2099.81"
+      },
+      {
+        "itemCode": "25.125.1202",
+        "itemName": "Akrilik ön panel (Oturmal ı küvet i çin) 120 cm . beyaz (Montaj Bedeli: 304,40 TL)",
+        "unit": "Ad",
+        "price": "2477.19"
+      },
+      {
+        "itemCode": "25.125.1203",
+        "itemName": "Akrilik ön panel (Oturmal ı kuvet i çin) 130 cm. beyaz (Montaj Bedeli: 304,40 TL)",
+        "unit": "Ad",
+        "price": "2629.68"
+      },
+      {
+        "itemCode": "25.125.1204",
+        "itemName": "Akrilik ön panel (Boy k üveti i çin) 140 cm .beyaz (Montaj Bedeli: 304,40 TL)",
+        "unit": "Ad",
+        "price": "2350.13"
+      },
+      {
+        "itemCode": "25.126.1110",
+        "itemName": "Köş e Tipi(Kare veya Dikd örtgen) (Montaj Bedeli: 1.390,03 TL)",
+        "unit": "m²",
+        "price": "4376.84"
+      },
+      {
+        "itemCode": "25.126.1120",
+        "itemName": "Ön Cephe Tipi (Montaj Bedeli: 1.390,03 TL)",
+        "unit": "m²",
+        "price": "4204.44"
+      },
+      {
+        "itemCode": "25.126.1130",
+        "itemName": "Oval Tip (Montaj Bedeli: 1.390,03 TL)",
+        "unit": "m²",
+        "price": "4416.41"
+      },
+      {
+        "itemCode": "25.127.1001",
+        "itemName": "Duş borusu ve duş baş süzgeci ile komple banyo batarya; (TS EN 200) Birinci kalite. (Montaj Bedeli: 747,79 TL)",
+        "unit": "Tk",
+        "price": "3976.91"
+      },
+      {
+        "itemCode": "25.127.1002",
+        "itemName": "Gömme baş ve el duşlu banyo takımı;el duşu ve buna su veren klapeli gömme banyo batarya tak ımı, banyo doldurma a ğı zl ı (Montaj Bedeli: 747,79 TL)",
+        "unit": "Tk",
+        "price": "5713.01"
+      },
+      {
+        "itemCode": "25.127.1003",
+        "itemName": "El duşu ve askısı ile komple batarya (TS EN 200'e veya TS EN 817' ye uygun) (Montaj Bedeli: 747,79 TL)",
+        "unit": "Tk",
+        "price": "3687.58"
+      },
+      {
+        "itemCode": "25.130.1101",
+        "itemName": "1/2\" K ısa musluk, s üzge çli rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "537.29"
+      },
+      {
+        "itemCode": "25.130.1102",
+        "itemName": "1/2\" Uzun musluk, s üzge çli rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "587.45"
+      },
+      {
+        "itemCode": "25.130.1103",
+        "itemName": "1/2\" Pisuvar Muslu ğu, rozetler ve ara ba ğlant ı borusu dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "519.29"
+      },
+      {
+        "itemCode": "25.130.1104",
+        "itemName": "1/2\" Lavabo-eviye muslukları; döner borulu, rozetli perlatörlü tezgah üzeri veya duvardan montajl ı. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "1257.45"
+      },
+      {
+        "itemCode": "25.130.1105",
+        "itemName": "3/4\" Kurna muslu ğu, rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "744.34"
+      },
+      {
+        "itemCode": "25.130.1115",
+        "itemName": "3/4\" Seramik salmastral ı Osmanl ı muslu ğu rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "879.36"
+      },
+      {
+        "itemCode": "25.130.1201",
+        "itemName": "1/2\" Ara Musluk, klasik salmastral ı rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "422.84"
+      },
+      {
+        "itemCode": "25.130.1202",
+        "itemName": "1/2\" Ara Musluk, 90 derece seramik salmastral ı rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "523.15"
+      },
+      {
+        "itemCode": "25.130.1203",
+        "itemName": "1/2\" Ara Musluk, 180 derece seramik salmastral ı rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "780.34"
+      },
+      {
+        "itemCode": "25.130.1204",
+        "itemName": "Filtreli ara musluk, paslanmaz çelik filtre, rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "415.13"
+      },
+      {
+        "itemCode": "25.130.1205",
+        "itemName": "1/2\" Klasik salmastral ı, ankastre ara kesme valf ı, rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "902.51"
+      },
+      {
+        "itemCode": "25.130.1207",
+        "itemName": "1/2\" seramik salmastral ı, ankastre ara kesme valf ı, rozet dahil. (Montaj Bedeli: 80,76 TL)",
+        "unit": "Ad",
+        "price": "1020.83"
+      },
+      {
+        "itemCode": "25.132.1001",
+        "itemName": "Ankastre S ıvı Sabun K öpük Dispenseri (Montaj Bedeli: 218,80 TL)",
+        "unit": "Ad",
+        "price": "596.18"
+      },
+      {
+        "itemCode": "25.132.1002",
+        "itemName": "Duvar Tipi S ıvı Sabun K öpük Dispenseri (Montaj Bedeli: 218,80 TL)",
+        "unit": "Ad",
+        "price": "647.00"
+      },
+      {
+        "itemCode": "25.132.1003",
+        "itemName": "Duvar Tipi Fotoselli S ıvı Sabun Dispanseri (Montaj Bedeli: 278,01 TL)",
+        "unit": "Ad",
+        "price": "3289.43"
+      },
+      {
+        "itemCode": "25.135.1101",
+        "itemName": "Takriben 16x16 cm. (Montaj Bedeli: 55,99 TL)",
+        "unit": "Ad",
+        "price": "292.16"
+      }
+    ]
+  },
+  "csb_2026_mart_elektrik_bf": {
+    "id": "csb_2026_mart_elektrik_bf",
+    "title": "ÇŞB 2026 Mart Ayı Güncel Elektrik Tesisat Birim Fiyat Listesi",
+    "fileName": "elektrik-birim-fiyatlar-2026-mart-20260303131345.pdf",
+    "documentHash": "f7a0e31ed57f8feb46a38e4e3e183b6f9f277a5bae519e0d1a434f0917be1934",
+    "licenseReference": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK — 2026 Mart Ayı Güncel Elektrik Tesisat Fiyat Listesi (03.03.2026)",
+    "validityStart": "2026-03-01",
+    "validityEnd": "2026-12-31",
+    "totalMatchedInPdf": 5910,
+    "rows": [
+      {
+        "itemCode": "35.100.1101",
+        "itemName": "En ölçüsü en az 400 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.468,85 TL)",
+        "unit": "Ad",
+        "price": "31756.19"
+      },
+      {
+        "itemCode": "35.100.1102",
+        "itemName": "En ölçüsü en az 500 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.468,85 TL)",
+        "unit": "Ad",
+        "price": "34597.20"
+      },
+      {
+        "itemCode": "35.100.1103",
+        "itemName": "En ölçüsü en az 600 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.882,31 TL)",
+        "unit": "Ad",
+        "price": "37851.68"
+      },
+      {
+        "itemCode": "35.100.1104",
+        "itemName": "En ölçüsü en az 700 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.882,31 TL)",
+        "unit": "Ad",
+        "price": "40675.14"
+      },
+      {
+        "itemCode": "35.100.1105",
+        "itemName": "En ölçüsü en az 800 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 4.295,79 TL)",
+        "unit": "Ad",
+        "price": "43877.01"
+      },
+      {
+        "itemCode": "35.100.1106",
+        "itemName": "En ölçüsü en az 900 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 4.295,79 TL)",
+        "unit": "Ad",
+        "price": "49559.04"
+      },
+      {
+        "itemCode": "35.100.1107",
+        "itemName": "En ölçüsü en az 1000 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 4.709,25 TL)",
+        "unit": "Ad",
+        "price": "55566.84"
+      },
+      {
+        "itemCode": "35.100.1108",
+        "itemName": "En ölçüsü en az 1200 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 5.122,73 TL)",
+        "unit": "Ad",
+        "price": "61732.48"
+      },
+      {
+        "itemCode": "35.100.1151",
+        "itemName": "En ölçüsü en az 400 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.468,85 TL)",
+        "unit": "Ad",
+        "price": "34597.20"
+      },
+      {
+        "itemCode": "35.100.1152",
+        "itemName": "En ölçüsü en az 500 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.468,85 TL)",
+        "unit": "Ad",
+        "price": "37438.21"
+      },
+      {
+        "itemCode": "35.100.1153",
+        "itemName": "En ölçüsü en az 600 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.882,31 TL)",
+        "unit": "Ad",
+        "price": "40675.14"
+      },
+      {
+        "itemCode": "35.100.1154",
+        "itemName": "En ölçüsü en az 700 mm olan galvanizli dikili tip sac pano. (Montaj Bedeli: 3.882,31 TL)",
+        "unit": "Ad",
+        "price": "43463.54"
+      },
+      {
+        "itemCode": "35.110.1101",
+        "itemName": "3 x 10A'den 3 x 63A'e kadar, Icu: 35 kA, I1: (0,8-1)In (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "4586.95"
+      },
+      {
+        "itemCode": "35.110.1102",
+        "itemName": "3 x 100 A'e kadar Icu: 35 kA, I1: (0,8-1)In (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "4656.44"
+      },
+      {
+        "itemCode": "35.110.1103",
+        "itemName": "3 x 125 A'e kadar Icu: 35 kA, I1: (0,8-1)In (Montaj Bedeli: 618,43 TL)",
+        "unit": "Ad",
+        "price": "5975.99"
+      },
+      {
+        "itemCode": "35.110.1104",
+        "itemName": "3 x 160 A'e kadar Icu: 35 kA, I1: (0,8-1)In (Montaj Bedeli: 618,43 TL)",
+        "unit": "Ad",
+        "price": "6152.28"
+      },
+      {
+        "itemCode": "35.110.1105",
+        "itemName": "3 x 200 A'e kadar Icu: 35 kA, I1: (0,8-1)In (Montaj Bedeli: 687,94 TL)",
+        "unit": "Ad",
+        "price": "7567.99"
+      },
+      {
+        "itemCode": "35.110.1106",
+        "itemName": "3 x 250 A'e kadar Icu: 35 kA, I1: (0,8-1)In (Montaj Bedeli: 687,94 TL)",
+        "unit": "Ad",
+        "price": "8433.40"
+      },
+      {
+        "itemCode": "35.110.1151",
+        "itemName": "3 x 400 A'e kadar, Icu: 35 kA, I1: (0,8-1)In, I3: (6-10)In, (Montaj Bedeli: 687,94 TL)",
+        "unit": "Ad",
+        "price": "21126.16"
+      },
+      {
+        "itemCode": "35.110.1152",
+        "itemName": "3 x 500 A'e kadar, Icu: 35 kA, I1: (0,8-1)In, I3: (6-10)In, (Montaj Bedeli: 757,44 TL)",
+        "unit": "Ad",
+        "price": "24320.76"
+      },
+      {
+        "itemCode": "35.110.1153",
+        "itemName": "3 x 630 A'e kadar, Icu: 35 kA, I1: (0,8-1)In, I3: (6-10)In, (Montaj Bedeli: 757,44 TL)",
+        "unit": "Ad",
+        "price": "28263.21"
+      },
+      {
+        "itemCode": "35.110.1154",
+        "itemName": "3 x 800 A.e kadar, Icu: 35 kA, I1: (0,8-1) In, I3:(6-10)In, (Montaj Bedeli: 826,94 TL)",
+        "unit": "Ad",
+        "price": "45176.26"
+      },
+      {
+        "itemCode": "35.110.1201",
+        "itemName": "3 x 10A'den 3 x 63A'e kadar, Icu: 50 kA, I1: (0,8-1)In (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "4699.14"
+      },
+      {
+        "itemCode": "35.110.1202",
+        "itemName": "3 x 100A'e kadar, Icu: 50 kA, I1: (0,8-1)In, (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "4768.63"
+      },
+      {
+        "itemCode": "35.120.1101",
+        "itemName": "2 x 16 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "1163.96"
+      },
+      {
+        "itemCode": "35.120.1102",
+        "itemName": "2 x 25 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "1268.86"
+      },
+      {
+        "itemCode": "35.120.1103",
+        "itemName": "2 x 40 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "1323.05"
+      },
+      {
+        "itemCode": "35.120.1104",
+        "itemName": "3 x 25 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "1234.78"
+      },
+      {
+        "itemCode": "35.120.1105",
+        "itemName": "3 x 40 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "1671.85"
+      },
+      {
+        "itemCode": "35.120.1106",
+        "itemName": "3 x 63 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "2142.14"
+      },
+      {
+        "itemCode": "35.120.1107",
+        "itemName": "3 x 100 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "3474.35"
+      },
+      {
+        "itemCode": "35.120.1108",
+        "itemName": "3 x 125 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "4191.16"
+      },
+      {
+        "itemCode": "35.120.1109",
+        "itemName": "3 x 160 A.e kadar (Montaj Bedeli: 760,98 TL)",
+        "unit": "Ad",
+        "price": "4663.21"
+      },
+      {
+        "itemCode": "35.120.1151",
+        "itemName": "2 x 16 A.e kadar (Montaj Bedeli: 413,48 TL)",
+        "unit": "Ad",
+        "price": "697.58"
+      },
+      {
+        "itemCode": "35.120.1152",
+        "itemName": "2 x 25 A.e kadar (Montaj Bedeli: 413,48 TL)",
+        "unit": "Ad",
+        "price": "755.28"
+      },
+      {
+        "itemCode": "35.120.1153",
+        "itemName": "2 x 40 A.e kadar (Montaj Bedeli: 413,48 TL)",
+        "unit": "Ad",
+        "price": "889.89"
+      },
+      {
+        "itemCode": "35.135.1101",
+        "itemName": "0 - 60 V.a kadar (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "1152.05"
+      },
+      {
+        "itemCode": "35.135.1102",
+        "itemName": "0 -500 V.a kadar (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "1187.25"
+      },
+      {
+        "itemCode": "35.135.1201",
+        "itemName": "10 - 300 V AC (L-N), 10-500 V AC (L-L) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "1403.45"
+      },
+      {
+        "itemCode": "35.135.1301",
+        "itemName": "0 - 25 A.e kadar (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "980.88"
+      },
+      {
+        "itemCode": "35.135.1302",
+        "itemName": "25 - 100 A.e kadar (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "1043.86"
+      },
+      {
+        "itemCode": "35.135.1303",
+        "itemName": "100 - 2000 A.e kadar (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "1043.86"
+      },
+      {
+        "itemCode": "35.135.1401",
+        "itemName": "1-10000/5A akım trafolu (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "1404.50"
+      },
+      {
+        "itemCode": "35.135.1501",
+        "itemName": "3 pozisyonlu (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "822.24"
+      },
+      {
+        "itemCode": "35.135.1502",
+        "itemName": "4 pozisyonlu (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "926.36"
+      },
+      {
+        "itemCode": "35.135.1503",
+        "itemName": "5 ve daha fazla pozisyonlu (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "948.71"
+      },
+      {
+        "itemCode": "35.135.1701",
+        "itemName": "Multimetre:(TS IEC 61554'e uygun) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "2817.90"
+      },
+      {
+        "itemCode": "35.135.1702",
+        "itemName": "Multimetre:(TS IEC 61554'e uygun) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "2863.55"
+      },
+      {
+        "itemCode": "35.160.1101",
+        "itemName": "Normal sorti. (Montaj Bedeli: 1.716,75 TL)",
+        "unit": "Ad",
+        "price": "2278.68"
+      },
+      {
+        "itemCode": "35.160.1102",
+        "itemName": "Komütatör sorti. (Montaj Bedeli: 2.299,78 TL)",
+        "unit": "Ad",
+        "price": "3013.76"
+      },
+      {
+        "itemCode": "35.160.1103",
+        "itemName": "Vaevien sorti. (Montaj Bedeli: 2.582,61 TL)",
+        "unit": "Ad",
+        "price": "3371.13"
+      },
+      {
+        "itemCode": "35.160.1104",
+        "itemName": "Paralel sorti. (Montaj Bedeli: 863,50 TL)",
+        "unit": "Ad",
+        "price": "1079.86"
+      },
+      {
+        "itemCode": "35.160.1105",
+        "itemName": "Avize sortisi (Montaj Bedeli: 1.989,93 TL)",
+        "unit": "Ad",
+        "price": "2613.54"
+      },
+      {
+        "itemCode": "35.160.1106",
+        "itemName": "Paralel avize sorti (Montaj Bedeli: 1.067,18 TL)",
+        "unit": "Ad",
+        "price": "1345.23"
+      },
+      {
+        "itemCode": "35.160.1107",
+        "itemName": "Trifaze sorti. (Montaj Bedeli: 2.381,06 TL)",
+        "unit": "Ad",
+        "price": "3272.61"
+      },
+      {
+        "itemCode": "35.160.1108",
+        "itemName": "Trifaze paralel sorti (Montaj Bedeli: 1.067,18 TL)",
+        "unit": "Ad",
+        "price": "1406.91"
+      },
+      {
+        "itemCode": "35.160.1151",
+        "itemName": "Güvenlik hatlı normal sorti. (Montaj Bedeli: 2.137,68 TL)",
+        "unit": "Ad",
+        "price": "2864.41"
+      },
+      {
+        "itemCode": "35.160.1152",
+        "itemName": "Güvenlik hatlı komütatör sorti (Montaj Bedeli: 2.924,40 TL)",
+        "unit": "Ad",
+        "price": "3864.89"
+      },
+      {
+        "itemCode": "35.160.1153",
+        "itemName": "Güvenlik hatlı vaevien sorti (Montaj Bedeli: 3.064,04 TL)",
+        "unit": "Ad",
+        "price": "4079.05"
+      },
+      {
+        "itemCode": "35.160.1154",
+        "itemName": "Güvenlik hatlı paralel sorti (Montaj Bedeli: 1.067,18 TL)",
+        "unit": "Ad",
+        "price": "1345.23"
+      },
+      {
+        "itemCode": "35.170.1101",
+        "itemName": "Sıva üstü, min. 30x30 ebatlarında LED li tavan armatürü (ışık akısı en az 1000 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "2319.56"
+      },
+      {
+        "itemCode": "35.170.1102",
+        "itemName": "Sıva altı, min. 30x30 ebatlarında LED li tavan armatürü (ışık akısı en az 1000 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "2024.70"
+      },
+      {
+        "itemCode": "35.170.1103",
+        "itemName": "Sıva üstü, min. 30x60 ebatlarında LED li tavan armatürü (ışık akısı en az 1500 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "2834.73"
+      },
+      {
+        "itemCode": "35.170.1104",
+        "itemName": "Sıva altı, min. 30x60 ebatlarında LED li tavan armatürü (ışık akısı en az 1500 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "2505.16"
+      },
+      {
+        "itemCode": "35.170.1105",
+        "itemName": "Sıva üstü, min. 60x60 ebatlarında LED li tavan armatürü (ışık akısı en az 3900 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "3391.51"
+      },
+      {
+        "itemCode": "35.170.1106",
+        "itemName": "Sıva altı, min. 60x60 ebatlarında LED li tavan armatürü (ışık akısı en az 3900 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "2524.25"
+      },
+      {
+        "itemCode": "35.170.1107",
+        "itemName": "Sıva üstü, min. 30x120 ebatlarında LED li tavan armatürü (ışık akısı en az 3900 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "3790.46"
+      },
+      {
+        "itemCode": "35.170.1108",
+        "itemName": "Sıva altı, min. 30x120 ebatlarında LED li tavan armatürü (ışık akısı en az 3900 lm, armatür ışıksal verimi en az 120 lm/w olan) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "3443.55"
+      },
+      {
+        "itemCode": "35.170.1201",
+        "itemName": "Led endirek armatür ışık akısı en az 2000 lm, armatür ışıksal verimi en az 70 lm/w olan. (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "3946.56"
+      },
+      {
+        "itemCode": "35.170.1202",
+        "itemName": "Led endirek armatür ışık akısı en az 3000 lm, armatür ışıksal verimi en az 70 lm/w olan. (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "4258.79"
+      },
+      {
+        "itemCode": "35.170.1301",
+        "itemName": "Sıva üstü, min. 60x60 ebatlarında LED li steril ortam tavan armatürü (ışık akısı en az 3300 lm, armatür ışıksal verimi en az 120 lm/w) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "6325.49"
+      },
+      {
+        "itemCode": "35.170.1302",
+        "itemName": "Sıva altı, min. 60x60 ebatlarında LED li steril ortam tavan armatürü (ışık akısı en az 3300 lm, armatür ışıksal verimi en az 120 lm/w) (Montaj Bedeli: 271,08 TL)",
+        "unit": "Ad",
+        "price": "5770.44"
+      },
+      {
+        "itemCode": "35.200.1101",
+        "itemName": "En az 270 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3490.48"
+      },
+      {
+        "itemCode": "35.200.1102",
+        "itemName": "En az 275 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3565.10"
+      },
+      {
+        "itemCode": "35.200.1103",
+        "itemName": "En az 280 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3602.40"
+      },
+      {
+        "itemCode": "35.200.1104",
+        "itemName": "En az 285 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3686.35"
+      },
+      {
+        "itemCode": "35.200.1105",
+        "itemName": "En az 290 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3732.99"
+      },
+      {
+        "itemCode": "35.200.1106",
+        "itemName": "En az 295 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3891.55"
+      },
+      {
+        "itemCode": "35.200.1107",
+        "itemName": "En az 300 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "3938.19"
+      },
+      {
+        "itemCode": "35.200.1108",
+        "itemName": "En az 305 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "4031.46"
+      },
+      {
+        "itemCode": "35.200.1109",
+        "itemName": "En az 310 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "4078.09"
+      },
+      {
+        "itemCode": "35.200.1110",
+        "itemName": "En az 315 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "4134.06"
+      },
+      {
+        "itemCode": "35.200.1111",
+        "itemName": "En az 320 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "4218.00"
+      },
+      {
+        "itemCode": "35.200.1112",
+        "itemName": "En az 325 Wp çıkış gücüne sahip fotovoltaik panel. (Montaj Bedeli: 447,95 TL)",
+        "unit": "Ad",
+        "price": "4292.63"
+      },
+      {
+        "itemCode": "35.105.1110",
+        "itemName": "16 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "291.29"
+      },
+      {
+        "itemCode": "35.105.1111",
+        "itemName": "25 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "291.29"
+      },
+      {
+        "itemCode": "35.105.1112",
+        "itemName": "40 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "342.00"
+      },
+      {
+        "itemCode": "35.105.1113",
+        "itemName": "63 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "401.15"
+      },
+      {
+        "itemCode": "35.105.1120",
+        "itemName": "Bir fazlı nötr kesmeli 16 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "477.50"
+      },
+      {
+        "itemCode": "35.105.1121",
+        "itemName": "Bir fazlı nötr kesmeli 25 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "477.50"
+      },
+      {
+        "itemCode": "35.105.1122",
+        "itemName": "Bir fazlı nötr kesmeli 40 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "647.59"
+      },
+      {
+        "itemCode": "35.105.1123",
+        "itemName": "Bir fazlı nötr kesmeli 63 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "850.46"
+      },
+      {
+        "itemCode": "35.105.1130",
+        "itemName": "Üç fazlı 16 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "717.18"
+      },
+      {
+        "itemCode": "35.105.1131",
+        "itemName": "Üç fazlı 25 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "717.18"
+      },
+      {
+        "itemCode": "35.105.1132",
+        "itemName": "Üç fazlı 40 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "827.03"
+      },
+      {
+        "itemCode": "35.105.1133",
+        "itemName": "Üç fazlı 63 A'e kadar (en az 3 kA) (Montaj Bedeli: 165,39 TL)",
+        "unit": "Ad",
+        "price": "1028.14"
+      },
+      {
+        "itemCode": "35.115.1001",
+        "itemName": "2 x 25 A.e kadar (30 m A) (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1490.10"
+      },
+      {
+        "itemCode": "35.115.1002",
+        "itemName": "2 x 40 A.e kadar (30 m A) (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1520.64"
+      },
+      {
+        "itemCode": "35.115.1003",
+        "itemName": "2 x 63 A.e kadar (30 m A) (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1735.89"
+      },
+      {
+        "itemCode": "35.115.1004",
+        "itemName": "2 x 80 A.e kadar (30 m A) (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "2474.65"
+      },
+      {
+        "itemCode": "35.115.1005",
+        "itemName": "2 x 100 A.e kadar (30 m A) (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "3471.94"
+      },
+      {
+        "itemCode": "35.115.1020",
+        "itemName": "4 x 25 A.e kadar (30 m A) (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "1969.99"
+      },
+      {
+        "itemCode": "35.115.1021",
+        "itemName": "4 x 40 A.e kadar (30 m A) (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "2015.56"
+      },
+      {
+        "itemCode": "35.115.1022",
+        "itemName": "4 x 63 A.e kadar (30 m A) (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "2223.68"
+      },
+      {
+        "itemCode": "35.115.1023",
+        "itemName": "4 x 80 A.e kadar (30 m A) (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "3363.36"
+      },
+      {
+        "itemCode": "35.115.1024",
+        "itemName": "4 x 100 A.e kadar (30 m A) (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "5031.58"
+      },
+      {
+        "itemCode": "35.115.1040",
+        "itemName": "4 x 125 A.e kadar (30 m A) (Montaj Bedeli: 548,93 TL)",
+        "unit": "Ad",
+        "price": "9405.54"
+      },
+      {
+        "itemCode": "35.115.1041",
+        "itemName": "2 x 25 A.e kadar (300 m A) (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1440.86"
+      },
+      {
+        "itemCode": "35.116.1110",
+        "itemName": "4P 100 kA (I imp; 10/350µs) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "19494.79"
+      },
+      {
+        "itemCode": "35.116.1205",
+        "itemName": "1P 20 kA (I max; 8/20µs) (Montaj Bedeli: 261,29 TL)",
+        "unit": "Ad",
+        "price": "1869.01"
+      },
+      {
+        "itemCode": "35.116.1206",
+        "itemName": "2P 20 kA (I max; 8/20µs) (Montaj Bedeli: 261,29 TL)",
+        "unit": "Ad",
+        "price": "2598.73"
+      },
+      {
+        "itemCode": "35.116.1207",
+        "itemName": "3P 20 kA (I max; 8/20µs) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "4908.38"
+      },
+      {
+        "itemCode": "35.116.1208",
+        "itemName": "4P 20 kA (I max; 8/20µs) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "5468.81"
+      },
+      {
+        "itemCode": "35.116.1209",
+        "itemName": "1P 20 kA (I max; 8/20µs) İK (Montaj Bedeli: 261,29 TL)",
+        "unit": "Ad",
+        "price": "2029.79"
+      },
+      {
+        "itemCode": "35.116.1210",
+        "itemName": "2P 20 kA (I max; 8/20µs) İK (Montaj Bedeli: 261,29 TL)",
+        "unit": "Ad",
+        "price": "2832.48"
+      },
+      {
+        "itemCode": "35.116.1211",
+        "itemName": "3P 20 kA (I max; 8/20µs) İK (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "5366.14"
+      },
+      {
+        "itemCode": "35.116.1212",
+        "itemName": "4P 20 kA (I max; 8/20µs) İK (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "5982.61"
+      },
+      {
+        "itemCode": "35.116.1213",
+        "itemName": "1P 40 kA (I max; 8/20µs) (Montaj Bedeli: 261,29 TL)",
+        "unit": "Ad",
+        "price": "2110.15"
+      },
+      {
+        "itemCode": "35.116.1214",
+        "itemName": "2P 40 kA (I max; 8/20µs) (Montaj Bedeli: 261,29 TL)",
+        "unit": "Ad",
+        "price": "2949.35"
+      },
+      {
+        "itemCode": "35.116.1215",
+        "itemName": "3P 40 kA (I max; 8/20µs) (Montaj Bedeli: 330,79 TL)",
+        "unit": "Ad",
+        "price": "5595.03"
+      },
+      {
+        "itemCode": "35.125.1101",
+        "itemName": "3 x 10 A.e kadar (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1207.03"
+      },
+      {
+        "itemCode": "35.125.1102",
+        "itemName": "3 x 16 A.e kadar (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1381.71"
+      },
+      {
+        "itemCode": "35.125.1103",
+        "itemName": "3 x 25 A.e kadar (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "1668.59"
+      },
+      {
+        "itemCode": "35.125.1104",
+        "itemName": "3 x 40 A.e kadar (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "3224.73"
+      },
+      {
+        "itemCode": "35.125.1105",
+        "itemName": "3 x 63 A.e kadar (Montaj Bedeli: 479,44 TL)",
+        "unit": "Ad",
+        "price": "4923.50"
+      },
+      {
+        "itemCode": "35.125.1106",
+        "itemName": "3 x 100 A.e kadar (Montaj Bedeli: 618,43 TL)",
+        "unit": "Ad",
+        "price": "7820.60"
+      },
+      {
+        "itemCode": "35.125.1107",
+        "itemName": "3 x 160 A.e kadar (Montaj Bedeli: 757,44 TL)",
+        "unit": "Ad",
+        "price": "12398.88"
+      },
+      {
+        "itemCode": "35.125.1108",
+        "itemName": "3 x 200 A.e kadar (Montaj Bedeli: 896,44 TL)",
+        "unit": "Ad",
+        "price": "18065.31"
+      },
+      {
+        "itemCode": "35.125.1109",
+        "itemName": "3 x 300 A.e kadar (Montaj Bedeli: 896,44 TL)",
+        "unit": "Ad",
+        "price": "31480.85"
+      },
+      {
+        "itemCode": "35.125.1110",
+        "itemName": "3 x 400 A.e kadar (Montaj Bedeli: 1.174,45 TL)",
+        "unit": "Ad",
+        "price": "39323.24"
+      },
+      {
+        "itemCode": "35.125.1111",
+        "itemName": "3 x 630 A e kadar (Montaj Bedeli: 1.452,45 TL)",
+        "unit": "Ad",
+        "price": "73272.30"
+      },
+      {
+        "itemCode": "35.125.1112",
+        "itemName": "3 x 800 A e kadar (Montaj Bedeli: 1.869,46 TL)",
+        "unit": "Ad",
+        "price": "101991.60"
+      },
+      {
+        "itemCode": "35.130.2101",
+        "itemName": "En az 5 kademeli (Montaj Bedeli: 1.946,68 TL)",
+        "unit": "Ad",
+        "price": "10738.20"
+      },
+      {
+        "itemCode": "35.130.2102",
+        "itemName": "En az 8 kademeli (Montaj Bedeli: 2.854,06 TL)",
+        "unit": "Ad",
+        "price": "12676.26"
+      },
+      {
+        "itemCode": "35.130.2103",
+        "itemName": "En az 12 kademeli (Montaj Bedeli: 3.761,43 TL)",
+        "unit": "Ad",
+        "price": "14818.26"
+      },
+      {
+        "itemCode": "35.130.2201",
+        "itemName": "En az 12 kademeli (Montaj Bedeli: 3.761,43 TL)",
+        "unit": "Ad",
+        "price": "15186.69"
+      },
+      {
+        "itemCode": "35.130.2202",
+        "itemName": "En az 18 kademeli (Montaj Bedeli: 5.576,18 TL)",
+        "unit": "Ad",
+        "price": "20422.43"
+      },
+      {
+        "itemCode": "35.130.2203",
+        "itemName": "En az 12 kademeli (MODBUS, RTU, Bilgisayar Haberleşmeli) (Montaj Bedeli: 4.881,16 TL)",
+        "unit": "Ad",
+        "price": "16745.01"
+      },
+      {
+        "itemCode": "35.130.2204",
+        "itemName": "En az 18 kademeli (MODBUS, RTU, Bilgisayar Haberleşmeli) (Montaj Bedeli: 6.695,91 TL)",
+        "unit": "Ad",
+        "price": "21914.96"
+      },
+      {
+        "itemCode": "35.130.2301",
+        "itemName": "En az 12 kademeli (Montaj Bedeli: 3.761,43 TL)",
+        "unit": "Ad",
+        "price": "17094.54"
+      }
+    ]
+  },
+  "csb_2026_yapi_yaklasik_maliyet": {
+    "id": "csb_2026_yapi_yaklasik_maliyet",
+    "title": "ÇŞB 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Tebliği (I-A .. V-E Sınıfları)",
+    "fileName": "M-MARLIK-M-HEND-SL-K-TEBL-2026-20260204101544.pdf",
+    "documentHash": "5669ad594d6b980ca66bdd35a1721fb4ed159fc942905b7247e7ffce866f650a",
+    "licenseReference": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı — 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Hakkında Tebliğ (04.02.2026)",
+    "validityStart": "2026-01-01",
+    "validityEnd": "2026-12-31",
+    "totalMatchedInPdf": 18,
+    "rows": [
+      {
+        "itemCode": "YBM-2026-I-A",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — I. Sınıf (A) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "2600.00"
+      },
+      {
+        "itemCode": "YBM-2026-I-B",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — I. Sınıf (B) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "3900.00"
+      },
+      {
+        "itemCode": "YBM-2026-I-C",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — I. Sınıf (C) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "4200.00"
+      },
+      {
+        "itemCode": "YBM-2026-I-D",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — I. Sınıf (D) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "4800.00"
+      },
+      {
+        "itemCode": "YBM-2026-II-A",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — II. Sınıf (A) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "8100.00"
+      },
+      {
+        "itemCode": "YBM-2026-II-B",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — II. Sınıf (B) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "12500.00"
+      },
+      {
+        "itemCode": "YBM-2026-II-C",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — II. Sınıf (C) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "15100.00"
+      },
+      {
+        "itemCode": "YBM-2026-III-A",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — III. Sınıf (A) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "19800.00"
+      },
+      {
+        "itemCode": "YBM-2026-III-B",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — III. Sınıf (B) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "21050.00"
+      },
+      {
+        "itemCode": "YBM-2026-III-C",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — III. Sınıf (C) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "23400.00"
+      },
+      {
+        "itemCode": "YBM-2026-IV-A",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — IV. Sınıf (A) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "26450.00"
+      },
+      {
+        "itemCode": "YBM-2026-IV-B",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — IV. Sınıf (B) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "33900.00"
+      },
+      {
+        "itemCode": "YBM-2026-IV-C",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — IV. Sınıf (C) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "40500.00"
+      },
+      {
+        "itemCode": "YBM-2026-V-A",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — V. Sınıf (A) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "42350.00"
+      },
+      {
+        "itemCode": "YBM-2026-V-B",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — V. Sınıf (B) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "43850.00"
+      },
+      {
+        "itemCode": "YBM-2026-V-C",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — V. Sınıf (C) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "48750.00"
+      },
+      {
+        "itemCode": "YBM-2026-V-D",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — V. Sınıf (D) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "53500.00"
+      },
+      {
+        "itemCode": "YBM-2026-V-E",
+        "itemName": "2026 Yılı Yapı Yaklaşık Birim Maliyeti — V. Sınıf (E) Grubu Yapılar (KDV Hariç, %15 Genel Gider + %10 Yüklenici Kârı Dahil)",
+        "unit": "m²",
+        "price": "103500.00"
+      }
+    ]
+  },
+  "csb_2026_tuik_endeks_eslestirme": {
+    "id": "csb_2026_tuik_endeks_eslestirme",
+    "title": "ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (TÜFE 2023=100 & Yİ-ÜFE Alt Endeksleri)",
+    "fileName": "n-aat-rayi-ve-endeksler-T-fe-2023-100-10-04-26-1-20260410114608.pdf",
+    "documentHash": "3519e5a631d6043b72e7637e1521456f1da00e7a794f39655cc5c628ae76d93e",
+    "licenseReference": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK — 2026 Ocak İnşaat/Mekanik/Elektrik Rayiçleri TÜİK Endeks Eşleştirme Tablosu",
+    "validityStart": "2026-01-01",
+    "validityEnd": "2026-12-31",
+    "totalMatchedInPdf": 24,
+    "rows": [
+      {
+        "itemCode": "TUIK-TUFE-GENEL",
+        "itemName": "İşçilik Rayiçleri (10.100.1001–1062) — TÜFE Tüketici Fiyat Endeksi Genel (2023=100)",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-08.1-TAS-KUM",
+        "itemName": "Kum, Çakıl, Kırmataş ve Agrega Rayiçleri — TÜİK 08.1 Taş, Kum ve Kil Ocakçılığı Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-16.1-KERESTE",
+        "itemName": "Ahşap Kalıp ve Kereste Rayiçleri — TÜİK 16.1 Ağaçların Biçilmesi ve Planyalanması Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-19-BITUM-EPS",
+        "itemName": "Bitüm, Su Yalıtımı ve EPS/XPS Isı Yalıtım Levhaları — TÜİK 19 Kok ve Rafine Petrol Ürünleri Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-20.3-BOYA",
+        "itemName": "Boya, Vernik, Astar ve Yapı Kimyasalları — TÜİK 20.3 Boya, Vernik ve Benzeri Kaplayıcı Maddeler Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-22.2-PLASTIK-BORU",
+        "itemName": "PE, HDPE, PP-R ve PVC Boru / Profil Rayiçleri — TÜİK 22.2 Plastik Ürünler Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-23.1-CAM",
+        "itemName": "Düz Cam, Isıcam ve Temperli Cam Rayiçleri — TÜİK 23.1 Cam ve Cam Ürünleri Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-23.3-TUGLA-SERAMIK",
+        "itemName": "Tuğla, Kiremit, Seramik ve Porselen Kaplama — TÜİK 23.3 Kilden İnşaat Malzemeleri Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-23.4-VITRIFIYE",
+        "itemName": "Mekanik Vitrifiye (Lavabo, Klozet, Eviye — 20.100.xxxx) — TÜİK 23.4 Diğer Porselen ve Seramik Ürünler Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-23.5-CIMENTO-KIREC",
+        "itemName": "Portland Çimentosu (CEM I/II 42.5) ve Kireç (10.130.1201) — TÜİK 23.5 Çimento, Kireç ve Alçı Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-23.6-HAZIR-BETON",
+        "itemName": "Hazır Beton (C16/20–C50/60) ve Gazbeton / Beton Elemanlar — TÜİK 23.6 Beton, Çimento ve Alçıdan Eşyalar Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-23.7-MERMER-DOGAL-TAS",
+        "itemName": "Mermer, Traverten, Granit ve Doğaltaş Rayiçleri (10.240.xxxx) — TÜİK 23.7 Taş (Kesilmiş ve Şekil Verilmiş) Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-24.1-DEMIR-CELIK",
+        "itemName": "Nervürlü Beton Çeliği (Ø8–Ø32), Çelik Hasır ve Profil — TÜİK 24.1 Ana Demir-Çelik ve Ferro Alaşımlar Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-24.2-CELIK-BORU",
+        "itemName": "Çelik Boru, İçi Boş Profiller ve Bağlantı Parçaları — TÜİK 24.2 Çelikten Tüpler ve Borular Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-25.1-YAPISAL-METAL",
+        "itemName": "Metal Kapı, Pencere, Korkuluk ve Yapısal Çelik — TÜİK 25.1 Yapısal Metal Ürünler Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-25.2-KAZAN-RADYATOR",
+        "itemName": "Merkezi Isıtma Radyatörleri ve Buhar/Sıcak Su Kazanları — TÜİK 25.2 Metal Tank, Rezervuar ve Radyatör Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-27.1-ELEKTRIK-PANO",
+        "itemName": "Dikili Tip Galvaniz Sac Panolar, Şalter ve Transformatörler (30.100.xxxx) — TÜİK 27.1 Elektrik Dağıtım ve Kontrol Cihazları",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-27.3-KABLO",
+        "itemName": "Enerji, Zayıf Akım, Fiber Optik Kablolar ve Tesisat Donanımı — TÜİK 27.3 Kablo ve Teller Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-27.4-AYDINLATMA",
+        "itemName": "LED Armatürler ve Elektrikli Aydınlatma Ekipmanları — TÜİK 27.4 Elektrikli Aydınlatma Ekipmanları Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-28.1-POMPA-VANA",
+        "itemName": "Sirkülasyon Pompaları, Hidroforlar, Vanalar ve Armatürler — TÜİK 28.1 Genel Amaçlı Makineler Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      },
+      {
+        "itemCode": "TUIK-28.2-KLIMA-HAVALANDIRMA",
+        "itemName": "Klima Santralleri, Fanlar, Chiller ve Asansör Sistemleri — TÜİK 28.2 Diğer Genel Amaçlı Makineler Endeksi",
+        "unit": "endeks",
+        "price": "100.00"
+      }
+    ]
+  }
+}

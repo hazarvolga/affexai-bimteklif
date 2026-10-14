@@ -28,7 +28,7 @@ ENV NODE_ENV=production \
     PUPPETEER_SKIP_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y chromium chromium-sandbox fonts-dejavu-core ca-certificates tini \
+    && apt-get install --no-install-recommends -y chromium chromium-sandbox fonts-dejavu-core ca-certificates tini poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules

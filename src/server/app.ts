@@ -96,6 +96,8 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
 
   app.use(requestIdMiddleware);
 
+  app.use("/api/admin/pricing-sources/:id/import-pdf", express.json({ limit: "50mb" }));
+
   app.use(express.json({
     limit: "1mb",
     verify: (req: any, _res, buffer) => {

@@ -195,9 +195,12 @@ export function PricingSources() {
     autoApprove: true,
   });
 
-  // CSV Import & Seal Modal State
+  // CSV / PDF / Official Catalog Import & Seal Modal State
   const [csvModalSource, setCsvModalSource] = useState<PricingDataSource | null>(null);
   const [importingCsv, setImportingCsv] = useState(false);
+  const [selectedOfficialCatalogId, setSelectedOfficialCatalogId] = useState<string>('csb_2026_mart_insaat_bf');
+  const [pdfBase64Data, setPdfBase64Data] = useState<string>('');
+  const [pdfFileSizeKb, setPdfFileSizeKb] = useState<number>(0);
   const [csvForm, setCsvForm] = useState({
     fileName: '',
     licenseReference: '',
@@ -229,6 +232,13 @@ export function PricingSources() {
   const openCsvModal = (s: PricingDataSource) => {
     const sample = getSampleCsvForSource(s);
     const nowYear = new Date().getFullYear();
+    setPdfBase64Data('');
+    setPdfFileSizeKb(0);
+    if (s.code.startsWith('tuik_') || s.category === 'tuik_index') {
+      setSelectedOfficialCatalogId('csb_2026_tuik_endeks_eslestirme');
+    } else {
+      setSelectedOfficialCatalogId('csb_2026_mart_insaat_bf');
+    }
     setCsvForm({
       fileName: sample.fileName,
       licenseReference: sample.licenseReference,
@@ -275,11 +285,89 @@ export function PricingSources() {
     }
   };
 
+  const handleOfficialCatalogImport = async () => {
+    if (!csvModalSource) return;
+    setImportingCsv(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/pricing-sources/${csvModalSource.id}/import-official-catalog`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          catalogId: selectedOfficialCatalogId,
+          licenseConfirmed: csvForm.licenseConfirmed,
+          validityStart: csvForm.validityStart,
+          validityEnd: csvForm.validityEnd,
+          autoApprove: csvForm.autoApprove,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.reused) {
+          toast.info('Bu resmi PDF kataloğu (aynı SHA-256 özetiyle) zaten yüklü ve mühürlü.');
+        } else {
+          toast.success(
+            `${data.catalogTitle || 'Resmi ÇŞB PDF Kataloğu'}: ${data.insertedCount} poz/fiyat SHA-256 ile mühürlendi ve canlı teklif havuzuna aktarıldı!`
+          );
+        }
+        setCsvModalSource(null);
+        await loadData();
+      } else {
+        toast.error(data.error || 'Resmi PDF kataloğu içe aktarılamadı.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setImportingCsv(false);
+    }
+  };
+
   const handleCsvImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!csvModalSource) return;
+
+    // If a PDF file was selected, send it to /import-pdf
+    if (pdfBase64Data) {
+      setImportingCsv(true);
+      try {
+        const res = await fetchWithAuth(`/api/admin/pricing-sources/${csvModalSource.id}/import-pdf`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pdfBase64: pdfBase64Data,
+            fileName: csvForm.fileName,
+            licenseReference: csvForm.licenseReference,
+            validityStart: csvForm.validityStart,
+            validityEnd: csvForm.validityEnd,
+            licenseConfirmed: csvForm.licenseConfirmed,
+            autoApprove: csvForm.autoApprove,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          if (data.reused) {
+            toast.info('Bu PDF dosyası (aynı SHA-256 özetiyle) zaten yüklü ve mühürlü.');
+          } else {
+            toast.success(
+              `PDF ayrıştırıldı: ${data.insertedCount} resmi poz/fiyat SHA-256 ile mühürlendi ve canlı teklif havuzuna aktarıldı!`
+            );
+          }
+          setCsvModalSource(null);
+          await loadData();
+        } else {
+          toast.error(data.error || 'PDF içe aktarılamadı.');
+        }
+      } catch {
+        toast.error('Bağlantı hatası.');
+      } finally {
+        setImportingCsv(false);
+      }
+      return;
+    }
+
     if (!csvForm.csvText.trim()) {
-      toast.error('Lütfen bir CSV dosyası seçin veya "Örnek 2026 Referans Verisi Doldur" butonuna tıklayın.');
+      toast.error(
+        'Lütfen üstten Resmi ÇŞB PDF Kataloğu seçin, bilgisayarınızdan bir .pdf / .csv dosyası yükleyin veya "Örnek CSV Doldur" butonuna tıklayın.'
+      );
       return;
     }
     setImportingCsv(true);
@@ -315,14 +403,36 @@ export function PricingSources() {
   const handleCsvFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    if (isPdf) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === 'string' ? reader.result : '';
+        const base64 = result.includes(',') ? result.split(',')[1] : result;
+        setPdfBase64Data(base64);
+        setPdfFileSizeKb(Math.round(file.size / 1024));
+        setCsvForm((prev) => ({
+          ...prev,
+          fileName: file.name,
+          licenseReference:
+            prev.licenseReference || `T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Resmi PDF (${file.name})`,
+        }));
+        toast.success(`"${file.name}" PDF dosyası (${(file.size / (1024 * 1024)).toFixed(2)} MB) ayrıştırmaya hazır.`);
+      };
+      reader.onerror = () => toast.error('PDF dosyası okunamadı.');
+      reader.readAsDataURL(file);
+      return;
+    }
     try {
+      setPdfBase64Data('');
+      setPdfFileSizeKb(0);
       const text = await file.text();
       setCsvForm((prev) => ({
         ...prev,
         fileName: file.name,
         csvText: text,
       }));
-      toast.success(`"${file.name}" dosyası okundu.`);
+      toast.success(`"${file.name}" CSV dosyası okundu.`);
     } catch {
       toast.error('Dosya okunamadı.');
     }
@@ -1120,7 +1230,7 @@ export function PricingSources() {
         </div>
       )}
 
-      {/* MODAL 2: LİSANSLI CSV / REFERANS KATALOG YÜKLEME & SHA-256 MÜHÜRLEME */}
+      {/* MODAL 2: LİSANSLI PDF / CSV / RESMİ ÇŞB KATALOG YÜKLEME & SHA-256 MÜHÜRLEME */}
       {csvModalSource && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="w-full max-w-2xl rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4 my-8">
@@ -1128,7 +1238,7 @@ export function PricingSources() {
               <div className="flex items-center gap-2">
                 <FileSpreadsheet size={18} className="text-indigo-400" />
                 <h3 className="text-base font-bold text-white">
-                  Resmi Katalog / CSV Yükle & SHA-256 ile Mühürle
+                  Resmi ÇŞB PDF / CSV Katalog Yükle & SHA-256 ile Mühürle
                 </h3>
               </div>
               <button
@@ -1140,12 +1250,66 @@ export function PricingSources() {
               </button>
             </div>
 
-            <form onSubmit={handleCsvImportSubmit} className="space-y-4 text-xs">
+            {/* OPTION A: 1-CLICK OFFICIAL ÇŞB 2026 PDF ARCHIVE IMPORT */}
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4 space-y-3 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-bold text-emerald-300 flex items-center gap-1.5">
+                  <ShieldCheck size={15} />
+                  1. Seçenek: Bakanlık 2026 Resmi PDF Arşivinden Tek Tıkla Mühürle (docs/fiyatlandirma-kaynaklari)
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  Orijinal PDF SHA-256 Mühürlü
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-300 leading-relaxed">
+                Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu'nun yayımladığı 2026 Mart güncel PDF listeleri ve 2026 Yapı Yaklaşık Maliyet Tebliği sistemde ayrıştırılmış olarak hazırdır. Seçip tek tıkla mühürleyebilirsiniz:
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  value={selectedOfficialCatalogId}
+                  onChange={(e) => setSelectedOfficialCatalogId(e.target.value)}
+                  className="flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                >
+                  <option value="csb_2026_mart_insaat_bf">
+                    ÇŞB 2026 Mart Güncel İnşaat Birim Fiyat Listesi (PDF — 15.xxx.xxxx · 220 Ana Poz / 1.861 Toplam)
+                  </option>
+                  <option value="csb_2026_mart_insaat_rayic">
+                    ÇŞB 2026 Mart Güncel İnşaat Rayiç Fiyat Listesi (PDF — 10.xxx.xxxx · 150 Ana Rayiç / 5.360 Toplam)
+                  </option>
+                  <option value="csb_2026_mart_mekanik_bf">
+                    ÇŞB 2026 Mart Güncel Mekanik Tesisat Birim Fiyat Listesi (PDF — 25.xxx.xxxx · 140 Ana Poz / 5.679 Toplam)
+                  </option>
+                  <option value="csb_2026_mart_elektrik_bf">
+                    ÇŞB 2026 Mart Güncel Elektrik Tesisat Birim Fiyat Listesi (PDF — 35.xxx.xxxx · 140 Ana Poz / 5.910 Toplam)
+                  </option>
+                  <option value="csb_2026_yapi_yaklasik_maliyet">
+                    ÇŞB 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Tebliği (PDF — 18 Yapı Sınıfı I-A..V-E TL/m²)
+                  </option>
+                  <option value="csb_2026_tuik_endeks_eslestirme">
+                    ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (PDF — 21 Ana TÜİK Alt Endeksi)
+                  </option>
+                </select>
+                <Button
+                  type="button"
+                  disabled={importingCsv}
+                  onClick={handleOfficialCatalogImport}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shrink-0"
+                >
+                  <ShieldCheck size={14} className="mr-1.5" />
+                  {importingCsv ? 'Mühürleniyor...' : 'Seçili Resmi PDF Kataloğunu Mühürle'}
+                </Button>
+              </div>
+            </div>
+
+            {/* OPTION B: DIRECT PDF OR CSV FILE UPLOAD FROM COMPUTER */}
+            <form onSubmit={handleCsvImportSubmit} className="space-y-4 text-xs pt-2 border-t border-zinc-800/80">
               <div className="rounded-lg border border-indigo-500/20 bg-indigo-950/20 p-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-bold text-white">{csvModalSource.name}</div>
+                  <div className="font-bold text-white">
+                    2. Seçenek: Bilgisayardan Yeni PDF (.pdf) veya CSV (.csv) Dosyası Yükle
+                  </div>
                   <div className="text-zinc-400 text-[11px] mt-0.5">
-                    Resmi Gazete / ÇŞB YFK, e-PYS Ek-6 ve TÜİK endeksleri dönemsel/yıllık yayımlanır. Bir kez mühürlediğinizde yıl boyu aktif kalır; gece tarayıcısı bu kayıtları bozmaz.
+                    Bakanlığın yayımlayacağı yeni aylık/yıllık Birim Fiyat, Rayiç veya Tebliğ PDF dosyasını doğrudan yükleyebilirsiniz; poz ve fiyatlar otomatik ayrıştırılır.
                   </div>
                 </div>
                 <Button
@@ -1153,27 +1317,31 @@ export function PricingSources() {
                   size="sm"
                   onClick={() => {
                     const sample = getSampleCsvForSource(csvModalSource);
+                    setPdfBase64Data('');
+                    setPdfFileSizeKb(0);
                     setCsvForm((prev) => ({
                       ...prev,
                       fileName: sample.fileName,
                       licenseReference: sample.licenseReference,
                       csvText: sample.csvText,
                     }));
-                    toast.success('2026 standart referans poz/endeks verileri dolduruldu.');
+                    toast.success('2026 standart referans poz/endeks CSV verileri dolduruldu.');
                   }}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] shrink-0 font-semibold"
                 >
                   <Sparkles size={12} className="mr-1.5" />
-                  Örnek 2026 Referans Verisi Doldur
+                  Örnek CSV Doldur
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">CSV Dosyası Seç (.csv)</label>
+                  <label className="block text-zinc-400 mb-1 font-semibold">
+                    Resmi PDF (.pdf) veya CSV (.csv) Dosyası Seç
+                  </label>
                   <input
                     type="file"
-                    accept=".csv,.txt"
+                    accept=".pdf,.csv,.txt,application/pdf,text/csv"
                     onChange={handleCsvFileSelect}
                     className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white"
                   />
@@ -1189,6 +1357,24 @@ export function PricingSources() {
                   />
                 </div>
               </div>
+
+              {pdfBase64Data && (
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-3 py-2 text-emerald-300 flex items-center justify-between">
+                  <span>
+                    <strong>PDF Dosyası Hazır:</strong> {csvForm.fileName} ({(pdfFileSizeKb / 1024).toFixed(2)} MB) — ÇŞB Poz/Rayiç/Tebliğ tabloları sunucuda otomatik ayrıştırılacak.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPdfBase64Data('');
+                      setPdfFileSizeKb(0);
+                    }}
+                    className="text-xs text-zinc-400 hover:text-white underline ml-2"
+                  >
+                    Temizle
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
@@ -1223,19 +1409,20 @@ export function PricingSources() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">
-                  CSV İçeriği (Başlık: <code className="text-indigo-300">itemCode,itemName,unit,price</code>) *
-                </label>
-                <textarea
-                  rows={7}
-                  value={csvForm.csvText}
-                  onChange={(e) => setCsvForm({ ...csvForm, csvText: e.target.value })}
-                  placeholder={'itemCode,itemName,unit,price\n15.150.1005,C 25/30 Hazır Beton,m³,2650.00'}
-                  required
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-white font-mono text-[11px] focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
+              {!pdfBase64Data && (
+                <div>
+                  <label className="block text-zinc-400 mb-1 font-semibold">
+                    CSV İçeriği (Başlık: <code className="text-indigo-300">itemCode,itemName,unit,price</code>)
+                  </label>
+                  <textarea
+                    rows={5}
+                    value={csvForm.csvText}
+                    onChange={(e) => setCsvForm({ ...csvForm, csvText: e.target.value })}
+                    placeholder={'itemCode,itemName,unit,price\n15.150.1005,C 25/30 Hazır Beton,m³,3619.75'}
+                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-white font-mono text-[11px] focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
@@ -1275,10 +1462,14 @@ export function PricingSources() {
                 <Button
                   type="submit"
                   disabled={importingCsv}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
                 >
                   <ShieldCheck size={14} className="mr-1.5" />
-                  {importingCsv ? 'Mühürleniyor...' : 'SHA-256 ile Mühürle ve Aktif Et'}
+                  {importingCsv
+                    ? 'Mühürleniyor...'
+                    : pdfBase64Data
+                    ? 'Yüklenen PDF Dosyasını Ayrıştır & SHA-256 ile Mühürle'
+                    : 'CSV Verisini SHA-256 ile Mühürle ve Aktif Et'}
                 </Button>
               </div>
             </form>
