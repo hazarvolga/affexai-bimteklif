@@ -9,6 +9,8 @@ export interface LegacyIfcTransferSummary {
   slabVolumeM3?: number;
   wallCount?: number;
   wallVolumeM3?: number;
+  coveringCount?: number;
+  coveringAreaM2?: number;
   totalRebarTon?: number;
   totalFormworkM2?: number;
   extractionMode?: string;
@@ -82,6 +84,7 @@ export function buildIfcEstimateQuoteItems(
   const columnVolumeM3 = positiveNumber(transferSummary.columnVolumeM3);
   const slabVolumeM3 = positiveNumber(transferSummary.slabVolumeM3);
   const wallVolumeM3 = positiveNumber(transferSummary.wallVolumeM3);
+  const coveringAreaM2 = positiveNumber(transferSummary.coveringAreaM2);
 
   if (beamVolumeM3 > 0) {
     items.push(makeEstimateItem(
@@ -112,6 +115,15 @@ export function buildIfcEstimateQuoteItems(
       idFactory(),
       `IFC On Analiz: IfcWall perde/duvar imalati (${transferSummary.wallCount ?? 0} adet, review gerekli)`,
       wallVolumeM3,
+    ));
+  }
+
+  if (coveringAreaM2 > 0) {
+    items.push(makeEstimateItem(
+      idFactory(),
+      `IFC On Analiz: IfcCovering kaplama/ince is imalati (${transferSummary.coveringCount ?? 0} adet, review gerekli)`,
+      coveringAreaM2,
+      "m2",
     ));
   }
 

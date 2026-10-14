@@ -223,8 +223,12 @@ def _dosya_adi(b: Baglam) -> list[Bulgu]:
 
 
 def _proje_adi(b: Baglam) -> list[Bulgu]:
+    out: list[Bulgu] = []
+    govde = Path(b.dosya_adi).stem
+    dosya_eslesme = DOSYA_ADI.match(govde)
     for p in b.sinif("IfcProject"):
-        if oznitelik(p, "Name") is None:
+        ad = oznitelik(p, "Name")
+        if ad is None:
             return [
                 Bulgu(
                     "proje-adi",
@@ -234,4 +238,25 @@ def _proje_adi(b: Baglam) -> list[Bulgu]:
                     3,
                 )
             ]
-    return []
+        temiz = str(ad).strip()
+        if not re.match(r"^[A-Za-z0-9]{6}$", temiz):
+            out.append(
+                Bulgu(
+                    "proje-adi-bicim",
+                    "uyari",
+                    f"IfcProject.Name '{temiz}' EK-1 6 haneli alfasayısal proje kodu şablonuna uymuyor.",
+                    "m.6, EK-1, EK-7 Tablo 7.1",
+                    3,
+                )
+            )
+        elif dosya_eslesme and temiz.upper() != dosya_eslesme.group(1).upper():
+            out.append(
+                Bulgu(
+                    "proje-adi-dosya-uyum",
+                    "uyari",
+                    f"IfcProject.Name ('{temiz}') dosya adındaki ProjeKodu ('{dosya_eslesme.group(1)}') ile eşleşmiyor.",
+                    "m.6, EK-1, EK-2 Tablo 2.1",
+                    3,
+                )
+            )
+    return out

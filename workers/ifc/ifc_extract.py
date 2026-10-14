@@ -72,10 +72,12 @@ APPROVED_PROPERTY_SETS = {
     "pset_beamcommon",
     "pset_columncommon",
     "pset_wallcommon",
+    "pset_coveringcommon",
     "qto_slabbasequantities",
     "qto_beambasequantities",
     "qto_columnbasequantities",
     "qto_wallbasequantities",
+    "qto_coveringbasequantities",
     "trepys_pozozellikseti",
     "trepys_emsalozellikseti",
 }
@@ -471,6 +473,26 @@ def extract_quantities_and_properties(
         status = "review"
         note = "QTO veya PropertySet metrajı bulunamadı. Geometrik veya manuel metraj girişi gereklidir."
 
+    covering_area_m2: Optional[float] = None
+    if elem_type == "IfcCovering":
+        chosen_area = None
+        is_net_covering = False
+        if net_area:
+            net_area.sort(key=lambda x: x[0])
+            chosen_area = net_area[0]
+            is_net_covering = True
+        elif gross_area:
+            gross_area.sort(key=lambda x: x[0])
+            chosen_area = gross_area[0]
+        if chosen_area is not None and chosen_area[1] > 0:
+            covering_area_m2 = round(chosen_area[1], 6)
+            if volume_m3 == 0.0:
+                quantity_source = "qto" if chosen_area[0] <= 2 else "property"
+                source_path = chosen_area[2]
+                confidence = 0.95 if is_net_covering else 0.90
+                status = "review"
+                note = "IfcCovering kaplama alanı (NetArea/GrossArea) kaynağından okundu."
+
     candidates = volume_candidates + property_candidates
     if candidates and any(abs(c[3] - volume_m3) > max(1e-8, abs(volume_m3) * 1e-6) for c in candidates):
         note += " | IFC_QUANTITY_CONFLICT: " + "; ".join(f"{c[2]}={c[3]:.12g} m3" for c in sorted(candidates))
@@ -485,6 +507,8 @@ def extract_quantities_and_properties(
         discipline = "STR" if elem_type in {"IfcBeam", "IfcColumn"} or load_bearing else "ARC"
 
     rule_metadata: Dict[str, Any] = {}
+    if covering_area_m2 is not None and covering_area_m2 > 0:
+        rule_metadata["areaM2"] = covering_area_m2
     if load_bearing is not None:
         rule_metadata["loadBearing"] = load_bearing
     if exposure is not None:
@@ -718,6 +742,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "IfcWall",
         "IfcWallStandardCase",
         "IfcReinforcingBar",
+        "IfcCovering",
     ]
 
     elements_raw = []
@@ -741,6 +766,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
     slab_volume = 0.0
     wall_count = 0
     wall_volume = 0.0
+    covering_count = 0
+    covering_area_m2 = 0.0
     rebar_count = 0
     rebar_by_diameter: Dict[int, Dict[str, float]] = {}
 
@@ -796,6 +823,9 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         elif mapped_type == "IfcWall":
             wall_count += 1
             wall_volume += volume_m3
+        elif mapped_type == "IfcCovering":
+            covering_count += 1
+            covering_area_m2 += float(rule_metadata.get("areaM2") or 0.0)
         elif mapped_type == "IfcReinforcingBar":
             rebar_count += 1
             if rebar_diameter_mm:
@@ -869,6 +899,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "slabVolumeM3": round(slab_volume, 2),
         "wallCount": wall_count,
         "wallVolumeM3": round(wall_volume, 2),
+        "coveringCount": covering_count,
+        "coveringAreaM2": round(covering_area_m2, 2),
         "rebarCount": rebar_count,
         "rebarByDiameter": rebar_by_diameter,
         "trPsetCsb": compliance,

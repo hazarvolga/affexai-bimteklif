@@ -36,6 +36,7 @@ const IFC_TYPE_LABELS: Record<ParsedIfcElement['type'], string> = {
   IfcSlab: 'IfcSlab (Döşeme)',
   IfcWall: 'IfcWall (Perde/Duvar)',
   IfcReinforcingBar: 'IfcReinforcingBar (Donatı)',
+  IfcCovering: 'IfcCovering (Kaplama / İnce İş)',
 };
 
 // Sample OpenBIM IFC Demo Datasets

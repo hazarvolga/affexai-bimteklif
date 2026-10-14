@@ -276,13 +276,30 @@ def _koordinat(b: Baglam) -> list[Bulgu]:
                         6,
                     )
                 )
+    kok_baglamlar = [
+        ctx
+        for ctx in b.sinif("IfcGeometricRepresentationContext")
+        if not ctx.is_a("IfcGeometricRepresentationSubContext")
+    ]
+    for ctx in kok_baglamlar:
+        boyut = getattr(ctx, "CoordinateSpaceDimension", None)
+        if boyut is not None and int(boyut) != 3:
+            out.append(
+                Bulgu(
+                    "koordinat-baglam-boyut",
+                    "uyari",
+                    f"IfcGeometricRepresentationContext.CoordinateSpaceDimension '{boyut}'; EK-7 Tablo 7.8 uyarınca 3 boyutlu (3) olmalı.",
+                    "EK-7 Tablo 7.8",
+                    6,
+                )
+            )
     if not out:
         out.append(
             Bulgu(
                 "koordinat",
                 "bilgi",
                 f"Koordinat sistemi {oznitelik(crs[0], 'Name')}; harita dönüşümü tanımlı.",
-                "EK-7 Tablo 7.6–7.7",
+                "EK-7 Tablo 7.6–7.8",
                 6,
             )
         )

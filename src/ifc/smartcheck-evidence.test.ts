@@ -237,4 +237,39 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.equal(artifact.summary.blockedElementCount, result.summary.totalElements - manifest.knownQuantityEvidence.recognizedSlabMatches);
     assert.equal(artifact.rows.some((row) => row.quantitySource !== "ifc_property"), false);
   });
+
+  it("admits IfcCovering areaM2 (m2) and TREpys_PozOzellikSeti positionCode into SmartCheck evidence rows", () => {
+    const elements: ParsedIfcElement[] = [
+      {
+        id: "910",
+        guid: "2COVRgKpn0FfR5lxdBlb",
+        type: "IfcCovering",
+        name: "MM-KPL-seramik_zemin",
+        storey: "Kat 1 (0.0 m)",
+        storeySource: "ifc_spatial",
+        storeySourcePath: "#100/#10:Kat 1",
+        volumeM3: 0,
+        areaM2: 42.5,
+        formworkM2: 0,
+        rebarKg: 0,
+        quantitySource: "qto",
+        quantitySourcePath: "#911/#912/#913:Qto_CoveringBaseQuantities/NetArea",
+        quantityConfidence: 0.95,
+        smartCheckStatus: "review",
+        pozNo: "15.275.1104",
+        pozNoSourcePath: "#914/#915/#916:TREpys_PozOzellikSeti/PozNo",
+      },
+    ];
+
+    const artifact = buildIfcSmartCheckEvidenceArtifact(
+      elements,
+      { ...succeededSummary, totalElements: 1, coveringCount: 1, coveringAreaM2: 42.5, elementsWithPozNoCount: 1 },
+      { fileName: "unit-covering.ifc", checksumSha256: "e".repeat(64), schemaName: "IFC4X3_ADD2" },
+    );
+
+    assert.equal(artifact.summary.evidenceRowCount, 1);
+    assert.equal(artifact.rows[0].normalizedUnit, "m²");
+    assert.equal(artifact.rows[0].normalizedQuantity, "42.5");
+    assert.equal(artifact.rows[0].normalizedPositionCode, "15.275.1104");
+  });
 });

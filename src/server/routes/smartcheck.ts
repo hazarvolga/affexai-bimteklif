@@ -23,6 +23,7 @@ import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota";
 import { recordUsage } from "../../services/billing/usage-audit";
 import { transferReviewEvidence } from "../../smartcheck/import/transfer-evidence";
+import { buildAllplanEpysKitV1 } from "../../smartcheck/epys-allplan-kit";
 import {
   smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
@@ -678,6 +679,18 @@ export function registerSmartCheckRoutes(app: Express) {
       if (error instanceof Error && error.message === "INVALID_TRANSFER_VALUES") return res.status(409).json({ error: "Aktarım miktar/fiyat değerleri geçersiz veya eksik.", code: "INVALID_TRANSFER_VALUES" });
       console.error("SmartCheck new quotation transfer failed", error);
       return res.status(500).json({ error: "Yeni taslak teklif oluşturulamadı.", code: "SMARTCHECK_NEW_QUOTATION_TRANSFER_FAILED" });
+    }
+  });
+
+  app.get("/api/smartcheck/epys-allplan-kit", authenticate, readRateLimit, (_req, res) => {
+    try {
+      const kit = buildAllplanEpysKitV1();
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Content-Disposition", 'attachment; filename="allplan-2026-epys-kit-v1.json"');
+      return res.json(kit);
+    } catch (error) {
+      console.error("Failed to build Allplan 2026 e-PYS Kit v1", error);
+      return res.status(500).json({ error: "ALLPLAN 2026 e-PYS Kiti v1 oluşturulamadı." });
     }
   });
 }

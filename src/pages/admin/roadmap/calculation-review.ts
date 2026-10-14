@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-14.1",
+  version: "BIM-CALC-2026-10-14.2",
   updatedOn: "14 Ekim 2026",
-  implementationBaseline: "ec9cd4e9bffabc06680a11004eefbed2c9a048b7",
+  implementationBaseline: "10bc94c315f195867e82867411219fdac4d178e9",
   approvalStatus: "Bağımsız uzman onayı bekliyor",
 };
 
@@ -40,7 +40,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Mevcut test kota davranışını kapsar; risk/fiyat katsayıları için bağımsız hesap testi ve sektör kalibrasyonu açık.",
   },
   "ifc-metraj": {
-    scope: "Modeldeki hacim niceliklerini okur; model geometrisinin doğruluğunu veya kesişimleri çözmez.",
+    scope: "Modeldeki beton hacmi (m³), IfcCovering kaplama alanı (m²) ve TREpys_PozOzellikSeti.PozNo niceliklerini okur; kesişim geometrisini çözmez.",
     testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/smartcheck-evidence.test.ts"],
     pending: "Gerçek ALLPLAN/Revit/Archicad dışa aktarımlarında birim, net/brüt ve kaynak eşleşmesinin uzman kabulü.",
   },
@@ -55,7 +55,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Çap/boy/adet kaynağı, nominal tablo seçimi, bindirme ve fire politikasının ayrı doğrulanması.",
   },
   "ifc-teklif-aktarim": {
-    scope: "Tarayıcı ön analizinden hacim aktarımı; fiyat kullanıcı tarafından tamamlanır.",
+    scope: "Tarayıcı ön analizinden beton hacmi (m³) ve IfcCovering kaplama alanı (m²) aktarımı; fiyat kullanıcı tarafından tamamlanır.",
     testFiles: ["src/ifc/quotation-transfer.test.ts"],
     pending: "Beton-kalıp-donatı ayrımının seçilen pozlarla kontrolü; miktar ve fiyatın insan incelemesi.",
   },
@@ -79,14 +79,19 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     testFiles: ["src/smartcheck/rules/three-by-three.test.ts", "src/smartcheck/rules/ifc-rule-run.test.ts"],
     pending: "Gerçek proje IFC dosyalarında Pset_ConcreteElementGeneral / Pset_*Common özellik eşleşmelerinin uzman kabulü.",
   },
+  "yapisal-sihirbaz": {
+    scope: "TS 500 / TS 708 kurallarıyla kolon, kiriş, döşeme ve temel için beton (m³), kalıp (m²) ve donatı/etriye (ton) hesabı yapar.",
+    testFiles: ["src/smartcheck/rules/minha.test.ts"],
+    pending: "Düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
+  },
   minha: {
     scope: "ÇŞB 2026 (CSB_2026_V1) ölçü esaslarına göre duvar (0,50 m²), sıva/boya (2,00 m² + söve) ve kalıp (1,00 m²) boşluk düşüm motoru aktif.",
     testFiles: ["src/smartcheck/rules/minha.test.ts"],
     pending: "Özel idare şartnameleri ve DIN 18350 / NRM2 alternatif ölçü esası profillerinin saha kabulü.",
   },
   "epys-on-kontrol": {
-    scope: "İç pilot tenant'ta IFC → sunucu ön kontrolü (EK-2/3/5/6/7/9 tam sözlük) → EK-9 ekranı; sentetik akış denendi.",
-    testFiles: ["workers/ifc/test_epys_preflight.py", "workers/ifc/vendor_tests/ifc_ruhsat/test_kurallar.py", "src/smartcheck/import/epys-preflight-runner.test.ts"],
+    scope: "İç pilot tenant'ta IFC → sunucu ön kontrolü (EK-1/2/3/5/6/7/9 tam sözlük) → EK-9 ekranı ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",
+    testFiles: ["workers/ifc/test_epys_preflight.py", "workers/ifc/vendor_tests/ifc_ruhsat/test_kurallar.py", "src/smartcheck/import/epys-preflight-runner.test.ts", "src/smartcheck/epys-allplan-kit.test.ts"],
     pending: "Gerçek proje kabulü ve elle işaretli satırların yetkili incelemesi.",
   },
   "epys-hizli": {

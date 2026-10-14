@@ -208,3 +208,17 @@ def test_ek2_alt_disiplin_ve_ek3_mahal_tablosu(tmp_path):
     yol2 = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
     assert "mahal-isim-tablo" in kodlar(kontrol_et(yol2), "uyari")
 
+
+def test_ek1_proje_kodu_ve_ek7_tablo_7_8(tmp_path):
+    assert "IfcGeometricRepresentationContext" in veri.ek7_tablolar()
+    m = iyi_model()
+    # Dosya adındaki ProjeKodu (654321) ile IfcProject.Name (123456) uyumsuzluğu
+    yol_uyumsuz = kaydet(m, tmp_path, "654321_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    assert "proje-adi-dosya-uyum" in kodlar(kontrol_et(yol_uyumsuz), "uyari")
+
+    # 6 haneli alfasayısal olmayan IfcProject.Name
+    m.by_type("IfcProject")[0].Name = "PROJE-UZUN-KOD"
+    yol_bicim = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    assert "proje-adi-bicim" in kodlar(kontrol_et(yol_bicim), "uyari")
+
+

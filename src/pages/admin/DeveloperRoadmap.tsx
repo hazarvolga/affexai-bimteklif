@@ -1,11 +1,33 @@
 import { Link } from "react-router-dom";
-import { Calculator, Map as MapIcon, Printer } from "lucide-react";
+import { Calculator, Download, Map as MapIcon, Printer } from "lucide-react";
+import { toast } from "sonner";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Button } from "../../components/ui/button";
+import { fetchWithAuth } from "../../lib/api";
 import { DocSectionView, DocSources, DocToc } from "./roadmap/DocBlocks";
 import { ROADMAP_META, ROADMAP_SECTIONS, ROADMAP_SOURCES } from "./roadmap/roadmap-content";
 
 export function DeveloperRoadmap() {
+  const handleDownloadAllplanKit = async () => {
+    try {
+      const res = await fetchWithAuth("/api/smartcheck/epys-allplan-kit");
+      if (!res.ok) throw new Error("Kit indirilemedi");
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "allplan-2026-epys-kit-v1.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("ALLPLAN 2026 e-PYS Kiti v1 (SHA-256 mühürlü) indirildi.");
+    } catch {
+      toast.error("ALLPLAN 2026 e-PYS Kiti v1 indirilirken hata oluştu.");
+    }
+  };
+
   return (
     <PageContainer>
       <div className="print-doc">
@@ -17,6 +39,7 @@ export function DeveloperRoadmap() {
           <p className="mt-2 text-xs text-zinc-500">Hazırlanma: {ROADMAP_META.preparedOn} · {ROADMAP_META.audience}</p>
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">
+          <Button type="button" onClick={handleDownloadAllplanKit} className="bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"><Download size={15} className="mr-2" />ALLPLAN 2026 e-PYS Kiti v1</Button>
           <Link to="/admin/roadmap/calculations">
             <Button type="button" className="bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"><Calculator size={15} className="mr-2" />Hesaplama Yöntemleri (uzman doğrulaması)</Button>
           </Link>

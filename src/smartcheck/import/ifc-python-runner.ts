@@ -9,12 +9,13 @@ import type { IfcParseSummary, ParsedIfcElement } from "../../ifc/types";
 export const ParsedIfcElementSchema = z.object({
   id: z.string(),
   guid: z.string(),
-  type: z.enum(["IfcBeam", "IfcColumn", "IfcSlab", "IfcWall", "IfcReinforcingBar"]),
+  type: z.enum(["IfcBeam", "IfcColumn", "IfcSlab", "IfcWall", "IfcReinforcingBar", "IfcCovering"]),
   name: z.string(),
   storey: z.string(),
   storeySource: z.enum(["estimate", "ifc_spatial"]),
   storeySourcePath: z.string().optional(),
   volumeM3: z.number(),
+  areaM2: z.number().optional(),
   formworkM2: z.number(),
   rebarKg: z.number(),
   rebarDiameterMm: z.number().optional(),
@@ -56,6 +57,8 @@ export const IfcParseSummarySchema = z.object({
   slabVolumeM3: z.number(),
   wallCount: z.number(),
   wallVolumeM3: z.number(),
+  coveringCount: z.number().optional(),
+  coveringAreaM2: z.number().optional(),
   rebarCount: z.number(),
   rebarByDiameter: z.record(z.string(), z.object({ lengthM: z.number(), weightKg: z.number() })),
   trPsetCsb: z.object({

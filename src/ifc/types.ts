@@ -1,12 +1,13 @@
 export interface ParsedIfcElement {
   id: string;
   guid: string;
-  type: "IfcBeam" | "IfcColumn" | "IfcSlab" | "IfcWall" | "IfcReinforcingBar";
+  type: "IfcBeam" | "IfcColumn" | "IfcSlab" | "IfcWall" | "IfcReinforcingBar" | "IfcCovering";
   name: string;
   storey: string;
   storeySource: "estimate" | "ifc_spatial";
   storeySourcePath?: string;
   volumeM3: number;
+  areaM2?: number;
   formworkM2: number;
   rebarKg: number;
   rebarDiameterMm?: number;
@@ -61,6 +62,8 @@ export interface IfcParseSummary {
   slabVolumeM3: number;
   wallCount: number;
   wallVolumeM3: number;
+  coveringCount?: number;
+  coveringAreaM2?: number;
   rebarCount: number;
   rebarByDiameter: Record<number, { lengthM: number; weightKg: number }>;
   trPsetCsb: TrPsetCsbProjectCompliance;

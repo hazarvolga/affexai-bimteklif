@@ -94,17 +94,20 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
   if (typeof element.expectedQuantity === "number" && Number.isFinite(element.expectedQuantity)) {
     formulaJson.expectedQuantity = formatQuantity(element.expectedQuantity);
   }
+  const isCoveringArea = element.type === "IfcCovering" && typeof element.areaM2 === "number" && element.areaM2 > 0;
   return {
     sheetName: "IFC",
     sourceRowNumber,
     sourceCellRange: `IFC#${element.id}`,
-    rawDescription: `${element.type} ${element.name} beton hacmi · ${element.storey} · ${evidencePath}`,
-    // Tr_Pset_CSB.PozNo IFC dosyasından okunur; bulunamazsa boş bırakılır ve
+    rawDescription: isCoveringArea
+      ? `${element.type} ${element.name} kaplama alanı · ${element.storey} · ${evidencePath}`
+      : `${element.type} ${element.name} beton hacmi · ${element.storey} · ${evidencePath}`,
+    // TREpys_PozOzellikSeti.PozNo / Tr_Pset_CSB.PozNo IFC dosyasından okunur; bulunamazsa boş bırakılır ve
     // validateRows() bunu MISSING_POSITION_CODE bulgusu olarak işaretler —
     // tip-bazlı bir yer tutucu (örn. "IFC-BEAM-CONCRETE") kullanılmaz.
     rawPositionCode: element.pozNo ?? "",
-    rawUnit: "m3",
-    rawQuantity: formatQuantity(element.volumeM3),
+    rawUnit: isCoveringArea ? "m2" : "m3",
+    rawQuantity: isCoveringArea ? formatQuantity(element.areaM2!) : formatQuantity(element.volumeM3),
     rawPrice: "",
     rawWastePercent: "0",
     formulaJson,
@@ -204,7 +207,12 @@ export function buildIfcSmartCheckEvidenceArtifact(
     };
   }
 
-  const evidenceElements = elements.filter((element) => element.type !== "IfcReinforcingBar" && (element.quantitySource === "qto" || element.quantitySource === "property") && element.volumeM3 > 0);
+  const evidenceElements = elements.filter(
+    (element) =>
+      element.type !== "IfcReinforcingBar" &&
+      (element.quantitySource === "qto" || element.quantitySource === "property") &&
+      (element.volumeM3 > 0 || (element.type === "IfcCovering" && (element.areaM2 ?? 0) > 0)),
+  );
   const parsedRows = evidenceElements.map((element, index) => buildParsedQuantityRow(element, index + 1));
   const validatedRows = validateRows(parsedRows);
   const rows = evidenceElements.map((element, index): IfcSmartCheckEvidenceRow => {

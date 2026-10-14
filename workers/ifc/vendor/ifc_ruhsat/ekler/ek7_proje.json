@@ -1,5 +1,5 @@
 {
-  "kaynak": "RG 5.8.2026 sayı 33331, ek EK-7 Tablo 7.1–7.7 (s.221–230), görsel doğrulama 2026-09-17",
+  "kaynak": "RG 5.8.2026 sayı 33331, ek EK-7 Tablo 7.1–7.8 (s.221–231), görsel doğrulama 2026-09-17",
   "tablolar": [
     {
       "ifc": "IfcProject",
@@ -246,6 +246,45 @@
           "ad": "Scale",
           "veriTipi": "S",
           "turkce": "Ölçek Değeri"
+        }
+      ]
+    },
+    {
+      "ifc": "IfcGeometricRepresentationContext",
+      "tablo": "7.8",
+      "sayfa": 230,
+      "gerekenler": [
+        {
+          "tur": "oznitelik",
+          "ad": "ContextType",
+          "veriTipi": "M",
+          "turkce": "Bağlam Tipi",
+          "degerler": ["MODEL"]
+        },
+        {
+          "tur": "oznitelik",
+          "ad": "CoordinateSpaceDimension",
+          "veriTipi": "S",
+          "turkce": "Koordinat Uzayı Boyutu",
+          "degerler": ["3"]
+        },
+        {
+          "tur": "oznitelik",
+          "ad": "Precision",
+          "veriTipi": "S",
+          "turkce": "Hassasiyet"
+        },
+        {
+          "tur": "oznitelik",
+          "ad": "WorldCoordinateSystem",
+          "veriTipi": "M",
+          "turkce": "Dünya Koordinat Sistemi"
+        },
+        {
+          "tur": "oznitelik",
+          "ad": "TrueNorth",
+          "veriTipi": "M",
+          "turkce": "Gerçek Kuzey Yönü"
         }
       ]
     }
