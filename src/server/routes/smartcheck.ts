@@ -682,8 +682,12 @@ export function registerSmartCheckRoutes(app: Express) {
     }
   });
 
-  app.get("/api/smartcheck/epys-allplan-kit", authenticate, readRateLimit, (_req, res) => {
+  app.get("/api/smartcheck/epys-allplan-kit", async (req, res) => {
     try {
+      const rl = await consumeRateLimit(`smartcheck:kit:${req.ip ?? "anon"}`, 60, 60_000);
+      if (!rl.allowed) {
+        return res.status(429).set("Retry-After", String(rl.retryAfterSeconds)).json({ error: "Çok fazla istek." });
+      }
       const kit = buildAllplanEpysKitV1();
       res.setHeader("Content-Type", "application/json; charset=utf-8");
       res.setHeader("Content-Disposition", 'attachment; filename="allplan-2026-epys-kit-v1.json"');
