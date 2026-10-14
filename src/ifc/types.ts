@@ -17,6 +17,9 @@ export interface ParsedIfcElement {
   smartCheckNote?: string;
   pozNo?: string;
   pozNoSourcePath?: string;
+  formworkBasis?: string;
+  formworkNote?: string;
+  reviewNotes?: string[];
   loadBearing?: boolean;
   exposure?: "interior" | "exterior";
   exposureClass?: string;
@@ -31,6 +34,9 @@ export interface TrPsetCsbProjectCompliance {
   cekmeOn?: number;
   cekmeYan?: number;
   cekmeArka?: number;
+  emsalDahilM2?: number;
+  emsalHaricM2?: number;
+  emsalYuzde30M2?: number;
   source: "ifc_site" | "ifc_building" | null;
   sourcePath?: string;
 }

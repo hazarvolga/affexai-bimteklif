@@ -25,6 +25,15 @@ export const ParsedIfcElementSchema = z.object({
   smartCheckNote: z.string().optional(),
   pozNo: z.string().optional(),
   pozNoSourcePath: z.string().optional(),
+  formworkBasis: z.string().optional(),
+  formworkNote: z.string().optional(),
+  reviewNotes: z.array(z.string()).optional(),
+  loadBearing: z.boolean().optional(),
+  exposure: z.enum(["interior", "exterior"]).optional(),
+  exposureClass: z.string().optional(),
+  coverMm: z.number().optional(),
+  discipline: z.string().optional(),
+  expectedQuantity: z.number().optional(),
 });
 
 export const IfcParseSummarySchema = z.object({
@@ -55,6 +64,9 @@ export const IfcParseSummarySchema = z.object({
     cekmeOn: z.number().nullable().optional(),
     cekmeYan: z.number().nullable().optional(),
     cekmeArka: z.number().nullable().optional(),
+    emsalDahilM2: z.number().nullable().optional(),
+    emsalHaricM2: z.number().nullable().optional(),
+    emsalYuzde30M2: z.number().nullable().optional(),
     source: z.enum(["ifc_site", "ifc_building"]).nullable(),
     sourcePath: z.string().nullable().optional(),
   }),

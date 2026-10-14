@@ -181,3 +181,30 @@ def test_disiplin_dosya_adindan(tmp_path):
     yol = kaydet(m, tmp_path, "123456_00_MK_GNEL_MD_BIM_000_01_000.ifc")
     assert "mahal-var" not in kodlar(kontrol_et(yol), "hata")
     assert "mahal-var" in kodlar(kontrol_et(yol, "MM"), "hata")
+
+
+def test_ek2_alt_disiplin_ve_ek3_mahal_tablosu(tmp_path):
+    assert veri.ek2_alt_disiplinler()["DUVA"] == "Duvar"
+    assert veri.ek2_dosya_turleri()["MD"] == "Model"
+    assert veri.ek2_dosya_tipleri()["BIM"] == "BIM Modeli"
+    assert veri.ek3_mahaller()["YTO"] == "Yatak Odası"
+
+    m = iyi_model()
+    # Geçersiz alt disiplin (XXXX)
+    yol = kaydet(m, tmp_path, "123456_00_MM_XXXX_MD_BIM_000_01_000.ifc")
+    assert "dosya-adi-alt-disiplin" in kodlar(kontrol_et(yol), "uyari")
+
+    # Geçersiz dosya türü (XX)
+    yol_tur = kaydet(m, tmp_path, "123456_00_MM_GNEL_XX_BIM_000_01_000.ifc")
+    assert "dosya-adi-tur" in kodlar(kontrol_et(yol_tur), "uyari")
+
+    # Geçersiz kat/konum (X99)
+    yol_kat = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_X99_01_000.ifc")
+    assert "dosya-adi-kat" in kodlar(kontrol_et(yol_kat), "uyari")
+
+    # EK-3 Tablo 3.2 dışı mahal LongName uyarısı
+    for s in m.by_type("IfcSpace"):
+        s.LongName = "Bilinmeyen Fantastik Oda"
+    yol2 = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    assert "mahal-isim-tablo" in kodlar(kontrol_et(yol2), "uyari")
+

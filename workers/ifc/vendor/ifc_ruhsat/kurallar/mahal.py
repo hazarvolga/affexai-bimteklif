@@ -9,6 +9,7 @@ import re
 from itertools import combinations
 from typing import Any
 
+from ifc_ruhsat import veri
 from ifc_ruhsat.bulgu import Bulgu, varlik_listesi
 from ifc_ruhsat.kurallar.geometri import hacim, kesisim, sinir_kutulari
 from ifc_ruhsat.kurallar.ortak import Baglam, kati, oznitelik
@@ -17,6 +18,15 @@ from ifc_ruhsat.kurallar.ortak import Baglam, kati, oznitelik
 # (B01… bodrum, K00 zemin, K01… kat, NNN kattan bağımsız).
 MAHAL_NO = re.compile(r"^(B\d{2}|K\d{2}|NNN)_([A-Z0-9]{3})_(\d{3})$")
 ORTUSME_ORANI = 0.10  # küçük hacim oranına göre; komşu duvar payı için tolerans
+
+
+def _tr_norm(s: str) -> str:
+    return (
+        s.strip()
+        .replace("İ", "i")
+        .replace("I", "ı")
+        .lower()
+    )
 
 
 def kontrol(b: Baglam) -> list[Bulgu]:
@@ -30,15 +40,23 @@ def kontrol(b: Baglam) -> list[Bulgu]:
 
 
 def _numaralar(mahaller: list[Any]) -> list[Bulgu]:
-    bos, bicim, isimsiz = [], [], []
+    tablo_3_2 = veri.ek3_mahaller()
+    gecerli_kodlar = {_tr_norm(k) for k in tablo_3_2.keys()}
+    gecerli_isimler = {_tr_norm(v) for v in tablo_3_2.values()}
+    bos, bicim, isimsiz, tablo_disi = [], [], [], []
     for m in mahaller:
         ad = oznitelik(m, "Name")
         if ad is None:
             bos.append(m)
         elif not MAHAL_NO.match(ad.strip()):
             bicim.append(m)
-        if oznitelik(m, "LongName") is None:
+        uzun_ad = oznitelik(m, "LongName")
+        if uzun_ad is None:
             isimsiz.append(m)
+        else:
+            norm_uzun = _tr_norm(str(uzun_ad))
+            if norm_uzun not in gecerli_kodlar and norm_uzun not in gecerli_isimler:
+                tablo_disi.append(m)
     out = []
     if bos:
         out.append(
@@ -79,10 +97,27 @@ def _numaralar(mahaller: list[Any]) -> list[Bulgu]:
                 len(isimsiz),
             )
         )
+    if tablo_disi:
+        out.append(
+            Bulgu(
+                "mahal-isim-tablo",
+                "uyari",
+                f"{len(tablo_disi)} mahalin ismi (LongName) EK-3 Tablo 3.2 standart mahal isim/kısaltma "
+                "listesinde yer almıyor (projeye özel mahal tanımıysa 3 harfli kısaltması Tablo 3.2 ile çakışmamalıdır).",
+                "m.10, EK-3 3.3 ve Tablo 3.2",
+                4,
+                varlik_listesi(tablo_disi),
+                len(tablo_disi),
+            )
+        )
     if not out:
         out.append(
             Bulgu(
-                "mahal-no", "bilgi", "Mahal numaraları ve isimleri EK-3'e uygun.", "m.10, EK-3", 4
+                "mahal-no",
+                "bilgi",
+                "Mahal numaraları ve isimleri EK-3 Tablo 3.1 ve Tablo 3.2'ye uygun.",
+                "m.10, EK-3",
+                4,
             )
         )
     return out

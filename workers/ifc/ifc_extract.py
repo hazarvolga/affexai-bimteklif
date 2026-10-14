@@ -76,6 +76,8 @@ APPROVED_PROPERTY_SETS = {
     "qto_beambasequantities",
     "qto_columnbasequantities",
     "qto_wallbasequantities",
+    "trepys_pozozellikseti",
+    "trepys_emsalozellikseti",
 }
 
 
@@ -279,11 +281,13 @@ def extract_quantities_and_properties(
                 wrapped_val = getattr(nominal_val, "wrappedValue", None) if nominal_val else None
                 source_path_item = f"#{rel_id}/#{pset_id}/#{p_id}:{pset_name}/{p_name}"
 
-                # Poz No detection
-                if p_name_lower in {"pozno", "poz_no", "csbpozno", "csb_pozno", "pozisyonno"}:
+                # Poz No detection (prioritize official RG 33331 EK-4 TREpys_PozOzellikSeti)
+                if p_name_lower in {"pozno", "poz_no", "csbpozno", "csb_pozno", "pozisyonno", "birimfiyatpozno", "pozkodu", "kalemkodu"}:
                     if wrapped_val:
-                        poz_no = str(wrapped_val).strip()
-                        poz_source_path = source_path_item
+                        is_trepys_poz = pset_name_lower == "trepys_pozozellikseti"
+                        if is_trepys_poz or poz_no is None or not (poz_source_path and "trepys_pozozellikseti" in poz_source_path.lower()):
+                            poz_no = str(wrapped_val).strip()
+                            poz_source_path = source_path_item
 
                 # 3x3 Rule Pack metadata extraction (LoadBearing, IsExternal, Cover, ExposureClass, Discipline)
                 if p_name_lower in {"loadbearing", "tasiyici", "tasiyicimi"} and wrapped_val is not None:
@@ -569,19 +573,25 @@ def extract_spatial_storey(elem: Any, length_scale: float = 1.) -> Tuple[str, st
     return "Kat 1 (Zemin)", "estimate", None
 
 
-def extract_project_compliance(model: ifcopenshell.file) -> Dict[str, Any]:
+def extract_project_compliance(model: ifcopenshell.file, area_scale: float = 1.0) -> Dict[str, Any]:
     compliance: Dict[str, Any] = {
         "taks": None,
         "kaks": None,
         "cekmeOn": None,
         "cekmeYan": None,
         "cekmeArka": None,
+        "emsalDahilM2": None,
+        "emsalHaricM2": None,
+        "emsalYuzde30M2": None,
         "source": None,
         "sourcePath": None,
     }
 
     containers = list(model.by_type("IfcSite")) + list(model.by_type("IfcBuilding"))
+    found_site_or_bldg = False
     for container in containers:
+        if found_site_or_bldg:
+            break
         source_type = "ifc_site" if container.is_a("IfcSite") else "ifc_building"
         for rel in getattr(container, "IsDefinedBy", []):
             if not rel.is_a("IfcRelDefinesByProperties"):
@@ -608,11 +618,76 @@ def extract_project_compliance(model: ifcopenshell.file) -> Dict[str, Any]:
                             compliance["cekmeYan"] = val
                         elif p_name in {"cekmearka", "cekme_arka"}:
                             compliance["cekmeArka"] = val
-                
-                compliance["source"] = source_type
-                compliance["sourcePath"] = f"#{rel.id()}/#{prop_def.id()}:{prop_def.Name}"
-                if any(v is not None for k, v in compliance.items() if k not in {"source", "sourcePath"}):
-                    return compliance
+
+                if any(compliance[k] is not None for k in ("taks", "kaks", "cekmeOn", "cekmeYan", "cekmeArka")):
+                    compliance["source"] = source_type
+                    compliance["sourcePath"] = f"#{rel.id()}/#{prop_def.id()}:{prop_def.Name}"
+                    found_site_or_bldg = True
+                    break
+
+    # Scan IfcSpatialZone (IFC4/IFC4X3) and IfcSpace for TREpys_EmsalOzellikSeti (EK-4 Tablo 4.1)
+    emsal_entities = []
+    try:
+        emsal_entities.extend(model.by_type("IfcSpatialZone"))
+    except Exception:
+        pass
+    try:
+        emsal_entities.extend(model.by_type("IfcSpace"))
+    except Exception:
+        pass
+
+    dahil_m2 = 0.0
+    haric_m2 = 0.0
+    yuzde30_m2 = 0.0
+    found_emsal = False
+
+    for zone in emsal_entities:
+        emsal_durumu = None
+        zone_area = None
+        for rel in getattr(zone, "IsDefinedBy", []):
+            if not rel.is_a("IfcRelDefinesByProperties"):
+                continue
+            prop_def = getattr(rel, "RelatingPropertyDefinition", None)
+            if not prop_def:
+                continue
+            pset_name = str(getattr(prop_def, "Name", "") or "").lower()
+            if prop_def.is_a("IfcPropertySet") and pset_name in {"trepys_emsalozellikseti", "pset_emsal"}:
+                for prop in getattr(prop_def, "HasProperties", []):
+                    if not prop.is_a("IfcPropertySingleValue"):
+                        continue
+                    p_name = str(getattr(prop, "Name", "") or "").lower()
+                    nominal_val = getattr(prop, "NominalValue", None)
+                    raw_val = getattr(nominal_val, "wrappedValue", None) if nominal_val else None
+                    if p_name in {"emsaldurumu", "emsal_durumu"} and raw_val is not None:
+                        emsal_durumu = str(raw_val).strip().upper()
+                    elif p_name in {"alan", "grossfloorarea", "netfloorarea"} and zone_area is None:
+                        val = safe_float(raw_val)
+                        if val is not None and val > 0:
+                            zone_area = val * quantity_scale(prop, "AREAUNIT", area_scale)
+            elif prop_def.is_a("IfcElementQuantity"):
+                for qty in getattr(prop_def, "Quantities", []):
+                    if qty.is_a("IfcQuantityArea"):
+                        q_name = str(getattr(qty, "Name", "") or "").lower()
+                        if q_name in {"grossfloorarea", "netfloorarea", "area"}:
+                            val = safe_float(getattr(qty, "AreaValue", None))
+                            if val is not None and val > 0:
+                                zone_area = val * quantity_scale(qty, "AREAUNIT", area_scale)
+                                if q_name == "grossfloorarea":
+                                    break
+
+        if emsal_durumu and zone_area is not None and zone_area > 0:
+            found_emsal = True
+            if emsal_durumu in {"DAHIL", "DAHİL", "INCLUDED"}:
+                dahil_m2 += zone_area
+            elif emsal_durumu in {"HARIC", "HARİÇ", "EXCLUDED"}:
+                haric_m2 += zone_area
+            elif emsal_durumu in {"YUZDE30", "YÜZDE30", "%30", "30"}:
+                yuzde30_m2 += zone_area
+
+    if found_emsal:
+        compliance["emsalDahilM2"] = round(dahil_m2, 2)
+        compliance["emsalHaricM2"] = round(haric_m2, 2)
+        compliance["emsalYuzde30M2"] = round(yuzde30_m2, 2)
 
     return compliance
 
@@ -769,7 +844,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
 
         parsed_elements.append(el_dict)
 
-    compliance = extract_project_compliance(model)
+    compliance = extract_project_compliance(model, area_scale)
 
     summary = {
         "parseStatus": "succeeded",

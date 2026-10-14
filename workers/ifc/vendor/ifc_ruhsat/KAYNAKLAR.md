@@ -15,7 +15,8 @@ Bu araçtaki her kural yönetmeliğin bir maddesine ya da ekinin bir tablosuna d
 
 | Dosya | İçerik | Kaynak sayfa | Doğrulama |
 |---|---|---|---|
-| `ek2_disiplinler.json` | Tablo 2.2 — 12 disiplin kodu | ek s.3 | görsel, 2026-09-17 |
+| `ek2_disiplinler.json` | Tablo 2.2 (12 disiplin kodu), Tablo 2.3–2.11 (alt disiplin/öğe kodları), Tablo 2.12 (dosya türleri), Tablo 2.13 (dosya tipleri) | ek s.3–11 | görsel, 2026-10-14 |
+| `ek3_mahaller.json` | Tablo 3.2 — ~130 resmî mahal ismi ve 3 harfli kısaltma kodu | ek s.14–19 | görsel, 2026-10-14 |
 | `ek5_siniflar.json` | Tablo 5.1 — 69 zorunlu sınıf + kategori kodu; Tablo 5.2 — 67 isteğe bağlı; Tablo 5.3 isimlendirme şablonu | ek s.29–34 | görsel, 2026-09-17; sınıf adları IFC4X3_ADD2 şemasına karşı doğrulandı |
 | `ek6_ozellikler.json` | Tablo 6.1–6.68, **68 tablonun tamamı** (aşağıda) | tabloda | görsel, 2026-09-17; öznitelikler IFC4X3_ADD2 şemasına, özellikler resmî Pset şablonlarına karşı testle doğrulanır |
 | `ek7_proje.json` | Tablo 7.1 IfcProject, 7.2 IfcPerson, 7.3 IfcPersonAndOrganization, 7.4 IfcOrganization, 7.5 IfcActorRole, 7.6 IfcProjectedCRS, 7.7 IfcMapConversion | ek s.222–230 | görsel, 2026-09-17 |
@@ -27,10 +28,11 @@ Bu araçtaki her kural yönetmeliğin bir maddesine ya da ekinin bir tablosuna d
 
 Tesisat tablolarının ortak deseni: PredefinedType, Name, Tag, `IfcRelAssignsToGroup>IfcSystem` bağı (sistem cihazlarında) ve sınıfa özel bir-iki Pset özelliği (ör. `Pset_FanTypeCommon.NominalAirFlowRate`, `Pset_ElectricalDeviceCommon.NominalPowerConsumption`). Köprü/yol/kazık gibi altyapı sınıflarında Tag yerine malzeme istenir.
 
-### Kodlanmamış ekler
+### Kodlanmış / kapsam dışı ekler
 
-- **EK-1** proje kodu yapısı: IfcProject.Name yalnızca boş olmamasıyla denetlenir. **EK-3** mahal numarası şablonu (Tablo 3.1) ve kat kodları (Tablo 2.14) kodlandı; Tablo 3.2'deki mahal ismi kısaltmaları listesi (yaklaşık 150 ad, s.14–19) kodlanmadı — LongName yalnızca boş olmamasıyla denetlenir.
-- **EK-2** Tablo 2.3–2.14 (alt disiplin/öğe, dosya türü, dosya tipi, kat kodları): dosya adı yalnızca alan sayısı/uzunluğu ve disiplin koduyla denetlenir.
+- **EK-1** proje kodu yapısı: IfcProject.Name yalnızca boş olmamasıyla denetlenir.
+- **EK-2** Tablo 2.2–2.14 (disiplin, alt disiplin/öğe, dosya türü, dosya tipi, kat/konum kodları): tamamı `ek2_disiplinler.json` ve `isim.py` içinde denetlenir.
+- **EK-3** mahal numarası şablonu (Tablo 3.1), kat kodları (Tablo 2.14) ve mahal ismi/kısaltma tablosu (Tablo 3.2, `ek3_mahaller.json`): tamamı `mahal.py` içinde denetlenir.
 - **EK-4** CAD katman esasları: kapsam dışı (IFC değil).
 - **EK-6** Tablo 6.69–6.135 (isteğe bağlı öznitelikler): idare istemedikçe zorunlu değil, kodlanmadı.
 - **EK-7** Tablo 7.8 IfcGeometricRepresentationContext, 7.9 IfcAnnotation, 7.10–7.12 (isteğe bağlı): kodlanmadı.

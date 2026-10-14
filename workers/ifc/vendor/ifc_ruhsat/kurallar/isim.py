@@ -151,7 +151,13 @@ def _dosya_adi(b: Baglam) -> list[Bulgu]:
                 3,
             )
         ]
-    disiplin = m.group(3)
+    disiplin, alt_disiplin, dosya_turu, dosya_tipi, kat_konum = (
+        m.group(3),
+        m.group(4),
+        m.group(5),
+        m.group(6),
+        m.group(7),
+    )
     if disiplin not in veri.ek2_disiplinler():
         return [
             Bulgu(
@@ -162,13 +168,55 @@ def _dosya_adi(b: Baglam) -> list[Bulgu]:
                 3,
             )
         ]
+    alt_disiplinler = veri.ek2_alt_disiplinler()
+    if alt_disiplinler and alt_disiplin not in alt_disiplinler:
+        return [
+            Bulgu(
+                "dosya-adi-alt-disiplin",
+                "uyari",
+                f"Dosya adındaki alt disiplin/öğe kodu '{alt_disiplin}' EK-2 Tablo 2.3–2.11 listesinde yok.",
+                "EK-2 Tablo 2.3–2.11",
+                3,
+            )
+        ]
+    dosya_turleri = veri.ek2_dosya_turleri()
+    if dosya_turleri and dosya_turu not in dosya_turleri:
+        return [
+            Bulgu(
+                "dosya-adi-tur",
+                "uyari",
+                f"Dosya adındaki dosya türü kodu '{dosya_turu}' EK-2 Tablo 2.12 listesinde yok.",
+                "EK-2 Tablo 2.12",
+                3,
+            )
+        ]
+    dosya_tipleri = veri.ek2_dosya_tipleri()
+    if dosya_tipleri and dosya_tipi not in dosya_tipleri:
+        return [
+            Bulgu(
+                "dosya-adi-tip",
+                "uyari",
+                f"Dosya adındaki dosya tipi kodu '{dosya_tipi}' EK-2 Tablo 2.13 listesinde yok.",
+                "EK-2 Tablo 2.13",
+                3,
+            )
+        ]
+    if not re.match(r"^(B\d{2}|K[A-Z0-9]{2}|NNN|000)$", kat_konum):
+        return [
+            Bulgu(
+                "dosya-adi-kat",
+                "uyari",
+                f"Dosya adındaki kat/konum kodu '{kat_konum}' EK-2 Tablo 2.14 şablonuna (B01.., K00.., NNN, 000) uymuyor.",
+                "EK-2 Tablo 2.14",
+                3,
+            )
+        ]
     return [
         Bulgu(
             "dosya-adi",
             "bilgi",
-            "Dosya adı EK-2 şablonunun dokuz alanına uyuyor (alt disiplin, dosya türü ve tipi "
-            "kodları bu sürümde listeyle karşılaştırılmıyor).",
-            "m.6, EK-2 Tablo 2.1",
+            "Dosya adı EK-2 şablonunun dokuz alanına ve alt disiplin/tür/tip/kat sözlüklerine uyuyor.",
+            "m.6, EK-2 Tablo 2.1–2.14",
             3,
         )
     ]

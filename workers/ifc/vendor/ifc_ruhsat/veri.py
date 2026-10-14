@@ -19,6 +19,26 @@ def ek2_disiplinler() -> dict[str, str]:
     return _yukle("ek2_disiplinler.json")["disiplinler"]
 
 
+def ek2_alt_disiplinler() -> dict[str, str]:
+    """EK-2 Tablo 2.3–2.11: dört harfli alt disiplin / öğe kodu → ad."""
+    return _yukle("ek2_disiplinler.json").get("alt_disiplinler", {})
+
+
+def ek2_dosya_turleri() -> dict[str, str]:
+    """EK-2 Tablo 2.12: iki harfli dosya türü kodu → ad."""
+    return _yukle("ek2_disiplinler.json").get("dosya_turleri", {})
+
+
+def ek2_dosya_tipleri() -> dict[str, str]:
+    """EK-2 Tablo 2.13: üç harfli dosya tipi kodu → ad."""
+    return _yukle("ek2_disiplinler.json").get("dosya_tipleri", {})
+
+
+def ek3_mahaller() -> dict[str, str]:
+    """EK-3 Tablo 3.2: üç harfli mahal kısaltması → mahal ismi."""
+    return _yukle("ek3_mahaller.json")["mahaller"]
+
+
 def ek5() -> dict[str, Any]:
     return _yukle("ek5_siniflar.json")
 
@@ -66,6 +86,7 @@ def kaynaklar() -> dict[str, str]:
         ad: _yukle(ad)["kaynak"]
         for ad in (
             "ek2_disiplinler.json",
+            "ek3_mahaller.json",
             "ek5_siniflar.json",
             "ek6_ozellikler.json",
             "ek7_proje.json",

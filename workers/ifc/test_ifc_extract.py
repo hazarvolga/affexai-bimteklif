@@ -397,3 +397,46 @@ def test_three_by_three_rule_metadata_extraction():
     assert meta["discipline"] == "STR"
     assert meta["expectedQuantity"] == 10.0
 
+
+def test_trepys_poz_and_emsal_extraction():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties, extract_project_compliance
+
+    m = ifcopenshell.file(schema="IFC4")
+    wall = m.create_entity("IfcWall", GlobalId="1111111111111111111111")
+
+    # Generic pset has fallback PozNo, TREpys_PozOzellikSeti has official PozNo
+    p_generic = m.create_entity("IfcPropertySingleValue", Name="PozNo", NominalValue=m.create_entity("IfcLabel", "OLD.POZ.001"))
+    pset_generic = m.create_entity("IfcPropertySet", GlobalId="2222222222222222222222", Name="CustomPset", HasProperties=[p_generic])
+    p_trepys = m.create_entity("IfcPropertySingleValue", Name="PozNo", NominalValue=m.create_entity("IfcLabel", "15.150.1005"))
+    pset_trepys = m.create_entity("IfcPropertySet", GlobalId="3333333333333333333333", Name="TREpys_PozOzellikSeti", HasProperties=[p_trepys])
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="4444444444444444444444", RelatedObjects=[wall], RelatingPropertyDefinition=pset_generic)
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="5555555555555555555555", RelatedObjects=[wall], RelatingPropertyDefinition=pset_trepys)
+
+    res = extract_quantities_and_properties(wall, 1.0, 1.0)
+    assert res[10] == "15.150.1005"
+    assert "TREpys_PozOzellikSeti" in res[11]
+
+    # SpatialZone with TREpys_EmsalOzellikSeti
+    z1 = m.create_entity("IfcSpatialZone", GlobalId="6666666666666666666666", Name="MM-EMS-zemin")
+    p_ed1 = m.create_entity("IfcPropertySingleValue", Name="EmsalDurumu", NominalValue=m.create_entity("IfcLabel", "DAHIL"))
+    ps_e1 = m.create_entity("IfcPropertySet", GlobalId="7777777777777777777777", Name="TREpys_EmsalOzellikSeti", HasProperties=[p_ed1])
+    q_a1 = m.create_entity("IfcQuantityArea", Name="GrossFloorArea", AreaValue=420.5)
+    qto_e1 = m.create_entity("IfcElementQuantity", GlobalId="8888888888888888888888", Name="Qto_SpatialZoneBaseQuantities", Quantities=[q_a1])
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="9999999999999999999991", RelatedObjects=[z1], RelatingPropertyDefinition=ps_e1)
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="9999999999999999999992", RelatedObjects=[z1], RelatingPropertyDefinition=qto_e1)
+
+    z2 = m.create_entity("IfcSpatialZone", GlobalId="6666666666666666666667", Name="MM-EMS-balkon")
+    p_ed2 = m.create_entity("IfcPropertySingleValue", Name="EmsalDurumu", NominalValue=m.create_entity("IfcLabel", "YUZDE30"))
+    ps_e2 = m.create_entity("IfcPropertySet", GlobalId="7777777777777777777778", Name="TREpys_EmsalOzellikSeti", HasProperties=[p_ed2])
+    q_a2 = m.create_entity("IfcQuantityArea", Name="GrossFloorArea", AreaValue=65.25)
+    qto_e2 = m.create_entity("IfcElementQuantity", GlobalId="8888888888888888888889", Name="Qto_SpatialZoneBaseQuantities", Quantities=[q_a2])
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="9999999999999999999993", RelatedObjects=[z2], RelatingPropertyDefinition=ps_e2)
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="9999999999999999999994", RelatedObjects=[z2], RelatingPropertyDefinition=qto_e2)
+
+    comp = extract_project_compliance(m, 1.0)
+    assert comp["emsalDahilM2"] == 420.5
+    assert comp["emsalYuzde30M2"] == 65.25
+    assert comp["emsalHaricM2"] == 0.0
+
+
