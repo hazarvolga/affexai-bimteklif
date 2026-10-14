@@ -7,6 +7,7 @@ import type { CalcModule, DocBlock } from "./doc-types";
  */
 export const CALC_INTRO: DocBlock[] = [
   { type: "p", text: "Bu sayfa BIMMetraj'daki tüm hesaplama ve kontrol modüllerinin nasıl çalıştığını, hangi formülü ve eşiği kullandığını ve hangi kaynağa dayandığını açıklar. Amaç, yetkili mimar ve mühendislerin her modülü bağımsız olarak yeniden hesaplayıp onaylaması veya düzeltme istemesidir." },
+  { type: "callout", tone: "info", title: "İnceleme durumu", text: "Dayanak etiketi yöntemin referans türünü gösterir; uzman onayı veya tam standart uygunluğu anlamına gelmez. Otomatik test, gerçek proje kabulü ve bağımsız uzman kararı ayrı kanıtlardır. Bu belge henüz imzalı uzman kabulü içermez." },
   { type: "list", ordered: true, items: [
     "Her modülün 'Örnek' bölümündeki girdilerle hesabı elle veya kendi aracınızla tekrarlayın; sonuçlar uygulamanın kendi fonksiyonlarıyla üretilmiş veya onlarla karşılaştırılmıştır.",
     "'Dayanak' etiketine dikkat edin: 'Şirket politikası' ve 'Sezgisel / iş kuralı' olarak işaretli eşikler normatif değildir; uygunluğunu mesleki deneyiminize göre değerlendirin.",
@@ -241,7 +242,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: ["(a) metraj sapması = |gerçek − beklenen| / beklenen × 100;  0,001 hassasiyetle > %3 ise uyarı — ŞİRKET POLİTİKASI", "(b) net beton örtüsü (şirket standardı TBDY/TS 500): kolon/kiriş içte ≥ 20 mm, dışta ≥ 25 mm; döşeme ≥ 15 mm. Eurocode 2 şirketlerinde XC3 için ≥ 35 mm. ACI için eşik uydurulmaz", "(c) taşıyıcı eleman (LoadBearing = true) STR disiplininde olmalı — ŞİRKET POLİTİKASI"],
     rules: { columns: ["Sonuç durumu", "Anlamı"], rows: [["passed", "En az bir kural değerlendirildi ve ihlal yok"], ["failed", "En az bir ihlal var"], ["not_evaluated", "Hiçbir kural için girdi yok; 'geçti' sayılmaz"]] },
     example: { inputs: [["Dış kolon", "net örtü 22 mm"], ["Döşeme metrajı", "beklenen 100, gerçek 103,4"]], steps: ["Dış örtü sınırı 25 mm → ihlal", "Sapma %3,4 > %3 → uyarı"], result: "2 ihlal: COVER_MIN_TS500 (22 < 25), QTO_TOLERANCE_3PCT (3,4 > 3)" },
-    assumptions: ["IFC çıkarıcısı şu an örtü, maruziyet, disiplin ve LoadBearing bilgisini üretmediği için (b) ve (c) çoğu modelde 'girdi eksik' raporlanır."],
+    assumptions: ["IFC hattı kural paketine yalnız eleman kimliği ve tipini iletiyor. Beklenen/gerçek karşılaştırma miktarı, örtü, maruziyet, disiplin ve LoadBearing aktarılmadığından üç kural da 'girdi eksik' kalabilir. Kuralın çağrılması değerlendirme yapıldığı anlamına gelmez."],
     questions: ["TS 500 net örtü değerleri (20/25/15 mm) ve uygulama toleransı için ek bir pay gerekli mi?", "%3 metraj sapma politikası iş türüne göre farklılaşmalı mı?"],
   },
   {
@@ -278,11 +279,11 @@ export const CALC_MODULES: CalcModule[] = [
     status: "mevzuat",
     sourceFiles: ["workers/ifc/pdf_preflight.py"],
     references: ["Elektronik Teslim Yönetmeliği m.3(e), m.6(4)", "ISO 19005 (PDF/A)", "Dijital Hazırlama Yönetmeliği EK-2 (dosya adı)"],
-    purpose: "2B teslim dosyalarını yüklemeden önce kontrol eder.",
+    purpose: "SmartCheck'e yüklenen 2B teslim dosyasını kuyrukta işleyerek PDF/A kimliği, şifreleme, taranmış sayfa olasılığı ve dosya adını ön kontrolden geçirir; sonucu panelde gösterir. Kurum içi pilotta açıktır.",
     formulas: [],
     rules: { columns: ["Kod", "Koşul"], rows: [["PDFA_KIMLIGI_YOK", "XMP meta verisinde pdfaid:part yok"], ["SIFRELI_PDF", "Dosya şifreli"], ["TARANMIS_SAYFA_OLASI", "Sayfada görüntü var, metin yok (m.6(4))"], ["DOSYA_ADI_EK2", "Dosya adı 9 alanlı şablona uymuyor"], ["PDFA_TAM_DOGRULAMA", "Tam PDF/A uygunluğu için veraPDF gerekir (elle)"]] },
     example: { inputs: [["Dosya", "Mimari_Zemin_Kat_Plani_Son.pdf, PDF/A beyanı yok"]], steps: ["Dosya adı şablona uymaz; PDF/A kimliği yok"], result: "2 hata + 1 elle satırı" },
-    assumptions: ["PDF/A beyanı uygunluk kanıtı değildir."],
+    assumptions: ["PDF/A beyanı uygunluk kanıtı değildir; tam doğrulayıcı henüz bağlı değil.", "Yükleme sınırı 25 MiB; en fazla 500 sayfa taranır. İşlem zaman ve kaynak sınırlarıyla çalışır; taranmayan kapsam veya kesilen işlem uygun sayılmaz."],
     questions: ["Taranmış sayfa sezgisi (metinsiz görüntü sayfası) vektörel ama metinsiz paftalarda yanlış alarm üretir mi?"],
   },
   {
@@ -326,4 +327,4 @@ export const CALC_MODULES: CalcModule[] = [
   },
 ];
 
-export const SIGN_OFF_COLUMNS = ["Modül", "Doğrulayan (ad, unvan, oda sicil no)", "Tarih", "Sonuç (onay / düzeltme gerekli)", "Not"];
+export const SIGN_OFF_COLUMNS = ["Modül / kimlik", "Doğrulayan (ad, disiplin, unvan, sicil no)", "Tarih / imza", "Karar (onay / düzeltme / kapsam dışı)", "Uygulama kapsamı, kaynak madde ve kanıt eki"];

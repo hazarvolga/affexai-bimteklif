@@ -8,9 +8,21 @@ import { ts500LapLength } from "../../../academy/lap-length";
 import { evaluateSupplierPrice } from "../../../server/market-intelligence/price-memory";
 import { CALC_MODULES } from "./calculation-content";
 import { ROADMAP_SECTIONS, ROADMAP_SOURCES } from "./roadmap-content";
+import { CALC_REVIEW_META, CALC_REVIEW_EVIDENCE } from "./calculation-review";
 
 const tr = (value: number) => value.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const moduleText = (id: string) => JSON.stringify(CALC_MODULES.find(module => module.id === id));
+
+test("engineering review binds every module to a version, evidence and explicit acceptance gaps", () => {
+  assert.match(CALC_REVIEW_META.version, /^BIM-CALC-\d{4}-\d{2}-\d{2}\.\d+$/);
+  assert.match(CALC_REVIEW_META.implementationBaseline, /^[a-f0-9]{40}$/);
+  assert.deepEqual(Object.keys(CALC_REVIEW_EVIDENCE).sort(), CALC_MODULES.map(module => module.id).sort());
+  for (const [id, evidence] of Object.entries(CALC_REVIEW_EVIDENCE)) {
+    assert.ok(evidence.scope.trim() && evidence.pending.trim(), id);
+    assert.ok(evidence.testFiles.length > 0, id);
+    for (const file of evidence.testFiles) assert.ok(existsSync(file), `${id}: evidence ${file} missing`);
+  }
+});
 
 test("every calculation module is reviewable: source, references, example and an existing file", () => {
   const ids = new Set<string>();

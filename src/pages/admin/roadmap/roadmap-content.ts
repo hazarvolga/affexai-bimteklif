@@ -5,7 +5,7 @@ export const ROADMAP_META = {
   subtitle: "Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik (RG 5.8.2026/33331) kapsamında BIMMetraj ürün ve teknik yol haritası",
   preparedOn: "13 Ekim 2026",
   audience: "ALLPLAN Türkiye (Aluplan) ile paylaşım ve Bakanlık görüşmelerine hazırlık",
-  status: "Çalışma belgesi — resmî görüş değildir; mevzuat atıfları RG metni ve resmî eklerle karşılaştırılmıştır.",
+  status: "Çalışma belgesi — resmî görüş değildir. Resmî eklerde örneklem kontrolü yapılmıştır; tüm tabloların bağımsız doğrulaması ve gerçek proje mühendislik kabulü bekliyor.",
 };
 
 export const ROADMAP_SECTIONS: DocSection[] = [
@@ -21,7 +21,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         "İlk zorunluluk 2B tarafında: 1 Eylül 2027'den itibaren büyük şehirlerde 5.000 m² üstü projelerde PDF/A. En yakın ödeme isteği burada.",
         "e-PYS uygunluğu kendisi inceler (Elektronik Teslim Yönetmeliği m.5(2)). Ürünün en önemli teknik hedefi, sonuçlarını resmî kontrolle eşit tutmaktır; bu da Bakanlığın kuralları makine-okunur yayımlamasına bağlıdır.",
       ] },
-      { type: "callout", tone: "ok", title: "13 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 eklerine dayalı IFC ön kontrolü (EK-9 21 satır, GlobalId atıflı bulgular), IDS dışa aktarımı, kişisel veri maskeleme, PDF/A ön kontrol kitaplığı ve SmartCheck ekranında EK-9 tablosu. Ayrıntılar 'Uygulama durumu' bölümündedir." },
+      { type: "callout", tone: "ok", title: "13 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 eklerine dayalı IFC ön kontrolü (EK-9 21 satır, GlobalId atıflı bulgular), IDS dışa aktarımı, kişisel veri maskeleme ve PDF/A yükleme/ön kontrol akışı uygulanmıştır. Canlı sunucu işleme yalnız izinli kurum içi Bimmetraj tenant’ına açıktır. Sentetik IFC/PDF ile uçtan uca akış denendi; gerçek proje ve yetkili mühendis kabulü bekliyor. Ayrıntılar 'Uygulama durumu' bölümündedir." },
     ],
   },
   {
@@ -159,7 +159,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "table", columns: ["Faz", "Zaman", "Hedef ve teslimler", "Durum"], rows: [
         ["Faz 0 — Kaynak ve pozisyon", "Ekim–Aralık 2026", "Nihai RG metni ve resmî eklerin edinilmesi; makine-okunur, sürümlü kural kaynağı; mevcut ürün iddialarının düzeltilmesi; Aluplan iş birliği çerçevesi; Bakanlık soru listesi", "Büyük ölçüde tamamlandı: kural motoru ve veri (ifc-ruhsat@cd6d3ce), örneklemeli resmî ek kontrolü, ürün etiketleri ve paket açıklaması güncellendi. Kalan: tüm tabloların bağımsız kontrolü, iş birliği çerçevesi"],
-        ["Faz 1 — İlk zorunluluğa hazırlık", "1 Eylül 2027'ye kadar", "PDF/A, dosya adı ve proje kodu ön kontrolü; yazılımdan bağımsız IFC ön kontrolü (beta); ALLPLAN e-PYS kiti v1 ve 2–3 pilot ofis", "IFC ön kontrolü ve EK-9 ekranı hazır (pilot şirketlerde açılacak); PDF/A kitaplığı hazır, yükleme akışı bekliyor; ALLPLAN kiti başlamadı"],
+        ["Faz 1 — İlk zorunluluğa hazırlık", "1 Eylül 2027'ye kadar", "PDF/A, dosya adı ve proje kodu ön kontrolü; yazılımdan bağımsız IFC ön kontrolü (beta); ALLPLAN e-PYS kiti v1 ve 2–3 pilot ofis", "IFC/EK-9 ve PDF/A yükleme/ön kontrolü tek kurum içi tenant için canlıda. Sentetik akış testleri tamamlandı; gerçek proje uzman kabulü, 2–3 pilot ofis ve ALLPLAN kiti v1 bekliyor"],
         ["Faz 2 — e-PYS açılışı", "1 Eylül 2028'e kadar", "Ekip iş akışı, revizyon farkı, EK-9 taslak çıktısı; BCF ile ALLPLAN (Bimplus Issue Manager) geri dönüşü; PythonParts yardımcıları; Bakanlık kural yayınıyla eşitlik testleri", "Planlandı"],
         ["Faz 3 — IFC'nin ilk dalgası", "1 Eylül 2029'a kadar", "Revit ve Archicad için statik eşleme şablonları; saha verisine göre Revit eklentisi değerlendirmesi; ölçekleme", "Planlandı"],
       ] },
@@ -183,9 +183,11 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["SmartCheck ekranında EK-9 tablosu", "Hazır", "GlobalId'li bulgu ayrıntısı ve kaynak bilgisiyle"],
         ["IDS dışa aktarımı (EK-6, EK-7)", "Hazır", "ALLPLAN 2026, Solibri, BIMcollab ve ifctester ile okunabilir"],
         ["Kişisel veri maskeleme", "Hazır", "TC/VKN, e-posta ve telefon saklanmadan önce gizlenir"],
-        ["PDF/A ön kontrolü", "Kitaplık hazır", "PDF/A kimliği, şifreleme, taranmış sayfa, dosya adı; tam PDF/A doğrulaması için veraPDF gerekir; yükleme akışı bekliyor"],
+        ["PDF/A yükleme ve ön kontrolü", "Kurum içi pilotta canlı", "Dosya adı, PDF/A kimlik beyanı, şifreleme ve taranmış sayfa ön kontrolü; 25 MiB ve 500 sayfa sınırı. Sentetik dosya ile denendi; tam PDF/A doğrulaması ve gerçek proje kabulü yapılmış sayılmaz"],
         ["Hızlı e-PYS kontrolü (tarayıcı)", "Güncellendi", "Sınırlı kapsam açıkça yazılı; TREpys_ParselOzellikSeti'nin beş alanı (CekmeArka dahil)"],
-        ["SmartCheck canlı kullanım", "Pilot", "Sunucu tarafı IFC işleme canlıda pilot şirketlerde açılacak"],
+        ["SmartCheck canlı kullanım", "Tek tenant pilotu", "IFC ve PDF işleme yalnız izinli kurum içi Bimmetraj tenant’ında açık; genel erişim kapalı. 13 Ekim 2026 sentetik akış kanıtı mevcut"],
+        ["Gerçek proje mühendislik kabulü", "Bekliyor", "Temsilî IFC/PDF, bağımsız referans metraj ve yetkili uzman imzalı değerlendirme gerekli"],
+        ["ALLPLAN kiti, BCF ve revizyon farkı", "Planlandı", "IDS dışa aktarımı bu entegrasyonların tamamlandığı anlamına gelmez; kit ve yazılım içi geri dönüş akışı henüz teslim edilmedi"],
       ] },
     ],
   },
@@ -217,14 +219,24 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "adimlar",
-    title: "Önümüzdeki adımlar",
+    title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
-      { type: "list", ordered: true, items: [
-        "Aluplan ile gerçek bir ALLPLAN modelinin IFC4X3 dışa aktarımını BIMMetraj ön kontrolünden geçirip bulguları birlikte incelemek.",
-        "ALLPLAN e-PYS kiti v1 kapsamını ve iş birliği çerçevesini yazılı hale getirmek.",
-        "Bakanlık görüşmesine 6 soruluk listeyi götürmek.",
-        "Resmî eklerin kalan tablolarını bağımsız olarak kontrol etmek ve kaydını yayımlamak.",
-        "PDF/A ön kontrolünü yükleme akışına bağlamak; 2–3 pilot ofisle 2027 hazırlığına başlamak.",
+      { type: "p", text: "Bu sıra mevcut akışın güvenliğini, girdilerin doğruluğunu ve ardından yeni hesapları ele alır. Her satırın kapanışı kod, test ve gerekli uzman kabul kanıtına dayanır. Bir özelliğin bu listede olması, uygulandığı veya canlıya alındığı anlamına gelmez." },
+      { type: "table", columns: ["Sıra / İş", "Bugünkü sınır", "Tamamlanma ölçütü"], rows: [
+        ["1 — Runtime DB rolü (P1-1)", "Uygulama/worker için migration sahibinden ayrı yetki sınırı gerekli", "Ayrı çalışma rolüyle app ve worker akışı geçer; bu rol şema değiştiremez. Migration ayrı kimlikle çalışır; tenant olumsuz testleri ve geri dönüş provası kaydedilir"],
+        ["2 — Reviewer disiplin kapsamı (E-9)", "İnceleme kararları kayıtlı; disipline göre onay yetkisi henüz uygulanmıyor", "Sunucu, inceleyenin tenant ve disiplin yetkisini her kararda doğrular; yetkisiz/belirsiz disiplin için onay reddedilir. Karar, yetki kapsamı ve gerekçe denetim kaydına bağlanır"],
+        ["3 — IFC özellik girdileri", "LoadBearing, IsExternal ve modellenmiş paspayı bilgisi 3×3 değerlendirmesine tam taşınmıyor", "Pset/özellik yolu, GlobalId ve birim korunur; yanlış/eksik/çelişkili veri güvenli biçimde raporlanır. Eksik girdi uygun sonuç üretmez; bilinen IFC örnekleriyle uçtan uca doğrulanır"],
+        ["4 — Gerçek proje kabulü ve kural kanıtı", "Canlı kanıt sentetik IFC/PDF akışıyla sınırlı; resmî eklerin bağımsız kontrolü örneklem düzeyinde", "İzinli temsilî gerçek IFC/PDF, referans miktar/karar, dosya özeti, kural sürümü, beklenen/gerçek sonuç ve uzman değerlendirmesi birlikte kaydedilir. Kalan ek tabloları kaynak sayfasıyla karşılaştırılır; çözümsüz farklar açık kalır"],
+        ["5 — Donatı ve kalıp motoru (E-7)", "Çıkarıcıdaki kütle ve alan adayları tam bir sözleşmesel metraj motoru değildir", "Donatı uzunluk/adet/çap/kütle kaynağı ve kalıpta temas yüzeyi, birleşim ve boşluk kabulleri açık olur. Net miktar ile fire ayrılır; elle hesaplanmış referanslar ve sınır durumları yetkili uzmana sunulur"],
+        ["6 — Ölçü esası / minha (E-8)", "Sözleşme bazlı düşüm motoru henüz yok", "İmalat ve sözleşme için sürümlü ölçü esası seçilir; boşluk ve söve/yan yüzey hesabı formül, birim ve kaynakla izlenir. Net model miktarı sessizce değiştirilmez; farklı ölçü esasları ayrı sonuç ve test üretir"],
+        ["7 — ALLPLAN e-PYS kiti v1", "Kapsam ve ortaklık netleşmeli; kit başlamadı", "Nitelik kataloğu, IFC eşlemesi, isimlendirme ve IDS aynı kaynak sürümünü kullanır. Gerçek ALLPLAN dışa aktarımıyla deneme ve uzman kabulü yapılır; otomasyon varsa önizleme/onay/geri alma kanıtı gerekir"],
+        ["8 — Faz 2–3 entegrasyonları", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları planlandı", "Pilot ihtiyaçlarına göre ayrı kapsam belirlenir; her entegrasyon için hedef yazılım sürümü, veri eşleşmesi, yetki sınırı ve gerçek dosyayla kabul kaydı oluşur"],
+      ] },
+      { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
+      { type: "list", items: [
+        "Dış girdiler: temsilî müşteri dosyaları ve kullanım izni, yetkili uzman değerlendirmesi, Aluplan iş birliği kapsamı ve Bakanlık görüşmesi bu geliştirmelerle paralel yürütülür.",
+        "2–3 pilot ofise genişleme, kurum içi pilot bulguları değerlendirilip tenant başına yetki ve kota doğrulandıktan sonra ele alınır.",
+        "ÇŞB/YFK fiyatları için yazılı lisans ve fiyat kaynağı kanıtı ayrıca gerekir; metraj motorunun bitmesi fiyat kataloğunu onaylamaz.",
       ] },
     ],
   },

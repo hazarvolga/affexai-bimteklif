@@ -45,6 +45,7 @@ const correctionSchema = z.object({
 export const smartcheckRowReviewRequestSchema = z.object({
   status: z.enum(["approved", "rejected", "accepted_exception"]),
   notes: z.string().trim().max(2000).nullable().optional(),
+  reviewerDiscipline: z.enum(["STR", "ARC", "MEP"]).optional(),
   correction: correctionSchema.optional(),
 }).passthrough();
 
@@ -52,6 +53,7 @@ export const smartcheckBulkReviewRequestSchema = z.object({
   status: z.literal("approved"),
   rowIds: z.array(z.string().trim().min(1)).min(1).max(5000),
   notes: z.string().trim().max(2000).nullable().optional(),
+  reviewerDiscipline: z.enum(["STR", "ARC", "MEP"]).optional(),
 }).passthrough();
 
 const transferOverrideSchema = z.object({
