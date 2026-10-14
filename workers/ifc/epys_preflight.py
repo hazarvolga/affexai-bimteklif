@@ -35,17 +35,39 @@ DISCLAIMER = (
     "Yönetmeliği m.5)."
 )
 
+_IFC_GLOBAL_ID_TOKEN = re.compile(r"'[0-9A-Za-z_$]{22}'")
+
 _PATTERNS = [
     (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "[e-posta gizlendi]"),
-    (re.compile(r"(?:\+?90[\s-]?)?\(?0?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}"), "[telefon gizlendi]"),
-    (re.compile(r"\b\d{10,11}\b"), "[kimlik no gizlendi]"),
+    (
+        re.compile(
+            r"(?<!\w)(?:"
+            r"(?:\+90|0090)[\s-]?\(?0?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}"
+            r"|0\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}"
+            r"|\(?[2-58]\d{2}\)?[\s-]\d{3}[\s-]\d{2}[\s-]\d{2}"
+            r")(?!\w)"
+        ),
+        "[telefon gizlendi]",
+    ),
+    (re.compile(r"(?<!\w)\d{10,11}(?!\w)"), "[kimlik no gizlendi]"),
 ]
+
+_PASSTHROUGH_KEYS = frozenset({"kod", "madde", "tablo", "sema", "schema", "upstreamCommit", "version"})
 
 
 def _mask_text(text: str) -> str:
+    preserved: List[str] = []
+
+    def _stash(match: re.Match[str]) -> str:
+        preserved.append(match.group(0))
+        return f"\x00GLOBALID_{len(preserved) - 1}\x00"
+
+    masked = _IFC_GLOBAL_ID_TOKEN.sub(_stash, text)
     for pattern, replacement in _PATTERNS:
-        text = pattern.sub(replacement, text)
-    return text
+        masked = pattern.sub(replacement, masked)
+    for idx, token in enumerate(preserved):
+        masked = masked.replace(f"\x00GLOBALID_{idx}\x00", token)
+    return masked
 
 
 def mask_personal_data(value: Any) -> Any:
@@ -53,7 +75,10 @@ def mask_personal_data(value: Any) -> Any:
     if isinstance(value, str):
         return _mask_text(value)
     if isinstance(value, dict):
-        return {key: mask_personal_data(item) for key, item in value.items()}
+        return {
+            key: (item if key in _PASSTHROUGH_KEYS else mask_personal_data(item))
+            for key, item in value.items()
+        }
     if isinstance(value, list):
         return [mask_personal_data(item) for item in value]
     return value

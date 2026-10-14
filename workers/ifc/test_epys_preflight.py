@@ -36,13 +36,25 @@ def test_faulty_model_fails_rows_with_globalid_findings():
 
 
 def test_personal_identifiers_are_masked_in_stored_text():
-    finding = {"mesaj": "IfcPerson.Identification 12345678901 ve VKN 1234567890, e-posta ali@example.com, tel +90 532 123 45 67"}
+    finding = {
+        "kod": "EPYS-001",
+        "mesaj": "IfcPerson.Identification 12345678901 ve VKN 1234567890, e-posta ali@example.com, tel +90 532 123 45 67 ve 0212 345 67 89",
+        "varliklar": ["#42 IfcWall '1234567890ABCDEF123456'", "#43 IfcColumn '0123456789012345678901'"],
+    }
     masked = epys_preflight.mask_personal_data(finding)
     text = masked["mesaj"]
     assert "12345678901" not in text and "1234567890" not in text
+    assert "[telefon gizlendi]1" not in text
+    assert text.count("[kimlik no gizlendi]") == 2
+    assert text.count("[telefon gizlendi]") == 2
+    assert "[e-posta gizlendi]" in text
     assert "ali@example.com" not in text
     assert "532 123 45 67" not in text
     assert "IfcPerson.Identification" in text
+    assert masked["varliklar"] == [
+        "#42 IfcWall '1234567890ABCDEF123456'",
+        "#43 IfcColumn '0123456789012345678901'",
+    ]
 
 
 def test_cli_writes_json_and_exits_zero_even_with_findings():
