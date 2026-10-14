@@ -118,12 +118,16 @@ Release status (2026-10-13):
 - **Reviewer Discipline & Sign-off Metadata (`contracts.ts`, `CalculationMethods.tsx`):**
   Added optional `reviewerDiscipline` (`ARC` | `STR` | `MEP` | `COST` | `QA`) to `QuantityRowReviewPatchSchema` (`GAP-07`) and structured `signOffEvidence` metadata to `CalculationMethods.tsx` (`GAP-12`).
 - **Release & CI Verification (2026-10-14):**
-  Pushed 9 atomic commits (`bf844d3`, `079b010`, `c97d7e3`, `9521d85`, `2d64619`, `a12d435`, `dd060e4`, `35c63ad`, `9ab9ae5`) to `origin/main`. GitHub Actions `Verify` run `38570914778` passed (879 tests + Python IFC tests + Prisma shadow + Docker builds + runtime smoke). Deployed to Coolify (`pk249c4bzn7yml3gny65rlrd`) and verified live on `https://bimmetraj.com/api/health`.
+  Pushed 9 atomic commits (`bf844d3` .. `9ab9ae5`) plus pricing-source UX/automation and e-PYS/roadmap commits to `origin/main`.
+- **Official ÇŞB 2026 PDF Catalog Sealing & Automated Nightly Price Tracker (`csb-pdf-parser.ts`, `pricing-file-import.ts`, `price-watcher.ts`, `PricingSources.tsx`):**
+  Parsed 15 official 2026 ÇŞB Yüksek Fen Kurulu PDFs (`docs/fiyatlandirma-kaynaklari/`) and embedded 6 SHA-256-sealed official 2026 catalogs (`csb-2026-official-catalogs.json`) + 3-stage PDF parser (`pdftotext` / `pypdf` / zlib stream) into `/admin/pricing-sources`. Added 4-layer automated nightly 03:00 price tracker (TCMB EVDS + TÜİK Yİ-ÜFE/İME + ÇŞB page fingerprint + automatic impact simulation on active quotes).
+- **e-PYS Full EK-2/EK-3 Dictionary & Roadmap/Calculations Alignment (`ek2_disiplinler.json`, `ek3_mahaller.json`, `isim.py`, `mahal.py`, `ifc_extract.py`, `roadmap-content.ts`, `calculation-content.ts`, `calculation-review.ts`):**
+  Completed Recommendations 1, 2, and 3: added EK-2 `Tablo 2.3–2.14` (sub-disciplines, file types, storey codes) and EK-3 `Tablo 3.2` (~130 official room names/codes) to `ifc_ruhsat`; prioritized `TREpys_PozOzellikSeti` and extracted `TREpys_EmsalOzellikSeti` (`IfcSpatialZone`/`IfcSpace` `DAHIL`/`HARIC`/`YUZDE30`) in `ifc_extract.py`; updated `/admin/roadmap` and `/admin/roadmap/calculations` (including Module 14 `CSB_2026_V1` Minha engine and ALUPLAN/ALLPLAN 2026 comparative matrix).
 
 ## Next code work
 
-- Independently check the remaining RG annex tables against the official PDF.
-- Separate runtime DB role in production deployment (P1-1).
+- Representative real-project IFC/PDF engineering acceptance with reviewer sign-off.
+- ALLPLAN e-PYS kit v1 (attribute catalog, 15-char material library, PythonParts wizards).
 
 ## Ground rules for agents
 

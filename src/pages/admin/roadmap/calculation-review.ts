@@ -60,9 +60,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Beton-kalıp-donatı ayrımının seçilen pozlarla kontrolü; miktar ve fiyatın insan incelemesi.",
   },
   "satir-dogrulama": {
-    scope: "Satır veri kalitesi kontrolü; teknik reviewer disiplin yetkisi henüz uygulanmıyor.",
-    testFiles: ["src/smartcheck/import/normalize.test.ts"],
-    pending: "İş türüne göre fire sınırı ve reviewer disiplin kapsamının tanımlanması.",
+    scope: "Satır veri kalitesi kontrolü ve sunucu tarafında teknik reviewer disiplin yetkisi (STR, ARC, MEP, ALL) doğrulaması aktif.",
+    testFiles: ["src/smartcheck/import/normalize.test.ts", "src/server/smartcheck/review.test.ts"],
+    pending: "İş türüne göre fire sınırlarının gerçek saha verileriyle kalibrasyonu.",
   },
   "fiyat-eslestirme": {
     scope: "Kanıtlı fiyat kayıtlarını sıralayan öneri; kendi başına fiyat onayı vermez.",
@@ -79,10 +79,15 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     testFiles: ["src/smartcheck/rules/three-by-three.test.ts", "src/smartcheck/rules/ifc-rule-run.test.ts"],
     pending: "Gerçek proje IFC dosyalarında Pset_ConcreteElementGeneral / Pset_*Common özellik eşleşmelerinin uzman kabulü.",
   },
+  minha: {
+    scope: "ÇŞB 2026 (CSB_2026_V1) ölçü esaslarına göre duvar (0,50 m²), sıva/boya (2,00 m² + söve) ve kalıp (1,00 m²) boşluk düşüm motoru aktif.",
+    testFiles: ["src/smartcheck/rules/minha.test.ts"],
+    pending: "Özel idare şartnameleri ve DIN 18350 / NRM2 alternatif ölçü esası profillerinin saha kabulü.",
+  },
   "epys-on-kontrol": {
-    scope: "İç pilot tenant'ta IFC → sunucu ön kontrolü → EK-9 ekranı; sentetik akış denendi.",
-    testFiles: ["workers/ifc/test_epys_preflight.py", "src/smartcheck/import/epys-preflight-runner.test.ts"],
-    pending: "Kalan resmî eklerin bağımsız kaynak kontrolü, gerçek proje kabulü ve elle işaretli satırların yetkili incelemesi.",
+    scope: "İç pilot tenant'ta IFC → sunucu ön kontrolü (EK-2/3/5/6/7/9 tam sözlük) → EK-9 ekranı; sentetik akış denendi.",
+    testFiles: ["workers/ifc/test_epys_preflight.py", "workers/ifc/vendor_tests/ifc_ruhsat/test_kurallar.py", "src/smartcheck/import/epys-preflight-runner.test.ts"],
+    pending: "Gerçek proje kabulü ve elle işaretli satırların yetkili incelemesi.",
   },
   "epys-hizli": {
     scope: "Sınırlı hızlı ön kontrol; sezgisel puan uygunluk yüzdesi değildir.",
