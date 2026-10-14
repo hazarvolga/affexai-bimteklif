@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { makeWorkerUtils } from 'graphile-worker';
 import { db } from '../../db';
-import { adminAuditLogs, documents, documentProcessingRuns, smartcheckAuditLogs, usageRecords } from '../../db/schema';
+import { adminAuditLogs, documents, documentProcessingRuns, plans, smartcheckAuditLogs, subscriptions, usageRecords } from '../../db/schema';
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
@@ -140,13 +140,22 @@ export async function changeProcessingRun(input: {
         .where(and(eq(documentProcessingRuns.companyId, companyId), sql`${documentProcessingRuns.status} IN ('queued', 'running')`, sql`${documents.originalFileName} ILIKE '%.pdf'`));
       if (activePdfRuns.length >= 2) throw new ProcessingConflict('TENANT_PDF_CONCURRENCY_LIMIT_EXCEEDED', 429, 'Aynı anda en fazla iki PDF/A ön kontrolü yapılabilir.');
 
+      const [subPlan] = await tx.select({
+        monthlyRegulationLimit: plans.monthlyRegulationLimit,
+        monthlyPdfLimit: plans.monthlyPdfLimit,
+      })
+        .from(subscriptions)
+        .leftJoin(plans, eq(plans.id, subscriptions.planId))
+        .where(eq(subscriptions.companyId, companyId));
+      const pdfMonthlyLimit = subPlan?.monthlyRegulationLimit ?? subPlan?.monthlyPdfLimit ?? 100;
+
       const monthStart = new Date();
       monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);
       const completed = await tx.select({ id: documentProcessingRuns.id })
         .from(documentProcessingRuns)
         .innerJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, companyId)))
         .where(and(eq(documentProcessingRuns.companyId, companyId), eq(documentProcessingRuns.status, 'succeeded'), sql`${documents.originalFileName} ILIKE '%.pdf'`, sql`${documentProcessingRuns.completedAt} >= ${monthStart}`));
-      if (completed.length + activePdfRuns.length >= 100) throw new ProcessingConflict('TENANT_PDF_MONTHLY_LIMIT_EXCEEDED', 429, 'Aylık PDF/A ön kontrol sınırına ulaşıldı.');
+      if (completed.length + activePdfRuns.length >= pdfMonthlyLimit) throw new ProcessingConflict('TENANT_PDF_MONTHLY_LIMIT_EXCEEDED', 429, 'Aylık PDF/A ön kontrol sınırına ulaşıldı.');
     }
 
     // Retire previous automatic retries before creating a successor. Active jobs require operator investigation.

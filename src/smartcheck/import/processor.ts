@@ -90,6 +90,7 @@ async function processIfcSmartCheckDocument(payload: {
       await fs.writeFile(resolvedPath, content);
     }
     try {
+      await storeEpysPreflight({ companyId, documentId, processingRunId, inputPath: resolvedPath, fileName: originalFileName, storage });
       const pythonResult = await runPythonIfcExtractor({
         inputPath: resolvedPath,
         fileName: originalFileName,
@@ -99,7 +100,6 @@ async function processIfcSmartCheckDocument(payload: {
         checksumSha256,
         parserVersion: pythonResult.parserVersion,
       });
-      await storeEpysPreflight({ companyId, documentId, processingRunId, inputPath: resolvedPath, fileName: originalFileName, storage });
     } finally {
       if (cleanupDir) {
         await fs.rm(cleanupDir, { recursive: true, force: true }).catch(() => {});

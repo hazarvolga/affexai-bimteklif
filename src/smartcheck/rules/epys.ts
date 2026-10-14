@@ -36,7 +36,9 @@ export interface IfcElementData {
 }
 
 export interface EpysRuleInput {
-  complianceData: TrPsetCsbProjectCompliance;
+  complianceData?: TrPsetCsbProjectCompliance;
+  /** Canonical RG 33331 EK-9 alias for complianceData. */
+  epysEk9?: TrPsetCsbProjectCompliance;
   /** Browser path: per-element poz map. Server path passes elementsWithPozNoCount instead. */
   pozExtraction?: ElementPozNoExtraction;
   elementsWithPozNoCount?: number;
@@ -50,14 +52,15 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   let penaltyPoints = 0;
+  const compliance = input.epysEk9 ?? input.complianceData ?? { source: null };
 
   // KURAL 1: TREpys_ParselOzellikSeti — RG 33331 EK-6 Tablo 6.55 (IfcSite)
-  if (!input.complianceData.source) {
+  if (!compliance.source) {
     errors.push("[EK-6 Tablo 6.55] IfcSite üzerinde TREpys_ParselOzellikSeti bulunamadı. TAKS, KAKS, CekmeOn, CekmeYan ve CekmeArka tanımlanmalıdır.");
     penaltyPoints += 40;
   } else {
     for (const [key, name] of [["taks", "TAKS"], ["kaks", "KAKS"], ["cekmeOn", "CekmeOn"], ["cekmeYan", "CekmeYan"], ["cekmeArka", "CekmeArka"]] as const) {
-      const value = input.complianceData[key] as number | null | undefined;
+      const value = compliance[key] as number | null | undefined;
       if (value === undefined || value === null) {
         errors.push(`[EK-6 Tablo 6.55] TREpys_ParselOzellikSeti.${name} değeri tanımlanmamış.`);
         penaltyPoints += 10;

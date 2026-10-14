@@ -353,16 +353,21 @@ export function registerSmartCheckRoutes(app: Express) {
   app.get("/api/smartcheck/documents/:id/epys-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
+    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status, errorCode: documentProcessingRuns.errorCode }).from(documentProcessingRuns)
       .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
       .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
-    if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
+    if (!latestRun || latestRun.status === "queued" || latestRun.status === "running") {
+      return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
+    }
     const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
       .from(documentProcessingArtifacts)
       .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "epys_preflight")))
       .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
-    if (!artifact) return res.status(404).json({ error: "Bu doküman için e-PYS ön kontrolü bulunmuyor.", code: "EPYS_PREFLIGHT_NOT_FOUND" });
-    res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
+    if (!artifact) {
+      if (latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
+      return res.status(404).json({ error: "Bu doküman için e-PYS ön kontrolü bulunmuyor.", code: "EPYS_PREFLIGHT_NOT_FOUND" });
+    }
+    res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt, runStatus: latestRun.status, runErrorCode: latestRun.errorCode });
   });
 
   app.get("/api/smartcheck/documents/:id/pdf-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
