@@ -17,6 +17,12 @@ export interface ParsedIfcElement {
   smartCheckNote?: string;
   pozNo?: string;
   pozNoSourcePath?: string;
+  loadBearing?: boolean;
+  exposure?: "interior" | "exterior";
+  exposureClass?: string;
+  coverMm?: number;
+  discipline?: string;
+  expectedQuantity?: number;
 }
 
 export interface TrPsetCsbProjectCompliance {

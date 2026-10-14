@@ -185,6 +185,7 @@ def extract_quantities_and_properties(
     Optional[str],  # smartCheckNote
     Optional[str],  # pozNo
     Optional[str],  # pozNoSourcePath
+    Dict[str, Any],  # ruleMetadata (loadBearing, exposure, exposureClass, coverMm, discipline, expectedQuantity)
 ]:
     raw_type = elem.is_a()
     elem_type = "IfcWall" if raw_type == "IfcWallStandardCase" else raw_type
@@ -203,6 +204,13 @@ def extract_quantities_and_properties(
 
     poz_no = None
     poz_source_path = None
+
+    load_bearing: Optional[bool] = None
+    exposure: Optional[str] = None
+    exposure_class: Optional[str] = None
+    cover_mm: Optional[float] = None
+    discipline: Optional[str] = None
+    explicit_expected_volume: Optional[float] = None
 
     # Track area quantities with set priority for formwork derivation
     explicit_formwork: List[Tuple[int, float, str]] = []
@@ -276,6 +284,38 @@ def extract_quantities_and_properties(
                     if wrapped_val:
                         poz_no = str(wrapped_val).strip()
                         poz_source_path = source_path_item
+
+                # 3x3 Rule Pack metadata extraction (LoadBearing, IsExternal, Cover, ExposureClass, Discipline)
+                if p_name_lower in {"loadbearing", "tasiyici", "tasiyicimi"} and wrapped_val is not None:
+                    if isinstance(wrapped_val, bool):
+                        load_bearing = wrapped_val
+                    else:
+                        s_val = str(wrapped_val).strip().lower()
+                        if s_val in {"true", ".t.", "1", "evet", "yes"}:
+                            load_bearing = True
+                        elif s_val in {"false", ".f.", "0", "hayir", "hayır", "no"}:
+                            load_bearing = False
+                elif p_name_lower in {"isexternal", "discephe", "disortam"} and wrapped_val is not None:
+                    if isinstance(wrapped_val, bool):
+                        exposure = "exterior" if wrapped_val else "interior"
+                    else:
+                        s_val = str(wrapped_val).strip().lower()
+                        if s_val in {"true", ".t.", "1", "evet", "yes", "exterior", "dis", "dış"}:
+                            exposure = "exterior"
+                        elif s_val in {"false", ".f.", "0", "hayir", "hayır", "no", "interior", "ic", "iç"}:
+                            exposure = "interior"
+                elif p_name_lower in {"exposureclass", "maruziyetsinifi", "cevreselmaruziyet"} and wrapped_val:
+                    exposure_class = str(wrapped_val).strip().upper()
+                elif p_name_lower in {"cover", "concretecover", "nominalcover", "reinforcementcover", "paspayi", "paspayimm", "ortubetonu"}:
+                    c_val = safe_float(wrapped_val)
+                    if c_val is not None and c_val > 0:
+                        cover_mm = round(c_val * 1000.0, 2) if c_val < 1.0 else round(c_val, 2)
+                elif p_name_lower in {"discipline", "disiplin"} and wrapped_val:
+                    discipline = str(wrapped_val).strip().upper()
+                elif p_name_lower in {"expectedvolume", "hedefhacim"}:
+                    e_val = safe_float(wrapped_val)
+                    if e_val is not None and e_val > 0:
+                        explicit_expected_volume = e_val * quantity_scale(prop, "VOLUMEUNIT", vol_scale)
 
                 # Property volume/area/weight
                 is_approved = any(pset_name_lower.startswith(prefix) for prefix in APPROVED_PROPERTY_SETS)
@@ -395,7 +435,7 @@ def extract_quantities_and_properties(
     source_path = None
     confidence = None
     status = "pass"
-    note = "Eurocode 2 & TS 708 donatı ve hacim standartlarına uyumlu"
+    note = "TBDY 2018 / TS 500 ve TS 708 metraj esaslarına göre incelendi."
 
     if qto_volume is not None:
         volume_m3 = round(qto_volume, 12)
@@ -433,6 +473,27 @@ def extract_quantities_and_properties(
     if formwork_note:
         note = f"{note} | {formwork_note}" if note else formwork_note
 
+    expected_qty = explicit_expected_volume
+    if expected_qty is None and qto_volume is not None and prop_volume is not None:
+        expected_qty = round(prop_volume, 12)
+
+    if discipline is None and load_bearing is not None:
+        discipline = "STR" if elem_type in {"IfcBeam", "IfcColumn"} or load_bearing else "ARC"
+
+    rule_metadata: Dict[str, Any] = {}
+    if load_bearing is not None:
+        rule_metadata["loadBearing"] = load_bearing
+    if exposure is not None:
+        rule_metadata["exposure"] = exposure
+    if exposure_class is not None:
+        rule_metadata["exposureClass"] = exposure_class
+    if cover_mm is not None:
+        rule_metadata["coverMm"] = cover_mm
+    if discipline is not None:
+        rule_metadata["discipline"] = discipline
+    if expected_qty is not None:
+        rule_metadata["expectedQuantity"] = expected_qty
+
     return (
         volume_m3,
         round(formwork_m2, 2),
@@ -446,6 +507,7 @@ def extract_quantities_and_properties(
         note,
         poz_no,
         poz_source_path,
+        rule_metadata,
     )
 
 
@@ -629,6 +691,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             note,
             poz_no,
             poz_source_path,
+            rule_metadata,
         ) = extract_quantities_and_properties(elem, vol_scale, area_scale, mass_scale)
 
         rebar_diameter_mm = None
@@ -701,6 +764,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             el_dict["pozNo"] = poz_no
         if poz_source_path:
             el_dict["pozNoSourcePath"] = poz_source_path
+        if rule_metadata:
+            el_dict.update(rule_metadata)
 
         parsed_elements.append(el_dict)
 

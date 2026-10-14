@@ -51,4 +51,27 @@ describe("server-side IFC rule run (E-1, E-6)", () => {
     assert.equal(output.rows[1].findingsJson.length, 0);
     assert.equal(output.ruleEvaluations?.threeByThree.rulePackVersion, evaluations.threeByThree.rulePackVersion);
   });
+
+  it("evaluates 3x3 rules when extractor populates coverMm, exposure, loadBearing, discipline, and expectedQuantity in formulaJson", () => {
+    const base = artifact();
+    base.rows[0] = {
+      ...base.rows[0],
+      rawQuantity: "10.5",
+      normalizedQuantity: "10.5",
+      formulaJson: {
+        elementStepId: "#1",
+        loadBearing: "true",
+        discipline: "ARC",
+        exposure: "exterior",
+        coverMm: "18",
+        expectedQuantity: "10.0",
+      },
+    };
+    const result = evaluateIfcRulePacks(base, "TBDY_TS500");
+    assert.equal(result.threeByThree.status, "failed");
+    assert.deepEqual(result.threeByThree.coverage[RULE_IDS.QTO_TOLERANCE_3PCT], { evaluated: 1, missingInput: 1 });
+    assert.deepEqual(result.threeByThree.coverage[RULE_IDS.COVER_MIN_TS500], { evaluated: 1, missingInput: 1 });
+    assert.deepEqual(result.threeByThree.coverage[RULE_IDS.LAYER_PRIORITY], { evaluated: 1, missingInput: 1 });
+    assert.equal(result.threeByThree.violations.length, 3);
+  });
 });

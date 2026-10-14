@@ -79,6 +79,21 @@ function formatQuantity(value: number): string {
 
 function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: number): ParsedQuantityRow {
   const evidencePath = element.quantitySourcePath ?? `IFC#${element.id}`;
+  const formulaJson: Record<string, string> = {
+    elementStepId: `#${element.id}`,
+    globalId: element.guid,
+    quantitySourcePath: element.quantitySourcePath ?? "",
+    storeySourcePath: element.storeySourcePath ?? "",
+    pozNoSourcePath: element.pozNoSourcePath ?? "",
+  };
+  if (typeof element.loadBearing === "boolean") formulaJson.loadBearing = String(element.loadBearing);
+  if (element.exposure) formulaJson.exposure = element.exposure;
+  if (element.exposureClass) formulaJson.exposureClass = element.exposureClass;
+  if (typeof element.coverMm === "number" && Number.isFinite(element.coverMm)) formulaJson.coverMm = String(element.coverMm);
+  if (element.discipline) formulaJson.discipline = element.discipline;
+  if (typeof element.expectedQuantity === "number" && Number.isFinite(element.expectedQuantity)) {
+    formulaJson.expectedQuantity = formatQuantity(element.expectedQuantity);
+  }
   return {
     sheetName: "IFC",
     sourceRowNumber,
@@ -92,13 +107,7 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
     rawQuantity: formatQuantity(element.volumeM3),
     rawPrice: "",
     rawWastePercent: "0",
-    formulaJson: {
-      elementStepId: `#${element.id}`,
-      globalId: element.guid,
-      quantitySourcePath: element.quantitySourcePath ?? "",
-      storeySourcePath: element.storeySourcePath ?? "",
-      pozNoSourcePath: element.pozNoSourcePath ?? "",
-    },
+    formulaJson,
   };
 }
 

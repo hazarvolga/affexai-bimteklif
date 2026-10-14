@@ -10,11 +10,25 @@ export interface IfcRuleEvaluations {
 }
 
 function threeByThreeItems(artifact: IfcSmartCheckEvidenceArtifact): ThreeByThreeItem[] {
-  // The extractor does not yet emit cover, exposure, discipline or LoadBearing; coverage reports that gap.
-  return artifact.rows.map(row => ({
-    elementId: row.formulaJson.elementStepId ?? row.sourceCellRange,
-    elementType: row.rawDescription.split(" ")[0],
-  }));
+  return artifact.rows.map(row => {
+    const f = row.formulaJson ?? {};
+    const actualQty = Number(row.normalizedQuantity ?? row.rawQuantity);
+    const expectedQty = f.expectedQuantity ? Number(f.expectedQuantity) : Number.NaN;
+    const coverMm = f.coverMm ? Number(f.coverMm) : Number.NaN;
+    const item: ThreeByThreeItem = {
+      elementId: f.elementStepId ?? row.sourceCellRange,
+      elementType: row.rawDescription.split(" ")[0],
+    };
+    if (Number.isFinite(actualQty) && actualQty > 0) item.actualQuantity = actualQty;
+    if (Number.isFinite(expectedQty) && expectedQty > 0) item.expectedQuantity = expectedQty;
+    if (f.loadBearing === "true") item.loadBearing = true;
+    else if (f.loadBearing === "false") item.loadBearing = false;
+    if (f.exposure === "interior" || f.exposure === "exterior") item.exposure = f.exposure;
+    if (f.exposureClass) item.exposureClass = f.exposureClass;
+    if (Number.isFinite(coverMm) && coverMm > 0) item.coverMm = coverMm;
+    if (f.discipline) item.discipline = f.discipline;
+    return item;
+  });
 }
 
 /** Runs the 3x3 and e-PYS rule packs on the server for one IFC SmartCheck run (E-1, E-6). */

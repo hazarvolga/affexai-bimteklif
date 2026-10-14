@@ -369,3 +369,31 @@ def test_rebar_cross_section_uses_independent_area_unit():
     diameter, mass, _ = extract_rebar_info(bar, .001, 1.)
     assert diameter == 16.
     assert mass == 18.9
+
+
+def test_three_by_three_rule_metadata_extraction():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties
+    m = ifcopenshell.file(schema="IFC4")
+    col = m.create_entity("IfcColumn", GlobalId="1111111111111111111111")
+    qty = m.create_entity("IfcQuantityVolume", Name="NetVolume", VolumeValue=10.5)
+    qto = m.create_entity("IfcElementQuantity", GlobalId="2222222222222222222222", Name="Qto_ColumnBaseQuantities", Quantities=[qty])
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="3333333333333333333333", RelatedObjects=[col], RelatingPropertyDefinition=qto)
+
+    p_vol = m.create_entity("IfcPropertySingleValue", Name="Hacim", NominalValue=m.create_entity("IfcReal", 10.0))
+    p_lb = m.create_entity("IfcPropertySingleValue", Name="LoadBearing", NominalValue=m.create_entity("IfcBoolean", True))
+    p_ext = m.create_entity("IfcPropertySingleValue", Name="IsExternal", NominalValue=m.create_entity("IfcBoolean", True))
+    p_cov = m.create_entity("IfcPropertySingleValue", Name="ConcreteCover", NominalValue=m.create_entity("IfcReal", 0.025))
+    p_exp = m.create_entity("IfcPropertySingleValue", Name="ExposureClass", NominalValue=m.create_entity("IfcLabel", "XC3"))
+    pset = m.create_entity("IfcPropertySet", GlobalId="4444444444444444444444", Name="Pset_ColumnCommon", HasProperties=[p_vol, p_lb, p_ext, p_cov, p_exp])
+    m.create_entity("IfcRelDefinesByProperties", GlobalId="5555555555555555555555", RelatedObjects=[col], RelatingPropertyDefinition=pset)
+
+    res = extract_quantities_and_properties(col, 1.0, 1.0)
+    meta = res[12]
+    assert meta["loadBearing"] is True
+    assert meta["exposure"] == "exterior"
+    assert meta["exposureClass"] == "XC3"
+    assert meta["coverMm"] == 25.0
+    assert meta["discipline"] == "STR"
+    assert meta["expectedQuantity"] == 10.0
+
