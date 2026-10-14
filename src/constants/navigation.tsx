@@ -3,7 +3,11 @@ import {
   FileText,
   Users,
   Settings,
-  BookOpen
+  BookOpen,
+  ShieldCheck,
+  TrendingUp,
+  CreditCard,
+  Briefcase
 } from 'lucide-react';
 import { ACADEMY_ENABLED } from '@/config/features';
 
@@ -35,13 +39,6 @@ export const navigationConfig: NavItem[] = [
     group: "Sistem Yönetimi",
   },
   {
-    label: "Faturalandırma",
-    path: "/app/billing",
-    icon: LayoutDashboard,
-    roles: ["super_admin"],
-    group: "Sistem Yönetimi",
-  },
-  {
     label: "Panel",
     path: "/app",
     icon: LayoutDashboard,
@@ -56,11 +53,39 @@ export const navigationConfig: NavItem[] = [
     group: "Ana Menü",
   },
   {
+    label: "SmartCheck & e-PYS",
+    path: "/app/smartcheck",
+    icon: ShieldCheck,
+    roles: ["owner", "admin", "manager", "viewer"],
+    group: "Ana Menü",
+  },
+  {
     label: "Müşteriler (CRM)",
     path: "/app/crm",
     icon: Users,
     roles: ["owner", "admin", "manager", "viewer"],
     group: "Ana Menü",
+  },
+  {
+    label: "Tedarikçi & Piyasa",
+    path: "/app/market-intelligence",
+    icon: Briefcase,
+    roles: ["owner", "admin", "manager"],
+    group: "Araçlar",
+  },
+  {
+    label: "Kârlılık Analizi",
+    path: "/app/profitability",
+    icon: TrendingUp,
+    roles: ["owner", "admin", "manager"],
+    group: "Araçlar",
+  },
+  {
+    label: "Faturalandırma",
+    path: "/app/billing",
+    icon: CreditCard,
+    roles: ["owner", "admin", "super_admin"],
+    group: "Araçlar",
   },
   {
     label: "Ayarlar",

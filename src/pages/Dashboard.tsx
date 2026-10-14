@@ -23,7 +23,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -58,6 +58,7 @@ function buildMonthlyPipeline(quotes: Quote[]) {
 
 export function Dashboard() {
   const { company, user } = useAuth();
+  const navigate = useNavigate();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -146,8 +147,8 @@ export function Dashboard() {
           </div>
           <div className="h-3.5 w-px bg-border hidden sm:block" />
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground uppercase">RAYİÇ:</span>
-            <span className="text-primary font-bold">ÇŞB 2026 Güncel</span>
+            <span className="text-muted-foreground uppercase">KAYNAK:</span>
+            <span className="text-primary font-bold">Kanıtlı Metraj & Fiyat Kataloğu</span>
           </div>
           <div className="h-3.5 w-px bg-border hidden md:block" />
           <div className="hidden md:flex items-center gap-2">
@@ -178,10 +179,10 @@ export function Dashboard() {
                 Manuel Teklif
               </Button>
             </Link>
-            <Link to="/app/dosyadan-teklif-demo">
+            <Link to="/app/smartcheck">
               <Button size="sm" className="bg-primary hover:bg-primary/90 text-white gap-1.5 font-semibold shadow-xs">
                 <Box size={15} />
-                3D IFC ile Teklif Hazırla
+                SmartCheck & IFC Yükle
               </Button>
             </Link>
           </div>
@@ -195,8 +196,8 @@ export function Dashboard() {
               icon={FileText}
               title="Henüz teklif verisi yok"
               description="İlk teklifinizi oluşturduğunuzda panel gerçek satış ve metraj performansınızı göstermeye başlar."
-              actionText="İLK IFC MODELİNİ YÜKLE"
-              onAction={() => { window.location.href = '/app/dosyadan-teklif-demo'; }}
+              actionText="SMARTCHECK İLE DOSYA YÜKLE"
+              onAction={() => navigate('/app/smartcheck')}
             />
           </CardContent>
         </Card>
@@ -341,9 +342,9 @@ export function Dashboard() {
                     </p>
                   </div>
                   <div className="mt-5 pt-3 border-t border-border">
-                    <Link to="/app/dosyadan-teklif-demo">
+                    <Link to="/app/smartcheck">
                       <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-white text-xs font-semibold shadow-xs">
-                        IFC Model Yükle →
+                        SmartCheck & IFC Yükle →
                       </Button>
                     </Link>
                   </div>

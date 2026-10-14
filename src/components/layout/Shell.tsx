@@ -237,9 +237,9 @@ export function Shell() {
         </div>
 
         {/* Footer */}
-        <footer className="px-8 py-3 border-t border-border bg-card/40 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+        <footer className="px-8 py-3 border-t border-border bg-card/40 flex items-center justify-between text-xs font-mono text-muted-foreground">
           <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'BIMMetraj'} · openBIM & 5D İhale Masası</span>
-          <span className="hidden sm:inline">ÇŞB 2026 Poz Rayiçleri</span>
+          <span className="hidden sm:inline">openBIM QTO · RG 33331 e-PYS & Kanıtlı Metraj</span>
         </footer>
       </main>
     </div>

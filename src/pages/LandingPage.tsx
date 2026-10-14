@@ -17,8 +17,8 @@ import {
   FileCode2,
   BadgeCheck
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
 import { PublicPricingSection } from '@/features/public-pricing/PublicPricingSection';
 
 type LandingPageProps = {
@@ -28,7 +28,20 @@ type LandingPageProps = {
 
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const sectionMap: Record<string, string> = {
+      '/pricing': 'pricing',
+      '/features': 'features',
+      '/about': 'workflow',
+    };
+    const targetId = sectionMap[location.pathname];
+    if (targetId && typeof document !== 'undefined') {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground selection:bg-primary/30 selection:text-primary-foreground">
@@ -142,14 +155,14 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {/* Engineering Badge */}
             <div className="mb-6 inline-flex items-center gap-2 border border-border bg-card/80 px-3 py-1 text-xs font-mono text-muted-foreground rounded-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-              openBIM QTO · ÇŞB 2026 Pozları · e-PYS Denetimi
+              openBIM QTO · Poz & Fiyat Kataloğu · e-PYS Ön Kontrol
             </div>
 
             <h1 className="max-w-4xl text-3xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight text-foreground">
               İhale Masasında Hata Payı Bırakmayın.
             </h1>
             <p className="mt-6 max-w-3xl text-base sm:text-lg leading-relaxed text-muted-foreground font-normal">
-              BIM ve Excel metrajlarınızı ÇŞB pozlarıyla eşleştirin, kâr marjınızı koruyun, teslim öncesi SmartCheck ile denetleyin. Desteklenen IFC elemanlarından doğrudan metraj cetveli üretin.
+              BIM ve Excel metrajlarınızı poz kataloğunuzla eşleştirin, kâr marjınızı koruyun, teslim öncesi SmartCheck ile denetleyin. Desteklenen IFC elemanlarından doğrudan metraj cetveli üretin.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -184,7 +197,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     <BadgeCheck size={13} className="shrink-0" />
                     Teknik Onaylı
                   </span>
-                  <span className="text-muted-foreground">İHALE: <strong className="text-foreground tabular-nums">24.10.2026</strong></span>
+                  <span className="text-muted-foreground">ÖRNEK PAFTA: <strong className="text-foreground tabular-nums">REV-02</strong></span>
                 </div>
               </div>
 
@@ -285,9 +298,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {/* Hairline Technical Metrics Teaser */}
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-sm border border-border bg-card/60 p-4">
-                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">ÇŞB 2026 Kütüphanesi</span>
-                <p className="mt-1 text-sm font-medium text-foreground">42.000+ Güncel Poz & Birim Fiyat</p>
-                <p className="mt-1 text-xs text-muted-foreground">Çevre ve Şehircilik Bakanlığı pozları anında cetvele aktarılır.</p>
+                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">Poz & Fiyat Kataloğu</span>
+                <p className="mt-1 text-sm font-medium text-foreground">Kaynak İzli Poz & Birim Fiyat</p>
+                <p className="mt-1 text-xs text-muted-foreground">İçe aktardığınız poz katalogları ve onaylı fiyat kayıtları cetvele kaynak iziyle bağlanır.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 & 4.0 Desteği</span>
@@ -444,7 +457,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               BIMMetraj
             </div>
             <p className="mt-3 max-w-sm leading-relaxed text-muted-foreground">
-              İnşaat ve mimarlık teknik ekipleri için açık BIM tabanlı metraj çıkarma, ÇŞB poz entegrasyonu ve resmi ihale masası.
+              İnşaat ve mimarlık teknik ekipleri için açık BIM tabanlı metraj çıkarma, poz/fiyat kataloğu entegrasyonu ve resmi ihale masası.
             </p>
           </div>
           <div>
@@ -458,9 +471,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             </div>
           </div>
           <div>
-            <h3 className="mb-3 font-mono font-semibold uppercase tracking-wider text-foreground text-xs">İletişim & Standartlar</h3>
+            <h3 className="mb-3 font-mono font-semibold uppercase tracking-wider text-foreground text-xs">İletişim & Yasal</h3>
             <div className="space-y-2">
               <a href="mailto:info@bimmetraj.com" className="block hover:text-foreground font-mono">info@bimmetraj.com</a>
+              <Link to="/terms" className="block hover:text-foreground">Kullanım Koşulları</Link>
+              <Link to="/privacy" className="block hover:text-foreground">KVKK & Gizlilik Bildirimi</Link>
               <span className="block text-muted-foreground">İstanbul, Türkiye</span>
               <span className="block text-[11px] text-muted-foreground/80">openBIM · buildingSMART · ISO 19650</span>
             </div>
@@ -468,7 +483,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         </div>
         <div className="mx-auto mt-8 max-w-6xl border-t border-border pt-4 text-[11px] font-mono text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>© 2026 BIMMetraj · openBIM 5D Metraj & İhale Platformu. Tüm hakları saklıdır.</span>
-          <span>Çevre ve Şehircilik Bakanlığı 2026 Poz Rayiçleri</span>
+          <span>openBIM QTO · RG 33331 e-PYS EK-9 & Kanıtlı Metraj</span>
         </div>
       </footer>
     </div>

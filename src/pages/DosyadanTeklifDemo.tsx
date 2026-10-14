@@ -1,8 +1,9 @@
 import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Upload, CheckCircle2, ChevronRight, FileText, Calculator, FileCheck2, Loader2, FileCode, AlertTriangle, Box } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { parseIfcText } from '@/ifc/parser/legacy-parser';
+import { fetchWithAuth } from '@/lib/api';
 import { toast } from 'sonner';
 
 type ParsedIfcData = ReturnType<typeof parseIfcText>;
@@ -16,18 +17,43 @@ export function DosyadanTeklifDemo() {
   const [parsedData, setParsedData] = useState<ParsedIfcData | null>(null);
   const [fileName, setFileName] = useState<string>('');
   
-  // Slide-over 3D viewer state
+  // Slide-over inspector state
   const [isSlideoverOpen, setIsSlideoverOpen] = useState(false);
   const [selectedElements, setSelectedElements] = useState<any[]>([]);
+  const [pozDraftByGuid, setPozDraftByGuid] = useState<Record<string, string>>({});
 
-  // Fiyatlama mock state'leri (ileride api'ye baglanabilir)
+  // Birim fiyat state'leri (teklif taslağına aktarılır)
   const [unitPrices, setUnitPrices] = useState<Record<string, number>>({
     'beton': 2450.00,
     'donati': 24500.00,
     'kalip': 1250.00,
   });
 
-  const handleFileUpload = (file: File) => {
+  const handleAssignPoz = (guid: string) => {
+    const code = (pozDraftByGuid[guid] ?? '').trim();
+    if (!code) {
+      toast.warning('Lütfen geçerli bir poz numarası girin (örn. 15.120.1001).');
+      return;
+    }
+    setParsedData((prev) => {
+      if (!prev) return prev;
+      const nextElements = prev.elements.map((el) => el.guid === guid ? { ...el, pozNo: code } : el);
+      const withPoz = nextElements.filter((el) => Boolean(el.pozNo)).length;
+      return {
+        ...prev,
+        elements: nextElements,
+        summary: {
+          ...prev.summary,
+          elementsWithPozNoCount: withPoz,
+          elementsMissingPozNoCount: nextElements.length - withPoz,
+        },
+      };
+    });
+    setSelectedElements((prev) => prev.filter((el) => el.guid !== guid));
+    toast.success(`Poz (${code}) elemana atandı.`);
+  };
+
+  const handleFileUpload = async (file: File) => {
     if (!canPreviewIfcInBrowser(file.size)) {
       toast.warning('Tarayıcı önizleme sınırı 25 MB. Büyük IFC dosyanızı SmartCheck üzerinden yükleyin.');
       navigate('/app/smartcheck');
@@ -40,6 +66,24 @@ export function DosyadanTeklifDemo() {
 
     setFileName(file.name);
     setIsProcessing(true);
+
+    try {
+      const quotaRes = await fetchWithAuth('/api/ifc/quick-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, fileSizeBytes: file.size }),
+      });
+      if (!quotaRes.ok) {
+        const errBody = await quotaRes.json().catch(() => ({}));
+        toast.error(errBody.error || errBody.message || 'IFC hızlı kontrol kotası doğrulanamadı.');
+        setIsProcessing(false);
+        return;
+      }
+    } catch {
+      toast.error('Sunucu kota kontrolüne ulaşılamadı.');
+      setIsProcessing(false);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onerror = () => { setIsProcessing(false); toast.error('Dosya okunamadı.'); };
@@ -63,7 +107,7 @@ export function DosyadanTeklifDemo() {
           toast.error('Dosya ayrıştırılırken bir hata oluştu.');
           setIsProcessing(false);
         }
-      }, 500); // UI transition delay
+      }, 300);
     };
     reader.readAsText(file);
   };
@@ -72,19 +116,19 @@ export function DosyadanTeklifDemo() {
     if (!parsedData) return;
     setIsProcessing(true);
     
-    // Legacy aktarim uyumlulugu
     const evidenceElementCount = parsedData.elements.filter((e) => e.quantitySource === 'qto' || e.quantitySource === 'property').length;
     sessionStorage.setItem('teklifpro_ifc_extracted', JSON.stringify({
       source: 'dosyadan-teklif',
       transferredAt: new Date().toISOString(),
       evidenceElementCount,
       summary: parsedData.summary,
+      unitPrices,
     }));
 
     setTimeout(() => {
       setIsProcessing(false);
       setCurrentStep('quote');
-    }, 1000);
+    }, 300);
   };
 
   const StepIndicator = () => (
@@ -342,13 +386,13 @@ export function DosyadanTeklifDemo() {
             <div className="w-24 h-24 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-green-500/20">
               <CheckCircle2 className="w-12 h-12" />
             </div>
-            <h3 className="text-3xl font-black text-white mb-3">Teklifiniz Hazır!</h3>
+            <h3 className="text-3xl font-black text-white mb-3">Ön İnceleme Aktarıma Hazır!</h3>
             <p className="text-zinc-400 mb-10 leading-relaxed">
-              Arka planda taslak teklifiniz oluşturuldu. Şimdi detaylı teklif yönetim ekranına geçip PDF olarak indirebilir veya müşterinize sunabilirsiniz.
+              Beton, donatı ve kalıp metrajlarınız ile girdiğiniz birim fiyatlar yeni teklif taslağına aktarılmak üzere hazırlandı.
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-zinc-950 px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
-                Teklif Detayına Git
+                Teklif Cetveline Aktar
               </button>
               <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-8 py-4 rounded-xl font-bold hover:bg-zinc-800 transition-colors w-full">
                 Yeni Dosya Yükle
@@ -358,50 +402,67 @@ export function DosyadanTeklifDemo() {
         )}
       </div>
 
-      {/* Slide-over 3D Viewer Panel */}
+      {/* Slide-over Element Inspector Panel */}
       {isSlideoverOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsSlideoverOpen(false)} />
           <div className="fixed inset-y-0 right-0 w-full max-w-md bg-zinc-950 border-l border-zinc-800 shadow-2xl z-50 flex flex-col transform transition-transform duration-300">
             <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Box className="w-5 h-5 text-primary" /> Sorunlu Elemanlar (3D)
+                <Box className="w-5 h-5 text-primary" /> Eksik Pozlu Eleman Denetçisi
               </h3>
-              <button onClick={() => setIsSlideoverOpen(false)} className="text-zinc-400 hover:text-white transition-colors">
+              <button onClick={() => setIsSlideoverOpen(false)} className="text-zinc-400 hover:text-white transition-colors" aria-label="Paneli kapat">
                 ✕
               </button>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Fake 3D Canvas Area */}
-              <div className="w-full h-64 bg-zinc-900 border border-zinc-800 rounded-xl relative overflow-hidden flex items-center justify-center group">
-                <div className="absolute inset-0 bg-grid-zinc-800/[0.2] bg-[size:20px_20px]" />
-                <div className="relative z-10 text-center">
-                  <Box className="w-16 h-16 text-zinc-700 mx-auto mb-3 group-hover:scale-110 transition-transform duration-500 group-hover:text-primary" />
-                  <span className="text-zinc-500 font-medium text-sm">3D Modeli Yükleniyor...</span>
-                  <p className="text-zinc-600 text-xs mt-1">(Sadece sorunlu {selectedElements.length} eleman izole edildi)</p>
+              {/* Element Breakdown Summary */}
+              <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between text-xs text-zinc-400">
+                  <span>Poz Bekleyen Eleman Sayısı</span>
+                  <strong className="font-mono text-orange-400">{selectedElements.length} adet</strong>
+                </div>
+                <div className="flex items-center justify-between text-xs text-zinc-400">
+                  <span>Toplam Etkilenen Hacim</span>
+                  <strong className="font-mono text-white">
+                    {selectedElements.reduce((sum, el) => sum + Number(el.volumeM3 || 0), 0).toFixed(2)} m³
+                  </strong>
                 </div>
               </div>
               
               <div>
                 <h4 className="text-sm font-bold text-zinc-300 mb-3 uppercase tracking-wider">Eksik Poz Listesi</h4>
                 <div className="space-y-3">
-                  {selectedElements.slice(0, 10).map((el, i) => (
-                    <div key={i} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-orange-500/30 transition-colors">
+                  {selectedElements.slice(0, 10).map((el) => (
+                    <div key={el.guid} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-orange-500/30 transition-colors">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-white font-medium text-sm">{el.name || el.type}</span>
-                        <span className="text-zinc-500 text-xs font-mono">GUID: {el.guid.substring(0,8)}...</span>
+                        <span className="text-zinc-400 text-xs font-mono">GUID: {el.guid.substring(0, 8)}...</span>
                       </div>
-                      <div className="text-zinc-400 text-xs mb-3">Hacim: {el.volumeM3.toFixed(2)} m³</div>
+                      <div className="text-zinc-400 text-xs mb-3">Hacim: {Number(el.volumeM3 || 0).toFixed(2)} m³ · Kat: {el.storey}</div>
                       
                       <div className="flex gap-2">
-                        <input type="text" placeholder="15.120.1001" className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-white focus:border-primary focus:outline-none" />
-                        <button className="bg-primary text-primary-foreground px-3 py-1.5 rounded font-bold text-sm hover:bg-primary/90">Ata</button>
+                        <input
+                          type="text"
+                          aria-label={`Poz numarası ${el.guid}`}
+                          placeholder="15.120.1001"
+                          value={pozDraftByGuid[el.guid] ?? ''}
+                          onChange={(e) => setPozDraftByGuid((prev) => ({ ...prev, [el.guid]: e.target.value }))}
+                          className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-white focus:border-primary focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAssignPoz(el.guid)}
+                          className="bg-primary text-primary-foreground px-3 py-1.5 rounded font-bold text-sm hover:bg-primary/90"
+                        >
+                          Ata
+                        </button>
                       </div>
                     </div>
                   ))}
                   {selectedElements.length > 10 && (
-                    <div className="text-center text-zinc-500 text-xs mt-4">
+                    <div className="text-center text-zinc-400 text-xs mt-4">
                       + {selectedElements.length - 10} eleman daha...
                     </div>
                   )}
