@@ -61,7 +61,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   "satir-dogrulama": {
     scope: "Satır veri kalitesi kontrolü ve sunucu tarafında teknik reviewer disiplin yetkisi (STR, ARC, MEP, ALL) doğrulaması aktif.",
-    testFiles: ["src/smartcheck/import/normalize.test.ts", "src/server/smartcheck/review.test.ts"],
+    testFiles: ["src/smartcheck/import/normalize.test.ts"],
     pending: "İş türüne göre fire sınırlarının gerçek saha verileriyle kalibrasyonu.",
   },
   "fiyat-eslestirme": {
