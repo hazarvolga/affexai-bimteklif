@@ -166,14 +166,14 @@ export function PlansList() {
     try {
       const res = await fetchWithAuth(`/api/admin/plans/${plan.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ isActive: true }),
+        body: JSON.stringify({ isActive: true, isPublished: true }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(body.error || 'Paket aktif edilemedi.');
         return;
       }
-      toast.success(`"${plan.name}" paketi yeniden kullanıma açıldı.`);
+      toast.success(`"${plan.name}" paketi aktif edildi ve vitrinde yayına alındı.`);
       loadPlans();
     } catch {
       toast.error('Sistemsel bir hata oluştu.');
@@ -551,7 +551,7 @@ export function PlansList() {
                   )}
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-zinc-800/70 flex items-center gap-2">
+                <div className="mt-5 pt-3 border-t border-zinc-800/70 flex flex-wrap items-center gap-2">
                   <Button
                     onClick={() => openPlanEditor(plan)}
                     variant="outline"
@@ -559,6 +559,19 @@ export function PlansList() {
                   >
                     Detaylı Düzenle
                   </Button>
+                  {plan.isActive && !plan.isPublished && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={togglingPlanId === plan.id}
+                      onClick={() => void handleQuickActivate(plan)}
+                      className="border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 text-xs py-1.5 h-8 px-2.5 font-semibold"
+                      title="Paketi vitrinde (/pricing ve /register) tekrar yayına al"
+                    >
+                      <Power size={12} className="mr-1" />
+                      {togglingPlanId === plan.id ? 'Açılıyor...' : 'Vitrine Aç'}
+                    </Button>
+                  )}
                   {plan.isActive ? (
                     <Button
                       type="button"

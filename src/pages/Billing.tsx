@@ -129,7 +129,10 @@ export function Billing() {
   async function loadCatalogAndPayments() {
     try {
       const [plansRes, banksRes, requestsRes] = await Promise.all([
-        fetch('/api/public/plans'),
+        fetch('/api/public/plans', {
+          cache: 'no-store',
+          headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+        }),
         fetchWithAuth('/api/billing/bank-accounts'),
         fetchWithAuth('/api/billing/payment-requests'),
       ]);

@@ -44,9 +44,12 @@ export async function updatePlan(adminId: string, id: string, input: z.infer<typ
 
     const { replacementPlanId, ...planUpdates } = input;
     const isDeactivating = planUpdates.isActive === false && before.isActive === true;
+    const isActivating = planUpdates.isActive === true && (!before.isActive || !before.isPublished);
 
     if (isDeactivating && planUpdates.isPublished === undefined) {
       planUpdates.isPublished = false;
+    } else if (isActivating && planUpdates.isPublished === undefined) {
+      planUpdates.isPublished = true;
     }
 
     const existingSubscriptions =

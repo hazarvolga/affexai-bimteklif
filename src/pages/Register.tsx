@@ -142,30 +142,46 @@ export function Register() {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/public/plans')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!active || !Array.isArray(data) || data.length === 0) return;
-        setPlans(data);
-        if (requestedPlanId && data.some((p: PublicPlanOption) => p.id === requestedPlanId)) {
-          setSelectedPlanId(requestedPlanId);
-        } else {
-          const trial = data.find((p: PublicPlanOption) => p.monthlyPrice === 0) ?? data[0];
-          if (trial) setSelectedPlanId(trial.id);
-        }
+    const fetchPlansAndBanks = () => {
+      fetch('/api/public/plans', {
+        cache: 'no-store',
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
       })
-      .catch(() => {});
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!active || !Array.isArray(data) || data.length === 0) return;
+          setPlans(data);
+          setSelectedPlanId((prev) => {
+            if (requestedPlanId && data.some((p: PublicPlanOption) => p.id === requestedPlanId)) {
+              return requestedPlanId;
+            }
+            if (prev && data.some((p: PublicPlanOption) => p.id === prev)) {
+              return prev;
+            }
+            const trial = data.find((p: PublicPlanOption) => p.monthlyPrice === 0) ?? data[0];
+            return trial ? trial.id : prev;
+          });
+        })
+        .catch(() => {});
 
-    fetch('/api/public/bank-accounts')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!active || !Array.isArray(data)) return;
-        setBankAccounts(data);
+      fetch('/api/public/bank-accounts', {
+        cache: 'no-store',
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
       })
-      .catch(() => {});
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!active || !Array.isArray(data)) return;
+          setBankAccounts(data);
+        })
+        .catch(() => {});
+    };
+
+    fetchPlansAndBanks();
+    window.addEventListener('focus', fetchPlansAndBanks);
 
     return () => {
       active = false;
+      window.removeEventListener('focus', fetchPlansAndBanks);
     };
   }, [requestedPlanId]);
 

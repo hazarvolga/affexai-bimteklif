@@ -32,7 +32,11 @@ export function registerBillingRoutes(app: Express) {
         marketingDescription: plans.marketingDescription,
       }).from(plans).where(and(eq(plans.isActive, true), eq(plans.isPublished, true)))
         .orderBy(asc(plans.displayOrder), asc(plans.monthlyPrice), asc(plans.name));
-      return res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300').json(publicPlans);
+      return res
+        .set('Cache-Control', 'no-cache, no-store, must-revalidate')
+        .set('Pragma', 'no-cache')
+        .set('Expires', '0')
+        .json(publicPlans);
     } catch {
       return res.status(503).json({ error: 'Paket kataloğu geçici olarak kullanılamıyor.' });
     }
@@ -41,7 +45,11 @@ export function registerBillingRoutes(app: Express) {
   app.get("/api/public/bank-accounts", async (_req, res) => {
     try {
       const accounts = await getActiveBankAccounts();
-      return res.set("Cache-Control", "public, max-age=30").json(accounts);
+      return res
+        .set("Cache-Control", "no-cache, no-store, must-revalidate")
+        .set("Pragma", "no-cache")
+        .set("Expires", "0")
+        .json(accounts);
     } catch {
       return res.status(503).json({ error: "Banka hesap bilgileri geçici olarak kullanılamıyor." });
     }

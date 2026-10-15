@@ -25,7 +25,7 @@ test('public plan catalog exposes only active published plans in the configured 
 
   const response = await fetch(`http://127.0.0.1:${address.port}/api/public/plans`);
   assert.equal(response.status, 200);
-  assert.match(response.headers.get('cache-control') ?? '', /max-age=60/);
+  assert.match(response.headers.get('cache-control') ?? '', /no-store/);
   const plans = await response.json() as Array<{ name: string; isPublished: boolean; isFeatured: boolean; marketingBadge: string | null }>;
   assert.deepEqual(plans.map((plan) => plan.name), ['First', 'Later']);
   assert.equal(plans[0].isFeatured, true);

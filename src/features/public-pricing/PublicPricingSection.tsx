@@ -12,11 +12,12 @@ export type PublicPlan = {
 };
 
 const publicPlanSchema = z.object({
-  id: z.string().uuid(), name: z.string().min(1), monthlyPrice: z.number().int().nonnegative(),
+  id: z.string(), name: z.string().min(1), monthlyPrice: z.number().int().nonnegative(),
   monthlyQuoteLimit: z.number().int().nonnegative(), monthlyIfcLimit: z.number().int().nonnegative().nullable(),
-  ifcMaxFileMb: z.number().int().positive(), ifcMaxConcurrent: z.number().int().positive(),
-  isActive: z.literal(true), isPublished: z.literal(true), isFeatured: z.boolean(), displayOrder: z.number().int().nonnegative(),
-  marketingBadge: z.string().max(40).nullable(), marketingDescription: z.string().max(280).nullable(),
+  ifcMaxFileMb: z.number().int().nonnegative(), ifcMaxConcurrent: z.number().int().nonnegative(),
+  isActive: z.boolean(), isPublished: z.boolean(), isFeatured: z.boolean(), displayOrder: z.number().int().nonnegative(),
+  marketingBadge: z.string().nullable().optional().transform((v) => v ?? null),
+  marketingDescription: z.string().nullable().optional().transform((v) => v ?? null),
 });
 
 function formatQuantity(value: number): string {
@@ -72,10 +73,13 @@ export function PublicPricingSection() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const loadPlans = useCallback(async () => {
-    setStatus('loading');
+  const loadPlans = useCallback(async (silent = false) => {
+    if (!silent) setStatus('loading');
     try {
-      const response = await fetch('/api/public/plans', { headers: { Accept: 'application/json' } });
+      const response = await fetch('/api/public/plans', {
+        cache: 'no-store',
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+      });
       if (!response.ok) throw new Error('PUBLIC_PLANS_UNAVAILABLE');
       const data: unknown = await response.json();
       const parsed = z.array(publicPlanSchema).safeParse(data);
@@ -83,12 +87,21 @@ export function PublicPricingSection() {
       setPlans(publicPlansForDisplay(parsed.data as PublicPlan[]));
       setStatus('ready');
     } catch {
-      setPlans([]);
-      setStatus('error');
+      if (!silent) {
+        setPlans([]);
+        setStatus('error');
+      }
     }
   }, []);
 
-  useEffect(() => { void loadPlans(); }, [loadPlans]);
+  useEffect(() => {
+    void loadPlans();
+    const handleFocus = () => {
+      void loadPlans(true);
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadPlans]);
   const layout = pricingLayout(plans.length);
   const scroll = (direction: -1 | 1) => carouselRef.current?.scrollBy({ left: direction * Math.max(300, carouselRef.current.clientWidth * 0.8), behavior: 'smooth' });
 
