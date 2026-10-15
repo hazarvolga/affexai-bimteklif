@@ -16,8 +16,12 @@ export default function BimStandardsPage() {
         description="ISO 19650 Olgunluk paneli, BIMPLAN Şablonları ve mevzuat uygunluk matrisi."
       />
 
-      <div className="flex border-b border-border space-x-1 overflow-x-auto">
+      <div role="tablist" aria-label="BIM Standartları ve Gap Analizi Sekmeleri" className="flex border-b border-border space-x-1 overflow-x-auto">
         <button
+          id="tab-dashboard"
+          role="tab"
+          aria-selected={activeTab === "dashboard"}
+          aria-controls="panel-dashboard"
           onClick={() => setActiveTab("dashboard")}
           className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "dashboard"
@@ -28,6 +32,10 @@ export default function BimStandardsPage() {
           BIM Olgunluk Paneli
         </button>
         <button
+          id="tab-gap"
+          role="tab"
+          aria-selected={activeTab === "gap"}
+          aria-controls="panel-gap"
           onClick={() => setActiveTab("gap")}
           className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "gap"
@@ -38,6 +46,10 @@ export default function BimStandardsPage() {
           Gap Analizi Matrisi
         </button>
         <button
+          id="tab-standards"
+          role="tab"
+          aria-selected={activeTab === "standards"}
+          aria-controls="panel-standards"
           onClick={() => setActiveTab("standards")}
           className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "standards"
@@ -48,6 +60,10 @@ export default function BimStandardsPage() {
           BIM Standartları & BEP
         </button>
         <button
+          id="tab-legislation"
+          role="tab"
+          aria-selected={activeTab === "legislation"}
+          aria-controls="panel-legislation"
           onClick={() => setActiveTab("legislation")}
           className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "legislation"
@@ -58,6 +74,10 @@ export default function BimStandardsPage() {
           Mevzuat Uyum
         </button>
         <button
+          id="tab-documents"
+          role="tab"
+          aria-selected={activeTab === "documents"}
+          aria-controls="panel-documents"
           onClick={() => setActiveTab("documents")}
           className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "documents"
@@ -69,7 +89,7 @@ export default function BimStandardsPage() {
         </button>
       </div>
 
-      <div className="pt-2">
+      <div id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="pt-2">
         {activeTab === "dashboard" && <BimDashboard />}
         {activeTab === "gap" && <BimGapAnalysis />}
         {activeTab === "standards" && <StandardsView />}
@@ -79,3 +99,4 @@ export default function BimStandardsPage() {
     </div>
   );
 }
+

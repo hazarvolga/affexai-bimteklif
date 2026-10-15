@@ -126,14 +126,23 @@ export function SmartCheckDemo() {
             <span className="text-[11px] font-mono text-primary">buildingSMART & ÇŞB Kuralları</span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2.5" role="list" aria-label="SmartCheck Denetim Bulguları">
             {demoState.findings.map(finding => {
               const isSelected = selectedFindingId === finding.id;
               return (
                 <div
                   key={finding.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedFindingId(finding.id)}
-                  className={`p-3.5 border rounded-sm cursor-pointer transition-colors ${
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedFindingId(finding.id);
+                    }
+                  }}
+                  className={`p-3.5 border rounded-sm cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                     isSelected
                       ? 'bg-muted/40 border-primary'
                       : 'bg-card border-border hover:border-border/80 hover:bg-muted/20'

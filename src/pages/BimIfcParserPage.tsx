@@ -6,7 +6,7 @@ export function BimIfcParserPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
       <BimIfcParser 
         onTransferToQuote={(elements, summary) => {
           const evidenceElementCount = elements.filter((element) => element.quantitySource === 'qto' || element.quantitySource === 'property').length;

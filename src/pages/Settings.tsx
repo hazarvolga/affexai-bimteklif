@@ -37,6 +37,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
+import { fetchWithAuth } from "@/lib/api";
 
 interface CompanyProfileState {
   name: string;
@@ -158,23 +159,17 @@ export function Settings() {
   }, [role]);
 
   const fetchData = async () => {
-    const token = localStorage.getItem('token');
-    const headers = { 
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    };
-    
     try {
       const [invRes, indRes, setRes, subRes, usageRes, riskRes, calibrationRes, reportRes, profileRes] = await Promise.all([
-        canInvite ? fetch("/api/invitations", { headers }) : Promise.resolve(null),
-        fetch("/api/ai/industries", { headers }),
-        fetch("/api/company/industry-settings", { headers }),
-        fetch("/api/billing/subscription", { headers }),
-        fetch("/api/usage/report", { headers }),
-        fetch("/api/company/risk-settings", { headers }),
-        fetch("/api/company/risk-calibration", { headers }),
-        fetch("/api/company/risk-calibration/report", { headers }),
-        fetch("/api/company/profile", { headers }),
+        canInvite ? fetchWithAuth("/api/invitations") : Promise.resolve(null),
+        fetchWithAuth("/api/ai/industries"),
+        fetchWithAuth("/api/company/industry-settings"),
+        fetchWithAuth("/api/billing/subscription"),
+        fetchWithAuth("/api/usage/report"),
+        fetchWithAuth("/api/company/risk-settings"),
+        fetchWithAuth("/api/company/risk-calibration"),
+        fetchWithAuth("/api/company/risk-calibration/report"),
+        fetchWithAuth("/api/company/profile"),
       ]);
 
       if (invRes?.ok) setInvites(await invRes.json());
@@ -227,14 +222,9 @@ export function Settings() {
 
   const saveCompanyProfile = async () => {
     setSavingProfile(true);
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch('/api/company/profile', {
+      const res = await fetchWithAuth('/api/company/profile', {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(profile),
       });
       if (res.ok) {
@@ -266,8 +256,7 @@ export function Settings() {
   };
 
   const saveRiskSettings = async () => {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/company/risk-settings', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(riskSettings) });
+    const res = await fetchWithAuth('/api/company/risk-settings', { method: 'POST', body: JSON.stringify(riskSettings) });
     if (res.ok) toast.success('Teklif risk varsayımları kaydedildi.');
     else toast.error('Risk varsayımları kaydedilemedi.');
   };
@@ -278,17 +267,12 @@ export function Settings() {
   };
 
   const toggleIndustry = async (id: string) => {
-    const token = localStorage.getItem('token');
     const currentlyEnabled = industryEnabled(id);
     const newStatus = !currentlyEnabled;
 
     try {
-      await fetch("/api/company/industry-settings", {
+      await fetchWithAuth("/api/company/industry-settings", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ industryId: id, isEnabled: newStatus })
       });
       fetchData();
@@ -304,14 +288,9 @@ export function Settings() {
 
     setLoading(true);
     setInviteDelivery(null);
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch("/api/invitations", {
+      const res = await fetchWithAuth("/api/invitations", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
       });
 
@@ -331,14 +310,9 @@ export function Settings() {
   };
 
   const handleUpgrade = async (plan: string) => {
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch('/api/billing/upgrade', {
+      const res = await fetchWithAuth('/api/billing/upgrade', {
         method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ plan })
       });
       if (res.ok) {

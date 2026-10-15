@@ -666,7 +666,7 @@ export function CreateQuote() {
                   <Table className="min-w-[980px]">
                     <TableHeader className="bg-muted/40">
                       <TableRow className="border-border">
-                        <TableHead className="w-[30%] text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
+                        <TableHead className="w-[30%] min-w-[200px] sticky left-0 z-10 bg-zinc-950/95 text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Kategori</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Birim</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Miktar</TableHead>
@@ -685,7 +685,7 @@ export function CreateQuote() {
                           key={item.id} 
                           className="border-border/60 group hover:bg-muted/30 transition-colors"
                         >
-                          <TableCell className="pl-5 py-2.5">
+                          <TableCell className="pl-5 py-2.5 sticky left-0 z-10 bg-zinc-950/95 group-hover:bg-zinc-900/95">
                             <Input 
                               value={item.description} 
                               onChange={(e) => updateItem(item.id!, { description: e.target.value })}

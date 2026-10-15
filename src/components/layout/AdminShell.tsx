@@ -88,6 +88,12 @@ export function AdminShell() {
   return (
     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
     <div className="flex h-screen bg-zinc-950 print:block print:h-auto">
+      <a
+        href="#main-content"
+        className="fixed left-4 top-4 z-50 -translate-y-24 rounded-sm bg-indigo-600 px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider text-white transition-transform focus:translate-y-0"
+      >
+        İçeriğe geç
+      </a>
       <aside className="hidden w-64 shrink-0 flex-col border-r border-indigo-900/30 bg-zinc-950 md:flex print:hidden">
         {navigation}
       </aside>
@@ -96,7 +102,7 @@ export function AdminShell() {
         {navigation}
       </SheetContent>
 
-      <main className="min-w-0 flex-1 overflow-auto bg-zinc-950 print:overflow-visible">
+      <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 overflow-auto bg-zinc-950 outline-none print:overflow-visible">
         <div className="flex h-14 items-center gap-3 border-b border-zinc-800 px-4 md:hidden">
           <SheetTrigger aria-label="Yönetim menüsü" title="Yönetim menüsü"
             className="flex h-9 w-9 items-center justify-center text-zinc-200">

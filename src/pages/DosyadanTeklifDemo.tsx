@@ -132,7 +132,7 @@ export function DosyadanTeklifDemo() {
   };
 
   const StepIndicator = () => (
-    <div className="flex items-center justify-between mb-8 px-8 max-w-3xl mx-auto">
+    <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 mb-8 px-2 sm:px-8 max-w-3xl mx-auto">
       {[
         { id: 'upload', icon: Upload, label: '1. Yükle' },
         { id: 'review', icon: FileText, label: '2. İncele' },
@@ -144,15 +144,15 @@ export function DosyadanTeklifDemo() {
         const isPast = ['upload', 'review', 'price', 'quote'].indexOf(currentStep) > index;
         return (
           <div key={s.id} className="flex items-center">
-            <div className={`flex flex-col items-center ${isActive ? 'text-primary' : isPast ? 'text-zinc-100' : 'text-zinc-600'}`}>
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 mb-2 ${isActive ? 'border-primary bg-primary/10' : isPast ? 'border-zinc-200 bg-zinc-900' : 'border-zinc-800 bg-zinc-900'}`}>
-                {isPast ? <CheckCircle2 className="w-6 h-6 text-green-500" /> : <Icon className="w-6 h-6" />}
+            <div className={`flex flex-col items-center ${isActive ? 'text-primary' : isPast ? 'text-zinc-100' : 'text-zinc-400'}`}>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 mb-2 ${isActive ? 'border-primary bg-primary/10' : isPast ? 'border-zinc-200 bg-zinc-900' : 'border-zinc-800 bg-zinc-900'}`}>
+                {isPast ? <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" /> : <Icon className="w-5 h-5 sm:w-6 sm:h-6" />}
               </div>
-              <span className="text-sm font-medium">{s.label}</span>
+              <span className="text-xs sm:text-sm font-medium">{s.label}</span>
             </div>
             {index < 3 && (
-              <div className="mx-4 text-zinc-700">
-                <ChevronRight className="w-6 h-6" />
+              <div className="hidden sm:block mx-2 md:mx-4 text-zinc-600">
+                <ChevronRight className="w-5 h-5" />
               </div>
             )}
           </div>
@@ -172,15 +172,15 @@ export function DosyadanTeklifDemo() {
     (getFormworkArea() * unitPrices.kalip);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto text-zinc-100">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto text-zinc-100">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Dosyadan Teklif Oluştur</h1>
-        <p className="text-zinc-400">25 MB’a kadar IFC ön incelemesi. Büyük dosyalar için SmartCheck kullanın; miktarlar teknik onay, örnek fiyatlar doğrulama bekler.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Dosyadan Teklif Oluştur</h1>
+        <p className="text-sm sm:text-base text-zinc-400">25 MB’a kadar IFC ön incelemesi. Büyük dosyalar için SmartCheck kullanın; miktarlar teknik onay, örnek fiyatlar doğrulama bekler.</p>
       </div>
 
       <StepIndicator />
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 min-h-[400px] flex flex-col justify-center relative shadow-2xl">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-8 min-h-[400px] flex flex-col justify-center relative shadow-2xl">
         {isProcessing && (
           <div className="absolute inset-0 bg-zinc-950/80 rounded-xl flex flex-col items-center justify-center z-10 backdrop-blur-sm">
             <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
@@ -198,12 +198,12 @@ export function DosyadanTeklifDemo() {
                   handleFileUpload(e.dataTransfer.files[0]);
                 }
               }}
-              className="border-2 border-dashed border-zinc-700 rounded-xl p-16 hover:border-primary/50 transition-colors cursor-pointer bg-zinc-950/50 flex flex-col items-center justify-center group"
+              className="border-2 border-dashed border-zinc-700 rounded-xl p-8 sm:p-16 hover:border-primary/50 transition-colors cursor-pointer bg-zinc-950/50 flex flex-col items-center justify-center group"
             >
               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <FileCode className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold mb-2">BIM Dosyanızı Buraya Bırakın</h3>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">BIM Dosyanızı Buraya Bırakın</h3>
               <p className="text-zinc-400 mb-8 max-w-sm">IFC formatındaki Allplan, Revit veya Archicad modelinizi sürükleyip bırakın.</p>
               
               <label className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 cursor-pointer shadow-lg">
@@ -218,7 +218,7 @@ export function DosyadanTeklifDemo() {
 
         {currentStep === 'review' && parsedData && (
           <div className="space-y-6 max-w-3xl mx-auto w-full">
-            <div className="flex justify-between items-end mb-4">
+            <div className="flex flex-wrap justify-between items-end gap-3 mb-4">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">Metraj Özeti</h3>
                 <p className="text-zinc-400">"{fileName}" dosyasından çıkarılan temel değerler.</p>
@@ -234,18 +234,18 @@ export function DosyadanTeklifDemo() {
               )}
             </div>
             
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Toplam Beton</div>
-                <div className="text-2xl font-black text-white">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-500">m³</span></div>
+                <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Beton</div>
+                <div className="text-2xl font-black text-white">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-400">m³</span></div>
               </div>
               <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Toplam Donatı</div>
-                <div className="text-2xl font-black text-white">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-500">Ton</span></div>
+                <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Donatı</div>
+                <div className="text-2xl font-black text-white">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-400">Ton</span></div>
               </div>
               <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Toplam Kalıp</div>
-                <div className="text-2xl font-black text-white">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-500">m²</span></div>
+                <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Kalıp</div>
+                <div className="text-2xl font-black text-white">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-400">m²</span></div>
               </div>
             </div>
             
