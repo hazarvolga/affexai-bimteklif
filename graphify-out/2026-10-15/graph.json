@@ -5636,8 +5636,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "package_dependencies_aws_sdk_client_s3",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 836,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -5647,8 +5647,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "aws_sdk_client_s3",
-      "community": 95,
-      "community_name": "dependencies",
+      "community": 836,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -5988,8 +5988,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "package_dependencies_date_fns",
-      "community": 871,
-      "community_name": "date-fns",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "date-fns"
     },
     {
@@ -5999,8 +5999,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "date_fns",
-      "community": 871,
-      "community_name": "date-fns",
+      "community": 95,
+      "community_name": "dependencies",
       "norm_label": "date-fns"
     },
     {
@@ -19801,7 +19801,7 @@
       "label": "WorkflowCard()",
       "file_type": "code",
       "source_file": "src/pages/LandingPage.tsx",
-      "source_location": "L524",
+      "source_location": "L618",
       "_origin": "ast",
       "id": "src_pages_landingpage_workflowcard",
       "community": 682,
@@ -19812,7 +19812,7 @@
       "label": "EvidenceCard()",
       "file_type": "code",
       "source_file": "src/pages/LandingPage.tsx",
-      "source_location": "L537",
+      "source_location": "L658",
       "_origin": "ast",
       "id": "src_pages_landingpage_evidencecard",
       "community": 682,
@@ -49361,8 +49361,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_skill",
-      "community": 283,
-      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
+      "community": 454,
+      "community_name": "AI SEO by Content Type",
       "norm_label": "ai-seo/skill.md"
     },
     {
@@ -49768,8 +49768,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_citations_vs_recommendations",
-      "community": 283,
-      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
+      "community": 454,
+      "community_name": "AI SEO by Content Type",
       "norm_label": "citations-vs-recommendations.md"
     },
     {
@@ -49845,8 +49845,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns",
-      "community": 283,
-      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
+      "community": 454,
+      "community_name": "AI SEO by Content Type",
       "norm_label": "content-patterns.md"
     },
     {
@@ -49856,8 +49856,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_aeo_and_geo_content_patterns",
-      "community": 400,
-      "community_name": "Answer Engine Optimization (AEO) Patterns",
+      "community": 453,
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "aeo and geo content patterns"
     },
     {
@@ -49867,8 +49867,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_contents",
-      "community": 400,
-      "community_name": "Answer Engine Optimization (AEO) Patterns",
+      "community": 453,
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "contents"
     },
     {
@@ -50022,7 +50022,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_domain_specific_geo_tactics",
       "community": 453,
-      "community_name": "Domain-Specific GEO Tactics",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "domain-specific geo tactics"
     },
     {
@@ -50033,7 +50033,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_technology_content",
       "community": 453,
-      "community_name": "Domain-Specific GEO Tactics",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "technology content"
     },
     {
@@ -50044,7 +50044,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_health_medical_content",
       "community": 453,
-      "community_name": "Domain-Specific GEO Tactics",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "health/medical content"
     },
     {
@@ -50055,7 +50055,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_financial_content",
       "community": 453,
-      "community_name": "Domain-Specific GEO Tactics",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "financial content"
     },
     {
@@ -50066,7 +50066,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_legal_content",
       "community": 453,
-      "community_name": "Domain-Specific GEO Tactics",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "legal content"
     },
     {
@@ -50077,7 +50077,7 @@
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_business_marketing_content",
       "community": 453,
-      "community_name": "Domain-Specific GEO Tactics",
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "business/marketing content"
     },
     {
@@ -50087,8 +50087,8 @@
       "source_location": "L270",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_voice_search_optimization",
-      "community": 400,
-      "community_name": "Answer Engine Optimization (AEO) Patterns",
+      "community": 453,
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "voice search optimization"
     },
     {
@@ -50098,8 +50098,8 @@
       "source_location": "L274",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_question_formats_for_voice",
-      "community": 400,
-      "community_name": "Answer Engine Optimization (AEO) Patterns",
+      "community": 453,
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "question formats for voice"
     },
     {
@@ -50109,8 +50109,8 @@
       "source_location": "L282",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_patterns_voice_optimized_answer_structure",
-      "community": 400,
-      "community_name": "Answer Engine Optimization (AEO) Patterns",
+      "community": 453,
+      "community_name": "AEO and GEO Content Patterns",
       "norm_label": "voice-optimized answer structure"
     },
     {
@@ -50120,8 +50120,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_content_types",
-      "community": 283,
-      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
+      "community": 454,
+      "community_name": "AI SEO by Content Type",
       "norm_label": "content-types.md"
     },
     {
@@ -50351,8 +50351,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_ai_seo_references_platform_ranking_factors",
-      "community": 283,
-      "community_name": "Citations vs. Recommendations: The AI Visibility Ladder",
+      "community": 454,
+      "community_name": "AI SEO by Content Type",
       "norm_label": "platform-ranking-factors.md"
     },
     {
@@ -50615,8 +50615,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_essential_events",
-      "community": 821,
-      "community_name": "Essential Events",
+      "community": 114,
+      "community_name": "Analytics Tracking",
       "norm_label": "essential events"
     },
     {
@@ -50626,8 +50626,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_marketing_site",
-      "community": 821,
-      "community_name": "Essential Events",
+      "community": 114,
+      "community_name": "Analytics Tracking",
       "norm_label": "marketing site"
     },
     {
@@ -50637,8 +50637,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_product_app",
-      "community": 821,
-      "community_name": "Essential Events",
+      "community": 114,
+      "community_name": "Analytics Tracking",
       "norm_label": "product/app"
     },
     {
@@ -50747,8 +50747,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_utm_parameter_strategy",
-      "community": 114,
-      "community_name": "Analytics Tracking",
+      "community": 813,
+      "community_name": "UTM Parameter Strategy",
       "norm_label": "utm parameter strategy"
     },
     {
@@ -50758,8 +50758,8 @@
       "source_location": "L184",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_standard_parameters",
-      "community": 114,
-      "community_name": "Analytics Tracking",
+      "community": 813,
+      "community_name": "UTM Parameter Strategy",
       "norm_label": "standard parameters"
     },
     {
@@ -50769,8 +50769,8 @@
       "source_location": "L194",
       "_origin": "ast",
       "id": "agent_skills_analytics_skill_naming_conventions",
-      "community": 114,
-      "community_name": "Analytics Tracking",
+      "community": 813,
+      "community_name": "UTM Parameter Strategy",
       "norm_label": "naming conventions"
     },
     {
@@ -64024,8 +64024,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_personalization",
-      "community": 757,
-      "community_name": "Personalization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "personalization"
     },
     {
@@ -64035,8 +64035,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_merge_fields",
-      "community": 757,
-      "community_name": "Personalization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "merge fields"
     },
     {
@@ -64046,8 +64046,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_dynamic_content",
-      "community": 757,
-      "community_name": "Personalization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "dynamic content"
     },
     {
@@ -64057,8 +64057,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_triggered_emails",
-      "community": 757,
-      "community_name": "Personalization",
+      "community": 215,
+      "community_name": "Email Copy Guidelines",
       "norm_label": "triggered emails"
     },
     {
@@ -64112,8 +64112,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_testing_and_optimization",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 799,
+      "community_name": "Testing and Optimization",
       "norm_label": "testing and optimization"
     },
     {
@@ -64123,8 +64123,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_what_to_test",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 799,
+      "community_name": "Testing and Optimization",
       "norm_label": "what to test"
     },
     {
@@ -64134,8 +64134,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_how_to_test",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 799,
+      "community_name": "Testing and Optimization",
       "norm_label": "how to test"
     },
     {
@@ -64145,8 +64145,8 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "agent_skills_emails_references_copy_guidelines_metrics_to_track",
-      "community": 215,
-      "community_name": "Email Copy Guidelines",
+      "community": 799,
+      "community_name": "Testing and Optimization",
       "norm_label": "metrics to track"
     },
     {
@@ -71812,7 +71812,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude",
-      "community": 799,
+      "community": 338,
       "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "example-quietude.md"
     },
@@ -71823,7 +71823,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_example_quietude_marketing_plan_v1",
-      "community": 799,
+      "community": 338,
       "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "example \u2014 quietude marketing plan v1"
     },
@@ -71834,7 +71834,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_quietude_marketing_plan_v1",
-      "community": 799,
+      "community": 338,
       "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "quietude \u2014 marketing plan v1"
     },
@@ -71845,7 +71845,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_1_executive_summary",
-      "community": 799,
+      "community": 338,
       "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "1. executive summary"
     },
@@ -72594,7 +72594,7 @@
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_13_measurement_raci_open_decisions_appendix",
       "community": 338,
-      "community_name": "13. Measurement, RACI, open decisions, appendix",
+      "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "13. measurement, raci, open decisions, appendix"
     },
     {
@@ -72605,7 +72605,7 @@
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_measurement_the_metrics_that_matter",
       "community": 338,
-      "community_name": "13. Measurement, RACI, open decisions, appendix",
+      "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "measurement \u2014 the metrics that matter"
     },
     {
@@ -72616,7 +72616,7 @@
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_raci",
       "community": 338,
-      "community_name": "13. Measurement, RACI, open decisions, appendix",
+      "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "raci"
     },
     {
@@ -72627,7 +72627,7 @@
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_open_decisions_blocking_the_plan",
       "community": 338,
-      "community_name": "13. Measurement, RACI, open decisions, appendix",
+      "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "open decisions blocking the plan"
     },
     {
@@ -72638,7 +72638,7 @@
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_example_quietude_appendix_deep_dive_links",
       "community": 338,
-      "community_name": "13. Measurement, RACI, open decisions, appendix",
+      "community_name": "Quietude \u2014 Marketing Plan v1",
       "norm_label": "appendix \u2014 deep-dive links"
     },
     {
@@ -74573,8 +74573,8 @@
       "source_location": "L238",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_plan_template_section_8_revenue",
-      "community": 217,
-      "community_name": "Plan Template \u2014 The 13-Section Structure",
+      "community": 821,
+      "community_name": "Section 8 \u2014 Revenue",
       "norm_label": "section 8 \u2014 revenue"
     },
     {
@@ -74584,8 +74584,8 @@
       "source_location": "L254",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_plan_template_unit_economics",
-      "community": 217,
-      "community_name": "Plan Template \u2014 The 13-Section Structure",
+      "community": 821,
+      "community_name": "Section 8 \u2014 Revenue",
       "norm_label": "unit economics"
     },
     {
@@ -74595,8 +74595,8 @@
       "source_location": "L267",
       "_origin": "ast",
       "id": "agent_skills_marketing_plan_references_plan_template_skills_tools_267",
-      "community": 217,
-      "community_name": "Plan Template \u2014 The 13-Section Structure",
+      "community": 821,
+      "community_name": "Section 8 \u2014 Revenue",
       "norm_label": "skills + tools"
     },
     {
@@ -84946,8 +84946,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_lead_lifecycle_framework",
-      "community": 769,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "lead lifecycle framework"
     },
     {
@@ -84957,8 +84957,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_stage_definitions",
-      "community": 769,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "stage definitions"
     },
     {
@@ -84968,8 +84968,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_mql_definition",
-      "community": 769,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "mql definition"
     },
     {
@@ -84979,8 +84979,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_mql_to_sql_handoff_sla",
-      "community": 769,
-      "community_name": "Lead Lifecycle Framework",
+      "community": 199,
+      "community_name": "RevOps",
       "norm_label": "mql-to-sql handoff sla"
     },
     {
@@ -85122,8 +85122,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_crm_automation_workflows",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 802,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "crm automation workflows"
     },
     {
@@ -85133,8 +85133,8 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_essential_automations",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 802,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "essential automations"
     },
     {
@@ -85144,8 +85144,8 @@
       "source_location": "L195",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_marketing_to_sales_automations",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 802,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "marketing-to-sales automations"
     },
     {
@@ -85155,8 +85155,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "agent_skills_revops_skill_calendar_scheduling_integration",
-      "community": 199,
-      "community_name": "RevOps",
+      "community": 802,
+      "community_name": "CRM Automation Workflows",
       "norm_label": "calendar scheduling integration"
     },
     {
@@ -86387,8 +86387,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_core_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 769,
+      "community_name": "Core Principles",
       "norm_label": "core principles"
     },
     {
@@ -86398,8 +86398,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_sales_uses_what_sales_trusts",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 769,
+      "community_name": "Core Principles",
       "norm_label": "sales uses what sales trusts"
     },
     {
@@ -86409,8 +86409,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_situation_specific_not_generic",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 769,
+      "community_name": "Core Principles",
       "norm_label": "situation-specific, not generic"
     },
     {
@@ -86420,8 +86420,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_scannable_over_comprehensive",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 769,
+      "community_name": "Core Principles",
       "norm_label": "scannable over comprehensive"
     },
     {
@@ -86431,8 +86431,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_tie_back_to_business_outcomes",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 769,
+      "community_name": "Core Principles",
       "norm_label": "tie back to business outcomes"
     },
     {
@@ -86486,8 +86486,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_one_pagers_leave_behinds",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 809,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "one-pagers / leave-behinds"
     },
     {
@@ -86497,8 +86497,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_when_to_use",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 809,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "when to use"
     },
     {
@@ -86508,8 +86508,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 809,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "structure"
     },
     {
@@ -86519,8 +86519,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_design_principles",
-      "community": 157,
-      "community_name": "Sales Enablement",
+      "community": 809,
+      "community_name": "One-Pagers / Leave-Behinds",
       "norm_label": "design principles"
     },
     {
@@ -86530,8 +86530,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_handling_docs",
-      "community": 809,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection handling docs"
     },
     {
@@ -86541,8 +86541,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_objection_categories",
-      "community": 809,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "objection categories"
     },
     {
@@ -86552,8 +86552,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_response_framework",
-      "community": 809,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "response framework"
     },
     {
@@ -86563,8 +86563,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_two_formats",
-      "community": 809,
-      "community_name": "Objection Handling Docs",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "two formats"
     },
     {
@@ -86706,8 +86706,8 @@
       "source_location": "L240",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_proposal_templates",
-      "community": 802,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "proposal templates"
     },
     {
@@ -86717,8 +86717,8 @@
       "source_location": "L242",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_structure_242",
-      "community": 802,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "structure"
     },
     {
@@ -86728,8 +86728,8 @@
       "source_location": "L250",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_customization_guidance",
-      "community": 802,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "customization guidance"
     },
     {
@@ -86739,8 +86739,8 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "agent_skills_sales_enablement_skill_common_mistakes",
-      "community": 802,
-      "community_name": "Proposal Templates",
+      "community": 157,
+      "community_name": "Sales Enablement",
       "norm_label": "common mistakes"
     },
     {
@@ -93472,7 +93472,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_skill",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "social/skill.md"
     },
     {
@@ -93746,8 +93746,8 @@
       "source_location": "L207",
       "_origin": "ast",
       "id": "agent_skills_social_skill_engagement_strategy",
-      "community": 813,
-      "community_name": "Engagement Strategy",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "engagement strategy"
     },
     {
@@ -93757,8 +93757,8 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "agent_skills_social_skill_daily_engagement_routine_30_min",
-      "community": 813,
-      "community_name": "Engagement Strategy",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "daily engagement routine (30 min)"
     },
     {
@@ -93768,8 +93768,8 @@
       "source_location": "L218",
       "_origin": "ast",
       "id": "agent_skills_social_skill_quality_comments",
-      "community": 813,
-      "community_name": "Engagement Strategy",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "quality comments"
     },
     {
@@ -93779,8 +93779,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "agent_skills_social_skill_building_relationships",
-      "community": 813,
-      "community_name": "Engagement Strategy",
+      "community": 152,
+      "community_name": "Social Content",
       "norm_label": "building relationships"
     },
     {
@@ -94011,7 +94011,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "carousel-frameworks.md"
     },
     {
@@ -94021,7 +94021,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_carousel_frameworks",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "carousel frameworks"
     },
@@ -94032,7 +94032,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_picking_a_framework",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "picking a framework"
     },
@@ -94043,7 +94043,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_framework_a_value_stack_4_14_slides",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "framework a: value-stack (4\u201314 slides)"
     },
@@ -94054,7 +94054,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_framework_b_problem_proof_6_10_slides",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "framework b: problem-proof (6\u201310 slides)"
     },
@@ -94065,7 +94065,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_framework_c_hack_list_6_10_slides",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "framework c: hack list (6\u201310 slides)"
     },
@@ -94076,7 +94076,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_framework_d_rant_callout_4_8_slides",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "framework d: rant callout (4\u20138 slides)"
     },
@@ -94087,7 +94087,7 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_framework_e_demo_walkthrough_5_11_slides",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "framework e: demo walkthrough (5\u201311 slides)"
     },
@@ -94098,7 +94098,7 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_platform_notes",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "platform notes"
     },
@@ -94109,7 +94109,7 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_production_checklist",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "production checklist"
     },
@@ -94120,7 +94120,7 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "agent_skills_social_references_carousel_frameworks_measuring_what_worked",
-      "community": 381,
+      "community": 757,
       "community_name": "Carousel Frameworks",
       "norm_label": "measuring what worked"
     },
@@ -94131,8 +94131,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening_sources_template",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 381,
+      "community_name": "social/SKILL.md",
       "norm_label": "listening-sources-template.md"
     },
     {
@@ -94384,8 +94384,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_social_references_listening",
-      "community": 700,
-      "community_name": "Social Listening & Engagement Triage",
+      "community": 381,
+      "community_name": "social/SKILL.md",
       "norm_label": "listening.md"
     },
     {
@@ -94660,7 +94660,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platform_limits",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "platform-limits.md"
     },
     {
@@ -94781,7 +94781,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "social/references/platforms.md"
     },
     {
@@ -94792,7 +94792,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_platform_specific_strategy_guide",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "platform-specific strategy guide"
     },
     {
@@ -94803,7 +94803,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_contents",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "contents"
     },
     {
@@ -94814,7 +94814,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_linkedin",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "linkedin"
     },
     {
@@ -94825,7 +94825,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_twitter_x",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "twitter/x"
     },
     {
@@ -94836,7 +94836,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_instagram",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "instagram"
     },
     {
@@ -94847,7 +94847,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_tiktok",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "tiktok"
     },
     {
@@ -94858,7 +94858,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_platforms_facebook",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "facebook"
     },
     {
@@ -94868,8 +94868,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_social_references_post_templates",
-      "community": 165,
-      "community_name": "Hook Formulas",
+      "community": 381,
+      "community_name": "social/SKILL.md",
       "norm_label": "post-templates.md"
     },
     {
@@ -95100,7 +95100,7 @@
       "_origin": "ast",
       "id": "agent_skills_social_references_reverse_engineering",
       "community": 381,
-      "community_name": "Carousel Frameworks",
+      "community_name": "social/SKILL.md",
       "norm_label": "reverse-engineering.md"
     },
     {
@@ -163601,7 +163601,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/LandingPage.tsx",
-      "source_location": "L537",
+      "source_location": "L658",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_landingpage",
@@ -163645,7 +163645,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/LandingPage.tsx",
-      "source_location": "L524",
+      "source_location": "L618",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_pages_landingpage",
@@ -285252,5 +285252,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "2031902c3d7836e5d8190838811c0d187b16875b"
+  "built_at_commit": "57477f6e063e53ef5ed956fd29108631a847a894"
 }

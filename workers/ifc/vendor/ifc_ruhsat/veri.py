@@ -76,8 +76,11 @@ def ek7_tablolar() -> dict[str, dict[str, Any]]:
     return {t["ifc"]: t for t in _yukle("ek7_proje.json")["tablolar"]}
 
 
-def ek9_maddeler() -> list[dict[str, Any]]:
-    return _yukle("ek9_form.json")["maddeler"]
+def ek9_maddeler(disiplin: str = "MM") -> list[dict[str, Any]]:
+    veri_sozluk = _yukle("ek9_form.json")
+    if (disiplin or "MM").strip().upper() == "MM":
+        return veri_sozluk["maddeler"]
+    return veri_sozluk.get("maddeler_diger", veri_sozluk["maddeler"])
 
 
 def kaynaklar() -> dict[str, str]:

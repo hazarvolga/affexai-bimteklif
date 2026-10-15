@@ -22,10 +22,16 @@ def test_report_carries_regulation_provenance_and_all_ek9_rows():
     assert report["kind"] == "epys_preflight"
     assert "33331" in report["ruleSource"]["regulation"]["resmiGazete"]
     assert report["ruleSource"]["engine"]["upstreamCommit"] == "cd6d3ce"
+    assert report["ek9Table"]["tablo"] == "9.1"
     assert len(report["ek9"]) == 21
     assert {row["karar"] for row in report["ek9"]} <= {"Evet", "Evet (uyarıyla)", "Hayır", "Elle", "Kısmen (elle tamamlanacak)"}
     assert "resmî uygunluk kararı değildir" in report["disclaimer"]
     assert report["summary"]["hata"] == 0
+
+    report_st = epys_preflight.build_report(GOOD, "123456_00_ST_BETO_MD_BIM_000_01_000.ifc", "ST")
+    assert report_st["model"]["discipline"] == "ST"
+    assert report_st["ek9Table"]["tablo"] == "9.2"
+    assert len(report_st["ek9"]) == 16
 
 
 def test_faulty_model_fails_rows_with_globalid_findings():

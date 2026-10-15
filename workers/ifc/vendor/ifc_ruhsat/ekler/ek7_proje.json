@@ -1,5 +1,5 @@
 {
-  "kaynak": "RG 5.8.2026 sayı 33331, ek EK-7 Tablo 7.1–7.8 (s.221–231), görsel doğrulama 2026-09-17",
+  "kaynak": "RG 5.8.2026 sayı 33331, ek EK-7 Tablo 7.1–7.9 (s.221–233), görsel doğrulama 2026-10-15",
   "tablolar": [
     {
       "ifc": "IfcProject",
@@ -285,6 +285,33 @@
           "ad": "TrueNorth",
           "veriTipi": "M",
           "turkce": "Gerçek Kuzey Yönü"
+        }
+      ]
+    },
+    {
+      "ifc": "IfcAnnotation",
+      "tablo": "7.9",
+      "sayfa": 233,
+      "onTanimliTipler": ["SURVEY"],
+      "gerekenler": [
+        {
+          "tur": "oznitelik",
+          "ad": "Name",
+          "veriTipi": "M",
+          "turkce": "İsim"
+        },
+        {
+          "tur": "oznitelik",
+          "ad": "Description",
+          "veriTipi": "M",
+          "turkce": "Açıklama"
+        },
+        {
+          "tur": "oznitelik",
+          "ad": "PredefinedType",
+          "veriTipi": "M",
+          "turkce": "Ön Tanımlı Tip",
+          "degerler": ["SURVEY"]
         }
       ]
     }

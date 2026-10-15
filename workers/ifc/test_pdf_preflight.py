@@ -120,3 +120,34 @@ def test_unreadable_file_reports_error_instead_of_passing(tmp_path):
     report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", b"not a pdf"))
     assert "PDF_OKUNAMADI" in codes(report)
     assert report["summary"]["hata"] == 1
+
+
+def test_non_iso216_page_size_and_multi_sheet_drawing_warnings(tmp_path):
+    writer = PdfWriter()
+    font = DictionaryObject({NameObject("/Type"): NameObject("/Font"), NameObject("/Subtype"): NameObject("/Type1"), NameObject("/BaseFont"): NameObject("/Helvetica")})
+    resources = DictionaryObject({NameObject("/Font"): DictionaryObject({NameObject("/F1"): font})})
+    # Non-ISO arbitrary page size (e.g. 500x500 pt = 176.4x176.4 mm) and 2 pages in a PL (Plan) drawing file
+    for _ in range(2):
+        page = writer.add_blank_page(width=500, height=500)
+        stream = DecodedStreamObject()
+        stream.set_data(b"BT /F1 12 Tf 72 400 Td (Pafta) Tj ET")
+        page[NameObject("/Contents")] = writer._add_object(stream)
+        page[NameObject("/Resources")] = resources
+    meta = DecodedStreamObject()
+    meta.set_data(XMP_PDFA)
+    meta[NameObject("/Type")] = NameObject("/Metadata")
+    meta[NameObject("/Subtype")] = NameObject("/XML")
+    writer._root_object[NameObject("/Metadata")] = writer._add_object(meta)
+    out = io.BytesIO()
+    writer.write(out)
+
+    path = write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", out.getvalue())
+    report = pdf_preflight.build_report(path)
+    assert "PAFTA_BOYUTU_ISO216" in codes(report)
+    assert "COKLU_PAFTA_DUZENI" in codes(report)
+    assert report["eSignature"]["present"] is False
+
+    # Same 2-page PDF as a Report (RP_SHR) should NOT trigger COKLU_PAFTA_DUZENI
+    report_rp = pdf_preflight.build_report(path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf")
+    assert "COKLU_PAFTA_DUZENI" not in codes(report_rp)
+

@@ -31,6 +31,7 @@ class Rapor:
     dosya: str
     schema: str
     bulgular: list[Bulgu] = field(default_factory=list)
+    disiplin: str = "MM"
 
     def ekle(self, *b: Bulgu) -> None:
         self.bulgular.extend(b)
@@ -56,6 +57,7 @@ class Rapor:
         return {
             "dosya": self.dosya,
             "schema": self.schema,
+            "disiplin": self.disiplin,
             "ozet": self.ozet(),
             "bulgular": [b.sozluk() for b in self.bulgular],
         }

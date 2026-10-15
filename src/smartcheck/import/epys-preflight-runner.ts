@@ -17,6 +17,7 @@ const FindingSchema = z.object({
 
 const Ek9RowSchema = z.object({
   no: z.number(),
+  kaynakNo: z.number().optional(),
   bolum: z.string(),
   kategori: z.string(),
   baslik: z.string(),
@@ -24,6 +25,14 @@ const Ek9RowSchema = z.object({
   karar: z.string(),
   elleNotu: z.string(),
   bulgu: z.number(),
+});
+
+const Ek9TableSchema = z.object({
+  tablo: z.string(),
+  baslik: z.string(),
+  disiplin: z.string(),
+  disiplinAdi: z.string(),
+  satirSayisi: z.number(),
 });
 
 export const EpysPreflightReportSchema = z.object({
@@ -34,8 +43,9 @@ export const EpysPreflightReportSchema = z.object({
     engine: z.object({ name: z.string(), version: z.string(), upstreamCommit: z.string() }),
     dataVerification: z.string(),
   }),
-  model: z.object({ fileName: z.string(), schema: z.string(), sizeBytes: z.number() }),
+  model: z.object({ fileName: z.string(), schema: z.string(), sizeBytes: z.number(), discipline: z.string().optional() }),
   summary: z.object({ hata: z.number(), uyari: z.number(), bilgi: z.number(), elle: z.number() }),
+  ek9Table: Ek9TableSchema.optional(),
   ek9: z.array(Ek9RowSchema),
   findings: z.array(FindingSchema),
   disclaimer: z.string(),
@@ -103,6 +113,7 @@ export function summarizeEpysPreflight(report: EpysPreflightReport, maxFindings 
     ruleSource: report.ruleSource,
     model: report.model,
     summary: report.summary,
+    ek9Table: report.ek9Table,
     ek9: report.ek9,
     findings: report.findings.filter(finding => finding.seviye !== "bilgi").slice(0, maxFindings),
     findingsTruncated: report.findings.length > maxFindings,

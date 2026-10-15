@@ -80,7 +80,7 @@ const TREPYS_PSET_CATALOG: AllplanTrepysPsetSpec[] = [
   {
     psetName: "TREpys_ParselOzellikSeti",
     applicableIfcClasses: ["IfcSite"],
-    regulationRef: "RG 33331 EK-4 & EK-6 Tablo 6.1",
+    regulationRef: "RG 33331 m.12(2) & EK-6 Tablo 6.55 (s.95)",
     properties: [
       { name: "TAKS", ifcDataType: "IfcReal", allplanAttributeType: "Real", required: true, descriptionTr: "Taban Alanı Kat Sayısı (örn. 0.40)" },
       { name: "KAKS", ifcDataType: "IfcReal", allplanAttributeType: "Real", required: true, descriptionTr: "Katlar Alanı Kat Sayısı / Emsal (örn. 1.50)" },
@@ -92,15 +92,15 @@ const TREPYS_PSET_CATALOG: AllplanTrepysPsetSpec[] = [
   {
     psetName: "TREpys_EmsalOzellikSeti",
     applicableIfcClasses: ["IfcSpatialZone", "IfcSpace"],
-    regulationRef: "RG 33331 EK-4 Tablo 4.1 & EK-6 Tablo 6.4",
+    regulationRef: "RG 33331 m.12(2) & EK-6 Tablo 6.60 (s.101)",
     properties: [
       {
         name: "EmsalDurumu",
         ifcDataType: "IfcLabel",
         allplanAttributeType: "Text",
         required: true,
-        allowedValues: ["DAHIL", "HARIC", "YUZDE30"],
-        descriptionTr: "Alan emsal hesabı sınıfı (Planlı Alanlar İmar Yönetmeliği m.22)",
+        allowedValues: ["DAHIL", "HARIC", "DIGER"],
+        descriptionTr: "Alan emsal hesabı sınıfı (EK-6 Tablo 6.60: DAHIL | HARIC | DIGER)",
       },
       {
         name: "Alan",
@@ -114,9 +114,9 @@ const TREPYS_PSET_CATALOG: AllplanTrepysPsetSpec[] = [
   {
     psetName: "TREpys_PozOzellikSeti",
     applicableIfcClasses: ["IfcBeam", "IfcColumn", "IfcSlab", "IfcWall", "IfcCovering", "IfcReinforcingBar", "IfcDoor", "IfcWindow"],
-    regulationRef: "RG 33331 EK-4 & 5D BIM Metraj Köprüsü",
+    regulationRef: "BIMMetraj 5D BIM Metraj & ÇŞB Birim Fiyat Köprüsü (İsteğe Bağlı)",
     properties: [
-      { name: "PozNo", ifcDataType: "IfcIdentifier", allplanAttributeType: "Text", required: true, descriptionTr: "Resmi ÇŞB Birim Fiyat Poz Numarası (örn. 15.150.1005)" },
+      { name: "PozNo", ifcDataType: "IfcIdentifier", allplanAttributeType: "Text", required: false, descriptionTr: "Resmi ÇŞB Birim Fiyat Poz Numarası (örn. 15.150.1005)" },
       { name: "PozTanimi", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: false, descriptionTr: "ÇŞB Birim Fiyat Poz Tanımı" },
       { name: "Birim", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: false, allowedValues: ["m3", "m2", "m", "ton", "kg", "adet"], descriptionTr: "Ölçü birimi" },
       { name: "KurumKodu", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: false, allowedValues: ["CSB_YFK_2026", "CSB_MEKANIK_2026", "CSB_ELEKTRIK_2026"], descriptionTr: "Birim fiyat katalog kaynağı" },
@@ -125,18 +125,18 @@ const TREPYS_PSET_CATALOG: AllplanTrepysPsetSpec[] = [
   {
     psetName: "TREpys_YanginOzellikSeti",
     applicableIfcClasses: ["IfcBuilding", "IfcSpace", "IfcWall", "IfcSlab", "IfcDoor"],
-    regulationRef: "RG 33331 EK-4 & Binaların Yangından Korunması Hakkında Yönetmelik",
+    regulationRef: "Binaların Yangından Korunması Hakkında Yönetmelik (İsteğe Bağlı Ek Set)",
     properties: [
-      { name: "YanginDayanimSuresi", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: true, allowedValues: ["REI 30", "REI 60", "REI 90", "REI 120", "EI 30", "EI 60"], descriptionTr: "Yangın dayanım sınıfı ve süresi" },
+      { name: "YanginDayanimSuresi", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: false, allowedValues: ["REI 30", "REI 60", "REI 90", "REI 120", "EI 30", "EI 60"], descriptionTr: "Yangın dayanım sınıfı ve süresi" },
       { name: "KacisYoluMu", ifcDataType: "IfcBoolean", allplanAttributeType: "Boolean", required: false, descriptionTr: "Kaçış yolu / yangın güvenlik holü bileşeni mi?" },
     ],
   },
   {
     psetName: "TREpys_AkustikOzellikSeti",
     applicableIfcClasses: ["IfcWall", "IfcSlab", "IfcDoor", "IfcWindow"],
-    regulationRef: "RG 33331 EK-4 & Binaların Gürültüye Karşı Korunması Hakkında Yönetmelik",
+    regulationRef: "Binaların Gürültüye Karşı Korunması Hakkında Yönetmelik (İsteğe Bağlı Ek Set)",
     properties: [
-      { name: "AkustikPerformansSinifi", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: true, allowedValues: ["A", "B", "C", "D", "E", "F"], descriptionTr: "Akustik performans sınıfı" },
+      { name: "AkustikPerformansSinifi", ifcDataType: "IfcLabel", allplanAttributeType: "Text", required: false, allowedValues: ["A", "B", "C", "D", "E", "F"], descriptionTr: "Akustik performans sınıfı" },
       { name: "HavaDogusluSesYalitimiDb", ifcDataType: "IfcReal", allplanAttributeType: "Real", required: false, descriptionTr: "Rw / DnT,w ses yalıtım değeri (dB)" },
     ],
   },
@@ -211,8 +211,8 @@ export function buildAllplanEpysKitV1(): AllplanEpysKitV1 {
       mahaller: ek3.mahaller,
     },
     ek5ElementNamingAndMaterials: {
-      elementNamePattern: "Disiplin(2)-KategoriKodu(3)-Aciklama (örn. MM-DVR-dis_20cm, ST-KLN-k101)",
-      materialRule: "En fazla 15 karakter, Türkçe karaktersiz ASCII, Malzeme_Dayanim formatı (EK-5 5.6)",
+      elementNamePattern: "Disiplin(2)-KategoriKodu(3)-Aciklama (örn. MM-DVR-dis_20cm, ST-KLN-k101) — m.11 & EK-5 5.5",
+      materialRule: "Malzeme İsmi_Dayanım formatı (m.12(2) & EK-6, örn. Beton_C25, Çelik_S355) ve en fazla 15 karakter CAD şablon standardı",
       maxMaterialCharLength: 15 as const,
       approved15CharMaterials: APPROVED_15_CHAR_MATERIALS,
       zorunluSinifCount: ek5.zorunlu.length,
@@ -244,7 +244,7 @@ export function buildAllplanEpysKitV1(): AllplanEpysKitV1 {
       version: "1.0.0",
       targetCad: "Allplan 2026 (IFC4X3_ADD2 OpenBIM Exporter)",
       ifcSchema: "IFC4X3_ADD2",
-      regulationReference: "5.8.2026 RG Sayı 33331 — Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik (EK-1..EK-10)",
+      regulationReference: "5.8.2026 RG Sayı 33331 — Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik (EK-1..EK-9)",
       checksumSha256,
     },
     ...payloadWithoutHash,

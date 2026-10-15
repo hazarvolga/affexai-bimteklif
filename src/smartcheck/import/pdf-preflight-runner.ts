@@ -14,6 +14,7 @@ export const PdfPreflightReportSchema = z.object({
   schemaVersion: z.literal(1), kind: z.literal("pdf_preflight"),
   file: z.object({ fileName: z.string(), pageCount: z.number() }),
   pdfa: z.object({ claimed: z.object({ part: z.string(), conformance: z.string() }).nullable(), note: z.string() }),
+  eSignature: z.object({ present: z.boolean(), note: z.string() }).optional(),
   summary: z.object({ hata: z.number(), uyari: z.number(), elle: z.number() }),
   findings: z.array(Finding), disclaimer: z.string(),
 });

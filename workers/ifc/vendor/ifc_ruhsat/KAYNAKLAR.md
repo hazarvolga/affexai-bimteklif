@@ -19,8 +19,8 @@ Bu araçtaki her kural yönetmeliğin bir maddesine ya da ekinin bir tablosuna d
 | `ek3_mahaller.json` | Tablo 3.2 — ~130 resmî mahal ismi ve 3 harfli kısaltma kodu | ek s.14–19 | görsel, 2026-10-14 |
 | `ek5_siniflar.json` | Tablo 5.1 — 69 zorunlu sınıf + kategori kodu; Tablo 5.2 — 67 isteğe bağlı; Tablo 5.3 isimlendirme şablonu | ek s.29–34 | görsel, 2026-09-17; sınıf adları IFC4X3_ADD2 şemasına karşı doğrulandı |
 | `ek6_ozellikler.json` | Tablo 6.1–6.68, **68 tablonun tamamı** (aşağıda) | tabloda | görsel, 2026-09-17; öznitelikler IFC4X3_ADD2 şemasına, özellikler resmî Pset şablonlarına karşı testle doğrulanır |
-| `ek7_proje.json` | Tablo 7.1 IfcProject, 7.2 IfcPerson, 7.3 IfcPersonAndOrganization, 7.4 IfcOrganization, 7.5 IfcActorRole, 7.6 IfcProjectedCRS, 7.7 IfcMapConversion | ek s.222–230 | görsel, 2026-09-17 |
-| `ek9_form.json` | Tablo 9.1 — 21 kontrol satırı (mimari) | ek s.238–239 | görsel, 2026-09-17 |
+| `ek7_proje.json` | Tablo 7.1 IfcProject, 7.2 IfcPerson, 7.3 IfcPersonAndOrganization, 7.4 IfcOrganization, 7.5 IfcActorRole, 7.6 IfcProjectedCRS, 7.7 IfcMapConversion, 7.8 IfcGeometricRepresentationContext, 7.9 IfcAnnotation | ek s.222–233 | görsel, 2026-10-15 |
+| `ek9_form.json` | Tablo 9.1 — 21 kontrol satırı (mimari); Tablo 9.2 — 16 kontrol satırı (diğer disiplinler) | ek s.238–241 | görsel, 2026-10-15 |
 
 ### EK-6: kodlanmış tablolar
 
@@ -30,13 +30,14 @@ Tesisat tablolarının ortak deseni: PredefinedType, Name, Tag, `IfcRelAssignsTo
 
 ### Kodlanmış / kapsam dışı ekler
 
-- **EK-1** proje kodu yapısı: IfcProject.Name yalnızca boş olmamasıyla denetlenir.
+- **EK-1** proje kodu yapısı: 6 haneli alfasayısal proje kodu ve dosya adıyla (`IfcProject.Name`) uyumu `isim.py` içinde denetlenir.
 - **EK-2** Tablo 2.2–2.14 (disiplin, alt disiplin/öğe, dosya türü, dosya tipi, kat/konum kodları): tamamı `ek2_disiplinler.json` ve `isim.py` içinde denetlenir.
 - **EK-3** mahal numarası şablonu (Tablo 3.1), kat kodları (Tablo 2.14) ve mahal ismi/kısaltma tablosu (Tablo 3.2, `ek3_mahaller.json`): tamamı `mahal.py` içinde denetlenir.
 - **EK-4** CAD katman esasları: kapsam dışı (IFC değil).
 - **EK-6** Tablo 6.69–6.135 (isteğe bağlı öznitelikler): idare istemedikçe zorunlu değil, kodlanmadı.
-- **EK-7** Tablo 7.8 IfcGeometricRepresentationContext, 7.9 IfcAnnotation, 7.10–7.12 (isteğe bağlı): kodlanmadı.
-- **EK-8** LOD 300: makinece denetlenemez.
+- **EK-7** Tablo 7.1–7.9 zorunlu tabloların tamamı kodlandı; Tablo 7.10–7.12 (isteğe bağlı): idare istemedikçe zorunlu değil, kodlanmadı.
+- **EK-8** LOD 300 (Detaylı Modelleme, s.237): geometrik detay seviyesi elle değerlendirilir.
+- **EK-9** Tablo 9.1 (Mimari, 21 satır) ve Tablo 9.2 (Diğer disiplinler, 16 satır): model disiplinine göre otomatik seçilir.
 
 ## Metindeki tutarsızlıklar (araç ne yapıyor)
 

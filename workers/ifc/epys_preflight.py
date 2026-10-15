@@ -18,16 +18,16 @@ from typing import Any, Dict, List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor"))
 
-from ifc_ruhsat import SURUM, YONETMELIK, ek9, ids_uret, kontrol  # noqa: E402
+from ifc_ruhsat import SURUM, YONETMELIK, ek9, kontrol  # noqa: E402
 
 UPSTREAM_COMMIT = "cd6d3ce"
 DATA_VERIFICATION = (
     "Upstream visual verification of the scanned RG 33331 annex PDF (2026-09-17, page "
-    "numbers in each table). BIMMetraj spot-check 2026-10-13 against the official annex "
-    "PDF 20260805-2-1.pdf (SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3): "
-    "Tablo 6.55 (IfcSite, TREpys_ParselOzellikSeti incl. CekmeArka), Tablo 6.60 "
-    "(TREpys_EmsalOzellikSeti.EmsalDurumu) and Tablo 9.1 rows 1-9 match. Other tables: "
-    "upstream verification only."
+    "numbers in each table). BIMMetraj full annex verification 2026-10-15 against official "
+    "ministry files #1.pdf, #2.pdf and EKLER.pdf / 20260805-2-1.pdf (SHA-256 "
+    "7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3): EK-1..EK-9 "
+    "including Tablo 6.55, Tablo 6.60, Tablo 7.8–7.9, Tablo 9.1 (21 rows, MM) and "
+    "Tablo 9.2 (16 rows, non-MM disciplines)."
 )
 DISCLAIMER = (
     "Otomatik ön kontroldür; resmî uygunluk kararı değildir. Değerlendirme e-PYS ve "
@@ -52,7 +52,7 @@ _PATTERNS = [
     (re.compile(r"(?<!\w)\d{10,11}(?!\w)"), "[kimlik no gizlendi]"),
 ]
 
-_PASSTHROUGH_KEYS = frozenset({"kod", "madde", "tablo", "sema", "schema", "upstreamCommit", "version"})
+_PASSTHROUGH_KEYS = frozenset({"kod", "madde", "tablo", "sema", "schema", "upstreamCommit", "version", "disiplin", "discipline"})
 
 
 def _mask_text(text: str) -> str:
@@ -85,13 +85,17 @@ def mask_personal_data(value: Any) -> Any:
 
 
 def build_report(input_path: str, file_name: str, discipline: str | None = None) -> Dict[str, Any]:
-    rapor = kontrol.kontrol_et(input_path, discipline)
+    from pathlib import Path as _Path
+
+    secilen_disiplin = kontrol.disiplini_sec(_Path(file_name or input_path), discipline)
+    rapor = kontrol.kontrol_et(input_path, secilen_disiplin)
     rows = [
-        {"no": r["no"], "bolum": r["bolum"], "kategori": r["kategori"], "baslik": r["baslik"],
-         "soru": r["soru"], "karar": r["karar"], "elleNotu": r["elleNotu"],
+        {"no": r["no"], "kaynakNo": r.get("kaynakNo", r["no"]), "bolum": r["bolum"], "kategori": r["kategori"],
+         "baslik": r["baslik"], "soru": r["soru"], "karar": r["karar"], "elleNotu": r["elleNotu"],
          "bulgu": len(r["bulgular"])}
-        for r in ek9.satirlar(rapor)
+        for r in ek9.satirlar(rapor, secilen_disiplin)
     ]
+    tablo_info = ek9.tablo_bilgisi(secilen_disiplin)
     report = {
         "schemaVersion": 1,
         "kind": "epys_preflight",
@@ -100,8 +104,14 @@ def build_report(input_path: str, file_name: str, discipline: str | None = None)
             "engine": {"name": "ifc-ruhsat", "version": SURUM, "upstreamCommit": UPSTREAM_COMMIT},
             "dataVerification": DATA_VERIFICATION,
         },
-        "model": {"fileName": file_name, "schema": rapor.schema, "sizeBytes": os.path.getsize(input_path)},
+        "model": {
+            "fileName": file_name,
+            "schema": rapor.schema,
+            "sizeBytes": os.path.getsize(input_path),
+            "discipline": secilen_disiplin,
+        },
         "summary": rapor.ozet(),
+        "ek9Table": tablo_info,
         "ek9": rows,
         "findings": [b.sozluk() for b in rapor.bulgular],
         "disclaimer": DISCLAIMER,
@@ -110,6 +120,8 @@ def build_report(input_path: str, file_name: str, discipline: str | None = None)
 
 
 def write_ids(directory: str) -> List[str]:
+    from ifc_ruhsat import ids_uret  # noqa: PLC0415
+
     return [str(path) for path in ids_uret.yaz(Path(directory))]
 
 

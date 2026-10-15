@@ -488,6 +488,25 @@ def _ek7(b: Baglam) -> list[Bulgu]:
                     )
                     for bu in _ozellik_kontrol(sinif, ref, g, varliklar)
                 ]
+    # EK-7 Tablo 7.9: IfcAnnotation isteğe bağlı sınıftır (EK-5 Tablo 5.2); modelde varsa öznitelikleri denetlenir.
+    anotasyonlar = b.sinif("IfcAnnotation")
+    if anotasyonlar and "IfcAnnotation" in tablolar:
+        tablo_ano = tablolar["IfcAnnotation"]
+        ref_ano = f"EK-7 Tablo {tablo_ano['tablo']}"
+        for g in tablo_ano["gerekenler"]:
+            if g["tur"] == "oznitelik":
+                out += [
+                    Bulgu(
+                        bu.kod.replace("ek6", "ek7"),
+                        bu.seviye,
+                        bu.mesaj,
+                        bu.madde,
+                        2,
+                        bu.varliklar,
+                        bu.sayi,
+                    )
+                    for bu in _oznitelik_kontrol("IfcAnnotation", ref_ano, g, anotasyonlar)
+                ]
     if not any(bu.seviye == "hata" for bu in out):
         out.append(Bulgu("ek7", "bilgi", "Proje bilgileri (EK-7) tanımlı.", "m.13, EK-7", 2))
     return out

@@ -148,6 +148,11 @@ Release status (2026-10-13):
     - `yearly` (`1 Yıllık`, `%20 İndirim`, `365 gün`)
     - `biennial` (`2 Yıllık`, `%30 İndirim`, `730 gün`)
   - Added `POST /api/admin/plans/sync-catalog` (`src/server/routes/admin.ts`) and "Standart Katalogla Eşitle" button in `PlansList.tsx`.
+- **2026-10-15 Official Ministry PDFs (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) 5-Phase Full Synchronization & Transactional Emails:**
+  - **Faz 1 (Python `ifc_ruhsat` Core Engine):** Added `maddeler_diger` for **EK-9 Tablo 9.2 (16 rows, non-architectural disciplines `ST`, `MK`, `EE`, etc.)** alongside **Tablo 9.1 (21 rows, Architectural `MM`)** in `ek9_form.json`, `ek9.py`, `kontrol.py`, `veri.py`, `bulgu.py`, `emsal.py`, and `epys_preflight.py` (`ek9Table`, `discipline`, `kaynakNo`). Added **EK-7 Tablo 7.9 (`IfcAnnotation`: `Name`, `Description`, `PredefinedType: SURVEY`)** in `ek7_proje.json` and `ozellik.py`.
+  - **Faz 2 (`workers/ifc/pdf_preflight.py`):** Added `#1.pdf` **m.8(1)** ISO 216 A4 and multiples page size check (`PAFTA_BOYUTU_ISO216`), **m.8(2)** single-sheet drawing rule check (`COKLU_PAFTA_DUZENI`), and `#2.pdf` **m.6(1)-(2)** embedded electronic signature (`/Sig`) detection (`eSignature`).
+  - **Faz 3 (TypeScript `SmartCheck` & `epys-allplan-kit.ts`):** Synchronized `ek6-dictionary.ts` with `EKLER.pdf` (`Tablo 6.3, 6.16, 6.20, 6.25, 6.56, 6.58, 6.66, 6.68`), aligned `epys.ts` with `#1.pdf` `m.13(3)` (`Malzeme İsmi_Dayanım`) + 5D `CSBPozNo` warning, and updated `epys-allplan-kit.ts` (`EmsalDurumu: ["DAHIL", "HARIC", "DIGER"]`).
+  - **Faz 4 (Frontend & Admin Docs):** Updated `LegislationView.tsx` (official `2026–2033` RG 33331 transition timeline), `BimGlossary.tsx` (`e-PYS`, `EK-9 Formu`), `roadmap-content.ts`, `calculation-content.ts`, and `LandingPage.tsx` (How-It-Works 3 steps & 6 lifecycle cards). Built 8 corporate HTML transactional email templates (`src/server/notifications/email-templates.ts`) + Superadmin `/admin/email-templates` preview & test sender.
 
 ## Next code work
 

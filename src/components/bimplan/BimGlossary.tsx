@@ -91,9 +91,29 @@ export default function BimGlossary() {
       abbreviation: 'ÇŞİDB Birim Fiyat Poz Kütüphanesi',
       turkishName: 'Resmi Birim Fiyat Poz Numaraları',
       category: 'Mali & Yönetim',
-      definition: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı tarafından her yıl yayınlanan, inşaat imalatlarının (beton, donatı, kalıp) resmi poz numaraları ve birim fiyat tarifleridir.',
+      definition: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (Yüksek Fen Kurulu) tarafından her yıl yayınlanan, inşaat imalatlarının (beton, donatı, kalıp, ince işler) resmi poz numaraları, ölçü esasları (minha) ve birim fiyat tarifleridir.',
       englishTranslation: 'Official Ministry Unit Price Cost Codes',
-      isoRole: '5D BIM metrajlarında IFC model nesnelerine Pset_ElementCost.CostCode olarak atanarak otomatik maliyet hesabı sağlar.',
+      isoRole: '5D BIM metrajlarında IFC model nesnelerine TREpys_PozOzellikSeti.PozNo (veya Pset_ElementCost.CostCode) olarak atanarak otomatik maliyet hesabı sağlar.',
+      importance: 'Çok Yüksek'
+    },
+    {
+      term: 'e-PYS',
+      abbreviation: 'Elektronik Proje Yönetim Sistemi (RG 33331)',
+      turkishName: 'Bakanlık Elektronik Proje Teslim ve İnceleme Sistemi',
+      category: 'Süreç',
+      definition: '5 Ağustos 2026 tarihli ve 33331 sayılı Resmî Gazete yönetmelikleri kapsamında, mimarlık ve mühendislik projelerinin güvenli e-imza ile PDF/A ve IFC4X3 formatında teslim edildiği, incelendiği ve onaylandığı resmî Bakanlık platformudur.',
+      englishTranslation: 'Electronic Project Management & Permitting System',
+      isoRole: '1 Eylül 2028 itibarıyla ruhsat ve proje onay süreçlerinde Türkiye genelinde kullanılan tek resmî elektronik teslim ortamıdır (Teslim Yön. m.7(7)).',
+      importance: 'Çok Yüksek'
+    },
+    {
+      term: 'EK-9 Formu',
+      abbreviation: 'RG 33331 Model Kalite Kontrol Formu (Tablo 9.1 & 9.2)',
+      turkishName: 'Yapı Bilgi Modeli Kalite Kontrol Formu',
+      category: 'Süreç',
+      definition: 'Dijital Hazırlama Yönetmeliği EK-9 kapsamında IFC modellerinin teslim öncesi denetlendiği resmî kontrol listesidir. Mimari projeler için Tablo 9.1 (21 madde), diğer disiplinler (Statik, Mekanik, Elektrik) için Tablo 9.2 (16 madde) uygulanır.',
+      englishTranslation: 'BIM Model Quality Control Checklist (Annex-9)',
+      isoRole: 'Dosya adlandırma (EK-2), koordinat sistemi (EK-7), zorunlu sınıflar (EK-5), özellik setleri (EK-6) ve asgari LOD 300 (EK-8) uygunluğunu kayıt altına alır.',
       importance: 'Çok Yüksek'
     },
     {

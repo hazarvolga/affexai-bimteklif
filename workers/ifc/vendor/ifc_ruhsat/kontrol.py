@@ -40,8 +40,9 @@ def disiplini_sec(yol: Path, verilen: str | None) -> str:
 def kontrol_et(yol: str | Path, disiplin: str | None = None) -> Rapor:
     yol = Path(yol)
     model = modeli_ac(yol)
-    b = ortak.Baglam(model=model, dosya_adi=yol.name, disiplin=disiplini_sec(yol, disiplin))
-    rapor = Rapor(dosya=str(yol), schema=model.schema)
+    secilen_disiplin = disiplini_sec(yol, disiplin)
+    b = ortak.Baglam(model=model, dosya_adi=yol.name, disiplin=secilen_disiplin)
+    rapor = Rapor(dosya=str(yol), schema=model.schema, disiplin=secilen_disiplin)
     boyut = _boyut(yol.stat().st_size)
     for modul in MODULLER:
         rapor.ekle(*modul.kontrol(b))

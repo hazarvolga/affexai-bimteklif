@@ -1,6 +1,7 @@
-"""EK-9 Model Kalite Kontrol Formu (Tablo 9.1): 21 satır, her biri için Evet / Hayır /
-Elle ve dayanak. Otomatik "Evet" yalnızca o satırda hata ve uyarı yoksa; hiç
-denetlenemeyen satır "Elle" bırakılır, uydurulmaz."""
+"""EK-9 Model Kalite Kontrol Formu:
+- Tablo 9.1 (Mimari disiplin - MM): 21 satır (EKLER.pdf s.238–239)
+- Tablo 9.2 (Diğer disiplinler - ST, MK, EE vb.): 16 satır (EKLER.pdf s.240–241)
+Her satır için Evet / Hayır / Elle ve dayanak üretilir."""
 
 from __future__ import annotations
 
@@ -10,10 +11,32 @@ from ifc_ruhsat import SURUM, YONETMELIK, veri
 from ifc_ruhsat.bulgu import Rapor
 
 
-def satirlar(rapor: Rapor) -> list[dict]:
+def tablo_bilgisi(disiplin: str = "MM") -> dict:
+    kod = (disiplin or "MM").strip().upper()
+    disiplin_ad = veri.ek2_disiplinler().get(kod, kod)
+    if kod == "MM":
+        return {
+            "tablo": "9.1",
+            "baslik": "Tablo 9.1 Model Kalite Kontrol Formu (Mimari disiplin için)",
+            "disiplin": kod,
+            "disiplinAdi": disiplin_ad,
+            "satirSayisi": 21,
+        }
+    return {
+        "tablo": "9.2",
+        "baslik": "Tablo 9.2 Model Kalite Kontrol Formu (Diğer disiplinler için)",
+        "disiplin": kod,
+        "disiplinAdi": disiplin_ad,
+        "satirSayisi": 16,
+    }
+
+
+def satirlar(rapor: Rapor, disiplin: str | None = None) -> list[dict]:
+    secilen_disiplin = (disiplin or getattr(rapor, "disiplin", "MM") or "MM").strip().upper()
     out = []
-    for m in veri.ek9_maddeler():
-        bulgular = rapor.madde_bulgulari(m["no"])
+    for m in veri.ek9_maddeler(secilen_disiplin):
+        kaynak_no = m.get("kaynak_no", m["no"])
+        bulgular = rapor.madde_bulgulari(kaynak_no)
         hatalar = [b for b in bulgular if b.seviye == "hata"]
         uyarilar = [b for b in bulgular if b.seviye == "uyari"]
         elle = [b for b in bulgular if b.seviye == "elle"]
@@ -32,6 +55,7 @@ def satirlar(rapor: Rapor) -> list[dict]:
         out.append(
             {
                 "no": m["no"],
+                "kaynakNo": kaynak_no,
                 "bolum": m["bolum"],
                 "kategori": m["kategori"],
                 "baslik": m["baslik"],
@@ -53,10 +77,11 @@ def markdown(rapor: Rapor) -> str:
     """Form, Markdown tablo olarak — imzalı PDF/A'ya dönüştürmek proje müellifinin işi."""
     zaman = datetime.now().astimezone().strftime("%d.%m.%Y %H:%M")
     ozet = rapor.ozet()
+    bilgi = tablo_bilgisi(getattr(rapor, "disiplin", "MM"))
     metin = [
-        "# EK-9 Model Kalite Kontrol Formu (Tablo 9.1, mimari disiplin)",
+        f"# EK-9 {bilgi['baslik']}",
         "",
-        f"**Model:** `{rapor.dosya}` · **Şema:** {rapor.schema} · **Tarih:** {zaman}  ",
+        f"**Model:** `{rapor.dosya}` · **Disiplin:** {bilgi['disiplin']} ({bilgi['disiplinAdi']}) · **Şema:** {rapor.schema} · **Tarih:** {zaman}  ",
         f"**Dayanak:** {YONETMELIK['ad']} (RG {YONETMELIK['resmiGazete']})  ",
         f"**Araç:** ifc-ruhsat {SURUM} — otomatik ön kontrol; formun imzalanması ve nihai "
         "değerlendirme proje müellifi ile ilgili idareye aittir.  ",

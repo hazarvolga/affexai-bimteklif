@@ -1,7 +1,7 @@
 # Graph Report - TeklifPro-repo  (2026-10-15)
 
 ## Corpus Check
-- 1146 files · ~1,779,328 words
+- 1146 files · ~1,779,972 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2031902c`
+- Built from commit: `57477f6e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -329,7 +329,7 @@
 - Common Copy Problems & Fixes
 - Copy Editing
 - Field-by-Field Optimization
-- 13. Measurement, RACI, open decisions, appendix
+- Quietude — Marketing Plan v1
 - Growth & Scaling Models
 - HubSpot Workflow Recipes
 - International SEO: Evidence & Sources
@@ -371,7 +371,7 @@
 - Stage Templates
 - On-Page SEO Audit
 - United States — TCPA
-- Carousel Frameworks
+- social/SKILL.md
 - Strategic Compact Skill
 - AI Video Prompting Guide
 - Phase 11 — Production Readiness
@@ -443,7 +443,7 @@
 - Video Generation
 - postgres-restore-drill.ts
 - The Creative Strategy Loop
-- Domain-Specific GEO Tactics
+- AEO and GEO Content Patterns
 - AI SEO by Content Type
 - Data Layer Patterns
 - Cancel Flow Design
@@ -743,7 +743,7 @@
 - Output Formats
 - src/services/ai/aiService.ts
 - Shared Framework (all branches)
-- Personalization
+- Carousel Frameworks
 - TeklifPro UX Rearchitecture & Product Handoff
 - 1. Dört Uzman Perspektifi Sentezi
 - Generating Ad Copy
@@ -754,7 +754,7 @@
 - checkpoint.ts
 - mahal.py
 - motion
-- Lead Lifecycle Framework
+- Core Principles
 - Yükler (TS 498 ve pratik değerler)
 - contracts/smartcheck.ts
 - db
@@ -771,24 +771,24 @@
 - BIMMetraj GAP Raporu — 13 Ekim 2026
 - How This Skill Works
 - Maliyet, Birim Fiyat ve Teklif
-- Quietude — Marketing Plan v1
+- Testing and Optimization
 - zod-to-json-schema
 - Iterating from Performance Data
-- Proposal Templates
+- CRM Automation Workflows
 - Brevo (formerly Sendinblue)
 - TeklifPro / BIMMetraj Repo Haritası (mühendislik açısından)
 - Discovery Sources (SaaS branch)
 - 01-ifc-worker-prompt.md
 - 02-super-admin-prompt.md
-- Objection Handling Docs
+- One-Pagers / Leave-Behinds
 - Twilio
 - GeminiProvider
 - 7. Önceliklendirilmiş Eylem Planı ve Kabul Kapıları (P0 / P1 / P2)
-- Engagement Strategy
+- UTM Parameter Strategy
 - Kaynaklar ve doğrulama durumu
 - usage-report.integration.test.ts
 - Anti-Patterns to Avoid
-- Essential Events
+- Section 8 — Revenue
 - Meta Ads Setup
 - LinkedIn Ads Setup
 - Phase Progress
@@ -802,6 +802,7 @@
 - Advanced Patterns
 - Examples by business type
 - Honest scarcity formats
+- @aws-sdk/client-s3
 - Demo Scripts & Talk Tracks
 - Per-Platform Notes
 - @aws-sdk/s3-request-presigner
@@ -830,7 +831,6 @@
 - @fontsource-variable/geist-mono
 - pg
 - clsx
-- date-fns
 - Active Bimmetraj production preparation
 - Historical Next Recommended Work (superseded by the 2026-07-24 rebaseline)
 - express
@@ -1152,7 +1152,7 @@ Nodes (52): _bar_suggestion(), betonarme_metraj(), birim_fiyat_analizi(), donati
 
 ### Community 95 - "dependencies"
 Cohesion: 0.05
-Nodes (41): @aws-sdk/client-s3, @base-ui/react, csv-parse, dotenv, exceljs, @fontsource-variable/geist, jsonwebtoken, lucide-react (+33 more)
+Nodes (41): @base-ui/react, csv-parse, date-fns, dotenv, exceljs, @fontsource-variable/geist, jsonwebtoken, lucide-react (+33 more)
 
 ### Community 96 - "co-marketing/SKILL.md"
 Cohesion: 0.06
@@ -1224,7 +1224,7 @@ Nodes (27): 1. Extract Documentation from Code, 1. Repository Structure Analysis
 
 ### Community 114 - "Analytics Tracking"
 Cohesion: 0.07
-Nodes (28): Analytics Tracking, Best Practices, Best Practices, Considerations, Container Structure, Custom Event Example, Data Layer Pattern, Event Naming Conventions (+20 more)
+Nodes (28): Analytics Tracking, Best Practices, Best Practices, Considerations, Container Structure, Custom Event Example, Data Layer Pattern, Essential Events (+20 more)
 
 ### Community 115 - "prisma-shadow-parity.ts"
 Cohesion: 0.13
@@ -1331,8 +1331,8 @@ Cohesion: 0.09
 Nodes (21): Asset Types, Before Starting, Customer Research, Deliverable Formats, Extraction Framework, Mode 1: Analyze Existing Assets, Mode 1: Analyzing Existing Research Assets, Mode 2: Digital Watering Hole Research (+13 more)
 
 ### Community 152 - "Social Content"
-Cohesion: 0.08
-Nodes (26): Analytics & Optimization, Batching Strategy (2-3 hours weekly), Content Calendar Structure, Content Ideas by Situation, Content Pillars Framework, Contrarian Hooks, Curiosity Hooks, Example for a SaaS Founder (+18 more)
+Cohesion: 0.07
+Nodes (30): Analytics & Optimization, Batching Strategy (2-3 hours weekly), Building Relationships, Content Calendar Structure, Content Ideas by Situation, Content Pillars Framework, Contrarian Hooks, Curiosity Hooks (+22 more)
 
 ### Community 154 - "components.json"
 Cohesion: 0.09
@@ -1347,8 +1347,8 @@ Cohesion: 0.10
 Nodes (20): 10. Brand Voice, 11. Proof Points, 12. Goals, 1. Product Overview, 2. Target Audience, 3. Personas (B2B only), 4. Problems & Pain Points, 5. Competitive Landscape (+12 more)
 
 ### Community 157 - "Sales Enablement"
-Cohesion: 0.09
-Nodes (22): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Core Principles, Customization by Buyer Type, Deck Principles, Design Principles (+14 more)
+Cohesion: 0.10
+Nodes (21): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Common Mistakes, Customization by Buyer Type, Customization Guidance, Deck Principles (+13 more)
 
 ### Community 158 - "properties"
 Cohesion: 0.11
@@ -1516,7 +1516,7 @@ Nodes (17): AI / ML Press (Tier 1–2), Business & Marketing Press, Developer & 
 
 ### Community 199 - "RevOps"
 Cohesion: 0.12
-Nodes (17): Before Starting, Calendar Scheduling Integration, CRM Automation Workflows, Dashboard Structure, Essential Automations, Key Metrics, Lead Routing, Marketing-to-Sales Automations (+9 more)
+Nodes (17): Before Starting, Dashboard Structure, Key Metrics, Lead Lifecycle Framework, Lead Routing, MQL Definition, MQL-to-SQL Handoff SLA, Output Format (+9 more)
 
 ### Community 200 - "Working State"
 Cohesion: 0.25
@@ -1580,15 +1580,15 @@ Nodes (12): Blog Post CRO, Conversion Rate Optimization (CRO), Experiment Ideas,
 
 ### Community 215 - "Email Copy Guidelines"
 Cohesion: 0.13
-Nodes (15): By Behavior, By Profile, By Stage, Contents, CTA Buttons vs. Links, Email Copy Guidelines, Formatting, How to Test (+7 more)
+Nodes (15): By Behavior, By Profile, By Stage, Contents, CTA Buttons vs. Links, Dynamic Content, Email Copy Guidelines, Formatting (+7 more)
 
 ### Community 216 - "Email Types Reference"
 Cohesion: 0.13
 Nodes (15): Billing, Campaigns, Cancelled Customers, Contents, Daily/Weekly/Monthly Summary, Email Audit Checklist, Email Types Reference, Expired Trials (+7 more)
 
 ### Community 217 - "Plan Template — The 13-Section Structure"
-Cohesion: 0.13
-Nodes (14): Closing line, Per-section heuristics for "is this section done?", Plan Template — The 13-Section Structure, Section 1 — Executive summary, Section 5 — Activation, Section 6 — Retention, Section 7 — Referral, Section 8 — Revenue (+6 more)
+Cohesion: 0.17
+Nodes (11): Closing line, Per-section heuristics for "is this section done?", Plan Template — The 13-Section Structure, Section 1 — Executive summary, Section 5 — Activation, Section 6 — Retention, Section 7 — Referral, Skills + tools (+3 more)
 
 ### Community 218 - "Foundational Thinking Models"
 Cohesion: 0.13
@@ -1851,7 +1851,7 @@ Cohesion: 0.06
 Nodes (36): 1. Campaign Goals, 2. Product & Offer, 3. Audience, 4. Current State, Account Organization, Ad Copy Frameworks, Before Starting, Bid Strategy Progression (+28 more)
 
 ### Community 283 - "Citations vs. Recommendations: The AI Visibility Ladder"
-Cohesion: 0.22
+Cohesion: 0.33
 Nodes (6): Applying This, Citations vs. Recommendations: The AI Visibility Ladder, The Self-Promotional Listicle Risk, The Visibility Ladder, What a Recommendation Is Worth, What Earns Recommendations
 
 ### Community 284 - "Generative Engine Optimization (GEO) Patterns"
@@ -2070,9 +2070,9 @@ Nodes (9): Content Refresh Editing, Copy Editing, Copy Editing Checklist, Core P
 Cohesion: 0.22
 Nodes (9): Checkboxes (Multi-select), Company/Organization, Dropdown Selects, Email Field, Field-by-Field Optimization, Job Title/Role, Message/Comments (Free Text), Name Fields (+1 more)
 
-### Community 338 - "13. Measurement, RACI, open decisions, appendix"
-Cohesion: 0.40
-Nodes (5): 13. Measurement, RACI, open decisions, appendix, Appendix — deep-dive links, Measurement — the metrics that matter, Open decisions blocking the plan, RACI
+### Community 338 - "Quietude — Marketing Plan v1"
+Cohesion: 0.22
+Nodes (8): 13. Measurement, RACI, open decisions, appendix, 1. Executive summary, Appendix — deep-dive links, Example — Quietude Marketing Plan v1, Measurement — the metrics that matter, Open decisions blocking the plan, Quietude — Marketing Plan v1, RACI
 
 ### Community 339 - "Growth & Scaling Models"
 Cohesion: 0.22
@@ -2238,9 +2238,9 @@ Nodes (8): Content Optimization, Heading Structure, Image Optimization, Internal
 Cohesion: 0.25
 Nodes (8): Consent tiers, Express written consent requirements, Opt-in disclosure template (compliant), Quiet hours, Sample TCPA-compliant footer language by sequence type, STOP/HELP handling, United States — TCPA, What it is
 
-### Community 381 - "Carousel Frameworks"
-Cohesion: 0.10
-Nodes (17): Carousel Frameworks, Framework A: Value-Stack (4–14 slides), Framework B: Problem-Proof (6–10 slides), Framework C: Hack List (6–10 slides), Framework D: Rant Callout (4–8 slides), Framework E: Demo Walkthrough (5–11 slides), Measuring What Worked, Picking a Framework (+9 more)
+### Community 381 - "social/SKILL.md"
+Cohesion: 0.15
+Nodes (7): Contents, Facebook, Instagram, LinkedIn, Platform-Specific Strategy Guide, TikTok, Twitter/X
 
 ### Community 382 - "Strategic Compact Skill"
 Cohesion: 0.25
@@ -2315,8 +2315,8 @@ Cohesion: 0.29
 Nodes (7): AI variant farming (the 100-people test), Creative IS the targeting (broad audience + specific creative), Creative volume is the constraint (statics > polished video), Don't make ads look like ads, Modern Meta playbook (Andromeda era — 2026+), The one-keyword hack (identity-trigger keywords), Zombie campaigns
 
 ### Community 400 - "Answer Engine Optimization (AEO) Patterns"
-Cohesion: 0.17
-Nodes (12): AEO and GEO Content Patterns, Answer Engine Optimization (AEO) Patterns, Comparison Table Block, Contents, Definition Block, FAQ Block, Listicle Block, Pros and Cons Block (+4 more)
+Cohesion: 0.29
+Nodes (7): Answer Engine Optimization (AEO) Patterns, Comparison Table Block, Definition Block, FAQ Block, Listicle Block, Pros and Cons Block, Step-by-Step Block
 
 ### Community 401 - "Optimization Strategy"
 Cohesion: 0.29
@@ -2526,12 +2526,12 @@ Nodes (17): dumpSchema(), ensureTarget(), envFor(), exists(), hasObjects(), main
 Cohesion: 0.29
 Nodes (7): Failure Modes, Step 1: Read the Three Signals, Step 2: Turn Signals into Evidence-Ranked Concepts, Step 3: Branch on Account State, Step 4: The Roadmap Artifact, Step 5: The Monthly Creative Retro, The Creative Strategy Loop
 
-### Community 453 - "Domain-Specific GEO Tactics"
-Cohesion: 0.33
-Nodes (6): Business/Marketing Content, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Technology Content
+### Community 453 - "AEO and GEO Content Patterns"
+Cohesion: 0.18
+Nodes (11): AEO and GEO Content Patterns, Business/Marketing Content, Contents, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Question Formats for Voice (+3 more)
 
 ### Community 454 - "AI SEO by Content Type"
-Cohesion: 0.33
+Cohesion: 0.22
 Nodes (6): AI SEO by Content Type, Blog Content, Comparison / Alternative Pages, Documentation / Help Content, Local Business / Ecom (Google emphasis), SaaS Product Pages
 
 ### Community 455 - "Data Layer Patterns"
@@ -3495,7 +3495,7 @@ Cohesion: 0.29
 Nodes (6): 2026-10-11 local remediation checkpoint (uncommitted), Checkpoint protocol, Completion ledger, Decision notes, GAP remediation execution plan, Ordered work
 
 ### Community 700 - "Social Listening & Engagement Triage"
-Cohesion: 0.10
+Cohesion: 0.11
 Nodes (18): Bluesky (free, public API), Comment Quality Tiers, Common Workflows, Contents, "Find people complaining about [competitor]", "Find target-account posts I missed", "Give me my top 10 posts to comment on today", Hacker News (Algolia search) (+10 more)
 
 ### Community 701 - "Metraj (QTO) ve Ölçü Esasları"
@@ -3666,9 +3666,9 @@ Nodes (6): OpenAIChatCompletion, input, quotation, AIQuotationInput, AIQuotation
 Cohesion: 0.33
 Nodes (6): Phase 1 — Define the ICP, Phase 2 — Build the candidate list (discovery), Phase 3 — Qualify each candidate, Phase 4 — Score and prioritize, Phase 5 — Output the lead sheet, Shared Framework (all branches)
 
-### Community 757 - "Personalization"
-Cohesion: 0.50
-Nodes (4): Dynamic Content, Merge Fields, Personalization, Triggered Emails
+### Community 757 - "Carousel Frameworks"
+Cohesion: 0.20
+Nodes (10): Carousel Frameworks, Framework A: Value-Stack (4–14 slides), Framework B: Problem-Proof (6–10 slides), Framework C: Hack List (6–10 slides), Framework D: Rant Callout (4–8 slides), Framework E: Demo Walkthrough (5–11 slides), Measuring What Worked, Picking a Framework (+2 more)
 
 ### Community 758 - "TeklifPro UX Rearchitecture & Product Handoff"
 Cohesion: 0.33
@@ -3702,9 +3702,9 @@ Nodes (6): acceptedStudyDelta(), finite(), NumericRecord, requiredStudySeconds()
 Cohesion: 0.26
 Nodes (13): Kutu, hacim(), kesisim(), Any, Geometri yardımcıları: IfcOpenShell ile dünya koordinatlarında sınır kutuları…, {ifc id: (xmin, ymin, zmin, xmax, ymax, zmax)}; geometri motoru yoksa None., sinir_kutulari(), _geometri() (+5 more)
 
-### Community 769 - "Lead Lifecycle Framework"
-Cohesion: 0.50
-Nodes (4): Lead Lifecycle Framework, MQL Definition, MQL-to-SQL Handoff SLA, Stage Definitions
+### Community 769 - "Core Principles"
+Cohesion: 0.40
+Nodes (5): Core Principles, Sales Uses What Sales Trusts, Scannable Over Comprehensive, Situation-Specific, Not Generic, Tie Back to Business Outcomes
 
 ### Community 770 - "Yükler (TS 498 ve pratik değerler)"
 Cohesion: 0.29
@@ -3746,17 +3746,17 @@ Nodes (5): How This Skill Works, Mode 1: Generate from Scratch, Mode 2: Iterate 
 Cohesion: 0.33
 Nodes (5): Birim fiyat analizi (ÇŞB mantığı), Maliyet, Birim Fiyat ve Teklif, Raporlama kuralı, Teklif fiyatlandırması, Yaklaşık maliyet (ön fizibilite)
 
-### Community 799 - "Quietude — Marketing Plan v1"
+### Community 799 - "Testing and Optimization"
 Cohesion: 0.50
-Nodes (3): 1. Executive summary, Example — Quietude Marketing Plan v1, Quietude — Marketing Plan v1
+Nodes (4): How to Test, Metrics to Track, Testing and Optimization, What to Test
 
 ### Community 801 - "Iterating from Performance Data"
 Cohesion: 0.40
 Nodes (5): Iterating from Performance Data, Step 1: Analyze Winners, Step 2: Analyze Losers, Step 3: Generate New Variations, Step 4: Document the Iteration
 
-### Community 802 - "Proposal Templates"
+### Community 802 - "CRM Automation Workflows"
 Cohesion: 0.50
-Nodes (4): Common Mistakes, Customization Guidance, Proposal Templates, Structure
+Nodes (4): Calendar Scheduling Integration, CRM Automation Workflows, Essential Automations, Marketing-to-Sales Automations
 
 ### Community 803 - "Brevo (formerly Sendinblue)"
 Cohesion: 0.33
@@ -3770,9 +3770,9 @@ Nodes (5): Bu skill repo içinde nasıl kullanılır, Hesap motorları, Kaynak d
 Cohesion: 0.40
 Nodes (5): Discovery Sources (SaaS branch), GitHub prospecting pattern (when audience is developers), Tier 1 — primary discovery, Tier 2 — technographic / growth signals, Tier 3 — buying signals
 
-### Community 809 - "Objection Handling Docs"
+### Community 809 - "One-Pagers / Leave-Behinds"
 Cohesion: 0.50
-Nodes (4): Objection Categories, Objection Handling Docs, Response Framework, Two Formats
+Nodes (4): Design Principles, One-Pagers / Leave-Behinds, Structure, When to Use
 
 ### Community 810 - "Twilio"
 Cohesion: 0.33
@@ -3782,9 +3782,9 @@ Nodes (6): Compliance, Integration paths, Key features, Pricing, Twilio, Watch o
 Cohesion: 0.50
 Nodes (4): 7. Önceliklendirilmiş Eylem Planı ve Kabul Kapıları (P0 / P1 / P2), Faz 1 — P0: Acil Düzeltilmesi Gereken Kritik BUG ve Ticari/Güvenlik Kapıları (1–3 Gün), Faz 2 — P1: Mühendislik Motorları, 3x3 Veri Beslemesi ve Altyapı Sertleştirme (1–2 Hafta), Faz 3 — P2: İleri Mühendislik (Kalıp/Donatı/Minha), RG 33331 Tam Doğrulama ve UI Temizliği (2–4 Hafta)
 
-### Community 813 - "Engagement Strategy"
-Cohesion: 0.50
-Nodes (4): Building Relationships, Daily Engagement Routine (30 min), Engagement Strategy, Quality Comments
+### Community 813 - "UTM Parameter Strategy"
+Cohesion: 0.67
+Nodes (3): Naming Conventions, Standard Parameters, UTM Parameter Strategy
 
 ### Community 815 - "Kaynaklar ve doğrulama durumu"
 Cohesion: 0.22
@@ -3794,9 +3794,9 @@ Nodes (8): Birincil metin, Doğrulama yöntemi ve sınırı, EK-6: kodlanmış t
 Cohesion: 0.67
 Nodes (3): Anti-Patterns to Avoid, Conversion Killers, Dark Patterns
 
-### Community 821 - "Essential Events"
+### Community 821 - "Section 8 — Revenue"
 Cohesion: 0.67
-Nodes (3): Essential Events, Marketing Site, Product/App
+Nodes (3): Section 8 — Revenue, Skills + tools, Unit economics
 
 ### Community 822 - "Meta Ads Setup"
 Cohesion: 0.25
@@ -3926,7 +3926,7 @@ Nodes (3): Pricing Fundamentals, The Three Pricing Axes, Value-Based Pricing
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `dependencies` to `motion`, `@types/bcryptjs`, `package.json`, `drizzle-orm`, `zod-to-json-schema`, `react-router-dom`, `@aws-sdk/s3-request-presigner`, `@google/generative-ai`, `class-variance-authority`, `firebase`, `firebase.ts`, `bcryptjs`, `@fontsource-variable/geist-mono`, `pg`, `clsx`, `date-fns`, `express`, `nodemailer`, `stripe`, `tailwind-merge`, `@tailwindcss/vite`, `devDependencies`, `zod`, `graphile-worker`?**
+- **Why does `dependencies` connect `dependencies` to `motion`, `@types/bcryptjs`, `package.json`, `drizzle-orm`, `zod-to-json-schema`, `react-router-dom`, `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `@google/generative-ai`, `class-variance-authority`, `firebase`, `firebase.ts`, `bcryptjs`, `@fontsource-variable/geist-mono`, `pg`, `clsx`, `express`, `nodemailer`, `stripe`, `tailwind-merge`, `@tailwindcss/vite`, `devDependencies`, `zod`, `graphile-worker`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Why does `react` connect `firebase.ts` to `CreateQuote.tsx`, `dependencies`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._

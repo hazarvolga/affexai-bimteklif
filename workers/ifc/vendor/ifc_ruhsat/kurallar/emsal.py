@@ -27,6 +27,8 @@ def alan(e: Any) -> float | None:
 def kontrol(b: Baglam) -> list[Bulgu]:
     zonlar = b.sinif("IfcSpatialZone")
     if not zonlar:
+        if b.disiplin != "MM":
+            return []
         return [
             Bulgu(
                 "emsal",

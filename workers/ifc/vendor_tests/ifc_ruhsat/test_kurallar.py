@@ -222,3 +222,34 @@ def test_ek1_proje_kodu_ve_ek7_tablo_7_8(tmp_path):
     assert "proje-adi-bicim" in kodlar(kontrol_et(yol_bicim), "uyari")
 
 
+def test_ek9_tablo_9_2_diger_disiplinler_ve_ek7_tablo_7_9(tmp_path):
+    assert "IfcAnnotation" in veri.ek7_tablolar()
+    assert len(veri.ek9_maddeler("MM")) == 21
+    assert len(veri.ek9_maddeler("ST")) == 16
+    assert len(veri.ek9_maddeler("MK")) == 16
+
+    m = iyi_model()
+    for s in m.by_type("IfcSpace"):
+        m.remove(s)
+    yol_st = kaydet(m, tmp_path, "123456_00_ST_BETO_MD_BIM_000_01_000.ifc")
+    rapor_st = kontrol_et(yol_st)
+    assert rapor_st.disiplin == "ST"
+    satirlar_st = ek9.satirlar(rapor_st)
+    assert len(satirlar_st) == 16
+    assert ek9.tablo_bilgisi(rapor_st.disiplin)["tablo"] == "9.2"
+    assert [r["no"] for r in satirlar_st] == list(range(1, 17))
+    # Mimari mahal satırları (kaynak_no 4, 10, 12, 13, 14) Tablo 9.2'de yer almaz
+    assert {r["kaynakNo"] for r in satirlar_st}.isdisjoint({4, 10, 12, 13, 14})
+    assert "# EK-9 Tablo 9.2" in ek9.markdown(rapor_st)
+
+    # EK-7 Tablo 7.9: IfcAnnotation eklendiğinde Name, Description ve PredefinedType=SURVEY denetlenir
+    ano = ifcopenshell.api.root.create_entity(m, ifc_class="IfcAnnotation", name="HR-ANO-nirengi1")
+    ano.Description = ""
+    ano.PredefinedType = "USERDEFINED"
+    yol_ano = kaydet(m, tmp_path, "123456_00_HR_GNEL_MD_BIM_000_01_000.ifc")
+    rapor_ano = kontrol_et(yol_ano)
+    assert "ek7-oznitelik" in kodlar(rapor_ano, "hata")
+    assert "ek7-oznitelik-deger" in kodlar(rapor_ano, "hata")
+
+
+
