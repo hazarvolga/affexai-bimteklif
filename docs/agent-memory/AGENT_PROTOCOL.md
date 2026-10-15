@@ -25,6 +25,11 @@ Only read `.proje_/full-contex.txt` when the short memory is insufficient.
 - Keep architectural decisions in `ARCHITECTURE_DECISIONS.md`.
 - Keep runtime status and local setup changes in `WORKING_STATE.md`.
 - Keep product-level discoveries in `PROJECT_BRIEF.md`.
+- **Mandatory Chronological Roadmap & Expert Calculation Review Sync (No User Reminder Required):**
+  Engineers, domain experts, and investors do **not** track the project on GitHub; they review progress via `/admin/roadmap` and `/admin/roadmap/calculations`. On **every** feature, rule, regulation, or calculation change, automatically update:
+  1. `src/pages/admin/roadmap/roadmap-content.ts` (`#durum`, `#adimlar`, and `#revizyon-gunlugu` Tablo 1 & Tablo 2 in strict chronological order `Rev. 0 → Rev. 1 → ... → Rev. N` with *Önceki Durum → Yeni Durum → Dayanak & Kod*).
+  2. `src/pages/admin/roadmap/calculation-review.ts` & `src/pages/admin/roadmap/calculation-content.ts` (bump `CALC_REVIEW_META.version`, append to `CALC_REVIEW_CHANGELOG` in strict chronological order `Rev. 1 → ... → Rev. N`, and populate `moduleDetails` so each `ModuleCard` in `CalculationMethods.tsx` shows its own chronological revision history).
+  3. Relevant public/guide surfaces (`LandingPage.tsx`, `LegislationView.tsx`, `BimGlossary.tsx`) and run `npx tsx --test src/pages/admin/roadmap/content.test.ts`.
 
 ## Graphify Usage
 

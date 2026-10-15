@@ -10,8 +10,8 @@ Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-15.md`.
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `f0413f8fefef5752608339e3e9c4a1ea47b03484`
-  (`/api/health`, `revisionSource: "build"`, 2026-10-15, Coolify deploy `xj1xfjm96742b9z2jqa6cudc`). Transactional e-mail uses Stalwart SMTP 465 at
+- Last verified live revision: `8b9ba991379d73d5245c8ac6c491461660371146`
+  (`/api/health`, `revisionSource: "build"`, 2026-10-15, Coolify deploy `vwtsbkmmc8ozojk2h3ww7vmz`). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`).
 - Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
   SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.
@@ -175,6 +175,7 @@ Release status (2026-10-13):
 - No official ÇŞB/YFK prices without written licence; IFC transfer never
   invents unit prices.
 - Engineering and cost numbers go through the `yuksek-muhendis-mimar` skill.
+- **Mandatory Chronological Roadmap & Calculation Review Rule (Never wait for user reminder):** Engineers and investors do not read GitHub commits; they track the project's evolution on `/admin/roadmap` and `/admin/roadmap/calculations`. On **every** feature, rule, regulation, or calculation change, automatically update `src/pages/admin/roadmap/roadmap-content.ts` (`#durum`, `#adimlar`, `#revizyon-gunlugu` Tablo 1 & Tablo 2 in strict chronological order `Rev. 0 → Rev. 1 → ... → Rev. N`) and `src/pages/admin/roadmap/calculation-review.ts` (`CALC_REVIEW_META.version`, `CALC_REVIEW_CHANGELOG` in strict chronological order `Rev. 1 → ... → Rev. N`, and per-module `moduleDetails`), plus public/guide pages (`LandingPage.tsx`, `LegislationView.tsx`, `BimGlossary.tsx`) when applicable, and verify with `npx tsx --test src/pages/admin/roadmap/content.test.ts`.
 - DB-backed tests need an isolated PostgreSQL 16 (CI pattern in
   `.github/workflows/verify.yml`); they refuse the shared database.
 
