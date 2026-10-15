@@ -83,57 +83,59 @@ export function registerBillingRoutes(app: Express) {
     }
   });
 
-  app.post("/api/billing/payment-requests/init", authenticate, canManageBilling, async (req, res) => {
-    try {
-      const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
-      if (!planId) return res.status(400).json({ error: "Paket seçimi zorunludur." });
-      const existing = await getCompanyPaymentRequests(req.user.companyId);
-      const awaiting = existing.find((r) => r.planId === planId && r.status === "awaiting_transfer");
-      if (awaiting) {
-        return res.json(awaiting);
+  if (typeof app.post === "function") {
+    app.post("/api/billing/payment-requests/init", authenticate, canManageBilling, async (req, res) => {
+      try {
+        const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
+        if (!planId) return res.status(400).json({ error: "Paket seçimi zorunludur." });
+        const existing = await getCompanyPaymentRequests(req.user.companyId);
+        const awaiting = existing.find((r) => r.planId === planId && r.status === "awaiting_transfer");
+        if (awaiting) {
+          return res.json(awaiting);
+        }
+        const [company] = await db
+          .select({ id: companies.id, name: companies.name })
+          .from(companies)
+          .where(eq(companies.id, req.user.companyId))
+          .limit(1);
+        if (!company) return res.status(404).json({ error: "Şirket bulunamadı." });
+        const created = await createInitialPaymentOrder({
+          companyId: company.id,
+          companyName: company.name,
+          userId: req.user.userId,
+          userEmail: req.user.email,
+          planId,
+        });
+        if (!created) {
+          return res.status(400).json({ error: "Seçilen paket için havale siparişi oluşturulamadı." });
+        }
+        return res.status(201).json(created);
+      } catch (error) {
+        console.error("Payment order init error:", error);
+        return res.status(500).json({ error: "Sipariş referans kodu oluşturulamadı." });
       }
-      const [company] = await db
-        .select({ id: companies.id, name: companies.name })
-        .from(companies)
-        .where(eq(companies.id, req.user.companyId))
-        .limit(1);
-      if (!company) return res.status(404).json({ error: "Şirket bulunamadı." });
-      const created = await createInitialPaymentOrder({
-        companyId: company.id,
-        companyName: company.name,
-        userId: req.user.userId,
-        userEmail: req.user.email,
-        planId,
-      });
-      if (!created) {
-        return res.status(400).json({ error: "Seçilen paket için havale siparişi oluşturulamadı." });
-      }
-      return res.status(201).json(created);
-    } catch (error) {
-      console.error("Payment order init error:", error);
-      return res.status(500).json({ error: "Sipariş referans kodu oluşturulamadı." });
-    }
-  });
+    });
 
-  app.post("/api/billing/payment-requests", authenticate, canManageBilling, async (req, res) => {
-    try {
-      const parsed = submitBankTransferInputSchema.safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({ error: "Lütfen gönderen adı ve dekont/işlem numarasını eksiksiz giriniz." });
+    app.post("/api/billing/payment-requests", authenticate, canManageBilling, async (req, res) => {
+      try {
+        const parsed = submitBankTransferInputSchema.safeParse(req.body);
+        if (!parsed.success) {
+          return res.status(400).json({ error: "Lütfen gönderen adı ve dekont/işlem numarasını eksiksiz giriniz." });
+        }
+        const record = await submitBankTransferNotification({
+          companyId: req.user.companyId,
+          userId: req.user.userId,
+          payload: parsed.data,
+        });
+        return res.status(201).json(record);
+      } catch (error) {
+        if (error instanceof Error && error.message === "PAID_PLAN_REQUIRED") {
+          return res.status(400).json({ error: "Yalnızca ücretli paketler için havale bildirimi yapılabilir." });
+        }
+        console.error("Bank transfer notification error:", error);
+        return res.status(500).json({ error: "Ödeme bildirimi kaydedilemedi." });
       }
-      const record = await submitBankTransferNotification({
-        companyId: req.user.companyId,
-        userId: req.user.userId,
-        payload: parsed.data,
-      });
-      return res.status(201).json(record);
-    } catch (error) {
-      if (error instanceof Error && error.message === "PAID_PLAN_REQUIRED") {
-        return res.status(400).json({ error: "Yalnızca ücretli paketler için havale bildirimi yapılabilir." });
-      }
-      console.error("Bank transfer notification error:", error);
-      return res.status(500).json({ error: "Ödeme bildirimi kaydedilemedi." });
-    }
-  });
+    });
+  }
 }
 
