@@ -70,4 +70,9 @@ test('production frontend serves sitemap.xml and robots.txt for the canonical or
   assert.match(sitemap.headers.get('content-type') ?? '', /xml/);
   assert.match(await sitemap.text(), /<loc>https:\/\/bimmetraj.com\/pricing<\/loc>/);
   assert.match(await (await fetch(`${base}/robots.txt`)).text(), /Sitemap: https:\/\/bimmetraj.com\/sitemap.xml/);
+  const llms = await fetch(`${base}/llms.txt`);
+  assert.equal(llms.status, 200);
+  assert.match(llms.headers.get('content-type') ?? '', /text\/plain/);
+  assert.match(await llms.text(), /# BIMMetraj \(TeklifPro\)/);
 });
+

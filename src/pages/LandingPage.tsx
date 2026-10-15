@@ -20,16 +20,41 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, type ReactNode } from 'react';
 import { PublicPricingSection } from '@/features/public-pricing/PublicPricingSection';
+import { PublicMetadata } from '@/components/PublicMetadata';
 
 type LandingPageProps = {
   onGetStarted: () => void;
   onPilotRequest?: () => void;
 };
 
+const LANDING_ROUTE_META: Record<string, { title: string; description: string; canonicalPath: string }> = {
+  '/pricing': {
+    title: 'Paketler ve Fiyatlandırma | BIMMetraj 5D İhale & IFC Metraj Platformu',
+    description: 'Teknik ofisler için Ücretsiz Deneme (Trial), Başlangıç (Starter), Profesyonel (Pro) ve Kurumsal (Enterprise) paket kotalarını inceleyin.',
+    canonicalPath: '/pricing',
+  },
+  '/features': {
+    title: 'Özellikler — IFC QTO, SmartCheck & RG 33331 e-PYS | BIMMetraj',
+    description: 'openBIM IFC 2x3/4/4.3 metraj çıkarma, ÇŞB 2026 poz birim fiyat eşleştirme, SmartCheck 3x3 & Minha denetimi ve PDF/A-1b raporlama özellikleri.',
+    canonicalPath: '/features',
+  },
+  '/about': {
+    title: 'Nasıl Çalışır? — Kanıta Dayalı 5D Metraj İş Akışı | BIMMetraj',
+    description: 'IFC ve Excel dosyalarından insan onaylı, kaynak izlenebilir ÇŞB pozlu ihale teklif cetveline geçiş iş akışı.',
+    canonicalPath: '/about',
+  },
+  '/': {
+    title: 'BIMMetraj | openBIM (IFC) Tabanlı Metraj, RG 33331 e-PYS ve İhale Masası',
+    description: 'BIMMetraj — İnşaat ve teknik ofis ekipleri için açık BIM (IFC) ve Excel tabanlı metraj çıkarma, ÇŞB poz entegrasyonu ve SmartCheck denetimli teklif platformu.',
+    canonicalPath: '/',
+  },
+};
+
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pageMeta = LANDING_ROUTE_META[location.pathname] ?? LANDING_ROUTE_META['/'];
 
   useEffect(() => {
     const sectionMap: Record<string, string> = {
@@ -45,6 +70,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground selection:bg-primary/30 selection:text-primary-foreground">
+      <PublicMetadata
+        title={pageMeta.title}
+        description={pageMeta.description}
+        canonicalPath={pageMeta.canonicalPath}
+      />
       {/* STICKY NAVBAR */}
       <nav className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background/90 px-6 backdrop-blur-md md:px-8">
         <a href="#top" className="flex items-center gap-3 font-semibold tracking-tight text-foreground" aria-label="BIMMetraj ana sayfa">
@@ -467,6 +497,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <a href="#features" className="block hover:text-foreground">Özellikler</a>
               <a href="#pricing" className="block hover:text-foreground">Paketler</a>
               <Link to="/smartcheck" className="block hover:text-foreground">SmartCheck Doğrulama</Link>
+              <Link to="/bim-sozlugu" className="block hover:text-foreground">BIM & e-PYS Sözlüğü</Link>
               <Link to="/register" className="block text-primary hover:underline">14 Gün Ücretsiz Deneme</Link>
             </div>
           </div>

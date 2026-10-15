@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import express from 'express';
 import http from 'node:http';
-import { canonicalHostRedirect, contentSecurityPolicy, robotsTxt, sitemapXml } from './web-hardening';
+import { canonicalHostRedirect, contentSecurityPolicy, llmsTxt, robotsTxt, sitemapXml } from './web-hardening';
 
 test('CSP locks scripts to self and only opens the origins the app really uses', () => {
   const policy = contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com' });
@@ -34,10 +34,10 @@ test('www requests are redirected permanently to the apex with path and query ke
   assert.equal((await get('/', 'evil.example')).status, 200, 'never redirects to attacker-controlled hosts');
 });
 
-test('sitemap lists public pages on the canonical origin and robots points to it', () => {
+test('sitemap lists public pages on the canonical origin and robots/llms point to it', () => {
   const xml = sitemapXml('https://bimmetraj.com');
   assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/);
-  for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/smartcheck']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
+  for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/smartcheck', 'https://bimmetraj.com/bim-sozlugu']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
   assert.ok(!xml.includes('/app'));
   assert.ok(!xml.includes('/login'));
   assert.ok(!xml.includes('/academy'), 'Academy is out of scope while ACADEMY_ENABLED is false');
@@ -45,4 +45,9 @@ test('sitemap lists public pages on the canonical origin and robots points to it
   assert.match(robots, /Sitemap: https:\/\/bimmetraj.com\/sitemap.xml/);
   assert.match(robots, /Disallow: \/app\//);
   assert.match(robots, /Disallow: \/api\//);
+  const llms = llmsTxt('https://bimmetraj.com');
+  assert.match(llms, /# BIMMetraj \(TeklifPro\)/);
+  assert.match(llms, /RG 33331 e-PYS/);
+  assert.match(llms, /https:\/\/bimmetraj\.com\/bim-sozlugu/);
 });
+

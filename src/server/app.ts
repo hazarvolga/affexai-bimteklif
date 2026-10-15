@@ -51,7 +51,7 @@ import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, readBuildRevision } from "./observability/error-tracking";
-import { canonicalHostRedirect, contentSecurityPolicy, robotsTxt, sitemapXml } from "./security/web-hardening";
+import { canonicalHostRedirect, contentSecurityPolicy, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
@@ -216,6 +216,10 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
   app.get('/robots.txt', (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
     res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(robotsTxt(process.env.PUBLIC_APP_URL));
+  });
+  app.get('/llms.txt', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=3600').send(llmsTxt(process.env.PUBLIC_APP_URL));
   });
   app.get('*', (req, res) => {
     const pathname = decodeURIComponent(req.path);

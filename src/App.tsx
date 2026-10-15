@@ -81,6 +81,7 @@ const PilotApplication = page(() => import('@/pages/PilotApplication'), 'PilotAp
 const PilotApplications = page(() => import('@/pages/PilotApplications'), 'PilotApplications');
 const BimStandardsPage = page(() => import('@/pages/BimStandardsPage'), 'default');
 const BimGlossaryPage = page(() => import('@/pages/BimGlossaryPage'), 'default');
+const PublicBimGlossaryPage = page(() => import('@/pages/BimGlossaryPage'), 'PublicBimGlossaryPage');
 const AcademyCertificatesPage = page(() => import('@/pages/AcademyCertificatesPage'), 'default');
 const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'default');
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
@@ -100,6 +101,7 @@ function AppRoutes() {
       <Route path="/pricing" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/features" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/smartcheck" element={<SmartCheckDemo />} />
+      <Route path="/bim-sozlugu" element={<PublicBimGlossaryPage />} />
       {ACADEMY_ENABLED ? <>
         <Route path="/academy" element={<PublicAcademy />} />
         <Route path="/academy/complete" element={<CompleteAcademyContent />} />

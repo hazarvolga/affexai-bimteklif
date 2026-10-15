@@ -1,9 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
+import { PublicMetadata } from '@/components/PublicMetadata';
 
 export function LegalPage() {
   const privacy = useLocation().pathname === '/privacy';
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-200">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-200">
+      <PublicMetadata
+        title={privacy ? 'KVKK Aydınlatma Metni ve Gizlilik Bildirimi | BIMMetraj' : 'Hizmet ve Kullanım Koşulları | BIMMetraj'}
+        description={privacy
+          ? '6698 sayılı KVKK uyarınca BIMMetraj kişisel veri işleme, IFC/PDF proje dosyalarında otomatik maskeleme ve veri güvenliği politikası.'
+          : 'BIMMetraj mühendislik karar destek kapsamı, RG 33331 e-PYS ön-kontrol niteliği ve abonelik kullanım koşulları.'}
+        canonicalPath={privacy ? '/privacy' : '/terms'}
+      />
       <article className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between border-b border-zinc-800 pb-6">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-orange-400 hover:underline">

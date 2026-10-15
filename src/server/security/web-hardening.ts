@@ -55,7 +55,7 @@ export function canonicalHostRedirect(publicAppUrl: string | undefined): Request
 }
 
 const ACADEMY_PAGES = ['/academy', '/academy/complete', '/academy/allplan'];
-const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
+const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
 
 export function sitemapXml(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
@@ -67,3 +67,30 @@ export function robotsTxt(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
   return ['User-agent: *', 'Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', '', `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
 }
+
+export function llmsTxt(publicAppUrl: string): string {
+  const origin = new URL(publicAppUrl).origin;
+  return [
+    '# BIMMetraj (TeklifPro) — openBIM (IFC) Metraj, RG 33331 e-PYS & 5D İhale Masası',
+    '',
+    '> BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3 / IFC4 / IFC4.3 model tabanlı metraj (QTO) çıkarma, ÇŞB 2026 poz birim fiyat eşleştirme, 4734 KİK aşırı düşük teklif analizi, SmartCheck 3x3 & Minha kalite denetimi ve 5 Ağustos 2026 tarihli RG 33331 e-PYS (Elektronik Proje Yönetim Sistemi) EK-9 dijital ruhsat ön-kontrol platformudur.',
+    '',
+    '## Temel Mühendislik Yetenekleri',
+    '- **openBIM IFC Metraj (QTO) Motoru**: IfcBeam, IfcColumn, IfcSlab, IfcWall, IfcCovering ve IfcReinforcingBar elemanlarından BaseQuantities ve geometri tabanlı metraj çıkarımı.',
+    '- **SmartCheck 3x3 & Minha Denetimi**: TS 500, TBDY 2018, TS 708 donatı ağırlık tablosu ve ÇŞB Genel Teknik Şartnamesi boşluk/kesişim minha kuralları (0.50 m² / 4.00 m² eşikleri) ile kanıta dayalı metraj kontrolü.',
+    '- **RG 33331 e-PYS & PDF/A-1b Ön Kontrol**: 5 Ağustos 2026 tarihli Resmi Gazete Yönetmeliği EK-6 ve EK-9 kurallarına göre IFC özellik seti (Pset), mahal (IfcSpace) ve PDF/A-1b arşiv uyumluluk denetimi.',
+    '- **ÇŞB Poz & 5D Teklif Cetveli**: Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (ÇŞB) birim fiyat pozları, firma fiyat hafızası, eskalasyon ve kârlılık simülasyonu.',
+    '',
+    '## Genel Sayfalar ve Bilgi Kaynakları',
+    `- [Ana Sayfa](${origin}/): BIMMetraj 5D ihale ve metraj platformu genel bakış.`,
+    `- [Özellikler](${origin}/features): IFC QTO, SmartCheck denetimi, ÇŞB poz eşleştirme ve PDF/A raporlama yetenekleri.`,
+    `- [SmartCheck Canlı Demo](${origin}/smartcheck): Kanıta dayalı 3x3 metraj ve kalite kontrol simülatörü.`,
+    `- [Paketler ve Fiyatlandırma](${origin}/pricing): Ücretsiz Deneme (Trial), Başlangıç (Starter), Profesyonel (Pro) ve Kurumsal (Enterprise) paket kotaları.`,
+    `- [BIM & Mevzuat Sözlüğü](${origin}/bim-sozlugu): ISO 19650, IFC 4.3, QTO, LOD, COBie, ÇŞB Poz ve RG 33331 e-PYS kapsamlı Türkçe mühendislik sözlüğü.`,
+    `- [Pilot Başvurusu](${origin}/pilot): Kurumsal teknik ofisler için gerçek proje dosyalarıyla pilot çalışma başvurusu.`,
+    `- [Kullanım Koşulları](${origin}/terms): Mühendislik sorumluluğu, ön-kontrol niteliği ve abonelik koşulları.`,
+    `- [KVKK ve Gizlilik Bildirimi](${origin}/privacy): 6698 sayılı KVKK aydınlatma metni ve proje dosyalarında kişisel veri maskeleme politikası.`,
+    '',
+  ].join('\n');
+}
+
