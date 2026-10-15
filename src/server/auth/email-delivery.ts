@@ -3,8 +3,13 @@ import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { createConnection, type Socket } from 'node:net';
 import { connect as connectTls } from 'node:tls';
 import { assertAuthEmailAvailable, EmailDeliveryError } from './email-policy';
+import {
+  renderTransactionalEmail,
+  type EmailRenderContext,
+  type EmailTemplateId,
+} from './email-templates';
 
-type Template = 'verify_email' | 'reset_password' | 'invitation';
+type Template = EmailTemplateId;
 type Env = Record<string, string | undefined>;
 type Delivery = { status: 'accepted' } | { status: 'development'; url: string };
 type Message = { from: string; to: string; subject: string; text: string; html: string };
@@ -14,22 +19,24 @@ export type SmtpFactory = (options: SMTPTransport.Options) => {
   sendMail(message: Message): Promise<{ accepted?: unknown[]; rejected?: unknown[] }>;
   close(): void;
 };
-const copy = {
-  verify_email: ['Bimmetraj e-posta doğrulaması', 'E-posta adresinizi doğrulamak için aşağıdaki bağlantıyı kullanın.', 'E-posta adresimi doğrula'],
-  reset_password: ['Bimmetraj şifre yenileme', 'Şifrenizi yenilemek için aşağıdaki bağlantıyı kullanın.', 'Şifremi yenile'],
-  invitation: ['Bimmetraj ekip daveti', 'Bimmetraj çalışma alanı davetinizi kabul etmek için aşağıdaki bağlantıyı kullanın.', 'Daveti görüntüle'],
-} as const;
-const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 
-function message(template: Template, email: string, url: string, env: Env): Message {
+function message(
+  template: Template,
+  email: string,
+  url: string,
+  env: Env,
+  context?: EmailRenderContext,
+): Message {
   const parsed = new URL(url);
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password || url.length > 4096) throw new Error('Invalid action URL');
   if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email) || email.length > 254) throw new Error('Invalid recipient');
-  const [subject, introduction, label] = copy[template];
+  const rendered = renderTransactionalEmail(template, url, context);
   return {
-    from: env.AUTH_EMAIL_FROM!, to: email, subject,
-    text: `${introduction}\n\n${url}\n\nBu işlemi siz başlatmadıysanız bu mesajı yok sayabilirsiniz.`,
-    html: `<html lang="tr"><body><h1>${escapeHtml(subject)}</h1><p>${escapeHtml(introduction)}</p><p><a href="${escapeHtml(url)}">${escapeHtml(label)}</a></p><p>Bu işlemi siz başlatmadıysanız bu mesajı yok sayabilirsiniz.</p></body></html>`,
+    from: env.AUTH_EMAIL_FROM!,
+    to: email,
+    subject: rendered.subject,
+    text: rendered.text,
+    html: rendered.html,
   };
 }
 
@@ -93,7 +100,15 @@ async function webhook(template: Template, email: string, url: string, env: Env,
   if (!response.ok) throw new Error('Provider rejected request');
 }
 
-export async function deliverTransactionalEmail(template: Template, email: string, url: string, env: Env = process.env, transport: typeof fetch = fetch, createSmtp: SmtpFactory = smtpFactory): Promise<Delivery> {
+export async function deliverTransactionalEmail(
+  template: Template,
+  email: string,
+  url: string,
+  env: Env = process.env,
+  transport: typeof fetch = fetch,
+  createSmtp: SmtpFactory = smtpFactory,
+  context?: EmailRenderContext,
+): Promise<Delivery> {
   assertAuthEmailAvailable(env);
   if ((env.AUTH_EMAIL_DELIVERY_MODE ?? 'webhook') === 'webhook' && !env.AUTH_EMAIL_WEBHOOK_URL && env.NODE_ENV !== 'production') return { status: 'development', url };
   const controller = new AbortController();
@@ -105,7 +120,7 @@ export async function deliverTransactionalEmail(template: Template, email: strin
     });
     const send = async () => {
       if (env.AUTH_EMAIL_DELIVERY_MODE !== 'smtp') return webhook(template, email, url, env, transport, controller.signal);
-      const payload = message(template, email, url, env);
+      const payload = message(template, email, url, env, context);
       smtp = createSmtp(smtpOptions(env));
       const result = await smtp.sendMail(payload);
       if (!result.accepted?.includes(email) || result.rejected?.includes(email)) throw new Error('SMTP did not accept recipient');

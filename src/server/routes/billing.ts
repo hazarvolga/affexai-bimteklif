@@ -12,7 +12,8 @@ import {
   submitBankTransferInputSchema,
   submitBankTransferNotification,
 } from "../../services/billing/bank-transfer";
-import { normalizeBillingCycle } from "../../services/billing/billing-periods";
+import { formatBillingCycleLabel, normalizeBillingCycle } from "../../services/billing/billing-periods";
+import { deliverTransactionalEmail } from "../auth/email-delivery";
 
 const canManageBilling = checkRole(["owner", "admin"]);
 
@@ -124,6 +125,32 @@ export function registerBillingRoutes(app: Express) {
         });
         if (!created) {
           return res.status(400).json({ error: "Seçilen paket için havale siparişi oluşturulamadı." });
+        }
+        if (req.user.email && req.user.email.includes("@")) {
+          const publicBaseUrl = (process.env.PUBLIC_APP_URL || "https://bimmetraj.com").replace(/\/$/, "");
+          const billingUrl = `${publicBaseUrl}/app/billing`;
+          if (billingUrl.startsWith("https://")) {
+            void deliverTransactionalEmail(
+              "payment_order_created",
+              req.user.email,
+              billingUrl,
+              process.env,
+              fetch,
+              undefined,
+              {
+                companyName: company.name,
+                detailRows: [
+                  { label: "Çalışma Alanı (Firma)", value: company.name },
+                  { label: "Seçilen Paket", value: created.planName },
+                  { label: "Faturalama Dönemi", value: formatBillingCycleLabel(created.billingCycle) },
+                  { label: "Sipariş Referans Kodu", value: created.referenceCode, mono: true, highlight: true },
+                  { label: "Havale / EFT Tutarı", value: `₺${created.amountTry.toLocaleString("tr-TR")} (KDV Hariç)`, highlight: true },
+                ],
+              },
+            ).catch(() => {
+              /* Non-blocking notification email */
+            });
+          }
         }
         return res.status(201).json(created);
       } catch (error) {

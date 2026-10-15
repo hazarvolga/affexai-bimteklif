@@ -7,9 +7,11 @@ import {
   BILLING_CYCLE_IDS,
   type BillingCycleId,
   calculateBillingPeriodPricing,
+  formatBillingCycleLabel,
   getBillingPeriodOption,
   normalizeBillingCycle,
 } from "./billing-periods";
+import { deliverTransactionalEmail } from "../../server/auth/email-delivery";
 
 export interface BankAccount {
   id: string;
@@ -616,5 +618,34 @@ export async function reviewBankTransferByAdmin(input: {
   const refreshed = await getAllPaymentRequestsForAdmin();
   const updated = refreshed.find((r) => r.requestId === input.requestId);
   if (!updated) throw new Error("PAYMENT_REQUEST_NOT_FOUND");
+
+  if (input.decision === "approved" && target.userEmail && target.userEmail.includes("@")) {
+    const publicBaseUrl = (process.env.PUBLIC_APP_URL || "https://bimmetraj.com").replace(/\/$/, "");
+    const billingUrl = `${publicBaseUrl}/app/billing`;
+    const periodOpt = getBillingPeriodOption(target.billingCycle);
+    if (billingUrl.startsWith("https://")) {
+      void deliverTransactionalEmail(
+        "subscription_activated",
+        target.userEmail,
+        billingUrl,
+        process.env,
+        fetch,
+        undefined,
+        {
+          companyName: target.companyName,
+          detailRows: [
+            { label: "Çalışma Alanı (Firma)", value: target.companyName },
+            { label: "Aktif Edilen Paket", value: target.planName, highlight: true },
+            { label: "Faturalama Dönemi", value: `${formatBillingCycleLabel(target.billingCycle)} (${periodOpt.durationDays} Gün)` },
+            { label: "Onaylanan Tutar", value: `₺${target.amountTry.toLocaleString("tr-TR")} (KDV Hariç)` },
+            { label: "Sipariş Referans Kodu", value: target.referenceCode, mono: true },
+          ],
+        },
+      ).catch(() => {
+        /* Non-blocking notification email */
+      });
+    }
+  }
+
   return updated;
 }

@@ -1,4 +1,5 @@
 import { deliverTransactionalEmail } from '../auth/email-delivery';
+import type { EmailRenderContext } from '../auth/email-templates';
 import { assertAuthEmailAvailable, requireAuthEmailDelivery, EmailDeliveryError } from "../auth/email-policy";
 import { stageAndDeliverAuthAction } from '../auth/action-email';
 import type { Express, Response } from "express";
@@ -8,7 +9,7 @@ import { academyAcquisitionEvents, academyActivationEvents, academyEditions, aca
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
 import { AuthService } from "../../services/auth/authService";
 import { createInitialPaymentOrder } from "../../services/billing/bank-transfer";
-import { normalizeBillingCycle } from "../../services/billing/billing-periods";
+import { formatBillingCycleLabel, normalizeBillingCycle } from "../../services/billing/billing-periods";
 import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
@@ -16,8 +17,13 @@ import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } f
 
 export const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
 
-export async function deliverAuthLink(template: 'verify_email' | 'reset_password', email: string, url: string) {
-  const delivery = await deliverTransactionalEmail(template, email, url);
+export async function deliverAuthLink(
+  template: 'verify_email' | 'reset_password',
+  email: string,
+  url: string,
+  context?: EmailRenderContext,
+) {
+  const delivery = await deliverTransactionalEmail(template, email, url, process.env, fetch, undefined, context);
   return delivery.status === 'development' ? delivery.url : null;
 }
 
@@ -51,11 +57,19 @@ export async function issueAndDeliverAuthAction(input: {
   lifetimeMs: number;
   email: string;
   path: (token: string) => string;
+  context?: EmailRenderContext;
 }) {
   let developmentUrl: string | null = null;
   const raw = await stageAndDeliverAuthAction({
     stage: () => stageAuthAction(input.userId, input.type, input.lifetimeMs),
-    deliver: async raw => { developmentUrl = await deliverAuthLink(input.type, input.email, actionUrl(input.path(raw))); },
+    deliver: async raw => {
+      developmentUrl = await deliverAuthLink(
+        input.type,
+        input.email,
+        actionUrl(input.path(raw)),
+        input.context,
+      );
+    },
     finalize: id => finalizeAuthAction(input.userId, input.type, id),
     discard: discardAuthAction,
   });
@@ -151,7 +165,39 @@ export function registerAuthRoutes(app: Express) {
       });
 
       try {
-        await issueAndDeliverAuthAction({ userId: result.user.id, type: 'verify_email', lifetimeMs: 24 * 60 * 60 * 1000, email: result.user.email, path: raw => `/verify-email/${raw}` });
+        const order = result.pendingPaymentOrder;
+        await issueAndDeliverAuthAction({
+          userId: result.user.id,
+          type: 'verify_email',
+          lifetimeMs: 24 * 60 * 60 * 1000,
+          email: result.user.email,
+          path: raw => `/verify-email/${raw}`,
+          context: {
+            recipientName: result.user.fullName || undefined,
+            companyName: result.company.name || undefined,
+            detailRows: order
+              ? [
+                  { label: 'Çalışma Alanı (Firma)', value: result.company.name },
+                  { label: 'Seçilen Paket', value: order.planName },
+                  { label: 'Faturalama Dönemi', value: formatBillingCycleLabel(order.billingCycle) },
+                  {
+                    label: 'Sipariş Referans Kodu',
+                    value: order.referenceCode,
+                    mono: true,
+                    highlight: true,
+                  },
+                  {
+                    label: 'Havale / EFT Tutarı',
+                    value: `₺${order.amountTry.toLocaleString('tr-TR')} (KDV Hariç)`,
+                    highlight: true,
+                  },
+                ]
+              : [
+                  { label: 'Çalışma Alanı (Firma)', value: result.company.name },
+                  { label: 'Başlangıç Paketi', value: '14 Günlük Ücretsiz Deneme' },
+                ],
+          },
+        });
       } catch (error) {
         try { await rollbackFailedRegistration(result.user.id, result.company.id); }
         catch (rollbackError) { console.error('Registration compensation failed:', rollbackError); }
@@ -207,8 +253,16 @@ export function registerAuthRoutes(app: Express) {
     if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: 'Yeni bağlantı isteme limiti doldu.' });
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user && !user.emailVerified) {
-      try { await issueAndDeliverAuthAction({ userId: user.id, type: 'verify_email', lifetimeMs: 24 * 60 * 60 * 1000, email: user.email, path: raw => `/verify-email/${raw}` }); }
-      catch (error) {
+      try {
+        await issueAndDeliverAuthAction({
+          userId: user.id,
+          type: 'verify_email',
+          lifetimeMs: 24 * 60 * 60 * 1000,
+          email: user.email,
+          path: raw => `/verify-email/${raw}`,
+          context: { recipientName: user.fullName || undefined },
+        });
+      } catch (error) {
         if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
         throw error;
       }
@@ -224,8 +278,22 @@ export function registerAuthRoutes(app: Express) {
     if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: 'Yeni bağlantı isteme limiti doldu.' });
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user) {
-      try { await issueAndDeliverAuthAction({ userId: user.id, type: 'reset_password', lifetimeMs: 60 * 60 * 1000, email: user.email, path: raw => `/reset-password/${raw}` }); }
-      catch (error) {
+      try {
+        await issueAndDeliverAuthAction({
+          userId: user.id,
+          type: 'reset_password',
+          lifetimeMs: 60 * 60 * 1000,
+          email: user.email,
+          path: raw => `/reset-password/${raw}`,
+          context: {
+            recipientName: user.fullName || undefined,
+            detailRows: [
+              { label: 'Hesap E-postası', value: user.email, mono: true },
+              { label: 'Bağlantı Geçerlilik Süresi', value: '60 Dakika' },
+            ],
+          },
+        });
+      } catch (error) {
         if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
         throw error;
       }

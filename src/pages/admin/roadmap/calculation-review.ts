@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-14.2",
-  updatedOn: "14 Ekim 2026",
-  implementationBaseline: "10bc94c315f195867e82867411219fdac4d178e9",
+  version: "BIM-CALC-2026-10-15.1",
+  updatedOn: "15 Ekim 2026",
+  implementationBaseline: "2031902c3d7836e5d8190838811c0d187b16875b",
   approvalStatus: "Bağımsız uzman onayı bekliyor",
 };
 
@@ -80,9 +80,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Gerçek proje IFC dosyalarında Pset_ConcreteElementGeneral / Pset_*Common özellik eşleşmelerinin uzman kabulü.",
   },
   "yapisal-sihirbaz": {
-    scope: "TS 500 / TS 708 kurallarıyla kolon, kiriş, döşeme ve temel için beton (m³), kalıp (m²) ve donatı/etriye (ton) hesabı yapar.",
+    scope: "TS 500 / TS 708 kurallarıyla kolon, kiriş, döşeme ve temel için beton (m³), kalıp (m²), kiriş–döşeme kesişim düşümü (computeBeamSlabIntersectionDeduction) ve donatı/etriye (ton) hesabı yapar.",
     testFiles: ["src/smartcheck/rules/minha.test.ts"],
-    pending: "Düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
+    pending: "Kiriş–kolon düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
   },
   minha: {
     scope: "ÇŞB 2026 (CSB_2026_V1) ölçü esaslarına göre duvar (0,50 m²), sıva/boya (2,00 m² + söve) ve kalıp (1,00 m²) boşluk düşüm motoru aktif.",
@@ -95,7 +95,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Gerçek proje kabulü ve elle işaretli satırların yetkili incelemesi.",
   },
   "epys-hizli": {
-    scope: "Sınırlı hızlı ön kontrol; sezgisel puan uygunluk yüzdesi değildir.",
+    scope: "Tarayıcı ön analizinde IFCMATERIAL (m.12 ≤15 kr.) ve IFCSPACE (EK-3 Kat_Fonksiyon_Sıra) dahil hızlı ön kontrol; sezgisel puan uygunluk yüzdesi değildir.",
     testFiles: ["src/smartcheck/rules/epys.test.ts"],
     pending: "Puan/ağırlıkların kullanıcıyı yanıltmadığının değerlendirilmesi ve kapsam dışı kuralların görünür tutulması.",
   },
@@ -110,8 +110,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Akademi yeniden açılacaksa uygulanabilirlik ve kapsam dışı yapısal koşullar için uzman incelemesi.",
   },
   kota: {
-    scope: "Paket kataloğuna bağlı kullanım ve rezervasyon kontrolü.",
-    testFiles: ["src/services/billing/feature-quota.integration.test.ts", "src/services/billing/quota.integration.test.ts"],
+    scope: "Paket kataloğu v6 (sunucu kapasite korumalı IFC/PDF/AI limitleri), 4 dönemli Havale/EFT taahhüt iskontosu (%0/%10/%20/%30) ve atomik rezervasyon kontrolü.",
+    testFiles: ["src/services/billing/bank-transfer.test.ts", "src/services/billing/catalog-bootstrap.test.ts", "src/services/billing/feature-limits.test.ts", "src/services/billing/feature-quota.integration.test.ts", "src/services/billing/quota.integration.test.ts"],
     pending: "Paket vaatlerinin gerçek dosya hacmi ve eşzamanlı kullanım senaryolarıyla ürün kabulü.",
   },
   "pilot-metrik": {

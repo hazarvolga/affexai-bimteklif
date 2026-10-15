@@ -1470,8 +1470,8 @@
     "semantic_hash": ""
   },
   "src/pages/Billing.tsx": {
-    "mtime": 1792065975.8519125,
-    "ast_hash": "da675c5ea75da8d9f2b580fc855884c0",
+    "mtime": 1792069321.6602876,
+    "ast_hash": "ca452100de99a1f3432ff07213f5ca30",
     "semantic_hash": ""
   },
   "src/pages/BimGlossaryPage.tsx": {
@@ -1595,8 +1595,8 @@
     "semantic_hash": ""
   },
   "src/pages/Register.tsx": {
-    "mtime": 1792065974.2042053,
-    "ast_hash": "219047b0db537f901ea7195befab99db",
+    "mtime": 1792069155.5971677,
+    "ast_hash": "6c4261b87d9baba2a063205a3126044f",
     "semantic_hash": ""
   },
   "src/pages/Regulations.tsx": {
@@ -1710,13 +1710,13 @@
     "semantic_hash": ""
   },
   "src/server/routes/auth.ts": {
-    "mtime": 1792049265.6619864,
-    "ast_hash": "633a13ba85f110052f83c7f8e1e4d62c",
+    "mtime": 1792068926.7339234,
+    "ast_hash": "d53c35d998814e330ffb2e1b5252ae3b",
     "semantic_hash": ""
   },
   "src/server/routes/billing.ts": {
-    "mtime": 1792065909.037768,
-    "ast_hash": "1fb9a3f0d219b32ceae56fafb0608dd1",
+    "mtime": 1792068929.5365107,
+    "ast_hash": "600f6442f415cb01e7c9549856e44753",
     "semantic_hash": ""
   },
   "src/server/routes/clients.ts": {
@@ -4600,8 +4600,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/PlansList.tsx": {
-    "mtime": 1792065970.9920652,
-    "ast_hash": "099f46c0ce57f6b4d32f7315e13c070d",
+    "mtime": 1792069896.4121387,
+    "ast_hash": "b5413a3ac674f609b38793b095c27231",
     "semantic_hash": ""
   },
   "src/pages/admin/TenantsList.tsx": {
@@ -4625,8 +4625,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/admin.ts": {
-    "mtime": 1792053829.3875897,
-    "ast_hash": "674a705e1cae3f7614f69ff8b3526114",
+    "mtime": 1792069851.5983248,
+    "ast_hash": "515baa8f421c6b76fe55fab43855731b",
     "semantic_hash": ""
   },
   "src/server/routes/company-invitation.integration.test.ts": {
@@ -5335,8 +5335,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/TenantDetail.tsx": {
-    "mtime": 1792053466.4026027,
-    "ast_hash": "d844c40bed7a7b2a386ae1af14e122dc",
+    "mtime": 1792069509.8504636,
+    "ast_hash": "24ef9d6d93876065f8b58a719fc1fe45",
     "semantic_hash": ""
   },
   "src/server/routes/admin-features.test.ts": {
@@ -5725,8 +5725,8 @@
     "semantic_hash": ""
   },
   "src/services/billing/catalog-bootstrap.test.ts": {
-    "mtime": 1791880512.0369809,
-    "ast_hash": "94621f20adc577d9dc176d06f73017f4",
+    "mtime": 1792068686.089241,
+    "ast_hash": "60004aa2450345adc074dc454f645558",
     "semantic_hash": ""
   },
   "src/services/billing/catalog-bootstrap.ts": {
@@ -5740,8 +5740,8 @@
     "semantic_hash": ""
   },
   "src/services/billing/plan-catalog.ts": {
-    "mtime": 1791880512.0383444,
-    "ast_hash": "17bdb8b0da7952266f0362d6469ca637",
+    "mtime": 1792068651.9242096,
+    "ast_hash": "783cfa109111294771acf03b26c7cd25",
     "semantic_hash": ""
   },
   "src/services/pricing/benchmark-policy.test.ts": {
@@ -5835,8 +5835,8 @@
     "semantic_hash": ""
   },
   "src/features/public-pricing/PublicPricingSection.tsx": {
-    "mtime": 1792065972.3497012,
-    "ast_hash": "d4d6420c8d45f917b238eabd98c618f8",
+    "mtime": 1792069017.9037402,
+    "ast_hash": "9e8e339f153c4c647f5925855e31b883",
     "semantic_hash": ""
   },
   "src/features/public-pricing/presentation.test.ts": {
@@ -6080,8 +6080,8 @@
     "semantic_hash": ""
   },
   "src/services/billing/feature-limits.test.ts": {
-    "mtime": 1791880512.0374675,
-    "ast_hash": "9d9dd34f6435c31da775573179a17453",
+    "mtime": 1792068688.282955,
+    "ast_hash": "3c255245075397aad4f8380a5d3e4e71",
     "semantic_hash": ""
   },
   "src/services/billing/feature-limits.ts": {
@@ -6360,23 +6360,28 @@
     "semantic_hash": ""
   },
   "src/services/billing/bank-transfer.test.ts": {
-    "mtime": 1792049029.8338537,
-    "ast_hash": "52aeefa12382a89289d2e91e19e4c617",
+    "mtime": 1792069960.2095797,
+    "ast_hash": "c50bbf7a9550ae0f73f68ec3150d455d",
     "semantic_hash": ""
   },
   "src/services/billing/bank-transfer.ts": {
-    "mtime": 1792051048.361593,
-    "ast_hash": "67ae5b855a4be25f8efcc637b39bd72f",
+    "mtime": 1792068851.8897755,
+    "ast_hash": "b5cfc77cce73abbc3e5621b2eb682d8a",
     "semantic_hash": ""
   },
   "src/pages/admin/PlanEditor.tsx": {
-    "mtime": 1792055022.7169354,
-    "ast_hash": "7ed94c57aad2e5568778728bcbaf61a5",
+    "mtime": 1792069513.3025732,
+    "ast_hash": "254524ba733d8e515627f57c46512089",
     "semantic_hash": ""
   },
   "docs/audits/GAP_VE_DENETIM_RAPORU_2026-10-15.md": {
     "mtime": 1792063493.446263,
     "ast_hash": "6c68fbe26c89b11a9ced8184fd10c28d",
+    "semantic_hash": ""
+  },
+  "src/services/billing/billing-periods.ts": {
+    "mtime": 1792068616.3881428,
+    "ast_hash": "30ef3443db27398a0ae8d0f3477cf096",
     "semantic_hash": ""
   }
 }

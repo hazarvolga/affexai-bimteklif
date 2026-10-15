@@ -3,7 +3,7 @@ import type { DocSection, DocSource } from "./doc-types";
 export const ROADMAP_META = {
   title: "e-PYS ve ALLPLAN: Değerlendirme ve Geliştirici Yol Haritası",
   subtitle: "Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik (RG 5.8.2026/33331) kapsamında BIMMetraj ürün ve teknik yol haritası",
-  preparedOn: "14 Ekim 2026",
+  preparedOn: "15 Ekim 2026",
   audience: "ALLPLAN Türkiye (Aluplan) ile paylaşım ve Bakanlık görüşmelerine hazırlık",
   status: "Çalışma belgesi — resmî görüş değildir. Resmî ekler (EK-1, EK-2, EK-3, EK-5, EK-6, EK-7, EK-9) ve ÇŞB 2026 birim fiyat/rayiç katalogları makine-okunur olarak mühürlenmiştir; gerçek proje saha ve yetkili mühendis kabulü sıradadır.",
 };
@@ -21,7 +21,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         "İlk zorunluluk 2B tarafında: 1 Eylül 2027'den itibaren büyük şehirlerde 5.000 m² üstü projelerde PDF/A. En yakın ödeme isteği burada.",
         "e-PYS uygunluğu kendisi inceler (Elektronik Teslim Yönetmeliği m.5(2)). Ürünün en önemli teknik hedefi, sonuçlarını resmî kontrolle eşit tutmaktır; bu da Bakanlığın kuralları makine-okunur yayımlamasına bağlıdır.",
       ] },
-      { type: "callout", tone: "ok", title: "14 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 eklerine dayalı tam kapsamlı IFC ön kontrolü (EK-1 6 haneli proje kodu, EK-2 Tablo 2.1–2.14, EK-3 ~130 mahal sözlüğü, EK-5/6/7 Tablo 7.1–7.8, EK-9 21 satır), IDS dışa aktarımı, ALLPLAN 2026 e-PYS Kiti v1 indirme uç noktası, TREpys_PozOzellikSeti + IfcCovering 5D metraj/teklif köprüsü, TS 500 Yapısal Metraj Sihirbazı, CSB_2026_V1 Minha motoru, ÇŞB 2026 resmî PDF katalog mühürleme (570 onaylı poz/rayiç) ve PDF/A ön kontrol akışı canlıdadır. Ayrıntılar 'Uygulama durumu (14 Ekim 2026)' bölümündedir." },
+      { type: "callout", tone: "ok", title: "15 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 eklerine dayalı tam kapsamlı IFC ön kontrolü (EK-1 6 haneli proje kodu, EK-2 Tablo 2.1–2.14, EK-3 ~130 mahal sözlüğü, EK-5/6/7 Tablo 7.1–7.8, EK-9 21 satır), IDS dışa aktarımı, ALLPLAN 2026 e-PYS Kiti v1 indirme uç noktası, TREpys_PozOzellikSeti + IfcCovering 5D metraj/teklif köprüsü, TS 500 Yapısal Metraj Sihirbazı + Kiriş–Döşeme Kesişim Düşüm Motoru, CSB_2026_V1 Minha motoru, ÇŞB 2026 resmî PDF katalog mühürleme (570 onaylı poz/rayiç), PDF/A ön kontrol akışı ve sunucu korumalı v6 paket kataloğu + 4 dönemli Havale/EFT iskonto sistemi canlıdadır. Ayrıntılar 'Uygulama durumu (15 Ekim 2026)' bölümündedir." },
     ],
   },
   {
@@ -181,17 +181,18 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (14 Ekim 2026)",
+    title: "Uygulama durumu (15 Ekim 2026)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
-        ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.2–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (68 tablo) ve EK-7 Tablo 7.1–7.8 sunucuda çalışır"],
+        ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.2–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (68 tablo) ve EK-7 Tablo 7.1–7.8 sunucuda çalışır; tarayıcı ön analizinde de IFCMATERIAL (m.12) ve IFCSPACE (EK-3) doğrudan denetlenir"],
         ["EK-9 21 satır kararları ve SmartCheck ekranı", "Hazır", "Evet / Evet (uyarıyla) / Hayır / Elle / Kısmen; GlobalId'li bulgu ayrıntısı ve kaynak bilgisiyle"],
         ["TREpys_PozOzellikSeti, TREpys_EmsalOzellikSeti ve IfcCovering çıkarımı", "Hazır", "IfcOpenShell çıkarıcısı TREpys_PozOzellikSeti poz kodlarını ve IfcCovering kaplama alanlarını (m²) SmartCheck kanıt satırlarına ve teklif aktarımına taşır; DAHIL/HARIC/YUZDE30 emsal alanlarını toplar"],
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
-        ["TS 500 Yapısal Metraj Sihirbazı (E-7) ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
+        ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme kesişim hacmi/yan kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
         ["Reviewer disiplin yetkisi (E-9) ve Runtime DB rol ayrımı (P1-1)", "Hazır", "Sunucu inceleyenin disiplin kapsamını (STR/ARC/MEP/ALL) doğrular; uygulama teklifpro_app (NOBYPASSRLS) rolüyle, migration teklifpro_migrator rolüyle çalışır"],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
+        ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, 1–2 eşzamanlı işlem), rakip kalibrasyonlu fiyatlar (0 / 1.250 / 2.950 / 5.450 / 8.900 ₺), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Kişisel veri maskeleme ve PDF/A ön kontrolü", "Kurum içi pilotta canlı", "TC/VKN/e-posta/telefon maskelenir; 2B PDF teslim dosyalarında PDF/A kimliği, şifreleme, taranmış sayfa ve EK-2 dosya adı denetlenir"],
         ["Gerçek proje saha/mühendislik kabulü", "Sıradaki Odak", "Temsilî gerçek IFC/PDF dosyalarıyla bağımsız uzman kabulü ve 2–3 pilot ofis saha doğrulaması sırada"],
       ] },
@@ -233,10 +234,11 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["2 — Reviewer disiplin kapsamı (E-9)", "Tamamlandı (14 Ekim 2026)", "Sunucu (src/server/smartcheck/review.ts), inceleyenin tenant ve disiplin yetkisini (STR, ARC, MEP, ALL) her kararda doğrular; yetkisiz/belirsiz disiplin için onay 403 ile reddedilir ve denetim kaydına bağlanır"],
         ["3 — IFC özellik girdileri (3×3)", "Tamamlandı (14 Ekim 2026)", "workers/ifc/ifc_extract.py ve ifc-python-runner.ts; LoadBearing, IsExternal, ExposureClass, Cover (mm), Disiplin ve ExpectedVolume alanlarını Pset/QTO kanıt yoluyla 3×3 kural motoruna taşır"],
         ["4 — Gerçek proje kabulü ve kural kanıtı", "Sırada (Saha Kabulü)", "İzinli temsilî gerçek IFC/PDF, referans miktar/karar, dosya özeti, kural sürümü, beklenen/gerçek sonuç ve uzman değerlendirmesi birlikte kaydedilir"],
-        ["5 — Donatı ve kalıp motoru (E-7)", "Tamamlandı (14 Ekim 2026)", "TS 500 Yapısal Metraj Sihirbazı (src/smartcheck/structural-wizard.ts) kolon, kiriş, döşeme ve temel için beton, kalıp temas yüzeyi ve donatı/etriye boy-kütle hesabını net miktar ve fire ayrımıyla üretir"],
+        ["5 — Donatı, kalıp ve kiriş–döşeme kesişim motoru (E-7)", "Tamamlandı (15 Ekim 2026)", "TS 500 Yapısal Metraj Sihirbazı ve computeBeamSlabIntersectionDeduction (src/smartcheck/rules/minha.ts) kolon, kiriş, döşeme ve temel için beton, kiriş–döşeme ortak hacim/kalıp düşümü ve donatı/etriye boy-kütle hesabını net miktar ve fire ayrımıyla üretir"],
         ["6 — Ölçü esası / minha (E-8)", "Tamamlandı (14 Ekim 2026)", "Sözleşmesel ölçü esası motoru (src/smartcheck/rules/minha.ts — CSB_2026_V1) duvar (0,50 m²), sıva/boya (2,00 m² + söve/yan yüzey eklemesi) ve kalıp (1,00 m²) boşluk düşümlerini brüt miktarı bozmadan izlenebilir olarak hesaplar"],
         ["7 — ALLPLAN e-PYS kiti v1", "Tamamlandı (14 Ekim 2026)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, 15 kr. malzeme kütüphanesi, EK-2/EK-3/EK-5 sözlükleri (src/smartcheck/epys-allplan-kit.ts ve /api/smartcheck/epys-allplan-kit) üretildi; gerçek ALLPLAN 2026 dışa aktarımıyla saha kabulü yapılacak"],
-        ["8 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
+        ["8 — Paket kataloğu v6, 4 dönemli iskonto ve abone göçü", "Tamamlandı (15 Ekim 2026)", "Tek VPS kapasite korumalı v6 paket kataloğu (bimmetraj-2026-10-15-v6), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 Havale/EFT dönem iskontosu ve paket pasife alma sırasında aktif aboneleri alternatif pakete atomik aktarma canlıya alındı"],
+        ["9 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
