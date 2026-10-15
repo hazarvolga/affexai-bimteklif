@@ -1,17 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileText, ClipboardList, Layers, HelpCircle, Copy, Check, Info, FileEdit, Settings, Save, Sparkles } from 'lucide-react';
 import { TechnicalDocument } from '../../types';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DocumentsView() {
+  const { company } = useAuth();
   const [activeDocId, setActiveDocId] = useState<string>('eir');
   
   // Generator states
   const [generatorDocType, setGeneratorDocType] = useState<'EIR' | 'BEP'>('EIR');
   const [projName, setProjName] = useState('İstanbul Finans Merkezi T3');
   const [clientName, setClientName] = useState('Varlık Fonu / ÇŞIDB');
-  const [contractorName, setContractorName] = useState('Arapaslan İnşaat A.Ş.');
+  const [contractorName, setContractorName] = useState(company?.name || 'Arapaslan İnşaat A.Ş.');
   const [softwareVer, setSoftwareVer] = useState('Autodesk Revit 2026');
   const [cdePlatform, setCdePlatform] = useState('Autodesk Construction Cloud (ACC)');
+
+  useEffect(() => {
+    if (company?.name) {
+      setContractorName((prev) => (prev === 'Arapaslan İnşaat A.Ş.' ? company.name : prev));
+    }
+  }, [company?.name]);
   
   const [copied, setCopied] = useState(false);
   const [activeLod, setActiveLod] = useState<100 | 200 | 300 | 400 | 500>(300);

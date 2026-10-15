@@ -199,8 +199,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
       complianceData: parsedData.summary.trPsetCsb,
       pozExtraction: { pozNoByStepId: pozMap },
       totalElementsCount: parsedData.elements.length,
-      spaceNames: [],
-      materialNames: []
+      spaceNames: parsedData.summary.spaceNames ?? [],
+      materialNames: parsedData.summary.materialNames ?? [],
     });
   }, [parsedData]);
 

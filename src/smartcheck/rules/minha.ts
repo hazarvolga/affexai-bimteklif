@@ -226,3 +226,55 @@ export function evaluateStructuralIntersectionTakeoff(
     hierarchyNote,
   };
 }
+
+export interface BeamSlabIntersectionGeometryInput {
+  beamWidthM: number;
+  beamTotalHeightM: number;
+  slabThicknessM: number;
+  beamClearSpanM: number;
+  count?: number;
+}
+
+export interface BeamSlabIntersectionGeometryResult {
+  webHeightM: number;
+  grossBeamVolumeM3: number;
+  slabIntersectionVolumeDeductionM3: number;
+  netBeamWebVolumeM3: number;
+  netBeamFormworkM2: number;
+  columnSeatFormworkDeductionM2: number;
+  slabSoffitStripDeductionM2: number;
+}
+
+/**
+ * Computes deterministic beam-slab-column node intersection deductions from section geometry
+ * (matching `eng_calc.py` `betonarme_metraj` and ÇŞB Genel Teknik Şartnamesi hierarchy:
+ * Slab continuous -> Beam web height h_w = h - t_slab -> Column seat pocket 2 * b * h_w).
+ */
+export function computeBeamSlabIntersectionDeduction(
+  input: BeamSlabIntersectionGeometryInput,
+): BeamSlabIntersectionGeometryResult {
+  const b = Math.max(0, Number(input.beamWidthM) || 0);
+  const h = Math.max(0, Number(input.beamTotalHeightM) || 0);
+  const tSlab = Math.max(0, Math.min(h, Number(input.slabThicknessM) || 0));
+  const ln = Math.max(0, Number(input.beamClearSpanM) || 0);
+  const count = Math.max(1, Math.floor(Number(input.count) || 1));
+
+  const webHeightM = round4(Math.max(0, h - tSlab));
+  const grossBeamVolumeM3 = round4(b * h * ln * count);
+  const slabIntersectionVolumeDeductionM3 = round4(b * tSlab * ln * count);
+  const netBeamWebVolumeM3 = round4(b * webHeightM * ln * count);
+  const netBeamFormworkM2 = round4((b + 2 * webHeightM) * ln * count);
+  const columnSeatFormworkDeductionM2 = round4(2 * b * webHeightM * count);
+  const slabSoffitStripDeductionM2 = round4(b * ln * count);
+
+  return {
+    webHeightM,
+    grossBeamVolumeM3,
+    slabIntersectionVolumeDeductionM3,
+    netBeamWebVolumeM3,
+    netBeamFormworkM2,
+    columnSeatFormworkDeductionM2,
+    slabSoffitStripDeductionM2,
+  };
+}
+

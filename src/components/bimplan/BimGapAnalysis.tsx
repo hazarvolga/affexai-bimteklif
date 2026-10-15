@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   AlertTriangle, 
@@ -34,16 +34,56 @@ interface AuditQuestion {
   }[];
 }
 
+const GAP_ANALYSIS_STORAGE_KEY = 'teklifpro.bim_gap_analysis.v1';
+
+interface StoredGapAnalysisState {
+  currentStep: number;
+  answers: number[];
+  showResults: boolean;
+  savedActions: Record<string, boolean>;
+}
+
+function loadStoredGapAnalysisState(): StoredGapAnalysisState {
+  if (typeof window === 'undefined') {
+    return { currentStep: 0, answers: [], showResults: false, savedActions: {} };
+  }
+  try {
+    const raw = window.localStorage.getItem(GAP_ANALYSIS_STORAGE_KEY);
+    if (!raw) return { currentStep: 0, answers: [], showResults: false, savedActions: {} };
+    const parsed = JSON.parse(raw) as Partial<StoredGapAnalysisState>;
+    return {
+      currentStep: typeof parsed.currentStep === 'number' ? parsed.currentStep : 0,
+      answers: Array.isArray(parsed.answers) ? parsed.answers : [],
+      showResults: Boolean(parsed.showResults),
+      savedActions: parsed.savedActions && typeof parsed.savedActions === 'object' ? parsed.savedActions : {},
+    };
+  } catch {
+    return { currentStep: 0, answers: [], showResults: false, savedActions: {} };
+  }
+}
+
 export default function BimGapAnalysis() {
   const [activeTab, setActiveTab] = useState<'rapor' | 'analizor'>('rapor');
   const [activeGapId, setActiveGapId] = useState<string>('eir-sozlesme');
   const [copied, setCopied] = useState(false);
 
-  // Audit Wizard States
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [showResults, setShowResults] = useState(false);
-  const [savedActions, setSavedActions] = useState<Record<string, boolean>>({});
+  // Audit Wizard States (persisted across page reloads)
+  const initialStored = loadStoredGapAnalysisState();
+  const [currentStep, setCurrentStep] = useState(initialStored.currentStep);
+  const [answers, setAnswers] = useState<number[]>(initialStored.answers);
+  const [showResults, setShowResults] = useState(initialStored.showResults);
+  const [savedActions, setSavedActions] = useState<Record<string, boolean>>(initialStored.savedActions);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        GAP_ANALYSIS_STORAGE_KEY,
+        JSON.stringify({ currentStep, answers, showResults, savedActions }),
+      );
+    } catch {
+      // Ignore quota or storage access errors
+    }
+  }, [currentStep, answers, showResults, savedActions]);
 
   // 1. GAP REPORT DATA (Mevcut Durum Analizi)
   const gapsData = [

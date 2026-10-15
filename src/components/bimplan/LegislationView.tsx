@@ -1,10 +1,32 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar, Search, ShieldAlert, CheckCircle, Info, Database, Layers, ArrowRight, Award, ExternalLink } from 'lucide-react';
 import { TimelineEvent, PozCode } from '../../types';
+import { fetchWithAuth } from '@/lib/api';
+
+interface LiveRegulationItem {
+  id: string;
+  code: string;
+  title: string;
+  category?: string;
+}
 
 export default function LegislationView() {
   const [activeYear, setActiveYear] = useState<string>('2023');
   const [pozSearch, setPozSearch] = useState<string>('');
+  const [liveRegulationsCount, setLiveRegulationsCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchWithAuth('/api/regulations')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setLiveRegulationsCount(data.length);
+        } else if (data && Array.isArray((data as { regulations?: LiveRegulationItem[] }).regulations)) {
+          setLiveRegulationsCount((data as { regulations: LiveRegulationItem[] }).regulations.length);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const timelineEvents: TimelineEvent[] = [
     {
@@ -70,6 +92,12 @@ export default function LegislationView() {
           <p className="text-sm text-slate-300 leading-relaxed">
             Türkiye kamu ihale kanunları çerçevesinde yürütülen BIM süreçlerini, e-PYS Elektronik onay mekanizmalarını ve bakanlık birim fiyat entegrasyon formüllerini keşfedin.
           </p>
+          {liveRegulationsCount !== null && liveRegulationsCount > 0 && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+              <Database className="w-3.5 h-3.5" />
+              Sistemde {liveRegulationsCount} aktif mevzuat / yönetmelik kaydı senkronize
+            </div>
+          )}
         </div>
       </section>
 

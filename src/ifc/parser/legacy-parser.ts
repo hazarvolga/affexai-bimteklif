@@ -32,6 +32,10 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
   const trPsetCsb = extractProjectComplianceData(ifcText);
 
   const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
+  const materialRegex = /^#\d+\s*=\s*IFCMATERIAL\s*\(\s*'([^']*)'/i;
+  const spaceRegex = /^#\d+\s*=\s*IFCSPACE\s*\(\s*'[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'/i;
+  const materialNamesSet = new Set<string>();
+  const spaceNamesSet = new Set<string>();
 
   let beamIdx = 1;
   let colIdx = 1;
@@ -40,6 +44,16 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
 
   for (const line of lines) {
     const trimmed = line.trim();
+    const matMatch = trimmed.match(materialRegex);
+    if (matMatch && matMatch[1]) {
+      materialNamesSet.add(matMatch[1].trim());
+      continue;
+    }
+    const spMatch = trimmed.match(spaceRegex);
+    if (spMatch && spMatch[1]) {
+      spaceNamesSet.add(spMatch[1].trim());
+      continue;
+    }
     const match = trimmed.match(entityRegex);
     if (!match) continue;
 
@@ -138,12 +152,14 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     ]);
   }
 
-  return calculateSummary(elements, trPsetCsb);
+  return calculateSummary(elements, trPsetCsb, Array.from(materialNamesSet), Array.from(spaceNamesSet));
 }
 
 export function calculateSummary(
   elements: ParsedIfcElement[],
   trPsetCsb: TrPsetCsbProjectCompliance = { source: null },
+  materialNames: string[] = [],
+  spaceNames: string[] = [],
 ): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   let totalVolumeM3 = 0;
   let totalFormworkM2 = 0;
@@ -216,6 +232,8 @@ export function calculateSummary(
       trPsetCsb,
       elementsWithPozNoCount: elements.filter((el) => Boolean(el.pozNo)).length,
       elementsMissingPozNoCount: elements.filter((el) => !el.pozNo).length,
+      materialNames,
+      spaceNames,
     },
   };
 }

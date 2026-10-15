@@ -69,4 +69,7 @@ export interface IfcParseSummary {
   trPsetCsb: TrPsetCsbProjectCompliance;
   elementsWithPozNoCount: number;
   elementsMissingPozNoCount: number;
+  materialNames?: string[];
+  spaceNames?: string[];
 }
+

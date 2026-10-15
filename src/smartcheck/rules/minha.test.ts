@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  computeBeamSlabIntersectionDeduction,
   evaluatePlasterPaintMinha,
   evaluateStructuralIntersectionTakeoff,
 } from "./minha";
@@ -66,4 +67,30 @@ describe("Contractual Opening Deduction (Minha) & Structural Intersection Engine
     // Rebar = 7.2 m3 * 150 kg/m3 / 1000 = 1.08 ton
     assert.equal(column.estimatedRebarTon, 1.08);
   });
+
+  it("computes deterministic beam-slab-column intersection deductions matching eng_calc.py", () => {
+    const geom = computeBeamSlabIntersectionDeduction({
+      beamWidthM: 0.3,
+      beamTotalHeightM: 0.6,
+      slabThicknessM: 0.15,
+      beamClearSpanM: 5.0,
+      count: 4,
+    });
+
+    // h_w = 0.60 - 0.15 = 0.45 m
+    assert.equal(geom.webHeightM, 0.45);
+    // Gross beam volume = 0.30 * 0.60 * 5.0 * 4 = 3.60 m3
+    assert.equal(geom.grossBeamVolumeM3, 3.6);
+    // Slab intersection deduction = 0.30 * 0.15 * 5.0 * 4 = 0.90 m3
+    assert.equal(geom.slabIntersectionVolumeDeductionM3, 0.9);
+    // Net beam web volume = 0.30 * 0.45 * 5.0 * 4 = 2.70 m3
+    assert.equal(geom.netBeamWebVolumeM3, 2.7);
+    // Net beam formwork (soffit + 2 web cheeks) = (0.30 + 2 * 0.45) * 5.0 * 4 = 24.0 m2
+    assert.equal(geom.netBeamFormworkM2, 24);
+    // Column beam-seat pocket deduction = 2 * 0.30 * 0.45 * 4 = 1.08 m2
+    assert.equal(geom.columnSeatFormworkDeductionM2, 1.08);
+    // Slab soffit strip deduction = 0.30 * 5.0 * 4 = 6.0 m2
+    assert.equal(geom.slabSoffitStripDeductionM2, 6);
+  });
 });
+
