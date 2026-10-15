@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildIfcEstimateQuoteItems } from "./quotation-transfer";
+import { applyIfcTransferredUnitPrices, buildIfcEstimateQuoteItems } from "./quotation-transfer";
 
 describe("IFC quote transfer safety gate", () => {
   it("imports legacy IFC structural volumes as model estimates that require review", () => {
@@ -106,4 +106,31 @@ describe("IFC quote transfer safety gate", () => {
     assert.deepEqual(result.items.map((item) => item.unitPrice), [0, 0, 0]);
     assert.equal(result.skipped.length, 0);
   });
+
+  it("applies both Turkish (beton/donati/kalip) and English unit price keys without assigning formwork price to IfcCovering", () => {
+    const result = buildIfcEstimateQuoteItems({
+      beamCount: 2,
+      beamVolumeM3: 10,
+      coveringCount: 4,
+      coveringAreaM2: 80,
+      totalRebarTon: 2,
+      totalFormworkM2: 50,
+    }, {
+      includeDerivedEstimates: true,
+      idFactory: (() => {
+        let next = 0;
+        return () => `priced-${++next}`;
+      })(),
+    });
+
+    const priced = applyIfcTransferredUnitPrices(result.items, {
+      beton: 2450,
+      donati: 24500,
+      kalip: 1250,
+    });
+
+    assert.deepEqual(priced.map((item) => item.unitPrice), [2450, 0, 24500, 1250]);
+    assert.deepEqual(priced.map((item) => item.total), [24500, 0, 49000, 62500]);
+  });
 });
+

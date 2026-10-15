@@ -243,7 +243,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 <div className="lg:col-span-7 overflow-x-auto">
                   <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between font-mono text-xs">
                     <span className="font-semibold text-foreground">Metraj Cetveli & Fiyat Dağılımı</span>
-                    <span className="text-muted-foreground tabular-nums">Toplam: <strong className="text-foreground">4.872.000,00 ₺</strong></span>
+                    <span className="text-muted-foreground tabular-nums">Toplam: <strong className="text-foreground">2.888.250,00 ₺</strong></span>
                   </div>
                   <table className="w-full text-left text-xs font-mono">
                     <thead className="bg-muted/50 border-b border-border text-muted-foreground">

@@ -61,7 +61,7 @@ import { cn } from '@/lib/utils';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
-import { buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
+import { applyIfcTransferredUnitPrices, buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
 import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculations';
 import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 
@@ -144,15 +144,10 @@ export function CreateQuote() {
           const unitPrices = parsedTransfer.unitPrices && typeof parsedTransfer.unitPrices === 'object'
             ? parsedTransfer.unitPrices
             : null;
-          const importedItems = transfer.items.map((item) => {
-            if (!unitPrices) return item;
-            let unitPrice = Number(item.unitPrice) || 0;
-            if (item.unit === 'm3' && Number(unitPrices.concrete) > 0) unitPrice = Number(unitPrices.concrete);
-            if (item.unit === 'ton' && Number(unitPrices.rebar) > 0) unitPrice = Number(unitPrices.rebar);
-            if (item.unit === 'm2' && Number(unitPrices.formwork) > 0) unitPrice = Number(unitPrices.formwork);
-            const updated = { ...item, unitPrice };
-            return { ...updated, total: calculateLineItemTotal(updated) };
-          });
+          const importedItems = applyIfcTransferredUnitPrices(transfer.items, unitPrices).map((item) => ({
+            ...item,
+            total: calculateLineItemTotal(item),
+          }));
 
           if (importedItems.length > 0) {
             setItems(importedItems);

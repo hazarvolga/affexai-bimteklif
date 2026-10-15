@@ -147,7 +147,7 @@ export async function changeProcessingRun(input: {
         .from(subscriptions)
         .leftJoin(plans, eq(plans.id, subscriptions.planId))
         .where(eq(subscriptions.companyId, companyId));
-      const pdfMonthlyLimit = subPlan?.monthlyRegulationLimit ?? subPlan?.monthlyPdfLimit ?? 100;
+      const pdfMonthlyLimit = subPlan?.monthlyPdfLimit ?? subPlan?.monthlyRegulationLimit ?? 100;
 
       const monthStart = new Date();
       monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);

@@ -19,6 +19,14 @@ export function usageDisplay(stat: Pick<UsageStat, 'current' | 'limit' | 'enforc
 }
 
 export const usageLabels: Record<string, string> = {
-  QUOTATION_CREATED: 'Teklif', AI_GENERATION: 'AI üretimi', PDF_GENERATED: 'PDF',
-  AI_QUOTE_GENERATED: 'AI teklif', CRM_ACTION_EXECUTED: 'CRM işlemi',
+  QUOTATION_CREATED: 'Teklif',
+  AI_GENERATION: 'AI üretimi',
+  AI_QUOTE_GENERATED: 'AI teklif',
+  AI_QUOTATION_GENERATED: 'AI Teklif Üretimi',
+  PDF_GENERATED: 'PDF / PDF-A Çıktısı',
+  CRM_ACTION_EXECUTED: 'CRM işlemi',
+  REGULATION_CHECK_RUN: 'Mevzuat Denetimi',
+  PROFIT_ANALYSIS_RUN: 'Kârlılık Analizi',
+  IFC_IMPORTED: 'IFC Model Analizi',
 };
+

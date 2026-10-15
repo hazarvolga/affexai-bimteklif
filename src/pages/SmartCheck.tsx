@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, Play, FileText, CheckCircle2, Zap, Layers, BadgeCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,12 +11,47 @@ import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/badge';
+import { fetchWithAuth } from '@/lib/api';
 import { useSmartCheckDemo } from '@/smartcheck/SmartCheckDemoContext';
 import { SmartCheckImportWorkspace } from '@/components/smartcheck/SmartCheckImportWorkspace';
+
+interface LiveQueueSummaryItem {
+  id: string;
+  status: string;
+  fileName: string | null;
+  createdAt: string;
+}
 
 export function SmartCheck() {
   const navigate = useNavigate();
   const { state: demoState, dispatch } = useSmartCheckDemo();
+  const [liveQueue, setLiveQueue] = useState<LiveQueueSummaryItem[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchWithAuth('/api/smartcheck/queue')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((items) => {
+        if (mounted && Array.isArray(items)) {
+          setLiveQueue(items);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const completedCount = liveQueue.filter((item) => item.status === 'succeeded').length;
+  const activeCount = liveQueue.filter((item) => item.status === 'queued' || item.status === 'running').length;
+  const latestItem = liveQueue[0] ?? null;
+  const latestStatusLabel = !latestItem
+    ? 'Dosya Bekleniyor'
+    : latestItem.status === 'succeeded'
+      ? 'Tamamlandı'
+      : latestItem.status === 'running' || latestItem.status === 'queued'
+        ? 'İşleniyor / Kuyrukta'
+        : 'İnceleme Gerekli';
 
   const handleStartDemoCheck = () => {
     dispatch({ type: 'RESET_DEMO' });
@@ -40,7 +75,7 @@ export function SmartCheck() {
             <div className="inline-flex items-center gap-2">
               <span className="stamp-badge border-primary/40 text-primary bg-primary/10">
                 <BadgeCheck size={12} className="shrink-0" />
-                BIMMetraj SmartCheck v1.0
+                Eğitim & Senaryo Simülatörü
               </span>
               <span className="text-xs font-mono text-muted-foreground">buildingSMART & ÇŞB</span>
             </div>
@@ -49,7 +84,7 @@ export function SmartCheck() {
               Kanıta Dayalı Metraj & Teklif Kontrolü
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-              Pilot akışta teklif satırlarını, ÇŞB poz kodlarını, birimleri ve kaynak bilgisini inceleyin. Demo bulguları mühendislik onayı değildir; gerçek dosya aktarımı kullanıcı incelemesiyle tamamlanır.
+              Gerçek IFC, PDF/A ve XLSX dosyalarınızı yukarıdaki işleme alanından yükleyebilirsiniz. Örnek bir denetim akışını hazır verilerle deneyimlemek için aşağıdaki simülatörü başlatabilirsiniz.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Button
@@ -57,7 +92,7 @@ export function SmartCheck() {
                 className="bg-primary hover:bg-primary/90 text-white font-mono text-xs h-9 px-5 gap-1.5 shadow-xs"
               >
                 <Play size={13} fill="currentColor" />
-                {demoState.checkRunStatus === 'completed' ? 'Demo Denetimi Yeniden Başlat' : 'Demo Denetimi Başlat'}
+                {demoState.checkRunStatus === 'completed' ? 'Örnek Senaryoyu Yeniden Başlat' : 'Örnek Senaryo Simülatörünü Başlat'}
               </Button>
               <Link to="/app/quotes">
                 <Button variant="outline" size="sm" className="font-mono text-xs h-9 px-4 gap-1.5">
@@ -72,19 +107,25 @@ export function SmartCheck() {
         <div className="col-span-12 lg:col-span-4 space-y-4">
           <Card className="border border-border bg-card shadow-xs rounded-sm">
             <CardHeader className="border-b border-border/80 pb-3">
-              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Denetim Durumu</CardTitle>
+              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Canlı Kuyruk & Denetim Durumu</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-4 font-mono text-xs">
               <div className="flex justify-between items-center border-b border-border/60 pb-2.5">
-                <span className="text-muted-foreground">Son Denetim</span>
+                <span className="text-muted-foreground">Son İşlem Durumu</span>
                 <span className="text-foreground">
-                  {demoState.checkRunStatus === 'completed' ? 'Tamamlandı' : 'Beklemede'}
+                  {latestStatusLabel}
+                </span>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/60 pb-2.5">
+                <span className="text-muted-foreground">Tamamlanan Denetim</span>
+                <span className="text-emerald-400 font-semibold tabular-nums">
+                  {completedCount} dosya
                 </span>
               </div>
               <div className="flex justify-between items-center pb-1">
-                <span className="text-muted-foreground">Toplam Bulgu</span>
+                <span className="text-muted-foreground">Toplam Kuyruk Kaydı</span>
                 <span className="text-primary font-semibold tabular-nums">
-                  {demoState.checkRunStatus === 'completed' ? `${demoState.findings.length} adet` : '0 adet'}
+                  {liveQueue.length} adet {activeCount > 0 ? `(${activeCount} aktif)` : ''}
                 </span>
               </div>
             </CardContent>

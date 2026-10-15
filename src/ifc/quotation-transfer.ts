@@ -169,3 +169,57 @@ export function buildIfcEstimateQuoteItems(
     warnings: [REVIEW_WARNING, PRICE_WARNING],
   };
 }
+
+export interface IfcTransferredUnitPrices {
+  concrete?: number;
+  rebar?: number;
+  formwork?: number;
+  covering?: number;
+  beton?: number;
+  donati?: number;
+  kalip?: number;
+  kaplama?: number;
+}
+
+export function applyIfcTransferredUnitPrices(
+  items: Partial<QuoteItem>[],
+  unitPrices: IfcTransferredUnitPrices | null | undefined,
+): Partial<QuoteItem>[] {
+  if (!unitPrices || typeof unitPrices !== "object") {
+    return items;
+  }
+
+  const concretePrice = positiveNumber(unitPrices.concrete ?? unitPrices.beton);
+  const rebarPrice = positiveNumber(unitPrices.rebar ?? unitPrices.donati);
+  const formworkPrice = positiveNumber(unitPrices.formwork ?? unitPrices.kalip);
+  const coveringPrice = positiveNumber(unitPrices.covering ?? unitPrices.kaplama);
+
+  return items.map((item) => {
+    let unitPrice = positiveNumber(item.unitPrice);
+    const desc = (item.description ?? "").toLowerCase();
+    const isCovering = desc.includes("ifccovering") || desc.includes("kaplama");
+
+    if (item.unit === "m3" && concretePrice > 0) {
+      unitPrice = concretePrice;
+    } else if (item.unit === "ton" && rebarPrice > 0) {
+      unitPrice = rebarPrice;
+    } else if (item.unit === "m2") {
+      if (isCovering) {
+        if (coveringPrice > 0) unitPrice = coveringPrice;
+      } else if (formworkPrice > 0) {
+        unitPrice = formworkPrice;
+      }
+    }
+
+    const quantity = positiveNumber(item.quantity);
+    const discountPercent = positiveNumber(item.discountPercent);
+    const total = Number((quantity * unitPrice * (1 - discountPercent / 100)).toFixed(2));
+
+    return {
+      ...item,
+      unitPrice,
+      total,
+    };
+  });
+}
+

@@ -17,11 +17,12 @@ export async function readBillingUsage(companyId: string, at?: Date) {
     const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
     const [plan] = subscription?.planId ? await tx.select().from(plans).where(eq(plans.id, subscription.planId)) : [];
     const allowance = describeQuotationAllowance(subscription, plan, now);
-    const counters = await tx.select({ count: usageRecords.quoteCount }).from(usageRecords)
+    const counters = await tx.select({ count: usageRecords.quoteCount, ifcCount: usageRecords.ifcCount }).from(usageRecords)
       .where(and(eq(usageRecords.companyId, companyId), eq(usageRecords.period, allowance.period)));
     if (counters.some(row => !Number.isSafeInteger(row.count) || row.count < 0)) throw quotaUnavailable();
     const current = counters.reduce((sum, row) => sum + row.count, 0);
     if (!Number.isSafeInteger(current)) throw quotaUnavailable();
+    const ifcCurrent = counters.reduce((sum, row) => sum + Math.max(0, Number(row.ifcCount ?? 0)), 0);
     const stats = await tx.select({ feature: usageLogs.feature, count: sql<string>`sum(${usageLogs.count})`, cost: sql<string>`sum(${usageLogs.costEstimate})` })
       .from(usageLogs).where(and(eq(usageLogs.companyId, companyId), gte(usageLogs.date, start), lt(usageLogs.date, end)))
       .groupBy(usageLogs.feature);
@@ -45,6 +46,21 @@ export async function readBillingUsage(companyId: string, at?: Date) {
         ...(feature === AI_USAGE_FEATURE ? { countingPolicy: 'provider_attempts_reserved_before_execution' } : metered ? { countingPolicy: 'reserved_before_execution_released_on_failure' } : {}),
         ...(enforced ? { available: featureReason === null, reason: featureReason, remaining: featureReason === null ? Math.max(0, featureLimit! - featureCurrent) : 0 } : {}),
       };
+    });
+    const ifcLimit = plan ? plan.monthlyIfcLimit : null;
+    const ifcReason = allowance.reason ?? (ifcLimit !== null && ifcCurrent >= ifcLimit ? "IFC_QUOTA_EXCEEDED" : null);
+    usage.push({
+      feature: "IFC_IMPORTED",
+      current: ifcCurrent,
+      limit: ifcLimit,
+      cost: 0,
+      enforced: ifcLimit !== null,
+      source: "usage_records",
+      ...(ifcLimit !== null ? {
+        available: ifcReason === null,
+        reason: ifcReason,
+        remaining: ifcReason === null ? Math.max(0, ifcLimit - ifcCurrent) : 0,
+      } : {}),
     });
     return {
       plan: plan?.name ?? (subscription?.planId ? "unavailable" : subscription?.plan ?? "unavailable"),
