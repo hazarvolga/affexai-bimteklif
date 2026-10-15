@@ -6,7 +6,7 @@ import { Badge } from "../../components/ui/badge";
 import { DocBlockView, DocTable } from "./roadmap/DocBlocks";
 import { CALC_INTRO, CALC_MODULES, SIGN_OFF_COLUMNS } from "./roadmap/calculation-content";
 import { CALC_STATUS_LABEL, type CalcModule } from "./roadmap/doc-types";
-import { CALC_REVIEW_META, CALC_REVIEW_EVIDENCE } from "./roadmap/calculation-review";
+import { CALC_REVIEW_META, CALC_REVIEW_EVIDENCE, CALC_REVIEW_CHANGELOG } from "./roadmap/calculation-review";
 
 const STATUS_CLASS: Record<CalcModule["status"], string> = {
   mevzuat: "border-emerald-500/30 text-emerald-300",
@@ -81,6 +81,31 @@ export function CalculationMethods() {
             <div><dt className="inline font-semibold text-zinc-300">Yöntemlerin incelendiği kod revizyonu: </dt><dd className="inline break-all font-mono">{CALC_REVIEW_META.implementationBaseline}</dd></div>
           </dl>
           {CALC_INTRO.map((block, index) => <DocBlockView key={index} block={block} />)}
+        </section>
+        <section className="space-y-3 rounded-xl border border-indigo-500/25 bg-indigo-500/[0.04] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-bold text-white">Sürüm ve mevzuat revizyon tarihçesi (Önceki Durum → Yeni Durum)</h2>
+            <Badge variant="outline" className="border-indigo-400/30 text-indigo-300">Güncel: {CALC_REVIEW_META.version}</Badge>
+          </div>
+          <p className="text-xs leading-relaxed text-zinc-300">
+            Uzman mühendislerin hangi tarihte, hangi resmi belge veya teknik geliştirme sonucunda hangi hesaplama/kural yönteminin nasıl değiştirildiğini takip edebilmesi için sürüm geçmişi aşağıda kayıt altına alınmıştır.
+          </p>
+          <DocTable
+            columns={[
+              "Sürüm & Tarih",
+              "Tetikleyen Mevzuat / Geliştirme",
+              "Önceki Durum (Nasıldı?)",
+              "Yeni Durum (Nasıl Değiştirildi?)",
+              "Etkilenen Modüller",
+            ]}
+            rows={CALC_REVIEW_CHANGELOG.map((entry) => [
+              `${entry.version}\n(${entry.date} · ${entry.commit.slice(0, 7)})`,
+              entry.trigger,
+              entry.beforeSummary,
+              entry.afterSummary,
+              entry.affectedModules.join(", "),
+            ])}
+          />
         </section>
         <nav aria-label="Modüller" className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 print:hidden">
           <p className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">Modüller</p>

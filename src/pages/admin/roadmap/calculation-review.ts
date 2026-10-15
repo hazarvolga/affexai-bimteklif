@@ -2,9 +2,55 @@
 export const CALC_REVIEW_META = {
   version: "BIM-CALC-2026-10-15.2",
   updatedOn: "15 Ekim 2026",
-  implementationBaseline: "9dd9149ad5338f2b00e9ea9d90b8a08316ac1e63",
+  implementationBaseline: "efcfecca08bdbcb11fcbb2dd8aea0ceb0c1eed30",
   approvalStatus: "Bağımsız uzman onayı bekliyor",
 };
+
+export interface CalcReviewRevisionEntry {
+  version: string;
+  date: string;
+  commit: string;
+  trigger: string;
+  beforeSummary: string;
+  afterSummary: string;
+  affectedModules: string[];
+}
+
+export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
+  {
+    version: "BIM-CALC-2026-10-15.2",
+    date: "15 Ekim 2026",
+    commit: "efcfecca08bdbcb11fcbb2dd8aea0ceb0c1eed30",
+    trigger: "Bakanlık Nihai PDF Paketi (#1.pdf, #2.pdf, EKLER.pdf) Tam Senkronizasyonu",
+    beforeSummary:
+      "EK-9 yalnızca 21 satırlık tek tablo olarak çalışıyordu; EK-7'de Tablo 7.9 (IfcAnnotation) yoktu; hızlı e-PYS kontrolünde CSBPozNo zorunlu tutuluyordu; PDF ön kontrolünde pafta boyutu ve e-imza kontrolü bulunmuyordu.",
+    afterSummary:
+      "EK-9 Tablo 9.1 (Mimari 21 satır) ve Tablo 9.2 (Diğer Disiplinler 16 satır) ayrımı kuruldu; EK-7 Tablo 7.9 (IfcAnnotation SURVEY) eklendi; #1.pdf m.13(3) Malzeme İsmi_Dayanım zorunluluğu ve 5D CSBPozNo uyarısı ayrıştırıldı; PDF/A'ya m.8(1) ISO 216 pafta boyutu, m.8(2) tek pafta kuralı ve m.6(1)-(2) gömülü e-imza (/Sig) tespiti eklendi.",
+    affectedModules: ["epys-on-kontrol", "epys-hizli", "pdfa", "ifc-metraj"],
+  },
+  {
+    version: "BIM-CALC-2026-10-15.1",
+    date: "15 Ekim 2026",
+    commit: "70cb4dd9e03ca0ab153d879fd94cf848b836108b",
+    trigger: "TS 500 Yapısal Kesişim, ÇŞB 2026 Minha, ALLPLAN Kiti v1 & Paket Kataloğu v6",
+    beforeSummary:
+      "Yapısal sihirbazda kiriş–döşeme ortak hacim/kalıp düşümü ve sözleşmesel boşluk düşüm (Minha) eşikleri ayrı modül olarak belgelenmemişti; paket kotaları sunucu RAM korumasını ve 4 dönemli Havale/EFT iskontosunu içermiyordu.",
+    afterSummary:
+      "TS 500 Yapısal Metraj Sihirbazı + kiriş–döşeme kesişim düşümü (computeBeamSlabIntersectionDeduction), ÇŞB 2026 (CSB_2026_V1) Minha motoru (0,50 / 2,00 / 1,00 m²), ALLPLAN 2026 e-PYS Kiti v1 ve Kota v6 (%0/%10/%20/%30 dönem iskontosu) doğrulama kapsamına alındı.",
+    affectedModules: ["yapisal-sihirbaz", "minha", "epys-on-kontrol", "kota"],
+  },
+  {
+    version: "BIM-CALC-2026-10-14.1",
+    date: "14 Ekim 2026",
+    commit: "9ab9ae5b07f2d3caeb81ea8c185794fc3595ed5e",
+    trigger: "İlk Uzman Doğrulama Tabanı (3×3 IFC Girdileri, Reviewer Disiplin Yetkisi & İlk e-PYS/PDF Hattı)",
+    beforeSummary:
+      "Hesaplama modülleri tekil kod dosyalarında dağınıktı; 3×3 kural motoruna IFC Pset/QTO özellik aktarımı ve reviewer disiplin (STR/ARC/MEP/ALL) doğrulaması sunucu tarafında bağlı değildi.",
+    afterSummary:
+      "18+ hesaplama modülü formül, referans, yeniden hesaplanabilir örnek ve otomatik test kanıtlarıyla tek doğrulama sayfasında toplandı; 3×3 IFC özellik aktarımı ve reviewer disiplin kontrolü devreye alındı.",
+    affectedModules: ["uc-x-uc", "satir-dogrulama", "ifc-metraj", "teklif-satir", "maliyet-marj"],
+  },
+];
 
 interface CalculationEvidence {
   scope: string;

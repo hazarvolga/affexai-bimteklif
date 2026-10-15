@@ -253,14 +253,121 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       ] },
     ],
   },
+  {
+    id: "revizyon-gunlugu",
+    title: "Revizyon ve mevzuat uyum günlüğü (13–15 Ekim 2026)",
+    blocks: [
+      {
+        type: "callout",
+        tone: "info",
+        title: "Uzman mühendisler için değişiklik izlenebilirliği (Önceki Durum → Yeni Durum)",
+        text: "Bu bölüm, geliştirme yolculuğu boyunca kural motorunda, hesaplama yöntemlerinde ve mevzuat tablolarında neyin, ne zaman ve hangi resmi dayanakla değiştirildiğini kayıt altına alır. Özellikle 15 Ekim 2026'da Bakanlıktan gelen nihai PDF paketi (#1.pdf, #2.pdf, EKLER.pdf) sonrasında önceki sürümde neyin nasıl revize edildiği aşağıda karşılaştırmalı olarak sunulmuştur.",
+      },
+      {
+        type: "p",
+        text: "Tablo A — 15 Ekim 2026 Bakanlık Nihai PDF Paketi (#1.pdf, #2.pdf, EKLER.pdf) Sonrası Kural ve Motor Revizyonları:",
+      },
+      {
+        type: "table",
+        columns: [
+          "Tarih & Sürüm",
+          "Mevzuat Dayanağı",
+          "Önceki Durum (İlk Sürüm / Taslak Varsayımı)",
+          "Yeni Durum (Bakanlık Nihai PDF Sonrası)",
+          "Değişen Kod / Modül",
+        ],
+        rows: [
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "EKLER.pdf s.36–37 (EK-9 Tablo 9.1 & Tablo 9.2)",
+            "Yalnızca 21 satırlık tek bir EK-9 kontrol listesi vardı; Statik (ST), Mekanik (MK) ve Elektrik (EE) modelleri de Mimari (MM) kriterleriyle (IfcSpace mahal ve TAKS/KAKS emsal satırları dahil) değerlendiriliyordu.",
+            "Mimari projeler (MM) için Tablo 9.1 (21 satır), diğer disiplinler (ST, MK, EE vb.) için Tablo 9.2 (16 satır) ayrımı kuruldu; MM dışı disiplinlerde mahal ve emsal satırları devre dışı bırakılıp 16 satırlık disiplin formu otomatik seçiliyor.",
+            "ek9_form.json, ek9.py, kontrol.py, epys_preflight.py, EpysPreflightPanel.tsx",
+          ],
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "EKLER.pdf s.34 (EK-7 Tablo 7.9 — IfcAnnotation)",
+            "EK-7 özellik doğrulaması yalnızca Tablo 7.1–7.8 (68 IFC sınıfı) için çalışıyordu; vaziyet/arsa sınırı ve kadastral referans elemanı olan IfcAnnotation için Tablo 7.9 kuralı tanımlı değildi.",
+            "Tablo 7.9 (IfcAnnotation: Name [Metin], Description [Metin], PredefinedType = SURVEY) eklendi; ozellik.py içinde hem doğrudan IFC özniteliği hem Pset üzerinden hibrit okuma açıldı.",
+            "ek7_proje.json, ozellik.py, test_kurallar.py",
+          ],
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "#1.pdf m.13(3) & EKLER.pdf Tablo 7.x",
+            "Tarayıcı hızlı e-PYS kontrolünde Pset_Yapim_Maliyet.CSBPozNo ruhsat teslimi için zorunlu kural gibi puan kırıyordu; malzeme adında yalnızca ≤15 karakter uyarısı vardı.",
+            "#1.pdf m.13(3) uyarınca IFCMATERIAL üzerinde 'Malzeme İsmi_Dayanım' (Beton_C30/37, Çelik_B420C vb.) zorunlu kural yapıldı (+ ≤15 karakter ALLPLAN/CAD şablon kontrolü korundu). Resmi ruhsat poz alanı TREpys_PozOzellikSeti.PozNo olduğundan CSBPozNo 5D maliyet uyarısı seviyesine çekildi.",
+            "src/smartcheck/rules/epys.ts, src/smartcheck/epys-allplan-kit.ts",
+          ],
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "EKLER.pdf s.10–25 (EK-6 Tablo 6.3, 6.16, 6.20, 6.25, 6.56, 6.58, 6.66, 6.68)",
+            "TypeScript ek6-dictionary.ts içindeki 8 IFC sınıfında (IfcBeam, IfcColumn, IfcCovering, IfcCurtainWall, IfcSpaceHeater, IfcSwitchingDevice, IfcValve, IfcWasteTerminal) taslak dönemden kalan eksik/farklı PredefinedType kalemleri vardı.",
+            "EKLER.pdf tablolarıyla birebir eşitlendi (SPANDREL, PILASTER, MOLDING/SKIRTINGBOARD, CONVECTOR, DIMMERSWITCH/EMERGENCYSTOP, FAUCET/FLUSHING/GASCOCK, GULLYTRAP/ROOFDRAIN vb.).",
+            "src/smartcheck/rules/ek6-dictionary.ts",
+          ],
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "EKLER.pdf s.31 (EK-7 Tablo 7.4 — TREpys_EmsalOzellikSeti)",
+            "ALLPLAN 2026 e-PYS Kiti v1 içinde EmsalDurumu değer kümesi eski taslaktaki ['DAHIL', 'HARIC', 'YUZDE30'] olarak tanımlıydı.",
+            "Resmi Tablo 7.4'teki ['DAHIL', 'HARIC', 'DIGER'] değer kümesine güncellendi; emsal.py motorunda geriye dönük uyumluluk için YUZDE30 okuma desteği de korundu.",
+            "src/smartcheck/epys-allplan-kit.ts, emsal.py",
+          ],
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "#1.pdf m.8(1)-(2) & #2.pdf m.6(1)-(2), m.7",
+            "PDF ön kontrolü (pdf_preflight.py) yalnızca PDF/A üstveri kimliğini, şifrelemeyi, taranmış sayfayı (m.6(4)) ve EK-2 dosya adını kontrol ediyordu.",
+            "#1.pdf m.8(1) ISO 216 A4 (210×297 mm) ve katları pafta boyutu kontrolü (PAFTA_BOYUTU_ISO216), m.8(2) çizim paftalarında tek pafta düzeni kontrolü (COKLU_PAFTA_DUZENI) ve #2.pdf m.6(1)-(2) 5070 sayılı Kanun gömülü e-imza (/Sig) tespiti (eSignature) eklendi.",
+            "workers/ifc/pdf_preflight.py, PdfPreflightPanel.tsx",
+          ],
+          [
+            "15 Ekim 2026 (9dd9149)",
+            "#2.pdf Geçici Madde 2 & Madde 14",
+            "Mevzuat rehberinde (LegislationView.tsx) 2026–2028 arası özet/taslak geçiş tarihleri yer alıyordu.",
+            "Resmi 5.8.2026 – 1.7.2033 kademeli geçiş takvimi (1.1.2027 PDF/A → 1.1.2029 >10.000 m² & Kamu → 1.1.2030 >5.000 m² → 1.7.2030 >2.000 m² → 1.1.2031 >1.000 m² → 1.1.2032 tüm yeni ruhsatlar → 1.7.2033 tadilat/güçlendirme) işlendi.",
+            "src/components/bimplan/LegislationView.tsx, BimGlossary.tsx",
+          ],
+        ],
+      },
+      {
+        type: "p",
+        text: "Tablo B — Kronolojik Geliştirme Yolculuğu (13 Ekim – 15 Ekim 2026 Sürüm Günlüğü):",
+      },
+      {
+        type: "table",
+        columns: ["Tarih", "Commit / Sürüm", "Tamamlanan Mühendislik, Altyapı ve Ürün Adımları"],
+        rows: [
+          [
+            "13 Ekim 2026",
+            "e006d10 / 8b86188",
+            "İlk RG 33331 e-PYS sunucu ön kontrol hattı (ifc-ruhsat entegrasyonu), IDS dışa aktarımı, KVKK kişisel veri maskeleme, temel PDF/A ön kontrol kuyruğu, Cloudflare R2 ve Sentry canlı doğrulaması devreye alındı.",
+          ],
+          [
+            "14 Ekim 2026",
+            "9ab9ae5",
+            "Runtime DB rol ayrımı (teklifpro_app NOBYPASSRLS / teklifpro_migrator), teknik reviewer disiplin yetki doğrulaması (STR/ARC/MEP/ALL), 3×3 kural motoruna IFC özellik aktarımı (LoadBearing, Cover, ExposureClass), ÇŞB 2026 Minha motoru (CSB_2026_V1), IfcCovering kaplama alanı ve TREpys_PozOzellikSeti.PozNo çıkarımı tamamlandı.",
+          ],
+          [
+            "15 Ekim 2026 (Faz 1)",
+            "119bb5f / 70cb4dd",
+            "TS 500 Yapısal Metraj Sihirbazı ve kiriş–döşeme kesişim düşümü (computeBeamSlabIntersectionDeduction), SHA-256 mühürlü ALLPLAN 2026 e-PYS Kiti v1 (/api/smartcheck/epys-allplan-kit), ÇŞB 2026 PDF katalog mühürleme ve gece 03:00 fiyat takipçisi, Paket Kataloğu v6 + 4 dönemli Havale/EFT taahhüt iskontosu + pasif paketten abone göçü canlıya alındı.",
+          ],
+          [
+            "15 Ekim 2026 (Faz 2)",
+            "9dd9149 / efcfecc",
+            "Kurumsal işlemsel e-posta sistemi (8 HTML/Text şablonu + Süper Admin /admin/email-templates önizleme ve test merkezi) ile Bakanlık Nihai PDF Paketi (#1.pdf, #2.pdf, EKLER.pdf) 5 fazlı tam senkronizasyonu ve uzman doğrulama sürümü (BIM-CALC-2026-10-15.2) canlıya alındı.",
+          ],
+        ],
+      },
+    ],
+  },
 ];
 
 export const ROADMAP_SOURCES: DocSource[] = [
-  { label: "RG 5.8.2026/33331 — Dijital Hazırlama Yönetmeliği", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2.htm" },
-  { label: "RG 5.8.2026/33331 — Yönetmelik ekleri (EK-1 – EK-9, taranmış PDF)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2-1.pdf", note: "SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3" },
-  { label: "RG 5.8.2026/33331 — Elektronik Teslim Yönetmeliği", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-3.htm" },
-  { label: "ÇŞB taslak dokümanlar (Kasım 2025, kullanılmadı)", url: "https://webdosya.csb.gov.tr/db/meslekihizmetler/icerikler/cal-stay-taslak-dokumanlar--20251107085546-20251110130354.pdf" },
-  { label: "ifc-ruhsat (MIT) — kural motoru ve ek verisi", url: "https://github.com/BerkantACUN/ifc-ruhsat", note: "BIMMetraj'a cd6d3ce commit'i ile alındı" },
+  { label: "RG 5.8.2026/33331 — Dijital Hazırlama Yönetmeliği (#1.pdf)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2.htm" },
+  { label: "RG 5.8.2026/33331 — Yönetmelik ekleri (EKLER.pdf — EK-1..EK-9, Tablo 7.1–7.9, Tablo 9.1–9.2)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2-1.pdf", note: "SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3" },
+  { label: "RG 5.8.2026/33331 — Elektronik Teslim Yönetmeliği (#2.pdf — Geçici Madde 2 & Madde 14)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-3.htm" },
+  { label: "ÇŞB taslak dokümanlar (Kasım 2025, karşılaştırma referansı — üretimde kullanılmadı)", url: "https://webdosya.csb.gov.tr/db/meslekihizmetler/icerikler/cal-stay-taslak-dokumanlar--20251107085546-20251110130354.pdf" },
+  { label: "ifc-ruhsat (MIT) — temel kural motoru (BIMMetraj içinde Tablo 7.9 ve Tablo 9.2 ile genişletildi)", url: "https://github.com/BerkantACUN/ifc-ruhsat", note: "BIMMetraj'a cd6d3ce commit'i ile alındı ve 15.10.2026'da EKLER.pdf ile güncellendi" },
   { label: "ALLPLAN 2026 özellikleri", url: "https://www.allplan.com/products/allplan-2026-features/modeling-management-collaboration/" },
   { label: "ALLPLAN 2026 sürüm notları", url: "https://www.allplan.com/system/releasenotes/2026/allplan-2026/" },
   { label: "PythonParts 2026 sürüm notları", url: "https://pythonparts.allplan.com/2026/release_notes/" },
