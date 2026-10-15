@@ -16,8 +16,9 @@ const moduleText = (id: string) => JSON.stringify(CALC_MODULES.find(module => mo
 test("engineering review binds every module to a version, evidence and explicit acceptance gaps", () => {
   assert.match(CALC_REVIEW_META.version, /^BIM-CALC-\d{4}-\d{2}-\d{2}\.\d+$/);
   assert.match(CALC_REVIEW_META.implementationBaseline, /^[a-f0-9]{40}$/);
-  assert.ok(CALC_REVIEW_CHANGELOG.length >= 3);
-  assert.equal(CALC_REVIEW_CHANGELOG[0]?.version, CALC_REVIEW_META.version);
+  assert.ok(CALC_REVIEW_CHANGELOG.length >= 5);
+  assert.equal(CALC_REVIEW_CHANGELOG[0]?.revision, "Rev. 1");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.version, CALC_REVIEW_META.version);
   assert.deepEqual(Object.keys(CALC_REVIEW_EVIDENCE).sort(), CALC_MODULES.map(module => module.id).sort());
   for (const [id, evidence] of Object.entries(CALC_REVIEW_EVIDENCE)) {
     assert.ok(evidence.scope.trim() && evidence.pending.trim(), id);

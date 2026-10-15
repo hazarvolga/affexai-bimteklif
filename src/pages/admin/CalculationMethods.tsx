@@ -22,6 +22,9 @@ function Field({ title, children }: { title: string; children: React.ReactNode }
 
 function ModuleCard({ module, index }: { module: CalcModule; index: number }) {
   const evidence = CALC_REVIEW_EVIDENCE[module.id];
+  const moduleRevisions = CALC_REVIEW_CHANGELOG.filter(
+    (entry) => entry.affectedModules.includes(module.id) || Boolean(entry.moduleDetails?.[module.id]),
+  );
   return (
     <article id={module.id} className="scroll-mt-24 space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 print:break-inside-avoid-page">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -38,6 +41,22 @@ function ModuleCard({ module, index }: { module: CalcModule; index: number }) {
         <p className="text-zinc-400"><strong>Açık kabul ölçütü:</strong> {evidence.pending}</p>
         <p className="break-all font-mono text-[11px] text-zinc-500">İnceleme kimliği: {CALC_REVIEW_META.version}/{module.id}</p>
       </div>
+      {moduleRevisions.length > 0 && (
+        <Field title={`Modülün Kronolojik Revizyon Geçmişi (${moduleRevisions[0].revision} → ${moduleRevisions[moduleRevisions.length - 1].revision})`}>
+          <DocTable
+            columns={["Revizyon & Tarih", "Dayanak / Tetikleyen", "Önceki Durum (Nasıldı?)", "Yeni Durum (Nasıl Değiştirildi?)"]}
+            rows={moduleRevisions.map((entry) => {
+              const detail = entry.moduleDetails?.[module.id];
+              return [
+                `${entry.revision} · ${entry.version}\n(${entry.date} · ${entry.commit.slice(0, 7)})`,
+                detail?.basis ?? entry.trigger,
+                detail?.before ?? entry.beforeSummary,
+                detail?.after ?? entry.afterSummary,
+              ];
+            })}
+          />
+        </Field>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <Field title="Kaynak kod"><ul className="space-y-0.5 break-all font-mono text-[11px] text-zinc-400">{module.sourceFiles.map(file => <li key={file}>{file}</li>)}</ul></Field>
         <Field title="Referanslar"><ul className="list-disc space-y-0.5 pl-4 text-xs text-zinc-400">{module.references.map(reference => <li key={reference}>{reference}</li>)}</ul></Field>
@@ -84,22 +103,22 @@ export function CalculationMethods() {
         </section>
         <section className="space-y-3 rounded-xl border border-indigo-500/25 bg-indigo-500/[0.04] p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-bold text-white">Sürüm ve mevzuat revizyon tarihçesi (Önceki Durum → Yeni Durum)</h2>
+            <h2 className="text-base font-bold text-white">Kronolojik Sürüm ve Mevzuat Revizyon Tarihçesi (Rev. 1 → Rev. 5 · Önceki Durum → Yeni Durum)</h2>
             <Badge variant="outline" className="border-indigo-400/30 text-indigo-300">Güncel: {CALC_REVIEW_META.version}</Badge>
           </div>
           <p className="text-xs leading-relaxed text-zinc-300">
-            Uzman mühendislerin hangi tarihte, hangi resmi belge veya teknik geliştirme sonucunda hangi hesaplama/kural yönteminin nasıl değiştirildiğini takip edebilmesi için sürüm geçmişi aşağıda kayıt altına alınmıştır.
+            Uzman mühendislerin geliştirme sürecini başından bugüne kronolojik sırayla (`Rev. 1 → Rev. 2 → Rev. 3 → Rev. 4 → Rev. 5`) takip edebilmesi için her revizyonda neyin, ne zaman, hangi mevzuat veya teknik dayanakla nasıl değiştirildiği aşağıda listelenmiştir. Ayrıca her modül kartının kendi içinde o modüle ait kronolojik revizyon geçmişi yer alır.
           </p>
           <DocTable
             columns={[
-              "Sürüm & Tarih",
+              "Revizyon & Tarih",
               "Tetikleyen Mevzuat / Geliştirme",
               "Önceki Durum (Nasıldı?)",
               "Yeni Durum (Nasıl Değiştirildi?)",
               "Etkilenen Modüller",
             ]}
             rows={CALC_REVIEW_CHANGELOG.map((entry) => [
-              `${entry.version}\n(${entry.date} · ${entry.commit.slice(0, 7)})`,
+              `${entry.revision} · ${entry.version}\n(${entry.date} · ${entry.commit.slice(0, 7)})`,
               entry.trigger,
               entry.beforeSummary,
               entry.afterSummary,

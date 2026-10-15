@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Calculator, Download, Map as MapIcon, Printer } from "lucide-react";
+import { Calculator, Download, History, Map as MapIcon, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Button } from "../../components/ui/button";
@@ -39,6 +39,9 @@ export function DeveloperRoadmap() {
           <p className="mt-2 text-xs text-zinc-500">Hazırlanma: {ROADMAP_META.preparedOn} · {ROADMAP_META.audience}</p>
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">
+          <a href="#revizyon-gunlugu">
+            <Button type="button" variant="outline" className="border-amber-500/40 bg-amber-500/10 text-xs font-bold text-amber-200 hover:bg-amber-500/20"><History size={15} className="mr-2" />Kronolojik Revizyon Günlüğü (Rev. 0 → Rev. 5)</Button>
+          </a>
           <Button type="button" onClick={handleDownloadAllplanKit} className="bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"><Download size={15} className="mr-2" />ALLPLAN 2026 e-PYS Kiti v1</Button>
           <Link to="/admin/roadmap/calculations">
             <Button type="button" className="bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"><Calculator size={15} className="mr-2" />Hesaplama Yöntemleri (uzman doğrulaması)</Button>

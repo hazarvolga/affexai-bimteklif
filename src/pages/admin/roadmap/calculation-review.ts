@@ -2,11 +2,18 @@
 export const CALC_REVIEW_META = {
   version: "BIM-CALC-2026-10-15.3",
   updatedOn: "15 Ekim 2026",
-  implementationBaseline: "142227c2afbeef5ef11e36d26e2bb19ecef6e222",
+  implementationBaseline: "f0413f8fefef5752608339e3e9c4a1ea47b03484",
   approvalStatus: "Referans MM, ST ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
 };
 
+export interface ModuleRevisionNote {
+  before: string;
+  after: string;
+  basis: string;
+}
+
 export interface CalcReviewRevisionEntry {
+  revision: string;
   version: string;
   date: string;
   commit: string;
@@ -14,52 +21,168 @@ export interface CalcReviewRevisionEntry {
   beforeSummary: string;
   afterSummary: string;
   affectedModules: string[];
+  moduleDetails?: Record<string, ModuleRevisionNote>;
 }
 
+/**
+ * Strictly chronological revision log (Rev. 1 -> Rev. 5) so expert engineers can follow
+ * the exact evolution of calculation and rule methods from initial release to current state.
+ */
 export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   {
+    revision: "Rev. 1",
+    version: "BIM-CALC-2026-10-13.1",
+    date: "13 Ekim 2026",
+    commit: "e006d108b8618898dd0f9a2fcdd9afa9d44f749b",
+    trigger: "İlk RG 33331 e-PYS Ön Kontrol Hattı, PDF/A Kuyruğu & Çekirdek Finansal Hesaplama Tabanı",
+    beforeSummary:
+      "IFC ve PDF kontrolleri yalnızca tarayıcı tarafında kısmi önizleme olarak çalışıyordu; sunucu tarafında izole Python (IfcOpenShell / pypdf) kuyruğu, KVKK maskelemesi ve bağımsız uzman doğrulama dokümanı bulunmuyordu.",
+    afterSummary:
+      "Sunucu tarafında izole ifc-worker (IfcOpenShell + ifc-ruhsat@cd6d3ce + pypdf) kuyruğu, IDS dışa aktarımı, TC/VKN/telefon/e-posta KVKK maskelemesi, PDF/A üstveri ve şifreleme kontrolü ile teklif/KDV/marj/eskalasyon hesaplama doğrulama sayfası devreye alındı.",
+    affectedModules: ["teklif-satir", "kdv-tevkifat", "maliyet-marj", "eskalasyon", "ifc-metraj", "epys-on-kontrol", "pdfa"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "İstemci ve PDF çıktılarında ayrı yuvarlama adımları vardı.",
+        after: "10² ölçekli kuruş yuvarlaması (roundMoney) ile ekran, sunucu ve PDF çıktıları tek fonksiyonda birleştirildi.",
+        basis: "3065 sayılı KDV Kanunu & VUK kuruş hassasiyeti",
+      },
+      "epys-on-kontrol": {
+        before: "Sunucu tarafında otomatik RG 33331 IFC ön kontrolü ve EK-9 raporu yoktu.",
+        after: "ifc-ruhsat çekirdeğiyle ilk 21 satırlık EK-9 ön kontrolü, GlobalId bulgu listesi ve KVKK maskelemesi devreye alındı.",
+        basis: "RG 5.8.2026/33331 ilk entegrasyonu",
+      },
+      pdfa: {
+        before: "2B PDF teslim dosyaları için sunucu tarafında PDF/A ve taranmış sayfa kontrolü yoktu.",
+        after: "25 MiB sınırı, XMP pdfaid:part kimliği, şifreli PDF reddi, taranmış sayfa (m.6(4)) ve EK-2 dosya adı kontrolü eklendi.",
+        basis: "Dijital Hazırlama Yön. m.6–7 & Teslim Yön. m.6(4)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 2",
+    version: "BIM-CALC-2026-10-14.1",
+    date: "14 Ekim 2026",
+    commit: "9ab9ae5b07f2d3caeb81ea8c185794fc3595ed5e",
+    trigger: "3×3 IFC Özellik Aktarımı, Reviewer Disiplin Yetkisi, IfcCovering 5D Köprüsü & İlk Minha Motoru",
+    beforeSummary:
+      "3×3 kural motoruna IFC Pset/QTO özellik aktarımı ve reviewer disiplin (STR/ARC/MEP/ALL) doğrulaması sunucu tarafında bağlı değildi; IfcCovering kaplama alanı ve TREpys_PozOzellikSeti.PozNo kanıt satırlarına taşınmıyordu.",
+    afterSummary:
+      "LoadBearing, IsExternal, ExposureClass, Cover (paspayı mm), Disiplin ve ExpectedVolume IFC'den 3×3 motoruna bağlandı; sunucu tarafında reviewer disiplin yetki kontrolü açıldı; IfcCovering (m²) ve TREpys_PozOzellikSeti.PozNo çıkarımı ile CSB_2026_V1 Minha motoru devreye alındı.",
+    affectedModules: ["uc-x-uc", "satir-dogrulama", "ifc-metraj", "ifc-teklif-aktarim", "minha", "epys-on-kontrol"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Yalnızca kiriş, kolon, döşeme ve duvar beton hacimleri (m³) okunuyordu.",
+        after: "IfcCovering kaplama alanları (NetArea/GrossArea m²) ve TREpys_PozOzellikSeti.PozNo öncelikli poz okuma eklendi.",
+        basis: "RG 33331 EK-4 / EK-6 & ISO 16739-1 Qto_CoveringBaseQuantities",
+      },
+      "uc-x-uc": {
+        before: "Kural motoru çalışıyor ancak IFC dosyasından paspayı (Cover), maruziyet sınıfı ve taşıyıcı (LoadBearing) özellikleri aktarılmadığı için girdi eksik dönüyordu.",
+        after: "Pset_ConcreteElementGeneral ve Pset_*Common üzerinden LoadBearing, ExposureClass, Cover (mm) ve ExpectedVolume uçtan uca bağlandı.",
+        basis: "TS 500:2000 m.7.3, 7.4, 11.2.2 & Şirket 3×3 Politikası",
+      },
+      "satir-dogrulama": {
+        before: "Metraj satırı onaylarında inceleyenin mühendislik disiplini kontrol edilmiyordu.",
+        after: "Sunucu tarafında teknik reviewer disiplin yetkisi (STR, ARC, MEP, ALL) doğrulaması zorunlu kılındı.",
+        basis: "Şirket kalite kontrol ve iç denetim politikası (E-9)",
+      },
+      minha: {
+        before: "Kapı/pencere boşlukları için sözleşmesel düşüm eşiği ve söve yan yüzey eklemesi yoktu.",
+        after: "CSB_2026_V1 ölçü esası motoru (duvar 0,50 m², sıva/boya 2,00 m² + söve eklemesi, kalıp 1,00 m²) brüt miktarı ezmeden devreye alındı.",
+        basis: "ÇŞB YFK 2026 İnşaat Birim Fiyat Tarifleri ve Ölçü Esasları",
+      },
+    },
+  },
+  {
+    revision: "Rev. 3",
+    version: "BIM-CALC-2026-10-15.1",
+    date: "15 Ekim 2026 (Faz 1)",
+    commit: "70cb4dd9e03ca0ab153d879fd94cf848b836108b",
+    trigger: "TS 500 Yapısal Kesişim Motoru, ALLPLAN 2026 e-PYS Kiti v1, ÇŞB 2026 PDF Mühürleme & Kota v6",
+    beforeSummary:
+      "Yapısal sihirbazda kiriş–döşeme ortak hacim/kalıp düşümü ayrı modül olarak belgelenmemişti; paket kotaları tek VPS RAM korumasını ve 4 dönemli Havale/EFT taahhüt iskontosunu içermiyordu.",
+    afterSummary:
+      "TS 500 Yapısal Metraj Sihirbazı + kiriş–döşeme kesişim düşümü (computeBeamSlabIntersectionDeduction), SHA-256 mühürlü ALLPLAN 2026 e-PYS Kiti v1, ÇŞB 2026 resmi PDF katalog mühürleme (570 poz) ve Kota v6 (%0/%10/%20/%30 dönem iskontosu) doğrulama kapsamına alındı.",
+    affectedModules: ["yapisal-sihirbaz", "minha", "epys-on-kontrol", "kota"],
+    moduleDetails: {
+      "yapisal-sihirbaz": {
+        before: "Kiriş betonu ve yan kalıbı tam kiriş yüksekliği (h_kiriş) üzerinden brüt hesaplanıyordu.",
+        after: "computeBeamSlabIntersectionDeduction ile döşeme kalınlığı kadar ortak hacim (b × h_kesişim × L) ve yan kalıp (2 × h_kesişim × L) düşülerek sarkık kiriş yüksekliği (h_sarkık) esas alındı.",
+        basis: "TS 500:2000 & ÇŞB 2026 Poz 15.150.1005 / 15.180.1002 ölçü esasları",
+      },
+      kota: {
+        before: "Yalnızca aylık sabit paket fiyatları vardı; sunucu RAM/CPU güvenliği için eşzamanlı IFC sınırı ve dönem iskontosu tanımlı değildi.",
+        after: "Paket kataloğu v6 (25–85 MB IFC, 1–2 eşzamanlı işlem) ve 4 dönemli Havale/EFT taahhüt iskontosu (Aylık %0, 6 Aylık %10, 1 Yıllık %20, 2 Yıllık %30) eklendi.",
+        basis: "Paket Kataloğu v6 (bimmetraj-2026-10-15-v6)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 4",
+    version: "BIM-CALC-2026-10-15.2",
+    date: "15 Ekim 2026 (Faz 2)",
+    commit: "efcfecca08bdbcb11fcbb2dd8aea0ceb0c1eed30",
+    trigger: "Bakanlık Nihai PDF Paketi (#1.pdf, #2.pdf, EKLER.pdf) 5 Fazlı Tam Senkronizasyonu",
+    beforeSummary:
+      "EK-9 yalnızca 21 satırlık tek tablo olarak çalışıyordu; EK-7'de Tablo 7.9 (IfcAnnotation) yoktu; hızlı e-PYS kontrolünde CSBPozNo zorunlu tutuluyordu; PDF ön kontrolünde ISO 216 pafta boyutu, tek pafta ve e-imza kontrolü bulunmuyordu.",
+    afterSummary:
+      "EK-9 Tablo 9.1 (Mimari 21 satır) ve Tablo 9.2 (Diğer Disiplinler 16 satır) ayrımı kuruldu; EK-7 Tablo 7.9 (IfcAnnotation SURVEY) eklendi; #1.pdf m.13(3) Malzeme İsmi_Dayanım zorunluluğu ve 5D CSBPozNo uyarısı ayrıştırıldı; PDF/A'ya m.8(1) ISO 216 pafta boyutu, m.8(2) tek pafta kuralı ve m.6(1)-(2) gömülü e-imza (/Sig) tespiti eklendi.",
+    affectedModules: ["epys-on-kontrol", "epys-hizli", "pdfa", "ifc-metraj"],
+    moduleDetails: {
+      "epys-on-kontrol": {
+        before: "Tüm disiplinler 21 satırlık tek EK-9 tablosuyla denetleniyordu; EK-7 Tablo 7.9 (IfcAnnotation) ve EmsalDurumu='DIGER' tanımlı değildi.",
+        after: "Disiplin koduna göre MM için Tablo 9.1 (21 satır), ST/MK/EE vb. için Tablo 9.2 (16 satır — mahal ve emsal hariç) otomatik seçimi, Tablo 7.9 IfcAnnotation (SURVEY) ve Tablo 7.4 EmsalDurumu ('DAHIL'/'HARIC'/'DIGER') eklendi.",
+        basis: "EKLER.pdf s.31 (Tablo 7.4), s.34 (Tablo 7.9), s.36–37 (Tablo 9.1 & Tablo 9.2)",
+      },
+      "epys-hizli": {
+        before: "Pset_Yapim_Maliyet.CSBPozNo eksikliği ruhsat hatası gibi 30 puan kırıyordu; malzeme adında yalnızca ≤15 karakter kontrolü vardı.",
+        after: "#1.pdf m.13(3) Malzeme İsmi_Dayanım format kontrolü resmi kural yapıldı; CSBPozNo ise ruhsat hatası yerine 5D metraj köprüsü uyarısına çekildi.",
+        basis: "Dijital Hazırlama Yön. (#1.pdf) m.13(3) & EKLER.pdf Tablo 7.x",
+      },
+      pdfa: {
+        before: "Yalnızca PDF/A üstveri kimliği, şifreleme, taranmış sayfa ve EK-2 dosya adı kontrol ediliyordu.",
+        after: "#1.pdf m.8(1) ISO 216 A4 ve katları pafta boyutu (PAFTA_BOYUTU_ISO216), m.8(2) çizim paftalarında tek pafta düzeni (COKLU_PAFTA_DUZENI) ve #2.pdf m.6(1)-(2) gömülü e-imza (/Sig) tespiti eklendi.",
+        basis: "Dijital Hazırlama Yön. (#1.pdf) m.8(1)-(2) & Teslim Yön. (#2.pdf) m.6(1)-(2)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 5",
     version: "BIM-CALC-2026-10-15.3",
-    date: "15 Ekim 2026",
-    commit: "142227c2afbeef5ef11e36d26e2bb19ecef6e222",
+    date: "15 Ekim 2026 (Faz 3)",
+    commit: "f0413f8fefef5752608339e3e9c4a1ea47b03484",
     trigger: "Resmi Mühendislik Kabul Kanıt Paketi (MM, ST, PDF/A-2B) & Kotadan Düşmeyen Canlı Örnek Projeler",
     beforeSummary:
       "MM (Tablo 9.1), ST (Tablo 9.2 + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) için SHA-256 mühürlü canlı Python motoru referans koşu raporu ve /app/smartcheck üzerinde kotadan düşmeyen tek tıkla örnek proje deneme akışı yoktu; ifc_extract.py içinde üst-alt sınıf (IfcWall/IfcWallStandardCase) sorgularında STEP ID tekilleştirme koruması eksikti.",
     afterSummary:
-      "IfcOpenShell 0.8.5 + pypdf 6.10.2 canlı motorlarıyla üretilen 3 referans koşu (d2195a87…, 99e8ba20…, 2f0a4ab7…) docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md altında mühürlendi; seen_elem_ids tekilleştirmesi ve 7 öznitelikli IfcAnnotation (ObjectType='AREA') koruması eklendi; /app/smartcheck içine kotadan düşmeyen 3 canlı örnek proje butonu (/api/smartcheck/sample-projects/:sampleId) devreye alındı.",
+      "IfcOpenShell 0.8.5 + pypdf 6.10.2 canlı motorlarıyla üretilen 3 referans koşu (d2195a87…, 99e8ba20…, 2f0a4ab7…) docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md altında mühürlendi; seen_elem_ids tekilleştirmesi ve 7 öznitelikli IFC4 IfcAnnotation (ObjectType='SURVEY') koruması eklendi; /app/smartcheck içine kotadan düşmeyen 3 canlı örnek proje butonu (/api/smartcheck/sample-projects/:sampleId) devreye alındı.",
     affectedModules: ["epys-on-kontrol", "ifc-metraj", "uc-x-uc", "pdfa", "fiyat-eslestirme"],
-  },
-  {
-    version: "BIM-CALC-2026-10-15.2",
-    date: "15 Ekim 2026",
-    commit: "efcfecca08bdbcb11fcbb2dd8aea0ceb0c1eed30",
-    trigger: "Bakanlık Nihai PDF Paketi (#1.pdf, #2.pdf, EKLER.pdf) Tam Senkronizasyonu",
-    beforeSummary:
-      "EK-9 yalnızca 21 satırlık tek tablo olarak çalışıyordu; EK-7'de Tablo 7.9 (IfcAnnotation) yoktu; hızlı e-PYS kontrolünde CSBPozNo zorunlu tutuluyordu; PDF ön kontrolünde pafta boyutu ve e-imza kontrolü bulunmuyordu.",
-    afterSummary:
-      "EK-9 Tablo 9.1 (Mimari 21 satır) ve Tablo 9.2 (Diğer Disiplinler 16 satır) ayrımı kuruldu; EK-7 Tablo 7.9 (IfcAnnotation SURVEY) eklendi; #1.pdf m.13(3) Malzeme İsmi_Dayanım zorunluluğu ve 5D CSBPozNo uyarısı ayrıştırıldı; PDF/A'ya m.8(1) ISO 216 pafta boyutu, m.8(2) tek pafta kuralı ve m.6(1)-(2) gömülü e-imza (/Sig) tespiti eklendi.",
-    affectedModules: ["epys-on-kontrol", "epys-hizli", "pdfa", "ifc-metraj"],
-  },
-  {
-    version: "BIM-CALC-2026-10-15.1",
-    date: "15 Ekim 2026",
-    commit: "70cb4dd9e03ca0ab153d879fd94cf848b836108b",
-    trigger: "TS 500 Yapısal Kesişim, ÇŞB 2026 Minha, ALLPLAN Kiti v1 & Paket Kataloğu v6",
-    beforeSummary:
-      "Yapısal sihirbazda kiriş–döşeme ortak hacim/kalıp düşümü ve sözleşmesel boşluk düşüm (Minha) eşikleri ayrı modül olarak belgelenmemişti; paket kotaları sunucu RAM korumasını ve 4 dönemli Havale/EFT iskontosunu içermiyordu.",
-    afterSummary:
-      "TS 500 Yapısal Metraj Sihirbazı + kiriş–döşeme kesişim düşümü (computeBeamSlabIntersectionDeduction), ÇŞB 2026 (CSB_2026_V1) Minha motoru (0,50 / 2,00 / 1,00 m²), ALLPLAN 2026 e-PYS Kiti v1 ve Kota v6 (%0/%10/%20/%30 dönem iskontosu) doğrulama kapsamına alındı.",
-    affectedModules: ["yapisal-sihirbaz", "minha", "epys-on-kontrol", "kota"],
-  },
-  {
-    version: "BIM-CALC-2026-10-14.1",
-    date: "14 Ekim 2026",
-    commit: "9ab9ae5b07f2d3caeb81ea8c185794fc3595ed5e",
-    trigger: "İlk Uzman Doğrulama Tabanı (3×3 IFC Girdileri, Reviewer Disiplin Yetkisi & İlk e-PYS/PDF Hattı)",
-    beforeSummary:
-      "Hesaplama modülleri tekil kod dosyalarında dağınıktı; 3×3 kural motoruna IFC Pset/QTO özellik aktarımı ve reviewer disiplin (STR/ARC/MEP/ALL) doğrulaması sunucu tarafında bağlı değildi.",
-    afterSummary:
-      "18+ hesaplama modülü formül, referans, yeniden hesaplanabilir örnek ve otomatik test kanıtlarıyla tek doğrulama sayfasında toplandı; 3×3 IFC özellik aktarımı ve reviewer disiplin kontrolü devreye alındı.",
-    affectedModules: ["uc-x-uc", "satir-dogrulama", "ifc-metraj", "teklif-satir", "maliyet-marj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "model.by_type('IfcWall') ve model.by_type('IfcWallStandardCase') ardışık çağrıldığında alt sınıf elemanları iki kez sayılabiliyordu.",
+        after: "seen_elem_ids STEP ID tekilleştirme kümesi eklendi; her IFC elemanı üst/alt sınıf hiyerarşisinden bağımsız olarak yalnızca bir kez okunur.",
+        basis: "Canlı IfcOpenShell 0.8.5 doğrulaması & MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md",
+      },
+      "epys-on-kontrol": {
+        before: "7 öznitelikli IFC4 IfcAnnotation şemasında PredefinedType doğrudan sorgulandığında RuntimeError oluşabiliyordu.",
+        after: "ortak.py ve ozellik.py içinde şema koruması ve PredefinedType (None/USERDEFINED) -> ObjectType ('SURVEY') yedeklemesi eklendi; MM (21 satır) ve ST (16 satır) referans modelleri 0 hata ile mühürlendi.",
+        basis: "EK-7 Tablo 7.9 & MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md (d2195a87…, 99e8ba20…)",
+      },
+      "uc-x-uc": {
+        before: "ST disiplini için canlı IfcOpenShell referans modelinde 3×3 paspayı ve metraj toleransı kanıt koşusu belgelenmemişti.",
+        after: "123456_00_ST_BETO_MD_BIM_000_01_000.ifc (99e8ba20…) üzerinde COVER_BELOW_STANDARD_MIN (15 mm < 25 mm) ve QUANTITY_TOLERANCE_EXCEEDED (%5,71 > %3,00) bulguları kanıt paketiyle mühürlendi.",
+        basis: "TS 500:2000 & MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md Bölüm 3",
+      },
+      pdfa: {
+        before: "ISO 216 A3 pafta boyutu ve /Sig gömülü e-imza için mühürlü referans PDF/A-2B kabul koşusu yoktu.",
+        after: "123456_00_MM_GNEL_PL_MMC_K00_01_000.pdf (2f0a4ab7…) ile PDF/A-2B, ISO 216 A3 (420×297 mm) ve /Sig e-imza kabul kanıtı mühürlendi ve canlı örnek proje olarak açıldı.",
+        basis: "MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md Bölüm 4",
+      },
+      "fiyat-eslestirme": {
+        before: "Yeni çalışma alanlarında örnek projeler denendiğinde eşleşecek referans ÇŞB 2026 pozu bulunmayabiliyordu.",
+        after: "Örnek proje yüklendiğinde ÇŞB 2026 15.150.1005 (C30/37 beton) ve 15.390.1002 (alçı sıva) pozları price_snapshots tablosuna otomatik tanımlanarak uçtan uca fiyat eşleştirme testi sağlandı.",
+        basis: "ÇŞB 2026 Birim Fiyat Kataloğu & src/smartcheck/sample-projects.ts",
+      },
+    },
   },
 ];
 
