@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-15.2",
+  version: "BIM-CALC-2026-10-15.3",
   updatedOn: "15 Ekim 2026",
-  implementationBaseline: "efcfecca08bdbcb11fcbb2dd8aea0ceb0c1eed30",
-  approvalStatus: "Bağımsız uzman onayı bekliyor",
+  implementationBaseline: "142227c2afbeef5ef11e36d26e2bb19ecef6e222",
+  approvalStatus: "Referans MM, ST ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface CalcReviewRevisionEntry {
@@ -17,6 +17,17 @@ export interface CalcReviewRevisionEntry {
 }
 
 export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
+  {
+    version: "BIM-CALC-2026-10-15.3",
+    date: "15 Ekim 2026",
+    commit: "142227c2afbeef5ef11e36d26e2bb19ecef6e222",
+    trigger: "Resmi Mühendislik Kabul Kanıt Paketi (MM, ST, PDF/A-2B) & Kotadan Düşmeyen Canlı Örnek Projeler",
+    beforeSummary:
+      "MM (Tablo 9.1), ST (Tablo 9.2 + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) için SHA-256 mühürlü canlı Python motoru referans koşu raporu ve /app/smartcheck üzerinde kotadan düşmeyen tek tıkla örnek proje deneme akışı yoktu; ifc_extract.py içinde üst-alt sınıf (IfcWall/IfcWallStandardCase) sorgularında STEP ID tekilleştirme koruması eksikti.",
+    afterSummary:
+      "IfcOpenShell 0.8.5 + pypdf 6.10.2 canlı motorlarıyla üretilen 3 referans koşu (d2195a87…, 99e8ba20…, 2f0a4ab7…) docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md altında mühürlendi; seen_elem_ids tekilleştirmesi ve 7 öznitelikli IfcAnnotation (ObjectType='AREA') koruması eklendi; /app/smartcheck içine kotadan düşmeyen 3 canlı örnek proje butonu (/api/smartcheck/sample-projects/:sampleId) devreye alındı.",
+    affectedModules: ["epys-on-kontrol", "ifc-metraj", "uc-x-uc", "pdfa", "fiyat-eslestirme"],
+  },
   {
     version: "BIM-CALC-2026-10-15.2",
     date: "15 Ekim 2026",
@@ -86,8 +97,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Mevcut test kota davranışını kapsar; risk/fiyat katsayıları için bağımsız hesap testi ve sektör kalibrasyonu açık.",
   },
   "ifc-metraj": {
-    scope: "Modeldeki beton hacmi (m³), IfcCovering kaplama alanı (m²) ve TREpys_PozOzellikSeti.PozNo niceliklerini okur; kesişim geometrisini çözmez.",
-    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/smartcheck-evidence.test.ts"],
+    scope: "Modeldeki beton hacmi (m³), IfcCovering kaplama alanı (m²) ve TREpys_PozOzellikSeti.PozNo niceliklerini okur; STEP ID tekilleştirmesi (seen_elem_ids) ile üst-alt sınıf mükerrer okumasını engeller.",
+    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/smartcheck-evidence.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
     pending: "Gerçek ALLPLAN/Revit/Archicad dışa aktarımlarında birim, net/brüt ve kaynak eşleşmesinin uzman kabulü.",
   },
   kalip: {
@@ -136,8 +147,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Özel idare şartnameleri ve DIN 18350 / NRM2 alternatif ölçü esası profillerinin saha kabulü.",
   },
   "epys-on-kontrol": {
-    scope: "IFC → sunucu ön kontrolü (EK-1/2/3/5/6, EK-7 Tablo 7.1–7.9 IfcAnnotation dahil) → disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ekranı ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",
-    testFiles: ["workers/ifc/test_epys_preflight.py", "workers/ifc/vendor_tests/ifc_ruhsat/test_kurallar.py", "src/smartcheck/import/epys-preflight-runner.test.ts", "src/smartcheck/epys-allplan-kit.test.ts"],
+    scope: "IFC → sunucu ön kontrolü (EK-1/2/3/5/6, EK-7 Tablo 7.1–7.9 IfcAnnotation dahil) → disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ekranı, kotadan düşmeyen canlı örnek projeler ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",
+    testFiles: ["workers/ifc/test_epys_preflight.py", "workers/ifc/vendor_tests/ifc_ruhsat/test_kurallar.py", "src/smartcheck/import/epys-preflight-runner.test.ts", "src/smartcheck/epys-allplan-kit.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
     pending: "Gerçek proje kabulü ve elle işaretli satırların yetkili incelemesi.",
   },
   "epys-hizli": {
@@ -147,7 +158,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   pdfa: {
     scope: "PDF yükleme, kuyruk, PDF/A kimliği (m.7), ISO 216 A4 katları pafta boyutu (m.8(1)), tek pafta kuralı (m.8(2)), taranmış sayfa (m.6(4)) ve gömülü e-imza (/Sig, m.6(1)-(2)) ön kontrolü aktif.",
-    testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts"],
+    testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
     pending: "Tam PDF/A doğrulayıcısı (veraPDF) entegrasyonu, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi.",
   },
   bindirme: {

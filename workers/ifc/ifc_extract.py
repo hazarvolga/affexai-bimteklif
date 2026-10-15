@@ -705,7 +705,7 @@ def extract_project_compliance(model: ifcopenshell.file, area_scale: float = 1.0
                 dahil_m2 += zone_area
             elif emsal_durumu in {"HARIC", "HARİÇ", "EXCLUDED"}:
                 haric_m2 += zone_area
-            elif emsal_durumu in {"YUZDE30", "YÜZDE30", "%30", "30"}:
+            elif emsal_durumu in {"DIGER", "DİĞER", "YUZDE30", "YÜZDE30", "%30", "30"}:
                 yuzde30_m2 += zone_area
 
     if found_emsal:
@@ -746,8 +746,13 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
     ]
 
     elements_raw = []
+    seen_elem_ids = set()
     for t in target_types:
-        elements_raw.extend(model.by_type(t))
+        for elem in model.by_type(t):
+            eid = elem.id()
+            if eid not in seen_elem_ids:
+                seen_elem_ids.add(eid)
+                elements_raw.append(elem)
 
     if not elements_raw:
         sys.stderr.write("IFC_EMPTY_MODEL: No supported structural entities found in IFC.\n")

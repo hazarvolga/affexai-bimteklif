@@ -73,7 +73,7 @@ export function EpysPreflightPanel({ documentId, refreshKey }: { documentId: str
         <div>
           <p className="flex items-center gap-2 text-xs font-bold text-zinc-200">
             <FileCheck2 size={14} className="text-sky-400" />
-            e-PYS ön kontrolü · EK-9 {report.ek9Table ? `${report.ek9Table.tablo} (${report.ek9Table.baslik} — ${report.ek9Table.satirSayisi} satır)` : "Model Kalite Kontrol Formu"}
+            e-PYS ön kontrolü · EK-9 {report.ek9Table ? `${report.ek9Table.tablo.startsWith("Tablo") ? report.ek9Table.tablo : `Tablo ${report.ek9Table.tablo}`} (${report.ek9Table.baslik} — ${report.ek9Table.satirSayisi} satır)` : "Model Kalite Kontrol Formu"}
           </p>
           <p className="mt-1 text-[10px] text-zinc-500">
             {report.ruleSource.regulation.ad} · RG {report.ruleSource.regulation.resmiGazete} · şema {report.model.schema}

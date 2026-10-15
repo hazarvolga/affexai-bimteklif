@@ -69,8 +69,15 @@ def oznitelik(e: Any, ad: str) -> Any:
     """Öznitelik değeri; şemada yoksa ya da boşsa None."""
     try:
         deger = getattr(e, ad)
-    except AttributeError:
-        return None
+    except (AttributeError, RuntimeError):
+        deger = None
+    if (deger is None or str(deger).strip().upper() == "USERDEFINED") and ad == "PredefinedType":
+        try:
+            obj_type = getattr(e, "ObjectType", None)
+            if isinstance(obj_type, str) and obj_type.strip():
+                deger = obj_type.strip()
+        except (AttributeError, RuntimeError):
+            pass
     if isinstance(deger, str) and not deger.strip():
         return None
     return deger

@@ -184,9 +184,11 @@ def _oznitelik_kontrol(sinif: str, ref: str, g: dict, varliklar: list[Any]) -> l
 def _semada_var(e: Any, ad: str) -> bool:
     try:
         getattr(e, ad)
-    except AttributeError:
+        return True
+    except (AttributeError, RuntimeError):
+        if ad == "PredefinedType" and hasattr(e, "is_a") and e.is_a("IfcAnnotation"):
+            return True
         return False
-    return True
 
 
 def _baska_sette(e: Any, set_adi: str, ad: str) -> str | None:

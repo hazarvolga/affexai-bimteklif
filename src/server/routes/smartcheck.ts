@@ -8,13 +8,14 @@ import express from "express";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { changeProcessingRun, ProcessingConflict } from "../../smartcheck/import/service";
 import { db } from "../../db";
-import { clients, companies, documentProcessingArtifacts, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
+import { clients, companies, documentProcessingArtifacts, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, priceSources, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
 import { fetchTenantIfcLimits, IfcNotAvailableError, IfcLimitsUnavailableError, SMARTCHECK_MAX_FILE_BYTES, SMARTCHECK_MAX_IFC_FILE_BYTES, smartcheckImportEnabled } from "../../smartcheck/import/config";
 import { createStorageAdapter, LocalStorageAdapter } from "../../smartcheck/import/storage";
 import { detectAndValidateFile, maxBytesForSmartCheckFileName, sha256, validateXlsxArchive } from "../../smartcheck/import/file-security";
 import { inspectDocument } from "../../smartcheck/import/processor";
+import { summarizeEpysPreflight } from "../../smartcheck/import/epys-preflight-runner";
 import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
 import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
@@ -24,6 +25,7 @@ import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota"
 import { recordUsage } from "../../services/billing/usage-audit";
 import { transferReviewEvidence } from "../../smartcheck/import/transfer-evidence";
 import { buildAllplanEpysKitV1, buildEpysIdsXml } from "../../smartcheck/epys-allplan-kit";
+import { SAMPLE_PRICE_CATALOG_SEED, SMARTCHECK_SAMPLE_PROJECTS, type SampleProjectId } from "../../smartcheck/sample-projects";
 import {
   smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
@@ -723,6 +725,310 @@ export function registerSmartCheckRoutes(app: Express) {
     } catch (error) {
       console.error("Failed to build e-PYS IDS 1.0 XML", error);
       return res.status(500).json({ error: "e-PYS IDS 1.0 dosyası oluşturulamadı." });
+    }
+  });
+
+  app.get("/api/smartcheck/sample-projects", authenticate, featureGate, readRateLimit, async (_req, res) => {
+    const items = Object.values(SMARTCHECK_SAMPLE_PROJECTS).map((sample) => ({
+      id: sample.id,
+      label: sample.label,
+      shortBadge: sample.shortBadge,
+      description: sample.description,
+      fileName: sample.fileName,
+      displayName: sample.label,
+      rowCount: sample.rows.length,
+      checksumSha256: sample.checksumSha256,
+    }));
+    res.json({ items });
+  });
+
+  // Quota-free sample project loader (MM Tablo 9.1, ST Tablo 9.2 + 3x3, PDF/A-2B ISO 216)
+  app.post("/api/smartcheck/sample-projects/:sampleId", ...protectedStack, async (req, res) => {
+    const sampleId = req.params.sampleId as SampleProjectId;
+    const sample = SMARTCHECK_SAMPLE_PROJECTS[sampleId];
+    if (!sample) {
+      return res.status(404).json({ error: "Örnek proje bulunamadı." });
+    }
+
+    try {
+      const now = new Date();
+      const sampleStorageKey = `${req.user.companyId}/sample-projects/${sample.id}/original`;
+      const progressMessage = sample.artifactType === "pdf_preflight"
+        ? "Örnek PDF/A-2B ve ISO 216 ön kontrol raporu hazır (Kotadan düşmez)"
+        : `Örnek ${sample.shortBadge} QTO ve EK-9 raporu hazır (Kotadan düşmez)`;
+
+      const result = await db.transaction(async (tx) => {
+        const [existingDoc] = await tx
+          .select()
+          .from(documents)
+          .where(and(eq(documents.companyId, req.user.companyId), eq(documents.storageKey, sampleStorageKey)))
+          .limit(1);
+
+        const importMappingJson = sample.artifactType === "epys_preflight"
+          ? {
+              source: "ifc_property",
+              artifactType: "ifc_evidence",
+              schemaVersion: 1,
+              evidenceRowCount: sample.rows.length,
+              sampleId: sample.id,
+            }
+          : {
+              source: "pdf_preflight",
+              artifactType: "pdf_preflight",
+              schemaVersion: 1,
+              sampleId: sample.id,
+            };
+
+        const [doc] = existingDoc
+          ? await tx
+              .update(documents)
+              .set({
+                originalFileName: sample.fileName,
+                displayName: sample.label,
+                mimeType: sample.mimeType,
+                fileSizeBytes: sample.fileSizeBytes,
+                checksumSha256: sample.checksumSha256,
+                importMappingJson,
+                status: "awaiting_review",
+                updatedAt: now,
+              })
+              .where(and(eq(documents.id, existingDoc.id), eq(documents.companyId, req.user.companyId)))
+              .returning()
+          : await tx
+              .insert(documents)
+              .values({
+                companyId: req.user.companyId,
+                uploadedByUserId: req.user.userId,
+                originalFileName: sample.fileName,
+                displayName: sample.label,
+                mimeType: sample.mimeType,
+                fileSizeBytes: sample.fileSizeBytes,
+                storageKey: sampleStorageKey,
+                checksumSha256: sample.checksumSha256,
+                importMappingJson,
+                status: "awaiting_review",
+              })
+              .returning();
+
+        const runIdempotencyKey = `sample:${sample.id}:v1`;
+        const [run] = await tx
+          .insert(documentProcessingRuns)
+          .values({
+            companyId: req.user.companyId,
+            documentId: doc.id,
+            status: "succeeded",
+            currentStage: "awaiting_review",
+            idempotencyKey: runIdempotencyKey,
+            pipelineVersion: 1,
+            provider: sample.artifactType === "epys_preflight" ? "ifcopenshell-0.8.5" : "pypdf-6.10.2",
+            model: "epys-rg33331-2026-10-15",
+            progressPercent: 100,
+            progressMessage,
+            quotaConsumed: false,
+            startedAt: now,
+            completedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: [documentProcessingRuns.companyId, documentProcessingRuns.documentId, documentProcessingRuns.idempotencyKey],
+            set: {
+              status: "succeeded",
+              currentStage: "awaiting_review",
+              progressPercent: 100,
+              progressMessage,
+              quotaConsumed: false,
+              errorCode: null,
+              errorMessage: null,
+              completedAt: now,
+              updatedAt: now,
+            },
+          })
+          .returning();
+
+        const artifactJson = sample.artifactType === "epys_preflight"
+          ? summarizeEpysPreflight(sample.artifactPayload as any)
+          : sample.artifactPayload;
+        const artifactBuffer = Buffer.from(JSON.stringify(artifactJson));
+        const artifactStorageKey = `${sampleStorageKey}/${sample.artifactType}.json`;
+
+        await tx
+          .insert(documentProcessingArtifacts)
+          .values({
+            companyId: req.user.companyId,
+            documentId: doc.id,
+            processingRunId: run.id,
+            artifactType: sample.artifactType,
+            storageKey: artifactStorageKey,
+            checksumSha256: sha256(artifactBuffer),
+            schemaVersion: 1,
+            contentType: "application/json",
+            sizeBytes: artifactBuffer.length,
+            metadataJson: artifactJson,
+          })
+          .onConflictDoUpdate({
+            target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+            set: {
+              storageKey: artifactStorageKey,
+              checksumSha256: sha256(artifactBuffer),
+              sizeBytes: artifactBuffer.length,
+              metadataJson: artifactJson,
+            },
+          });
+
+        for (const row of sample.rows) {
+          await tx
+            .insert(normalizedQuantityRows)
+            .values({
+              companyId: req.user.companyId,
+              documentId: doc.id,
+              processingRunId: run.id,
+              sheetName: row.sheetName,
+              sourceRowNumber: row.sourceRowNumber,
+              sourceCellRange: row.sourceCellRange,
+              rawDescription: row.rawDescription,
+              rawPositionCode: row.rawPositionCode,
+              rawUnit: row.rawUnit,
+              rawQuantity: row.rawQuantity,
+              rawPrice: row.rawPrice,
+              rawWastePercent: row.rawWastePercent,
+              formulaJson: row.formulaJson,
+              normalizedDescription: row.normalizedDescription,
+              normalizedPositionCode: row.normalizedPositionCode,
+              normalizedUnit: row.normalizedUnit,
+              normalizedQuantity: row.normalizedQuantity,
+              normalizedPrice: row.normalizedPrice,
+              normalizedWastePercent: row.normalizedWastePercent,
+              quantitySource: "document",
+              priceSource: "document",
+              mappingConfidence: row.mappingConfidence,
+              reviewStatus: "pending_review",
+              findingsJson: row.findingsJson,
+            })
+            .onConflictDoUpdate({
+              target: [
+                normalizedQuantityRows.companyId,
+                normalizedQuantityRows.processingRunId,
+                normalizedQuantityRows.sheetName,
+                normalizedQuantityRows.sourceRowNumber,
+              ],
+              set: {
+                sourceCellRange: row.sourceCellRange,
+                rawDescription: row.rawDescription,
+                rawPositionCode: row.rawPositionCode,
+                rawUnit: row.rawUnit,
+                rawQuantity: row.rawQuantity,
+                rawPrice: row.rawPrice,
+                rawWastePercent: row.rawWastePercent,
+                formulaJson: row.formulaJson,
+                normalizedDescription: row.normalizedDescription,
+                normalizedPositionCode: row.normalizedPositionCode,
+                normalizedUnit: row.normalizedUnit,
+                normalizedQuantity: row.normalizedQuantity,
+                normalizedPrice: row.normalizedPrice,
+                normalizedWastePercent: row.normalizedWastePercent,
+                mappingConfidence: row.mappingConfidence,
+                reviewStatus: "pending_review",
+                findingsJson: row.findingsJson,
+                reviewerUserId: null,
+                reviewedAt: null,
+                reviewerNotes: null,
+                updatedAt: now,
+              },
+            });
+        }
+
+        // Seed official reference price snapshots so the engineer can test price matching immediately
+        const sampleSourceIdentifier = "CSB-2026-YFK-SAMPLE-SEED-V1";
+        const [existingPriceSource] = await tx
+          .select()
+          .from(priceSources)
+          .where(
+            and(
+              eq(priceSources.companyId, req.user.companyId),
+              eq(priceSources.sourceDocumentIdentifier, sampleSourceIdentifier),
+            ),
+          )
+          .limit(1);
+
+        const sourceDocHash = sha256Payload({ items: SAMPLE_PRICE_CATALOG_SEED });
+        const [priceSource] = existingPriceSource
+          ? [existingPriceSource]
+          : await tx
+              .insert(priceSources)
+              .values({
+                companyId: req.user.companyId,
+                sourceType: "official_reference",
+                name: "ÇŞİDB 2026 Yılı İnşaat ve Tesisat Birim Fiyatları (Örnek Referans Katalog)",
+                authority: "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı — Yüksek Fen Kurulu",
+                sourceDocumentIdentifier: sampleSourceIdentifier,
+                sourceDocumentHash: sourceDocHash,
+                licenseStatus: "verified",
+                jurisdiction: "TR",
+                region: "TR-Genel",
+                createdByUserId: req.user.userId,
+                metadataJson: { seededBy: "smartcheck_sample_project" },
+              })
+              .returning();
+
+        for (const snap of SAMPLE_PRICE_CATALOG_SEED) {
+          const snapshotKey = sha256Payload({
+            positionCode: snap.positionCode,
+            unit: snap.unit,
+            amount: snap.amount,
+            currency: snap.currency,
+          });
+          await tx
+            .insert(priceSnapshots)
+            .values({
+              companyId: req.user.companyId,
+              priceSourceId: priceSource.id,
+              snapshotKey,
+              externalReference: `ÇŞB 2026 Poz ${snap.positionCode}`,
+              positionCode: snap.positionCode,
+              description: snap.description,
+              unit: snap.unit,
+              amount: String(snap.amount),
+              currency: snap.currency as "TRY" | "USD" | "EUR",
+              vatStatus: "excluded",
+              vatPercent: "20",
+              freightStatus: "included",
+              region: "TR-Genel",
+              validFrom: new Date("2026-01-01T00:00:00Z"),
+              validUntil: new Date("2026-12-31T23:59:59Z"),
+              capturedAt: now,
+              sourceDocumentHash: sourceDocHash,
+              sourceVersion: "2026-1",
+              confidence: "0.95",
+              reviewStatus: "approved",
+              reviewedByUserId: req.user.userId,
+              reviewedAt: now,
+              reviewerNotes: "Örnek proje denemesi için hazır referans birim fiyat kaydı.",
+              metadataJson: { seededBy: "smartcheck_sample_project" },
+            })
+            .onConflictDoNothing({
+              target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey],
+            });
+        }
+
+        return { doc, run };
+      });
+
+      await audit(req, "sample_project_loaded", "document", result.doc.id, {
+        sampleId: sample.id,
+        fileName: sample.fileName,
+        quotaConsumed: false,
+      });
+
+      return res.status(201).json({
+        documentId: result.doc.id,
+        processingRunId: result.run.id,
+        sampleId: sample.id,
+        fileName: sample.fileName,
+        displayName: sample.label,
+        rowCount: sample.rows.length,
+      });
+    } catch (error) {
+      console.error("Failed to load SmartCheck sample project", error);
+      return res.status(500).json({ error: "Örnek proje yüklenemedi." });
     }
   });
 }
