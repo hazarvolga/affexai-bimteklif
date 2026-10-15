@@ -33,7 +33,13 @@ export const createPlanInput = planFields.extend({
   isFeatured: z.boolean().default(false),
   displayOrder: z.number().int().min(0).max(10000).default(0),
 });
-export const updatePlanInput = planFields.partial().refine(value => Object.keys(value).length > 0);
+export const updatePlanInput = planFields
+  .partial()
+  .extend({
+    replacementPlanId: z.string().uuid().nullable().optional(),
+  })
+  .strict()
+  .refine(value => Object.keys(value).length > 0);
 export const updateSubscriptionInput = z.object({
   planId: z.string().uuid().nullable().optional(),
   status: z.enum(subscriptionStatusEnum.enumValues).optional(),

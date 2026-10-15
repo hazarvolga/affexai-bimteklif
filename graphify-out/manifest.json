@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1791880512.0188756,
-    "ast_hash": "c1ea8fde3744a4415c49ba79ea5b0b13",
+    "mtime": 1792053467.8550417,
+    "ast_hash": "ae8a84d9277a6652e8168761550b7fff",
     "semantic_hash": ""
   },
   "src/academy/activation.test.ts": {
@@ -1350,13 +1350,13 @@
     "semantic_hash": ""
   },
   "src/hooks/useAuth.tsx": {
-    "mtime": 1791720672.298884,
-    "ast_hash": "dc52fd8edc3ecf73021236fba008f408",
+    "mtime": 1792053364.0248876,
+    "ast_hash": "cd12d450247747273585301d9611c247",
     "semantic_hash": ""
   },
   "src/lib/api.ts": {
-    "mtime": 1791720672.3059998,
-    "ast_hash": "c5819938220e94ac4c28274298e2f9dd",
+    "mtime": 1792053362.4596477,
+    "ast_hash": "7690672ace866a78b8cdd7d1c37a10c4",
     "semantic_hash": ""
   },
   "src/lib/calculations.test.ts": {
@@ -1715,8 +1715,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/billing.ts": {
-    "mtime": 1792049357.4069483,
-    "ast_hash": "8321e771d52f8eb06f46320f4f528090",
+    "mtime": 1792051981.5856133,
+    "ast_hash": "cfb357e992358b17e9dc3259aab9b410",
     "semantic_hash": ""
   },
   "src/server/routes/clients.ts": {
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1791992427.4983914,
-    "ast_hash": "413889bb8c0ca061868d3bd5382582cd",
+    "mtime": 1792054158.0047336,
+    "ast_hash": "0d0ef3c1262e98edcf9b88bae8feb900",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4600,13 +4600,13 @@
     "semantic_hash": ""
   },
   "src/pages/admin/PlansList.tsx": {
-    "mtime": 1792051346.997475,
-    "ast_hash": "e2877bcf4fcec0e72ed706032f9bdf70",
+    "mtime": 1792054027.931031,
+    "ast_hash": "c62973cb5091c63f76cfaaa2bb88697c",
     "semantic_hash": ""
   },
   "src/pages/admin/TenantsList.tsx": {
-    "mtime": 1791720672.3229756,
-    "ast_hash": "4b92b304db5df32b23514448ba403b92",
+    "mtime": 1792053464.8650148,
+    "ast_hash": "b26ad83ab86b3bc8be01c27673b8536e",
     "semantic_hash": ""
   },
   "src/server/app.preflight.test.ts": {
@@ -4625,8 +4625,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/admin.ts": {
-    "mtime": 1792049360.7683756,
-    "ast_hash": "1c46d59cc917c5847794562c14301748",
+    "mtime": 1792053829.3875897,
+    "ast_hash": "674a705e1cae3f7614f69ff8b3526114",
     "semantic_hash": ""
   },
   "src/server/routes/company-invitation.integration.test.ts": {
@@ -4900,18 +4900,18 @@
     "semantic_hash": ""
   },
   "src/server/admin/changes.ts": {
-    "mtime": 1791880512.0301244,
-    "ast_hash": "4f4be629874a08e23df9025cf7f543ba",
+    "mtime": 1792053827.6280031,
+    "ast_hash": "4e522a10dc011ec26f10e64aa1df4a8b",
     "semantic_hash": ""
   },
   "src/server/admin/input.test.ts": {
-    "mtime": 1791880512.0303533,
-    "ast_hash": "af22724a2801a8ec38675aae7fd8dfdc",
+    "mtime": 1792054057.6423762,
+    "ast_hash": "4a34e79a8f511c8d92b3f568541c2f57",
     "semantic_hash": ""
   },
   "src/server/admin/input.ts": {
-    "mtime": 1791880512.0306096,
-    "ast_hash": "bbe34454dcb4aafbeace971633728a7b",
+    "mtime": 1792053825.5951858,
+    "ast_hash": "7d15106362aec6f8cdfeeaf747dfc40f",
     "semantic_hash": ""
   },
   "src/server/auth/invitations.test.ts": {
@@ -4940,8 +4940,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/admin.integrity.test.ts": {
-    "mtime": 1791720672.3405461,
-    "ast_hash": "1e8ec7463c71942e7d8901a1d5129679",
+    "mtime": 1792054058.7169678,
+    "ast_hash": "9213d0b91f7a4a76097d9c5f3387c04d",
     "semantic_hash": ""
   },
   "src/server/routes/quotations.integrity.test.ts": {
@@ -5335,8 +5335,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/TenantDetail.tsx": {
-    "mtime": 1792051348.7239397,
-    "ast_hash": "2a9013fb7120877be1082e1a6a8b7cf3",
+    "mtime": 1792053466.4026027,
+    "ast_hash": "d844c40bed7a7b2a386ae1af14e122dc",
     "semantic_hash": ""
   },
   "src/server/routes/admin-features.test.ts": {
@@ -5640,8 +5640,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/admin-data.ts": {
-    "mtime": 1791726342.7098143,
-    "ast_hash": "fab31c68fa395d6baac1410624a85730",
+    "mtime": 1792053830.9041803,
+    "ast_hash": "895fb01ce9e1d41ebc7d6986b99e003e",
     "semantic_hash": ""
   },
   "src/server/auth/email-delivery.test.ts": {

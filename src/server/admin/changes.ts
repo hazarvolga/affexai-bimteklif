@@ -41,9 +41,77 @@ export async function updatePlan(adminId: string, id: string, input: z.infer<typ
   return db.transaction(async tx => {
     const [before] = await tx.select().from(plans).where(eq(plans.id, id)).for('update');
     if (!before) throw new AdminChangeError(404, 'Plan not found');
-    const [after] = await tx.update(plans).set(input).where(eq(plans.id, id)).returning();
-    await tx.insert(adminAuditLogs).values({ adminId, action: 'plan.updated', details: { before, after } });
-    return after;
+
+    const { replacementPlanId, ...planUpdates } = input;
+    const isDeactivating = planUpdates.isActive === false && before.isActive === true;
+
+    if (isDeactivating && planUpdates.isPublished === undefined) {
+      planUpdates.isPublished = false;
+    }
+
+    const existingSubscriptions =
+      isDeactivating || replacementPlanId
+        ? await tx.select().from(subscriptions).where(eq(subscriptions.planId, id)).for('update')
+        : [];
+
+    let migratedCompanyIds: string[] = [];
+
+    if (existingSubscriptions.length > 0 && isDeactivating && !replacementPlanId) {
+      throw new AdminChangeError(
+        409,
+        'Bu paketi kullanan aktif firmalar var. Paketi tamamen pasife almak için mevcut firmaların aktarılacağı alternatif bir aktif paket seçmelisiniz.'
+      );
+    }
+
+    if (replacementPlanId) {
+      if (replacementPlanId === id) {
+        throw new AdminChangeError(400, 'Alternatif paket kendisi olamaz.');
+      }
+      const [replacementPlan] = await tx
+        .select()
+        .from(plans)
+        .where(and(eq(plans.id, replacementPlanId), eq(plans.isActive, true)))
+        .for('share');
+      if (!replacementPlan) {
+        throw new AdminChangeError(400, 'Seçilen alternatif paket aktif olmalıdır.');
+      }
+
+      if (existingSubscriptions.length > 0) {
+        const now = new Date();
+        await tx
+          .update(subscriptions)
+          .set({ planId: replacementPlanId, updatedAt: now })
+          .where(eq(subscriptions.planId, id));
+        migratedCompanyIds = existingSubscriptions.map(s => s.companyId);
+      }
+    }
+
+    const [after] =
+      Object.keys(planUpdates).length > 0
+        ? await tx.update(plans).set(planUpdates).where(eq(plans.id, id)).returning()
+        : [before];
+
+    await tx.insert(adminAuditLogs).values({
+      adminId,
+      action: 'plan.updated',
+      details: {
+        before,
+        after,
+        ...(replacementPlanId
+          ? { replacementPlanId, migratedCompanyIds, migratedCount: migratedCompanyIds.length }
+          : {}),
+      },
+    });
+    return {
+      ...after,
+      ...(replacementPlanId
+        ? {
+            replacementPlanId,
+            migratedCompanyIds,
+            migratedCount: migratedCompanyIds.length,
+          }
+        : {}),
+    };
   });
 }
 

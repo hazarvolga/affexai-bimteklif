@@ -3,15 +3,20 @@ import { Link } from 'react-router-dom';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import {
+  AlertTriangle,
+  ArrowRightLeft,
   Building2,
   CheckCircle2,
   Clock,
+  EyeOff,
   Landmark,
   Package,
   Plus,
+  Power,
   Receipt,
   Save,
   Trash2,
+  Users,
   X,
   XCircle,
 } from 'lucide-react';
@@ -76,6 +81,13 @@ export function PlansList() {
   const [displayOrder, setDisplayOrder] = useState(0);
   const [marketingBadge, setMarketingBadge] = useState('');
   const [marketingDescription, setMarketingDescription] = useState('');
+  const [editReplacementPlanId, setEditReplacementPlanId] = useState<string>('');
+
+  // Quick Deactivate / Subscriber Migration Modal State
+  const [deactivatingPlan, setDeactivatingPlan] = useState<any>(null);
+  const [deactivateMode, setDeactivateMode] = useState<'hide_only' | 'deactivate_and_migrate'>('deactivate_and_migrate');
+  const [replacementPlanId, setReplacementPlanId] = useState<string>('');
+  const [togglingPlanId, setTogglingPlanId] = useState<string | null>(null);
 
   // Bank Accounts State
   const [bankAccounts, setBankAccounts] = useState<BankAccountFormItem[]>([]);
@@ -165,6 +177,8 @@ export function PlansList() {
       setDisplayOrder(plan.displayOrder);
       setMarketingBadge(plan.marketingBadge ?? '');
       setMarketingDescription(plan.marketingDescription ?? '');
+      const defaultReplacement = plans.find((p) => p.isActive && p.id !== plan.id)?.id ?? '';
+      setEditReplacementPlanId(defaultReplacement);
     } else {
       setEditingPlan(null);
       setName('');
@@ -179,12 +193,121 @@ export function PlansList() {
       setDisplayOrder(0);
       setMarketingBadge('');
       setMarketingDescription('');
+      setEditReplacementPlanId('');
     }
     setIsModalOpen(true);
   };
 
+  const openDeactivateModal = (plan: any) => {
+    const alternativePlans = plans.filter((p) => p.isActive && p.id !== plan.id);
+    setDeactivatingPlan(plan);
+    setDeactivateMode((plan.subscriberCount ?? 0) > 0 ? 'deactivate_and_migrate' : 'deactivate_and_migrate');
+    setReplacementPlanId(alternativePlans[0]?.id ?? '');
+  };
+
+  const handleQuickActivate = async (plan: any) => {
+    setTogglingPlanId(plan.id);
+    try {
+      const res = await fetchWithAuth(`/api/admin/plans/${plan.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: true }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(body.error || 'Paket aktif edilemedi.');
+        return;
+      }
+      toast.success(`"${plan.name}" paketi yeniden kullanıma açıldı.`);
+      loadPlans();
+    } catch {
+      toast.error('Sistemsel bir hata oluştu.');
+    } finally {
+      setTogglingPlanId(null);
+    }
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!deactivatingPlan) return;
+    const subCount = deactivatingPlan.subscriberCount ?? 0;
+
+    if (deactivateMode === 'hide_only') {
+      setTogglingPlanId(deactivatingPlan.id);
+      try {
+        const res = await fetchWithAuth(`/api/admin/plans/${deactivatingPlan.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ isPublished: false, isActive: true }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          toast.error(body.error || 'Paket vitrinden gizlenemedi.');
+          return;
+        }
+        toast.success(
+          `"${deactivatingPlan.name}" yeni satışa kapatıldı. Mevcut ${subCount} firma paketlerini kullanmaya devam edebilir.`,
+        );
+        setDeactivatingPlan(null);
+        loadPlans();
+      } catch {
+        toast.error('Sistemsel bir hata oluştu.');
+      } finally {
+        setTogglingPlanId(null);
+      }
+      return;
+    }
+
+    if (subCount > 0 && !replacementPlanId) {
+      toast.error('Mevcut müşterilerin aktarılacağı alternatif bir aktif paket seçmelisiniz.');
+      return;
+    }
+
+    setTogglingPlanId(deactivatingPlan.id);
+    try {
+      const payload: Record<string, unknown> = {
+        isActive: false,
+        isPublished: false,
+      };
+      if (replacementPlanId) {
+        payload.replacementPlanId = replacementPlanId;
+      }
+
+      const res = await fetchWithAuth(`/api/admin/plans/${deactivatingPlan.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(body.error || 'Paket pasife alınamadı.');
+        return;
+      }
+
+      const migratedCount = typeof body.migratedCount === 'number' ? body.migratedCount : subCount;
+      const targetPlanName = plans.find((p) => p.id === replacementPlanId)?.name;
+      if (migratedCount > 0 && targetPlanName) {
+        toast.success(
+          `"${deactivatingPlan.name}" pasife alındı ve ${migratedCount} firma "${targetPlanName}" paketine kesintisiz aktarıldı.`,
+        );
+      } else {
+        toast.success(`"${deactivatingPlan.name}" paketi pasife alındı.`);
+      }
+      setDeactivatingPlan(null);
+      loadPlans();
+    } catch {
+      toast.error('Sistemsel bir hata oluştu.');
+    } finally {
+      setTogglingPlanId(null);
+    }
+  };
+
   const handleSave = async () => {
-    const payload = {
+    const editingSubCount = editingPlan?.subscriberCount ?? 0;
+    const isDeactivatingInEdit = Boolean(editingPlan && editingPlan.isActive && !isActive);
+
+    if (isDeactivatingInEdit && editingSubCount > 0 && !editReplacementPlanId) {
+      toast.error('Bu paketi kullanan firmalar var. Pasife almak için alternatif paket seçmelisiniz.');
+      return;
+    }
+
+    const payload: Record<string, unknown> = {
       name,
       monthlyPrice: Number(price),
       monthlyQuoteLimit: Number(limit),
@@ -192,12 +315,16 @@ export function PlansList() {
       ifcMaxFileMb: Number(ifcMaxFileMb),
       ifcMaxConcurrent: Number(ifcMaxConcurrent),
       isActive,
-      isPublished,
+      isPublished: isActive ? isPublished : false,
       isFeatured,
       displayOrder: Number(displayOrder),
       marketingBadge: marketingBadge.trim() || null,
       marketingDescription: marketingDescription.trim() || null,
     };
+
+    if (editingPlan && (!isActive || editReplacementPlanId) && editingSubCount > 0 && editReplacementPlanId) {
+      payload.replacementPlanId = editReplacementPlanId;
+    }
 
     try {
       const url = editingPlan ? `/api/admin/plans/${editingPlan.id}` : '/api/admin/plans';
@@ -207,13 +334,18 @@ export function PlansList() {
         method,
         body: JSON.stringify(payload),
       });
+      const body = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        toast.success(editingPlan ? 'Paket güncellendi.' : 'Yeni paket oluşturuldu.');
+        if (typeof body.migratedCount === 'number' && body.migratedCount > 0) {
+          toast.success(`Paket güncellendi ve ${body.migratedCount} firma alternatif pakete aktarıldı.`);
+        } else {
+          toast.success(editingPlan ? 'Paket güncellendi.' : 'Yeni paket oluşturuldu.');
+        }
         setIsModalOpen(false);
         loadPlans();
       } else {
-        toast.error('İşlem başarısız oldu.');
+        toast.error(body.error || 'İşlem başarısız oldu.');
       }
     } catch {
       toast.error('Sistemsel bir hata oluştu.');
@@ -351,110 +483,203 @@ export function PlansList() {
             Henüz paket tanımlanmamış. Paket ekleyin veya platform yöneticisinden başlangıç kataloğunu yüklemesini isteyin.
           </div>
         ) : (
-          plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`rounded-xl border p-5 flex flex-col justify-between ${
-                plan.isActive ? 'border-zinc-700 bg-zinc-900/60' : 'border-red-500/20 bg-red-500/5'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between gap-1 mb-2">
-                  <h3 className="text-base font-bold text-white leading-tight">{plan.name}</h3>
-                  {!plan.isActive ? (
-                    <span className="text-[10px] uppercase font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded">
-                      Pasif
-                    </span>
-                  ) : plan.monthlyPrice === 0 ? (
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20 shrink-0">
-                      Trial
-                    </span>
-                  ) : plan.name.includes('Standart Denetçi') ? (
-                    <span className="text-[10px] font-bold text-sky-400 bg-sky-400/10 px-1.5 py-0.5 rounded border border-sky-400/20 shrink-0">
-                      Mikro
-                    </span>
-                  ) : plan.name.includes('5D BIM') ? (
-                    <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded border border-indigo-400/20 shrink-0">
-                      Popüler
-                    </span>
-                  ) : plan.name.includes('Kurumsal') ? (
-                    <span className="text-[10px] font-bold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded border border-purple-400/20 shrink-0">
-                      Kurumsal
-                    </span>
-                  ) : null}
-                </div>
+          plans.map((plan) => {
+            const subCount = plan.subscriberCount ?? 0;
+            const subscribers: Array<{ companyId: string; companyName: string; status: string }> = Array.isArray(
+              plan.subscribers,
+            )
+              ? plan.subscribers
+              : [];
 
-                <div className="mb-5 mt-3">
-                  <div className="flex items-baseline gap-1">
-                    {plan.monthlyPrice === 0 ? (
-                      <span className="text-2xl font-black text-emerald-400">Ücretsiz</span>
+            return (
+              <div
+                key={plan.id}
+                className={`rounded-xl border p-5 flex flex-col justify-between transition-all ${
+                  plan.isActive ? 'border-zinc-700 bg-zinc-900/60' : 'border-red-500/25 bg-red-950/10'
+                }`}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-1 mb-2">
+                    <h3 className="text-base font-bold text-white leading-tight">{plan.name}</h3>
+                    {!plan.isActive ? (
+                      <span className="text-[10px] uppercase font-bold text-red-300 bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded shrink-0">
+                        Pasif
+                      </span>
+                    ) : plan.monthlyPrice === 0 ? (
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20 shrink-0">
+                        Trial
+                      </span>
+                    ) : plan.name.includes('Standart Denetçi') ? (
+                      <span className="text-[10px] font-bold text-sky-400 bg-sky-400/10 px-1.5 py-0.5 rounded border border-sky-400/20 shrink-0">
+                        Mikro
+                      </span>
+                    ) : plan.name.includes('5D BIM') ? (
+                      <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded border border-indigo-400/20 shrink-0">
+                        Popüler
+                      </span>
+                    ) : plan.name.includes('Kurumsal') ? (
+                      <span className="text-[10px] font-bold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded border border-purple-400/20 shrink-0">
+                        Kurumsal
+                      </span>
                     ) : (
-                      <>
-                        <span className="text-2xl font-black text-white">₺{plan.monthlyPrice}</span>
-                        <span className="text-zinc-500 text-xs">/ ay</span>
-                      </>
+                      <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0">
+                        Aktif
+                      </span>
                     )}
                   </div>
+
+                  {/* Durum & Müşteri Rozetleri */}
+                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${
+                        plan.isActive && plan.isPublished
+                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                          : plan.isActive && !plan.isPublished
+                            ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                            : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                      }`}
+                    >
+                      {plan.isActive && plan.isPublished
+                        ? 'Vitrin: Yayında'
+                        : plan.isActive && !plan.isPublished
+                          ? 'Vitrin: Gizli (Mevcutlara Açık)'
+                          : 'Satışa ve Kullanıma Kapalı'}
+                    </span>
+
+                    <span
+                      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold border ${
+                        subCount > 0
+                          ? 'bg-indigo-500/15 text-indigo-200 border-indigo-500/30'
+                          : 'bg-zinc-800/80 text-zinc-400 border-zinc-700'
+                      }`}
+                    >
+                      <Users size={10} />
+                      {subCount} Firma
+                    </span>
+                  </div>
+
+                  <div className="mb-4 mt-2">
+                    <div className="flex items-baseline gap-1">
+                      {plan.monthlyPrice === 0 ? (
+                        <span className="text-2xl font-black text-emerald-400">Ücretsiz</span>
+                      ) : (
+                        <>
+                          <span className="text-2xl font-black text-white">₺{plan.monthlyPrice}</span>
+                          <span className="text-zinc-500 text-xs">/ ay</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                      {plan.monthlyQuoteLimit === 0 ? (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                          <span className="text-zinc-400">Teklif Modülü Dahil Değil</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                          <span>
+                            <strong className="text-white">
+                              {`${plan.monthlyQuoteLimit.toLocaleString('tr-TR')} Adet`}
+                            </strong>{' '}
+                            Teklif Kotası
+                          </span>
+                        </>
+                      )}
+                    </li>
+                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span>
+                        <strong className="text-white">
+                          {plan.monthlyIfcLimit === null ? 'Paket limiti tanımsız' : `${plan.monthlyIfcLimit} Adet`}
+                        </strong>{' '}
+                        {plan.monthlyQuoteLimit === 0 ? 'İsimlendirme Denetimi' : 'IFC Analizi'}
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span>
+                        Maks <strong className="text-white">{Math.min(plan.ifcMaxFileMb, 100)} MB</strong> Dosya
+                        {plan.ifcMaxFileMb > 100 && (
+                          <span className="text-amber-400">
+                            {' '}
+                            (kayıt {plan.ifcMaxFileMb} MB; sunucu tavanı uygulanır)
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                      <span>
+                        <strong className="text-white">{plan.ifcMaxConcurrent ?? 1}</strong> Eşzamanlı İş
+                      </span>
+                    </li>
+                  </ul>
+
+                  {/* Bu paketi kullanan firmalar özeti */}
+                  {subCount > 0 && (
+                    <div className="mt-3 pt-2.5 border-t border-zinc-800/80">
+                      <p className="text-[10px] font-semibold text-zinc-400 mb-1">Bu Paketteki Firmalar:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {subscribers.slice(0, 3).map((sub) => (
+                          <Link
+                            key={sub.companyId}
+                            to={`/admin/tenants/${sub.companyId}`}
+                            className="inline-flex items-center rounded bg-zinc-800 hover:bg-zinc-700 px-1.5 py-0.5 text-[10px] text-indigo-300 font-medium truncate max-w-[120px]"
+                            title={sub.companyName}
+                          >
+                            {sub.companyName}
+                          </Link>
+                        ))}
+                        {subscribers.length > 3 && (
+                          <span className="text-[10px] text-zinc-500 px-1 py-0.5">
+                            +{subscribers.length - 3} firma
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <ul className="space-y-2.5">
-                  <li className="flex items-center gap-2 text-xs text-zinc-300">
-                    {plan.monthlyQuoteLimit === 0 ? (
-                      <>
-                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                        <span className="text-zinc-400">Teklif Modülü Dahil Değil</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <span>
-                          <strong className="text-white">
-                            {`${plan.monthlyQuoteLimit.toLocaleString('tr-TR')} Adet`}
-                          </strong>{' '}
-                          Teklif Kotası
-                        </span>
-                      </>
-                    )}
-                  </li>
-                  <li className="flex items-center gap-2 text-xs text-zinc-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    <span>
-                      <strong className="text-white">
-                        {plan.monthlyIfcLimit === null ? 'Paket limiti tanımsız' : `${plan.monthlyIfcLimit} Adet`}
-                      </strong>{' '}
-                      {plan.monthlyQuoteLimit === 0 ? 'İsimlendirme Denetimi' : 'IFC Analizi'}
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2 text-xs text-zinc-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    <span>
-                      Maks <strong className="text-white">{Math.min(plan.ifcMaxFileMb, 100)} MB</strong> Dosya
-                      {plan.ifcMaxFileMb > 100 && (
-                        <span className="text-amber-400">
-                          {' '}
-                          (kayıt {plan.ifcMaxFileMb} MB; sunucu tavanı uygulanır)
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2 text-xs text-zinc-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span>
-                      <strong className="text-white">{plan.ifcMaxConcurrent ?? 1}</strong> Eşzamanlı İş
-                    </span>
-                  </li>
-                </ul>
+                <div className="mt-5 pt-3 border-t border-zinc-800/70 flex items-center gap-2">
+                  <Button
+                    onClick={() => openModal(plan)}
+                    variant="outline"
+                    className="flex-1 border-zinc-700 bg-transparent text-zinc-200 hover:bg-zinc-800 text-xs py-1.5 h-8"
+                  >
+                    Düzenle
+                  </Button>
+                  {plan.isActive ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={togglingPlanId === plan.id}
+                      onClick={() => openDeactivateModal(plan)}
+                      className="border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 text-xs py-1.5 h-8 px-2.5"
+                      title="Paketi pasife al veya mevcut müşterileri başka pakete aktar"
+                    >
+                      <Power size={12} className="mr-1" />
+                      Pasife Al
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={togglingPlanId === plan.id}
+                      onClick={() => void handleQuickActivate(plan)}
+                      className="border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 text-xs py-1.5 h-8 px-2.5 font-semibold"
+                    >
+                      <Power size={12} className="mr-1" />
+                      {togglingPlanId === plan.id ? 'Açılıyor...' : 'Aktif Et'}
+                    </Button>
+                  )}
+                </div>
               </div>
-
-              <Button
-                onClick={() => openModal(plan)}
-                variant="outline"
-                className="w-full mt-5 border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs py-1.5"
-              >
-                Düzenle
-              </Button>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -844,9 +1069,33 @@ export function PlansList() {
                 </label>
               </div>
               {!isActive && (
-                <p className="text-xs text-red-400 mt-1">
-                  Dikkat: Bu paketi kullanan müşterilerin kota gerektiren işlemleri de engellenir.
-                </p>
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+                  <p className="text-xs text-amber-200">
+                    Dikkat: Paket pasife alındığında bu pakette kalan firmaların kota gerektiren işlemleri engellenir.
+                  </p>
+                  {editingPlan && (editingPlan.subscriberCount ?? 0) > 0 && (
+                    <div>
+                      <label className="block text-xs font-semibold text-white mb-1">
+                        Mevcut {editingPlan.subscriberCount} firmanın aktarılacağı alternatif aktif paket *
+                      </label>
+                      <select
+                        value={editReplacementPlanId}
+                        onChange={(e) => setEditReplacementPlanId(e.target.value)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-white"
+                      >
+                        <option value="">-- Alternatif Aktif Paket Seçin --</option>
+                        {plans
+                          .filter((p) => p.isActive && p.id !== editingPlan.id)
+                          .map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} ({p.monthlyPrice === 0 ? 'Ücretsiz' : `₺${p.monthlyPrice}/ay`} ·{' '}
+                              {p.monthlyIfcLimit ?? 0} IFC)
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               )}
               <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3 space-y-3">
                 <p className="text-xs font-semibold text-indigo-200">Web sitesi görünümü</p>
@@ -913,6 +1162,178 @@ export function PlansList() {
               </Button>
               <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                 Kaydet
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAKETİ PASİFE AL & MEVCUT MÜŞTERİLERİ AKTARMA MODALI */}
+      {deactivatingPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-zinc-950 border border-zinc-800 p-6 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-300 mb-2">
+                  <AlertTriangle size={12} /> Paket Durumu & Abone Yönetimi
+                </span>
+                <h3 className="text-lg font-bold text-white">
+                  "{deactivatingPlan.name}" Paketini Pasife Al
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Bu paketi yeni satışa kapatabilir veya tamamen pasife alarak mevcut müşterileri alternatif bir pakete kesintisiz aktarabilirsiniz.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeactivatingPlan(null)}
+                className="text-zinc-500 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Mevcut Aboneler Özeti */}
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
+                  <Users size={14} className="text-indigo-400" />
+                  Bu Paketi Kullanan Firma Sayısı:
+                </span>
+                <span className="font-bold text-white">
+                  {deactivatingPlan.subscriberCount ?? 0} Firma
+                </span>
+              </div>
+              {Array.isArray(deactivatingPlan.subscribers) && deactivatingPlan.subscribers.length > 0 && (
+                <div className="mt-2.5 pt-2.5 border-t border-zinc-800 flex flex-wrap gap-1.5">
+                  {deactivatingPlan.subscribers.map((sub: any) => (
+                    <span
+                      key={sub.companyId}
+                      className="inline-flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-[11px] text-indigo-200 font-medium"
+                    >
+                      <Building2 size={11} className="text-indigo-400" />
+                      {sub.companyName}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* İki Kurgusal Seçenek */}
+            <div className="space-y-3">
+              <label
+                onClick={() => setDeactivateMode('deactivate_and_migrate')}
+                className={`block cursor-pointer rounded-xl border p-3.5 transition-all ${
+                  deactivateMode === 'deactivate_and_migrate'
+                    ? 'border-amber-500/50 bg-amber-500/10'
+                    : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                }`}
+              >
+                <div className="flex items-start gap-2.5">
+                  <input
+                    type="radio"
+                    name="deactivateMode"
+                    checked={deactivateMode === 'deactivate_and_migrate'}
+                    onChange={() => setDeactivateMode('deactivate_and_migrate')}
+                    className="mt-0.5 text-amber-500"
+                  />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <ArrowRightLeft size={13} className="text-amber-400" />
+                      Paketi Tamamen Pasife Al {(deactivatingPlan.subscriberCount ?? 0) > 0 ? '& Müşterileri Alternatif Pakete Taşı' : ''}
+                    </p>
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      Paket tamamen kullanım dışı bırakılır (`isActive: false`) ve vitrinden kaldırılır.{' '}
+                      {(deactivatingPlan.subscriberCount ?? 0) > 0
+                        ? 'Mevcut firmalar seçtiğiniz alternatif aktif pakete otomatik olarak aktarılır; hiçbir müşteri hizmet kesintisi yaşamaz.'
+                        : 'Bu pakete bağlı müşteri bulunmadığı için doğrudan pasife alınır.'}
+                    </p>
+
+                    {deactivateMode === 'deactivate_and_migrate' &&
+                      (deactivatingPlan.subscriberCount ?? 0) > 0 && (
+                        <div className="mt-3 pt-3 border-t border-amber-500/20">
+                          <label className="block text-[11px] font-bold text-amber-200 mb-1.5">
+                            Mevcut {deactivatingPlan.subscriberCount} Firmanın Aktarılacağı Alternatif Paket *
+                          </label>
+                          <select
+                            value={replacementPlanId}
+                            onChange={(e) => setReplacementPlanId(e.target.value)}
+                            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white"
+                          >
+                            <option value="">-- Alternatif Aktif Paket Seçin --</option>
+                            {plans
+                              .filter((p) => p.isActive && p.id !== deactivatingPlan.id)
+                              .map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name} — {p.monthlyPrice === 0 ? 'Ücretsiz' : `₺${p.monthlyPrice}/ay`} (
+                                  {p.monthlyIfcLimit ?? 0} IFC / {p.monthlyQuoteLimit ?? 0} Teklif)
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              </label>
+
+              {deactivatingPlan.isPublished && (
+                <label
+                  onClick={() => setDeactivateMode('hide_only')}
+                  className={`block cursor-pointer rounded-xl border p-3.5 transition-all ${
+                    deactivateMode === 'hide_only'
+                      ? 'border-indigo-500/50 bg-indigo-500/10'
+                      : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <input
+                      type="radio"
+                      name="deactivateMode"
+                      checked={deactivateMode === 'hide_only'}
+                      onChange={() => setDeactivateMode('hide_only')}
+                      className="mt-0.5 text-indigo-500"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <EyeOff size={13} className="text-indigo-400" />
+                        Sadece Yeni Satışa Kapat (Mevcut Müşteriler Aynen Devam Etsin)
+                      </p>
+                      <p className="text-[11px] text-zinc-400 mt-1">
+                        Paket kayıt ve fiyatlandırma sayfasından gizlenir (`isPublished: false`), ancak mevcut{' '}
+                        {deactivatingPlan.subscriberCount ?? 0} firma kendi paket kotalarını kullanmaya devam eder.
+                      </p>
+                    </div>
+                  </div>
+                </label>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-zinc-800">
+              <Button variant="ghost" onClick={() => setDeactivatingPlan(null)} className="text-xs">
+                Vazgeç
+              </Button>
+              <Button
+                type="button"
+                disabled={
+                  togglingPlanId === deactivatingPlan.id ||
+                  (deactivateMode === 'deactivate_and_migrate' &&
+                    (deactivatingPlan.subscriberCount ?? 0) > 0 &&
+                    !replacementPlanId)
+                }
+                onClick={() => void handleConfirmDeactivate()}
+                className={
+                  deactivateMode === 'hide_only'
+                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold'
+                    : 'bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold'
+                }
+              >
+                {togglingPlanId === deactivatingPlan.id
+                  ? 'İşleniyor...'
+                  : deactivateMode === 'hide_only'
+                    ? 'Yeni Satışa Kapat (Vitrinden Gizle)'
+                    : (deactivatingPlan.subscriberCount ?? 0) > 0
+                      ? `${deactivatingPlan.subscriberCount} Firmayı Taşı ve Paketi Pasife Al`
+                      : 'Paketi Pasife Al'}
               </Button>
             </div>
           </div>

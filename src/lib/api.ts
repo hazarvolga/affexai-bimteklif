@@ -12,8 +12,23 @@ function handleSessionExpired() {
   window.location.assign(`/login?next=${next}`);
 }
 
+export function getActiveAuthToken(url?: string): string | null {
+  const isAdminContext =
+    (typeof url === 'string' && url.startsWith('/api/admin')) ||
+    (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin'));
+
+  if (isAdminContext) {
+    return (
+      localStorage.getItem('superadmin_token') ||
+      localStorage.getItem('admin_session_backup') ||
+      localStorage.getItem('token')
+    );
+  }
+  return localStorage.getItem('token');
+}
+
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('token');
+  const token = getActiveAuthToken(url);
   const headers = new Headers(options.headers);
   headers.set('Authorization', token ? `Bearer ${token}` : '');
   // Preserve explicit binary/S3 content types. The previous unconditional
@@ -26,6 +41,9 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   });
 
   if (response.status === 401 && token) {
+    if (url.startsWith('/api/admin')) {
+      localStorage.removeItem('superadmin_token');
+    }
     handleSessionExpired();
   }
 

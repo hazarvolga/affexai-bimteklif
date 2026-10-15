@@ -63,7 +63,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
+    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+    const token = isAdminRoute
+      ? localStorage.getItem('superadmin_token') ||
+        localStorage.getItem('admin_session_backup') ||
+        localStorage.getItem('token')
+      : localStorage.getItem('token');
     if (!token) {
       // Yalnızca geliştirme sunucusunda (npm run dev) otomatik demo erişimi sağlanır.
       // Üretim build'inde (import.meta.env.DEV === false) kullanıcı null kalır ve
@@ -79,6 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         const data = await res.json();
+        if (data.user?.isSuperAdmin && !data.user?.impersonatedBy) {
+          localStorage.setItem('superadmin_token', token);
+        }
         setUser(data.user);
         setCompany(data.company);
         setRole(data.role);
@@ -96,6 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = (token: string, nextUser: User, nextCompany: Company, nextRole: string, nextAccountType: 'workspace' | 'academy_learner' = 'workspace') => {
     localStorage.setItem('token', token);
+    if (nextUser?.isSuperAdmin && !nextUser?.impersonatedBy) {
+      localStorage.setItem('superadmin_token', token);
+    }
     setUser(nextUser);
     setCompany(nextCompany);
     setRole(nextRole);
@@ -107,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('superadmin_token');
     localStorage.removeItem('admin_session_backup');
     setUser(null);
     setCompany(null);

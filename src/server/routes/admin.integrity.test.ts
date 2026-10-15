@@ -59,6 +59,40 @@ test('admin changes are bounded, partial and audited atomically', async t => {
     assert.equal((await request(`/api/admin/tenants/${otherCompany.id}`, { planId: plan.id })).status, 400);
     assert.equal(await db.query.subscriptions.findFirst({ where: eq(schema.subscriptions.companyId, otherCompany.id) }), undefined);
   });
+  await t.test('deactivating a plan with subscribers requires an active replacementPlanId and migrates subscribers atomically', async () => {
+    const [activeSourcePlan] = await db
+      .insert(schema.plans)
+      .values({ name: 'Legacy Active Plan', monthlyQuoteLimit: 10, monthlyPrice: 100, isActive: true, isPublished: true })
+      .returning();
+    const [activeTargetPlan] = await db
+      .insert(schema.plans)
+      .values({ name: 'Replacement Active Plan', monthlyQuoteLimit: 25, monthlyPrice: 150, isActive: true, isPublished: true })
+      .returning();
+    const [subCompany] = await db.insert(schema.companies).values({ name: 'Migrating Tenant' }).returning();
+    await db
+      .insert(schema.subscriptions)
+      .values({ companyId: subCompany.id, planId: activeSourcePlan.id, status: 'active' });
+
+    // Attempting to deactivate without replacementPlanId when subscribers exist returns 409
+    const blockedRes = await request(`/api/admin/plans/${activeSourcePlan.id}`, { isActive: false });
+    assert.equal(blockedRes.status, 409);
+
+    // Deactivating with an active replacementPlanId migrates the subscriber and unpublishes + deactivates the source plan
+    const migrateRes = await request(`/api/admin/plans/${activeSourcePlan.id}`, {
+      isActive: false,
+      replacementPlanId: activeTargetPlan.id,
+    });
+    assert.equal(migrateRes.status, 200);
+    const migrateBody = await migrateRes.json();
+    assert.equal(migrateBody.isActive, false);
+    assert.equal(migrateBody.isPublished, false);
+    assert.equal(migrateBody.migratedCount, 1);
+
+    const migratedSub = await db.query.subscriptions.findFirst({
+      where: eq(schema.subscriptions.companyId, subCompany.id),
+    });
+    assert.equal(migratedSub?.planId, activeTargetPlan.id);
+  });
   await t.test('audit failure rolls back the plan write', async () => {
     await db.execute(sql`CREATE FUNCTION fail_admin_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected audit failure'; END $$`);
     await db.execute(sql`CREATE TRIGGER fail_admin_audit BEFORE INSERT ON admin_audit_logs FOR EACH ROW EXECUTE FUNCTION fail_admin_audit()`);

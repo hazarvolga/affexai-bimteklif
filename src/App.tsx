@@ -14,7 +14,25 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
 
 import { ACADEMY_ENABLED } from '@/config/features';
-const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) => lazy(async () => ({ default: (await loader())[name] as ComponentType<any> }));
+const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) =>
+  lazy(async () => {
+    try {
+      const mod = await loader();
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`chunk_reload_${window.location.pathname}`);
+      }
+      return { default: mod[name] as ComponentType<any> };
+    } catch (error) {
+      if (typeof window !== 'undefined') {
+        const key = `chunk_reload_${window.location.pathname}`;
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, '1');
+          window.location.reload();
+        }
+      }
+      throw error;
+    }
+  });
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
 const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminShell');
 const AdminDashboard = page(() => import('@/pages/admin/AdminDashboard'), 'AdminDashboard');

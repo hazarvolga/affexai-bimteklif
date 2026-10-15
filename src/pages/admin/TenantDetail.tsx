@@ -147,10 +147,13 @@ export function TenantDetail() {
       }
 
       const tenantData: TenantDetailData = await tenantRes.json();
-      let plansData = [];
+      let plansData: any[] = [];
       try {
         if (plansRes.ok) {
-          plansData = await plansRes.json();
+          const parsedPlans = await plansRes.json();
+          if (Array.isArray(parsedPlans)) {
+            plansData = parsedPlans;
+          }
         }
       } catch {
         // Fallback to empty plans
@@ -176,7 +179,12 @@ export function TenantDetail() {
         // Ignore payment fetch failure
       }
 
-      setData(tenantData);
+      setData({
+        ...tenantData,
+        members: Array.isArray(tenantData.members) ? tenantData.members : [],
+        usageHistory: Array.isArray(tenantData.usageHistory) ? tenantData.usageHistory : [],
+        recentRuns: Array.isArray(tenantData.recentRuns) ? tenantData.recentRuns : [],
+      });
       setPlans(plansData);
 
       // Populate form fields

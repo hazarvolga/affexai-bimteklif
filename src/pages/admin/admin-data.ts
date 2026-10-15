@@ -5,6 +5,13 @@ export const adminPlansSchema = z.array(z.object({
   monthlyIfcLimit: count.nullable(), ifcMaxFileMb: count, ifcMaxConcurrent: count, isActive: z.boolean(),
   isPublished: z.boolean(), isFeatured: z.boolean(), displayOrder: count,
   marketingBadge: z.string().nullable(), marketingDescription: z.string().nullable(),
+  isTrial: z.boolean().optional(),
+  subscriberCount: count.optional(),
+  subscribers: z.array(z.object({
+    companyId: z.string(),
+    companyName: z.string(),
+    status: z.string(),
+  })).optional(),
 }));
 export const adminDashboardSchema = z.object({
   totalTenants: count, statusCounts: z.record(count), totalMRR: z.number().nonnegative(),

@@ -271,8 +271,44 @@ export function registerAdminRoutes(app: Express) {
   // 5. Plans List
   router.get("/plans", async (_req, res) => {
     try {
-      const allPlans = await db.select().from(plans);
-      return res.json(allPlans);
+      const [allPlans, allSubs] = await Promise.all([
+        db.select().from(plans),
+        db
+          .select({
+            planId: subscriptions.planId,
+            companyId: subscriptions.companyId,
+            companyName: companies.name,
+            status: subscriptions.status,
+          })
+          .from(subscriptions)
+          .innerJoin(companies, eq(companies.id, subscriptions.companyId)),
+      ]);
+
+      const subsByPlanId = new Map<string, Array<{ companyId: string; companyName: string; status: string }>>();
+      for (const sub of allSubs) {
+        if (!sub.planId) continue;
+        const list = subsByPlanId.get(sub.planId) ?? [];
+        list.push({
+          companyId: sub.companyId,
+          companyName: sub.companyName,
+          status: sub.status,
+        });
+        subsByPlanId.set(sub.planId, list);
+      }
+
+      const enrichedPlans = allPlans
+        .slice()
+        .sort((a, b) => a.displayOrder - b.displayOrder || a.monthlyPrice - b.monthlyPrice)
+        .map((plan) => {
+          const subscribers = subsByPlanId.get(plan.id) ?? [];
+          return {
+            ...plan,
+            subscriberCount: subscribers.length,
+            subscribers,
+          };
+        });
+
+      return res.json(enrichedPlans);
     } catch (error) {
       return res.status(500).json({ error: "Paketler getirilemedi." });
     }
