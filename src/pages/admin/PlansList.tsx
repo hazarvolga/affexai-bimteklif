@@ -24,6 +24,10 @@ import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { adminPlansSchema, readAdminResponse } from './admin-data';
+import {
+  formatBillingCycleLabel,
+  type BillingCycleId,
+} from '../../services/billing/billing-periods';
 
 interface BankAccountFormItem {
   id: string;
@@ -46,7 +50,7 @@ interface AdminPaymentRequest {
   planId: string;
   planName: string;
   amountTry: number;
-  billingCycle: 'monthly' | 'yearly';
+  billingCycle: BillingCycleId;
   status: 'awaiting_transfer' | 'pending_approval' | 'approved' | 'rejected';
   bankName: string | null;
   senderName: string | null;
@@ -352,21 +356,53 @@ export function PlansList() {
     }
   };
 
+  const [syncingCatalog, setSyncingCatalog] = useState(false);
+
+  const handleSyncCatalog = async () => {
+    setSyncingCatalog(true);
+    try {
+      const res = await fetchWithAuth('/api/admin/plans/sync-catalog', {
+        method: 'POST',
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.error || 'Standart paket kataloğu senkronize edilemedi.');
+      }
+      toast.success('5 standart paket güncel fiyat ve sunucu kotalarıyla senkronize edildi.');
+      await loadPlans();
+    } catch (err: any) {
+      toast.error(err.message || 'Katalog senkronizasyonu başarısız oldu.');
+    } finally {
+      setSyncingCatalog(false);
+    }
+  };
+
   const pendingPaymentsCount = paymentRequests.filter(
     (r) => r.status === 'pending_approval' || r.status === 'awaiting_transfer',
   ).length;
 
   return (
     <PageContainer>
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <PageHeader
           title="Paket, Havale/EFT & Banka Hesap Yönetimi"
           description="SaaS abonelik paketlerini, müşterilere gösterilen çoklu IBAN hesaplarını ve gelen Havale/EFT dekont bildirimlerini yönetin."
           icon={Package}
         />
-        <Button onClick={() => openPlanEditor()} className="bg-indigo-600 text-white hover:bg-indigo-700 mt-2">
-          <Plus size={16} className="mr-2" /> Yeni Paket Ekle
-        </Button>
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            onClick={() => void handleSyncCatalog()}
+            disabled={syncingCatalog}
+            variant="outline"
+            className="border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20"
+          >
+            <ArrowRightLeft size={15} className="mr-2" />
+            {syncingCatalog ? 'Eşitleniyor...' : 'Standart Katalogla Eşitle'}
+          </Button>
+          <Button onClick={() => openPlanEditor()} className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Plus size={16} className="mr-2" /> Yeni Paket Ekle
+          </Button>
+        </div>
       </div>
 
       {/* 1. ABONELİK PAKETLERİ */}
@@ -663,7 +699,7 @@ export function PlansList() {
                     <td className="p-3 tabular-nums font-bold text-emerald-300">
                       ₺{req.amountTry.toLocaleString('tr-TR')}{' '}
                       <span className="text-[10px] font-normal text-zinc-400">
-                        ({req.billingCycle === 'yearly' ? 'Yıllık' : 'Aylık'})
+                        ({formatBillingCycleLabel(req.billingCycle)})
                       </span>
                     </td>
                     <td className="p-3 text-zinc-300">

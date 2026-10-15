@@ -17,6 +17,12 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  BILLING_PERIOD_OPTIONS,
+  type BillingCycleId,
+  calculateBillingPeriodPricing,
+  normalizeBillingCycle,
+} from '@/services/billing/billing-periods';
 
 interface PublicPlanOption {
   id: string;
@@ -47,9 +53,9 @@ const FALLBACK_PLANS: PublicPlanOption[] = [
     id: '2b507e20-83d1-4b21-9fc1-000000000001',
     name: '14 Günlük Ücretsiz Deneme',
     monthlyPrice: 0,
-    monthlyQuoteLimit: 5,
+    monthlyQuoteLimit: 3,
     monthlyIfcLimit: 1,
-    ifcMaxFileMb: 35,
+    ifcMaxFileMb: 25,
     ifcMaxConcurrent: 1,
     isFeatured: false,
     displayOrder: 10,
@@ -59,10 +65,10 @@ const FALLBACK_PLANS: PublicPlanOption[] = [
   {
     id: '2b507e20-83d1-4b21-9fc1-000000000002',
     name: 'e-PYS & BIM Standart Denetçi',
-    monthlyPrice: 390,
-    monthlyQuoteLimit: 0,
-    monthlyIfcLimit: 50,
-    ifcMaxFileMb: 50,
+    monthlyPrice: 1250,
+    monthlyQuoteLimit: 5,
+    monthlyIfcLimit: 5,
+    ifcMaxFileMb: 35,
     ifcMaxConcurrent: 1,
     isFeatured: false,
     displayOrder: 20,
@@ -72,10 +78,10 @@ const FALLBACK_PLANS: PublicPlanOption[] = [
   {
     id: '2b507e20-83d1-4b21-9fc1-000000000003',
     name: 'Teklif & Şantiye',
-    monthlyPrice: 1450,
-    monthlyQuoteLimit: 30,
-    monthlyIfcLimit: 2,
-    ifcMaxFileMb: 30,
+    monthlyPrice: 2950,
+    monthlyQuoteLimit: 25,
+    monthlyIfcLimit: 5,
+    ifcMaxFileMb: 40,
     ifcMaxConcurrent: 1,
     isFeatured: false,
     displayOrder: 30,
@@ -85,11 +91,11 @@ const FALLBACK_PLANS: PublicPlanOption[] = [
   {
     id: '2b507e20-83d1-4b21-9fc1-000000000004',
     name: '5D BIM & SmartCheck',
-    monthlyPrice: 3950,
-    monthlyQuoteLimit: 150,
-    monthlyIfcLimit: 25,
-    ifcMaxFileMb: 100,
-    ifcMaxConcurrent: 2,
+    monthlyPrice: 5450,
+    monthlyQuoteLimit: 75,
+    monthlyIfcLimit: 15,
+    ifcMaxFileMb: 60,
+    ifcMaxConcurrent: 1,
     isFeatured: true,
     displayOrder: 40,
     marketingBadge: 'En Çok Tercih Edilen',
@@ -99,9 +105,9 @@ const FALLBACK_PLANS: PublicPlanOption[] = [
     id: '2b507e20-83d1-4b21-9fc1-000000000005',
     name: 'Kurumsal Taahhüt & e-PYS',
     monthlyPrice: 8900,
-    monthlyQuoteLimit: 99999,
-    monthlyIfcLimit: 100,
-    ifcMaxFileMb: 100,
+    monthlyQuoteLimit: 200,
+    monthlyIfcLimit: 35,
+    ifcMaxFileMb: 85,
     ifcMaxConcurrent: 2,
     isFeatured: false,
     displayOrder: 50,
@@ -134,10 +140,14 @@ export function Register() {
   const isPilot = searchParams.get('intent') === 'pilot';
   const isAcademy = ACADEMY_ENABLED && searchParams.get('intent') === 'academy';
   const requestedPlanId = searchParams.get('planId');
+  const requestedCycle = searchParams.get('cycle');
   const requestedNext = searchParams.get('next');
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
     requestedPlanId || FALLBACK_PLANS[0].id,
+  );
+  const [billingCycle, setBillingCycle] = useState<BillingCycleId>(() =>
+    requestedCycle ? normalizeBillingCycle(requestedCycle) : 'yearly',
   );
 
   useEffect(() => {
@@ -187,12 +197,13 @@ export function Register() {
 
   const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? plans[0] ?? FALLBACK_PLANS[0];
   const isPaidPlanSelected = selectedPlan.monthlyPrice > 0;
+  const selectedPricing = calculateBillingPeriodPricing(selectedPlan.monthlyPrice, billingCycle);
   const nextPath = isAcademy
     ? '/app/academy/allplan'
     : requestedNext?.startsWith('/app/')
       ? requestedNext
       : isPaidPlanSelected
-        ? `/app/billing?planId=${encodeURIComponent(selectedPlan.id)}`
+        ? `/app/billing?planId=${encodeURIComponent(selectedPlan.id)}&cycle=${encodeURIComponent(billingCycle)}`
         : '/app/smartcheck';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,6 +220,7 @@ export function Register() {
           companyName,
           intent: isAcademy ? 'academy' : 'workspace',
           selectedPlanId: !isAcademy ? selectedPlan.id : undefined,
+          selectedBillingCycle: !isAcademy && isPaidPlanSelected ? billingCycle : 'monthly',
           termsAccepted,
           privacyAccepted,
           marketingConsent,
@@ -222,11 +234,11 @@ export function Register() {
         login(data.token, data.user, data.company, 'owner', data.accountType);
         if (data.pendingPaymentOrder?.referenceCode) {
           toast.success(
-            `${selectedPlan.name} siparişi oluşturuldu (Kod: ${data.pendingPaymentOrder.referenceCode}). Havale/EFT bildirim ekranına yönlendiriliyorsunuz; bu sırada 14 günlük deneme kotanız aktiftir.`,
+            `${selectedPlan.name} (${selectedPricing.label}) siparişi oluşturuldu (Kod: ${data.pendingPaymentOrder.referenceCode}). Havale/EFT bildirim ekranına yönlendiriliyorsunuz; bu sırada 14 günlük deneme kotanız aktiftir.`,
           );
         } else {
           toast.success(
-            '14 Günlük Ücretsiz Deneme paketiniz ve SmartCheck (1 IFC / 35 MB, 5 Teklif) kotanız aktif edildi!',
+            '14 Günlük Ücretsiz Deneme paketiniz ve SmartCheck (1 IFC / 25 MB, 3 Teklif) kotanız aktif edildi!',
           );
         }
         navigate(nextPath);
@@ -262,7 +274,7 @@ export function Register() {
           <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
             {isAcademy
               ? 'Doğrulanmış Allplan derslerine hemen erişin. Kredi kartı gerekmez.'
-              : '0 ₺ bedelle 14 Günlük Ücretsiz Deneme paketini anında başlatabilir veya kurumsal paketlerden birini seçerek Banka Havalesi / EFT ile aboneliğinizi başlatabilirsiniz.'}
+              : '0 ₺ bedelle 14 Günlük Ücretsiz Deneme paketini anında başlatabilir veya kurumsal paketlerde %30’a varan uzun dönem indirimleriyle aboneliğinizi başlatabilirsiniz.'}
           </p>
         </div>
 
@@ -270,19 +282,56 @@ export function Register() {
           {/* Sol Sütun: Paket Seçimi (Workspace Kaydı İçin) */}
           {!isAcademy && (
             <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-primary flex items-center gap-2">
-                  <Sparkles size={14} /> 1. Adım: Başlangıç Paketinizi Seçin
+                  <Sparkles size={14} /> 1. Adım: Paket ve Ödeme Periyodunuzu Seçin
                 </h2>
                 <span className="text-[11px] font-mono text-muted-foreground">
-                  Kotalar paket seçimine göre tanımlanır
+                  Uzun dönem alımlarda %30&apos;a varan iskonto
                 </span>
+              </div>
+
+              {/* Ödeme Periyodu Seçici (Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30) */}
+              <div className="rounded-md border border-border bg-card/80 p-2 space-y-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5" role="tablist" aria-label="Ödeme periyodu seçimi">
+                  {BILLING_PERIOD_OPTIONS.map((option) => {
+                    const active = billingCycle === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setBillingCycle(option.id)}
+                        className={`flex flex-col items-center justify-center rounded px-2.5 py-2 text-xs font-semibold transition-all border ${
+                          active
+                            ? 'border-primary bg-primary text-white shadow-xs'
+                            : 'border-transparent bg-background/60 text-muted-foreground hover:text-foreground hover:border-border'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        <span
+                          className={`mt-0.5 font-mono text-[10px] font-bold ${
+                            active
+                              ? 'text-white/90'
+                              : option.discountPercent > 0
+                                ? 'text-emerald-400'
+                                : 'text-muted-foreground'
+                          }`}
+                        >
+                          {option.badge || '%0 Standart'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="space-y-2.5">
                 {plans.map((plan) => {
                   const isSelected = plan.id === selectedPlan.id;
                   const isFree = plan.monthlyPrice === 0;
+                  const planPricing = calculateBillingPeriodPricing(plan.monthlyPrice, billingCycle);
                   return (
                     <button
                       key={plan.id}
@@ -327,16 +376,37 @@ export function Register() {
                         </div>
 
                         <div className="text-right shrink-0">
-                          <span
-                            className={`font-mono text-lg font-bold tabular-nums ${
-                              isFree ? 'text-emerald-400' : 'text-foreground'
-                            }`}
-                          >
-                            {isFree ? '0 ₺' : `₺${plan.monthlyPrice.toLocaleString('tr-TR')}`}
-                          </span>
-                          <span className="block text-[10px] font-mono text-muted-foreground">
-                            {isFree ? '14 Gün Ücretsiz' : '/ ay (+KDV)'}
-                          </span>
+                          {isFree ? (
+                            <>
+                              <span className="font-mono text-lg font-bold tabular-nums text-emerald-400">
+                                0 ₺
+                              </span>
+                              <span className="block text-[10px] font-mono text-muted-foreground">
+                                14 Gün Ücretsiz
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-baseline justify-end gap-1.5">
+                                {planPricing.discountPercent > 0 && (
+                                  <span className="font-mono text-xs text-muted-foreground line-through tabular-nums">
+                                    ₺{planPricing.baseMonthlyPriceTry.toLocaleString('tr-TR')}
+                                  </span>
+                                )}
+                                <span className="font-mono text-lg font-bold tabular-nums text-foreground">
+                                  ₺{planPricing.effectiveMonthlyPriceTry.toLocaleString('tr-TR')}
+                                </span>
+                              </div>
+                              <span className="block text-[10px] font-mono text-muted-foreground">
+                                / ay (+KDV)
+                              </span>
+                              {planPricing.months > 1 && (
+                                <span className="mt-0.5 block text-[10px] font-mono font-semibold text-emerald-400">
+                                  {planPricing.label}: ₺{planPricing.totalPayableTry.toLocaleString('tr-TR')} (₺{planPricing.discountAmountTry.toLocaleString('tr-TR')} indirim)
+                                </span>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -369,14 +439,20 @@ export function Register() {
               {/* Seçili Pakete Göre Bilgilendirme Kutusu */}
               {isPaidPlanSelected ? (
                 <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-4 space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2 font-semibold text-amber-300">
-                    <Landmark size={16} className="shrink-0" />
-                    <span>Banka Havalesi / EFT ile Aktivasyon ({selectedPlan.name})</span>
+                  <div className="flex flex-wrap items-center justify-between gap-2 font-semibold text-amber-300">
+                    <div className="flex items-center gap-2">
+                      <Landmark size={16} className="shrink-0" />
+                      <span>Banka Havalesi / EFT ile Aktivasyon ({selectedPlan.name} · {selectedPricing.label})</span>
+                    </div>
+                    <span className="font-mono text-xs text-emerald-300">
+                      Ödenecek Tutar: ₺{selectedPricing.totalPayableTry.toLocaleString('tr-TR')}
+                      {selectedPricing.discountAmountTry > 0 && ` (-₺${selectedPricing.discountAmountTry.toLocaleString('tr-TR')} İskonto)`}
+                    </span>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">
                     Kaydınızı tamamladığınızda sistem size özel bir <strong>Sipariş Referans Kodu</strong> üretir ve
                     sizi <strong>Faturalandırma & Havale Bildirimi</strong> sayfasına yönlendirir. Dekontunuz Superadmin
-                    tarafından onaylanana kadar mağdur olmamanız için <strong>14 Günlük Ücretsiz Deneme (1 IFC / 35 MB)</strong>{' '}
+                    tarafından onaylanana kadar mağdur olmamanız için <strong>14 Günlük Ücretsiz Deneme (1 IFC / 25 MB)</strong>{' '}
                     kotanız anında açık başlar.
                   </p>
                   {bankAccounts.length > 0 && (
@@ -404,8 +480,8 @@ export function Register() {
                       0 ₺ Bedelle Anında SmartCheck & e-PYS Aktivasyonu
                     </p>
                     <p className="text-muted-foreground leading-relaxed">
-                      Kredi kartı veya havale gerekmez. Kayıt olduğunuz anda <strong>1 adet IFC modeli (maks. 35 MB)</strong>,{' '}
-                      <strong>10 adet PDF/A ön kontrolü</strong> ve <strong>5 adet teklif</strong> hakkınız otomatik tanımlanır.
+                      Kredi kartı veya havale gerekmez. Kayıt olduğunuz anda <strong>1 adet IFC modeli (maks. 25 MB)</strong>,{' '}
+                      <strong>3 adet PDF/A ön kontrolü</strong> ve <strong>3 adet teklif</strong> hakkınız otomatik tanımlanır.
                     </p>
                   </div>
                 </div>
@@ -418,18 +494,37 @@ export function Register() {
             <Card className="border border-border bg-card shadow-lg rounded-md">
               <CardContent className="pt-6 space-y-4">
                 {!isAcademy && (
-                  <div className="rounded-sm border border-primary/30 bg-primary/5 px-3 py-2.5 flex items-center justify-between gap-2">
-                    <div>
-                      <span className="block text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                        2. Adım · Seçili Paket
+                  <div className="rounded-sm border border-primary/30 bg-primary/5 px-3 py-2.5 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <span className="block text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                          2. Adım · Seçili Paket & Periyot
+                        </span>
+                        <span className="text-xs font-bold text-foreground">
+                          {selectedPlan.name} {isPaidPlanSelected ? `(${selectedPricing.label})` : ''}
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-primary">
+                        {selectedPlan.monthlyPrice === 0
+                          ? '0 ₺ (14 Gün)'
+                          : `₺${selectedPricing.effectiveMonthlyPriceTry.toLocaleString('tr-TR')}/ay`}
                       </span>
-                      <span className="text-xs font-bold text-foreground">{selectedPlan.name}</span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-primary">
-                      {selectedPlan.monthlyPrice === 0
-                        ? '0 ₺ (14 Gün)'
-                        : `₺${selectedPlan.monthlyPrice.toLocaleString('tr-TR')}/ay`}
-                    </span>
+                    {isPaidPlanSelected && (
+                      <div className="flex items-center justify-between border-t border-primary/20 pt-1.5 text-[11px] font-mono">
+                        <span className="text-muted-foreground">
+                          Toplam ({selectedPricing.months} Ay Peşin):{' '}
+                          <strong className="text-foreground">
+                            ₺{selectedPricing.totalPayableTry.toLocaleString('tr-TR')}
+                          </strong>
+                        </span>
+                        {selectedPricing.discountAmountTry > 0 && (
+                          <span className="text-emerald-400 font-semibold">
+                            %{selectedPricing.discountPercent} İndirim (-₺{selectedPricing.discountAmountTry.toLocaleString('tr-TR')})
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 

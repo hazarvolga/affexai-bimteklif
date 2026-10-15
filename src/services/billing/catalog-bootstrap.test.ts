@@ -5,24 +5,24 @@ import { catalogTarget } from './catalog-target';
 
 test('canonical catalog has five precise allowances within supported IFC limits', () => {
   assert.equal(canonicalPlans.length, 5);
-  assert.deepEqual(canonicalPlans.map(p => p.monthlyPrice), [0, 390, 1450, 3950, 8900]);
-  assert.deepEqual(canonicalPlans.map(p => p.monthlyQuoteLimit), [5, 0, 30, 150, 99999]);
-  assert.deepEqual(canonicalPlans.map(p => p.monthlyIfcLimit), [1, 50, 2, 25, 100]);
-  assert.ok(canonicalPlans.every(p => p.ifcMaxFileMb <= 100));
+  assert.deepEqual(canonicalPlans.map(p => p.monthlyPrice), [0, 1250, 2950, 5450, 8900]);
+  assert.deepEqual(canonicalPlans.map(p => p.monthlyQuoteLimit), [3, 5, 25, 75, 200]);
+  assert.deepEqual(canonicalPlans.map(p => p.monthlyIfcLimit), [1, 5, 5, 15, 35]);
+  assert.ok(canonicalPlans.every(p => p.ifcMaxFileMb <= 85));
   assert.equal(new Set(canonicalPlans.map(p => p.id)).size, 5);
 });
 
 test('every package carries explicit feature and storage limits; only the free plan is the trial', () => {
   const GB = 1024 ** 3;
   assert.deepEqual(canonicalPlans.map(p => [p.monthlyAiLimit, p.monthlyPdfLimit, p.monthlyCrmLimit, p.monthlyRegulationLimit, p.monthlyProfitAnalysisLimit]), [
-    [5, 10, 50, 10, 10],
-    [0, 50, 0, 50, 0],
-    [30, 100, 500, 50, 50],
-    [150, 500, 2000, 300, 300],
-    [1000, 99999, 99999, 2000, 2000],
+    [5, 3, 15, 5, 5],
+    [10, 8, 25, 15, 5],
+    [25, 15, 150, 30, 25],
+    [60, 35, 500, 100, 75],
+    [150, 75, 1500, 250, 200],
   ]);
-  assert.deepEqual(canonicalPlans.map(p => p.storageMaxBytes), [0.5 * GB, 1 * GB, 2 * GB, 10 * GB, 50 * GB]);
-  assert.deepEqual(canonicalPlans.map(p => p.maxDocuments), [100, 500, 1000, 5000, 20000]);
+  assert.deepEqual(canonicalPlans.map(p => p.storageMaxBytes), [0.25 * GB, 1 * GB, 2 * GB, 5 * GB, 15 * GB]);
+  assert.deepEqual(canonicalPlans.map(p => p.maxDocuments), [25, 150, 300, 750, 2000]);
   assert.deepEqual(canonicalPlans.map(p => p.isTrial), [true, false, false, false, false]);
 });
 

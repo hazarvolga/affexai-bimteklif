@@ -8,6 +8,7 @@ import { academyAcquisitionEvents, academyActivationEvents, academyEditions, aca
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
 import { AuthService } from "../../services/auth/authService";
 import { createInitialPaymentOrder } from "../../services/billing/bank-transfer";
+import { normalizeBillingCycle } from "../../services/billing/billing-periods";
 import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
@@ -103,6 +104,7 @@ export function registerAuthRoutes(app: Express) {
       const input = parseRegistrationInput(req.body);
       if (!input) return res.status(400).json({ error: "Kayıt bilgileri geçersiz." });
       const selectedPlanId = parseSelectedPlanId(req.body);
+      const selectedBillingCycle = normalizeBillingCycle(req.body?.selectedBillingCycle ?? req.body?.billingCycle);
       const { email, password, fullName, companyName, intent } = input;
       const [existing] = await db.select().from(users).where(eq(users.email, email));
       if (existing) return res.status(409).json({ error: "Bu e-posta adresiyle bir hesap zaten mevcut." });
@@ -134,6 +136,7 @@ export function registerAuthRoutes(app: Express) {
               userId: user.id,
               userEmail: user.email,
               planId: selectedPlanId,
+              billingCycle: selectedBillingCycle,
             })
           : null;
         if (edition) {

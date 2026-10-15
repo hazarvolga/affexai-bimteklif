@@ -12,6 +12,7 @@ import {
   submitBankTransferInputSchema,
   submitBankTransferNotification,
 } from "../../services/billing/bank-transfer";
+import { normalizeBillingCycle } from "../../services/billing/billing-periods";
 
 const canManageBilling = checkRole(["owner", "admin"]);
 
@@ -100,6 +101,7 @@ export function registerBillingRoutes(app: Express) {
     app.post("/api/billing/payment-requests/init", authenticate, canManageBilling, async (req, res) => {
       try {
         const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
+        const billingCycle = normalizeBillingCycle(req.body?.billingCycle);
         if (!planId) return res.status(400).json({ error: "Paket seçimi zorunludur." });
         const existing = await getCompanyPaymentRequests(req.user.companyId);
         const awaiting = existing.find((r) => r.planId === planId && r.status === "awaiting_transfer");
@@ -118,6 +120,7 @@ export function registerBillingRoutes(app: Express) {
           userId: req.user.userId,
           userEmail: req.user.email,
           planId,
+          billingCycle,
         });
         if (!created) {
           return res.status(400).json({ error: "Seçilen paket için havale siparişi oluşturulamadı." });

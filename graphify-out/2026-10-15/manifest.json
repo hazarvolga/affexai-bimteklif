@@ -1470,8 +1470,8 @@
     "semantic_hash": ""
   },
   "src/pages/Billing.tsx": {
-    "mtime": 1792051344.8086488,
-    "ast_hash": "b53ef3f737b0281659f4aa54ccfec779",
+    "mtime": 1792065975.8519125,
+    "ast_hash": "da675c5ea75da8d9f2b580fc855884c0",
     "semantic_hash": ""
   },
   "src/pages/BimGlossaryPage.tsx": {
@@ -1595,8 +1595,8 @@
     "semantic_hash": ""
   },
   "src/pages/Register.tsx": {
-    "mtime": 1792049491.789546,
-    "ast_hash": "b23793c9ff53530dbcbb48a67a22abe6",
+    "mtime": 1792065974.2042053,
+    "ast_hash": "219047b0db537f901ea7195befab99db",
     "semantic_hash": ""
   },
   "src/pages/Regulations.tsx": {
@@ -1715,8 +1715,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/billing.ts": {
-    "mtime": 1792064049.749016,
-    "ast_hash": "1d7ecbdca1b64e1fa58d1ccaddb2e514",
+    "mtime": 1792065909.037768,
+    "ast_hash": "1fb9a3f0d219b32ceae56fafb0608dd1",
     "semantic_hash": ""
   },
   "src/server/routes/clients.ts": {
@@ -4600,8 +4600,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/PlansList.tsx": {
-    "mtime": 1792055244.9518664,
-    "ast_hash": "f24ddf762e780ce02df0a72ddfa43d8c",
+    "mtime": 1792065970.9920652,
+    "ast_hash": "099f46c0ce57f6b4d32f7315e13c070d",
     "semantic_hash": ""
   },
   "src/pages/admin/TenantsList.tsx": {
@@ -4900,8 +4900,8 @@
     "semantic_hash": ""
   },
   "src/server/admin/changes.ts": {
-    "mtime": 1792053827.6280031,
-    "ast_hash": "4e522a10dc011ec26f10e64aa1df4a8b",
+    "mtime": 1792065906.3369682,
+    "ast_hash": "5824f5e44549ec396c2873196128b5da",
     "semantic_hash": ""
   },
   "src/server/admin/input.test.ts": {
@@ -5835,8 +5835,8 @@
     "semantic_hash": ""
   },
   "src/features/public-pricing/PublicPricingSection.tsx": {
-    "mtime": 1792049408.2505627,
-    "ast_hash": "29dd2407b699a69be7e2ae4ad20eed62",
+    "mtime": 1792065972.3497012,
+    "ast_hash": "d4d6420c8d45f917b238eabd98c618f8",
     "semantic_hash": ""
   },
   "src/features/public-pricing/presentation.test.ts": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/public-plans.integration.test.ts": {
-    "mtime": 1791726589.178975,
-    "ast_hash": "519686c1c41ed6c000bc924d60ae39fb",
+    "mtime": 1792065911.1073532,
+    "ast_hash": "2c8d54b0f4c0804539a8696c4024083a",
     "semantic_hash": ""
   },
   "scripts/bootstrap-pricing-source-catalog.ts": {

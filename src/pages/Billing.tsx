@@ -19,6 +19,13 @@ import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
+import {
+  BILLING_PERIOD_OPTIONS,
+  type BillingCycleId,
+  calculateBillingPeriodPricing,
+  formatBillingCycleLabel,
+  normalizeBillingCycle,
+} from '@/services/billing/billing-periods';
 import { UsageStat, usageDisplay, usageLabels } from './billing-usage';
 
 interface BillingData {
@@ -61,7 +68,7 @@ interface PaymentRequestItem {
   planId: string;
   planName: string;
   amountTry: number;
-  billingCycle: 'monthly' | 'yearly';
+  billingCycle: BillingCycleId;
   status: 'awaiting_transfer' | 'pending_approval' | 'approved' | 'rejected';
   bankAccountId: string | null;
   bankName: string | null;
@@ -85,6 +92,7 @@ function formatIbanDisplay(iban: string): string {
 export function Billing() {
   const [searchParams] = useSearchParams();
   const initialPlanIdFromUrl = searchParams.get('planId') || '';
+  const initialCycleFromUrl = searchParams.get('cycle');
 
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +107,9 @@ export function Billing() {
   const [initializingOrder, setInitializingOrder] = useState(false);
 
   const [selectedBankId, setSelectedBankId] = useState<string>('');
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<BillingCycleId>(() =>
+    initialCycleFromUrl ? normalizeBillingCycle(initialCycleFromUrl) : 'yearly',
+  );
   const [senderName, setSenderName] = useState('');
   const [transferReference, setTransferReference] = useState('');
   const [taxOffice, setTaxOffice] = useState('');
@@ -180,6 +190,9 @@ export function Billing() {
         if (existingOrder) {
           setActiveOrder(existingOrder);
           setSelectedPlanId(existingOrder.planId);
+          if (!initialCycleFromUrl && existingOrder.billingCycle) {
+            setBillingCycle(normalizeBillingCycle(existingOrder.billingCycle));
+          }
         } else {
           const targetPlan = loadedPlans.find((p) => p.id === initialPlanIdFromUrl && p.monthlyPrice > 0);
           if (targetPlan) {
@@ -193,6 +206,9 @@ export function Billing() {
         if (latestOpen) {
           setActiveOrder(latestOpen);
           setSelectedPlanId(latestOpen.planId);
+          if (latestOpen.billingCycle) {
+            setBillingCycle(normalizeBillingCycle(latestOpen.billingCycle));
+          }
         }
       }
     } catch {
@@ -219,7 +235,7 @@ export function Billing() {
     try {
       const res = await fetchWithAuth('/api/billing/payment-requests/init', {
         method: 'POST',
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, billingCycle }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -397,14 +413,50 @@ export function Billing() {
           {/* Paket Seçimi ve Yükseltme Kataloğu */}
           {plans.length > 0 && (
             <section className="py-8 border-b border-zinc-800 space-y-5">
-              <div>
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Sparkles size={18} className="text-emerald-400" />
-                  Abonelik Paketleri & Kota Yükseltme
-                </h2>
-                <p className="text-xs text-zinc-400 mt-1">
-                  İhtiyacınıza uygun paketi seçip Banka Havalesi / EFT ile ödeme bildirimi gönderebilirsiniz. Dekontunuz onaylandığında kotalarınız anında tanımlanır.
-                </p>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Sparkles size={18} className="text-emerald-400" />
+                    Abonelik Paketleri & Kota Yükseltme
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    İhtiyacınıza uygun paketi ve ödeme periyodunu seçip Banka Havalesi / EFT ile ödeme bildirimi gönderebilirsiniz.
+                  </p>
+                </div>
+
+                {/* Ödeme Periyodu Seçici (Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30) */}
+                <div className="inline-flex flex-wrap items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/90 p-1.5" role="tablist" aria-label="Faturalama dönemi">
+                  {BILLING_PERIOD_OPTIONS.map((option) => {
+                    const active = billingCycle === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setBillingCycle(option.id)}
+                        className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                          active
+                            ? 'bg-indigo-600 text-white shadow-xs'
+                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        {option.badge && (
+                          <span
+                            className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-bold ${
+                              active
+                                ? 'bg-white/20 text-white'
+                                : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                            }`}
+                          >
+                            {option.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -412,6 +464,7 @@ export function Billing() {
                   const isCurrentPlan = data.plan === plan.name;
                   const isSelectedForTransfer = (activeOrder?.planId || selectedPlanId) === plan.id;
                   const isFree = plan.monthlyPrice === 0;
+                  const planPricing = calculateBillingPeriodPricing(plan.monthlyPrice, billingCycle);
 
                   return (
                     <div
@@ -442,11 +495,24 @@ export function Billing() {
                           {isFree ? (
                             <span className="text-xl font-black text-emerald-400">0 ₺ (14 Gün)</span>
                           ) : (
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-xl font-black text-white">
-                                ₺{plan.monthlyPrice.toLocaleString('tr-TR')}
-                              </span>
-                              <span className="text-xs text-zinc-500">/ ay + KDV</span>
+                            <div>
+                              <div className="flex items-baseline gap-1.5 flex-wrap">
+                                {planPricing.discountPercent > 0 && (
+                                  <span className="text-xs font-mono text-zinc-500 line-through tabular-nums">
+                                    ₺{planPricing.baseMonthlyPriceTry.toLocaleString('tr-TR')}
+                                  </span>
+                                )}
+                                <span className="text-xl font-black text-white tabular-nums">
+                                  ₺{planPricing.effectiveMonthlyPriceTry.toLocaleString('tr-TR')}
+                                </span>
+                                <span className="text-xs text-zinc-500">/ ay + KDV</span>
+                              </div>
+                              {planPricing.months > 1 && (
+                                <p className="mt-1 text-[11px] font-mono text-emerald-300">
+                                  {planPricing.label}: <strong>₺{planPricing.totalPayableTry.toLocaleString('tr-TR')}</strong>{' '}
+                                  <span className="text-zinc-400">(-₺{planPricing.discountAmountTry.toLocaleString('tr-TR')})</span>
+                                </p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -622,143 +688,153 @@ export function Billing() {
             )}
 
             {/* Dekont / Havale Bildirim Formu */}
-            {selectedPlanObj && selectedPlanObj.monthlyPrice > 0 ? (
-              <form
-                onSubmit={handleSubmitNotification}
-                className="rounded-2xl border border-indigo-500/30 bg-indigo-950/10 p-5 space-y-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-500/20 pb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Receipt size={16} className="text-indigo-400" />
-                      Havale / EFT Dekont Bildirimi Gönder
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5">
-                      Seçili Paket: <strong className="text-white">{selectedPlanObj.name}</strong> (
-                      {billingCycle === 'yearly'
-                        ? `₺${(selectedPlanObj.monthlyPrice * 10).toLocaleString('tr-TR')} / yıl — 2 ay bedava`
-                        : `₺${selectedPlanObj.monthlyPrice.toLocaleString('tr-TR')} / ay`}
-                      )
-                    </p>
+            {selectedPlanObj && selectedPlanObj.monthlyPrice > 0 ? (() => {
+              const selectedPricing = calculateBillingPeriodPricing(selectedPlanObj.monthlyPrice, billingCycle);
+              return (
+                <form
+                  onSubmit={handleSubmitNotification}
+                  className="rounded-2xl border border-indigo-500/30 bg-indigo-950/10 p-5 space-y-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-500/20 pb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Receipt size={16} className="text-indigo-400" />
+                        Havale / EFT Dekont Bildirimi Gönder
+                      </h3>
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        Seçili Paket: <strong className="text-white">{selectedPlanObj.name}</strong> ·{' '}
+                        <strong className="text-emerald-300">
+                          {selectedPricing.label} Toplam: ₺{selectedPricing.totalPayableTry.toLocaleString('tr-TR')}
+                        </strong>{' '}
+                        (Aylık Efektif: ₺{selectedPricing.effectiveMonthlyPriceTry.toLocaleString('tr-TR')}/ay
+                        {selectedPricing.discountAmountTry > 0
+                          ? ` · %${selectedPricing.discountPercent} İskonto ile ₺${selectedPricing.discountAmountTry.toLocaleString('tr-TR')} Kazanç`
+                          : ''}
+                        )
+                      </p>
+                    </div>
+                    {activeOrder?.status === 'pending_approval' && (
+                      <span className="rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <Clock size={13} /> Süper Admin Onayı Bekleniyor
+                      </span>
+                    )}
                   </div>
-                  {activeOrder?.status === 'pending_approval' && (
-                    <span className="rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                      <Clock size={13} /> Süper Admin Onayı Bekleniyor
-                    </span>
-                  )}
-                </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-300 mb-1">
+                        Gönderim Yapılan Banka
+                      </label>
+                      <select
+                        value={selectedBankId}
+                        onChange={(e) => setSelectedBankId(e.target.value)}
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                      >
+                        {bankAccounts.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.bankName} ({b.currency})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-300 mb-1">Faturalama Dönemi & İskonto</label>
+                      <select
+                        value={billingCycle}
+                        onChange={(e) => setBillingCycle(normalizeBillingCycle(e.target.value))}
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                      >
+                        {BILLING_PERIOD_OPTIONS.map((opt) => {
+                          const p = calculateBillingPeriodPricing(selectedPlanObj.monthlyPrice, opt.id);
+                          return (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.label} ({opt.discountPercent > 0 ? `%${opt.discountPercent} İndirim · ` : ''}
+                              ₺{p.effectiveMonthlyPriceTry.toLocaleString('tr-TR')}/ay → Toplam ₺{p.totalPayableTry.toLocaleString('tr-TR')})
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-300 mb-1">
+                        Gönderen Ad Soyad / Firma Ünvanı *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={senderName}
+                        onChange={(e) => setSenderName(e.target.value)}
+                        placeholder="Örn: Drone Mühendislik Ltd. Şti."
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-300 mb-1">
+                        Dekont / İşlem Referans No
+                      </label>
+                      <input
+                        type="text"
+                        value={transferReference}
+                        onChange={(e) => setTransferReference(e.target.value)}
+                        placeholder="Banka dekont / sorgu numarası"
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-300 mb-1">Fatura Vergi Dairesi</label>
+                      <input
+                        type="text"
+                        value={taxOffice}
+                        onChange={(e) => setTaxOffice(e.target.value)}
+                        placeholder="Örn: Kadıköy V.D."
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-300 mb-1">
+                        Vergi Kimlik No (VKN / TCKN)
+                      </label>
+                      <input
+                        type="text"
+                        value={taxNumber}
+                        onChange={(e) => setTaxNumber(e.target.value)}
+                        placeholder="10 veya 11 haneli numara"
+                        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      Gönderim Yapılan Banka
-                    </label>
-                    <select
-                      value={selectedBankId}
-                      onChange={(e) => setSelectedBankId(e.target.value)}
+                    <label className="block text-xs font-medium text-zinc-300 mb-1">Ek Not / Açıklama</label>
+                    <input
+                      type="text"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Varsa ödeme veya fatura ile ilgili notunuz..."
                       className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={submittingPayment}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-2"
                     >
-                      {bankAccounts.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.bankName} ({b.currency})
-                        </option>
-                      ))}
-                    </select>
+                      <Send size={14} />
+                      {submittingPayment
+                        ? 'Gönderiliyor...'
+                        : `Ödeme Bildirimini Gönder (₺${selectedPricing.totalPayableTry.toLocaleString('tr-TR')} · Süper Admin Onayına İlet)`}
+                    </Button>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">Faturalama Dönemi</label>
-                    <select
-                      value={billingCycle}
-                      onChange={(e) => setBillingCycle(e.target.value as 'monthly' | 'yearly')}
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                    >
-                      <option value="monthly">
-                        Aylık Abonelik (₺{selectedPlanObj.monthlyPrice.toLocaleString('tr-TR')} / ay)
-                      </option>
-                      <option value="yearly">
-                        Yıllık Abonelik — 2 Ay Hediye (₺{(selectedPlanObj.monthlyPrice * 10).toLocaleString('tr-TR')} / yıl)
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      Gönderen Ad Soyad / Firma Ünvanı *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
-                      placeholder="Örn: Drone Mühendislik Ltd. Şti."
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      Dekont / İşlem Referans No
-                    </label>
-                    <input
-                      type="text"
-                      value={transferReference}
-                      onChange={(e) => setTransferReference(e.target.value)}
-                      placeholder="Banka dekont / sorgu numarası"
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">Fatura Vergi Dairesi</label>
-                    <input
-                      type="text"
-                      value={taxOffice}
-                      onChange={(e) => setTaxOffice(e.target.value)}
-                      placeholder="Örn: Kadıköy V.D."
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
-                      Vergi Kimlik No (VKN / TCKN)
-                    </label>
-                    <input
-                      type="text"
-                      value={taxNumber}
-                      onChange={(e) => setTaxNumber(e.target.value)}
-                      placeholder="10 veya 11 haneli numara"
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">Ek Not / Açıklama</label>
-                  <input
-                    type="text"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Varsa ödeme veya fatura ile ilgili notunuz..."
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={submittingPayment}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-2"
-                  >
-                    <Send size={14} />
-                    {submittingPayment
-                      ? 'Gönderiliyor...'
-                      : 'Ödeme Bildirimini Gönder (Süper Admin Onayına İlet)'}
-                  </Button>
-                </div>
-              </form>
-            ) : (
+                </form>
+              );
+            })() : (
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 text-xs text-zinc-400">
                 Havale / EFT bildirimi göndermek için yukarıdaki ücretli paketlerden birini (<strong>Bu Pakete Geç</strong>) seçin.
               </div>
@@ -774,7 +850,7 @@ export function Billing() {
                       <tr>
                         <th className="p-3">Referans Kodu</th>
                         <th className="p-3">Paket</th>
-                        <th className="p-3">Tutar</th>
+                        <th className="p-3">Tutar & Periyot</th>
                         <th className="p-3">Gönderen / Dekont</th>
                         <th className="p-3">Durum</th>
                         <th className="p-3">Tarih</th>
@@ -786,7 +862,7 @@ export function Billing() {
                           <td className="p-3 font-mono font-bold text-amber-300">{req.referenceCode}</td>
                           <td className="p-3 font-medium text-white">{req.planName}</td>
                           <td className="p-3 tabular-nums">
-                            ₺{req.amountTry.toLocaleString('tr-TR')} ({req.billingCycle === 'yearly' ? 'Yıllık' : 'Aylık'})
+                            ₺{req.amountTry.toLocaleString('tr-TR')} ({formatBillingCycleLabel(req.billingCycle)})
                           </td>
                           <td className="p-3 text-zinc-400">
                             {req.senderName || '—'}

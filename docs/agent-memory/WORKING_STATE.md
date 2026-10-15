@@ -135,6 +135,19 @@ Release status (2026-10-13):
     - **Faz 2 (SEO & GEO):** Exposed `GET /llms.txt` (`src/server/security/web-hardening.ts`, `src/server/app.ts`), added OpenGraph, Twitter Card, and Schema.org `JSON-LD` (`Organization`, `SoftwareApplication`, `FAQPage`) to `index.html`, mounted `PublicMetadata` across public pages, and opened `/bim-sozlugu` (`PublicBimGlossaryPage`) as an indexable public route (`sitemap.xml` + `llms.txt`).
     - **Faz 3 (P1 Mobile, WCAG 2.2 AA & Security):** Made `DosyadanTeklifDemo.tsx` `StepIndicator`, `BimIfcParserPage.tsx`, `MarketIntelligence.tsx`, and `CreateQuote.tsx` mobile-responsive (`375px`); added `#main-content` skip-link target (`Shell.tsx`, `AdminShell.tsx`), keyboard `role="button"`/`aria-pressed` on `SmartCheckDemo.tsx` cards, and `role="tablist"`/`role="tab"`/`role="tabpanel"` on `BimStandardsPage.tsx`; migrated `Settings.tsx` from raw `localStorage.getItem('token')` `fetch` calls to `fetchWithAuth`.
     - **Faz 4 (P2 Engineering & BIM Standards):** Added deterministic `computeBeamSlabIntersectionDeduction` (`eng_calc.py` `betonarme_metraj` compatible) to `src/smartcheck/rules/minha.ts`, extracted `IFCMATERIAL` and `IFCSPACE` names in `src/ifc/parser/legacy-parser.ts` for `BimIfcParser.tsx` e-PYS Madde 12/EK-3 validation, persisted `BimGapAnalysis.tsx` state in `localStorage`, prefilled company name in `DocumentsView.tsx`, and connected `LegislationView.tsx` to `/api/regulations`.
+- **2026-10-15 Competitor-Calibrated Pricing (`v6`), Server-Safe Quotas & 4-Term Billing Cycle System:**
+  - Updated `src/services/billing/plan-catalog.ts` (`bimmetraj-2026-10-15-v6`) and `src/pages/admin/PlanEditor.tsx` presets to position BIMMetraj ~20% below Turkish AEC competitors while protecting single-VPS `ifc-worker` RAM/CPU and R2 storage:
+    - `14 Günlük Ücretsiz Deneme`: `0 ₺/ay` (`3 Teklif`, `1 IFC / 25 MB / 1 eşzamanlı`, `5 AI`, `3 PDF`, `0.25 GB`, `25 Doküman`).
+    - `e-PYS & BIM Standart Denetçi`: `1.250 ₺/ay` (`5 Teklif`, `5 IFC / 35 MB / 1 eşzamanlı`, `10 AI`, `8 PDF`, `1 GB`, `150 Doküman`).
+    - `Teklif & Şantiye`: `2.950 ₺/ay` (`25 Teklif`, `5 IFC / 40 MB / 1 eşzamanlı`, `25 AI`, `15 PDF`, `2 GB`, `300 Doküman`).
+    - `5D BIM & SmartCheck`: `5.450 ₺/ay` (`75 Teklif`, `15 IFC / 60 MB / 1 eşzamanlı`, `60 AI`, `35 PDF`, `5 GB`, `750 Doküman`).
+    - `Kurumsal Taahhüt & e-PYS`: `8.900 ₺/ay` (`200 Teklif`, `35 IFC / 85 MB / 2 eşzamanlı`, `150 AI`, `75 PDF`, `15 GB`, `2000 Doküman`).
+  - Added `src/services/billing/billing-periods.ts` and wired 4 billing periods across `PublicPricingSection.tsx`, `Register.tsx`, `Billing.tsx`, `PlansList.tsx`, `TenantDetail.tsx`, and `bank-transfer.ts`:
+    - `monthly` (`Aylık`, `%0 İndirim`, `30 gün`)
+    - `semi_annual` (`6 Aylık`, `%10 İndirim`, `180 gün`)
+    - `yearly` (`1 Yıllık`, `%20 İndirim`, `365 gün`)
+    - `biennial` (`2 Yıllık`, `%30 İndirim`, `730 gün`)
+  - Added `POST /api/admin/plans/sync-catalog` (`src/server/routes/admin.ts`) and "Standart Katalogla Eşitle" button in `PlansList.tsx`.
 
 ## Next code work
 

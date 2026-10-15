@@ -3,6 +3,13 @@ import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
 import { adminAuditLogs, companies, plans, subscriptions, users } from "../../db/schema";
+import {
+  BILLING_CYCLE_IDS,
+  type BillingCycleId,
+  calculateBillingPeriodPricing,
+  getBillingPeriodOption,
+  normalizeBillingCycle,
+} from "./billing-periods";
 
 export interface BankAccount {
   id: string;
@@ -31,7 +38,7 @@ export interface PaymentRequestRecord {
   planId: string;
   planName: string;
   amountTry: number;
-  billingCycle: "monthly" | "yearly";
+  billingCycle: BillingCycleId;
   bankAccountId: string | null;
   bankName: string | null;
   iban: string | null;
@@ -158,7 +165,7 @@ export const submitBankTransferInputSchema = z
   .object({
     requestId: z.string().trim().min(3).max(80).optional(),
     planId: z.string().uuid(),
-    billingCycle: z.enum(["monthly", "yearly"]).default("monthly"),
+    billingCycle: z.enum(BILLING_CYCLE_IDS).default("monthly"),
     bankAccountId: z.string().trim().max(80).nullable().optional(),
     senderName: z.string().trim().min(2).max(160),
     receiptNumber: z.string().trim().max(120).nullable().optional(),
@@ -240,7 +247,9 @@ export function reconstructPaymentRequests(events: readonly AuditLogPaymentEvent
           typeof d.amountTry === "number"
             ? d.amountTry
             : existing?.amountTry ?? 0,
-        billingCycle: d.billingCycle === "yearly" ? "yearly" : existing?.billingCycle ?? "monthly",
+        billingCycle: d.billingCycle
+          ? normalizeBillingCycle(d.billingCycle)
+          : existing?.billingCycle ?? "monthly",
         bankAccountId:
           typeof d.bankAccountId === "string" ? d.bankAccountId : existing?.bankAccountId ?? null,
         bankName: typeof d.bankName === "string" ? d.bankName : existing?.bankName ?? null,
@@ -359,6 +368,7 @@ export async function createInitialPaymentOrder(input: {
   userId: string;
   userEmail: string;
   planId: string;
+  billingCycle?: BillingCycleId;
 }): Promise<PaymentRequestRecord | null> {
   const runner = input.tx ?? db;
   const [selectedPlan] = await runner
@@ -377,6 +387,8 @@ export async function createInitialPaymentOrder(input: {
     return null;
   }
 
+  const cycle = normalizeBillingCycle(input.billingCycle);
+  const pricing = calculateBillingPeriodPricing(selectedPlan.monthlyPrice, cycle);
   const requestId = crypto.randomUUID();
   const referenceCode = generatePaymentReferenceCode(input.companyName);
   const nowIso = new Date().toISOString();
@@ -389,8 +401,8 @@ export async function createInitialPaymentOrder(input: {
     userEmail: input.userEmail,
     planId: selectedPlan.id,
     planName: selectedPlan.name,
-    amountTry: selectedPlan.monthlyPrice,
-    billingCycle: "monthly" as const,
+    amountTry: pricing.totalPayableTry,
+    billingCycle: cycle,
     status: "awaiting_transfer" as const,
   };
 
@@ -479,10 +491,11 @@ export async function submitBankTransferNotification(input: {
       .where(eq(companies.id, input.companyId));
   }
 
-  const amountTry =
-    input.payload.billingCycle === "yearly"
-      ? selectedPlan.monthlyPrice * 12
-      : selectedPlan.monthlyPrice;
+  const pricing = calculateBillingPeriodPricing(
+    selectedPlan.monthlyPrice,
+    input.payload.billingCycle,
+  );
+  const amountTry = pricing.totalPayableTry;
 
   const details = {
     requestId,
@@ -494,7 +507,7 @@ export async function submitBankTransferNotification(input: {
     planId: selectedPlan.id,
     planName: selectedPlan.name,
     amountTry,
-    billingCycle: input.payload.billingCycle,
+    billingCycle: pricing.cycle,
     bankAccountId: chosenBank?.id ?? null,
     bankName: chosenBank?.bankName ?? null,
     iban: chosenBank?.iban ?? null,
@@ -539,7 +552,7 @@ export async function reviewBankTransferByAdmin(input: {
   await db.transaction(async (tx) => {
     if (input.decision === "approved") {
       const now = new Date();
-      const durationDays = target.billingCycle === "yearly" ? 365 : 30;
+      const durationDays = getBillingPeriodOption(target.billingCycle).durationDays;
       const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
       const [existingSub] = await tx
@@ -592,6 +605,7 @@ export async function reviewBankTransferByAdmin(input: {
         planId: target.planId,
         planName: target.planName,
         amountTry: target.amountTry,
+        billingCycle: target.billingCycle,
         reviewedByAdminId: input.adminId,
         adminDecisionNote: input.adminDecisionNote ?? null,
         status: input.decision,

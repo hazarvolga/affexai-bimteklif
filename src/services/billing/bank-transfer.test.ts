@@ -8,6 +8,11 @@ import {
   parseEnvBankAccounts,
   reconstructPaymentRequests,
 } from "./bank-transfer";
+import {
+  calculateBillingPeriodPricing,
+  formatBillingCycleLabel,
+  getBillingPeriodOption,
+} from "./billing-periods";
 
 test("normalizeIban and formatIban normalize Turkish IBANs cleanly", () => {
   const raw = "tr33 0006 1005 1978 6457 8413 26";
@@ -89,6 +94,37 @@ test("generatePaymentReferenceCode produces deterministic prefix with year and s
   assert.equal(code, "BM-2026-DRN-9F2A");
 });
 
+test("calculateBillingPeriodPricing computes 0%, 10%, 20%, and 30% discounts accurately", () => {
+  const m = calculateBillingPeriodPricing(5450, "monthly");
+  assert.equal(m.discountPercent, 0);
+  assert.equal(m.effectiveMonthlyPriceTry, 5450);
+  assert.equal(m.totalPayableTry, 5450);
+  assert.equal(m.discountAmountTry, 0);
+  assert.equal(getBillingPeriodOption("monthly").durationDays, 30);
+
+  const s = calculateBillingPeriodPricing(5450, "semi_annual");
+  assert.equal(s.discountPercent, 10);
+  assert.equal(s.effectiveMonthlyPriceTry, 4905);
+  assert.equal(s.totalPayableTry, 29430);
+  assert.equal(s.discountAmountTry, 3270);
+  assert.equal(getBillingPeriodOption("semi_annual").durationDays, 180);
+
+  const y = calculateBillingPeriodPricing(5450, "yearly");
+  assert.equal(y.discountPercent, 20);
+  assert.equal(y.effectiveMonthlyPriceTry, 4360);
+  assert.equal(y.totalPayableTry, 52320);
+  assert.equal(y.discountAmountTry, 13080);
+  assert.equal(getBillingPeriodOption("yearly").durationDays, 365);
+
+  const b = calculateBillingPeriodPricing(5450, "biennial");
+  assert.equal(b.discountPercent, 30);
+  assert.equal(b.effectiveMonthlyPriceTry, 3815);
+  assert.equal(b.totalPayableTry, 91560);
+  assert.equal(b.discountAmountTry, 39240);
+  assert.equal(getBillingPeriodOption("biennial").durationDays, 730);
+  assert.equal(formatBillingCycleLabel("biennial"), "2 Yıllık (%30 İndirim)");
+});
+
 test("reconstructPaymentRequests merges lifecycle events from awaiting_transfer to submitted to approved", () => {
   const events = [
     {
@@ -106,8 +142,8 @@ test("reconstructPaymentRequests merges lifecycle events from awaiting_transfer 
         userEmail: "info@drone.com",
         planId: "2b507e20-83d1-4b21-9fc1-000000000004",
         planName: "5D BIM & SmartCheck",
-        amountTry: 3950,
-        billingCycle: "monthly",
+        amountTry: 52320,
+        billingCycle: "yearly",
         status: "awaiting_transfer",
       },
     },
@@ -126,8 +162,8 @@ test("reconstructPaymentRequests merges lifecycle events from awaiting_transfer 
         userEmail: "info@drone.com",
         planId: "2b507e20-83d1-4b21-9fc1-000000000004",
         planName: "5D BIM & SmartCheck",
-        amountTry: 3950,
-        billingCycle: "monthly",
+        amountTry: 52320,
+        billingCycle: "yearly",
         bankAccountId: "acc-1",
         bankName: "Garanti BBVA",
         iban: "TR330006100519786457841326",
@@ -158,8 +194,11 @@ test("reconstructPaymentRequests merges lifecycle events from awaiting_transfer 
   assert.equal(list.length, 1);
   assert.equal(list[0].requestId, "req-100");
   assert.equal(list[0].status, "approved");
+  assert.equal(list[0].billingCycle, "yearly");
+  assert.equal(list[0].amountTry, 52320);
   assert.equal(list[0].receiptNumber, "DEKONT-2026-88412");
   assert.equal(list[0].senderName, "Drone Mühendislik Ltd. Şti.");
   assert.equal(list[0].reviewedByAdminId, "admin-99");
   assert.equal(list[0].adminDecisionNote, "Dekont Garanti BBVA hesabında doğrulandı.");
 });
+

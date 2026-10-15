@@ -4,6 +4,7 @@ import { PageContainer } from '../../components/layout/PageContainer';
 import { Button } from '../../components/ui/button';
 import { fetchWithAuth } from '../../lib/api';
 import { toast } from 'sonner';
+import { formatBillingCycleLabel } from '../../services/billing/billing-periods';
 import {
   Building2,
   ArrowLeft,
@@ -643,7 +644,7 @@ export function TenantDetail() {
                       <span className="font-bold text-emerald-300">
                         ₺{Number(req.amountTry).toLocaleString('tr-TR')}{' '}
                         <span className="text-[10px] text-zinc-500">
-                          ({req.billingCycle === 'yearly' ? 'Yıllık' : 'Aylık'})
+                          ({formatBillingCycleLabel(req.billingCycle)})
                         </span>
                       </span>
                     </div>

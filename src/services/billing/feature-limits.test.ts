@@ -17,7 +17,7 @@ test("each of the five catalog packages enforces its own limits, not starter's",
     assert.equal(featureMonthlyLimit(subscription(plan.id), plan, "PROFIT_ANALYSIS_RUN"), plan.monthlyProfitAnalysisLimit, plan.name);
   }
   const enterprise = canonicalPlans[4];
-  assert.equal(featureMonthlyLimit(subscription(enterprise.id), enterprise, "AI_QUOTATION_GENERATED"), 1000, "8.900 TL package is no longer capped at 20 AI quotes");
+  assert.equal(featureMonthlyLimit(subscription(enterprise.id), enterprise, "AI_QUOTATION_GENERATED"), 150, "8.900 TL package enforces server-safe 150 AI quotes limit");
 });
 
 test("unconfigured plan columns and legacy subscriptions fall back to the legacy enum limits", () => {
