@@ -335,7 +335,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 & PDF/A</span>
                 <p className="mt-1 text-sm font-medium text-foreground">ALLPLAN 2026 e-PYS Kiti & RG 33331</p>
-                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-7 kural setleri, 21 satırlık EK-9 raporu ve PDF/A pafta uyumluluğunu teslim öncesi denetleyin.</p>
+                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-7 (Tablo 7.1–7.9), EK-9 (Tablo 9.1 Mimari 21 satır & Tablo 9.2 Diğer Disiplinler 16 satır) ve PDF/A ISO 216 pafta & e-imza uyumluluğunu teslim öncesi denetleyin.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">SmartCheck 3×3 & Minha</span>
@@ -395,11 +395,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">RG 33331 e-PYS & PDF/A Ön Kontrol</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    EK-1/2/3/5/6/7 kuralları, 21 satırlık EK-9 raporu, PDF/A pafta doğrulaması ve ALLPLAN 2026 e-PYS Kiti v1 uyumluluk incelemesi.
+                    EK-1..EK-7 (Tablo 7.1–7.9), EK-9 (Tablo 9.1 Mimari 21 satır & Tablo 9.2 Diğer Disiplinler 16 satır), PDF/A ISO 216 pafta, tek pafta ve e-imza (<code className="font-mono text-[11px]">/Sig</code>) denetimi.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-sky-400 font-mono">
-                  EK-9 (21 Kural) & PDF/A-1b/2b/3b
+                  EK-9 (Tablo 9.1 & 9.2) · PDF/A & e-İmza
                 </div>
               </div>
 
@@ -459,7 +459,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 text="Allplan (2026 e-PYS Kiti v1), Revit veya Archicad IFC modellerinizi, PDF/A paftalarınızı ya da Excel/CSV cetvellerinizi yükleyin. Dosya içindeki kişisel veriler (TCKN, telefon, e-posta) KVKK kapsamında otomatik maskelenir."
                 highlights={[
                   'Qto_*BaseQuantities & IfcCovering okuma',
-                  'Kat (IfcBuildingStorey) & GlobalId ayrıştırma',
+                  'Kat (IfcBuildingStorey), IfcAnnotation & GlobalId',
                   'ALLPLAN 2026 e-PYS Kiti (.dat/.xml) desteği',
                 ]}
               />
@@ -468,11 +468,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="RG 33331 EK-9 · TS 500 · MİNHA"
                 icon={<SlidersHorizontal size={20} />}
                 title="e-PYS & SmartCheck 3×3 Denetimi"
-                text="Modeliniz RG 33331 e-PYS kurallarına (EK-1..EK-7 ve 21 satırlık EK-9 listesi) göre ön kontrolden geçer. TS 500 Yapısal Sihirbazı kiriş–döşeme kesişimlerini, CSB_2026_V1 motoru ise kapı/pencere Minha düşümlerini hesaplar."
+                text="Modeliniz RG 33331 e-PYS kurallarına (EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 / Tablo 9.2) göre ön kontrolden geçer. TS 500 Sihirbazı kiriş–döşeme kesişimlerini, CSB_2026_V1 motoru ise kapı/pencere Minha düşümlerini hesaplar."
                 highlights={[
                   '≤%3 QTO sapma & TS 500 paspayı (mm) kontrolü',
-                  'Kiriş–döşeme mükerrer kesişim hacmi düşümü',
-                  '21 satırlık EK-9 & PDF/A-1b/2b/3b ön kontrolü',
+                  'EK-9 Tablo 9.1 (Mimari 21) & Tablo 9.2 (Diğer 16)',
+                  'PDF/A ISO 216 pafta boyutu, tek pafta & e-imza',
                 ]}
               />
               <WorkflowCard

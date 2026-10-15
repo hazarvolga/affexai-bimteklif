@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-15.1",
+  version: "BIM-CALC-2026-10-15.2",
   updatedOn: "15 Ekim 2026",
-  implementationBaseline: "2031902c3d7836e5d8190838811c0d187b16875b",
+  implementationBaseline: "9dd9149ad5338f2b00e9ea9d90b8a08316ac1e63",
   approvalStatus: "Bağımsız uzman onayı bekliyor",
 };
 
@@ -90,19 +90,19 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Özel idare şartnameleri ve DIN 18350 / NRM2 alternatif ölçü esası profillerinin saha kabulü.",
   },
   "epys-on-kontrol": {
-    scope: "İç pilot tenant'ta IFC → sunucu ön kontrolü (EK-1/2/3/5/6/7/9 tam sözlük) → EK-9 ekranı ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",
+    scope: "IFC → sunucu ön kontrolü (EK-1/2/3/5/6, EK-7 Tablo 7.1–7.9 IfcAnnotation dahil) → disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ekranı ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",
     testFiles: ["workers/ifc/test_epys_preflight.py", "workers/ifc/vendor_tests/ifc_ruhsat/test_kurallar.py", "src/smartcheck/import/epys-preflight-runner.test.ts", "src/smartcheck/epys-allplan-kit.test.ts"],
     pending: "Gerçek proje kabulü ve elle işaretli satırların yetkili incelemesi.",
   },
   "epys-hizli": {
-    scope: "Tarayıcı ön analizinde IFCMATERIAL (m.12 ≤15 kr.) ve IFCSPACE (EK-3 Kat_Fonksiyon_Sıra) dahil hızlı ön kontrol; sezgisel puan uygunluk yüzdesi değildir.",
+    scope: "Tarayıcı ön analizinde IFCMATERIAL (m.13(3) Malzeme İsmi_Dayanım + ≤15 kr. CAD şablonu), IFCSPACE (EK-3 Kat_Fonksiyon_Sıra) ve 5D CSBPozNo uyarısı dahil hızlı ön kontrol; sezgisel puan uygunluk yüzdesi değildir.",
     testFiles: ["src/smartcheck/rules/epys.test.ts"],
     pending: "Puan/ağırlıkların kullanıcıyı yanıltmadığının değerlendirilmesi ve kapsam dışı kuralların görünür tutulması.",
   },
   pdfa: {
-    scope: "İç pilot tenant'ta PDF yükleme, kuyruk, ön kontrol ve sonuç paneli bağlı; sentetik akış denendi.",
+    scope: "PDF yükleme, kuyruk, PDF/A kimliği (m.7), ISO 216 A4 katları pafta boyutu (m.8(1)), tek pafta kuralı (m.8(2)), taranmış sayfa (m.6(4)) ve gömülü e-imza (/Sig, m.6(1)-(2)) ön kontrolü aktif.",
     testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts"],
-    pending: "Tam PDF/A doğrulayıcısı entegrasyonu, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi.",
+    pending: "Tam PDF/A doğrulayıcısı (veraPDF) entegrasyonu, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi.",
   },
   bindirme: {
     scope: "Akademi kapalı; eğitim simülatörü kodu mevcut, üretim metraj motoru olarak kullanılmıyor.",

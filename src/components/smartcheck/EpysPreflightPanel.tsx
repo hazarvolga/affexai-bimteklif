@@ -26,12 +26,13 @@ interface Finding {
 
 interface PreflightReport {
   summary: { hata: number; uyari: number; bilgi: number; elle: number };
+  ek9Table?: { tablo: string; baslik: string; satirSayisi: number };
   ek9: Ek9Row[];
   findings: Finding[];
   findingsTruncated: boolean;
   disclaimer: string;
   ruleSource: { regulation: Record<string, string>; engine: { name: string; version: string; upstreamCommit: string } };
-  model: { fileName: string; schema: string };
+  model: { fileName: string; schema: string; discipline?: string | null };
 }
 
 const DECISION_CLASS: Record<string, string> = {
@@ -70,8 +71,14 @@ export function EpysPreflightPanel({ documentId, refreshKey }: { documentId: str
     <section className="space-y-4 border-t border-zinc-800 p-4" aria-label="e-PYS ön kontrolü">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-xs font-bold text-zinc-200"><FileCheck2 size={14} className="text-sky-400" />e-PYS ön kontrolü · EK-9 Model Kalite Kontrol Formu</p>
-          <p className="mt-1 text-[10px] text-zinc-500">{report.ruleSource.regulation.ad} · RG {report.ruleSource.regulation.resmiGazete} · şema {report.model.schema}</p>
+          <p className="flex items-center gap-2 text-xs font-bold text-zinc-200">
+            <FileCheck2 size={14} className="text-sky-400" />
+            e-PYS ön kontrolü · EK-9 {report.ek9Table ? `${report.ek9Table.tablo} (${report.ek9Table.baslik} — ${report.ek9Table.satirSayisi} satır)` : "Model Kalite Kontrol Formu"}
+          </p>
+          <p className="mt-1 text-[10px] text-zinc-500">
+            {report.ruleSource.regulation.ad} · RG {report.ruleSource.regulation.resmiGazete} · şema {report.model.schema}
+            {report.model.discipline ? ` · disiplin ${report.model.discipline}` : ""}
+          </p>
         </div>
         <div className="flex gap-2 text-[10px]">
           <Badge variant="outline" className="border-red-500/30 text-red-400">{report.summary.hata} hata</Badge>

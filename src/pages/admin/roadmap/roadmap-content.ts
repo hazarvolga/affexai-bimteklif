@@ -103,13 +103,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["Autodesk Revit", "Pazar payı yüksek; IFC dışa aktarımı ve kullanıcı tanımlı Pset dosyaları", "TREpys setleri için shared parameter ve DefaultUserDefinedParameterSets eşlemesi elle kurulur; otonom IfcCovering üretimi olmadığından kaplama katmanları ek iş yükü doğurur; IfcPlate gibi listede olmayan sınıflar çıkabilir"],
         ["Graphisoft Archicad", "Özellik yöneticisi ve IFC çevirmenleri", "Yerel şablonların ve TREpys eşlemelerinin ofis içinde elle hazırlanması gerekir"],
         ["Solibri / BIMcollab", "IDS ile kural denetimi", "Türkiye'ye özgü kurallar ancak yayımlanan IDS ile çalışır"],
-        ["ifc-ruhsat (açık kaynak, MIT)", "Nihai eklerden çıkarılmış kural verisi, CLI/MCP, IDS ve EK-9 üretimi", "BIMMetraj kural motorunu bu projeden atıfla almış ve EK-1 proje kodu, EK-2 Tablo 2.3–2.14, EK-3 Tablo 3.2 (~130 mahal) ve EK-7 Tablo 7.8 sözlükleriyle genişletmiştir"],
+        ["ifc-ruhsat (açık kaynak, MIT)", "Nihai eklerden çıkarılmış kural verisi, CLI/MCP, IDS ve EK-9 üretimi", "BIMMetraj kural motorunu bu projeden atıfla almış ve EK-1 proje kodu, EK-2 Tablo 2.3–2.14, EK-3 Tablo 3.2 (~130 mahal), EK-7 Tablo 7.8–7.9 (IfcAnnotation SURVEY dahil) ve EK-9 Tablo 9.2 (Diğer Disiplinler 16 satır) sözlükleriyle genişletmiştir"],
       ] },
       { type: "table", columns: ["e-PYS / 5D BIM Kriteri (RG 33331)", "ALLPLAN 2026 + ALUPLAN Çözümü", "Geleneksel BIM Yaklaşımı", "Mühendislik Zaman Etkisi"], rows: [
         ["İnce işler kaplama modellemesi (EK-6 IfcCovering)", "Mahal (IfcSpace) tanımından tavan/zemin/duvar IfcCovering katmanlarını tek tıkla otonom üretir", "Her oda için ayrı döşeme/duvar/tavan katmanı elle modellenir veya metraj dışı kalır", "~%80 modelleme süresi tasarrufu"],
-        ["EK-5 varlık adlandırma (Disiplin-Kategori-Açıklama) ve 15 kr. malzeme sınırı", "ALUPLAN Sihirbazı ve nitelik şablonu ile otomatik kodlama ve karakter sınırı denetimi", "Tek tek elle yeniden adlandırma veya harici Dynamo/Grasshopper betikleri", "Yüzlerce saatlik manuel veri girişi hatasını önler"],
+        ["EK-5 varlık adlandırma (Disiplin-Kategori-Açıklama, m.12(3)) ve malzeme kuralı (Malzeme İsmi_Dayanım, m.13(3))", "ALUPLAN Sihirbazı ve nitelik şablonu ile otomatik kodlama, format ve karakter sınırı denetimi", "Tek tek elle yeniden adlandırma veya harici Dynamo/Grasshopper betikleri", "Yüzlerce saatlik manuel veri girişi hatasını önler"],
         ["TREpys_* özellik setleri ve ÇŞB Poz No (TREpys_PozOzellikSeti)", "Nitelik Yöneticisi + Ön Tanımlı IFC4X3 Pset eşleme tablosuyla doğrudan dışa aktarım", "Shared Parameters + TXT mapping dosyalarının her projede elle eşleştirilmesi", "Sıfır veri kaybı ile doğrudan 5D metraj köprüsü"],
-        ["Teslim öncesi öz-denetim (EK-9 Tablo 9.1)", "ALLPLAN Information Palette içinde canlı IDS kontrolü + BIMMetraj web EK-9 ön kontrolü", "IFC dışa aktarım sonrası harici yazılımda kontrol ve tekrar modele dönüp düzeltme", "Denetim döngüsünü günlerden dakikalara indirir"],
+        ["Teslim öncesi öz-denetim (EK-9 Tablo 9.1 Mimari & Tablo 9.2 Diğer Disiplinler)", "ALLPLAN Information Palette içinde canlı IDS kontrolü + BIMMetraj web EK-9 ön kontrolü", "IFC dışa aktarım sonrası harici yazılımda kontrol ve tekrar modele dönüp düzeltme", "Denetim döngüsünü günlerden dakikalara indirir"],
       ] },
       { type: "callout", tone: "info", text: "Önerilen yaklaşım yazılımdan bağımsızdır: teslim edilen nesne her durumda IFC'dir. ALLPLAN kullanıcıları için ALUPLAN kiti ve yerinde IDS kontrolü, diğer yazılımlar için şablon dosyaları ve BIMMetraj web ön kontrolü." },
     ],
@@ -127,7 +127,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       ] },
       { type: "list", items: [
         "Kural verisi koddan ayrıdır; Bakanlık düzeltme yayımladığında yalnızca veri güncellenir.",
-        "Her bulgu yönetmelik maddesini, EK-9 satırını ve modeldeki GlobalId'leri taşır; ofis hatayı kendi yazılımında bulabilir.",
+        "Her bulgu yönetmelik maddesini, EK-9 satırını (Tablo 9.1 veya Tablo 9.2) ve modeldeki GlobalId'leri taşır; ofis hatayı kendi yazılımında bulabilir.",
         "Makine ile denetlenemeyen satırlar 'Elle' olarak işaretlenir, hiçbir zaman 'uygun' gösterilmez.",
         "IFC içindeki kişisel veriler (TC kimlik, vergi no, e-posta, telefon) saklanmadan önce maskelenir.",
       ] },
@@ -138,9 +138,9 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     title: "ALLPLAN / Aluplan ve BIMMetraj rollerinin ayrımı",
     blocks: [
       { type: "table", columns: ["Bileşen", "Sahibi", "İçerik"], rows: [
-        ["ALLPLAN e-PYS kiti", "Aluplan ile ortak geliştirme", "TREpys nitelik kataloğu ve Allplan → IFC Pset eşlemesi; 15 karakterli malzeme kütüphanesi; EK-3 mahal listesi ve kat yapısı; EK-4 katmanları; yönetmelikten üretilmiş IDS; proje kodu, dosya adı ve mahal kodu yardımcıları (PythonParts, önizleme ve geri alma ile)"],
+        ["ALLPLAN e-PYS kiti", "Aluplan ile ortak geliştirme", "TREpys nitelik kataloğu ve Allplan → IFC Pset eşlemesi; m.13(3) Malzeme İsmi_Dayanım + 15 karakterli malzeme kütüphanesi; EK-3 mahal listesi ve kat yapısı; EK-4 katmanları; yönetmelikten üretilmiş IDS; proje kodu, dosya adı ve mahal kodu yardımcıları (PythonParts, önizleme ve geri alma ile)"],
         ["Yerinde kontrol", "ALLPLAN 2026", "Aynı IDS dosyasıyla Information Palette içinde doğrulama"],
-        ["Web ön kontrolü ve EK-9 taslağı", "BIMMetraj", "Yazılımdan bağımsız IFC ve PDF/A ön kontrolü; ekip, sürüm farkı, kanıt kaydı"],
+        ["Web ön kontrolü ve EK-9 taslağı", "BIMMetraj", "Yazılımdan bağımsız IFC (Tablo 9.1 & Tablo 9.2) ve PDF/A (m.8 pafta boyutu, tek pafta, m.6 e-imza) ön kontrolü; ekip, sürüm farkı, kanıt kaydı"],
         ["Kural verisi", "Ortak, açık yayın önerilir", "Bakanlık yayımlarsa resmî kaynak esas alınır; yayımlamazsa doğrulanmış veri açık lisansla paylaşılır"],
         ["5D köprüsü", "BIMMetraj", "TREpys_PozOzellikSeti.PozNo kapsamı, IfcCovering kaplama alanı (m²) ve kanıtlı QTO miktarlarıyla metraj ve teklif"],
       ] },
@@ -153,7 +153,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "p", text: "Önerilen pozisyon: Bakanlığın kurallarını IDS ve bSDD olarak açık yayımlamasına teknik destek. Bu, tüm yazılımların ve ofislerin aynı kuralla çalışmasını sağlar ve e-PYS'deki ret oranını düşürür." },
       { type: "list", ordered: true, items: [
-        "e-PYS hangi kontrolleri otomatik çalıştıracak? Kurallar IDS veya başka bir makine-okunur biçimde yayımlanacak mı?",
+        "e-PYS hangi kontrolleri (EK-9 Tablo 9.1 ve Tablo 9.2) otomatik çalıştıracak? Kurallar IDS veya başka bir makine-okunur biçimde yayımlanacak mı?",
         "Kabul edilecek IFC sürümü (IFC4X3_ADD2 mi?) ve model görünüm tanımı (MVD) hangisi? Dosya boyutu sınırı (EK-9 satır 1) ne olacak?",
         "Teslim öncesi doğrulama için test ortamı veya API (Elektronik Teslim Yönetmeliği m.4(3)) sağlanacak mı?",
         "TREpys_ setleri ve EK-3 mahal kısaltmaları bSDD üzerinde yayımlanacak mı?",
@@ -168,8 +168,8 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     title: "Yol haritası (fazlar)",
     blocks: [
       { type: "table", columns: ["Faz", "Zaman", "Hedef ve teslimler", "Durum"], rows: [
-        ["Faz 0 — Kaynak ve pozisyon", "Ekim–Aralık 2026", "Nihai RG metni ve resmî eklerin edinilmesi; makine-okunur, sürümlü kural kaynağı; mevcut ürün iddialarının düzeltilmesi; Aluplan iş birliği çerçevesi; Bakanlık soru listesi", "Tamamlandı: kural motoru ve veri (ifc-ruhsat + EK-1 + EK-2 Tablo 2.3–2.14 + EK-3 Tablo 3.2 ~130 mahal + EK-7 Tablo 7.8), TREpys_PozOzellikSeti/EmsalOzellikSeti + IfcCovering çıkarımı, ALLPLAN 2026 e-PYS Kiti v1 ve ÇŞB 2026 resmî PDF katalog mühürleme altyapısı devreye alındı"],
-        ["Faz 1 — İlk zorunluluğa hazırlık", "1 Eylül 2027'ye kadar", "PDF/A, dosya adı ve proje kodu ön kontrolü; yazılımdan bağımsız IFC ön kontrolü (beta); ALLPLAN e-PYS kiti v1 ve 2–3 pilot ofis", "IFC/EK-9, PDF/A ön kontrolü, TS 500 Yapısal Metraj Sihirbazı, CSB_2026_V1 Minha motoru ve ALLPLAN 2026 e-PYS Kiti v1 canlıda. Gerçek proje uzman kabulü ve 2–3 pilot ofis saha doğrulaması sırada"],
+        ["Faz 0 — Kaynak ve pozisyon", "Ekim–Aralık 2026", "Nihai RG metni ve resmî eklerin edinilmesi; makine-okunur, sürümlü kural kaynağı; mevcut ürün iddialarının düzeltilmesi; Aluplan iş birliği çerçevesi; Bakanlık soru listesi", "Tamamlandı: kural motoru ve veri (ifc-ruhsat + EK-1 + EK-2 Tablo 2.1–2.14 + EK-3 Tablo 3.2 ~130 mahal + EK-7 Tablo 7.1–7.9 + EK-9 Tablo 9.1/9.2), TREpys_PozOzellikSeti/EmsalOzellikSeti + IfcCovering çıkarımı, ALLPLAN 2026 e-PYS Kiti v1 ve ÇŞB 2026 resmî PDF katalog mühürleme altyapısı devreye alındı"],
+        ["Faz 1 — İlk zorunluluğa hazırlık", "1 Eylül 2027'ye kadar", "PDF/A, dosya adı ve proje kodu ön kontrolü; yazılımdan bağımsız IFC ön kontrolü (beta); ALLPLAN e-PYS kiti v1 ve 2–3 pilot ofis", "IFC/EK-9 (Tablo 9.1 & 9.2), PDF/A ön kontrolü (ISO 216 pafta boyutu m.8(1), tek pafta m.8(2), e-imza m.6), TS 500 Yapısal Metraj Sihirbazı, CSB_2026_V1 Minha motoru ve ALLPLAN 2026 e-PYS Kiti v1 canlıda. Gerçek proje uzman kabulü ve 2–3 pilot ofis saha doğrulaması sırada"],
         ["Faz 2 — e-PYS açılışı", "1 Eylül 2028'e kadar", "Ekip iş akışı, revizyon farkı, EK-9 taslak çıktısı; BCF ile ALLPLAN (Bimplus Issue Manager) geri dönüşü; PythonParts yardımcıları; Bakanlık kural yayınıyla eşitlik testleri", "Planlandı"],
         ["Faz 3 — IFC'nin ilk dalgası", "1 Eylül 2029'a kadar", "Revit ve Archicad için statik eşleme şablonları; saha verisine göre Revit eklentisi değerlendirmesi; ölçekleme", "Planlandı"],
       ] },
@@ -240,9 +240,10 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["4 — Gerçek proje kabulü ve kural kanıtı", "Sırada (Saha Kabulü)", "İzinli temsilî gerçek IFC/PDF, referans miktar/karar, dosya özeti, kural sürümü, beklenen/gerçek sonuç ve uzman değerlendirmesi birlikte kaydedilir"],
         ["5 — Donatı, kalıp ve kiriş–döşeme kesişim motoru (E-7)", "Tamamlandı (15 Ekim 2026)", "TS 500 Yapısal Metraj Sihirbazı ve computeBeamSlabIntersectionDeduction (src/smartcheck/rules/minha.ts) kolon, kiriş, döşeme ve temel için beton, kiriş–döşeme ortak hacim/kalıp düşümü ve donatı/etriye boy-kütle hesabını net miktar ve fire ayrımıyla üretir"],
         ["6 — Ölçü esası / minha (E-8)", "Tamamlandı (14 Ekim 2026)", "Sözleşmesel ölçü esası motoru (src/smartcheck/rules/minha.ts — CSB_2026_V1) duvar (0,50 m²), sıva/boya (2,00 m² + söve/yan yüzey eklemesi) ve kalıp (1,00 m²) boşluk düşümlerini brüt miktarı bozmadan izlenebilir olarak hesaplar"],
-        ["7 — ALLPLAN e-PYS kiti v1", "Tamamlandı (14 Ekim 2026)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, 15 kr. malzeme kütüphanesi, EK-2/EK-3/EK-5 sözlükleri (src/smartcheck/epys-allplan-kit.ts ve /api/smartcheck/epys-allplan-kit) üretildi; gerçek ALLPLAN 2026 dışa aktarımıyla saha kabulü yapılacak"],
+        ["7 — ALLPLAN e-PYS kiti v1 & RG 33331 tam senkronizasyonu", "Tamamlandı (15 Ekim 2026)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, m.13(3) + 15 kr. malzeme kütüphanesi, EK-1..EK-9 (Tablo 7.1–7.9 ve Tablo 9.1/9.2 dahil) sözlükleri ve PDF/A m.8 + e-imza m.6 ön kontrolü üretildi; gerçek ALLPLAN 2026 dışa aktarımıyla saha kabulü yapılacak"],
         ["8 — Paket kataloğu v6, 4 dönemli iskonto ve abone göçü", "Tamamlandı (15 Ekim 2026)", "Tek VPS kapasite korumalı v6 paket kataloğu (bimmetraj-2026-10-15-v6), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 Havale/EFT dönem iskontosu ve paket pasife alma sırasında aktif aboneleri alternatif pakete atomik aktarma canlıya alındı"],
-        ["9 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
+        ["9 — Kurumsal işlemsel e-posta (Transactional Email) sistemi", "Tamamlandı (15 Ekim 2026)", "8 kurumsal HTML/Text şablonu (Hoş Geldiniz, E-Posta Doğrulama, Şifre Sıfırlama, Havale/EFT Talimatı, Ödeme Onayı, Ekip Daveti, Teklif Gönderimi, Teklif Kararı) ve Süper Admin /admin/email-templates canlı önizleme & test gönderim merkezi devreye alındı"],
+        ["10 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
