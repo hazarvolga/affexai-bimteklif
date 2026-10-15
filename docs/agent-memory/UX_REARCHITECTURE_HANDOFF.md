@@ -38,3 +38,15 @@
 - **ALLPLAN 2026 e-PYS Kiti v1 & Yol Haritası / Hesaplama Yöntemleri Hizalaması (`epys-allplan-kit.ts`, `DeveloperRoadmap.tsx`, `roadmap-content.ts`, `calculation-content.ts`, `calculation-review.ts`):**
   - `/admin/roadmap` sayfasına tek tıkla indirilebilir SHA-256 mühürlü **ALLPLAN 2026 e-PYS Kiti v1** (`GET /api/smartcheck/epys-allplan-kit`) eklendi.
   - `/admin/roadmap` ve `/admin/roadmap/calculations` (`BIM-CALC-2026-10-14.2`) sayfalarındaki tüm çelişkiler giderildi; `TS 500 Yapısal Metraj Sihirbazı (E-7)`, `CSB_2026_V1 Minha Motoru (E-8)`, `IfcCovering` ince işler köprüsü ve `ALLPLAN 2026 vs Geleneksel BIM` karşılaştırma matrisi eklendi.
+
+---
+
+## 5. 15.10.2026 Handoff Güncellemesi (Paket Kataloğu v6, İşlemsel E-Posta & Bakanlık Nihai PDF Senkronizasyonu)
+- **Paket Seçimli Kayıt, Havale/EFT 4 Dönemli İskonto & Paket Kataloğu v6 (`Register.tsx`, `Billing.tsx`, `PlansList.tsx`, `PlanEditor.tsx`, `bank-transfer.ts`, `plan-catalog.ts`):**
+  - Sunucu RAM/CPU korumalı v6 paket kataloğu (`0 / 1.250 / 2.950 / 5.450 / 8.900 ₺`), `Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30` Havale/EFT taahhüt iskontosu, tam sayfa `PlanEditor` (`/admin/plans/:planId`) ve pasife alınan paketteki aboneleri alternatif pakete atomik taşıma canlıya alındı.
+- **Kurumsal İşlemsel E-Posta Sistemi (`email-templates.ts`, `EmailTemplatesAdmin.tsx`):**
+  - 8 kurumsal HTML/Text e-posta şablonu ve Süper Admin `/admin/email-templates` canlı önizleme & gerçek SMTP test gönderim ekranı devreye alındı.
+- **RG 33331 Nihai Bakanlık PDF'leri (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) Uçtan Uca Senkronizasyonu & Revizyon Günlüğü (`roadmap-content.ts`, `calculation-content.ts`, `calculation-review.ts`, `LandingPage.tsx`):**
+  - `EK-9 Tablo 9.1 (Mimari — 21 satır)` & `Tablo 9.2 (Diğer Disiplinler — 16 satır)`, `EK-7 Tablo 7.9 (IfcAnnotation)`, `#1.pdf m.13(3) Malzeme İsmi_Dayanım`, `PDF/A ISO 216 pafta boyutu + tek pafta + /Sig e-imza` ve `2026–2033` geçiş takvimi hem arka uç motorlara hem ön yüze (`LandingPage.tsx`, `LegislationView.tsx`, `BimGlossary.tsx`, `EpysPreflightPanel.tsx`, `PdfPreflightPanel.tsx`) işlendi.
+  - `/admin/roadmap#revizyon-gunlugu` ve `/admin/roadmap/calculations` (`BIM-CALC-2026-10-15.2`) sayfalarına uzman mühendisler için **Önceki Durum → Yeni Durum** karşılaştırmalı revizyon tarihçesi tabloları eklendi.
+

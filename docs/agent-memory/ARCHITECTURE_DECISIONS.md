@@ -204,3 +204,29 @@ Operational rules:
 Owner: product owner + platform operator
 Date: 2026-10-13
 Status: accepted
+
+
+## ADR-009: Code-Based Corporate HTML/Text Transactional Emails + Superadmin Preview Console
+
+Decision: Implement transactional emails (`welcome`, `email_verification`, `password_reset`, `payment_request_submitted`, `payment_request_approved`, `team_invitation`, `quote_sent`, `quote_decision`) using a zero-DB-migration, code-driven HTML/text layout engine (`src/server/notifications/email-templates.ts`) paired with a Superadmin preview and live test-delivery console (`/admin/email-templates`, `GET /api/admin/email-templates`, `POST /api/admin/email-templates/:templateId/test`). Defer full DB-editable MJML compilation until post-launch Phase 2.
+
+Rationale: Avoids introducing an MJML compiler dependency, DB template versioning migrations, and XSS/Broken-Variable risks right before pilot launch, while giving Superadmins visual inspection and real SMTP test capability across all 8 transactional flows.
+
+Owner: product owner + platform architect
+Date: 2026-10-15
+Status: accepted
+
+
+## ADR-010: RG 33331 Official Ministry PDF Package (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) Rule Engine Architecture
+
+Decision: Align both the Python server-side preflight engines (`workers/ifc/vendor/ifc_ruhsat/`, `workers/ifc/epys_preflight.py`, `workers/ifc/pdf_preflight.py`) and the TypeScript client/server rules (`src/smartcheck/rules/ek6-dictionary.ts`, `src/smartcheck/rules/epys.ts`, `src/smartcheck/epys-allplan-kit.ts`) directly with the official Ministry PDFs located in `Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik T/bakanlıktan-gelen-son-pdfler/`:
+
+1. **Discipline-Specific EK-9 Form (`EKLER.pdf` p. 36–37):** Architectural (`MM`) IFC models evaluate against **Tablo 9.1 (21 rows)** (`maddeler`); all non-architectural disciplines (`ST`, `MK`, `EE`, `harita`, `peyzaj`, etc.) evaluate against **Tablo 9.2 (16 rows)** (`maddeler_diger`), omitting architectural-only checks (`IfcSpace` room naming and TAKS/KAKS `emsal`).
+2. **EK-7 Tablo 7.9 (`IfcAnnotation`, `EKLER.pdf` p. 34):** Validate `IfcAnnotation` (`Name: Metin`, `Description: Metin`, `PredefinedType: SURVEY`) via hybrid direct IFC attribute + Pset lookup (`ozellik.py`).
+3. **Material Naming vs. 5D Cost Code (`#1.pdf` m.13(3) & `EKLER.pdf` Tablo 7.x):** Enforce `Malzeme İsmi_Dayanım` (`Beton_C30/37`, `Çelik_B420C`) as the regulatory e-PYS material rule alongside the ≤15-char CAD template check, while keeping `Pset_Yapim_Maliyet.CSBPozNo` as a non-blocking 5D cost-integration warning (since official e-PYS permit delivery uses `TREpys_PozOzellikSeti.PozNo`).
+4. **2D PDF/A Sheet Size, Single-Sheet & e-Signature Checks (`#1.pdf` m.8 & `#2.pdf` m.6–7):** In addition to PDF/A metadata (`pdfaid:part`) and scanned-page detection (`m.6(4)`), check ISO 216 A4 and multiples page dimensions (`m.8(1)` `PAFTA_BOYUTU_ISO216`), single-sheet drawing layout (`m.8(2)` `COKLU_PAFTA_DUZENI`), and embedded 5070-law electronic signature dictionary presence (`/Sig` / `ByteRange`, `m.6(1)-(2)` `eSignature`).
+
+Owner: product owner + platform architect
+Date: 2026-10-15
+Status: accepted
+

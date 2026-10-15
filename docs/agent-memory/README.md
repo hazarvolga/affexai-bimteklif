@@ -1,6 +1,6 @@
 # TeklifPro Agent Memory
 
-Last updated: 2026-10-14
+Last updated: 2026-10-15
 
 This folder is the canonical short memory for agents working on TeklifPro. It is
 intentionally much smaller than the full codebase and `.proje_` archive.
@@ -10,14 +10,21 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 1. `PROJECT_BRIEF.md` - product and business goal.
 2. `WORKING_STATE.md` - one-page current repo/runtime state and known constraints
    (history in `archive/`).
-3. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions.
-4. `PILOT_PLAN.md` - current repo production-hardening plan.
-5. `AGENT_PROTOCOL.md` - how agents should work safely in this repo.
-6. `graphify-out/GRAPH_REPORT.md` - graph/community view when generated.
+3. `HANDOFF_2026-10-15.md` - complete handoff briefing for the next agent (live revision, deploy commands, environment paths, completed 2026-10-15 milestones, and next priorities).
+4. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions (ADR-001 through ADR-010).
+5. `PILOT_PLAN.md` - current repo production-hardening plan.
+6. `AGENT_PROTOCOL.md` - how agents should work safely in this repo.
+7. `graphify-out/GRAPH_REPORT.md` - graph/community view when generated.
 
 ## Source Of Truth Layers
 
-- Latest comprehensive audit & closure report: `GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md` (and `summary.md` handoff).
+- Latest session handoff: `docs/agent-memory/HANDOFF_2026-10-15.md`.
+- Latest comprehensive audit & Ministry PDF sync reports:
+  - `docs/audits/GAP_VE_DENETIM_RAPORU_2026-10-15.md` (5-skill comprehensive gap audit & closure).
+  - `docs/audits/BAKANLIK_SON_PDFLER_ANALIZ_VE_YOL_HARITASI.md` (RG 33331 final PDFs `#1.pdf`, `#2.pdf`, `EKLER.pdf` analysis & 5-phase implementation).
+  - `docs/audits/BAKANLIK_TEKNIK_GORUS_VE_TOPLANTI_DOSYASI.md` (6 technical questions & field dossier for the Ministry of Environment, Urbanization and Climate Change).
+  - `GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md` (earlier 14 Oct closure report).
+- Official Ministry PDF source files in repo: `Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik T/bakanlıktan-gelen-son-pdfler/` (`#1.pdf`, `#2.pdf`, `EKLER.pdf`).
 - Current production code: this repo root, Vite + Express + Drizzle + Graphile Worker (`compose.coolify.yaml`).
 - Target production app: planned Next.js App Router + PostgreSQL + Prisma app,
   to be added after pilot evidence gates (ADR-007).

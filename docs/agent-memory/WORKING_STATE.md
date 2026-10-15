@@ -1,20 +1,20 @@
 # Working State
 
-Last updated: 2026-10-14. Keep this file to one page: current truth only.
+Last updated: 2026-10-15. Keep this file to one page: current truth only.
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
+Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-15.md`.
 
 ## Production
 
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `9ab9ae5b07f2d3caeb81ea8c185794fc3595ed5e`
-  (`/api/health`, `revisionSource: "build"`, 2026-10-14, Coolify deploy `pk249c4bzn7yml3gny65rlrd`, GitHub Actions `Verify` run `38570914778`). Transactional e-mail uses Stalwart SMTP 465 at
-  `mail.affexai.tr`, sender `info@bimmetraj.com`. Registration is open.
-- Still closed: payments (Stripe test mode only), AI (no provider keys).
-  SmartCheck server import is enabled only for the allowlisted internal
-  `Bimmetraj` tenant; this is a pilot, not general availability.
+- Last verified live revision: `2dda6de4d8a88ff7ca2f40eb1c8c1c3d08591a18`
+  (`/api/health`, `revisionSource: "build"`, 2026-10-15, Coolify deploy `a2w0bidxsh25je59pldx6ear`). Transactional e-mail uses Stalwart SMTP 465 at
+  `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`).
+- Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
+  SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.
 - Production R2 bucket `bimmetraj-production` and scoped app credentials are
   configured. On 2026-10-13, app-container put/get/checksum/delete smoke passed.
 - Sentry organization `BIMMetraj` was created in the EU region via
@@ -152,7 +152,7 @@ Release status (2026-10-13):
   - **Faz 1 (Python `ifc_ruhsat` Core Engine):** Added `maddeler_diger` for **EK-9 Tablo 9.2 (16 rows, non-architectural disciplines `ST`, `MK`, `EE`, etc.)** alongside **Tablo 9.1 (21 rows, Architectural `MM`)** in `ek9_form.json`, `ek9.py`, `kontrol.py`, `veri.py`, `bulgu.py`, `emsal.py`, and `epys_preflight.py` (`ek9Table`, `discipline`, `kaynakNo`). Added **EK-7 Tablo 7.9 (`IfcAnnotation`: `Name`, `Description`, `PredefinedType: SURVEY`)** in `ek7_proje.json` and `ozellik.py`.
   - **Faz 2 (`workers/ifc/pdf_preflight.py`):** Added `#1.pdf` **m.8(1)** ISO 216 A4 and multiples page size check (`PAFTA_BOYUTU_ISO216`), **m.8(2)** single-sheet drawing rule check (`COKLU_PAFTA_DUZENI`), and `#2.pdf` **m.6(1)-(2)** embedded electronic signature (`/Sig`) detection (`eSignature`).
   - **Faz 3 (TypeScript `SmartCheck` & `epys-allplan-kit.ts`):** Synchronized `ek6-dictionary.ts` with `EKLER.pdf` (`Tablo 6.3, 6.16, 6.20, 6.25, 6.56, 6.58, 6.66, 6.68`), aligned `epys.ts` with `#1.pdf` `m.13(3)` (`Malzeme İsmi_Dayanım`) + 5D `CSBPozNo` warning, and updated `epys-allplan-kit.ts` (`EmsalDurumu: ["DAHIL", "HARIC", "DIGER"]`).
-  - **Faz 4 (Frontend & Admin Docs):** Updated `LegislationView.tsx` (official `2026–2033` RG 33331 transition timeline), `BimGlossary.tsx` (`e-PYS`, `EK-9 Formu`), `roadmap-content.ts` (all 8 sections), `calculation-content.ts`, `calculation-review.ts` (`BIM-CALC-2026-10-15.2`), `EpysPreflightPanel.tsx` (`ek9Table` Tablo 9.1 / 9.2 + discipline badge), `PdfPreflightPanel.tsx` (`eSignature` `/Sig` status badge), and `LandingPage.tsx` (Hero, Features, How-It-Works 3 steps & 6 lifecycle cards). Built 8 corporate HTML transactional email templates (`src/server/notifications/email-templates.ts`) + Superadmin `/admin/email-templates` preview & test sender.
+  - **Faz 4 (Frontend, Admin Docs & Revision History):** Updated `LegislationView.tsx` (official `2026–2033` RG 33331 transition timeline), `BimGlossary.tsx` (`e-PYS`, `EK-9 Formu`), `roadmap-content.ts` (all sections + new `revizyon-gunlugu` before/after comparison & chronological milestone tables), `calculation-content.ts`, `calculation-review.ts` (`BIM-CALC-2026-10-15.2` + `CALC_REVIEW_CHANGELOG` rendered in `CalculationMethods.tsx`), `EpysPreflightPanel.tsx` (`ek9Table` Tablo 9.1 / 9.2 + discipline badge), `PdfPreflightPanel.tsx` (`eSignature` `/Sig` status badge), and `LandingPage.tsx` (Hero, Features, How-It-Works 3 steps & 6 lifecycle cards). Built 8 corporate HTML transactional email templates (`src/server/notifications/email-templates.ts`) + Superadmin `/admin/email-templates` preview & test sender.
 
 ## Next code work
 

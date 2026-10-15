@@ -32,5 +32,15 @@ Bu belge, e-PYS (Elektronik Proje Teslim Sistemi) kurallarının sisteme entegra
   - EK-7 `Tablo 7.1–7.8` (`IfcProject`, kişi/kurum/rol, `IfcProjectedCRS`, `IfcMapConversion`, `IfcGeometricRepresentationContext` 3B koordinat kontrolü),
   - EK-9 `Tablo 9.1` (21 satır Model Kalite Kontrol Formu) ve KVKK TC Kimlik / VKN / e-posta / telefon maskeleme canlıda aktif.
 - **5D Metraj/Teklif Köprüsü & ALLPLAN 2026 e-PYS Kiti v1 (`ifc_extract.py`, `smartcheck-evidence.ts`, `quotation-transfer.ts`, `epys-allplan-kit.ts`):**
-  - `TREpys_PozOzellikSeti.PozNo` önceliği, `TREpys_EmsalOzellikSeti` (`DAHIL`/`HARIC`/`YUZDE30`) alan toplamları ve `IfcCovering` (`m²`) kaplama metrajı SmartCheck kanıt satırlarına ve taslak teklife bağlandı.
-  - SHA-256 mühürlü **ALLPLAN 2026 e-PYS Kiti v1** (`GET /api/smartcheck/epys-allplan-kit`) `/admin/roadmap` üzerinden indirilebilir durumda.
+  - `TREpys_PozOzellikSeti.PozNo` önceliği, `TREpys_EmsalOzellikSeti` (`DAHIL`/`HARIC`/`DIGER` ve geriye dönük `YUZDE30`) alan toplamları ve `IfcCovering` (`m²`) kaplama metrajı SmartCheck kanıt satırlarına ve taslak teklife bağlandı.
+  - SHA-256 mühürlü **ALLPLAN 2026 e-PYS Kiti v1** (`GET /api/smartcheck/epys-allplan-kit`) `/admin/roadmap` ve `/app/smartcheck` üzerinden indirilebilir durumda.
+
+---
+
+## 5. 15 Ekim 2026 — Bakanlık Nihai PDF Paketi (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) Tam Senkronizasyonu
+- **EK-9 Tablo 9.1 (Mimari — 21 satır) & Tablo 9.2 (Diğer Disiplinler — 16 satır):** `ek9_form.json`, `ek9.py`, `kontrol.py` ve `epys_preflight.py` içinde disiplin koduna (`MM` vs. `ST`/`MK`/`EE` vb.) göre otomatik tablo seçimi ve `EpysPreflightPanel.tsx` rozeti devreye alındı.
+- **EK-7 Tablo 7.9 (`IfcAnnotation`):** `ek7_proje.json` ve `ozellik.py` içine `IfcAnnotation` (`Name: Metin`, `Description: Metin`, `PredefinedType: SURVEY`) kontrolü eklendi.
+- **EK-6 Alt Tür Sözlüğü (`ek6-dictionary.ts`):** `Tablo 6.3, 6.16, 6.20, 6.25, 6.56, 6.58, 6.66, 6.68` alt türleri `EKLER.pdf` ile birebir eşitlendi.
+- **Malzeme Adı (`#1.pdf` m.13(3)) & 5D Poz Kodu Ayrımı (`epys.ts`):** `IFCMATERIAL` üzerinde `Malzeme İsmi_Dayanım` (`Beton_C30/37`, `Çelik_B420C`) resmi kural olarak tanımlandı; `Pset_Yapim_Maliyet.CSBPozNo` 5D maliyet uyarısı seviyesine çekildi.
+- **2B PDF/A Pafta Boyutu, Tek Pafta & e-İmza (`pdf_preflight.py`, `PdfPreflightPanel.tsx`):** `#1.pdf` **m.8(1)** ISO 216 A4 katları pafta boyutu (`PAFTA_BOYUTU_ISO216`), **m.8(2)** çizim paftalarında tek pafta düzeni (`COKLU_PAFTA_DUZENI`) ve `#2.pdf` **m.6(1)-(2)** 5070 sayılı Kanun gömülü e-imza (`/Sig` — `eSignature`) kontrolleri eklendi.
+
