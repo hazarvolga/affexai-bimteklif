@@ -121,13 +121,18 @@ export function TenantDetail() {
   const [impersonateReadOnly, setImpersonateReadOnly] = useState(true);
   const [impersonating, setImpersonating] = useState(false);
 
+  // Payment Requests for this Tenant
+  const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
+  const [reviewingPaymentId, setReviewingPaymentId] = useState<string | null>(null);
+
   const loadTenant = async () => {
     if (!companyId) return;
     try {
       setLoading(true);
-      const [tenantRes, plansRes] = await Promise.all([
+      const [tenantRes, plansRes, paymentsRes] = await Promise.all([
         fetchWithAuth(`/api/admin/tenants/${companyId}`),
-        fetchWithAuth('/api/admin/plans')
+        fetchWithAuth('/api/admin/plans'),
+        fetchWithAuth(`/api/admin/billing/payment-requests?companyId=${encodeURIComponent(companyId)}`),
       ]);
 
       if (!tenantRes.ok) {
@@ -149,6 +154,26 @@ export function TenantDetail() {
         }
       } catch {
         // Fallback to empty plans
+      }
+
+      try {
+        if (paymentsRes.ok) {
+          const paymentsBody = await paymentsRes.json();
+          const rawList = Array.isArray(paymentsBody)
+            ? paymentsBody
+            : Array.isArray(paymentsBody?.requests)
+              ? paymentsBody.requests
+              : [];
+          setPaymentRequests(
+            rawList.map((item: any) => ({
+              ...item,
+              transferReference: item.receiptNumber ?? item.transferReference ?? null,
+              adminNote: item.adminDecisionNote ?? item.adminNote ?? null,
+            })),
+          );
+        }
+      } catch {
+        // Ignore payment fetch failure
       }
 
       setData(tenantData);
@@ -178,6 +203,34 @@ export function TenantDetail() {
   useEffect(() => {
     loadTenant();
   }, [companyId]);
+
+  const handleReviewPayment = async (requestId: string, decision: 'approved' | 'rejected') => {
+    setReviewingPaymentId(requestId);
+    try {
+      const res = await fetchWithAuth(`/api/admin/billing/payment-requests/${requestId}/review`, {
+        method: 'POST',
+        body: JSON.stringify({
+          decision,
+          adminNote:
+            decision === 'approved'
+              ? 'Havale / EFT ödemesi onaylandı ve paket aktif edildi.'
+              : 'Havale / EFT ödemesi doğrulanamadı.',
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Ödeme durumu güncellenemedi.');
+      toast.success(
+        decision === 'approved'
+          ? 'Ödeme onaylandı ve firmanın yeni paketi aktif edildi!'
+          : 'Ödeme bildirimi reddedildi.',
+      );
+      await loadTenant();
+    } catch (err: any) {
+      toast.error(err.message || 'İşlem başarısız oldu.');
+    } finally {
+      setReviewingPaymentId(null);
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!companyId) return;
@@ -564,6 +617,64 @@ export function TenantDetail() {
 
         {/* Sağ Kolon: Paket, Kotalar & İşlemler */}
         <div className="space-y-6">
+          {/* Havale / EFT Ödeme Bildirimleri */}
+          {paymentRequests.length > 0 && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-950/15 p-5 space-y-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-amber-200 flex items-center gap-2">
+                <Receipt size={16} className="text-amber-400" />
+                Havale / EFT Sipariş & Dekont Bildirimleri ({paymentRequests.length})
+              </h3>
+              <div className="space-y-2.5">
+                {paymentRequests.map((req: any) => (
+                  <div
+                    key={req.requestId}
+                    className="rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono font-bold text-amber-300">{req.referenceCode}</span>
+                      <span className="font-bold text-emerald-300">
+                        ₺{Number(req.amountTry).toLocaleString('tr-TR')}{' '}
+                        <span className="text-[10px] text-zinc-500">
+                          ({req.billingCycle === 'yearly' ? 'Yıllık' : 'Aylık'})
+                        </span>
+                      </span>
+                    </div>
+                    <div className="text-white font-semibold">{req.planName}</div>
+                    {req.senderName && (
+                      <div className="text-[11px] text-zinc-400">
+                        Gönderen: <span className="text-zinc-200">{req.senderName}</span>
+                        {req.transferReference && (
+                          <span className="block font-mono text-amber-200">Dekont: {req.transferReference}</span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[10px] uppercase font-bold text-zinc-400">
+                        {req.status === 'approved'
+                          ? 'Onaylandı'
+                          : req.status === 'pending_approval'
+                            ? 'Dekont Onayı Bekliyor'
+                            : req.status === 'rejected'
+                              ? 'Reddedildi'
+                              : 'Havale Bekleniyor'}
+                      </span>
+                      {req.status !== 'approved' && (
+                        <Button
+                          size="sm"
+                          disabled={reviewingPaymentId === req.requestId}
+                          onClick={() => void handleReviewPayment(req.requestId, 'approved')}
+                          className="h-7 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5"
+                        >
+                          Onayla & Paketi Aktif Et
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Sahip Olduğu Paket & Kota Yönetimi */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
             <div className="flex items-center justify-between mb-4">

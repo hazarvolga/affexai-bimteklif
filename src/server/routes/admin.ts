@@ -41,6 +41,14 @@ import { inferCrawledItemUnit } from "../crawler/price-parser";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
 import { priceSchedulerService } from "../crawler/priceSchedulerService";
 import { isAutomaticPricingSource } from "../crawler/source-eligibility";
+import {
+  adminReviewPaymentInputSchema,
+  getAllBankAccountsForAdmin,
+  getAllPaymentRequestsForAdmin,
+  parseBankAccountsInput,
+  reviewBankTransferByAdmin,
+  saveBankAccountsByAdmin,
+} from "../../services/billing/bank-transfer";
 
 export function registerAdminRoutes(app: Express) {
   const router = Router();
@@ -1455,5 +1463,78 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // ── Bank Accounts & Manual Bank Transfer (Havale / EFT) Approval ─────────
+  router.get("/billing/bank-accounts", async (_req, res) => {
+    try {
+      const accounts = await getAllBankAccountsForAdmin();
+      return res.json(accounts);
+    } catch (error) {
+      console.error("Admin get bank accounts error:", error);
+      return res.status(500).json({ error: "Banka hesapları alınamadı." });
+    }
+  });
+
+  router.put("/billing/bank-accounts", async (req, res) => {
+    try {
+      const parsed = parseBankAccountsInput(req.body);
+      if (!parsed) {
+        return res.status(400).json({
+          error: "Banka bilgileri geçersiz. Lütfen Banka Adı, Alıcı Ünvanı ve geçerli bir TR IBAN girdiğinizden emin olun.",
+        });
+      }
+      const saved = await saveBankAccountsByAdmin(req.user.userId, parsed);
+      return res.json({
+        success: true,
+        message: `${saved.length} banka hesabı kaydedildi ve ödeme ekranlarında güncellendi.`,
+        accounts: saved,
+      });
+    } catch (error) {
+      console.error("Admin save bank accounts error:", error);
+      return res.status(500).json({ error: "Banka hesapları kaydedilemedi." });
+    }
+  });
+
+  router.get("/billing/payment-requests", async (req, res) => {
+    try {
+      const companyIdFilter = typeof req.query.companyId === "string" ? req.query.companyId.trim() : "";
+      const all = await getAllPaymentRequestsForAdmin();
+      const filtered = companyIdFilter ? all.filter((r) => r.companyId === companyIdFilter) : all;
+      return res.json(filtered);
+    } catch (error) {
+      console.error("Admin get payment requests error:", error);
+      return res.status(500).json({ error: "Ödeme bildirimleri alınamadı." });
+    }
+  });
+
+  router.post("/billing/payment-requests/:requestId/review", async (req, res) => {
+    try {
+      const parsed = adminReviewPaymentInputSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Geçersiz onay kararı." });
+      }
+      const updated = await reviewBankTransferByAdmin({
+        adminId: req.user.userId,
+        requestId: req.params.requestId,
+        decision: parsed.data.decision,
+        adminDecisionNote: parsed.data.adminDecisionNote ?? null,
+      });
+      return res.json({
+        success: true,
+        message:
+          parsed.data.decision === "approved"
+            ? `${updated.companyName} firmasının ${updated.planName} paketi ve kotaları aktif edildi.`
+            : `${updated.companyName} firmasının ödeme bildirimi reddedildi.`,
+        request: updated,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "PAYMENT_REQUEST_NOT_FOUND") {
+        return res.status(404).json({ error: "Ödeme bildirimi bulunamadı." });
+      }
+      console.error("Admin review payment request error:", error);
+      return res.status(500).json({ error: "Ödeme bildirimi işlenemedi." });
+    }
+  });
+
   app.use("/api/admin", router);
 }
+

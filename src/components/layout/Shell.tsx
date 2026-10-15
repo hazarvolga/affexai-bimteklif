@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { fetchWithAuth } from '@/lib/api';
 
 import { navigationConfig, navGroupOrder, type NavItem } from '@/constants/navigation';
 
@@ -69,8 +70,27 @@ export function Shell() {
   const isLearner = ACADEMY_ENABLED && accountType === 'academy_learner';
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [activePlanName, setActivePlanName] = useState<string | null>(null);
 
   const isSuperAdmin = Boolean(user?.isSuperAdmin);
+
+  useEffect(() => {
+    if (isSuperAdmin || isLearner || !company?.id) return;
+    let cancelled = false;
+    Promise.resolve()
+      .then(() => fetchWithAuth('/api/billing/usage-stats'))
+      .then(async (res) => {
+        if (cancelled || !res?.ok) return;
+        const body = await res.json();
+        if (!cancelled && typeof body?.plan === 'string' && body.plan !== 'unavailable') {
+          setActivePlanName(body.plan);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [company?.id, isSuperAdmin, isLearner, location.pathname]);
 
   const filteredNavItems = navigationConfig.filter(item => {
     // If the user is a super admin, they should ONLY see system management and settings tools
@@ -104,11 +124,26 @@ export function Shell() {
 
   const accountBlock = (
     <div className="mt-auto p-4 border-t border-border space-y-3 bg-muted/20">
-      <div className="rounded-sm p-2.5 border border-border bg-card">
-        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
-          {isLearner ? 'ÖĞRENCİ HESABI' : 'ÇALIŞMA ALANI'}
-        </p>
-        <p className="text-xs font-semibold text-foreground truncate">{company?.name || 'Yükleniyor...'}</p>
+      <div className="rounded-sm p-2.5 border border-border bg-card space-y-1.5">
+        <div>
+          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+            {isLearner ? 'ÖĞRENCİ HESABI' : 'ÇALIŞMA ALANI'}
+          </p>
+          <p className="text-xs font-semibold text-foreground truncate">{company?.name || 'Yükleniyor...'}</p>
+        </div>
+        {!isLearner && !isSuperAdmin && (
+          <div className="border-t border-border/70 pt-1.5 flex items-center justify-between gap-2">
+            <span className="inline-block truncate rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-400">
+              {activePlanName || '14 Günlük Deneme'}
+            </span>
+            <Link
+              to="/app/billing"
+              className="shrink-0 font-mono text-[10px] font-semibold text-primary hover:underline"
+            >
+              Paketler →
+            </Link>
+          </div>
+        )}
       </div>
 
       <Button

@@ -7,9 +7,10 @@ import { db } from "../../db";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, adminAuditLogs, authActionTokens, companies, memberships, subscriptions, users } from "../../db/schema";
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
 import { AuthService } from "../../services/auth/authService";
+import { createInitialPaymentOrder } from "../../services/billing/bank-transfer";
 import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
-import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, publicRegisteredUser } from "../auth/registration";
+import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
 
 export const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
@@ -63,6 +64,7 @@ export async function issueAndDeliverAuthAction(input: {
 async function rollbackFailedRegistration(userId: string, companyId: string) {
   await db.transaction(async tx => {
     await tx.delete(authActionTokens).where(eq(authActionTokens.userId, userId));
+    await tx.delete(adminAuditLogs).where(eq(adminAuditLogs.targetCompanyId, companyId));
     await tx.delete(academyEnrollmentAuditLogs).where(and(eq(academyEnrollmentAuditLogs.companyId, companyId), eq(academyEnrollmentAuditLogs.actorUserId, userId)));
     await tx.delete(memberships).where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
     await tx.delete(subscriptions).where(eq(subscriptions.companyId, companyId));
@@ -100,6 +102,7 @@ export function registerAuthRoutes(app: Express) {
       if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: "Çok fazla kayıt denemesi. Lütfen daha sonra tekrar deneyin." });
       const input = parseRegistrationInput(req.body);
       if (!input) return res.status(400).json({ error: "Kayıt bilgileri geçersiz." });
+      const selectedPlanId = parseSelectedPlanId(req.body);
       const { email, password, fullName, companyName, intent } = input;
       const [existing] = await db.select().from(users).where(eq(users.email, email));
       if (existing) return res.status(409).json({ error: "Bu e-posta adresiyle bir hesap zaten mevcut." });
@@ -110,7 +113,7 @@ export function registerAuthRoutes(app: Express) {
           .where(and(eq(academyProducts.code, "allplan-pro"), eq(academyProducts.isActive, true), eq(academyEditions.version, ALLPLAN_PROGRAM_VERSION), eq(academyEditions.accessMode, "free_pilot"), eq(academyEditions.isActive, true)))
           .limit(1) : [];
         if (intent === "academy" && !edition) throw new Error("ACADEMY_EDITION_UNAVAILABLE");
-        const [company] = await tx.insert(companies).values({ name: companyName }).returning();
+        const [company] = await tx.insert(companies).values({ name: companyName, isSmartcheckEnabled: true }).returning();
         const [user] = await tx.insert(users).values({ email, fullName, passwordHash }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
         const trialPlan = await selectTrialPlan(tx);
@@ -123,6 +126,16 @@ export function registerAuthRoutes(app: Express) {
           currentPeriodStart: now,
           currentPeriodEnd: trialPlan ? trialEnd : null,
         });
+        const pendingPaymentOrder = selectedPlanId
+          ? await createInitialPaymentOrder({
+              tx,
+              companyId: company.id,
+              companyName: company.name,
+              userId: user.id,
+              userEmail: user.email,
+              planId: selectedPlanId,
+            })
+          : null;
         if (edition) {
           const [enrollment] = await tx.insert(academyEnrollments).values({ editionId: edition.id, companyId: company.id, userId: user.id, status: "active", source: "pilot" }).returning();
           await tx.insert(academyEnrollmentAuditLogs).values({ enrollmentId: enrollment.id, companyId: company.id, actorUserId: user.id, action: "granted", reason: "Ücretsiz Academy öğrenci kaydı", details: { registrationIntent: "academy" } });
@@ -131,7 +144,7 @@ export function registerAuthRoutes(app: Express) {
           await tx.insert(academyActivationEvents).values({ companyId: company.id, userId: user.id, eventType: "registration_completed", metadata: input.acquisitionId ? { acquisitionId: input.acquisitionId } : {} });
           if (input.acquisitionId) await tx.update(academyAcquisitionEvents).set({ registeredUserId: user.id, registeredAt: now }).where(eq(academyAcquisitionEvents.acquisitionId, input.acquisitionId));
         }
-        return { company, user, academyEnrolled: Boolean(edition) };
+        return { company, user, academyEnrolled: Boolean(edition), pendingPaymentOrder };
       });
 
       try {
@@ -142,7 +155,16 @@ export function registerAuthRoutes(app: Express) {
         throw error;
       }
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
-      res.status(201).json({ token, user: publicRegisteredUser(result.user), company: result.company, role: "owner", accountType: intent === 'academy' ? 'academy_learner' : 'workspace', academyEnrolled: result.academyEnrolled, emailVerificationRequired: true });
+      res.status(201).json({
+        token,
+        user: publicRegisteredUser(result.user),
+        company: result.company,
+        role: "owner",
+        accountType: intent === 'academy' ? 'academy_learner' : 'workspace',
+        academyEnrolled: result.academyEnrolled,
+        emailVerificationRequired: true,
+        pendingPaymentOrder: result.pendingPaymentOrder,
+      });
     } catch (error) {
       if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
       console.error("Registration error:", error);

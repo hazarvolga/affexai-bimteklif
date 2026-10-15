@@ -23,7 +23,7 @@ import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota";
 import { recordUsage } from "../../services/billing/usage-audit";
 import { transferReviewEvidence } from "../../smartcheck/import/transfer-evidence";
-import { buildAllplanEpysKitV1 } from "../../smartcheck/epys-allplan-kit";
+import { buildAllplanEpysKitV1, buildEpysIdsXml } from "../../smartcheck/epys-allplan-kit";
 import {
   smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
@@ -37,9 +37,21 @@ import {
 const canReview = checkRole(["owner", "admin", "manager"]);
 const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip", "model/ifc", "application/ifc", "application/pdf"], limit: SMARTCHECK_MAX_FILE_BYTES });
 
-const featureGate: RequestHandler = (req, res, next) => {
-  if (!smartcheckImportEnabled(req.user.companyId)) return res.status(404).json({ error: "SmartCheck import pilot kapsamında etkin değil.", code: "SMARTCHECK_IMPORT_DISABLED" });
-  next();
+const featureGate: RequestHandler = async (req, res, next) => {
+  if (smartcheckImportEnabled(req.user.companyId)) return next();
+  try {
+    const [company] = await db
+      .select({ isSmartcheckEnabled: companies.isSmartcheckEnabled })
+      .from(companies)
+      .where(eq(companies.id, req.user.companyId))
+      .limit(1);
+    if (smartcheckImportEnabled(req.user.companyId, Boolean(company?.isSmartcheckEnabled))) {
+      return next();
+    }
+  } catch (error) {
+    console.error("[smartcheck.featureGate] DB check failed:", error);
+  }
+  return res.status(404).json({ error: "SmartCheck import pilot kapsamında etkin değil.", code: "SMARTCHECK_IMPORT_DISABLED" });
 };
 
 const rateLimit: RequestHandler = async (req, res, next) => {
@@ -695,6 +707,22 @@ export function registerSmartCheckRoutes(app: Express) {
     } catch (error) {
       console.error("Failed to build Allplan 2026 e-PYS Kit v1", error);
       return res.status(500).json({ error: "ALLPLAN 2026 e-PYS Kiti v1 oluşturulamadı." });
+    }
+  });
+
+  app.get("/api/smartcheck/epys-ids", async (req, res) => {
+    try {
+      const rl = await consumeRateLimit(`smartcheck:ids:${req.ip ?? "anon"}`, 60, 60_000);
+      if (!rl.allowed) {
+        return res.status(429).set("Retry-After", String(rl.retryAfterSeconds)).json({ error: "Çok fazla istek." });
+      }
+      const xml = buildEpysIdsXml();
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.setHeader("Content-Disposition", 'attachment; filename="tr-epys-rg33331-ek6-ek7.ids"');
+      return res.send(xml);
+    } catch (error) {
+      console.error("Failed to build e-PYS IDS 1.0 XML", error);
+      return res.status(500).json({ error: "e-PYS IDS 1.0 dosyası oluşturulamadı." });
     }
   });
 }

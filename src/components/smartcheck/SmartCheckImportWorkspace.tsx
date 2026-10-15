@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, Eye, FileCode2, FileSpreadsheet, Layers3, Loader2, RefreshCw, ShieldAlert, Table2, Upload } from "lucide-react";
+import { CheckCircle2, ChevronDown, Download, Eye, FileCode2, FileSpreadsheet, Layers3, Loader2, RefreshCw, ShieldAlert, Table2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { fetchWithAuth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -705,9 +705,36 @@ export function SmartCheckImportWorkspace() {
 
   return (
     <section className="mb-8 rounded-3xl border border-orange-500/20 bg-zinc-950 p-6 sm:p-8">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">Kanıt Öncelikli Metraj & e-PYS Denetimi</p><h2 className="mt-2 text-xl font-black text-white">Excel / CSV / IFC / PDF SmartCheck Çalışma Alanı</h2><p className="mt-1 text-xs text-zinc-500">Excel/CSV: önizle → eşle → işle. IFC: yükle → QTO/özellik kanıt satırlarını ve e-PYS EK-9 kurallarını denetle → aktar.</p></div>
         <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{stage}</Badge>
+      </div>
+
+      <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-indigo-500/25 bg-indigo-950/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold text-indigo-200">e-PYS (RG 33331) & ALLPLAN 2026 Hazırlık Şablonları</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-400">
+            IFC modelinizi dışa aktarmadan önce ALLPLAN 2026 / Solibri / BIMcollab içinde yerinde doğrulama yapmak için resmî kural dosyalarını indirin:
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <a
+            href="/api/smartcheck/epys-ids"
+            download="tr-epys-rg33331-ek6-ek7.ids"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-indigo-500/40 bg-indigo-500/15 px-3 text-[11px] font-bold text-indigo-200 transition-colors hover:bg-indigo-500/25"
+          >
+            <Download size={13} />
+            e-PYS IDS Kuralları (.ids)
+          </a>
+          <a
+            href="/api/smartcheck/epys-allplan-kit"
+            download="allplan-2026-epys-kit-v1.json"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 text-[11px] font-bold text-emerald-200 transition-colors hover:bg-emerald-500/25"
+          >
+            <Download size={13} />
+            ALLPLAN 2026 e-PYS Kiti v1 (.json)
+          </a>
+        </div>
       </div>
 
       <div className="mb-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4">

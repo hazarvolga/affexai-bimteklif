@@ -2,6 +2,7 @@ import type { Express, Request, RequestHandler } from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db";
 import {
+  companies,
   documents,
   documentProcessingRuns,
   normalizedQuantityRows,
@@ -16,9 +17,21 @@ import { consumeRateLimit } from "../auth/security";
 import { calculatePilotMetrics, summarizePilotMeasurements } from "../smartcheck/pilot/metrics";
 
 const canOperatePilot = checkRole(["owner", "admin", "manager"]);
-const featureGate: RequestHandler = (req, res, next) => {
-  if (!smartcheckImportEnabled(req.user.companyId)) return res.status(404).json({ error: "SmartCheck pilot kapsamında etkin değil.", code: "SMARTCHECK_IMPORT_DISABLED" });
-  next();
+const featureGate: RequestHandler = async (req, res, next) => {
+  if (smartcheckImportEnabled(req.user.companyId)) return next();
+  try {
+    const [company] = await db
+      .select({ isSmartcheckEnabled: companies.isSmartcheckEnabled })
+      .from(companies)
+      .where(eq(companies.id, req.user.companyId))
+      .limit(1);
+    if (smartcheckImportEnabled(req.user.companyId, Boolean(company?.isSmartcheckEnabled))) {
+      return next();
+    }
+  } catch (error) {
+    console.error("[pilot-evidence.featureGate] DB check failed:", error);
+  }
+  return res.status(404).json({ error: "SmartCheck pilot kapsamında etkin değil.", code: "SMARTCHECK_IMPORT_DISABLED" });
 };
 const rateLimit: RequestHandler = async (req, res, next) => {
   const result = await consumeRateLimit(`smartcheck-pilot:${req.user.companyId}:${req.user.userId}`, 60, 60_000);

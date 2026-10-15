@@ -53,3 +53,14 @@ export function parseRegistrationInput(value: unknown): RegistrationInput | null
 export function publicRegisteredUser<T extends { id: unknown; email: unknown; fullName: unknown; createdAt: unknown; emailVerified?: unknown; isSuperAdmin?: unknown }>(user: T) {
   return { id: user.id, email: user.email, fullName: user.fullName, emailVerified: user.emailVerified ?? null, createdAt: user.createdAt, isSuperAdmin: user.isSuperAdmin ?? false };
 }
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function parseSelectedPlanId(value: unknown): string | null {
+  if (!value || typeof value !== 'object') return null;
+  const raw = (value as Record<string, unknown>).selectedPlanId ?? (value as Record<string, unknown>).planId;
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  return uuidPattern.test(trimmed) ? trimmed : null;
+}
+

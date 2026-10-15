@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { parseRegistrationInput, publicRegisteredUser } from './registration';
+import { parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from './registration';
 
 describe('registration boundary', () => {
   it('normalizes an Academy learner registration without requiring an organization', () => {
@@ -29,4 +29,12 @@ describe('registration boundary', () => {
       id: 'u1', email: 'a@example.com', fullName: 'Ada', emailVerified: 'verified', createdAt: 'now', isSuperAdmin: true,
     });
   });
+
+  it('parses valid UUID selectedPlanId and ignores invalid values', () => {
+    assert.equal(parseSelectedPlanId({ selectedPlanId: '2b507e20-83d1-4b21-9fc1-000000000004' }), '2b507e20-83d1-4b21-9fc1-000000000004');
+    assert.equal(parseSelectedPlanId({ planId: '2b507e20-83d1-4b21-9fc1-000000000001' }), '2b507e20-83d1-4b21-9fc1-000000000001');
+    assert.equal(parseSelectedPlanId({ selectedPlanId: 'not-a-uuid' }), null);
+    assert.equal(parseSelectedPlanId({}), null);
+  });
 });
+

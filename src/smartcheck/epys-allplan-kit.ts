@@ -2,6 +2,8 @@ import crypto from "node:crypto";
 import ek2Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek2_disiplinler.json";
 import ek3Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek3_mahaller.json";
 import ek5Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek5_siniflar.json";
+import ek6Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek6_ozellikler.json";
+import ek7Raw from "../../workers/ifc/vendor/ifc_ruhsat/ekler/ek7_proje.json";
 
 export interface AllplanTrepysPropertySpec {
   name: string;
@@ -248,3 +250,113 @@ export function buildAllplanEpysKitV1(): AllplanEpysKitV1 {
     ...payloadWithoutHash,
   };
 }
+
+function escapeXml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+const IDS_DATA_TYPE: Record<string, string> = {
+  M: "IFCLABEL",
+  S: "IFCREAL",
+  B: "IFCBOOLEAN",
+  SM: "IFCLABEL",
+};
+
+interface EkTableRequirement {
+  tur: "oznitelik" | "ozellik" | "malzeme" | "iliski" | string;
+  ad?: string;
+  set?: string;
+  veriTipi?: string;
+  turkce?: string;
+  degerler?: string[];
+  not?: string;
+}
+
+interface EkTableSpec {
+  ifc: string;
+  tablo: string;
+  sayfa?: number;
+  gerekenler: EkTableRequirement[];
+}
+
+export function buildEpysIdsXml(): string {
+  const ek6Tables = ((ek6Raw as { tablolar?: EkTableSpec[] }).tablolar ?? []);
+  const ek7Tables = ((ek7Raw as { tablolar?: EkTableSpec[] }).tablolar ?? []);
+
+  const renderTable = (table: EkTableSpec, annexPrefix: "EK-6" | "EK-7") => {
+    const specName = escapeXml(`${annexPrefix} Tablo ${table.tablo} — ${table.ifc}`);
+    const specId = escapeXml(`${annexPrefix}-${table.tablo}`);
+    const desc = escapeXml(`RG 33331 ${annexPrefix} Tablo ${table.tablo} (Sayfa ${table.sayfa ?? "?"})`);
+    const entityUpper = escapeXml(table.ifc.toUpperCase());
+
+    const reqLines: string[] = [];
+    for (const req of table.gerekenler) {
+      if (req.tur === "oznitelik" && req.ad) {
+        const instructions = req.turkce ? ` instructions="${escapeXml(req.turkce)}"` : "";
+        let valueBlock = "";
+        if (Array.isArray(req.degerler) && req.degerler.length > 0) {
+          const enums = req.degerler.map((v) => `<xs:enumeration value="${escapeXml(v)}" />`).join("");
+          valueBlock = `<ids:value><xs:restriction base="xs:string">${enums}</xs:restriction></ids:value>`;
+        }
+        reqLines.push(
+          `        <ids:attribute cardinality="required"${instructions}><ids:name><ids:simpleValue>${escapeXml(req.ad)}</ids:simpleValue></ids:name>${valueBlock}</ids:attribute>`,
+        );
+      } else if (req.tur === "ozellik" && req.set && req.ad) {
+        const dt = IDS_DATA_TYPE[req.veriTipi ?? ""] ?? "IFCLABEL";
+        const instructions = req.turkce ? ` instructions="${escapeXml(req.turkce)}"` : "";
+        let valueBlock = "";
+        if (Array.isArray(req.degerler) && req.degerler.length > 0) {
+          const enums = req.degerler.map((v) => `<xs:enumeration value="${escapeXml(v)}" />`).join("");
+          valueBlock = `<ids:value><xs:restriction base="xs:string">${enums}</xs:restriction></ids:value>`;
+        }
+        reqLines.push(
+          `        <ids:property dataType="${dt}" cardinality="required"${instructions}><ids:propertySet><ids:simpleValue>${escapeXml(req.set)}</ids:simpleValue></ids:propertySet><ids:baseName><ids:simpleValue>${escapeXml(req.ad)}</ids:simpleValue></ids:baseName>${valueBlock}</ids:property>`,
+        );
+      } else if (req.tur === "malzeme") {
+        const instructions = req.not ? ` instructions="${escapeXml(req.not)}"` : "";
+        reqLines.push(`        <ids:material cardinality="required"${instructions} />`);
+      }
+    }
+
+    return [
+      `    <ids:specification name="${specName}" ifcVersion="IFC4X3_ADD2" identifier="${specId}" description="${desc}">`,
+      `      <ids:applicability minOccurs="0" maxOccurs="unbounded">`,
+      `        <ids:entity><ids:name><ids:simpleValue>${entityUpper}</ids:simpleValue></ids:name></ids:entity>`,
+      `      </ids:applicability>`,
+      `      <ids:requirements>`,
+      ...reqLines,
+      `      </ids:requirements>`,
+      `    </ids:specification>`,
+    ].join("\n");
+  };
+
+  const specs = [
+    ...ek6Tables.map((t) => renderTable(t, "EK-6")),
+    ...ek7Tables.map((t) => renderTable(t, "EK-7")),
+  ].join("\n");
+
+  return [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<ids:ids xmlns:ids="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">`,
+    `  <ids:info>`,
+    `    <ids:title>Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik (RG 33331) — EK-6 &amp; EK-7 IDS 1.0</ids:title>`,
+    `    <ids:copyright>BIMMetraj / ifc-ruhsat (MIT)</ids:copyright>`,
+    `    <ids:version>1.0.0</ids:version>`,
+    `    <ids:description>RG 5.8.2026/33331 EK-6 (68 zorunlu IFC sınıfı) ve EK-7 (proje ve koordinat tabloları) için buildingSMART IDS 1.0 doğrulama şablonu. ALLPLAN 2026 Information Palette, Solibri, BIMcollab ve ifctester ile uyumludur.</ids:description>`,
+    `    <ids:author>info@bimmetraj.com</ids:author>`,
+    `    <ids:date>2026-10-15</ids:date>`,
+    `    <ids:purpose>e-PYS Yapı Ruhsatı Teslim Öncesi Model Kontrolü</ids:purpose>`,
+    `    <ids:milestone>Ruhsat</ids:milestone>`,
+    `  </ids:info>`,
+    `  <ids:specifications>`,
+    specs,
+    `  </ids:specifications>`,
+    `</ids:ids>`,
+  ].join("\n");
+}
+

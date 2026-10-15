@@ -60,7 +60,7 @@ function PlanCard({ plan }: { plan: PublicPlan }) {
           ))}
         </ul>
       </div>
-      <Button onClick={() => navigate('/register')} variant={plan.isFeatured ? 'default' : 'outline'} className="mt-5 w-full text-xs">
+      <Button onClick={() => navigate(`/register?planId=${encodeURIComponent(plan.id)}`)} variant={plan.isFeatured ? 'default' : 'outline'} className="mt-5 w-full text-xs">
         {cta}
       </Button>
     </article>

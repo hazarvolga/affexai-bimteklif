@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildAllplanEpysKitV1 } from "./epys-allplan-kit";
+import { buildAllplanEpysKitV1, buildEpysIdsXml } from "./epys-allplan-kit";
 
 describe("ALLPLAN 2026 e-PYS Kiti v1", () => {
   it("builds a complete RG 33331 EK-1..EK-10 kit with valid 15-char materials and SHA-256 seal", () => {
@@ -42,4 +42,14 @@ describe("ALLPLAN 2026 e-PYS Kiti v1", () => {
     ]);
     assert.equal(kit.ek7GeoreferenceTemplate.geometricContext.CoordinateSpaceDimension, 3);
   });
+
+  it("builds buildingSMART IDS 1.0 XML with EK-6 and EK-7 specifications", () => {
+    const xml = buildEpysIdsXml();
+    assert.ok(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
+    assert.ok(xml.includes('xmlns:ids="http://standards.buildingsmart.org/IDS"'));
+    assert.ok(xml.includes('identifier="EK-6-6.1"'));
+    assert.ok(xml.includes('identifier="EK-7-7.1"'));
+    assert.ok(xml.includes("TREpys_ParselOzellikSeti"));
+  });
 });
+
