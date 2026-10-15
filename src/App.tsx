@@ -40,6 +40,7 @@ const TenantsList = page(() => import('@/pages/admin/TenantsList'), 'TenantsList
 const TenantDetail = page(() => import('@/pages/admin/TenantDetail'), 'TenantDetail');
 const AdminQueue = page(() => import('@/pages/admin/AdminQueue'), 'AdminQueue');
 const PlansList = page(() => import('@/pages/admin/PlansList'), 'PlansList');
+const PlanEditor = page(() => import('@/pages/admin/PlanEditor'), 'PlanEditor');
 const PricingSources = page(() => import('@/pages/admin/PricingSources'), 'PricingSources');
 const AdminReports = page(() => import('@/pages/admin/AdminReports'), 'AdminReports');
 const DeveloperRoadmap = page(() => import('@/pages/admin/DeveloperRoadmap'), 'DeveloperRoadmap');
@@ -127,6 +128,8 @@ function AppRoutes() {
           <Route path="queue" element={<AdminQueue />} />
           <Route path="pricing-sources" element={<PricingSources />} />
           <Route path="plans" element={<PlansList />} />
+          <Route path="plans/new" element={<PlanEditor />} />
+          <Route path="plans/:planId" element={<PlanEditor />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="roadmap" element={<DeveloperRoadmap />} />
           <Route path="roadmap/calculations" element={<CalculationMethods />} />

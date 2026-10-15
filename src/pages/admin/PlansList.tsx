@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import {
@@ -62,26 +62,10 @@ interface AdminPaymentRequest {
 }
 
 export function PlansList() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<any>(null);
-
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState(0);
-  const [limit, setLimit] = useState(0);
-  const [monthlyIfcLimit, setMonthlyIfcLimit] = useState(5);
-  const [ifcMaxFileMb, setIfcMaxFileMb] = useState(100);
-  const [ifcMaxConcurrent, setIfcMaxConcurrent] = useState(1);
-  const [isActive, setIsActive] = useState(true);
-  const [isPublished, setIsPublished] = useState(false);
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [displayOrder, setDisplayOrder] = useState(0);
-  const [marketingBadge, setMarketingBadge] = useState('');
-  const [marketingDescription, setMarketingDescription] = useState('');
-  const [editReplacementPlanId, setEditReplacementPlanId] = useState<string>('');
 
   // Quick Deactivate / Subscriber Migration Modal State
   const [deactivatingPlan, setDeactivatingPlan] = useState<any>(null);
@@ -162,46 +146,18 @@ export function PlansList() {
     void loadPaymentRequests();
   }, []);
 
-  const openModal = (plan?: any) => {
-    if (plan) {
-      setEditingPlan(plan);
-      setName(plan.name);
-      setPrice(plan.monthlyPrice);
-      setLimit(plan.monthlyQuoteLimit);
-      setMonthlyIfcLimit(plan.monthlyIfcLimit ?? 5);
-      setIfcMaxFileMb(plan.ifcMaxFileMb ?? 100);
-      setIfcMaxConcurrent(plan.ifcMaxConcurrent ?? 1);
-      setIsActive(plan.isActive);
-      setIsPublished(plan.isPublished);
-      setIsFeatured(plan.isFeatured);
-      setDisplayOrder(plan.displayOrder);
-      setMarketingBadge(plan.marketingBadge ?? '');
-      setMarketingDescription(plan.marketingDescription ?? '');
-      const defaultReplacement = plans.find((p) => p.isActive && p.id !== plan.id)?.id ?? '';
-      setEditReplacementPlanId(defaultReplacement);
+  const openPlanEditor = (plan?: any) => {
+    if (plan?.id) {
+      navigate(`/admin/plans/${plan.id}`);
     } else {
-      setEditingPlan(null);
-      setName('');
-      setPrice(0);
-      setLimit(15);
-      setMonthlyIfcLimit(5);
-      setIfcMaxFileMb(100);
-      setIfcMaxConcurrent(1);
-      setIsActive(true);
-      setIsPublished(false);
-      setIsFeatured(false);
-      setDisplayOrder(0);
-      setMarketingBadge('');
-      setMarketingDescription('');
-      setEditReplacementPlanId('');
+      navigate('/admin/plans/new');
     }
-    setIsModalOpen(true);
   };
 
   const openDeactivateModal = (plan: any) => {
     const alternativePlans = plans.filter((p) => p.isActive && p.id !== plan.id);
     setDeactivatingPlan(plan);
-    setDeactivateMode((plan.subscriberCount ?? 0) > 0 ? 'deactivate_and_migrate' : 'deactivate_and_migrate');
+    setDeactivateMode('deactivate_and_migrate');
     setReplacementPlanId(alternativePlans[0]?.id ?? '');
   };
 
@@ -295,60 +251,6 @@ export function PlansList() {
       toast.error('Sistemsel bir hata oluştu.');
     } finally {
       setTogglingPlanId(null);
-    }
-  };
-
-  const handleSave = async () => {
-    const editingSubCount = editingPlan?.subscriberCount ?? 0;
-    const isDeactivatingInEdit = Boolean(editingPlan && editingPlan.isActive && !isActive);
-
-    if (isDeactivatingInEdit && editingSubCount > 0 && !editReplacementPlanId) {
-      toast.error('Bu paketi kullanan firmalar var. Pasife almak için alternatif paket seçmelisiniz.');
-      return;
-    }
-
-    const payload: Record<string, unknown> = {
-      name,
-      monthlyPrice: Number(price),
-      monthlyQuoteLimit: Number(limit),
-      monthlyIfcLimit: Number(monthlyIfcLimit),
-      ifcMaxFileMb: Number(ifcMaxFileMb),
-      ifcMaxConcurrent: Number(ifcMaxConcurrent),
-      isActive,
-      isPublished: isActive ? isPublished : false,
-      isFeatured,
-      displayOrder: Number(displayOrder),
-      marketingBadge: marketingBadge.trim() || null,
-      marketingDescription: marketingDescription.trim() || null,
-    };
-
-    if (editingPlan && (!isActive || editReplacementPlanId) && editingSubCount > 0 && editReplacementPlanId) {
-      payload.replacementPlanId = editReplacementPlanId;
-    }
-
-    try {
-      const url = editingPlan ? `/api/admin/plans/${editingPlan.id}` : '/api/admin/plans';
-      const method = editingPlan ? 'PATCH' : 'POST';
-
-      const res = await fetchWithAuth(url, {
-        method,
-        body: JSON.stringify(payload),
-      });
-      const body = await res.json().catch(() => ({}));
-
-      if (res.ok) {
-        if (typeof body.migratedCount === 'number' && body.migratedCount > 0) {
-          toast.success(`Paket güncellendi ve ${body.migratedCount} firma alternatif pakete aktarıldı.`);
-        } else {
-          toast.success(editingPlan ? 'Paket güncellendi.' : 'Yeni paket oluşturuldu.');
-        }
-        setIsModalOpen(false);
-        loadPlans();
-      } else {
-        toast.error(body.error || 'İşlem başarısız oldu.');
-      }
-    } catch {
-      toast.error('Sistemsel bir hata oluştu.');
     }
   };
 
@@ -462,7 +364,7 @@ export function PlansList() {
           description="SaaS abonelik paketlerini, müşterilere gösterilen çoklu IBAN hesaplarını ve gelen Havale/EFT dekont bildirimlerini yönetin."
           icon={Package}
         />
-        <Button onClick={() => openModal()} className="bg-indigo-600 text-white hover:bg-indigo-700 mt-2">
+        <Button onClick={() => openPlanEditor()} className="bg-indigo-600 text-white hover:bg-indigo-700 mt-2">
           <Plus size={16} className="mr-2" /> Yeni Paket Ekle
         </Button>
       </div>
@@ -500,7 +402,12 @@ export function PlansList() {
               >
                 <div>
                   <div className="flex items-start justify-between gap-1 mb-2">
-                    <h3 className="text-base font-bold text-white leading-tight">{plan.name}</h3>
+                    <Link
+                      to={`/admin/plans/${plan.id}`}
+                      className="text-base font-bold text-white hover:text-indigo-300 leading-tight transition-colors"
+                    >
+                      {plan.name}
+                    </Link>
                     {!plan.isActive ? (
                       <span className="text-[10px] uppercase font-bold text-red-300 bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded shrink-0">
                         Pasif
@@ -646,11 +553,11 @@ export function PlansList() {
 
                 <div className="mt-5 pt-3 border-t border-zinc-800/70 flex items-center gap-2">
                   <Button
-                    onClick={() => openModal(plan)}
+                    onClick={() => openPlanEditor(plan)}
                     variant="outline"
                     className="flex-1 border-zinc-700 bg-transparent text-zinc-200 hover:bg-zinc-800 text-xs py-1.5 h-8"
                   >
-                    Düzenle
+                    Detaylı Düzenle
                   </Button>
                   {plan.isActive ? (
                     <Button
@@ -975,198 +882,6 @@ export function PlansList() {
           </div>
         )}
       </section>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-zinc-950 border border-zinc-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">
-                {editingPlan ? 'Paketi Düzenle' : 'Yeni Paket Oluştur'}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Paket Adı</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white outline-none focus:border-indigo-500"
-                  placeholder="Örn: Kurumsal"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">Aylık Fiyat (₺)</label>
-                  <input
-                    type="number"
-                    value={price}
-                    onChange={(e) => setPrice(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">Aylık Teklif Kotası</label>
-                  <input
-                    type="number"
-                    value={limit}
-                    onChange={(e) => setLimit(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Aylık IFC Kotası</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={monthlyIfcLimit}
-                    onChange={(e) => setMonthlyIfcLimit(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Maks IFC (MB)</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={ifcMaxFileMb}
-                    onChange={(e) => setIfcMaxFileMb(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Eşzamanlı İş</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={ifcMaxConcurrent}
-                    onChange={(e) => setIfcMaxConcurrent(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-zinc-950"
-                />
-                <label htmlFor="isActive" className="text-sm text-zinc-300">
-                  Aktif (Satışa ve Kullanıma Açık)
-                </label>
-              </div>
-              {!isActive && (
-                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
-                  <p className="text-xs text-amber-200">
-                    Dikkat: Paket pasife alındığında bu pakette kalan firmaların kota gerektiren işlemleri engellenir.
-                  </p>
-                  {editingPlan && (editingPlan.subscriberCount ?? 0) > 0 && (
-                    <div>
-                      <label className="block text-xs font-semibold text-white mb-1">
-                        Mevcut {editingPlan.subscriberCount} firmanın aktarılacağı alternatif aktif paket *
-                      </label>
-                      <select
-                        value={editReplacementPlanId}
-                        onChange={(e) => setEditReplacementPlanId(e.target.value)}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-white"
-                      >
-                        <option value="">-- Alternatif Aktif Paket Seçin --</option>
-                        {plans
-                          .filter((p) => p.isActive && p.id !== editingPlan.id)
-                          .map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} ({p.monthlyPrice === 0 ? 'Ücretsiz' : `₺${p.monthlyPrice}/ay`} ·{' '}
-                              {p.monthlyIfcLimit ?? 0} IFC)
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3 space-y-3">
-                <p className="text-xs font-semibold text-indigo-200">Web sitesi görünümü</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="flex items-center gap-2 text-sm text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={isPublished}
-                      onChange={(e) => setIsPublished(e.target.checked)}
-                      className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-indigo-600"
-                    />
-                    Web sitesinde yayınla
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={isFeatured}
-                      onChange={(e) => setIsFeatured(e.target.checked)}
-                      className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-indigo-600"
-                    />
-                    Öne çıkan paket
-                  </label>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-xs text-zinc-400">Gösterim sırası</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={10000}
-                      value={displayOrder}
-                      onChange={(e) => setDisplayOrder(Number(e.target.value))}
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-zinc-400">Rozet</label>
-                    <input
-                      type="text"
-                      maxLength={40}
-                      value={marketingBadge}
-                      onChange={(e) => setMarketingBadge(e.target.value)}
-                      placeholder="Örn: En çok tercih edilen"
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs text-zinc-400">Kısa açıklama</label>
-                  <textarea
-                    maxLength={280}
-                    value={marketingDescription}
-                    onChange={(e) => setMarketingDescription(e.target.value)}
-                    placeholder="Paketin landing sayfasında görünecek kısa açıklaması"
-                    className="min-h-20 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
-                İptal
-              </Button>
-              <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                Kaydet
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* PAKETİ PASİFE AL & MEVCUT MÜŞTERİLERİ AKTARMA MODALI */}
       {deactivatingPlan && (

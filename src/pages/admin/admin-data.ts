@@ -5,6 +5,13 @@ export const adminPlansSchema = z.array(z.object({
   monthlyIfcLimit: count.nullable(), ifcMaxFileMb: count, ifcMaxConcurrent: count, isActive: z.boolean(),
   isPublished: z.boolean(), isFeatured: z.boolean(), displayOrder: count,
   marketingBadge: z.string().nullable(), marketingDescription: z.string().nullable(),
+  monthlyAiLimit: count.nullable().optional(),
+  monthlyPdfLimit: count.nullable().optional(),
+  monthlyCrmLimit: count.nullable().optional(),
+  monthlyRegulationLimit: count.nullable().optional(),
+  monthlyProfitAnalysisLimit: count.nullable().optional(),
+  storageMaxBytes: count.nullable().optional(),
+  maxDocuments: count.nullable().optional(),
   isTrial: z.boolean().optional(),
   subscriberCount: count.optional(),
   subscribers: z.array(z.object({
