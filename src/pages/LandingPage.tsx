@@ -30,22 +30,22 @@ type LandingPageProps = {
 const LANDING_ROUTE_META: Record<string, { title: string; description: string; canonicalPath: string }> = {
   '/pricing': {
     title: 'Paketler ve Fiyatlandırma | BIMMetraj 5D İhale & IFC Metraj Platformu',
-    description: 'Teknik ofisler için Ücretsiz Deneme (Trial), Başlangıç (Starter), Profesyonel (Pro) ve Kurumsal (Enterprise) paket kotalarını inceleyin.',
+    description: 'Teknik ofisler için Deneme, Başlangıç, Ekip, Profesyonel ve Kurumsal paket kotalarını; 6 ay (%10), 1 yıl (%20) ve 2 yıl (%30) peşin ödeme avantajlarıyla inceleyin.',
     canonicalPath: '/pricing',
   },
   '/features': {
-    title: 'Özellikler — IFC QTO, SmartCheck & RG 33331 e-PYS | BIMMetraj',
-    description: 'openBIM IFC 2x3/4/4.3 metraj çıkarma, ÇŞB 2026 poz birim fiyat eşleştirme, SmartCheck 3x3 & Minha denetimi ve PDF/A-1b raporlama özellikleri.',
+    title: 'Özellikler — IFC QTO, TS 500 Sihirbazı, SmartCheck & RG 33331 e-PYS | BIMMetraj',
+    description: 'openBIM IFC 2x3/4/4X3 metraj çıkarma, TS 500 kiriş-döşeme kesişim ve CSB_2026_V1 Minha düşümü, ÇŞB 2026 570+ onaylı poz/rayiç kataloğu ve RG 33331 EK-9 ön kontrolü.',
     canonicalPath: '/features',
   },
   '/about': {
-    title: 'Nasıl Çalışır? — Kanıta Dayalı 5D Metraj İş Akışı | BIMMetraj',
-    description: 'IFC ve Excel dosyalarından insan onaylı, kaynak izlenebilir ÇŞB pozlu ihale teklif cetveline geçiş iş akışı.',
+    title: 'Nasıl Çalışır? — 4 Adımda Kanıta Dayalı 5D Metraj ve İhale İş Akışı | BIMMetraj',
+    description: 'IFC, PDF/A ve Excel dosyalarından RG 33331 e-PYS ön kontrolü, SmartCheck 3x3 & Minha denetimi ve disiplin yetkili mühendis onayıyla 5D teklif cetveline geçiş iş akışı.',
     canonicalPath: '/about',
   },
   '/': {
-    title: 'BIMMetraj | openBIM (IFC) Tabanlı Metraj, RG 33331 e-PYS ve İhale Masası',
-    description: 'BIMMetraj — İnşaat ve teknik ofis ekipleri için açık BIM (IFC) ve Excel tabanlı metraj çıkarma, ÇŞB poz entegrasyonu ve SmartCheck denetimli teklif platformu.',
+    title: 'BIMMetraj | openBIM (IFC) Tabanlı Metraj, RG 33331 e-PYS ve 5D İhale Masası',
+    description: 'BIMMetraj — İnşaat ve teknik ofis ekipleri için açık BIM (IFC) ve Excel tabanlı metraj çıkarma, ÇŞB 2026 poz entegrasyonu, TS 500 & Minha motoru ve SmartCheck denetimli teklif platformu.',
     canonicalPath: '/',
   },
 };
@@ -185,14 +185,14 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {/* Engineering Badge */}
             <div className="mb-6 inline-flex items-center gap-2 border border-border bg-card/80 px-3 py-1 text-xs font-mono text-muted-foreground rounded-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-              openBIM QTO · Poz & Fiyat Kataloğu · e-PYS Ön Kontrol
+              openBIM QTO · ÇŞB 2026 Poz & Rayiç Kataloğu · RG 33331 e-PYS EK-9 Ön Kontrol
             </div>
 
             <h1 className="max-w-4xl text-3xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight text-foreground">
               İhale Masasında Hata Payı Bırakmayın.
             </h1>
             <p className="mt-6 max-w-3xl text-base sm:text-lg leading-relaxed text-muted-foreground font-normal">
-              BIM ve Excel metrajlarınızı poz kataloğunuzla eşleştirin, kâr marjınızı koruyun, teslim öncesi SmartCheck ile denetleyin. Desteklenen IFC elemanlarından doğrudan metraj cetveli üretin.
+              IFC modellerinizi, PDF/A paftalarınızı ve Excel metrajlarınızı ÇŞB 2026 poz kataloğuyla eşleştirin; TS 500 kiriş–döşeme kesişim düşümü, <code className="text-xs font-mono text-foreground">CSB_2026_V1</code> Minha motoru ve RG 33331 e-PYS ön kontrolü ile teslim öncesi denetleyin.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -264,7 +264,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
-                    <span>buildingSMART IFC4.0</span>
+                    <span>buildingSMART IFC4 / IFC4X3</span>
                     <span className="text-primary">Qto_WallBaseQuantities</span>
                   </div>
                 </div>
@@ -328,19 +328,19 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {/* Hairline Technical Metrics Teaser */}
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-sm border border-border bg-card/60 p-4">
-                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">Poz & Fiyat Kataloğu</span>
-                <p className="mt-1 text-sm font-medium text-foreground">Kaynak İzli Poz & Birim Fiyat</p>
-                <p className="mt-1 text-xs text-muted-foreground">İçe aktardığınız poz katalogları ve onaylı fiyat kayıtları cetvele kaynak iziyle bağlanır.</p>
+                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">ÇŞB 2026 & Fiyat Kataloğu</span>
+                <p className="mt-1 text-sm font-medium text-foreground">570+ Onaylı Poz & Rayiç Kaydı</p>
+                <p className="mt-1 text-xs text-muted-foreground">SHA-256 mühürlü resmi ÇŞB pozları ve kurum içi fiyat kataloglarınız kaynak iziyle cetvele bağlanır.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
-                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 & 4.0 Desteği</span>
-                <p className="mt-1 text-sm font-medium text-foreground">Doğrudan Modelden Metraj</p>
-                <p className="mt-1 text-xs text-muted-foreground">Allplan, Revit ve Archicad modellerindeki hacim ve alanları süzün.</p>
+                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 & PDF/A</span>
+                <p className="mt-1 text-sm font-medium text-foreground">ALLPLAN 2026 e-PYS Kiti & RG 33331</p>
+                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-7 kural setleri, 21 satırlık EK-9 raporu ve PDF/A pafta uyumluluğunu teslim öncesi denetleyin.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
-                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">%3 Tolerans Denetimi</span>
-                <p className="mt-1 text-sm font-medium text-foreground">SmartCheck Hata Önleyici</p>
-                <p className="mt-1 text-xs text-muted-foreground">Miktar sapmalarını ve poz eksikliklerini teklif öncesi yakalayın.</p>
+                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">SmartCheck 3×3 & Minha</span>
+                <p className="mt-1 text-sm font-medium text-foreground">TS 500 Kesişim & Boşluk Düşümü</p>
+                <p className="mt-1 text-xs text-muted-foreground">≤%3 QTO toleransı, TS 500 paspayı (mm), kiriş–döşeme kesişim ve CSB_2026_V1 Minha düşümlerini doğrulayın.</p>
               </div>
             </div>
           </div>
@@ -353,7 +353,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-wider text-primary">GELİŞMİŞ 5D VE KALİTE ÖZELLİKLERİ</p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">Şantiye ve İhale İçin Güçlü Mühendislik Araçları</h2>
               <p className="mt-3 text-base text-muted-foreground">
-                BIMMetraj, dosya yüklemeden teklif çıktısına kadar miktar ve fiyat kaynaklarını eksiksiz incelemenize olanak tanır.
+                BIMMetraj, IFC model ve pafta yüklemeden 5D teklif çıktısına kadar miktar, mevzuat ve fiyat kaynaklarını kanıt iziyle incelemenize olanak tanır.
               </p>
             </div>
 
@@ -363,13 +363,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4">
                     <Boxes size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">5D BIM Metraj Motoru</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">5D BIM & TS 500 Metraj Motoru</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Desteklenen IFC elemanlarında QTO ve özellik seti hacimlerini kaynak referanslarıyla okuma ve inceleme.
+                    IFC elemanlarında QTO okuma, TS 500 kiriş–döşeme kesişim düşümü, <code className="font-mono text-[11px]">CSB_2026_V1</code> Minha boşluk düşümü ve kalıp/donatı sihirbazı.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-primary font-mono">
-                  openBIM · QTO Standart
+                  IFC 2x3/4/4X3 · TS 500 & Minha
                 </div>
               </div>
 
@@ -378,13 +378,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
                     <Building2 size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">Fiyat Kataloğu & Kaynak İzi</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">ÇŞB 2026 Poz & Rayiç Kataloğu</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    İçe aktardığınız kataloglardan ve manuel fiyat kayıtlarından yararlanın; kaynağı, tarihi ve birim uyumunu doğrulayın.
+                    SHA-256 mühürlü 570+ onaylı ÇŞB 2026 imalat pozu ve rayiç kaydı; <code className="font-mono text-[11px]">TREpys_PozOzellikSeti.PozNo</code> ve birim uyum kontrolü.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-emerald-400 font-mono">
-                  Kaynak ve Tarih Kontrolü
+                  SHA-256 Kaynak & Birim Kontrolü
                 </div>
               </div>
 
@@ -393,13 +393,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4">
                     <FileCheck2 size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">e-PYS Teknik Ön Kontrol</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">RG 33331 e-PYS & PDF/A Ön Kontrol</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Desteklenen poz, parsel özelliği ve isimlendirme kurallarına göre ön inceleme. Sonuçlar teknik değerlendirme gerektirir.
+                    EK-1/2/3/5/6/7 kuralları, 21 satırlık EK-9 raporu, PDF/A pafta doğrulaması ve ALLPLAN 2026 e-PYS Kiti v1 uyumluluk incelemesi.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-sky-400 font-mono">
-                  Sınırlı Kural Kapsamı
+                  EK-9 (21 Kural) & PDF/A-1b/2b/3b
                 </div>
               </div>
 
@@ -408,13 +408,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4">
                     <ShieldCheck size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">SmartCheck Kaynak İzi</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">SmartCheck 3×3 & Disiplin Onayı</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    SmartCheck üzerinden aktarılan kalemlerin miktar kaynağını ve inceleme geçmişini şeffaf şekilde takip edin.
+                    ≤%3 QTO sapması, TS 500 paspayı (mm) ve <code className="font-mono text-[11px]">LoadBearing</code> denetimi; disiplin yetkili (<code className="font-mono text-[11px]">STR/ARC/MEP</code>) mühendis onayı.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-primary font-mono">
-                  Kaynak ve İnceleme Kaydı
+                  STR / ARC / MEP Uzman Onay İzi
                 </div>
               </div>
             </div>
@@ -424,15 +424,109 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         {/* WORKFLOW: HOW IT WORKS */}
         <section id="workflow" className="border-b border-border bg-background px-6 py-20 md:px-8 md:py-24">
           <div className="mx-auto max-w-6xl">
-            <div className="max-w-2xl mb-12">
-              <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-wider text-primary">İŞ AKIŞI</p>
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">3 Adımda Modelden İncelenmiş Teklif Taslağına</h2>
-              <p className="mt-3 text-base text-muted-foreground">Dosyanızı yükleyin, miktar ve isimlendirmeleri denetleyin, onayladıklarınızı teklife aktarın.</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div className="max-w-3xl">
+                <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-wider text-primary">NASIL ÇALIŞIR? · UÇTAN UCA 5D İŞ AKIŞI</p>
+                <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">
+                  4 Adımda BIM Modelinden Kanıtlı ve Onaylı İhale Teklifine
+                </h2>
+                <p className="mt-3 text-base text-muted-foreground">
+                  IFC modelinizi, PDF/A paftalarınızı veya Excel metrajınızı yükleyin; RG 33331 e-PYS ön kontrolü, TS 500 &amp; Minha kesinti hesapları ve disiplin yetkili mühendis onayıyla sıfır veri kaybıyla teklif cetveline dönüştürün.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <Link
+                  to="/smartcheck"
+                  className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-card px-3 py-2 text-xs font-mono text-foreground hover:border-primary/50 transition-colors"
+                >
+                  Canlı SmartCheck Demosu <ExternalLink size={12} className="text-primary" />
+                </Link>
+                <Link
+                  to="/bim-sozlugu"
+                  className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-card px-3 py-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  e-PYS &amp; BIM Sözlüğü <FileCode2 size={12} className="text-primary" />
+                </Link>
+              </div>
             </div>
-            <div className="grid gap-5 md:grid-cols-3">
-              <WorkflowCard number="01" icon={<FileSpreadsheet size={20} />} title="Dosyayı Yükleyin" text="Allplan/Revit IFC modeli ya da Excel/CSV metrajı. Modeliniz güvenli şekilde işlenir." />
-              <WorkflowCard number="02" icon={<ClipboardCheck size={20} />} title="Denetleyin & Eşleştirin" text="Hacimleri, poz alanlarını ve birim fiyat kaynaklarını inceleyin." />
-              <WorkflowCard number="03" icon={<ShieldCheck size={20} />} title="Teklife Aktarın & PDF Alın" text="Onayladığınız kalemlerden kâr marjınızı ekleyerek teklif taslağı ve resmi PDF oluşturun." />
+
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+              <WorkflowCard
+                number="ADIM 01"
+                badge="IFC 2x3/4/4X3 · PDF/A · XLSX"
+                icon={<FileSpreadsheet size={20} />}
+                title="Model, Pafta veya Metraj Yükleyin"
+                text="Allplan (2026 e-PYS Kiti v1), Revit veya Archicad IFC modellerinizi, PDF/A paftalarınızı ya da Excel/CSV cetvellerinizi yükleyin. Dosya içindeki kişisel veriler (TCKN, telefon, e-posta) KVKK kapsamında otomatik maskelenir."
+                highlights={[
+                  'Qto_*BaseQuantities & IfcCovering okuma',
+                  'Kat (IfcBuildingStorey) & GlobalId ayrıştırma',
+                  'ALLPLAN 2026 e-PYS Kiti (.dat/.xml) desteği',
+                ]}
+              />
+              <WorkflowCard
+                number="ADIM 02"
+                badge="RG 33331 EK-9 · TS 500 · MİNHA"
+                icon={<SlidersHorizontal size={20} />}
+                title="e-PYS & SmartCheck 3×3 Denetimi"
+                text="Modeliniz RG 33331 e-PYS kurallarına (EK-1..EK-7 ve 21 satırlık EK-9 listesi) göre ön kontrolden geçer. TS 500 Yapısal Sihirbazı kiriş–döşeme kesişimlerini, CSB_2026_V1 motoru ise kapı/pencere Minha düşümlerini hesaplar."
+                highlights={[
+                  '≤%3 QTO sapma & TS 500 paspayı (mm) kontrolü',
+                  'Kiriş–döşeme mükerrer kesişim hacmi düşümü',
+                  '21 satırlık EK-9 & PDF/A-1b/2b/3b ön kontrolü',
+                ]}
+              />
+              <WorkflowCard
+                number="ADIM 03"
+                badge="ÇŞB 2026 · STR / ARC / MEP"
+                icon={<ClipboardCheck size={20} />}
+                title="Poz Eşleştirme & Uzman Onayı"
+                text="Kalemleriniz TREpys_PozOzellikSeti.PozNo veya akıllı arama ile SHA-256 mühürlü ÇŞB 2026 (570+ onaylı poz & rayiç) kataloğuyla eşleşir. Disiplin yetkili mühendis (STR/ARC/MEP) bulguları onaylar veya gerekçeli istisna (override) kaydeder."
+                highlights={[
+                  'SHA-256 mühürlü ÇŞB 2026 poz & rayiç kataloğu',
+                  'Birim uyuşmazlığı (m² ↔ m³ ↔ ton) kilidi',
+                  'Disiplin bazlı (STR/ARC/MEP) uzman onay izi',
+                ]}
+              />
+              <WorkflowCard
+                number="ADIM 04"
+                badge="5D TEKLİF · ESKALASYON · PDF"
+                icon={<ShieldCheck size={20} />}
+                title="5D Teklif, Simülasyon & Çıktı"
+                text="Onaylanan metraj kalemleri tek tıkla 5D İhale Masasına aktarılır. Kâr marjı, genel gider, KDV ve eskalasyon senaryolarını simüle edin; her kalemi IFC GlobalId ve fiyat kanıtıyla resmi PDF/Excel teklifine dönüştürün."
+                highlights={[
+                  'Kârlılık, opsiyon ve eskalasyon simülasyonu',
+                  'GlobalId ve fiyat kaynak izli 5D cetvel',
+                  'Kurumsal PDF & Excel ihale/hakediş paketi',
+                ]}
+              />
+            </div>
+
+            {/* Technical Pipeline Summary Bar */}
+            <div className="mt-8 rounded-md border border-border bg-card/60 p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xs bg-primary/10 border border-primary/30 font-mono text-xs font-bold text-primary">
+                  3×3
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-foreground">
+                    Sıfır Kara Kutu (Zero Black-Box) Mühendislik Prensibi
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Hiçbir otomatik hesap mühendis onayı olmadan teklife yazılmaz; tüm Minha, kesişim düşümü ve e-PYS bulguları formül ve kaynak referansıyla denetlenebilir.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+                <span className="rounded-xs border border-border bg-background px-2.5 py-1 text-muted-foreground">
+                  Motor: <strong className="text-foreground">CSB_2026_V1</strong>
+                </span>
+                <span className="rounded-xs border border-border bg-background px-2.5 py-1 text-muted-foreground">
+                  Katalog: <strong className="text-emerald-400">570+ Onaylı Poz</strong>
+                </span>
+                <span className="rounded-xs border border-border bg-background px-2.5 py-1 text-muted-foreground">
+                  Mevzuat: <strong className="text-sky-400">RG 33331 EK-9</strong>
+                </span>
+              </div>
             </div>
           </div>
         </section>
@@ -447,10 +541,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               Her aktarılan kalem, teklifin içine kaynak iziyle girer.
             </h2>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-              <EvidenceCard title="IFC Kimliği ve Kat" text="Nesnenin IFC GlobalId değeri, sınıfı (IfcWall, IfcBeam) ve bağlı katı." />
-              <EvidenceCard title="Miktar Kaynağı" text="Miktarın hangi IFC miktar setinden (Qto_WallBaseQuantities vb.) okunduğu." />
-              <EvidenceCard title="Mühendis Onayı" text="Onay, düzeltme veya gerekçeli istisna kararının tarihli kayıt altına alınması." />
-              <EvidenceCard title="Fiyat Kaynak Kaydı" text="Kullanılan poz, birim fiyat, belge ve tarih bilgilerini inceleyin." />
+              <EvidenceCard title="IFC Kimliği ve Kat" text="Nesnenin IFC GlobalId değeri, sınıfı (IfcWall, IfcBeam, IfcCovering) ve bağlı katı (IfcBuildingStorey)." />
+              <EvidenceCard title="Miktar & Kesinti Kaynağı" text="Miktarın hangi QTO setinden okunduğu, TS 500 kesişim ve CSB_2026_V1 Minha düşüm kanıtları." />
+              <EvidenceCard title="Disiplin Yetkili Mühendis Onayı" text="STR, ARC veya MEP disiplin yetkisine göre onay, düzeltme veya gerekçeli istisna kararının tarihli kaydı." />
+              <EvidenceCard title="SHA-256 Fiyat Kaynak Kaydı" text="Kullanılan ÇŞB 2026 pozu veya kurum içi rayicin birim, belge, tarih ve SHA-256 doğrulama izi." />
             </div>
           </div>
         </section>
@@ -521,15 +615,42 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
   );
 }
 
-function WorkflowCard({ number, icon, title, text }: { number: string; icon: ReactNode; title: string; text: string }) {
+function WorkflowCard({
+  number,
+  badge,
+  icon,
+  title,
+  text,
+  highlights,
+}: {
+  number: string;
+  badge: string;
+  icon: ReactNode;
+  title: string;
+  text: string;
+  highlights: string[];
+}) {
   return (
-    <article className="border border-border bg-card p-6 rounded-md hover:border-primary/40 transition-colors">
-      <div className="flex items-center justify-between mb-6">
-        <span className="font-mono text-xs text-primary font-bold">{number}</span>
-        <span className="text-primary">{icon}</span>
+    <article className="border border-border bg-card p-5 rounded-md hover:border-primary/40 transition-colors flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-mono text-xs text-primary font-bold">{number}</span>
+          <span className="text-primary">{icon}</span>
+        </div>
+        <div className="mb-3 inline-block rounded-xs border border-border bg-muted/30 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+          {badge}
+        </div>
+        <h3 className="text-base font-bold text-foreground">{title}</h3>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{text}</p>
       </div>
-      <h3 className="text-lg font-bold text-foreground">{title}</h3>
-      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{text}</p>
+      <ul className="mt-4 pt-3 border-t border-border/70 space-y-1.5 text-[11px] font-mono text-muted-foreground">
+        {highlights.map((item) => (
+          <li key={item} className="flex items-start gap-1.5">
+            <Check size={12} className="text-primary shrink-0 mt-0.5" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
     </article>
   );
 }
