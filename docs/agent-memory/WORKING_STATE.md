@@ -10,8 +10,8 @@ Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-15.md`.
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `2dda6de4d8a88ff7ca2f40eb1c8c1c3d08591a18`
-  (`/api/health`, `revisionSource: "build"`, 2026-10-15, Coolify deploy `a2w0bidxsh25je59pldx6ear`). Transactional e-mail uses Stalwart SMTP 465 at
+- Last verified live revision: `f0413f8fefef5752608339e3e9c4a1ea47b03484`
+  (`/api/health`, `revisionSource: "build"`, 2026-10-15, Coolify deploy `xj1xfjm96742b9z2jqa6cudc`). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`).
 - Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
   SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.
