@@ -109,7 +109,12 @@ export function registerSmartCheckRoutes(app: Express) {
       }
     }
     if (parsedRequest.data.fileSizeBytes > maxAllowedBytes) {
-      return res.status(400).json({ error: "Geçersiz dosya bilgisi." });
+      const maxMb = Math.round((maxAllowedBytes / (1024 * 1024)) * 10) / 10;
+      const fileMb = Math.round((parsedRequest.data.fileSizeBytes / (1024 * 1024)) * 10) / 10;
+      return res.status(400).json({
+        error: `Dosya boyutu (${fileMb} MB) paketinizin maksimum IFC/doküman boyut sınırını (${maxMb} MB) aşıyor.`,
+        code: "FILE_SIZE_LIMIT_EXCEEDED",
+      });
     }
     const { fileName: originalFileName, mimeType, fileSizeBytes } = parsedRequest.data;
     if (!/\.(xlsx|csv|ifc|pdf)$/i.test(originalFileName)) return res.status(415).json({ error: "Yalnız XLSX, CSV, IFC ve PDF kabul edilir." });

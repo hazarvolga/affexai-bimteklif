@@ -87,8 +87,9 @@ def mask_personal_data(value: Any) -> Any:
 def build_report(input_path: str, file_name: str, discipline: str | None = None) -> Dict[str, Any]:
     from pathlib import Path as _Path
 
-    secilen_disiplin = kontrol.disiplini_sec(_Path(file_name or input_path), discipline)
-    rapor = kontrol.kontrol_et(input_path, secilen_disiplin)
+    effective_name = file_name or os.path.basename(input_path)
+    secilen_disiplin = kontrol.disiplini_sec(_Path(effective_name), discipline)
+    rapor = kontrol.kontrol_et(input_path, secilen_disiplin, dosya_adi=effective_name)
     rows = [
         {"no": r["no"], "kaynakNo": r.get("kaynakNo", r["no"]), "bolum": r["bolum"], "kategori": r["kategori"],
          "baslik": r["baslik"], "soru": r["soru"], "karar": r["karar"], "elleNotu": r["elleNotu"],

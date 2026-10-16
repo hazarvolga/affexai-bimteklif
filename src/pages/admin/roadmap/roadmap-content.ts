@@ -3,9 +3,9 @@ import type { DocSection, DocSource } from "./doc-types";
 export const ROADMAP_META = {
   title: "e-PYS ve ALLPLAN: Değerlendirme ve Geliştirici Yol Haritası",
   subtitle: "Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik (RG 5.8.2026/33331) kapsamında BIMMetraj ürün ve teknik yol haritası",
-  preparedOn: "15 Ekim 2026",
+  preparedOn: "16 Ekim 2026",
   audience: "ALLPLAN Türkiye (Aluplan) ile paylaşım ve Bakanlık görüşmelerine hazırlık",
-  status: "Çalışma belgesi — resmî görüş değildir. Resmî yönetmelik metinleri (#1.pdf, #2.pdf), ekler (EK-1..EK-9; Tablo 7.1–7.9 ve Tablo 9.1/9.2 dahil) ve ÇŞB 2026 birim fiyat/rayiç katalogları makine-okunur olarak mühürlenmiştir; gerçek proje saha ve yetkili mühendis kabulü sıradadır.",
+  status: "Çalışma belgesi — resmî görüş değildir. Resmî yönetmelik metinleri (#1.pdf, #2.pdf), ekler (EK-1..EK-9; Tablo 7.1–7.9 ve Tablo 9.1/9.2 dahil), ÇŞB 2026 birim fiyat/rayiç katalogları ve 33 gerçek/uluslararası IFC saha doğrulama seti makine-okunur olarak mühürlenmiştir.",
 };
 
 export const ROADMAP_SECTIONS: DocSection[] = [
@@ -21,7 +21,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         "İlk zorunluluk 2B tarafında: 1 Eylül 2027'den itibaren büyük şehirlerde 5.000 m² üstü projelerde PDF/A, ISO 216 A4 katları pafta boyutu (m.8(1)) ve çizim paftalarında tek pafta düzeni (m.8(2)). En yakın ödeme isteği burada.",
         "e-PYS uygunluğu kendisi inceler (Elektronik Teslim Yönetmeliği m.5(2)). Ürünün en önemli teknik hedefi, sonuçlarını resmî kontrolle eşit tutmaktır; bu da Bakanlığın kuralları makine-okunur yayımlamasına bağlıdır.",
       ] },
-      { type: "callout", tone: "ok", title: "15 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 nihai metinleri (#1.pdf, #2.pdf) ve eklerine (EKLER.pdf) dayalı tam kapsamlı IFC ön kontrolü (EK-1 6 haneli proje kodu, EK-2 Tablo 2.1–2.14, EK-3 ~130 mahal sözlüğü, EK-5/6/7 Tablo 7.1–7.9 IfcAnnotation dahil, EK-9 Tablo 9.1 Mimari 21 satır + Tablo 9.2 Diğer Disiplinler 16 satır), IDS dışa aktarımı, ALLPLAN 2026 e-PYS Kiti v1 indirme uç noktası, TREpys_PozOzellikSeti + IfcCovering 5D metraj/teklif köprüsü, TS 500 Yapısal Metraj Sihirbazı + Kiriş–Döşeme Kesişim Düşüm Motoru, CSB_2026_V1 Minha motoru, ÇŞB 2026 resmî PDF katalog mühürleme (570 onaylı poz/rayiç), PDF/A ön kontrol akışı (ISO 216 pafta boyutu m.8(1), tek pafta kuralı m.8(2) ve e-imza m.6(1)-(2) dahil) ve sunucu korumalı v6 paket kataloğu canlıdadır. Ayrıntılar 'Uygulama durumu (15 Ekim 2026)' bölümündedir." },
+      { type: "callout", tone: "ok", title: "16 Ekim 2026 itibarıyla hazır olanlar", text: "RG 33331 nihai metinleri (#1.pdf, #2.pdf) ve eklerine (EKLER.pdf) dayalı tam kapsamlı IFC ön kontrolü (EK-1 6 haneli proje kodu, EK-2 Tablo 2.1–2.14, EK-3 ~130 mahal sözlüğü, EK-5/6/7 Tablo 7.1–7.9 IfcAnnotation dahil, EK-9 Tablo 9.1 Mimari 21 satır + Tablo 9.2 Diğer Disiplinler 16 satır), IDS dışa aktarımı, ALLPLAN 2026 e-PYS Kiti v1, çok yazılımlı 33 IFC modeli (ALLPLAN 2026.1 31,4 MB uzman modeli + Revit/Archicad/Tekla/BIMcollab/IFC4X2 köprü modelleri) üzerinde doğrulanmış IfcComplexProperty + C++ 3B geometri + Revit QTO birim normalizasyon motoru, TS 500 Yapısal Metraj Sihirbazı + Kiriş–Döşeme Kesişim Düşüm Motoru, CSB_2026_V1 Minha motoru, ÇŞB 2026 resmî PDF katalog mühürleme (570 onaylı poz/rayiç), PDF/A ön kontrol akışı ve sunucu korumalı v6 paket kataloğu canlıdadır. Ayrıntılar 'Uygulama durumu (16 Ekim 2026)' bölümündedir." },
     ],
   },
   {
@@ -185,21 +185,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (15 Ekim 2026)",
+    title: "Uygulama durumu (16 Ekim 2026)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
-        ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; tarayıcı ön analizinde de IFCMATERIAL (m.13(3)) ve IFCSPACE (EK-3 m.11) doğrudan denetlenir"],
-        ["EK-9 Tablo 9.1 (21 satır) & Tablo 9.2 (16 satır) kararları", "Hazır", "Mimari disiplin (MM) için Tablo 9.1 (21 satır), diğer disiplinler (ST, MK, EE vb.) için Tablo 9.2 (16 satır) otomatik seçilir; Evet / Evet (uyarıyla) / Hayır / Elle / Kısmen kararları GlobalId'li bulgu ayrıntısıyla üretilir"],
-        ["TREpys_PozOzellikSeti, TREpys_EmsalOzellikSeti ve IfcCovering çıkarımı", "Hazır", "IfcOpenShell çıkarıcısı TREpys_PozOzellikSeti poz kodlarını ve IfcCovering kaplama alanlarını (m²) SmartCheck kanıt satırlarına ve teklif aktarımına taşır; DAHIL/HARIC/DIGER (ve eski YUZDE30) emsal alanlarını toplar"],
+        ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
+        ["EK-9 Tablo 9.1 (21 satır) & Tablo 9.2 (16 satır) kararları", "Hazır", "Mimari disiplin (MM) için Tablo 9.1 (21 satır), diğer disiplinler (ST, MK, EE vb.) için Tablo 9.2 (16 satır) otomatik seçilir; standart dışı dosya adlarında bile ST/STR/MK/MEP/EL/MM ipuçlarından doğru disiplin formu seçilir"],
+        ["TREpys_PozOzellikSeti, TREpys_EmsalOzellikSeti ve IfcCovering çıkarımı", "Hazır", "IfcOpenShell çıkarıcısı TREpys_PozOzellikSeti poz kodlarını ve IfcCovering kaplama alanlarını (m²) SmartCheck kanıt satırlarına ve teklif aktarımına taşır; IfcSpace → IfcBuildingStorey dolaylı kat bağlamını ve 2B GeometricCurveSet (süpürgelik) poligon boyu × yükseklik hesabını destekler"],
+        ["Çok Yazılımlı Gerçek IFC Saha Doğrulaması (33 Model · ALLPLAN / Revit / Archicad / Tekla / BIMcollab / IFC4X2)", "Hazır (BIM-CALC-2026-10-16.1)", "Uzman mühendisten gelen 31,4 MB ALLPLAN 2026.1 modeli (1.731 eleman) ile 32 uluslararası örnek IFC modelinde (IFC2X3, IFC4, IFC4X1, IFC4X2, IFC4X3_ADD2) IfcComplexProperty açılımı, çok iş parçacıklı C++ 3B geometri motoru, IfcSectionedSolidHorizontal analitik integrasyonu ve Revit QTO birim hatası (mm³/ft²·mm) normalizasyonu doğrulandı"],
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve m.13(3) + 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
-        ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme kesişim hacmi/yan kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
+        ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
         ["Reviewer disiplin yetkisi (E-9) ve Runtime DB rol ayrımı (P1-1)", "Hazır", "Sunucu inceleyenin disiplin kapsamını (STR/ARC/MEP/ALL) doğrular; uygulama teklifpro_app (NOBYPASSRLS) rolüyle, migration teklifpro_migrator rolüyle çalışır"],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
-        ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, 1–2 eşzamanlı işlem), rakip kalibrasyonlu fiyatlar (0 / 1.250 / 2.950 / 5.450 / 8.900 ₺), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
+        ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Kişisel veri maskeleme ve PDF/A + Pafta + e-İmza ön kontrolü", "Kurum içi pilotta canlı", "TC/VKN/e-posta/telefon maskelenir; 2B PDF teslim dosyalarında PDF/A kimliği, şifreleme, taranmış sayfa (m.6(4)), ISO 216 A4 katları pafta boyutu (m.8(1)), çizim paftalarında tek pafta düzeni (m.8(2)), gömülü e-imza (/Sig, m.6(1)-(2)) ve EK-2 dosya adı denetlenir"],
         ["Kotadan Düşmeyen Canlı Örnek Projeler (/app/smartcheck) & Mühendislik Kabul Kanıt Paketi", "Hazır (BIM-CALC-2026-10-15.3)", "IfcOpenShell 0.8.5 ve pypdf 6.10.2 ile üretilen MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) referans koşuları SHA-256 özetleriyle mühürlendi ve /app/smartcheck ekranında tek tıkla kotadan düşmeden denenebilir hale getirildi"],
-        ["Gerçek proje saha/mühendislik kabulü", "Sıradaki Odak", "Temsilî gerçek IFC/PDF dosyalarıyla bağımsız uzman imzası ve 2–3 pilot ofis saha doğrulaması sırada"],
+        ["Gerçek proje saha/mühendislik kabulü", "ALLPLAN 2026.1 Uzman Modeli Doğrulandı · Pilot Ofis Kabulü Sırada", "31,4 MB ALLPLAN 2026.1 gerçek mimari modeli (1.731 eleman) ve 32 çoklu yazılım IFC modeli doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada"],
       ] },
     ],
   },
@@ -209,7 +210,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "table", columns: ["Risk", "Açıklama", "Önlem"], rows: [
         ["Resmî doğrulayıcı", "e-PYS kendi kontrolünü yapacak (m.5(2)); sonuçlarımız farklı çıkarsa güven kaybedilir", "Bakanlık kural yayınına göre eşitlik testleri; bulgularda madde atfı"],
-        ["IFC sürümü", "Kural verisi IFC4X3 bekliyor; bazı yazılımlar bina modellerini IFC4 olarak dışa aktarıyor", "ALLPLAN ile gerçek bir modelde IFC4X3 dışa aktarım testi"],
+        ["IFC sürümü", "Kural verisi IFC4X3 bekliyor; bazı yazılımlar bina modellerini IFC4 veya IFC2X3 olarak dışa aktarıyor", "Metraj motoru IFC2X3, IFC4, IFC4X1, IFC4X2 ve IFC4X3_ADD2 şemalarını birlikte okur; e-PYS ön kontrolü ise resmi IFC4X3 şema şartını denetler"],
         ["KVKK", "IFC'de kişi kimliği, malik ve parsel verisi", "Maskeleme (yapıldı), saklama süresi, Türkiye'de barındırma, aydınlatma metni"],
         ["Sorumluluk", "Yükleyen müellif sorumludur", "Raporlar 'ön kontrol' etiketli; sözleşmede sorumluluk sınırı"],
         ["Kural oynaklığı", "Taslaktan nihaiye Pset adları, proje kodu ve takvim değişti; Bakanlık ek kılavuz yayımlayacak (m.5(6))", "Sürümlü kural verisi; hangi yönetmelik sürümüne göre kontrol yapıldığı raporda"],
@@ -223,9 +224,9 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "list", items: [
         "Köprü TREpys_PozOzellikSeti.PozNo ve aynı IFC dosyasıdır: eleman üzerindeki resmî ÇŞB poz numarası SmartCheck kanıt satırlarına (normalizedPositionCode) doğrudan taşınır.",
-        "Ön kontrol bulguları hiçbir zaman otomatik fiyat kalemine dönüşmez; aktarım yalnızca kaynağı kanıtlı QTO/Pset miktarlarıyla ve 'inceleme gerekli' durumunda yapılır, birim fiyat onaylı katalog eşleşmesiyle tamamlanır.",
+        "Ön kontrol bulguları hiçbir zaman otomatik fiyat kalemine dönüşmez; aktarım yalnızca kaynağı kanıtlı QTO/Pset veya deterministik C++ 3B geometri miktarlarıyla ve 'inceleme gerekli' durumunda yapılır, birim fiyat onaylı katalog eşleşmesiyle tamamlanır.",
         "Ruhsat modelini mimar, teklifi yüklenici hazırlar; paketler ayrı, ortak hikâye 'aynı model ruhsattan ihaleye' olmalıdır.",
-        "ALLPLAN'ın mahal kaplamalarından otonom ürettiği IfcCovering elemanları (Qto_CoveringBaseQuantities.NetArea/GrossArea), m² birimiyle ince işler kanıt satırlarına ve teklif taslağına aktarılır; boşluk düşümleri CSB_2026_V1 Minha motoruyla izlenebilir olarak hesaplanır.",
+        "ALLPLAN'ın mahal kaplamalarından otonom ürettiği IfcCovering elemanları (Qto_CoveringBaseQuantities.NetArea/GrossArea, Object Layer Attributes IfcComplexProperty veya 3B/2B geometri), m² birimiyle ince işler kanıt satırlarına ve teklif taslağına aktarılır; boşluk düşümleri CSB_2026_V1 Minha motoruyla izlenebilir olarak hesaplanır.",
       ] },
     ],
   },
@@ -238,10 +239,10 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["1 — Runtime DB rolü (P1-1)", "Tamamlandı (14 Ekim 2026 · Rev. 2)", "Uygulama ve worker teklifpro_app (NOBYPASSRLS) rolüyle çalışır; şema değişiklikleri yalnızca teklifpro_migrator rolüyle yürütülür (scripts/db-Separation.sql ve başlangıç doğrulaması aktif)"],
         ["2 — Reviewer disiplin kapsamı (E-9)", "Tamamlandı (14 Ekim 2026 · Rev. 2)", "Sunucu (src/server/smartcheck/review.ts), inceleyenin tenant ve disiplin yetkisini (STR, ARC, MEP, ALL) her kararda doğrular; yetkisiz/belirsiz disiplin için onay 403 ile reddedilir ve denetim kaydına bağlanır"],
         ["3 — IFC özellik girdileri (3×3)", "Tamamlandı (14 Ekim 2026 · Rev. 2)", "workers/ifc/ifc_extract.py ve ifc-python-runner.ts; LoadBearing, IsExternal, ExposureClass, Cover (mm), Disiplin ve ExpectedVolume alanlarını Pset/QTO kanıt yoluyla 3×3 kural motoruna taşır"],
-        ["4 — Gerçek proje kabulü ve kural kanıtı", "Referans Paket Mühürlendi (15 Ekim 2026 · Rev. 5) · Saha Kabulü Sırada", "Canlı IfcOpenShell 0.8.5 + pypdf 6.10.2 motorlarıyla MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) referans koşuları SHA-256 özetleriyle docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md içinde mühürlendi ve /app/smartcheck üzerinde kotadan düşmeyen canlı örnek projeler olarak açıldı"],
+        ["4 — Gerçek proje kabulü ve çok yazılımlı IFC saha doğrulaması", "Tamamlandı (16 Ekim 2026 · Rev. 6) · Pilot Ofis Kabulü Sırada", "31,4 MB ALLPLAN 2026.1 uzman mühendis modeli (2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc · 1.731 eleman: 1.559,21 m³ hacim, 7.861,01 m² kalıp, 6.268,95 m² IfcCovering kaplama alanı) ve 32 uluslararası örnek IFC modeli (Revit ARC/STR, Archicad, Tekla, BIMcollab 9 disiplin modeli, IFC4X2 köprü modelleri) sıfır çökme ile doğrulandı"],
         ["5 — Donatı, kalıp ve kiriş–döşeme kesişim motoru (E-7)", "Tamamlandı (15 Ekim 2026 · Rev. 3)", "TS 500 Yapısal Metraj Sihirbazı ve computeBeamSlabIntersectionDeduction (src/smartcheck/rules/minha.ts) kolon, kiriş, döşeme ve temel için beton, kiriş–döşeme ortak hacim/kalıp düşümü ve donatı/etriye boy-kütle hesabını net miktar ve fire ayrımıyla üretir"],
         ["6 — Ölçü esası / minha (E-8)", "Tamamlandı (14 Ekim 2026 · Rev. 2)", "Sözleşmesel ölçü esası motoru (src/smartcheck/rules/minha.ts — CSB_2026_V1) duvar (0,50 m²), sıva/boya (2,00 m² + söve/yan yüzey eklemesi) ve kalıp (1,00 m²) boşluk düşümlerini brüt miktarı bozmadan izlenebilir olarak hesaplar"],
-        ["7 — ALLPLAN e-PYS kiti v1 & RG 33331 tam senkronizasyonu", "Tamamlandı (15 Ekim 2026 · Rev. 3 & Rev. 4)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, m.13(3) + 15 kr. malzeme kütüphanesi, EK-1..EK-9 (Tablo 7.1–7.9 ve Tablo 9.1/9.2 dahil) sözlükleri ve PDF/A m.8 + e-imza m.6 ön kontrolü üretildi; gerçek ALLPLAN 2026 dışa aktarımıyla saha kabulü yapılacak"],
+        ["7 — ALLPLAN e-PYS kiti v1 & RG 33331 tam senkronizasyonu", "Tamamlandı (15–16 Ekim 2026 · Rev. 3, Rev. 4 & Rev. 6)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, m.13(3) + 15 kr. malzeme kütüphanesi, EK-1..EK-9 sözlükleri, gerçek ALLPLAN 2026.1 Object Layer Attributes (IfcComplexProperty) okuma ve IfcSpace → IfcBuildingStorey kat çözümlemesi canlıda"],
         ["8 — Paket kataloğu v6, 4 dönemli iskonto ve abone göçü", "Tamamlandı (15 Ekim 2026 · Rev. 3)", "Tek VPS kapasite korumalı v6 paket kataloğu (bimmetraj-2026-10-15-v6), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 Havale/EFT dönem iskontosu ve paket pasife alma sırasında aktif aboneleri alternatif pakete atomik aktarma canlıya alındı"],
         ["9 — Kurumsal işlemsel e-posta (Transactional Email) sistemi", "Tamamlandı (15 Ekim 2026 · Rev. 4)", "8 kurumsal HTML/Text şablonu (Hoş Geldiniz, E-Posta Doğrulama, Şifre Sıfırlama, Havale/EFT Talimatı, Ödeme Onayı, Ekip Daveti, Teklif Gönderimi, Teklif Kararı) ve Süper Admin /admin/email-templates canlı önizleme & test gönderim merkezi devreye alındı"],
         ["10 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
@@ -256,17 +257,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 5 · 13–15 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 6 · 13–16 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → Rev. 2 → Rev. 3 → Rev. 4 → Rev. 5)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (15 Ekim 2026 Rev. 5 · BIM-CALC-2026-10-15.3) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → Rev. 2 → Rev. 3 → Rev. 4 → Rev. 5 → Rev. 6)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (16 Ekim 2026 Rev. 6 · BIM-CALC-2026-10-16.1) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 5):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 6):",
       },
       {
         type: "table",
@@ -303,16 +304,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Bakanlık Nihai PDF Paketi (#1.pdf Dijital Hazırlama Yön., #2.pdf Elektronik Teslim Yön., EKLER.pdf 38 sayfa) 5 fazlı tam senkronizasyonu (EK-9 Tablo 9.1 Mimari 21 satır & Tablo 9.2 Diğer Disiplinler 16 satır, EK-7 Tablo 7.9 IfcAnnotation SURVEY, PDF/A ISO 216 + tek pafta + /Sig e-imza, 2026–2033 geçiş takvimi) ve 8 kurumsal işlemsel e-posta şablonu (/admin/email-templates) canlıya alındı.",
           ],
           [
-            "Rev. 5 (Güncel)",
+            "Rev. 5",
             "15 Ekim 2026 (Faz 3)",
             "BIM-CALC-2026-10-15.3 (f0413f8)",
             "Canlı IfcOpenShell 0.8.5 ve pypdf 6.10.2 motorlarıyla MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3 paspayı bulgusu) ve PDF/A-2B (ISO 216 A3 + e-imza) resmi kabul kanıt paketi (MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md) mühürlendi; seen_elem_ids STEP ID tekilleştirmesi ve 7 öznitelikli IFC4 IfcAnnotation koruması eklendi; /app/smartcheck içine kotadan düşmeyen tek tıkla canlı örnek proje deneme akışı açıldı.",
+          ],
+          [
+            "Rev. 6 (Güncel)",
+            "16 Ekim 2026",
+            "BIM-CALC-2026-10-16.1",
+            "Uzman mühendisten gelen 31,4 MB ALLPLAN 2026.1 modeli (2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc · 1.731 eleman) ve 32 uluslararası çok yazılımlı IFC modeli (IfcSampleFiles, BIMcollab 2025, IFC4X2 köprü modelleri) üzerinde yapılan saha analiziyle: (1) IfcComplexProperty özyinelemeli okuma, (2) IfcOpenShell C++ 3B geometri ve IfcSectionedSolidHorizontal analitik integrasyonu, (3) IfcSpace → IfcBuildingStorey dolaylı kat çözümlemesi, (4) Revit QTO birim hatası (mm³/ft²·mm) normalizasyonu, (5) e-PYS gerçek dosya adı doğrulaması ve (6) 50 MiB tarayıcı önizleme + FILE_SIZE_LIMIT_EXCEEDED hata kodu devreye alındı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 5 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 6 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -421,6 +428,27 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "MM (Tablo 9.1), ST (Tablo 9.2 + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) için SHA-256 mühürlü canlı Python motoru referans koşu raporu ve /app/smartcheck üzerinde kotadan düşmeyen tek tıkla örnek proje deneme akışı yoktu.",
             "Canlı IfcOpenShell 0.8.5 ve pypdf 6.10.2 motorlarıyla üretilen 3 referans koşu (d2195a87…, 99e8ba20…, 2f0a4ab7…) docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md altında mühürlendi; /app/smartcheck içine kotadan düşmeyen 3 canlı örnek proje butonu (/api/smartcheck/sample-projects/:sampleId) ve ÇŞB 2026 15.150.1005 / 15.390.1002 poz tohumlaması eklendi.",
             "src/smartcheck/sample-projects.ts, src/server/routes/smartcheck.ts, SmartCheckImportWorkspace.tsx",
+          ],
+          [
+            "Rev. 6.1 · 16 Ekim 2026",
+            "ALLPLAN 2026.1 Saha Analizi & ISO 16739-1 (IfcComplexProperty / 3B Geometri)",
+            "ALLPLAN 2026.1 çok katmanlı duvarlarda (340 adet) Hacim/Alan değerlerini Pset_WallCommon altındaki IfcComplexProperty ('Object Layer Attributes #1..#4') içine yazdığı ve 730 elemanda QTO yerine yalnızca 3B Brep/ExtrudedAreaSolid geometrisi bulunduğu için 1.731 elemanın yalnız 160'ı metraj kanıtına kabul ediliyordu; ayrıca IfcCovering elemanları IfcSpace üzerinden kata bağlandığı için 'Bilinmeyen Kat' görünüyordu.",
+            "iter_pset_single_values ile IfcComplexProperty özyinelemeli olarak açıldı (katman hacimleri toplanıp dış yüz alanı kalıp için alındı); QTO/Pset bulunmayan elemanlar için çok iş parçacıklı IfcOpenShell C++ 3B geometri motoru (batch_extract_3d_geometry + IsDecomposedBy alt parça toplamı + IfcSectionedSolidHorizontal analitik integrasyonu + 2B süpürgelik eğri boyu × yükseklik) devreye alındı; _find_parent_storey ile IfcSpace → IfcBuildingStorey kat çözümlemesi eklendi. 1.731 elemanın tamamı (1.559,21 m³ hacim, 7.861,01 m² kalıp, 6.268,95 m² kaplama) kanıtlı olarak kabul edildi.",
+            "workers/ifc/ifc_extract.py, vendor/ifc_ruhsat/kurallar/ortak.py, src/ifc/parser/*",
+          ],
+          [
+            "Rev. 6.2 · 16 Ekim 2026",
+            "Çoklu BIM Yazılımı (Revit / Archicad / Tekla / BIMcollab / IFC4X2) Birim ve Şema Normalizasyonu",
+            "Revit IFC dışa aktarımlarında (Ifc4_Revit_ARC/STR, 02_BIMcollab_STR, 06_Limestone) Qto_*BaseQuantities içinde ölçeklenmemiş mm³/mm² ve karışık ft²·mm nicelikleri nedeniyle milyarlarca m³ hatalı hacim oluşabiliyordu; ayrıca IFC4X1/IFC4X2 köprü şemaları reddediliyordu.",
+            "normalize_qto_set_quantities ile aynı QTO setindeki ölçeklenmemiş mm³/mm² ikizleri ve GrossArea×Width / Pset_Revit_Dimensions çapraz kontrolüyle 1000× / 10⁹× Revit birim anomalileri otomatik normalize edildi; IFC2X3, IFC4, IFC4X1, IFC4X2 ve IFC4X3_ADD2 şema desteğiyle 33 IFC dosyasının tamamında sıfır çökme sağlandı.",
+            "workers/ifc/ifc_extract.py, src/ifc/parser/qto-extractor.ts, units.ts",
+          ],
+          [
+            "Rev. 6.3 · 16 Ekim 2026",
+            "RG 33331 EK-2 Dosya Adı Doğrulaması & Paket Boyut Sınırı UX İyileştirmesi",
+            "epys_preflight.py içinde kontrol_et fonksiyonuna geçici dosya yolu (/tmp/.../model.ifc) geçtiği için EK-2 dosya adı kontrolü gerçek yüklenen dosya adını denetleyemiyordu; ayrıca 25 MB üzeri dosyalarda tarayıcı önizlemesi ve paket boyut sınırı 'Geçersiz dosya bilgisi.' şeklinde belirsiz hata dönüyordu.",
+            "epys_preflight.py içinde dosya_adi=effective_name geçirildi ve standart dışı dosya adlarında bile ST/MK/EL/MM disiplin ipucu çıkarımı eklendi; tarayıcı önizleme sınırı 50 MiB'ye yükseltildi ve paket boyut aşımında açık hata mesajı (FILE_SIZE_LIMIT_EXCEEDED) döndürüldü.",
+            "workers/ifc/epys_preflight.py, kontrol.py, src/ifc/browser-preview.ts, src/server/routes/smartcheck.ts",
           ],
         ],
       },

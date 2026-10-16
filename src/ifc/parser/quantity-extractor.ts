@@ -1,11 +1,11 @@
-import { volumeUnitResolver } from "./units";
+import { normalizeStepLines, volumeUnitResolver } from "./units";
 export type IfcSupportedElementType = "IfcBeam" | "IfcColumn" | "IfcSlab" | "IfcWall" | "IfcReinforcingBar";
 
 export interface IfcPropertyQuantity {
   stepId: string;
   globalId: string;
   entityType: IfcSupportedElementType;
-  quantityName: "Hacim" | "Net Hacim";
+  quantityName: "Hacim" | "Net Hacim" | "Volume" | "NetVolume" | "GrossVolume" | "PeC_Volume";
   normalizedValue: number;
   normalizedUnit: "m3";
   sourceType: "property";
@@ -27,7 +27,7 @@ export interface IfcPropertyQuantityExtraction {
 
 interface IfcPropertyValue {
   stepId: string;
-  name: "Hacim" | "Net Hacim";
+  name: IfcPropertyQuantity["quantityName"];
   value: number;
 }
 
@@ -55,11 +55,23 @@ const supportedTypeByEntity: Record<string, IfcSupportedElementType> = {
   IFCSLAB: "IfcSlab",
   IFCWALL: "IfcWall",
   IFCWALLSTANDARDCASE: "IfcWall",
+  IFCWALLELEMENTEDCASE: "IfcWall",
   IFCREINFORCINGBAR: "IfcReinforcingBar",
 };
 
 function isApprovedVolumePropertySet(name: string): boolean {
-  return name.startsWith("AllplanAttributes") || name === "Pset_SlabCommon";
+  const lower = name.toLowerCase();
+  return (
+    lower.startsWith("allplanattributes") ||
+    lower.startsWith("allplanquantities") ||
+    lower === "pset_slabcommon" ||
+    lower === "pset_beamcommon" ||
+    lower === "pset_columncommon" ||
+    lower === "pset_wallcommon" ||
+    lower === "pset_revit_dimensions" ||
+    lower === "dimensions" ||
+    lower === "pecparameters"
+  );
 }
 
 function parseReferences(value: string): string[] {
@@ -73,20 +85,20 @@ function roundM3(value: number): number {
 export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuantityExtraction {
   const resolveVolumeUnit = volumeUnitResolver(ifcText);
   const properties = new Map<string, IfcPropertyValue>();
+  const complexProperties = new Map<string, string[]>();
   const propertySets = new Map<string, IfcPropertySet>();
   const elements = new Map<string, IfcElementIdentity>();
   const relations: IfcPropertyRelation[] = [];
   const quantities: IfcPropertyQuantity[] = [];
+  let allplanHacimCount = 0;
 
-  const elementRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\('([^']*)'/i;
-  const propertyRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(?:Hacim|Net Hacim)'\s*,\s*\$\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*(#[0-9]+|\$)\s*\);/i;
-  const propertyNameRegex = /^#\d+\s*=\s*IFCPROPERTYSINGLEVALUE\s*\('(Hacim|Net Hacim)'/i;
-  const propertySetRegex = /^#(\d+)\s*=\s*IFCPROPERTYSET\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'\s*,\s*\$\s*,\s*\(([^)]*)\)\s*\);/i;
-  const relationRegex = /^#(\d+)\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*\$\s*,\s*\$\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
+  const elementRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCWALLELEMENTEDCASE|IFCREINFORCINGBAR)\s*\(\s*'([^']*)'/i;
+  const propertyRegex = /^#(\d+)\s*=\s*IFCPROPERTYSINGLEVALUE\s*\(\s*'(Hacim|Net Hacim|Volume|NetVolume|GrossVolume|PeC_Volume)'\s*,\s*(?:'[^']*'|\$)\s*,\s*IFC[A-Z0-9_]*\(([-+0-9.Ee]+)\)\s*,\s*(#[0-9]+|\$)\s*\);/i;
+  const complexPropRegex = /^#(\d+)\s*=\s*IFCCOMPLEXPROPERTY\s*\(\s*'[^']*'\s*,\s*(?:'[^']*'|\$)\s*,\s*(?:'[^']*'|\$)\s*,\s*\(([^)]*)\)\s*\);/i;
+  const propertySetRegex = /^#(\d+)\s*=\s*IFCPROPERTYSET\s*\(\s*'[^']*'\s*,\s*(?:#[0-9]+|\$)\s*,\s*'([^']*)'\s*,\s*(?:'[^']*'|\$)\s*,\s*\(([^)]*)\)\s*\);/i;
+  const relationRegex = /^#(\d+)\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\(\s*'[^']*'\s*,\s*(?:#[0-9]+|\$)\s*,\s*(?:'[^']*'|\$)\s*,\s*(?:'[^']*'|\$)\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
 
-  for (const rawLine of ifcText.split("\n")) {
-    const line = rawLine.trim();
-
+  for (const line of normalizeStepLines(ifcText)) {
     const elementMatch = line.match(elementRegex);
     if (elementMatch) {
       elements.set(elementMatch[1], {
@@ -99,16 +111,25 @@ export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuan
 
     const propertyMatch = line.match(propertyRegex);
     if (propertyMatch) {
-      const nameMatch = line.match(propertyNameRegex);
-      const scale = resolveVolumeUnit(propertyMatch[3]);
-      const value = Number(propertyMatch[2]) * (scale ?? NaN);
-      if (nameMatch && Number.isFinite(value)) {
+      const propName = propertyMatch[2] as IfcPropertyQuantity["quantityName"];
+      const scale = resolveVolumeUnit(propertyMatch[4]);
+      const value = Number(propertyMatch[3]) * (scale ?? NaN);
+      if (Number.isFinite(value) && value > 0) {
+        if (propName === "Hacim" || propName === "Net Hacim") {
+          allplanHacimCount++;
+        }
         properties.set(propertyMatch[1], {
           stepId: propertyMatch[1],
-          name: nameMatch[1] as "Hacim" | "Net Hacim",
+          name: propName,
           value,
         });
       }
+      continue;
+    }
+
+    const complexMatch = line.match(complexPropRegex);
+    if (complexMatch) {
+      complexProperties.set(complexMatch[1], parseReferences(complexMatch[2]));
       continue;
     }
 
@@ -136,7 +157,14 @@ export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuan
     const propertySet = propertySets.get(relation.propertySetId);
     if (!propertySet || !isApprovedVolumePropertySet(propertySet.name)) continue;
 
-    const volumeProperties = propertySet.propertyIds
+    const expandedIds: string[] = [];
+    for (const pid of propertySet.propertyIds) {
+      expandedIds.push(pid);
+      const subIds = complexProperties.get(pid);
+      if (subIds) expandedIds.push(...subIds);
+    }
+
+    const volumeProperties = expandedIds
       .map((propertyId) => properties.get(propertyId))
       .filter((property): property is IfcPropertyValue => Boolean(property));
 
@@ -167,7 +195,7 @@ export function extractAllplanVolumeQuantities(ifcText: string): IfcPropertyQuan
   return {
     quantities,
     summary: {
-      allplanVolumePropertyCount: properties.size,
+      allplanVolumePropertyCount: allplanHacimCount,
       recognizedVolumeQuantityCount: quantities.length,
       recognizedSlabVolumeCount: slabQuantities.length,
       recognizedSlabVolumeSumM3: roundM3(slabQuantities.reduce((sum, quantity) => sum + quantity.normalizedValue, 0)),

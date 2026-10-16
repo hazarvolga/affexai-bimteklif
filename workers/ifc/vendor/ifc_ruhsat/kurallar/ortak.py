@@ -52,7 +52,19 @@ class Baglam:
 def ozellik_setleri(e: Any) -> dict[str, dict[str, Any]]:
     """Nesnenin (ve tipinin) özellik + nicelik setleri: {set adı: {özellik: değer}}."""
     try:
-        return ue.get_psets(e, should_inherit=True)
+        ham = ue.get_psets(e, should_inherit=True)
+        sonuc: dict[str, dict[str, Any]] = {}
+        for set_adi, props in ham.items():
+            if not isinstance(props, dict):
+                continue
+            duz: dict[str, Any] = dict(props)
+            for k, v in props.items():
+                if isinstance(v, dict) and isinstance(v.get("properties"), dict):
+                    for alt_k, alt_v in v["properties"].items():
+                        if alt_k not in duz or duz[alt_k] is None:
+                            duz[alt_k] = alt_v
+            sonuc[set_adi] = duz
+        return sonuc
     except Exception:  # noqa: BLE001 — bozuk bir set tüm kontrolü düşürmesin
         return {}
 

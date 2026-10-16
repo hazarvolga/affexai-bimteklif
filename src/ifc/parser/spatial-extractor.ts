@@ -1,3 +1,5 @@
+import { normalizeStepLines, projectLengthUnitScale } from "./units";
+
 export interface IfcStoreyInfo {
   stepId: string;
   globalId: string;
@@ -33,26 +35,27 @@ function formatStoreyName(name: string, elevationM: number | null): string {
 export function extractIfcStoreyContainment(ifcText: string): IfcSpatialExtraction {
   const storeys = new Map<string, IfcStoreyInfo>();
   const elementStoreys: IfcElementStoreyAssignment[] = [];
+  const lengthScale = projectLengthUnitScale(ifcText);
+  const normalizedLines = normalizeStepLines(ifcText);
 
-  const storeyRegex = /^#(\d+)\s*=\s*IFCBUILDINGSTOREY\s*\('([^']*)'\s*,\s*#[0-9]+\s*,\s*'([^']*)'.*,([-+0-9.Ee]+|\$)\s*\);/i;
-  const containmentRegex = /^#(\d+)\s*=\s*IFCRELCONTAINEDINSPATIALSTRUCTURE\s*\('[^']*'\s*,\s*#[0-9]+\s*,\s*\$\s*,\s*\$\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
+  const storeyRegex = /^#(\d+)\s*=\s*IFCBUILDINGSTOREY\s*\(\s*'([^']*)'\s*,\s*(?:#[0-9]+|\$)\s*,\s*'([^']*)'.*,([-+0-9.Ee]+|\$)\s*\);/i;
+  const containmentRegex = /^#(\d+)\s*=\s*IFCRELCONTAINEDINSPATIALSTRUCTURE\s*\(\s*'[^']*'\s*,\s*(?:#[0-9]+|\$)\s*,\s*(?:'[^']*'|\$)\s*,\s*(?:'[^']*'|\$)\s*,\s*\(([^)]*)\)\s*,\s*#(\d+)\s*\);/i;
 
-  for (const rawLine of ifcText.split("\n")) {
-    const line = rawLine.trim();
+  for (const line of normalizedLines) {
     const match = line.match(storeyRegex);
     if (!match) continue;
 
-    const elevationM = match[4] === "$" ? null : Number(match[4]);
+    const rawElev = match[4] === "$" ? null : Number(match[4]);
+    const elevationM = rawElev !== null && Number.isFinite(rawElev) ? Number((rawElev * lengthScale).toFixed(6)) : null;
     storeys.set(match[1], {
       stepId: match[1],
       globalId: match[2],
       name: match[3],
-      elevationM: Number.isFinite(elevationM) ? elevationM : null,
+      elevationM,
     });
   }
 
-  for (const rawLine of ifcText.split("\n")) {
-    const line = rawLine.trim();
+  for (const line of normalizedLines) {
     const match = line.match(containmentRegex);
     if (!match) continue;
 

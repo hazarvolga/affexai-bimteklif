@@ -28,20 +28,38 @@ def modeli_ac(yol: str | Path) -> ifcopenshell.file:
 
 
 def disiplini_sec(yol: Path, verilen: str | None) -> str:
-    """Verilmemişse EK-2 biçimindeki dosya adının üçüncü alanından; o da yoksa mimari (MM)."""
+    """Verilmemişse EK-2 biçimindeki dosya adının üçüncü alanından; o da yoksa dosya adındaki disiplin ipucundan veya mimari (MM)."""
     if verilen:
         return verilen.upper()
+    from ifc_ruhsat import veri
     from ifc_ruhsat.kurallar.isim import DOSYA_ADI
 
-    m = DOSYA_ADI.match(yol.stem)
-    return m.group(3) if m else "MM"
+    govde = yol.stem
+    m = DOSYA_ADI.match(govde)
+    if m:
+        return m.group(3)
+    parcalar = [p.upper() for p in govde.replace("-", "_").split("_") if p]
+    ek2_kodlar = set(veri.ek2_disiplinler())
+    if len(parcalar) >= 3 and parcalar[2] in ek2_kodlar:
+        return parcalar[2]
+    for parca in parcalar:
+        if parca in ek2_kodlar:
+            return parca
+        if parca in {"STR", "STRUCTURAL", "STATIK"}:
+            return "ST"
+        if parca in {"MEP", "MECHANICAL", "PLUMBING", "VENTILATION", "HEATING", "HVAC"}:
+            return "MK"
+        if parca in {"ELECTRICAL", "ELEKTRIK"}:
+            return "EL"
+    return "MM"
 
 
-def kontrol_et(yol: str | Path, disiplin: str | None = None) -> Rapor:
+def kontrol_et(yol: str | Path, disiplin: str | None = None, dosya_adi: str | None = None) -> Rapor:
     yol = Path(yol)
     model = modeli_ac(yol)
-    secilen_disiplin = disiplini_sec(yol, disiplin)
-    b = ortak.Baglam(model=model, dosya_adi=yol.name, disiplin=secilen_disiplin)
+    gercek_dosya_adi = Path(dosya_adi).name if dosya_adi else yol.name
+    secilen_disiplin = disiplini_sec(Path(gercek_dosya_adi), disiplin)
+    b = ortak.Baglam(model=model, dosya_adi=gercek_dosya_adi, disiplin=secilen_disiplin)
     rapor = Rapor(dosya=str(yol), schema=model.schema, disiplin=secilen_disiplin)
     boyut = _boyut(yol.stat().st_size)
     for modul in MODULLER:

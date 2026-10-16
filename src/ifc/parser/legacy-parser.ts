@@ -2,6 +2,7 @@ import { extractAllplanVolumeQuantities } from "./quantity-extractor";
 import { extractIfcQtoVolumeQuantities } from "./qto-extractor";
 import { extractIfcStoreyContainment } from "./spatial-extractor";
 import { extractElementPozNo, extractProjectComplianceData } from "./tr-pset-csb-extractor";
+import { normalizeStepLines, projectLengthUnitScale } from "./units";
 import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "../types";
 
 function selectQuantities<T extends { stepId: string; quantityName: string; normalizedValue: number; sourcePath: string }>(items: T[]) {
@@ -12,18 +13,66 @@ function selectQuantities<T extends { stepId: string; quantityName: string; norm
   return result;
 }
 
+function splitTopLevelStepArgs(rawArgs: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  let depth = 0;
+  for (let i = 0; i < rawArgs.length; i++) {
+    const ch = rawArgs[i];
+    if (ch === "'") {
+      if (inQuotes && rawArgs[i + 1] === "'") {
+        current += "''";
+        i++;
+        continue;
+      }
+      inQuotes = !inQuotes;
+      current += ch;
+    } else if (!inQuotes && ch === "(") {
+      depth++;
+      current += ch;
+    } else if (!inQuotes && ch === ")") {
+      depth = Math.max(0, depth - 1);
+      current += ch;
+    } else if (!inQuotes && depth === 0 && ch === ",") {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
-  const lines = ifcText.split("\n");
+  const lines = normalizeStepLines(ifcText);
+  const lengthScale = projectLengthUnitScale(ifcText);
   const elements: ParsedIfcElement[] = [];
   const properties = extractAllplanVolumeQuantities(ifcText).quantities;
-  const qtos = extractIfcQtoVolumeQuantities(ifcText).quantities;
+  const qtosRaw = extractIfcQtoVolumeQuantities(ifcText).quantities;
+  const propertyQuantityByStepId = selectQuantities(properties);
+
+  // Cross-check QTO volume against property volume (e.g., Revit BaseQuantities GrossVolume 1000x Dimensions/Volume)
+  const qtos = qtosRaw.map((q) => {
+    const propQ = propertyQuantityByStepId.get(q.stepId);
+    if (propQ && propQ.normalizedValue > 0 && lengthScale > 0 && lengthScale < 0.1 && q.normalizedValue > propQ.normalizedValue * 500) {
+      for (const p of [1, 2, 3]) {
+        const scaled = q.normalizedValue * Math.pow(lengthScale, p);
+        if (Math.abs(scaled - propQ.normalizedValue) / propQ.normalizedValue < 0.1) {
+          return { ...q, normalizedValue: Number(scaled.toFixed(12)) };
+        }
+      }
+    }
+    return q;
+  });
+
   const candidatesByStepId = new Map<string, Array<{ normalizedValue: number; sourcePath: string }>>();
   for (const quantity of [...qtos, ...properties]) {
     const existing = candidatesByStepId.get(quantity.stepId);
     if (existing) existing.push(quantity);
     else candidatesByStepId.set(quantity.stepId, [quantity]);
   }
-  const propertyQuantityByStepId = selectQuantities(properties);
   const qtoQuantityByStepId = selectQuantities(qtos);
   const storeyByStepId = new Map(
     extractIfcStoreyContainment(ifcText).elementStoreys.map((assignment) => [assignment.elementStepId, assignment]),
@@ -31,19 +80,13 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
   const pozNoByStepId = extractElementPozNo(ifcText).pozNoByStepId;
   const trPsetCsb = extractProjectComplianceData(ifcText);
 
-  const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
+  const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCWALLELEMENTEDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
   const materialRegex = /^#\d+\s*=\s*IFCMATERIAL\s*\(\s*'([^']*)'/i;
-  const spaceRegex = /^#\d+\s*=\s*IFCSPACE\s*\(\s*'[^']*'\s*,\s*#[0-9]+\s*,\s*'([^']*)'/i;
+  const spaceRegex = /^#\d+\s*=\s*IFCSPACE\s*\(\s*'[^']*'\s*,\s*(?:#[0-9]+|\$)\s*,\s*'([^']*)'/i;
   const materialNamesSet = new Set<string>();
   const spaceNamesSet = new Set<string>();
 
-  let beamIdx = 1;
-  let colIdx = 1;
-  let slabIdx = 1;
-  let wallIdx = 1;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
+  for (const trimmed of lines) {
     const matMatch = trimmed.match(materialRegex);
     if (matMatch && matMatch[1]) {
       materialNamesSet.add(matMatch[1].trim());
@@ -83,7 +126,7 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     } else if (rawType === "IFCSLAB") {
       type = "IfcSlab";
       storey = "Kat 1";
-    } else if (rawType === "IFCWALL" || rawType === "IFCWALLSTANDARDCASE") {
+    } else if (rawType === "IFCWALL" || rawType === "IFCWALLSTANDARDCASE" || rawType === "IFCWALLELEMENTEDCASE") {
       type = "IfcWall";
       storey = "Kat 1";
     } else if (rawType === "IFCREINFORCINGBAR") {
@@ -97,6 +140,10 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     const qtoQuantity = qtoQuantityByStepId.get(stepId);
     const propertyQuantity = propertyQuantityByStepId.get(stepId);
     const explicitQuantity = qtoQuantity ?? propertyQuantity;
+    let quantitySource: ParsedIfcElement["quantitySource"] = qtoQuantity ? "qto" : propertyQuantity ? "property" : "estimate";
+    let quantitySourcePath = explicitQuantity?.sourcePath;
+    let quantityConfidence = explicitQuantity?.confidence;
+
     if (explicitQuantity) {
       volumeM3 = explicitQuantity.normalizedValue;
       formworkM2 = 0;
@@ -105,6 +152,33 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       smartCheckNote = qtoQuantity
         ? `${qtoQuantity.quantityName} ${qtoQuantity.quantitySetName} QTO kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`
         : `${propertyQuantity?.quantityName} ${propertyQuantity?.propertySetName} property kaynağından okundu; kalıp/donatı için ayrı kanıt gerekir.`;
+    }
+
+    if (type === "IfcReinforcingBar") {
+      // IfcReinforcingBar attributes: (GlobalId, OwnerHistory, Name, Description, ObjectType, ObjectPlacement, Representation, Tag, SteelGrade, NominalDiameter, CrossSectionArea, BarLength, BarRole/PredefinedType, ...)
+      const args = splitTopLevelStepArgs(rawArgs);
+      const rawDiam = args[9] && args[9] !== "$" ? Number(args[9]) : NaN;
+      const rawArea = args[10] && args[10] !== "$" ? Number(args[10]) : NaN;
+      const rawLen = args[11] && args[11] !== "$" ? Number(args[11]) : NaN;
+      const effScale = lengthScale > 0 ? lengthScale : 1;
+      let diamMm = Number.isFinite(rawDiam) && rawDiam > 0 ? rawDiam * (rawDiam < 1 ? effScale * 1000 : 1) : NaN;
+      if (!Number.isFinite(diamMm) && Number.isFinite(rawArea) && rawArea > 0) {
+        const areaMm2 = rawArea < 1 ? rawArea * 1e6 : rawArea;
+        diamMm = 2 * Math.sqrt(areaMm2 / Math.PI);
+      }
+      if (Number.isFinite(diamMm) && diamMm > 0) {
+        rebarDiameterMm = Math.round(diamMm);
+        if (Number.isFinite(rawLen) && rawLen > 0) {
+          const lenM = rawLen > 100 && effScale === 1 ? rawLen * 0.001 : rawLen * effScale;
+          const nomKgPerM = (Math.PI * Math.pow(diamMm, 2) / 4) * 0.00785;
+          rebarKg = Number((nomKgPerM * lenM).toFixed(1));
+          volumeM3 = Number((rebarKg / 7850).toFixed(12));
+          quantitySource = "property";
+          quantitySourcePath = `#${stepId}:IfcReinforcingBar/NominalAttributes`;
+          quantityConfidence = 0.85;
+          smartCheckNote = "IfcReinforcingBar nominal çap ve çubuk boyu özniteliklerinden hesaplandı.";
+        }
+      }
     }
 
     if (explicitQuantity) {
@@ -135,9 +209,9 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       formworkM2,
       rebarKg,
       rebarDiameterMm,
-      quantitySource: qtoQuantity ? "qto" : propertyQuantity ? "property" : "estimate",
-      quantitySourcePath: explicitQuantity?.sourcePath,
-      quantityConfidence: explicitQuantity?.confidence,
+      quantitySource,
+      quantitySourcePath,
+      quantityConfidence,
       smartCheckStatus,
       smartCheckNote,
       pozNo: pozNoEntry?.value,
@@ -266,6 +340,8 @@ function createFailedIfcParseResult(unsupportedReasons: string[]): { elements: P
       trPsetCsb: { source: null },
       elementsWithPozNoCount: 0,
       elementsMissingPozNoCount: 0,
+      materialNames: [],
+      spaceNames: [],
     },
   };
 }
