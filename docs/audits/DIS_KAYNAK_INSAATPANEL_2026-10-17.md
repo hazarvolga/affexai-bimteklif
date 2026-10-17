@@ -30,3 +30,25 @@
 ## Bekleyen soruyla ilişki
 
 - Melih Bey Soru 5 (pay hangi alan üzerinden) ve Soru 16 (hedef kitle) için bu site referans olabilir; ancak sahadaki gerçek pratiği Melih Bey'in cevabı belirler.
+
+---
+
+## Ek: Şirket / ürün incelemesi (insaatpanel.com ana sayfa, /firmalar, /hakkimizda)
+
+**Ne yapıyor:** Kentsel dönüşümde uzmanlaşmış iki taraflı platform.
+1. **Müteahhit SaaS'ı:** 4 adımlı teklif sihirbazı (proje → şartname → fiyatlandırma → PDF/sunum), AI destekli şartname/sözleşme/risk analizi, "Yarısı Bizden" ve İADŞP destek hesaplayıcıları, müşteri sunum linki, revizyon numaralama. Tekliften "2–3 saat → 20 dakika" iddiası.
+2. **Kat maliki tarafı (lead havuzu):** 170+ rehber, 12 hesaplayıcı, 81 il sayfası ile SEO trafiği çeker; kat maliklerinin "firma arıyorum" başvurularını telefonla teyit edip bölgedeki kayıtlı müteahhitlere yönlendirir. Müteahhit kaydı ücretsiz; gelir modeli sayfalarda net değil (abonelik hedefi var).
+
+**Aşama (kendi beyanı):** Pilot lansman; hedef 3 ayda 30+ aktif abonelik. 5 pilot kullanıcı, 12 müteahhitle görüşme. Teknoloji: Next.js 15, React 19, PostgreSQL/Prisma, Claude API. Bu rakamlar şirketin kendi beyanıdır, doğrulanamaz.
+
+**Bizimle örtüşen:** müteahhit teklif hazırlama, kat karşılığı pay hesabı, ödeme planı.
+**Görünen sayfalarda olmayan (bizde var):** IFC/BIM metraj, e-PYS ön kontrolü, 3×3 kural motoru, ÇŞB poz kataloğu, taşeron hakediş kalkanı, minha. (Tüm siteyi taramadım; yalnız üç sayfa ve iki makale/hesaplayıcı incelendi, fiyat sayfasına bakılmadı.)
+
+**Çıkarımlar**
+- **Müşteri ağrısı doğrulaması:** Kurucunun hikâyesi (5 müteahhitten gelen teklifler pay %, m² hesabı, marka ve sözleşme açısından tutarsız) Melih Bey'in "+10 m² vaat" ve "20 firma karşılaştırması" tespitiyle aynı. Yani **birden fazla teklifi ortak bir zemine oturtup karşılaştırma** ihtiyacı iki bağımsız yerden geliyor. Bizde bunun karşılığı yok; M-3'ün vaat denetimi doğal bir başlangıç.
+- **Fark yaratan alan:** Onlar teklif belgesi ve lead üretiminde güçlü; **ölçüm doğruluğu ve denetim** (IFC'den metraj, hakediş tavanı, vaat-kapasite) yönünde yoklar. Aynı alanda yarışmak yerine "teklifin içindeki rakamlar doğru mu" tarafını sahiplenmek mantıklı.
+- **Köprü fırsatı:** M-3 ön teklif fizibilitesi → mevcut teklif modülümüz (CreateQuote) akışı. Ön teklif sonucundan teklif üretmek, onların "teklif sihirbazı" değerine bizim doğrulanmış sayılarımızla karşılık verir.
+- **Kentsel dönüşüm segmenti** (6306, Yarısı Bizden, İADŞP, kira yardımı, hisse devri) bizde yok. Ayrı bir mevzuat yükü getirir; Melih Bey Soru 16 (hedef kitle) cevabı gelmeden bu segmente girmek için acele edilmemeli.
+- **İçerik/SEO modeli** (rehber + hesaplayıcı → lead) kopyalanabilir bir dağıtım yöntemi; ancak içerik kalitesi ve doğrulanabilir kaynak gerektirir (aşağıdaki uyarıya bakın).
+
+**Dikkat çeken tutarsızlık:** /hakkimizda sayfasında "Sunucularımız Türkiye'de (Hetzner Dedicated). Verileriniz yurt dışına çıkmaz" yazıyor, aynı sayfanın altında "Hetzner Dedicated (Almanya değil — Almanya menşeli ama dünyaya hizmet veriyor)" deniyor. İki ifade çelişiyor ve veri yerleşimi iddiası net değil. Bu bir ders: **kendi vitrin iddialarımızı (KVKK, veri yerleşimi, "uyumlu") yalnızca kanıtlayabildiğimiz kadar yazmalıyız.**
