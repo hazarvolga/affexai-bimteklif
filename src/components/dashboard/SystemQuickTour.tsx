@@ -258,22 +258,24 @@ export const SystemQuickTour: React.FC<SystemQuickTourProps> = ({
       aria-label="BIMMetraj Hızlı Sistem Turu"
       className="fixed inset-0 z-50 overflow-hidden font-sans"
     >
-      {/* Dark backdrop with cutout highlight */}
+      {/* Click-catcher transparent backdrop to dismiss on outside click */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 z-40"
         onClick={handleDismiss}
         aria-hidden="true"
       />
 
-      {/* Target spotlight frame */}
-      {targetRect && (
+      {/* Target spotlight cutout frame */}
+      {targetRect ? (
         <div
-          className="fixed pointer-events-none transition-all duration-300 ease-out border-2 border-primary bg-primary/5 rounded-xs ring-4 ring-primary/20 z-50"
+          className="fixed pointer-events-none transition-all duration-300 ease-out border-2 border-primary rounded-xs z-50"
           style={{
             top: `${Math.max(0, targetRect.top - 6)}px`,
             left: `${Math.max(0, targetRect.left - 6)}px`,
             width: `${targetRect.width + 12}px`,
             height: `${targetRect.height + 12}px`,
+            /* Box-shadow outwards dims the rest of the page gently (42% opacity, no blur) while leaving the target 100% crisp and readable */
+            boxShadow: '0 0 0 9999px rgba(10, 12, 14, 0.42), 0 0 20px rgba(234, 88, 12, 0.25)',
           }}
         >
           {/* Engineering Crosshairs (+) at corners */}
@@ -282,6 +284,12 @@ export const SystemQuickTour: React.FC<SystemQuickTourProps> = ({
           <span className="absolute -bottom-2.5 -left-2.5 font-mono text-xs text-primary font-bold select-none">+</span>
           <span className="absolute -bottom-2.5 -right-2.5 font-mono text-xs text-primary font-bold select-none">+</span>
         </div>
+      ) : (
+        /* Subtle translucent fallback if target is not found */
+        <div
+          className="fixed inset-0 bg-black/40 transition-opacity z-50 pointer-events-none"
+          aria-hidden="true"
+        />
       )}
 
       {/* Tooltip Card (Pafta Design System) */}
