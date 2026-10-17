@@ -1301,6 +1301,35 @@ def extract_project_compliance(model: ifcopenshell.file, area_scale: float = 1.0
     return compliance
 
 
+def read_authoring_software(model: Any) -> Dict[str, Any]:
+    """IFC başlığı ve IfcApplication kayıtlarından ham kaynak yazılım bilgisini okur.
+
+    Sınıflandırma (Allplan/Revit/Archicad...) bilerek burada yapılmaz; tek kaynak
+    src/ifc/authoring-software-diagnostics.ts olmalı. Okunamayan alan None döner.
+    """
+    originating: Optional[str] = None
+    preprocessor: Optional[str] = None
+    try:
+        header = model.header.file_name
+        originating = str(getattr(header, "originating_system", "") or "").strip() or None
+        preprocessor = str(getattr(header, "preprocessor_version", "") or "").strip() or None
+    except Exception:
+        pass
+    names: List[str] = []
+    try:
+        for app in model.by_type("IfcApplication")[:5]:
+            name = str(getattr(app, "ApplicationFullName", "") or "").strip()
+            if name and name not in names:
+                names.append(name)
+    except Exception:
+        pass
+    return {
+        "originatingSystem": originating,
+        "preprocessorVersion": preprocessor,
+        "applicationNames": names,
+    }
+
+
 def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
     if not os.path.exists(input_path):
         sys.stderr.write(f"IFC_PARSE_FAILED: Input file does not exist: {input_path}\n")
@@ -1782,6 +1811,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "apartmentSchedule": apartment_schedule,
         "elementsWithPozNoCount": sum(1 for el in parsed_elements if el.get("pozNo")),
         "elementsMissingPozNoCount": sum(1 for el in parsed_elements if not el.get("pozNo")),
+        "authoringSoftwareRaw": read_authoring_software(model),
     }
 
     result = {

@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.11",
+  version: "BIM-CALC-2026-10-17.12",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "cd7c4789a8cf2e83d8dfe104c0961cece45e4d16",
+  implementationBaseline: "8457383e595b55e033f4f30c702e867f53972fe2",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -497,6 +497,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 18",
+    version: "BIM-CALC-2026-10-17.12",
+    date: "17 Ekim 2026",
+    commit: "59fcf0a",
+    trigger: "Yanıt beklenen sorulardan bağımsız iş 1: Sunucu (Python) yolunda kaynak yazılım tespiti",
+    beforeSummary:
+      "Kaynak yazılım tespiti yalnızca tarayıcı (metin) yolunda çalışıyordu; sunucu (IfcOpenShell) kanıt yolundan gelen kayıtlarda uyarı gösterilemiyordu.",
+    afterSummary:
+      "Python worker IFC başlığından (FILE_NAME) ve IfcApplication kayıtlarından ham kaynak yazılım bilgisini okur; sınıflandırma tek kaynak olan TypeScript modülünde yapılır ve kanıt (artifact) özetine, oradan Calm çalışma alanı uyarısına taşınır. Gerçek dosya başlıkları ile doğrulandı: Revit IFC'de başlıkta yazılım adı yoktur (adı yalnızca IfcApplication'dadır), Allplan modelinde originating_system boştur; sınıflandırma bu iki durumu da çözer.",
+    affectedModules: ["kaynak-yazilim-guvenilirligi"],
+    moduleDetails: {
+      "kaynak-yazilim-guvenilirligi": {
+        before: "Sunucu kanıt yolunda kaynak yazılım okunmuyor, uyarı yalnızca tarayıcı yolunda görünüyordu.",
+        after: "read_authoring_software (Python) ham başlık bilgisini okur; classifyAuthoringSoftware sınıflandırır; artifact.summary.authoringSoftware ve CalmIfcDataset.authoringAdvisory ile uyarı sunucu yolunda da görünür.",
+        basis: "Gerçek IFC başlıkları (Ifc4_Revit_STR.ifc, Allplan modeli) ve ISO 10303-21 HEADER FILE_NAME",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -588,9 +607,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Gerçek taşeron sözleşmesi ve şantiye hakediş örneğiyle tavan mantığının (net alan mı, minha uygulanmış alan mı) uzman kabulü; duvar sıvası için IFC'den çevre × yükseklik türetimi açık.",
   },
   "kaynak-yazilim-guvenilirligi": {
-    scope: "IFC başlığından kaynak yazılım tespiti, yazılıma göre model kontrolü uyarısı ve kullanıcı girdili tek oda katman daralması aritmetiği (pilot).",
+    scope: "IFC başlığından (tarayıcı ve sunucu yolu) kaynak yazılım tespiti, yazılıma göre model kontrolü uyarısı ve kullanıcı girdili tek oda katman daralması aritmetiği (pilot).",
     testFiles: ["src/ifc/authoring-software-diagnostics.test.ts"],
-    pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması; sunucu (Python) kanıt yolunda başlık okumanın eklenmesi.",
+    pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması.",
   },
   "on-teklif-fizibilite": {
     scope: "Kullanıcı girdili arsa/TAKS/KAKS/çoklu parselden alan, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; CSV içe/dışa aktarım (pilot).",

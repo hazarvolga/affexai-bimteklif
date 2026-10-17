@@ -110,3 +110,49 @@ test("Golden 10: parseIfcText özetine kaynak yazılımı taşır ve Calm veri s
   assert.equal(dataset.authoringAdvisory?.family, "revit");
   assert.equal(dataset.authoringAdvisory?.tone, "caution");
 });
+
+test("Golden 11: gerçek dosya başlıkları — Revit adı yalnız IfcApplication'da, Allplan başlığı boş", async () => {
+  const { classifyAuthoringSoftware } = await import("./authoring-software-diagnostics");
+  // Ifc4_Revit_STR.ifc gerçek başlığı
+  const revit = classifyAuthoringSoftware({
+    originatingSystem: "21.0.0.383 - Exporter 21.0.0.383 - Alternate UI 21.0.0.383",
+    preprocessorVersion: "The EXPRESS Data Manager Version 5.02.0100.07 : 28 Aug 2013",
+    applicationNames: ["Autodesk Revit 2021 (ENU)"],
+  });
+  assert.equal(revit.family, "revit");
+  assert.equal(revit.evidence, "ifc_application");
+  // Allplan modeli: originating_system boş, preprocessor ODA
+  const allplan = classifyAuthoringSoftware({
+    originatingSystem: null,
+    preprocessorVersion: "ODA SDAI 25.4",
+    applicationNames: ["Allplan"],
+  });
+  assert.equal(allplan.family, "allplan");
+  assert.equal(
+    classifyAuthoringSoftware({ originatingSystem: null, preprocessorVersion: null, applicationNames: [] }).family,
+    "unknown",
+  );
+});
+
+test("Golden 12: sunucu (Python) yolu — ham başlık artifact'a ve Calm veri setine uyarı olarak taşınır", async () => {
+  const { buildIfcSmartCheckEvidenceArtifact } = await import("./smartcheck-evidence");
+  const { buildCalmIfcDatasetFromArtifact } = await import("./calm-icmal");
+  const summary = {
+    parseStatus: "failed",
+    extractionMode: "demo_estimate",
+    totalElements: 0,
+    elementsWithPozNoCount: 0,
+    elementsMissingPozNoCount: 0,
+    trPsetCsb: { source: null },
+    authoringSoftwareRaw: {
+      originatingSystem: "21.0.0.383 - Exporter 21.0.0.383",
+      preprocessorVersion: null,
+      applicationNames: ["Autodesk Revit 2021 (ENU)"],
+    },
+  };
+  const artifact = buildIfcSmartCheckEvidenceArtifact([], summary as never, { fileName: "m.ifc" } as never);
+  assert.equal(artifact.summary.authoringSoftware?.family, "revit");
+  const dataset = buildCalmIfcDatasetFromArtifact(artifact);
+  assert.equal(dataset.authoringAdvisory?.family, "revit");
+  assert.equal(dataset.authoringAdvisory?.tone, "caution");
+});

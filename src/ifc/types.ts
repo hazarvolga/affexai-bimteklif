@@ -1,4 +1,4 @@
-import type { AuthoringSoftwareDetection } from "./authoring-software-diagnostics";
+import type { AuthoringSoftwareDetection, AuthoringSoftwareRaw } from "./authoring-software-diagnostics";
 
 export interface ParsedIfcElement {
   id: string;
@@ -106,5 +106,7 @@ export interface IfcParseSummary {
   spaceNames?: string[];
   /** IFC başlığından tespit edilen kaynak yazılım (Paket M-2). */
   authoringSoftware?: AuthoringSoftwareDetection;
+  /** Sunucu (Python) yolundan gelen ham başlık bilgisi; sınıflandırma TS'de yapılır. */
+  authoringSoftwareRaw?: AuthoringSoftwareRaw;
 }
 

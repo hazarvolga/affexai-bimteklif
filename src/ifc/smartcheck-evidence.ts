@@ -1,3 +1,4 @@
+import { classifyAuthoringSoftware, type AuthoringSoftwareDetection } from "./authoring-software-diagnostics";
 import type { Finding, ParsedQuantityRow } from "@/smartcheck/import/normalize";
 import { validateRows } from "@/smartcheck/import/normalize";
 import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "./types";
@@ -66,6 +67,8 @@ export interface IfcSmartCheckEvidenceArtifact {
     elementsWithPozNoCount: number;
     elementsMissingPozNoCount: number;
     trPsetCsb: TrPsetCsbProjectCompliance;
+    /** Kaynak yazılım tespiti (IFC başlığı / IfcApplication); tespit edilemediyse yok. */
+    authoringSoftware?: AuthoringSoftwareDetection;
   };
   rows: IfcSmartCheckEvidenceRow[];
   blockedElements: IfcBlockedEvidenceElement[];
@@ -207,6 +210,12 @@ function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
   };
 }
 
+function resolveAuthoringSoftware(summary: IfcParseSummary): AuthoringSoftwareDetection | undefined {
+  if (summary.authoringSoftware) return summary.authoringSoftware;
+  if (summary.authoringSoftwareRaw) return classifyAuthoringSoftware(summary.authoringSoftwareRaw);
+  return undefined;
+}
+
 export function buildIfcSmartCheckEvidenceArtifact(
   elements: ParsedIfcElement[],
   summary: IfcParseSummary,
@@ -232,6 +241,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         elementsWithPozNoCount: summary.elementsWithPozNoCount,
         elementsMissingPozNoCount: summary.elementsMissingPozNoCount,
         trPsetCsb: summary.trPsetCsb,
+        authoringSoftware: resolveAuthoringSoftware(summary),
       },
       rows: [],
       blockedElements: elements.map((element) => ({
@@ -292,6 +302,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       elementsWithPozNoCount: summary.elementsWithPozNoCount,
       elementsMissingPozNoCount: summary.elementsMissingPozNoCount,
       trPsetCsb: summary.trPsetCsb,
+        authoringSoftware: resolveAuthoringSoftware(summary),
     },
     rows,
     blockedElements,

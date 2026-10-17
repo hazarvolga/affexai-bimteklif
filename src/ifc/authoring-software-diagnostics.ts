@@ -92,6 +92,31 @@ export function detectAuthoringSoftware(ifcText: string): AuthoringSoftwareDetec
     applicationName = strings.length >= 3 ? strings[2] || strings[strings.length - 1] : strings[0] ?? null;
   }
 
+  return classifyAuthoringSoftware({
+    originatingSystem: originating,
+    preprocessorVersion: preprocessor,
+    applicationNames: applicationName ? [applicationName] : [],
+  });
+}
+
+/** Sunucu (Python) yolunun ve metin yolunun ortak ham girdisi. */
+export interface AuthoringSoftwareRaw {
+  originatingSystem: string | null;
+  preprocessorVersion: string | null;
+  applicationNames: string[];
+}
+
+/**
+ * Ham başlık bilgisini sınıflandırır. Gerçek dosyalarda başlıkta yazılım adı olmayabilir
+ * (Revit: originating_system "21.0.0.383 - Exporter ...", yazılım adı yalnız IfcApplication'da;
+ * Allplan: originating_system boş, IfcApplication "Allplan"), bu yüzden önce başlık,
+ * tanınmazsa IfcApplication kayıtları denenir.
+ */
+export function classifyAuthoringSoftware(raw: AuthoringSoftwareRaw): AuthoringSoftwareDetection {
+  const originating = raw.originatingSystem?.trim() || null;
+  const preprocessor = raw.preprocessorVersion?.trim() || null;
+  const applicationName = raw.applicationNames.find((n) => n.trim()) ?? null;
+
   const fromHeader = classify(originating, preprocessor);
   if (fromHeader && fromHeader !== "other") {
     return {
@@ -102,15 +127,17 @@ export function detectAuthoringSoftware(ifcText: string): AuthoringSoftwareDetec
       evidence: "file_name_header",
     };
   }
-  const fromApp = classify(applicationName);
-  if (fromApp && fromApp !== "other") {
-    return {
-      family: fromApp,
-      rawOriginatingSystem: originating,
-      rawPreprocessorVersion: preprocessor,
-      rawApplicationName: applicationName,
-      evidence: "ifc_application",
-    };
+  for (const name of raw.applicationNames) {
+    const fromApp = classify(name);
+    if (fromApp && fromApp !== "other") {
+      return {
+        family: fromApp,
+        rawOriginatingSystem: originating,
+        rawPreprocessorVersion: preprocessor,
+        rawApplicationName: name,
+        evidence: "ifc_application",
+      };
+    }
   }
   const anyRaw = originating || preprocessor || applicationName;
   return {

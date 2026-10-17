@@ -440,3 +440,20 @@ def test_trepys_poz_and_emsal_extraction():
     assert comp["emsalHaricM2"] == 0.0
 
 
+
+
+def test_authoring_software_raw_is_extracted_from_real_header():
+    """Revit IFC: başlıkta 'Revit' geçmez, yazılım adı yalnız IfcApplication'dadır."""
+    sample = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "IfcSampleFiles-main", "Ifc4_Revit_STR.ifc")
+    )
+    if not os.path.exists(sample):
+        pytest.skip("IfcSampleFiles-main örnek dosyası yok")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(sample, out_json, "Ifc4_Revit_STR.ifc")
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            raw = json.load(f)["summary"]["authoringSoftwareRaw"]
+    assert "Exporter" in (raw["originatingSystem"] or "")
+    assert any("Revit" in n for n in raw["applicationNames"])

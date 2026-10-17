@@ -377,16 +377,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "IFC başlığındaki FILE_NAME ve IFCAPPLICATION kaydından kaynak yazılım (Allplan / Revit / Archicad / Tekla) tespit edilir ve çalışma alanında uyarı olarak gösterilir. Uyarılar uzman saha gözlemi olarak etiketlenir; doğruluk garantisi veya sabit sapma yüzdesi iddia edilmez. Kullanıcının kendi ölçüsüyle tek odalık katman daralması aritmetiği eklendi. Yetenek Kaydına pilot (L2) olarak işlendi; Paket M-3 sırada.",
           ],
           [
-            "Rev. 17 (Güncel)",
+            "Rev. 17",
             "17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-3)",
             "BIM-CALC-2026-10-17.11",
             "IFC öncesi ön teklif aşaması için kat karşılığı fizibilite motoru eklendi (/app/smartcheck): kullanıcının girdiği arsa, TAKS, KAKS ve emsal harici alanlardan çoklu parsel taban/emsal/toplam inşaat alanı, arsa sahibi/müteahhit paylaşımı, daire başı brüt/net alan, birim maliyet ve vaat-kapasite aritmetiği. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması yoktur; CSV içe/dışa aktarım vardır. Yetenek Kaydına pilot (L2) olarak işlendi. Melih Dinekli paketleri M-1, M-2 ve M-3 tamamlandı.",
+          ],
+          [
+            "Rev. 18 (Güncel)",
+            "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 1)",
+            "BIM-CALC-2026-10-17.12",
+            "Sunucu (Python) yolunda kaynak yazılım tespiti eklendi: IFC başlığı ve IfcApplication ham bilgisi okunur, TypeScript'te sınıflandırılır ve kanıt özetinden Calm çalışma alanı uyarısına taşınır. Gerçek dosya başlıklarıyla doğrulandı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 17 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 18 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -614,6 +620,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Projesi veya IFC dosyası olmayan ön teklif aşamasında arsa alanı, TAKS/KAKS ve çoklu parselden alan hesabı, arsa sahibi/müteahhit paylaşımı, daire başı brüt/net alan ve vaat denetimi yapılamıyordu; müteahhitler bunu elle Excel'de yapıyordu.",
             "computeFeasibility parsel alanlarını, kat karşılığı paylaşımını, daire başı brüt/net alanı, maliyeti ve vaat-kapasite aritmetiğini hesaplar; vaat kapasiteyi aşarsa fark (m², daire başı m², TL) gösterilir ve açıklama istenmesi önerilir, aşımın nasıl karşılanacağı hakkında hüküm verilmez. parseParcelCsv / exportFeasibilityCsv Excel uyumlu CSV sağlar. Maliyet yüzde dağılımı yalnızca kullanıcı girdisidir.",
             "src/lib/pre-bim-feasibility.ts, pre-bim-feasibility.test.ts, PreBimFeasibilityPanel.tsx, src/pages/SmartCheck.tsx, src/capabilities/registry.ts",
+          ],
+          [
+            "Rev. 18.1 · 17 Ekim 2026 (Sunucu yolu kaynak yazılım tespiti)",
+            "ISO 10303-21 HEADER FILE_NAME & IfcApplication; gerçek Revit/Allplan IFC başlıkları",
+            "Kaynak yazılım uyarısı yalnızca tarayıcı metin yolunda çalışıyordu; sunucu kanıtından gelen kayıtlarda gösterilemiyordu.",
+            "workers/ifc/ifc_extract.py read_authoring_software ham başlığı okur (authoringSoftwareRaw); classifyAuthoringSoftware başlıkta yazılım adı olmayan gerçek durumları (Revit: yalnız IfcApplication, Allplan: boş originating_system) çözer; artifact.summary.authoringSoftware üzerinden uyarı sunucu yolunda görünür.",
+            "workers/ifc/ifc_extract.py, test_ifc_extract.py, src/ifc/authoring-software-diagnostics.ts, smartcheck-evidence.ts, calm-icmal.ts, types.ts",
           ],
         ],
       },

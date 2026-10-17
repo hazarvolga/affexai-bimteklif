@@ -4,7 +4,7 @@ import type {
   IfcParseSummary,
   ParsedIfcElement,
 } from "./types";
-import { buildAuthoringAdvisory, type AuthoringAdvisory } from "./authoring-software-diagnostics";
+import { buildAuthoringAdvisory, classifyAuthoringSoftware, type AuthoringAdvisory } from "./authoring-software-diagnostics";
 import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./smartcheck-evidence";
 
 export type CalmIcmalGroupKey =
@@ -730,7 +730,9 @@ export function buildCalmIfcDatasetFromElements(
     apartments,
     authoringAdvisory: summary?.authoringSoftware
       ? buildAuthoringAdvisory(summary.authoringSoftware)
-      : undefined,
+      : summary?.authoringSoftwareRaw
+        ? buildAuthoringAdvisory(classifyAuthoringSoftware(summary.authoringSoftwareRaw))
+        : undefined,
   };
 }
 
@@ -744,5 +746,7 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     parseSmartCheckRowToPseudoElement(row, idx),
   );
 
-  return buildCalmIfcDatasetFromElements(pseudoElements, null, fileName);
+  const dataset = buildCalmIfcDatasetFromElements(pseudoElements, null, fileName);
+  const authoring = artifact.summary.authoringSoftware;
+  return authoring ? { ...dataset, authoringAdvisory: buildAuthoringAdvisory(authoring) } : dataset;
 }
