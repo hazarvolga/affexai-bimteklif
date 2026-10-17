@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.7';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.8';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -427,6 +427,28 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & imar durumu belgesi (kullanıcı girdisi)',
         documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 — ön teklif / kat karşılığı akışı',
         articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 4–5',
+        publicationDate: '2026-10-17',
+      },
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'free-public-calculators',
+    title: 'Ücretsiz Halka Açık Hesaplayıcılar — Aşırı Düşük Teklif Sınır Değeri ve 4735 Fiyat Farkı (Pilot · L2)',
+    shortClaim:
+      'Giriş gerektirmeyen iki ön hesaplayıcı: KİK m.38 / Tebliğ m.45.1.1 sınır değer ve 4735 fiyat farkı. Tüm katsayılar ve endeksler kullanıcı girdisidir; bağımsız doğrulanmamıştır.',
+    longDescription:
+      'Mevcut KİK ve 4735 motorlarını (src/lib/kik-adt.ts, src/lib/price-escalation.ts) herkese açık sayfalara bağlar. Hesap tarayıcıda yapılır, hiçbir değer varsayılmaz (B katsayısı ve sabit katsayı dahil), endeks verisi çekilmez. Sayfalarda "bağımsız mühendis/mali müşavir doğrulaması yoktur" uyarısı bulunur. Gerçek bir bağımsız doğrulama alınana kadar pilot olarak işaretlidir.',
+    level: 'L2',
+    status: 'pilot',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/lib/calculators/kik-form.ts',
+      goldenTestPath: 'src/lib/calculators/calculators-forms.test.ts',
+      officialSource: {
+        institution: 'Kamu İhale Kurumu / 4734 ve 4735 sayılı Kanunlar',
+        documentTitle: 'Kamu İhale Genel Tebliği m.45.1 ve Yapım İşlerinde Uygulanacak Fiyat Farkına İlişkin Esaslar',
+        articleOrTable: '4734 m.38, Tebliğ 45.1.1–45.1.2; 4735 m.8',
         publicationDate: '2026-10-17',
       },
     },

@@ -811,6 +811,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <a href="#pricing" className="block hover:text-foreground">Paketler</a>
               <Link to="/smartcheck" className="block hover:text-foreground">SmartCheck Doğrulama</Link>
               <Link to="/bim-sozlugu" className="block hover:text-foreground">BIM & e-PYS Sözlüğü</Link>
+              <Link to="/hesaplayicilar" className="block hover:text-foreground">Ücretsiz Hesaplayıcılar</Link>
               <Link to="/register" className="block text-primary hover:underline">14 Gün Ücretsiz Deneme</Link>
             </div>
           </div>

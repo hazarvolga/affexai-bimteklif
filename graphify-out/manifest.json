@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1792207120.850006,
-    "ast_hash": "5c9436771fb249783bc8ac6b7272cb4b",
+    "mtime": 1792246675.4567938,
+    "ast_hash": "8353d446b20e982724753e8df915e55d",
     "semantic_hash": ""
   },
   "src/academy/activation.test.ts": {
@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1792212228.7576842,
-    "ast_hash": "57151d5587f97ed051308fcd16c898ab",
+    "mtime": 1792246675.4576502,
+    "ast_hash": "5335fd0ef14755ebf8b5c4282fe5c554",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792246402.4413428,
-    "ast_hash": "d91894f31e622c353ec74401863086f7",
+    "mtime": 1792246719.0656376,
+    "ast_hash": "1221825b606ef58a71fe51b5cad0c50c",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6070,13 +6070,13 @@
     "semantic_hash": ""
   },
   "src/server/security/web-hardening.test.ts": {
-    "mtime": 1792206908.3638732,
-    "ast_hash": "71567be39ead769f05e94cefde5593bd",
+    "mtime": 1792246675.45729,
+    "ast_hash": "b422ff45930db87a71e8fba8cb7cae61",
     "semantic_hash": ""
   },
   "src/server/security/web-hardening.ts": {
-    "mtime": 1792209715.490953,
-    "ast_hash": "141fe8780021155024c21bf93555f2b2",
+    "mtime": 1792246675.457003,
+    "ast_hash": "9d46a0a9985cdcb6ccc8c8cf291780bd",
     "semantic_hash": ""
   },
   "src/services/billing/feature-limits.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792246402.4408083,
-    "ast_hash": "772305c41dcff964e01bf6d28575d41c",
+    "mtime": 1792246719.0651166,
+    "ast_hash": "b2caf09e6aaf988295846113423b62e9",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6485,8 +6485,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-17.md": {
-    "mtime": 1792246402.4415522,
-    "ast_hash": "679e301aa7e8644e5d1c6518682206fb",
+    "mtime": 1792246719.0658493,
+    "ast_hash": "a4cb3b421377d60c55f5e0abdc1e12a6",
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
@@ -6495,8 +6495,8 @@
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
-    "mtime": 1792245830.4772947,
-    "ast_hash": "4f62e06e6fabac340c036bf0c48beaa3",
+    "mtime": 1792246719.0554662,
+    "ast_hash": "d231c84cd7baec407e3e9d4e8482f35a",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.golden.test.ts": {
@@ -6505,13 +6505,13 @@
     "semantic_hash": ""
   },
   "src/lib/price-escalation.test.ts": {
-    "mtime": 1792212954.2172022,
-    "ast_hash": "70418a0f9065a942c3380276f82156be",
+    "mtime": 1792246525.1810646,
+    "ast_hash": "e2bd63f5361d2fe9a513c60857599084",
     "semantic_hash": ""
   },
   "src/lib/price-escalation.ts": {
-    "mtime": 1792213351.0610113,
-    "ast_hash": "e211bc2a1be1a3f97a270d61fd6d19ec",
+    "mtime": 1792246525.1777868,
+    "ast_hash": "1a84352bee2acaf26265b7e4d4541fbb",
     "semantic_hash": ""
   },
   "src/components/smartcheck/ApartmentSubcontractorShieldCard.tsx": {
@@ -6612,6 +6612,56 @@
   "teklif-excel-ornekleri/insaatpanel-ornek-teklif.pdf": {
     "mtime": 1792246331.2279058,
     "ast_hash": "ac021ede72884873d255220a34f71d1f",
+    "semantic_hash": ""
+  },
+  "src/lib/calculators/calculators-forms.test.ts": {
+    "mtime": 1792246572.6630704,
+    "ast_hash": "1045fda4689761209dc2a1c9237833ba",
+    "semantic_hash": ""
+  },
+  "src/lib/calculators/escalation-form.ts": {
+    "mtime": 1792246572.6611023,
+    "ast_hash": "37a2e0bdbb1d78a46e849c395355b99b",
+    "semantic_hash": ""
+  },
+  "src/lib/calculators/kik-form.ts": {
+    "mtime": 1792246572.6591325,
+    "ast_hash": "936bcacc4c82e857214f9856046ba810",
+    "semantic_hash": ""
+  },
+  "src/lib/tr-number.test.ts": {
+    "mtime": 1792246525.1607528,
+    "ast_hash": "09a53a502f96d90bbda387bcb3578f02",
+    "semantic_hash": ""
+  },
+  "src/lib/tr-number.ts": {
+    "mtime": 1792246525.1589725,
+    "ast_hash": "ebc224a1c8ff65290f4c016618743a65",
+    "semantic_hash": ""
+  },
+  "src/pages/calculators/CalculatorShell.tsx": {
+    "mtime": 1792246641.780414,
+    "ast_hash": "23a6de9f5cadcc262eb1cbeba0cb1a95",
+    "semantic_hash": ""
+  },
+  "src/pages/calculators/CalculatorsIndexPage.tsx": {
+    "mtime": 1792246641.7862148,
+    "ast_hash": "f5bd71a66b0873ffef42eb3a49ec632c",
+    "semantic_hash": ""
+  },
+  "src/pages/calculators/KikAdtCalculatorPage.tsx": {
+    "mtime": 1792246641.7822864,
+    "ast_hash": "9ff99f9cd320f91e3145ca7ee433337a",
+    "semantic_hash": ""
+  },
+  "src/pages/calculators/PriceEscalationCalculatorPage.tsx": {
+    "mtime": 1792246641.7840693,
+    "ast_hash": "46147804e371a0c4eb88e4f128c2f13c",
+    "semantic_hash": ""
+  },
+  "muteahhitlik-yeterlik-sistemi-sunumu_20191212013310.pdf": {
+    "mtime": 1792246495.2282472,
+    "ast_hash": "7209addeb770b9f37f34e1e3193b23b5",
     "semantic_hash": ""
   }
 }

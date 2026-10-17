@@ -105,3 +105,33 @@ test('Faz 2.5 Golden 5: resolveTuikSubIndexForPoz maps construction, rebar, form
   assert.equal(resolveTuikSubIndexForPoz('35.120.1001 N2XH Kablo').code, 'TUIK-27.3-KABLO');
   assert.equal(resolveTuikSubIndexForPoz('Klima Santrali ve Havalandırma').code, 'TUIK-28.2-KLIMA-HAVALANDIRMA');
 });
+
+test("Golden 6: sabit katsayı (a) ağırlık toplamına dahildir ve Pn'e a × 1 olarak girer", () => {
+  // a = 0,10; tek endeks ağırlığı 0,90; E_n/E_0 = 1,20 → Pn = 0,10 + 0,90 × 1,20 = 1,18
+  const r = computeContractPriceEscalation4735({
+    progressPaymentAmountTl: 1_000_000,
+    bFactor: 0.9,
+    constantWeight: 0.1,
+    components: [{ indexCode: "TUIK-TUFE-GENEL", weight: 0.9, baseIndex: 100, currentIndex: 120 }],
+  });
+  assert.equal(r.pnFactor, 1.18);
+  assert.equal(r.constantWeight, 0.1);
+  assert.equal(r.priceDifferenceTl, 162000); // 1.000.000 × 0,90 × 0,18
+});
+
+test("Golden 7: sabit katsayı dahil toplam 1,00 değilse reddedilir; geçersiz a reddedilir", () => {
+  assert.throws(() =>
+    computeContractPriceEscalation4735({
+      progressPaymentAmountTl: 1000,
+      constantWeight: 0.1,
+      components: [{ indexCode: "TUIK-TUFE-GENEL", weight: 1, baseIndex: 100, currentIndex: 110 }],
+    }),
+  );
+  assert.throws(() =>
+    computeContractPriceEscalation4735({
+      progressPaymentAmountTl: 1000,
+      constantWeight: 1.5,
+      components: [{ indexCode: "TUIK-TUFE-GENEL", weight: 1, baseIndex: 100, currentIndex: 110 }],
+    }),
+  );
+});

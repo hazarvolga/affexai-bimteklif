@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.15",
+  version: "BIM-CALC-2026-10-17.16",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "57468db6e189b1c68573b2205d354623ce45be78",
+  implementationBaseline: "9584df2e930662c7d9d413667f6529ed816dd1f2",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -578,6 +578,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 22",
+    version: "BIM-CALC-2026-10-17.16",
+    date: "17 Ekim 2026",
+    commit: "9584df2",
+    trigger: "Ücretsiz halka açık hesaplayıcılar: Aşırı düşük teklif sınır değeri (KİK) ve 4735 fiyat farkı",
+    beforeSummary:
+      "KİK sınır değer ve 4735 fiyat farkı motorları yalnızca giriş yapmış kullanıcıların çalışma alanında (CalmIfcWorkspace) kullanılabiliyordu; müteahhitlerin doğrudan aradığı bu hesaplar herkese açık değildi. 4735 motoru sözleşmedeki sabit katsayıyı (a) temsil edemiyordu.",
+    afterSummary:
+      "/hesaplayicilar, /hesaplayicilar/kik-asiri-dusuk-teklif ve /hesaplayicilar/fiyat-farki-4735 halka açık sayfaları eklendi (giriş gerekmez, hesap tarayıcıda yapılır, sitemap ve llms.txt'ye eklendi). Hiçbir değer varsayılmaz: YM, iş grubu, teklifler, B katsayısı, sabit katsayı, ağırlıklar ve endeks değerleri kullanıcı girdisidir; endeks verisi çekilmez. Her sayfada 'bağımsız doğrulanmamıştır' uyarısı ve dayanak listesi vardır. 4735 motoruna isteğe bağlı sabit katsayı (a) eklendi (ağırlık toplamına dahil, Pn'e a × 1 girer). Türkçe sayı ayrıştırıcı (1.250.000,50) ve form-motor eşleme katmanı testlerle eklendi. Yetenek Kaydına pilot (L2) olarak işlendi.",
+    affectedModules: ["kik-adt", "eskalasyon"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "Sınır değer hesabı yalnızca giriş yapılmış çalışma alanında vardı.",
+        after: "Aynı motor halka açık sayfadan, Türkçe biçimli girdilerle ve adım adım gösterimle kullanılabilir; form katmanı motor sonucunu değiştirmez (testle doğrulandı).",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1–45.1.2; src/lib/calculators/kik-form.ts",
+      },
+      "eskalasyon": {
+        before: "4735 motoru sabit katsayıyı (a) temsil edemiyordu ve yalnızca çalışma alanından kullanılabiliyordu.",
+        after: "constantWeight (a) isteğe bağlı olarak eklendi (Σ ağırlık + a = 1,00, Pn += a); halka açık sayfadan B ve tüm katsayılar kullanıcı girdisiyle hesaplanır.",
+        basis: "4735 m.8 ve sözleşme fiyat farkı formülü; src/lib/calculators/escalation-form.ts",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -605,8 +629,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   eskalasyon: {
     scope: "T/2 harcama dağılımı simülasyonu + 4735 Sayılı Kanun Fiyat Farkı Esasları (F = A_n × B × (P_n − 1)) ve ÇŞB 2026 – TÜİK 21 Alt Endeks dönem dışı birim fiyat eskalasyon motoru aktif.",
-    testFiles: ["src/lib/calculations.test.ts", "src/lib/price-escalation.test.ts", "src/pages/admin/roadmap/content.test.ts"],
-    pending: "Harcama takvimi, eskale edilen kategoriler ve prim varsayımlarının proje için onayı.",
+    testFiles: ["src/lib/calculations.test.ts", "src/lib/price-escalation.test.ts", "src/lib/calculators/calculators-forms.test.ts", "src/pages/admin/roadmap/content.test.ts"],
+    pending: "Harcama takvimi, eskale edilen kategoriler ve prim varsayımlarının proje için onayı. 4735 Pn formülünde sabit katsayı (a) desteği eklendi; sözleşme formülüne uygunluğu ve halka açık hesaplayıcı sayfası bağımsız bir uzman tarafından doğrulanmadı.",
   },
   "risk-fiyat-araligi": {
     scope: "Sabit eşik ve katsayı kullanan şirket içi öneri.",
@@ -685,8 +709,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   "kik-adt": {
     scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili) ve %80 Pareto açıklama istenecek sıralı iş kalemleri motoru aktif.",
-    testFiles: ["src/lib/kik-adt.test.ts", "src/lib/kik-adt.golden.test.ts"],
-    pending: "EKAP ihale açılış tutanağı XML/PDF içe aktarımı (Yol Haritasında · 2026 Q4 — Faz 3).",
+    testFiles: ["src/lib/kik-adt.test.ts", "src/lib/kik-adt.golden.test.ts", "src/lib/calculators/calculators-forms.test.ts"],
+    pending: "EKAP ihale açılış tutanağı XML/PDF içe aktarımı (Yol Haritasında · 2026 Q4 — Faz 3). Halka açık ücretsiz hesaplayıcı sayfası bağımsız bir uzman tarafından doğrulanmadı.",
   },
   "epys-on-kontrol": {
     scope: "IFC → sunucu ön kontrolü (EK-1/2/3/5/6, EK-7 Tablo 7.1–7.9 IfcAnnotation dahil) → disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ekranı, kotadan düşmeyen canlı örnek projeler ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",

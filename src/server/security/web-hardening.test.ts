@@ -61,5 +61,11 @@ test('sitemap lists public pages on the canonical origin and robots/llms point t
   assert.equal(isKnownSpaRoute('/app/smartcheck'), true);
   assert.equal(isKnownSpaRoute('/admin/leads'), true);
   assert.equal(isKnownSpaRoute('/olmayan-sayfa-xyz'), false);
+  for (const p of ['/hesaplayicilar', '/hesaplayicilar/kik-asiri-dusuk-teklif', '/hesaplayicilar/fiyat-farki-4735']) {
+    assert.equal(isKnownSpaRoute(p), true, p);
+    assert.ok(xml.includes(`<loc>https://bimmetraj.com${p}</loc>`), `sitemap: ${p}`);
+    assert.ok(llms.includes(`https://bimmetraj.com${p}`), `llms.txt: ${p}`);
+  }
+  assert.equal(isKnownSpaRoute('/hesaplayicilar/olmayan'), false);
 });
 

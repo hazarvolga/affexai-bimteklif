@@ -224,8 +224,13 @@ export interface ContractEscalation4735Input {
   progressPaymentAmountTl: number;
   /** Sözleşme B katsayısı (standart: 0,90) */
   bFactor?: number;
-  /** Ağırlıklı TÜİK alt endeks bileşenleri (Σw_i = 1,00) */
+  /** Ağırlıklı TÜİK alt endeks bileşenleri (Σw_i + sabit katsayı = 1,00) */
   components: EscalationComponentInput[];
+  /**
+   * Sözleşmedeki Pn formülünde endekse bağlı olmayan sabit katsayı (a). Ağırlık toplamına dahildir ve
+   * Pn'e a × 1 olarak girer. Verilmezse 0 kabul edilir (sabit terimsiz formül).
+   */
+  constantWeight?: number;
 }
 
 export interface EscalationComponentBreakdown {
@@ -243,6 +248,8 @@ export interface ContractEscalation4735Result {
   progressPaymentAmountTl: number;
   bFactor: number;
   totalWeight: number;
+  /** Pn'e giren sabit katsayı (a); yoksa 0 */
+  constantWeight: number;
   /** P_n katsayısı (6 ondalık basamak gösterim için) */
   pnFactor: number;
   /** (P_n - 1) değişim oranı */
@@ -331,6 +338,10 @@ export function computeContractPriceEscalation4735(
 ): ContractEscalation4735Result {
   const { progressPaymentAmountTl, components } = input;
   const bFactor = input.bFactor ?? 0.9;
+  const constantWeight = input.constantWeight ?? 0;
+  if (!Number.isFinite(constantWeight) || constantWeight < 0 || constantWeight > 1) {
+    throw new Error('Sabit katsayı (a) 0 ile 1 arasında olmalıdır.');
+  }
 
   if (!Number.isFinite(progressPaymentAmountTl) || progressPaymentAmountTl < 0) {
     throw new Error('Hakediş tutarı (A_n) sıfır veya pozitif bir sayı olmalıdır.');
@@ -342,8 +353,8 @@ export function computeContractPriceEscalation4735(
     throw new Error('En az bir TÜİK alt endeks bileşeni tanımlanmalıdır.');
   }
 
-  let totalWeight = 0;
-  let pnExact = 0;
+  let totalWeight = constantWeight;
+  let pnExact = constantWeight;
   const breakdowns: EscalationComponentBreakdown[] = [];
 
   for (const comp of components) {
@@ -394,6 +405,7 @@ export function computeContractPriceEscalation4735(
     progressPaymentAmountTl: round2(progressPaymentAmountTl),
     bFactor: round6(bFactor),
     totalWeight: round6(totalWeight),
+    constantWeight: round6(constantWeight),
     pnFactor: round6(pnExact),
     pnMinusOne: round6(pnMinusOneExact),
     priceDifferenceTl,

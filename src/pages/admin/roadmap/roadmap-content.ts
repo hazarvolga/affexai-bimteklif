@@ -401,16 +401,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Kaynaksız brüt/boşluk çarpanları (×1,115, ×1,08, ×1,215, ×1,03) ve daire brüt çarpanları (×1,132/×1,298 ve ×1,12/×1,28) kaldırıldı. Brüt/boşluk yalnızca modelden gelir; daire brütü kullanıcı katsayısıyla hesaplanır. Kapı testi eklendi.",
           ],
           [
-            "Rev. 21 (Güncel)",
+            "Rev. 21",
             "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 4)",
             "BIM-CALC-2026-10-17.15",
             "Minha eşiği modeldeki gerçek kapı/pencere ölçülerine bağlandı (kaynaksız 1,50 varsayılanı kaldırıldı). Rev. 18'deki sunucu yolu hatası (şema alanı siliyordu) düzeltildi ve gerçek IFC ile uçtan uca test eklendi.",
+          ],
+          [
+            "Rev. 22 (Güncel)",
+            "17 Ekim 2026 (Ücretsiz hesaplayıcılar)",
+            "BIM-CALC-2026-10-17.16",
+            "Ücretsiz halka açık hesaplayıcılar eklendi: aşırı düşük teklif sınır değeri ve 4735 fiyat farkı. Varsayılan değer yok; bağımsız doğrulanmamıştır uyarısı var; sitemap ve llms.txt'de listeli. 4735 motoruna sabit katsayı desteği eklendi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 21 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 22 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -666,6 +672,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Minha seçicisi hesaba bağlı değildi; sunucu çıktı şeması authoringSoftwareRaw alanını siliyordu, Rev. 18 sunucu yolu çalışmıyordu.",
             "extract_openings (Python) kapı/pencere ölçülerini okur; openings-minha.ts eşiği tekil alana uygular; IfcParseSummarySchema yeni alanları tanımlar; artifact ve Calm veri seti openings taşır; server-path.e2e.test.ts gerçek IFC dosyalarıyla uçtan uca doğrular.",
             "workers/ifc/ifc_extract.py, src/ifc/openings-minha.ts, server-path.e2e.test.ts, ifc-python-runner.ts, smartcheck-evidence.ts, calm-icmal.ts, types.ts, CalmIfcWorkspace.tsx",
+          ],
+          [
+            "Rev. 22.1 · 17 Ekim 2026 (Ücretsiz hesaplayıcılar)",
+            "Kamu İhale Genel Tebliği m.45.1; 4735 m.8; kullanıcı girdili katsayı ilkesi",
+            "KİK ve 4735 hesapları yalnızca giriş yapmış kullanıcıya açıktı; 4735 motoru sabit katsayıyı temsil edemiyordu.",
+            "CalculatorShell, KikAdtCalculatorPage, PriceEscalationCalculatorPage ve CalculatorsIndexPage halka açık rotalar olarak eklendi; kik-form.ts ve escalation-form.ts form-motor eşlemesini yapar; tr-number.ts Türkçe sayıları okur; web-hardening sitemap/llms.txt/SPA rotalarına eklendi; price-escalation.ts constantWeight aldı.",
+            "src/pages/calculators/*, src/lib/calculators/*, src/lib/tr-number.ts, src/lib/price-escalation.ts, src/App.tsx, src/server/security/web-hardening.ts, LandingPage.tsx, src/capabilities/registry.ts",
           ],
         ],
       },
