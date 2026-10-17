@@ -72,14 +72,15 @@ export function Login() {
           <CardContent className="pt-6 space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="font-mono text-[10px] uppercase tracking-wider text-foreground">E-posta Adresi</label>
+                <label htmlFor="login-email" className="font-mono text-[10px] uppercase tracking-wider text-foreground">E-posta Adresi</label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                   <input
+                    id="login-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-background border border-border h-11 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full bg-background border border-border h-11 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                     placeholder="muhendis@sirketiniz.com"
                     required
                   />
@@ -88,7 +89,7 @@ export function Login() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-mono text-[10px] uppercase tracking-wider text-foreground">Şifre</label>
+                  <label htmlFor="login-password" className="font-mono text-[10px] uppercase tracking-wider text-foreground">Şifre</label>
                   <Link to="/forgot-password" tabIndex={-1} className="font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors">
                     Şifrenizi mi unuttunuz?
                   </Link>
@@ -96,10 +97,11 @@ export function Login() {
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                   <input
+                    id="login-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-background border border-border h-11 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full bg-background border border-border h-11 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                     placeholder="••••••••"
                     required
                   />

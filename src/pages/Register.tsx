@@ -551,25 +551,26 @@ export function Register() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">Ad Soyad</label>
+                    <label htmlFor="register-fullname" className="text-xs font-medium text-foreground">Ad Soyad</label>
                     <div className="relative group">
                       <User
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
                         size={16}
                       />
                       <input
+                        id="register-fullname"
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         required
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder="Ahmet Yılmaz"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">
+                    <label htmlFor="register-company" className="text-xs font-medium text-foreground">
                       {isAcademy ? 'Okul / Şirket (isteğe bağlı)' : 'Şirket / Ofis Adı'}
                     </label>
                     <div className="relative group">
@@ -578,48 +579,51 @@ export function Register() {
                         size={16}
                       />
                       <input
+                        id="register-company"
                         type="text"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                         required={!isAcademy}
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder={isAcademy ? 'Üniversite veya kurumunuz' : 'Örn: Yılmaz İnşaat Taahhüt Ltd.'}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">E-posta Adresi</label>
+                    <label htmlFor="register-email" className="text-xs font-medium text-foreground">E-posta Adresi</label>
                     <div className="relative group">
                       <Mail
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
                         size={16}
                       />
                       <input
+                        id="register-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder="ahmet@sirketiniz.com"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">Şifre (En az 8 karakter)</label>
+                    <label htmlFor="register-password" className="text-xs font-medium text-foreground">Şifre (En az 8 karakter)</label>
                     <div className="relative group">
                       <Lock
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
                         size={16}
                       />
                       <input
+                        id="register-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={8}
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder="••••••••"
                       />
                     </div>
