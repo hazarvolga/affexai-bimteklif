@@ -21,7 +21,36 @@ import { evaluateKikAbnormallyLowBid } from './kik-adt';
  *     Diğer Yapım / Altyapı           = 1,20
  * - Sınır Değer:
  *     SD = max( 0,40 * YM, (K * Tort2) / (C * N) )
+ * - Yuvarlama (Tebliğ m.45.1.1 ve 45.2 örneği): Tort1, σ, Tort2 → 2 ondalık; C, K → 3 ondalık.
+ *   Her adımın yuvarlanmış sonucu bir sonraki adımda kullanılır.
  */
+
+// Resmî doğrulama: Kamu İhale Genel Tebliği "45.2" sayısal örneği (YM = 100.000 TL, N = 1,20, 17 teklifin 12'si geçerli).
+// Kaynak: Resmî Gazete 29.12.2010 (6. Mükerrer, 27800) ile değişik Tebliğ metni; beklenen değerler Tebliğ'deki örnekten aynen alınmıştır
+// (Tort1 = 66.270,00; σ = 20.317,05; aralık 45.952,95–86.587,05; Tort2 = 63.237,50; C = 0,632; K = 0,627; SD = 52.281,00).
+test('Resmî örnek (Tebliğ 45.2): 12 geçerli teklif, N = 1,20 -> SD = 52.281,00 TL', () => {
+  const res = evaluateKikAbnormallyLowBid({
+    estimatedCostTry: 100_000,
+    workCategory: 'alt_yapi', // N = 1,20
+    validBidsTry: [38_700, 44_000, 48_000, 49_500, 55_000, 62_000, 68_200, 69_000, 72_200, 82_000, 112_800, 123_300],
+    ourBidTry: 49_500,
+  });
+
+  assert.equal(res.nCoefficient, 1.2);
+  assert.deepEqual(res.excludedBelow40PercentYmBidsTry, [38_700]);
+  assert.deepEqual(res.excludedAbove120PercentYmBidsTry, [123_300]);
+  assert.equal(res.admittedBidsTry.length, 10);
+  assert.equal(res.firstMeanTry, 66_270);
+  assert.equal(res.standardDeviationTry, 20_317.05);
+  assert.deepEqual(res.inBandBidsTry, [48_000, 49_500, 55_000, 62_000, 68_200, 69_000, 72_200, 82_000]);
+  assert.equal(res.correctedMeanTry, 63_237.5);
+  assert.equal(res.cRatio, 0.632);
+  assert.equal(res.kFactor, 0.627);
+  assert.equal(res.boundaryValueTry, 52_281);
+  // Tebliğ örneği: SD'nin altında kalan 44.000, 48.000 ve 49.500 TL'lik teklifler aşırı düşüktür (38.700 TL baştan elendi).
+  assert.equal(res.isAbnormallyLow, true);
+});
+
 
 test('Golden 1 (0,60 <= C <= 1,00 & Üstyapı N=1,00): 7 teklifli kamu bina ihalesi sınır değer hesabı', () => {
   // YM = 100.000.000 TL
@@ -37,8 +66,8 @@ test('Golden 1 (0,60 <= C <= 1,00 & Üstyapı N=1,00): 7 teklifli kamu bina ihal
   // Varyans = ((64 + 16 + 0 + 16 + 64) * 10^12) / 4 = 40 * 10^12 -> σ = 6.324.555,32 TL
   // [73.675.444,68 ; 86.324.555,32] aralığındaki teklifler: 76M, 80M, 84M -> Tort2 = 80.000.000 TL
   // C = 80.000.000 / 100.000.000 = 0,80
-  // K = (3,2*0,80 - 0,64 - 0,60) / 1,80 = 1,32 / 1,80 = 0,733333
-  // N = 1,00 => SD = (K * Tort2) / (C * 1,00) = K * YM = 73.333.333,33 TL
+  // K = (3,2*0,80 - 0,64 - 0,60) / 1,80 = 1,32 / 1,80 = 0,7333... -> 3 ondalığa yuvarlanır: 0,733
+  // N = 1,00 => SD = (0,733 * 80.000.000) / (0,800 * 1,00) = 73.300.000,00 TL
   const res = evaluateKikAbnormallyLowBid({
     estimatedCostTry: 100_000_000,
     workCategory: 'ust_yapi',
@@ -61,15 +90,15 @@ test('Golden 1 (0,60 <= C <= 1,00 & Üstyapı N=1,00): 7 teklifli kamu bina ihal
   assert.equal(res.firstMeanTry, 80_000_000);
   assert.equal(res.correctedMeanTry, 80_000_000);
   assert.equal(res.cRatio, 0.8);
-  assert.equal(res.kFactor, 0.733333);
+  assert.equal(res.kFactor, 0.733);
   assert.equal(res.nCoefficient, 1.0);
-  assert.equal(res.boundaryValueTry, 73_333_333.33);
+  assert.equal(res.boundaryValueTry, 73_300_000);
   assert.equal(res.isAbnormallyLow, true);
 });
 
 test('Golden 2 (0,60 <= C <= 1,00 & Altyapı N=1,20): Aynı teklif dağılımında altyapı sınır değeri', () => {
   // Aynı dağılımda N = 1,20 olduğunda:
-  // SD = (K * Tort2) / (C * 1,20) = 73.333.333,333... / 1,20 = 61.111.111,11 TL
+  // SD = (0,733 * 80.000.000) / (0,800 * 1,20) = 58.640.000 / 0,96 = 61.083.333,33 TL
   const res = evaluateKikAbnormallyLowBid({
     estimatedCostTry: 100_000_000,
     workCategory: 'alt_yapi',
@@ -78,7 +107,7 @@ test('Golden 2 (0,60 <= C <= 1,00 & Altyapı N=1,20): Aynı teklif dağılımın
   });
 
   assert.equal(res.nCoefficient, 1.2);
-  assert.equal(res.boundaryValueTry, 61_111_111.11);
+  assert.equal(res.boundaryValueTry, 61_083_333.33);
   assert.equal(res.isAbnormallyLow, false);
 });
 
@@ -87,8 +116,8 @@ test('Golden 3 (C > 1,00 bölgesi): 1,00 < C <= 1,20 aralığında K = (C^2 - 0,
   // Teklifler: 52.500.000, 55.000.000, 57.500.000 (hepsi <= %120 YM = 60M)
   // Tort1 = 55.000.000, σ = 2.500.000 -> Tort2 = 55.000.000
   // C = 55M / 50M = 1,10
-  // K = (1,21 - 0,88 + 1,40) / 2,10 = 1,73 / 2,10 = 0,823810
-  // N = 1,00 => SD = K * YM = 41.190.476,19 TL
+  // K = (1,21 - 0,88 + 1,40) / 2,10 = 1,73 / 2,10 = 0,82381 -> 0,824
+  // N = 1,00 => SD = (0,824 * 55.000.000) / (1,100 * 1,00) = 41.200.000,00 TL
   const res = evaluateKikAbnormallyLowBid({
     estimatedCostTry: 50_000_000,
     workCategory: 'ust_yapi',
@@ -97,8 +126,8 @@ test('Golden 3 (C > 1,00 bölgesi): 1,00 < C <= 1,20 aralığında K = (C^2 - 0,
   });
 
   assert.equal(res.cRatio, 1.1);
-  assert.equal(res.kFactor, 0.82381);
-  assert.equal(res.boundaryValueTry, 41_190_476.19);
+  assert.equal(res.kFactor, 0.824);
+  assert.equal(res.boundaryValueTry, 41_200_000);
 });
 
 test('Golden 4 (C < 0,60 bölgesi & %40 YM taban koruması): K = C ve SD >= 0,40 * YM', () => {
@@ -141,10 +170,10 @@ test('Golden 5 (Tebliğ m.45.1.1.4 Tek Geçerli Teklif & m.45.1.2 %80 Pareto Sı
     ],
   });
 
-  // Tek teklifte C = 0,80 -> K = 1,32/1,80 -> SD = 20M * 0,733333... = 14.666.666,67 TL
+  // Tek teklifte C = 0,800 -> K = 0,733 -> SD = (0,733 * 16.000.000) / 0,800 = 14.660.000,00 TL
   assert.equal(res.firstMeanTry, 16_000_000);
   assert.equal(res.correctedMeanTry, 16_000_000);
-  assert.equal(res.boundaryValueTry, 14_666_666.67);
+  assert.equal(res.boundaryValueTry, 14_660_000);
 
   // Toplam teklif = 16.000.000 TL; %80 eşiği = 12.800.000 TL
   // Kalem 1 (6,5M -> %40,63) + Kalem 2 (5,2M -> kümülatif 11,7M = %73,13) + Kalem 3 (2,3M -> kümülatif 14,0M = %87,50)

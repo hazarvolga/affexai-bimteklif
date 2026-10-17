@@ -443,16 +443,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "DENETIM_RAPORU_2026-10-17 bulguları kapatıldı: Yetenek Kaydı'ndaki kurgusal 'Denetim Kurulu' onayları silindi, tüm yetenekler gerçek imza alınana kadar pilot/L2 seviyesine indirildi ve kapı testi gerçek kişi + sicil numarası şartı koştu. Kat Karşılığı ve YAMBİS hesaplayıcıları kaynak doğrulaması bitene kadar rota, sitemap ve llms.txt'ten çıkarıldı. Faturalama ekranındaki var olmayan kart/taksit kanalı kaldırıldı. CI'yı kıran Kurumsal AI limiti testi katalogdan okunur hâle getirildi. Sunucu tarafı sayfa üst verisi, og-image ve llms-full.txt eklendi.",
           ],
           [
-            "Rev. 28 (Güncel)",
+            "Rev. 28",
             "17 Ekim 2026 (HttpOnly Çerez Oturumu, Uçtan Uca Smoke Testleri ve Tasarım Token Göçü)",
             "BIM-CALC-2026-10-17.22",
             "Oturum jetonu localStorage'dan kaldırıldı: sunucu HttpOnly + SameSite=Strict çerez yazar, çerezle gelen değiştirici isteklerde aynı-origin kanıtı (CSRF) aranır, çıkış ve impersonation çıkışı sunucuda çerezi siler. Kayıt → giriş → müşteri → teklif → PDF → yenileme → çıkış akışı gerçek tarayıcıda CI'da koşan smoke testle doğrulanıyor. 2.962 sabit zinc/slate sınıfı köprüyle aynı pafta token'larına çevrildi (açık modda 4 sayfada piksel farkı 0).",
+          ],
+          [
+            "Rev. 29 (Güncel)",
+            "17 Ekim 2026 (Resmî Veri Araştırması: KİK Yuvarlama ve Resmî Örnek, Müteahhit Sınıflandırma, Konut KDV)",
+            "BIM-CALC-2026-10-17.23",
+            "KİK sınır değer motoru Tebliğ 45.2 resmî örneğiyle birebir doğrulandı (SD = 52.281,00 TL) ve ara değerlerin resmî yuvarlaması (Tort1/σ/Tort2 2, C/K 3 ondalık) uygulandı; önceki yuvarlamasız sürüm örnekte 52.260,35 TL veriyordu. Yapı müteahhitleri sınıflandırma motoru yönetmeliğin güncel metnine göre yeniden yazıldı (14 grup, yapı sınır bedeli 2026 = 1.238.250.000 TL). Kat karşılığı motorunda konut KDV'si kısım bazlı (ilk 150 m²) ve emsal bedelden hesaplanır. Sunucu genel sayfalara JavaScript'siz okunabilir içerik ekler. Kaynaklar ve güven düzeyleri docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 28 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 29 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -757,6 +763,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Oturum JWT'si localStorage'da (token, superadmin_token, admin_session_backup) tutuluyordu; tek bir XSS süper admin dahil her oturumu çalabilirdi. Tarayıcı tabanlı uçtan uca test yalnız davet akışını kapsıyordu. 3.007 sabit zinc/slate sınıfı yalnız CSS köprüsüyle pafta renklerine çevriliyordu.",
             "Sunucu bm_session ve bm_admin HttpOnly, SameSite=Strict, Path=/api (üretimde Secure) çerezlerini yazar; tarayıcıya jeton gövdede verilmez. authenticate çerezle gelen POST/PUT/PATCH/DELETE için Sec-Fetch-Site veya eşleşen Origin arar (403 CSRF_ORIGIN_MISMATCH). /api/auth/logout ve impersonation çıkışı çerezleri sunucuda temizler/geri yükler; istemci yalnız kimlik bilgisi olmayan bir ipucu tutar. scripts/e2e-core-flow-smoke.ts CI'a eklendi. scripts/migrate-design-tokens.mjs köprü eşlemesini kaynağa uyguladı.",
             "src/server/auth/session-cookie.ts, src/server/middleware/auth.ts, src/server/routes/auth.ts, src/server/routes/admin.ts, src/server/routes/company.ts, src/lib/api.ts, src/hooks/useAuth.tsx, src/pages/admin/TenantDetail.tsx, src/pages/admin/TenantsList.tsx, scripts/e2e-core-flow-smoke.ts, scripts/migrate-design-tokens.mjs, .github/workflows/verify.yml",
+          ],
+          [
+            "Rev. 29.1 · 17 Ekim 2026 (Resmî Veri Araştırması ve Motor Düzeltmeleri)",
+            "Kamu İhale Genel Tebliği m.45.1.1 ve m.45.2 örneği; Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği m.4, m.11, m.12, m.14 (mevzuat.gov.tr No 31301); 3065 sayılı KDV Kanunu ve 7346 sayılı CK; 7104 sayılı Kanun ve VUK m.267",
+            "KİK motoru C ve K'yı yuvarlamıyordu: resmî örnekte 52.260,35 TL (resmî sonuç 52.281,00 TL). Müteahhit sınıflandırma motoru grupları sabit TL ve m² ile (10 grup) tanımlıyordu; yönetmelik grupları yapı sınır bedelinin katlarıyla ve 14 grup olarak tanımlar. Kat karşılığı motoru 150 m² üzeri konutun tamamına %20 uyguluyor, piyasa fiyatını KDV matrahı sayıyor ve gizli çarpanlar kullanıyordu.",
+            "kik-adt.ts Tebliğ'in adım adım yuvarlamasını uygular ve golden testlerin ilki resmî 45.2 örneğidir. yambis-classification.ts yönetmelik maddelerine göre (iş deneyimi katları, iş gücü, bilanço oranları, ciro, banka referansı, G/G1 ve H istisnaları, azami iş tutarları) yeniden yazıldı; yapı sınır bedeli katalogdaki resmî 2026 birim maliyetlerinden hesaplanır. kat-karsiligi.ts konutKdv() ile kısım bazlı KDV, emsal bedel matrahı ve girdi olarak alınan tüm çarpanlarla yeniden yazıldı. route-meta.ts her genel rotaya <noscript> içerik ekler. Üç hesap motoru ve hesaplayıcı sayfaları yayında değildir (uzman onayı bekliyor).",
+            "src/lib/kik-adt.ts, src/lib/kik-adt.golden.test.ts, src/lib/yambis-classification.ts, src/lib/kat-karsiligi.ts, src/pages/calculators/YambisCalculatorPage.tsx, src/pages/calculators/KatKarsiligiCalculatorPage.tsx, src/server/security/route-meta.ts, docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md",
           ],
         ],
       },

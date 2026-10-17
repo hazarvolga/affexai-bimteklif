@@ -67,6 +67,48 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   },
 };
 
+/**
+ * JavaScript çalıştırmayan tarayıcılar (çoğu yapay zekâ ve bazı arama tarayıcıları) için rota başına gerçek içerik.
+ * `<noscript>` bloğu olarak sunucuda eklenir; tam ön-render değildir ancak ham HTML'de okunabilir metin sağlar.
+ * Yalnız kodla desteklenen ve kaynağı belirtilen bilgiler yazılır.
+ */
+const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
+  '/hesaplayicilar/kik-asiri-dusuk-teklif': [
+    'Yapım işlerinde aşırı düşük teklif sınır değeri, 4734 sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1.1 uyarınca şu adımlarla hesaplanır:',
+    '1) Yaklaşık maliyetin (YM) %120\'sinin üzerindeki ve %40\'ının altındaki teklifler hesaba katılmaz. 2) Kalan geçerli tekliflerin aritmetik ortalaması (Tort1) ve standart sapması (σ) bulunur. 3) Tort1 − σ ile Tort1 + σ aralığındaki tekliflerin ortalaması Tort2 olur. 4) C = Tort2 / YM. 5) K katsayısı: C < 0,60 için K = C; 0,60 ≤ C ≤ 1,00 için K = (3,2C − C² − 0,6) / (C + 1); C > 1,00 için K = (C² − 0,8C + 1,4) / (C + 1). 6) Sınır değer SD = K × Tort2 / (C × N). Üstyapı, elektrik, mekanik tesisat ve elektronik işlerinde N = 1,00; diğer yapım işlerinde N = 1,20 (idare 1,00–1,20 arasında farklı bir değer belirleyebilir). 7) Hesaplanan değer YM\'nin %40\'ından küçükse SD = YM × %40 alınır.',
+    'Yuvarlama: Tort1, σ ve Tort2 iki, C ve K üç ondalık basamağa yuvarlanır. Resmî örnek (Tebliğ 45.2): YM 100.000 TL, N = 1,20, 12 geçerli teklif → Tort1 = 66.270,00; σ = 20.317,05; Tort2 = 63.237,50; C = 0,632; K = 0,627; SD = 52.281,00 TL.',
+    'Bu hesaplayıcı bilgilendirme amaçlıdır; ihale kararlarında resmî metinler ve ilgili idare esastır.',
+  ],
+  '/hesaplayicilar/fiyat-farki-4735': [
+    'Yapım işlerinde fiyat farkı (4735 sayılı Kanun m.8; Yapım İşlerinde Uygulanacak Fiyat Farkına İlişkin Esaslar, 2013/5217 sayılı Karar ve sonraki değişiklikler) F = An × B × (Pn − 1) formülüyle hesaplanır.',
+    'An, uygulama ayında gerçekleşen iş miktarlarının sözleşme birim fiyatlarıyla çarpımıdır; B = 0,90 sabit katsayısıdır; Pn, a (işçilik), b1–b6 (malzeme grupları) ve c (makine-ekipman) ağırlık katsayıları ile temel ve güncel endekslerden bulunur. Ağırlık katsayılarının toplamı 1,00\'dir ve ihale dokümanında gösterilir; sözleşme süresince değiştirilemez. Temel endeks ihale ayına, güncel endeks uygulama ayına aittir.',
+    'Bu hesaplayıcı bilgilendirme amaçlıdır; sözleşmenizdeki katsayı ve endeks değerlerini siz girersiniz.',
+  ],
+  '/pricing': [
+    '14 günlük ücretsiz deneme ve beş kademeli aylık paket. Havale/EFT ile 6, 12 ve 24 aylık taahhütlerde sırasıyla %10, %20 ve %30 iskonto uygulanır. Kartla ödeme henüz yayında değildir.',
+  ],
+  '/terms': ['BIMMetraj sonuçları ön kontrol niteliğindedir; mühendislik, hukuk ve vergi kararlarında resmî metinler ve yetkili uzman görüşü esastır.'],
+  '/privacy': ['Proje dosyalarındaki kişisel veriler (TC kimlik, VKN, telefon, e-posta) ön kontrol çıktılarında maskelenir. 6698 sayılı KVKK kapsamındaki haklarınız için info@bimmetraj.com.'],
+};
+
+const NAV_LINKS: readonly (readonly [string, string])[] = [
+  ['/', 'Ana sayfa'], ['/features', 'Özellikler'], ['/pricing', 'Paketler'], ['/bim-sozlugu', 'BIM ve mevzuat sözlüğü'],
+  ['/hesaplayicilar', 'Ücretsiz hesaplayıcılar'], ['/pilot', 'Pilot başvurusu'], ['/terms', 'Kullanım koşulları'], ['/privacy', 'KVKK ve gizlilik'],
+];
+
+function renderNoscript(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[]): string {
+  const key = normalize(pathname);
+  const paragraphs = [meta.description, ...(ROUTE_BODY[key] ?? [])];
+  const extra = key === '/' ? capabilityLines : [];
+  const body = [
+    `<h1>${escapeAttr(meta.title)}</h1>`,
+    ...paragraphs.map(text => `<p>${escapeAttr(text)}</p>`),
+    ...(extra.length ? ['<h2>Yetenekler ve doğrulama durumu</h2>', `<ul>${extra.map(line => `<li>${escapeAttr(line)}</li>`).join('')}</ul>`] : []),
+    `<nav aria-label="Genel sayfalar"><ul>${NAV_LINKS.map(([href, label]) => `<li><a href="${origin}${href}">${escapeAttr(label)}</a></li>`).join('')}</ul></nav>`,
+  ].join('');
+  return `<noscript><main>${body}</main></noscript>`;
+}
+
 function normalize(pathname: string): string {
   return pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 }
@@ -91,11 +133,13 @@ export interface InjectOptions {
   notFound?: boolean;
   /** Paylaşım görseli mevcutsa mutlak URL'i. */
   ogImagePath?: string | null;
+  /** Ana sayfa `<noscript>` içeriği için yetenek özeti satırları (yetenek kaydından üretilir). */
+  capabilityLines?: readonly string[];
 }
 
 /** `index.html` içinde başlık, açıklama, canonical ve paylaşım etiketlerini rota için yeniden yazar. */
 export function injectRouteMeta(html: string, options: InjectOptions): string {
-  const { pathname, origin, notFound = false, ogImagePath = null } = options;
+  const { pathname, origin, notFound = false, ogImagePath = null, capabilityLines = [] } = options;
   let out = html;
   const meta = getRouteMeta(pathname);
   const canonical = `${origin}${normalize(pathname) === '/' ? '/' : normalize(pathname)}`;
@@ -118,6 +162,13 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
       `    <meta property="og:image" content="${escapeAttr(image)}" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />\n    <meta name="twitter:image" content="${escapeAttr(image)}" />\n  </head>`,
     );
   }
+
+  if (meta && !notFound && !out.includes('<noscript><main>') && out.includes('<div id="root"></div>')) {
+    out = out.replace('<div id="root"></div>', `<div id="root"></div>\n    ${renderNoscript(pathname, origin, meta, capabilityLines)}`);
+  }
+
+  // Bilinmeyen rota ana sayfaya canonical vermemeli (kopya içerik sinyali); noindex ile birlikte kaldırılır.
+  if (notFound) out = out.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, '');
 
   if (notFound && out.includes('</head>') && !/name="robots"/.test(out)) {
     out = out.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');

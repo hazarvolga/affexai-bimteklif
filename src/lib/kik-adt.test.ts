@@ -28,21 +28,21 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
     assert.deepEqual(res.excludedAbove120PercentYmBidsTry, [125_000_000]);
     assert.equal(res.firstMeanTry, 80_000_000);
     // In-band bids: [78M, 80M, 82M] -> T_ort2 = 80,000,000 -> C = 0.80
-    // K = (3.2 * 0.8 - 0.64 - 0.6) / 1.8 = 1.32 / 1.8 = 0.733333
+    // K = (3.2 * 0.8 - 0.64 - 0.6) / 1.8 = 1.32 / 1.8 = 0.7333... -> Tebliğ m.45.1.1 uyarınca 3 ondalık: 0.733
     // SD = (K * T_ort2) / (C * 1.00) = 73,333,333.33 TL
     assert.equal(res.correctedMeanTry, 80_000_000);
     assert.equal(res.cRatio, 0.8);
-    assert.equal(res.kFactor, 0.733333);
+    assert.equal(res.kFactor, 0.733);
     assert.equal(res.nCoefficient, 1.0);
-    assert.equal(res.boundaryValueTry, 73_333_333.33);
+    assert.equal(res.boundaryValueTry, 73_300_000);
     assert.equal(res.isAbnormallyLow, true);
   });
 
   it("applies N = 1.20 for infrastructure/other works (alt_yapi) and piecewise K for C < 0.60 and C > 1.00 per Tebliğ m.45.1.1.1", () => {
     // C = 0.50 (< 0.60) -> K = C = 0.50
     assert.equal(computeKikKFactor(0.5), 0.5);
-    // C = 1.10 (> 1.00) -> K = (1.21 - 0.88 + 1.4) / 2.1 = 1.73 / 2.1 = 0.82381
-    assert.equal(computeKikKFactor(1.1), 0.82381);
+    // C = 1.10 (> 1.00) -> K = (1.21 - 0.88 + 1.4) / 2.1 = 1.73 / 2.1 = 0.82381 -> 3 ondalık: 0.824
+    assert.equal(computeKikKFactor(1.1), 0.824);
 
     // Single valid bid at 110M (between 100% and 120% YM -> admitted!) with alt_yapi (N = 1.20)
     const res = evaluateKikAbnormallyLowBid({
@@ -55,8 +55,8 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
     assert.equal(res.nCoefficient, 1.2);
     assert.equal(res.correctedMeanTry, 110_000_000);
     assert.equal(res.cRatio, 1.1);
-    // SD = ((1.73 / 2.1) * 110,000,000) / (1.1 * 1.20) = 68,650,793.65 TL
-    assert.equal(res.boundaryValueTry, 68_650_793.65);
+    // SD = (0.824 * 110,000,000) / (1.100 * 1.20) = 68,666,666.67 TL
+    assert.equal(res.boundaryValueTry, 68_666_666.67);
     assert.equal(res.isAbnormallyLow, false);
   });
 

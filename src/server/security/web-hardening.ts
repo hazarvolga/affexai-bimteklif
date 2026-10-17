@@ -201,3 +201,12 @@ export function llmsFullTxt(publicAppUrl: string): string {
     ...blocks,
   ].join('\n');
 }
+
+const STATUS_LABEL = { live: 'Canlı', pilot: 'Pilot', roadmap: 'Yol haritasında' } as const;
+
+/** Genel sayfa `<noscript>` içeriği için tek satırlık yetenek özeti: ad, durum ve doğrulama seviyesi. */
+export function capabilitySummaryLines(): string[] {
+  return [...getLiveCapabilities(), ...getPilotCapabilities(), ...getRoadmapCapabilities()].map(
+    c => `${c.title} — ${STATUS_LABEL[c.status]} (${c.level}${c.reviewer ? '' : '; bağımsız uzman onayı yok'})`,
+  );
+}

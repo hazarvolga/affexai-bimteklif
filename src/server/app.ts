@@ -54,6 +54,7 @@ import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, readBuildRevision } from "./observability/error-tracking";
 import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
 import { injectRouteMeta } from "./security/route-meta";
+import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
@@ -260,6 +261,7 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
       origin: new URL(publicUrl).origin,
       notFound: !known,
       ogImagePath: hasOgImage ? '/og-image.png' : null,
+      capabilityLines: capabilitySummaryLines(),
     }));
   });
 }

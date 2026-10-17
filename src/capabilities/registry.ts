@@ -64,7 +64,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.10';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.11';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -194,9 +194,9 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       goldenTestPath: 'src/lib/kik-adt.golden.test.ts',
       officialSource: {
         institution: 'Kamu İhale Kurumu (KİK)',
-        documentTitle: '4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği',
-        articleOrTable: 'Madde 45.1.1, 45.1.1.1, 45.1.1.4 ve 45.1.2',
-        publicationDate: '2021-11-30',
+        documentTitle: '4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği (resmî sayısal örnek m.45.2 ile birebir doğrulandı: SD = 52.281,00 TL)',
+        articleOrTable: 'Madde 45.1.1, 45.1.1.1, 45.1.1.4, 45.1.2 ve 45.2 örneği; yuvarlama: Tort1/σ/Tort2 2, C/K 3 ondalık',
+        publicationDate: '2010-12-29',
       },
     },
     planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
@@ -262,7 +262,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       officialSource: {
         institution: 'Cumhurbaşkanlığı & T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK / TÜİK',
         documentTitle: '4735 Sayılı Kanun Yapım İşleri Fiyat Farkı Esasları & ÇŞB 2026 Ocak Rayiç–TÜİK Endeks Eşleştirme Tablosu',
-        articleOrTable: 'Madde 5–6 (F = A_n × B × (P_n − 1)) & 21 TÜFE/Yİ-ÜFE Alt Endeks Eşleştirme Tablosu',
+        articleOrTable: 'Madde 5–6 (F = A_n × B × (P_n − 1); B = 0,90 doğrulandı; resmî sayısal örnek yok) & 21 TÜFE/Yİ-ÜFE Alt Endeks Eşleştirme Tablosu; 2025/10132 değişikliği 1.9.2025',
         publicationDate: '2026-01-01',
         sha256: '3519e5a631d6043b72e7637e1521456f1da00e7a794f39655cc5c628ae76d93e',
       },
@@ -451,7 +451,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
     shortClaim:
       'Arsa sahibi ve müteahhit paylaşımı ile 6306 kapsamındaki KDV etkisinin kullanıcı girdili hesaplanması (Yol Haritasında; kaynak ve uzman doğrulaması bekliyor).',
     longDescription:
-      'Motor (src/lib/kat-karsiligi.ts) mevcuttur ancak halka açık değildir: varsayılan çarpanlar kullanıcı girdisine çevrilmeli, KDV 150 m²’ye kadar olan kısım / aşan kısım olarak parçalı hesaplanmalı ve tapu devri aşamaları sözleşme önerisi olarak etiketlenmelidir. Uzman ve GİB oran tablosu doğrulaması alınmadan yayımlanmaz.',
+      'Motor (src/lib/kat-karsiligi.ts) resmî kurallara göre yeniden yazıldı: gizli varsayılan yok, konut KDV\'si net alana göre kısım bazlı (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1, fazlası %20), arsa sahibine teslim emsal bedelden vergilendirilir, tapu devri aşamaları örnek şablondur. Yayına alınmadı: GİB Genel Uygulama Tebliği ile karşılaştırma ve mali müşavir onayı bekliyor (docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md).',
     level: 'L1',
     status: 'roadmap',
     stream: 'C',
@@ -461,7 +461,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       officialSource: {
         institution: 'Gelir İdaresi Başkanlığı / 3065 sayılı KDV Kanunu / 6306 sayılı Kanun',
         documentTitle: 'Konut teslimlerinde KDV oranları ve 6306 kapsamındaki teslimler',
-        articleOrTable: 'Doğrulanacak: GİB güncel KDV oran tablosu',
+        articleOrTable: '7346 sayılı CK (RG 7.7.2023) oranları üç kaynakta tutarlı; GİB Genel Uygulama Tebliği karşılaştırması bekliyor',
         publicationDate: '2026-10-17',
       },
     },
@@ -473,7 +473,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
     shortClaim:
       'Mali rasyoların ve iş deneyiminin yönetmelik tablolarıyla karşılaştırılarak yetki belgesi grubu ön değerlendirmesi (Yol Haritasında; yönetmelik tabloları doğrulanıyor).',
     longDescription:
-      'Motor (src/lib/yambis-classification.ts) mevcuttur ancak halka açık değildir: grup sınırları ve eşikler Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği’nin güncel konsolide metnindeki TL tutarları ve ek tablolarla birebir eşleştirilmeden yayımlanmaz.',
+      'Motor (src/lib/yambis-classification.ts) yönetmeliğin konsolide metnine göre yeniden yazıldı: 14 grup yapı sınır bedelinin katlarıyla tanımlı (2026: 1.238.250.000 TL), iş gücü, bilanço oranları (0,75 / 0,15 / <0,75), ciro (%10 / %15), banka referansı (%5), G ve G1 için yalnız banka referansı, H için şart yok, azami iş tutarı çarpanları. Yayına alınmadı: yönetmeliğin 13. maddesine göre iş deneyiminin belirlenmesi kapsam dışıdır ve bağımsız uzman onayı yoktur.',
     level: 'L1',
     status: 'roadmap',
     stream: 'C',
@@ -482,8 +482,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       goldenTestPath: 'src/lib/yambis-classification.test.ts',
       officialSource: {
         institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
-        documentTitle: 'Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik (konsolide, Mayıs 2026)',
-        articleOrTable: 'Doğrulanacak: m.8, m.9, m.20 ve ek tablolar',
+        documentTitle: 'Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik (konsolide, mevzuat.gov.tr No 31301)',
+        articleOrTable: 'm.4(1)(k), m.11, m.12, m.14 — metinden doğrulandı; uzman onayı bekliyor',
         publicationDate: '2026-05-22',
       },
     },

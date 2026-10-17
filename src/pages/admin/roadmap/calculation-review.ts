@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.22",
+  version: "BIM-CALC-2026-10-17.23",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "fc811b0ad38ecaf2e94b4edaf9296c0a88d3d170",
+  implementationBaseline: "ef91174292d2ff9db6cd55aac6a7178a71ce56b8",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -733,6 +733,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Teklif kalemi hesabı birim testlerle doğrulanıyordu; tarayıcı üzerinden kayıtlı teklif ve PDF akışı otomatik denenmiyordu.",
         after: "scripts/e2e-core-flow-smoke.ts, çerez oturumuyla müşteri ve teklif oluşturur, PDF üretir; hesap motoru değişmedi.",
         basis: "Mevcut calculations.ts yöntemi; yalnız doğrulama kapsamı genişledi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 29",
+    version: "BIM-CALC-2026-10-17.23",
+    date: "17 Ekim 2026",
+    commit: "ef91174292d2ff9db6cd55aac6a7178a71ce56b8",
+    trigger: "Resmî veri araştırması: KİK sınır değer resmî örnek doğrulaması ve yuvarlama, müteahhit sınıflandırma yönetmeliği, konut KDV kademeleri",
+    beforeSummary:
+      "KİK motoru C ve K'yı yuvarlamıyor ve Tebliğ 45.2 resmî örneğinde 52.260,35 TL üretiyordu (resmî sonuç 52.281,00 TL). Müteahhit sınıflandırma ve kat karşılığı motorları kaynaksız sabitler, hatalı KDV ve gizli varsayılanlar içeriyordu.",
+    afterSummary:
+      "KİK motoru Tebliğ'in adım adım yuvarlamasıyla (Tort1/σ/Tort2 2, C/K 3 ondalık) resmî örneği birebir üretir. Müteahhit sınıflandırma motoru yönetmelik metnine (14 grup, yapı sınır bedeli katları, bilanço/ciro/banka referansı, G/G1/H istisnaları) göre yeniden yazıldı. Kat karşılığı KDV'si 150 m² kısım bazlıdır ve arsa sahibine teslimde emsal bedelden hesaplanır. Üç motor da yayında değildir ve bağımsız uzman onayı yoktur.",
+    affectedModules: ["kik-adt"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "K katsayısı ve C oranı tam hassasiyetle taşınıyor; golden testler motorun kendi formülünden türetilmişti. Resmî örnekle karşılaştırma yapılmamıştı.",
+        after: "Tort1, σ, Tort2 2; C, K 3 ondalığa yuvarlanır; her adımın yuvarlanmış sonucu sonraki adımda kullanılır. Kamu İhale Genel Tebliği 45.2 örneği (YM 100.000 TL, N = 1,20) golden testtir: Tort1 66.270,00; σ 20.317,05; Tort2 63.237,50; C 0,632; K 0,627; SD 52.281,00 TL.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1, m.45.1.1.1, m.45.1.1.4 ve m.45.2 resmî sayısal örneği",
       },
     },
   },

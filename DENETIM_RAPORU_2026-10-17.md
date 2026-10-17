@@ -275,6 +275,10 @@ Kodla kapatılabilen maddeler uygulandı; **henüz commit edilmedi ve deploy edi
 | P1-10 | ✅ | `scripts/e2e-core-flow-smoke.ts` (giriş formu → müşteri → teklif → PDF → yenileme → CSRF → çıkış) ve CRM/faturalama smoke'u CI'da |
 | P1-6…P1-8 | ⏸ Altyapı | Runtime DB rolü, DKIM (DNS + Stalwart), kesintisiz deploy (Coolify) |
 | P2-1 | 🟡 Kısmen | 2.962 nötr sınıf token'a çevrildi (3.007 → 417); açık modda piksel farkı 0. Renkli vurgu sınıfları ve `text-[7–9px]` kalan iş |
+| KK-1…KK-5 | ✅ Motor düzeltildi (yayında değil) | Gizli varsayılanlar kaldırıldı, KDV kısım bazlı ve emsal bedelden, kâr marjı tautolojisi kalktı, tapu devri "örnek şablon" oldu. Kaynaklar: `docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md` |
+| YB-1…YB-4 | ✅ Motor yeniden yazıldı (yayında değil) | Yönetmelik metnine göre 14 grup, yapı sınır bedeli katları, bilanço/ciro/banka referansı, G/G1/H istisnaları |
+| P1-1 (KİK) | ✅ Resmî örnekle doğrulandı | Tebliğ 45.2 örneği SD = 52.281,00 TL birebir; yuvarlama hatası düzeltildi. İhale uzmanı onayı hâlâ yok |
+| SEO-1 / GEO-1 | 🟡 Kısmen | Sunucu rota başına `<noscript>` içerik, canonical ve başlık yazar; görsel gövdenin tam ön-render'ı yapılmadı |
 | P2-2…P2-7 | ⏸ Açık | Form etiketi taraması, `strict` TS, Fiyat Kitabı tablolarına geçiş, ifcopenshell sürüm eşitlemesi, CORP, alarmlar |
 
 ## Kaynaklar
