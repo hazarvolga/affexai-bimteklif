@@ -4,7 +4,7 @@ import { benchmarkQuoteItem } from '../services/pricing/benchmark-policy';
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchWithAuth } from '@/lib/api';
@@ -32,7 +32,9 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  FileSpreadsheet,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -64,6 +66,8 @@ import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { applyIfcTransferredUnitPrices, buildIfcEstimateQuoteItems } from '@/ifc/quotation-transfer';
 import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculations';
 import { calculateQuotationFinancials } from '@/lib/financial-calculations';
+import { parsePreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from '@/lib/pre-bim-quote-draft';
+import { parseQuoteCsv, parseQuoteXlsx, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
 
 export function CreateQuote() {
   const navigate = useNavigate();
@@ -85,6 +89,17 @@ export function CreateQuote() {
     skippedItems: number;
     evidenceElementCount?: number;
   } | null>(null);
+  const [preBimNotice, setPreBimNotice] = useState<{
+    itemCount: number;
+    notes?: string;
+  } | null>(null);
+  const [excelImportNotice, setExcelImportNotice] = useState<{
+    fileName: string;
+    itemCount: number;
+    warnings: string[];
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importingFile, setImportingFile] = useState(false);
 
   const [formData, setFormData] = useState({
     clientId: '',
@@ -172,6 +187,36 @@ export function CreateQuote() {
         toast.error('IFC aktarım verisi okunamadı; lütfen dosyayı tekrar aktarın.');
       } finally {
         sessionStorage.removeItem('teklifpro_ifc_extracted');
+      }
+    }
+
+    // Check if pre-BIM feasibility draft exists in sessionStorage
+    const preBimRaw = id ? null : sessionStorage.getItem(PRE_BIM_DRAFT_STORAGE_KEY);
+    if (preBimRaw) {
+      try {
+        const draft = parsePreBimQuoteDraft(preBimRaw);
+        if (draft && draft.items.length > 0) {
+          const draftItems = draft.items.map((item) => ({
+            ...item,
+            total: calculateLineItemTotal(item),
+          }));
+          setItems(draftItems);
+          setFormData((current) => ({
+            ...current,
+            projectName: draft.projectName || current.projectName,
+            notes: draft.notes ? (current.notes ? `${current.notes}\n\n${draft.notes}` : draft.notes) : current.notes,
+          }));
+          setPreBimNotice({
+            itemCount: draftItems.length,
+            notes: draft.notes,
+          });
+          toast.success(`Ön teklif fizibilitesinden ${draftItems.length} kalem aktarıldı. Birim fiyatları ve KDV oranlarını kontrol edin.`);
+        }
+      } catch (err) {
+        console.error('Error importing pre-BIM draft:', err);
+        toast.error('Ön teklif taslak verisi okunamadı.');
+      } finally {
+        sessionStorage.removeItem(PRE_BIM_DRAFT_STORAGE_KEY);
       }
     }
 
@@ -264,6 +309,62 @@ export function CreateQuote() {
     if (items.length > 1) {
       setItems(items.filter(i => i.id !== id));
     }
+  };
+
+  const handleQuoteFileImport = async (file: File | null) => {
+    if (!file) return;
+    setImportingFile(true);
+    try {
+      const isXlsx = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+      let result;
+      if (isXlsx) {
+        const buffer = await file.arrayBuffer();
+        result = await parseQuoteXlsx(buffer, file.name);
+      } else {
+        const text = await file.text();
+        result = parseQuoteCsv(text, file.name);
+      }
+
+      if (result.errors.length > 0) {
+        toast.error(`Dosya okunamadı: ${result.errors.join('; ')}`);
+        return;
+      }
+
+      if (result.items.length === 0) {
+        toast.warning('Dosyada geçerli iş kalemi bulunamadı; sütun başlıklarını kontrol edin.');
+        return;
+      }
+
+      setItems((prev) => {
+        const hasOnlyEmptyInitial = prev.length === 1 && !prev[0]?.description?.trim();
+        return hasOnlyEmptyInitial ? result.items : [...prev, ...result.items];
+      });
+
+      setExcelImportNotice({
+        fileName: file.name,
+        itemCount: result.items.length,
+        warnings: result.warnings,
+      });
+
+      toast.success(`${file.name} dosyasından ${result.items.length} kalem aktarıldı.`);
+    } catch (err) {
+      console.error('Quote file import error:', err);
+      toast.error('Dosya içe aktarılırken bir hata oluştu.');
+    } finally {
+      setImportingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownloadCsvTemplate = () => {
+    const csv = buildQuoteCsvTemplate();
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'teklif-sablonu.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const generateWithAi = async () => {
@@ -575,6 +676,51 @@ export function CreateQuote() {
                 </CardContent>
               </Card>
             )}
+
+            {preBimNotice && (
+              <Card className="mb-4 border-sky-500/25 bg-sky-500/[0.06] shadow-none">
+                <CardContent className="flex flex-col gap-2 p-4 text-xs text-sky-200 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-3">
+                    <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+                    <div>
+                      <p className="font-black uppercase tracking-widest text-sky-300">Ön Teklif Fizibilitesinden Aktarıldı (Kat Karşılığı / Emsal)</p>
+                      <p className="mt-1 leading-relaxed text-sky-100/80">
+                        {preBimNotice.itemCount} kalem teklif taslağına aktarıldı. İmar durumu belgesi ve proje mimarının değerleri esastır; birim fiyat ve KDV oranlarını kontrol edin.
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="w-fit border-sky-500/30 text-sky-300">Ön Taslak</Badge>
+                </CardContent>
+              </Card>
+            )}
+
+            {excelImportNotice && (
+              <Card className="mb-4 border-emerald-500/25 bg-emerald-500/[0.06] shadow-none">
+                <CardContent className="flex flex-col gap-2 p-4 text-xs text-emerald-200 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-3">
+                    <FileSpreadsheet className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                    <div>
+                      <p className="font-black uppercase tracking-widest text-emerald-300">Excel / CSV İçe Aktarımı Tamamlandı</p>
+                      <p className="mt-1 leading-relaxed text-emerald-100/80">
+                        <strong>{excelImportNotice.fileName}</strong> dosyasından {excelImportNotice.itemCount} iş kalemi teklife eklendi.
+                        {excelImportNotice.warnings.length > 0 && ` (${excelImportNotice.warnings.length} adet uyarı / bilgi notu)`}
+                      </p>
+                      {excelImportNotice.warnings.length > 0 && (
+                        <ul className="mt-1.5 list-disc pl-4 text-[11px] text-emerald-200/70 space-y-0.5">
+                          {excelImportNotice.warnings.slice(0, 3).map((w, i) => (
+                            <li key={i}>{w}</li>
+                          ))}
+                          {excelImportNotice.warnings.length > 3 && (
+                            <li>...ve {excelImportNotice.warnings.length - 3} uyarı daha</li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="w-fit border-emerald-500/30 text-emerald-300">İçe Aktarıldı</Badge>
+                </CardContent>
+              </Card>
+            )}
             {/* PRICE VALIDITY & DISCLAIMER BANNER */}
             {benchmarksData && (
               <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
@@ -761,8 +907,35 @@ export function CreateQuote() {
                     </TableBody>
                   </Table>
                 </div>
-                <div className="p-3 border-t border-border bg-muted/20 flex justify-center">
-                  <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-6 gap-1.5">
+                <div className="p-3 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between gap-2 px-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".xlsx,.xls,.csv,text/csv"
+                      className="sr-only"
+                      onChange={(e) => void handleQuoteFileImport(e.target.files?.[0] ?? null)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={importingFile}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="font-mono text-xs h-8 px-3 gap-1.5 border-border bg-background hover:bg-card"
+                    >
+                      {importingFile ? <Loader2 size={13} className="animate-spin text-primary" /> : <FileSpreadsheet size={13} className="text-emerald-400" />}
+                      Excel / CSV'den Kalem Aktar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleDownloadCsvTemplate}
+                      className="text-muted-foreground hover:text-foreground font-mono text-[11px] h-8 px-2.5 gap-1"
+                    >
+                      <Download size={12} /> Şablon İndir (CSV)
+                    </Button>
+                  </div>
+                  <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-5 gap-1.5">
                     <Plus size={14} /> Yeni Kalem Ekle
                   </Button>
                 </div>

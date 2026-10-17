@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.17",
+  version: "BIM-CALC-2026-10-17.18",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "4b83f24979153b5075c334bd8e2a4cd4b2dc8a25",
+  implementationBaseline: "e397b285e5c5bf5ab8a7e0c8cdf472f7cdac3af5",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -618,6 +618,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "nCoefficientOverride aralık denetimsizdi; hesaplayıcıda idarenin N'si girilemiyordu.",
         after: "N yalnızca 1,00–1,20 aralığında kabul edilir, dışı hata verir; hesaplayıcıda isteğe bağlı N alanı vardır.",
         basis: "Kamu İhale Genel Tebliği m.45.1.1.1 (idarenin N belirleme yetkisi) — dış rapor bulgusu, bağımsız doğrulanmadı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 24",
+    version: "BIM-CALC-2026-10-17.18",
+    date: "17 Ekim 2026",
+    commit: "e397b28",
+    trigger: "Ön teklif fizibilitesinden teklif taslağı oluşturma ve doğrudan Excel/CSV teklif kalemi aktarımı",
+    beforeSummary:
+      "Ön teklif fizibilite paneli ile teklif hazırlama ekranı (CreateQuote) arasında veri köprüsü yoktu; kullanıcının hesapladığı toplam alan veya kalemler teklif ekranına taşınamıyordu. Ayrıca teklif hazırlama ekranında doğrudan Excel (.xlsx) veya CSV dosyası yükleyerek iş kalemi aktarma arayüzü bulunmuyordu.",
+    afterSummary:
+      "PreBimFeasibilityPanel'e 'Teklif Taslağı Oluştur →' butonu ve pre-bim-quote-draft köprüsü eklendi; parsel ve maliyet verisi (maliyet dağılımı girildiyse 5 kalem, girilmediyse tek alan kalemi) güvenle sessionStorage üzerinden CreateQuote'a aktarılır. CreateQuote'a doğrudan Excel (.xlsx / dinamik exceljs) ve CSV dosyalarından kalem içe aktarma motoru (quote-excel-import.ts) eklendi; Türkçe ve uluslararası sayı formatları, poz no, birim, miktar, birim fiyat, KDV/iskonto otomatik ayrıştırılır; örnek CSV şablon indirme butonu ve içe aktarım bildirim kartı yerleştirildi.",
+    affectedModules: ["on-teklif-fizibilite", "teklif-satir"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Fizibilite sonucu teklif hazırlama ekranına bağlanamıyordu.",
+        after: "buildPreBimQuoteDraft ile doğrulanmış taslak üretilir; fiyat uydurulmaz, girilmemişse 0 ₺ ve uyarı notuyla aktarılır; CreateQuote ekranında 'Ön Teklif Fizibilitesinden Aktarıldı' kartı ile gösterilir.",
+        basis: "Kullanıcı akışı: imar/parsel ön teklifinden doğrudan teklif taslağına geçiş ve şeffaf dayanak notları",
+      },
+      "teklif-satir": {
+        before: "Teklif hazırlama ekranında Excel/CSV dosyasıyla toplu kalem yükleme UI'ı yoktu.",
+        after: "parseQuoteXlsx / parseQuoteCsv motoru ile .xlsx ve .csv dosyaları 5 MB sınırı ve formül korumasıyla okunur; örnek şablon indirilebilir; içe aktarılan kalemler uyarılarıyla listelenir.",
+        basis: "Müteahhit saha pratiği: mevcut Excel teklif/metraj tablolarının sisteme doğrudan aktarılması",
       },
     },
   },

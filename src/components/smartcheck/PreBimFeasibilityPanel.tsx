@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   buildParcelCsvTemplate,
   computeFeasibility,
@@ -7,6 +8,7 @@ import {
   type ParcelInput,
   type ShareBase,
 } from "@/lib/pre-bim-feasibility";
+import { buildPreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from "@/lib/pre-bim-quote-draft";
 
 interface ParcelRow {
   id: number;
@@ -61,6 +63,7 @@ function Field(props: { label: string; value: string; onChange: (v: string) => v
 }
 
 export const PreBimFeasibilityPanel: React.FC = () => {
+  const navigate = useNavigate();
   const nextId = useRef(2);
   const [rows, setRows] = useState<ParcelRow[]>([{ id: 1, name: "", area: "", taks: "", kaks: "", harici: "" }]);
   const [shareBase, setShareBase] = useState<ShareBase | "">("");
@@ -297,13 +300,52 @@ export const PreBimFeasibilityPanel: React.FC = () => {
             </ul>
           )}
 
-          <button
-            type="button"
-            onClick={() => download("on-teklif-fizibilite.csv", exportFeasibilityCsv(result))}
-            className="w-full border border-border bg-background px-3 py-2 font-mono text-[10px] uppercase tracking-wider hover:bg-card"
-          >
-            Sonucu Excel için indir (CSV)
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => download("on-teklif-fizibilite.csv", exportFeasibilityCsv(result))}
+              className="w-full border border-border bg-background px-3 py-2 font-mono text-[10px] uppercase tracking-wider hover:bg-card text-center"
+            >
+              Sonucu CSV İndir
+            </button>
+            <button
+              type="button"
+              disabled={!result.totalConstructionM2 || result.totalConstructionM2 <= 0}
+              onClick={() => {
+                const draft = buildPreBimQuoteDraft(
+                  {
+                    parcels,
+                    landownerSharePercent: num(sharePct),
+                    shareBase: shareBase === "" ? null : shareBase,
+                    netToGrossRatio: num(netGross),
+                    landownerUnitCount: num(units),
+                    promisedGrossPerUnitM2: num(promised),
+                    unitCostTryPerM2: num(unitCost),
+                    costSplit: hasSplit
+                      ? {
+                          kabaYapi: num(split.kaba),
+                          inceYapi: num(split.ince),
+                          mekanik: num(split.mek),
+                          elektrik: num(split.elk),
+                          peyzajAltyapi: num(split.pey),
+                        }
+                      : null,
+                  },
+                  result,
+                );
+                if (!draft) return;
+                try {
+                  sessionStorage.setItem(PRE_BIM_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+                  navigate("/app/quotes/new");
+                } catch (err) {
+                  console.error("Failed to store pre-bim draft:", err);
+                }
+              }}
+              className="w-full border border-primary bg-primary/10 text-primary px-3 py-2 font-mono text-[10px] uppercase tracking-wider hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-center"
+            >
+              Teklif Taslağı Oluştur →
+            </button>
+          </div>
           <p className="text-[10px] text-muted-foreground">
             Bu bir ön hesaptır; imar durumu, plan notları ve proje mimarının net/brüt değerleri esastır.
           </p>

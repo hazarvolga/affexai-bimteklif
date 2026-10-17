@@ -1505,8 +1505,8 @@
     "semantic_hash": ""
   },
   "src/pages/CreateQuote.tsx": {
-    "mtime": 1792064666.4720852,
-    "ast_hash": "1e25b83a213e52ca6aff1d94bd6ec7d8",
+    "mtime": 1792248046.9503412,
+    "ast_hash": "803ddebf2ee1b2bb7b53a240ba55411a",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1792244680.4679003,
-    "ast_hash": "3249bd6b103555ed51e36b072b56c77b",
+    "mtime": 1792248199.4891322,
+    "ast_hash": "6352313943ee0f7e729667171df771ca",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -6030,8 +6030,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-content.ts": {
-    "mtime": 1792245830.4767058,
-    "ast_hash": "830126982ae8c22ab6c2a29a3555c646",
+    "mtime": 1792248119.5937443,
+    "ast_hash": "2834216f1973add785ece42d576c0d2f",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/content.test.ts": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792246942.663929,
-    "ast_hash": "0a722c9882d2e360a00047fbb4f4c8c3",
+    "mtime": 1792248136.0190759,
+    "ast_hash": "ea2f99da9ae7294bae7271125e16f7e2",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792246942.6634128,
-    "ast_hash": "753aeeef9234727b839bd180b791034a",
+    "mtime": 1792248145.9310684,
+    "ast_hash": "30221f8f36350175d89fa826d44ec798",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6485,8 +6485,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-17.md": {
-    "mtime": 1792246942.6641474,
-    "ast_hash": "89fd65f2e19fb2153fef387cafe31868",
+    "mtime": 1792248211.3782725,
+    "ast_hash": "5e13841e121eb1e54b7841d3f63933ac",
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
@@ -6495,8 +6495,8 @@
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
-    "mtime": 1792246719.0554662,
-    "ast_hash": "d231c84cd7baec407e3e9d4e8482f35a",
+    "mtime": 1792248180.6318963,
+    "ast_hash": "731f6e2926332ff9fa7b5b1f24c3aad8",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.golden.test.ts": {
@@ -6550,8 +6550,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/PreBimFeasibilityPanel.tsx": {
-    "mtime": 1792245786.3902688,
-    "ast_hash": "993f391753c6faeee7cdd4e5f2f68401",
+    "mtime": 1792247967.9512866,
+    "ast_hash": "776225829407b5a3d61dcb2c395b8c81",
     "semantic_hash": ""
   },
   "src/lib/pre-bim-feasibility.test.ts": {
@@ -6667,6 +6667,26 @@
   "docs/audits/DIS_KAYNAK_MUTEAHHIT_SUREC_ANALIZI_2026-10-17.md": {
     "mtime": 1792246942.6320233,
     "ast_hash": "b3ac9ee8e70b9171b0b1011a760cfb7f",
+    "semantic_hash": ""
+  },
+  "src/lib/pre-bim-quote-draft.test.ts": {
+    "mtime": 1792247480.605631,
+    "ast_hash": "cd869e84db4b50922811c7b3d9516d81",
+    "semantic_hash": ""
+  },
+  "src/lib/pre-bim-quote-draft.ts": {
+    "mtime": 1792247480.602475,
+    "ast_hash": "3b31c6e46d2218fa1f4b12a50ca890da",
+    "semantic_hash": ""
+  },
+  "src/lib/quote-excel-import.test.ts": {
+    "mtime": 1792247941.3838177,
+    "ast_hash": "8c3f1f679e0a8e7a8c867c66bf18b538",
+    "semantic_hash": ""
+  },
+  "src/lib/quote-excel-import.ts": {
+    "mtime": 1792247932.862372,
+    "ast_hash": "3059776ab6da50742c3a182f493af18d",
     "semantic_hash": ""
   }
 }

@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.8';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.9';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -416,7 +416,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
     shortClaim:
       'Kullanıcının girdiği arsa, TAKS ve KAKS değerlerinden çoklu parsel alanlarını, arsa sahibi/müteahhit paylaşımını ve daire başı brüt/net alanı hesaplar; vaat edilen alanın paylaşım kapasitesini aşıp aşmadığını aritmetik olarak denetler.',
     longDescription:
-      'Projesi veya IFC dosyası olmayan ön teklif aşamasında çalışır. Tüm sayısal girdiler kullanıcıdan gelir; varsayılan, piyasa ortalaması veya tipik maliyet dağılımı kullanılmaz. TAKS/KAKS değerleri imar durumu belgesinden alınmalıdır. Excel (.xlsx) ve CSV içe aktarım, CSV dışa aktarım desteklenir. Bağımsız uzman kabulü alınana kadar pilot olarak işaretlidir.',
+      'Projesi veya IFC dosyası olmayan ön teklif aşamasında çalışır. Tüm sayısal girdiler kullanıcıdan gelir; varsayılan, piyasa ortalaması veya tipik maliyet dağılımı kullanılmaz. TAKS/KAKS değerleri imar durumu belgesinden alınmalıdır. Excel (.xlsx) ve CSV içe aktarım, CSV dışa aktarım ve CreateQuote teklif taslağına doğrudan aktarım (pre-bim-quote-draft) desteklenir. Bağımsız uzman kabulü alınana kadar pilot olarak işaretlidir.',
     level: 'L2',
     status: 'pilot',
     stream: 'C',

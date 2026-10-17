@@ -413,16 +413,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Ücretsiz halka açık hesaplayıcılar eklendi: aşırı düşük teklif sınır değeri ve 4735 fiyat farkı. Varsayılan değer yok; bağımsız doğrulanmamıştır uyarısı var; sitemap ve llms.txt'de listeli. 4735 motoruna sabit katsayı desteği eklendi.",
           ],
           [
-            "Rev. 23 (Güncel)",
+            "Rev. 23",
             "17 Ekim 2026 (Dış kaynak incelemesi)",
             "BIM-CALC-2026-10-17.17",
             "Müteahhit süreç analizi raporu incelendi: KİK algoritması kodla tutarlı bulundu; N katsayısı 1,00–1,20 aralık denetimi ve hesaplayıcıda idare N alanı eklendi; doğrulanamayan iddialar ürüne alınmadı.",
+          ],
+          [
+            "Rev. 24 (Güncel)",
+            "17 Ekim 2026 (Fizibiliteden Teklif & Excel Kalem Aktarımı)",
+            "BIM-CALC-2026-10-17.18",
+            "Ön teklif fizibilitesinden tek tıkla teklif taslağı oluşturma (pre-bim-quote-draft) ve CreateQuote tablosuna doğrudan Excel (.xlsx) / CSV dosyasından kalem aktarma motoru (quote-excel-import) eklendi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 23 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 24 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -692,6 +698,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "evaluateKikAbnormallyLowBid, nCoefficientOverride için herhangi bir pozitif sayıyı kabul ediyordu; yanlış N yanlış sınır değer üretirdi.",
             "Motor 1,00–1,20 dışı N değerini hata olarak reddeder; kik-form.ts nOverride alanını doğrular; KikAdtCalculatorPage'e N alanı ve yapım işi/açıklama seçeneği notu eklendi; testler eklendi.",
             "src/lib/kik-adt.ts, src/lib/kik-adt.test.ts, src/lib/calculators/kik-form.ts, calculators-forms.test.ts, KikAdtCalculatorPage.tsx, PriceEscalationCalculatorPage.tsx",
+          ],
+          [
+            "Rev. 24.1 · 17 Ekim 2026 (Fizibilite teklif köprüsü & Excel/CSV aktarım)",
+            "Müteahhit saha akışı — Excel teklif hazırlama ve imar/parsel fizibilitesinden taslak üretimi",
+            "Fizibilite sonucu ile teklif ekranı kopuktu; CreateQuote ekranında doğrudan Excel (.xlsx) / CSV dosyasından toplu kalem yükleme ve şablon indirme UI'ı yoktu.",
+            "PreBimFeasibilityPanel'e 'Teklif Taslağı Oluştur →' butonu eklendi; sessionStorage üzerinden kalemler ve notlar taşınır; CreateQuote'a 'Excel / CSV'den Kalem Aktar' ve 'Şablon İndir (CSV)' butonları ile dinamik exceljs/csv motoru (quote-excel-import.ts) eklendi.",
+            "src/lib/pre-bim-quote-draft.ts, src/lib/quote-excel-import.ts, PreBimFeasibilityPanel.tsx, CreateQuote.tsx",
           ],
         ],
       },

@@ -205,7 +205,10 @@ Release status (2026-10-13):
 
 ## Next code work
 
-- `Paket M-1` DONE (Rev. 15) and `Paket M-2` DONE (Rev. 16), `Paket M-3` DONE (Rev. 17): all pilot L2, no unsourced % claims. Melih Dinekli packages M-1..M-3 complete; open: expert acceptance, server-path authoring detection, .xlsx import.
+- `Paket M-1` (Rev. 15), `Paket M-2` (Rev. 16), `Paket M-3` (Rev. 17) DONE.
+- `Rev. 18` (Python worker FILE_NAME & IfcApplication), `Rev. 19` (pre-BIM .xlsx import), `Rev. 20` (kaynaksız çarpan temizliği), `Rev. 21` (minha & server-path uçtan uca test), `Rev. 22` (ücretsiz hesaplayıcılar), `Rev. 23` (KİK N aralık denetimi), `Rev. 24` (fizibiliteden teklif taslağı köprüsü & CreateQuote doğrudan Excel/CSV kalem aktarımı) DONE.
+- Melih Dinekli'den 17 soru yanıtı bekleniyor (`docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md`).
+- Ücretsiz hesaplayıcılar kullanıcı isteğiyle şimdilik vitrinde/menüde bekletiliyor; bağımsız uzman teyidi sonrası açılacak.
 
 ## Ground rules for agents
 

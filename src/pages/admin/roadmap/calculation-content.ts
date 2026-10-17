@@ -29,7 +29,7 @@ export const CALC_MODULES: CalcModule[] = [
     title: "Teklif satırı ve teklif toplamları",
     area: "Teklif",
     status: "mevzuat",
-    sourceFiles: ["src/lib/calculations.ts"],
+    sourceFiles: ["src/lib/calculations.ts", "src/lib/quote-excel-import.ts", "src/lib/quote-excel-import.test.ts"],
     references: ["3065 sayılı KDV Kanunu (matrah: iskonto sonrası bedel)", "VUK — tutarların kuruş hassasiyeti"],
     purpose: "Her teklif satırının brüt tutarını, iskontosunu, KDV matrahını, KDV'sini ve toplamını hesaplar; teklif toplamlarını satırlardan türetir. Ekran, sunucu ve PDF aynı fonksiyonu kullanır.",
     formulas: [
@@ -375,7 +375,7 @@ export const CALC_MODULES: CalcModule[] = [
     title: "IFC öncesi ön teklif / kat karşılığı fizibilite — arsa, TAKS–KAKS, çoklu parsel ve daire paylaşımı (Pilot)",
     area: "Ön Teklif / Metraj",
     status: "bilgi_amacli",
-    sourceFiles: ["src/lib/pre-bim-feasibility.ts", "src/lib/pre-bim-feasibility.test.ts"],
+    sourceFiles: ["src/lib/pre-bim-feasibility.ts", "src/lib/pre-bim-feasibility.test.ts", "src/lib/pre-bim-xlsx.ts", "src/lib/pre-bim-quote-draft.ts", "src/lib/pre-bim-quote-draft.test.ts"],
     references: [
       "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 4–5) — müteahhitlerin Excel'le yaptığı ön teklif akışı",
       "İmar durumu belgesi: TAKS ve KAKS (emsal) değerleri kullanıcı tarafından belgeden alınır; bu modül imar mevzuatını yorumlamaz",
@@ -401,7 +401,7 @@ export const CALC_MODULES: CalcModule[] = [
     assumptions: [
       "TAKS, KAKS, emsal harici alan, pay oranı, net/brüt oranı, birim maliyet ve maliyet yüzde dağılımı yalnızca kullanıcı girdisidir; maliyet dağılımı için 'tipik' bir oran ürüne gömülü değildir.",
       "Vaat aşımı yalnızca aritmetiktir; aşan alanın nasıl karşılanacağı (kalite, malzeme vb.) hakkında hüküm verilmez, yazılı açıklama istenmesi önerilir.",
-      "Excel/CSV içe aktarım: .xlsx (ilk sayfa, 5 MB sınırı) ve CSV (noktalı virgül) okunur; sonuç dışa aktarımı CSV'dir.",
+      "Excel/CSV içe aktarım: .xlsx (ilk sayfa, 5 MB sınırı) ve CSV (noktalı virgül) okunur; sonuç CSV olarak indirilebilir veya tek tıkla CreateQuote teklif taslağına aktarılabilir.",
     ],
     questions: ["Kat karşılığı payı pratikte yalnız emsal alanı üzerinden mi yoksa emsal harici alanlar dahil toplam inşaat alanı üzerinden mi hesaplanıyor; ürün hangisini önermeli (şu an kullanıcı seçer)?"],
   },
