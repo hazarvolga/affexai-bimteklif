@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.19",
+  version: "BIM-CALC-2026-10-17.20",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "b73f088a6460b8f96a2fca05be579ce8aff0717c",
+  implementationBaseline: "baefa678e8ad8644ef3b32f088fbf2df8760010e",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -669,6 +669,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 26",
+    version: "BIM-CALC-2026-10-17.20",
+    date: "17 Ekim 2026",
+    commit: "baefa67",
+    trigger: "BİMMETRAJ Marka Tescili, Kat Karşılığı & Kentsel Dönüşüm Fizibilite ve YAMBİS Belge Kapasite Motorları",
+    beforeSummary:
+      "Özel sektör müteahhitlerinin arsa payı karşılığı ve 6306 sayılı Kentsel Dönüşüm projelerindeki rasyonel paylaşım oranı, kademeli tapu devri ve %1 KDV matrahı hesaplamaları ile ÇŞİDB YAMBİS müteahhitlik yetki belgesi sınıflandırması (A-H grupları ve bilanço rasyoları) için müstakil bir motor ve kullanıcı arayüzü bulunmuyordu. Ürün adı TeklifPro olarak kalmıştı.",
+    afterSummary:
+      "Kalıcı hafızada ve tüm bellek dokümanlarında marka resmi olarak BİMMETRAJ (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK m.470 vd., 6306 sayılı Afet Riski Altındaki Alanlar Kanunu ve Yargıtay içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (src/lib/kat-karsiligi.ts) ve ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği m.8/9/20'ye dayalı YAMBİS Sınıflandırma ve Kapasite Motoru (src/lib/yambis-classification.ts) tam test kapsamıyla geliştirildi. /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile devreye alındı; sitemap, llms.txt ve SPA rotalarına eklendi.",
+    affectedModules: ["on-teklif-fizibilite", "kik-adt"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Yalnızca basit arsa/TAKS/KAKS alan hesabı vardı; rasyonel müteahhit payı formülü, kademeli tapu devir güvencesi ve 6306 KDV teşviki yoktu.",
+        after: "calculateKatKarsiligi motoruyla (Maliyet × 1,20 / Satış) rasyonel paylaşım oranı, Yargıtay 15. H.D. uyumlu 4 aşamalı kademeli tapu devri hakediş planı ve 2026 güncel %1 KDV matrah tasarrufu hesaplanır.",
+        basis: "TBK m.470 vd. Eser Sözleşmesi, 6306 s.K. m.7 Kentsel Dönüşüm teşvikleri ve 3065 s.K. konut teslim matrahları",
+      },
+      "kik-adt": {
+        before: "Müteahhitlik firma yeterliklerinin ihale ve yapım kapasitesine etkisi hesaplanamıyordu.",
+        after: "evaluateYambisMaliRasyolar motoruyla cari oran (≥0,75), özkaynak oranı (≥0,15) ve banka borçluluğu (≤0,75) rasyoları denetlenir; A'dan H'ye yetki grubu ve azami m² inşaat alanı kapasitesi çıkarılır.",
+        basis: "ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik m.8, 9, 20",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -765,8 +789,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması.",
   },
   "on-teklif-fizibilite": {
-    scope: "Kullanıcı girdili arsa/TAKS/KAKS/çoklu parselden alan, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; xlsx/CSV içe, CSV dışa aktarım (pilot).",
-    testFiles: ["src/lib/pre-bim-feasibility.test.ts"],
+    scope: "Kullanıcı girdili arsa/TAKS/KAKS/çoklu parselden alan, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; kat-karsiligi.ts ile rasyonel müteahhit payı (Maliyet x 1.20 / Satış), kademeli tapu devri ve 6306 KDV teşviki aktif; xlsx/CSV içe, CSV dışa aktarım (pilot).",
+    testFiles: ["src/lib/pre-bim-feasibility.test.ts", "src/lib/kat-karsiligi.test.ts"],
     pending: "Gerçek müteahhit ön teklif Excel örnekleriyle akışın karşılaştırılması; pay tabanı (emsal / toplam) pratiğinin uzmanca netleştirilmesi.",
   },
   iso19650: {
@@ -775,8 +799,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Çok kullanıcılı kurumsal CDE iş akışında rol bazlı e-imza / onay kapılarının saha kabulü.",
   },
   "kik-adt": {
-    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili) ve %80 Pareto açıklama istenecek sıralı iş kalemleri motoru aktif.",
-    testFiles: ["src/lib/kik-adt.test.ts", "src/lib/kik-adt.golden.test.ts", "src/lib/calculators/calculators-forms.test.ts"],
+    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili), %80 Pareto açıklama istenecek sıralı iş kalemleri ve yambis-classification.ts müteahhitlik yeterlik/kapasite motoru aktif.",
+    testFiles: ["src/lib/kik-adt.test.ts", "src/lib/kik-adt.golden.test.ts", "src/lib/calculators/calculators-forms.test.ts", "src/lib/yambis-classification.test.ts"],
     pending: "EKAP ihale açılış tutanağı XML/PDF içe aktarımı (Yol Haritasında · 2026 Q4 — Faz 3). Halka açık ücretsiz hesaplayıcı sayfası bağımsız bir uzman tarafından doğrulanmadı.",
   },
   "epys-on-kontrol": {

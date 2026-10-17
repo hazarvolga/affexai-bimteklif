@@ -13,6 +13,16 @@ const CALCULATORS = [
     title: "4735 Fiyat Farkı",
     text: "Hakediş tutarı, B katsayısı ve TÜİK alt endekslerinden F = A × B × (Pn − 1) hesaplayın.",
   },
+  {
+    to: "/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum",
+    title: "Kat Karşılığı & Kentsel Dönüşüm Fizibilitesi",
+    text: "TBK 6098 ve 6306 sayılı Kanun kapsamında rasyonel müteahhit/arsa sahibi paylaşım oranı, kademeli tapu devri ve %1 KDV teşvik hesabı.",
+  },
+  {
+    to: "/hesaplayicilar/yambis-muteahhitlik-grubu",
+    title: "YAMBİS Belge Grubu & Kapasite Danışmanı",
+    text: "ÇŞİDB yönetmeliğine göre cari oran, özkaynak, banka borçluluğu rasyolarından A-H yetki grubu ve azami inşaat alanı (m²) kapasitesi.",
+  },
 ];
 
 export const CalculatorsIndexPage: React.FC = () => (

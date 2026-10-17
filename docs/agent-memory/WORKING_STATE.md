@@ -1,6 +1,8 @@
-# Working State
+# Working State: BİMMETRAJ
 
 Last updated: 2026-10-17. Keep this file to one page: current truth only.
+> **Brand Note:** Project brand is officially **BİMMETRAJ** (formerly TeklifPro; domain `https://bimmetraj.com`).
+
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
 Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-17.md`.
@@ -10,8 +12,8 @@ Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-17.md`.
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `aac07559fcadc9bdb9461856839444fb7d3db035` (previous build `29730956479bf49715d9f8797e81d988ec778891`,
-  `/api/health`, `revisionSource: "build"`, 2026-10-17, Coolify deploy `2f591b32-c92c-4c74-8c83-936a81dc3a8b`). Transactional e-mail uses Stalwart SMTP 465 at
+- Last verified live revision: `baefa678e8ad8644ef3b32f088fbf2df8760010e` (Rev. 25, Pafta Design System harmonization on CreateQuote/QuoteDetail,
+  `/api/health`, `revisionSource: "build"`, 2026-10-17, Coolify deploy `f0d60c34-f6d3-41ca-8e21-12f4216420b8`). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`), plus Early-Access Waitlist on `/` and lead management at `/admin/leads`.
 - Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
   SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.

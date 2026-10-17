@@ -61,7 +61,13 @@ export function canonicalHostRedirect(publicAppUrl: string | undefined): Request
 }
 
 const ACADEMY_PAGES = ['/academy', '/academy/complete', '/academy/allplan'];
-const CALCULATOR_PAGES = ['/hesaplayicilar', '/hesaplayicilar/kik-asiri-dusuk-teklif', '/hesaplayicilar/fiyat-farki-4735'];
+const CALCULATOR_PAGES = [
+  '/hesaplayicilar',
+  '/hesaplayicilar/kik-asiri-dusuk-teklif',
+  '/hesaplayicilar/fiyat-farki-4735',
+  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
+  '/hesaplayicilar/yambis-muteahhitlik-grubu'
+];
 const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
 
 const EXACT_SPA_ROUTES = new Set([
@@ -161,6 +167,8 @@ export function llmsTxt(publicAppUrl: string): string {
     `- [Ücretsiz Hesaplayıcılar](${origin}/hesaplayicilar): Giriş gerektirmeyen, varsayılan değer içermeyen ön hesaplayıcılar (bağımsız doğrulanmamıştır).`,
     `- [Aşırı Düşük Teklif Sınır Değeri](${origin}/hesaplayicilar/kik-asiri-dusuk-teklif): KİK m.38 ve Tebliğ m.45.1.1 yapım işleri sınır değer hesabı.`,
     `- [4735 Fiyat Farkı](${origin}/hesaplayicilar/fiyat-farki-4735): F = A × B × (Pn − 1) fiyat farkı hesabı, kullanıcı girdili katsayı ve endeks.`,
+    `- [Kat Karşılığı & Kentsel Dönüşüm](${origin}/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum): TBK 6098 ve 6306 sayılı Kanun rasyonel paylaşım oranı, kademeli tapu devri ve %1 KDV teşvik hesabı.`,
+    `- [YAMBİS Belge Grubu Danışmanı](${origin}/hesaplayicilar/yambis-muteahhitlik-grubu): ÇŞİDB cari oran, özkaynak, banka borcu rasyoları ile A-H yetki grubu ve m² kapasite hesabı.`,
     `- [Pilot Başvurusu](${origin}/pilot): Kurumsal teknik ofisler için gerçek proje dosyalarıyla pilot çalışma başvurusu.`,
     `- [Kullanım Koşulları](${origin}/terms): Mühendislik sorumluluğu, ön-kontrol niteliği ve abonelik koşulları.`,
     `- [KVKK ve Gizlilik Bildirimi](${origin}/privacy): 6698 sayılı KVKK aydınlatma metni ve proje dosyalarında kişisel veri maskeleme politikası.`,

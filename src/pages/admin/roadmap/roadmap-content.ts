@@ -425,16 +425,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Ön teklif fizibilitesinden tek tıkla teklif taslağı oluşturma (pre-bim-quote-draft) ve CreateQuote tablosuna doğrudan Excel (.xlsx) / CSV dosyasından kalem aktarma motoru (quote-excel-import) eklendi.",
           ],
           [
-            "Rev. 25 (Güncel)",
+            "Rev. 25",
             "17 Ekim 2026 (Pafta Tasarım Sistemi Kontrast & Uyumluluk Refaktörü)",
             "BIM-CALC-2026-10-17.19",
             "CreateQuote ve QuoteDetail sayfalarındaki sabit zinc-* sınıfları, neon butonlar ve renkli kartlar temizlenerek Pafta Tasarım Sistemi (DESIGN.md) mimarisine uyarlandı; açık modda siyah blok sorunu ve düşük kontrast giderildi.",
+          ],
+          [
+            "Rev. 26 (Güncel)",
+            "17 Ekim 2026 (BİMMETRAJ Marka Tescili & Kat Karşılığı / YAMBİS Motorları)",
+            "BIM-CALC-2026-10-17.20",
+            "Kalıcı hafızada marka resmi olarak BİMMETRAJ (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK, 6306 sayılı Kentsel Dönüşüm ve Yargıtay 15. HD içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (rasyonel müteahhit payı, 4 aşamalı kademeli tapu devri, % 1 KDV matrahı) ve ÇŞİDB Yönetmeliğine dayalı YAMBİS Müteahhitlik Belge Grubu & Kapasite Danışmanı (cari oran, özkaynak, banka borcu rasyoları) devreye alındı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 25 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 26 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -718,6 +724,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "CreateQuote ve QuoteDetail sayfalarında 'Detay / İş Kalemi' sabit tablosunda, form girdilerinde ve bildirim kartlarında sabit bg-zinc-950/95, border-zinc-800, renkli gradyanlar ve açık pastel metinler (sky, emerald, amber) kullanılıyordu; açık modda ilk sütun siyah blok olarak çıkıyor ve metinler okunmuyordu.",
             "Tüm sabit renkler, gölgeler, gradyan balonları ve neon butonlar kaldırılarak Pafta Tasarım Sistemi'nin 1px teknik cetvel çizgileri (border-border), kağıt/yüzey tonları (bg-card, bg-background) ve antetli teknik tipografisi (IBM Plex Mono & Manrope) uygulandı. Açık ve koyu modda kusursuz kontrast sağlandı.",
             "src/pages/CreateQuote.tsx, src/pages/QuoteDetail.tsx, DESIGN.md",
+          ],
+          [
+            "Rev. 26.1 · 17 Ekim 2026 (Kat Karşılığı & YAMBİS Müteahhitlik Motoru)",
+            "TBK m.470 vd., 6306 s.K. m.7, 3065 s.K. KDV matrahı, ÇŞİDB Yapı Müteahhitleri Yönetmeliği m.8/9/20",
+            "Özel sektör müteahhitleri için kat karşılığı paylaşım oranı, kademeli tapu devir planı, kentsel dönüşüm KDV avantajı ve YAMBİS A-H yetki grubu hesaplayıcıları bulunmuyordu.",
+            "kat-karsiligi.ts ve yambis-classification.ts motorları geliştirildi; /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile eklendi; sitemap ve SPA rotaları güncellendi.",
+            "src/lib/kat-karsiligi.ts, src/lib/yambis-classification.ts, src/pages/calculators/KatKarsiligiCalculatorPage.tsx, src/pages/calculators/YambisCalculatorPage.tsx, src/App.tsx, src/server/security/web-hardening.ts",
           ],
         ],
       },
