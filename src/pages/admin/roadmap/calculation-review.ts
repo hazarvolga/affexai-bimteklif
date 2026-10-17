@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.8",
+  version: "BIM-CALC-2026-10-17.9",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "65f4acded4e1e6b62fa8ef81a72de3fc329ce8f5",
+  implementationBaseline: "2672889bfc17280575e5b4af2670503fe9f3062c",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -425,7 +425,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 14",
     version: "BIM-CALC-2026-10-17.8",
     date: "17 Ekim 2026",
-    commit: "65f4acd",
+    commit: "181768b",
     trigger: "YOL_HARITASI_2026-10-17 Bölüm 7 Karar #5: Türkiye Kartları ve Taksitli Tahsilat (iyzico / PayTR / Stripe TR) Ödeme Kanalı Seçicisi ve 1–12 Taksit Simülatörü (Billing.tsx)",
     beforeSummary:
       "Faturalandırma ekranında (Billing.tsx) yalnızca Havale/EFT IBAN talimatı ve tekil Stripe test kontrolü yer alıyor; Türkiye ticari kredi kartları (Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy) ve 1/3/6/9/12 taksit seçenekleri için yerel sağlayıcı (iyzico / PayTR) adaptörü bulunmuyordu.",
@@ -437,6 +437,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Billing.tsx üzerinde yalnızca kurumsal Havale/EFT sipariş referansı ve tek çekim Stripe kontrolü bulunuyordu.",
         after: "Havale/EFT (%10–%30 dönem iskontosu) ile Türkiye Kartları & Taksit (iyzico / PayTR — Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy için 1/3/6/9/12 taksit tablosu) arasında geçiş sağlayan çift kanallı tahsilat seçicisi eklendi.",
         basis: "YOL_HARITASI_2026-10-17.md §7 Karar #5 (Tahsilat: Türkiye kartları ve taksit için yerel sağlayıcı)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 15",
+    version: "BIM-CALC-2026-10-17.9",
+    date: "17 Ekim 2026",
+    commit: "2672889",
+    trigger: "Melih Dinekli saha geri bildirimi (17 Ekim 2026) Paket M-1: Daire Bazlı Taşeron Hakediş Kalkanı (apartment-subcontractor-shield.ts)",
+    beforeSummary:
+      "Bağımsız bölüm cetveli (sekme 2) yalnızca daire/oda net alanlarını gösteriyordu; sıvacı, şapçı ve kaplamacı taşeronların hakedişte beyan ettiği m² değerini daire bazında denetleyen bir tavan, harç hacmi veya çimento hesabı yoktu.",
+    afterSummary:
+      "Seçilen dairenin IFC mahal cetvelinden şap ve zemin kaplaması hakediş tavanı, kullanıcı girdili kalınlık / fire / çimento dozajıyla harç hacmi ve çimento miktarı ile taşeron beyanı karşılaştırması eklendi. Duvar sıvası alanı IFC'de bulunmadığı için yalnızca kullanıcı girdisiyle hesaplanır; gizli varsayılan yoktur. Yetenek Kaydına pilot (L2) olarak işlendi; uzman onayı alınmadan canlı iddiası yapılmaz.",
+    affectedModules: ["taseron-hakedis-kalkani"],
+    moduleDetails: {
+      "taseron-hakedis-kalkani": {
+        before: "Daire bazında hakediş tavanı, harç hacmi ve taşeron beyanı karşılaştırması yoktu.",
+        after: "computeApartmentSubcontractorShield ile daire başına şap/kaplama tavanı (m²), harç hacmi (m³), çimento (kg) ve beyan fazlası (m²) hesaplanır; girilmeyen girdi için çıktı null döner.",
+        basis: "Melih Dinekli saha geri bildirimi (17 Ekim 2026) & IFC IfcSpace/IfcZone mahal net alanları",
       },
     },
   },
@@ -524,6 +543,11 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Kullanıcı Tanımlı Özel Şartname (CUSTOM_CONTRACT: customThresholdM2) boşluk düşüm motoru ve CalmIfcWorkspace profil seçicisi aktif.",
     testFiles: ["src/smartcheck/rules/minha.test.ts"],
     pending: "Özel idare şartnameleri ve alternatif ölçü esası profillerinin saha kabulü.",
+  },
+  "taseron-hakedis-kalkani": {
+    scope: "IFC mahal cetvelinden daire başına şap/zemin kaplaması hakediş tavanı, kullanıcı girdili kalınlık/fire/dozajla harç hacmi ve çimento, taşeron beyanı karşılaştırması (pilot).",
+    testFiles: ["src/ifc/apartment-subcontractor-shield.test.ts"],
+    pending: "Gerçek taşeron sözleşmesi ve şantiye hakediş örneğiyle tavan mantığının (net alan mı, minha uygulanmış alan mı) uzman kabulü; duvar sıvası için IFC'den çevre × yükseklik türetimi açık.",
   },
   iso19650: {
     scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, CDE durum geçiş doğrulayıcısı (validateCdeStateTransition: WIP→SHARED→PUBLISHED→ARCHIVED) ve EN 17412-1 4 teslim aşamalı (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) LOIN tamlık motoru (evaluateLoinByMilestone) aktif.",

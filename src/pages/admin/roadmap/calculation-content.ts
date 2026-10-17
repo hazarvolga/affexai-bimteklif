@@ -308,6 +308,39 @@ export const CALC_MODULES: CalcModule[] = [
     questions: ["Özel sektör ihaleleri için 'tüm boşlukları eşiksiz düş (0,00 m²)' seçeneği sözleşme profili olarak varsayılan listede yer almalı mı?"],
   },
   {
+    id: "taseron-hakedis-kalkani",
+    title: "Daire bazlı taşeron hakediş kalkanı — şap / sıva / kaplama tavanı ve harç hacmi (Pilot)",
+    area: "SmartCheck / Metraj",
+    status: "bilgi_amacli",
+    sourceFiles: ["src/ifc/apartment-subcontractor-shield.ts", "src/ifc/apartment-subcontractor-shield.test.ts"],
+    references: [
+      "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026) — taşeron hakedişinde metraj şişirmesine karşı daire bazlı tavan ihtiyacı",
+      "IFC mahal cetveli (IfcSpace / IfcZone) net alanları — src/ifc/types.ts ApartmentUnitScheduleItem",
+    ],
+    purpose: "Seçilen dairenin IFC mahal cetvelindeki net alanlardan şap ve zemin kaplaması için hakediş tavanı üretir; kullanıcının girdiği kalınlık, fire ve çimento dozajıyla harç hacmini ve çimento miktarını hesaplar; taşeronun beyan ettiği m² değerini tavanla karşılaştırır. Duvar sıvası alanı IFC mahal cetvelinde bulunmadığı için yalnızca kullanıcı girdisiyle hesaplanır.",
+    formulas: [
+      "Şap / zemin kaplaması tavanı (m²) = Σ mahal net alanı (iç mahaller + balkon)",
+      "Harç hacmi (m³) = alan (m²) × kalınlık (cm) / 100 × (1 + fire % / 100)",
+      "Çimento (kg) = fireli harç hacmi (m³) × çimento dozajı (kg/m³)",
+      "Fazla beyan (m²) = max(0; beyan − tavan × (1 + tolerans % / 100))",
+    ],
+    example: {
+      inputs: [["Daire 03 mahalleri", "Salon 60,00 + Mutfak 40,00 + Balkon 8,00 m²"], ["Şap kalınlığı", "5 cm"], ["Fire / dozaj", "%10 / 300 kg/m³"], ["Taşeron şap beyanı", "120,00 m²"]],
+      steps: [
+        "Şap tavanı = 60,00 + 40,00 + 8,00 = 108,00 m²",
+        "Hacim = 108,00 × 0,05 = 5,400 m³; fireli = 5,400 × 1,10 = 5,940 m³",
+        "Çimento = 5,940 × 300 = 1.782 kg",
+        "Fazla beyan = 120,00 − 108,00 = 12,00 m²",
+      ],
+      result: "Şap tavanı: 108,00 m² · Harç: 5,940 m³ · Çimento: 1.782 kg · Taşeron fazla beyanı: 12,00 m²",
+    },
+    assumptions: [
+      "Kalınlık, fire, çimento dozajı, tolerans ve taşeron beyanı yalnızca kullanıcı girdisidir; gizli varsayılan yoktur ve girilmeyen değer için çıktı üretilmez.",
+      "Duvar çevresi ve yüksekliği IFC mahal cetvelinde bulunmadığından duvar sıvası alanı kullanıcıdan alınır; IFC'den türetilmiş gibi sunulmaz.",
+    ],
+    questions: ["Taşeron sözleşmelerinde hakediş tavanı net alan mı yoksa minha uygulanmış alan üzerinden mi hesaplanmalı; ürün hangisini varsayılan sunmalı?"],
+  },
+  {
     id: "iso19650",
     title: "TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Bilgi Konteyneri Denetimi",
     area: "Mevzuat / BIM",

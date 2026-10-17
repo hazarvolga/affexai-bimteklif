@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
+import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/ApartmentSubcontractorShieldCard";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
 import {
   evaluateIso19650Compliance,
@@ -943,6 +944,11 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   ))}
                 </div>
               </div>
+
+              <ApartmentSubcontractorShieldCard
+                key={selectedApartment.unitCode}
+                apartment={selectedApartment}
+              />
             </div>
           )}
         </div>

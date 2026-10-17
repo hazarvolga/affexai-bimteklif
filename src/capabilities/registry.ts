@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.4';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.5';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -365,6 +365,28 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       },
     },
     planIds: ['bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'apartment-subcontractor-hakedis-shield',
+    title: 'Daire Bazlı Taşeron Hakediş Kalkanı — Şap / Zemin Kaplaması Tavanı, Harç Hacmi ve Beyan Kontrolü (Pilot · L2)',
+    shortClaim:
+      'IFC mahal cetvelinden daire başına şap ve zemin kaplaması hakediş tavanı üretir; kullanıcı girdili kalınlık, fire ve dozajla harç hacmi/çimento hesaplar ve taşeron beyanını tavanla karşılaştırır.',
+    longDescription:
+      'Sıvacı, şapçı ve kaplamacı taşeronların hakedişte metrajı şişirmesine karşı müteahhidi korumak için bağımsız bölüm bazında net alan tavanı sunar. Kalınlık, fire, çimento dozajı, tolerans ve taşeron beyanı kullanıcı girdisidir; duvar sıvası alanı IFC mahal cetvelinde bulunmadığı için yalnızca kullanıcı girdisiyle hesaplanır. Bağımsız uzman kabulü alınana kadar pilot olarak işaretlidir.',
+    level: 'L2',
+    status: 'pilot',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/ifc/apartment-subcontractor-shield.ts',
+      goldenTestPath: 'src/ifc/apartment-subcontractor-shield.test.ts',
+      officialSource: {
+        institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & IFC IfcSpace/IfcZone',
+        documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 & ISO 16739-1 (IFC4) mahal net alanları',
+        articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 6',
+        publicationDate: '2026-10-17',
+      },
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
     id: 'ghostscript-verapdf-server-conversion',

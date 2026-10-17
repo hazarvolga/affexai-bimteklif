@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1792213969.794408,
-    "ast_hash": "71ae31f4df39e7a4ac1127b3c7c919ec",
+    "mtime": 1792244133.2163272,
+    "ast_hash": "1c5f76205d132caad89e4364bbf1975f",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -6030,8 +6030,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-content.ts": {
-    "mtime": 1792209012.0992444,
-    "ast_hash": "d82aa97330a25db1f6353762003724cb",
+    "mtime": 1792243993.0657532,
+    "ast_hash": "f755f73b819f49c719bc69924474c2ca",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/content.test.ts": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792213945.0979848,
-    "ast_hash": "2be8e1bd1bfca93a07d424c9532f1b4b",
+    "mtime": 1792244083.203254,
+    "ast_hash": "2670a758f3b3e1798177651bd53cfdd3",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792213943.2652445,
-    "ast_hash": "f0ae373d88065e9d29c9392e835f20d2",
+    "mtime": 1792244036.5903034,
+    "ast_hash": "5807cd796b71fdabb806540617e0acf9",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6425,8 +6425,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/CalmIfcWorkspace.tsx": {
-    "mtime": 1792213139.1895585,
-    "ast_hash": "5d5dc2f65e17129685ac870d4fca36b7",
+    "mtime": 1792243923.148973,
+    "ast_hash": "174c0ba5575bfdc21c576f22b907d635",
     "semantic_hash": ""
   },
   "src/ifc/calm-icmal.test.ts": {
@@ -6485,8 +6485,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-17.md": {
-    "mtime": 1792213968.545241,
-    "ast_hash": "4c8d30fc545c5141f90b3e4f4dcdd0b5",
+    "mtime": 1792244133.213586,
+    "ast_hash": "61744c3feae4c3ab884686304f7b7285",
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
@@ -6495,8 +6495,8 @@
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
-    "mtime": 1792213190.702056,
-    "ast_hash": "5ba863c05cde38641a9f6a28b688727e",
+    "mtime": 1792244058.8102148,
+    "ast_hash": "d229a6779f48b0c23943406cd57aabf1",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.golden.test.ts": {
@@ -6512,6 +6512,26 @@
   "src/lib/price-escalation.ts": {
     "mtime": 1792213351.0610113,
     "ast_hash": "e211bc2a1be1a3f97a270d61fd6d19ec",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/ApartmentSubcontractorShieldCard.tsx": {
+    "mtime": 1792243913.2966745,
+    "ast_hash": "b5a0c188a83e44a3c1e77a73fa940297",
+    "semantic_hash": ""
+  },
+  "src/ifc/apartment-subcontractor-shield.test.ts": {
+    "mtime": 1792243871.3353198,
+    "ast_hash": "0ee238a34e3c7cf7bbb7834512a51fd7",
+    "semantic_hash": ""
+  },
+  "src/ifc/apartment-subcontractor-shield.ts": {
+    "mtime": 1792243871.328386,
+    "ast_hash": "6c05bbd58c3328d13f3632dd7d35ee6b",
+    "semantic_hash": ""
+  },
+  "docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md": {
+    "mtime": 1792243193.9959652,
+    "ast_hash": "1800ad5d451ab1d3cd28b4b3b739267f",
     "semantic_hash": ""
   }
 }

@@ -205,7 +205,7 @@ Release status (2026-10-13):
 
 ## Next code work
 
-- Execute `Paket M-1` (Per-apartment subcontractor hakediş shield & 2/3/5 cm plaster/screed mortar m³ engine), `Paket M-2` (BIM authoring software reliability & Revit 10-15% finishing/formwork deviation diagnostics), and `Paket M-3` (Pre-IFC TAKS/KAKS/multi-parcel & +10 m² quality-risk feasibility engine with Excel import/export).
+- `Paket M-1` DONE (Rev. 15, pilot L2). Execute `Paket M-2` (BIM authoring software reliability & Revit 10-15% finishing/formwork deviation diagnostics), and `Paket M-3` (Pre-IFC TAKS/KAKS/multi-parcel & +10 m² quality-risk feasibility engine with Excel import/export).
 
 ## Ground rules for agents
 
