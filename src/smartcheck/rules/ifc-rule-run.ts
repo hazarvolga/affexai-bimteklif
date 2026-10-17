@@ -56,7 +56,7 @@ export function evaluateIfcRulePacks(artifact: IfcSmartCheckEvidenceArtifact, ac
         storey: r.formulaJson?.storey ?? "Zemin Kat",
         material: r.formulaJson?.material ?? r.rawDescription,
         pozNo: r.normalizedPositionCode ?? r.rawPositionCode,
-        hasAdmissibleQuantity: r.quantitySource !== "missing",
+        hasAdmissibleQuantity: Boolean(r.quantitySource && Number(r.normalizedQuantity ?? r.rawQuantity) > 0),
       })),
     }),
   };

@@ -57,9 +57,48 @@ export function canonicalHostRedirect(publicAppUrl: string | undefined): Request
 const ACADEMY_PAGES = ['/academy', '/academy/complete', '/academy/allplan'];
 const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
 
+const EXACT_SPA_ROUTES = new Set([
+  '/',
+  '/index.html',
+  '/about',
+  '/features',
+  '/pricing',
+  '/smartcheck',
+  '/bim-sozlugu',
+  '/pilot',
+  '/login',
+  '/register',
+  '/terms',
+  '/privacy',
+  '/forgot-password',
+]);
+
+const PREFIX_SPA_ROUTES = [
+  '/reset-password/',
+  '/accept-invite/',
+  '/verify-email/',
+  '/academy',
+  '/admin',
+  '/app',
+];
+
+/**
+ * Returns true if `pathname` matches a known SPA client route in `src/App.tsx`.
+ * Unknown paths still receive the SPA shell (`index.html` -> `<NotFound />`),
+ * but with HTTP status `404` instead of a soft-404 `200` (BUG-3 / SEO-2).
+ */
+export function isKnownSpaRoute(pathname: string): boolean {
+  const normalized = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  if (EXACT_SPA_ROUTES.has(normalized)) return true;
+  return PREFIX_SPA_ROUTES.some(
+    (prefix) => normalized === prefix || normalized.startsWith(prefix.endsWith('/') ? prefix : `${prefix}/`),
+  );
+}
+
 export function sitemapXml(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
-  const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc></url>`).join('\n');
+  const lastmod = '2026-10-17';
+  const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import express from 'express';
 import http from 'node:http';
-import { canonicalHostRedirect, contentSecurityPolicy, llmsTxt, robotsTxt, sitemapXml } from './web-hardening';
+import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, sitemapXml } from './web-hardening';
 
 test('CSP locks scripts to self and only opens the origins the app really uses', () => {
   const policy = contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com' });
@@ -42,6 +42,7 @@ test('sitemap lists public pages on the canonical origin and robots/llms point t
   const xml = sitemapXml('https://bimmetraj.com');
   assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/);
   for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/smartcheck', 'https://bimmetraj.com/bim-sozlugu']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
+  assert.ok(xml.includes('<lastmod>2026-10-17</lastmod>'));
   assert.ok(!xml.includes('/app'));
   assert.ok(!xml.includes('/login'));
   assert.ok(!xml.includes('/academy'), 'Academy is out of scope while ACADEMY_ENABLED is false');
@@ -53,5 +54,12 @@ test('sitemap lists public pages on the canonical origin and robots/llms point t
   assert.match(llms, /# BIMMetraj \(TeklifPro\)/);
   assert.match(llms, /RG 33331 e-PYS/);
   assert.match(llms, /https:\/\/bimmetraj\.com\/bim-sozlugu/);
+
+  // BUG-3 / SEO-2: known SPA routes vs unknown 404 paths
+  assert.equal(isKnownSpaRoute('/'), true);
+  assert.equal(isKnownSpaRoute('/bim-sozlugu'), true);
+  assert.equal(isKnownSpaRoute('/app/smartcheck'), true);
+  assert.equal(isKnownSpaRoute('/admin/leads'), true);
+  assert.equal(isKnownSpaRoute('/olmayan-sayfa-xyz'), false);
 });
 

@@ -11,7 +11,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
-import { LandingPage } from '@/pages/LandingPage';
 
 import { ACADEMY_ENABLED } from '@/config/features';
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) =>
@@ -33,6 +32,7 @@ const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name:
       throw error;
     }
   });
+const LandingPage = page(() => import('@/pages/LandingPage'), 'LandingPage');
 const Shell = page(() => import('@/components/layout/Shell'), 'Shell');
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
 const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminShell');
@@ -126,7 +126,7 @@ function AppRoutes() {
         <Route path="/admin" element={<AdminShell />}>
           <Route index element={<AdminDashboard />} />
           <Route path="leads" element={<PilotApplications />} />
-          <Route path="pilot-applications" element={<PilotApplications />} />
+          <Route path="pilot-applications" element={<Navigate to="/admin/leads" replace />} />
           <Route path="tenants" element={<TenantsList />} />
           <Route path="tenants/:companyId" element={<TenantDetail />} />
           <Route path="queue" element={<AdminQueue />} />
@@ -157,7 +157,7 @@ function AppRoutes() {
           <Route path="ai" element={<AIAssistant />} />
           <Route path="profitability" element={<Profitability />} />
           <Route path="billing" element={<Billing />} />
-          <Route path="pilot-applications" element={<PilotApplications />} />
+          <Route path="pilot-applications" element={<Navigate to="/admin/leads" replace />} />
           <Route path="settings" element={<Settings />} />
           <Route path="dosyadan-teklif-demo" element={<DosyadanTeklifDemo />} />
           <Route path="smartcheck" element={<SmartCheck />} />

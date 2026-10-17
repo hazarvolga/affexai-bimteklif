@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  buildCalibrated202645Dataset,
   buildCalmIfcDatasetFromElements,
   parseSmartCheckRowToPseudoElement,
 } from "./calm-icmal";
+import { buildCalibrated202645Dataset } from "./calibrated-2026-45-fixture";
 import type { ParsedIfcElement } from "./types";
 
 test("buildCalibrated202645Dataset returns 5 quiet contractor groups and 16 residential apartments", () => {

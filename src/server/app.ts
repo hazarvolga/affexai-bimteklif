@@ -51,7 +51,7 @@ import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, readBuildRevision } from "./observability/error-tracking";
-import { canonicalHostRedirect, contentSecurityPolicy, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
+import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
@@ -233,6 +233,9 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
     const pathname = decodeURIComponent(req.path);
     if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();
     res.setHeader('Cache-Control', 'no-cache');
+    if (!isKnownSpaRoute(pathname)) {
+      res.status(404);
+    }
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }

@@ -24,12 +24,26 @@ export default defineConfig(({mode}) => {
       },
     },
     build: {
+      modulePreload: {
+        resolveDependencies: (_filename, deps, context) => {
+          if (context.hostType === 'html') {
+            return deps.filter((dep) => !dep.includes('charts'));
+          }
+          return deps;
+        },
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (!id.includes('node_modules')) return;
-            if (id.includes('recharts')) return 'charts';
-            if (id.includes('lucide-react')) return 'icons';
+            if (!id.includes('node_modules/')) return;
+            const parts = id.split('node_modules/');
+            const pkg = parts[parts.length - 1] || '';
+            if (pkg.startsWith('recharts/') || pkg.startsWith('d3-') || pkg.startsWith('victory-vendor/')) {
+              return 'charts';
+            }
+            if (pkg.startsWith('lucide-react/')) {
+              return 'icons';
+            }
           },
         },
       },
