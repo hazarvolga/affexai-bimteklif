@@ -200,10 +200,12 @@ Release status (2026-10-13):
   - **Section 7 Decision #1 (`CalmIfcWorkspace.tsx`):** Added BYOL (`BYOL_TENANT_CATALOG`) vs `CSB_2026_REFERENCE` license mode selector and interactive 4735 / TÜİK 21 sub-index simulator in Tab 3.
 - **2026-10-17 `YOL_HARITASI_2026-10-17.md` Section 7 Decision (#5) — Local TR Card & Installment Payment Channel (`iyzico / PayTR / Stripe TR`) in `Billing.tsx` (`Rev. 14` · `BIM-CALC-2026-10-17.8`):**
   - Added dual payment channel selector (`Havale / EFT (%10–%30 İskonto)` vs `Türkiye Kartları & Taksit (iyzico / PayTR)`) and interactive 1 / 3 / 6 / 9 / 12 installment schedule preview for Turkish commercial cards (Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy) in `src/pages/Billing.tsx`.
+- **2026-10-17 Melih Dinekli Field Feedback Recorded (`docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md` & `HANDOFF_2026-10-17.md` §2.14):**
+  - Permanently recorded all 6 field findings (Allplan TÜRKSERT vs Revit 5 cm beam-column overlap, exposed formwork surface vs Revit Family faces, 10 m -> 9.96 m 10-15% finishing layer collision, pre-IFC TAKS/KAKS/multi-parcel Excel feasibility & unit net/gross sharing, 50,000 TL/m² trade % breakdown & +10 m² quality-theft detector, and per-apartment subcontractor shield for Daire 3 plaster/screed 3 cm vs 5 cm).
 
 ## Next code work
 
-- Faz 3 integrations (2026 Q4 roadmap): EKAP tender XML/PDF import, Ghostscript/veraPDF + PAdES cryptographic chain verification, and OpenCDE BCF 3.0 sync.
+- Execute `Paket M-1` (Per-apartment subcontractor hakediş shield & 2/3/5 cm plaster/screed mortar m³ engine), `Paket M-2` (BIM authoring software reliability & Revit 10-15% finishing/formwork deviation diagnostics), and `Paket M-3` (Pre-IFC TAKS/KAKS/multi-parcel & +10 m² quality-risk feasibility engine with Excel import/export).
 
 ## Ground rules for agents
 
