@@ -112,7 +112,7 @@ export default function LegislationView() {
         
         {/* Left Side: Timeline Navigation */}
         <div className="lg:col-span-4 bg-white border border-border p-8 rounded-2xl shadow-sm">
-          <h3 className="text-lg font-black text-slate-900 tracking-tight mb-6 flex items-center gap-2">
+          <h3 className="text-lg font-black text-foreground tracking-tight mb-6 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-orange-600" />
             RG 33331 Geçiş Takvimi
           </h3>
@@ -150,7 +150,7 @@ export default function LegislationView() {
 
         {/* Right Side: Active Milestone details */}
         <div className="lg:col-span-8 bg-white border border-border p-8 sm:p-10 rounded-2xl shadow-sm space-y-6">
-          <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+          <div className="flex justify-between items-center pb-4 border-b border-border">
             <div className="text-sm font-black text-muted-foreground uppercase tracking-wider">Mevzuat Detayları (RG 33331)</div>
             <span className={`px-2.5 py-1 text-[10px] font-black uppercase rounded-md border ${
               activeEvent.status === 'completed' 
@@ -167,22 +167,22 @@ export default function LegislationView() {
 
           <div className="space-y-4">
             <div className="mono text-4xl font-black text-orange-600">{activeEvent.year}</div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{activeEvent.title}</h3>
+            <h3 className="text-2xl font-black text-foreground tracking-tight">{activeEvent.title}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
               {activeEvent.description}
             </p>
           </div>
 
           {/* Core Legal Requirement Points */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100 text-xs text-muted-foreground">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-border text-xs text-muted-foreground">
             <div className="space-y-2">
-              <span className="font-extrabold text-slate-800 text-[11px] block uppercase tracking-wider">KAPSAM DIŞI İSTİSNALAR (MADDE 2)</span>
+              <span className="font-extrabold text-foreground text-[11px] block uppercase tracking-wider">KAPSAM DIŞI İSTİSNALAR (MADDE 2)</span>
               <p className="leading-relaxed">
                 Bodrum hariç en çok 2 katlı ve toplam inşaat alanı 200 m²'yi geçmeyen müstakil yapılar, entegre tesis niteliğinde olmayan tarım/hayvancılık yapıları ve uygulama imar planı bulunmayan alanlar kapsam dışıdır.
               </p>
             </div>
             <div className="space-y-2">
-              <span className="font-extrabold text-slate-800 text-[11px] block uppercase tracking-wider">MÜELLİF SORUMLULUĞU VE DENETİM (MADDE 5)</span>
+              <span className="font-extrabold text-foreground text-[11px] block uppercase tracking-wider">MÜELLİF SORUMLULUĞU VE DENETİM (MADDE 5)</span>
               <p className="leading-relaxed">
                 Bilgilerin doğruluğundan kaydı yapan proje müellifi sorumludur (Teslim Yön. m.5(2)). İlgili idare ve yapı denetim kuruluşları e-PYS üzerinden uygunluk incelemesini yürütür.
               </p>
@@ -202,7 +202,7 @@ export default function LegislationView() {
               e
             </div>
             <div>
-              <h4 className="font-extrabold text-lg text-slate-900 leading-tight">e-PYS Teslim &amp; İnceleme Kuralları</h4>
+              <h4 className="font-extrabold text-lg text-foreground leading-tight">e-PYS Teslim &amp; İnceleme Kuralları</h4>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Elektronik Proje Yönetim Sistemi (RG 33331)</span>
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function LegislationView() {
               EK
             </div>
             <div>
-              <h4 className="font-extrabold text-lg text-slate-900 leading-tight">Resmî Teknik Ekler (EK-1 – EK-9)</h4>
+              <h4 className="font-extrabold text-lg text-foreground leading-tight">Resmî Teknik Ekler (EK-1 – EK-9)</h4>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sınıf, Özellik Seti ve İsimlendirme Standartları</span>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function LegislationView() {
             EK-1 (6 haneli proje kodu), EK-2 (9 alanlı dosya adı, Tablo 2.1–2.14), EK-3 (Kat_Fonksiyon_Sıra mahal kodu ve ~130 standart mahal kısaltması), EK-5 (69 zorunlu + 67 isteğe bağlı IFC sınıfı, IfcBuildingElementProxy yasağı), EK-6 (68 tablo ve TREpys_* özellik setleri) ve EK-7 (Tablo 7.1–7.9) kuralları tanımlanmıştır.
           </p>
 
-          <div className="bg-slate-50 border border-border p-4 rounded-xl text-xs text-slate-700 font-bold">
+          <div className="bg-card border border-border p-4 rounded-xl text-xs text-foreground font-bold">
             Kriter (m.11–15): Eleman adları Disiplin-Kategori-Açıklama (m.12(3)), malzeme adları Malzeme İsmi_Dayanım (m.13(3)) ve emsal alanları IfcSpatialZone + TREpys_EmsalOzellikSeti (m.15) ile modellenir.
           </div>
         </div>
@@ -246,7 +246,7 @@ export default function LegislationView() {
             <Database className="w-4 h-4" />
             5D MALİYET ENTEGRASYONU
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
             T.C. Bakanlık Birim Fiyat (Poz) Eşleştirici
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
@@ -264,7 +264,7 @@ export default function LegislationView() {
               placeholder="IFC Sınıfı veya Poz No ara (örn: IfcWall, 15.150...)"
               value={pozSearch}
               onChange={(e) => setPozSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-border rounded-xl text-xs font-semibold focus:outline-none focus:border-orange-500 text-slate-800"
+              className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-xl text-xs font-semibold focus:outline-none focus:border-orange-500 text-foreground"
               id="search-poz"
             />
           </div>
@@ -273,18 +273,18 @@ export default function LegislationView() {
           <div className="overflow-x-auto border border-border rounded-xl">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 text-muted-foreground font-black tracking-wider uppercase border-b border-border text-[10px]">
+                <tr className="bg-card text-muted-foreground font-black tracking-wider uppercase border-b border-border text-[10px]">
                   <th className="p-4">IFC Yapı Sınıfı</th>
                   <th className="p-4">Bakanlık Poz No</th>
                   <th className="p-4">İmalat Açıklaması</th>
                   <th className="p-4 text-right">Ölçü Birimi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              <tbody className="divide-y divide-border font-medium text-foreground">
                 {filteredPoz.map((poz, idx) => (
                   <tr key={idx} className="hover:bg-orange-50/20 transition-colors">
                     <td className="p-4 font-extrabold text-orange-600 mono">{poz.ifcClass}</td>
-                    <td className="p-4 font-bold text-slate-900 mono">{poz.pozNo}</td>
+                    <td className="p-4 font-bold text-foreground mono">{poz.pozNo}</td>
                     <td className="p-4 max-w-sm sm:max-w-md truncate md:whitespace-normal">{poz.description}</td>
                     <td className="p-4 text-right font-black text-muted-foreground mono">{poz.unit}</td>
                   </tr>

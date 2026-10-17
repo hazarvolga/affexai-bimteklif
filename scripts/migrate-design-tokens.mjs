@@ -22,23 +22,30 @@ const args = process.argv.slice(2);
 const dry = args.includes('--dry');
 const files = args.filter(arg => !arg.startsWith('--'));
 
-const BOUNDARY_BEFORE = '(?<![\\w:\\[./-])';
+const BOUNDARY_BEFORE = '(?<![\\w\\[./:-])';
 const BOUNDARY_AFTER = '(?![\\w-])';
 const OPACITY = '(?:/\\d{1,3})?';
+const PREFIX = '(?:(hover|focus|group-hover|active|sm|md|lg|xl):)?';
 const rules = [
   [`bg-(?:zinc|slate)-950${OPACITY}`, 'bg-background'],
   [`bg-(?:zinc|slate)-900${OPACITY}`, 'bg-card'],
   [`bg-(?:zinc|slate)-800${OPACITY}`, 'bg-surface-elevated'],
-  [`border-(?:zinc-800|zinc-700|slate-200|slate-300)${OPACITY}`, 'border-border'],
-  [`divide-zinc-800${OPACITY}`, 'divide-border'],
+  [`bg-(?:zinc|slate)-(?:50|100)${OPACITY}`, 'bg-card'],
+  [`border-(?:zinc-800|zinc-700|slate-100|slate-150|slate-200|slate-300)${OPACITY}`, 'border-border'],
+  [`divide-(?:zinc-800|slate-100|slate-200)${OPACITY}`, 'divide-border'],
   [`text-(?:zinc|slate)-(?:50|100|200)`, 'text-foreground'],
+  [`text-(?:zinc|slate)-(?:700|800|900|950)`, 'text-foreground'],
   // Köprüde -300 açık modda mürekkep, koyu modda soluk mürekkeptir.
   [`text-(?:zinc|slate)-300`, 'text-foreground dark:text-muted-foreground'],
   [`text-(?:zinc|slate)-(?:400|500|600)`, 'text-muted-foreground'],
+  [`text-\\[(?:7|8|9)px\\]`, 'text-[10px]'],
 ];
 const SATURATED_BG = /(?<![\w:[./-])bg-(?:indigo|emerald|red|rose|amber|sky|blue|violet|green|purple|orange|teal|cyan|yellow|fuchsia|pink)-[5-9]00/;
-const textWhite = new RegExp(`${BOUNDARY_BEFORE}text-white${BOUNDARY_AFTER}`, 'g');
-const compiled = rules.map(([pattern, replacement]) => [new RegExp(`${BOUNDARY_BEFORE}${pattern}${BOUNDARY_AFTER}`, 'g'), replacement]);
+const textWhite = new RegExp(`${BOUNDARY_BEFORE}(?:(hover|focus|group-hover|active|sm|md|lg|xl):)?text-white${BOUNDARY_AFTER}`, 'g');
+const compiled = rules.map(([pattern, replacement]) => [
+  new RegExp(`${BOUNDARY_BEFORE}${PREFIX}(?:${pattern})${BOUNDARY_AFTER}`, 'g'),
+  replacement,
+]);
 
 /** Sınıf listesi içeren her string parçası (", ', `) ayrı ele alınır; `${}` içindeki dallar ayrı parçadır. */
 const STRING_SEGMENT = /(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
@@ -46,10 +53,20 @@ const STRING_SEGMENT = /(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
 export function migrateSource(source) {
   let count = 0;
   const out = source.replace(STRING_SEGMENT, (whole, quote, body) => {
-    if (!/\b(?:bg|text|border|divide)-/.test(body)) return whole;
+    if (!/\b(?:bg|text|border|divide)-/.test(body) && !/text-\[[789]px\]/.test(body)) return whole;
     let next = body;
-    for (const [regex, replacement] of compiled) next = next.replace(regex, () => { count += 1; return replacement; });
-    if (!SATURATED_BG.test(next)) next = next.replace(textWhite, () => { count += 1; return 'text-foreground'; });
+    for (const [regex, replacement] of compiled) {
+      next = next.replace(regex, (match, pfx) => {
+        count += 1;
+        return (pfx ? `${pfx}:` : '') + replacement;
+      });
+    }
+    if (!SATURATED_BG.test(next)) {
+      next = next.replace(textWhite, (match, pfx) => {
+        count += 1;
+        return (pfx ? `${pfx}:` : '') + 'text-foreground';
+      });
+    }
     return `${quote}${next}${quote}`;
   });
   return { out, count };

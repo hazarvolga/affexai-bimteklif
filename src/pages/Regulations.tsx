@@ -118,7 +118,7 @@ export function Regulations() {
             <h3 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
               <Zap size={12} className="text-orange-500" /> Son Mevzuat Gelişmeleri
             </h3>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Son belge okuma: {lastFetchedAt ? new Date(lastFetchedAt).toLocaleTimeString("tr-TR") : "Bu oturumda yapılmadı"}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Son belge okuma: {lastFetchedAt ? new Date(lastFetchedAt).toLocaleTimeString("tr-TR") : "Bu oturumda yapılmadı"}</span>
           </div>
 
           {loading ? (
@@ -140,7 +140,7 @@ export function Regulations() {
               <Card 
                 key={alert.id} 
                 className={cn(
-                  "bg-card border-border hover:border-zinc-700 transition-all duration-300 group overflow-hidden",
+                  "bg-card border-border hover:border-border transition-all duration-300 group overflow-hidden",
                   alert.impactLevel === 'high' && "border-l-4 border-l-red-500/50",
                   alert.impactLevel === 'medium' && "border-l-4 border-l-amber-500/50",
                   alert.impactLevel === 'low' && "border-l-4 border-l-emerald-500/50"
@@ -150,11 +150,11 @@ export function Regulations() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest bg-background border-border text-muted-foreground group-hover:border-zinc-700 transition-colors">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest bg-background border-border text-muted-foreground group-hover:border-border transition-colors">
                           {getCategoryLabel(alert.category)}
                         </Badge>
-                        <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest flex items-center gap-1.5 font-mono">
-                          <Calendar size={12} className="text-zinc-700" />
+                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest flex items-center gap-1.5 font-mono">
+                          <Calendar size={12} className="text-foreground" />
                           {new Date(alert.effectiveDate).toLocaleDateString('tr-TR')}
                         </span>
                       </div>
@@ -163,7 +163,7 @@ export function Regulations() {
                       </h4>
                     </div>
                     <Badge className={cn(
-                      "text-[8px] font-black tracking-widest px-2 py-0.5 uppercase border",
+                      "text-[10px] font-black tracking-widest px-2 py-0.5 uppercase border",
                       alert.impactLevel === 'high' ? "bg-red-500/10 text-red-500 border-red-500/20" :
                       alert.impactLevel === 'medium' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
                       "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
@@ -178,7 +178,7 @@ export function Regulations() {
 
                   <div className="flex flex-wrap gap-2 mb-6">
                     {alert.affectedModules?.map((mod, i) => (
-                      <span key={i} className="text-[9px] font-black bg-background text-muted-foreground px-2 py-1 rounded border border-border uppercase tracking-widest">
+                      <span key={i} className="text-[10px] font-black bg-background text-muted-foreground px-2 py-1 rounded border border-border uppercase tracking-widest">
                         #{mod}
                       </span>
                     ))}
@@ -219,7 +219,7 @@ export function Regulations() {
                 </div>
                 <div>
                   <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground leading-none">Compliance AI</CardTitle>
-                  <CardDescription className="text-[9px] font-bold uppercase tracking-tighter mt-1">Oto-Revizyon Sistemi</CardDescription>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-tighter mt-1">Oto-Revizyon Sistemi</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -227,10 +227,10 @@ export function Regulations() {
               <p className="text-[11px] text-muted-foreground mb-6 leading-relaxed font-medium">
                 Mevzuat diff'i tespit edildiğinde, reviewer onayından sonra etkilenen teklifler için advisory revizyon önerileri ve maliyet simülasyonları hazırlanır.
               </p>
-              <div className="flex items-center justify-between p-4 bg-background rounded-2xl border border-border group-hover:border-zinc-700 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-background rounded-2xl border border-border group-hover:border-border transition-colors">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Oto-Analiz</span>
-                  <span className="text-[9px] text-amber-500 font-black uppercase flex items-center gap-1.5 tracking-widest">
+                  <span className="text-[10px] text-amber-500 font-black uppercase flex items-center gap-1.5 tracking-widest">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ADVISORY
                   </span>
                 </div>
@@ -241,10 +241,10 @@ export function Regulations() {
 
           <div className="bg-gradient-to-br from-zinc-900 to-[#09090b] p-6 rounded-2xl border border-border text-center relative overflow-hidden group">
              <div className="absolute inset-0 bg-surface-elevated opacity-0 group-hover:opacity-100 transition-opacity"></div>
-             <MessageSquare size={32} className="text-zinc-700 mx-auto mb-4 group-hover:text-orange-500 transition-colors" />
+             <MessageSquare size={32} className="text-foreground mx-auto mb-4 group-hover:text-orange-500 transition-colors" />
              <h5 className="text-[11px] font-black text-foreground mb-2 uppercase tracking-widest">Hukuki Danışmanlık?</h5>
              <p className="text-[10px] text-muted-foreground mb-6 px-2 font-medium leading-relaxed uppercase"> Karmaşık mevzuat sorularınız için yetkili bir uzmana danışın. Uygulama içi danışman hizmeti bağlı değildir.</p>
-             <Button disabled variant="outline" className="w-full text-[10px] font-black h-10 border-border bg-background hover:bg-zinc-900 hover:text-white tracking-widest uppercase transition-all">
+             <Button disabled variant="outline" className="w-full text-[10px] font-black h-10 border-border bg-background hover:bg-card hover:text-foreground tracking-widest uppercase transition-all">
                 Danışman hizmeti bağlı değil
              </Button>
           </div>

@@ -189,7 +189,7 @@ export function AdminQueue() {
             size="sm"
             onClick={() => loadQueue()}
             disabled={refreshing}
-            className="border-border bg-card text-foreground hover:bg-zinc-800 text-xs"
+            className="border-border bg-card text-foreground hover:bg-surface-elevated text-xs"
           >
             <RefreshCw size={14} className={`mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
             Yenile
@@ -318,7 +318,7 @@ export function AdminQueue() {
                   const isFailed = job.status === 'failed';
 
                   return (
-                    <tr key={job.id} className="hover:bg-zinc-800/40 transition-colors">
+                    <tr key={job.id} className="hover:bg-surface-elevated transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           <Building2 size={14} className="text-muted-foreground shrink-0" />

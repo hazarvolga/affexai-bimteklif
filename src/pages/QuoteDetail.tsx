@@ -282,21 +282,21 @@ export function QuoteDetail() {
               </Button>
             )}
             <DropdownMenu>
-              <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-muted-foreground" /></Button>} />
+              <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-surface-elevated gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-muted-foreground" /></Button>} />
               <DropdownMenuContent className="bg-card border-border text-foreground dark:text-muted-foreground w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel className="text-xs text-muted-foreground">Şablon Seçiniz</DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator className="bg-surface-elevated" />
-                <DropdownMenuItem onClick={() => handleDownloadPdf('default_construction')} className="gap-2 focus:bg-zinc-800 cursor-pointer py-2.5">
+                <DropdownMenuItem onClick={() => handleDownloadPdf('default_construction')} className="gap-2 focus:bg-surface-elevated cursor-pointer py-2.5">
                   <Layout size={16} className="text-orange-500" />
                   Modern İnşaat
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadPdf('luxury_villa')} className="gap-2 focus:bg-zinc-800 cursor-pointer py-2.5">
+                <DropdownMenuItem onClick={() => handleDownloadPdf('luxury_villa')} className="gap-2 focus:bg-surface-elevated cursor-pointer py-2.5">
                   <ShieldCheck size={16} className="text-blue-500" />
                   Lüks Villa Projesi
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadPdf('modern_minimal')} className="gap-2 focus:bg-zinc-800 cursor-pointer py-2.5">
+                <DropdownMenuItem onClick={() => handleDownloadPdf('modern_minimal')} className="gap-2 focus:bg-surface-elevated cursor-pointer py-2.5">
                   <Layers size={16} className="text-muted-foreground" />
                   Minimalist Modern
                 </DropdownMenuItem>
@@ -322,12 +322,12 @@ export function QuoteDetail() {
               </>
             )}
             {['won', 'lost'].includes(data.status) && (
-              <Button onClick={() => handleStatusChange('archived')} disabled={actionLoading} variant="outline" className="border-border bg-card text-muted-foreground hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
+              <Button onClick={() => handleStatusChange('archived')} disabled={actionLoading} variant="outline" className="border-border bg-card text-muted-foreground hover:bg-surface-elevated gap-2 h-10 px-4 font-bold">
                 <Archive size={18} />
                 Arşivle
               </Button>
             )}
-            <Button onClick={() => setRevisionDialogOpen(true)} disabled={actionLoading} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
+            <Button onClick={() => setRevisionDialogOpen(true)} disabled={actionLoading} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-surface-elevated gap-2 h-10 px-4 font-bold">
               <History size={18} />
               Yeni Revizyon Oluştur
             </Button>
@@ -344,7 +344,7 @@ export function QuoteDetail() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" className="border-border hover:bg-zinc-800 text-muted-foreground font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={() => setRevisionDialogOpen(false)}>İptal</Button>
+            <Button variant="outline" className="border-border hover:bg-surface-elevated text-muted-foreground font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={() => setRevisionDialogOpen(false)}>İptal</Button>
             <Button disabled={actionLoading} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={handleCreateRevision}>Versiyon Oluştur</Button>
           </DialogFooter>
         </DialogContent>
@@ -375,7 +375,7 @@ export function QuoteDetail() {
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Geçerlilik Tarihi</p>
                     <p className="text-sm font-medium text-foreground mt-0.5">{new Date(data.expiryDate).toLocaleDateString('tr-TR')}</p>
                     {quoteExpiryFlag && (
-                      <p className={cn("text-[9px] font-black uppercase tracking-widest mt-0.5", quoteExpiryFlag === 'expired' ? "text-red-400" : "text-amber-400")}>
+                      <p className={cn("text-[10px] font-black uppercase tracking-widest mt-0.5", quoteExpiryFlag === 'expired' ? "text-red-400" : "text-amber-400")}>
                         {quoteExpiryFlag === 'expired' ? 'Süresi doldu' : 'Süresi yakında doluyor'}
                       </p>
                     )}
@@ -392,7 +392,7 @@ export function QuoteDetail() {
                     <div className="mt-1">
                       <span className="text-xs font-mono text-foreground dark:text-muted-foreground">{data.projectDurationMonths || 1} ay · %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} eskalasyon · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} karbon · {data.informationDeliveryLevel || 'none'} teslim</span>
                       <div className="mt-1"><StatusBadge status={data.status} /></div>
-                      {data.updatedAt && <p className="text-[9px] text-muted-foreground mt-1.5">Son güncelleme: {new Date(data.updatedAt).toLocaleString('tr-TR')}</p>}
+                      {data.updatedAt && <p className="text-[10px] text-muted-foreground mt-1.5">Son güncelleme: {new Date(data.updatedAt).toLocaleString('tr-TR')}</p>}
                     </div>
                  </div>
                </CardContent>
@@ -564,7 +564,7 @@ export function QuoteDetail() {
                         <div key={entry.item.id} className="rounded-lg border border-border bg-card p-3">
                           <div className="flex items-start justify-between gap-3">
                             <div><p className="text-xs font-semibold text-foreground">{entry.item.description}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.item.quantity} {entry.item.unit}</p></div>
-                            <Badge className={cn('text-[9px] font-black', entry.missing || entry.stale ? 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300')}>{entry.missing ? 'EKSİK' : entry.stale ? 'ESKİ' : 'KANITLI'}</Badge>
+                            <Badge className={cn('text-[10px] font-black', entry.missing || entry.stale ? 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300')}>{entry.missing ? 'EKSİK' : entry.stale ? 'ESKİ' : 'KANITLI'}</Badge>
                           </div>
                           {entry.snapshot && <p className="mt-2 font-mono text-[10px] text-muted-foreground">{Number(entry.snapshot.amount).toLocaleString('tr-TR')} {entry.snapshot.currency} · geçerlilik: {entry.snapshot.validUntil ? new Date(entry.snapshot.validUntil).toLocaleDateString('tr-TR') : 'süresiz'}</p>}
                         </div>
@@ -676,7 +676,7 @@ export function QuoteDetail() {
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-sm text-foreground uppercase tracking-tighter">VERSİYON {rev.revisionVersion}</span>
                           {rev.isLatest && (
-                            <Badge className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 text-[8px] h-4 border-emerald-500/20 font-black">LATEST</Badge>
+                            <Badge className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 text-[10px] h-4 border-emerald-500/20 font-black">LATEST</Badge>
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-1">{new Date(rev.createdAt).toLocaleDateString('tr-TR')} - {new Date(rev.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
@@ -703,15 +703,15 @@ export function QuoteDetail() {
             <CardContent>
               {recentAlerts.length > 0 ? (
                 <div className="space-y-3">
-                  <p className="text-[9px] text-muted-foreground leading-tight">
+                  <p className="text-[10px] text-muted-foreground leading-tight">
                     Bu teklifle ilişkili sektörler için {recentAlerts.length} yeni mevzuat uyarısı mevcut.
                   </p>
                   <div className="space-y-2">
                     {recentAlerts.map(alert => (
                       <div key={alert.id} className="p-2 rounded bg-muted/50 border border-border text-left">
                         <div className="flex items-center justify-between mb-1">
-                          <Badge variant="outline" className="text-[7px] px-1 h-3 font-bold border-primary/20 text-primary">{alert.category}</Badge>
-                          <span className="text-[8px] text-muted-foreground font-mono tracking-tighter">{alert.impactLevel.toUpperCase()}</span>
+                          <Badge variant="outline" className="text-[10px] px-1 h-3 font-bold border-primary/20 text-primary">{alert.category}</Badge>
+                          <span className="text-[10px] text-muted-foreground font-mono tracking-tighter">{alert.impactLevel.toUpperCase()}</span>
                         </div>
                         <p className="text-[10px] font-bold text-foreground line-clamp-1">{alert.title}</p>
                       </div>

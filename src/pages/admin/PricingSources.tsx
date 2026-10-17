@@ -694,7 +694,7 @@ export function PricingSources() {
           <Button
             onClick={loadData}
             variant="outline"
-            className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-zinc-800 text-xs"
+            className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
           >
             <RefreshCw size={14} className={`mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Yenile
           </Button>
@@ -867,7 +867,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('sources')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'sources' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-zinc-200'
+            activeTab === 'sources' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           1. Kurumlar & Lisanslar ({sources.length})
@@ -875,7 +875,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('books')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'books' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-zinc-200'
+            activeTab === 'books' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           2. Fiyat Kitapları ({coverageReport?.totalBooks ?? 6} Resmi Kitap)
@@ -883,7 +883,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('import')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'import' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-zinc-200'
+            activeTab === 'import' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           3. İçe Aktarma (PDF / CSV Adaptörü)
@@ -891,7 +891,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('staging')}
           className={`pb-3 text-sm font-semibold transition-all relative flex items-center gap-2 ${
-            activeTab === 'staging' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-zinc-200'
+            activeTab === 'staging' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           4. Doğrulama & Onay (Staging Diff)
@@ -904,7 +904,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('coverage')}
           className={`pb-3 text-sm font-semibold transition-all relative flex items-center gap-2 ${
-            activeTab === 'coverage' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-zinc-200'
+            activeTab === 'coverage' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           5. Kapsam Raporu
@@ -915,7 +915,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('audit')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-zinc-200'
+            activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           6. Endeksler & Onaylı Kayıt Arama
@@ -1072,7 +1072,7 @@ export function PricingSources() {
                           href={s.sourceUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center text-xs text-muted-foreground hover:text-white transition-colors truncate max-w-[120px]"
+                          className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[120px]"
                           title={s.sourceUrl}
                         >
                           <Globe size={12} className="mr-1 shrink-0" />
@@ -1165,7 +1165,7 @@ export function PricingSources() {
               <button
                 type="button"
                 onClick={() => setVerifyModalSource(null)}
-                className="text-muted-foreground hover:text-white p-1"
+                className="text-muted-foreground hover:text-foreground p-1"
               >
                 <X size={18} />
               </button>
@@ -1258,7 +1258,7 @@ export function PricingSources() {
                   type="button"
                   variant="outline"
                   onClick={() => setVerifyModalSource(null)}
-                  className="border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800"
+                  className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                 >
                   İptal
                 </Button>
@@ -1267,7 +1267,7 @@ export function PricingSources() {
                   variant="outline"
                   disabled={verifying}
                   onClick={() => handleVerifySubmit(false)}
-                  className="border-border text-foreground hover:bg-zinc-800"
+                  className="border-border text-foreground hover:bg-surface-elevated"
                 >
                   Yalnızca Kaydet
                 </Button>
@@ -1302,7 +1302,7 @@ export function PricingSources() {
               <button
                 type="button"
                 onClick={() => setCsvModalSource(null)}
-                className="text-muted-foreground hover:text-white p-1"
+                className="text-muted-foreground hover:text-foreground p-1"
               >
                 <X size={18} />
               </button>
@@ -1427,7 +1427,7 @@ export function PricingSources() {
                       setPdfBase64Data('');
                       setPdfFileSizeKb(0);
                     }}
-                    className="text-xs text-muted-foreground hover:text-white underline ml-2"
+                    className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
                   >
                     Temizle
                   </button>
@@ -1513,7 +1513,7 @@ export function PricingSources() {
                   type="button"
                   variant="outline"
                   onClick={() => setCsvModalSource(null)}
-                  className="border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800"
+                  className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                 >
                   İptal
                 </Button>
@@ -1660,7 +1660,7 @@ export function PricingSources() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowAddModal(false)}
-                  className="border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800"
+                  className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                 >
                   İptal
                 </Button>
@@ -1737,7 +1737,7 @@ export function PricingSources() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {stagingItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
+                      <tr key={item.id} className="hover:bg-surface-elevated transition-colors">
                         <td className="py-3.5 px-3 font-mono font-bold text-foreground">{item.itemCode}</td>
                         <td className="py-3.5 px-3 max-w-xs text-foreground">
                           <div>{item.itemName}</div>
@@ -1861,7 +1861,7 @@ export function PricingSources() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {(coverageReport?.books ?? []).map((book) => (
-                    <tr key={book.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={book.id} className="hover:bg-surface-elevated transition-colors">
                       <td className="py-3.5 px-3 font-mono font-bold text-indigo-300">{book.id}</td>
                       <td className="py-3.5 px-3">
                         <div className="font-semibold text-white">{book.title}</div>

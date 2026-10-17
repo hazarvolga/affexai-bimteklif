@@ -288,10 +288,10 @@ export function DosyadanTeklifDemo() {
             })()}
             
             <div className="flex justify-between items-center mt-8 pt-6 border-t border-border">
-               <button onClick={() => setCurrentStep('upload')} className="text-muted-foreground hover:text-white font-medium px-4 py-2 transition-colors">
+               <button onClick={() => setCurrentStep('upload')} className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors">
                 İptal Et
               </button>
-              <button onClick={() => setCurrentStep('price')} className="bg-white text-zinc-950 px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 flex items-center transition-colors">
+              <button onClick={() => setCurrentStep('price')} className="bg-white text-foreground px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 flex items-center transition-colors">
                 Devam Et: Fiyatlandır <ChevronRight className="w-5 h-5 ml-2" />
               </button>
             </div>
@@ -316,7 +316,7 @@ export function DosyadanTeklifDemo() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  <tr className="hover:bg-zinc-900/50 transition-colors">
+                  <tr className="hover:bg-card transition-colors">
                     <td className="p-4 font-medium text-foreground">Hazır Beton</td>
                     <td className="p-4 text-right text-muted-foreground">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m³</td>
                     <td className="p-4 text-right">
@@ -331,7 +331,7 @@ export function DosyadanTeklifDemo() {
                       {(getConcreteVol() * unitPrices.beton).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
-                  <tr className="hover:bg-zinc-900/50 transition-colors">
+                  <tr className="hover:bg-card transition-colors">
                     <td className="p-4 font-medium text-foreground">Nervürlü Çelik (Donatı)</td>
                     <td className="p-4 text-right text-muted-foreground">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} Ton</td>
                     <td className="p-4 text-right">
@@ -346,7 +346,7 @@ export function DosyadanTeklifDemo() {
                        {(getSteelTon() * unitPrices.donati).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
-                   <tr className="hover:bg-zinc-900/50 transition-colors">
+                   <tr className="hover:bg-card transition-colors">
                     <td className="p-4 font-medium text-foreground">Kalıp İskelesi & Yüzeyi</td>
                     <td className="p-4 text-right text-muted-foreground">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²</td>
                     <td className="p-4 text-right">
@@ -371,7 +371,7 @@ export function DosyadanTeklifDemo() {
             </div>
             
             <div className="flex justify-between items-center mt-8 pt-6 border-t border-border">
-              <button onClick={() => setCurrentStep('review')} className="text-muted-foreground hover:text-white font-medium px-4 py-2 transition-colors">
+              <button onClick={() => setCurrentStep('review')} className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors">
                 Geri Dön
               </button>
               <button onClick={handleCreateQuote} className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 flex items-center shadow-lg transition-colors">
@@ -391,10 +391,10 @@ export function DosyadanTeklifDemo() {
               Beton, donatı ve kalıp metrajlarınız ile girdiğiniz birim fiyatlar yeni teklif taslağına aktarılmak üzere hazırlandı.
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-zinc-950 px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
+              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-foreground px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
                 Teklif Cetveline Aktar
               </button>
-              <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-card border border-border text-foreground dark:text-muted-foreground px-8 py-4 rounded-xl font-bold hover:bg-zinc-800 transition-colors w-full">
+              <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-card border border-border text-foreground dark:text-muted-foreground px-8 py-4 rounded-xl font-bold hover:bg-surface-elevated transition-colors w-full">
                 Yeni Dosya Yükle
               </button>
             </div>
@@ -411,7 +411,7 @@ export function DosyadanTeklifDemo() {
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Box className="w-5 h-5 text-primary" /> Eksik Pozlu Eleman Denetçisi
               </h3>
-              <button onClick={() => setIsSlideoverOpen(false)} className="text-muted-foreground hover:text-white transition-colors" aria-label="Paneli kapat">
+              <button onClick={() => setIsSlideoverOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Paneli kapat">
                 ✕
               </button>
             </div>

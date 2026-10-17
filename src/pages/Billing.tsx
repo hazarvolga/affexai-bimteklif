@@ -438,7 +438,7 @@ export function Billing() {
                         className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
                           active
                             ? 'bg-indigo-600 text-white shadow-xs'
-                            : 'text-muted-foreground hover:text-white hover:bg-zinc-800'
+                            : 'text-muted-foreground hover:text-white hover:bg-surface-elevated'
                         }`}
                       >
                         <span>{option.label}</span>
@@ -474,7 +474,7 @@ export function Billing() {
                           ? 'border-emerald-500/50 bg-emerald-950/20'
                           : isSelectedForTransfer
                             ? 'border-indigo-500 bg-indigo-950/25 ring-1 ring-indigo-500/40'
-                            : 'border-border bg-card hover:border-zinc-700'
+                            : 'border-border bg-card hover:border-border'
                       }`}
                     >
                       <div>
@@ -660,7 +660,7 @@ export function Billing() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleCopy(`holder-${bank.id}`, bank.accountHolder, 'Alıcı ünvanı')}
-                        className="h-7 px-2 text-xs text-muted-foreground hover:text-white shrink-0"
+                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0"
                       >
                         {copiedKey === `holder-${bank.id}` ? <Check size={13} /> : <Copy size={13} />}
                       </Button>
@@ -678,7 +678,7 @@ export function Billing() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleCopy(`iban-${bank.id}`, bank.iban, 'IBAN')}
-                        className="h-7 px-2 text-xs text-muted-foreground hover:text-white shrink-0"
+                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0"
                       >
                         {copiedKey === `iban-${bank.id}` ? <Check size={13} /> : <Copy size={13} />}
                       </Button>

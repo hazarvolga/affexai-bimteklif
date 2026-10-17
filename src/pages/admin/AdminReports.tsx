@@ -207,7 +207,7 @@ export function AdminReports() {
                 </tr>
               ) : (
                 topTenants.map((tenant) => (
-                  <tr key={tenant.id} className="hover:bg-zinc-800/40 transition-colors">
+                  <tr key={tenant.id} className="hover:bg-surface-elevated transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <Building2 size={14} className="text-muted-foreground shrink-0" />

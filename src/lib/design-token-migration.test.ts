@@ -15,9 +15,10 @@ test('nötr yüzey, çizgi ve metin sınıfları köprüyle aynı token\'lara ç
   assert.equal(run('"text-slate-300"'), '"text-foreground dark:text-muted-foreground"');
 });
 
-test('önek taşıyan sınıflar (hover:, md:, dark:) ve renkli vurgu sınıfları değişmez', () => {
-  const kept = '"hover:bg-zinc-800 md:bg-zinc-900 dark:text-zinc-300 text-indigo-300 bg-emerald-600 hover:text-white"';
-  assert.equal(run(kept), kept);
+test('önek taşıyan nötr sınıflar (hover:, md:) pafta tokenlarına çevrilir; doymuş renkli öğede hover:text-white korunur', () => {
+  const src = '"hover:bg-zinc-800 md:bg-zinc-900 text-indigo-300 bg-emerald-600 hover:text-white"';
+  assert.equal(run(src), '"hover:bg-surface-elevated md:bg-card text-indigo-300 bg-emerald-600 hover:text-white"');
+  assert.equal(run('"hover:bg-zinc-800 hover:text-white"'), '"hover:bg-surface-elevated hover:text-foreground"');
 });
 
 test('text-white yalnız doymuş arka planı olmayan öğede çevrilir', () => {

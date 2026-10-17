@@ -189,7 +189,7 @@ export default function BimDashboard() {
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">YAPIM SÜRESİ KAZANCI</span>
-                <span className="text-xl font-black text-slate-900">%25 - %35</span>
+                <span className="text-xl font-black text-foreground">%25 - %35</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">Sahada Hata Engelleme ile</span>
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function BimDashboard() {
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">BÜTÇE/METRAJ SAPMASI</span>
-                <span className="text-xl font-black text-slate-900">&lt; %3'ün Altı</span>
+                <span className="text-xl font-black text-foreground">&lt; %3'ün Altı</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">BIM Düzey 2 Olgunlukta</span>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function BimDashboard() {
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">TESİS DEVREYE ALMA</span>
-                <span className="text-xl font-black text-slate-900">15 Kat Daha Hızlı</span>
+                <span className="text-xl font-black text-foreground">15 Kat Daha Hızlı</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">Entegre COBie Standardı</span>
               </div>
             </div>
@@ -222,7 +222,7 @@ export default function BimDashboard() {
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">KAFEİN &amp; MALZEME İSRAFI</span>
-                <span className="text-xl font-black text-slate-900">%40 Azalma</span>
+                <span className="text-xl font-black text-foreground">%40 Azalma</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">Doğru 3D İmalat Detayları</span>
               </div>
             </div>
@@ -235,7 +235,7 @@ export default function BimDashboard() {
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">CAD ve BIM Olgunluk Seviyeleri Karşılaştırması</h3>
+                  <h3 className="font-black text-sm text-foreground uppercase tracking-tight">CAD ve BIM Olgunluk Seviyeleri Karşılaştırması</h3>
                   <p className="text-[11px] text-muted-foreground font-bold">Hata oranları ve zaman sapmalarının BIM seviyesine göre radikal düşüşü</p>
                 </div>
                 <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[10px] font-black rounded border border-orange-100">SEKTÖREL VERİ</span>
@@ -264,7 +264,7 @@ export default function BimDashboard() {
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">Proje Aşamalarına Göre Verimlilik Gelişimi</h3>
+                  <h3 className="font-black text-sm text-foreground uppercase tracking-tight">Proje Aşamalarına Göre Verimlilik Gelişimi</h3>
                   <p className="text-[11px] text-muted-foreground font-bold">BIM entegrasyonu sonrası aşamalar boyunca tırmanan mühendislik kalitesi (%)</p>
                 </div>
                 <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[10px] font-black rounded border border-orange-100">YAŞAM DÖNGÜSÜ</span>
@@ -297,7 +297,7 @@ export default function BimDashboard() {
             {/* Chart 3: Radar Chart for ISO 19650 Implementation Areas */}
             <div className="lg:col-span-6 bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4">
               <div>
-                <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">Geleneksel vs ISO 19650 Standart Uyum Olgunluğu</h3>
+                <h3 className="font-black text-sm text-foreground uppercase tracking-tight">Geleneksel vs ISO 19650 Standart Uyum Olgunluğu</h3>
                 <p className="text-[11px] text-muted-foreground font-bold">Mühendislik departmanlarında kriter bazlı olgunluk derecesi karşılaştırması</p>
               </div>
 
@@ -336,21 +336,21 @@ export default function BimDashboard() {
               </div>
 
               <div className="bg-white border border-border rounded-2xl p-5 shadow-sm space-y-3">
-                <h4 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="font-extrabold text-xs text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-orange-600" />
                   Mühendislikte Verimlilik Kazanım Matrisi
                 </h4>
                 
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl font-bold">
+                  <div className="flex justify-between items-center p-2.5 bg-card border border-border rounded-xl font-bold">
                     <span className="text-muted-foreground">3D Çakışma Analizi (Clash)</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px]">%90 Sahada Sıfır Hata</span>
                   </div>
-                  <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl font-bold">
+                  <div className="flex justify-between items-center p-2.5 bg-card border border-border rounded-xl font-bold">
                     <span className="text-muted-foreground">4D Zaman Simülasyonu</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px]">%20 Takvim Kısaltma</span>
                   </div>
-                  <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl font-bold">
+                  <div className="flex justify-between items-center p-2.5 bg-card border border-border rounded-xl font-bold">
                     <span className="text-muted-foreground">COBie ile Bilgi Teslimatı</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px]">15 Kat Hızlı Devir</span>
                   </div>
@@ -365,8 +365,8 @@ export default function BimDashboard() {
         /* TAB 2: INTERACTIVE BIM ROI CALCULATOR SIMULATOR */
         <div className="bg-white border border-border rounded-2xl p-6 sm:p-10 shadow-sm space-y-8 animate-in fade-in duration-300" id="roi-simulator">
           
-          <div className="border-b border-slate-100 pb-4">
-            <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <div className="border-b border-border pb-4">
+            <h3 className="text-lg font-black text-foreground tracking-tight flex items-center gap-2">
               <Calculator className="w-5 h-5 text-orange-600" />
               Kişiselleştirilmiş BIM ROI Simülasyonu
             </h3>
@@ -378,14 +378,14 @@ export default function BimDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Left Controls Column */}
-            <div className="lg:col-span-5 bg-slate-50 border border-border p-6 rounded-2xl space-y-6">
+            <div className="lg:col-span-5 bg-card border border-border p-6 rounded-2xl space-y-6">
               
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">PROJE PARAMETRELERİ</span>
 
               {/* Input 1: Budget Slider */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <label className="text-slate-700 flex items-center gap-1">
+                  <label className="text-foreground flex items-center gap-1">
                     <Building2 className="w-4 h-4 text-muted-foreground" />
                     Proje Yaklaşık Bütçesi
                   </label>
@@ -401,7 +401,7 @@ export default function BimDashboard() {
                   className="w-full accent-orange-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                   id="budget-range-slider"
                 />
-                <div className="flex justify-between text-[9px] text-muted-foreground font-bold">
+                <div className="flex justify-between text-[10px] text-muted-foreground font-bold">
                   <span>10 Milyon TL</span>
                   <span>500 Milyon</span>
                   <span>1 Milyar TL</span>
@@ -410,7 +410,7 @@ export default function BimDashboard() {
 
               {/* Input 2: Project Type Select */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 block">Proje Yapı Sınıfı &amp; Disiplini</label>
+                <label className="text-xs font-bold text-foreground block">Proje Yapı Sınıfı &amp; Disiplini</label>
                 <div className="grid grid-cols-1 gap-2">
                   {[
                     { id: 'hastane', name: 'Sağlık Kompleksi / Hastane (MEP Ağırlıklı)', desc: 'Yüksek çakışma riski barındıran hassas yapılar.' },
@@ -438,7 +438,7 @@ export default function BimDashboard() {
 
               {/* Input 3: BIM Maturity Level Select */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 block">Hedeflenen BIM Olgunluk Seviyesi</label>
+                <label className="text-xs font-bold text-foreground block">Hedeflenen BIM Olgunluk Seviyesi</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[0, 1, 2, 3].map((lvl) => (
                     <button
@@ -473,7 +473,7 @@ export default function BimDashboard() {
               <div className="bg-card text-white p-6 rounded-2xl relative overflow-hidden shadow-md space-y-4">
                 <div className="absolute right-0 bottom-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl"></div>
                 
-                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">SİMÜLASYON ANALİZİ</span>
+                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block">SİMÜLASYON ANALİZİ</span>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
@@ -515,7 +515,7 @@ export default function BimDashboard() {
                     <Zap className="w-4 h-4 text-orange-600" />
                   </div>
                   <div>
-                    <span className="text-2xl font-black text-slate-900">{roiResult.clashesPrevented} Çakışma</span>
+                    <span className="text-2xl font-black text-foreground">{roiResult.clashesPrevented} Çakışma</span>
                     <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       Sahaya çıkmadan tasarım aşamasında engellenen boru-kiriş, elektrik-kanal çakışması sayısı.
                     </p>
@@ -529,7 +529,7 @@ export default function BimDashboard() {
                     <Clock className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <span className="text-2xl font-black text-slate-900">{roiResult.timeSavingsWeeks} Hafta Tasarruf</span>
+                    <span className="text-2xl font-black text-foreground">{roiResult.timeSavingsWeeks} Hafta Tasarruf</span>
                     <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       BIM 4D simülasyonları ve koordinasyon toplantıları sayesinde şantiyede kazanılan yapım takvimi.
                     </p>
@@ -543,7 +543,7 @@ export default function BimDashboard() {
                     <Award className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div>
-                    <span className="text-2xl font-black text-slate-900">% {roiResult.quantitySurveyDeviation} Sapma</span>
+                    <span className="text-2xl font-black text-foreground">% {roiResult.quantitySurveyDeviation} Sapma</span>
                     <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       BIM modellerinden doğrudan çıkartılan malzeme miktarı toleransı (Geleneksel yöntemlerde sapma %18'dir).
                     </p>
@@ -557,7 +557,7 @@ export default function BimDashboard() {
                     <Hammer className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <span className="text-2xl font-black text-slate-900">{roiResult.facilityHandoverDays} Gün</span>
+                    <span className="text-2xl font-black text-foreground">{roiResult.facilityHandoverDays} Gün</span>
                     <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       COBie standardında doğrulanmış veritabanı sayesinde as-built verilerin tesis işletme ekibine sorunsuz devir süresi.
                     </p>

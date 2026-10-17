@@ -80,7 +80,7 @@ export default function StandardsView() {
         'Gereksiz Dosya Çöplüğünün Engellenmesi İçin Silme Kuralları',
         'Arşivleme ve Teslimat Prosedürünün Tanımlanması'
       ],
-      bgClass: 'border-slate-100 bg-slate-50/10 text-slate-700',
+      bgClass: 'border-border bg-card text-foreground',
       iconName: 'bs'
     },
     {
@@ -158,13 +158,13 @@ export default function StandardsView() {
                 placeholder="Standart ara... (örn: ISO 19650, IFC...)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-border rounded-xl text-sm focus:outline-none focus:border-orange-500 font-medium text-slate-800"
+                className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-orange-500 font-medium text-foreground"
                 id="search-standards"
               />
             </div>
 
             {/* Category Filter buttons */}
-            <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100">
+            <div className="flex flex-wrap gap-2 pt-1 border-t border-border">
               {['Tümü', 'Yönetim', 'Birlikte Çalışabilirlik', 'Protokol', 'Tesis Yönetimi'].map((category) => (
                 <button
                   key={category}
@@ -172,7 +172,7 @@ export default function StandardsView() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     selectedCategory === category
                       ? 'bg-orange-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'
+                      : 'bg-card text-muted-foreground hover:bg-slate-200'
                   }`}
                   id={`filter-category-${category}`}
                 >
@@ -199,17 +199,17 @@ export default function StandardsView() {
                 >
                   <div className="space-y-4">
                     <div className="flex justify-between items-start">
-                      <span className="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-md font-extrabold text-[10px] uppercase tracking-wider mono">
+                      <span className="px-2.5 py-1 bg-card text-foreground rounded-md font-extrabold text-[10px] uppercase tracking-wider mono">
                         {std.category}
                       </span>
                       <Award className={`w-4 h-4 ${isActive ? 'text-orange-600' : 'text-muted-foreground'}`} />
                     </div>
                     <div>
-                      <h4 className="font-extrabold text-slate-900 text-base group-hover:text-orange-600">{std.code}</h4>
+                      <h4 className="font-extrabold text-foreground text-base group-hover:text-orange-600">{std.code}</h4>
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{std.title}</p>
                     </div>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-4 mt-4 border-t border-border flex items-center justify-between">
                     <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">Ayrıntılar</span>
                     <ArrowRight className={`w-4 h-4 transition-transform ${isActive ? 'text-orange-600 translate-x-1' : 'text-muted-foreground'}`} />
                   </div>
@@ -218,7 +218,7 @@ export default function StandardsView() {
             })}
             
             {filteredStandards.length === 0 && (
-              <div className="col-span-2 text-center py-12 bg-white border border-slate-100 rounded-2xl text-muted-foreground">
+              <div className="col-span-2 text-center py-12 bg-white border border-border rounded-2xl text-muted-foreground">
                 Arama kriterlerine uygun standart bulunamadı.
               </div>
             )}
@@ -227,11 +227,11 @@ export default function StandardsView() {
 
         {/* Right Active Detail View Panel */}
         <div className="lg:col-span-5 bg-white border border-border rounded-2xl p-8 shadow-sm space-y-8 sticky top-24">
-          <div className="border-b border-slate-100 pb-5 space-y-2">
+          <div className="border-b border-border pb-5 space-y-2">
             <span className="px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full font-bold text-[10px] uppercase tracking-widest inline-block">
               {activeStandard.code}
             </span>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{activeStandard.title}</h3>
+            <h3 className="text-2xl font-black text-foreground tracking-tight leading-tight">{activeStandard.title}</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">{activeStandard.description}</p>
           </div>
 
@@ -240,24 +240,24 @@ export default function StandardsView() {
             
             {/* Target Audience */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-slate-800 font-extrabold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-foreground font-extrabold text-xs uppercase tracking-wider">
                 <Users className="w-4 h-4 text-orange-600" />
                 Hedef Kitle (Kimler İçin?)
               </div>
-              <p className="text-xs text-muted-foreground bg-slate-50 border border-slate-100 p-3.5 rounded-xl leading-relaxed">
+              <p className="text-xs text-muted-foreground bg-card border border-border p-3.5 rounded-xl leading-relaxed">
                 {activeStandard.audience}
               </p>
             </div>
 
             {/* Deliverables List */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-slate-800 font-extrabold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-foreground font-extrabold text-xs uppercase tracking-wider">
                 <ClipboardCheck className="w-4 h-4 text-orange-600" />
                 Temel Teknik Teslimatlar
               </div>
               <ul className="grid grid-cols-1 gap-2">
                 {activeStandard.deliverables.map((d, index) => (
-                  <li key={index} className="flex items-center gap-2.5 text-xs text-slate-700 font-semibold bg-slate-50/50 p-3 rounded-lg border border-slate-100/50">
+                  <li key={index} className="flex items-center gap-2.5 text-xs text-foreground font-semibold bg-card p-3 rounded-lg border border-border">
                     <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
                     {d}
                   </li>
@@ -266,9 +266,9 @@ export default function StandardsView() {
             </div>
 
             {/* Dynamic Compliance Checklist */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
+            <div className="space-y-4 pt-4 border-t border-border">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 text-slate-800 font-extrabold text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-foreground font-extrabold text-xs uppercase tracking-wider">
                   <ShieldCheck className="w-4 h-4 text-orange-600" />
                   Uyum ve Kontrol Listesi
                 </div>
@@ -281,7 +281,7 @@ export default function StandardsView() {
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-card h-1.5 rounded-full overflow-hidden">
                 <div 
                   className="bg-orange-600 h-full transition-all duration-300"
                   style={{ width: `${complianceScore}%` }}
@@ -299,8 +299,8 @@ export default function StandardsView() {
                       onClick={() => handleToggleCheck(checkKey)}
                       className={`flex items-start gap-3 w-full p-3.5 rounded-xl text-left text-xs font-medium transition-all border ${
                         isChecked 
-                          ? 'bg-slate-50 border-orange-200 text-slate-800' 
-                          : 'bg-white border-slate-150 text-muted-foreground hover:bg-slate-50'
+                          ? 'bg-card border-orange-200 text-foreground' 
+                          : 'bg-white border-border text-muted-foreground hover:bg-card'
                       }`}
                       id={`chk-${checkKey}`}
                     >

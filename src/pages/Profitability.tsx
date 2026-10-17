@@ -68,7 +68,7 @@ export function Profitability() {
               <p className="text-sm font-black text-foreground uppercase tracking-widest">Veriler yüklenemedi</p>
               <p className="text-xs text-muted-foreground mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
             </div>
-            <Button onClick={load} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-zinc-800 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
+            <Button onClick={load} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-surface-elevated gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
               <RefreshCw size={14} /> Tekrar Dene
             </Button>
           </CardContent>
@@ -118,7 +118,7 @@ export function Profitability() {
                 ) : (
                   <div className="divide-y divide-border">
                     {decidedQuotes.map((quote) => (
-                      <Link key={quote.id} to={`/app/quotes/${quote.id}`} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-zinc-800/20 transition-all">
+                      <Link key={quote.id} to={`/app/quotes/${quote.id}`} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-surface-elevated transition-all">
                         <div className="min-w-0">
                           <p className="text-xs font-black text-foreground uppercase tracking-tight truncate">{quote.projectName}</p>
                           <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{quote.quoteNumber}</p>

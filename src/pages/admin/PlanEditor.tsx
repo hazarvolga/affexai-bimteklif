@@ -527,7 +527,7 @@ export function PlanEditor() {
               type="button"
               variant="outline"
               onClick={() => navigate(`/admin/plans/new?cloneFrom=${currentPlan.id}`)}
-              className="border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800 text-xs"
+              className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
             >
               <Copy size={14} className="mr-1.5" /> Bu Paketten Kopya Oluştur
             </Button>
@@ -536,7 +536,7 @@ export function PlanEditor() {
             type="button"
             variant="ghost"
             onClick={() => navigate('/admin/plans')}
-            className="text-muted-foreground hover:text-white text-xs"
+            className="text-muted-foreground hover:text-foreground text-xs"
           >
             Vazgeç
           </Button>
@@ -608,7 +608,7 @@ export function PlanEditor() {
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${
                   lifecycleMode === 'active_public'
                     ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-950/30'
-                    : 'border-border bg-background hover:border-zinc-700'
+                    : 'border-border bg-background hover:border-border'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -1124,7 +1124,7 @@ export function PlanEditor() {
                       key={val}
                       type="button"
                       onClick={() => setMaxDocuments(val)}
-                      className="rounded border border-border bg-card hover:border-zinc-700 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-white"
+                      className="rounded border border-border bg-card hover:border-border px-2 py-0.5 text-[10px] text-muted-foreground hover:text-white"
                     >
                       {val} Dosya
                     </button>
@@ -1179,7 +1179,7 @@ export function PlanEditor() {
                       key={item.mb}
                       type="button"
                       onClick={() => setStorageMaxMb(item.mb)}
-                      className="rounded border border-border bg-card hover:border-zinc-700 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-white"
+                      className="rounded border border-border bg-card hover:border-border px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
                     >
                       {item.label}
                     </button>

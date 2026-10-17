@@ -86,7 +86,7 @@ export function CalculationMethods() {
       <div className="print-doc">
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link to="/admin/roadmap" className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white print:hidden"><ArrowLeft size={14} />Geliştirici Yol Haritası</Link>
+          <Link to="/admin/roadmap" className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground print:hidden"><ArrowLeft size={14} />Geliştirici Yol Haritası</Link>
           <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-foreground"><Calculator className="text-indigo-400" size={26} />Hesaplama Yöntemleri</h1>
           <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">BIMMetraj modüllerinin formülleri, eşikleri, kaynakları ve örnekleri — yetkili mimar ve mühendislerin bağımsız doğrulaması için. Güncelleme: {CALC_REVIEW_META.updatedOn}.</p>
         </div>

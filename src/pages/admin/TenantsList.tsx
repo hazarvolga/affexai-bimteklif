@@ -173,7 +173,7 @@ export function TenantsList() {
           variant="outline"
           size="sm"
           onClick={() => void loadData()}
-          className="mt-2 border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800 text-xs"
+          className="mt-2 border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
         >
           <RefreshCw size={14} className="mr-1.5" /> Yenile
         </Button>
@@ -259,7 +259,7 @@ export function TenantsList() {
                 const ifcLimit = tenant.ifc_limit;
 
                 return (
-                  <tr key={tenant.id} className="hover:bg-zinc-800/30 transition-colors">
+                  <tr key={tenant.id} className="hover:bg-surface-elevated transition-colors">
                     <td className="px-6 py-4">
                       <Link
                         to={`/admin/tenants/${tenant.id}`}
@@ -332,7 +332,7 @@ export function TenantsList() {
                           variant="outline"
                           size="sm"
                           onClick={() => openManageModal(tenant)}
-                          className="border-border bg-transparent text-foreground dark:text-muted-foreground hover:bg-zinc-800 text-xs"
+                          className="border-border bg-transparent text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
                         >
                           Hızlı Düzenle
                         </Button>
@@ -351,7 +351,7 @@ export function TenantsList() {
           <div className="w-full max-w-md rounded-xl bg-background border border-border p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-foreground">{selectedTenant.name} Yönetimi</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-white">
+              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={20} />
               </button>
             </div>

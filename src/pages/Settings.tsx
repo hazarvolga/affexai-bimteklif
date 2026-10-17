@@ -598,7 +598,7 @@ export function Settings() {
               <Card className="bg-card border-border shadow-none">
                 <CardContent className="pt-6 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Gerçekleşen gözlem", calibration.observedQuoteCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-border bg-background p-3"><p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-1 font-mono text-lg text-foreground">{value}</p></div>)}
+                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Gerçekleşen gözlem", calibration.observedQuoteCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-1 font-mono text-lg text-foreground">{value}</p></div>)}
                   </div>
                   <div className={cn("rounded-lg border p-3 text-xs", calibration.readyForCalibration ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300")}>{calibration.message}</div>
                 </CardContent>
@@ -609,9 +609,9 @@ export function Settings() {
             <SectionWrapper title="Kalibrasyon Raporu" description="Planlanan ve gerçekleşen sonuçlar arasındaki sapma. Otomatik katsayı değişikliği yapılmaz.">
               <Card className="bg-card border-border shadow-none"><CardContent className="pt-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Gözlem</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.observationCount}</p></div>
-                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Maliyet sapması</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.costBiasPercent == null ? '—' : `%${calibrationReport.costBiasPercent.toFixed(1)}`}</p></div>
-                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Süre sapması</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.durationBiasPercent == null ? '—' : `%${calibrationReport.durationBiasPercent.toFixed(1)}`}</p></div>
+                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gözlem</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.observationCount}</p></div>
+                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Maliyet sapması</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.costBiasPercent == null ? '—' : `%${calibrationReport.costBiasPercent.toFixed(1)}`}</p></div>
+                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Süre sapması</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.durationBiasPercent == null ? '—' : `%${calibrationReport.durationBiasPercent.toFixed(1)}`}</p></div>
                 </div>
                 <p className="text-xs text-muted-foreground">{calibrationReport.recommendation}</p>
               </CardContent></Card>
@@ -663,7 +663,7 @@ export function Settings() {
                       </div>
                     ) : (
                       invites.filter(i => !i.acceptedAt).map((invite) => (
-                        <div key={invite.id} className="p-6 flex flex-wrap gap-3 items-center justify-between bg-card group hover:bg-zinc-900/30 transition-colors">
+                        <div key={invite.id} className="p-6 flex flex-wrap gap-3 items-center justify-between bg-card group hover:bg-card transition-colors">
                           <div className="flex min-w-0 items-center gap-5">
                             <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-border flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform">
                               <Mail size={20} />
@@ -671,7 +671,7 @@ export function Settings() {
                             <div className="min-w-0">
                               <p className="text-sm font-black text-foreground break-all">{invite.email}</p>
                               <div className="flex flex-wrap items-center gap-2 mt-1">
-                                <Badge className="bg-surface-elevated text-muted-foreground border-none font-black text-[9px] px-2 py-0">ROLE: {invite.role.toUpperCase()}</Badge>
+                                <Badge className="bg-surface-elevated text-muted-foreground border-none font-black text-[10px] px-2 py-0">ROLE: {invite.role.toUpperCase()}</Badge>
                                 <span className="text-[10px] text-muted-foreground">{invite.status === 'reissue_required' ? 'Eski bağlantı: yeniden davet gerekli' : invite.status === 'expired' ? 'Süresi doldu' : 'Kabul bekleniyor'} · {new Date(invite.createdAt).toLocaleDateString('tr-TR')}</span>
                               </div>
                             </div>
@@ -679,7 +679,7 @@ export function Settings() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="bg-surface-elevated text-muted-foreground hover:text-white font-black text-[10px] uppercase tracking-widest h-9 px-4 gap-2"
+                            className="bg-surface-elevated text-muted-foreground hover:text-foreground font-black text-[10px] uppercase tracking-widest h-9 px-4 gap-2"
                             onClick={() => { setInviteEmail(invite.email); setInviteRole(['admin', 'manager', 'viewer'].includes(invite.role) ? invite.role : 'viewer'); }}
                           >
                             <UserPlus size={14} /> Yeniden Davet
@@ -788,10 +788,10 @@ export function Settings() {
                         size="sm"
                         variant={industryEnabled(industry.id) ? "default" : "outline"}
                         className={cn(
-                          "text-[9px] h-8 px-4 font-black uppercase tracking-widest transition-all",
+                          "text-[10px] h-8 px-4 font-black uppercase tracking-widest transition-all",
                           industryEnabled(industry.id) 
                             ? "bg-orange-700 hover:bg-orange-800 text-white shadow-[0_0_15px_rgba(234,88,12,0.3)]" 
-                            : "border-border text-muted-foreground hover:bg-zinc-800 hover:text-zinc-400"
+                            : "border-border text-muted-foreground hover:bg-surface-elevated hover:text-muted-foreground"
                         )}
                         onClick={() => toggleIndustry(industry.id)}
                       >

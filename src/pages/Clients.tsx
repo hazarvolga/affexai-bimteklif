@@ -217,7 +217,7 @@ export function Clients() {
                 </Field>
               </div>
               <DialogFooter className="p-6 bg-card border-t border-zinc-900">
-                <Button variant="outline" className="border-border hover:bg-zinc-800 text-muted-foreground font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setOpen(false)}>İptal</Button>
+                <Button variant="outline" className="border-border hover:bg-surface-elevated text-muted-foreground font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setOpen(false)}>İptal</Button>
                 <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-11 px-8 shadow-lg shadow-orange-900/20" onClick={handleCreate}>Müşteriyi Kaydet</Button>
               </DialogFooter>
             </DialogContent>
@@ -313,7 +313,7 @@ export function Clients() {
                     <TableRow 
                       key={client.id} 
                       className={cn(
-                        "border-border hover:bg-zinc-800/20 transition-all group",
+                        "border-border hover:bg-surface-elevated transition-all group",
                         idx % 2 === 0 ? "bg-transparent" : "bg-card"
                       )}
                     >
@@ -326,7 +326,7 @@ export function Clients() {
                             <p className="font-black text-xs text-foreground uppercase tracking-tight">{client.name}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Briefcase size={10} className="text-muted-foreground" />
-                              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">
+                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
                                 {client.type === 'company' ? 'KURUMSAL' : 'BİREYSEL'}
                               </p>
                             </div>
@@ -388,7 +388,7 @@ function StageBadge({ stage }: { stage: PipelineStage | string }) {
     ? configs[normalizedStage]
     : { label: 'BİLİNMEYEN', color: 'bg-surface-elevated text-foreground dark:text-muted-foreground border-zinc-600' };
   return (
-    <Badge variant="outline" className={cn("text-[9px] px-2 py-0.5 font-black tracking-widest rounded-md uppercase border transition-all", config.color)}>
+    <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5 font-black tracking-widest rounded-md uppercase border transition-all", config.color)}>
       {config.label}
     </Badge>
   );

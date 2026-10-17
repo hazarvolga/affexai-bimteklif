@@ -47,7 +47,7 @@ export function AdminLogs() {
     return () => controller.abort();
   }, [cursor, limit, revision]);
   const refresh = () => { setCursors([null]); setRevision(value => value + 1); };
-  const iconButton = 'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border text-foreground hover:bg-zinc-800 disabled:opacity-40';
+  const iconButton = 'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border text-foreground hover:bg-surface-elevated disabled:opacity-40';
 
   return <PageContainer>
     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">

@@ -591,7 +591,7 @@ export function PlansList() {
                   <Button
                     onClick={() => openPlanEditor(plan)}
                     variant="outline"
-                    className="flex-1 border-border bg-transparent text-foreground hover:bg-zinc-800 text-xs py-1.5 h-8"
+                    className="flex-1 border-border bg-transparent text-foreground hover:bg-surface-elevated text-xs py-1.5 h-8"
                   >
                     Detaylı Düzenle
                   </Button>
@@ -683,7 +683,7 @@ export function PlansList() {
               </thead>
               <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
                 {paymentRequests.map((req) => (
-                  <tr key={req.requestId} className="hover:bg-zinc-900/40">
+                  <tr key={req.requestId} className="hover:bg-card">
                     <td className="p-3 font-mono font-bold text-amber-300">{req.referenceCode}</td>
                     <td className="p-3">
                       <Link
@@ -951,7 +951,7 @@ export function PlansList() {
               <button
                 type="button"
                 onClick={() => setDeactivatingPlan(null)}
-                className="text-muted-foreground hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X size={20} />
               </button>
@@ -990,7 +990,7 @@ export function PlansList() {
                 className={`block cursor-pointer rounded-xl border p-3.5 transition-all ${
                   deactivateMode === 'deactivate_and_migrate'
                     ? 'border-amber-500/50 bg-amber-500/10'
-                    : 'border-border bg-card hover:border-zinc-700'
+                    : 'border-border bg-card hover:border-border'
                 }`}
               >
                 <div className="flex items-start gap-2.5">
@@ -1046,7 +1046,7 @@ export function PlansList() {
                   className={`block cursor-pointer rounded-xl border p-3.5 transition-all ${
                     deactivateMode === 'hide_only'
                       ? 'border-indigo-500/50 bg-indigo-500/10'
-                      : 'border-border bg-card hover:border-zinc-700'
+                      : 'border-border bg-card hover:border-border'
                   }`}
                 >
                   <div className="flex items-start gap-2.5">

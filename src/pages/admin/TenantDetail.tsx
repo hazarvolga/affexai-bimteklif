@@ -370,7 +370,7 @@ export function TenantDetail() {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/admin/tenants')}
-            className="text-muted-foreground hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft size={18} className="mr-1" /> Firmalar
           </Button>
