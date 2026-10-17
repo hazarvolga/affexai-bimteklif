@@ -8,6 +8,14 @@ export interface ParsedIfcElement {
   storeySourcePath?: string;
   volumeM3: number;
   areaM2?: number;
+  grossAreaM2?: number;
+  openingAreaM2?: number;
+  lengthM?: number;
+  materialLayers?: string[];
+  coveringPredefinedType?: string;
+  spaceCode?: string;
+  spaceName?: string;
+  zoneName?: string;
   formworkM2: number;
   rebarKg: number;
   rebarDiameterMm?: number;
@@ -27,6 +35,28 @@ export interface ParsedIfcElement {
   coverMm?: number;
   discipline?: string;
   expectedQuantity?: number;
+}
+
+export interface ApartmentRoomScheduleItem {
+  code: string;
+  name: string;
+  storey: string;
+  netAreaM2: number;
+  floorFinish: string;
+  isBalcony?: boolean;
+}
+
+export interface ApartmentUnitScheduleItem {
+  unitCode: string;
+  unitLabel: string;
+  storey: string;
+  roomCount: number;
+  netSweepableM2: number;
+  balconyM2: number;
+  totalNetM2: number;
+  unitGrossM2: number;
+  generalGrossM2: number;
+  rooms: ApartmentRoomScheduleItem[];
 }
 
 export interface TrPsetCsbProjectCompliance {
@@ -67,6 +97,7 @@ export interface IfcParseSummary {
   rebarCount: number;
   rebarByDiameter: Record<number, { lengthM: number; weightKg: number }>;
   trPsetCsb: TrPsetCsbProjectCompliance;
+  apartmentSchedule?: ApartmentUnitScheduleItem[];
   elementsWithPozNoCount: number;
   elementsMissingPozNoCount: number;
   materialNames?: string[];

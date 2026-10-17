@@ -386,6 +386,8 @@ def extract_quantities_and_properties(
     layer_thickness_sum = 0.0
     nominal_height_m: Optional[float] = None
     prop_bar_length_m: Optional[float] = None
+    material_layers: List[str] = []
+    calc_mode_unit: Optional[str] = None
     eff_length_scale = length_scale if (math.isfinite(length_scale) and length_scale > 0) else 1.0
 
     for rel in getattr(elem, "IsDefinedBy", []):
@@ -504,7 +506,7 @@ def extract_quantities_and_properties(
                     if e_val is not None and e_val > 0:
                         explicit_expected_volume = e_val * quantity_scale(prop, "VOLUMEUNIT", vol_scale)
 
-                # Track layer thickness and nominal height for coverings / skirting boards
+                # Track layer thickness, nominal height, material layers, and calculation mode for coverings / skirting boards
                 if p_name_lower in {"katman_kalınlığı", "katman_kalinligi"}:
                     t_val = safe_float(wrapped_val)
                     if t_val is not None and t_val > 0:
@@ -517,6 +519,12 @@ def extract_quantities_and_properties(
                     l_val = safe_float(wrapped_val)
                     if l_val is not None and l_val > 0:
                         prop_bar_length_m = l_val * eff_length_scale
+                elif p_name_lower in {"malzeme", "katman_malzemesi", "material"} and wrapped_val:
+                    m_str = str(wrapped_val).strip()
+                    if m_str and m_str not in material_layers:
+                        material_layers.append(m_str)
+                elif p_name_lower in {"hesaplama modu", "hesaplama_modu"} and wrapped_val:
+                    calc_mode_unit = str(wrapped_val).strip()
 
                 # Property volume/area/weight
                 is_approved = any(pset_name_lower.startswith(prefix) for prefix in APPROVED_PROPERTY_SETS)
@@ -730,9 +738,56 @@ def extract_quantities_and_properties(
     if discipline is None and load_bearing is not None:
         discipline = "STR" if elem_type in {"IfcBeam", "IfcColumn"} or load_bearing else "ARC"
 
+    if not material_layers:
+        for assoc in getattr(elem, "HasAssociations", []) or []:
+            if assoc.is_a("IfcRelAssociatesMaterial"):
+                mat = getattr(assoc, "RelatingMaterial", None)
+                if mat is None:
+                    continue
+                if mat.is_a("IfcMaterial"):
+                    m_name = str(getattr(mat, "Name", "") or "").strip()
+                    if m_name and m_name not in material_layers:
+                        material_layers.append(m_name)
+                elif mat.is_a("IfcMaterialList"):
+                    for m_item in getattr(mat, "Materials", []) or []:
+                        m_name = str(getattr(m_item, "Name", "") or "").strip()
+                        if m_name and m_name not in material_layers:
+                            material_layers.append(m_name)
+                elif mat.is_a("IfcMaterialLayerSetUsage"):
+                    lset = getattr(mat, "ForLayerSet", None)
+                    for m_layer in getattr(lset, "MaterialLayers", []) or []:
+                        m_mat = getattr(m_layer, "Material", None)
+                        m_name = str(getattr(m_mat, "Name", "") or "").strip()
+                        if m_name and m_name not in material_layers:
+                            material_layers.append(m_name)
+                elif mat.is_a("IfcMaterialLayerSet"):
+                    for m_layer in getattr(mat, "MaterialLayers", []) or []:
+                        m_mat = getattr(m_layer, "Material", None)
+                        m_name = str(getattr(m_mat, "Name", "") or "").strip()
+                        if m_name and m_name not in material_layers:
+                            material_layers.append(m_name)
+
     rule_metadata: Dict[str, Any] = {}
     if covering_area_m2 is not None and covering_area_m2 > 0:
         rule_metadata["areaM2"] = covering_area_m2
+    if elem_type == "IfcCovering":
+        predef_str = str(getattr(elem, "PredefinedType", "") or "").strip().upper()
+        if predef_str:
+            rule_metadata["coveringPredefinedType"] = predef_str
+    if material_layers:
+        rule_metadata["materialLayers"] = material_layers
+    if gross_area and net_area:
+        g_val_m2 = sorted(gross_area, key=lambda x: x[0])[0][1]
+        n_val_m2 = sorted(net_area, key=lambda x: x[0])[0][1]
+        if g_val_m2 >= n_val_m2 > 0:
+            rule_metadata["grossAreaM2"] = round(g_val_m2, 4)
+            rule_metadata["openingAreaM2"] = round(max(0.0, g_val_m2 - n_val_m2), 4)
+    elif gross_side_area and net_side_area:
+        g_val_m2 = sorted(gross_side_area, key=lambda x: x[0])[0][1]
+        n_val_m2 = sorted(net_side_area, key=lambda x: x[0])[0][1]
+        if g_val_m2 >= n_val_m2 > 0:
+            rule_metadata["grossAreaM2"] = round(g_val_m2, 4)
+            rule_metadata["openingAreaM2"] = round(max(0.0, g_val_m2 - n_val_m2), 4)
     if load_bearing is not None:
         rule_metadata["loadBearing"] = load_bearing
     if exposure is not None:
@@ -751,6 +806,8 @@ def extract_quantities_and_properties(
         rule_metadata["_nominalHeightM"] = nominal_height_m
     if prop_bar_length_m is not None and prop_bar_length_m > 0:
         rule_metadata["_barLengthM"] = prop_bar_length_m
+    if calc_mode_unit:
+        rule_metadata["_calcModeUnit"] = calc_mode_unit
 
     return (
         volume_m3,
@@ -1470,20 +1527,56 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                         formwork_basis = "derived"
                         formwork_note = "3B geometri dış yüzey alanından (OuterSurfaceArea) türetildi."
 
-        # Curve fallback for 2D GeometricCurveSet coverings (e.g. SKIRTINGBOARD / Süpürgelik)
-        if mapped_type == "IfcCovering" and not rule_metadata.get("areaM2") and volume_m3 <= 0:
-            curve_len_m, curve_rep_id = extract_curve_length_m(elem, length_scale)
-            if curve_len_m > 0:
+        # Curve fallback and linear length (mtül) for SKIRTINGBOARD / Süpürgelik coverings
+        calc_mode_unit = rule_metadata.pop("_calcModeUnit", None)
+        cov_predef = str(rule_metadata.get("coveringPredefinedType") or getattr(elem, "PredefinedType", "") or "").upper()
+        if mapped_type == "IfcCovering":
+            curve_len_m = 0.0
+            curve_rep_id = None
+            if not rule_metadata.get("areaM2") and volume_m3 <= 0:
+                curve_len_m, curve_rep_id = extract_curve_length_m(elem, length_scale)
+                if curve_len_m > 0:
+                    h_m = nominal_height_m if (nominal_height_m and nominal_height_m > 0) else 0.06
+                    t_m = layer_thickness_m if (layer_thickness_m and layer_thickness_m > 0) else 0.01
+                    cov_area = round(curve_len_m * h_m, 6)
+                    rule_metadata["areaM2"] = cov_area
+                    volume_m3 = round(cov_area * t_m, 12)
+                    quantity_source = "property"
+                    quantity_source_path = f"#{step_id}/#{curve_rep_id or step_id}:IfcShapeRepresentation/CurveLengthArea"
+                    confidence = 0.85
+                    status = "review"
+                    note = f"Süpürgelik/profil eğri uzunluğu ({round(curve_len_m, 2)} m × {h_m} m yükseklik) üzerinden hesaplandı."
+
+            if cov_predef == "SKIRTINGBOARD" or calc_mode_unit in {"m", "mt", "mtül", "mtul"} or "süpürgelik" in name.lower():
+                if curve_len_m <= 0:
+                    curve_len_m, _ = extract_curve_length_m(elem, length_scale)
                 h_m = nominal_height_m if (nominal_height_m and nominal_height_m > 0) else 0.06
-                t_m = layer_thickness_m if (layer_thickness_m and layer_thickness_m > 0) else 0.01
-                cov_area = round(curve_len_m * h_m, 6)
-                rule_metadata["areaM2"] = cov_area
-                volume_m3 = round(cov_area * t_m, 12)
-                quantity_source = "property"
-                quantity_source_path = f"#{step_id}/#{curve_rep_id or step_id}:IfcShapeRepresentation/CurveLengthArea"
-                confidence = 0.85
-                status = "review"
-                note = f"Süpürgelik/profil eğri uzunluğu ({round(curve_len_m, 2)} m × {h_m} m yükseklik) üzerinden hesaplandı."
+                area_val = float(rule_metadata.get("areaM2") or 0.0)
+                derived_len_m = curve_len_m if curve_len_m > 0 else (area_val / h_m if (area_val > 0 and h_m > 0) else 0.0)
+                if derived_len_m > 0:
+                    rule_metadata["lengthM"] = round(derived_len_m, 4)
+
+            # Resolve parent IfcSpace and IfcZone for room-level Green Book (Yeşil Defter) traceability
+            try:
+                for rel in getattr(elem, "ContainedInStructure", None) or []:
+                    parent = getattr(rel, "RelatingStructure", None)
+                    if parent and parent.is_a("IfcSpace"):
+                        sp_code = str(getattr(parent, "Name", "") or "").strip()
+                        sp_name = str(getattr(parent, "LongName", "") or "").strip()
+                        if sp_code:
+                            rule_metadata["spaceCode"] = sp_code
+                        if sp_name:
+                            rule_metadata["spaceName"] = sp_name
+                        for assign_rel in getattr(parent, "HasAssignments", None) or []:
+                            grp = getattr(assign_rel, "RelatingGroup", None)
+                            if grp and grp.is_a("IfcZone"):
+                                zn = str(getattr(grp, "Name", "") or getattr(grp, "LongName", "") or "").strip()
+                                if zn:
+                                    rule_metadata["zoneName"] = zn
+                                    break
+                        break
+            except Exception:
+                pass
 
         rebar_diameter_mm = None
         if mapped_type == "IfcReinforcingBar":
@@ -1577,6 +1670,87 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
 
     compliance = extract_project_compliance(model, area_scale)
 
+    # Extract Apartment & Independent Unit Schedule (IfcZone + IfcSpace)
+    apartment_schedule: List[Dict[str, Any]] = []
+    try:
+        parsed_by_id: Dict[str, Dict[str, Any]] = {str(el["id"]): el for el in parsed_elements}
+        zones_by_code: Dict[str, List[Any]] = {}
+        for zn in model.by_type("IfcZone") or []:
+            z_code = str(getattr(zn, "Name", "") or getattr(zn, "LongName", "") or "").strip()
+            if z_code:
+                zones_by_code.setdefault(z_code, []).append(zn)
+
+        for z_code, zn_list in zones_by_code.items():
+            rooms: List[Dict[str, Any]] = []
+            seen_sp_ids = set()
+            net_sweepable_m2 = 0.0
+            balcony_m2 = 0.0
+            storey_label = ""
+            for zn in zn_list:
+                for rel in getattr(zn, "IsGroupedBy", None) or []:
+                    for sp in getattr(rel, "RelatedObjects", None) or []:
+                        if not sp or not sp.is_a("IfcSpace") or sp.id() in seen_sp_ids:
+                            continue
+                        seen_sp_ids.add(sp.id())
+                        sp_code = str(getattr(sp, "Name", "") or "").strip()
+                        sp_name = str(getattr(sp, "LongName", "") or sp_code).strip()
+                        sp_storey = ""
+                        sp_area = 0.0
+                        floor_finish = ""
+                        for c_rel in getattr(sp, "ContainsElements", None) or []:
+                            for ce in getattr(c_rel, "RelatedElements", None) or []:
+                                if ce and ce.is_a("IfcCovering") and str(getattr(ce, "PredefinedType", "") or "").upper() == "FLOORING":
+                                    parsed_ce = parsed_by_id.get(str(ce.id()))
+                                    if parsed_ce:
+                                        c_area = safe_float(parsed_ce.get("areaM2", 0.0))
+                                        if c_area > 0 and sp_area <= 0:
+                                            sp_area = c_area
+                                        if not sp_storey:
+                                            sp_storey = str(parsed_ce.get("storey") or "")
+                                        layers = parsed_ce.get("materialLayers")
+                                        if isinstance(layers, list) and layers:
+                                            floor_finish = " + ".join(str(x) for x in layers)
+                                        elif not floor_finish:
+                                            floor_finish = str(parsed_ce.get("name") or "").strip()
+                                    break
+                        if sp_storey and sp_storey != "Belirsiz Kat" and not storey_label:
+                            storey_label = sp_storey
+                        if sp_area > 0:
+                            is_balcony = any(k in sp_name.upper() for k in ("BALKON", "TERAS", "LOCA"))
+                            if is_balcony:
+                                balcony_m2 += sp_area
+                            else:
+                                net_sweepable_m2 += sp_area
+                            rooms.append({
+                                "code": sp_code,
+                                "name": sp_name,
+                                "storey": sp_storey,
+                                "netAreaM2": round(sp_area, 2),
+                                "floorFinish": floor_finish or "Seramik / Parke",
+                                "isBalcony": is_balcony,
+                            })
+            if rooms:
+                rooms.sort(key=lambda r: r["code"])
+                total_unit_net = round(net_sweepable_m2 + balcony_m2, 2)
+                is_residential = z_code.upper().startswith("D") and z_code[1:].isdigit()
+                unit_gross = round(total_unit_net * (1.132 if is_residential else 1.0), 2)
+                general_gross = round(total_unit_net * (1.298 if is_residential else 1.0), 2)
+                apartment_schedule.append({
+                    "unitCode": z_code,
+                    "unitLabel": f"Daire {z_code}" if is_residential else ("Ortak Alanlar (Sirkülasyon)" if z_code == "OAL" else ("Bodrum Ortak & Sığınak" if z_code == "BDR" else z_code)),
+                    "storey": storey_label or "Kat Planı",
+                    "roomCount": len(rooms),
+                    "netSweepableM2": round(net_sweepable_m2, 2),
+                    "balconyM2": round(balcony_m2, 2),
+                    "totalNetM2": total_unit_net,
+                    "unitGrossM2": unit_gross,
+                    "generalGrossM2": general_gross,
+                    "rooms": rooms,
+                })
+        apartment_schedule.sort(key=lambda u: (0 if u["unitCode"].startswith("D") else 1, u["unitCode"]))
+    except Exception:
+        pass
+
     summary = {
         "parseStatus": "succeeded",
         "extractionMode": "demo_estimate",
@@ -1605,6 +1779,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "rebarCount": rebar_count,
         "rebarByDiameter": rebar_by_diameter,
         "trPsetCsb": compliance,
+        "apartmentSchedule": apartment_schedule,
         "elementsWithPozNoCount": sum(1 for el in parsed_elements if el.get("pozNo")),
         "elementsMissingPozNoCount": sum(1 for el in parsed_elements if not el.get("pozNo")),
     }

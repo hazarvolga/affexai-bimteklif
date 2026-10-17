@@ -94,20 +94,55 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
   if (typeof element.expectedQuantity === "number" && Number.isFinite(element.expectedQuantity)) {
     formulaJson.expectedQuantity = formatQuantity(element.expectedQuantity);
   }
+  if (typeof element.grossAreaM2 === "number" && Number.isFinite(element.grossAreaM2)) {
+    formulaJson.grossAreaM2 = formatQuantity(element.grossAreaM2);
+  }
+  if (typeof element.openingAreaM2 === "number" && Number.isFinite(element.openingAreaM2)) {
+    formulaJson.openingAreaM2 = formatQuantity(element.openingAreaM2);
+  }
+  if (typeof element.lengthM === "number" && Number.isFinite(element.lengthM)) {
+    formulaJson.lengthM = formatQuantity(element.lengthM);
+  }
+  if (Array.isArray(element.materialLayers) && element.materialLayers.length > 0) {
+    formulaJson.materialLayers = JSON.stringify(element.materialLayers);
+  }
+  if (element.coveringPredefinedType) {
+    formulaJson.coveringPredefinedType = element.coveringPredefinedType;
+  }
+  if (element.spaceCode) {
+    formulaJson.spaceCode = element.spaceCode;
+  }
+  if (element.spaceName) {
+    formulaJson.spaceName = element.spaceName;
+  }
+  if (element.zoneName) {
+    formulaJson.zoneName = element.zoneName;
+  }
+  const isSkirtingLinear =
+    element.type === "IfcCovering" &&
+    (element.coveringPredefinedType === "SKIRTINGBOARD" || /süpürgelik/i.test(element.name)) &&
+    typeof element.lengthM === "number" &&
+    element.lengthM > 0;
   const isCoveringArea = element.type === "IfcCovering" && typeof element.areaM2 === "number" && element.areaM2 > 0;
   return {
     sheetName: "IFC",
     sourceRowNumber,
     sourceCellRange: `IFC#${element.id}`,
-    rawDescription: isCoveringArea
-      ? `${element.type} ${element.name} kaplama alanı · ${element.storey} · ${evidencePath}`
-      : `${element.type} ${element.name} beton hacmi · ${element.storey} · ${evidencePath}`,
+    rawDescription: isSkirtingLinear
+      ? `${element.type} ${element.name} süpürgelik metrajı · ${element.storey} · ${evidencePath}`
+      : isCoveringArea
+        ? `${element.type} ${element.name} kaplama alanı · ${element.storey} · ${evidencePath}`
+        : `${element.type} ${element.name} beton hacmi · ${element.storey} · ${evidencePath}`,
     // TREpys_PozOzellikSeti.PozNo / Tr_Pset_CSB.PozNo IFC dosyasından okunur; bulunamazsa boş bırakılır ve
     // validateRows() bunu MISSING_POSITION_CODE bulgusu olarak işaretler —
     // tip-bazlı bir yer tutucu (örn. "IFC-BEAM-CONCRETE") kullanılmaz.
     rawPositionCode: element.pozNo ?? "",
-    rawUnit: isCoveringArea ? "m2" : "m3",
-    rawQuantity: isCoveringArea ? formatQuantity(element.areaM2!) : formatQuantity(element.volumeM3),
+    rawUnit: isSkirtingLinear ? "m" : isCoveringArea ? "m2" : "m3",
+    rawQuantity: isSkirtingLinear
+      ? formatQuantity(element.lengthM!)
+      : isCoveringArea
+        ? formatQuantity(element.areaM2!)
+        : formatQuantity(element.volumeM3),
     rawPrice: "",
     rawWastePercent: "0",
     formulaJson,

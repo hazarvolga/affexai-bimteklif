@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-16.1",
-  updatedOn: "16 Ekim 2026",
+  version: "BIM-CALC-2026-10-17.1",
+  updatedOn: "17 Ekim 2026",
   implementationBaseline: "410576cd286cf148b140b7a55197384eacfe1cfd",
-  approvalStatus: "33 çok yazılımlı IFC modeli (ALLPLAN 2026.1 31,4 MB uzman modeli + Revit/Archicad/Tekla/BIMcollab/IFC4X2) ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, çok katmanlı icmal + 16 daire cetveli (Calm UI) ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -223,6 +223,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 7",
+    version: "BIM-CALC-2026-10-17.1",
+    date: "17 Ekim 2026",
+    commit: "410576cd286cf148b140b7a55197384eacfe1cfd",
+    trigger: "Allplan 4 Excel Raporu Çapraz Doğrulaması, Çok Katmanlı İcmal Motoru, Süpürgelik (mtül), 16 Daire Cetveli & 3 Adımlı Calm UI",
+    beforeSummary:
+      "Çok katmanlı IfcCovering elemanları (Şap + Parke veya Kaba Sıva + Saten Alçı + Boya) tek kalem olarak toplandığından taşeron bazlı ayrı icmal üretilemiyordu; süpürgelikler m² birimiyle listeleniyordu; 16 dairenin (D01..D16) bağımsız bölüm net/brüt m² cetveli ve sade 'Kağıt İcmal + Sağ Detay Kartı' arayüzü bulunmuyordu.",
+    afterSummary:
+      "Object Layer Attributes #1..#4 Malzeme ve IfcRelAssociatesMaterial katmanları ayrıştırılarak Şap (1.761,33 m²), Laminat Parke (921,11 m²), Duvar Fayans (1.175,15 m²), Kaba Sıva (4.775,62 m²), Saten Alçı (4.775,62 m²) ve Boya (4.775,62 m²) ayrı ihale kalemlerine dönüştürüldü; SKIRTINGBOARD süpürgelikler mtül birimine (893,54 mtül Parke + 753,92 mtül Seramik/Granit) çevrildi; IfcZone/IfcSpace üzerinden D01..D16 daire cetveli ve 3 adımlı 'Kağıt İcmal + Sağ Detay Kartı' (CalmIfcWorkspace) devreye alındı.",
+    affectedModules: ["ifc-metraj", "minha", "ifc-teklif-aktarim"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Çok katmanlı IfcCovering elemanları tek bir yüzey kalemi olarak okunuyor, süpürgelikler m² olarak kalıyor ve IfcZone/IfcSpace daire m² cetveli çıkarılmıyordu.",
+        after: "materialLayers (Şap, Parke, Seramik, XPS, Kaba Sıva, Saten Alçı, Boya, Fayans) katman ayrıştırması, SKIRTINGBOARD lengthM (mtül) hesabı ve 16 daire (D01..D16) bağımsız bölüm oda oda net/brüt m² cetveli eklendi.",
+        basis: "Allplan 2026.1 4 Excel Raporu Çapraz Doğrulaması & ISO 16739-1 IfcCovering / IfcZone / IfcSpace",
+      },
+      minha: {
+        before: "Kapı/pencere boşluk düşümü (Minha) kural motorunda hesaplanıyor ancak kullanıcı arayüzünde her imalat kalemi için 'Brüt − Boşluk = Net' denklemiyle sağ detay kartında gösterilmiyordu.",
+        after: "Sağ detay kartında (CalmIfcWorkspace) her kalem için 'Brüt Yüzey − Kapı/Pencere Boşluğu (Minha) = Net Ödenecek Miktar' denklemi, kat dağılımı ve oda oda Yeşil Defter kırılımı görünür kılındı.",
+        basis: "ÇŞB YFK 2026 Ölçü Esasları (CSB_2026_V1) & Calm UI Master–Detail Mimarisi",
+      },
+      "ifc-teklif-aktarim": {
+        before: "Metrajdan teklife geçiş çok adımlı teknik tablo üzerinden yapılıyordu.",
+        after: "3. Adım (Maliyet & Teklif) sekmesinde çok katmanlı net miktarların yanına doğrudan birim fiyat (₺) girilerek anında grup ara toplamları, müteahhitlik kârı, daire başı ortalama maliyet ve teklif çıktısı üretilir.",
+        basis: "3 Adımlı Kağıt İcmal + Sağ Detay Kartı (CalmIfcWorkspace.tsx)",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -259,9 +288,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Mevcut test kota davranışını kapsar; risk/fiyat katsayıları için bağımsız hesap testi ve sektör kalibrasyonu açık.",
   },
   "ifc-metraj": {
-    scope: "Modeldeki beton hacmi (m³), IfcCovering kaplama alanı (m²), TREpys_PozOzellikSeti.PozNo, IfcComplexProperty katman nicelikleri ve C++ 3B geometri yedeklemesini okur; Revit QTO birim hatalarını normalize eder ve STEP ID tekilleştirmesi (seen_elem_ids) uygular.",
-    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/smartcheck-evidence.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
-    pending: "33 çok yazılımlı IFC modeli (ALLPLAN 2026.1 31,4 MB + Revit/Archicad/Tekla/BIMcollab/IFC4X2) doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada.",
+    scope: "Modeldeki beton hacmi (m³), çok katmanlı IfcCovering kaplama alanı (m²), süpürgelik tülü (mtül), 16 daire bağımsız bölüm cetveli (IfcZone/IfcSpace), TREpys_PozOzellikSeti.PozNo, IfcComplexProperty katman nicelikleri ve C++ 3B geometri yedeklemesini okur.",
+    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/calm-icmal.test.ts", "src/ifc/smartcheck-evidence.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
+    pending: "33 çok yazılımlı IFC modeli ve 4 Allplan Excel raporu çapraz doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada.",
   },
   kalip: {
     scope: "Açık veya türetilmiş alanın inceleme çıktısı; kalıp satırı olarak teklife aktarılmaz.",

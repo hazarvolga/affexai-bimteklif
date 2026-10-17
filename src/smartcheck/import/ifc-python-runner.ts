@@ -16,6 +16,14 @@ export const ParsedIfcElementSchema = z.object({
   storeySourcePath: z.string().optional(),
   volumeM3: z.number(),
   areaM2: z.number().optional(),
+  grossAreaM2: z.number().optional(),
+  openingAreaM2: z.number().optional(),
+  lengthM: z.number().optional(),
+  materialLayers: z.array(z.string()).optional(),
+  coveringPredefinedType: z.string().optional(),
+  spaceCode: z.string().optional(),
+  spaceName: z.string().optional(),
+  zoneName: z.string().optional(),
   formworkM2: z.number(),
   rebarKg: z.number(),
   rebarDiameterMm: z.number().optional(),
@@ -35,6 +43,28 @@ export const ParsedIfcElementSchema = z.object({
   coverMm: z.number().optional(),
   discipline: z.string().optional(),
   expectedQuantity: z.number().optional(),
+});
+
+export const ApartmentRoomScheduleItemSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  storey: z.string(),
+  netAreaM2: z.number(),
+  floorFinish: z.string(),
+  isBalcony: z.boolean().optional(),
+});
+
+export const ApartmentUnitScheduleItemSchema = z.object({
+  unitCode: z.string(),
+  unitLabel: z.string(),
+  storey: z.string(),
+  roomCount: z.number(),
+  netSweepableM2: z.number(),
+  balconyM2: z.number(),
+  totalNetM2: z.number(),
+  unitGrossM2: z.number(),
+  generalGrossM2: z.number(),
+  rooms: z.array(ApartmentRoomScheduleItemSchema),
 });
 
 export const IfcParseSummarySchema = z.object({
@@ -73,6 +103,7 @@ export const IfcParseSummarySchema = z.object({
     source: z.enum(["ifc_site", "ifc_building"]).nullable(),
     sourcePath: z.string().nullable().optional(),
   }),
+  apartmentSchedule: z.array(ApartmentUnitScheduleItemSchema).optional(),
   elementsWithPozNoCount: z.number(),
   elementsMissingPozNoCount: z.number(),
 });

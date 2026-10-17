@@ -27,6 +27,8 @@ import { toast } from 'sonner';
 import { describeIfcQuantityEvidence, summarizeIfcEvidencePolicy } from '@/ifc/evidence-policy';
 import { calculateSummary, parseIfcText } from '@/ifc/parser/legacy-parser';
 import { validateEpysRules } from "@/smartcheck/rules/epys";
+import { CalmIfcWorkspace } from "@/components/smartcheck/CalmIfcWorkspace";
+import { buildCalmIfcDatasetFromElements } from "@/ifc/calm-icmal";
 
 import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
 
@@ -491,6 +493,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
       {/* PARSED RESULTS & DASHBOARD */}
       {parsedData && !isParsing && (
         <div className="space-y-8">
+          <CalmIfcWorkspace
+            dataset={buildCalmIfcDatasetFromElements(
+              parsedData.elements,
+              parsedData.summary,
+              fileName || undefined,
+            )}
+          />
+
           {parsedData.summary.parseStatus === 'failed' && (
             <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-5 text-sm text-red-100">
               <div className="flex items-start gap-3">

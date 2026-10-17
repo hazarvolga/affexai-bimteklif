@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ChevronDown, Download, Eye, FileCode2, FileSpreadsheet, Layers3, Loader2, RefreshCw, ShieldAlert, Table2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { fetchWithAuth } from "@/lib/api";
@@ -9,6 +9,9 @@ import { Link } from "react-router-dom";
 import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/mapping-profiles";
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
+import { CalmIfcWorkspace } from "./CalmIfcWorkspace";
+import { buildCalibrated202645Dataset, buildCalmIfcDatasetFromElements } from "@/ifc/calm-icmal";
+import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
 
 type Finding = { code: string; message: string; ruleVersion: string; suggestion: string };
@@ -735,12 +738,84 @@ export function SmartCheckImportWorkspace() {
     </div>
   );
 
+  const [showCalmUi, setShowCalmUi] = useState(true);
+  const calmDataset = useMemo(() => {
+    const activeName = file?.name || openedFileName || "";
+    const hasRichLayers = rows.some((r) => Boolean(r.formulaJson?.materialLayers));
+    if (rows.length > 0 && isIfcFile && hasRichLayers) {
+      const pseudoElements: ParsedIfcElement[] = rows.map((row, idx) => {
+        const desc = row.rawDescription || "";
+        const typeMatch = desc.match(
+          /^(IfcBeam|IfcColumn|IfcSlab|IfcWall|IfcCovering|IfcReinforcingBar)\s+(.+?)\s+(?:kaplama alanı|süpürgelik metrajı|beton hacmi)\s*·\s*([^·]+?)\s*·/,
+        );
+        const elType =
+          (typeMatch?.[1] as ParsedIfcElement["type"]) ||
+          (row.rawUnit === "m3" ? "IfcSlab" : "IfcCovering");
+        const name = typeMatch?.[2]?.trim() || desc;
+        const storey = typeMatch?.[3]?.trim() || "Normal Katlar";
+        const qty = Number(row.normalizedQuantity ?? row.rawQuantity ?? 0) || 0;
+        let materialLayers: string[] | undefined;
+        if (row.formulaJson?.materialLayers) {
+          try {
+            const parsed = JSON.parse(row.formulaJson.materialLayers);
+            if (Array.isArray(parsed)) materialLayers = parsed.map(String);
+          } catch {
+            // ignore
+          }
+        }
+        return {
+          id: row.formulaJson?.elementStepId?.replace(/^#/, "") || String(idx + 1),
+          guid: row.formulaJson?.globalId || `guid-${idx}`,
+          type: elType,
+          name,
+          storey,
+          storeySource: "ifc_spatial",
+          volumeM3: row.rawUnit === "m3" ? qty : 0,
+          areaM2: row.rawUnit === "m2" ? qty : undefined,
+          lengthM: row.rawUnit === "m" ? qty : row.formulaJson?.lengthM ? Number(row.formulaJson.lengthM) : undefined,
+          grossAreaM2: row.formulaJson?.grossAreaM2 ? Number(row.formulaJson.grossAreaM2) : undefined,
+          openingAreaM2: row.formulaJson?.openingAreaM2 ? Number(row.formulaJson.openingAreaM2) : undefined,
+          materialLayers,
+          coveringPredefinedType: row.formulaJson?.coveringPredefinedType,
+          spaceCode: row.formulaJson?.spaceCode,
+          spaceName: row.formulaJson?.spaceName,
+          zoneName: row.formulaJson?.zoneName,
+          formworkM2: 0,
+          rebarKg: 0,
+          quantitySource: "qto",
+          smartCheckStatus: "pass",
+          pozNo: row.normalizedPositionCode ?? row.rawPositionCode ?? undefined,
+        };
+      });
+      return buildCalmIfcDatasetFromElements(pseudoElements, null, activeName);
+    }
+    return buildCalibrated202645Dataset(
+      activeName ? `${activeName} — 16 Daire (B+Z+3+Çatı)` : undefined,
+    );
+  }, [file?.name, isIfcFile, openedFileName, rows]);
+
   return (
     <section className="mb-8 rounded-3xl border border-orange-500/20 bg-zinc-950 p-6 sm:p-8">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">Kanıt Öncelikli Metraj & e-PYS Denetimi</p><h2 className="mt-2 text-xl font-black text-white">Excel / CSV / IFC / PDF SmartCheck Çalışma Alanı</h2><p className="mt-1 text-xs text-zinc-500">Excel/CSV: önizle → eşle → işle. IFC: yükle → QTO/özellik kanıt satırlarını ve e-PYS EK-9 kurallarını denetle → aktar.</p></div>
-        <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{stage}</Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowCalmUi((prev) => !prev)}
+            className="h-7 border-blue-500/40 bg-blue-500/10 text-[11px] font-bold text-blue-200 hover:bg-blue-500/20"
+          >
+            {showCalmUi ? "Sade İcmal Açık (Gizle)" : "Sade İcmal Görünümünü Aç"}
+          </Button>
+          <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{stage}</Badge>
+        </div>
       </div>
+
+      {showCalmUi && !isPdfFile && (
+        <div className="mb-6">
+          <CalmIfcWorkspace dataset={calmDataset} />
+        </div>
+      )}
 
       <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-indigo-500/25 bg-indigo-950/20 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
