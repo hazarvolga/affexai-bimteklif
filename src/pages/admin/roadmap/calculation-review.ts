@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.25",
+  version: "BIM-CALC-2026-10-17.26",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "544e1dd565a58e65e63893325608c2ff56bb201f",
+  implementationBaseline: "119fb36573ace19a544f85a2f92eaec49e5bb232",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, Melih Dinekli saha yanıtları ve 27 kalemlik 6-villa piyasa maliyet referansı entegre edildi · bağımsız uzman imzasına hazır",
 };
 
@@ -800,6 +800,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Taşeron hakediş kalkanı IFC açıldıktan sonra bağımsız bölüm kartında gizli kalıyordu.",
         after: "Giriş ekranında Evre 03 Saha Denetimi kartı olarak konumlandırıldı; şap standardı ve kesinti raporuna doğrudan erişim açıldı.",
         basis: "Melih Dinekli saha standardı ve şantiye hakediş denetim ihtiyacı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 32",
+    version: "BIM-CALC-2026-10-17.26",
+    date: "17 Ekim 2026",
+    commit: "119fb36",
+    trigger: "Sistem Hızlı Turu & İnteraktif Onboarding Rehberi (SystemQuickTour) ve Pafta Anteti Entegrasyonu",
+    beforeSummary:
+      "Müteahhitlik Süreç Masası ve modüller devreye alınmıştı ancak ilk defa sisteme giren teknik ofis mühendisleri veya denetçiler için adım adım yönlendiren, kısayol tuşları ve dinamik hedef vurgulaması (spotlight) içeren interaktif bir hızlı rehber turu yoktu.",
+    afterSummary:
+      "Pafta Tasarım Sistemi kurallarına (1px teknik çizgiler, köşe krosları +, semantik tokenlar) tam uyumlu, sıfır harici kütüphane bağımlılığına sahip SystemQuickTour.tsx ve TourWelcomeBanner bileşenleri devreye alındı. 5 kritik adım (Müteahhitlik Süreç Masası, SmartCheck dosya yükleme, Taşeron Hakediş Kalkanı, Kamu İhale araçları ve Pafta Anteti) taranıp vurgulanır. Klavye ok tuşları ve ESC desteği, localStorage kalıcılığı ve ana başlıkta kalıcı [🧭 Hızlı Tur] butonu eklendi.",
+    affectedModules: ["on-teklif-fizibilite", "taseron-hakedis-kalkani", "teklif-satir"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Kullanıcılar Arsa & İhale cetveli akışını kendi keşfetmek zorundaydı.",
+        after: "Hızlı turun 1. adımında Evre 01 ve Excel ihale aktarımı kullanıcının önüne çıkarılır.",
+        basis: "Kullanıcı deneyimi (UX) ve müteahhitlik süreç yönlendirmesi",
+      },
+      "taseron-hakedis-kalkani": {
+        before: "Taşeron hakediş kalkanının Melih Dinekli standardı ve minha kontrolleri tur ile öne çıkarılmıyordu.",
+        after: "Hızlı turun 3. adımında 325 kg/m³ çimento ve %10 fire tavanı saha koruması vurgulanır.",
+        basis: "Melih Dinekli saha standardı ve denetim görünürlüğü",
+      },
+      "teklif-satir": {
+        before: "Firma anteti ve para birimi ayarları hızlı rehberde açıklanmıyordu.",
+        after: "Hızlı turun 5. adımında Pafta Anteti ile resmi teklif ve hakediş antet düzeni tanıtılır.",
+        basis: "Pafta Tasarım Sistemi ve resmi teklif yönetim standardı",
       },
     },
   },

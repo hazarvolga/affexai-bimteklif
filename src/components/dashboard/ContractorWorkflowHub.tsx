@@ -31,7 +31,7 @@ interface ContractorWorkflowHubProps {
 export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ compact = false }) => {
   if (compact) {
     return (
-      <div className="mb-6 rounded-sm border border-border bg-card/60 p-4">
+      <div data-tour="workflow-hub" className="mb-6 rounded-sm border border-border bg-card/60 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
             <span className="stamp-badge border-primary/40 text-primary bg-primary/10 text-[10px]">
@@ -85,6 +85,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
           {/* Evre 3: Taşeron Hakediş */}
           <Link
             to="/app/smartcheck"
+            data-tour="subcontractor-shield"
             className="group p-3 rounded-xs border border-border bg-background/60 hover:border-primary/50 hover:bg-muted/20 transition-all flex items-start gap-3"
           >
             <div className="p-2 rounded-xs bg-primary/10 text-primary border border-primary/20 shrink-0 group-hover:scale-105 transition-transform">
@@ -106,7 +107,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
 
   // Full Hero Onboarding View (Rendered when no quotes or explicitly invoked)
   return (
-    <div className="mb-8 space-y-6" data-testid="contractor-workflow-hub">
+    <div className="mb-8 space-y-6" data-testid="contractor-workflow-hub" data-tour="workflow-hub">
       {/* Intro Banner */}
       <div className="rounded-sm border border-border bg-card p-6 relative overflow-hidden shadow-xs">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -263,7 +264,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
         </Card>
 
         {/* KART 3: TAŞERON HAKEDİŞ KALKANI */}
-        <Card className="border border-border bg-card shadow-xs rounded-sm hover:border-primary/50 transition-all flex flex-col justify-between group">
+        <Card data-tour="subcontractor-shield" className="border border-border bg-card shadow-xs rounded-sm hover:border-primary/50 transition-all flex flex-col justify-between group">
           <CardContent className="p-5 flex flex-col h-full justify-between space-y-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -322,7 +323,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
       </div>
 
       {/* Quick Legal & Public Procurement Strip */}
-      <div className="rounded-sm border border-border bg-card/60 p-4">
+      <div data-tour="public-procurement" className="rounded-sm border border-border bg-card/60 p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Scale size={15} className="text-primary shrink-0" />

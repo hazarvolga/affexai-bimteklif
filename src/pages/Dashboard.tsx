@@ -10,7 +10,8 @@ import {
   Plus,
   Box,
   Layers,
-  BadgeCheck
+  BadgeCheck,
+  Compass
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Quote, QuoteStatus } from '@/types';
 import { ContractorWorkflowHub } from '@/components/dashboard/ContractorWorkflowHub';
+import { SystemQuickTour, TourWelcomeBanner } from '@/components/dashboard/SystemQuickTour';
 
 const MONTH_LABELS_TR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
 const ACTIVE_STATUSES: QuoteStatus[] = [QuoteStatus.DRAFT, QuoteStatus.SENT, QuoteStatus.NEGOTIATION];
@@ -63,6 +65,7 @@ export function Dashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
 
   // Redirect super admins to their operational dashboard
   if (user?.isSuperAdmin) {
@@ -140,7 +143,10 @@ export function Dashboard() {
   return (
     <PageContainer>
       {/* Engineering Blueprint Title Block (Pafta Anteti) */}
-      <div className="mb-6 rounded-sm border border-border bg-card/60 p-4 font-mono text-xs flex flex-wrap items-center justify-between gap-4">
+      <div
+        data-tour="blueprint-header"
+        className="mb-6 rounded-sm border border-border bg-card/60 p-4 font-mono text-xs flex flex-wrap items-center justify-between gap-4"
+      >
         <div className="flex flex-wrap items-center gap-5">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground uppercase">FİRMA:</span>
@@ -174,13 +180,23 @@ export function Dashboard() {
         description="Aktif teklifleriniz, metraj hacminiz ve finansal özetiniz."
         actions={
           <div className="flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsTourOpen(true)}
+              className="gap-1.5 font-mono text-xs border-primary/40 text-primary hover:bg-primary/10"
+              title="Sistemi adım adım keşfetmek için hızlı turu başlatın"
+            >
+              <Compass size={14} className="text-primary shrink-0" />
+              <span>Hızlı Tur</span>
+            </Button>
             <Link to="/app/quotes/new">
               <Button variant="outline" size="sm" className="gap-1.5 font-medium">
                 <Plus size={15} />
                 Manuel Teklif
               </Button>
             </Link>
-            <Link to="/app/smartcheck">
+            <Link to="/app/smartcheck" data-tour="smartcheck-action">
               <Button size="sm" className="bg-primary hover:bg-primary/90 text-foreground gap-1.5 font-semibold shadow-xs">
                 <Box size={15} />
                 SmartCheck & IFC Yükle
@@ -346,6 +362,15 @@ export function Dashboard() {
           </div>
         </>
       )}
+
+      {/* Interactive System Quick Tour & First-Time Welcome Banner */}
+      <SystemQuickTour
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+      />
+      <TourWelcomeBanner
+        onStartTour={() => setIsTourOpen(true)}
+      />
     </PageContainer>
   );
 }

@@ -461,16 +461,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Melih Dinekli'nin 17 saha sorusuna verdiği resmi yazılı yanıtlar ve 6-villa maliyet PDF'i doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
           ],
           [
-            "Rev. 31 (Güncel)",
+            "Rev. 31",
             "17 Ekim 2026 (Müteahhitlik Süreç Karşılama Masası ve UX Yaşam Döngüsü Yönlendiricisi)",
             "BIM-CALC-2026-10-17.25",
             "Kullanıcıyı doğrudan projesinin bulunduğu yaşam döngüsüne göre yönlendiren 3 evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) devreye alındı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif teklifler olduğunda kompakt hızlı süreç şeridine dönüşür.",
+          ],
+          [
+            "Rev. 32 (Güncel)",
+            "17 Ekim 2026 (Sistem Hızlı Turu & İnteraktif Onboarding Rehberi)",
+            "BIM-CALC-2026-10-17.26",
+            "Sisteme ilk defa giren mühendisler ve denetçiler için Pafta Tasarım Sistemi ile uyumlu 5 adımlı interaktif SystemQuickTour devreye alındı. Müteahhitlik süreç masası, SmartCheck dosya yükleme, Melih Dinekli taşeron şap tavanı, Kamu İhale araçları ve Pafta Anteti hedefli spotlight ile taranır. ESC, yön tuşları, localStorage kalıcılığı ve kalıcı [🧭 Hızlı Tur] butonu eklendi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 31 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 32 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -796,6 +802,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Sisteme giriş yapan müteahhit veya teknik ofis şefi boş bir teklif masası uyarısıyla ('Henüz teklif verisi yok') karşılaşıyordu; elinde arsa olan veya ihale Excel'i olan kullanıcının nereye başvuracağı yönlendirilmiyordu.",
             "3 ana evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) tasarlandı ve Dashboard'a bağlandı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif tekliflerde kompakt süreç şeridi, boş durumda ise rehber onboarding vitrini sunulur.",
             "src/components/dashboard/ContractorWorkflowHub.tsx, src/pages/Dashboard.tsx, src/components/smartcheck/PreBimFeasibilityPanel.tsx",
+          ],
+          [
+            "Rev. 32.1 · 17 Ekim 2026 (Sistem Hızlı Turu & Onboarding Rehberi)",
+            "Pafta Tasarım Sistemi (DESIGN.md) & Kullanıcı Deneyimi (UX) Standartları",
+            "Müteahhitlik Süreç Masası ve hesap araçları bulunuyor ancak teknik ofis kullanıcıları ve denetçiler için adım adım hedef odaklı interaktif bir tur/rehber sistemi yer almıyordu.",
+            "Sıfır harici bağımlılıkla Pafta Tasarım Sistemi (1px teknik çizgiler, köşe krosları +, semantik tokenlar) uyumlu SystemQuickTour.tsx ve TourWelcomeBanner bileşenleri geliştirildi. 5 temel süreç adım adım taranıp vurgulanır. ESC, ok tuşları, localStorage kalıcılığı ve Dashboard'da kalıcı [🧭 Hızlı Tur] butonu bağlandı.",
+            "src/components/dashboard/SystemQuickTour.tsx, src/components/dashboard/SystemQuickTour.test.ts, src/pages/Dashboard.tsx, src/components/dashboard/ContractorWorkflowHub.tsx",
           ],
         ],
       },
