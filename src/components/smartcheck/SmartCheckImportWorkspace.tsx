@@ -10,7 +10,7 @@ import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/map
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
 import { CalmIfcWorkspace } from "./CalmIfcWorkspace";
-import { buildCalibrated202645Dataset, buildCalmIfcDatasetFromElements } from "@/ifc/calm-icmal";
+import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } from "@/ifc/calm-icmal";
 import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
 
@@ -738,326 +738,306 @@ export function SmartCheckImportWorkspace() {
     </div>
   );
 
-  const [showCalmUi, setShowCalmUi] = useState(true);
+  const [showTechnicalInspect, setShowTechnicalInspect] = useState(false);
+
   const calmDataset = useMemo(() => {
-    const activeName = file?.name || openedFileName || "";
-    const hasRichLayers = rows.some((r) => Boolean(r.formulaJson?.materialLayers));
-    if (rows.length > 0 && isIfcFile && hasRichLayers) {
-      const pseudoElements: ParsedIfcElement[] = rows.map((row, idx) => {
-        const desc = row.rawDescription || "";
-        const typeMatch = desc.match(
-          /^(IfcBeam|IfcColumn|IfcSlab|IfcWall|IfcCovering|IfcReinforcingBar)\s+(.+?)\s+(?:kaplama alanı|süpürgelik metrajı|beton hacmi)\s*·\s*([^·]+?)\s*·/,
-        );
-        const elType =
-          (typeMatch?.[1] as ParsedIfcElement["type"]) ||
-          (row.rawUnit === "m3" ? "IfcSlab" : "IfcCovering");
-        const name = typeMatch?.[2]?.trim() || desc;
-        const storey = typeMatch?.[3]?.trim() || "Normal Katlar";
-        const qty = Number(row.normalizedQuantity ?? row.rawQuantity ?? 0) || 0;
-        let materialLayers: string[] | undefined;
-        if (row.formulaJson?.materialLayers) {
-          try {
-            const parsed = JSON.parse(row.formulaJson.materialLayers);
-            if (Array.isArray(parsed)) materialLayers = parsed.map(String);
-          } catch {
-            // ignore
-          }
-        }
-        return {
-          id: row.formulaJson?.elementStepId?.replace(/^#/, "") || String(idx + 1),
-          guid: row.formulaJson?.globalId || `guid-${idx}`,
-          type: elType,
-          name,
-          storey,
-          storeySource: "ifc_spatial",
-          volumeM3: row.rawUnit === "m3" ? qty : 0,
-          areaM2: row.rawUnit === "m2" ? qty : undefined,
-          lengthM: row.rawUnit === "m" ? qty : row.formulaJson?.lengthM ? Number(row.formulaJson.lengthM) : undefined,
-          grossAreaM2: row.formulaJson?.grossAreaM2 ? Number(row.formulaJson.grossAreaM2) : undefined,
-          openingAreaM2: row.formulaJson?.openingAreaM2 ? Number(row.formulaJson.openingAreaM2) : undefined,
-          materialLayers,
-          coveringPredefinedType: row.formulaJson?.coveringPredefinedType,
-          spaceCode: row.formulaJson?.spaceCode,
-          spaceName: row.formulaJson?.spaceName,
-          zoneName: row.formulaJson?.zoneName,
-          formworkM2: 0,
-          rebarKg: 0,
-          quantitySource: "qto",
-          smartCheckStatus: "pass",
-          pozNo: row.normalizedPositionCode ?? row.rawPositionCode ?? undefined,
-        };
-      });
-      return buildCalmIfcDatasetFromElements(pseudoElements, null, activeName);
-    }
-    return buildCalibrated202645Dataset(
-      activeName ? `${activeName} — 16 Daire (B+Z+3+Çatı)` : undefined,
+    if (rows.length === 0 || busy || isPdfFile) return null;
+    const activeName = file?.name || openedFileName || "Yüklenen Proje";
+    const pseudoElements: ParsedIfcElement[] = rows.map((row, idx) =>
+      parseSmartCheckRowToPseudoElement(row, idx),
     );
-  }, [file?.name, isIfcFile, openedFileName, rows]);
+    return buildCalmIfcDatasetFromElements(pseudoElements, null, activeName);
+  }, [busy, file?.name, isPdfFile, openedFileName, rows]);
+
+  const resetToUploadScreen = () => {
+    setFile(null);
+    setOpenedFileName(null);
+    setDocumentId(null);
+    setPilotCaseId(null);
+    setPreview(null);
+    setRows([]);
+    setShowTechnicalInspect(false);
+    setStage("Dosya bekleniyor");
+  };
 
   return (
-    <section className="mb-8 rounded-3xl border border-orange-500/20 bg-zinc-950 p-6 sm:p-8">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">Kanıt Öncelikli Metraj & e-PYS Denetimi</p><h2 className="mt-2 text-xl font-black text-white">Excel / CSV / IFC / PDF SmartCheck Çalışma Alanı</h2><p className="mt-1 text-xs text-zinc-500">Excel/CSV: önizle → eşle → işle. IFC: yükle → QTO/özellik kanıt satırlarını ve e-PYS EK-9 kurallarını denetle → aktar.</p></div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowCalmUi((prev) => !prev)}
-            className="h-7 border-blue-500/40 bg-blue-500/10 text-[11px] font-bold text-blue-200 hover:bg-blue-500/20"
-          >
-            {showCalmUi ? "Sade İcmal Açık (Gizle)" : "Sade İcmal Görünümünü Aç"}
-          </Button>
-          <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{stage}</Badge>
-        </div>
-      </div>
-
-      {showCalmUi && !isPdfFile && (
-        <div className="mb-6">
-          <CalmIfcWorkspace dataset={calmDataset} />
+    <section className="mb-8 space-y-5">
+      {/* STATE 1: CALM IFC / BOQ WORKSPACE (SHOWN ONLY AFTER FILE IS PROCESSED) */}
+      {calmDataset && (
+        <div>
+          <CalmIfcWorkspace
+            dataset={calmDataset}
+            showTechnicalToggle={true}
+            technicalViewOpen={showTechnicalInspect}
+            onToggleTechnicalView={() => setShowTechnicalInspect((prev) => !prev)}
+            onResetOrNewFile={resetToUploadScreen}
+          />
         </div>
       )}
 
-      <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-indigo-500/25 bg-indigo-950/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-bold text-indigo-200">e-PYS (RG 33331) & ALLPLAN 2026 Hazırlık Şablonları</p>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-400">
-            IFC modelinizi dışa aktarmadan önce ALLPLAN 2026 / Solibri / BIMcollab içinde yerinde doğrulama yapmak için resmî kural dosyalarını indirin:
+      {/* STATE 2: FILE IS CURRENTLY UPLOADING OR PROCESSING IN BACKGROUND */}
+      {busy && !preview && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+          <h3 className="mt-4 text-base font-bold text-slate-900">
+            {file?.name || openedFileName || "Dosya"} Analiz Ediliyor…
+          </h3>
+          <p className="mx-auto mt-1.5 max-w-lg text-xs leading-relaxed text-slate-500">
+            {isPdfFile
+              ? "PDF/A-2B (ISO 19005-2), ISO 216 standart kağıt ölçüsü ve e-imza (/Sig) kontrolleri yürütülüyor."
+              : "IFC katmanları, kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) net/brüt alanları çıkarılıyor. İşlem tamamlandığında İcmal Tablosu otomatik açılacaktır."}
           </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <a
-            href="/api/smartcheck/epys-ids"
-            download="tr-epys-rg33331-ek6-ek7.ids"
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-indigo-500/40 bg-indigo-500/15 px-3 text-[11px] font-bold text-indigo-200 transition-colors hover:bg-indigo-500/25"
-          >
-            <Download size={13} />
-            e-PYS IDS Kuralları (.ids)
-          </a>
-          <a
-            href="/api/smartcheck/epys-allplan-kit"
-            download="allplan-2026-epys-kit-v1.json"
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 text-[11px] font-bold text-emerald-200 transition-colors hover:bg-emerald-500/25"
-          >
-            <Download size={13} />
-            ALLPLAN 2026 e-PYS Kiti v1 (.json)
-          </a>
-        </div>
-      </div>
-
-      <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-orange-500/25 bg-orange-950/15 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-bold text-orange-200">Örnek Projeyle Canlı Dene</p>
-            <Badge className="border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-300">Kotadan Düşmez</Badge>
-          </div>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-400">
-            Dosya yüklemeden ve aylık IFC/PDF kotanızı harcamadan; Mimari (Tablo 9.1 · 21 satır + Minha), Statik (Tablo 9.2 · 16 satır + 3×3 paspayı bulgusu) veya PDF/A-2B (ISO 216 A3 + e-imza) örnek paketini tek tıkla açın:
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={Boolean(sampleBusyId) || busy}
-            onClick={() => void loadSampleProject("mm-mimari-tablo-9-1")}
-            className="h-8 border-orange-500/40 bg-orange-500/10 text-[11px] font-bold text-orange-200 hover:bg-orange-500/20"
-          >
-            {sampleBusyId === "mm-mimari-tablo-9-1" ? <Loader2 size={13} className="animate-spin" /> : <FileCode2 size={13} />}
-            MM · Tablo 9.1 (21 Satır)
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={Boolean(sampleBusyId) || busy}
-            onClick={() => void loadSampleProject("st-statik-tablo-9-2")}
-            className="h-8 border-sky-500/40 bg-sky-500/10 text-[11px] font-bold text-sky-200 hover:bg-sky-500/20"
-          >
-            {sampleBusyId === "st-statik-tablo-9-2" ? <Loader2 size={13} className="animate-spin" /> : <Layers3 size={13} />}
-            ST · Tablo 9.2 (16 Satır) + 3×3
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={Boolean(sampleBusyId) || busy}
-            onClick={() => void loadSampleProject("pdfa-pafta-iso216")}
-            className="h-8 border-emerald-500/40 bg-emerald-500/10 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/20"
-          >
-            {sampleBusyId === "pdfa-pafta-iso216" ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-            PDF/A-2B · ISO 216 + e-İmza
-          </Button>
-        </div>
-      </div>
-
-      <div className="mb-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4">
-        <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs font-black text-zinc-100">Operasyon özeti</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{nextAction}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" disabled={!bulkApprovableRows.length || bulkReviewBusy} onClick={bulkApproveClearRows} className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">
-              {bulkReviewBusy ? <Loader2 className="animate-spin" size={13} /> : <CheckCircle2 size={13} />}
-              Bulgusuzları toplu onayla ({bulkApprovableRows.length})
-            </Button>
-            <Badge className={workflowStatusClass(selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting")}>
-              {selectedPriceEvidenceCount ? `${selectedPriceEvidenceCount} fiyat kanıtı bağlı` : reviewedRows.length ? "Fiyat kararı bekliyor" : "İnceleme bekliyor"}
-            </Badge>
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-semibold text-blue-700">
+            {stage}
           </div>
         </div>
-        <div className="grid gap-2 md:grid-cols-4">
-          {workflowSteps.map((step) => (
-            <div key={step.label} className={`rounded-xl border p-3 ${workflowStatusClass(step.status)}`}>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{step.label}</p>
-              <p className="mt-2 text-lg font-black">{step.value}</p>
-              <p className="mt-1 text-[10px] opacity-70">{step.hint}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
-        <div className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-700 p-6 text-center hover:border-orange-500/50">
-            {isIfcFile ? <FileCode2 className="text-orange-500" /> : <FileSpreadsheet className="text-orange-500" />}<span className="text-xs font-bold text-zinc-300">{file?.name ?? openedFileName ?? "XLSX, CSV, IFC veya PDF seçin (PDF en fazla 25 MB)"}</span>
-            <input className="sr-only" type="file" accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setOpenedFileName(null); setDocumentId(null); setPilotCaseId(null); setPreview(null); setRows([]); setStage("Dosya bekleniyor"); }} />
-          </label>
-          <Button disabled={!file || busy} onClick={upload} className="w-full gap-2 bg-orange-600 text-white hover:bg-orange-700">{busy && !preview ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />} {isIfcFile ? "IFC yükle ve işle" : isPdfFile ? "PDF/A ön kontrolü yap" : "Yükle ve önizle"}</Button>
+      {/* STATE 3: CLEAN UPLOAD CARD (SHOWN WHEN NO FILE IS LOADED YET) */}
+      {!calmDataset && !busy && !preview && !(documentId && isPdfFile) && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm text-slate-900">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700 border border-blue-200">
+              BIM → Kağıt İcmal & Daire Metrekareleri
+            </span>
+            <h2 className="mt-2.5 text-xl font-bold text-slate-900">
+              Proje Dosyanızı Yükleyin (.ifc, .xlsx, .csv, .pdf)
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+              IFC modelinizi yüklediğinizde çok katmanlı imalatlar (Şap, Parke, Seramik, Fayans, Sıva, Boya, Süpürgelik), kapı/pencere boşluk düşümleri (minha) ve daire m² cetveli otomatik çıkarılır.
+            </p>
+          </div>
 
-          {isIfcFile && (
-            <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 text-[11px] leading-relaxed text-sky-100/80">
-              <p className="font-black uppercase tracking-widest text-sky-300">Sunucu Tabanlı IFC & e-PYS Kanıt Akışı</p>
-              <p className="mt-1">Önizleme ve kolon eşleme atlanır. Sistem yalnızca IFC özellik/QTO kaynaklı metraj kanıtlarını inceleme satırı olarak kabul eder ve e-PYS EK-9 ön kontrol raporunu üretir.</p>
-            </div>
-          )}
+          <div className="mt-6 grid gap-6 lg:grid-cols-12 items-start">
+            {/* Left: File Dropzone & Upload Button */}
+            <div className="lg:col-span-7 space-y-3">
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition-colors hover:border-blue-500 hover:bg-blue-50/30">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xs border border-slate-200 text-blue-600">
+                  {isIfcFile ? <FileCode2 className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
+                </div>
+                <div>
+                  <span className="block text-sm font-bold text-slate-800">
+                    {file?.name ?? openedFileName ?? "Bilgisayarınızdan .ifc, .xlsx, .csv veya .pdf dosyası seçin"}
+                  </span>
+                  <span className="mt-1 block text-xs text-slate-500">
+                    Allplan, Revit ve ArchiCAD IFC4 / IFC4X3 modelleri ile Excel metraj cetvelleri desteklenir
+                  </span>
+                </div>
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  onChange={(event) => {
+                    setFile(event.target.files?.[0] ?? null);
+                    setOpenedFileName(null);
+                    setDocumentId(null);
+                    setPilotCaseId(null);
+                    setPreview(null);
+                    setRows([]);
+                    setStage("Dosya seçildi — Yüklemeye hazır");
+                  }}
+                />
+              </label>
 
-          {!isIfcFile && preview && <div className="space-y-3 border-t border-zinc-800 pt-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-zinc-200"><Table2 size={14} className="text-orange-400" /> Kaynak yapısı</div>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="text-[10px] uppercase tracking-widest text-zinc-500">Sheet<select aria-label="Sheet" value={selectedSheet} onChange={(event) => { setSelectedSheet(event.target.value); setMapping((current) => ({ ...current, sheet: event.target.value })); }} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200">{preview.sheets.map((sheet) => <option key={sheet.name} value={sheet.name}>{sheet.name} · {sheet.rowCount} satır</option>)}</select></label>
-              <label className="text-[10px] uppercase tracking-widest text-zinc-500">Başlık satırı<input aria-label="Başlık satırı" type="number" min="1" max="100" value={headerRow} onChange={(event) => setHeaderRow(event.target.value)} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200" /></label>
+              <Button
+                disabled={!file || busy}
+                onClick={upload}
+                className="h-11 w-full gap-2 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 shadow-xs"
+              >
+                <Upload size={15} />
+                {isIfcFile
+                  ? "IFC Modelini Yükle ve İcmal Çıkar"
+                  : isPdfFile
+                    ? "PDF/A Ön Kontrolü Başlat"
+                    : "Dosyayı Yükle ve Analiz Et"}
+              </Button>
             </div>
-            <label className="text-[10px] uppercase tracking-widest text-zinc-500">MEP eşleme profili<select aria-label="MEP eşleme profili" value={selectedProfileId} onChange={(event) => { const profile = getMappingProfile(event.target.value); if (!profile) return; setSelectedProfileId(profile.id); setMapping((current) => ({ ...profile.mapping, profileId: profile.id, sheet: selectedSheet, headerRow: Number(headerRow) })); }} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200">{MEP_MAPPING_PROFILES.map((profile) => <option key={profile.id} value={profile.id}>{profile.label}</option>)}</select></label>
-            <p className="text-[10px] leading-relaxed text-zinc-500">Profil yalnız kolon eşleme önerisidir; miktar, fiyat ve kural onayı üretmez.</p>
-            <div className="grid grid-cols-2 gap-2">{mappingFields.map((key) => <Input key={key} aria-label={key} placeholder={mappingLabels[key]} value={String(mapping[key] ?? "")} onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))} className="h-9 border-zinc-800 bg-zinc-950 text-xs" />)}</div>
-            <Button disabled={busy || previewBusy || !selectedSheet} onClick={startProcessing} className="w-full gap-2 bg-sky-600 text-white hover:bg-sky-700">{busy ? <Loader2 className="animate-spin" size={15} /> : <Layers3 size={15} />} Eşlemeyi onayla ve işle</Button>
-          </div>}
-          {documentId && (
-            <details className="border-t border-zinc-800 pt-4">
-              <summary className="cursor-pointer text-xs font-bold text-zinc-300 flex items-center justify-between">
-                <span>Pilot kanıt kaydı (İzin & Saklama)</span>
-                {pilotCaseId && <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400">Kaydedildi</Badge>}
-              </summary>
-              <div className="mt-3 space-y-3">
-                <p className="text-[10px] text-zinc-500">Müşteri adı yerine kontrollü referans, izin ve saklama süresi kaydedilir.</p>
-                <div className="grid grid-cols-2 gap-2"><Input aria-label="Pilot kimliği" placeholder="Pilot kimliği" value={pilotMeta.pilotId} onChange={(event) => setPilotMeta((value) => ({ ...value, pilotId: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="Müşteri referansı" placeholder="Müşteri referansı" value={pilotMeta.customerReference} onChange={(event) => setPilotMeta((value) => ({ ...value, customerReference: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /></div>
-                <div className="grid grid-cols-2 gap-2"><Input aria-label="Proje referansı" placeholder="Proje referansı" value={pilotMeta.projectReference} onChange={(event) => setPilotMeta((value) => ({ ...value, projectReference: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="İzin referansı" placeholder="İzin referansı" value={pilotMeta.permissionReference} onChange={(event) => setPilotMeta((value) => ({ ...value, permissionReference: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /></div>
-                <div className="grid grid-cols-3 gap-2"><Input aria-label="İzin tarihi" type="date" value={pilotMeta.permissionGrantedAt} onChange={(event) => setPilotMeta((value) => ({ ...value, permissionGrantedAt: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="Retention tarihi" type="date" value={pilotMeta.retentionUntil} onChange={(event) => setPilotMeta((value) => ({ ...value, retentionUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /><Input aria-label="Beklenen satır" type="number" min="0" placeholder="Beklenen satır" value={pilotMeta.expectedRowCount} onChange={(event) => setPilotMeta((value) => ({ ...value, expectedRowCount: event.target.value }))} className="border-zinc-800 bg-zinc-950 text-xs" /></div>
-                <Button disabled={busy || Boolean(pilotCaseId) || !pilotMeta.pilotId || !pilotMeta.customerReference || !pilotMeta.projectReference || !pilotMeta.permissionReference || !pilotMeta.retentionUntil} onClick={() => void admitPilotCase()} variant="outline" className="w-full border-orange-500/30 text-orange-300 hover:bg-orange-500/10">{pilotCaseId ? "Pilot kaydı oluşturuldu" : "İzin ve saklama süresi ile kaydet"}</Button>
+
+            {/* Right: Recent Uploaded Files (Queue) & Quick Samples */}
+            <div className="lg:col-span-5 space-y-4">
+              {queue.length > 0 && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                  <div className="mb-2.5 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Son İşlenen Dosyalarınız</span>
+                    <button
+                      type="button"
+                      onClick={loadQueue}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-800"
+                    >
+                      <RefreshCw size={12} /> Yenile
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-52 overflow-y-auto">
+                    {queue.slice(0, 5).map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-slate-800">{item.fileName ?? "Dosya"}</p>
+                          <p className="text-[11px] text-slate-500">
+                            {item.status === "succeeded"
+                              ? "Analiz tamamlandı"
+                              : item.status === "failed"
+                                ? "İşleme hatası"
+                                : `${item.progressMessage ?? item.currentStage} · %${item.progressPercent}`}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          {item.status === "succeeded" && (
+                            <button
+                              type="button"
+                              onClick={() => openQueueDocument(item.documentId, item.fileName, item.status)}
+                              className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-700"
+                            >
+                              İcmali Aç
+                            </button>
+                          )}
+                          {item.status === "failed" && (
+                            <button
+                              type="button"
+                              onClick={() => retry(item.documentId)}
+                              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              Yeniden Dene
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">Örnek Projeler (Kotadan Düşmez)</span>
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Hazır Veri
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    disabled={Boolean(sampleBusyId) || busy}
+                    onClick={() => void loadSampleProject("mm-mimari-tablo-9-1")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    {sampleBusyId === "mm-mimari-tablo-9-1" ? <Loader2 size={12} className="animate-spin" /> : <FileCode2 size={12} className="text-blue-600" />}
+                    Mimari (Tablo 9.1)
+                  </button>
+                  <button
+                    type="button"
+                    disabled={Boolean(sampleBusyId) || busy}
+                    onClick={() => void loadSampleProject("st-statik-tablo-9-2")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    {sampleBusyId === "st-statik-tablo-9-2" ? <Loader2 size={12} className="animate-spin" /> : <Layers3 size={12} className="text-blue-600" />}
+                    Statik (Tablo 9.2)
+                  </button>
+                  <button
+                    type="button"
+                    disabled={Boolean(sampleBusyId) || busy}
+                    onClick={() => void loadSampleProject("pdfa-pafta-iso216")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    {sampleBusyId === "pdfa-pafta-iso216" ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} className="text-emerald-600" />}
+                    PDF/A-2B Pafta
+                  </button>
+                </div>
+                <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+                  <a href="/api/smartcheck/epys-ids" download="tr-epys-rg33331-ek6-ek7.ids" className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline">
+                    <Download size={12} /> e-PYS IDS (.ids)
+                  </a>
+                  <a href="/api/smartcheck/epys-allplan-kit" download="allplan-2026-epys-kit-v1.json" className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline">
+                    <Download size={12} /> ALLPLAN 2026 Kiti (.json)
+                  </a>
+                </div>
               </div>
-            </details>
-          )}
+            </div>
+          </div>
         </div>
+      )}
 
-        <div className="space-y-4 overflow-auto rounded-2xl border border-zinc-800">
-          {preview && !rows.length && activeSheet && <div className="border-b border-zinc-800 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">Kaynak önizleme · {activeSheet.name}</p><p className="mt-1 text-[10px] text-zinc-500">{activeSheet.rowCount} satır · {activeSheet.columnCount} kolon · Önerilen eşleme güvenli olmayan taslaktır.</p></div>{activeSheet.formulaCells.length > 0 && <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-300">{activeSheet.formulaCells.length} formül hücresi</Badge>}</div><div className="overflow-auto rounded-xl border border-zinc-900"><table className="w-full min-w-[640px] text-left text-[11px]"><tbody>{activeSheet.sampleRows.map((row, rowIndex) => <tr key={`${rowIndex}-${row.join("|")}`} className={rowIndex === Number(headerRow) - 1 ? "bg-orange-500/10 text-orange-200" : "border-t border-zinc-900 text-zinc-400"}>{row.map((value, columnIndex) => <td key={`${rowIndex}-${columnIndex}`} className="max-w-48 truncate p-2" title={value}>{value || "—"}</td>)}</tr>)}</tbody></table></div></div>}
-          {rows.length === 0 && !preview && !documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><ShieldAlert />Önce kaynak dosya yükleyin veya yukarıdan örnek bir proje açın; ardından normalize edilmiş satırlar ve kanıtlar burada görünecek.</div> : rows.length === 0 && !preview && documentId && isPdfFile && !busy ? null : rows.length === 0 && !preview && documentId ? <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-xs text-zinc-500"><Loader2 className="animate-spin text-sky-400" size={18} />{isPdfFile ? "PDF/A-2B ve ISO 216 ön kontrolü sunucu kuyruğunda işleniyor…" : "IFC kanıt satırları sunucu kuyruğunda işleniyor. Tamamlandığında özellik/QTO kaynaklı inceleme satırları burada görünecek."}</div> : rows.length === 0 && previewBusy ? <div className="flex min-h-32 items-center justify-center gap-2 p-8 text-xs text-zinc-500"><Loader2 className="animate-spin" size={16} />Önizleme hazırlanıyor…</div> : rows.length === 0 && preview ? <div className="flex items-center gap-2 p-4 text-xs text-zinc-500"><Eye size={14} className="text-sky-400" />Önizlemeyi kontrol edin; işlem başladığında normalize edilmiş sonuçlar burada görünecek.</div> : <table className="w-full min-w-[900px] text-left text-xs"><thead className="bg-zinc-900 text-zinc-500"><tr><th className="p-3">Kaynak</th><th className="p-3">Poz / Açıklama</th><th className="p-3">Miktar</th><th className="p-3">Bulgular</th><th className="p-3">Karar</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-zinc-900 align-top"><td className="p-3 font-mono text-orange-400">{row.sheetName}!{row.sourceCellRange}<div className="mt-1 text-[10px] text-zinc-600">satır {row.sourceRowNumber}</div></td><td className="p-3 text-zinc-300"><b>{row.rawPositionCode || "Poz yok"}</b><div className="text-zinc-500">{row.rawDescription}</div><Badge className="mt-2 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-400">{Math.round(Number(row.mappingConfidence) * 100)}% eşleme</Badge></td><td className="p-3 text-zinc-300">{row.normalizedQuantity ?? row.rawQuantity} {row.normalizedUnit ?? row.rawUnit}</td><td className="p-3">{row.findingsJson.length ? row.findingsJson.map((finding) => <div key={finding.code} title={`${finding.ruleVersion}: ${finding.suggestion}`} className="mb-1 text-amber-400">{finding.message}</div>) : <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Bulgu yok</span>}</td><td className="p-3"><div className="mb-2 text-[10px] text-zinc-500">{statusLabel(row.reviewStatus)}</div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={row.findingsJson.length > 0 || row.reviewStatus === "approved"} onClick={() => openReviewDraft(row, "approved")}>Onayla</Button>{row.findingsJson.length > 0 && <Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "approved")}>Miktarı düzelt</Button>}<Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "accepted_exception")}>İstisna</Button><Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "rejected")}>Reddet</Button><Button size="sm" variant="ghost" onClick={() => setExpandedRowId((current) => current === row.id ? null : row.id)}><ChevronDown size={13} className={expandedRowId === row.id ? "rotate-180" : ""} />Kanıt</Button></div></td></tr>).flatMap((rowElement, index) => { const row = rows[index]; return expandedRowId === row.id ? [rowElement, <tr key={`${row.id}-evidence`} className="border-t border-sky-500/10 bg-sky-500/[0.03]"><td colSpan={5} className="p-4"><div className="grid gap-4 md:grid-cols-3"><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-400">Kaynak değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.rawPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.rawDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.rawUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.rawQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.rawPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">Normalize değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.normalizedPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.normalizedDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.normalizedUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.normalizedQuantity || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Fiyat</dt><dd>{row.normalizedPrice || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-orange-400">Kural ve inceleme</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Durum</dt><dd>{statusLabel(row.reviewStatus)}</dd></div><div className="flex justify-between gap-3"><dt>İnceleme</dt><dd>{row.reviewedAt ? new Date(row.reviewedAt).toLocaleString("tr-TR") : "Bekliyor"}</dd></div><div className="flex justify-between gap-3"><dt>Not</dt><dd>{row.reviewerNotes || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Formül</dt><dd>{Object.keys(row.formulaJson ?? {}).length ? Object.entries(row.formulaJson).map(([cell, formula]) => <span key={cell} className="block font-mono text-amber-300">{cell}: {formula}</span>) : "Yok"}</dd></div></dl>{row.findingsJson.map((finding) => <p key={finding.code} className="mt-2 text-[10px] text-amber-300">{finding.code} · {finding.ruleVersion}<br />{finding.suggestion}</p>)}</div></div></td></tr>] : [rowElement]; })}</tbody></table>}
+      {/* STATE 4: PDF/A PREFLIGHT REPORT OR EXCEL PREVIEW OR EXPLICIT TECHNICAL INSPECTION */}
+      {(preview || (documentId && isPdfFile && !busy) || (calmDataset && showTechnicalInspect)) && (
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+            <div>
+              <p className="text-xs font-bold text-zinc-100">
+                {isPdfFile ? "PDF/A-2B ve ISO 216 Ön Kontrol Raporu" : "Mühendislik Denetim, e-PYS EK-9 & Ham IFC Satır Görünümü"}
+              </p>
+              <p className="text-[11px] text-zinc-400">{nextAction}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {(isPdfFile || preview) && (
+                <Button size="sm" variant="outline" onClick={resetToUploadScreen} className="border-zinc-700 text-zinc-200">
+                  Yeni Dosya Yükle
+                </Button>
+              )}
+              {rows.length > 0 && (
+                <Button size="sm" variant="outline" disabled={!bulkApprovableRows.length || bulkReviewBusy} onClick={bulkApproveClearRows} className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">
+                  {bulkReviewBusy ? <Loader2 className="animate-spin" size={13} /> : <CheckCircle2 size={13} />}
+                  Bulgusuzları toplu onayla ({bulkApprovableRows.length})
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {!isIfcFile && preview && (
+            <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
+              <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-zinc-200"><Table2 size={14} className="text-orange-400" /> Kaynak yapısı</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-500">Sheet<select aria-label="Sheet" value={selectedSheet} onChange={(event) => { setSelectedSheet(event.target.value); setMapping((current) => ({ ...current, sheet: event.target.value })); }} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200">{preview.sheets.map((sheet) => <option key={sheet.name} value={sheet.name}>{sheet.name} · {sheet.rowCount} satır</option>)}</select></label>
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-500">Başlık satırı<input aria-label="Başlık satırı" type="number" min="1" max="100" value={headerRow} onChange={(event) => setHeaderRow(event.target.value)} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200" /></label>
+                </div>
+                <label className="text-[10px] uppercase tracking-widest text-zinc-500">MEP eşleme profili<select aria-label="MEP eşleme profili" value={selectedProfileId} onChange={(event) => { const profile = getMappingProfile(event.target.value); if (!profile) return; setSelectedProfileId(profile.id); setMapping((current) => ({ ...profile.mapping, profileId: profile.id, sheet: selectedSheet, headerRow: Number(headerRow) })); }} className="mt-1 h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-xs text-zinc-200">{MEP_MAPPING_PROFILES.map((profile) => <option key={profile.id} value={profile.id}>{profile.label}</option>)}</select></label>
+                <div className="grid grid-cols-2 gap-2">{mappingFields.map((key) => <Input key={key} aria-label={key} placeholder={mappingLabels[key]} value={String(mapping[key] ?? "")} onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))} className="h-9 border-zinc-800 bg-zinc-950 text-xs" />)}</div>
+                <Button disabled={busy || previewBusy || !selectedSheet} onClick={startProcessing} className="w-full gap-2 bg-sky-600 text-white hover:bg-sky-700">{busy ? <Loader2 className="animate-spin" size={15} /> : <Layers3 size={15} />} Eşlemeyi onayla ve işle</Button>
+              </div>
+              {activeSheet && (
+                <div className="overflow-auto rounded-xl border border-zinc-900 p-3">
+                  <table className="w-full min-w-[640px] text-left text-[11px]"><tbody>{activeSheet.sampleRows.map((row, rowIndex) => <tr key={`${rowIndex}-${row.join("|")}`} className={rowIndex === Number(headerRow) - 1 ? "bg-orange-500/10 text-orange-200" : "border-t border-zinc-900 text-zinc-400"}>{row.map((value, columnIndex) => <td key={`${rowIndex}-${columnIndex}`} className="max-w-48 truncate p-2" title={value}>{value || "—"}</td>)}</tr>)}</tbody></table>
+                </div>
+              )}
+            </div>
+          )}
+
           {documentId && isIfcFile && !busy && <EpysPreflightPanel documentId={documentId} refreshKey={rows.length + reportRefreshKey} />}
           {documentId && isPdfFile && !busy && <PdfPreflightPanel documentId={documentId} refreshKey={reportRefreshKey} />}
-        </div>
-      </div>
 
-      {reviewDraft && <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
-        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-          <div><p className="text-xs font-bold text-amber-200">İnceleme kararı · {statusLabel(reviewDraft.status)}</p><p className="mt-1 text-[10px] text-zinc-500">{reviewDraft.row.sheetName}!{reviewDraft.row.sourceCellRange} · {reviewDraft.row.normalizedDescription ?? reviewDraft.row.rawDescription ?? "Metraj kalemi"}</p></div>
-          <Button size="sm" variant="ghost" onClick={() => setReviewDraft(null)}>Vazgeç</Button>
-        </div>
-        {reviewDraft.status === "approved" && <Input aria-label="Review miktar düzeltmesi" placeholder="Düzeltilmiş miktar" value={reviewDraft.quantity} onChange={(event) => setReviewDraft((value) => value ? { ...value, quantity: event.target.value } : value)} className="mb-3 border-zinc-800 bg-zinc-950" />}
-        <textarea aria-label="Review gerekçesi" placeholder={reviewDraft.status === "accepted_exception" ? "İstisna gerekçesi zorunlu" : reviewDraft.status === "rejected" ? "Red gerekçesi zorunlu" : "İnceleme notu (opsiyonel)"} value={reviewDraft.notes} onChange={(event) => setReviewDraft((value) => value ? { ...value, notes: event.target.value } : value)} className="min-h-24 w-full rounded-md border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-200 outline-none focus:border-amber-500/60" />
-        <div className="mt-3 flex justify-end gap-2"><Button variant="outline" onClick={() => setReviewDraft(null)}>İptal</Button><Button onClick={submitReviewDraft} className="bg-amber-600 text-white hover:bg-amber-700">Kararı kaydet</Button></div>
-      </div>}
+          {rows.length > 0 && (
+            <div className="max-h-[480px] overflow-auto rounded-2xl border border-zinc-800">
+              <table className="w-full min-w-[900px] text-left text-xs"><thead className="bg-zinc-900 text-zinc-500 sticky top-0"><tr><th className="p-3">Kaynak</th><th className="p-3">Poz / Açıklama</th><th className="p-3">Miktar</th><th className="p-3">Bulgular</th><th className="p-3">Karar</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-zinc-900 align-top"><td className="p-3 font-mono text-orange-400">{row.sheetName}!{row.sourceCellRange}<div className="mt-1 text-[10px] text-zinc-600">satır {row.sourceRowNumber}</div></td><td className="p-3 text-zinc-300"><b>{row.rawPositionCode || "Poz yok"}</b><div className="text-zinc-500">{row.rawDescription}</div></td><td className="p-3 text-zinc-300">{row.normalizedQuantity ?? row.rawQuantity} {row.normalizedUnit ?? row.rawUnit}</td><td className="p-3">{row.findingsJson.length ? row.findingsJson.map((finding) => <div key={finding.code} title={`${finding.ruleVersion}: ${finding.suggestion}`} className="mb-1 text-amber-400">{finding.message}</div>) : <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Bulgu yok</span>}</td><td className="p-3"><div className="mb-2 text-[10px] text-zinc-500">{statusLabel(row.reviewStatus)}</div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={row.findingsJson.length > 0 || row.reviewStatus === "approved"} onClick={() => openReviewDraft(row, "approved")}>Onayla</Button>{row.findingsJson.length > 0 && <Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "approved")}>Miktarı düzelt</Button>}<Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "accepted_exception")}>İstisna</Button><Button size="sm" variant="outline" onClick={() => openReviewDraft(row, "rejected")}>Reddet</Button><Button size="sm" variant="ghost" onClick={() => setExpandedRowId((current) => current === row.id ? null : row.id)}><ChevronDown size={13} className={expandedRowId === row.id ? "rotate-180" : ""} />Kanıt</Button></div></td></tr>).flatMap((rowElement, index) => { const row = rows[index]; return expandedRowId === row.id ? [rowElement, <tr key={`${row.id}-evidence`} className="border-t border-sky-500/10 bg-sky-500/[0.03]"><td colSpan={5} className="p-4"><div className="grid gap-4 md:grid-cols-3"><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-sky-400">Kaynak değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.rawPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.rawDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.rawUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.rawQuantity || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">Normalize değer</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Poz</dt><dd>{row.normalizedPositionCode || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Açıklama</dt><dd>{row.normalizedDescription || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Birim</dt><dd>{row.normalizedUnit || "—"}</dd></div><div className="flex justify-between gap-3"><dt>Miktar</dt><dd>{row.normalizedQuantity || "—"}</dd></div></dl></div><div><p className="mb-2 text-[10px] font-black uppercase tracking-widest text-orange-400">Kural ve inceleme</p><dl className="space-y-1 text-[11px] text-zinc-400"><div className="flex justify-between gap-3"><dt>Durum</dt><dd>{statusLabel(row.reviewStatus)}</dd></div><div className="flex justify-between gap-3"><dt>Not</dt><dd>{row.reviewerNotes || "—"}</dd></div></dl></div></div></td></tr>] : [rowElement]; })}</tbody></table>
+            </div>
+          )}
 
-      {reviewedRows.length === 0 && (
-        <details className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-4">
-          <summary className="cursor-pointer text-xs font-bold text-sky-200">CSV Fiyat Kataloğu İçe Aktar (İsteğe Bağlı Ön Hazırlık)</summary>
-          {catalogImportCard}
-        </details>
+          {reviewDraft && <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+            <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div><p className="text-xs font-bold text-amber-200">İnceleme kararı · {statusLabel(reviewDraft.status)}</p><p className="mt-1 text-[10px] text-zinc-500">{reviewDraft.row.sheetName}!{reviewDraft.row.sourceCellRange} · {reviewDraft.row.normalizedDescription ?? reviewDraft.row.rawDescription ?? "Metraj kalemi"}</p></div>
+              <Button size="sm" variant="ghost" onClick={() => setReviewDraft(null)}>Vazgeç</Button>
+            </div>
+            {reviewDraft.status === "approved" && <Input aria-label="Review miktar düzeltmesi" placeholder="Düzeltilmiş miktar" value={reviewDraft.quantity} onChange={(event) => setReviewDraft((value) => value ? { ...value, quantity: event.target.value } : value)} className="mb-3 border-zinc-800 bg-zinc-950" />}
+            <textarea aria-label="Review gerekçesi" placeholder={reviewDraft.status === "accepted_exception" ? "İstisna gerekçesi zorunlu" : reviewDraft.status === "rejected" ? "Red gerekçesi zorunlu" : "İnceleme notu (opsiyonel)"} value={reviewDraft.notes} onChange={(event) => setReviewDraft((value) => value ? { ...value, notes: event.target.value } : value)} className="min-h-24 w-full rounded-md border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-200 outline-none focus:border-amber-500/60" />
+            <div className="mt-3 flex justify-end gap-2"><Button variant="outline" onClick={() => setReviewDraft(null)}>İptal</Button><Button onClick={submitReviewDraft} className="bg-amber-600 text-white hover:bg-amber-700">Kararı kaydet</Button></div>
+          </div>}
+
+          {reviewedRows.length > 0 && <div className="mt-4 space-y-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div><p className="text-xs font-bold text-emerald-300">{reviewedRows.length} satır aktarım için hazır</p><p className="mt-1 text-[10px] text-zinc-500">İnsan onaylı veya gerekçeli istisna satırları, kaynak/evidence bağları korunarak teklife aktarılır.</p></div>
+              {transferredQuotationId && <Link className="text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>Teklif taslağını aç</Link>}
+            </div>
+            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+              <Input aria-label="Yeni teklif müşteri referansı" placeholder="Yeni teklif müşteri/ref adı" value={newQuotationDraft.clientName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, clientName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+              <Input aria-label="Yeni teklif proje adı" placeholder={`Proje adı · ${file?.name ?? "SmartCheck aktarımı"}`} value={newQuotationDraft.projectName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, projectName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
+              <Button disabled={!newQuotationDraft.clientName.trim()} onClick={createQuotationAndTransfer} className="bg-emerald-600 text-white hover:bg-emerald-700">Yeni taslak oluştur ve aktar</Button>
+            </div>
+          </div>}
+        </div>
       )}
-
-      {reviewedRows.length > 0 && <div className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
-        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-          <div><p className="text-xs font-bold text-sky-200">Fiyat kanıtı / katalog eşleştirme</p><p className="mt-1 text-[10px] text-zinc-500">Fiyat bilinmiyorsa sistem uydurmaz. Bildiğiniz fiyatı manuel fiyat kaydı olarak kaydedip satıra bağlayabilirsiniz; aktarımda bu kayıt birim fiyat olarak uygulanır.</p></div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="w-fit border-sky-500/30 bg-sky-500/10 text-sky-300">{priceSnapshots.length} fiyat kaydı</Badge>
-            <Button size="sm" disabled={suggestionBusy || !reviewedRows.length} onClick={loadPriceSuggestions} variant="outline" className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10">{suggestionBusy ? <Loader2 className="animate-spin" size={13} /> : <Eye size={13} />} Fiyat önerilerini getir</Button>
-            <Button size="sm" disabled={!Object.keys(priceSuggestionsByRow).length} onClick={applySafePriceSuggestions} className="bg-sky-600 text-white hover:bg-sky-700">Güvenli önerileri uygula</Button>
-          </div>
-        </div>
-        <div className="grid gap-2 md:grid-cols-5">
-          <select aria-label="Manuel fiyat satırı" value={manualSnapshotDraft.rowId || reviewedRows[0]?.id || ""} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, rowId: event.target.value }))} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 md:col-span-2">
-            {reviewedRows.map((row) => <option key={row.id} value={row.id}>{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {(row.normalizedDescription || row.rawDescription || "Kalem").slice(0, 48)}</option>)}
-          </select>
-          <Input aria-label="Manuel birim fiyat" inputMode="decimal" placeholder="Birim fiyat" value={manualSnapshotDraft.amount} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, amount: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
-          <select aria-label="Manuel fiyat para birimi" value={manualSnapshotDraft.currency} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, currency: event.target.value }))} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200">{currencies.map((currency) => <option key={currency} value={currency}>{currency}</option>)}</select>
-          <Button onClick={createManualPriceSnapshot} className="bg-sky-600 text-white hover:bg-sky-700">Fiyat kanıtı oluştur</Button>
-        </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2">
-          <Input aria-label="Manuel fiyat kaynak adı" placeholder="Kaynak adı (örn. tedarikçi teklifi / son teklif hafızası)" value={manualSnapshotDraft.sourceName} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, sourceName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
-          <Input aria-label="Manuel fiyat geçerlilik tarihi" type="date" value={manualSnapshotDraft.validUntil} onChange={(event) => setManualSnapshotDraft((value) => ({ ...value, validUntil: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
-        </div>
-        {catalogImportCard}
-        <div className="mt-4 grid gap-2 md:grid-cols-2">
-          {reviewedRows.map((row) => {
-            const result = priceSuggestionsByRow[row.id];
-            const suggestion = result?.bestSuggestion;
-            return (
-              <div key={row.id} className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 text-[10px] text-zinc-400">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate">{row.normalizedPositionCode || row.rawPositionCode || "Poz yok"} · {row.normalizedDescription || row.rawDescription || "Kalem"}</span>
-                  <select aria-label={`Fiyat kanıtı ${row.id}`} value={snapshotByRow[row.id] ?? ""} onChange={(event) => setSnapshotByRow((current) => ({ ...current, [row.id]: event.target.value }))} className="h-8 max-w-64 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300">
-                    <option value="">Fiyat kaydı seç</option>
-                    {snapshotOptionsForRow(row).map((snapshot) => <option key={snapshot.id} value={snapshot.id}>{snapshot.positionCode ?? "Genel"} · {snapshot.description.slice(0, 24)} · {Number(snapshot.amount).toLocaleString("tr-TR")} {snapshot.currency}{snapshot.stale ? " · eski" : ""}</option>)}
-                  </select>
-                </div>
-                {result && !suggestion && <p className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-500">Bu satır için güvenilir katalog eşleşmesi bulunamadı; manuel fiyat kanıtı oluşturun veya katalog satırını genişletin.</p>}
-                {suggestion && (
-                  <div className="mt-2 rounded-lg border border-sky-500/20 bg-sky-500/5 p-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="min-w-0 flex-1 truncate text-sky-100">Öneri: {suggestion.snapshot.description} · {Number(suggestion.snapshot.amount).toLocaleString("tr-TR")} {suggestion.snapshot.currency} · %{Math.round(suggestion.score * 100)}</p>
-                      <Button size="sm" variant="outline" onClick={() => setSnapshotByRow((current) => ({ ...current, [row.id]: suggestion.snapshot.id }))} className="h-7 border-sky-500/30 text-sky-300 hover:bg-sky-500/10">Öneriyi seç</Button>
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-1">
-                      <Badge className={result.decision === "safe_candidate" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300"}>{result.decision === "safe_candidate" ? "Güvenli aday" : "İnsan kontrolü"}</Badge>
-                      <Badge className="border-zinc-700 bg-zinc-900 text-zinc-400">{suggestion.source.name}</Badge>
-                      <Badge className="border-zinc-700 bg-zinc-900 text-zinc-400">{suggestion.matchType}</Badge>
-                      {suggestion.warnings.map((warning) => <Badge key={warning} className="border-amber-500/20 bg-amber-500/10 text-amber-300">{priceSuggestionWarningLabel(warning)}</Badge>)}
-                    </div>
-                    <p className="mt-2 text-zinc-500">{suggestion.explanation}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>}
-
-      {queue.length > 0 && <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4"><div className="mb-3 flex items-center justify-between"><div><p className="text-xs font-bold text-zinc-200">İşleme kuyruğu</p><p className="mt-1 text-[10px] text-zinc-500">Şirket içindeki son SmartCheck işlemleri; başarısız işlem yalnızca açık yeniden deneme ile tekrar başlar.</p></div><Button size="sm" variant="ghost" onClick={loadQueue}><RefreshCw size={13} />Yenile</Button></div><div className="grid gap-2 md:grid-cols-2">{queue.slice(0, 6).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 p-3"><div className="min-w-0"><p className="truncate text-xs text-zinc-300">{item.fileName ?? "Dosya"}</p><p className="mt-1 text-[10px] text-zinc-500">{item.progressMessage ?? item.currentStage} · %{item.progressPercent}</p>{item.errorCode && <p className="mt-1 truncate text-[10px] text-rose-300" title={item.errorMessage ?? item.errorCode}>{item.errorCode}</p>}</div><div className="flex shrink-0 flex-wrap items-center justify-end gap-2"><Badge className={item.status === "failed" ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : item.status === "succeeded" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-sky-500/30 bg-sky-500/10 text-sky-300"}>{item.status}</Badge>{item.status === "succeeded" && <Button size="sm" variant="outline" onClick={() => openQueueDocument(item.documentId, item.fileName, item.status)}>Sonuçları aç</Button>}{item.status === "failed" && <Button size="sm" variant="outline" onClick={() => retry(item.documentId)}>Yeniden Dene</Button>}</div></div>)}</div></div>}
-
-      {reviewedRows.length > 0 && <div className="mt-4 space-y-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div><p className="text-xs font-bold text-emerald-300">{reviewedRows.length} satır aktarım için hazır</p><p className="mt-1 text-[10px] text-zinc-500">İnsan onaylı veya gerekçeli istisna satırları, kaynak/evidence bağları korunarak teklife aktarılır.</p></div>
-          {transferredQuotationId && <Link className="text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>Teklif taslağını aç</Link>}
-        </div>
-        <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-          <Input aria-label="Yeni teklif müşteri referansı" placeholder="Yeni teklif müşteri/ref adı" value={newQuotationDraft.clientName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, clientName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
-          <Input aria-label="Yeni teklif proje adı" placeholder={`Proje adı · ${file?.name ?? "SmartCheck aktarımı"}`} value={newQuotationDraft.projectName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, projectName: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
-          <Button disabled={!newQuotationDraft.clientName.trim()} onClick={createQuotationAndTransfer} className="bg-emerald-600 text-white hover:bg-emerald-700">Yeni taslak oluştur ve aktar</Button>
-        </div>
-        <div className="grid gap-3 border-t border-emerald-500/10 pt-4 md:grid-cols-[1fr_1fr_auto]">
-          <select aria-label="Taslak teklif" value={quotationId} onChange={(event) => setQuotationId(event.target.value)} className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200"><option value="">Var olan taslak teklif seçin</option>{quotes.filter((quote) => quote.status === "draft").map((quote) => <option key={quote.id} value={quote.id}>{quote.quoteNumber} · {quote.projectName}</option>)}</select>
-          <Input aria-label="Gerçek maliyet" placeholder="Gerçek maliyet (opsiyonel)" value={commercial.costUnitPrice} onChange={(event) => setCommercial((value) => ({ ...value, costUnitPrice: event.target.value }))} className="border-zinc-800 bg-zinc-950" />
-          <Button disabled={!quotationId} onClick={transfer} variant="outline" className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">Seçili taslağa aktar</Button>
-        </div>
-      </div>}
     </section>
   );
 }

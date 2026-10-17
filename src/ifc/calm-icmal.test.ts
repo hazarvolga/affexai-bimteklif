@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildCalibrated202645Dataset,
   buildCalmIfcDatasetFromElements,
+  parseSmartCheckRowToPseudoElement,
 } from "./calm-icmal";
 import type { ParsedIfcElement } from "./types";
 
@@ -38,7 +39,7 @@ test("buildCalibrated202645Dataset returns 5 quiet contractor groups and 16 resi
   assert.equal(parkeSup.unit, "mtül");
 });
 
-test("buildCalmIfcDatasetFromElements explodes multi-layer IfcCovering and converts SKIRTINGBOARD to mtül", () => {
+test("buildCalmIfcDatasetFromElements explodes multi-layer IfcCovering, converts SKIRTINGBOARD to mtül, and dynamically builds apartment schedule", () => {
   const sampleElements: ParsedIfcElement[] = [
     {
       id: "101",
@@ -121,4 +122,33 @@ test("buildCalmIfcDatasetFromElements explodes multi-layer IfcCovering and conve
   assert.equal(siva2cm?.netQuantity, 35.4);
   assert.equal(supurgelik?.netQuantity, 19.4);
   assert.equal(supurgelik?.unit, "mtül");
+
+  // Dynamic apartment schedule from D01 FLOORING element
+  assert.equal(ds.apartments.length, 1);
+  assert.equal(ds.apartments[0].unitCode, "D01");
+  assert.equal(ds.apartments[0].netSweepableM2, 25);
+});
+
+test("parseSmartCheckRowToPseudoElement accurately converts sample project rows without falling back to 2026_45", () => {
+  const sampleRows = [
+    {
+      rawDescription: "IfcSlab · MM-DSM-zemin (Zemin Kat Betonarme Döşeme — Beton_C25)",
+      rawUnit: "m3",
+      rawQuantity: "6.40",
+      rawPositionCode: "15.150.1005",
+      formulaJson: {},
+    },
+    {
+      rawDescription: "IfcCovering · MM-KPL-seramik_zemin (Mahal Zemin Seramik Kaplama — Seramik_A1)",
+      rawUnit: "m2",
+      rawQuantity: "32.50",
+      rawPositionCode: "15.390.1002",
+      formulaJson: {},
+    },
+  ];
+  const elements = sampleRows.map((r, i) => parseSmartCheckRowToPseudoElement(r, i));
+  const ds = buildCalmIfcDatasetFromElements(elements, null, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc");
+  const flat = ds.groups.flatMap((g) => g.items);
+  assert.equal(flat.length, 2);
+  assert.equal(ds.apartments.length, 0);
 });

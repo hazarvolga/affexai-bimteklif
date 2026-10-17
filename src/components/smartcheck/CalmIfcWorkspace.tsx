@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { CheckCircle2, Download, FileSpreadsheet, ArrowRight, Layers, Building2, Calculator, SlidersHorizontal } from "lucide-react";
+import { CheckCircle2, Download, FileSpreadsheet, ArrowRight, Layers, Building2, Calculator, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
 
@@ -8,6 +8,8 @@ export interface CalmIfcWorkspaceProps {
   onTransferToQuote?: (items: Array<{ id: string; title: string; pozCode: string; unit: string; quantity: number; unitPrice: number }>) => void;
   onToggleTechnicalView?: () => void;
   showTechnicalToggle?: boolean;
+  technicalViewOpen?: boolean;
+  onResetOrNewFile?: () => void;
 }
 
 type CalmStep = "icmal" | "daireler" | "maliyet";
@@ -33,6 +35,8 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   onTransferToQuote,
   onToggleTechnicalView,
   showTechnicalToggle = false,
+  technicalViewOpen = false,
+  onResetOrNewFile,
 }) => {
   const allItems = useMemo(() => dataset.groups.flatMap((g) => g.items), [dataset.groups]);
 
@@ -246,16 +250,31 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         </div>
 
         {/* ACTIONS */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {onResetOrNewFile && (
+            <button
+              type="button"
+              onClick={onResetOrNewFile}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Başka bir IFC, Excel veya PDF dosyası yükle"
+            >
+              <Upload className="w-3.5 h-3.5 text-orange-600" />
+              Yeni Dosya Yükle
+            </button>
+          )}
           {showTechnicalToggle && onToggleTechnicalView && (
             <button
               type="button"
               onClick={onToggleTechnicalView}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
-              title="Mühendislik / Ham IFC STEP Denetim Görünümü"
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                technicalViewOpen
+                  ? "border-blue-300 bg-blue-50 text-blue-800"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+              title="Mühendislik / e-PYS EK-9 & Ham IFC STEP Denetim Görünümü"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              Denetim Görünümü
+              {technicalViewOpen ? "Denetim Görünümünü Gizle" : "e-PYS & Denetim"}
             </button>
           )}
           <button
@@ -490,47 +509,53 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </div>
 
             <div className="divide-y divide-slate-100 max-h-[620px] overflow-y-auto">
-              {dataset.apartments.map((apt) => {
-                const isSelected = selectedApartment?.unitCode === apt.unitCode;
-                return (
-                  <button
-                    key={apt.unitCode}
-                    type="button"
-                    onClick={() => setSelectedUnitCode(apt.unitCode)}
-                    className={`w-full text-left grid grid-cols-12 items-center px-6 py-3 transition-colors ${
-                      isSelected
-                        ? "bg-blue-50/90 border-l-4 border-l-blue-600 pl-5"
-                        : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="col-span-5 pr-2">
-                      <div
-                        className={`text-sm ${
-                          isSelected ? "font-bold text-blue-950" : "font-semibold text-slate-900"
-                        }`}
-                      >
-                        {apt.unitLabel}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {apt.storey} · {apt.roomCount} Mahal
-                      </div>
-                    </div>
-                    <div className="col-span-2 text-right font-mono text-sm font-bold text-slate-900 tabular-nums">
-                      {formatTrNumber(apt.netSweepableM2)} m²
-                    </div>
-                    <div className="col-span-2 text-right font-mono text-xs font-semibold text-slate-600 tabular-nums">
-                      {apt.balconyM2 > 0 ? `+${formatTrNumber(apt.balconyM2)} m²` : "—"}
-                    </div>
-                    <div
-                      className={`col-span-3 text-right font-mono text-sm font-bold tabular-nums ${
-                        isSelected ? "text-blue-700" : "text-slate-800"
+              {dataset.apartments.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500">
+                  Bu IFC modelinde tanımlı bağımsız bölüm / mahal (IfcZone / IfcSpace) bulunamadı. Tüm yapısal ve kaplama metrajlarını <b>1. Malzeme İcmal Listesi</b> sekmesinden inceleyebilirsiniz.
+                </div>
+              ) : (
+                dataset.apartments.map((apt) => {
+                  const isSelected = selectedApartment?.unitCode === apt.unitCode;
+                  return (
+                    <button
+                      key={apt.unitCode}
+                      type="button"
+                      onClick={() => setSelectedUnitCode(apt.unitCode)}
+                      className={`w-full text-left grid grid-cols-12 items-center px-6 py-3 transition-colors ${
+                        isSelected
+                          ? "bg-blue-50/90 border-l-4 border-l-blue-600 pl-5"
+                          : "hover:bg-slate-50"
                       }`}
                     >
-                      {formatTrNumber(apt.generalGrossM2)} m²
-                    </div>
-                  </button>
-                );
-              })}
+                      <div className="col-span-5 pr-2">
+                        <div
+                          className={`text-sm ${
+                            isSelected ? "font-bold text-blue-950" : "font-semibold text-slate-900"
+                          }`}
+                        >
+                          {apt.unitLabel}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {apt.storey} · {apt.roomCount} Mahal
+                        </div>
+                      </div>
+                      <div className="col-span-2 text-right font-mono text-sm font-bold text-slate-900 tabular-nums">
+                        {formatTrNumber(apt.netSweepableM2)} m²
+                      </div>
+                      <div className="col-span-2 text-right font-mono text-xs font-semibold text-slate-600 tabular-nums">
+                        {apt.balconyM2 > 0 ? `+${formatTrNumber(apt.balconyM2)} m²` : "—"}
+                      </div>
+                      <div
+                        className={`col-span-3 text-right font-mono text-sm font-bold tabular-nums ${
+                          isSelected ? "text-blue-700" : "text-slate-800"
+                        }`}
+                      >
+                        {formatTrNumber(apt.generalGrossM2)} m²
+                      </div>
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             {/* FOOTER TOTALS FOR 16 APARTMENTS */}

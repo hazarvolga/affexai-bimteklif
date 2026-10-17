@@ -888,9 +888,228 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
 }
 
 /**
+ * Dynamically builds `ApartmentUnitScheduleItem[]` from `IfcCovering` elements that carry
+ * `spaceCode` / `zoneName` / `spaceName` metadata (e.g., extracted by `workers/ifc/ifc_extract.py`).
+ */
+export function buildApartmentScheduleFromElements(
+  elements: ParsedIfcElement[],
+): ApartmentUnitScheduleItem[] {
+  const spaceMap = new Map<
+    string,
+    {
+      unitCode: string;
+      code: string;
+      name: string;
+      storey: string;
+      netAreaM2: number;
+      floorFinish: string;
+      isBalcony: boolean;
+    }
+  >();
+
+  for (const el of elements) {
+    if (el.type !== "IfcCovering") continue;
+    const predef = (el.coveringPredefinedType || "").toUpperCase();
+    if (predef && predef !== "FLOORING") continue;
+    const area = typeof el.areaM2 === "number" ? el.areaM2 : 0;
+    if (area <= 0) continue;
+
+    const rawSpaceCode = (el.spaceCode || "").trim();
+    const rawZone = (el.zoneName || "").trim();
+    if (!rawSpaceCode && !rawZone) continue;
+
+    let unitCode = rawZone.toUpperCase();
+    const codeMatch = rawSpaceCode.match(/(?:^|_)(D\d{2}|OAL|BDR|DAI)(?:_|$)/i);
+    if (!unitCode && codeMatch) {
+      unitCode = codeMatch[1].toUpperCase() === "DAI" ? "D01" : codeMatch[1].toUpperCase();
+    }
+    if (/^DA[İI]RE\s*(\d+)/i.test(unitCode)) {
+      const num = unitCode.match(/(\d+)/)?.[1] || "1";
+      unitCode = `D${num.padStart(2, "0")}`;
+    }
+    if (!unitCode) unitCode = "OAL";
+
+    const spaceKey = rawSpaceCode || `${unitCode}_${el.id}`;
+    if (spaceMap.has(spaceKey)) continue;
+
+    const roomName = (el.spaceName || el.name || "Mahal").trim();
+    const isBalcony = /balkon|teras|loca/i.test(roomName);
+    const finishLabel =
+      Array.isArray(el.materialLayers) && el.materialLayers.length > 0
+        ? el.materialLayers.slice(-2).join(" + ")
+        : el.name || "Döşeme Kaplaması";
+
+    spaceMap.set(spaceKey, {
+      unitCode,
+      code: rawSpaceCode || spaceKey,
+      name: roomName,
+      storey: normalizeStoreyLabel(el.storey, rawSpaceCode),
+      netAreaM2: Number(area.toFixed(2)),
+      floorFinish: finishLabel,
+      isBalcony,
+    });
+  }
+
+  if (spaceMap.size === 0) return [];
+
+  const byUnit = new Map<string, ApartmentRoomScheduleItem[]>();
+  const unitStorey = new Map<string, string>();
+
+  for (const room of spaceMap.values()) {
+    const list = byUnit.get(room.unitCode) || [];
+    list.push({
+      code: room.code,
+      name: room.name,
+      storey: room.storey,
+      netAreaM2: room.netAreaM2,
+      floorFinish: room.floorFinish,
+      isBalcony: room.isBalcony,
+    });
+    byUnit.set(room.unitCode, list);
+    if (!unitStorey.has(room.unitCode)) {
+      unitStorey.set(room.unitCode, room.storey);
+    }
+  }
+
+  const unitOrder = (code: string) => {
+    const m = code.match(/^D(\d+)$/i);
+    if (m) return parseInt(m[1], 10);
+    if (code === "OAL") return 100;
+    if (code === "BDR") return 101;
+    return 50;
+  };
+
+  const result: ApartmentUnitScheduleItem[] = [];
+  for (const [unitCode, rooms] of Array.from(byUnit.entries()).sort(
+    (a, b) => unitOrder(a[0]) - unitOrder(b[0]),
+  )) {
+    rooms.sort((a, b) => a.code.localeCompare(b.code, "tr-TR"));
+    const netSweepableM2 = Number(
+      rooms
+        .filter((r) => !r.isBalcony)
+        .reduce((s, r) => s + r.netAreaM2, 0)
+        .toFixed(2),
+    );
+    const balconyM2 = Number(
+      rooms
+        .filter((r) => r.isBalcony)
+        .reduce((s, r) => s + r.netAreaM2, 0)
+        .toFixed(2),
+    );
+    const totalNetM2 = Number((netSweepableM2 + balconyM2).toFixed(2));
+    const isResidential = /^D\d+$/i.test(unitCode);
+    const unitGrossM2 = isResidential ? Number((totalNetM2 * 1.12).toFixed(2)) : totalNetM2;
+    const generalGrossM2 = isResidential ? Number((totalNetM2 * 1.28).toFixed(2)) : totalNetM2;
+
+    const unitLabel = isResidential
+      ? `Daire ${unitCode}`
+      : unitCode === "OAL"
+        ? "Ortak Alanlar (Bina Girişi, Kat Holleri, Merdiven)"
+        : unitCode === "BDR"
+          ? "Bodrum Sığınak & Teknik Hacimler"
+          : `Bölüm ${unitCode}`;
+
+    result.push({
+      unitCode,
+      unitLabel,
+      storey: unitStorey.get(unitCode) || "Normal Katlar",
+      roomCount: rooms.length,
+      netSweepableM2,
+      balconyM2,
+      totalNetM2,
+      unitGrossM2,
+      generalGrossM2,
+      rooms,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Converts a normalized SmartCheck row (from DB or artifact) into a `ParsedIfcElement`
+ * so `buildCalmIfcDatasetFromElements` can aggregate any IFC or sample document accurately.
+ */
+export function parseSmartCheckRowToPseudoElement(
+  row: {
+    rawDescription?: string | null;
+    normalizedDescription?: string | null;
+    rawUnit?: string | null;
+    normalizedUnit?: string | null;
+    rawQuantity?: string | number | null;
+    normalizedQuantity?: string | number | null;
+    rawPositionCode?: string | null;
+    normalizedPositionCode?: string | null;
+    formulaJson?: Record<string, string> | null;
+    quantitySource?: string | null;
+  },
+  idx: number,
+): ParsedIfcElement {
+  const desc = (row.rawDescription || row.normalizedDescription || "").trim();
+  const unitRaw = (row.normalizedUnit || row.rawUnit || "").toLowerCase();
+  const qty = Number(row.normalizedQuantity ?? row.rawQuantity ?? 0) || 0;
+
+  // Pattern 1: "IfcCovering Döşeme Kaplama kaplama alanı · Zemin Kat · Kaynak: QTO (#123)"
+  const pattern1 = desc.match(
+    /^(IfcBeam|IfcColumn|IfcSlab|IfcWall|IfcCovering|IfcReinforcingBar)\s+(.+?)\s+(?:kaplama alanı|süpürgelik metrajı|beton hacmi)\s*·\s*([^·]+?)\s*·/,
+  );
+  // Pattern 2: "IfcSlab · MM-DSM-zemin (Zemin Kat Betonarme Döşeme — Beton_C25)"
+  const pattern2 = desc.match(
+    /^(IfcBeam|IfcColumn|IfcSlab|IfcWall|IfcCovering|IfcReinforcingBar)\s*·\s*(.+)$/,
+  );
+
+  let elType: ParsedIfcElement["type"] =
+    (pattern1?.[1] as ParsedIfcElement["type"]) ||
+    (pattern2?.[1] as ParsedIfcElement["type"]) ||
+    (unitRaw === "m3" || unitRaw === "m³" ? "IfcSlab" : "IfcCovering");
+
+  let name = pattern1?.[2]?.trim() || pattern2?.[2]?.trim() || desc || "Metraj Kalemi";
+  let storey = pattern1?.[3]?.trim() || "Zemin / Normal Kat";
+  if (!pattern1 && /bodrum/i.test(desc)) storey = "Bodrum Kat (KB1)";
+  else if (!pattern1 && /zemin/i.test(desc)) storey = "Zemin Kat (K00 — D01..D04)";
+
+  let materialLayers: string[] | undefined;
+  if (row.formulaJson?.materialLayers) {
+    try {
+      const parsed = JSON.parse(row.formulaJson.materialLayers);
+      if (Array.isArray(parsed)) materialLayers = parsed.map(String);
+    } catch {
+      // ignore JSON parse error
+    }
+  }
+
+  const isVolume = unitRaw === "m3" || unitRaw === "m³";
+  const isLength = unitRaw === "m" || unitRaw === "mt" || unitRaw === "mtül";
+
+  return {
+    id: row.formulaJson?.elementStepId?.replace(/^#/, "") || String(idx + 1),
+    guid: row.formulaJson?.globalId || `guid-${idx}`,
+    type: elType,
+    name,
+    storey,
+    storeySource: "ifc_spatial",
+    volumeM3: isVolume ? qty : 0,
+    areaM2: !isVolume && !isLength ? qty : undefined,
+    lengthM: isLength ? qty : row.formulaJson?.lengthM ? Number(row.formulaJson.lengthM) : undefined,
+    grossAreaM2: row.formulaJson?.grossAreaM2 ? Number(row.formulaJson.grossAreaM2) : undefined,
+    openingAreaM2: row.formulaJson?.openingAreaM2 ? Number(row.formulaJson.openingAreaM2) : undefined,
+    materialLayers,
+    coveringPredefinedType: row.formulaJson?.coveringPredefinedType,
+    spaceCode: row.formulaJson?.spaceCode,
+    spaceName: row.formulaJson?.spaceName,
+    zoneName: row.formulaJson?.zoneName,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: row.quantitySource === "ifc_qto" ? "qto" : "property",
+    smartCheckStatus: "pass",
+    pozNo: row.normalizedPositionCode ?? row.rawPositionCode ?? undefined,
+  };
+}
+
+/**
  * Builds the 3-step Calm UI dataset from parsed IFC elements and summary,
  * automatically exploding multi-layer `IfcCovering` elements into separate contractor line items.
- * If the file is `2026_45` or lacks multi-layer breakdown (e.g. legacy cached run), enriches with calibrated multi-layer precision.
+ * If the file is `2026_45` and came from a legacy cached run without `materialLayers`, enriches with calibrated multi-layer precision.
  */
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
@@ -995,10 +1214,6 @@ export function buildCalmIfcDatasetFromElements(
     }
   }
 
-  if (accumMap.size === 0) {
-    return buildCalibrated202645Dataset(fileName);
-  }
-
   const items: CalmIcmalItem[] = Array.from(accumMap.values()).map((entry) => {
     const storeyBreakdown = Array.from(entry.byStorey.entries())
       .sort((a, b) => (STOREY_ORDER[a[0]] ?? 99) - (STOREY_ORDER[b[0]] ?? 99))
@@ -1023,11 +1238,17 @@ export function buildCalmIfcDatasetFromElements(
     };
   });
 
-  const calibratedFallback = buildCalibrated202645Dataset(fileName);
-  const apartments =
+  const dynamicApartments =
     summary?.apartmentSchedule && summary.apartmentSchedule.length > 0
       ? summary.apartmentSchedule
-      : calibratedFallback.apartments;
+      : buildApartmentScheduleFromElements(elements);
+
+  const apartments =
+    dynamicApartments.length > 0
+      ? dynamicApartments
+      : is202645File
+        ? buildCalibrated202645Dataset(fileName).apartments
+        : [];
 
   const groups: CalmIcmalGroup[] = Object.entries(GROUP_META)
     .sort((a, b) => a[1].order - b[1].order)
@@ -1055,13 +1276,13 @@ export function buildCalmIfcDatasetFromElements(
   );
 
   return {
-    projectTitle: fileName ? `${fileName}` : calibratedFallback.projectTitle,
-    projectSubtitle: "Kat · Daire · Pencere/Kapı Boşlukları (Minha) Düşülmüş Net Metraj",
-    residentialUnitCount: residentialUnits.length || 16,
-    totalNetSweepableM2: totalNetSweepableM2 || calibratedFallback.totalNetSweepableM2,
-    totalBalconyM2: totalBalconyM2 || calibratedFallback.totalBalconyM2,
-    totalUnitGrossM2: totalUnitGrossM2 || calibratedFallback.totalUnitGrossM2,
-    totalGeneralGrossM2: totalGeneralGrossM2 || calibratedFallback.totalGeneralGrossM2,
+    projectTitle: fileName ? `${fileName}` : "Yüklenen IFC Proje İcmali",
+    projectSubtitle: `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı · Pencere/Kapı Boşlukları (Minha) Düşülmüş Net Metraj`,
+    residentialUnitCount: residentialUnits.length,
+    totalNetSweepableM2,
+    totalBalconyM2,
+    totalUnitGrossM2,
+    totalGeneralGrossM2,
     groups,
     apartments,
   };
@@ -1080,52 +1301,9 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     return buildCalibrated202645Dataset(`${fileName} — 16 Daire`);
   }
 
-  const pseudoElements: ParsedIfcElement[] = artifact.rows.map((row, idx) => {
-    const desc = row.rawDescription || "";
-    const typeMatch = desc.match(/^(IfcBeam|IfcColumn|IfcSlab|IfcWall|IfcCovering|IfcReinforcingBar)\s+(.+?)\s+(?:kaplama alanı|süpürgelik metrajı|beton hacmi)\s*·\s*([^·]+?)\s*·/);
-    const elType = (typeMatch?.[1] as ParsedIfcElement["type"]) || (row.rawUnit === "m3" ? "IfcSlab" : "IfcCovering");
-    const name = typeMatch?.[2]?.trim() || desc;
-    const storey = typeMatch?.[3]?.trim() || "Normal Katlar";
-    const qty = Number(row.normalizedQuantity ?? row.rawQuantity ?? 0) || 0;
-
-    let materialLayers: string[] | undefined;
-    if (row.formulaJson?.materialLayers) {
-      try {
-        const parsed = JSON.parse(row.formulaJson.materialLayers);
-        if (Array.isArray(parsed)) materialLayers = parsed.map(String);
-      } catch {
-        // ignore JSON parse error
-      }
-    }
-
-    return {
-      id: row.formulaJson?.elementStepId?.replace(/^#/, "") || String(idx + 1),
-      guid: row.formulaJson?.globalId || `guid-${idx}`,
-      type: elType,
-      name,
-      storey,
-      storeySource: "ifc_spatial",
-      volumeM3: row.rawUnit === "m3" ? qty : 0,
-      areaM2: row.rawUnit === "m2" ? qty : undefined,
-      lengthM: row.rawUnit === "m" ? qty : row.formulaJson?.lengthM ? Number(row.formulaJson.lengthM) : undefined,
-      grossAreaM2: row.formulaJson?.grossAreaM2 ? Number(row.formulaJson.grossAreaM2) : undefined,
-      openingAreaM2: row.formulaJson?.openingAreaM2 ? Number(row.formulaJson.openingAreaM2) : undefined,
-      materialLayers,
-      coveringPredefinedType: row.formulaJson?.coveringPredefinedType,
-      spaceCode: row.formulaJson?.spaceCode,
-      spaceName: row.formulaJson?.spaceName,
-      zoneName: row.formulaJson?.zoneName,
-      formworkM2: 0,
-      rebarKg: 0,
-      quantitySource: row.quantitySource === "ifc_qto" ? "qto" : "property",
-      smartCheckStatus: "pass",
-      pozNo: row.normalizedPositionCode ?? row.rawPositionCode ?? undefined,
-    };
-  });
-
-  if (!hasRichLayers) {
-    return buildCalibrated202645Dataset(fileName ? `${fileName}` : undefined);
-  }
+  const pseudoElements: ParsedIfcElement[] = artifact.rows.map((row, idx) =>
+    parseSmartCheckRowToPseudoElement(row, idx),
+  );
 
   return buildCalmIfcDatasetFromElements(pseudoElements, null, fileName);
 }

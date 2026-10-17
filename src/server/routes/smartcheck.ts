@@ -408,7 +408,7 @@ export function registerSmartCheckRoutes(app: Express) {
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 1000, 1), 2000);
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 5000, 1), 10000);
     const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
     const rows = await db.select()
       .from(normalizedQuantityRows)
