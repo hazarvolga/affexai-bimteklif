@@ -47,6 +47,24 @@ describe("Contractual Opening Deduction (Minha) & Structural Intersection Engine
     assert.equal(result.netPayableAreaM2, 27.0);
   });
 
+  it("applies CSB_FORMWORK_4M2 4.00 m2 threshold for scaffolding/facade/contractual profiles", () => {
+    const result = evaluatePlasterPaintMinha({
+      grossAreaM2: 50,
+      standard: "CSB_FORMWORK_4M2",
+      openings: [
+        // 2.00 x 1.80 = 3.60 m2 (<= 4.00 m2 -> not deducted)
+        { id: "W-STD", widthM: 2.0, heightM: 1.8, count: 1 },
+        // 2.50 x 2.00 = 5.00 m2 (> 4.00 m2 -> deducted)
+        { id: "W-CURTAIN", widthM: 2.5, heightM: 2.0, count: 1 },
+      ],
+    });
+
+    assert.equal(result.thresholdM2, 4.0);
+    assert.equal(result.nonDeductedOpeningAreaM2, 3.6);
+    assert.equal(result.deductedOpeningAreaM2, 5.0);
+    assert.equal(result.netPayableAreaM2, 45.0);
+  });
+
   it("calculates structural concrete, formwork, and rebar with node intersection deductions", () => {
     const column = evaluateStructuralIntersectionTakeoff({
       elementType: "column",

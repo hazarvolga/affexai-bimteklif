@@ -2,14 +2,16 @@
  * Contractual Opening Deduction (Minha), Reveal Addition (Merkez/Denizlik),
  * and Structural Concrete/Formwork Intersection Engine.
  *
- * Implements the two primary measurement standards used in Turkish & international
+ * Implements the three primary measurement standards used in Turkish & international
  * construction tenders:
  * - CSB_2026: ÇŞB Genel Teknik Şartnamesi (<= 0.50 m² openings not deducted for
  *   plaster/paint; > 0.50 m² deducted with reveal/return surfaces added back).
  * - DIN_18350: VOB/C DIN 18350 (<= 2.50 m² openings not deducted; > 2.50 m² deducted).
+ * - CSB_FORMWORK_4M2: Özel Şartname / Dış Cephe İskele & Kalıp Minha Standardı
+ *   (<= 4.00 m² openings not deducted; > 4.00 m² deducted).
  */
 
-export type MeasurementStandard = "CSB_2026" | "DIN_18350";
+export type MeasurementStandard = "CSB_2026" | "DIN_18350" | "CSB_FORMWORK_4M2";
 
 export interface OpeningInput {
   id?: string;
@@ -92,7 +94,8 @@ function round4(n: number): number {
 
 export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): PlasterPaintMinhaResult {
   const standard: MeasurementStandard = input.standard ?? "CSB_2026";
-  const thresholdM2 = standard === "DIN_18350" ? 2.5 : 0.5;
+  const thresholdM2 =
+    standard === "CSB_FORMWORK_4M2" ? 4.0 : standard === "DIN_18350" ? 2.5 : 0.5;
   const defaultRevealDepthM =
     typeof input.wallThicknessM === "number" && input.wallThicknessM > 0
       ? input.wallThicknessM

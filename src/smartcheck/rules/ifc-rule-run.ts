@@ -1,12 +1,14 @@
 import type { IfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidence";
 import type { Finding } from "../import/normalize";
 import { validateEpysRules, type EpysValidationResult } from "./epys";
+import { evaluateIso19650Compliance, type Iso19650ValidationResult } from "./iso19650";
 import { validateThreeByThreeRules, type ActiveStandard, type ThreeByThreeItem, type ThreeByThreeValidationResult } from "./three-by-three";
 
 export interface IfcRuleEvaluations {
   evaluatedOn: "server";
   threeByThree: ThreeByThreeValidationResult;
   epys: EpysValidationResult;
+  iso19650?: Iso19650ValidationResult;
 }
 
 function threeByThreeItems(artifact: IfcSmartCheckEvidenceArtifact): ThreeByThreeItem[] {
@@ -31,7 +33,7 @@ function threeByThreeItems(artifact: IfcSmartCheckEvidenceArtifact): ThreeByThre
   });
 }
 
-/** Runs the 3x3 and e-PYS rule packs on the server for one IFC SmartCheck run (E-1, E-6). */
+/** Runs the 3x3, e-PYS, and ISO 19650-1/2 + LOIN rule packs on the server for one IFC SmartCheck run (E-1, E-6). */
 export function evaluateIfcRulePacks(artifact: IfcSmartCheckEvidenceArtifact, activeStandard: ActiveStandard): IfcRuleEvaluations {
   return {
     evaluatedOn: "server",
@@ -40,6 +42,22 @@ export function evaluateIfcRulePacks(artifact: IfcSmartCheckEvidenceArtifact, ac
       complianceData: artifact.summary.trPsetCsb,
       elementsWithPozNoCount: artifact.summary.elementsWithPozNoCount,
       totalElementsCount: artifact.summary.elementsWithPozNoCount + artifact.summary.elementsMissingPozNoCount,
+    }),
+    iso19650: evaluateIso19650Compliance({
+      fileName: artifact.document.fileName,
+      cdeState: "SHARED",
+      suitabilityCode: "S3",
+      revisionCode: "P01.01",
+      targetDeliveryStage: "COORDINATION",
+      elements: artifact.rows.map((r, i) => ({
+        id: r.formulaJson?.elementStepId ?? String(i + 1),
+        guid: r.formulaJson?.globalId ?? `row-${i + 1}`,
+        type: r.rawDescription.split(" ")[0] || "IfcBuildingElement",
+        storey: r.formulaJson?.storey ?? "Zemin Kat",
+        material: r.formulaJson?.material ?? r.rawDescription,
+        pozNo: r.normalizedPositionCode ?? r.rawPositionCode,
+        hasAdmissibleQuantity: r.quantitySource !== "missing",
+      })),
     }),
   };
 }

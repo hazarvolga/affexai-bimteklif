@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
+import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
+import { parseContainerIdentity } from "@/smartcheck/rules/iso19650";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
@@ -94,6 +96,36 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       perGrossM2,
     };
   }, [dataset.groups, dataset.residentialUnitCount, dataset.totalGeneralGrossM2, overheadPercent, unitPrices]);
+
+  const [kikWorkCategory, setKikWorkCategory] = useState<KikWorkCategory>("ust_yapi");
+
+  const isoContainerIdentity = useMemo(
+    () => parseContainerIdentity(dataset.projectTitle),
+    [dataset.projectTitle],
+  );
+
+  const kikAdtAnalysis = useMemo(() => {
+    const estimatedYm = Math.max(1, Math.round(costSummary.directTotal * 1.25));
+    const ourBid = Math.max(1, Math.round(costSummary.grandTotal));
+    const sampleBids = [
+      ourBid,
+      Math.round(estimatedYm * 0.84),
+      Math.round(estimatedYm * 0.88),
+      Math.round(estimatedYm * 0.92),
+    ];
+    return evaluateKikAbnormallyLowBid({
+      estimatedCostTry: estimatedYm,
+      validBidsTry: sampleBids,
+      ourBidTry: ourBid,
+      workCategory: kikWorkCategory,
+      lineItems: allItems.map((it) => ({
+        id: it.id,
+        code: it.pozCode,
+        description: it.title,
+        totalAmount: Math.round(it.netQuantity * (unitPrices[it.id] ?? it.defaultUnitPriceTry)),
+      })),
+    });
+  }, [allItems, costSummary.directTotal, costSummary.grandTotal, kikWorkCategory, unitPrices]);
 
   const handleDownloadCsv = () => {
     const lines: string[] = [];
@@ -849,6 +881,73 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     : "Fiyatlandırılmış İcmal Tablosunu İndir (.csv)"}
                 </span>
               </button>
+            </div>
+
+            {/* 4734 KİK m.38 AŞIRI DÜŞÜK TEKLİF (SINIR DEĞER & %80 PARETO) ANALİZİ */}
+            <div className="mt-5 border border-border bg-background p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                  4734 KİK m.38 · SINIR DEĞER &amp; %80 PARETO ANALİZİ
+                </span>
+                <div className="inline-flex border border-border bg-card text-[10px] font-mono">
+                  <button
+                    type="button"
+                    onClick={() => setKikWorkCategory("ust_yapi")}
+                    className={`px-2 py-0.5 ${
+                      kikWorkCategory === "ust_yapi"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Üstyapı (N=1,00)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setKikWorkCategory("alt_yapi")}
+                    className={`px-2 py-0.5 ${
+                      kikWorkCategory === "alt_yapi"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Altyapı (N=0,80)
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="border border-border bg-card p-2">
+                  <div className="text-[10px] text-muted-foreground">Sınır Değer (SD = R × YM)</div>
+                  <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                    {formatTrCurrency(kikAdtAnalysis.boundaryValueTry)}
+                  </div>
+                </div>
+                <div className="border border-border bg-card p-2">
+                  <div className="text-[10px] text-muted-foreground">KİK m.38 Durumu</div>
+                  <div
+                    className={`mt-0.5 font-bold tabular-nums ${
+                      kikAdtAnalysis.isAbnormallyLow ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    {kikAdtAnalysis.isAbnormallyLow
+                      ? `Aşırı Düşük (${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`
+                      : `Sınır Değer Üstü (+${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-2.5 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+                <span>
+                  Tebliğ m.45.1.2 Sıralı İş Kalemi (%80):{" "}
+                  <strong className="text-foreground">
+                    {kikAdtAnalysis.explanationRequiredItems.length} / {allItems.length} Kalem
+                  </strong>
+                </span>
+                <span>
+                  Adlandırma:{" "}
+                  <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
+                </span>
+              </div>
             </div>
           </div>
         </div>

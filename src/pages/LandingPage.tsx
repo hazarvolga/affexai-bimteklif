@@ -97,7 +97,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       setWaitlistResult({
         ok: true,
         message: body.alreadyRegistered
-          ? 'E-posta adresiniz ön kayıt listemizde zaten yer alıyor; bilgileriniz güncellendi.'
+          ? 'Bu e-posta adresi zaten erken erişim ön kayıt listemizde yer alıyor.'
           : 'Ön kaydınız başarıyla alındı! Yeni sürüm ve erken erişim açıldığında ilk size haber vereceğiz.',
       });
     } catch (err: any) {
@@ -805,7 +805,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <Link to="/terms" className="block hover:text-foreground">Kullanım Koşulları</Link>
               <Link to="/privacy" className="block hover:text-foreground">KVKK & Gizlilik Bildirimi</Link>
               <span className="block text-muted-foreground">İstanbul, Türkiye</span>
-              <span className="block text-[11px] text-muted-foreground/80">openBIM · buildingSMART · ISO 19650</span>
+              <span className="block text-[11px] text-muted-foreground/80">openBIM · buildingSMART IFC · RG 33331 e-PYS</span>
             </div>
           </div>
         </div>

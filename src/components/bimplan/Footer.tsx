@@ -119,7 +119,7 @@ export default function Footer({ setView }: FooterProps) {
               </li>
               <li>
                 <button onClick={() => handleNavClick('mevzuat')} className="hover:text-orange-500 transition-colors text-left">
-                  Kamu İhale Kanunu (4734) BIM Normları
+                  RG 33331 Dijital Proje &amp; Elektronik Teslim Esasları
                 </button>
               </li>
               <li>

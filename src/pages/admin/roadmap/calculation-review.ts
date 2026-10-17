@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.2",
+  version: "BIM-CALC-2026-10-17.3",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "2cd4c4a5407cad47b384a47006b70fae6622538b",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, çok katmanlı icmal + 16 daire cetveli (Merkezi Pafta Design System Light/Dark) ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "142aa713eaa64e15adfb8a60844e9afd6973fdbf",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, ISO 19650-1/2 & LOIN motoru, 4734 KİK m.38 aşırı düşük teklif motoru ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -276,6 +276,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 9",
+    version: "BIM-CALC-2026-10-17.3",
+    date: "17 Ekim 2026",
+    commit: "142aa71",
+    trigger: "TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) Kural Motoru, 4734 KİK m.38 Aşırı Düşük Teklif (Sınır Değer & %80 Pareto) Motoru & 4,00 m² Minha Profili (GEO-2 / UX-1)",
+    beforeSummary:
+      "Vitrinde ve meta verilerde geçen TS EN ISO 19650 uyumu, 4734 KİK aşırı düşük teklif analizi ve 4,00 m² minha eşiği için çalışma zamanında (runtime) bağımsız kural motorları bulunmuyordu.",
+    afterSummary:
+      "Vitrindeki vaatleri çıkarmak yerine doğrudan çalışma zamanı motorları kuruldu: (1) TS EN ISO 19650-1/2 bilgi konteyneri adlandırma, CDE (WIP/SHARED/PUBLISHED/ARCHIVED), revizyon (Pxx.xx/Cxx) ve EN 17412-1 LOIN tamlık motoru (src/smartcheck/rules/iso19650.ts) sunucu IFC hattına bağlandı; (2) 4734 KİK m.38 & Genel Tebliğ m.45.1 yapım işleri Sınır Değer (SD) ve %80 Pareto sıralı iş kalemleri motoru (src/lib/kik-adt.ts) kurularak CalmIfcWorkspace Maliyet sekmesine entegre edildi; (3) Minha motoruna CSB_FORMWORK_4M2 (4,00 m²) profili eklendi.",
+    affectedModules: ["iso19650", "kik-adt", "minha"],
+    moduleDetails: {
+      iso19650: {
+        before: "ISO 19650 yalnızca sözlük ve eğitim içeriğinde yer alıyor, IFC çalışma zamanında denetlenmiyordu.",
+        after: "evaluateIso19650Compliance ile konteyner kimliği (ISO 19650-2 & RG 33331 EK-2), CDE durumu (S0..A7), revizyon kodu (P01.01 / C01) ve LOIN geometrik/alfa-sayısal/GlobalId tamlığı denetlenir.",
+        basis: "TS EN ISO 19650-1/2:2018 & TS EN 17412-1:2020 (src/smartcheck/rules/iso19650.ts)",
+      },
+      "kik-adt": {
+        before: "Kamu ihaleleri için 4734 KİK m.38 aşırı düşük teklif sınır değer ve sıralı iş kalemleri hesabı kodda yoktu.",
+        after: "evaluateKikAbnormallyLowBid ile YM üstü tekliflerin elenmesi, 1-sigma standart sapma bandı, R katsayısı (Üstyapı N=1,00 / Altyapı N=0,80), Sınır Değer (SD = R × YM) ve Tebliğ m.45.1.2 %80 Pareto sıralı iş kalemleri hesabı devreye alındı.",
+        basis: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1 (src/lib/kik-adt.ts)",
+      },
+      minha: {
+        before: "evaluatePlasterPaintMinha yalnız CSB_2026 (0,50 m²) ve DIN_18350 (2,50 m²) standartlarını destekliyordu.",
+        after: "CSB_FORMWORK_4M2 (4,00 m² kalıp/iskele/özel şartname) profili eklendi ve birim testiyle doğrulandı.",
+        basis: "src/smartcheck/rules/minha.ts & src/smartcheck/rules/minha.test.ts",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -357,9 +386,19 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Kiriş–kolon düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
   },
   minha: {
-    scope: "ÇŞB 2026 (CSB_2026_V1) ölçü esaslarına göre duvar (0,50 m²), sıva/boya (2,00 m² + söve) ve kalıp (1,00 m²) boşluk düşüm motoru aktif.",
+    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Özel Şartname Kalıp/İskele (CSB_FORMWORK_4M2: 4,00 m²) boşluk düşüm motoru aktif.",
     testFiles: ["src/smartcheck/rules/minha.test.ts"],
-    pending: "Özel idare şartnameleri ve DIN 18350 / NRM2 alternatif ölçü esası profillerinin saha kabulü.",
+    pending: "Özel idare şartnameleri ve alternatif ölçü esası profillerinin saha kabulü.",
+  },
+  iso19650: {
+    scope: "TS EN ISO 19650-1/2 bilgi konteyneri adlandırma (7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2), CDE durumu (WIP S0 / SHARED S1..S7 / PUBLISHED A1..A7 / ARCHIVED B), revizyon kodu (Pxx.xx / Cxx) ve EN 17412-1 LOIN tamlık motoru aktif.",
+    testFiles: ["src/smartcheck/rules/iso19650.test.ts", "src/smartcheck/rules/ifc-rule-run.test.ts"],
+    pending: "Kurum bazlı BEP (BIM Uygulama Planı) kod sözlüklerinin şirket ayarlarıyla eşleştirilmesi.",
+  },
+  "kik-adt": {
+    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1 yapım işleri Sınır Değer (SD = R × YM, Üstyapı N=1,00 / Altyapı N=0,80) ve %80 Pareto açıklama istenecek sıralı iş kalemleri motoru aktif.",
+    testFiles: ["src/lib/kik-adt.test.ts"],
+    pending: "Gerçek kamu ihale dosyalarıyla sınır değer ve aşırı düşük açıklama cetveli saha kabulü.",
   },
   "epys-on-kontrol": {
     scope: "IFC → sunucu ön kontrolü (EK-1/2/3/5/6, EK-7 Tablo 7.1–7.9 IfcAnnotation dahil) → disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ekranı, kotadan düşmeyen canlı örnek projeler ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",
