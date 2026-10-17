@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.21",
+  version: "BIM-CALC-2026-10-17.22",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "c9ea528160a16013a2b513663997ecfce85ca59a",
+  implementationBaseline: "fc811b0ad38ecaf2e94b4edaf9296c0a88d3d170",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -714,6 +714,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Kayıt, KİK motorunu bağımsız uzman onaylı L3 / canlı gösteriyordu; onay kurgusaldı.",
         after: "KİK motoru L2 / pilot olarak etiketlendi. Golden testler formülden türetilmiş olduğundan KİK'in yayımladığı resmî örnek hesapla karşılaştırma ve imzalı mühendis/ihale uzmanı onayı beklenir. YAMBİS motoru yayından çıkarıldı.",
         basis: "Kamu İhale Genel Tebliği m.45.1; Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği (konsolide, Mayıs 2026)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 28",
+    version: "BIM-CALC-2026-10-17.22",
+    date: "17 Ekim 2026",
+    commit: "fc811b0ad38ecaf2e94b4edaf9296c0a88d3d170",
+    trigger: "HttpOnly çerez oturumu, uçtan uca smoke testleri ve tasarım token göçü (hesap kuralı değişmedi)",
+    beforeSummary:
+      "Oturum anahtarı tarayıcı depolamasındaydı; çekirdek akış (teklif, PDF) tarayıcıda uçtan uca doğrulanmıyordu.",
+    afterSummary:
+      "Hiçbir hesap, formül veya kural değişmedi. Teklif oluşturma ve PDF üretimi gerçek sunucu ve tarayıcıyla CI'da smoke testten geçiyor (E2E: 10 adet × 3.000 ₺ satırı için teklif kaydı ve PDF yanıtı).",
+    affectedModules: ["teklif-satir"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Teklif kalemi hesabı birim testlerle doğrulanıyordu; tarayıcı üzerinden kayıtlı teklif ve PDF akışı otomatik denenmiyordu.",
+        after: "scripts/e2e-core-flow-smoke.ts, çerez oturumuyla müşteri ve teklif oluşturur, PDF üretir; hesap motoru değişmedi.",
+        basis: "Mevcut calculations.ts yöntemi; yalnız doğrulama kapsamı genişledi",
       },
     },
   },

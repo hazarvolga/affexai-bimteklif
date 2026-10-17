@@ -64,7 +64,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
   const p1 = layers[1].priority;
 
   return (
-    <div className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-6 space-y-6">
+    <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
       {/* Disclaimer and Non-authoritative Demo labels */}
       <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-[10px] text-orange-500 font-sans space-y-1">
         <p className="font-black uppercase tracking-wider">⚠️ INTERACTIVE DEMO SIMULATOR / NON-AUTHORITATIVE DEMO</p>
@@ -73,21 +73,21 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
         </p>
       </div>
 
-      <div className="flex justify-between items-center border-b border-zinc-800/80 pb-3">
+      <div className="flex justify-between items-center border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Layers className="text-orange-500" size={18} />
-          <h4 className="font-black text-zinc-100 uppercase tracking-widest text-[10px]">ALLPLAN Sandbox: Katman Priority Simülasyonu (Demo)</h4>
+          <h4 className="font-black text-foreground uppercase tracking-widest text-[10px]">ALLPLAN Sandbox: Katman Priority Simülasyonu (Demo)</h4>
         </div>
         <Button
           variant="ghost"
           onClick={resetSimulator}
-          className="text-zinc-500 hover:text-zinc-300 font-mono text-[9px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
+          className="text-muted-foreground hover:text-zinc-300 font-mono text-[9px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
         >
           <RefreshCw size={10} /> Sıfırla
         </Button>
       </div>
 
-      <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+      <p className="text-xs text-muted-foreground leading-relaxed font-sans">
         Her katmanın <strong className="text-orange-500">Priority (Öncelik) değerini</strong> ayarlayın. ALLPLAN'da, köşelerde yüksek priority değerine sahip katmanlar düşük priority katmanlarını keser. Betonarme katmanının priority değerini tuğla (400) ve yalıtım (300) katmanlarından yüksek (en az 500) yaparak birleşimi düzeltin!
       </p>
 
@@ -108,7 +108,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="size-2.5 rounded-sm" style={{ backgroundColor: layer.color }} />
-                      <span className="text-xs font-black text-zinc-100">{layer.name}</span>
+                      <span className="text-xs font-black text-foreground">{layer.name}</span>
                     </div>
                     <span className="font-mono text-[10px] text-orange-500 bg-orange-600/10 px-1.5 py-0.5 rounded-md font-bold">
                       PRIO: {layer.priority}
@@ -116,9 +116,9 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                   </div>
 
                   {isSelected && (
-                    <div className="space-y-2 mt-2 pt-2 border-t border-zinc-800">
+                    <div className="space-y-2 mt-2 pt-2 border-t border-border">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-zinc-400">
+                        <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
                           <span>PRIORITY (ÖNCELİK DEĞERİ)</span>
                           <span>{layer.priority} (100 - 900)</span>
                         </div>
@@ -129,12 +129,12 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                           step="50"
                           value={layer.priority}
                           onChange={(e) => updateLayer(idx, { priority: parseInt(e.target.value) })}
-                          className="w-full accent-orange-500 h-1 bg-zinc-800 rounded-lg cursor-pointer"
+                          className="w-full accent-orange-500 h-1 bg-surface-elevated rounded-lg cursor-pointer"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-zinc-400">
+                        <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
                           <span>KALINLIK (GENİŞLİK)</span>
                           <span>{layer.width} cm</span>
                         </div>
@@ -144,7 +144,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                           max="40"
                           value={layer.width}
                           onChange={(e) => updateLayer(idx, { width: parseInt(e.target.value) })}
-                          className="w-full accent-orange-500 h-1 bg-zinc-800 rounded-lg cursor-pointer"
+                          className="w-full accent-orange-500 h-1 bg-surface-elevated rounded-lg cursor-pointer"
                         />
                       </div>
                     </div>
@@ -154,15 +154,15 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
             })}
           </div>
 
-          <div className="p-3 bg-zinc-950 border border-zinc-800 space-y-2 font-mono text-[10px] rounded-xl">
+          <div className="p-3 bg-background border border-border space-y-2 font-mono text-[10px] rounded-xl">
             <div className="flex items-center gap-1 text-emerald-500">
               <Sparkles size={12} />
               <span className="font-black uppercase text-[9px] tracking-wider">Hiyerarşik Sıralama</span>
             </div>
-            <ol className="list-decimal pl-4 space-y-1 text-zinc-400">
+            <ol className="list-decimal pl-4 space-y-1 text-muted-foreground">
               {sortedLayersByPriority.map((layer, i) => (
                 <li key={layer.name}>
-                  <span className="text-zinc-200 font-bold">{layer.name}</span> (Prio: {layer.priority}) - {i === 0 ? 'Ana Taşıyıcı Core' : i === 1 ? 'İkincil Katman' : 'Tali Katman'}
+                  <span className="text-foreground font-bold">{layer.name}</span> (Prio: {layer.priority}) - {i === 0 ? 'Ana Taşıyıcı Core' : i === 1 ? 'İkincil Katman' : 'Tali Katman'}
                 </li>
               ))}
             </ol>
@@ -170,8 +170,8 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
         </div>
 
         {/* Dynamic CAD Canvas View */}
-        <div className="col-span-12 md:col-span-7 bg-zinc-950 border border-zinc-800 p-4 flex flex-col items-center justify-center relative min-h-[300px] rounded-xl">
-          <div className="absolute top-3 left-3 text-[9px] font-mono text-zinc-500 uppercase tracking-widest">
+        <div className="col-span-12 md:col-span-7 bg-background border border-border p-4 flex flex-col items-center justify-center relative min-h-[300px] rounded-xl">
+          <div className="absolute top-3 left-3 text-[9px] font-mono text-muted-foreground uppercase tracking-widest">
             2D CAD Köşe Detayı (Kat Planı Görünümü)
           </div>
 
@@ -279,7 +279,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
           </div>
 
           {/* Educational Status message */}
-          <div className="w-full text-center mt-3 text-[10px] font-mono text-zinc-300">
+          <div className="w-full text-center mt-3 text-[10px] font-mono text-foreground dark:text-muted-foreground">
             {layers[0].priority >= layers[1].priority ? (
               <span className="text-emerald-500 flex items-center justify-center gap-1">
                 <CheckCircle size={12} /> Betonarme taşıyıcı yalıtımı doğru şekilde kesiyor (Concrete {layers[0].priority} &gt; Insulation {layers[1].priority}).

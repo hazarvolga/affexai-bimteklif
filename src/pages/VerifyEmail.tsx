@@ -35,7 +35,7 @@ export function VerifyEmail() {
 
   return (
     <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-zinc-950 to-zinc-950">
-      <Card className="w-full max-w-md bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
+      <Card className="w-full max-w-md bg-card border-border backdrop-blur-xl shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 border transition-all duration-500">
             {status === "loading" && (
@@ -54,15 +54,15 @@ export function VerifyEmail() {
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl font-bold text-white tracking-tight">E-Posta Doğrulama</CardTitle>
-          <CardDescription className="text-zinc-500 mt-2">
+          <CardTitle className="text-2xl font-bold text-foreground tracking-tight">E-Posta Doğrulama</CardTitle>
+          <CardDescription className="text-muted-foreground mt-2">
             {message}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
           {status === "success" && (
             <div className="space-y-6">
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 Hesabınız doğrulandı. Academy derslerinize güvenle devam edebilirsiniz.
               </p>
               <Button render={<Link to="/login" />} className="w-full h-12 bg-orange-700 hover:bg-orange-800 text-white font-bold shadow-lg shadow-orange-900/30">Giriş Yap ve Başla</Button>
@@ -71,16 +71,16 @@ export function VerifyEmail() {
           
           {status === "error" && (
             <div className="space-y-6">
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 Bağlantı geçersiz veya süresi dolmuş olabilir. Lütfen yeni bir doğrulama bağlantısı talep edin.
               </p>
-              <Button render={<Link to="/" />} variant="outline" className="w-full h-12 border-zinc-800 text-zinc-300 hover:bg-zinc-800">Ana Sayfaya Dön</Button>
+              <Button render={<Link to="/" />} variant="outline" className="w-full h-12 border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800">Ana Sayfaya Dön</Button>
             </div>
           )}
 
           {status === "loading" && (
             <div className="py-4">
-              <p className="text-sm text-zinc-500 animate-pulse">Lütfen bekleyin...</p>
+              <p className="text-sm text-muted-foreground animate-pulse">Lütfen bekleyin...</p>
             </div>
           )}
         </CardContent>

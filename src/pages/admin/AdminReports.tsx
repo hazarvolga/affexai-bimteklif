@@ -92,11 +92,11 @@ export function AdminReports() {
     <PageContainer>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
             <BarChart3 className="text-indigo-400" size={26} />
             Kullanım ve Kapasite Raporları
           </h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Platform genelinde teklif üretimi, IFC analizi ve firma bazlı kaynak tüketimi
           </p>
         </div>
@@ -112,37 +112,37 @@ export function AdminReports() {
       </div>
 
       {/* Monthly Trends Section */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 mb-6">
+      <div className="rounded-xl border border-border bg-card p-5 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
             <TrendingUp size={16} className="text-indigo-400" />
             Aylık Hacim Trendi (Son 6 Ay)
           </h2>
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded-sm bg-indigo-500" />
-              <span className="text-zinc-400">Teklif Sayısı</span>
+              <span className="text-muted-foreground">Teklif Sayısı</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded-sm bg-amber-500" />
-              <span className="text-zinc-400">IFC Dosya Sayısı</span>
+              <span className="text-muted-foreground">IFC Dosya Sayısı</span>
             </div>
           </div>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-zinc-500">
+          <div className="p-8 text-center text-muted-foreground">
             <Clock size={20} className="animate-spin mx-auto mb-2 text-indigo-400" />
             Rapor verileri hesaplanıyor...
           </div>
         ) : trends.length === 0 ? (
-          <p className="text-xs text-zinc-500 py-6 text-center">Henüz trend verisi bulunmuyor.</p>
+          <p className="text-xs text-muted-foreground py-6 text-center">Henüz trend verisi bulunmuyor.</p>
         ) : (
           <div className="space-y-4 pt-2">
             {trends.map((t) => (
-              <div key={t.period} className="rounded-lg border border-zinc-800/80 bg-zinc-950 p-3.5">
+              <div key={t.period} className="rounded-lg border border-border bg-background p-3.5">
                 <div className="flex items-center justify-between text-xs font-semibold mb-2">
-                  <span className="text-white">{t.period}</span>
+                  <span className="text-foreground">{t.period}</span>
                   <div className="flex items-center gap-4">
                     <span className="text-indigo-400">{t.quoteCount} Teklif</span>
                     <span className="text-amber-400">{t.ifcCount} IFC</span>
@@ -151,7 +151,7 @@ export function AdminReports() {
 
                 <div className="space-y-1.5">
                   {/* Quote Bar */}
-                  <div className="h-2 w-full rounded-full bg-zinc-900 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-card overflow-hidden">
                     <div
                       className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min((t.quoteCount / maxQuoteCount) * 100, 100)}%` }}
@@ -159,7 +159,7 @@ export function AdminReports() {
                   </div>
 
                   {/* IFC Bar */}
-                  <div className="h-2 w-full rounded-full bg-zinc-900 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-card overflow-hidden">
                     <div
                       className="h-full bg-amber-500 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min((t.ifcCount / maxIfcCount) * 100, 100)}%` }}
@@ -173,15 +173,15 @@ export function AdminReports() {
       </div>
 
       {/* Top 10 Active Tenants */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-4 flex items-center gap-2">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
           <Layers size={16} className="text-indigo-400" />
           En Çok Kaynak Kullanan İlk 10 Firma
         </h2>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider font-semibold">
+            <thead className="border-b border-border bg-background text-muted-foreground uppercase tracking-wider font-semibold">
               <tr>
                 <th className="px-5 py-3">Firma</th>
                 <th className="px-5 py-3">Paket</th>
@@ -192,16 +192,16 @@ export function AdminReports() {
                 <th className="px-5 py-3 text-right">Detay</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 text-zinc-300">
+            <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-zinc-500">
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
                     Kayıtlar yükleniyor...
                   </td>
                 </tr>
               ) : topTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-zinc-500">
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
                     Henüz kullanım verisi bulunan firma yok.
                   </td>
                 </tr>
@@ -210,8 +210,8 @@ export function AdminReports() {
                   <tr key={tenant.id} className="hover:bg-zinc-800/40 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <Building2 size={14} className="text-zinc-500 shrink-0" />
-                        <span className="font-semibold text-white">{tenant.name}</span>
+                        <Building2 size={14} className="text-muted-foreground shrink-0" />
+                        <span className="font-semibold text-foreground">{tenant.name}</span>
                       </div>
                     </td>
 
@@ -227,11 +227,11 @@ export function AdminReports() {
                       ) : tenant.status === 'past_due' ? (
                         <span className="text-amber-400 font-medium">Ödeme Bekliyor</span>
                       ) : (
-                        <span className="text-zinc-500">{tenant.status}</span>
+                        <span className="text-muted-foreground">{tenant.status}</span>
                       )}
                     </td>
 
-                    <td className="px-5 py-3.5 font-semibold text-white">
+                    <td className="px-5 py-3.5 font-semibold text-foreground">
                       {tenant.quoteUsage}
                     </td>
 
@@ -239,7 +239,7 @@ export function AdminReports() {
                       {tenant.ifcUsage}
                     </td>
 
-                    <td className="px-5 py-3.5 text-zinc-400 text-[11px]">
+                    <td className="px-5 py-3.5 text-muted-foreground text-[11px]">
                       +{tenant.bonusQuotes} Teklif / +{tenant.bonusIfc} IFC
                     </td>
 

@@ -437,16 +437,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Kalıcı hafızada marka resmi olarak BIMMetraj (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK, 6306 sayılı Kentsel Dönüşüm ve Yargıtay 15. HD içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (rasyonel müteahhit payı, 4 aşamalı kademeli tapu devri, % 1 KDV matrahı) ve ÇŞİDB Yönetmeliğine dayalı YAMBİS Müteahhitlik Belge Grubu & Kapasite Danışmanı (cari oran, özkaynak, banka borcu rasyoları) devreye alındı.",
           ],
           [
-            "Rev. 27 (Güncel)",
+            "Rev. 27",
             "17 Ekim 2026 (Bağımsız Denetim Kapanışı: Gerçek İmza Kapısı, Yayından Çekilen Hesaplayıcılar, Sahte Ödeme Kanalı Kaldırıldı)",
             "BIM-CALC-2026-10-17.21",
             "DENETIM_RAPORU_2026-10-17 bulguları kapatıldı: Yetenek Kaydı'ndaki kurgusal 'Denetim Kurulu' onayları silindi, tüm yetenekler gerçek imza alınana kadar pilot/L2 seviyesine indirildi ve kapı testi gerçek kişi + sicil numarası şartı koştu. Kat Karşılığı ve YAMBİS hesaplayıcıları kaynak doğrulaması bitene kadar rota, sitemap ve llms.txt'ten çıkarıldı. Faturalama ekranındaki var olmayan kart/taksit kanalı kaldırıldı. CI'yı kıran Kurumsal AI limiti testi katalogdan okunur hâle getirildi. Sunucu tarafı sayfa üst verisi, og-image ve llms-full.txt eklendi.",
+          ],
+          [
+            "Rev. 28 (Güncel)",
+            "17 Ekim 2026 (HttpOnly Çerez Oturumu, Uçtan Uca Smoke Testleri ve Tasarım Token Göçü)",
+            "BIM-CALC-2026-10-17.22",
+            "Oturum jetonu localStorage'dan kaldırıldı: sunucu HttpOnly + SameSite=Strict çerez yazar, çerezle gelen değiştirici isteklerde aynı-origin kanıtı (CSRF) aranır, çıkış ve impersonation çıkışı sunucuda çerezi siler. Kayıt → giriş → müşteri → teklif → PDF → yenileme → çıkış akışı gerçek tarayıcıda CI'da koşan smoke testle doğrulanıyor. 2.962 sabit zinc/slate sınıfı köprüyle aynı pafta token'larına çevrildi (açık modda 4 sayfada piksel farkı 0).",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 27 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 28 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -744,6 +750,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Yetenek Kaydı 10 yeteneği 'Yüksek Mühendis / Mimar Denetim Kurulu' adlı kurgusal onayla L3 / canlı gösteriyordu; Kat Karşılığı ve YAMBİS hesaplayıcıları kaynaksız çarpanlar, kaynaksız m² sınırları ve hatalı KDV kuralıyla halka açıktı; Faturalama ekranı kodda karşılığı olmayan iyzico/PayTR taksit kanalı ve uydurma vade oranları gösteriyordu; CI testi eski Kurumsal AI limitini (1000) bekleyip 15 Ekim v6 kataloğuyla (150) çelişiyordu.",
             "Kurgusal onaylar kaldırıldı, 10 yetenek pilot/L2 oldu, registry.test.ts gerçek kişi + sicil numarası şartı ve yayınlanan hesaplayıcılarda varsayılan değer yasağı koşuyor; iki hesaplayıcı roadmap/L1 olarak kayda alınıp yayından çıkarıldı; kart/taksit kanalı kaldırıldı; test katalog değerini okuyor; denetim kaydı yazılamazsa Sentry'ye bildirilir; her genel rota için sunucuda başlık/açıklama/canonical yazılır, bilinmeyen rota noindex alır; og-image.png ve llms-full.txt eklendi.",
             "src/capabilities/registry.ts, src/capabilities/registry.test.ts, src/App.tsx, src/pages/calculators/CalculatorsIndexPage.tsx, src/pages/Billing.tsx, src/services/billing/feature-quota.integration.test.ts, src/server/routes/quotations.ts, src/server/app.ts, src/server/security/route-meta.ts, src/server/security/web-hardening.ts, public/og-image.png",
+          ],
+          [
+            "Rev. 28.1 · 17 Ekim 2026 (HttpOnly Çerez Oturumu, Uçtan Uca Smoke ve Token Göçü)",
+            "DENETIM_RAPORU_2026-10-17 P1-5, P1-10, P2-1; OWASP ASVS V3 (oturum yönetimi) ve CSRF savunma ilkeleri",
+            "Oturum JWT'si localStorage'da (token, superadmin_token, admin_session_backup) tutuluyordu; tek bir XSS süper admin dahil her oturumu çalabilirdi. Tarayıcı tabanlı uçtan uca test yalnız davet akışını kapsıyordu. 3.007 sabit zinc/slate sınıfı yalnız CSS köprüsüyle pafta renklerine çevriliyordu.",
+            "Sunucu bm_session ve bm_admin HttpOnly, SameSite=Strict, Path=/api (üretimde Secure) çerezlerini yazar; tarayıcıya jeton gövdede verilmez. authenticate çerezle gelen POST/PUT/PATCH/DELETE için Sec-Fetch-Site veya eşleşen Origin arar (403 CSRF_ORIGIN_MISMATCH). /api/auth/logout ve impersonation çıkışı çerezleri sunucuda temizler/geri yükler; istemci yalnız kimlik bilgisi olmayan bir ipucu tutar. scripts/e2e-core-flow-smoke.ts CI'a eklendi. scripts/migrate-design-tokens.mjs köprü eşlemesini kaynağa uyguladı.",
+            "src/server/auth/session-cookie.ts, src/server/middleware/auth.ts, src/server/routes/auth.ts, src/server/routes/admin.ts, src/server/routes/company.ts, src/lib/api.ts, src/hooks/useAuth.tsx, src/pages/admin/TenantDetail.tsx, src/pages/admin/TenantsList.tsx, scripts/e2e-core-flow-smoke.ts, scripts/migrate-design-tokens.mjs, .github/workflows/verify.yml",
           ],
         ],
       },

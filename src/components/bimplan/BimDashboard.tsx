@@ -140,12 +140,12 @@ export default function BimDashboard() {
   return (
     <div className="space-y-12">
       {/* HEADER SECTION */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
+      <div className="bg-card text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
         <div className="absolute right-0 bottom-0 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl"></div>
         <div className="max-w-3xl space-y-4">
           <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-widest block">ANALİTİK PANEL &amp; ROI</span>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-none">BIM Verimlilik &amp; Olgunluk Dashboard</h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">
             BIM (Yapı Bilgi Modellemesi) yatırımlarının mühendislik kalitesine, proje takvimine ve bütçe sapmalarına olan somut verimlilik kazançlarını etkileşimli grafiklerle inceleyin. ROI Simülatörünü kullanarak projenizin tahmini kazanç analizini yapabilirsiniz.
           </p>
 
@@ -183,45 +183,45 @@ export default function BimDashboard() {
           
           {/* Top Quick Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div className="bg-white border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold block uppercase">YAPIM SÜRESİ KAZANCI</span>
+                <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">YAPIM SÜRESİ KAZANCI</span>
                 <span className="text-xl font-black text-slate-900">%25 - %35</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">Sahada Hata Engelleme ile</span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div className="bg-white border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                 <DollarSign className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold block uppercase">BÜTÇE/METRAJ SAPMASI</span>
+                <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">BÜTÇE/METRAJ SAPMASI</span>
                 <span className="text-xl font-black text-slate-900">&lt; %3'ün Altı</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">BIM Düzey 2 Olgunlukta</span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div className="bg-white border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold block uppercase">TESİS DEVREYE ALMA</span>
+                <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">TESİS DEVREYE ALMA</span>
                 <span className="text-xl font-black text-slate-900">15 Kat Daha Hızlı</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">Entegre COBie Standardı</span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+            <div className="bg-white border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
                 <Leaf className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-extrabold block uppercase">KAFEİN &amp; MALZEME İSRAFI</span>
+                <span className="text-[10px] text-muted-foreground font-extrabold block uppercase">KAFEİN &amp; MALZEME İSRAFI</span>
                 <span className="text-xl font-black text-slate-900">%40 Azalma</span>
                 <span className="text-[10px] text-emerald-600 font-bold block">Doğru 3D İmalat Detayları</span>
               </div>
@@ -232,11 +232,11 @@ export default function BimDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Chart 1: BIM Level Comparison */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">CAD ve BIM Olgunluk Seviyeleri Karşılaştırması</h3>
-                  <p className="text-[11px] text-slate-400 font-bold">Hata oranları ve zaman sapmalarının BIM seviyesine göre radikal düşüşü</p>
+                  <p className="text-[11px] text-muted-foreground font-bold">Hata oranları ve zaman sapmalarının BIM seviyesine göre radikal düşüşü</p>
                 </div>
                 <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[10px] font-black rounded border border-orange-100">SEKTÖREL VERİ</span>
               </div>
@@ -261,11 +261,11 @@ export default function BimDashboard() {
             </div>
 
             {/* Chart 2: Project Phase Efficiency Trend */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">Proje Aşamalarına Göre Verimlilik Gelişimi</h3>
-                  <p className="text-[11px] text-slate-400 font-bold">BIM entegrasyonu sonrası aşamalar boyunca tırmanan mühendislik kalitesi (%)</p>
+                  <p className="text-[11px] text-muted-foreground font-bold">BIM entegrasyonu sonrası aşamalar boyunca tırmanan mühendislik kalitesi (%)</p>
                 </div>
                 <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[10px] font-black rounded border border-orange-100">YAŞAM DÖNGÜSÜ</span>
               </div>
@@ -295,10 +295,10 @@ export default function BimDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4">
             
             {/* Chart 3: Radar Chart for ISO 19650 Implementation Areas */}
-            <div className="lg:col-span-6 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="lg:col-span-6 bg-white border border-border rounded-2xl p-6 shadow-sm space-y-4">
               <div>
                 <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">Geleneksel vs ISO 19650 Standart Uyum Olgunluğu</h3>
-                <p className="text-[11px] text-slate-400 font-bold">Mühendislik departmanlarında kriter bazlı olgunluk derecesi karşılaştırması</p>
+                <p className="text-[11px] text-muted-foreground font-bold">Mühendislik departmanlarında kriter bazlı olgunluk derecesi karşılaştırması</p>
               </div>
 
               <div className="h-72 w-full flex justify-center items-center">
@@ -318,24 +318,24 @@ export default function BimDashboard() {
 
             {/* Strategic Insights Cards */}
             <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md flex-1 flex flex-col justify-between space-y-4">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-foreground rounded-2xl p-6 shadow-md flex-1 flex flex-col justify-between space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-orange-400 text-xs font-black uppercase tracking-wider">
                     <Sparkles className="w-4 h-4" />
                     DIJITALLEŞME ETKİ RAPORU
                   </div>
                   <h4 className="text-base font-black tracking-tight leading-snug">Metraj ve Hakediş Süreçlerinde Kusursuzluk</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                  <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed font-medium">
                     Geleneksel 2D çizimlerde metraj hataları ve buna bağlı bütçe sapmaları ortalama <strong className="text-orange-400">%15 - %18</strong> civarındadır. BIM 5D modelleme yönteminde ise nesne parametreleri doğrudan T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı pozlarıyla eşleştiği için bu sapma <strong className="text-emerald-400">%2'nin altına</strong> indirilir.
                   </p>
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 pt-2 border-t border-slate-700/50">
+                <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground pt-2 border-t border-slate-700/50">
                   <span>KAYNAK: buildingSMART Türkiye</span>
                   <span>RAPOR: 2026-Q2</span>
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+              <div className="bg-white border border-border rounded-2xl p-5 shadow-sm space-y-3">
                 <h4 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-orange-600" />
                   Mühendislikte Verimlilik Kazanım Matrisi
@@ -343,15 +343,15 @@ export default function BimDashboard() {
                 
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl font-bold">
-                    <span className="text-slate-600">3D Çakışma Analizi (Clash)</span>
+                    <span className="text-muted-foreground">3D Çakışma Analizi (Clash)</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px]">%90 Sahada Sıfır Hata</span>
                   </div>
                   <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl font-bold">
-                    <span className="text-slate-600">4D Zaman Simülasyonu</span>
+                    <span className="text-muted-foreground">4D Zaman Simülasyonu</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px]">%20 Takvim Kısaltma</span>
                   </div>
                   <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl font-bold">
-                    <span className="text-slate-600">COBie ile Bilgi Teslimatı</span>
+                    <span className="text-muted-foreground">COBie ile Bilgi Teslimatı</span>
                     <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px]">15 Kat Hızlı Devir</span>
                   </div>
                 </div>
@@ -363,14 +363,14 @@ export default function BimDashboard() {
         </div>
       ) : (
         /* TAB 2: INTERACTIVE BIM ROI CALCULATOR SIMULATOR */
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-10 shadow-sm space-y-8 animate-in fade-in duration-300" id="roi-simulator">
+        <div className="bg-white border border-border rounded-2xl p-6 sm:p-10 shadow-sm space-y-8 animate-in fade-in duration-300" id="roi-simulator">
           
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
               <Calculator className="w-5 h-5 text-orange-600" />
               Kişiselleştirilmiş BIM ROI Simülasyonu
             </h3>
-            <p className="text-xs text-slate-400 font-bold">
+            <p className="text-xs text-muted-foreground font-bold">
               Proje bütçesini, disiplin tipini ve hedeflediğiniz BIM olgunluk seviyesini değiştirerek sağlayacağınız verimliliği ve finansal tasarrufu anlık görün.
             </p>
           </div>
@@ -378,15 +378,15 @@ export default function BimDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Left Controls Column */}
-            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-6">
+            <div className="lg:col-span-5 bg-slate-50 border border-border p-6 rounded-2xl space-y-6">
               
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block border-b border-slate-200 pb-2">PROJE PARAMETRELERİ</span>
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block border-b border-border pb-2">PROJE PARAMETRELERİ</span>
 
               {/* Input 1: Budget Slider */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-bold">
                   <label className="text-slate-700 flex items-center gap-1">
-                    <Building2 className="w-4 h-4 text-slate-400" />
+                    <Building2 className="w-4 h-4 text-muted-foreground" />
                     Proje Yaklaşık Bütçesi
                   </label>
                   <span className="text-orange-600 font-extrabold text-sm">{projectBudget} Milyon TL</span>
@@ -401,7 +401,7 @@ export default function BimDashboard() {
                   className="w-full accent-orange-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                   id="budget-range-slider"
                 />
-                <div className="flex justify-between text-[9px] text-slate-400 font-bold">
+                <div className="flex justify-between text-[9px] text-muted-foreground font-bold">
                   <span>10 Milyon TL</span>
                   <span>500 Milyon</span>
                   <span>1 Milyar TL</span>
@@ -430,7 +430,7 @@ export default function BimDashboard() {
                       id={`proj-type-${t.id}`}
                     >
                       <span className="text-xs font-black block">{t.name}</span>
-                      <span className="text-[10px] text-slate-400 block font-medium mt-0.5">{t.desc}</span>
+                      <span className="text-[10px] text-muted-foreground block font-medium mt-0.5">{t.desc}</span>
                     </button>
                   ))}
                 </div>
@@ -456,7 +456,7 @@ export default function BimDashboard() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[10px] text-slate-400 font-semibold leading-normal pt-1 italic">
+                <p className="text-[10px] text-muted-foreground font-semibold leading-normal pt-1 italic">
                   {bimLevel === 0 && 'Geleneksel CAD çizimi. Koordinasyon ve veri transferi getirisi bulunmaz.'}
                   {bimLevel === 1 && 'Kısmi 3D modelleme. Sınırlı işbirliği, veriler silolar halinde saklanır.'}
                   {bimLevel === 2 && 'ISO 19650 standartlarına tam uyumlu, Ortak Veri Ortamı (CDE) yönetimli işbirlikçi BIM.'}
@@ -470,28 +470,28 @@ export default function BimDashboard() {
             <div className="lg:col-span-7 space-y-6">
               
               {/* ROI Main Banner */}
-              <div className="bg-slate-900 text-white p-6 rounded-2xl relative overflow-hidden shadow-md space-y-4">
+              <div className="bg-card text-white p-6 rounded-2xl relative overflow-hidden shadow-md space-y-4">
                 <div className="absolute right-0 bottom-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl"></div>
                 
                 <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">SİMÜLASYON ANALİZİ</span>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <span className="text-xs text-slate-300 font-bold block">Öngörülen Tahmini Finansal Tasarruf</span>
+                    <span className="text-xs text-foreground dark:text-muted-foreground font-bold block">Öngörülen Tahmini Finansal Tasarruf</span>
                     <span className="text-3xl sm:text-4xl font-black text-emerald-400 block tracking-tight mt-1">
                       {roiResult.savedWasteCost === 0 ? '0' : `₺${roiResult.savedWasteCost}M`}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                    <span className="text-[10px] text-muted-foreground font-semibold block mt-0.5">
                       (Tasarım hata ve çakışma maliyetlerinden)
                     </span>
                   </div>
 
                   <div className="border-t sm:border-t-0 sm:border-l border-slate-700/50 pt-4 sm:pt-0 sm:pl-6">
-                    <span className="text-xs text-slate-300 font-bold block">Yatırım Geri Dönüş Oranı (ROI)</span>
+                    <span className="text-xs text-foreground dark:text-muted-foreground font-bold block">Yatırım Geri Dönüş Oranı (ROI)</span>
                     <span className="text-3xl sm:text-4xl font-black text-orange-500 block tracking-tight mt-1">
                       {roiResult.netROI === 0 ? 'Sıfır Getiri' : `%${roiResult.netROI}`}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                    <span className="text-[10px] text-muted-foreground font-semibold block mt-0.5">
                       (BIM teknolojik/insan bütçesine oranla)
                     </span>
                   </div>
@@ -509,56 +509,56 @@ export default function BimDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
                 {/* Metric 1 */}
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-3">
+                <div className="bg-white border border-border p-5 rounded-2xl shadow-sm space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">MÜHENDİSLİK HATA KOORDİNASYONU</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">MÜHENDİSLİK HATA KOORDİNASYONU</span>
                     <Zap className="w-4 h-4 text-orange-600" />
                   </div>
                   <div>
                     <span className="text-2xl font-black text-slate-900">{roiResult.clashesPrevented} Çakışma</span>
-                    <p className="text-[11px] text-slate-500 leading-normal font-semibold mt-1">
+                    <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       Sahaya çıkmadan tasarım aşamasında engellenen boru-kiriş, elektrik-kanal çakışması sayısı.
                     </p>
                   </div>
                 </div>
 
                 {/* Metric 2 */}
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-3">
+                <div className="bg-white border border-border p-5 rounded-2xl shadow-sm space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">TAKTAK KAZANCI / TESLİMAT SÜRESİ</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">TAKTAK KAZANCI / TESLİMAT SÜRESİ</span>
                     <Clock className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
                     <span className="text-2xl font-black text-slate-900">{roiResult.timeSavingsWeeks} Hafta Tasarruf</span>
-                    <p className="text-[11px] text-slate-500 leading-normal font-semibold mt-1">
+                    <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       BIM 4D simülasyonları ve koordinasyon toplantıları sayesinde şantiyede kazanılan yapım takvimi.
                     </p>
                   </div>
                 </div>
 
                 {/* Metric 3 */}
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-3">
+                <div className="bg-white border border-border p-5 rounded-2xl shadow-sm space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">PARAMETRİK METRAJ GÜVENİLİRLİĞİ</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">PARAMETRİK METRAJ GÜVENİLİRLİĞİ</span>
                     <Award className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div>
                     <span className="text-2xl font-black text-slate-900">% {roiResult.quantitySurveyDeviation} Sapma</span>
-                    <p className="text-[11px] text-slate-500 leading-normal font-semibold mt-1">
+                    <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       BIM modellerinden doğrudan çıkartılan malzeme miktarı toleransı (Geleneksel yöntemlerde sapma %18'dir).
                     </p>
                   </div>
                 </div>
 
                 {/* Metric 4 */}
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-3">
+                <div className="bg-white border border-border p-5 rounded-2xl shadow-sm space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">TESİS DEVİR HIZI (HANDOVER)</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">TESİS DEVİR HIZI (HANDOVER)</span>
                     <Hammer className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
                     <span className="text-2xl font-black text-slate-900">{roiResult.facilityHandoverDays} Gün</span>
-                    <p className="text-[11px] text-slate-500 leading-normal font-semibold mt-1">
+                    <p className="text-[11px] text-muted-foreground leading-normal font-semibold mt-1">
                       COBie standardında doğrulanmış veritabanı sayesinde as-built verilerin tesis işletme ekibine sorunsuz devir süresi.
                     </p>
                   </div>
@@ -573,7 +573,7 @@ export default function BimDashboard() {
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-xs font-black text-emerald-900 uppercase tracking-wider">6D Yeşil BIM &amp; Karbon Tasarrufu</h4>
-                  <p className="text-xs text-slate-600 leading-normal font-semibold">
+                  <p className="text-xs text-muted-foreground leading-normal font-semibold">
                     Simüle edilen bu projede, tasarımda sağlanan malzeme optimizasyonu ve şantiyedeki israfın engellenmesi sayesinde tahmini <strong className="text-emerald-700">{roiResult.carbonReductionTons} Ton CO₂</strong> karbon ayak izi salınımı önlenebilir.
                   </p>
                 </div>

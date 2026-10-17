@@ -170,7 +170,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
             <User className="text-tech-blue" size={28} />
             Student Profile
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-slate-400">
             Manage your credentials, track course completions, and download verified BIM certificates.
           </p>
         </div>
@@ -186,7 +186,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                   <div className="size-20 bg-graphite-950 border border-graphite-500 rounded-full flex items-center justify-center text-tech-blue">
                     <User size={36} />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 bg-tech-blue text-white p-1 rounded-full border border-graphite-900">
+                  <div className="absolute -bottom-1 -right-1 bg-tech-blue text-foreground p-1 rounded-full border border-graphite-900">
                     <Shield size={10} />
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                       type="text" 
                       value={editedName} 
                       onChange={(e) => setEditedName(e.target.value)}
-                      className="w-full bg-graphite-950 border border-graphite-500 px-3 py-1.5 text-xs text-white rounded-[2px] focus:outline-none focus:border-tech-blue font-sans"
+                      className="w-full bg-graphite-950 border border-graphite-500 px-3 py-1.5 text-xs text-foreground rounded-[2px] focus:outline-none focus:border-tech-blue font-sans"
                       maxLength={40}
                     />
                   </div>
@@ -210,7 +210,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                       type="text" 
                       value={editedRole} 
                       onChange={(e) => setEditedRole(e.target.value)}
-                      className="w-full bg-graphite-950 border border-graphite-500 px-3 py-1.5 text-xs text-white rounded-[2px] focus:outline-none focus:border-tech-blue font-sans"
+                      className="w-full bg-graphite-950 border border-graphite-500 px-3 py-1.5 text-xs text-foreground rounded-[2px] focus:outline-none focus:border-tech-blue font-sans"
                       maxLength={30}
                     />
                   </div>
@@ -242,7 +242,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <span className="text-[10px] text-graphite-500 uppercase block">STUDENT NAME</span>
-                    <div className="text-sm font-bold text-white tracking-wide">{trainee?.name || 'Mehmet Soydan'}</div>
+                    <div className="text-sm font-bold text-foreground tracking-wide">{trainee?.name || 'Mehmet Soydan'}</div>
                   </div>
                   <div className="space-y-1">
                     <span className="text-[10px] text-graphite-500 uppercase block">PROFESSIONAL ROLE</span>
@@ -298,7 +298,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                 <span className="text-graphite-500 block text-[8px] uppercase tracking-wider flex items-center gap-1">
                   <BookOpen size={10} className="text-tech-blue" /> SYLLABUS COMPLETED
                 </span>
-                <span className="text-lg font-black text-white">{completedCount} / {totalLessonsCount}</span>
+                <span className="text-lg font-black text-foreground">{completedCount} / {totalLessonsCount}</span>
                 <div className="text-[9px] text-graphite-400 font-bold">{progressPercent}% rate</div>
               </div>
 
@@ -352,7 +352,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                     <div className="space-y-1">
                       <div className="flex justify-between text-[9px] text-graphite-400">
                         <span className="flex items-center gap-1"><Target size={11} className="text-signal-orange" /> WEEKLY STUDY GOAL (3 hrs)</span>
-                        <span className="font-bold text-white">{weeklyProgressPercent}%</span>
+                        <span className="font-bold text-foreground">{weeklyProgressPercent}%</span>
                       </div>
                       <TechnicalProgressBar progress={weeklyProgressPercent} status={weeklyProgressPercent >= 100 ? 'complete' : 'warning'} height={4} />
                     </div>
@@ -466,7 +466,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                   <div key={path.id} className="p-4 bg-graphite-900 border border-graphite-700 space-y-3 font-mono">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                        <h4 className="text-xs font-black text-white uppercase tracking-wide">{path.title}</h4>
+                        <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{path.title}</h4>
                         <span className="text-[9px] text-graphite-500 uppercase font-bold tracking-wider block">
                           Total Lessons: {path.lessonsCount || `${modulesForPath.length} Modules`}
                         </span>
@@ -487,7 +487,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
 
                     <div className="pt-2 border-t border-graphite-850 text-[10px] text-graphite-400 flex items-center justify-between">
                       <span>Course children synced: {path.children?.length || 0} tracks</span>
-                      <span className="text-[9px] text-slate-500 uppercase">{isPathDone ? 'GRADUATED' : 'ACTIVE INTAKE'}</span>
+                      <span className="text-[9px] text-muted-foreground uppercase">{isPathDone ? 'GRADUATED' : 'ACTIVE INTAKE'}</span>
                     </div>
                   </div>
                 );
@@ -504,7 +504,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                 <div className="flex items-center gap-3">
                   <Award className={isEligibleForCert ? 'text-signal-green size-8' : 'text-graphite-500 size-8'} />
                   <div>
-                    <h4 className="text-sm font-black text-white uppercase tracking-wider">Allplan Professional BIM Specialist II</h4>
+                    <h4 className="text-sm font-black text-foreground uppercase tracking-wider">Allplan Professional BIM Specialist II</h4>
                     <p className="text-[10px] text-graphite-400 mt-0.5">Formal verifiable credential issued by BIM Plan Academy System.</p>
                   </div>
                 </div>

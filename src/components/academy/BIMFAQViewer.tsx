@@ -87,7 +87,7 @@ export const BIMFAQViewer: React.FC = () => {
               onClick={() => setSelectedTopic(topic)}
               className={`p-3 border text-left flex flex-col justify-between transition-all rounded-[1px] h-20 ${
                 isSelected
-                  ? 'bg-tech-blue/10 border-tech-blue text-white shadow-md shadow-tech-blue/5'
+                  ? 'bg-tech-blue/10 border-tech-blue text-foreground shadow-md shadow-tech-blue/5'
                   : 'bg-graphite-900/60 border-graphite-800 text-graphite-400 hover:border-graphite-600 hover:text-white'
               }`}
             >
@@ -143,7 +143,7 @@ export const BIMFAQViewer: React.FC = () => {
                 <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-4 text-tech-blue animate-pulse" />
               </div>
               <div className="text-center space-y-1 z-10">
-                <p className="text-xs font-mono text-white animate-pulse uppercase tracking-widest">
+                <p className="text-xs font-mono text-foreground animate-pulse uppercase tracking-widest">
                   Gemini API is drafting solutions...
                 </p>
                 <p className="text-[9px] font-mono text-graphite-500 uppercase tracking-widest">
@@ -172,7 +172,7 @@ export const BIMFAQViewer: React.FC = () => {
                     >
                       <div className="flex items-center gap-3">
                         <HelpCircle size={15} className={isExpanded ? 'text-tech-blue' : 'text-graphite-500'} />
-                        <h4 className={`text-xs sm:text-sm font-bold tracking-tight uppercase ${isExpanded ? 'text-white' : 'text-graphite-300'}`}>
+                        <h4 className={`text-xs sm:text-sm font-bold tracking-tight uppercase ${isExpanded ? 'text-foreground' : 'text-graphite-300'}`}>
                           {faq.question}
                         </h4>
                       </div>

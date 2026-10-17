@@ -440,7 +440,7 @@ export function PlanEditor() {
   if (loading) {
     return (
       <PageContainer>
-        <div className="py-12 text-center text-sm text-zinc-400">Paket yapılandırması yükleniyor...</div>
+        <div className="py-12 text-center text-sm text-muted-foreground">Paket yapılandırması yükleniyor...</div>
       </PageContainer>
     );
   }
@@ -468,9 +468,9 @@ export function PlanEditor() {
   return (
     <PageContainer>
       {/* ÜST AKSİYON & BREADCRUMB BARI */}
-      <div className="flex flex-col gap-4 border-b border-zinc-800 pb-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Link
               to="/admin/plans"
               className="inline-flex items-center gap-1 text-indigo-400 hover:text-indigo-300 font-medium"
@@ -478,13 +478,13 @@ export function PlanEditor() {
               <ArrowLeft size={14} /> Paket Yönetimi
             </Link>
             <span>/</span>
-            <span className="text-zinc-300 font-semibold">
+            <span className="text-foreground dark:text-muted-foreground font-semibold">
               {isCreateMode ? 'Yeni Paket Oluştur' : currentPlan?.name || 'Paketi Düzenle'}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl font-black tracking-tight text-white">
+            <h1 className="text-2xl font-black tracking-tight text-foreground">
               {isCreateMode ? 'Yeni Abonelik Paketi Oluştur' : `${name || currentPlan?.name} — Paket Yapılandırması`}
             </h1>
             {!isCreateMode && (
@@ -509,14 +509,14 @@ export function PlanEditor() {
                   {isActive && isPublished ? <Eye size={11} /> : <EyeOff size={11} />}
                   {isActive && isPublished ? 'Vitrin: Yayında' : 'Vitrin: Gizli'}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 border border-zinc-700 px-2.5 py-0.5 text-xs font-bold text-zinc-200">
+                <span className="inline-flex items-center gap-1 rounded-full bg-surface-elevated border border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
                   <Users size={11} className="text-indigo-400" />
                   {subscriberCount} Kayıtlı Firma
                 </span>
               </>
             )}
           </div>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-muted-foreground">
             Paketin fiyatını, IFC/PDF/Teklif/AI kotalarını, depolama tavanını, vitrin görünümünü ve bu paketi kullanan firmaların alternatif pakete aktarımını tek sayfadan yönetin.
           </p>
         </div>
@@ -527,7 +527,7 @@ export function PlanEditor() {
               type="button"
               variant="outline"
               onClick={() => navigate(`/admin/plans/new?cloneFrom=${currentPlan.id}`)}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+              className="border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800 text-xs"
             >
               <Copy size={14} className="mr-1.5" /> Bu Paketten Kopya Oluştur
             </Button>
@@ -536,7 +536,7 @@ export function PlanEditor() {
             type="button"
             variant="ghost"
             onClick={() => navigate('/admin/plans')}
-            className="text-zinc-400 hover:text-white text-xs"
+            className="text-muted-foreground hover:text-white text-xs"
           >
             Vazgeç
           </Button>
@@ -559,11 +559,11 @@ export function PlanEditor() {
       </div>
 
       {/* HIZLI PROFİL ŞABLONLARI */}
-      <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-zinc-300">
+      <div className="mt-5 rounded-xl border border-border bg-card p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-foreground dark:text-muted-foreground">
           <Sparkles size={15} className="text-indigo-400 shrink-0" />
           <span className="font-semibold">Hızlı Paket Şablonu Yükle:</span>
-          <span className="text-zinc-500 hidden md:inline">
+          <span className="text-muted-foreground hidden md:inline">
             Önerilen mühendislik kota setlerini tek tıkla doldurup üzerinde özelleştirme yapabilirsiniz.
           </span>
         </div>
@@ -573,7 +573,7 @@ export function PlanEditor() {
               key={preset.id}
               type="button"
               onClick={() => applyPreset(preset)}
-              className="rounded-lg border border-zinc-700/80 bg-zinc-950/90 hover:border-indigo-500/50 hover:bg-indigo-500/10 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition-colors"
+              className="rounded-lg border border-border bg-background hover:border-indigo-500/50 hover:bg-indigo-500/10 px-2.5 py-1 text-[11px] font-medium text-foreground dark:text-muted-foreground transition-colors"
             >
               {preset.label}
             </button>
@@ -587,15 +587,15 @@ export function PlanEditor() {
           {/* 1. PAKET DURUMU (AKTİF / PASİF) & MÜŞTERİ TAŞIMA KURGUSU */}
           <section
             id="durum-ve-tasima"
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4"
+            className="rounded-2xl border border-border bg-card p-6 space-y-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                   <Power size={18} className="text-amber-400" />
                   1. Paket Durumu (Aktif / Pasif) & Mevcut Müşteri Taşıma Kurgusu
                 </h2>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Paketin yeni satışlara, mevcut abonelere veya tüm sisteme açık/kapalı olma durumunu belirleyin.
                 </p>
               </div>
@@ -608,7 +608,7 @@ export function PlanEditor() {
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${
                   lifecycleMode === 'active_public'
                     ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-950/30'
-                    : 'border-zinc-800 bg-zinc-950/60 hover:border-zinc-700'
+                    : 'border-border bg-background hover:border-zinc-700'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -623,7 +623,7 @@ export function PlanEditor() {
                     className="text-emerald-500"
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Paket hem `/pricing` ve `/register` ekranlarında yeni müşterilere sunulur hem de mevcut aboneler kotalarını kullanır.
                 </p>
               </label>
@@ -649,9 +649,9 @@ export function PlanEditor() {
                     className="text-indigo-500"
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Yeni kayıt olanlar bu paketi göremez (`isPublished: false`), ancak mevcut{' '}
-                  <strong className="text-white">{subscriberCount} firma</strong> kendi paket kotalarıyla kesintisiz devam eder.
+                  <strong className="text-foreground">{subscriberCount} firma</strong> kendi paket kotalarıyla kesintisiz devam eder.
                 </p>
               </label>
 
@@ -676,7 +676,7 @@ export function PlanEditor() {
                     className="text-amber-500"
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Paket tamamen kullanım dışı bırakılır (`isActive: false`). Bu paketteki mevcut firmalar seçeceğiniz alternatif pakete otomatik aktarılır.
                 </p>
               </label>
@@ -695,10 +695,10 @@ export function PlanEditor() {
                   <div className="flex items-center gap-2">
                     <ArrowRightLeft size={16} className="text-amber-400 shrink-0" />
                     <div>
-                      <p className="text-xs font-bold text-white">
+                      <p className="text-xs font-bold text-foreground">
                         Bu Paketteki Mevcut Müşterileri ({subscriberCount} Firma) Alternatif Pakete Taşı
                       </p>
-                      <p className="text-[11px] text-zinc-400">
+                      <p className="text-[11px] text-muted-foreground">
                         {isDeactivating
                           ? 'Paketi tamamen pasife aldığınız için mevcut abonelerin kesinti yaşamaması adına alternatif aktif bir paket seçmelisiniz.'
                           : 'Paketi pasife almadan da mevcut aboneleri tek işlemle başka bir aktif pakete topluca taşıyabilirsiniz.'}
@@ -711,7 +711,7 @@ export function PlanEditor() {
                         type="checkbox"
                         checked={forceMigrateSubscribers}
                         onChange={(e) => setForceMigrateSubscribers(e.target.checked)}
-                        className="rounded border-zinc-700 bg-zinc-900 text-amber-500"
+                        className="rounded border-border bg-card text-amber-500"
                       />
                       Kaydederken müşterileri taşı
                     </label>
@@ -719,7 +719,7 @@ export function PlanEditor() {
                 </div>
 
                 {(isDeactivating || forceMigrateSubscribers) && (
-                  <div className="grid gap-3 sm:grid-cols-2 items-center pt-2 border-t border-zinc-800/80">
+                  <div className="grid gap-3 sm:grid-cols-2 items-center pt-2 border-t border-border">
                     <div>
                       <label className="block text-[11px] font-bold text-amber-200 mb-1">
                         Hedef Alternatif Aktif Paket *
@@ -727,7 +727,7 @@ export function PlanEditor() {
                       <select
                         value={replacementPlanId}
                         onChange={(e) => setReplacementPlanId(e.target.value)}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-white"
+                        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground"
                       >
                         <option value="">-- Alternatif Aktif Paket Seçin --</option>
                         {otherActivePlans.map((p) => (
@@ -739,13 +739,13 @@ export function PlanEditor() {
                         ))}
                       </select>
                     </div>
-                    <div className="text-[11px] text-zinc-300 bg-zinc-900/90 rounded-lg p-2.5 border border-zinc-800">
-                      <span className="font-semibold text-white block mb-1">Taşınacak Firmalar:</span>
+                    <div className="text-[11px] text-foreground dark:text-muted-foreground bg-card rounded-lg p-2.5 border border-border">
+                      <span className="font-semibold text-foreground block mb-1">Taşınacak Firmalar:</span>
                       <div className="flex flex-wrap gap-1">
                         {subscribers.map((sub) => (
                           <span
                             key={sub.companyId}
-                            className="inline-flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-[10px] text-indigo-200"
+                            className="inline-flex items-center gap-1 rounded bg-surface-elevated px-2 py-0.5 text-[10px] text-indigo-200"
                           >
                             <Building2 size={10} /> {sub.companyName}
                           </span>
@@ -759,27 +759,27 @@ export function PlanEditor() {
           </section>
 
           {/* 2. PAKET KİMLİĞİ & FİYATLANDIRMA */}
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <section className="rounded-2xl border border-border bg-card p-6 space-y-4">
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <Package size={18} className="text-indigo-400" />
               2. Paket Kimliği & Fiyatlandırma
             </h2>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">Paket Adı *</label>
+                <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1.5">Paket Adı *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Örn: 5D BIM & SmartCheck"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">Aylık Fiyat (₺) *</label>
+                <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1.5">Aylık Fiyat (₺) *</label>
                 <input
                   type="number"
                   min={0}
@@ -789,9 +789,9 @@ export function PlanEditor() {
                     setMonthlyPrice(val);
                     if (val === 0) setIsTrial(true);
                   }}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm font-bold text-white outline-none focus:border-indigo-500"
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm font-bold text-foreground outline-none focus:border-indigo-500"
                 />
-                <span className="block text-[10px] text-zinc-500 mt-1">
+                <span className="block text-[10px] text-muted-foreground mt-1">
                   {monthlyPrice === 0
                     ? '0 ₺ (Ücretsiz / Deneme Paketi)'
                     : `Yıllık ödemede (%20 indirimli): ₺${yearlyDiscountedMonthly.toLocaleString('tr-TR')} / ay`}
@@ -799,12 +799,12 @@ export function PlanEditor() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3.5 flex items-center justify-between gap-4">
+            <div className="rounded-xl border border-border bg-background p-3.5 flex items-center justify-between gap-4">
               <div>
                 <label htmlFor="isTrialToggle" className="text-xs font-bold text-white cursor-pointer">
                   Ücretsiz Deneme (Trial) Paketi Olarak İşaretle (`isTrial`)
                 </label>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="text-[11px] text-muted-foreground mt-0.5">
                   İşaretlendiğinde yeni kayıt olan firmalar dekont/havale beklemeden anında aktif olur ve SmartCheck yetkileri otomatik açılır.
                 </p>
               </div>
@@ -813,34 +813,34 @@ export function PlanEditor() {
                 type="checkbox"
                 checked={isTrial}
                 onChange={(e) => setIsTrial(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500"
+                className="h-4 w-4 rounded border-border bg-card text-emerald-500"
               />
             </div>
           </section>
 
           {/* 3. SMARTCHECK (IFC 3X3 & E-PYS PDF/A) TEKNİK KOTALARI */}
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+          <section className="rounded-2xl border border-border bg-card p-6 space-y-4">
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <ShieldCheck size={18} className="text-emerald-400" />
                 3. SmartCheck (IFC 3x3 & RG 33331 e-PYS PDF/A) Teknik Kotaları
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 IFC metraj/isimlendirme analizi, dosya boyutu tavanı, paralel kuyruk işçisi ve PDF/A ön kontrol kotaları.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Aylık IFC Kotası */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300">Aylık IFC Analizi</label>
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground">Aylık IFC Analizi</label>
                   <label className="text-[10px] text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={monthlyIfcLimit === null}
                       onChange={(e) => setMonthlyIfcLimit(e.target.checked ? null : 5)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -855,50 +855,50 @@ export function PlanEditor() {
                     min={0}
                     value={monthlyIfcLimit}
                     onChange={(e) => setMonthlyIfcLimit(Math.max(0, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
-                <p className="text-[10px] text-zinc-500">Aylık başarılı IFC 3x3 & e-PYS koşumu</p>
+                <p className="text-[10px] text-muted-foreground">Aylık başarılı IFC 3x3 & e-PYS koşumu</p>
               </div>
 
               {/* Maks IFC Dosya Boyutu */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
-                <label className="block text-xs font-semibold text-zinc-300">Maks. IFC Boyutu (MB)</label>
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+                <label className="block text-xs font-semibold text-foreground dark:text-muted-foreground">Maks. IFC Boyutu (MB)</label>
                 <input
                   type="number"
                   min={1}
                   max={100}
                   value={ifcMaxFileMb}
                   onChange={(e) => setIfcMaxFileMb(Math.min(100, Math.max(1, Number(e.target.value))))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                 />
-                <p className="text-[10px] text-zinc-500">Sunucu güvenlik tavanı: 100 MB</p>
+                <p className="text-[10px] text-muted-foreground">Sunucu güvenlik tavanı: 100 MB</p>
               </div>
 
               {/* Eşzamanlı Kuyruk İşi */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
-                <label className="block text-xs font-semibold text-zinc-300">Eşzamanlı IFC İşi</label>
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+                <label className="block text-xs font-semibold text-foreground dark:text-muted-foreground">Eşzamanlı IFC İşi</label>
                 <input
                   type="number"
                   min={1}
                   max={10}
                   value={ifcMaxConcurrent}
                   onChange={(e) => setIfcMaxConcurrent(Math.min(10, Math.max(1, Number(e.target.value))))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                 />
-                <p className="text-[10px] text-zinc-500">Aynı anda çalışabilen analiz sayısı (1–10)</p>
+                <p className="text-[10px] text-muted-foreground">Aynı anda çalışabilen analiz sayısı (1–10)</p>
               </div>
 
               {/* Aylık PDF/A Ön Kontrol Kotası */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300">Aylık PDF/A Kotası</label>
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground">Aylık PDF/A Kotası</label>
                   <label className="text-[10px] text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={monthlyPdfLimit === null}
                       onChange={(e) => setMonthlyPdfLimit(e.target.checked ? null : 25)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -913,30 +913,30 @@ export function PlanEditor() {
                     min={0}
                     value={monthlyPdfLimit}
                     onChange={(e) => setMonthlyPdfLimit(Math.max(0, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
-                <p className="text-[10px] text-zinc-500">RG 33331 e-PYS PDF/A-2B rapor ön kontrolü</p>
+                <p className="text-[10px] text-muted-foreground">RG 33331 e-PYS PDF/A-2B rapor ön kontrolü</p>
               </div>
             </div>
           </section>
 
           {/* 4. 5D METRAJ, TEKLİF, AI & MODÜL KOTALARI */}
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+          <section className="rounded-2xl border border-border bg-card p-6 space-y-4">
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Layers size={18} className="text-sky-400" />
                 4. 5D Metraj, Teklif, Yapay Zeka & Modül Kotaları
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Paket kapsamındaki aylık teklif oluşturma, AI ihale analizi, mevzuat sorgusu, kârlılık simülasyonu ve CRM kotaları.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Aylık Teklif Kotası */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
-                <label className="block text-xs font-semibold text-zinc-300">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+                <label className="block text-xs font-semibold text-foreground dark:text-muted-foreground">
                   Aylık Teklif Oluşturma Kotası *
                 </label>
                 <input
@@ -944,9 +944,9 @@ export function PlanEditor() {
                   min={0}
                   value={monthlyQuoteLimit}
                   onChange={(e) => setMonthlyQuoteLimit(Math.max(0, Number(e.target.value)))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                 />
-                <p className="text-[10px] text-zinc-500">
+                <p className="text-[10px] text-muted-foreground">
                   {monthlyQuoteLimit === 0
                     ? '0 = Teklif modülü kapalı (Sadece Denetçi Paketi)'
                     : `Aylık ${monthlyQuoteLimit} adet yeni teklif`}
@@ -954,15 +954,15 @@ export function PlanEditor() {
               </div>
 
               {/* Aylık AI Asistan Kotası */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300">Aylık AI Analiz Kotası</label>
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground">Aylık AI Analiz Kotası</label>
                   <label className="text-[10px] text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={monthlyAiLimit === null}
                       onChange={(e) => setMonthlyAiLimit(e.target.checked ? null : 25)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -977,22 +977,22 @@ export function PlanEditor() {
                     min={0}
                     value={monthlyAiLimit}
                     onChange={(e) => setMonthlyAiLimit(Math.max(0, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
-                <p className="text-[10px] text-zinc-500">AI sözleşme ve poz eşleştirme sorgusu</p>
+                <p className="text-[10px] text-muted-foreground">AI sözleşme ve poz eşleştirme sorgusu</p>
               </div>
 
               {/* Aylık Mevzuat & Poz Sorgu Kotası */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300">Mevzuat & Poz Sorgusu</label>
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground">Mevzuat & Poz Sorgusu</label>
                   <label className="text-[10px] text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={monthlyRegulationLimit === null}
                       onChange={(e) => setMonthlyRegulationLimit(e.target.checked ? null : 50)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -1007,22 +1007,22 @@ export function PlanEditor() {
                     min={0}
                     value={monthlyRegulationLimit}
                     onChange={(e) => setMonthlyRegulationLimit(Math.max(0, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
-                <p className="text-[10px] text-zinc-500">ÇŞB / TBDY / KİK mevzuat analiz sorgusu</p>
+                <p className="text-[10px] text-muted-foreground">ÇŞB / TBDY / KİK mevzuat analiz sorgusu</p>
               </div>
 
               {/* Aylık Kârlılık Simülasyonu */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300">Kârlılık Simülasyonu</label>
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground">Kârlılık Simülasyonu</label>
                   <label className="text-[10px] text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={monthlyProfitAnalysisLimit === null}
                       onChange={(e) => setMonthlyProfitAnalysisLimit(e.target.checked ? null : 25)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -1037,22 +1037,22 @@ export function PlanEditor() {
                     min={0}
                     value={monthlyProfitAnalysisLimit}
                     onChange={(e) => setMonthlyProfitAnalysisLimit(Math.max(0, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
-                <p className="text-[10px] text-zinc-500">Enflasyon / eskalasyon senaryo simülasyonu</p>
+                <p className="text-[10px] text-muted-foreground">Enflasyon / eskalasyon senaryo simülasyonu</p>
               </div>
 
               {/* Aylık CRM Kotası */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300">CRM Fırsat & Müşteri</label>
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground">CRM Fırsat & Müşteri</label>
                   <label className="text-[10px] text-indigo-300 flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={monthlyCrmLimit === null}
                       onChange={(e) => setMonthlyCrmLimit(e.target.checked ? null : 100)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -1067,31 +1067,31 @@ export function PlanEditor() {
                     min={0}
                     value={monthlyCrmLimit}
                     onChange={(e) => setMonthlyCrmLimit(Math.max(0, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
-                <p className="text-[10px] text-zinc-500">Aylık CRM kayıt ve ihale takip limiti</p>
+                <p className="text-[10px] text-muted-foreground">Aylık CRM kayıt ve ihale takip limiti</p>
               </div>
             </div>
           </section>
 
           {/* 5. BULUT DEPOLAMA (R2) & DOKÜMAN ARŞİV LİMİTLERİ */}
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+          <section className="rounded-2xl border border-border bg-card p-6 space-y-4">
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <HardDrive size={18} className="text-purple-400" />
                 5. Bulut Depolama (R2) & Doküman Arşiv Limitleri
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Firmanın çalışma alanında saklayabileceği toplam IFC/PDF/XLSX dosya sayısı ve toplam bulut depolama kotası.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Maksimum Doküman Sayısı */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 space-y-2.5">
+              <div className="rounded-xl border border-border bg-background p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground flex items-center gap-1.5">
                     <FileCheck2 size={14} className="text-purple-400" />
                     Maksimum Doküman Arşivi (Adet)
                   </label>
@@ -1100,7 +1100,7 @@ export function PlanEditor() {
                       type="checkbox"
                       checked={maxDocuments === null}
                       onChange={(e) => setMaxDocuments(e.target.checked ? null : 100)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -1115,7 +1115,7 @@ export function PlanEditor() {
                     min={1}
                     value={maxDocuments}
                     onChange={(e) => setMaxDocuments(Math.max(1, Number(e.target.value)))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                   />
                 )}
                 <div className="flex flex-wrap gap-1.5 pt-1">
@@ -1124,7 +1124,7 @@ export function PlanEditor() {
                       key={val}
                       type="button"
                       onClick={() => setMaxDocuments(val)}
-                      className="rounded border border-zinc-800 bg-zinc-900 hover:border-zinc-700 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white"
+                      className="rounded border border-border bg-card hover:border-zinc-700 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-white"
                     >
                       {val} Dosya
                     </button>
@@ -1133,9 +1133,9 @@ export function PlanEditor() {
               </div>
 
               {/* Toplam Depolama Alanı (MB / GB) */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 space-y-2.5">
+              <div className="rounded-xl border border-border bg-background p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                  <label className="text-xs font-semibold text-foreground dark:text-muted-foreground flex items-center gap-1.5">
                     <Database size={14} className="text-purple-400" />
                     Toplam Depolama Kotası (MB)
                   </label>
@@ -1144,7 +1144,7 @@ export function PlanEditor() {
                       type="checkbox"
                       checked={storageMaxMb === null}
                       onChange={(e) => setStorageMaxMb(e.target.checked ? null : 1024)}
-                      className="rounded border-zinc-700 bg-zinc-900"
+                      className="rounded border-border bg-card"
                     />
                     Limitsiz
                   </label>
@@ -1160,9 +1160,9 @@ export function PlanEditor() {
                       min={10}
                       value={storageMaxMb}
                       onChange={(e) => setStorageMaxMb(Math.max(10, Number(e.target.value)))}
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm font-bold text-white"
                     />
-                    <span className="block text-[10px] text-zinc-500 mt-1">
+                    <span className="block text-[10px] text-muted-foreground mt-1">
                       Yaklaşık {(storageMaxMb / 1024).toFixed(2)} GB ({Math.round(storageMaxMb * MB).toLocaleString('tr-TR')} byte)
                     </span>
                   </div>
@@ -1179,7 +1179,7 @@ export function PlanEditor() {
                       key={item.mb}
                       type="button"
                       onClick={() => setStorageMaxMb(item.mb)}
-                      className="rounded border border-zinc-800 bg-zinc-900 hover:border-zinc-700 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white"
+                      className="rounded border border-border bg-card hover:border-zinc-700 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-white"
                     >
                       {item.label}
                     </button>
@@ -1193,31 +1193,31 @@ export function PlanEditor() {
         {/* SAĞ YAN KOLON (4 SÜTUN) — VİTRİN AYARLARI, CANLI ÖNİZLEME & KAYITLI FİRMALAR */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-6">
           {/* VİTRİN & PAZARLAMA AYARLARI */}
-          <section className="rounded-2xl border border-indigo-500/25 bg-zinc-900/60 p-5 space-y-4">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+          <section className="rounded-2xl border border-indigo-500/25 bg-card p-5 space-y-4">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Eye size={16} className="text-indigo-400" />
               Vitrin & Pazarlama Gösterimi
             </h2>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Gösterim Sırası</label>
+                <label className="mb-1 block text-xs text-muted-foreground">Gösterim Sırası</label>
                 <input
                   type="number"
                   min={0}
                   max={10000}
                   value={displayOrder}
                   onChange={(e) => setDisplayOrder(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
                 />
               </div>
               <div className="flex items-end pb-1">
-                <label className="flex items-center gap-2 text-xs font-semibold text-zinc-200 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isFeatured}
                     onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-indigo-600"
+                    className="h-4 w-4 rounded border-border bg-card text-indigo-600"
                   />
                   Öne Çıkan Paket
                 </label>
@@ -1225,19 +1225,19 @@ export function PlanEditor() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">Üst Rozet (`marketingBadge`)</label>
+              <label className="mb-1 block text-xs text-muted-foreground">Üst Rozet (`marketingBadge`)</label>
               <input
                 type="text"
                 maxLength={40}
                 value={marketingBadge}
                 onChange={(e) => setMarketingBadge(e.target.value)}
                 placeholder="Örn: En Çok Tercih Edilen / Pilot"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-muted-foreground">
                 Vitrin & Kayıt Kartı Açıklaması (`marketingDescription`)
               </label>
               <textarea
@@ -1245,18 +1245,18 @@ export function PlanEditor() {
                 value={marketingDescription}
                 onChange={(e) => setMarketingDescription(e.target.value)}
                 placeholder="Müşterilerin fiyatlandırma ve kayıt sayfasında göreceği özet açıklama..."
-                className="min-h-20 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                className="min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
               />
-              <span className="block text-right text-[10px] text-zinc-500 mt-0.5">
+              <span className="block text-right text-[10px] text-muted-foreground mt-0.5">
                 {marketingDescription.length} / 280
               </span>
             </div>
           </section>
 
           {/* CANLI VİTRİN & KAYIT KARTI ÖNİZLEMESİ */}
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 space-y-3">
+          <section className="rounded-2xl border border-border bg-background p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Canlı Müşteri Kartı Önizlemesi
               </span>
               <span
@@ -1281,9 +1281,9 @@ export function PlanEditor() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="text-base font-bold text-white">{name || 'Paket Adı'}</h3>
+                  <h3 className="text-base font-bold text-foreground">{name || 'Paket Adı'}</h3>
                   {marketingDescription && (
-                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{marketingDescription}</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{marketingDescription}</p>
                   )}
                 </div>
                 {marketingBadge && (
@@ -1301,12 +1301,12 @@ export function PlanEditor() {
                     <span className="text-2xl font-black text-white">
                       ₺{monthlyPrice.toLocaleString('tr-TR')}
                     </span>
-                    <span className="text-xs text-zinc-400">/ ay + KDV</span>
+                    <span className="text-xs text-muted-foreground">/ ay + KDV</span>
                   </>
                 )}
               </div>
 
-              <ul className="space-y-2 text-xs text-zinc-300 border-t border-zinc-800/80 pt-3">
+              <ul className="space-y-2 text-xs text-foreground dark:text-muted-foreground border-t border-border pt-3">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
                   <span>
@@ -1351,19 +1351,19 @@ export function PlanEditor() {
 
           {/* BU PAKETİ KULLANAN FİRMALAR LİSTESİ */}
           {!isCreateMode && (
-            <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
+            <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <Users size={15} className="text-indigo-400" />
                   Bu Paketi Kullanan Firmalar
                 </h3>
-                <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-bold text-white">
+                <span className="rounded-full bg-surface-elevated px-2.5 py-0.5 text-xs font-bold text-foreground">
                   {subscriberCount}
                 </span>
               </div>
 
               {subscriberCount === 0 ? (
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-muted-foreground">
                   Şu anda bu pakete tanımlı aktif bir müşteri/firma bulunmuyor.
                 </p>
               ) : (
@@ -1372,7 +1372,7 @@ export function PlanEditor() {
                     <Link
                       key={sub.companyId}
                       to={`/admin/tenants/${sub.companyId}`}
-                      className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-950/70 hover:border-indigo-500/40 px-3 py-2 text-xs transition-colors"
+                      className="flex items-center justify-between rounded-xl border border-border bg-background hover:border-indigo-500/40 px-3 py-2 text-xs transition-colors"
                     >
                       <span className="font-semibold text-indigo-300 flex items-center gap-1.5 truncate">
                         <Building2 size={13} className="text-indigo-400 shrink-0" />

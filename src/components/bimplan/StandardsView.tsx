@@ -133,12 +133,12 @@ export default function StandardsView() {
   return (
     <div className="space-y-12">
       {/* Intro */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
+      <div className="bg-card text-foreground rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
         <div className="absolute right-0 bottom-0 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl"></div>
         <div className="max-w-3xl space-y-4">
           <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-widest block">EVRENSEL METODOLOJİ</span>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-none">BIM Standartları Teknik Rehberi</h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">
             Dijital inşaat süreçlerinin temel taşları olan uluslararası ve ulusal teknik standartları inceleyin. Projenizin uyumluluğunu test etmek için interaktif denetim araçlarını kullanın.
           </p>
         </div>
@@ -149,16 +149,16 @@ export default function StandardsView() {
         
         {/* Left Search and Standard Grid */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-white border border-border rounded-2xl p-5 shadow-sm space-y-4">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Standart ara... (örn: ISO 19650, IFC...)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-orange-500 font-medium text-slate-800"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-border rounded-xl text-sm focus:outline-none focus:border-orange-500 font-medium text-slate-800"
                 id="search-standards"
               />
             </div>
@@ -172,7 +172,7 @@ export default function StandardsView() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     selectedCategory === category
                       ? 'bg-orange-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'
                   }`}
                   id={`filter-category-${category}`}
                 >
@@ -193,7 +193,7 @@ export default function StandardsView() {
                   className={`border rounded-2xl p-6 transition-all duration-300 cursor-pointer flex flex-col justify-between ${
                     isActive 
                       ? 'bg-white border-orange-500 shadow-md ring-1 ring-orange-500' 
-                      : 'bg-white border-slate-200 hover:border-orange-300 shadow-sm'
+                      : 'bg-white border-border hover:border-orange-300 shadow-sm'
                   }`}
                   id={`std-card-${std.id}`}
                 >
@@ -202,23 +202,23 @@ export default function StandardsView() {
                       <span className="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-md font-extrabold text-[10px] uppercase tracking-wider mono">
                         {std.category}
                       </span>
-                      <Award className={`w-4 h-4 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+                      <Award className={`w-4 h-4 ${isActive ? 'text-orange-600' : 'text-muted-foreground'}`} />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-slate-900 text-base group-hover:text-orange-600">{std.code}</h4>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">{std.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{std.title}</p>
                     </div>
                   </div>
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Ayrıntılar</span>
-                    <ArrowRight className={`w-4 h-4 transition-transform ${isActive ? 'text-orange-600 translate-x-1' : 'text-slate-400'}`} />
+                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">Ayrıntılar</span>
+                    <ArrowRight className={`w-4 h-4 transition-transform ${isActive ? 'text-orange-600 translate-x-1' : 'text-muted-foreground'}`} />
                   </div>
                 </div>
               );
             })}
             
             {filteredStandards.length === 0 && (
-              <div className="col-span-2 text-center py-12 bg-white border border-slate-100 rounded-2xl text-slate-400">
+              <div className="col-span-2 text-center py-12 bg-white border border-slate-100 rounded-2xl text-muted-foreground">
                 Arama kriterlerine uygun standart bulunamadı.
               </div>
             )}
@@ -226,13 +226,13 @@ export default function StandardsView() {
         </div>
 
         {/* Right Active Detail View Panel */}
-        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-8 sticky top-24">
+        <div className="lg:col-span-5 bg-white border border-border rounded-2xl p-8 shadow-sm space-y-8 sticky top-24">
           <div className="border-b border-slate-100 pb-5 space-y-2">
             <span className="px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full font-bold text-[10px] uppercase tracking-widest inline-block">
               {activeStandard.code}
             </span>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{activeStandard.title}</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">{activeStandard.description}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{activeStandard.description}</p>
           </div>
 
           {/* Details Tabs */}
@@ -244,7 +244,7 @@ export default function StandardsView() {
                 <Users className="w-4 h-4 text-orange-600" />
                 Hedef Kitle (Kimler İçin?)
               </div>
-              <p className="text-xs text-slate-600 bg-slate-50 border border-slate-100 p-3.5 rounded-xl leading-relaxed">
+              <p className="text-xs text-muted-foreground bg-slate-50 border border-slate-100 p-3.5 rounded-xl leading-relaxed">
                 {activeStandard.audience}
               </p>
             </div>
@@ -273,7 +273,7 @@ export default function StandardsView() {
                   Uyum ve Kontrol Listesi
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-[10px] font-black text-slate-400">UYUMLULUK:</span>
+                  <span className="text-[10px] font-black text-muted-foreground">UYUMLULUK:</span>
                   <span className="mono text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">
                     %{complianceScore}
                   </span>
@@ -300,14 +300,14 @@ export default function StandardsView() {
                       className={`flex items-start gap-3 w-full p-3.5 rounded-xl text-left text-xs font-medium transition-all border ${
                         isChecked 
                           ? 'bg-slate-50 border-orange-200 text-slate-800' 
-                          : 'bg-white border-slate-150 text-slate-500 hover:bg-slate-50'
+                          : 'bg-white border-slate-150 text-muted-foreground hover:bg-slate-50'
                       }`}
                       id={`chk-${checkKey}`}
                     >
                       {isChecked ? (
                         <CheckSquare className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
                       ) : (
-                        <Square className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
+                        <Square className="w-4 h-4 text-foreground dark:text-muted-foreground shrink-0 mt-0.5" />
                       )}
                       <span>{item}</span>
                     </button>
@@ -322,7 +322,7 @@ export default function StandardsView() {
                 <Info className="w-3.5 h-3.5" />
                 PROFESYONEL ÖNERİ
               </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed italic">
+              <p className="text-[11px] text-muted-foreground leading-relaxed italic">
                 Uluslararası ihale şartnamelerinde bu kriterleri tamamlamış olmak, projenin teknik çeyrek denetimlerinde tam puan almasını sağlar.
               </p>
             </div>

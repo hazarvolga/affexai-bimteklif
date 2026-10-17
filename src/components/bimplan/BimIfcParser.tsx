@@ -376,21 +376,21 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
               Tarayıcı İçi IFC Ön Metraj ve İnceleme Hazırlığı
             </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Allplan, Revit veya Archicad <code className="text-orange-300 font-mono">.ifc</code> dosyanızı sürükleyin. <strong className="text-white">IfcBeam, IfcColumn, IfcSlab, IfcWall</strong> nesnelerini ön analiz için okuyun; metrajlar teknik inceleme tamamlanmadan kesin metraj sayılmaz.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 text-xs font-mono text-zinc-400">
-            <span className="rounded-lg bg-zinc-900 px-3 py-2 border border-zinc-800 flex items-center gap-1.5">
+          <div className="flex flex-wrap gap-2 text-xs font-mono text-muted-foreground">
+            <span className="rounded-lg bg-card px-3 py-2 border border-border flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               Ön Tahmin
             </span>
-            <span className="rounded-lg bg-zinc-900 px-3 py-2 border border-zinc-800 flex items-center gap-1.5">
+            <span className="rounded-lg bg-card px-3 py-2 border border-border flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               Teknik İnceleme Gerekli
             </span>
-            <span className="rounded-lg bg-zinc-900 px-3 py-2 border border-zinc-800 flex items-center gap-1.5">
+            <span className="rounded-lg bg-card px-3 py-2 border border-border flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               Onay Bekliyor
             </span>
@@ -410,14 +410,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 handleFileUpload(e.dataTransfer.files[0]);
               }
             }}
-            className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-800 bg-[#0c0c0e] p-10 text-center transition-all hover:border-orange-500/50 hover:bg-zinc-900/30"
+            className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-[#0c0c0e] p-10 text-center transition-all hover:border-orange-500/50 hover:bg-zinc-900/30"
           >
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-600/10 text-orange-500 group-hover:scale-110 transition-transform">
               <Upload className="h-8 w-8" />
             </div>
 
             <h3 className="mt-4 text-lg font-bold text-white">openBIM .ifc Dosyanızı Sürükleyin</h3>
-            <p className="mt-2 text-xs text-zinc-400 max-w-sm">
+            <p className="mt-2 text-xs text-muted-foreground max-w-sm">
               IFC2X3, IFC4 veya IFC4x3 formatındaki Allplan, Revit, Archicad yapı modellerinizi buraya bırakın.
             </p>
 
@@ -439,7 +439,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </label>
 
             {fileName && (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs text-orange-400 border border-zinc-800">
+              <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-card px-3 py-1.5 text-xs text-orange-400 border border-border">
                 <FileCode className="w-4 h-4" />
                 Yüklü Dosya: {fileName}
               </div>
@@ -448,7 +448,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
         </div>
 
         {/* Demo Datasets Picker */}
-        <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-zinc-800 bg-[#0c0c0e] p-6">
+        <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-border bg-[#0c0c0e] p-6">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-orange-400 uppercase tracking-wider mb-2">
               <Zap className="w-4 h-4" />
@@ -461,13 +461,13 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <button
                   key={demo.id}
                   onClick={() => handleLoadDemo(demo.id)}
-                  className="w-full text-left p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 hover:bg-zinc-800/60 hover:border-orange-500/40 transition-all flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-3.5 rounded-xl border border-border bg-card hover:bg-zinc-800/60 hover:border-orange-500/40 transition-all flex items-center justify-between group cursor-pointer"
                 >
                   <div>
                     <div className="text-xs font-bold text-white group-hover:text-orange-300 transition-colors">{demo.title}</div>
-                    <div className="text-[10px] text-zinc-500 mt-0.5">{demo.source} · {demo.elementCount} Nesne</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{demo.source} · {demo.elementCount} Nesne</div>
                   </div>
-                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-2 py-1 rounded border border-zinc-800">
+                  <span className="text-[10px] font-mono text-muted-foreground bg-card px-2 py-1 rounded border border-border">
                     Test Et →
                   </span>
                 </button>
@@ -475,7 +475,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-zinc-900 text-[11px] text-zinc-500">
+          <div className="mt-4 pt-4 border-t border-zinc-900 text-[11px] text-muted-foreground">
             💡 <em>İpucu:</em> Allplan &amp; Revit donatı ve hacim verileri istemci tarafında (client-side) anında parse edilip TS 708 donatı tablosuna dönüştürülür.
           </div>
         </div>
@@ -483,10 +483,10 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
       {/* PARSING SPINNER */}
       {isParsing && (
-        <div className="flex flex-col items-center justify-center py-16 bg-[#0c0c0e] rounded-3xl border border-zinc-800">
+        <div className="flex flex-col items-center justify-center py-16 bg-[#0c0c0e] rounded-3xl border border-border">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-600 border-t-transparent mb-4" />
           <p className="text-sm font-bold text-white">openBIM .ifc Nesneleri Ön Analiz Ediliyor...</p>
-          <p className="text-xs text-zinc-500 mt-1">Elemanlar okunuyor; miktar ve kural sonuçları review bekleyen tahmin olarak etiketlenir.</p>
+          <p className="text-xs text-muted-foreground mt-1">Elemanlar okunuyor; miktar ve kural sonuçları review bekleyen tahmin olarak etiketlenir.</p>
         </div>
       )}
 
@@ -522,8 +522,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <span>Toplam Beton Hacmi</span>
                 <Box className="w-5 h-5" />
               </div>
-              <div className="text-3xl font-black text-white">{parsedData.summary.totalVolumeM3.toLocaleString('tr-TR')} m³</div>
-              <div className="mt-2 text-[11px] text-zinc-400">Ön Tahmin - Teknik inceleme gerekli</div>
+              <div className="text-3xl font-black text-foreground">{parsedData.summary.totalVolumeM3.toLocaleString('tr-TR')} m³</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">Ön Tahmin - Teknik inceleme gerekli</div>
             </div>
 
             <div className="rounded-2xl border border-orange-500/30 bg-orange-950/10 p-5 backdrop-blur-sm">
@@ -531,8 +531,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <span>Toplam Donatı Tonajı</span>
                 <Database className="w-5 h-5" />
               </div>
-              <div className="text-3xl font-black text-white">{parsedData.summary.totalRebarTon.toLocaleString('tr-TR')} Ton</div>
-              <div className="mt-2 text-[11px] text-zinc-400">({parsedData.summary.totalRebarKg.toLocaleString('tr-TR')} kg türetilmiş tahmin)</div>
+              <div className="text-3xl font-black text-foreground">{parsedData.summary.totalRebarTon.toLocaleString('tr-TR')} Ton</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">({parsedData.summary.totalRebarKg.toLocaleString('tr-TR')} kg türetilmiş tahmin)</div>
             </div>
 
             <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-5 backdrop-blur-sm">
@@ -540,8 +540,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <span>Toplam Kalıp Alanı</span>
                 <Layers className="w-5 h-5" />
               </div>
-              <div className="text-3xl font-black text-white">{parsedData.summary.totalFormworkM2.toLocaleString('tr-TR')} m²</div>
-              <div className="mt-2 text-[11px] text-zinc-400">Ham Geometrik Kalıp Alanı (Askıda)</div>
+              <div className="text-3xl font-black text-foreground">{parsedData.summary.totalFormworkM2.toLocaleString('tr-TR')} m²</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">Ham Geometrik Kalıp Alanı (Askıda)</div>
             </div>
 
             <div className="rounded-2xl border border-blue-500/30 bg-blue-950/10 p-5 backdrop-blur-sm">
@@ -549,14 +549,14 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <span>openBIM Nesne Sayısı</span>
                 <Building className="w-5 h-5" />
               </div>
-              <div className="text-3xl font-black text-white">{parsedData.summary.totalElements} Adet</div>
-              <div className="mt-2 text-[11px] text-zinc-400">Ayrıştırılan Yapı Elemanı</div>
+              <div className="text-3xl font-black text-foreground">{parsedData.summary.totalElements} Adet</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">Ayrıştırılan Yapı Elemanı</div>
             </div>
           </div>
 
           {/* e-PYS / Tr_Pset_CSB COMPLIANCE SUMMARY */}
-          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
-            <div className="mb-4 flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-wider text-zinc-400">
+          <div className="rounded-2xl border border-border bg-[#0c0c0e] p-5">
+            <div className="mb-4 flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-sky-400" />
                 e-PYS Uyum Özeti
@@ -566,7 +566,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                   SKOR: {epysResult.score}/100
                 </div>
               )}
-              <span className="ml-auto text-[10px] font-normal normal-case text-zinc-600">01 Ekim 2026 ruhsat yönetmeliğine göre AI Otonom Denetimi</span>
+              <span className="ml-auto text-[10px] font-normal normal-case text-muted-foreground">01 Ekim 2026 ruhsat yönetmeliğine göre AI Otonom Denetimi</span>
             </div>
             
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
@@ -576,8 +576,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 ['Ön Çekme (m)', parsedData.summary.trPsetCsb.cekmeOn],
                 ['Yan Çekme (m)', parsedData.summary.trPsetCsb.cekmeYan],
               ] as const).map(([label, value]) => (
-                <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{label}</div>
+                <div key={label} className="rounded-xl border border-border bg-background p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div>
                   <div className={value !== undefined ? 'mt-1 text-lg font-black text-white' : 'mt-1 text-xs font-bold text-red-400'}>
                     {value !== undefined ? value.toLocaleString('tr-TR') : 'Eksik'}
                   </div>
@@ -586,7 +586,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </div>
 
             {epysResult && (epysResult.errors.length > 0 || epysResult.warnings.length > 0) && (
-              <div className="space-y-2 border-t border-zinc-800 pt-4">
+              <div className="space-y-2 border-t border-border pt-4">
                 {epysResult.errors.map((err, i) => (
                   <div key={'err'+i} className="flex items-start gap-2 rounded bg-red-500/10 px-3 py-2 text-xs text-red-400 border border-red-500/20">
                     <span className="font-bold shrink-0 mt-0.5">HATA:</span>
@@ -602,8 +602,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
               </div>
             )}
 
-            <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-3 text-xs">
-              <span className="text-zinc-400">ÇŞB Poz No atanan eleman oranı (Ek-6)</span>
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs">
+              <span className="text-muted-foreground">ÇŞB Poz No atanan eleman oranı (Ek-6)</span>
               <span className={parsedData.summary.elementsMissingPozNoCount > 0 ? 'font-bold text-amber-400' : 'font-bold text-emerald-400'}>
                 {parsedData.summary.elementsWithPozNoCount} / {parsedData.summary.elementsWithPozNoCount + parsedData.summary.elementsMissingPozNoCount}
               </span>
@@ -613,41 +613,41 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
           {/* OBJECT BREAKDOWN CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Beams */}
-            <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
-              <div className="text-xs font-bold text-zinc-400 uppercase mb-1">IfcBeam (Kirişler)</div>
+            <div className="rounded-2xl border border-border bg-[#0c0c0e] p-5">
+              <div className="text-xs font-bold text-muted-foreground uppercase mb-1">IfcBeam (Kirişler)</div>
               <div className="text-2xl font-bold text-white">{parsedData.summary.beamVolumeM3} m³</div>
-              <div className="mt-3 flex justify-between text-xs text-zinc-500">
-                <span>Adet: <strong className="text-zinc-300">{parsedData.summary.beamCount}</strong></span>
+              <div className="mt-3 flex justify-between text-xs text-muted-foreground">
+                <span>Adet: <strong className="text-foreground dark:text-muted-foreground">{parsedData.summary.beamCount}</strong></span>
                 <span>Ort. Donatı: <strong className="text-orange-400">115 kg/m³</strong></span>
               </div>
             </div>
 
             {/* Columns */}
-            <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
-              <div className="text-xs font-bold text-zinc-400 uppercase mb-1">IfcColumn (Kolonlar)</div>
+            <div className="rounded-2xl border border-border bg-[#0c0c0e] p-5">
+              <div className="text-xs font-bold text-muted-foreground uppercase mb-1">IfcColumn (Kolonlar)</div>
               <div className="text-2xl font-bold text-white">{parsedData.summary.columnVolumeM3} m³</div>
-              <div className="mt-3 flex justify-between text-xs text-zinc-500">
-                <span>Adet: <strong className="text-zinc-300">{parsedData.summary.columnCount}</strong></span>
+              <div className="mt-3 flex justify-between text-xs text-muted-foreground">
+                <span>Adet: <strong className="text-foreground dark:text-muted-foreground">{parsedData.summary.columnCount}</strong></span>
                 <span>Ort. Donatı: <strong className="text-orange-400">140 kg/m³</strong></span>
               </div>
             </div>
 
             {/* Slabs */}
-            <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
-              <div className="text-xs font-bold text-zinc-400 uppercase mb-1">IfcSlab (Döşemeler)</div>
+            <div className="rounded-2xl border border-border bg-[#0c0c0e] p-5">
+              <div className="text-xs font-bold text-muted-foreground uppercase mb-1">IfcSlab (Döşemeler)</div>
               <div className="text-2xl font-bold text-white">{parsedData.summary.slabVolumeM3} m³</div>
-              <div className="mt-3 flex justify-between text-xs text-zinc-500">
-                <span>Adet: <strong className="text-zinc-300">{parsedData.summary.slabCount}</strong></span>
+              <div className="mt-3 flex justify-between text-xs text-muted-foreground">
+                <span>Adet: <strong className="text-foreground dark:text-muted-foreground">{parsedData.summary.slabCount}</strong></span>
                 <span>Ort. Donatı: <strong className="text-orange-400">85 kg/m³</strong></span>
               </div>
             </div>
 
             {/* Walls */}
-            <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-5">
-              <div className="text-xs font-bold text-zinc-400 uppercase mb-1">IfcWall (Perdeler)</div>
+            <div className="rounded-2xl border border-border bg-[#0c0c0e] p-5">
+              <div className="text-xs font-bold text-muted-foreground uppercase mb-1">IfcWall (Perdeler)</div>
               <div className="text-2xl font-bold text-white">{parsedData.summary.wallVolumeM3} m³</div>
-              <div className="mt-3 flex justify-between text-xs text-zinc-500">
-                <span>Adet: <strong className="text-zinc-300">{parsedData.summary.wallCount}</strong></span>
+              <div className="mt-3 flex justify-between text-xs text-muted-foreground">
+                <span>Adet: <strong className="text-foreground dark:text-muted-foreground">{parsedData.summary.wallCount}</strong></span>
                 <span>Ort. Donatı: <strong className="text-orange-400">98 kg/m³</strong></span>
               </div>
             </div>
@@ -659,7 +659,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-400">SmartCheck Kanıt ve Denetim Politikası</p>
                   <h3 className="mt-1 text-lg font-black text-white">Kabul Edilen ve Askıya Alınan IFC Metraj Kaynakları</h3>
-                  <p className="mt-1 text-xs text-zinc-400">Doğrulanmış metraj (QTO) ve özellikler inceleme kuyruğuna aktarılır; kaba tahmin, geometri ve donatı kanıtsız aktarılmaz.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Doğrulanmış metraj (QTO) ve özellikler inceleme kuyruğuna aktarılır; kaba tahmin, geometri ve donatı kanıtsız aktarılmaz.</p>
                 </div>
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-300">
                   {evidencePolicySummary.admissibleQuantityCount} satır İnceleme ve Onay Adayı
@@ -670,32 +670,32 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Kabul Edilen Metraj (QTO)</div>
                   <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.acceptedQtoCount}</div>
-                  <p className="mt-1 text-[10px] text-zinc-500">Doğrulanmış Hacim</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Doğrulanmış Hacim</p>
                 </div>
                 <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-sky-400">Kabul Edilen Nitelik</div>
                   <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.acceptedPropertyCount}</div>
-                  <p className="mt-1 text-[10px] text-zinc-500">Onaylı Nitelik Seti</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Onaylı Nitelik Seti</p>
                 </div>
                 <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Tahmini Metraj (Askıda)</div>
                   <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedEstimateCount}</div>
-                  <p className="mt-1 text-[10px] text-zinc-500">Kural Öncesi Tahmin</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Kural Öncesi Tahmin</p>
                 </div>
                 <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-rose-400">Geometri Uyumsuz (Askıda)</div>
                   <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedGeometryCount}</div>
-                  <p className="mt-1 text-[10px] text-zinc-500">Geometrik Doğrulama Bekliyor</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Geometrik Doğrulama Bekliyor</p>
                 </div>
                 <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-orange-400">Donatı Kanıtı Eksik (Askıda)</div>
                   <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedRebarCount}</div>
-                  <p className="mt-1 text-[10px] text-zinc-500">TS 708 Donatı Kanıtı Bekliyor</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">TS 708 Donatı Kanıtı Bekliyor</p>
                 </div>
-                <div className="rounded-2xl border border-zinc-700 bg-zinc-900/50 p-4">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Kalıp Kanıtı Eksik (Askıda)</div>
+                <div className="rounded-2xl border border-border bg-card p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kalıp Kanıtı Eksik (Askıda)</div>
                   <div className="mt-2 text-2xl font-black text-white">{evidencePolicySummary.blockedFormworkEstimateCount}</div>
-                  <p className="mt-1 text-[10px] text-zinc-500">Net/Brüt Kalıp Ayrımı Bekliyor</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Net/Brüt Kalıp Ayrımı Bekliyor</p>
                 </div>
               </div>
             </div>
@@ -704,16 +704,16 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
           {/* REBAR DIAMETER BREAKDOWN & SMARTCHECK QUALITY SUMMARY */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Rebar Diameter Table */}
-            <div className="lg:col-span-7 rounded-3xl border border-zinc-800 bg-[#0c0c0e] p-6">
+            <div className="lg:col-span-7 rounded-3xl border border-border bg-[#0c0c0e] p-6">
               <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                 <Database className="w-4 h-4 text-orange-400" />
                 TS 708 Donatı Çap Dağılımı ve Metraj Tonajı
               </h3>
-              <p className="text-xs text-zinc-400 mb-4">Açık donatı, metraj (QTO) veya nitelik kanıtı olmadan doğrudan teklif kalemine aktarılmaz</p>
+              <p className="text-xs text-muted-foreground mb-4">Açık donatı, metraj (QTO) veya nitelik kanıtı olmadan doğrudan teklif kalemine aktarılmaz</p>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-zinc-300 font-mono">
-                  <thead className="bg-zinc-900/80 text-[11px] uppercase text-zinc-400">
+                <table className="w-full text-left text-xs text-foreground dark:text-muted-foreground font-mono">
+                  <thead className="bg-card text-[11px] uppercase text-muted-foreground">
                     <tr>
                       <th className="p-3">Donatı Çapı</th>
                       <th className="p-3">Toplam Uzunluk (m)</th>
@@ -721,7 +721,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                       <th className="p-3">Tonaj (Ton)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/60">
+                  <tbody className="divide-y divide-border">
                     {Object.entries(parsedData.summary.rebarByDiameter).map(([diam, rawData]) => {
                       const data = rawData as { lengthM: number; weightKg: number };
                       return (
@@ -739,21 +739,21 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </div>
 
             {/* SmartCheck Quality Status */}
-            <div className="lg:col-span-5 rounded-3xl border border-zinc-800 bg-[#0c0c0e] p-6 flex flex-col justify-between">
+            <div className="lg:col-span-5 rounded-3xl border border-border bg-[#0c0c0e] p-6 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">
                   <CheckCircle className="w-4 h-4" />
                   SMARTCHECK ÖN KONTROL
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2">İnceleme ve Doğrulama Bekleyen Veri Kalitesi</h4>
+                <h4 className="text-lg font-bold text-foreground mb-2">İnceleme ve Doğrulama Bekleyen Veri Kalitesi</h4>
                 
                 <div className="space-y-3 mt-4 text-xs">
                   <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex items-start gap-2.5">
                     <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-emerald-300">Ön Analiz Tamamlandı</div>
-                      <div className="text-zinc-400 mt-0.5">
-                        Betonarme elemanlarda türetilmiş ortalama değer: <strong className="text-white">{(parsedData.summary.totalRebarKg / parsedData.summary.totalVolumeM3).toFixed(1)} kg/m³</strong>. Bu sonuç kesin onaylı metraj değildir (Teknik inceleme gerekir).
+                      <div className="text-muted-foreground mt-0.5">
+                        Betonarme elemanlarda türetilmiş ortalama değer: <strong className="text-foreground">{(parsedData.summary.totalRebarKg / parsedData.summary.totalVolumeM3).toFixed(1)} kg/m³</strong>. Bu sonuç kesin onaylı metraj değildir (Teknik inceleme gerekir).
                       </div>
                     </div>
                   </div>
@@ -762,7 +762,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-amber-300">Teknik İnceleme ve Doğrulama Gerekli</div>
-                      <div className="text-zinc-400 mt-0.5">
+                      <div className="text-muted-foreground mt-0.5">
                         Donatı, kalıp ve net hacim kesinliği için açık IFC metrajı (QTO), onaylı nitelik seti veya uzman denetçi doğrulaması gereklidir.
                       </div>
                     </div>
@@ -775,7 +775,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <Button 
                   onClick={handleExportCsv}
                   variant="outline" 
-                  className="flex-1 border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 text-xs font-bold"
+                  className="flex-1 border-border bg-card text-foreground hover:bg-zinc-800 text-xs font-bold"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   CSV Raporu İndir
@@ -793,29 +793,29 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
           </div>
 
           {/* DETAILED ELEMENT TABLE */}
-          <div className="rounded-3xl border border-zinc-800 bg-[#0c0c0e] p-6 space-y-4">
+          <div className="rounded-3xl border border-border bg-[#0c0c0e] p-6 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-white">Ayrıştırılan openBIM IFC Eleman Listesi</h3>
-                <p className="text-xs text-zinc-400">Eleman bazında net hacim, kalıp alanı ve donatı tonaj dökümü</p>
+                <p className="text-xs text-muted-foreground">Eleman bazında net hacim, kalıp alanı ve donatı tonaj dökümü</p>
               </div>
 
               {/* Search & Filters */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative w-64">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="GUID, Eleman adı ara..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 bg-zinc-900 border-zinc-800 text-xs h-9 text-white placeholder:text-zinc-600"
+                    className="pl-9 bg-card border-border text-xs h-9 text-white placeholder:text-zinc-600"
                   />
                 </div>
 
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-800 text-xs h-9 rounded-md px-3 text-zinc-300 outline-none"
+                  className="bg-card border border-border text-xs h-9 rounded-md px-3 text-foreground dark:text-muted-foreground outline-none"
                 >
                   <option value="all">Tüm Nesne Tipleri</option>
                   <option value="IfcBeam">IfcBeam (Kiriş)</option>
@@ -828,7 +828,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <select
                   value={selectedStorey}
                   onChange={(e) => setSelectedStorey(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-800 text-xs h-9 rounded-md px-3 text-zinc-300 outline-none"
+                  className="bg-card border border-border text-xs h-9 rounded-md px-3 text-foreground dark:text-muted-foreground outline-none"
                 >
                   <option value="all">Tüm Katlar</option>
                   {storeys.map(s => <option key={s} value={s}>{s}</option>)}
@@ -838,9 +838,9 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
             {/* Grouped summary — default review surface, replaces scanning 1000+ raw rows */}
             {!hasActiveFilter && groupedByType.length > 0 && (
-              <div className="overflow-hidden rounded-xl border border-zinc-800">
-                <table className="w-full text-left text-xs text-zinc-300">
-                  <thead className="bg-zinc-900 text-[11px] font-bold uppercase text-zinc-400 font-mono">
+              <div className="overflow-hidden rounded-xl border border-border">
+                <table className="w-full text-left text-xs text-foreground dark:text-muted-foreground">
+                  <thead className="bg-card text-[11px] font-bold uppercase text-muted-foreground font-mono">
                     <tr>
                       <th className="p-3">Nesne Tipi</th>
                       <th className="p-3">Toplam</th>
@@ -852,22 +852,22 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                       <th className="p-3"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/60 font-mono">
+                  <tbody className="divide-y divide-border font-mono">
                     {groupedByType.map((group) => (
                       <tr key={group.type} className="hover:bg-zinc-900/40 transition-colors">
-                        <td className="p-3 font-semibold text-white">{IFC_TYPE_LABELS[group.type]}</td>
+                        <td className="p-3 font-semibold text-foreground">{IFC_TYPE_LABELS[group.type]}</td>
                         <td className="p-3">{group.count}</td>
                         <td className="p-3 text-emerald-400">{group.byStatus.pass}</td>
                         <td className="p-3 text-amber-400">{group.byStatus.warning}</td>
                         <td className="p-3 text-rose-400">{group.byStatus.review}</td>
                         <td className="p-3">{group.admittedCount} / {group.count}</td>
-                        <td className={group.missingPozNoCount > 0 ? 'p-3 text-rose-400 font-bold' : 'p-3 text-zinc-500'}>{group.missingPozNoCount}</td>
+                        <td className={group.missingPozNoCount > 0 ? 'p-3 text-rose-400 font-bold' : 'p-3 text-muted-foreground'}>{group.missingPozNoCount}</td>
                         <td className="p-3 text-right">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setExpandedType(expandedType === group.type ? null : group.type)}
-                            className="h-7 border-zinc-700 bg-zinc-900 text-[10px] text-zinc-300 hover:bg-zinc-800"
+                            className="h-7 border-border bg-card text-[10px] text-foreground dark:text-muted-foreground hover:bg-zinc-800"
                           >
                             {expandedType === group.type ? 'Kapat' : 'Detayları Gör'}
                           </Button>
@@ -881,9 +881,9 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
 
             {/* Table — shown when a group is expanded, or when search/type/floor filters are active */}
             {(hasActiveFilter || expandedType) && (
-            <div className="overflow-x-auto rounded-xl border border-zinc-800">
-              <table className="w-full text-left text-xs text-zinc-300">
-                <thead className="bg-zinc-900 text-[11px] font-bold uppercase text-zinc-400 font-mono">
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full text-left text-xs text-foreground dark:text-muted-foreground">
+                <thead className="bg-card text-[11px] font-bold uppercase text-muted-foreground font-mono">
                   <tr>
                     <th className="p-3">STEP ID</th>
                     <th className="p-3">GUID</th>
@@ -899,18 +899,18 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     <th className="p-3">SmartCheck Durumu</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/60 font-mono">
+                <tbody className="divide-y divide-border font-mono">
                   {(hasActiveFilter ? filteredElements : filteredElements.filter((el) => el.type === expandedType)).length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="p-8 text-center text-zinc-500">
+                      <td colSpan={12} className="p-8 text-center text-muted-foreground">
                         Arama kriterlerine uygun IFC nesnesi bulunamadı.
                       </td>
                     </tr>
                   ) : (
                     (hasActiveFilter ? filteredElements : filteredElements.filter((el) => el.type === expandedType)).map((el) => (
                       <tr key={el.id} className="hover:bg-zinc-900/40 transition-colors">
-                        <td className="p-3 text-zinc-500">#{el.id}</td>
-                        <td className="p-3 text-zinc-400 text-[11px]">{el.guid}</td>
+                        <td className="p-3 text-muted-foreground">#{el.id}</td>
+                        <td className="p-3 text-muted-foreground text-[11px]">{el.guid}</td>
                         <td className="p-3">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             el.type === 'IfcBeam' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
@@ -922,27 +922,27 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                             {el.type}
                           </span>
                         </td>
-                        <td className="p-3 font-semibold text-white">{el.name}</td>
-                        <td className="p-3 text-zinc-400">{el.storey}</td>
-                        <td className="p-3 text-[11px] text-zinc-400">{el.storeySource === 'ifc_spatial' ? 'IFC Katı' : 'Tahmini Kat'}</td>
+                        <td className="p-3 font-semibold text-foreground">{el.name}</td>
+                        <td className="p-3 text-muted-foreground">{el.storey}</td>
+                        <td className="p-3 text-[11px] text-muted-foreground">{el.storeySource === 'ifc_spatial' ? 'IFC Katı' : 'Tahmini Kat'}</td>
                         <td className="p-3 font-bold text-emerald-400">{el.volumeM3} m³</td>
                         <td className="p-3">{el.formworkM2} m²</td>
                         <td className="p-3 font-bold text-orange-400">{el.rebarKg} kg</td>
-                        <td className="p-3 text-[11px] text-zinc-400">
+                        <td className="p-3 text-[11px] text-muted-foreground">
                           {(() => {
                             const evidence = describeIfcQuantityEvidence(el);
                             const toneClass = evidence.tone === 'emerald' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                               : evidence.tone === 'sky' ? 'border-sky-500/30 bg-sky-500/10 text-sky-300'
                               : evidence.tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
                               : evidence.tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                              : 'border-zinc-700 bg-zinc-900 text-zinc-400';
+                              : 'border-border bg-card text-muted-foreground';
                             return (
                               <span title={evidence.reason} className={`inline-flex rounded border px-2 py-0.5 text-[10px] font-bold ${toneClass}`}>
                                 {evidence.label}
                               </span>
                             );
                           })()}
-                          {el.quantitySourcePath && <div className="mt-1 max-w-44 truncate text-[10px] text-zinc-600" title={el.quantitySourcePath}>{el.quantitySourcePath.split(':')[1] ?? el.quantitySourcePath}</div>}
+                          {el.quantitySourcePath && <div className="mt-1 max-w-44 truncate text-[10px] text-muted-foreground" title={el.quantitySourcePath}>{el.quantitySourcePath.split(':')[1] ?? el.quantitySourcePath}</div>}
                         </td>
                         <td className="p-3">
                           {el.pozNo ? (

@@ -180,7 +180,7 @@ export function Dashboard() {
               </Button>
             </Link>
             <Link to="/app/smartcheck">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-white gap-1.5 font-semibold shadow-xs">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-foreground gap-1.5 font-semibold shadow-xs">
                 <Box size={15} />
                 SmartCheck & IFC Yükle
               </Button>
@@ -343,7 +343,7 @@ export function Dashboard() {
                   </div>
                   <div className="mt-5 pt-3 border-t border-border">
                     <Link to="/app/smartcheck">
-                      <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-white text-xs font-semibold shadow-xs">
+                      <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-foreground text-xs font-semibold shadow-xs">
                         SmartCheck & IFC Yükle →
                       </Button>
                     </Link>

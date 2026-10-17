@@ -251,7 +251,7 @@ export function QuoteDetail() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <Loader2 className="text-orange-500 animate-spin" size={32} />
-        <p className="text-zinc-500 font-medium">Teklif detayları hazırlanıyor...</p>
+        <p className="text-muted-foreground font-medium">Teklif detayları hazırlanıyor...</p>
       </div>
     );
   }
@@ -282,12 +282,12 @@ export function QuoteDetail() {
               </Button>
             )}
             <DropdownMenu>
-              <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-zinc-500" /></Button>} />
-              <DropdownMenuContent className="bg-zinc-900 border-zinc-800 text-zinc-300 w-56">
+              <DropdownMenuTrigger render={<Button disabled={actionLoading} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-zinc-800 gap-2 h-10 px-4 font-bold"><Download size={18} className="text-orange-500" />PDF Dosyası<ChevronDown size={14} className="text-muted-foreground" /></Button>} />
+              <DropdownMenuContent className="bg-card border-border text-foreground dark:text-muted-foreground w-56">
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel className="text-xs text-zinc-500">Şablon Seçiniz</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">Şablon Seçiniz</DropdownMenuLabel>
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuSeparator className="bg-surface-elevated" />
                 <DropdownMenuItem onClick={() => handleDownloadPdf('default_construction')} className="gap-2 focus:bg-zinc-800 cursor-pointer py-2.5">
                   <Layout size={16} className="text-orange-500" />
                   Modern İnşaat
@@ -297,7 +297,7 @@ export function QuoteDetail() {
                   Lüks Villa Projesi
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleDownloadPdf('modern_minimal')} className="gap-2 focus:bg-zinc-800 cursor-pointer py-2.5">
-                  <Layers size={16} className="text-zinc-400" />
+                  <Layers size={16} className="text-muted-foreground" />
                   Minimalist Modern
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -322,12 +322,12 @@ export function QuoteDetail() {
               </>
             )}
             {['won', 'lost'].includes(data.status) && (
-              <Button onClick={() => handleStatusChange('archived')} disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
+              <Button onClick={() => handleStatusChange('archived')} disabled={actionLoading} variant="outline" className="border-border bg-card text-muted-foreground hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
                 <Archive size={18} />
                 Arşivle
               </Button>
             )}
-            <Button onClick={() => setRevisionDialogOpen(true)} disabled={actionLoading} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
+            <Button onClick={() => setRevisionDialogOpen(true)} disabled={actionLoading} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-zinc-800 gap-2 h-10 px-4 font-bold">
               <History size={18} />
               Yeni Revizyon Oluştur
             </Button>
@@ -336,15 +336,15 @@ export function QuoteDetail() {
       />
 
       <Dialog open={revisionDialogOpen} onOpenChange={setRevisionDialogOpen}>
-        <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 sm:max-w-md">
+        <DialogContent className="bg-background border-border text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-black uppercase tracking-widest">Yeni versiyon oluşturulsun mu?</DialogTitle>
-            <DialogDescription className="text-zinc-500">
+            <DialogDescription className="text-muted-foreground">
               Bu tekliften V{data.revisionVersion + 1} oluşturulacak. Mevcut versiyon değişmeden kalır.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" className="border-zinc-800 hover:bg-zinc-800 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={() => setRevisionDialogOpen(false)}>İptal</Button>
+            <Button variant="outline" className="border-border hover:bg-zinc-800 text-muted-foreground font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={() => setRevisionDialogOpen(false)}>İptal</Button>
             <Button disabled={actionLoading} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6" onClick={handleCreateRevision}>Versiyon Oluştur</Button>
           </DialogFooter>
         </DialogContent>
@@ -355,25 +355,25 @@ export function QuoteDetail() {
         <div className="lg:col-span-3 space-y-6">
           {/* Metadata Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+             <Card className="bg-card border-border shadow-none">
                <CardContent className="p-4 flex items-center gap-4">
-                 <div className="p-2 rounded-lg bg-zinc-800 text-orange-500">
+                 <div className="p-2 rounded-lg bg-surface-elevated text-orange-500">
                     <Calendar size={20} />
                  </div>
                  <div>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Düzenleme Tarihi</p>
-                    <p className="text-sm font-medium text-zinc-200 mt-0.5">{new Date(data.date).toLocaleDateString('tr-TR')}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Düzenleme Tarihi</p>
+                    <p className="text-sm font-medium text-foreground mt-0.5">{new Date(data.date).toLocaleDateString('tr-TR')}</p>
                  </div>
                </CardContent>
              </Card>
-             <Card className={cn("bg-zinc-900/30 border-zinc-800 shadow-none", quoteExpiryFlag && (quoteExpiryFlag === 'expired' ? "border-red-500/30" : "border-amber-500/30"))}>
+             <Card className={cn("bg-card border-border shadow-none", quoteExpiryFlag && (quoteExpiryFlag === 'expired' ? "border-red-500/30" : "border-amber-500/30"))}>
                <CardContent className="p-4 flex items-center gap-4">
-                 <div className={cn("p-2 rounded-lg bg-zinc-800", quoteExpiryFlag === 'expired' ? "text-red-500" : quoteExpiryFlag === 'soon' ? "text-amber-500" : "text-blue-500")}>
+                 <div className={cn("p-2 rounded-lg bg-surface-elevated", quoteExpiryFlag === 'expired' ? "text-red-500" : quoteExpiryFlag === 'soon' ? "text-amber-500" : "text-blue-500")}>
                     <Clock size={20} />
                  </div>
                  <div>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Geçerlilik Tarihi</p>
-                    <p className="text-sm font-medium text-zinc-200 mt-0.5">{new Date(data.expiryDate).toLocaleDateString('tr-TR')}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Geçerlilik Tarihi</p>
+                    <p className="text-sm font-medium text-foreground mt-0.5">{new Date(data.expiryDate).toLocaleDateString('tr-TR')}</p>
                     {quoteExpiryFlag && (
                       <p className={cn("text-[9px] font-black uppercase tracking-widest mt-0.5", quoteExpiryFlag === 'expired' ? "text-red-400" : "text-amber-400")}>
                         {quoteExpiryFlag === 'expired' ? 'Süresi doldu' : 'Süresi yakında doluyor'}
@@ -382,17 +382,17 @@ export function QuoteDetail() {
                  </div>
                </CardContent>
              </Card>
-             <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+             <Card className="bg-card border-border shadow-none">
                <CardContent className="p-4 flex items-center gap-4">
-                 <div className="p-2 rounded-lg bg-zinc-800 text-emerald-500">
+                 <div className="p-2 rounded-lg bg-surface-elevated text-emerald-500">
                     <Banknote size={20} />
                  </div>
                  <div>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Süre / Durum</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Süre / Durum</p>
                     <div className="mt-1">
-                      <span className="text-xs font-mono text-zinc-300">{data.projectDurationMonths || 1} ay · %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} eskalasyon · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} karbon · {data.informationDeliveryLevel || 'none'} teslim</span>
+                      <span className="text-xs font-mono text-foreground dark:text-muted-foreground">{data.projectDurationMonths || 1} ay · %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} eskalasyon · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} karbon · {data.informationDeliveryLevel || 'none'} teslim</span>
                       <div className="mt-1"><StatusBadge status={data.status} /></div>
-                      {data.updatedAt && <p className="text-[9px] text-zinc-600 mt-1.5">Son güncelleme: {new Date(data.updatedAt).toLocaleString('tr-TR')}</p>}
+                      {data.updatedAt && <p className="text-[9px] text-muted-foreground mt-1.5">Son güncelleme: {new Date(data.updatedAt).toLocaleString('tr-TR')}</p>}
                     </div>
                  </div>
                </CardContent>

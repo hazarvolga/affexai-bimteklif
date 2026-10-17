@@ -783,7 +783,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <Button 
               onClick={() => navigate('/register')}
               size="lg" 
-              className="h-11 shrink-0 bg-primary px-7 text-white hover:bg-primary/90 font-semibold shadow-xs"
+              className="h-11 shrink-0 bg-primary px-7 text-foreground hover:bg-primary/90 font-semibold shadow-xs"
             >
               Hemen Ücretsiz Başlayın <ArrowRight size={16} className="ml-2" />
             </Button>
@@ -796,7 +796,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <div className="mx-auto grid max-w-6xl gap-8 text-xs text-muted-foreground md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5 text-base font-bold text-foreground">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xs bg-primary text-xs font-mono font-black text-white">BM</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-xs bg-primary text-xs font-mono font-black text-foreground">BM</span>
               BIMMetraj
             </div>
             <p className="mt-3 max-w-sm leading-relaxed text-muted-foreground">

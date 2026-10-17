@@ -314,7 +314,7 @@ export function Register() {
                         onClick={() => setBillingCycle(option.id)}
                         className={`flex flex-col items-center justify-center rounded px-2.5 py-2 text-xs font-semibold transition-all border ${
                           active
-                            ? 'border-primary bg-primary text-white shadow-xs'
+                            ? 'border-primary bg-primary text-foreground shadow-xs'
                             : 'border-transparent bg-background/60 text-muted-foreground hover:text-foreground hover:border-border'
                         }`}
                       >
@@ -322,7 +322,7 @@ export function Register() {
                         <span
                           className={`mt-0.5 font-mono text-[10px] font-bold ${
                             active
-                              ? 'text-white/90'
+                              ? 'text-foreground/90'
                               : option.discountPercent > 0
                                 ? 'text-emerald-400'
                                 : 'text-muted-foreground'
@@ -356,7 +356,7 @@ export function Register() {
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                              isSelected ? 'border-primary bg-primary text-white' : 'border-muted-foreground/50'
+                              isSelected ? 'border-primary bg-primary text-foreground' : 'border-muted-foreground/50'
                             }`}
                           >
                             {isSelected && <CheckCircle2 size={12} />}
@@ -670,7 +670,7 @@ export function Register() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 h-10 text-white font-semibold text-sm gap-2 shadow-xs"
+                    className="w-full bg-primary hover:bg-primary/90 h-10 text-foreground font-semibold text-sm gap-2 shadow-xs"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={16} />

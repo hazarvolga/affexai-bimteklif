@@ -164,22 +164,22 @@ export function AdminQueue() {
     <PageContainer>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
             <Cpu className="text-indigo-400" size={26} />
             IFC & Belge Kuyruk İzleme
           </h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Graphile Worker ve Python IfcOpenShell arka plan işçilerinin gerçek zamanlı durumu
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300">
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-foreground dark:text-muted-foreground">
             <input
               type="checkbox"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="rounded border-zinc-700 bg-zinc-900 text-indigo-500"
+              className="rounded border-border bg-card text-indigo-500"
             />
             <span>15 sn Otomatik Yenile</span>
           </label>
@@ -189,7 +189,7 @@ export function AdminQueue() {
             size="sm"
             onClick={() => loadQueue()}
             disabled={refreshing}
-            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 text-xs"
+            className="border-border bg-card text-foreground hover:bg-zinc-800 text-xs"
           >
             <RefreshCw size={14} className={`mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
             Yenile
@@ -199,40 +199,40 @@ export function AdminQueue() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between text-muted-foreground text-xs mb-2">
             <span>Kuyrukta Bekleyen</span>
             <Clock size={16} className="text-blue-400" />
           </div>
-          <div className="text-2xl font-bold text-white">{summary.queued}</div>
-          <div className="text-[10px] text-zinc-500 mt-1">İşlem sırası bekliyor</div>
+          <div className="text-2xl font-bold text-foreground">{summary.queued}</div>
+          <div className="text-[10px] text-muted-foreground mt-1">İşlem sırası bekliyor</div>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between text-muted-foreground text-xs mb-2">
             <span>Şu An Çalışan</span>
             <RefreshCw size={16} className="text-amber-400 animate-spin" />
           </div>
           <div className="text-2xl font-bold text-amber-400">{summary.running}</div>
-          <div className="text-[10px] text-zinc-500 mt-1">Aktif işlenen döküman</div>
+          <div className="text-[10px] text-muted-foreground mt-1">Aktif işlenen döküman</div>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between text-muted-foreground text-xs mb-2">
             <span>Başarılı (24s)</span>
             <CheckCircle2 size={16} className="text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-emerald-400">{summary.succeeded24h}</div>
-          <div className="text-[10px] text-zinc-500 mt-1">Son 24 saat tamamlanan</div>
+          <div className="text-[10px] text-muted-foreground mt-1">Son 24 saat tamamlanan</div>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between text-muted-foreground text-xs mb-2">
             <span>Başarısız (24s)</span>
             <XCircle size={16} className="text-red-400" />
           </div>
           <div className="text-2xl font-bold text-red-400">{summary.failed24h}</div>
-          <div className="text-[10px] text-zinc-500 mt-1">Hata alan işler</div>
+          <div className="text-[10px] text-muted-foreground mt-1">Hata alan işler</div>
         </div>
 
         <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 p-4 col-span-2 sm:col-span-1">
@@ -246,9 +246,9 @@ export function AdminQueue() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-xl border border-border bg-card p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <Filter size={16} className="text-zinc-500 shrink-0" />
+          <Filter size={16} className="text-muted-foreground shrink-0" />
           {[
             { key: 'all', label: 'Tümü' },
             { key: 'running', label: 'Çalışan' },
@@ -263,7 +263,7 @@ export function AdminQueue() {
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
                 statusFilter === tab.key
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                  : 'bg-surface-elevated text-muted-foreground hover:bg-zinc-700 hover:text-white'
               }`}
             >
               {tab.label}
@@ -272,22 +272,22 @@ export function AdminQueue() {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search size={15} className="absolute left-3 top-2.5 text-zinc-500" />
+          <Search size={15} className="absolute left-3 top-2.5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Firma, dosya adı veya ID ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-1.5 pl-9 pr-3 text-xs text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-background py-1.5 pl-9 pr-3 text-xs text-foreground placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
           />
         </div>
       </div>
 
       {/* Jobs Table */}
-      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider font-semibold">
+            <thead className="border-b border-border bg-background text-muted-foreground uppercase tracking-wider font-semibold">
               <tr>
                 <th className="px-5 py-3.5">Firma / Döküman</th>
                 <th className="px-5 py-3.5">Tür</th>
@@ -297,17 +297,17 @@ export function AdminQueue() {
                 <th className="px-5 py-3.5 text-right">Aksiyonlar</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 text-zinc-300">
+            <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
               {loading && jobs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-zinc-500">
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
                     <Clock size={20} className="animate-spin mx-auto mb-2 text-indigo-400" />
                     Kuyruk kayıtları yükleniyor...
                   </td>
                 </tr>
               ) : filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-zinc-500">
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
                     Eşleşen kuyruk işlemi bulunamadı.
                   </td>
                 </tr>
@@ -321,17 +321,17 @@ export function AdminQueue() {
                     <tr key={job.id} className="hover:bg-zinc-800/40 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <Building2 size={14} className="text-zinc-500 shrink-0" />
-                          <span className="font-semibold text-white">{job.companyName}</span>
+                          <Building2 size={14} className="text-muted-foreground shrink-0" />
+                          <span className="font-semibold text-foreground">{job.companyName}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-zinc-400 mt-1">
-                          <FileText size={12} className="text-zinc-500" />
+                        <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
+                          <FileText size={12} className="text-muted-foreground" />
                           <span className="truncate max-w-xs">{job.fileName}</span>
                         </div>
                       </td>
 
                       <td className="px-5 py-3.5">
-                        <span className="rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-zinc-300 uppercase">
+                        <span className="rounded border border-border bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-foreground dark:text-muted-foreground uppercase">
                           {job.kind}
                         </span>
                       </td>
@@ -346,7 +346,7 @@ export function AdminQueue() {
                             <RefreshCw size={12} className="animate-spin" /> Çalışıyor
                           </span>
                         ) : job.status === 'queued' ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[11px] font-medium text-zinc-400">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                             <Clock size={12} /> Bekliyor
                           </span>
                         ) : job.status === 'completed' ? (
@@ -370,9 +370,9 @@ export function AdminQueue() {
                         {job.attempts} / {job.maxAttempts}
                       </td>
 
-                      <td className="px-5 py-3.5 text-zinc-400">
+                      <td className="px-5 py-3.5 text-muted-foreground">
                         <div>{new Date(job.createdAt).toLocaleTimeString('tr-TR')}</div>
-                        <div className="text-[10px] text-zinc-500">
+                        <div className="text-[10px] text-muted-foreground">
                           {new Date(job.createdAt).toLocaleDateString('tr-TR')}
                         </div>
                       </td>

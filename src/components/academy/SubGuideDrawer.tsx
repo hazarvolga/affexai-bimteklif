@@ -24,18 +24,18 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
       <aside className="absolute inset-y-0 right-0 flex max-w-full pl-10">
-        <div className="w-screen max-w-2xl border-l border-zinc-800 bg-[#0c0c0e] text-zinc-100 shadow-2xl flex flex-col">
+        <div className="w-screen max-w-2xl border-l border-border bg-[#0c0c0e] text-foreground shadow-2xl flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-5 bg-[#09090b]">
+          <div className="flex items-center justify-between border-b border-border px-6 py-5 bg-[#09090b]">
             <div className="space-y-1">
               <span className="inline-block rounded bg-orange-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-orange-400 border border-orange-500/20">
                 {guide.badge}
               </span>
-              <h2 className="text-xl font-semibold text-white tracking-tight leading-snug">{guide.title}</h2>
+              <h2 className="text-xl font-semibold text-foreground tracking-tight leading-snug">{guide.title}</h2>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="rounded-lg p-2 text-muted-foreground hover:bg-zinc-800 hover:text-white transition-colors"
               title="Kapat"
             >
               <X size={20} />
@@ -45,8 +45,8 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
             {/* Overview Summary */}
-            <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5">
-              <p className="text-sm leading-relaxed text-zinc-300">{guide.summary}</p>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <p className="text-sm leading-relaxed text-foreground dark:text-muted-foreground">{guide.summary}</p>
             </div>
 
             {/* Formula / Rule Container */}
@@ -65,13 +65,13 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
             {/* Applicable Standards */}
             {guide.standards && guide.standards.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   <ShieldCheck size={15} className="text-emerald-400" />
                   <span>Dayanak Standartlar & Teknik Kodlar</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {guide.standards.map((std) => (
-                    <span key={std} className="rounded-md bg-zinc-800/80 px-3 py-1.5 text-xs text-zinc-300 border border-zinc-700/50">
+                    <span key={std} className="rounded-md bg-surface-elevated px-3 py-1.5 text-xs text-foreground dark:text-muted-foreground border border-border">
                       {std}
                     </span>
                   ))}
@@ -85,25 +85,25 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
                 {guide.tables.map((table, tIdx) => (
                   <div key={tIdx} className="space-y-3">
                     {table.title && (
-                      <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Table size={16} className="text-orange-400" />
                         <span>{table.title}</span>
                       </div>
                     )}
-                    <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-[#09090b]">
+                    <div className="overflow-x-auto rounded-xl border border-border bg-[#09090b]">
                       <table className="w-full text-left text-xs">
-                        <thead className="border-b border-zinc-800 bg-zinc-900/60 font-mono text-zinc-400 uppercase tracking-wider">
+                        <thead className="border-b border-border bg-card font-mono text-muted-foreground uppercase tracking-wider">
                           <tr>
                             {table.headers.map((h, i) => (
                               <th key={i} className="px-4 py-3 font-medium">{h}</th>
                             ))}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+                        <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
                           {table.rows.map((row, rIdx) => (
                             <tr key={rIdx} className="hover:bg-zinc-800/20 transition-colors">
                               {row.map((cell, cIdx) => (
-                                <td key={cIdx} className={`px-4 py-3 leading-relaxed ${cIdx === 0 ? 'font-medium text-white' : ''}`}>
+                                <td key={cIdx} className={`px-4 py-3 leading-relaxed ${cIdx === 0 ? 'font-medium text-foreground' : ''}`}>
                                   {cell}
                                 </td>
                               ))}
@@ -120,13 +120,13 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
             {/* Key Takeaways */}
             {guide.keyTakeaways && guide.keyTakeaways.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-400">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   <CheckCircle2 size={15} className="text-orange-400" />
                   <span>Kritik Saha & Mühendislik Prensipleri</span>
                 </div>
-                <ul className="space-y-2.5 text-sm text-zinc-300">
+                <ul className="space-y-2.5 text-sm text-foreground dark:text-muted-foreground">
                   {guide.keyTakeaways.map((takeaway, idx) => (
-                    <li key={idx} className="flex items-start gap-3 rounded-lg border border-zinc-800/50 bg-zinc-900/20 p-3">
+                    <li key={idx} className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-xs font-bold font-mono text-orange-400">
                         {idx + 1}
                       </span>
@@ -157,22 +157,22 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
                     const isCorrect = selectedOpt === q.correctIndex;
 
                     return (
-                      <div key={qIdx} className="space-y-3 rounded-lg border border-zinc-800 bg-[#09090b] p-4">
-                        <p className="text-sm font-medium text-white flex gap-2">
+                      <div key={qIdx} className="space-y-3 rounded-lg border border-border bg-[#09090b] p-4">
+                        <p className="text-sm font-medium text-foreground flex gap-2">
                           <span className="font-mono text-sky-400 font-bold">S{qIdx + 1}.</span>
                           <span>{q.question}</span>
                         </p>
 
                         <div className="space-y-2 pt-1">
                           {q.options.map((opt, optIdx) => {
-                            let btnStyle = 'border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800/80';
+                            let btnStyle = 'border-border bg-card text-foreground dark:text-muted-foreground hover:border-zinc-700 hover:bg-zinc-800/80';
                             if (isAnswered) {
                               if (optIdx === q.correctIndex) {
                                 btnStyle = 'border-emerald-500/60 bg-emerald-500/20 text-emerald-200 font-medium';
                               } else if (selectedOpt === optIdx) {
                                 btnStyle = 'border-rose-500/60 bg-rose-500/20 text-rose-200';
                               } else {
-                                btnStyle = 'border-zinc-800 bg-zinc-900/30 text-zinc-500 opacity-60';
+                                btnStyle = 'border-border bg-card text-muted-foreground opacity-60';
                               }
                             }
 
@@ -219,7 +219,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
                   <Lightbulb size={15} />
                   <span>Gerçek Saha Örnek Vakası (Case Study)</span>
                 </div>
-                <p className="text-sm leading-relaxed text-zinc-300">{guide.practicalCaseStudy}</p>
+                <p className="text-sm leading-relaxed text-foreground dark:text-muted-foreground">{guide.practicalCaseStudy}</p>
               </div>
             )}
 
@@ -230,7 +230,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
                   <BookOpen size={17} />
                   <span>TeklifPro openBIM Engine Entegrasyonu</span>
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">{guide.teklifProIntegrationNote}</p>
+                <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">{guide.teklifProIntegrationNote}</p>
                 <div className="pt-1">
                   <a
                     href="/pilot"
@@ -245,11 +245,11 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
           </div>
 
           {/* Footer */}
-          <div className="border-t border-zinc-800 bg-[#09090b] px-6 py-4 flex items-center justify-between">
-            <span className="text-xs text-zinc-500">BIMPlan Academy · Mühendislik Standart Rehberi</span>
+          <div className="border-t border-border bg-[#09090b] px-6 py-4 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">BIMPlan Academy · Mühendislik Standart Rehberi</span>
             <button
               onClick={onClose}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-4 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+              className="rounded-md border border-border bg-surface-elevated px-4 py-1.5 text-xs font-medium text-foreground hover:bg-zinc-700 transition-colors"
             >
               Kapat
             </button>

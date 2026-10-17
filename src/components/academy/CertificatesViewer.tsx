@@ -87,7 +87,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
             <Award className="text-signal-orange" size={28} />
             My Certificates
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-slate-400">
             Monitor qualification milestones and access certified credentials.
           </p>
         </div>
@@ -185,7 +185,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                         type="text" 
                         value={studentName}
                         onChange={(e) => setStudentName(e.target.value)}
-                        className="bg-graphite-950 border border-graphite-500 px-3 py-1 text-xs font-mono text-white focus:outline-none focus:border-tech-blue"
+                        className="bg-graphite-950 border border-graphite-500 px-3 py-1 text-xs font-mono text-foreground focus:outline-none focus:border-tech-blue"
                         maxLength={40}
                       />
                       <button 
@@ -195,14 +195,14 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                             await onUpdateTrainee({ name: studentName });
                           }
                         }}
-                        className="px-2.5 py-1 bg-tech-blue text-white font-mono text-[10px] hover:bg-blue-600 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 bg-tech-blue text-foreground font-mono text-[10px] hover:bg-blue-600 transition-colors cursor-pointer"
                       >
                         SAVE
                       </button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-bold text-white">{studentName}</span>
+                      <span className="font-mono text-sm font-bold text-foreground">{studentName}</span>
                       <button 
                         onClick={() => setIsEditingName(true)}
                         className="text-[10px] text-tech-blue hover:underline font-mono"
@@ -256,7 +256,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                 {/* Title */}
                 <div className="space-y-3 my-4">
                   <p className="text-xs font-mono text-graphite-300">This is to certify that the engineering candidate</p>
-                  <h2 className="text-2xl sm:text-4xl font-black font-sans uppercase tracking-tight text-white border-b-2 border-graphite-800 pb-2 max-w-lg mx-auto leading-none">
+                  <h2 className="text-2xl sm:text-4xl font-black font-sans uppercase tracking-tight text-foreground border-b-2 border-graphite-800 pb-2 max-w-lg mx-auto leading-none">
                     {studentName}
                   </h2>
                   <p className="text-xs font-mono text-graphite-300 max-w-md mx-auto leading-relaxed pt-2">

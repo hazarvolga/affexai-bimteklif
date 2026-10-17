@@ -4,6 +4,7 @@ import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
 import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
+import { bodyToken, readSessionToken, setSessionCookies } from "../auth/session-cookie";
 import { acceptInvitation, invitationErrorResponse, invitationRateLimit, issueInvitation, previewInvitation, publicInvitation } from '../auth/invitations';
 
 export function registerCompanyRoutes(app: Express) {
@@ -292,12 +293,20 @@ export function registerCompanyRoutes(app: Express) {
     }
   });
 
-  app.post("/api/invitations/:token/accept", (req, res, next) => {
+  app.post("/api/invitations/:token/accept", async (req, res, next) => {
     if (req.headers.authorization) return authenticate(req, res, next);
+    // Browser sessions are cookies: only an invitation addressed to an existing account needs the signed-in user.
+    if (readSessionToken(req)) {
+      try {
+        if ((await previewInvitation(req.params.token)).requiresSignIn) return authenticate(req, res, next);
+      } catch { /* invalid invitation: the accept handler below reports it */ }
+    }
     next();
   }, invitationRateLimit('accept'), async (req, res) => {
     try {
-      res.json(await acceptInvitation(req.params.token, req.body, req.user));
+      const accepted = await acceptInvitation(req.params.token, req.body, req.user);
+      setSessionCookies(res, accepted.token);
+      res.json({ ...accepted, token: bodyToken(req, accepted.token) });
     } catch (error) {
       invitationErrorResponse(error, res);
     }

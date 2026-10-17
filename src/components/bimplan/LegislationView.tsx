@@ -90,12 +90,12 @@ export default function LegislationView() {
     <div className="space-y-16">
       
       {/* SECTION HEADER */}
-      <section className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
+      <section className="bg-card text-foreground rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
         <div className="absolute right-0 top-0 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl"></div>
         <div className="max-w-3xl space-y-4">
           <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-widest block">T.C. ÇEVRE, ŞEHİRCİLİK VE İKLİM DEĞİŞİKLİĞİ BAKANLIĞI · RG 5.8.2026 / 33331</span>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-none">Ulusal BIM Mevzuatı &amp; e-PYS Entegrasyonu</h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">
             33331 sayılı Resmî Gazete'de yayımlanan Dijital Hazırlama ve Elektronik Teslim Yönetmelikleri çerçevesinde yürütülen PDF/A ve IFC4X3 (openBIM) süreçlerini, EK-1..EK-9 teknik eklerini, e-PYS onay mekanizmalarını ve 5D birim fiyat entegrasyonunu keşfedin.
           </p>
           {liveRegulationsCount !== null && liveRegulationsCount > 0 && (
@@ -111,13 +111,13 @@ export default function LegislationView() {
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
         {/* Left Side: Timeline Navigation */}
-        <div className="lg:col-span-4 bg-white border border-slate-200 p-8 rounded-2xl shadow-sm">
+        <div className="lg:col-span-4 bg-white border border-border p-8 rounded-2xl shadow-sm">
           <h3 className="text-lg font-black text-slate-900 tracking-tight mb-6 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-orange-600" />
             RG 33331 Geçiş Takvimi
           </h3>
 
-          <div className="relative border-l border-slate-200 pl-4 ml-2 space-y-8">
+          <div className="relative border-l border-border pl-4 ml-2 space-y-8">
             {timelineEvents.map((ev) => {
               const isActive = ev.year === activeYear;
               return (
@@ -149,9 +149,9 @@ export default function LegislationView() {
         </div>
 
         {/* Right Side: Active Milestone details */}
-        <div className="lg:col-span-8 bg-white border border-slate-200 p-8 sm:p-10 rounded-2xl shadow-sm space-y-6">
+        <div className="lg:col-span-8 bg-white border border-border p-8 sm:p-10 rounded-2xl shadow-sm space-y-6">
           <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-            <div className="text-sm font-black text-slate-400 uppercase tracking-wider">Mevzuat Detayları (RG 33331)</div>
+            <div className="text-sm font-black text-muted-foreground uppercase tracking-wider">Mevzuat Detayları (RG 33331)</div>
             <span className={`px-2.5 py-1 text-[10px] font-black uppercase rounded-md border ${
               activeEvent.status === 'completed' 
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
@@ -168,13 +168,13 @@ export default function LegislationView() {
           <div className="space-y-4">
             <div className="mono text-4xl font-black text-orange-600">{activeEvent.year}</div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">{activeEvent.title}</h3>
-            <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
               {activeEvent.description}
             </p>
           </div>
 
           {/* Core Legal Requirement Points */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100 text-xs text-slate-500">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100 text-xs text-muted-foreground">
             <div className="space-y-2">
               <span className="font-extrabold text-slate-800 text-[11px] block uppercase tracking-wider">KAPSAM DIŞI İSTİSNALAR (MADDE 2)</span>
               <p className="leading-relaxed">
@@ -196,18 +196,18 @@ export default function LegislationView() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* e-PYS System */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
+        <div className="bg-white border border-border rounded-3xl p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-bold">
               e
             </div>
             <div>
               <h4 className="font-extrabold text-lg text-slate-900 leading-tight">e-PYS Teslim &amp; İnceleme Kuralları</h4>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Elektronik Proje Yönetim Sistemi (RG 33331)</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Elektronik Proje Yönetim Sistemi (RG 33331)</span>
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             2B teslimlerde PDF/A (ISO 19005) ve ISO 216 A4 katları pafta boyutu (m.8(1)); 3B teslimlerde TS EN ISO 16739-1 (IFC4X3), Türkiye Ulusal Koordinat Sistemi (m.10(4)) ve EK-9 Model Kalite Kontrol Formu (Mimari için Tablo 9.1 — 21 satır; Statik/Mekanik/Elektrik için Tablo 9.2 — 16 satır) uygulanır.
           </p>
 
@@ -217,22 +217,22 @@ export default function LegislationView() {
         </div>
 
         {/* Technical Annexes EK-1 to EK-9 */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
+        <div className="bg-white border border-border rounded-3xl p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center font-bold">
+            <div className="w-10 h-10 bg-card text-foreground rounded-xl flex items-center justify-center font-bold">
               EK
             </div>
             <div>
               <h4 className="font-extrabold text-lg text-slate-900 leading-tight">Resmî Teknik Ekler (EK-1 – EK-9)</h4>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sınıf, Özellik Seti ve İsimlendirme Standartları</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sınıf, Özellik Seti ve İsimlendirme Standartları</span>
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             EK-1 (6 haneli proje kodu), EK-2 (9 alanlı dosya adı, Tablo 2.1–2.14), EK-3 (Kat_Fonksiyon_Sıra mahal kodu ve ~130 standart mahal kısaltması), EK-5 (69 zorunlu + 67 isteğe bağlı IFC sınıfı, IfcBuildingElementProxy yasağı), EK-6 (68 tablo ve TREpys_* özellik setleri) ve EK-7 (Tablo 7.1–7.9) kuralları tanımlanmıştır.
           </p>
 
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-700 font-bold">
+          <div className="bg-slate-50 border border-border p-4 rounded-xl text-xs text-slate-700 font-bold">
             Kriter (m.11–15): Eleman adları Disiplin-Kategori-Açıklama (m.12(3)), malzeme adları Malzeme İsmi_Dayanım (m.13(3)) ve emsal alanları IfcSpatialZone + TREpys_EmsalOzellikSeti (m.15) ile modellenir.
           </div>
         </div>
@@ -240,7 +240,7 @@ export default function LegislationView() {
       </section>
 
       {/* MINISTRY POZ INTEGRATION (5D) MATCHER TOOL */}
-      <section className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-sm" id="poz-matcher">
+      <section className="bg-white border border-border rounded-3xl p-8 sm:p-10 shadow-sm" id="poz-matcher">
         <div className="max-w-3xl mb-8">
           <div className="flex items-center gap-1.5 text-orange-600 font-extrabold text-xs uppercase tracking-widest mb-2">
             <Database className="w-4 h-4" />
@@ -249,7 +249,7 @@ export default function LegislationView() {
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             T.C. Bakanlık Birim Fiyat (Poz) Eşleştirici
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             OpenBIM standardındaki IFC sınıflarını arayarak, Çevre, Şehircilik ve İklim Değişikliği Bakanlığı'nın resmi birim fiyat poz numaralarıyla olan ilişkisini ve birimlerini anında görüntüleyin.
           </p>
         </div>
@@ -258,22 +258,22 @@ export default function LegislationView() {
         <div className="space-y-6">
           {/* Search box */}
           <div className="relative max-w-md">
-            <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="IFC Sınıfı veya Poz No ara (örn: IfcWall, 15.150...)"
               value={pozSearch}
               onChange={(e) => setPozSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-orange-500 text-slate-800"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-border rounded-xl text-xs font-semibold focus:outline-none focus:border-orange-500 text-slate-800"
               id="search-poz"
             />
           </div>
 
           {/* Database table */}
-          <div className="overflow-x-auto border border-slate-200 rounded-xl">
+          <div className="overflow-x-auto border border-border rounded-xl">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 text-slate-400 font-black tracking-wider uppercase border-b border-slate-200 text-[10px]">
+                <tr className="bg-slate-50 text-muted-foreground font-black tracking-wider uppercase border-b border-border text-[10px]">
                   <th className="p-4">IFC Yapı Sınıfı</th>
                   <th className="p-4">Bakanlık Poz No</th>
                   <th className="p-4">İmalat Açıklaması</th>
@@ -286,12 +286,12 @@ export default function LegislationView() {
                     <td className="p-4 font-extrabold text-orange-600 mono">{poz.ifcClass}</td>
                     <td className="p-4 font-bold text-slate-900 mono">{poz.pozNo}</td>
                     <td className="p-4 max-w-sm sm:max-w-md truncate md:whitespace-normal">{poz.description}</td>
-                    <td className="p-4 text-right font-black text-slate-500 mono">{poz.unit}</td>
+                    <td className="p-4 text-right font-black text-muted-foreground mono">{poz.unit}</td>
                   </tr>
                 ))}
                 {filteredPoz.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-slate-400">
+                    <td colSpan={4} className="p-8 text-center text-muted-foreground">
                       Arama kelimesine ait poz veya sınıf eşleşmesi bulunamadı.
                     </td>
                   </tr>
@@ -302,7 +302,7 @@ export default function LegislationView() {
 
           <div className="flex items-start gap-3 bg-orange-50/50 border border-orange-100 p-4 rounded-xl">
             <Info className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+            <p className="text-[11px] text-muted-foreground leading-relaxed font-semibold">
               <strong>Önemli 5D Eşleştirme Kuralı:</strong> Modellerinizde 5D metraj ve teklif köprüsü kurarken, IFC yapı elemanlarına <code>TREpys_PozOzellikSeti.PozNo</code> (veya geriye dönük uyumluluk için <code>Tr_Pset_CSB.PozNo</code>) parametresi ekleyerek yukarıdaki ÇŞB poz kodlarını tanımlamanız gerekir. BIMMetraj SmartCheck motoru bu parametreyi doğrudan okuyarak kanıtlı metraj ve yaklaşık maliyet satırlarına aktarır.
             </p>
           </div>

@@ -11,7 +11,7 @@ export default function Footer({ setView }: FooterProps) {
   };
 
   return (
-    <footer className="bg-slate-900 text-white pt-20 pb-12 border-t border-slate-800" id="footer">
+    <footer className="bg-card text-foreground pt-20 pb-12 border-t border-slate-800" id="footer">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="md:col-span-1">
@@ -26,16 +26,16 @@ export default function Footer({ setView }: FooterProps) {
                 BIM<span className="text-orange-500">MASTER</span>
               </span>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed max-w-sm mb-6">
+            <p className="text-muted-foreground text-xs leading-relaxed max-w-sm mb-6">
               Sektörel dijitalleşme, ISO 19650 bilgi yönetimi eğitimi ve kamu mevzuatı entegrasyonu için Türkiye'nin en kapsamlı teknik referans portalı.
             </p>
           </div>
 
           <div>
-            <h5 className="text-[11px] font-extrabold text-slate-300 uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">
+            <h5 className="text-[11px] font-extrabold text-foreground dark:text-muted-foreground uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">
               Standartlar
             </h5>
-            <ul className="text-xs space-y-3.5 text-slate-400 font-medium">
+            <ul className="text-xs space-y-3.5 text-muted-foreground font-medium">
               <li>
                 <button onClick={() => handleNavClick('standartlar')} className="hover:text-orange-500 transition-colors text-left">
                   ISO 19650-1 & 19650-2
@@ -60,10 +60,10 @@ export default function Footer({ setView }: FooterProps) {
           </div>
 
           <div>
-            <h5 className="text-[11px] font-extrabold text-slate-300 uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">
+            <h5 className="text-[11px] font-extrabold text-foreground dark:text-muted-foreground uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">
               Dokümanlar
             </h5>
-            <ul className="text-xs space-y-3.5 text-slate-400 font-medium">
+            <ul className="text-xs space-y-3.5 text-muted-foreground font-medium">
               <li>
                 <button onClick={() => handleNavClick('dokumanlar')} className="hover:text-orange-500 transition-colors text-left">
                   EIR (Bilgi Teslim Şablonu)
@@ -103,10 +103,10 @@ export default function Footer({ setView }: FooterProps) {
           </div>
 
           <div>
-            <h5 className="text-[11px] font-extrabold text-slate-300 uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">
+            <h5 className="text-[11px] font-extrabold text-foreground dark:text-muted-foreground uppercase tracking-widest mb-6 border-b border-slate-800 pb-2">
               Kurumsal & Mevzuat
             </h5>
-            <ul className="text-xs space-y-3.5 text-slate-400 font-medium">
+            <ul className="text-xs space-y-3.5 text-muted-foreground font-medium">
               <li>
                 <button onClick={() => handleNavClick('mevzuat')} className="hover:text-orange-500 transition-colors text-left">
                   Çevre, Şehircilik Bakanlığı Mevzuatı
@@ -131,7 +131,7 @@ export default function Footer({ setView }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] text-slate-500 font-bold tracking-wider">
+        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] text-muted-foreground font-bold tracking-wider">
           <span>© 2026 BIM MASTER TEKNİK PORTAL - TÜM HAKLARI SAKLIDIR.</span>
           <div className="flex gap-6">
             <span className="flex items-center gap-1.5">

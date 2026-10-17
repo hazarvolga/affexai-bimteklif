@@ -30,7 +30,7 @@ async function captureBaseline() {
 
     // Inject mock auth token
     await page.evaluateOnNewDocument(() => {
-      localStorage.setItem('token', 'ui-redesign-baseline-fixture');
+      localStorage.setItem('bm_authed', '1');
     });
 
     await page.setRequestInterception(true);

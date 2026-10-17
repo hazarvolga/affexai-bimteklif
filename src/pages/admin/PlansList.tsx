@@ -408,7 +408,7 @@ export function PlansList() {
       {/* 1. ABONELİK PAKETLERİ */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mt-4">
         {loading ? (
-          <div className="text-zinc-500">Yükleniyor...</div>
+          <div className="text-muted-foreground">Yükleniyor...</div>
         ) : error ? (
           <div role="alert" className="col-span-full rounded-xl border border-red-500/30 p-5 text-red-300">
             <p>{error}</p>
@@ -417,7 +417,7 @@ export function PlansList() {
             </Button>
           </div>
         ) : plans.length === 0 ? (
-          <div role="status" className="col-span-full rounded-xl border border-zinc-700 p-5 text-zinc-300">
+          <div role="status" className="col-span-full rounded-xl border border-border p-5 text-foreground dark:text-muted-foreground">
             Henüz paket tanımlanmamış. Paket ekleyin veya platform yöneticisinden başlangıç kataloğunu yüklemesini isteyin.
           </div>
         ) : (
@@ -433,14 +433,14 @@ export function PlansList() {
               <div
                 key={plan.id}
                 className={`rounded-xl border p-5 flex flex-col justify-between transition-all ${
-                  plan.isActive ? 'border-zinc-700 bg-zinc-900/60' : 'border-red-500/25 bg-red-950/10'
+                  plan.isActive ? 'border-border bg-card' : 'border-red-500/25 bg-red-950/10'
                 }`}
               >
                 <div>
                   <div className="flex items-start justify-between gap-1 mb-2">
                     <Link
                       to={`/admin/plans/${plan.id}`}
-                      className="text-base font-bold text-white hover:text-indigo-300 leading-tight transition-colors"
+                      className="text-base font-bold text-foreground hover:text-indigo-300 leading-tight transition-colors"
                     >
                       {plan.name}
                     </Link>
@@ -479,7 +479,7 @@ export function PlansList() {
                           ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
                           : plan.isActive && !plan.isPublished
                             ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                            : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                            : 'bg-surface-elevated text-muted-foreground border-border'
                       }`}
                     >
                       {plan.isActive && plan.isPublished
@@ -493,7 +493,7 @@ export function PlansList() {
                       className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold border ${
                         subCount > 0
                           ? 'bg-indigo-500/15 text-indigo-200 border-indigo-500/30'
-                          : 'bg-zinc-800/80 text-zinc-400 border-zinc-700'
+                          : 'bg-surface-elevated text-muted-foreground border-border'
                       }`}
                     >
                       <Users size={10} />
@@ -507,25 +507,25 @@ export function PlansList() {
                         <span className="text-2xl font-black text-emerald-400">Ücretsiz</span>
                       ) : (
                         <>
-                          <span className="text-2xl font-black text-white">₺{plan.monthlyPrice}</span>
-                          <span className="text-zinc-500 text-xs">/ ay</span>
+                          <span className="text-2xl font-black text-foreground">₺{plan.monthlyPrice}</span>
+                          <span className="text-muted-foreground text-xs">/ ay</span>
                         </>
                       )}
                     </div>
                   </div>
 
                   <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                    <li className="flex items-center gap-2 text-xs text-foreground dark:text-muted-foreground">
                       {plan.monthlyQuoteLimit === 0 ? (
                         <>
                           <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                          <span className="text-zinc-400">Teklif Modülü Dahil Değil</span>
+                          <span className="text-muted-foreground">Teklif Modülü Dahil Değil</span>
                         </>
                       ) : (
                         <>
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                           <span>
-                            <strong className="text-white">
+                            <strong className="text-foreground">
                               {`${plan.monthlyQuoteLimit.toLocaleString('tr-TR')} Adet`}
                             </strong>{' '}
                             Teklif Kotası
@@ -533,19 +533,19 @@ export function PlansList() {
                         </>
                       )}
                     </li>
-                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                    <li className="flex items-center gap-2 text-xs text-foreground dark:text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       <span>
-                        <strong className="text-white">
+                        <strong className="text-foreground">
                           {plan.monthlyIfcLimit === null ? 'Paket limiti tanımsız' : `${plan.monthlyIfcLimit} Adet`}
                         </strong>{' '}
                         {plan.monthlyQuoteLimit === 0 ? 'İsimlendirme Denetimi' : 'IFC Analizi'}
                       </span>
                     </li>
-                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                    <li className="flex items-center gap-2 text-xs text-foreground dark:text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       <span>
-                        Maks <strong className="text-white">{Math.min(plan.ifcMaxFileMb, 100)} MB</strong> Dosya
+                        Maks <strong className="text-foreground">{Math.min(plan.ifcMaxFileMb, 100)} MB</strong> Dosya
                         {plan.ifcMaxFileMb > 100 && (
                           <span className="text-amber-400">
                             {' '}
@@ -554,31 +554,31 @@ export function PlansList() {
                         )}
                       </span>
                     </li>
-                    <li className="flex items-center gap-2 text-xs text-zinc-300">
+                    <li className="flex items-center gap-2 text-xs text-foreground dark:text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                       <span>
-                        <strong className="text-white">{plan.ifcMaxConcurrent ?? 1}</strong> Eşzamanlı İş
+                        <strong className="text-foreground">{plan.ifcMaxConcurrent ?? 1}</strong> Eşzamanlı İş
                       </span>
                     </li>
                   </ul>
 
                   {/* Bu paketi kullanan firmalar özeti */}
                   {subCount > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-zinc-800/80">
-                      <p className="text-[10px] font-semibold text-zinc-400 mb-1">Bu Paketteki Firmalar:</p>
+                    <div className="mt-3 pt-2.5 border-t border-border">
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">Bu Paketteki Firmalar:</p>
                       <div className="flex flex-wrap gap-1">
                         {subscribers.slice(0, 3).map((sub) => (
                           <Link
                             key={sub.companyId}
                             to={`/admin/tenants/${sub.companyId}`}
-                            className="inline-flex items-center rounded bg-zinc-800 hover:bg-zinc-700 px-1.5 py-0.5 text-[10px] text-indigo-300 font-medium truncate max-w-[120px]"
+                            className="inline-flex items-center rounded bg-surface-elevated hover:bg-zinc-700 px-1.5 py-0.5 text-[10px] text-indigo-300 font-medium truncate max-w-[120px]"
                             title={sub.companyName}
                           >
                             {sub.companyName}
                           </Link>
                         ))}
                         {subscribers.length > 3 && (
-                          <span className="text-[10px] text-zinc-500 px-1 py-0.5">
+                          <span className="text-[10px] text-muted-foreground px-1 py-0.5">
                             +{subscribers.length - 3} firma
                           </span>
                         )}
@@ -587,11 +587,11 @@ export function PlansList() {
                   )}
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-zinc-800/70 flex flex-wrap items-center gap-2">
+                <div className="mt-5 pt-3 border-t border-border flex flex-wrap items-center gap-2">
                   <Button
                     onClick={() => openPlanEditor(plan)}
                     variant="outline"
-                    className="flex-1 border-zinc-700 bg-transparent text-zinc-200 hover:bg-zinc-800 text-xs py-1.5 h-8"
+                    className="flex-1 border-border bg-transparent text-foreground hover:bg-zinc-800 text-xs py-1.5 h-8"
                   >
                     Detaylı Düzenle
                   </Button>
@@ -640,10 +640,10 @@ export function PlansList() {
       </div>
 
       {/* 2. BEKLEYEN HAVALE / EFT ÖDEME BİLDİRİMLERİ */}
-      <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+      <section className="mt-10 rounded-2xl border border-border bg-card p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <Receipt size={18} className="text-amber-400" />
               Havale / EFT Ödeme Bildirimleri & Paket Aktivasyonu
               {pendingPaymentsCount > 0 && (
@@ -652,7 +652,7 @@ export function PlansList() {
                 </span>
               )}
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Kayıt sırasında veya çalışma alanından ücretli paket seçip dekont bildiren firmaları tek tıkla onaylayarak paketlerini aktif edin.
             </p>
           </div>
@@ -662,15 +662,15 @@ export function PlansList() {
         </div>
 
         {loadingPayments ? (
-          <p className="text-xs text-zinc-500">Ödeme bildirimleri yükleniyor...</p>
+          <p className="text-xs text-muted-foreground">Ödeme bildirimleri yükleniyor...</p>
         ) : paymentRequests.length === 0 ? (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-xs text-zinc-400">
+          <div className="rounded-xl border border-border bg-background p-4 text-xs text-muted-foreground">
             Henüz oluşturulmuş bir Havale / EFT sipariş veya dekont bildirimi bulunmuyor.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-zinc-800">
+          <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-950 text-zinc-400 border-b border-zinc-800">
+              <thead className="bg-background text-muted-foreground border-b border-border">
                 <tr>
                   <th className="p-3">Referans Kodu</th>
                   <th className="p-3">Firma / Kullanıcı</th>
@@ -681,7 +681,7 @@ export function PlansList() {
                   <th className="p-3 text-right">İşlem</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/70 text-zinc-300">
+              <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
                 {paymentRequests.map((req) => (
                   <tr key={req.requestId} className="hover:bg-zinc-900/40">
                     <td className="p-3 font-mono font-bold text-amber-300">{req.referenceCode}</td>
@@ -693,34 +693,34 @@ export function PlansList() {
                         <Building2 size={13} />
                         {req.companyName}
                       </Link>
-                      <span className="block text-[11px] text-zinc-500">{req.userEmail}</span>
+                      <span className="block text-[11px] text-muted-foreground">{req.userEmail}</span>
                     </td>
-                    <td className="p-3 font-semibold text-white">{req.planName}</td>
+                    <td className="p-3 font-semibold text-foreground">{req.planName}</td>
                     <td className="p-3 tabular-nums font-bold text-emerald-300">
                       ₺{req.amountTry.toLocaleString('tr-TR')}{' '}
-                      <span className="text-[10px] font-normal text-zinc-400">
+                      <span className="text-[10px] font-normal text-muted-foreground">
                         ({formatBillingCycleLabel(req.billingCycle)})
                       </span>
                     </td>
-                    <td className="p-3 text-zinc-300">
+                    <td className="p-3 text-foreground dark:text-muted-foreground">
                       {req.senderName ? (
                         <div>
-                          <span className="font-semibold text-white">{req.senderName}</span>
-                          {req.bankName && <span className="text-zinc-400"> · {req.bankName}</span>}
+                          <span className="font-semibold text-foreground">{req.senderName}</span>
+                          {req.bankName && <span className="text-muted-foreground"> · {req.bankName}</span>}
                           {req.transferReference && (
                             <span className="block text-[11px] font-mono text-amber-200">
                               Dekont No: {req.transferReference}
                             </span>
                           )}
                           {(req.taxOffice || req.taxNumber) && (
-                            <span className="block text-[10px] text-zinc-400">
+                            <span className="block text-[10px] text-muted-foreground">
                               VD: {req.taxOffice || '—'} / VKN: {req.taxNumber || '—'}
                             </span>
                           )}
-                          {req.notes && <span className="block text-[10px] text-zinc-400 italic">"{req.notes}"</span>}
+                          {req.notes && <span className="block text-[10px] text-muted-foreground italic">"{req.notes}"</span>}
                         </div>
                       ) : (
-                        <span className="text-zinc-500">Henüz dekont formu doldurulmadı</span>
+                        <span className="text-muted-foreground">Henüz dekont formu doldurulmadı</span>
                       )}
                     </td>
                     <td className="p-3">
@@ -737,11 +737,11 @@ export function PlansList() {
                           <XCircle size={11} /> Reddedildi
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-[10px] font-bold text-zinc-300">
+                        <span className="inline-flex items-center gap-1 rounded bg-surface-elevated border border-border px-2 py-0.5 text-[10px] font-bold text-foreground dark:text-muted-foreground">
                           Havale Bekleniyor
                         </span>
                       )}
-                      <span className="block text-[10px] text-zinc-500 mt-1">
+                      <span className="block text-[10px] text-muted-foreground mt-1">
                         {new Date(req.updatedAt).toLocaleString('tr-TR')}
                       </span>
                     </td>
@@ -781,14 +781,14 @@ export function PlansList() {
       </section>
 
       {/* 3. ÇOKLU BANKA HESAPLARI YÖNETİMİ (SÜPER ADMİN) */}
-      <section className="mt-8 rounded-2xl border border-indigo-500/25 bg-zinc-900/50 p-6 space-y-5">
+      <section className="mt-8 rounded-2xl border border-indigo-500/25 bg-card p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <Landmark size={18} className="text-indigo-400" />
               Banka Hesapları Yönetimi (Havale / EFT IBAN Listesi)
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Kayıt ve Faturalandırma ekranlarında müşterilere gösterilen Banka Adı, Alıcı Ünvanı ve IBAN bilgilerini buradan dilediğiniz zaman değiştirebilir, birden fazla banka ekleyebilirsiniz.
             </p>
           </div>
@@ -816,27 +816,27 @@ export function PlansList() {
         </div>
 
         {loadingBanks ? (
-          <p className="text-xs text-zinc-500">Banka hesapları yükleniyor...</p>
+          <p className="text-xs text-muted-foreground">Banka hesapları yükleniyor...</p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
             {bankAccounts.map((acc, idx) => (
               <div
                 key={acc.id}
                 className={`rounded-xl border p-4 space-y-3 ${
-                  acc.isActive ? 'border-zinc-800 bg-zinc-950/80' : 'border-red-500/20 bg-red-950/10 opacity-75'
+                  acc.isActive ? 'border-border bg-background' : 'border-red-500/20 bg-red-950/10 opacity-75'
                 }`}
               >
-                <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+                <div className="flex items-center justify-between border-b border-border pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="rounded bg-indigo-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-indigo-300">
                       Hesap #{idx + 1}
                     </span>
-                    <label className="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-xs text-foreground dark:text-muted-foreground cursor-pointer">
                       <input
                         type="checkbox"
                         checked={acc.isActive}
                         onChange={(e) => handleUpdateBankField(idx, 'isActive', e.target.checked)}
-                        className="rounded border-zinc-700 bg-zinc-900 text-indigo-600"
+                        className="rounded border-border bg-card text-indigo-600"
                       />
                       Aktif (Müşterilere Göster)
                     </label>
@@ -844,7 +844,7 @@ export function PlansList() {
                   <button
                     type="button"
                     onClick={() => handleRemoveBankAccount(idx)}
-                    className="text-zinc-500 hover:text-red-400 transition-colors"
+                    className="text-muted-foreground hover:text-red-400 transition-colors"
                     title="Banka hesabını sil"
                   >
                     <Trash2 size={15} />
@@ -853,23 +853,23 @@ export function PlansList() {
 
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">Banka Adı *</label>
+                    <label className="block text-[11px] font-medium text-muted-foreground mb-1">Banka Adı *</label>
                     <input
                       type="text"
                       value={acc.bankName}
                       onChange={(e) => handleUpdateBankField(idx, 'bankName', e.target.value)}
                       placeholder="Örn: Garanti BBVA / İş Bankası"
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-white"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">Para Birimi</label>
+                    <label className="block text-[11px] font-medium text-muted-foreground mb-1">Para Birimi</label>
                     <select
                       value={acc.currency}
                       onChange={(e) =>
                         handleUpdateBankField(idx, 'currency', e.target.value as 'TRY' | 'USD' | 'EUR')
                       }
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-white"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground"
                     >
                       <option value="TRY">TRY (₺)</option>
                       <option value="USD">USD ($)</option>
@@ -880,7 +880,7 @@ export function PlansList() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                    <label className="block text-[11px] font-medium text-muted-foreground mb-1">
                       Alıcı Resmi Ünvanı *
                     </label>
                     <input
@@ -888,34 +888,34 @@ export function PlansList() {
                       value={acc.accountHolder}
                       onChange={(e) => handleUpdateBankField(idx, 'accountHolder', e.target.value)}
                       placeholder="Örn: BIMPlan Mühendislik A.Ş."
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-white"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">Şube Adı / Kodu</label>
+                    <label className="block text-[11px] font-medium text-muted-foreground mb-1">Şube Adı / Kodu</label>
                     <input
                       type="text"
                       value={acc.branchName ?? ''}
                       onChange={(e) => handleUpdateBankField(idx, 'branchName', e.target.value || null)}
                       placeholder="Örn: Kurumsal / 0412"
-                      className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-white"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">IBAN *</label>
+                  <label className="block text-[11px] font-medium text-muted-foreground mb-1">IBAN *</label>
                   <input
                     type="text"
                     value={acc.iban}
                     onChange={(e) => handleUpdateBankField(idx, 'iban', e.target.value)}
                     placeholder="TR00 0000 0000 0000 0000 0000 00"
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-mono text-xs text-emerald-300"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-1.5 font-mono text-xs text-emerald-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                  <label className="block text-[11px] font-medium text-muted-foreground mb-1">
                     Müşteriye Gösterilecek Not / Açıklama
                   </label>
                   <input
@@ -923,7 +923,7 @@ export function PlansList() {
                     value={acc.description ?? ''}
                     onChange={(e) => handleUpdateBankField(idx, 'description', e.target.value || null)}
                     placeholder="Örn: Açıklama kısmına Sipariş Referans Kodunuzu yazınız."
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground dark:text-muted-foreground"
                   />
                 </div>
               </div>
@@ -935,45 +935,45 @@ export function PlansList() {
       {/* PAKETİ PASİFE AL & MEVCUT MÜŞTERİLERİ AKTARMA MODALI */}
       {deactivatingPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-zinc-950 border border-zinc-800 p-6 shadow-2xl space-y-5">
+          <div className="w-full max-w-lg rounded-2xl bg-background border border-border p-6 shadow-2xl space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-300 mb-2">
                   <AlertTriangle size={12} /> Paket Durumu & Abone Yönetimi
                 </span>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-foreground">
                   "{deactivatingPlan.name}" Paketini Pasife Al
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Bu paketi yeni satışa kapatabilir veya tamamen pasife alarak mevcut müşterileri alternatif bir pakete kesintisiz aktarabilirsiniz.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setDeactivatingPlan(null)}
-                className="text-zinc-500 hover:text-white"
+                className="text-muted-foreground hover:text-white"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Mevcut Aboneler Özeti */}
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3.5">
+            <div className="rounded-xl border border-border bg-card p-3.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
+                <span className="font-semibold text-foreground dark:text-muted-foreground flex items-center gap-1.5">
                   <Users size={14} className="text-indigo-400" />
                   Bu Paketi Kullanan Firma Sayısı:
                 </span>
-                <span className="font-bold text-white">
+                <span className="font-bold text-foreground">
                   {deactivatingPlan.subscriberCount ?? 0} Firma
                 </span>
               </div>
               {Array.isArray(deactivatingPlan.subscribers) && deactivatingPlan.subscribers.length > 0 && (
-                <div className="mt-2.5 pt-2.5 border-t border-zinc-800 flex flex-wrap gap-1.5">
+                <div className="mt-2.5 pt-2.5 border-t border-border flex flex-wrap gap-1.5">
                   {deactivatingPlan.subscribers.map((sub: any) => (
                     <span
                       key={sub.companyId}
-                      className="inline-flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-[11px] text-indigo-200 font-medium"
+                      className="inline-flex items-center gap-1 rounded bg-surface-elevated px-2 py-0.5 text-[11px] text-indigo-200 font-medium"
                     >
                       <Building2 size={11} className="text-indigo-400" />
                       {sub.companyName}
@@ -990,7 +990,7 @@ export function PlansList() {
                 className={`block cursor-pointer rounded-xl border p-3.5 transition-all ${
                   deactivateMode === 'deactivate_and_migrate'
                     ? 'border-amber-500/50 bg-amber-500/10'
-                    : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                    : 'border-border bg-card hover:border-zinc-700'
                 }`}
               >
                 <div className="flex items-start gap-2.5">
@@ -1002,11 +1002,11 @@ export function PlansList() {
                     className="mt-0.5 text-amber-500"
                   />
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                       <ArrowRightLeft size={13} className="text-amber-400" />
                       Paketi Tamamen Pasife Al {(deactivatingPlan.subscriberCount ?? 0) > 0 ? '& Müşterileri Alternatif Pakete Taşı' : ''}
                     </p>
-                    <p className="text-[11px] text-zinc-400 mt-1">
+                    <p className="text-[11px] text-muted-foreground mt-1">
                       Paket tamamen kullanım dışı bırakılır (`isActive: false`) ve vitrinden kaldırılır.{' '}
                       {(deactivatingPlan.subscriberCount ?? 0) > 0
                         ? 'Mevcut firmalar seçtiğiniz alternatif aktif pakete otomatik olarak aktarılır; hiçbir müşteri hizmet kesintisi yaşamaz.'
@@ -1022,7 +1022,7 @@ export function PlansList() {
                           <select
                             value={replacementPlanId}
                             onChange={(e) => setReplacementPlanId(e.target.value)}
-                            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white"
+                            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
                           >
                             <option value="">-- Alternatif Aktif Paket Seçin --</option>
                             {plans
@@ -1046,7 +1046,7 @@ export function PlansList() {
                   className={`block cursor-pointer rounded-xl border p-3.5 transition-all ${
                     deactivateMode === 'hide_only'
                       ? 'border-indigo-500/50 bg-indigo-500/10'
-                      : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                      : 'border-border bg-card hover:border-zinc-700'
                   }`}
                 >
                   <div className="flex items-start gap-2.5">
@@ -1058,11 +1058,11 @@ export function PlansList() {
                       className="mt-0.5 text-indigo-500"
                     />
                     <div>
-                      <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <EyeOff size={13} className="text-indigo-400" />
                         Sadece Yeni Satışa Kapat (Mevcut Müşteriler Aynen Devam Etsin)
                       </p>
-                      <p className="text-[11px] text-zinc-400 mt-1">
+                      <p className="text-[11px] text-muted-foreground mt-1">
                         Paket kayıt ve fiyatlandırma sayfasından gizlenir (`isPublished: false`), ancak mevcut{' '}
                         {deactivatingPlan.subscriberCount ?? 0} firma kendi paket kotalarını kullanmaya devam eder.
                       </p>
@@ -1072,7 +1072,7 @@ export function PlansList() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-zinc-800">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border">
               <Button variant="ghost" onClick={() => setDeactivatingPlan(null)} className="text-xs">
                 Vazgeç
               </Button>

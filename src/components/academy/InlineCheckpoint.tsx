@@ -172,7 +172,7 @@ export const InlineCheckpoint: React.FC<{ lessonTitle: string }> = ({ lessonTitl
               >
                 <span className={`size-5 rounded-full border flex items-center justify-center text-[10px] shrink-0 font-bold ${
                   isSelected 
-                    ? "bg-tech-blue border-tech-blue text-white" 
+                    ? "bg-tech-blue border-tech-blue text-foreground" 
                     : "bg-graphite-900 border-graphite-700 text-graphite-400"
                 }`}>
                   {String.fromCharCode(65 + idx)}
@@ -189,7 +189,7 @@ export const InlineCheckpoint: React.FC<{ lessonTitle: string }> = ({ lessonTitl
             <button
               onClick={handleSubmit}
               disabled={selectedIdx === null}
-              className="px-5 py-2.5 bg-tech-blue hover:bg-tech-blue/90 disabled:bg-graphite-800 disabled:text-graphite-500 disabled:border-graphite-700 disabled:cursor-not-allowed border border-tech-blue text-white font-mono text-xs uppercase tracking-wider rounded-[1px] transition-colors cursor-pointer"
+              className="px-5 py-2.5 bg-tech-blue hover:bg-tech-blue/90 disabled:bg-graphite-800 disabled:text-graphite-500 disabled:border-graphite-700 disabled:cursor-not-allowed border border-tech-blue text-foreground font-mono text-xs uppercase tracking-wider rounded-[1px] transition-colors cursor-pointer"
             >
               Submit Answer
             </button>

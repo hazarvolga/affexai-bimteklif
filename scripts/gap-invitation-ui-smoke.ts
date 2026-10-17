@@ -55,6 +55,14 @@ try {
     return result.delivery.devInvitationUrl as string;
   };
   const password = 'Isolated-fixture-pass-123';
+  // Browser sessions are HttpOnly cookies set by the server; the smoke test installs the same cookies and the non-secret UI hint.
+  const signIn = async (token: string, options: { admin?: boolean } = {}) => {
+    const host = new URL(base).hostname;
+    const cookies = [{ name: 'bm_session', value: token, domain: host, path: '/api', httpOnly: true, sameSite: 'Strict' as const }];
+    if (options.admin) cookies.push({ name: 'bm_admin', value: token, domain: host, path: '/api', httpOnly: true, sameSite: 'Strict' as const });
+    await page.setCookie(...cookies);
+    await page.evaluate(() => localStorage.setItem('bm_authed', '1'));
+  };
   for (const width of [1440, 390]) {
     const email = `new-${width}@example.test`;
     await page.setViewport({ width, height: 900 });
@@ -87,18 +95,22 @@ try {
   await page.click('button[type="submit"]');
   await page.waitForFunction(() => document.body.innerText.includes('Kayıt Alındı!'));
   const profile = () => page.evaluate(async () => {
-    const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+    const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
     return response.json();
   });
   assert.equal((await profile()).company.id, secondCompany.id);
   assert.equal((await profile()).role, 'manager');
+  // P1-5: the session must not be readable by page scripts (no token in storage, cookies are HttpOnly).
+  const exposed = await page.evaluate(() => ({ storage: Object.keys(localStorage).filter(key => /token|session_backup/i.test(key)), cookie: document.cookie }));
+  assert.deepEqual(exposed.storage, []);
+  assert.equal(/bm_(session|admin)/.test(exposed.cookie), false);
   await page.setViewport({ width: 1440, height: 900 });
   await page.goto(`${base}/app`, { waitUntil: 'networkidle0' });
   await page.reload({ waitUntil: 'networkidle0' });
   assert.equal((await profile()).company.id, secondCompany.id);
   assert.equal((await profile()).role, 'manager');
   await page.waitForFunction(() => document.body.innerText.includes('Invited Company B'));
-  await page.evaluate(token => localStorage.setItem('token', token), ownerToken);
+  await signIn(ownerToken);
   await page.goto(`${base}/app/settings`, { waitUntil: 'networkidle0' });
   await page.$$eval('[role="tab"]', tabs => (tabs.find(tab => tab.textContent?.includes('EKİP')) as HTMLElement).click());
   await page.waitForSelector('input[aria-label="Davet e-posta adresi"]');
@@ -113,7 +125,7 @@ try {
     const [admin] = await db.insert(schema.users).values({ email: 'ui-admin@example.test', fullName: 'UI Admin', isSuperAdmin: true }).returning();
     const [plan] = await db.insert(schema.plans).values({ name: 'Zero Limit', monthlyQuoteLimit: 0, monthlyPrice: 0 }).returning();
     const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
-    await page.evaluate(token => localStorage.setItem('token', token), adminToken);
+    await signIn(adminToken, { admin: true });
     await page.goto(`${base}/admin/tenants`, { waitUntil: 'networkidle0' });
     await page.waitForFunction(() => document.body.innerText.includes('Firmalar (Tenants)'));
     await page.$$eval('tr', rows => {

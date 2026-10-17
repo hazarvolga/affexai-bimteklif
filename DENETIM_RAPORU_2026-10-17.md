@@ -271,8 +271,11 @@ Kodla kapatılabilen maddeler uygulandı; **henüz commit edilmedi ve deploy edi
 | P1-11 | ✅ | Denetim kaydı yazılamazsa Sentry'ye bildirim. (CI logundaki `user_id` hataları test sahte kullanıcısından; üretim kodunda `userId` her zaman dolu) |
 | P1-12 | ✅ | Marka yazımı **BIMMetraj** olarak kararlaştırıldı; tüm kod, vitrin ve ajan hafızası bu yazıma hizalandı |
 | P1-1…P1-4, P1-10 | ⏸ Dış işlem | Gerçek imzalı uzman onayı; KİK'in resmî örnek hesabı; GİB/yönetmelik kaynaklarıyla KDV ve YAMBİS düzeltmesi; Playwright |
-| P1-5…P1-8 | ⏸ Altyapı | httpOnly çerez (oturum mimarisi değişikliği), runtime DB rolü, DKIM (DNS + Stalwart), kesintisiz deploy (Coolify) |
-| P2-1…P2-7 | ⏸ Açık | Tasarım token göçü, form etiketi taraması, `strict` TS, Fiyat Kitabı tablolarına geçiş, ifcopenshell sürüm eşitlemesi, CORP, alarmlar |
+| P1-5 | ✅ | Oturum HttpOnly + SameSite=Strict çerezde; CSRF için aynı-origin kanıtı; tarayıcıya gövdede jeton yok; gerçek tarayıcıda doğrulandı (Rev. 28) |
+| P1-10 | ✅ | `scripts/e2e-core-flow-smoke.ts` (giriş formu → müşteri → teklif → PDF → yenileme → CSRF → çıkış) ve CRM/faturalama smoke'u CI'da |
+| P1-6…P1-8 | ⏸ Altyapı | Runtime DB rolü, DKIM (DNS + Stalwart), kesintisiz deploy (Coolify) |
+| P2-1 | 🟡 Kısmen | 2.962 nötr sınıf token'a çevrildi (3.007 → 417); açık modda piksel farkı 0. Renkli vurgu sınıfları ve `text-[7–9px]` kalan iş |
+| P2-2…P2-7 | ⏸ Açık | Form etiketi taraması, `strict` TS, Fiyat Kitabı tablolarına geçiş, ifcopenshell sürüm eşitlemesi, CORP, alarmlar |
 
 ## Kaynaklar
 

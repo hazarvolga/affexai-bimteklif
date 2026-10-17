@@ -157,7 +157,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
             </div>
 
             <div className="space-y-1 text-center">
-              <h2 className="text-lg font-black uppercase tracking-tight text-white">Evaluation Completed</h2>
+              <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Evaluation Completed</h2>
               <p className="tech-label text-graphite-400">Allplan BIM Specialist II Exam</p>
             </div>
 
@@ -317,7 +317,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
           <div className="space-y-2">
             <p className="tech-label text-graphite-500">Exam Overview</p>
             <div className="space-y-1">
-              <div className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] bg-tech-blue text-white">
+              <div className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] bg-tech-blue text-foreground">
                 <BookOpen size={16} />
                 <span className="text-xs font-bold">Active Test</span>
               </div>
@@ -336,7 +336,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
                     onClick={() => setCurrentIdx(i)}
                     className={`size-8 flex items-center justify-center font-mono text-[10px] border rounded-[1px] cursor-pointer transition-all ${
                       isCurrent 
-                        ? 'bg-tech-blue border-tech-blue text-white' 
+                        ? 'bg-tech-blue border-tech-blue text-foreground' 
                         : isAnswered 
                         ? 'bg-graphite-700 border-graphite-500 text-graphite-50' 
                         : 'bg-graphite-900 border-graphite-700 text-graphite-500'

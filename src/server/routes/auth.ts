@@ -14,6 +14,7 @@ import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
+import { ADMIN_COOKIE, bodyToken, clearSessionCookies, isSameOriginMutation, parseCookies, restoreAdminSession, setSessionCookies } from "../auth/session-cookie";
 
 export const actionUrl = (path: string) => `${(process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}${path}`;
 
@@ -204,8 +205,9 @@ export function registerAuthRoutes(app: Express) {
         throw error;
       }
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
+      setSessionCookies(res, token);
       res.status(201).json({
-        token,
+        token: bodyToken(req, token),
         user: publicRegisteredUser(result.user),
         company: result.company,
         role: "owner",
@@ -345,7 +347,8 @@ export function registerAuthRoutes(app: Express) {
       });
 
       const learner = await db.query.academyLearnerProfiles.findFirst({ where: eq(academyLearnerProfiles.userId, user.id) });
-      res.json({ token, user: publicRegisteredUser(user), company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace' });
+      setSessionCookies(res, token, { isSuperAdmin: user.isSuperAdmin });
+      res.json({ token: bodyToken(req, token), user: publicRegisteredUser(user), company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace' });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
@@ -379,6 +382,14 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
+  // Cookies are HttpOnly, so only the server can end a browser session.
+  app.post("/api/auth/logout", (req, res) => {
+    // Unauthenticated by design (idempotent), but never cross-site: SameSite=Strict cookies plus the origin proof below.
+    if (!isSameOriginMutation(req)) return res.status(403).json({ error: "Geçersiz istek kaynağı.", code: "CSRF_ORIGIN_MISMATCH" });
+    clearSessionCookies(res);
+    res.json({ success: true });
+  });
+
   app.post("/api/auth/impersonate/exit", authenticate, async (req, res) => {
     try {
       if (!req.user?.impersonatedBy) {
@@ -396,7 +407,9 @@ export function registerAuthRoutes(app: Express) {
         },
       });
 
-      res.json({ success: true, message: "Impersonasyon oturumu başarıyla sonlandırıldı." });
+      // Browser sessions live in cookies: drop the impersonation session and return to the admin's own session.
+      const adminRestored = restoreAdminSession(res, parseCookies(req.headers.cookie)[ADMIN_COOKIE]);
+      res.json({ success: true, adminRestored, message: "Impersonasyon oturumu başarıyla sonlandırıldı." });
     } catch (error) {
       console.error("Failed to exit impersonation:", error);
       res.status(500).json({ error: "Impersonasyon oturumu sonlandırılırken hata oluştu." });

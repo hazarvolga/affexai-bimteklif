@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Currency, type Company } from '@/types';
+import { hasSessionHint, isAdminContext, purgeLegacyTokens, setSessionHint } from '@/lib/api';
 
 interface User {
   id: string;
@@ -20,7 +21,7 @@ interface AuthContextType {
   learnerProfile: { onboardingCompletedAt: string | null; selectedLessonSlug: string | null } | null;
   loading: boolean;
   isDemoMode: boolean;
-  login: (token: string, user: User, company: Company, role: string, accountType?: 'workspace' | 'academy_learner') => void;
+  login: (token: string | null | undefined, user: User, company: Company, role: string, accountType?: 'workspace' | 'academy_learner') => void;
   logout: () => void;
   exitImpersonation: () => void;
 }
@@ -63,13 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAuth = async () => {
-    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-    const token = isAdminRoute
-      ? localStorage.getItem('superadmin_token') ||
-        localStorage.getItem('admin_session_backup') ||
-        localStorage.getItem('token')
-      : localStorage.getItem('token');
-    if (!token) {
+    purgeLegacyTokens();
+    // Oturum HttpOnly çerezdedir; yalnız daha önce giriş yapılmışsa sunucuya sorulur.
+    if (!hasSessionHint()) {
       // Yalnızca geliştirme sunucusunda (npm run dev) otomatik demo erişimi sağlanır.
       // Üretim build'inde (import.meta.env.DEV === false) kullanıcı null kalır ve
       // ProtectedRoute normal şekilde /login'e yönlendirir.
@@ -80,20 +77,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const res = await fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'same-origin',
+        headers: isAdminContext() ? { 'X-BM-Context': 'admin' } : undefined,
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.user?.isSuperAdmin && !data.user?.impersonatedBy) {
-          localStorage.setItem('superadmin_token', token);
-        }
         setUser(data.user);
         setCompany(data.company);
         setRole(data.role);
         setAccountType(data.accountType ?? 'workspace');
         setLearnerProfile(data.learnerProfile ?? null);
-      } else if (import.meta.env.DEV) {
-        enterDemoMode();
+      } else {
+        if (res.status === 401) setSessionHint(false);
+        if (import.meta.env.DEV) enterDemoMode();
       }
     } catch (e) {
       if (import.meta.env.DEV) enterDemoMode();
@@ -102,11 +98,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = (token: string, nextUser: User, nextCompany: Company, nextRole: string, nextAccountType: 'workspace' | 'academy_learner' = 'workspace') => {
-    localStorage.setItem('token', token);
-    if (nextUser?.isSuperAdmin && !nextUser?.impersonatedBy) {
-      localStorage.setItem('superadmin_token', token);
-    }
+  const clearLocalSession = () => {
+    setSessionHint(false);
+    setUser(null);
+    setCompany(null);
+    setRole(null);
+    setAccountType(null);
+    setLearnerProfile(null);
+    setIsDemoMode(false);
+  };
+
+  // `token` yalnız API istemcileri içindir; tarayıcı oturumu sunucunun yazdığı HttpOnly çerezdedir.
+  const login = (token: string | null | undefined, nextUser: User, nextCompany: Company, nextRole: string, nextAccountType: 'workspace' | 'academy_learner' = 'workspace') => {
+    setSessionHint(true);
     setUser(nextUser);
     setCompany(nextCompany);
     setRole(nextRole);
@@ -117,44 +121,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('superadmin_token');
-    localStorage.removeItem('admin_session_backup');
-    setUser(null);
-    setCompany(null);
-    setRole(null);
-    setAccountType(null);
-    setLearnerProfile(null);
-    setIsDemoMode(false);
+    // Çerezleri yalnız sunucu silebilir; ağ hatasında bile yerel durum temizlenir.
+    void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
+    clearLocalSession();
     toast.info("Oturum kapatıldı.");
   };
 
   const exitImpersonation = async () => {
+    let adminRestored = false;
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const response = await fetch('/api/auth/impersonate/exit', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (!response.ok && response.status !== 401) throw new Error('Impersonation revocation failed');
-      }
+      const response = await fetch('/api/auth/impersonate/exit', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok && response.status !== 401) throw new Error('Impersonation revocation failed');
+      adminRestored = response.ok ? Boolean((await response.json()).adminRestored) : false;
     } catch (e) {
       console.error('Failed to notify impersonation exit:', e);
       toast.error('Oturum sunucuda sonlandırılamadı. Lütfen tekrar deneyin.');
       return;
     }
-    const backup = localStorage.getItem('admin_session_backup');
-    if (backup) {
-      localStorage.setItem('token', backup);
-      localStorage.removeItem('admin_session_backup');
+    if (adminRestored) {
       toast.info("Admin oturumuna dönülüyor...");
       window.location.href = '/admin/tenants';
     } else {
-      logout();
+      clearLocalSession();
+      window.location.href = '/login';
     }
   };
 
