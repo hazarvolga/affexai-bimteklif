@@ -111,7 +111,15 @@ export const PreBimFeasibilityPanel: React.FC = () => {
 
   const onCsv = async (file: File | undefined) => {
     if (!file) return;
-    const parsed = parseParcelCsv(await file.text());
+    const isXlsx = /\.xlsx$/i.test(file.name);
+    let parsed;
+    if (isXlsx) {
+      // exceljs ağır olduğu için yalnızca .xlsx seçilince yüklenir.
+      const { parseParcelXlsx } = await import("@/lib/pre-bim-xlsx");
+      parsed = await parseParcelXlsx(await file.arrayBuffer());
+    } else {
+      parsed = parseParcelCsv(await file.text());
+    }
     if (parsed.parcels.length > 0) {
       setRows(
         parsed.parcels.map((p) => ({
@@ -152,14 +160,14 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                   CSV şablonu indir
                 </button>
                 <label className="underline text-primary cursor-pointer">
-                  CSV/Excel'den içe aktar
-                  <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(e) => void onCsv(e.target.files?.[0])} />
+                  Excel / CSV'den içe aktar
+                  <input type="file" accept=".xlsx,.csv,text/csv" className="sr-only" onChange={(e) => void onCsv(e.target.files?.[0])} />
                 </label>
               </div>
             </div>
             {csvMessage && <p className="text-[11px] text-muted-foreground mb-2">{csvMessage}</p>}
             <p className="text-[10px] text-muted-foreground mb-2">
-              Excel dosyanızı "CSV (noktalı virgülle ayrılmış)" olarak kaydedip yükleyin.
+              .xlsx veya CSV yükleyebilirsiniz. İlk sayfanın ilk satırı başlık olmalı: parsel_adi, alan_m2, taks, kaks, emsal_harici_m2.
             </p>
             <div className="space-y-2">
               {rows.map((r, i) => (

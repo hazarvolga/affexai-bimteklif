@@ -383,16 +383,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "IFC öncesi ön teklif aşaması için kat karşılığı fizibilite motoru eklendi (/app/smartcheck): kullanıcının girdiği arsa, TAKS, KAKS ve emsal harici alanlardan çoklu parsel taban/emsal/toplam inşaat alanı, arsa sahibi/müteahhit paylaşımı, daire başı brüt/net alan, birim maliyet ve vaat-kapasite aritmetiği. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması yoktur; CSV içe/dışa aktarım vardır. Yetenek Kaydına pilot (L2) olarak işlendi. Melih Dinekli paketleri M-1, M-2 ve M-3 tamamlandı.",
           ],
           [
-            "Rev. 18 (Güncel)",
+            "Rev. 18",
             "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 1)",
             "BIM-CALC-2026-10-17.12",
             "Sunucu (Python) yolunda kaynak yazılım tespiti eklendi: IFC başlığı ve IfcApplication ham bilgisi okunur, TypeScript'te sınıflandırılır ve kanıt özetinden Calm çalışma alanı uyarısına taşınır. Gerçek dosya başlıklarıyla doğrulandı.",
+          ],
+          [
+            "Rev. 19 (Güncel)",
+            "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 2)",
+            "BIM-CALC-2026-10-17.13",
+            "Ön teklif parsel listesi doğrudan .xlsx olarak yüklenebilir (CSV de sürer). exceljs yalnızca .xlsx seçilince yüklenir; ana açılış boyutu etkilenmez.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 18 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 19 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -627,6 +633,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Kaynak yazılım uyarısı yalnızca tarayıcı metin yolunda çalışıyordu; sunucu kanıtından gelen kayıtlarda gösterilemiyordu.",
             "workers/ifc/ifc_extract.py read_authoring_software ham başlığı okur (authoringSoftwareRaw); classifyAuthoringSoftware başlıkta yazılım adı olmayan gerçek durumları (Revit: yalnız IfcApplication, Allplan: boş originating_system) çözer; artifact.summary.authoringSoftware üzerinden uyarı sunucu yolunda görünür.",
             "workers/ifc/ifc_extract.py, test_ifc_extract.py, src/ifc/authoring-software-diagnostics.ts, smartcheck-evidence.ts, calm-icmal.ts, types.ts",
+          ],
+          [
+            "Rev. 19.1 · 17 Ekim 2026 (.xlsx içe aktarım)",
+            "Melih Dinekli saha geri bildirimi (Tespit 4) — müteahhitler ön teklifi Excel'de yapıyor",
+            "Parsel listesi yalnızca CSV (noktalı virgül) olarak alınabiliyordu; Excel kullanıcısı dosyayı önce dönüştürmek zorundaydı.",
+            "parseParcelRows ortak ayrıştırıcı oldu; parseParcelXlsx (exceljs, dinamik yükleme, 5 MB sınırı, formül sonucu okuma) .xlsx dosyasını doğrudan okur. PreBimFeasibilityPanel dosya türünü uzantıdan seçer.",
+            "src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-xlsx.ts, pre-bim-xlsx.test.ts, PreBimFeasibilityPanel.tsx",
           ],
         ],
       },

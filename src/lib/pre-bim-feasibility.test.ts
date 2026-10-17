@@ -5,6 +5,7 @@ import {
   computeFeasibility,
   exportFeasibilityCsv,
   parseParcelCsv,
+  parseParcelRows,
   type FeasibilityInput,
 } from "./pre-bim-feasibility";
 
@@ -173,4 +174,20 @@ test("Golden 11: eksik sütunlu CSV reddedilir; dışa aktarım BOM ve ; ayracı
   const out = exportFeasibilityCsv(computeFeasibility(base()));
   assert.ok(out.startsWith("\uFEFF"));
   assert.ok(out.includes("A;400;800;0;800;2"));
+});
+
+test("Golden 12: parseParcelRows sayı hücrelerini ve metin sayıları (Türkçe) aynı şekilde okur", () => {
+  const r = parseParcelRows([
+    ["parsel_adi", "alan_m2", "taks", "kaks", "emsal_harici_m2"],
+    ["A", 1000, 0.4, 0.8, null],
+    ["B", "1.250,50", "0,35", "1,5", "100"],
+    ["", null, null, null, null],
+    ["C", "x", 0.3, 1, null],
+  ]);
+  assert.equal(r.parcels.length, 2);
+  assert.deepEqual(r.parcels[0], { name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8, emsalHariciAreaM2: null });
+  assert.equal(r.parcels[1].areaM2, 1250.5);
+  assert.equal(r.parcels[1].kaks, 1.5);
+  assert.equal(r.errors.length, 1);
+  assert.ok(r.errors[0].includes("Satır 5"));
 });

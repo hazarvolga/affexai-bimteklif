@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.12",
+  version: "BIM-CALC-2026-10-17.13",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "8457383e595b55e033f4f30c702e867f53972fe2",
+  implementationBaseline: "28e6339ecae56439f729443cfbba51a504f664a1",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -516,6 +516,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 19",
+    version: "BIM-CALC-2026-10-17.13",
+    date: "17 Ekim 2026",
+    commit: "4aa8e9e",
+    trigger: "Yanıt beklenen sorulardan bağımsız iş 2: Ön teklif parsel dosyası için doğrudan .xlsx içe aktarım",
+    beforeSummary:
+      "Ön teklif fizibilite paneli parsel listesini yalnızca CSV (noktalı virgül) olarak alıyordu; müteahhitler Excel'de çalıştığı için dosyayı önce CSV'ye çevirmek gerekiyordu.",
+    afterSummary:
+      ".xlsx dosyası doğrudan okunur (ilk sayfa, ilk satır başlık, 5 MB sınırı, formül hücresinin sonucu, sayı ve Türkçe biçimli metin sayılar). CSV ve .xlsx aynı satır ayrıştırıcısını (parseParcelRows) kullanır. exceljs yalnızca .xlsx seçilince dinamik yüklenir (ayrı 940 kB parça); ana açılışa girmez.",
+    affectedModules: ["on-teklif-fizibilite"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Parsel listesi yalnızca CSV olarak içe aktarılabiliyordu.",
+        after: "parseParcelXlsx ile .xlsx doğrudan okunur; CSV ve xlsx ortak parseParcelRows kullanır; dosya boyutu sınırı ve hata mesajları var.",
+        basis: "Melih Dinekli saha geri bildirimi (Tespit 4): müteahhitlerin Excel ile ön teklif çalışması",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -612,9 +631,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması.",
   },
   "on-teklif-fizibilite": {
-    scope: "Kullanıcı girdili arsa/TAKS/KAKS/çoklu parselden alan, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; CSV içe/dışa aktarım (pilot).",
+    scope: "Kullanıcı girdili arsa/TAKS/KAKS/çoklu parselden alan, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; xlsx/CSV içe, CSV dışa aktarım (pilot).",
     testFiles: ["src/lib/pre-bim-feasibility.test.ts"],
-    pending: "Gerçek müteahhit ön teklif Excel örnekleriyle akışın karşılaştırılması; pay tabanı (emsal / toplam) pratiğinin uzmanca netleştirilmesi; .xlsx doğrudan okuma açık.",
+    pending: "Gerçek müteahhit ön teklif Excel örnekleriyle akışın karşılaştırılması; pay tabanı (emsal / toplam) pratiğinin uzmanca netleştirilmesi.",
   },
   iso19650: {
     scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, CDE durum geçiş doğrulayıcısı (validateCdeStateTransition: WIP→SHARED→PUBLISHED→ARCHIVED) ve EN 17412-1 4 teslim aşamalı (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) LOIN tamlık motoru (evaluateLoinByMilestone) aktif.",

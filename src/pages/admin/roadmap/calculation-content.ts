@@ -401,7 +401,7 @@ export const CALC_MODULES: CalcModule[] = [
     assumptions: [
       "TAKS, KAKS, emsal harici alan, pay oranı, net/brüt oranı, birim maliyet ve maliyet yüzde dağılımı yalnızca kullanıcı girdisidir; maliyet dağılımı için 'tipik' bir oran ürüne gömülü değildir.",
       "Vaat aşımı yalnızca aritmetiktir; aşan alanın nasıl karşılanacağı (kalite, malzeme vb.) hakkında hüküm verilmez, yazılı açıklama istenmesi önerilir.",
-      "Excel içe/dışa aktarım CSV (noktalı virgül) biçimindedir; .xlsx doğrudan okunmaz.",
+      "Excel/CSV içe aktarım: .xlsx (ilk sayfa, 5 MB sınırı) ve CSV (noktalı virgül) okunur; sonuç dışa aktarımı CSV'dir.",
     ],
     questions: ["Kat karşılığı payı pratikte yalnız emsal alanı üzerinden mi yoksa emsal harici alanlar dahil toplam inşaat alanı üzerinden mi hesaplanıyor; ürün hangisini önermeli (şu an kullanıcı seçer)?"],
   },

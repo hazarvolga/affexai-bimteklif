@@ -312,7 +312,11 @@ function detectDelimiter(headerLine: string): string {
   return best;
 }
 
-function parseNumberTr(raw: string, delimiter: string): number | null {
+export type SheetCell = string | number | null | undefined;
+
+function parseNumberTr(raw: SheetCell, delimiter: string): number | null {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (raw === null || raw === undefined) return null;
   let t = raw.trim().replace(/\s/g, "");
   if (t === "") return null;
   if (delimiter !== ",") {
@@ -323,14 +327,15 @@ function parseNumberTr(raw: string, delimiter: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export function parseParcelCsv(text: string): ParcelCsvParseResult {
+/**
+ * CSV ve .xlsx için ortak parsel satırı ayrıştırıcısı. İlk satır başlıktır.
+ * `numberDelimiter`: metin hücrelerindeki sayı biçimini belirler (";" / tab → Türkçe, "," → İngilizce).
+ */
+export function parseParcelRows(rows: SheetCell[][], numberDelimiter = ";"): ParcelCsvParseResult {
   const errors: string[] = [];
-  const clean = text.replace(/^\uFEFF/, "");
-  const lines = clean.split(/\r?\n/).filter((l) => l.trim() !== "");
-  if (lines.length === 0) return { parcels: [], errors: ["Dosya boş."] };
+  if (rows.length === 0) return { parcels: [], errors: ["Dosya boş."] };
 
-  const delimiter = detectDelimiter(lines[0]);
-  const header = lines[0].split(delimiter).map((h) => h.trim().toLowerCase());
+  const header = rows[0].map((h) => String(h ?? "").trim().toLowerCase());
   const idx = (name: string) => header.indexOf(name);
   const missing = PARCEL_CSV_HEADER.filter((h, i) => i < 4 && idx(h) === -1);
   if (missing.length > 0) {
@@ -338,19 +343,20 @@ export function parseParcelCsv(text: string): ParcelCsvParseResult {
   }
 
   const parcels: ParcelInput[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cells = lines[i].split(delimiter);
-    const get = (name: string) => (idx(name) >= 0 ? cells[idx(name)] ?? "" : "");
-    const area = parseNumberTr(get("alan_m2"), delimiter);
-    const taks = parseNumberTr(get("taks"), delimiter);
-    const kaks = parseNumberTr(get("kaks"), delimiter);
-    const harici = parseNumberTr(get("emsal_harici_m2"), delimiter);
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i];
+    if (cells.every((c) => c === null || c === undefined || String(c).trim() === "")) continue;
+    const get = (name: string): SheetCell => (idx(name) >= 0 ? cells[idx(name)] : undefined);
+    const area = parseNumberTr(get("alan_m2"), numberDelimiter);
+    const taks = parseNumberTr(get("taks"), numberDelimiter);
+    const kaks = parseNumberTr(get("kaks"), numberDelimiter);
+    const harici = parseNumberTr(get("emsal_harici_m2"), numberDelimiter);
     if (area === null || taks === null || kaks === null) {
       errors.push(`Satır ${i + 1}: alan_m2, taks ve kaks sayı olmalı.`);
       continue;
     }
     parcels.push({
-      name: get("parsel_adi").trim() || `Parsel ${parcels.length + 1}`,
+      name: String(get("parsel_adi") ?? "").trim() || `Parsel ${parcels.length + 1}`,
       areaM2: area,
       taks,
       kaks,
@@ -358,6 +364,17 @@ export function parseParcelCsv(text: string): ParcelCsvParseResult {
     });
   }
   return { parcels, errors };
+}
+
+export function parseParcelCsv(text: string): ParcelCsvParseResult {
+  const clean = text.replace(/^\uFEFF/, "");
+  const lines = clean.split(/\r?\n/).filter((l) => l.trim() !== "");
+  if (lines.length === 0) return { parcels: [], errors: ["Dosya boş."] };
+  const delimiter = detectDelimiter(lines[0]);
+  return parseParcelRows(
+    lines.map((l) => l.split(delimiter)),
+    delimiter,
+  );
 }
 
 function fmtCsv(v: number | null): string {
