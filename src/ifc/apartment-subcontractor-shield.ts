@@ -17,6 +17,30 @@ import type { ApartmentRoomScheduleItem, ApartmentUnitScheduleItem } from "./typ
 
 export const MAX_LAYER_THICKNESS_CM = 20;
 
+/**
+ * Melih Dinekli Saha Doğrulamalı Şap Standardı (17 Ekim 2026 Resmî Yanıtı):
+ * - Karışım: 1 : 3 - 1 : 4 (Çimento : Kum)
+ * - 1 m³ hazır şap harcı = 325 kg çimento + %10 fire.
+ */
+export const MELIH_DINEKLI_SCREED_BENCHMARK = {
+  cementKgPerM3: 325,
+  wastePercent: 10,
+  kumM3PerM3: 1.05,
+  mixRatio: "1:3 - 1:4",
+  reference: "Melih Dinekli saha yanıtı (17 Ekim 2026)",
+};
+
+/**
+ * Melih Dinekli Taşeron Şişirme Denetim Kriterleri (Soru 2 Yanıtı):
+ * Taşeronların metraj şişirmede en sık başvurduğu 4 yöntem.
+ */
+export const MELIH_DINEKLI_CLAIM_INSPECTION_CRITERIA = [
+  "Elden metraj çıkarma hatası (cetvel/hesap hatası)",
+  "Metrajı yukarıya yuvarlama eğilimi",
+  "Kapı ve pencere boşluklarını minha etmeme",
+  "Hatalı malzeme siparişini müteahhitten tahsil etmek için beyanı yüksek gösterme",
+];
+
 export type ClaimStatus = "not_declared" | "within_ceiling" | "exceeds_ceiling";
 
 export interface TradeClaimInput {

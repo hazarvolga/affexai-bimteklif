@@ -107,32 +107,32 @@ export function Regulations() {
       />
 
       <section className="mb-6 space-y-2">
-        <label htmlFor="regulation-source" className="text-sm text-zinc-300">Resmî Gazete HTML belge bağlantısı</label>
-        <input id="regulation-source" type="url" value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} placeholder="https://www.resmigazete.gov.tr/eskiler/2026/10/20261011-4.htm" className="w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm" />
-        <p className="text-xs text-zinc-400">UTF-8 HTML bağlantısından gerçek belge okunur ve kaynak özeti inceleme kuyruğuna alınır. Otomatik güncel mevzuat keşfi, hukuki geçerlilik veya lisans doğrulaması yapılmaz.</p>
+        <label htmlFor="regulation-source" className="text-sm text-foreground dark:text-muted-foreground">Resmî Gazete HTML belge bağlantısı</label>
+        <input id="regulation-source" type="url" value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} placeholder="https://www.resmigazete.gov.tr/eskiler/2026/10/20261011-4.htm" className="w-full rounded border border-border bg-background px-3 py-2 text-sm" />
+        <p className="text-xs text-muted-foreground">UTF-8 HTML bağlantısından gerçek belge okunur ve kaynak özeti inceleme kuyruğuna alınır. Otomatik güncel mevzuat keşfi, hukuki geçerlilik veya lisans doğrulaması yapılmaz.</p>
       </section>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Alerts Feed */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-2">
+            <h3 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
               <Zap size={12} className="text-orange-500" /> Son Mevzuat Gelişmeleri
             </h3>
-            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tight">Son belge okuma: {lastFetchedAt ? new Date(lastFetchedAt).toLocaleTimeString("tr-TR") : "Bu oturumda yapılmadı"}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Son belge okuma: {lastFetchedAt ? new Date(lastFetchedAt).toLocaleTimeString("tr-TR") : "Bu oturumda yapılmadı"}</span>
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center h-64 bg-zinc-900/10 rounded-2xl border border-zinc-800 border-dashed">
+            <div className="flex flex-col items-center justify-center h-64 bg-card rounded-2xl border border-border border-dashed">
               <Loader2 className="animate-spin text-orange-500 mb-4" size={32} />
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Veriler Analiz Ediliyor...</p>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Veriler Analiz Ediliyor...</p>
             </div>
           ) : alerts.length === 0 ? (
-            <Card className="bg-zinc-900/20 border-zinc-800 border-dashed rounded-2xl">
-              <CardContent className="flex flex-col items-center justify-center p-16 text-zinc-500 text-center">
+            <Card className="bg-card border-border border-dashed rounded-2xl">
+              <CardContent className="flex flex-col items-center justify-center p-16 text-muted-foreground text-center">
                 <FileSearch size={48} className="mb-6 opacity-10" />
-                <p className="text-sm font-bold text-zinc-400 mb-2">Henüz bir mevzuat güncellemesi kayıtlı değil.</p>
-                <p className="text-xs text-zinc-600 mb-6 max-w-xs">Kaynak değişikliğini önce advisory olarak inceleyin; reviewer onayı olmadan hiçbir kural veya fiyat değişmez.</p>
-                <Button onClick={handleSync} disabled={syncing || !sourceUrl.trim()} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-[10px] tracking-widest uppercase h-9 px-6">Belgeyi İncelemeye Al</Button>
+                <p className="text-sm font-bold text-muted-foreground mb-2">Henüz bir mevzuat güncellemesi kayıtlı değil.</p>
+                <p className="text-xs text-muted-foreground mb-6 max-w-xs">Kaynak değişikliğini önce advisory olarak inceleyin; reviewer onayı olmadan hiçbir kural veya fiyat değişmez.</p>
+                <Button onClick={handleSync} disabled={syncing || !sourceUrl.trim()} className="bg-surface-elevated hover:bg-zinc-700 text-foreground dark:text-muted-foreground font-bold text-[10px] tracking-widest uppercase h-9 px-6">Belgeyi İncelemeye Al</Button>
               </CardContent>
             </Card>
           ) : (
@@ -140,7 +140,7 @@ export function Regulations() {
               <Card 
                 key={alert.id} 
                 className={cn(
-                  "bg-zinc-900/30 border-zinc-800 hover:border-zinc-700 transition-all duration-300 group overflow-hidden",
+                  "bg-card border-border hover:border-border transition-all duration-300 group overflow-hidden",
                   alert.impactLevel === 'high' && "border-l-4 border-l-red-500/50",
                   alert.impactLevel === 'medium' && "border-l-4 border-l-amber-500/50",
                   alert.impactLevel === 'low' && "border-l-4 border-l-emerald-500/50"
@@ -150,20 +150,20 @@ export function Regulations() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest bg-zinc-950 border-zinc-800 text-zinc-500 group-hover:border-zinc-700 transition-colors">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest bg-background border-border text-muted-foreground group-hover:border-border transition-colors">
                           {getCategoryLabel(alert.category)}
                         </Badge>
-                        <span className="text-[9px] text-zinc-600 font-black uppercase tracking-widest flex items-center gap-1.5 font-mono">
-                          <Calendar size={12} className="text-zinc-700" />
+                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest flex items-center gap-1.5 font-mono">
+                          <Calendar size={12} className="text-foreground" />
                           {new Date(alert.effectiveDate).toLocaleDateString('tr-TR')}
                         </span>
                       </div>
-                      <h4 className="text-lg font-black text-white group-hover:text-orange-500 transition-colors uppercase leading-tight">
+                      <h4 className="text-lg font-black text-foreground group-hover:text-orange-500 transition-colors uppercase leading-tight">
                         {alert.title}
                       </h4>
                     </div>
                     <Badge className={cn(
-                      "text-[8px] font-black tracking-widest px-2 py-0.5 uppercase border",
+                      "text-[10px] font-black tracking-widest px-2 py-0.5 uppercase border",
                       alert.impactLevel === 'high' ? "bg-red-500/10 text-red-500 border-red-500/20" :
                       alert.impactLevel === 'medium' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
                       "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
@@ -172,13 +172,13 @@ export function Regulations() {
                     </Badge>
                   </div>
                   
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-6 font-medium">
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-6 font-medium">
                     {alert.summary}
                   </p>
 
                   <div className="flex flex-wrap gap-2 mb-6">
                     {alert.affectedModules?.map((mod, i) => (
-                      <span key={i} className="text-[9px] font-black bg-zinc-950/50 text-zinc-600 px-2 py-1 rounded border border-zinc-800 uppercase tracking-widest">
+                      <span key={i} className="text-[10px] font-black bg-background text-muted-foreground px-2 py-1 rounded border border-border uppercase tracking-widest">
                         #{mod}
                       </span>
                     ))}
@@ -191,13 +191,13 @@ export function Regulations() {
                       </div>
                       <div className="flex-1">
                         <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1.5">Maliyetler Üzerinde AI Analizi</p>
-                        <p className="text-xs text-zinc-300 font-medium leading-relaxed">{alert.actionSuggestion}</p>
+                        <p className="text-xs text-foreground dark:text-muted-foreground font-medium leading-relaxed">{alert.actionSuggestion}</p>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex justify-end mt-6 pt-5 border-t border-zinc-800/50">
-                    {alert.sourceUrl ? <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-orange-400">Resmî kaynak <ArrowUpRight size={14} /></a> : <span className="text-xs text-zinc-500">Eski kayıtta kaynak bağlantısı bulunmuyor.</span>}
+                  <div className="flex justify-end mt-6 pt-5 border-t border-border">
+                    {alert.sourceUrl ? <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-orange-400">Resmî kaynak <ArrowUpRight size={14} /></a> : <span className="text-xs text-muted-foreground">Eski kayıtta kaynak bağlantısı bulunmuyor.</span>}
                   </div>
                 </CardContent>
               </Card>
@@ -210,7 +210,7 @@ export function Regulations() {
           <SourceIntelligencePanel key={sourceRefresh} />
           <RegulationImpactPanel />
 
-          <Card className="bg-zinc-900 border-zinc-800 overflow-hidden relative group">
+          <Card className="bg-card border-border overflow-hidden relative group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2 mb-1">
@@ -218,33 +218,33 @@ export function Regulations() {
                   <ShieldCheck size={18} className="text-orange-500" />
                 </div>
                 <div>
-                  <CardTitle className="text-xs font-black uppercase tracking-widest text-white leading-none">Compliance AI</CardTitle>
-                  <CardDescription className="text-[9px] font-bold uppercase tracking-tighter mt-1">Oto-Revizyon Sistemi</CardDescription>
+                  <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground leading-none">Compliance AI</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-tighter mt-1">Oto-Revizyon Sistemi</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-[11px] text-zinc-400 mb-6 leading-relaxed font-medium">
+              <p className="text-[11px] text-muted-foreground mb-6 leading-relaxed font-medium">
                 Mevzuat diff'i tespit edildiğinde, reviewer onayından sonra etkilenen teklifler için advisory revizyon önerileri ve maliyet simülasyonları hazırlanır.
               </p>
-              <div className="flex items-center justify-between p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800 group-hover:border-zinc-700 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-background rounded-2xl border border-border group-hover:border-border transition-colors">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Oto-Analiz</span>
-                  <span className="text-[9px] text-amber-500 font-black uppercase flex items-center gap-1.5 tracking-widest">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Oto-Analiz</span>
+                  <span className="text-[10px] text-amber-500 font-black uppercase flex items-center gap-1.5 tracking-widest">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ADVISORY
                   </span>
                 </div>
-                <span className="text-xs text-zinc-500">İnsan incelemesi gerekli</span>
+                <span className="text-xs text-muted-foreground">İnsan incelemesi gerekli</span>
               </div>
             </CardContent>
           </Card>
 
-          <div className="bg-gradient-to-br from-zinc-900 to-[#09090b] p-6 rounded-2xl border border-zinc-800 text-center relative overflow-hidden group">
-             <div className="absolute inset-0 bg-zinc-800/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-             <MessageSquare size={32} className="text-zinc-700 mx-auto mb-4 group-hover:text-orange-500 transition-colors" />
-             <h5 className="text-[11px] font-black text-zinc-200 mb-2 uppercase tracking-widest">Hukuki Danışmanlık?</h5>
-             <p className="text-[10px] text-zinc-500 mb-6 px-2 font-medium leading-relaxed uppercase"> Karmaşık mevzuat sorularınız için yetkili bir uzmana danışın. Uygulama içi danışman hizmeti bağlı değildir.</p>
-             <Button disabled variant="outline" className="w-full text-[10px] font-black h-10 border-zinc-800 bg-zinc-950 hover:bg-zinc-900 hover:text-white tracking-widest uppercase transition-all">
+          <div className="bg-gradient-to-br from-zinc-900 to-[#09090b] p-6 rounded-2xl border border-border text-center relative overflow-hidden group">
+             <div className="absolute inset-0 bg-surface-elevated opacity-0 group-hover:opacity-100 transition-opacity"></div>
+             <MessageSquare size={32} className="text-foreground mx-auto mb-4 group-hover:text-orange-500 transition-colors" />
+             <h5 className="text-[11px] font-black text-foreground mb-2 uppercase tracking-widest">Hukuki Danışmanlık?</h5>
+             <p className="text-[10px] text-muted-foreground mb-6 px-2 font-medium leading-relaxed uppercase"> Karmaşık mevzuat sorularınız için yetkili bir uzmana danışın. Uygulama içi danışman hizmeti bağlı değildir.</p>
+             <Button disabled variant="outline" className="w-full text-[10px] font-black h-10 border-border bg-background hover:bg-card hover:text-foreground tracking-widest uppercase transition-all">
                 Danışman hizmeti bağlı değil
              </Button>
           </div>

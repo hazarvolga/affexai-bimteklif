@@ -15,8 +15,12 @@
  *
  * Kanıt Kapısı Kuralı:
  * - `status: "live"` olan her yetenek en az `L3` seviyesinde olmalı, disk üzerinde
- *   gerçek `modulePath` ve `goldenTestPath` dosyalarına sahip olmalı ve
- *   `reviewer.approvedAt` alanı dolu olmalıdır.
+ *   gerçek `modulePath` ve `goldenTestPath` dosyalarına sahip olmalı ve gerçek bir
+ *   kişinin adı, unvanı, oda/sicil numarası (`registrationNo`) ve onay tarihiyle
+ *   imzalanmış olmalıdır. Kurgusal kurul / ajan adı onay sayılmaz.
+ * - 2026-10-17 denetimi (DENETIM_RAPORU_2026-10-17.md, P0-2): gerçek imza bulunmadığı için
+ *   tüm yetenekler `pilot / L2` seviyesine indirildi. Gerçek imza alındığında ilgili kayıt
+ *   yeniden `live / L3` yapılır.
  */
 
 export type CapabilityLevel = 'L0' | 'L1' | 'L2' | 'L3' | 'L4';
@@ -38,8 +42,11 @@ export interface CapabilityEvidence {
 }
 
 export interface CapabilityReviewerSignOff {
+  /** Gerçek kişinin adı soyadı. Kurul/ajan/rol adı kabul edilmez. */
   name: string;
   title: string;
+  /** Meslek odası / sicil numarası (ör. İMO, TMMOB, SMMM). Zorunlu. */
+  registrationNo: string;
   discipline: ReviewerDiscipline;
   approvedAt: string;
 }
@@ -57,7 +64,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.9';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.11';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -67,8 +74,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'IFC2x3, IFC4 ve IFC4.3 modellerinden çok katmanlı IfcCovering taşeron ayrıştırması, mtül süpürgelik ve IfcZone/IfcSpace bağımsız bölüm cetveli üretimi.',
     longDescription:
       'ALLPLAN 2026.1, Revit, ArchiCAD ve Tekla IFC modellerinde IfcComplexProperty (Object Layer Attributes #1..#4) katmanlarını özyinelemeli olarak açar; şap, parke, seramik, XPS, fayans, kaba sıva, alçı ve boya kalemlerini taşeron bazında ayrıştırır; SKIRTINGBOARD süpürgelikleri mtül birimine çevirir ve IfcZone/IfcSpace üzerinden daire net/brüt m² cetveli oluşturur.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/ifc/calm-icmal.ts',
@@ -81,12 +88,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         sha256: '7dc88971a9b3556d3ff10f1244f22d8d7d574c04a2e67c9d2b24e5b27cf0ecb3',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Kıdemli BIM & Metraj Başdenetçisi',
-      discipline: 'ARC',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -96,8 +97,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       '05.08.2026 tarihli ve 33331 sayılı Resmî Gazete Yönetmeliği EK-2 dosya adlandırması, EK-6 TREpys_* özellik setleri ve EK-9 Tablo 9.1 (21 satır MM) / Tablo 9.2 (16 satır ST/MK/EL) ön kontrolü.',
     longDescription:
       'Bakanlıktan gelen son resmi PDF eklerine (#1.pdf, #2.pdf, EKLER.pdf) göre 9 parçalı EK-2 dosya adını, EK-3 mahal kodlarını, EK-6 TREpys_* özellik setlerini (Parsel, Emsal DAHIL/HARIC/DIGER, Malzeme İsmi_Dayanım), EK-7 koordinat/IfcAnnotation kurallarını ve EK-9 Tablo 9.1 / Tablo 9.2 kontrol formlarını denetler.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/smartcheck/rules/epys.ts',
@@ -110,12 +111,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         sha256: '7dc88971a9b3556d3ff10f1244f22d8d7d574c04a2e67c9d2b24e5b27cf0ecb3',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'e-PYS & Mevzuat Uyum Başdenetçisi',
-      discipline: 'ARC',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -125,8 +120,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'PDF paftalarda PDF/A XMP beyanı, ISO 216 A4 ve katları pafta ebadı, tek pafta kuralı ve gömülü /Sig elektronik imza ön kontrolü.',
     longDescription:
       'Bakanlık Yönetmeliği #1.pdf m.8(1)-(2) ve #2.pdf m.6(1)-(2) uyarınca yüklenen PDF paftalarda PDF/A-1..4 XMP üstveri beyanını, ISO 216 A4 katları boyut kuralını, tek çizim paftası düzenini ve AcroForm /Sig elektronik imza sözlüğünü denetler.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/smartcheck/import/pdf-preflight-runner.ts',
@@ -138,12 +133,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         publicationDate: '2026-08-05',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Sayısal Pafta & PDF/A Başdenetçisi',
-      discipline: 'QA',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -153,8 +142,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'Metraj sapması ≤ %3, TS 500 / Eurocode 2 minimum paspayı (mm) ve taşıyıcı elemanların STR disiplininde bulunması denetimi.',
     longDescription:
       'Şirket içi 3×3 mühendislik politikası (smartcheck-3x3-2026-10-v2) kapsamında miktar sapmasını (%3), betonarme paspayını (varsayılan TS 500; yalnızca EUROCODE_2 seçildiğinde EC2 XC3 35 mm) ve LoadBearing=true elemanların STR disiplininde yer almasını denetler.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/smartcheck/rules/ifc-rule-run.ts',
@@ -166,12 +155,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         publicationDate: '2000-02-01',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Yapı Statiği & Betonarme Başdenetçisi',
-      discipline: 'STR',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -181,8 +164,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'ÇŞB Genel Teknik Şartnamesi (0,50 m²), DIN 18350 VOB/C (2,50 m²) ve kullanıcı tanımlı özel şartname eşiğine göre kapı/pencere minha, lento/denizlik dönüşü ve betonarme düğüm noktası tekilleştirme hesabı.',
     longDescription:
       'Duvar ve sıva/boya imalatlarında boşluk alanlarını seçilen şartname profiline göre düşer, denizlik/lento/mermer yan yüzey dönüşlerini ekler ve kolon-kiriş-döşeme birleşim bölgelerinde mükerrer beton hacmini TS 500 hiyerarşisiyle düşer.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/smartcheck/rules/minha.ts',
@@ -194,12 +177,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         publicationDate: '2026-01-01',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Kesin Hesap & Yeşil Defter Başdenetçisi',
-      discipline: 'COST',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['trial', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -209,24 +186,18 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'Kamu İhale Genel Tebliği m.45.1.1 / m.45.1.1.1 / m.45.1.1.4 resmi K katsayısı, N=1,00 (Üstyapı) / N=1,20 (Diğer Yapım/Altyapı) sınır değer (SD) hesabı ve m.45.1.2 %80 Pareto açıklama kalemi ayrıştırması.',
     longDescription:
       'İdare yaklaşık maliyetinin (YM) %40 ile %120 aralığındaki geçerli teklifleri filtreler, Tort1, örneklem standart sapması (σ), Tort2, C = Tort2 / YM ve parçalı K katsayısı üzerinden resmi Sınır Değeri (SD = max(0,40×YM, (K×Tort2)/(C×N))) hesaplar; ayrıca iş kalemlerini tutar büyüklüğüne göre sıralayarak %80 Pareto dilimindeki açıklama istenilecek pozları belirler.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/lib/kik-adt.ts',
       goldenTestPath: 'src/lib/kik-adt.golden.test.ts',
       officialSource: {
         institution: 'Kamu İhale Kurumu (KİK)',
-        documentTitle: '4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği',
-        articleOrTable: 'Madde 45.1.1, 45.1.1.1, 45.1.1.4 ve 45.1.2',
-        publicationDate: '2021-11-30',
+        documentTitle: '4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği (resmî sayısal örnek m.45.2 ile birebir doğrulandı: SD = 52.281,00 TL)',
+        articleOrTable: 'Madde 45.1.1, 45.1.1.1, 45.1.1.4, 45.1.2 ve 45.2 örneği; yuvarlama: Tort1/σ/Tort2 2, C/K 3 ondalık',
+        publicationDate: '2010-12-29',
       },
-    },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Kamu İhale & Kesin Hesap Başdenetçisi',
-      discipline: 'COST',
-      approvedAt: '2026-10-17',
     },
     planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
@@ -237,8 +208,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       '7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2 (EKLER.pdf) dosya adlandırma kurallarını, EN 17412-1 LOIN geometrik/alfanümerik tamlık skorunu ve EIR teslim aşaması (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) denetimini destekler.',
     longDescription:
       'Yüklenen IFC modellerinin dosya adını hem uluslararası ISO 19650-2 şemasına hem de Bakanlık EKLER.pdf EK-2 sözlüğüne göre doğrular; elemanların gerçek geometri, malzeme, kat, poz ve IFC GUID tamlığını (LOIN) sahte varsayılan olmadan ölçer; EIR teslim aşamasına göre (LOD 200/300/350/400) bilgi gereksinimlerini destekler.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/smartcheck/rules/iso19650.ts',
@@ -250,12 +221,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         publicationDate: '2026-08-05',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'BIM & ISO 19650 Bilgi Yönetimi Başdenetçisi',
-      discipline: 'ARC',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -265,8 +230,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'SHA-256 mühürlü 6 resmi 2026 ÇŞB PDF kitabındaki 18.848 poz ve rayiç satırının tamamı (İnşaat BF 1.861, İnşaat Rayiç 5.360, Mekanik BF 5.678, Elektrik BF 5.910, Yapı Yaklaşık Maliyet 18, TÜİK Endeks 21) ve dönem doğrulamalı kapsam raporu.',
     longDescription:
       'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu 2026 Mart İnşaat/Mekanik/Elektrik Birim Fiyat ve Rayiç listeleri (`2026-03-01..2026-03-31`) ile 2026 Yapı Yaklaşık Birim Maliyetleri Tebliği (`2026-01-01..2026-12-31`) içindeki toplam 18.848 pozun tamamını SHA-256 belge özeti ve kapsam raporu ile sunar.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'C',
     evidence: {
       modulePath: 'src/server/crawler/csb-pdf-parser.ts',
@@ -279,12 +244,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         sha256: 'dcf153503f5b487dcaa741228666f6b83a6ed04a28249cbe43f010e41bffe69c',
       },
     },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Birim Fiyat & Maliyet Veri Başdenetçisi',
-      discipline: 'COST',
-      approvedAt: '2026-10-17',
-    },
     planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
@@ -294,8 +253,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       '4735 Sayılı Kamu İhale Sözleşmeleri Kanunu Fiyat Farkı Esasları (B=0,90, P_n ağırlıklı endeks) ve 21 resmi ÇŞB-TÜİK alt endeksiyle dönem dışı birim fiyat eskalasyonu (TUIK_INDEXED_ESTIMATE).',
     longDescription:
       'ÇŞB Yüksek Fen Kurulu 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 alt endeksi (TÜFE Genel İşçilik + 20 Yİ-ÜFE sektörel alt endeksi) kullanarak hem 4735 sayılı Kanun kapsamındaki hakediş fiyat farkını (F = A_n × B × (P_n − 1)) kuruş hassasiyetiyle hesaplar hem de geçerlilik dönemi dolmuş aylık birim fiyatları açık "TÜİK Endeksiyle Güncellenmiş Tahmini Birim Fiyat" etiketiyle hedef aya taşır.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'C',
     evidence: {
       modulePath: 'src/lib/price-escalation.ts',
@@ -303,16 +262,10 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       officialSource: {
         institution: 'Cumhurbaşkanlığı & T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK / TÜİK',
         documentTitle: '4735 Sayılı Kanun Yapım İşleri Fiyat Farkı Esasları & ÇŞB 2026 Ocak Rayiç–TÜİK Endeks Eşleştirme Tablosu',
-        articleOrTable: 'Madde 5–6 (F = A_n × B × (P_n − 1)) & 21 TÜFE/Yİ-ÜFE Alt Endeks Eşleştirme Tablosu',
+        articleOrTable: 'Madde 5–6 (F = A_n × B × (P_n − 1); B = 0,90 doğrulandı; resmî sayısal örnek yok) & 21 TÜFE/Yİ-ÜFE Alt Endeks Eşleştirme Tablosu; 2025/10132 değişikliği 1.9.2025',
         publicationDate: '2026-01-01',
         sha256: '3519e5a631d6043b72e7637e1521456f1da00e7a794f39655cc5c628ae76d93e',
       },
-    },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'Kamu İhale Fiyat Farkı & Maliyet Başdenetçisi',
-      discipline: 'COST',
-      approvedAt: '2026-10-17',
     },
     planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
@@ -323,8 +276,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       'WIP (S0) → SHARED (S1..S7) → PUBLISHED (A1..A7) → ARCHIVED (B) durum geçiş kurallarını ve Pxx.xx / Cxx revizyon kapısını destekler; sahte varsayılan olmadan denetim izi tutar.',
     longDescription:
       'TS EN ISO 19650-2 §5.6–5.7 uyarınca doğrudan WIP → PUBLISHED atlamasını engeller, her durumun izin verilen uygunluk kodu (S0, S1..S7, A1..A7, B) ve revizyon şeması (Pxx.xx vs Cxx) ile eşleşmesini doğrular ve onaylı durum geçişlerini zaman damgalı olarak kaydeder.',
-    level: 'L3',
-    status: 'live',
+    level: 'L2',
+    status: 'pilot',
     stream: 'B',
     evidence: {
       modulePath: 'src/smartcheck/rules/iso19650.ts',
@@ -335,12 +288,6 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         articleOrTable: 'ISO 19650-1 Madde 12 & ISO 19650-2 Madde 5.6–5.7 (Ortak Veri Ortamı — CDE İş Akışı)',
         publicationDate: '2018-12-01',
       },
-    },
-    reviewer: {
-      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
-      title: 'BIM & ISO 19650 Bilgi Yönetimi Başdenetçisi',
-      discipline: 'ARC',
-      approvedAt: '2026-10-17',
     },
     planIds: ['bim_5d_smartcheck', 'enterprise_epys'],
   },
@@ -494,6 +441,50 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         documentTitle: 'Kamu İhale Genel Tebliği & EKAP Elektronik İhale Uygulama Yönetmeliği',
         articleOrTable: 'Madde 45.1.1–45.1.13',
         publicationDate: '2021-11-30',
+      },
+    },
+    planIds: ['bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'kat-karsiligi-ve-kentsel-donusum-calculator',
+    title: 'Kat Karşılığı ve Kentsel Dönüşüm Paylaşım / KDV Hesaplayıcısı (Yol Haritasında)',
+    shortClaim:
+      'Arsa sahibi ve müteahhit paylaşımı ile 6306 kapsamındaki KDV etkisinin kullanıcı girdili hesaplanması (Yol Haritasında; kaynak ve uzman doğrulaması bekliyor).',
+    longDescription:
+      'Motor (src/lib/kat-karsiligi.ts) resmî kurallara göre yeniden yazıldı: gizli varsayılan yok, konut KDV\'si net alana göre kısım bazlı (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1, fazlası %20), arsa sahibine teslim, VUK m.267/2 maliyet bedeline toptan %5 / perakende %10 eklenerek bulunan emsal bedelden vergilendirilir (KDV Genel Uygulama Tebliği I/B-8, RG 5.6.2018), tapu devri aşamaları örnek şablondur. Yayına alınmadı: GİB Genel Uygulama Tebliği ile karşılaştırma ve mali müşavir onayı bekliyor (docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md).',
+    level: 'L1',
+    status: 'roadmap',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/lib/kat-karsiligi.ts',
+      goldenTestPath: 'src/lib/kat-karsiligi.test.ts',
+      officialSource: {
+        institution: 'Gelir İdaresi Başkanlığı / 3065 sayılı KDV Kanunu / 6306 sayılı Kanun',
+        documentTitle: 'Konut teslimlerinde KDV oranları ve 6306 kapsamındaki teslimler',
+        articleOrTable: '7346 sayılı CK (RG 7.7.2023) oranları üç kaynakta tutarlı; GİB Genel Uygulama Tebliği karşılaştırması bekliyor',
+        publicationDate: '2026-10-17',
+      },
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'yambis-muteahhitlik-grubu-calculator',
+    title: 'Müteahhitlik Yetki Belgesi Grubu Danışmanı (Yol Haritasında)',
+    shortClaim:
+      'Mali rasyoların ve iş deneyiminin yönetmelik tablolarıyla karşılaştırılarak yetki belgesi grubu ön değerlendirmesi (Yol Haritasında; yönetmelik tabloları doğrulanıyor).',
+    longDescription:
+      'Motor (src/lib/yambis-classification.ts) yönetmeliğin konsolide metnine göre yeniden yazıldı: 14 grup yapı sınır bedelinin katlarıyla tanımlı (2026: 1.238.250.000 TL), iş gücü, bilanço oranları (0,75 / 0,15 / <0,75), ciro (%10 / %15), banka referansı (%5), G ve G1 için yalnız banka referansı, H için şart yok, azami iş tutarı çarpanları. Yayına alınmadı: yönetmeliğin 13. maddesine göre iş deneyiminin belirlenmesi kapsam dışıdır ve bağımsız uzman onayı yoktur.',
+    level: 'L1',
+    status: 'roadmap',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/lib/yambis-classification.ts',
+      goldenTestPath: 'src/lib/yambis-classification.test.ts',
+      officialSource: {
+        institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
+        documentTitle: 'Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik (konsolide, mevzuat.gov.tr No 31301)',
+        articleOrTable: 'm.4(1)(k), m.11, m.12, m.14 — metinden doğrulandı; uzman onayı bekliyor',
+        publicationDate: '2026-05-22',
       },
     },
     planIds: ['bim_5d_smartcheck', 'enterprise_epys'],

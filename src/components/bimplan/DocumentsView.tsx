@@ -141,9 +141,9 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
     100: {
       log: "Kavramsal kütle çizimi. Detaylı geometri yoktur. Sadece genel sınırlar ve kaba lokasyon bellidir.",
       loi: ["Sistem Sınıfı", "Kaba Hacim Takdiri", "Tahmini Alan", "Disiplin Sorumlusu"],
-      graphicStyle: "border-slate-300 bg-slate-100 text-slate-400",
+      graphicStyle: "border-border bg-card text-muted-foreground",
       graphicName: "Kaba Kutu (Bounding Box)",
-      visualClass: "h-20 w-20 bg-slate-200 border-2 border-slate-300 rounded"
+      visualClass: "h-20 w-20 bg-slate-200 border-2 border-border rounded"
     },
     200: {
       log: "Genel sistem tasarımı. Elemanın kaba boyutları, kalınlığı ve yaklaşık konumu modellenmiştir.",
@@ -181,15 +181,15 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
     <div className="space-y-16">
       
       {/* Tab Navigation & Doc Preview */}
-      <section className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm">
+      <section className="bg-white border border-border rounded-3xl p-6 sm:p-10 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-12">
           
           {/* Left Navigation Tree */}
           <div className="lg:w-1/3 space-y-6">
             <div>
               <span className="text-[10px] font-extrabold text-orange-600 uppercase tracking-widest block mb-2">DOKÜMAN NAVİGASYONU</span>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Teknik Doküman Merkezi</h2>
-              <p className="text-xs text-slate-500 mt-1">ISO 19650 uyumluluğu için her projede oluşturulması, takip edilmesi ve onaylanması zorunlu olan 4 ana doküman.</p>
+              <h2 className="text-2xl font-black text-foreground tracking-tight">Teknik Doküman Merkezi</h2>
+              <p className="text-xs text-muted-foreground mt-1">ISO 19650 uyumluluğu için her projede oluşturulması, takip edilmesi ve onaylanması zorunlu olan 4 ana doküman.</p>
             </div>
 
             <div className="space-y-3.5">
@@ -201,14 +201,14 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                     onClick={() => setActiveDocId(doc.id)}
                     className={`w-full p-4 rounded-xl text-left transition-all border flex items-start gap-3.5 ${
                       isActive
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-md translate-x-1'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100/50'
+                        ? 'bg-card text-foreground border-slate-900 shadow-md translate-x-1'
+                        : 'bg-card text-foreground border-border hover:border-border hover:bg-card'
                     }`}
                     id={`doc-btn-${doc.id}`}
                   >
-                    <FileText className={`w-5 h-5 shrink-0 mt-0.5 ${isActive ? 'text-orange-500' : 'text-slate-400'}`} />
+                    <FileText className={`w-5 h-5 shrink-0 mt-0.5 ${isActive ? 'text-orange-500' : 'text-muted-foreground'}`} />
                     <div>
-                      <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
                         {doc.category}
                       </h4>
                       <h3 className="font-extrabold text-sm mt-0.5">
@@ -222,29 +222,29 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
           </div>
 
           {/* Right Detailed Area */}
-          <div className="lg:w-2/3 space-y-8 lg:border-l lg:border-slate-150 lg:pl-12">
+          <div className="lg:w-2/3 space-y-8 lg:border-l lg:border-border lg:pl-12">
             <div className="space-y-2">
               <span className="px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-[10px] font-bold uppercase tracking-widest inline-block">
                 {activeDoc.category}
               </span>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tight">{activeDoc.title}</h3>
-              <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">{activeDoc.subtitle}</p>
+              <h3 className="text-3xl font-black text-foreground tracking-tight">{activeDoc.title}</h3>
+              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{activeDoc.subtitle}</p>
             </div>
 
-            <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <p className="text-sm text-muted-foreground leading-relaxed bg-card p-4 rounded-xl border border-border">
               {activeDoc.description}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Core points */}
               <div className="space-y-4">
-                <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <h5 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-2">
                   <ClipboardList className="w-4 h-4 text-orange-600" />
                   Kritik Bölüm Başlıkları
                 </h5>
                 <ul className="space-y-3">
                   {activeDoc.points.map((pt, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-600 leading-relaxed">
+                    <li key={idx} className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
                       <span className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2 shrink-0"></span>
                       <span>{pt}</span>
                     </li>
@@ -254,21 +254,21 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
 
               {/* Template fields required */}
               <div className="space-y-4">
-                <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <h5 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-2">
                   <Settings className="w-4 h-4 text-orange-600" />
                   Gerekli Değişkenler
                 </h5>
                 <div className="space-y-2.5">
                   {activeDoc.templateFields.map((f, idx) => (
-                    <div key={idx} className="bg-slate-50 border border-slate-100 p-2.5 rounded-lg flex justify-between items-center text-xs">
+                    <div key={idx} className="bg-card border border-border p-2.5 rounded-lg flex justify-between items-center text-xs">
                       <div>
-                        <div className="font-extrabold text-slate-800 text-[11px]">{f.field}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{f.desc}</div>
+                        <div className="font-extrabold text-foreground text-[11px]">{f.field}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{f.desc}</div>
                       </div>
                       {f.required ? (
-                        <span className="px-1.5 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[9px] font-black uppercase">ZORUNLU</span>
+                        <span className="px-1.5 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[10px] font-black uppercase">ZORUNLU</span>
                       ) : (
-                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase">OPSİYONEL</span>
+                        <span className="px-1.5 py-0.5 bg-card text-muted-foreground rounded text-[10px] font-black uppercase">OPSİYONEL</span>
                       )}
                     </div>
                   ))}
@@ -282,7 +282,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                 <Info className="w-4 h-4 shrink-0" />
                 <span className="text-xs font-extrabold uppercase tracking-wider">BIM Baş Koordinatörü Tavsiyesi</span>
               </div>
-              <p className="text-xs text-slate-600 italic leading-relaxed">
+              <p className="text-xs text-muted-foreground italic leading-relaxed">
                 "{activeDoc.expertNote}"
               </p>
             </div>
@@ -292,16 +292,16 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
       </section>
 
       {/* LOD INTERACTIVE VISUALIZER */}
-      <section className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm" id="lod-explorer">
+      <section className="bg-white border border-border rounded-3xl p-6 sm:p-10 shadow-sm" id="lod-explorer">
         <div className="max-w-3xl mb-8">
           <div className="flex items-center gap-1.5 text-orange-600 font-extrabold text-xs uppercase tracking-widest mb-2">
             <Layers className="w-4 h-4" />
             GEOMETRİ (LOG) VS VERİ (LOI) DENGESİ
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
             LOD (Gelişim Seviyesi) İnteraktif Tablosu
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Seviyeler arasında geçiş yaparak bir yapı elemanının tasarım aşamasından tesis işletme aşamasına kadar geçirdiği geometrik evrimi (LOG) ve parametrik bilgi zenginleşmesini (LOI) gözlemleyin.
           </p>
         </div>
@@ -314,8 +314,8 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
               onClick={() => setActiveLod(level)}
               className={`py-3.5 px-2 rounded-xl text-center font-black text-xs sm:text-sm tracking-wider transition-all border ${
                 activeLod === level
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-md scale-[1.03]'
-                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300'
+                  ? 'bg-card text-foreground border-slate-900 shadow-md scale-[1.03]'
+                  : 'bg-card text-muted-foreground border-border hover:border-border'
               }`}
               id={`lod-tab-${level}`}
             >
@@ -325,11 +325,11 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
         </div>
 
         {/* Level Display */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-100">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-card p-6 sm:p-8 rounded-2xl border border-border">
           
           {/* Mock Visual representation */}
-          <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-white border border-slate-200 rounded-xl min-h-[220px]">
-            <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-4">LOG (Geometrik Görünüm)</div>
+          <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-white border border-border rounded-xl min-h-[220px]">
+            <div className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider mb-4">LOG (Geometrik Görünüm)</div>
             
             {/* Visual block */}
             <div className={`${selectedLodInfo.visualClass} transition-all duration-300 flex items-center justify-center text-center p-2`}>
@@ -342,23 +342,23 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
               </span>
             </div>
 
-            <span className="text-[10px] font-bold text-slate-500 mt-4 text-center">{selectedLodInfo.graphicName}</span>
+            <span className="text-[10px] font-bold text-muted-foreground mt-4 text-center">{selectedLodInfo.graphicName}</span>
           </div>
 
           {/* Metadata parameters listing (LOI) */}
           <div className="lg:col-span-8 space-y-4">
             <div>
               <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">LOG Fiziksel Detayı</span>
-              <p className="text-xs text-slate-600 mt-1 font-medium">{selectedLodInfo.log}</p>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">{selectedLodInfo.log}</p>
             </div>
 
-            <div className="border-t border-slate-200 pt-4">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">LOI (Bilgi Detayı / Parametre Listesi)</span>
+            <div className="border-t border-border pt-4">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">LOI (Bilgi Detayı / Parametre Listesi)</span>
               <div className="flex flex-wrap gap-2">
                 {selectedLodInfo.loi.map((param, i) => (
                   <span 
                     key={i} 
-                    className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 mono shadow-xs flex items-center gap-1.5"
+                    className="px-2.5 py-1.5 bg-white border border-border rounded-lg text-[11px] font-bold text-foreground mono shadow-xs flex items-center gap-1.5"
                   >
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
                     {param}
@@ -372,7 +372,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
       </section>
 
       {/* DRAFT OUTLINE GENERATOR */}
-      <section className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm" id="bep-generator">
+      <section className="bg-white border border-border rounded-3xl p-6 sm:p-10 shadow-sm" id="bep-generator">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           <div className="lg:col-span-5 space-y-6">
@@ -381,10 +381,10 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                 <FileEdit className="w-4 h-4" />
                 ŞABLON OLUŞTURUCU
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
                 ISO 19650 Şablon Taslak Üretici
               </h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 Aşağıdaki alanları projenize göre özelleştirerek, ihale şartnamelerine ve BIM uygulama planlarına uyarlayabileceğiniz ISO 19650 esaslı bir taslak içeriği üretin. Uyum, proje bilgi yöneticisi tarafından doğrulanmalıdır.
               </p>
             </div>
@@ -397,8 +397,8 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                   onClick={() => setGeneratorDocType('EIR')}
                   className={`py-2.5 rounded-lg text-xs font-black uppercase tracking-wider border transition-all ${
                     generatorDocType === 'EIR'
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300'
+                      ? 'bg-card text-foreground border-slate-900'
+                      : 'bg-card text-muted-foreground border-border hover:border-border'
                   }`}
                 >
                   EIR (İşveren Şartı)
@@ -408,8 +408,8 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                   onClick={() => setGeneratorDocType('BEP')}
                   className={`py-2.5 rounded-lg text-xs font-black uppercase tracking-wider border transition-all ${
                     generatorDocType === 'BEP'
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300'
+                      ? 'bg-card text-foreground border-slate-900'
+                      : 'bg-card text-muted-foreground border-border hover:border-border'
                   }`}
                 >
                   BEP (Uygulama Planı)
@@ -417,53 +417,53 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proje İsmi</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Proje İsmi</label>
                 <input 
                   type="text"
                   value={projName}
                   onChange={(e) => setProjName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 bg-slate-50 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-xs font-bold text-foreground bg-card focus:outline-none focus:border-orange-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">İşveren / Kurum</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">İşveren / Kurum</label>
                   <input 
                     type="text"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 bg-slate-50 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs font-bold text-foreground bg-card focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ana Yüklenici</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Ana Yüklenici</label>
                   <input 
                     type="text"
                     value={contractorName}
                     onChange={(e) => setContractorName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 bg-slate-50 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs font-bold text-foreground bg-card focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Modelleme Yazılımı</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Modelleme Yazılımı</label>
                   <input 
                     type="text"
                     value={softwareVer}
                     onChange={(e) => setSoftwareVer(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 bg-slate-50 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs font-bold text-foreground bg-card focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CDE Platformu</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">CDE Platformu</label>
                   <input 
                     type="text"
                     value={cdePlatform}
                     onChange={(e) => setCdePlatform(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 bg-slate-50 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs font-bold text-foreground bg-card focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -471,7 +471,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
           </div>
 
           {/* Copy-paste area output */}
-          <div className="lg:col-span-7 bg-slate-950 text-slate-200 p-6 sm:p-8 rounded-2xl relative">
+          <div className="lg:col-span-7 bg-background text-foreground p-6 sm:p-8 rounded-2xl relative">
             <div className="flex justify-between items-center pb-4 border-b border-slate-800 mb-4">
               <span className="text-[10px] text-orange-500 font-extrabold tracking-wider uppercase flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
@@ -479,7 +479,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
               </span>
               <button
                 onClick={handleCopyText}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-orange-600 hover:text-white rounded text-[10px] font-black tracking-widest uppercase transition-all text-slate-300"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-elevated hover:bg-orange-600 hover:text-foreground rounded text-[10px] font-black tracking-widest uppercase transition-all text-foreground dark:text-muted-foreground"
                 id="btn-copy-template"
               >
                 {copied ? (
@@ -497,7 +497,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
             </div>
 
             {/* Preview preformatted box */}
-            <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto pr-2 text-slate-300">
+            <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto pr-2 text-foreground dark:text-muted-foreground">
 {`=============================================
 ISO 19650 ESASLI ${generatorDocType} TASLAK ŞABLONU (uyum doğrulaması yapılmamıştır)
 =============================================

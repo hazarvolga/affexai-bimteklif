@@ -29,7 +29,7 @@ export function Field({ label, labelClassName, error, hint, className, children 
         {label}
       </Label>
       {field}
-      {hint && !error && <p id={hintId} className="text-[10px] text-zinc-500">{hint}</p>}
+      {hint && !error && <p id={hintId} className="text-[10px] text-muted-foreground">{hint}</p>}
       {error && <p id={errorId} className="text-[10px] text-red-400">{error}</p>}
     </div>
   )

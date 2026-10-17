@@ -49,7 +49,7 @@ function PlanCard({ plan, billingCycle }: { plan: PublicPlan; billingCycle: Bill
   return (
     <article className={`relative flex min-h-[360px] flex-col justify-between rounded-md border bg-card p-5 ${plan.isFeatured ? 'border-2 border-primary bg-primary/5 shadow-lg' : 'border-border'}`}>
       {plan.isFeatured && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-xs bg-primary px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider text-white">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-xs bg-primary px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider text-foreground">
           {plan.marketingBadge || 'Öne çıkan'}
         </span>
       )}
@@ -170,7 +170,7 @@ export function PublicPricingSection() {
                   onClick={() => setBillingCycle(option.id)}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                     active
-                      ? 'bg-primary text-white shadow-xs'
+                      ? 'bg-primary text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >

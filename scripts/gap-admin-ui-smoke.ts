@@ -4,6 +4,20 @@ import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
 import { canonicalPlans } from '../src/services/billing/plan-catalog';
 
+// Optional visual-parity capture (SMOKE_SHOTS=<dir>): light and dark screenshots of the page under test.
+const shoot = async (page: import('puppeteer').Page, name: string) => {
+  const dir = process.env.SMOKE_SHOTS;
+  if (!dir) return;
+  const { mkdir: makeDir } = await import('node:fs/promises');
+  await makeDir(dir, { recursive: true });
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; document.documentElement.classList.toggle('dark', value === 'dark'); }, theme);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await page.screenshot({ path: `${dir}/${name}-${theme}.png`, fullPage: true });
+  }
+};
+
+
 // Rendered UI contracts; data is intercepted and never written to any database.
 const vite = await createServer({ server: { port: 0, host: '127.0.0.1', hmr: false }, appType: 'spa' });
 let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
@@ -17,7 +31,7 @@ try {
  const errors: string[] = [];
  let mode = 'empty';
  page.on('pageerror', error => errors.push(String(error)));
- await page.evaluateOnNewDocument(() => localStorage.setItem('token', 'isolated-admin-ui-fixture'));
+ await page.evaluateOnNewDocument(() => localStorage.setItem('bm_authed', '1'));
  await page.setRequestInterception(true);
  page.on('request', request => {
   const url = new URL(request.url());
@@ -42,9 +56,11 @@ try {
   mode='populated';
   await page.click('[role="alert"] button');
   await page.waitForFunction(() => document.body.innerText.includes('Kurumsal Taahhüt'));
+  await shoot(page, 'admin-plans');
   await page.screenshot({path:`/tmp/bimmetraj-admin-ui/plans-${width}.png`,fullPage:true});
   await page.goto(`${base}/admin`,{waitUntil:'networkidle0'});
   await page.waitForFunction(() => document.body.innerText.includes('Bekleyen: 7'));
+  await shoot(page, 'admin-dashboard');
   mode='error';
   await page.reload({waitUntil:'networkidle0'});
   await page.waitForSelector('[role="alert"]');

@@ -113,7 +113,7 @@ export function SmartCheckDemo() {
           onClick={handleRecheck}
           disabled={isRechecking}
           size="sm"
-          className="bg-primary hover:bg-primary/90 text-white font-mono text-xs h-9 px-4 gap-1.5 shadow-xs shrink-0"
+          className="bg-primary hover:bg-primary/90 text-foreground font-mono text-xs h-9 px-4 gap-1.5 shadow-xs shrink-0"
         >
           <RefreshCw size={13} className={isRechecking ? 'animate-spin' : ''} />
           {isRechecking ? 'Kontrol Ediliyor...' : 'Yeniden Kontrol Et (Re-check)'}
@@ -263,7 +263,7 @@ export function SmartCheckDemo() {
                   </p>
                   <Button
                     onClick={() => handleQuickFix(selectedFinding.id, selectedFinding.expectedValue)}
-                    className="w-full bg-primary hover:bg-primary/90 text-white font-mono text-xs h-9 gap-1.5 shadow-xs"
+                    className="w-full bg-primary hover:bg-primary/90 text-foreground font-mono text-xs h-9 gap-1.5 shadow-xs"
                   >
                     <span>Önerilen Değeri Uygula: <strong>{String(selectedFinding.expectedValue)}</strong></span>
                   </Button>

@@ -694,7 +694,7 @@ export function PricingSources() {
           <Button
             onClick={loadData}
             variant="outline"
-            className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 text-xs"
+            className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
           >
             <RefreshCw size={14} className={`mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Yenile
           </Button>
@@ -705,31 +705,31 @@ export function PricingSources() {
       <div className="mt-6 rounded-xl border border-indigo-900/30 bg-indigo-950/20 p-5">
         <div className="flex items-center gap-2 mb-3">
           <HelpCircle size={18} className="text-indigo-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
             Sürekli Fiyat Takibi & Mühürlü Poz Mekanizması Nasıl Çalışır?
           </h3>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs text-zinc-300">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs text-foreground dark:text-muted-foreground">
           <div className="border-l-2 border-indigo-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">1. Serbest Piyasa (Günlük Bot)</span>
+            <span className="font-bold text-foreground block mb-0.5">1. Serbest Piyasa (Günlük Bot)</span>
             <span>
               Demir ve Hazır Beton kaynaklarını <strong>"Doğrula & Otomatik Takibi Başlat"</strong> ile bir kez aktif edin; her gece 03:00'te fiyat farkları otomatik çekilir.
             </span>
           </div>
           <div className="border-l-2 border-amber-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">2. Resmi Katalog (Yıllık Mühür)</span>
+            <span className="font-bold text-foreground block mb-0.5">2. Resmi Katalog (Yıllık Mühür)</span>
             <span>
               ÇŞB YFK ve e-PYS Ek-6 yılda bir kez yayımlanır. <strong>"Katalog / CSV Yükle & Mühürle"</strong> ile yıl boyu geçerli pozları tek seferde mühürleyin.
             </span>
           </div>
           <div className="border-l-2 border-purple-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">3. Otomatik veya Manuel Onay</span>
+            <span className="font-bold text-foreground block mb-0.5">3. Otomatik veya Manuel Onay</span>
             <span>
               Her gün dosya yüklemenize gerek yoktur: <strong>Otomatik Fiyat Takibi</strong> açık kaynaklarda değişen fiyatlar doğrudan canlı kataloğu günceller.
             </span>
           </div>
           <div className="border-l-2 border-emerald-500 pl-3">
-            <span className="font-bold text-white block mb-0.5">4. Tekliflere Anında Yansıma</span>
+            <span className="font-bold text-foreground block mb-0.5">4. Tekliflere Anında Yansıma</span>
             <span>
               Onaylı ve geçerlilik süresi aktif olan tüm rayiçler Teklif Sihirbazı'ndaki <strong>"Onaylı Rayiçler"</strong> havuzunda anında kullanılabilir.
             </span>
@@ -745,7 +745,7 @@ export function PricingSources() {
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-sm font-bold text-white">Otomatik Gece Taraması (Nightly Batch Sync)</h4>
+              <h4 className="text-sm font-bold text-foreground">Otomatik Gece Taraması (Nightly Batch Sync)</h4>
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${
                   activeSources.length > 0
@@ -759,12 +759,12 @@ export function PricingSources() {
                 <Cpu size={10} className="mr-1" /> Sıralı Nezaket Kuyruğu (Zero-Spike)
               </span>
             </div>
-            <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
               Aktif piyasa kaynakları her gece 03:00'te otomatik taranır, fiyat değişiklikleri hesaplanır ve geçerlilik süreleri otomatik uzatılır.
               {schedulerStatus?.lastRunAt ? (
-                <span className="text-zinc-300 ml-1">
+                <span className="text-foreground dark:text-muted-foreground ml-1">
                   Son çalışma:{' '}
-                  <strong className="text-white">
+                  <strong className="text-foreground">
                     {new Date(schedulerStatus.lastRunAt).toLocaleDateString('tr-TR')}{' '}
                     {new Date(schedulerStatus.lastRunAt).toLocaleTimeString('tr-TR', {
                       hour: '2-digit',
@@ -776,7 +776,7 @@ export function PricingSources() {
                   {schedulerStatus.lastSummary?.totalItemsStaged || 0} yeni/değişen fiyat).
                 </span>
               ) : activeSources.length > 0 ? (
-                <span className="text-zinc-500 ml-1"> (İlk döngü bu gece 03:00'te başlayacak).</span>
+                <span className="text-muted-foreground ml-1"> (İlk döngü bu gece 03:00'te başlayacak).</span>
               ) : (
                 <span className="text-amber-400 ml-1">
                   {' '}
@@ -809,23 +809,23 @@ export function PricingSources() {
 
       {/* TOP KPI CARDS */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-6">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tanımlı Veri Kaynakları</span>
             <Building2 size={16} className="text-indigo-400" />
           </div>
-          <div className="text-2xl font-black text-white">
+          <div className="text-2xl font-black text-foreground">
             {activeSources.length}/{sources.length} Aktif
           </div>
-          <p className="text-[11px] text-zinc-500 mt-1">ÇŞB, TÜİK, Demir, Beton, e-PYS</p>
+          <p className="text-[11px] text-muted-foreground mt-1">ÇŞB, TÜİK, Demir, Beton, e-PYS</p>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Canlı Onaylı Rayiç</span>
             <Layers size={16} className="text-emerald-400" />
           </div>
-          <div className="text-2xl font-black text-white">
+          <div className="text-2xl font-black text-foreground">
             {approvedStagingCount > 0
               ? `${approvedStagingCount.toLocaleString('tr-TR')} Kalem`
               : totalSourceItems.toLocaleString('tr-TR')}
@@ -843,11 +843,11 @@ export function PricingSources() {
             <AlertCircle size={16} className="text-amber-400" />
           </div>
           <div className="text-2xl font-black text-amber-400">{pendingStagingCount} Güncelleme</div>
-          <p className="text-[11px] text-zinc-400 mt-1">Manuel onay bekleyen fiyat farkları</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Manuel onay bekleyen fiyat farkları</p>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Veri Bütünlüğü (SHA-256)</span>
             <ShieldCheck size={16} className="text-sky-400" />
           </div>
@@ -858,16 +858,16 @@ export function PricingSources() {
           >
             {sealedSources.length}/{sources.length} Kaynak Mühürlü
           </div>
-          <p className="text-[11px] text-zinc-500 mt-1">SHA-256 kanıtı olan kaynaklar</p>
+          <p className="text-[11px] text-muted-foreground mt-1">SHA-256 kanıtı olan kaynaklar</p>
         </div>
       </div>
 
       {/* 6-TAB GOVERNANCE NAVIGATION (YOL_HARITASI_2026-10-17.md §4.4) */}
-      <div className="flex flex-wrap border-b border-zinc-800 mt-8 gap-4">
+      <div className="flex flex-wrap border-b border-border mt-8 gap-4">
         <button
           onClick={() => setActiveTab('sources')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'sources' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'sources' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           1. Kurumlar & Lisanslar ({sources.length})
@@ -875,7 +875,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('books')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'books' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'books' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           2. Fiyat Kitapları ({coverageReport?.totalBooks ?? 6} Resmi Kitap)
@@ -883,7 +883,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('import')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'import' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'import' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           3. İçe Aktarma (PDF / CSV Adaptörü)
@@ -891,7 +891,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('staging')}
           className={`pb-3 text-sm font-semibold transition-all relative flex items-center gap-2 ${
-            activeTab === 'staging' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'staging' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           4. Doğrulama & Onay (Staging Diff)
@@ -904,7 +904,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('coverage')}
           className={`pb-3 text-sm font-semibold transition-all relative flex items-center gap-2 ${
-            activeTab === 'coverage' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'coverage' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           5. Kapsam Raporu
@@ -915,7 +915,7 @@ export function PricingSources() {
         <button
           onClick={() => setActiveTab('audit')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
-            activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           6. Endeksler & Onaylı Kayıt Arama
@@ -926,10 +926,10 @@ export function PricingSources() {
       {activeTab === 'sources' && (
         <div className="mt-6">
           {sources.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 p-12 text-center">
-              <Database size={40} className="mx-auto text-zinc-600 mb-3" />
-              <h3 className="text-base font-bold text-white mb-1">Henüz Kayıtlı Veri Kaynağı Bulunmuyor</h3>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto mb-5">
+            <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+              <Database size={40} className="mx-auto text-muted-foreground mb-3" />
+              <h3 className="text-base font-bold text-foreground mb-1">Henüz Kayıtlı Veri Kaynağı Bulunmuyor</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto mb-5">
                 Çevre Şehircilik Bakanlığı YFK birim fiyatları, TÜİK endeksleri veya serbest piyasa demir/beton fiyat bağlantılarını ekleyerek botları devreye alabilirsiniz.
               </p>
               <Button
@@ -949,7 +949,7 @@ export function PricingSources() {
                 return (
                   <div
                     key={s.id}
-                    className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col justify-between"
+                    className="rounded-xl border border-border bg-card p-5 flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-3">
@@ -1002,13 +1002,13 @@ export function PricingSources() {
                         </div>
                       </div>
 
-                      <h4 className="text-base font-bold text-white mb-1 leading-snug">{s.name}</h4>
-                      <p className="text-xs text-zinc-400 mb-3">{s.authority}</p>
+                      <h4 className="text-base font-bold text-foreground mb-1 leading-snug">{s.name}</h4>
+                      <p className="text-xs text-muted-foreground mb-3">{s.authority}</p>
 
                       {/* Mode / Automation Pill */}
                       <div className="mb-3">
                         {isOfficial ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-surface-elevated text-foreground dark:text-muted-foreground border border-border">
                             <FileSpreadsheet size={11} className="text-indigo-400" />
                             Resmi Katalog · Yıllık/Dönemlik CSV Mühürleme
                           </span>
@@ -1025,20 +1025,20 @@ export function PricingSources() {
                         )}
                       </div>
 
-                      <div className="space-y-2 text-xs text-zinc-300 border-t border-zinc-800/80 pt-3">
+                      <div className="space-y-2 text-xs text-foreground dark:text-muted-foreground border-t border-border pt-3">
                         <div className="flex justify-between">
-                          <span className="text-zinc-500">Sürüm & Etiket:</span>
-                          <span className="font-semibold text-white font-mono">{s.versionTag}</span>
+                          <span className="text-muted-foreground">Sürüm & Etiket:</span>
+                          <span className="font-semibold text-foreground font-mono">{s.versionTag}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-zinc-500">Kapsam / Poz:</span>
-                          <span className="font-semibold text-white">
+                          <span className="text-muted-foreground">Kapsam / Poz:</span>
+                          <span className="font-semibold text-foreground">
                             {s.itemCount > 0 ? `${s.itemCount.toLocaleString('tr-TR')} Kalem` : 'Henüz veri yok'}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-zinc-500">Yürürlük:</span>
-                          <span className="text-zinc-300">
+                          <span className="text-muted-foreground">Yürürlük:</span>
+                          <span className="text-foreground dark:text-muted-foreground">
                             {!s.validityStart && !s.validityEnd
                               ? 'Geçerlilik kanıtı yok'
                               : `${
@@ -1051,13 +1051,13 @@ export function PricingSources() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-zinc-500">Tarama Sıklığı:</span>
-                          <span className="capitalize text-zinc-300">{s.syncFrequency}</span>
+                          <span className="text-muted-foreground">Tarama Sıklığı:</span>
+                          <span className="capitalize text-foreground dark:text-muted-foreground">{s.syncFrequency}</span>
                         </div>
                         <div className="flex justify-between items-center pt-1">
-                          <span className="text-zinc-500">SHA-256 Hash:</span>
+                          <span className="text-muted-foreground">SHA-256 Hash:</span>
                           <span
-                            className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 truncate max-w-[130px]"
+                            className="text-[10px] font-mono text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border truncate max-w-[130px]"
                             title={s.dataHash || ''}
                           >
                             {s.dataHash ? s.dataHash.slice(0, 12) + '...' : '-'}
@@ -1066,13 +1066,13 @@ export function PricingSources() {
                       </div>
                     </div>
 
-                    <div className="mt-5 pt-3 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-2">
+                    <div className="mt-5 pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2">
                       {s.sourceUrl && (
                         <a
                           href={s.sourceUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center text-xs text-zinc-400 hover:text-white transition-colors truncate max-w-[120px]"
+                          className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[120px]"
                           title={s.sourceUrl}
                         >
                           <Globe size={12} className="mr-1 shrink-0" />
@@ -1125,7 +1125,7 @@ export function PricingSources() {
                             <button
                               type="button"
                               onClick={() => openVerifyModal(s)}
-                              className="p-1.5 text-zinc-400 hover:text-indigo-300 transition-colors rounded-lg hover:bg-indigo-500/10"
+                              className="p-1.5 text-muted-foreground hover:text-indigo-300 transition-colors rounded-lg hover:bg-indigo-500/10"
                               title="Otomatik Fiyat Takibi & Doğrulama Ayarları"
                             >
                               <Settings2 size={14} />
@@ -1136,7 +1136,7 @@ export function PricingSources() {
                           type="button"
                           onClick={() => handleDeleteSource(s.id, s.name)}
                           disabled={deletingId === s.id}
-                          className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                          className="p-1.5 text-muted-foreground hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
                           title="Kaynağı Sil"
                         >
                           <Trash2 size={14} />
@@ -1154,27 +1154,27 @@ export function PricingSources() {
       {/* MODAL 1: KAYNAK DOĞRULAMA & OTOMATİK FİYAT TAKİBİ AYARLARI */}
       {verifyModalSource && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={18} className="text-emerald-400" />
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-foreground">
                   Kaynağı Doğrula & Sürekli Otomatik Fiyat Takibi
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setVerifyModalSource(null)}
-                className="text-zinc-500 hover:text-white p-1"
+                className="text-muted-foreground hover:text-foreground p-1"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
-                <div className="font-bold text-white text-sm">{verifyModalSource.name}</div>
-                <div className="text-zinc-400 mt-0.5">{verifyModalSource.authority}</div>
+              <div className="rounded-lg border border-border bg-card p-3">
+                <div className="font-bold text-foreground text-sm">{verifyModalSource.name}</div>
+                <div className="text-muted-foreground mt-0.5">{verifyModalSource.authority}</div>
               </div>
 
               {/* Zero-touch Auto-Approve Toggle */}
@@ -1183,44 +1183,44 @@ export function PricingSources() {
                   type="checkbox"
                   checked={verifyForm.autoApprove}
                   onChange={(e) => setVerifyForm({ ...verifyForm, autoApprove: e.target.checked })}
-                  className="mt-0.5 h-4 w-4 rounded border-zinc-700 text-emerald-600 focus:ring-emerald-500"
+                  className="mt-0.5 h-4 w-4 rounded border-border text-emerald-600 focus:ring-emerald-500"
                 />
                 <div>
                   <span className="font-bold text-emerald-300 block">
                     Sürekli Otomatik Fiyat Takibi (Her Gece 03:00 TSİ Otomatik Güncelle & Onayla)
                   </span>
-                  <span className="text-zinc-300 text-[11px] leading-relaxed block mt-0.5">
+                  <span className="text-foreground dark:text-muted-foreground text-[11px] leading-relaxed block mt-0.5">
                     Bu seçenek açık olduğunda her gün manuel dosya yüklemenize veya tek tek onay vermenize gerek kalmaz. Bot her gece 03:00'te ve "Şimdi Tara" dediğinizde güncel fiyatları çeker, değişen fiyatları otomatik onaylar ve Teklif Sihirbazı'ndaki canlı rayiç havuzunu günceller.
                   </span>
                 </div>
               </label>
 
               <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Canlı Web Kaynak Adresi (URL)</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Canlı Web Kaynak Adresi (URL)</label>
                 <input
                   type="url"
                   value={verifyForm.sourceUrl}
                   onChange={(e) => setVerifyForm({ ...verifyForm, sourceUrl: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Sürüm Etiketi</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Sürüm Etiketi</label>
                   <input
                     type="text"
                     value={verifyForm.versionTag}
                     onChange={(e) => setVerifyForm({ ...verifyForm, versionTag: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground font-mono focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Tarama Sıklığı</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Tarama Sıklığı</label>
                   <select
                     value={verifyForm.syncFrequency}
                     onChange={(e) => setVerifyForm({ ...verifyForm, syncFrequency: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                   >
                     <option value="daily">Günlük (Her Gece 03:00)</option>
                     <option value="weekly">Haftalık</option>
@@ -1232,33 +1232,33 @@ export function PricingSources() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Geçerlilik Başlangıcı</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Geçerlilik Başlangıcı</label>
                   <input
                     type="date"
                     value={verifyForm.validityStart}
                     onChange={(e) => setVerifyForm({ ...verifyForm, validityStart: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">
+                  <label className="block text-muted-foreground mb-1 font-semibold">
                     Geçerlilik Bitişi (Her taramada +90 gün uzar)
                   </label>
                   <input
                     type="date"
                     value={verifyForm.validityEnd}
                     onChange={(e) => setVerifyForm({ ...verifyForm, validityEnd: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-800 flex flex-wrap justify-end gap-2">
+              <div className="pt-3 border-t border-border flex flex-wrap justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setVerifyModalSource(null)}
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                 >
                   İptal
                 </Button>
@@ -1267,7 +1267,7 @@ export function PricingSources() {
                   variant="outline"
                   disabled={verifying}
                   onClick={() => handleVerifySubmit(false)}
-                  className="border-zinc-700 text-zinc-200 hover:bg-zinc-800"
+                  className="border-border text-foreground hover:bg-surface-elevated"
                 >
                   Yalnızca Kaydet
                 </Button>
@@ -1291,18 +1291,18 @@ export function PricingSources() {
       {/* MODAL 2: LİSANSLI PDF / CSV / RESMİ ÇŞB KATALOG YÜKLEME & SHA-256 MÜHÜRLEME */}
       {csvModalSource && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-2xl rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4 my-8">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+          <div className="w-full max-w-2xl rounded-2xl border border-border bg-[#0c0c0e] p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet size={18} className="text-indigo-400" />
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-foreground">
                   Resmi ÇŞB PDF / CSV Katalog Yükle & SHA-256 ile Mühürle
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setCsvModalSource(null)}
-                className="text-zinc-500 hover:text-white p-1"
+                className="text-muted-foreground hover:text-foreground p-1"
               >
                 <X size={18} />
               </button>
@@ -1319,14 +1319,14 @@ export function PricingSources() {
                   Orijinal PDF SHA-256 Mühürlü
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-300 leading-relaxed">
+              <p className="text-[11px] text-foreground dark:text-muted-foreground leading-relaxed">
                 Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu'nun yayımladığı 2026 Mart güncel PDF listeleri ve 2026 Yapı Yaklaşık Maliyet Tebliği sistemde ayrıştırılmış olarak hazırdır. Seçip tek tıkla mühürleyebilirsiniz:
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <select
                   value={selectedOfficialCatalogId}
                   onChange={(e) => setSelectedOfficialCatalogId(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="csb_2026_mart_insaat_bf">
                     ÇŞB 2026 Mart Güncel İnşaat Birim Fiyat Listesi (PDF — 15.xxx.xxxx · 1.861 / 1.861 Tam Poz · %100)
@@ -1360,13 +1360,13 @@ export function PricingSources() {
             </div>
 
             {/* OPTION B: DIRECT PDF OR CSV FILE UPLOAD FROM COMPUTER */}
-            <form onSubmit={handleCsvImportSubmit} className="space-y-4 text-xs pt-2 border-t border-zinc-800/80">
+            <form onSubmit={handleCsvImportSubmit} className="space-y-4 text-xs pt-2 border-t border-border">
               <div className="rounded-lg border border-indigo-500/20 bg-indigo-950/20 p-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-bold text-white">
+                  <div className="font-bold text-foreground">
                     2. Seçenek: Bilgisayardan Yeni PDF (.pdf) veya CSV (.csv) Dosyası Yükle
                   </div>
-                  <div className="text-zinc-400 text-[11px] mt-0.5">
+                  <div className="text-muted-foreground text-[11px] mt-0.5">
                     Bakanlığın yayımlayacağı yeni aylık/yıllık Birim Fiyat, Rayiç veya Tebliğ PDF dosyasını doğrudan yükleyebilirsiniz; poz ve fiyatlar otomatik ayrıştırılır.
                   </div>
                 </div>
@@ -1394,24 +1394,24 @@ export function PricingSources() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">
+                  <label className="block text-muted-foreground mb-1 font-semibold">
                     Resmi PDF (.pdf) veya CSV (.csv) Dosyası Seç
                   </label>
                   <input
                     type="file"
                     accept=".pdf,.csv,.txt,application/pdf,text/csv"
                     onChange={handleCsvFileSelect}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-zinc-300 file:mr-2 file:rounded file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-foreground dark:text-muted-foreground file:mr-2 file:rounded file:border-0 file:bg-indigo-600 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Dosya / Sürüm Adı *</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Dosya / Sürüm Adı *</label>
                   <input
                     type="text"
                     value={csvForm.fileName}
                     onChange={(e) => setCsvForm({ ...csvForm, fileName: e.target.value })}
                     required
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -1427,7 +1427,7 @@ export function PricingSources() {
                       setPdfBase64Data('');
                       setPdfFileSizeKb(0);
                     }}
-                    className="text-xs text-zinc-400 hover:text-white underline ml-2"
+                    className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
                   >
                     Temizle
                   </button>
@@ -1436,40 +1436,40 @@ export function PricingSources() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Dayanak / Lisans Referansı *</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Dayanak / Lisans Referansı *</label>
                   <input
                     type="text"
                     value={csvForm.licenseReference}
                     onChange={(e) => setCsvForm({ ...csvForm, licenseReference: e.target.value })}
                     required
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Yürürlük Başlangıcı *</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Yürürlük Başlangıcı *</label>
                   <input
                     type="date"
                     value={csvForm.validityStart}
                     onChange={(e) => setCsvForm({ ...csvForm, validityStart: e.target.value })}
                     required
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Yürürlük Bitişi *</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Yürürlük Bitişi *</label>
                   <input
                     type="date"
                     value={csvForm.validityEnd}
                     onChange={(e) => setCsvForm({ ...csvForm, validityEnd: e.target.value })}
                     required
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {!pdfBase64Data && (
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">
+                  <label className="block text-muted-foreground mb-1 font-semibold">
                     CSV İçeriği (Başlık: <code className="text-indigo-300">itemCode,itemName,unit,price</code>)
                   </label>
                   <textarea
@@ -1477,30 +1477,30 @@ export function PricingSources() {
                     value={csvForm.csvText}
                     onChange={(e) => setCsvForm({ ...csvForm, csvText: e.target.value })}
                     placeholder={'itemCode,itemName,unit,price\n15.150.1005,C 25/30 Hazır Beton,m³,3619.75'}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-white font-mono text-[11px] focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background p-3 text-white font-mono text-[11px] focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               )}
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-foreground dark:text-muted-foreground cursor-pointer">
                   <input
                     type="checkbox"
                     checked={csvForm.autoApprove}
                     onChange={(e) => setCsvForm({ ...csvForm, autoApprove: e.target.checked })}
-                    className="rounded border-zinc-700"
+                    className="rounded border-border"
                   />
                   <span className="font-semibold text-emerald-400">
                     Yüklenen kayıtları otomatik onayla ve doğrudan canlı teklif havuzuna aktar
                   </span>
                 </label>
-                <label className="flex items-center gap-2 text-zinc-400 cursor-pointer">
+                <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
                   <input
                     type="checkbox"
                     checked={csvForm.licenseConfirmed}
                     onChange={(e) => setCsvForm({ ...csvForm, licenseConfirmed: e.target.checked })}
                     required
-                    className="rounded border-zinc-700"
+                    className="rounded border-border"
                   />
                   <span>
                     Bu veri setinin kurum içi teklif hazırlama ve maliyet doğrulama amacıyla kullanımına yetkili olduğumu onaylıyorum.
@@ -1508,12 +1508,12 @@ export function PricingSources() {
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-border flex justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setCsvModalSource(null)}
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                 >
                   İptal
                 </Button>
@@ -1538,8 +1538,8 @@ export function PricingSources() {
       {/* MODAL 3: YENİ VERİ KAYNAĞI / LİNKİ EKLE */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-[#0c0c0e] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <Database size={18} className="text-indigo-400" />
                 <h3 className="text-base font-bold text-white">Yeni Fiyat Kaynağı / Linki Ekle</h3>
@@ -1547,7 +1547,7 @@ export function PricingSources() {
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="text-zinc-500 hover:text-white p-1"
+                className="text-muted-foreground hover:text-white p-1"
               >
                 <X size={18} />
               </button>
@@ -1555,63 +1555,63 @@ export function PricingSources() {
 
             <form onSubmit={handleCreateSource} className="space-y-4 text-xs">
               <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Kaynak / Liste Adı *</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Kaynak / Liste Adı *</label>
                 <input
                   type="text"
                   value={newSource.name}
                   onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
                   placeholder="örn: TÇMB Çimento Endeksi veya Kayseri Demir Borsası"
                   required
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Kaynak Kodu (Slug)</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Kaynak Kodu (Slug)</label>
                   <input
                     type="text"
                     value={newSource.code}
                     onChange={(e) => setNewSource({ ...newSource, code: e.target.value })}
                     placeholder="örn: market_cement_central"
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white font-mono focus:border-indigo-500 focus:outline-none"
                   />
-                  <span className="text-[10px] text-zinc-500">Boş bırakılırsa addan üretilir.</span>
+                  <span className="text-[10px] text-muted-foreground">Boş bırakılırsa addan üretilir.</span>
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Yetkili / Kurum</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Yetkili / Kurum</label>
                   <input
                     type="text"
                     value={newSource.authority}
                     onChange={(e) => setNewSource({ ...newSource, authority: e.target.value })}
                     placeholder="örn: Türkiye Çimento Üreticileri Birliği"
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-zinc-400 mb-1 font-semibold">Kaynak URL / Web Sayfası Linki *</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Kaynak URL / Web Sayfası Linki *</label>
                 <div className="relative">
-                  <LinkIcon size={14} className="absolute left-3 top-2.5 text-zinc-500" />
+                  <LinkIcon size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
                   <input
                     type="url"
                     value={newSource.sourceUrl}
                     onChange={(e) => setNewSource({ ...newSource, sourceUrl: e.target.value })}
                     placeholder="https://www.ornek.gov.tr/fiyatlar"
                     required
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 pl-9 pr-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Kategori</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Kategori</label>
                   <select
                     value={newSource.category}
                     onChange={(e) => setNewSource({ ...newSource, category: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                   >
                     <option value="market_commodity">Serbest Piyasa</option>
                     <option value="official_gazette">Resmi Gazete / ÇŞB</option>
@@ -1620,11 +1620,11 @@ export function PricingSources() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Tarama Sıklığı</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Tarama Sıklığı</label>
                   <select
                     value={newSource.syncFrequency}
                     onChange={(e) => setNewSource({ ...newSource, syncFrequency: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                   >
                     <option value="daily">Günlük</option>
                     <option value="weekly">Haftalık</option>
@@ -1634,33 +1634,33 @@ export function PricingSources() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-zinc-400 mb-1 font-semibold">Sürüm Etiketi</label>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Sürüm Etiketi</label>
                   <input
                     type="text"
                     value={newSource.versionTag}
                     onChange={(e) => setNewSource({ ...newSource, versionTag: e.target.value })}
                     placeholder="2026/1"
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-zinc-300 cursor-pointer pt-1">
+              <label className="flex items-center gap-2 text-foreground dark:text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
                   checked={newSource.autoApprove}
                   onChange={(e) => setNewSource({ ...newSource, autoApprove: e.target.checked })}
-                  className="rounded border-zinc-700"
+                  className="rounded border-border"
                 />
                 <span>Gece taramalarında yakalanan fiyat değişikliklerini otomatik onayla</span>
               </label>
 
-              <div className="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-border flex justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowAddModal(false)}
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  className="border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                 >
                   İptal
                 </Button>
@@ -1680,11 +1680,11 @@ export function PricingSources() {
       {/* TAB CONTENT 2: STAGING DIFF */}
       {activeTab === 'staging' && (
         <div className="mt-6 space-y-4">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={18} className="text-amber-400" />
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-foreground">
                   Botların Tespit Ettiği Fiyat Farkları (İnceleme & Onay)
                 </h3>
               </div>
@@ -1711,18 +1711,18 @@ export function PricingSources() {
                 </div>
               )}
             </div>
-            <p className="text-xs text-zinc-400 mb-6">
+            <p className="text-xs text-muted-foreground mb-6">
               Crawler işçileri tarafından resmi ve serbest piyasa kaynaklarından toplanan fiyat güncellemeleri. Onayladığınız kalemler yeni oluşturulacak tekliflerin fiyat tabanına yansır; geçmiş tekliflerin bütünlüğü korunur.
             </p>
 
             {stagingItems.length === 0 ? (
-              <div className="text-center py-12 text-zinc-500 text-sm">
+              <div className="text-center py-12 text-muted-foreground text-sm">
                 İncelenecek bekleyen fiyat güncellemesi bulunmuyor.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px]">
+                  <thead className="border-b border-border text-muted-foreground uppercase font-mono text-[10px]">
                     <tr>
                       <th className="py-3 px-3">Poz / Emtia Kodu</th>
                       <th className="py-3 px-3">Tanım</th>
@@ -1735,27 +1735,27 @@ export function PricingSources() {
                       <th className="py-3 px-3 text-right">İşlem</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/60">
+                  <tbody className="divide-y divide-border">
                     {stagingItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
-                        <td className="py-3.5 px-3 font-mono font-bold text-white">{item.itemCode}</td>
-                        <td className="py-3.5 px-3 max-w-xs text-zinc-200">
+                      <tr key={item.id} className="hover:bg-surface-elevated transition-colors">
+                        <td className="py-3.5 px-3 font-mono font-bold text-foreground">{item.itemCode}</td>
+                        <td className="py-3.5 px-3 max-w-xs text-foreground">
                           <div>{item.itemName}</div>
                           {item.notes && (
-                            <div className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-[260px]" title={item.notes}>
+                            <div className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[260px]" title={item.notes}>
                               {item.notes}
                             </div>
                           )}
                         </td>
-                        <td className="py-3.5 px-3 font-mono text-zinc-400">{item.unit}</td>
-                        <td className="py-3.5 px-3 font-mono text-zinc-400">
+                        <td className="py-3.5 px-3 font-mono text-muted-foreground">{item.unit}</td>
+                        <td className="py-3.5 px-3 font-mono text-muted-foreground">
                           {item.currentPrice
                             ? `₺${parseFloat(item.currentPrice).toLocaleString('tr-TR', {
                                 minimumFractionDigits: 2,
                               })}`
                             : 'İlk Kayıt'}
                         </td>
-                        <td className="py-3.5 px-3 font-mono font-bold text-white">
+                        <td className="py-3.5 px-3 font-mono font-bold text-foreground">
                           ₺{parseFloat(item.crawledPrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3.5 px-3">
@@ -1776,7 +1776,7 @@ export function PricingSources() {
                           )}
                         </td>
                         <td className="py-3.5 px-3">
-                          <span className="text-[11px] text-zinc-400">{item.sourceName}</span>
+                          <span className="text-[11px] text-muted-foreground">{item.sourceName}</span>
                         </td>
                         <td className="py-3.5 px-3">
                           <span
@@ -1815,7 +1815,7 @@ export function PricingSources() {
                               </Button>
                             </div>
                           ) : (
-                            <span className="text-zinc-500 text-[11px]">İncelendi</span>
+                            <span className="text-muted-foreground text-[11px]">İncelendi</span>
                           )}
                         </td>
                       </tr>
@@ -1831,13 +1831,13 @@ export function PricingSources() {
       {/* TAB CONTENT 2: PRICE BOOKS MATRIX */}
       {activeTab === 'books' && (
         <div className="mt-6 space-y-4">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
               <div>
                 <h3 className="text-base font-bold text-white">
                   Resmi Fiyat Kitapları Matrisi (Kurum × Dönem × SHA-256)
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu 2026 yılı resmi PDF yayınlarının dönem, geçerlilik penceresi ve kriptografik mühür durumu.
                 </p>
               </div>
@@ -1848,7 +1848,7 @@ export function PricingSources() {
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px]">
+                <thead className="border-b border-border text-muted-foreground uppercase font-mono text-[10px]">
                   <tr>
                     <th className="py-3 px-3">Kitap Kodu</th>
                     <th className="py-3 px-3">Resmi Yayın Başlığı & PDF Dosyası</th>
@@ -1859,13 +1859,13 @@ export function PricingSources() {
                     <th className="py-3 px-3 text-right">Durum</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/60">
+                <tbody className="divide-y divide-border">
                   {(coverageReport?.books ?? []).map((book) => (
-                    <tr key={book.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={book.id} className="hover:bg-surface-elevated transition-colors">
                       <td className="py-3.5 px-3 font-mono font-bold text-indigo-300">{book.id}</td>
                       <td className="py-3.5 px-3">
                         <div className="font-semibold text-white">{book.title}</div>
-                        <div className="text-[11px] font-mono text-zinc-500 mt-0.5">{book.fileName}</div>
+                        <div className="text-[11px] font-mono text-muted-foreground mt-0.5">{book.fileName}</div>
                       </td>
                       <td className="py-3.5 px-3">
                         <span
@@ -1878,15 +1878,15 @@ export function PricingSources() {
                           {book.periodType === 'monthly' ? 'Aylık Tebliğ' : 'Yıllık Tebliğ'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-3 font-mono text-zinc-300">
+                      <td className="py-3.5 px-3 font-mono text-foreground dark:text-muted-foreground">
                         {book.validityStart} → {book.validityEnd}
                       </td>
-                      <td className="py-3.5 px-3 font-mono font-bold text-white">
+                      <td className="py-3.5 px-3 font-mono font-bold text-foreground">
                         {book.ingestedRowCount.toLocaleString('tr-TR')} satır
                       </td>
                       <td className="py-3.5 px-3">
                         <span
-                          className="font-mono text-[10px] text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800"
+                          className="font-mono text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded border border-border"
                           title={book.sha256}
                         >
                           {book.sha256.slice(0, 14)}…
@@ -1909,27 +1909,27 @@ export function PricingSources() {
       {/* TAB CONTENT 3: INGESTION ADAPTER */}
       {activeTab === 'import' && (
         <div className="mt-6 max-w-3xl space-y-4">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-4">
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Upload size={18} className="text-indigo-400" />
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-foreground">
                 Kurum + Format Bazlı Fiyat Kitabı İçe Aktarma (PDF / CSV Adaptörü)
               </h3>
             </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">
+            <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed">
               Resmi Gazete PDF tebliğlerini (20.000 satıra kadar 3 aşamalı <code className="text-indigo-300">pdftotext / pypdf / zlib</code> ayrıştırıcısıyla) veya lisanslı kurumsal CSV dosyalarını seçtiğiniz veri kaynağına SHA-256 mührüyle aktarın.
             </p>
             <div className="grid gap-3 sm:grid-cols-2 pt-2">
               {sources.filter(isOfficialOrIndexSource).map((s) => (
                 <div
                   key={s.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 flex flex-col justify-between gap-3"
+                  className="rounded-xl border border-border bg-background p-4 flex flex-col justify-between gap-3"
                 >
                   <div>
                     <div className="text-xs font-mono text-indigo-400">{s.code}</div>
-                    <div className="text-sm font-bold text-white mt-0.5">{s.name}</div>
-                    <div className="text-[11px] text-zinc-400 mt-1">
-                      Mevcut Mühürlü Kayıt: <strong className="text-white">{s.itemCount.toLocaleString('tr-TR')}</strong> kalem
+                    <div className="text-sm font-bold text-foreground mt-0.5">{s.name}</div>
+                    <div className="text-[11px] text-muted-foreground mt-1">
+                      Mevcut Mühürlü Kayıt: <strong className="text-foreground">{s.itemCount.toLocaleString('tr-TR')}</strong> kalem
                     </div>
                   </div>
                   <Button
@@ -1955,7 +1955,7 @@ export function PricingSources() {
               <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
                 Toplam Resmi Kitap Satır Kapsamı
               </div>
-              <div className="text-2xl font-black text-white font-mono mt-1">
+              <div className="text-2xl font-black text-foreground font-mono mt-1">
                 {(coverageReport?.totalIngestedRows ?? 18848).toLocaleString('tr-TR')} /{' '}
                 {(coverageReport?.totalRowsInBooks ?? 18848).toLocaleString('tr-TR')}
               </div>
@@ -1963,45 +1963,45 @@ export function PricingSources() {
                 %{coverageReport?.overallCoveragePercent ?? 100} Tam Satır Alımı (Eksik Satır: 0)
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Tam Kapsamlı Kitap Oranı
               </div>
-              <div className="text-2xl font-black text-white font-mono mt-1">
+              <div className="text-2xl font-black text-foreground font-mono mt-1">
                 {coverageReport?.fullCoverageBooks ?? 6} / {coverageReport?.totalBooks ?? 6} Kitap
               </div>
-              <div className="text-[11px] text-zinc-400 mt-1">
+              <div className="text-[11px] text-muted-foreground mt-1">
                 İnşaat BF, İnşaat Rayiç, Mekanik BF, Elektrik BF, YYM, TÜİK
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Ayrıştırıcı Üst Sınırı & Doğrulama
               </div>
               <div className="text-2xl font-black text-sky-400 font-mono mt-1">20.000 Satır/PDF</div>
-              <div className="text-[11px] text-zinc-400 mt-1">
+              <div className="text-[11px] text-muted-foreground mt-1">
                 Birim uyuşmazlığı: 0 · SHA-256 doğrulaması aktif
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-base font-bold text-white mb-1">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h3 className="text-base font-bold text-foreground mb-1">
               Kitap Başına Satır Kapsamı ve Tazelik Raporu (`getOfficialCatalogCoverageReport`)
             </h3>
-            <p className="text-xs text-zinc-400 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               Her resmi PDF kitabındaki toplam poz/rayiç satırı ile sistemde ayrıştırılmış satır sayısının birebir karşılaştırması.
             </p>
             <div className="space-y-3">
               {(coverageReport?.books ?? []).map((book) => (
                 <div
                   key={book.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 flex flex-col gap-2"
+                  className="rounded-xl border border-border bg-background p-4 flex flex-col gap-2"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <span className="font-bold text-white text-sm">{book.title}</span>
-                      <span className="ml-2 text-[11px] font-mono text-zinc-400">({book.fileName})</span>
+                      <span className="font-bold text-foreground text-sm">{book.title}</span>
+                      <span className="ml-2 text-[11px] font-mono text-muted-foreground">({book.fileName})</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-xs font-bold text-emerald-400">
@@ -2012,13 +2012,13 @@ export function PricingSources() {
                       </span>
                     </div>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-surface-elevated overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 transition-all"
                       style={{ width: `${Math.min(100, book.coveragePercent)}%` }}
                     />
                   </div>
-                  <div className="flex flex-wrap items-center justify-between text-[11px] text-zinc-400 font-mono pt-1">
+                  <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground font-mono pt-1">
                     <span>Dönem: {book.validityStart} – {book.validityEnd} ({book.periodType === 'monthly' ? 'Aylık' : 'Yıllık'})</span>
                     <span>SHA-256: {book.sha256}</span>
                   </div>
@@ -2041,27 +2041,27 @@ export function PricingSources() {
                 Yİ-ÜFE & TÜİK İME Eskalasyon Köprüsü
               </span>
             </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">
+            <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed">
               4735 sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkı kararnamesi ve dönem dışı resmi poz güncellemeleri için ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 ana TÜİK alt endeksi (<code className="text-purple-300">csb_2026_tuik_endeks_eslestirme</code>) sistemde %100 kapsamla mühürlüdür.
             </p>
           </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <div className="rounded-xl border border-border bg-card p-6">
             <h3 className="text-base font-bold text-white mb-2">Onaylı Kaynak Kayıtları</h3>
-            <p className="text-xs text-zinc-400 mb-6">
+            <p className="text-xs text-muted-foreground mb-6">
               Poz numarası veya açıklaması ile sistemdeki onaylanmış, geçerli tarihli TRY fiyat kayıtlarını arayın.
             </p>
 
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   value={auditQuery}
                   onChange={(e) => setAuditQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && runAuditSearch()}
                   placeholder="Örn: 15.150.1005 (Beton) veya 15.160.1003 (Demir)..."
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
               <Button
@@ -2073,7 +2073,7 @@ export function PricingSources() {
               </Button>
             </div>
 
-            <p className="mt-4 text-xs text-zinc-400">
+            <p className="mt-4 text-xs text-muted-foreground">
               Bu arama yalnızca onaylanmış kaynak kayıtlarını listeler; resmî kurum veya e-PYS uygunluk doğrulaması yapmaz.
             </p>
             {auditError && (
@@ -2084,22 +2084,22 @@ export function PricingSources() {
             {auditResult && (
               <div className="mt-6 space-y-3">
                 {auditResult.items.length === 0 && (
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-muted-foreground">
                     Geçerli tarihlere sahip onaylı kayıt bulunamadı. Bu sonuç resmî katalogda kayıt olmadığı anlamına gelmez.
                   </p>
                 )}
                 {auditResult.items.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-zinc-800 p-4 text-sm">
-                    <h4 className="text-white">
+                  <div key={item.id} className="rounded-lg border border-border p-4 text-sm">
+                    <h4 className="text-foreground">
                       {item.itemCode} — {item.itemName}
                     </h4>
-                    <p className="text-zinc-300">
+                    <p className="text-foreground dark:text-muted-foreground">
                       {Number(item.crawledPrice).toLocaleString('tr-TR')} ₺ / {item.unit}
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-muted-foreground">
                       Kaynak: {item.sourceName} · İnceleme: {new Date(item.reviewedAt).toLocaleDateString('tr-TR')}
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-muted-foreground">
                       Geçerlilik: {new Date(item.validityStart).toLocaleDateString('tr-TR')} –{' '}
                       {new Date(item.validityEnd).toLocaleDateString('tr-TR')}
                     </p>

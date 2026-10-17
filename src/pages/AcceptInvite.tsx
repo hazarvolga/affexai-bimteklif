@@ -89,18 +89,18 @@ export function AcceptInvite() {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-zinc-950 to-zinc-950">
-        <Card className="w-full max-w-md bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
+        <Card className="w-full max-w-md bg-card border-border backdrop-blur-xl shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-emerald-600/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
               <CheckCircle2 className="text-emerald-500" size={24} />
             </div>
-            <CardTitle className="text-2xl font-bold text-white tracking-tight">Kayıt Alındı!</CardTitle>
-            <CardDescription className="text-zinc-500">
+            <CardTitle className="text-2xl font-bold text-foreground tracking-tight">Kayıt Alındı!</CardTitle>
+            <CardDescription className="text-muted-foreground">
               {invite?.email} için davet kabul edildi. Ek bir e-posta gönderilmedi.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-             <p className="text-sm text-zinc-400 mb-8">
+             <p className="text-sm text-muted-foreground mb-8">
                Davet edildiğiniz şirket için oturumunuz hazır.
              </p>
              <Button 
@@ -117,7 +117,7 @@ export function AcceptInvite() {
 
   if (inviteError) return (
     <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6">
-      <Card className="w-full max-w-md bg-zinc-900 border-zinc-800">
+      <Card className="w-full max-w-md bg-card border-border">
         <CardHeader><CardTitle>Davet kullanılamıyor</CardTitle><CardDescription role="alert">{inviteError}</CardDescription></CardHeader>
         <CardContent><Button onClick={() => navigate('/login')}>Giriş sayfasına dön</Button></CardContent>
       </Card>
@@ -126,20 +126,20 @@ export function AcceptInvite() {
 
   return (
     <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-zinc-950 to-zinc-950">
-      <Card className="w-full max-w-md bg-zinc-900/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
+      <Card className="w-full max-w-md bg-card border-border backdrop-blur-xl shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-orange-600/10 rounded-full flex items-center justify-center mb-4 border border-orange-500/20">
             <UserPlus className="text-orange-500" size={24} />
           </div>
-          <CardTitle className="text-2xl font-bold text-white tracking-tight">TeklifPro AI'ya Katılın</CardTitle>
-          <CardDescription className="text-zinc-500">
+          <CardTitle className="text-2xl font-bold text-foreground tracking-tight">TeklifPro AI'ya Katılın</CardTitle>
+          <CardDescription className="text-muted-foreground">
             {invite?.email} adresi ile davet edildiniz.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {!invite?.requiresSignIn && <div className="space-y-2">
-              <Label htmlFor="invite-name" className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Ad Soyad</Label>
+              <Label htmlFor="invite-name" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ad Soyad</Label>
               <Input 
                 id="invite-name"
                 required
@@ -147,7 +147,7 @@ export function AcceptInvite() {
                 maxLength={120}
                 autoComplete="name"
                 placeholder="Örn: Ahmet Yılmaz" 
-                className="bg-zinc-950 border-zinc-800 text-zinc-200 h-12 focus:border-orange-500"
+                className="bg-background border-border text-foreground h-12 focus:border-orange-500"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -156,7 +156,7 @@ export function AcceptInvite() {
               <Label htmlFor="invite-password">{invite?.requiresSignIn ? 'Mevcut hesap parolası' : 'Yeni hesap parolası'}</Label>
               <Input id="invite-password" type="password" required minLength={invite?.requiresSignIn ? undefined : 8} maxLength={128}
                 autoComplete={invite?.requiresSignIn ? 'current-password' : 'new-password'} value={password}
-                onChange={event => setPassword(event.target.value)} className="bg-zinc-950 border-zinc-800 text-zinc-200 h-12" />
+                onChange={event => setPassword(event.target.value)} className="bg-background border-border text-foreground h-12" />
             </div>
 
             <Button 
@@ -168,7 +168,7 @@ export function AcceptInvite() {
             </Button>
           </form>
           
-          <p className="mt-8 text-center text-xs text-zinc-600">
+          <p className="mt-8 text-center text-xs text-muted-foreground">
             Daveti kabul ederek Kullanım Koşullarını ve Gizlilik Politikasını onaylamış olursunuz.
           </p>
         </CardContent>

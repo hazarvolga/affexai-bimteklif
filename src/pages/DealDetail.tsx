@@ -62,41 +62,41 @@ export function DealDetail() {
   }
 
   return <PageContainer className="min-w-0 [&_*]:tracking-normal">
-    <Link to="/app/crm" className="mb-5 inline-flex items-center gap-2 text-sm text-zinc-300"><ArrowLeft size={16} /> CRM'e dön</Link>
+    <Link to="/app/crm" className="mb-5 inline-flex items-center gap-2 text-sm text-foreground dark:text-muted-foreground"><ArrowLeft size={16} /> CRM'e dön</Link>
     {loading ? <p role="status">Fırsat yükleniyor…</p> : error || !deal ? <div role="alert" className="space-y-4"><p>{error || 'Fırsat bulunamadı.'}</p><Button onClick={load} variant="outline"><RefreshCw size={16} /> Tekrar dene</Button></div> : <>
-      <header className="mb-8 border-b border-zinc-800 pb-5">
-        <h1 className="text-2xl font-semibold text-white [overflow-wrap:anywhere]">{deal.name}</h1>
-        <p className="mt-2 text-sm text-zinc-400">{stageLabel(deal.stage)} · {money(deal.value)} TRY</p>
+      <header className="mb-8 border-b border-border pb-5">
+        <h1 className="text-2xl font-semibold text-foreground [overflow-wrap:anywhere]">{deal.name}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{stageLabel(deal.stage)} · {money(deal.value)} TRY</p>
       </header>
       <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-8">
-          <section className="space-y-4 border-b border-zinc-800 pb-6">
+          <section className="space-y-4 border-b border-border pb-6">
             <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-medium">AI analizi</h2>
               {canMutate && deal.quotationId && <Button variant="outline" disabled={Boolean(busy)} onClick={analyze}><BrainCircuit size={16} />{busy === 'analysis' ? 'Analiz ediliyor…' : 'Analiz et'}</Button>}
             </div>
-            {deal.aiInsights ? <><p className="whitespace-pre-wrap break-words text-sm text-zinc-300">{deal.aiInsights}</p>
-              <p className="text-sm text-zinc-400">Tahmini olasılık: %{Math.round(Number(deal.probability) * 100)} · Risk: {({ low: 'Düşük', medium: 'Orta', high: 'Yüksek' } as Record<string, string>)[deal.riskLevel ?? ''] ?? 'Belirtilmedi'}</p>
-            </> : <p className="text-sm text-zinc-400">{deal.quotationId ? 'Henüz AI analizi yok.' : 'Analiz için bağlı teklif bulunmuyor.'}</p>}
+            {deal.aiInsights ? <><p className="whitespace-pre-wrap break-words text-sm text-foreground dark:text-muted-foreground">{deal.aiInsights}</p>
+              <p className="text-sm text-muted-foreground">Tahmini olasılık: %{Math.round(Number(deal.probability) * 100)} · Risk: {({ low: 'Düşük', medium: 'Orta', high: 'Yüksek' } as Record<string, string>)[deal.riskLevel ?? ''] ?? 'Belirtilmedi'}</p>
+            </> : <p className="text-sm text-muted-foreground">{deal.quotationId ? 'Henüz AI analizi yok.' : 'Analiz için bağlı teklif bulunmuyor.'}</p>}
           </section>
           <section className="space-y-4">
             <h2 className="text-lg font-medium">Aktivite geçmişi</h2>
             {canMutate && <form onSubmit={addNote} className="space-y-3">
-              <label htmlFor="deal-note" className="text-sm text-zinc-300">Yeni not</label>
-              <textarea id="deal-note" required maxLength={4000} value={note} onChange={event => setNote(event.target.value)} rows={3} className="block w-full resize-y rounded border border-zinc-700 bg-zinc-900 p-3 text-sm" />
+              <label htmlFor="deal-note" className="text-sm text-foreground dark:text-muted-foreground">Yeni not</label>
+              <textarea id="deal-note" required maxLength={4000} value={note} onChange={event => setNote(event.target.value)} rows={3} className="block w-full resize-y rounded border border-border bg-card p-3 text-sm" />
               <Button type="submit" disabled={Boolean(busy) || !note.trim()}><Send size={16} /> {busy === 'note' ? 'Kaydediliyor…' : 'Not ekle'}</Button>
             </form>}
-            {!activities.length && <p className="text-sm text-zinc-400">Henüz aktivite yok.</p>}
-            <ol className="divide-y divide-zinc-800">{activities.map(activity => <li key={activity.id} className="py-4">
-              <p className="mb-2 text-xs text-zinc-400">{new Date(activity.createdAt).toLocaleString('tr-TR')}</p>
-              <p className="whitespace-pre-wrap break-words text-sm text-zinc-200">{activity.description}</p>
+            {!activities.length && <p className="text-sm text-muted-foreground">Henüz aktivite yok.</p>}
+            <ol className="divide-y divide-border">{activities.map(activity => <li key={activity.id} className="py-4">
+              <p className="mb-2 text-xs text-muted-foreground">{new Date(activity.createdAt).toLocaleString('tr-TR')}</p>
+              <p className="whitespace-pre-wrap break-words text-sm text-foreground">{activity.description}</p>
             </li>)}</ol>
           </section>
         </div>
         <aside className="min-w-0 space-y-6">
           {deal.quotationId && <Link to={`/app/quotes/${deal.quotationId}`} className="inline-flex items-center gap-2 text-emerald-400"><FileText size={18} /> Bağlı teklifi aç</Link>}
-          {canMutate && <form onSubmit={changeStage} className="space-y-3 border-t border-zinc-800 pt-4">
+          {canMutate && <form onSubmit={changeStage} className="space-y-3 border-t border-border pt-4">
             <label htmlFor="detail-stage" className="block text-sm">Satış aşaması</label>
-            <select id="detail-stage" value={stage} onChange={event => setStage(event.target.value)} className="w-full rounded border border-zinc-700 bg-zinc-900 p-3 text-sm">
+            <select id="detail-stage" value={stage} onChange={event => setStage(event.target.value)} className="w-full rounded border border-border bg-card p-3 text-sm">
               {stages.map(value => <option key={value.id} value={value.id}>{value.label}</option>)}
             </select>
             <Button type="submit" disabled={Boolean(busy) || stage === deal.stage}><Save size={16} />{busy === 'stage' ? 'Kaydediliyor…' : 'Aşamayı kaydet'}</Button>

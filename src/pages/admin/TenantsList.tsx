@@ -61,15 +61,12 @@ export function TenantsList() {
     void loadData();
   }, []);
 
-  const handleRestoreAdminBackup = () => {
-    const backup = localStorage.getItem('superadmin_token') || localStorage.getItem('admin_session_backup');
-    if (backup) {
-      localStorage.setItem('token', backup);
-      localStorage.setItem('superadmin_token', backup);
-      window.location.reload();
-    } else {
-      window.location.assign('/login?next=/admin/tenants');
-    }
+  const handleRestoreAdminBackup = async () => {
+    // The server ends the impersonation session and puts the admin session cookie back.
+    try {
+      await fetch('/api/auth/impersonate/exit', { method: 'POST', credentials: 'same-origin' });
+    } catch { /* offline: reload decides */ }
+    window.location.reload();
   };
 
   const handleUpdateNotes = async () => {
@@ -176,7 +173,7 @@ export function TenantsList() {
           variant="outline"
           size="sm"
           onClick={() => void loadData()}
-          className="mt-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+          className="mt-2 border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
         >
           <RefreshCw size={14} className="mr-1.5" /> Yenile
         </Button>
@@ -184,13 +181,13 @@ export function TenantsList() {
 
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Firma adı, paket veya yetkili e-posta ara..."
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:border-indigo-500 outline-none"
+            className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:border-indigo-500 outline-none"
           />
         </div>
       </div>
@@ -227,9 +224,9 @@ export function TenantsList() {
         </div>
       )}
 
-      <div className="bg-zinc-900/40 border border-zinc-800 rounded-lg overflow-x-auto">
-        <table className="w-full min-w-[780px] text-left text-sm text-zinc-400">
-          <thead className="bg-zinc-900/80 text-xs uppercase text-zinc-500 border-b border-zinc-800">
+      <div className="bg-card border border-border rounded-lg overflow-x-auto">
+        <table className="w-full min-w-[780px] text-left text-sm text-muted-foreground">
+          <thead className="bg-card text-xs uppercase text-muted-foreground border-b border-border">
             <tr>
               <th className="px-6 py-4 font-medium">Firma / Yetkili</th>
               <th className="px-6 py-4 font-medium">Paket & SmartCheck</th>
@@ -238,7 +235,7 @@ export function TenantsList() {
               <th className="px-6 py-4 font-medium">İşlem</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
                 <td colSpan={5} className="p-8 text-center">
@@ -262,15 +259,15 @@ export function TenantsList() {
                 const ifcLimit = tenant.ifc_limit;
 
                 return (
-                  <tr key={tenant.id} className="hover:bg-zinc-800/30 transition-colors">
+                  <tr key={tenant.id} className="hover:bg-surface-elevated transition-colors">
                     <td className="px-6 py-4">
                       <Link
                         to={`/admin/tenants/${tenant.id}`}
-                        className="font-semibold text-white hover:text-indigo-400 transition-colors"
+                        className="font-semibold text-foreground hover:text-indigo-400 transition-colors"
                       >
                         {tenant.name}
                       </Link>
-                      <div className="text-xs text-zinc-500 mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         {tenant.owner_email || 'Kullanıcı atanmamış'}
                       </div>
                     </td>
@@ -289,11 +286,11 @@ export function TenantsList() {
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3 text-xs">
-                          <div className="text-white font-medium w-28">
+                          <div className="text-foreground font-medium w-28">
                             Teklif: {usage}{' '}
-                            <span className="text-zinc-500 font-normal">/ {totalLimit ?? '∞'}</span>
+                            <span className="text-muted-foreground font-normal">/ {totalLimit ?? '∞'}</span>
                           </div>
-                          <div className="h-1.5 w-20 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-1.5 w-20 bg-surface-elevated rounded-full overflow-hidden">
                             <div
                               className={`h-full ${
                                 isDanger ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-indigo-500'
@@ -317,7 +314,7 @@ export function TenantsList() {
                       ) : tenant.subscription_status === 'past_due' ? (
                         <span className="text-amber-400">Ödeme bekliyor</span>
                       ) : (
-                        <span className="text-zinc-500 capitalize">{tenant.subscription_status}</span>
+                        <span className="text-muted-foreground capitalize">{tenant.subscription_status}</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -335,7 +332,7 @@ export function TenantsList() {
                           variant="outline"
                           size="sm"
                           onClick={() => openManageModal(tenant)}
-                          className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs"
+                          className="border-border bg-transparent text-foreground dark:text-muted-foreground hover:bg-surface-elevated text-xs"
                         >
                           Hızlı Düzenle
                         </Button>
@@ -351,21 +348,21 @@ export function TenantsList() {
 
       {isModalOpen && selectedTenant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-zinc-950 border border-zinc-800 p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-xl bg-background border border-border p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">{selectedTenant.name} Yönetimi</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white">
+              <h3 className="text-lg font-bold text-foreground">{selectedTenant.name} Yönetimi</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={20} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Paket Ataması</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Paket Ataması</label>
                 <select
                   value={editPlanId}
                   onChange={(e) => setEditPlanId(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-foreground"
                 >
                   <option value="">Paket Yok</option>
                   {plans.map((p) => (
@@ -377,11 +374,11 @@ export function TenantsList() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Abonelik Durumu</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Abonelik Durumu</label>
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-foreground"
                 >
                   <option value="active">Aktif</option>
                   <option value="past_due">Ödeme bekliyor</option>
@@ -390,7 +387,7 @@ export function TenantsList() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Bonus Kota Ekle</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Bonus Kota Ekle</label>
                 <input
                   type="number"
                   min={0}
@@ -398,9 +395,9 @@ export function TenantsList() {
                   step={1}
                   value={editBonus}
                   onChange={(e) => setEditBonus(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-white"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-foreground"
                 />
-                <p className="text-xs text-zinc-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Paket limitine ek olarak verilecek ekstra teklif hakkı.
                 </p>
               </div>

@@ -343,58 +343,58 @@ export function Settings() {
       />
 
       <Tabs defaultValue="company" className="space-y-8">
-        <TabsList className="bg-zinc-900/50 border border-zinc-800 p-1 w-full md:w-auto h-12 inline-flex">
-          <TabsTrigger value="company" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+        <TabsList className="bg-card border border-border p-1 w-full md:w-auto h-12 inline-flex">
+          <TabsTrigger value="company" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <Building2 size={14} className="mr-2" /> ŞİRKET
           </TabsTrigger>
-          <TabsTrigger value="team" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="team" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <Users size={14} className="mr-2" /> EKİP
           </TabsTrigger>
-          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <CreditCard size={14} className="mr-2" /> ABONELİK
           </TabsTrigger>
-          <TabsTrigger value="industries" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-500 font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="industries" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <Layout size={14} className="mr-2" /> EKLENTİLER
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="company" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
           <SectionWrapper title="Genel Şirket Bilgileri" description="Resmi yazışmalarda ve teklif başlıklarında görünecek doğrulanmış şirket bilgileri.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resmi Şirket Ünvanı</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Resmi Şirket Ünvanı</Label>
                     <Input 
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.name}
                       onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="Örn: Atlas Yapı İnşaat A.Ş."
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">İletişim E-posta</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">İletişim E-posta</Label>
                     <Input 
                       type="email"
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.email}
                       onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
                       placeholder="info@sirketiniz.com"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Telefon</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Telefon</Label>
                     <Input 
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.phone}
                       onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
                       placeholder="+90 212 000 0000"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Merkez Ofis Adresi</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Merkez Ofis Adresi</Label>
                     <Input 
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.address}
                       onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
                       placeholder="Şirket tebligat adresi"
@@ -406,34 +406,34 @@ export function Settings() {
           </SectionWrapper>
 
           <SectionWrapper title="Mali ve Vergi Bilgileri" description="Teklif ve fatura oluştururken esas alınacak yasal mali parametreler.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Vergi Dairesi</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Vergi Dairesi</Label>
                     <Input 
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.taxOffice}
                       onChange={(e) => setProfile(prev => ({ ...prev, taxOffice: e.target.value }))}
                       placeholder="Vergi Dairesi Adı"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Vergi Numarası</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Vergi Numarası</Label>
                     <Input 
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.taxNumber}
                       onChange={(e) => setProfile(prev => ({ ...prev, taxNumber: e.target.value }))}
                       placeholder="10 Haneli VKN / TC"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Varsayılan Para Birimi</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Varsayılan Para Birimi</Label>
                     <select
                       aria-label="Varsayılan Para Birimi"
                       value={profile.defaultCurrency}
                       onChange={(e) => setProfile(prev => ({ ...prev, defaultCurrency: e.target.value }))}
-                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold"
+                      className="w-full h-12 rounded-md border border-border bg-background px-3 text-foreground font-bold"
                     >
                       <option value="TRY">Türk Lirası (₺ - TRY)</option>
                       <option value="USD">Amerikan Doları ($ - USD)</option>
@@ -441,12 +441,12 @@ export function Settings() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Varsayılan KDV Oranı (%)</Label>
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Varsayılan KDV Oranı (%)</Label>
                     <Input 
                       type="number"
                       min="0"
                       max="100"
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold" 
+                      className="h-12 bg-background border-border text-foreground font-bold" 
                       value={profile.defaultVatRate}
                       onChange={(e) => setProfile(prev => ({ ...prev, defaultVatRate: Number(e.target.value) || 0 }))}
                     />
@@ -460,13 +460,13 @@ export function Settings() {
             title="Bölge & Uluslararası Standartlar" 
             description="Şirketin bölge ve teknik standart tercihlerini kaydedin. Uygulanan hesaplama kapsamını aşağıda kontrol edin."
           >
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6 space-y-6">
-                <div className="flex items-center gap-2 pb-2 border-b border-zinc-800/80">
+                <div className="flex items-center gap-2 pb-2 border-b border-border">
                   <Badge variant="outline" className="border-orange-500/30 bg-orange-500/10 text-orange-400 text-[10px] font-black tracking-widest">
                     <Globe size={12} className="mr-1.5" /> ÇOKLU BÖLGE VE STANDART YÖNETİMİ
                   </Badge>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-muted-foreground">
                     Bu tercihler şirket profilinde saklanır; otomatik standart uygunluğu sağlamaz.
                   </span>
                 </div>
@@ -480,14 +480,14 @@ export function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* 1. Jurisdiction / Country */}
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                       <Globe size={12} className="text-orange-400" /> Ülke / Hukuki Bölge
                     </Label>
                     <select
                       aria-label="Ülke / Hukuki Bölge"
                       value={profile.countryCode}
                       onChange={(e) => handleCountryChange(e.target.value)}
-                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                      className="w-full h-12 rounded-md border border-border bg-background px-3 text-foreground font-bold text-sm"
                     >
                       <option value="TR">🇹🇷 Türkiye (TR)</option>
                       <option value="DE">🇩🇪 Almanya / DACH (DE)</option>
@@ -499,14 +499,14 @@ export function Settings() {
 
                   {/* 2. Measurement System */}
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                       <Ruler size={12} className="text-blue-400" /> Birim Sistemi
                     </Label>
                     <select
                       aria-label="Birim Sistemi"
                       value={profile.measurementSystem}
                       onChange={(e) => setProfile(prev => ({ ...prev, measurementSystem: e.target.value }))}
-                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                      className="w-full h-12 rounded-md border border-border bg-background px-3 text-foreground font-bold text-sm"
                     >
                       <option value="metric">Metrik (m³, m², m, kg, ton, mm)</option>
                       <option value="imperial">İmperyal (cu. yd., sq. ft., lf, lbs, in)</option>
@@ -515,14 +515,14 @@ export function Settings() {
 
                   {/* 3. Structural Standard */}
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                       <Scale size={12} className="text-emerald-400" /> Hesap & Tasarım Standardı
                     </Label>
                     <select
                       aria-label="Tasarım Standardı"
                       value={profile.activeStandard}
                       onChange={(e) => setProfile(prev => ({ ...prev, activeStandard: e.target.value }))}
-                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                      className="w-full h-12 rounded-md border border-border bg-background px-3 text-foreground font-bold text-sm"
                     >
                       <option value="TBDY_TS500">TBDY 2018 / TS 500 (Türkiye Deprem & Betonarme)</option>
                       <option value="EUROCODE_2">Eurocode 2 / EN 1992 (Avrupa Betonarme Standardı)</option>
@@ -532,14 +532,14 @@ export function Settings() {
 
                   {/* 4. Classification System */}
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                       <BookOpen size={12} className="text-amber-400" /> Poz & Sınıflandırma
                     </Label>
                     <select
                       aria-label="Poz & Sınıflandırma Sistemi"
                       value={profile.classificationSystem}
                       onChange={(e) => setProfile(prev => ({ ...prev, classificationSystem: e.target.value }))}
-                      className="w-full h-12 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200 font-bold text-sm"
+                      className="w-full h-12 rounded-md border border-border bg-background px-3 text-foreground font-bold text-sm"
                     >
                       <option value="CSB_TR">ÇŞB Ek-6 Poz Sistemi (T.C. Çevre ve Şehircilik)</option>
                       <option value="DIN_276">DIN 276 (Alman Yapı Maliyet Grupları - KG 300/400)</option>
@@ -551,14 +551,14 @@ export function Settings() {
 
                 {/* Preset detail callout */}
                 {JURISDICTION_PRESETS[profile.countryCode] && (
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 space-y-1">
+                  <div className="rounded-lg border border-border bg-background p-4 space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-base">{JURISDICTION_PRESETS[profile.countryCode].flag}</span>
-                      <span className="text-xs font-bold text-zinc-200">
+                      <span className="text-xs font-bold text-foreground">
                         {JURISDICTION_PRESETS[profile.countryCode].label} — Aktif Kural ve Standart Profili
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-400 pl-6">
+                    <p className="text-xs text-muted-foreground pl-6">
                       {JURISDICTION_PRESETS[profile.countryCode].description}
                     </p>
                   </div>
@@ -579,13 +579,13 @@ export function Settings() {
           </SectionWrapper>
 
           <SectionWrapper title="Teklif Risk Varsayımları" description="Yeni tekliflerde kullanılacak şirket varsayımları. Bu değerler piyasa veya mevzuat doğrulaması değildir.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {([['escalationVolatilityPercent', 'Aylık eskalasyon %'], ['carbonRiskPremiumPercent', 'Karbon risk primi %'], ['informationDeliveryCostPercent', 'Bilgi teslim maliyeti %']] as const).map(([key, label]) => (
                     <div className="space-y-2" key={key}>
-                      <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{label}</Label>
-                      <Input type="number" min="0" max="100" step="0.1" value={riskSettings[key]} onChange={(event) => setRiskSettings({ ...riskSettings, [key]: Math.max(0, Math.min(100, Number(event.target.value) || 0)) })} className="h-12 bg-zinc-950 border-zinc-800 font-mono" />
+                      <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{label}</Label>
+                      <Input type="number" min="0" max="100" step="0.1" value={riskSettings[key]} onChange={(event) => setRiskSettings({ ...riskSettings, [key]: Math.max(0, Math.min(100, Number(event.target.value) || 0)) })} className="h-12 bg-background border-border font-mono" />
                     </div>
                   ))}
                 </div>
@@ -595,10 +595,10 @@ export function Settings() {
           </SectionWrapper>
           {calibration && (
             <SectionWrapper title="Kalibrasyon Hazırlığı" description="Sistem katsayıları yalnızca yeterli gerçek teklif verisi oluştuğunda gözden geçirilmeye hazır kabul edilir.">
-              <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+              <Card className="bg-card border-border shadow-none">
                 <CardContent className="pt-6 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Gerçekleşen gözlem", calibration.observedQuoteCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{label}</p><p className="mt-1 font-mono text-lg text-zinc-200">{value}</p></div>)}
+                    {[["Teklif", calibration.quoteCount], ["Maliyetli kalem", calibration.pricedItemCount], ["Finans raporu", calibration.financialReportCount], ["Gerçekleşen gözlem", calibration.observedQuoteCount]].map(([label, value]) => <div key={label} className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-1 font-mono text-lg text-foreground">{value}</p></div>)}
                   </div>
                   <div className={cn("rounded-lg border p-3 text-xs", calibration.readyForCalibration ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300")}>{calibration.message}</div>
                 </CardContent>
@@ -607,13 +607,13 @@ export function Settings() {
           )}
           {calibrationReport && (
             <SectionWrapper title="Kalibrasyon Raporu" description="Planlanan ve gerçekleşen sonuçlar arasındaki sapma. Otomatik katsayı değişikliği yapılmaz.">
-              <Card className="bg-zinc-900/30 border-zinc-800 shadow-none"><CardContent className="pt-6 space-y-4">
+              <Card className="bg-card border-border shadow-none"><CardContent className="pt-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Gözlem</p><p className="mt-1 font-mono text-lg text-zinc-200">{calibrationReport.observationCount}</p></div>
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Maliyet sapması</p><p className="mt-1 font-mono text-lg text-zinc-200">{calibrationReport.costBiasPercent == null ? '—' : `%${calibrationReport.costBiasPercent.toFixed(1)}`}</p></div>
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3"><p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Süre sapması</p><p className="mt-1 font-mono text-lg text-zinc-200">{calibrationReport.durationBiasPercent == null ? '—' : `%${calibrationReport.durationBiasPercent.toFixed(1)}`}</p></div>
+                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gözlem</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.observationCount}</p></div>
+                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Maliyet sapması</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.costBiasPercent == null ? '—' : `%${calibrationReport.costBiasPercent.toFixed(1)}`}</p></div>
+                  <div className="rounded-lg border border-border bg-background p-3"><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Süre sapması</p><p className="mt-1 font-mono text-lg text-foreground">{calibrationReport.durationBiasPercent == null ? '—' : `%${calibrationReport.durationBiasPercent.toFixed(1)}`}</p></div>
                 </div>
-                <p className="text-xs text-zinc-400">{calibrationReport.recommendation}</p>
+                <p className="text-xs text-muted-foreground">{calibrationReport.recommendation}</p>
               </CardContent></Card>
             </SectionWrapper>
           )}
@@ -621,9 +621,9 @@ export function Settings() {
 
         <TabsContent value="team" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
           <SectionWrapper title="Ekip ve Yetkilendirme" description="Sistemi kullanacak ekip üyelerini davet edin ve yönetin.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-              <CardHeader className="border-b border-zinc-800 pb-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Yeni Üye Davet Et</CardTitle>
+            <Card className="bg-card border-border shadow-none">
+              <CardHeader className="border-b border-border pb-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">Yeni Üye Davet Et</CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-8">
                 {canInvite ? <form onSubmit={handleInvite} className="flex flex-wrap gap-4">
@@ -633,19 +633,19 @@ export function Settings() {
                       required
                       type="email"
                       placeholder="davet@e-posta.com" 
-                      className="h-12 bg-zinc-950 border-zinc-800 text-zinc-200 font-bold"
+                      className="h-12 bg-background border-border text-foreground font-bold"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
                     />
                   </div>
-                  <select aria-label="Davet rolü" value={inviteRole} onChange={event => setInviteRole(event.target.value)} className="h-12 max-w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 text-zinc-200">
+                  <select aria-label="Davet rolü" value={inviteRole} onChange={event => setInviteRole(event.target.value)} className="h-12 max-w-full rounded-md border border-border bg-background px-3 text-foreground">
                     <option value="viewer">Görüntüleyici</option><option value="manager">Yönetici</option><option value="admin">Admin</option>
                   </select>
                   <Button type="submit" disabled={loading} className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-2">
                     <UserPlus size={18} /> Davet Gönder
                   </Button>
-                </form> : <p className="text-sm text-zinc-400">Davet yönetimi yalnızca şirket sahibi ve adminlere açıktır.</p>}
-                {inviteDelivery && <div role="status" className="text-sm text-zinc-300 break-words">
+                </form> : <p className="text-sm text-muted-foreground">Davet yönetimi yalnızca şirket sahibi ve adminlere açıktır.</p>}
+                {inviteDelivery && <div role="status" className="text-sm text-foreground dark:text-muted-foreground break-words">
                   {inviteDelivery.status === 'accepted' ? 'E-posta hizmeti daveti kabul etti. Gelen kutusuna teslim henüz doğrulanmadı.'
                     : inviteDelivery.status === 'development' ? 'Geliştirme bağlantısı oluşturuldu; e-posta gönderilmedi.'
                     : 'E-posta teslimi başlatılamadı. Bağlantı iptal edildi; yeniden davet oluşturun.'}
@@ -653,33 +653,33 @@ export function Settings() {
                 </div>}
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                  <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                     <Clock size={12} className="text-orange-500" /> Davetiyeler
                   </Label>
-                  <div className="rounded-2xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
+                  <div className="rounded-2xl border border-border divide-y divide-border overflow-hidden">
                     {invites.filter(invite => !invite.acceptedAt).length === 0 ? (
-                      <div className="p-12 text-center text-zinc-600 text-xs font-bold uppercase tracking-widest italic">
+                      <div className="p-12 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest italic">
                         Henüz aktif bir davetiye bulunmuyor.
                       </div>
                     ) : (
                       invites.filter(i => !i.acceptedAt).map((invite) => (
-                        <div key={invite.id} className="p-6 flex flex-wrap gap-3 items-center justify-between bg-zinc-900/10 group hover:bg-zinc-900/30 transition-colors">
+                        <div key={invite.id} className="p-6 flex flex-wrap gap-3 items-center justify-between bg-card group hover:bg-card transition-colors">
                           <div className="flex min-w-0 items-center gap-5">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center text-zinc-400 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-border flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform">
                               <Mail size={20} />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-black text-white break-all">{invite.email}</p>
+                              <p className="text-sm font-black text-foreground break-all">{invite.email}</p>
                               <div className="flex flex-wrap items-center gap-2 mt-1">
-                                <Badge className="bg-zinc-800 text-zinc-500 border-none font-black text-[9px] px-2 py-0">ROLE: {invite.role.toUpperCase()}</Badge>
-                                <span className="text-[10px] text-zinc-400">{invite.status === 'reissue_required' ? 'Eski bağlantı: yeniden davet gerekli' : invite.status === 'expired' ? 'Süresi doldu' : 'Kabul bekleniyor'} · {new Date(invite.createdAt).toLocaleDateString('tr-TR')}</span>
+                                <Badge className="bg-surface-elevated text-muted-foreground border-none font-black text-[10px] px-2 py-0">ROLE: {invite.role.toUpperCase()}</Badge>
+                                <span className="text-[10px] text-muted-foreground">{invite.status === 'reissue_required' ? 'Eski bağlantı: yeniden davet gerekli' : invite.status === 'expired' ? 'Süresi doldu' : 'Kabul bekleniyor'} · {new Date(invite.createdAt).toLocaleDateString('tr-TR')}</span>
                               </div>
                             </div>
                           </div>
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="bg-zinc-800/50 text-zinc-400 hover:text-white font-black text-[10px] uppercase tracking-widest h-9 px-4 gap-2"
+                            className="bg-surface-elevated text-muted-foreground hover:text-foreground font-black text-[10px] uppercase tracking-widest h-9 px-4 gap-2"
                             onClick={() => { setInviteEmail(invite.email); setInviteRole(['admin', 'manager', 'viewer'].includes(invite.role) ? invite.role : 'viewer'); }}
                           >
                             <UserPlus size={14} /> Yeniden Davet
@@ -696,33 +696,33 @@ export function Settings() {
 
         <TabsContent value="billing" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden relative group">
+            <Card className="bg-card border-border shadow-none overflow-hidden relative group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
-              <CardHeader className="border-b border-zinc-800 bg-zinc-900/20">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Mevcut Abonelik Planı</CardTitle>
+              <CardHeader className="border-b border-border bg-card">
+                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mevcut Abonelik Planı</CardTitle>
               </CardHeader>
               <CardContent className="p-8">
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <h3 className="text-3xl font-black text-white uppercase tracking-tight">{subscription?.plan || 'Starter'}</h3>
-                    <p className="text-zinc-500 text-xs font-bold mt-1 uppercase tracking-widest italic">Aylık faturalandırma</p>
+                    <h3 className="text-3xl font-black text-foreground uppercase tracking-tight">{subscription?.plan || 'Starter'}</h3>
+                    <p className="text-muted-foreground text-xs font-bold mt-1 uppercase tracking-widest italic">Aylık faturalandırma</p>
                   </div>
                   <Badge className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black text-[10px] px-3 py-1">AKTİF & ÖDENMİŞ</Badge>
                 </div>
                 <div className="space-y-4 mb-10">
-                  <div className="flex items-center gap-3 text-xs font-bold text-zinc-400">
+                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
                     <div className="p-1 bg-emerald-500/10 rounded-lg">
                       <CheckCircle2 size={12} className="text-emerald-500" />
                     </div>
                     Teklif Zekası Modülü (Sınırsız)
                   </div>
-                  <div className="flex items-center gap-3 text-xs font-bold text-zinc-400">
+                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
                     <div className="p-1 bg-emerald-500/10 rounded-lg">
                       <CheckCircle2 size={12} className="text-emerald-500" />
                     </div>
                     PDF & Doküman Üretimi
                   </div>
-                  <div className="flex items-center gap-3 text-xs font-bold text-zinc-400">
+                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
                     <div className="p-1 bg-emerald-500/10 rounded-lg">
                       <CheckCircle2 size={12} className="text-emerald-500" />
                     </div>
@@ -735,18 +735,18 @@ export function Settings() {
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-              <CardHeader className="border-b border-zinc-800 bg-zinc-900/20">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Bu Ayki Kullanım Kotası</CardTitle>
+            <Card className="bg-card border-border shadow-none">
+              <CardHeader className="border-b border-border bg-card">
+                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bu Ayki Kullanım Kotası</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 {usage.length > 0 ? usage.map((u: any) => (
                   <div key={u.feature} className="space-y-3">
                     <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
-                      <span className="text-zinc-400">{u.feature.replace('_', ' ')}</span>
-                      <span className="text-white">{u.count} / {u.limit || '∞'}</span>
+                      <span className="text-muted-foreground">{u.feature.replace('_', ' ')}</span>
+                      <span className="text-foreground">{u.count} / {u.limit || '∞'}</span>
                     </div>
-                    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700/50">
+                    <div className="h-2 bg-surface-elevated rounded-full overflow-hidden border border-border">
                       <div 
                         className="h-full bg-orange-600 rounded-full shadow-[0_0_10px_rgba(234,88,12,0.5)] transition-all duration-1000" 
                         style={{ width: `${Math.min(100, (u.count / (u.limit || 100)) * 100)}%` }}
@@ -754,7 +754,7 @@ export function Settings() {
                     </div>
                   </div>
                 )) : (
-                  <div className="py-12 text-center text-zinc-600 text-xs font-bold uppercase tracking-widest italic">
+                  <div className="py-12 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest italic">
                     Kullanım verisi yükleniyor...
                   </div>
                 )}
@@ -765,33 +765,33 @@ export function Settings() {
 
         <TabsContent value="industries" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
           <SectionWrapper title="Sektörel Uyumluluk Modülleri" description="TeklifPro AI'nın hangi uzmanlık alanlarında akıllı teklif asistanlığı yapacağını seçin.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {industriesList.map((industry: any) => (
-                    <div key={industry.id} className="flex items-center justify-between p-6 rounded-2xl border border-zinc-800 bg-zinc-900/10 group hover:border-orange-500/30 transition-all">
+                    <div key={industry.id} className="flex items-center justify-between p-6 rounded-2xl border border-border bg-card group hover:border-orange-500/30 transition-all">
                       <div className="flex items-center gap-5">
                         <div className={cn(
                           "w-12 h-12 rounded-2xl border flex items-center justify-center transition-all",
                           industryEnabled(industry.id) 
                             ? "bg-orange-600/10 border-orange-500/20 text-orange-500 scale-105" 
-                            : "bg-zinc-800 border-zinc-700 text-zinc-500"
+                            : "bg-surface-elevated border-border text-muted-foreground"
                         )}>
                           <Briefcase size={22} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-white uppercase tracking-tight">{industry.name}</span>
-                          <span className="text-[10px] text-zinc-600 font-bold mt-0.5 line-clamp-1 italic uppercase tracking-tighter">{industry.description}</span>
+                          <span className="text-sm font-black text-foreground uppercase tracking-tight">{industry.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-bold mt-0.5 line-clamp-1 italic uppercase tracking-tighter">{industry.description}</span>
                         </div>
                       </div>
                       <Button 
                         size="sm"
                         variant={industryEnabled(industry.id) ? "default" : "outline"}
                         className={cn(
-                          "text-[9px] h-8 px-4 font-black uppercase tracking-widest transition-all",
+                          "text-[10px] h-8 px-4 font-black uppercase tracking-widest transition-all",
                           industryEnabled(industry.id) 
                             ? "bg-orange-700 hover:bg-orange-800 text-white shadow-[0_0_15px_rgba(234,88,12,0.3)]" 
-                            : "border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:text-zinc-400"
+                            : "border-border text-muted-foreground hover:bg-surface-elevated hover:text-muted-foreground"
                         )}
                         onClick={() => toggleIndustry(industry.id)}
                       >

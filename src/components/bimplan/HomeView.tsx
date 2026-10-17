@@ -72,7 +72,7 @@ export default function HomeView({ setView }: HomeViewProps) {
               </span> Merkesi
             </h1>
             
-            <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl">
+            <p className="text-muted-foreground text-base sm:text-lg leading-relaxed max-w-2xl">
               Türkiye inşaat sektörünün dijital dönüşüm rehberi. ISO 19650 standartlarından 5D entegrasyonuna, kamu mevzuatından teknik dökümantasyon standartlarına kadar projeniz için her şey tek bir portalda.
             </p>
 
@@ -85,7 +85,7 @@ export default function HomeView({ setView }: HomeViewProps) {
               </button>
               <button 
                 onClick={() => setView('standartlar')}
-                className="bg-white border border-slate-200 hover:border-slate-300 text-slate-800 px-7 py-4 rounded-xl font-extrabold text-xs tracking-widest uppercase transition-all hover:bg-slate-50 cursor-pointer text-center"
+                className="bg-white border border-border hover:border-slate-300 text-slate-800 px-7 py-4 rounded-xl font-extrabold text-xs tracking-widest uppercase transition-all hover:bg-slate-50 cursor-pointer text-center"
               >
                 Standartlar Rehberi
               </button>
@@ -95,22 +95,22 @@ export default function HomeView({ setView }: HomeViewProps) {
             <div className="pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
               <div>
                 <div className="text-xl font-extrabold text-slate-900">%40</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Şantiye Hata Azalımı</div>
+                <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Şantiye Hata Azalımı</div>
               </div>
               <div>
                 <div className="text-xl font-extrabold text-slate-900">ISO 19650</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Uluslararası Uyum</div>
+                <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Uluslararası Uyum</div>
               </div>
               <div>
                 <div className="text-xl font-extrabold text-slate-900">%14'e Varan</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Bütçe Tasarrufu (5D)</div>
+                <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Bütçe Tasarrufu (5D)</div>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-5 relative">
             <div className="absolute -inset-4 bg-orange-100/40 rounded-[2.5rem] blur-2xl -z-10"></div>
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-xl space-y-6">
+            <div className="bg-white border border-border p-8 rounded-3xl shadow-xl space-y-6">
               <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-orange-600" />
@@ -121,20 +121,20 @@ export default function HomeView({ setView }: HomeViewProps) {
 
               <div className="space-y-4">
                 <div className="p-4 bg-slate-50 rounded-xl space-y-1">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Temel Metrik</div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Temel Metrik</div>
                   <div className="text-sm font-bold text-slate-800">Kamu BIM Zorunluluk Durumu</div>
-                  <p className="text-xs text-slate-500">2023 itibarıyla büyük ölçekli altyapı ve kamu projelerinde BIM (ISO 19650) kullanımı zorunludur.</p>
+                  <p className="text-xs text-muted-foreground">2023 itibarıyla büyük ölçekli altyapı ve kamu projelerinde BIM (ISO 19650) kullanımı zorunludur.</p>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-xl space-y-1">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Mevzuat Entegrasyonu</div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Mevzuat Entegrasyonu</div>
                   <div className="text-sm font-bold text-slate-800">e-PYS Onay ve Denetimi</div>
-                  <p className="text-xs text-slate-500">Bakanlık projelerinde teknik çakışma raporları ve model onayları elektronik sistemler üzerinden yönetilmektedir.</p>
+                  <p className="text-xs text-muted-foreground">Bakanlık projelerinde teknik çakışma raporları ve model onayları elektronik sistemler üzerinden yönetilmektedir.</p>
                 </div>
               </div>
 
               <button 
                 onClick={() => setView('mevzuat')}
-                className="w-full bg-slate-900 hover:bg-orange-600 text-white p-3.5 rounded-xl text-center text-xs font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-2"
+                className="w-full bg-card hover:bg-orange-600 text-foreground p-3.5 rounded-xl text-center text-xs font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-2"
               >
                 <span>TÜM MEVZUATI OKU</span>
                 <ArrowRight className="w-4 h-4" />
@@ -146,7 +146,7 @@ export default function HomeView({ setView }: HomeViewProps) {
 
       {/* INTERACTIVE ROI CALCULATOR & EFFICIENCY ANALYZER */}
       <section className="max-w-7xl mx-auto px-6" id="roi-analyzer">
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-8 sm:p-12 shadow-xl relative overflow-hidden">
+        <div className="bg-white border border-border rounded-[2rem] p-8 sm:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full blur-3xl -z-10 translate-x-12 -translate-y-12"></div>
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -159,7 +159,7 @@ export default function HomeView({ setView }: HomeViewProps) {
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                   BIM Yatırım Getirisi (ROI) ve Verimlilik Hesaplama
                 </h2>
-                <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
                   Projenizin bütçe ve karmaşıklık verilerini girerek, ISO 19650 uyumlu BIM süreçlerinin sağlayacağı finansal ve zamansal tasarrufları simüle edin.
                 </p>
               </div>
@@ -167,7 +167,7 @@ export default function HomeView({ setView }: HomeViewProps) {
               {/* Slider Input */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-extrabold text-slate-600 uppercase tracking-wider">PROJE BÜTÇESİ</label>
+                  <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">PROJE BÜTÇESİ</label>
                   <span className="mono font-bold text-orange-600 text-lg bg-orange-50 px-3 py-1 rounded-lg border border-orange-100">
                     {formatCurrency(budget)}
                   </span>
@@ -182,7 +182,7 @@ export default function HomeView({ setView }: HomeViewProps) {
                   className="w-full accent-orange-600 cursor-pointer"
                   id="budget-range"
                 />
-                <div className="flex justify-between text-[10px] text-slate-400 font-bold mono">
+                <div className="flex justify-between text-[10px] text-muted-foreground font-bold mono">
                   <span>5M TL</span>
                   <span>250M TL</span>
                   <span>500M TL</span>
@@ -191,7 +191,7 @@ export default function HomeView({ setView }: HomeViewProps) {
 
               {/* Complexity Selection */}
               <div className="space-y-3">
-                <label className="text-xs font-extrabold text-slate-600 uppercase tracking-wider block">PROJE KARMAŞIKLIĞI</label>
+                <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block">PROJE KARMAŞIKLIĞI</label>
                 <div className="grid grid-cols-3 gap-3">
                   {(['basit', 'orta', 'karmasik'] as const).map((type) => (
                     <button
@@ -217,10 +217,10 @@ export default function HomeView({ setView }: HomeViewProps) {
               <div className="p-5 bg-white border border-slate-100 rounded-xl space-y-3 shadow-sm">
                 <div className="flex items-center gap-2 text-orange-600">
                   <DollarSign className="w-5 h-5 bg-orange-50 p-1 rounded-lg" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Tahmini Bütçe Tasarrufu</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Tahmini Bütçe Tasarrufu</span>
                 </div>
                 <div className="text-2xl font-black text-slate-900">{formatCurrency(estimatedSavings)}</div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-muted-foreground">
                   Toplam inşaat maliyetinin <strong className="text-orange-600">%{(savingsPercentage * 100).toFixed(0)}</strong> oranında net tasarruf potansiyeli.
                 </p>
               </div>
@@ -228,10 +228,10 @@ export default function HomeView({ setView }: HomeViewProps) {
               <div className="p-5 bg-white border border-slate-100 rounded-xl space-y-3 shadow-sm">
                 <div className="flex items-center gap-2 text-orange-600">
                   <ShieldCheck className="w-5 h-5 bg-orange-50 p-1 rounded-lg" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Saha Revizyon Tasarrufu</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Saha Revizyon Tasarrufu</span>
                 </div>
                 <div className="text-2xl font-black text-slate-900">{formatCurrency(designReworkSaved)}</div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-muted-foreground">
                   Çakışma tespiti sayesinde şantiyede engellenen hatalı imalat ve yıkım bütçesi.
                 </p>
               </div>
@@ -239,10 +239,10 @@ export default function HomeView({ setView }: HomeViewProps) {
               <div className="p-5 bg-white border border-slate-100 rounded-xl space-y-3 shadow-sm">
                 <div className="flex items-center gap-2 text-orange-600">
                   <Activity className="w-5 h-5 bg-orange-50 p-1 rounded-lg" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Engellenen Çakışmalar</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Engellenen Çakışmalar</span>
                 </div>
                 <div className="text-2xl font-black text-slate-900">+{clashingPrevented} Adet</div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-muted-foreground">
                   Disiplinler arası (Mimari, Statik, MEP) otomatik çakışma raporları ile çözülen krizler.
                 </p>
               </div>
@@ -250,18 +250,18 @@ export default function HomeView({ setView }: HomeViewProps) {
               <div className="p-5 bg-white border border-slate-100 rounded-xl space-y-3 shadow-sm">
                 <div className="flex items-center gap-2 text-orange-600">
                   <Clock className="w-5 h-5 bg-orange-50 p-1 rounded-lg" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Proje Süresi Kısalması</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Proje Süresi Kısalması</span>
                 </div>
                 <div className="text-2xl font-black text-slate-900">{timeReductionDays} Gün</div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-muted-foreground">
                   Tasarım koordinasyonu, koordinasyon toplantısı tasarrufu ve hızlı imalat onayı.
                 </p>
               </div>
 
-              <div className="sm:col-span-2 pt-4 border-t border-slate-200">
+              <div className="sm:col-span-2 pt-4 border-t border-border">
                 <div className="flex items-start gap-3 bg-orange-50/50 border border-orange-100/50 p-4 rounded-xl">
                   <Award className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     <strong>Teknik Not:</strong> Bu analiz, MacLeamy Eğrisi metodolojisini ve Türkiye Kamu Altyapı yatırımlarındaki geçmiş veri tabanlarını temel alır. BIM'in erken aşama efor odağı sayesinde şantiyede oluşabilecek riskler tasarım aşamasında minimize edilir.
                   </p>
                 </div>
@@ -293,20 +293,20 @@ export default function HomeView({ setView }: HomeViewProps) {
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
               MacLeamy Eğrisi ile Tasarım Eforunun Dönüşümü
             </h2>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Geleneksel inşaat projelerinde, tasarımdaki değişiklikler ve kritik kararlar genellikle imalat çizimleri aşamasında (şantiyeye çok yakın) alınır. Bu durum, revizyonların maliyetini astronomik olarak artırır.
             </p>
             
-            <div className="p-6 bg-slate-100 rounded-2xl border border-slate-200 space-y-3">
+            <div className="p-6 bg-slate-100 rounded-2xl border border-border space-y-3">
               <h4 className="font-extrabold text-slate-900 text-sm">Altın Kural: "Zamanın %20'sini başta harca, bütçenin %30'unu sonda kurtar."</h4>
-              <p className="text-xs text-slate-500 leading-relaxed italic">
+              <p className="text-xs text-muted-foreground leading-relaxed italic">
                 "BIM felsefesinin temeli, efor eğrisini tasarımın erken aşamalarına (Konsept ve Gelişmiş Tasarım) çekmektir. Böylece değişiklik yeteneği en yüksekteyken ve maliyet etkisi en düşükken kritik kararlar alınmış olur."
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="border border-slate-200 p-4 rounded-xl space-y-1 bg-white">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Geleneksel Yöntem</div>
+              <div className="border border-border p-4 rounded-xl space-y-1 bg-white">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Geleneksel Yöntem</div>
                 <div className="text-sm font-extrabold text-slate-800">Geç Karar & Yüksek Revizyon Maliyeti</div>
               </div>
               <div className="border border-orange-200 p-4 rounded-xl space-y-1 bg-orange-50/20">
@@ -316,10 +316,10 @@ export default function HomeView({ setView }: HomeViewProps) {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md">
+          <div className="bg-white border border-border rounded-3xl p-6 sm:p-8 shadow-md">
             <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Macleamy Efor/Maliyet Eğrisi Grafiği</span>
-              <span className="text-[10px] bg-slate-900 text-white px-2 py-0.5 rounded mono font-bold">ETKİLEŞİMLİ</span>
+              <span className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">Macleamy Efor/Maliyet Eğrisi Grafiği</span>
+              <span className="text-[10px] bg-card text-foreground px-2 py-0.5 rounded mono font-bold">ETKİLEŞİMLİ</span>
             </div>
 
             {/* SVG Visual Chart */}
@@ -365,7 +365,7 @@ export default function HomeView({ setView }: HomeViewProps) {
                   <span className="w-2.5 h-2.5 bg-orange-500 rounded-full"></span>
                   <span className="text-[9px] font-black text-slate-800 uppercase tracking-tighter">BIM Odaklı Efor</span>
                 </div>
-                <div className="text-[8px] text-slate-400">Efor erken aşamada yoğunlaşır, hata payı düşer</div>
+                <div className="text-[8px] text-muted-foreground">Efor erken aşamada yoğunlaşır, hata payı düşer</div>
               </div>
 
               <div className="absolute bottom-16 right-12 bg-white border border-slate-100 p-2 rounded-lg shadow-sm space-y-0.5">
@@ -373,11 +373,11 @@ export default function HomeView({ setView }: HomeViewProps) {
                   <span className="w-2.5 h-2.5 bg-slate-500 rounded-full"></span>
                   <span className="text-[9px] font-black text-slate-800 uppercase tracking-tighter">Geleneksel Efor</span>
                 </div>
-                <div className="text-[8px] text-slate-400">Kararlar geç aşamada verilir, imalat risklidir</div>
+                <div className="text-[8px] text-muted-foreground">Kararlar geç aşamada verilir, imalat risklidir</div>
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-4 text-[10px] font-bold text-slate-500 justify-center">
+            <div className="mt-4 flex flex-wrap gap-4 text-[10px] font-bold text-muted-foreground justify-center">
               <span className="flex items-center gap-1"><span className="w-2 h-0.5 bg-orange-500 inline-block"></span> BIM Efor Eğrisi</span>
               <span className="flex items-center gap-1"><span className="w-2 h-0.5 bg-slate-600 inline-block"></span> Geleneksel Efor</span>
               <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 bg-blue-500 border-t border-dashed inline-block"></span> Tasarımı Etkileme Gücü</span>

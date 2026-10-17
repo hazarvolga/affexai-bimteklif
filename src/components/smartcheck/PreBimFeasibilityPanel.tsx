@@ -143,7 +143,7 @@ export const PreBimFeasibilityPanel: React.FC = () => {
   const promise = result.promise;
 
   return (
-    <section className="mt-8 border border-border bg-background" data-testid="pre-bim-feasibility">
+    <section id="pre-bim-feasibility" className="mt-8 border border-border bg-background" data-testid="pre-bim-feasibility">
       <div className="px-6 py-4 border-b border-border bg-card">
         <span className="section-index">IFC ÖNCESİ · ÖN TEKLİF / KAT KARŞILIĞI</span>
         <h3 className="font-display-serif text-2xl text-foreground mt-0.5">Arsa, TAKS–KAKS ve Daire Paylaşımı</h3>

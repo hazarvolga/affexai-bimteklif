@@ -27,7 +27,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
   };
 
   return (
-    <nav className="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+    <nav className="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <div 
@@ -35,7 +35,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
           className="flex items-center gap-3 cursor-pointer group select-none"
           id="nav-logo"
         >
-          <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black group-hover:bg-orange-600 transition-colors duration-300 shadow-md shadow-slate-200">
+          <div className="w-9 h-9 bg-card rounded-lg flex items-center justify-center text-foreground font-black group-hover:bg-orange-600 transition-colors duration-300 shadow-md shadow-slate-200">
             B
           </div>
           <span className="text-xl font-extrabold tracking-tighter text-slate-900">
@@ -55,11 +55,11 @@ export default function Header({ currentView, setView }: HeaderProps) {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
                   isActive 
                     ? 'text-orange-600 bg-orange-50/70 border border-orange-100' 
-                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+                    : 'text-muted-foreground hover:text-slate-900 hover:bg-slate-50 border border-transparent'
                 }`}
                 id={`nav-item-${item.view}`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-orange-600' : 'text-muted-foreground'}`} />
                 {item.label}
               </button>
             );
@@ -70,7 +70,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
         <div className="hidden lg:block">
           <button 
             onClick={() => handleNavClick('dokumanlar')}
-            className="bg-slate-900 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg text-[11px] font-bold tracking-widest uppercase transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
+            className="bg-card hover:bg-orange-600 text-foreground px-5 py-2.5 rounded-lg text-[11px] font-bold tracking-widest uppercase transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
             id="nav-cta"
           >
             PORTAL GİRİŞİ
@@ -81,7 +81,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
         <div className="lg:hidden">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+            className="text-muted-foreground hover:text-slate-900 p-2 rounded-lg hover:bg-slate-50 transition-colors"
             aria-label="Menüyü Aç/Kapat"
             id="mobile-menu-btn"
           >
@@ -92,7 +92,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-xl animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-border shadow-xl animate-in fade-in slide-in-from-top-4 duration-200">
           <div className="px-6 py-6 space-y-3">
             {navigationItems.map((item) => {
               const isActive = currentView === item.view;
@@ -104,15 +104,15 @@ export default function Header({ currentView, setView }: HeaderProps) {
                   className={`flex items-center justify-between w-full p-3.5 rounded-xl text-sm font-bold tracking-tight transition-all ${
                     isActive 
                       ? 'text-orange-600 bg-orange-50/70 border border-orange-100' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+                      : 'text-muted-foreground hover:text-slate-900 hover:bg-slate-50 border border-transparent'
                   }`}
                   id={`mobile-nav-item-${item.view}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-orange-600' : 'text-muted-foreground'}`} />
                     <span>{item.label}</span>
                   </div>
-                  <ChevronRight className={`w-4 h-4 opacity-50 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+                  <ChevronRight className={`w-4 h-4 opacity-50 ${isActive ? 'text-orange-600' : 'text-muted-foreground'}`} />
                 </button>
               );
             })}
@@ -120,7 +120,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
             <div className="pt-4 border-t border-slate-100">
               <button 
                 onClick={() => handleNavClick('dokumanlar')}
-                className="w-full bg-slate-900 text-white p-3.5 rounded-xl text-center text-xs font-bold tracking-widest uppercase hover:bg-orange-600 transition-colors duration-300"
+                className="w-full bg-card text-foreground p-3.5 rounded-xl text-center text-xs font-bold tracking-widest uppercase hover:bg-orange-600 transition-colors duration-300"
               >
                 PORTAL GİRİŞİ
               </button>

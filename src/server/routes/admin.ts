@@ -40,6 +40,7 @@ import { canApproveCrawlerPrice } from "../crawler/provenance";
 import { inferCrawledItemUnit } from "../crawler/price-parser";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
 import { priceSchedulerService } from "../crawler/priceSchedulerService";
+import { bodyToken, setSessionCookies } from "../auth/session-cookie";
 import { isAutomaticPricingSource } from "../crawler/source-eligibility";
 import {
   adminReviewPaymentInputSchema,
@@ -490,8 +491,9 @@ export function registerAdminRoutes(app: Express) {
         },
       });
 
+      setSessionCookies(res, token, { impersonation: true });
       return res.json({
-        token,
+        token: bodyToken(req, token),
         expiresInSeconds: 900,
         readOnly: !allowWrite,
         companyId: targetCompanyId,

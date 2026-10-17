@@ -22,12 +22,12 @@ export function SectionWrapper({
         <div className="flex items-center justify-between gap-4 px-1">
           <div className="space-y-0.5">
             {title && (
-              <h2 className="text-sm font-black text-zinc-200 uppercase tracking-widest">
+              <h2 className="text-sm font-black text-foreground uppercase tracking-widest">
                 {title}
               </h2>
             )}
             {description && (
-              <p className="text-xs text-zinc-500 font-medium">
+              <p className="text-xs text-muted-foreground font-medium">
                 {description}
               </p>
             )}

@@ -1,10 +1,10 @@
-# BİMMETRAJ (formerly TeklifPro) Agent Memory
+# BIMMetraj (formerly TeklifPro) Agent Memory
 
 Last updated: 2026-10-17
 
-> **Brand Note (2026-10-17):** The project is officially named **BİMMETRAJ** (formerly TeklifPro; production domain: `bimmetraj.com`). All technical documentation, prompts, and future modules treat BİMMETRAJ as the canonical product brand.
+> **Brand Note (2026-10-17):** The project is officially named **BIMMetraj** (formerly TeklifPro; production domain: `bimmetraj.com`). All technical documentation, prompts, and future modules treat BIMMetraj as the canonical product brand.
 
-This folder is the canonical short memory for agents working on BİMMETRAJ. It is
+This folder is the canonical short memory for agents working on BIMMetraj. It is
 intentionally much smaller than the full codebase and `.proje_` archive.
 
 ## What To Read First
@@ -12,6 +12,7 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 1. `PROJECT_BRIEF.md` - product and business goal.
 2. `WORKING_STATE.md` - one-page current repo/runtime state and known constraints
    (history in `archive/`).
+3. `NEXT_AGENT_PROMPT_2026-10-17.md` - yeni ajana yapıştırılacak hazır görev metni.
 3. `HANDOFF_2026-10-17.md` - complete handoff briefing for the next agent (live revision, deploy commands, environment paths, completed 2026-10-16/17 milestones, and next priorities).
 4. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions (ADR-001 through ADR-010).
 5. `PILOT_PLAN.md` - current repo production-hardening plan.

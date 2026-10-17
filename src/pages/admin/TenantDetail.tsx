@@ -320,10 +320,8 @@ export function TenantDetail() {
         throw new Error(err.error || 'Impersonate başarısız oldu');
       }
 
-      const resData = await res.json();
-      const currentToken = localStorage.getItem('token') || '';
-      localStorage.setItem('admin_session_backup', currentToken);
-      localStorage.setItem('token', resData.token);
+      // The server switched the HttpOnly session cookie to the impersonation session; the admin session stays in its own cookie.
+      await res.json();
 
       toast.success(`${data?.company.name} adına geçiş yapıldı`);
       window.location.href = '/app';
@@ -336,7 +334,7 @@ export function TenantDetail() {
   if (loading) {
     return (
       <PageContainer>
-        <div className="flex h-64 items-center justify-center text-zinc-400">
+        <div className="flex h-64 items-center justify-center text-muted-foreground">
           <Clock className="animate-spin mr-2" size={20} />
           Firma profili ve detayları yükleniyor...
         </div>
@@ -347,7 +345,7 @@ export function TenantDetail() {
   if (!data) {
     return (
       <PageContainer>
-        <div className="p-8 text-center text-zinc-400">
+        <div className="p-8 text-center text-muted-foreground">
           <AlertTriangle className="mx-auto mb-3 text-amber-400" size={32} />
           Firma bulunamadı.
           <div className="mt-4">
@@ -372,13 +370,13 @@ export function TenantDetail() {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/admin/tenants')}
-            className="text-zinc-400 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft size={18} className="mr-1" /> Firmalar
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 <Building2 className="text-indigo-400" size={26} />
                 {data.company.name}
               </h1>
@@ -387,13 +385,13 @@ export function TenantDetail() {
                   Aktif Firma
                 </span>
               ) : (
-                <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[11px] font-bold text-zinc-400">
+                <span className="rounded-full border border-border bg-surface-elevated px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">
                   {data.subscription?.status || 'Paketsiz'}
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Firma ID: <span className="font-mono text-zinc-400">{data.company.id}</span> • Kayıt:{' '}
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Firma ID: <span className="font-mono text-muted-foreground">{data.company.id}</span> • Kayıt:{' '}
               {new Date(data.company.createdAt).toLocaleDateString('tr-TR')}
             </p>
           </div>
@@ -401,7 +399,7 @@ export function TenantDetail() {
 
         <Button
           onClick={() => setImpersonateModalOpen(true)}
-          className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg text-xs font-bold"
+          className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-foreground shadow-lg text-xs font-bold"
         >
           <LogIn size={15} className="mr-2" />
           Firmaya Giriş Yap (Impersonate)
@@ -419,132 +417,132 @@ export function TenantDetail() {
               Firma Sahibi / Birincil Yetkili
             </h3>
             {primaryOwner ? (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/80 rounded-lg p-4 border border-zinc-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card rounded-lg p-4 border border-border">
                 <div className="flex items-center gap-3">
                   <div className="h-11 w-11 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-lg">
                     {primaryOwner.fullName?.charAt(0).toUpperCase() || 'Y'}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                       {primaryOwner.fullName}
                       <span className="rounded bg-indigo-500/20 border border-indigo-500/40 px-1.5 py-0.5 text-[10px] font-bold text-indigo-300 uppercase">
                         {primaryOwner.role === 'owner' ? 'Firma Sahibi' : primaryOwner.role}
                       </span>
                     </h4>
-                    <p className="text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
-                      <Mail size={12} className="text-zinc-500" />
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                      <Mail size={12} className="text-muted-foreground" />
                       {primaryOwner.email}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-left sm:text-right text-xs text-zinc-400 border-t sm:border-t-0 pt-2 sm:pt-0 border-zinc-800">
-                  <span className="text-[10px] text-zinc-500 block uppercase font-semibold">Yetkili Kayıt Tarihi</span>
+                <div className="text-left sm:text-right text-xs text-muted-foreground border-t sm:border-t-0 pt-2 sm:pt-0 border-border">
+                  <span className="text-[10px] text-muted-foreground block uppercase font-semibold">Yetkili Kayıt Tarihi</span>
                   <span>{new Date(primaryOwner.createdAt).toLocaleDateString('tr-TR')}</span>
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-zinc-500">Bu firmaya henüz yetkili kullanıcı atanmamış.</p>
+              <p className="text-xs text-muted-foreground">Bu firmaya henüz yetkili kullanıcı atanmamış.</p>
             )}
           </div>
 
           {/* 2. Firma İletişim & Profil Bilgileri Formu */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-4 flex items-center gap-2">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
               <Building2 size={17} className="text-indigo-400" />
               Firma Profil & İletişim Bilgileri
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">Firma Resmi Ünvanı</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Firma Resmi Ünvanı</label>
                 <input
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                   placeholder="Örn: ABC İnşaat A.Ş."
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  <Phone size={12} className="inline mr-1 text-zinc-500" />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  <Phone size={12} className="inline mr-1 text-muted-foreground" />
                   Telefon Numarası
                 </label>
                 <input
                   type="text"
                   value={companyPhone}
                   onChange={(e) => setCompanyPhone(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                   placeholder="+90 (___) ___ __ __"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  <Mail size={12} className="inline mr-1 text-zinc-500" />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  <Mail size={12} className="inline mr-1 text-muted-foreground" />
                   Firma İletişim E-Postası
                 </label>
                 <input
                   type="email"
                   value={companyEmail}
                   onChange={(e) => setCompanyEmail(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                   placeholder="info@sirketiniz.com"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  <Receipt size={12} className="inline mr-1 text-zinc-500" />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  <Receipt size={12} className="inline mr-1 text-muted-foreground" />
                   Vergi Dairesi
                 </label>
                 <input
                   type="text"
                   value={taxOffice}
                   onChange={(e) => setTaxOffice(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                   placeholder="Kadıköy V.D."
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  <Receipt size={12} className="inline mr-1 text-zinc-500" />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  <Receipt size={12} className="inline mr-1 text-muted-foreground" />
                   Vergi Kimlik Numarası (VKN / TCKN)
                 </label>
                 <input
                   type="text"
                   value={taxNumber}
                   onChange={(e) => setTaxNumber(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                   placeholder="10 veya 11 haneli vergi numarası"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  <MapPin size={12} className="inline mr-1 text-zinc-500" />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  <MapPin size={12} className="inline mr-1 text-muted-foreground" />
                   Resmi Tebligat & Şirket Adresi
                 </label>
                 <textarea
                   rows={2}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                   placeholder="Şirket resmi fatura adresi..."
                 />
               </div>
 
               {/* SmartCheck Modül Anahtarı */}
-              <div className="sm:col-span-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3.5 flex items-center justify-between">
+              <div className="sm:col-span-2 rounded-lg border border-border bg-background p-3.5 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <Sparkles size={14} className="text-indigo-400" />
                     SmartCheck BIM & Kural Doğrulama Modülü
                   </div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5">
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
                     Bu firmanın IFC ve Excel kural denetimi, e-PYS ve metraj aktarım modülüne erişimi
                   </div>
                 </div>
@@ -561,7 +559,7 @@ export function TenantDetail() {
 
               {/* Admin Notları */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                   Platform Admin Notları (Yalnızca Süper Admin Görür)
                 </label>
                 <textarea
@@ -569,7 +567,7 @@ export function TenantDetail() {
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder="Müşteriyle yapılan görüşmeler, özel indirimler, taahhütler vb."
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -588,14 +586,14 @@ export function TenantDetail() {
           </div>
 
           {/* 3. Firma Kullanıcıları Tablosu */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-3 flex items-center gap-2">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-2">
               <Users size={16} className="text-indigo-400" />
               Firma Kullanıcıları ({data.members.length})
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-zinc-800 text-zinc-400">
+                <thead className="border-b border-border text-muted-foreground">
                   <tr>
                     <th className="pb-2.5 font-medium">Kullanıcı</th>
                     <th className="pb-2.5 font-medium">E-Posta</th>
@@ -603,17 +601,17 @@ export function TenantDetail() {
                     <th className="pb-2.5 font-medium">Kayıt Tarihi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+                <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
                   {data.members.map((u) => (
                     <tr key={u.userId}>
-                      <td className="py-2.5 font-medium text-white">{u.fullName}</td>
-                      <td className="py-2.5 text-zinc-400">{u.email}</td>
+                      <td className="py-2.5 font-medium text-foreground">{u.fullName}</td>
+                      <td className="py-2.5 text-muted-foreground">{u.email}</td>
                       <td className="py-2.5">
-                        <span className="rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-zinc-300 uppercase">
+                        <span className="rounded border border-border bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-foreground dark:text-muted-foreground uppercase">
                           {u.role}
                         </span>
                       </td>
-                      <td className="py-2.5 text-zinc-500">
+                      <td className="py-2.5 text-muted-foreground">
                         {new Date(u.createdAt).toLocaleDateString('tr-TR')}
                       </td>
                     </tr>
@@ -637,28 +635,28 @@ export function TenantDetail() {
                 {paymentRequests.map((req: any) => (
                   <div
                     key={req.requestId}
-                    className="rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs space-y-2"
+                    className="rounded-lg border border-border bg-background p-3 text-xs space-y-2"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono font-bold text-amber-300">{req.referenceCode}</span>
                       <span className="font-bold text-emerald-300">
                         ₺{Number(req.amountTry).toLocaleString('tr-TR')}{' '}
-                        <span className="text-[10px] text-zinc-500">
+                        <span className="text-[10px] text-muted-foreground">
                           ({formatBillingCycleLabel(req.billingCycle)})
                         </span>
                       </span>
                     </div>
-                    <div className="text-white font-semibold">{req.planName}</div>
+                    <div className="text-foreground font-semibold">{req.planName}</div>
                     {req.senderName && (
-                      <div className="text-[11px] text-zinc-400">
-                        Gönderen: <span className="text-zinc-200">{req.senderName}</span>
+                      <div className="text-[11px] text-muted-foreground">
+                        Gönderen: <span className="text-foreground">{req.senderName}</span>
                         {req.transferReference && (
                           <span className="block font-mono text-amber-200">Dekont: {req.transferReference}</span>
                         )}
                       </div>
                     )}
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-[10px] uppercase font-bold text-zinc-400">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
                         {req.status === 'approved'
                           ? 'Onaylandı'
                           : req.status === 'pending_approval'
@@ -685,9 +683,9 @@ export function TenantDetail() {
           )}
 
           {/* Sahip Olduğu Paket & Kota Yönetimi */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                 <CreditCard size={16} className="text-indigo-400" />
                 Mevcut Paket & Kotalar
               </h3>
@@ -696,7 +694,7 @@ export function TenantDetail() {
                   {data.plan.name}
                 </span>
               ) : (
-                <span className="rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-500">
+                <span className="rounded border border-border bg-surface-elevated px-2 py-0.5 text-[10px] text-muted-foreground">
                   Paket Yok
                 </span>
               )}
@@ -706,8 +704,8 @@ export function TenantDetail() {
             {data.plan && (
               <div className="rounded-lg border border-indigo-950/70 bg-indigo-950/20 p-4 mb-4 space-y-2.5">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xs text-zinc-400">Aylık Ücret</span>
-                  <span className="text-lg font-black text-white">₺{data.plan.monthlyPrice} <span className="text-xs text-zinc-500 font-normal">/ ay</span></span>
+                  <span className="text-xs text-muted-foreground">Aylık Ücret</span>
+                  <span className="text-lg font-black text-foreground">₺{data.plan.monthlyPrice} <span className="text-xs text-muted-foreground font-normal">/ ay</span></span>
                 </div>
                 <div className="border-t border-indigo-900/40 pt-2 space-y-1 text-xs text-indigo-300">
                   <div className="flex justify-between">
@@ -733,11 +731,11 @@ export function TenantDetail() {
             {/* Abonelik Ayar Formu */}
             <div className="space-y-3.5 pt-1">
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Paket Değiştir</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Paket Değiştir</label>
                 <select
                   value={editPlanId}
                   onChange={(e) => setEditPlanId(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
                 >
                   <option value="">Paket Atanmamış</option>
                   {plans.map((p) => (
@@ -749,11 +747,11 @@ export function TenantDetail() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Abonelik Durumu</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Abonelik Durumu</label>
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
                 >
                   <option value="active">Aktif (Kullanım Açık)</option>
                   <option value="past_due">Ödeme Bekliyor</option>
@@ -763,27 +761,27 @@ export function TenantDetail() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Bonus Teklif</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Bonus Teklif</label>
                   <input
                     type="number"
                     min={0}
                     value={editBonusQuotes}
                     onChange={(e) => setEditBonusQuotes(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
                   />
-                  <span className="text-[10px] text-zinc-500 mt-0.5 block">+Hak</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">+Hak</span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Bonus IFC</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Bonus IFC</label>
                   <input
                     type="number"
                     min={0}
                     value={editBonusIfc}
                     onChange={(e) => setEditBonusIfc(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
                   />
-                  <span className="text-[10px] text-zinc-500 mt-0.5 block">+Hak</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">+Hak</span>
                 </div>
               </div>
 
@@ -800,20 +798,20 @@ export function TenantDetail() {
           </div>
 
           {/* Aylık Kullanım Geçmişi */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-3 flex items-center gap-2">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-2">
               <FileSpreadsheet size={16} className="text-indigo-400" />
               Aylık Kullanım Geçmişi
             </h3>
             {data.usageHistory.length === 0 ? (
-              <p className="text-xs text-zinc-500 py-2">Kayıtlı kullanım bulunmuyor.</p>
+              <p className="text-xs text-muted-foreground py-2">Kayıtlı kullanım bulunmuyor.</p>
             ) : (
               <div className="space-y-2.5">
                 {data.usageHistory.map((u, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-xs">
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border bg-background p-2.5 text-xs">
                     <div>
-                      <span className="font-semibold text-white">{u.period}</span>
-                      <div className="text-[10px] text-zinc-500">
+                      <span className="font-semibold text-foreground">{u.period}</span>
+                      <div className="text-[10px] text-muted-foreground">
                         {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString('tr-TR') : 'Aktif'}
                       </div>
                     </div>
@@ -828,19 +826,19 @@ export function TenantDetail() {
           </div>
 
           {/* Son IFC / Belge İşlemleri */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200 mb-3 flex items-center gap-2">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-2">
               <Cpu size={16} className="text-indigo-400" />
               Son İşlemler
             </h3>
             {data.recentRuns.length === 0 ? (
-              <p className="text-xs text-zinc-500 py-2">Henüz işlem kaydı yok.</p>
+              <p className="text-xs text-muted-foreground py-2">Henüz işlem kaydı yok.</p>
             ) : (
               <div className="space-y-2">
                 {data.recentRuns.map((r) => (
-                  <div key={r.runId} className="rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 text-xs">
+                  <div key={r.runId} className="rounded-lg border border-border bg-background p-2.5 text-xs">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-white truncate max-w-[140px]">{r.fileName}</span>
+                      <span className="font-medium text-foreground truncate max-w-[140px]">{r.fileName}</span>
                       {r.status === 'completed' ? (
                         <span className="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
                           <CheckCircle2 size={11} /> Başarılı
@@ -855,7 +853,7 @@ export function TenantDetail() {
                         </span>
                       )}
                     </div>
-                    <div className="text-[10px] text-zinc-500">
+                    <div className="text-[10px] text-muted-foreground">
                       {new Date(r.createdAt).toLocaleString('tr-TR')}
                     </div>
                   </div>
@@ -869,13 +867,13 @@ export function TenantDetail() {
       {/* Impersonation Modal */}
       {impersonateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-2xl">
             <div className="flex items-center gap-3 mb-4 text-amber-400">
               <ShieldAlert size={24} />
-              <h3 className="text-lg font-bold text-white">Müşteri Hesabına Geçiş (Impersonate)</h3>
+              <h3 className="text-lg font-bold text-foreground">Müşteri Hesabına Geçiş (Impersonate)</h3>
             </div>
 
-            <p className="text-xs text-zinc-300 leading-relaxed mb-4">
+            <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed mb-4">
               <strong>{data.company.name}</strong> adına oturum açacaksınız. Bu oturum 15 dakika boyunca geçerlidir ve yapılan tüm denetim loglarına kaydedilir.
             </p>
 
@@ -885,11 +883,11 @@ export function TenantDetail() {
                   type="checkbox"
                   checked={impersonateReadOnly}
                   onChange={(e) => setImpersonateReadOnly(e.target.checked)}
-                  className="mt-0.5 rounded border-zinc-700 bg-zinc-900 text-amber-500"
+                  className="mt-0.5 rounded border-border bg-card text-amber-500"
                 />
                 <div>
                   <span className="text-xs font-bold text-amber-200">Salt-Okunur Mod (Önerilen)</span>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
                     Müşterinin verilerinde herhangi bir değişiklik yapılmasını engeller. Yalnızca inceleme amaçlıdır.
                   </p>
                 </div>

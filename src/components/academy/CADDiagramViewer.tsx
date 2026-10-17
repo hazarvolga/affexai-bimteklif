@@ -228,7 +228,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             <div className="space-y-1.5 max-w-full overflow-hidden">
               <div className="flex items-center gap-2 mb-3">
                 <Cpu className="size-4 animate-spin" />
-                <span className="text-white font-bold tracking-widest uppercase">AUTOMATED STUDY BUDDY GEOPOLYGON ENGINE</span>
+                <span className="text-foreground font-bold tracking-widest uppercase">AUTOMATED STUDY BUDDY GEOPOLYGON ENGINE</span>
               </div>
               <div className="border-t border-graphite-800 my-2" />
               {pipelineLogs.map((log, idx) => {
@@ -246,7 +246,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
                   </div>
                 );
               })}
-              <div className="flex gap-2 text-white animate-pulse mt-2">
+              <div className="flex gap-2 text-foreground animate-pulse mt-2">
                 <span className="text-graphite-600 select-none">[*]</span>
                 <span>EXECUTION RUNNING... CURSOR TRACK ACTIVE.</span>
               </div>
@@ -687,11 +687,11 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
           </div>
           <div className="flex items-center gap-1.5 bg-graphite-950 px-2 py-0.5 rounded-[1px] border border-graphite-800">
             <Grid size={11} className="text-tech-blue" />
-            <span>UNIT: <strong className="text-white">MM (METRIC)</strong></span>
+            <span>UNIT: <strong className="text-foreground">MM (METRIC)</strong></span>
           </div>
           <div className="flex items-center gap-1.5 bg-graphite-950 px-2 py-0.5 rounded-[1px] border border-graphite-800">
             <Layers size={11} className="text-tech-blue" />
-            <span>DISCIPLINE: <strong className="text-white uppercase">{category}</strong></span>
+            <span>DISCIPLINE: <strong className="text-foreground uppercase">{category}</strong></span>
           </div>
         </div>
 

@@ -18,20 +18,20 @@ export default function BimGlossaryPage() {
 
 export function PublicBimGlossaryPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-zinc-950 px-4 py-10 text-zinc-100 sm:px-6 lg:px-8">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background px-4 py-10 text-foreground sm:px-6 lg:px-8">
       <PublicMetadata
         title="BIM Terimler, ISO 19650, IFC 4.3 ve RG 33331 e-PYS Sözlüğü | BIMMetraj"
         description="Türkiye inşaat ve teknik ofis ekipleri için ISO 19650, openBIM IFC 4.3, QTO, LOD, COBie, ÇŞB Poz ve RG 33331 e-PYS terimlerinin kapsamlı Türkçe mühendislik sözlüğü."
         canonicalPath="/bim-sozlugu"
       />
       <div className="mx-auto max-w-6xl space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-orange-400 hover:underline">
             ← BIMMetraj Ana Sayfa
           </Link>
           <div className="flex items-center gap-3 text-xs">
-            <Link to="/pricing" className="text-zinc-300 hover:text-white">Paketler</Link>
-            <Link to="/smartcheck" className="text-zinc-300 hover:text-white">SmartCheck Demo</Link>
+            <Link to="/pricing" className="text-foreground dark:text-muted-foreground hover:text-white">Paketler</Link>
+            <Link to="/smartcheck" className="text-foreground dark:text-muted-foreground hover:text-white">SmartCheck Demo</Link>
             <Link to="/register" className="rounded bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-500">
               Ücretsiz Deneyin
             </Link>

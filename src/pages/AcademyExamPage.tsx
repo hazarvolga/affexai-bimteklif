@@ -13,7 +13,7 @@ export default function AcademyExamPage() {
 
   if (examActive) {
     return (
-      <div className="min-h-screen bg-black text-white p-4">
+      <div className="min-h-screen bg-black text-foreground p-4">
         <ExamInterface
           onClose={() => setExamActive(false)}
           onFinishExam={(score, total, percentage, passed) => {
@@ -37,14 +37,14 @@ export default function AcademyExamPage() {
         description="Eurocode 2, OpenBIM ve Allplan 3D donatı konularını kapsayan resmi bitirme sınavı."
       />
 
-      <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 max-w-3xl space-y-6">
+      <div className="bg-card border border-border rounded-2xl p-8 max-w-3xl space-y-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-orange-600/20 text-orange-500 rounded-xl border border-orange-500/30">
             <GraduationCap size={32} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-white uppercase tracking-wider">ALLPLAN Uzmanlık Sertifika Sınavı</h2>
-            <p className="text-xs text-zinc-400 font-mono mt-1">Süre: 10 Dakika · Soru Sayısı: 5 · Baraj Puanı: %70</p>
+            <h2 className="text-lg font-black text-foreground uppercase tracking-wider">ALLPLAN Uzmanlık Sertifika Sınavı</h2>
+            <p className="text-xs text-muted-foreground font-mono mt-1">Süre: 10 Dakika · Soru Sayısı: 5 · Baraj Puanı: %70</p>
           </div>
         </div>
 
@@ -69,9 +69,9 @@ export default function AcademyExamPage() {
           </div>
         )}
 
-        <div className="space-y-3 text-xs text-zinc-300 font-sans leading-relaxed border-t border-zinc-800 pt-4">
-          <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Sınav Kuralları ve Konuları:</h4>
-          <ul className="list-disc list-inside space-y-1 text-zinc-400 font-mono text-[11px]">
+        <div className="space-y-3 text-xs text-foreground dark:text-muted-foreground font-sans leading-relaxed border-t border-border pt-4">
+          <h4 className="font-bold text-foreground uppercase tracking-wider text-[11px]">Sınav Kuralları ve Konuları:</h4>
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground font-mono text-[11px]">
             <li>Donatı Modelleme Standartları & Eurocode 2 Paspayı Kuralları</li>
             <li>OpenBIM ve Allplan Bimplus Bulut Koordinasyon Metodolojisi</li>
             <li>Katman Kesişim Öncelikleri (Priority Values & Layers)</li>
@@ -81,7 +81,7 @@ export default function AcademyExamPage() {
 
         <Button
           onClick={() => setExamActive(true)}
-          className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 h-12 text-white font-black uppercase tracking-widest text-xs gap-2 shadow-lg shadow-orange-950/40"
+          className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 h-12 text-foreground font-black uppercase tracking-widest text-xs gap-2 shadow-lg shadow-orange-950/40"
         >
           <GraduationCap size={18} /> SINAVA BAŞLA (10 DAKİKA)
         </Button>

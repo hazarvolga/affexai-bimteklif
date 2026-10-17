@@ -28,7 +28,6 @@ test('Yetenek Kaydı v1: sürüm ve benzersiz id kontrolü', () => {
 
 test('Kanıt Kapısı (Evidence Gate): status="live" olan her yetenek L3+ olmalı, modül ve golden testi diskte bulunmalı ve uzman onayı dolu olmalı', () => {
   const liveCaps = getLiveCapabilities();
-  assert.ok(liveCaps.length >= 7);
 
   for (const cap of liveCaps) {
     assert.ok(
@@ -36,6 +35,7 @@ test('Kanıt Kapısı (Evidence Gate): status="live" olan her yetenek L3+ olmal�
       `Canlı yetenek (${cap.id}) en az L3 olmalı, mevcut: ${cap.level}`,
     );
     assert.ok(cap.reviewer, `Canlı yetenek (${cap.id}) için reviewer zorunludur`);
+    assert.ok(cap.reviewer.registrationNo.trim().length >= 3, `Canlı yetenek (${cap.id}) için oda/sicil numarası zorunludur`);
     assert.match(
       cap.reviewer.approvedAt,
       /^\d{4}-\d{2}-\d{2}$/,
@@ -121,6 +121,47 @@ test('Uydurma brüt çarpanı yasağı: icmal ve daire brüt hesabında kaynaks�
     const src = fs.readFileSync(path.resolve(REPO_ROOT, rel), 'utf8');
     for (const token of forbidden) {
       assert.equal(src.includes(token), false, `${rel} içinde kaynaksız brüt çarpanı bulunamaz: ${token}`);
+    }
+  }
+});
+
+test('Gerçek imza kapısı: kurgusal kurul/ajan/rol adı onay sayılmaz, her onaycının sicil numarası olmalı', () => {
+  const fictional = /kurul|denetim|ajan|agent|bot|claude|codex|başdenetçi|komite|board/i;
+  for (const cap of CAPABILITY_REGISTRY) {
+    if (!cap.reviewer) continue;
+    assert.equal(fictional.test(cap.reviewer.name), false, `${cap.id}: onaylayan gerçek bir kişi olmalı, bulundu: ${cap.reviewer.name}`);
+    assert.ok(cap.reviewer.registrationNo.trim().length >= 3, `${cap.id}: sicil numarası eksik`);
+    assert.match(cap.reviewer.name.trim(), /\S+\s+\S+/, `${cap.id}: ad ve soyad gerekli`);
+  }
+});
+
+test('Yayımlanmamış hesaplayıcılar: kaynak doğrulaması bitmeyen yetenekler halka açık olamaz', () => {
+  const unpublished = ['kat-karsiligi-ve-kentsel-donusum-calculator', 'yambis-muteahhitlik-grubu-calculator'];
+  for (const id of unpublished) {
+    const cap = CAPABILITY_REGISTRY.find((c) => c.id === id);
+    assert.ok(cap, `${id} kayıtta olmalı`);
+    assert.equal(cap.status, 'roadmap');
+    assert.equal(cap.level, 'L1');
+  }
+  const app = fs.readFileSync(path.resolve(REPO_ROOT, 'src/App.tsx'), 'utf8');
+  assert.equal(app.includes('KatKarsiligiCalculatorPage'), false);
+  assert.equal(app.includes('YambisCalculatorPage'), false);
+});
+
+test('Halka açık hesaplayıcılar boş başlar: sayfalarda başlangıç değeri (varsayılan) bulunamaz', () => {
+  const dir = path.resolve(REPO_ROOT, 'src/pages/calculators');
+  const withNumericDefault = /useState<string>\(\s*["'`]\s*[0-9]/;
+  const withNumericObjectDefault = /:\s*["'`]\s*[0-9][0-9.,]*\s*["'`]\s*[,}]/;
+  // Yalnız App.tsx'te yayınlanan sayfalar denetlenir; yayından çıkarılmış sayfa yeniden rotaya alınırsa bu kapıya takılır.
+  const appSrc = fs.readFileSync(path.resolve(REPO_ROOT, 'src/App.tsx'), 'utf8');
+  const published = fs.readdirSync(dir).filter((f) => f.endsWith('.tsx') && appSrc.includes(f.replace(/\.tsx$/, '')));
+  assert.ok(published.length >= 3, 'yayınlanmış hesaplayıcı sayfaları bulunamadı');
+  for (const file of published) {
+    const src = fs.readFileSync(path.join(dir, file), 'utf8');
+    // CalculatorShell/Index gibi açıklama dosyalarında useState yoktur; form durumu içerenler denetlenir
+    const stateLines = src.split('\n').filter((l) => /useState/.test(l));
+    for (const line of stateLines) {
+      assert.equal(withNumericDefault.test(line) || withNumericObjectDefault.test(line), false, `${file}: varsayılan değer yasak -> ${line.trim()}`);
     }
   }
 });

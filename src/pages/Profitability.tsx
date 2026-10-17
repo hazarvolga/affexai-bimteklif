@@ -61,14 +61,14 @@ export function Profitability() {
     return (
       <PageContainer>
         <PageHeader title="Kârlılık Analizi" description="Kazanılan ve kaybedilen tekliflerin hacim özeti." icon={ChartBarIncreasing} />
-        <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+        <Card className="bg-card border-border shadow-none">
           <CardContent className="py-16 flex flex-col items-center gap-4 text-center">
             <AlertTriangle className="text-red-500" size={32} />
             <div>
-              <p className="text-sm font-black text-white uppercase tracking-widest">Veriler yüklenemedi</p>
-              <p className="text-xs text-zinc-500 mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
+              <p className="text-sm font-black text-foreground uppercase tracking-widest">Veriler yüklenemedi</p>
+              <p className="text-xs text-muted-foreground mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
             </div>
-            <Button onClick={load} variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
+            <Button onClick={load} variant="outline" className="border-border bg-card text-foreground dark:text-muted-foreground hover:bg-surface-elevated gap-2 font-black text-[10px] uppercase tracking-widest h-10 px-6">
               <RefreshCw size={14} /> Tekrar Dene
             </Button>
           </CardContent>
@@ -86,7 +86,7 @@ export function Profitability() {
       />
 
       {!loading && quotes.length === 0 ? (
-        <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+        <Card className="bg-card border-border shadow-none">
           <CardContent className="py-16">
             <EmptyState
               icon={ChartBarIncreasing}
@@ -111,20 +111,20 @@ export function Profitability() {
           </div>
 
           <SectionWrapper title="Kazanılan / Kaybedilen Teklifler" description="Marj görmek için bir teklife girin — maliyet verisi eksikse teklif detayı bunu açıkça belirtir.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="p-0">
                 {decidedQuotes.length === 0 ? (
-                  <p className="text-xs text-zinc-600 py-12 text-center">Henüz sonuçlanmış (kazanılan/kaybedilen) teklif yok.</p>
+                  <p className="text-xs text-muted-foreground py-12 text-center">Henüz sonuçlanmış (kazanılan/kaybedilen) teklif yok.</p>
                 ) : (
-                  <div className="divide-y divide-zinc-800">
+                  <div className="divide-y divide-border">
                     {decidedQuotes.map((quote) => (
-                      <Link key={quote.id} to={`/app/quotes/${quote.id}`} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-zinc-800/20 transition-all">
+                      <Link key={quote.id} to={`/app/quotes/${quote.id}`} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-surface-elevated transition-all">
                         <div className="min-w-0">
-                          <p className="text-xs font-black text-white uppercase tracking-tight truncate">{quote.projectName}</p>
-                          <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{quote.quoteNumber}</p>
+                          <p className="text-xs font-black text-foreground uppercase tracking-tight truncate">{quote.projectName}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{quote.quoteNumber}</p>
                         </div>
                         <div className="flex items-center gap-4 shrink-0">
-                          <span className="font-mono text-sm text-white font-black">{Number(quote.grandTotal).toLocaleString('tr-TR')} <span className="text-[10px] text-zinc-600">{quote.currency}</span></span>
+                          <span className="font-mono text-sm text-foreground font-black">{Number(quote.grandTotal).toLocaleString('tr-TR')} <span className="text-[10px] text-muted-foreground">{quote.currency}</span></span>
                           <StatusBadge status={quote.status} />
                         </div>
                       </Link>

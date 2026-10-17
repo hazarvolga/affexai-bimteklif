@@ -1,6 +1,7 @@
 import { registerPricingFileImportRoutes } from './routes/pricing-file-import';
 import express from "express";
 import path from "path";
+import fs from "node:fs";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { db, pool } from "../db";
@@ -51,7 +52,9 @@ import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, readBuildRevision } from "./observability/error-tracking";
-import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
+import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
+import { injectRouteMeta } from "./security/route-meta";
+import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
@@ -217,6 +220,12 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
   // Vite public/ currently contains this single root asset. Add future root assets
   // explicitly here rather than reopening the mixed frontend/backend dist directory.
   app.get('/favicon.svg', (_req, res) => { res.sendFile(path.join(distPath, 'favicon.svg')); });
+  const ogImageFile = path.join(distPath, 'og-image.png');
+  const hasOgImage = fs.existsSync(ogImageFile);
+  app.get('/og-image.png', (_req, res) => {
+    if (!hasOgImage) return res.status(404).end();
+    res.set('Cache-Control', 'public, max-age=86400').sendFile(ogImageFile);
+  });
   app.get('/sitemap.xml', (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
     res.type('application/xml').set('Cache-Control', 'public, max-age=3600').send(sitemapXml(process.env.PUBLIC_APP_URL));
@@ -229,14 +238,31 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
     res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=3600').send(llmsTxt(process.env.PUBLIC_APP_URL));
   });
+  app.get('/llms-full.txt', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=3600').send(llmsFullTxt(process.env.PUBLIC_APP_URL));
+  });
+  const indexFile = path.join(distPath, 'index.html');
   app.get('*', (req, res) => {
     const pathname = decodeURIComponent(req.path);
     if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();
     res.setHeader('Cache-Control', 'no-cache');
-    if (!isKnownSpaRoute(pathname)) {
+    const known = isKnownSpaRoute(pathname);
+    if (!known) {
       res.status(404);
     }
-    res.sendFile(path.join(distPath, 'index.html'));
+    const publicUrl = process.env.PUBLIC_APP_URL;
+    if (!publicUrl) return res.sendFile(indexFile);
+    // Crawlers that do not run JS still need the right <title>, description, canonical and noindex for this route.
+    let html: string;
+    try { html = fs.readFileSync(indexFile, 'utf8'); } catch { return res.sendFile(indexFile); }
+    res.type('html').send(injectRouteMeta(html, {
+      pathname: pathname === '/index.html' ? '/' : pathname,
+      origin: new URL(publicUrl).origin,
+      notFound: !known,
+      ogImagePath: hasOgImage ? '/og-image.png' : null,
+      capabilityLines: capabilitySummaryLines(),
+    }));
   });
 }
 

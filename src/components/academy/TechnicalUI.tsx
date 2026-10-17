@@ -20,9 +20,9 @@ export const TechnicalButton: React.FC<TechnicalButtonProps> = ({
   const baseStyles = "tech-label flex items-center justify-center gap-2 transition-all active:inset-shadow disabled:opacity-50 disabled:cursor-not-allowed border-radius-[2px]";
   
   const variants = {
-    primary: "bg-tech-blue text-white hover:bg-tech-blue/90 border-none",
+    primary: "bg-tech-blue text-foreground hover:bg-tech-blue/90 border-none",
     secondary: "bg-graphite-700 text-graphite-200 border border-graphite-500 hover:bg-graphite-600",
-    danger: "bg-signal-red text-white hover:bg-signal-red/90 border-none",
+    danger: "bg-signal-red text-foreground hover:bg-signal-red/90 border-none",
     ghost: "bg-transparent text-graphite-400 hover:text-graphite-50 border-none",
   };
 

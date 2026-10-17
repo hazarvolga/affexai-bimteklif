@@ -151,7 +151,7 @@ export function DosyadanTeklifDemo() {
               <span className="text-xs sm:text-sm font-medium">{s.label}</span>
             </div>
             {index < 3 && (
-              <div className="hidden sm:block mx-2 md:mx-4 text-zinc-600">
+              <div className="hidden sm:block mx-2 md:mx-4 text-muted-foreground">
                 <ChevronRight className="w-5 h-5" />
               </div>
             )}
@@ -172,19 +172,19 @@ export function DosyadanTeklifDemo() {
     (getFormworkArea() * unitPrices.kalip);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto text-zinc-100">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto text-foreground">
       <div className="mb-8 text-center">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Dosyadan Teklif Oluştur</h1>
-        <p className="text-sm sm:text-base text-zinc-400">25 MB’a kadar IFC ön incelemesi. Büyük dosyalar için SmartCheck kullanın; miktarlar teknik onay, örnek fiyatlar doğrulama bekler.</p>
+        <p className="text-sm sm:text-base text-muted-foreground">25 MB’a kadar IFC ön incelemesi. Büyük dosyalar için SmartCheck kullanın; miktarlar teknik onay, örnek fiyatlar doğrulama bekler.</p>
       </div>
 
       <StepIndicator />
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-8 min-h-[400px] flex flex-col justify-center relative shadow-2xl">
+      <div className="bg-card border border-border rounded-xl p-4 sm:p-8 min-h-[400px] flex flex-col justify-center relative shadow-2xl">
         {isProcessing && (
-          <div className="absolute inset-0 bg-zinc-950/80 rounded-xl flex flex-col items-center justify-center z-10 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-background rounded-xl flex flex-col items-center justify-center z-10 backdrop-blur-sm">
             <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-            <p className="text-lg font-medium text-zinc-200">İşleniyor...</p>
+            <p className="text-lg font-medium text-foreground">İşleniyor...</p>
           </div>
         )}
 
@@ -198,13 +198,13 @@ export function DosyadanTeklifDemo() {
                   handleFileUpload(e.dataTransfer.files[0]);
                 }
               }}
-              className="border-2 border-dashed border-zinc-700 rounded-xl p-8 sm:p-16 hover:border-primary/50 transition-colors cursor-pointer bg-zinc-950/50 flex flex-col items-center justify-center group"
+              className="border-2 border-dashed border-border rounded-xl p-8 sm:p-16 hover:border-primary/50 transition-colors cursor-pointer bg-background flex flex-col items-center justify-center group"
             >
               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <FileCode className="w-10 h-10 text-primary" />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-2">BIM Dosyanızı Buraya Bırakın</h3>
-              <p className="text-zinc-400 mb-8 max-w-sm">IFC formatındaki Allplan, Revit veya Archicad modelinizi sürükleyip bırakın.</p>
+              <p className="text-muted-foreground mb-8 max-w-sm">IFC formatındaki Allplan, Revit veya Archicad modelinizi sürükleyip bırakın.</p>
               
               <label className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 cursor-pointer shadow-lg">
                 Dosya Seç
@@ -221,7 +221,7 @@ export function DosyadanTeklifDemo() {
             <div className="flex flex-wrap justify-between items-end gap-3 mb-4">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">Metraj Özeti</h3>
-                <p className="text-zinc-400">"{fileName}" dosyasından çıkarılan temel değerler.</p>
+                <p className="text-muted-foreground">"{fileName}" dosyasından çıkarılan temel değerler.</p>
               </div>
               {getPozCount() > 0 ? (
                 <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
@@ -235,17 +235,17 @@ export function DosyadanTeklifDemo() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
-                <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Beton</div>
-                <div className="text-2xl font-black text-white">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-400">m³</span></div>
+              <div className="bg-background border border-border p-5 rounded-xl">
+                <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-2">Toplam Beton</div>
+                <div className="text-2xl font-black text-white">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-muted-foreground">m³</span></div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
-                <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Donatı</div>
-                <div className="text-2xl font-black text-white">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-400">Ton</span></div>
+              <div className="bg-background border border-border p-5 rounded-xl">
+                <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-2">Toplam Donatı</div>
+                <div className="text-2xl font-black text-foreground">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-muted-foreground">Ton</span></div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-xl">
-                <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Kalıp</div>
-                <div className="text-2xl font-black text-white">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-zinc-400">m²</span></div>
+              <div className="bg-background border border-border p-5 rounded-xl">
+                <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-2">Toplam Kalıp</div>
+                <div className="text-2xl font-black text-foreground">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span className="text-sm font-normal text-muted-foreground">m²</span></div>
               </div>
             </div>
             
@@ -261,7 +261,7 @@ export function DosyadanTeklifDemo() {
                         </div>
                         <div>
                           <h4 className="text-orange-400 font-bold text-lg">Uçuş Öncesi Kontrol: {missingPozElements.length} Sorun Bulundu</h4>
-                          <p className="text-zinc-400 text-sm mt-1 mb-3">Modeldeki bazı elemanlarda ÇŞB poz numarası eksik. Bu durum fiyatlandırmada sapmalara yol açabilir.</p>
+                          <p className="text-muted-foreground text-sm mt-1 mb-3">Modeldeki bazı elemanlarda ÇŞB poz numarası eksik. Bu durum fiyatlandırmada sapmalara yol açabilir.</p>
                           <button 
                             onClick={() => { setSelectedElements(missingPozElements); setIsSlideoverOpen(true); }}
                             className="bg-orange-500/20 text-orange-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-500/30 transition-colors"
@@ -287,11 +287,11 @@ export function DosyadanTeklifDemo() {
               );
             })()}
             
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-zinc-800">
-               <button onClick={() => setCurrentStep('upload')} className="text-zinc-400 hover:text-white font-medium px-4 py-2 transition-colors">
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-border">
+               <button onClick={() => setCurrentStep('upload')} className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors">
                 İptal Et
               </button>
-              <button onClick={() => setCurrentStep('price')} className="bg-white text-zinc-950 px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 flex items-center transition-colors">
+              <button onClick={() => setCurrentStep('price')} className="bg-white text-foreground px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 flex items-center transition-colors">
                 Devam Et: Fiyatlandır <ChevronRight className="w-5 h-5 ml-2" />
               </button>
             </div>
@@ -302,62 +302,62 @@ export function DosyadanTeklifDemo() {
           <div className="space-y-6 max-w-4xl mx-auto w-full">
             <div>
               <h3 className="text-2xl font-bold mb-1">Birim Fiyatlandırma</h3>
-              <p className="text-zinc-400">Güncel poz fiyatları üzerinden maliyetinizi hesaplayın.</p>
+              <p className="text-muted-foreground">Güncel poz fiyatları üzerinden maliyetinizi hesaplayın.</p>
             </div>
             
-            <div className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950">
+            <div className="border border-border rounded-xl overflow-hidden bg-background">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-900 border-b border-zinc-800">
+                <thead className="bg-card border-b border-border">
                   <tr>
-                    <th className="p-4 font-bold text-zinc-300">Kalem</th>
-                    <th className="p-4 font-bold text-zinc-300 text-right">Miktar</th>
-                    <th className="p-4 font-bold text-zinc-300 text-right">Birim Fiyat (₺)</th>
-                    <th className="p-4 font-bold text-zinc-300 text-right">Toplam (₺)</th>
+                    <th className="p-4 font-bold text-foreground dark:text-muted-foreground">Kalem</th>
+                    <th className="p-4 font-bold text-foreground dark:text-muted-foreground text-right">Miktar</th>
+                    <th className="p-4 font-bold text-foreground dark:text-muted-foreground text-right">Birim Fiyat (₺)</th>
+                    <th className="p-4 font-bold text-foreground dark:text-muted-foreground text-right">Toplam (₺)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/50">
-                  <tr className="hover:bg-zinc-900/50 transition-colors">
-                    <td className="p-4 font-medium text-white">Hazır Beton</td>
-                    <td className="p-4 text-right text-zinc-400">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m³</td>
+                <tbody className="divide-y divide-border">
+                  <tr className="hover:bg-card transition-colors">
+                    <td className="p-4 font-medium text-foreground">Hazır Beton</td>
+                    <td className="p-4 text-right text-muted-foreground">{getConcreteVol().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m³</td>
                     <td className="p-4 text-right">
                       <input 
                         type="number" 
                         value={unitPrices.beton} 
                         onChange={(e) => setUnitPrices({...unitPrices, beton: Number(e.target.value)})}
-                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-right w-32 text-white focus:outline-none focus:border-primary" 
+                        className="bg-card border border-border rounded-lg px-3 py-2 text-right w-32 text-foreground focus:outline-none focus:border-primary" 
                       />
                     </td>
-                    <td className="p-4 text-right font-bold text-white">
+                    <td className="p-4 text-right font-bold text-foreground">
                       {(getConcreteVol() * unitPrices.beton).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
-                  <tr className="hover:bg-zinc-900/50 transition-colors">
-                    <td className="p-4 font-medium text-white">Nervürlü Çelik (Donatı)</td>
-                    <td className="p-4 text-right text-zinc-400">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} Ton</td>
+                  <tr className="hover:bg-card transition-colors">
+                    <td className="p-4 font-medium text-foreground">Nervürlü Çelik (Donatı)</td>
+                    <td className="p-4 text-right text-muted-foreground">{getSteelTon().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} Ton</td>
                     <td className="p-4 text-right">
                       <input 
                         type="number" 
                         value={unitPrices.donati} 
                         onChange={(e) => setUnitPrices({...unitPrices, donati: Number(e.target.value)})}
-                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-right w-32 text-white focus:outline-none focus:border-primary" 
+                        className="bg-card border border-border rounded-lg px-3 py-2 text-right w-32 text-foreground focus:outline-none focus:border-primary" 
                       />
                     </td>
-                    <td className="p-4 text-right font-bold text-white">
+                    <td className="p-4 text-right font-bold text-foreground">
                        {(getSteelTon() * unitPrices.donati).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
-                   <tr className="hover:bg-zinc-900/50 transition-colors">
-                    <td className="p-4 font-medium text-white">Kalıp İskelesi & Yüzeyi</td>
-                    <td className="p-4 text-right text-zinc-400">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²</td>
+                   <tr className="hover:bg-card transition-colors">
+                    <td className="p-4 font-medium text-foreground">Kalıp İskelesi & Yüzeyi</td>
+                    <td className="p-4 text-right text-muted-foreground">{getFormworkArea().toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²</td>
                     <td className="p-4 text-right">
                       <input 
                         type="number" 
                         value={unitPrices.kalip} 
                         onChange={(e) => setUnitPrices({...unitPrices, kalip: Number(e.target.value)})}
-                        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-right w-32 text-white focus:outline-none focus:border-primary" 
+                        className="bg-card border border-border rounded-lg px-3 py-2 text-right w-32 text-foreground focus:outline-none focus:border-primary" 
                       />
                     </td>
-                    <td className="p-4 text-right font-bold text-white">
+                    <td className="p-4 text-right font-bold text-foreground">
                        {(getFormworkArea() * unitPrices.kalip).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -365,13 +365,13 @@ export function DosyadanTeklifDemo() {
               </table>
             </div>
 
-            <div className="bg-zinc-950 p-6 rounded-xl flex justify-between items-center border border-zinc-800">
-               <span className="text-zinc-400 font-medium">Ara Toplam:</span>
-               <span className="text-3xl font-black text-white">₺ {totalPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <div className="bg-background p-6 rounded-xl flex justify-between items-center border border-border">
+               <span className="text-muted-foreground font-medium">Ara Toplam:</span>
+               <span className="text-3xl font-black text-foreground">₺ {totalPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-zinc-800">
-              <button onClick={() => setCurrentStep('review')} className="text-zinc-400 hover:text-white font-medium px-4 py-2 transition-colors">
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-border">
+              <button onClick={() => setCurrentStep('review')} className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors">
                 Geri Dön
               </button>
               <button onClick={handleCreateQuote} className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 flex items-center shadow-lg transition-colors">
@@ -387,14 +387,14 @@ export function DosyadanTeklifDemo() {
               <CheckCircle2 className="w-12 h-12" />
             </div>
             <h3 className="text-3xl font-black text-white mb-3">Ön İnceleme Aktarıma Hazır!</h3>
-            <p className="text-zinc-400 mb-10 leading-relaxed">
+            <p className="text-muted-foreground mb-10 leading-relaxed">
               Beton, donatı ve kalıp metrajlarınız ile girdiğiniz birim fiyatlar yeni teklif taslağına aktarılmak üzere hazırlandı.
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-zinc-950 px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
+              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-foreground px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
                 Teklif Cetveline Aktar
               </button>
-              <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-8 py-4 rounded-xl font-bold hover:bg-zinc-800 transition-colors w-full">
+              <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-card border border-border text-foreground dark:text-muted-foreground px-8 py-4 rounded-xl font-bold hover:bg-surface-elevated transition-colors w-full">
                 Yeni Dosya Yükle
               </button>
             </div>
@@ -406,41 +406,41 @@ export function DosyadanTeklifDemo() {
       {isSlideoverOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsSlideoverOpen(false)} />
-          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-zinc-950 border-l border-zinc-800 shadow-2xl z-50 flex flex-col transform transition-transform duration-300">
-            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-background border-l border-border shadow-2xl z-50 flex flex-col transform transition-transform duration-300">
+            <div className="p-6 border-b border-border flex justify-between items-center bg-card">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Box className="w-5 h-5 text-primary" /> Eksik Pozlu Eleman Denetçisi
               </h3>
-              <button onClick={() => setIsSlideoverOpen(false)} className="text-zinc-400 hover:text-white transition-colors" aria-label="Paneli kapat">
+              <button onClick={() => setIsSlideoverOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Paneli kapat">
                 ✕
               </button>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Element Breakdown Summary */}
-              <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2">
-                <div className="flex items-center justify-between text-xs text-zinc-400">
+              <div className="w-full bg-card border border-border rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Poz Bekleyen Eleman Sayısı</span>
                   <strong className="font-mono text-orange-400">{selectedElements.length} adet</strong>
                 </div>
-                <div className="flex items-center justify-between text-xs text-zinc-400">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Toplam Etkilenen Hacim</span>
-                  <strong className="font-mono text-white">
+                  <strong className="font-mono text-foreground">
                     {selectedElements.reduce((sum, el) => sum + Number(el.volumeM3 || 0), 0).toFixed(2)} m³
                   </strong>
                 </div>
               </div>
               
               <div>
-                <h4 className="text-sm font-bold text-zinc-300 mb-3 uppercase tracking-wider">Eksik Poz Listesi</h4>
+                <h4 className="text-sm font-bold text-foreground dark:text-muted-foreground mb-3 uppercase tracking-wider">Eksik Poz Listesi</h4>
                 <div className="space-y-3">
                   {selectedElements.slice(0, 10).map((el) => (
-                    <div key={el.guid} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:border-orange-500/30 transition-colors">
+                    <div key={el.guid} className="bg-card border border-border p-4 rounded-xl hover:border-orange-500/30 transition-colors">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-white font-medium text-sm">{el.name || el.type}</span>
-                        <span className="text-zinc-400 text-xs font-mono">GUID: {el.guid.substring(0, 8)}...</span>
+                        <span className="text-foreground font-medium text-sm">{el.name || el.type}</span>
+                        <span className="text-muted-foreground text-xs font-mono">GUID: {el.guid.substring(0, 8)}...</span>
                       </div>
-                      <div className="text-zinc-400 text-xs mb-3">Hacim: {Number(el.volumeM3 || 0).toFixed(2)} m³ · Kat: {el.storey}</div>
+                      <div className="text-muted-foreground text-xs mb-3">Hacim: {Number(el.volumeM3 || 0).toFixed(2)} m³ · Kat: {el.storey}</div>
                       
                       <div className="flex gap-2">
                         <input
@@ -449,7 +449,7 @@ export function DosyadanTeklifDemo() {
                           placeholder="15.120.1001"
                           value={pozDraftByGuid[el.guid] ?? ''}
                           onChange={(e) => setPozDraftByGuid((prev) => ({ ...prev, [el.guid]: e.target.value }))}
-                          className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-white focus:border-primary focus:outline-none"
+                          className="flex-1 bg-background border border-border rounded px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
                         />
                         <button
                           type="button"
@@ -462,7 +462,7 @@ export function DosyadanTeklifDemo() {
                     </div>
                   ))}
                   {selectedElements.length > 10 && (
-                    <div className="text-center text-zinc-400 text-xs mt-4">
+                    <div className="text-center text-muted-foreground text-xs mt-4">
                       + {selectedElements.length - 10} eleman daha...
                     </div>
                   )}

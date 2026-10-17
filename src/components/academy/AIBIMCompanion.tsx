@@ -399,7 +399,7 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
           <button
             onClick={() => handleSend()}
             disabled={isLoading || !inputValue.trim()}
-            className="px-3 bg-tech-blue hover:bg-tech-blue/80 text-white rounded-[1px] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
+            className="px-3 bg-tech-blue hover:bg-tech-blue/80 text-foreground rounded-[1px] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
           >
             <Send size={11} />
           </button>
@@ -410,14 +410,14 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
       <div className="fixed right-4 bottom-20 z-40">
         <button 
           onClick={() => setIsDrawerOpen(true)}
-          className="bg-tech-blue text-white p-3.5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center border border-tech-blue/30 group relative"
+          className="bg-tech-blue text-foreground p-3.5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center border border-tech-blue/30 group relative"
           title="Open AI Study Buddy"
         >
           <span className="absolute -top-1 -right-1 flex size-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full size-3 bg-emerald-500"></span>
           </span>
-          <Sparkles size={20} className="group-hover:rotate-12 transition-transform text-white" />
+          <Sparkles size={20} className="group-hover:rotate-12 transition-transform text-foreground" />
         </button>
       </div>
 
@@ -552,7 +552,7 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
                   <button
                     onClick={() => handleSend()}
                     disabled={isLoading || !inputValue.trim()}
-                    className="px-5 bg-tech-blue hover:bg-tech-blue/80 text-white rounded-[1px] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-5 bg-tech-blue hover:bg-tech-blue/80 text-foreground rounded-[1px] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <Send size={14} />
                   </button>

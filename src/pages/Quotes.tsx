@@ -130,7 +130,7 @@ export function Quotes() {
               </Button>
             </Link>
             <Link to="/app/dosyadan-teklif-demo">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-white gap-1.5 font-semibold shadow-xs">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-foreground gap-1.5 font-semibold shadow-xs">
                 <Box size={15} /> 3D IFC ile Teklif Hazırla
               </Button>
             </Link>

@@ -436,12 +436,12 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
   return (
     <div className="space-y-12">
       {/* HEADER HERO */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
+      <div className="bg-card text-foreground rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
         <div className="absolute right-0 bottom-0 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl"></div>
         <div className="max-w-3xl space-y-4">
           <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-widest block">MÜHENDİSLİK DENETİMİ &amp; GAP ANALİZİ</span>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-none">BIM Gap Raporu &amp; Olgunluk Analizörü</h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">
             Türkiye kamu ve özel inşaat sektöründe en çok karşılaşılan teknik BIM boşluklarını (Gap) inceleyin, ardından kendi projenizin olgunluk seviyesini uluslararası ISO 19650 normlarında ücretsiz test ederek size özel aksiyon planınızı anında üretin.
           </p>
           
@@ -452,7 +452,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
               className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all flex items-center gap-2 ${
                 activeTab === 'rapor'
                   ? 'bg-orange-600 text-white shadow-md'
-                  : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                  : 'bg-white/10 text-foreground hover:bg-white/20'
               }`}
             >
               <BookOpen className="w-4 h-4" />
@@ -463,7 +463,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
               className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all flex items-center gap-2 ${
                 activeTab === 'analizor'
                   ? 'bg-orange-600 text-white shadow-md'
-                  : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                  : 'bg-white/10 text-foreground hover:bg-white/20'
               }`}
             >
               <Activity className="w-4 h-4" />
@@ -479,9 +479,9 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
           
           {/* Left Gap Selector list */}
           <div className="lg:col-span-4 space-y-3">
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">BOŞLUK ALANLARI</span>
-              <h3 className="text-sm font-extrabold text-slate-800">Teyit Edilen En Kritik 5 BIM Gapi</h3>
+            <div className="bg-white border border-border rounded-2xl p-4 shadow-sm">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">BOŞLUK ALANLARI</span>
+              <h3 className="text-sm font-extrabold text-foreground">Teyit Edilen En Kritik 5 BIM Gapi</h3>
             </div>
 
             {gapsData.map((gap) => {
@@ -492,14 +492,14 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                   onClick={() => setActiveGapId(gap.id)}
                   className={`w-full p-4 rounded-xl text-left border transition-all flex gap-3 items-start cursor-pointer ${
                     isActive
-                      ? 'bg-slate-900 border-slate-900 text-white shadow-md translate-x-1'
-                      : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50'
+                      ? 'bg-card border-slate-900 text-foreground shadow-md translate-x-1'
+                      : 'bg-white border-border hover:border-border text-foreground hover:bg-card'
                   }`}
                   id={`gap-selector-${gap.id}`}
                 >
                   <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${isActive ? 'text-orange-500' : 'text-orange-600'}`} />
                   <div>
-                    <span className="text-[9px] font-bold uppercase text-slate-400 block tracking-wider">
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground block tracking-wider">
                       ÖNEM: {gap.importance}
                     </span>
                     <h4 className="font-extrabold text-xs mt-0.5 leading-snug">
@@ -515,43 +515,43 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
           {(() => {
             const selectedGap = gapsData.find(g => g.id === activeGapId) || gapsData[0];
             return (
-              <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="lg:col-span-8 bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
                 
                 {/* Header info */}
-                <div className="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-slate-100">
+                <div className="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-border">
                   <div className="space-y-1">
-                    <span className="px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-100 rounded text-[9px] font-black uppercase tracking-wider">
+                    <span className="px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-100 rounded text-[10px] font-black uppercase tracking-wider">
                       {selectedGap.status}
                     </span>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight leading-snug">
+                    <h3 className="text-xl font-black text-foreground tracking-tight leading-snug">
                       {selectedGap.title}
                     </h3>
                   </div>
-                  <span className="text-xs font-black text-slate-400">
+                  <span className="text-xs font-black text-muted-foreground">
                     ETKİ DERECESİ: <strong className="text-orange-600">{selectedGap.importance.toUpperCase()}</strong>
                   </span>
                 </div>
 
                 {/* Description */}
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider">Sektörel Mevcut Durum Analizi</h4>
-                  <p className="text-xs text-slate-700 bg-slate-50 border border-slate-100 p-4 rounded-xl leading-relaxed font-semibold">
+                  <h4 className="text-xs font-black text-muted-foreground uppercase tracking-wider">Sektörel Mevcut Durum Analizi</h4>
+                  <p className="text-xs text-foreground bg-card border border-border p-4 rounded-xl leading-relaxed font-semibold">
                     {selectedGap.description}
                   </p>
                 </div>
 
                 {/* Gaps List and Solution Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
                   
                   {/* Identified Gaps */}
                   <div className="space-y-4">
-                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <h5 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <ShieldAlert className="w-4 h-4 text-red-600 shrink-0" />
                       Tespit Edilen Boşluklar (Gaps)
                     </h5>
                     <ul className="space-y-3">
                       {selectedGap.identifiedGaps.map((item, index) => (
-                        <li key={index} className="flex items-start gap-2 text-xs text-slate-600 leading-relaxed font-semibold">
+                        <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed font-semibold">
                           <span className="text-red-500 font-bold shrink-0 mt-0.5">●</span>
                           <span>{item}</span>
                         </li>
@@ -561,13 +561,13 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
 
                   {/* Proposed Solutions */}
                   <div className="space-y-4">
-                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <h5 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       Geliştirme &amp; Çözüm Önerileri
                     </h5>
                     <ul className="space-y-3">
                       {selectedGap.proposedSolutions.map((item, index) => (
-                        <li key={index} className="flex items-start gap-2 text-xs text-slate-600 leading-relaxed font-semibold">
+                        <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed font-semibold">
                           <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
                           <span>{item}</span>
                         </li>
@@ -583,7 +583,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                     <Sparkles className="w-4 h-4" />
                     BAŞ DANIŞMAN UYARISI
                   </div>
-                  <p className="text-[11px] text-slate-600 italic leading-relaxed">
+                  <p className="text-[11px] text-muted-foreground italic leading-relaxed">
                     "{selectedGap.expertNote}"
                   </p>
                 </div>
@@ -595,19 +595,19 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
         </div>
       ) : (
         /* TAB 2: INTERACTIVE AUDIT TOOL WIZARD */
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-10 shadow-sm animate-in fade-in duration-350">
+        <div className="bg-white border border-border rounded-2xl p-6 sm:p-10 shadow-sm animate-in fade-in duration-350">
           
           {!showResults ? (
             /* ACTIVE AUDIT STEP RUNNING */
             <div className="space-y-8 max-w-3xl mx-auto">
               {/* Steps Progress */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
+                <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground">
                   <span className="uppercase tracking-widest">KATEGORİ: {auditQuestions[currentStep].category}</span>
                   <span className="mono">SORU {currentStep + 1} / {auditQuestions.length}</span>
                 </div>
                 {/* Visual Progress Line */}
-                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-card h-1.5 rounded-full overflow-hidden">
                   <div 
                     className="bg-orange-500 h-full transition-all duration-300"
                     style={{ width: `${((currentStep + 1) / auditQuestions.length) * 100}%` }}
@@ -617,10 +617,10 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
 
               {/* Question Text */}
               <div className="space-y-2">
-                <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md font-bold text-[9px] uppercase tracking-wider">
+                <span className="px-2.5 py-1 bg-card text-muted-foreground rounded-md font-bold text-[10px] uppercase tracking-wider">
                   Aşama {currentStep + 1}
                 </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tight leading-snug">
                   {auditQuestions[currentStep].text}
                 </h3>
               </div>
@@ -631,18 +631,18 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                   <button
                     key={i}
                     onClick={() => handleOptionSelect(opt.score)}
-                    className="w-full p-4 text-left border border-slate-200 hover:border-orange-500 hover:bg-orange-50/10 rounded-xl text-xs sm:text-sm font-semibold transition-all group flex justify-between items-center cursor-pointer"
+                    className="w-full p-4 text-left border border-border hover:border-orange-500 hover:bg-orange-50/10 rounded-xl text-xs sm:text-sm font-semibold transition-all group flex justify-between items-center cursor-pointer"
                     id={`audit-step-${currentStep}-opt-${i}`}
                   >
-                    <span className="text-slate-700 group-hover:text-slate-900">{opt.text}</span>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-orange-600 shrink-0 transition-transform group-hover:translate-x-1" />
+                    <span className="text-foreground group-hover:text-foreground">{opt.text}</span>
+                    <ArrowRight className="w-4 h-4 text-foreground dark:text-muted-foreground group-hover:text-orange-600 shrink-0 transition-transform group-hover:translate-x-1" />
                   </button>
                 ))}
               </div>
 
               {/* Info footer */}
-              <div className="flex items-start gap-2.5 text-[10px] text-slate-400 font-bold bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <Info className="w-4 h-4 text-slate-400 shrink-0" />
+              <div className="flex items-start gap-2.5 text-[10px] text-muted-foreground font-bold bg-card p-3 rounded-lg border border-border">
+                <Info className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span>Bu denetimdeki sorular uluslararası ISO 19650-1, -2, -3 ve -5 standartları ile Türkiye kamu teknik şartnameleri esas alınarak hazırlanmıştır.</span>
               </div>
             </div>
@@ -651,19 +651,19 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
             <div className="space-y-8 animate-in zoom-in-95 duration-200">
               
               {/* Header result card */}
-              <div className="text-center space-y-4 max-w-2xl mx-auto pb-6 border-b border-slate-100">
+              <div className="text-center space-y-4 max-w-2xl mx-auto pb-6 border-b border-border">
                 <div className="inline-flex items-center justify-center p-3.5 bg-orange-50 rounded-full text-orange-600">
                   <FileCheck className="w-10 h-10" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Gap Değerlendirmesi Tamamlandı</h3>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest font-black">PROJE BIM UYUMLULUK RAPORU</p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">Gap Değerlendirmesi Tamamlandı</h3>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">PROJE BIM UYUMLULUK RAPORU</p>
                 </div>
                 
                 {/* Score badge & Maturity Badge */}
                 <div className="grid grid-cols-2 gap-4 max-w-md mx-auto pt-4">
-                  <div className="p-4 border border-slate-200 rounded-xl bg-slate-50">
-                    <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">UYUMLULUK SKORU</span>
+                  <div className="p-4 border border-border rounded-xl bg-card">
+                    <span className="text-[10px] text-muted-foreground font-black block uppercase tracking-wider">UYUMLULUK SKORU</span>
                     <span className="mono text-3xl font-black text-orange-600">{totalScore} / 100</span>
                   </div>
                   <div className={`p-4 border rounded-xl flex flex-col justify-center items-center ${maturity.color}`}>
@@ -674,26 +674,26 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
               </div>
 
               {/* Assessment description card */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 max-w-3xl mx-auto space-y-2">
-                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="bg-card border border-border rounded-2xl p-6 max-w-3xl mx-auto space-y-2">
+                <h4 className="text-xs font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <TrendingUp className="w-4 h-4 text-orange-600" />
                   Durum Özeti ve Değerlendirme
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold">
+                <p className="text-xs sm:text-sm text-foreground leading-relaxed font-semibold">
                   {maturity.desc}
                 </p>
               </div>
 
               {/* DYNAMIC ACTION PLAN BASED ON RESULTS */}
               <div className="max-w-3xl mx-auto space-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                <div className="flex justify-between items-center pb-2 border-b border-border">
                   <div>
-                    <h4 className="font-black text-base text-slate-900 tracking-tight">Size Özel BIM Aksiyon ve İyileştirme Planı</h4>
-                    <p className="text-[11px] text-slate-400 font-bold">Aşağıdaki adımları uygulayarak projenizdeki gapleri (açıkları) kapatabilirsiniz.</p>
+                    <h4 className="font-black text-base text-foreground tracking-tight">Size Özel BIM Aksiyon ve İyileştirme Planı</h4>
+                    <p className="text-[11px] text-muted-foreground font-bold">Aşağıdaki adımları uygulayarak projenizdeki gapleri (açıkları) kapatabilirsiniz.</p>
                   </div>
                   <button
                     onClick={handleCopyActionPlan}
-                    className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 transition-all"
+                    className="px-3 py-1.5 border border-border hover:bg-card text-foreground rounded text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 transition-all"
                   >
                     {copied ? (
                       <>
@@ -717,8 +717,8 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                         key={act.id}
                         className={`p-4 border rounded-xl transition-all flex gap-3.5 items-start ${
                           isChecked 
-                            ? 'bg-slate-50 border-orange-200 opacity-75' 
-                            : 'bg-white border-slate-200 hover:border-slate-300'
+                            ? 'bg-card border-orange-200 opacity-75' 
+                            : 'bg-white border-border hover:border-border'
                         }`}
                       >
                         <button
@@ -726,7 +726,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                           className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-1 cursor-pointer transition-all ${
                             isChecked 
                               ? 'bg-orange-600 border-orange-600 text-white' 
-                              : 'bg-white border-slate-300 hover:border-orange-500'
+                              : 'bg-white border-border hover:border-orange-500'
                           }`}
                           id={`action-check-${act.id}`}
                         >
@@ -735,7 +735,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
 
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
                               act.urgency === 'ACİL' 
                                 ? 'bg-red-50 text-red-600 border border-red-100'
                                 : act.urgency === 'ÖNERİLEN'
@@ -744,11 +744,11 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                             }`}>
                               {act.urgency}
                             </span>
-                            <h5 className={`font-black text-xs sm:text-sm text-slate-900 ${isChecked ? 'line-through text-slate-400' : ''}`}>
+                            <h5 className={`font-black text-xs sm:text-sm text-foreground ${isChecked ? 'line-through text-muted-foreground' : ''}`}>
                               {act.title}
                             </h5>
                           </div>
-                          <p className={`text-xs text-slate-500 leading-relaxed ${isChecked ? 'text-slate-400' : ''}`}>
+                          <p className={`text-xs text-muted-foreground leading-relaxed ${isChecked ? 'text-muted-foreground' : ''}`}>
                             {act.task}
                           </p>
                         </div>
@@ -762,7 +762,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
               <div className="text-center pt-4">
                 <button
                   onClick={handleRestartAudit}
-                  className="px-6 py-3 bg-slate-900 hover:bg-orange-600 text-white rounded-xl text-xs font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 mx-auto"
+                  className="px-6 py-3 bg-card hover:bg-orange-600 text-foreground rounded-xl text-xs font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 mx-auto"
                 >
                   <RefreshCw className="w-4 h-4" />
                   YENİDEN TEST ET

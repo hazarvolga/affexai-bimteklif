@@ -620,7 +620,7 @@ export function CreateQuote() {
                       <p className="text-[10px] font-mono font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5">
                         <AlertTriangle size={12} className="text-primary" /> Risk Analizi
                       </p>
-                      <Badge variant="outline" className="text-[9px] font-mono tracking-wider px-2 py-0.5 uppercase border-border text-foreground">
+                      <Badge variant="outline" className="text-[10px] font-mono tracking-wider px-2 py-0.5 uppercase border-border text-foreground">
                         {aiResult.riskLevel === 'high' ? 'YÜKSEK RİSK' : aiResult.riskLevel === 'medium' ? 'ORTA RİSK' : 'DÜŞÜK RİSK'}
                       </Badge>
                     </div>

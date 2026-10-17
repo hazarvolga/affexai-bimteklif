@@ -3,6 +3,7 @@ import { db } from "../../db";
 import { adminAuditLogs, memberships, subscriptions, users } from "../../db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { hashActionToken } from "../auth/security";
+import { isSameOriginMutation, readSessionToken } from "../auth/session-cookie";
 import { z } from "zod";
 
 declare global {
@@ -71,9 +72,13 @@ export const authDependencies: AuthDependencies = {
 
 export const createAuthenticate = (dependencies: AuthDependencies = authDependencies) => async (req: any, res: any, next: any) => {
   try {
-    const header = req.headers.authorization;
-    const token = typeof header === "string" ? /^Bearer ([^\s]+)$/i.exec(header)?.[1] : undefined;
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    const session = readSessionToken(req);
+    if (!session) return res.status(401).json({ error: "Unauthorized" });
+    const { token } = session;
+    // Cookie-borne sessions are ambient credentials: mutating requests must prove they come from our own origin (CSRF).
+    if (session.source === "cookie" && !isSameOriginMutation(req)) {
+      return res.status(403).json({ error: "Geçersiz istek kaynağı.", code: "CSRF_ORIGIN_MISMATCH" });
+    }
     const parsed = sessionClaims.safeParse(AuthService.verifyToken(token));
     if (!parsed.success) return res.status(401).json({ error: "Invalid token" });
     const { userId, companyId, iat, impersonatedBy, readOnly } = parsed.data;

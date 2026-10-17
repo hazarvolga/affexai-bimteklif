@@ -50,7 +50,7 @@ export interface KikRankedLineItem extends KikLineItemInput {
 }
 
 export interface KikAdtResult {
-  ruleVersion: "kik-4734-m38-2026.2";
+  ruleVersion: "kik-4734-m38-2026.3";
   sourceCitation: string;
   /** True only when real YM (> 0) and at least 1 valid bid were provided by the user. */
   hasTenderSessionInputs: boolean;
@@ -81,6 +81,10 @@ function round2(n: number): number {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
+function round3(n: number): number {
+  return Math.round((n + Number.EPSILON) * 1_000) / 1_000;
+}
+
 function round6(n: number): number {
   return Math.round((n + Number.EPSILON) * 1_000_000) / 1_000_000;
 }
@@ -95,8 +99,9 @@ export function computeKikKFactorExact(c: number): number {
   return (c * c - 0.8 * c + 1.4) / (c + 1);
 }
 
+/** Tebliğ m.45.1.1: K katsayısı sonucu 3 ondalık basamağa yuvarlanır. */
 export function computeKikKFactor(c: number): number {
-  return round6(computeKikKFactorExact(c));
+  return round3(computeKikKFactorExact(c));
 }
 
 export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
@@ -165,7 +170,7 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
 
   if (!hasTenderSessionInputs) {
     return {
-      ruleVersion: "kik-4734-m38-2026.2",
+      ruleVersion: "kik-4734-m38-2026.3",
       sourceCitation:
         "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
       hasTenderSessionInputs: false,
@@ -211,7 +216,7 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
       floorBoundary > 0 ? round2(((ourBid - floorBoundary) / floorBoundary) * 100) : 0;
 
     return {
-      ruleVersion: "kik-4734-m38-2026.2",
+      ruleVersion: "kik-4734-m38-2026.3",
       sourceCitation:
         "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
       hasTenderSessionInputs: true,
@@ -238,40 +243,37 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     };
   }
 
-  const firstMeanExact = admittedBidsTry.reduce((sum, b) => sum + b, 0) / n;
-  const firstMeanTry = round2(firstMeanExact);
+  // Kamu İhale Genel Tebliği m.45.1.1 ve 45.2 örneği: her adımın sonucu, bir sonraki adımda yuvarlanmış haliyle
+  // kullanılır. Tort1, σ ve Tort2 2 ondalık; C ve K 3 ondalık basamağa yuvarlanır.
+  const firstMeanTry = round2(admittedBidsTry.reduce((sum, b) => sum + b, 0) / n);
 
-  let standardDeviationExact = 0;
+  let standardDeviationTry = 0;
   if (n >= 2) {
-    const variance =
-      admittedBidsTry.reduce((acc, b) => acc + Math.pow(b - firstMeanExact, 2), 0) / (n - 1);
-    standardDeviationExact = Math.sqrt(variance);
+    const variance = admittedBidsTry.reduce((acc, b) => acc + Math.pow(b - firstMeanTry, 2), 0) / (n - 1);
+    standardDeviationTry = round2(Math.sqrt(variance));
   }
-  const standardDeviationTry = round2(standardDeviationExact);
 
-  // Tebliğ m.45.1.1 & m.45.1.1.4: Tek geçerli teklif varsa T_ort2 = tek geçerli teklif;
-  // n >= 2 ise [T_ort1 - sigma, T_ort1 + sigma] aralığındaki tekliflerin ortalaması.
-  const lowerBand = firstMeanExact - standardDeviationExact;
-  const upperBand = firstMeanExact + standardDeviationExact;
+  // Tebliğ m.45.1.1.4: Tek geçerli teklif varsa T_ort2 = tek geçerli teklif;
+  // n >= 2 ise [T_ort1 - σ, T_ort1 + σ] aralığındaki tekliflerin ortalaması.
+  const lowerBand = firstMeanTry - standardDeviationTry;
+  const upperBand = firstMeanTry + standardDeviationTry;
 
   const inBandBidsTry =
     n >= 2
       ? admittedBidsTry.filter((b) => b >= lowerBand - 1e-6 && b <= upperBand + 1e-6)
       : [...admittedBidsTry];
 
-  const correctedMeanExact =
+  const correctedMeanTry = round2(
     inBandBidsTry.length > 0
       ? inBandBidsTry.reduce((sum, b) => sum + b, 0) / inBandBidsTry.length
-      : firstMeanExact;
-  const correctedMeanTry = round2(correctedMeanExact);
+      : firstMeanTry,
+  );
 
-  const cExact = correctedMeanExact / ym;
-  const cRatio = round6(cExact);
-  const kExact = computeKikKFactorExact(cExact);
-  const kFactor = round6(kExact);
+  const cRatio = round3(correctedMeanTry / ym);
+  const kFactor = computeKikKFactor(cRatio);
 
   // SD = (K * T_ort2) / (C * N) ; m.45.1.1.4 uyarınca alt sınır 0,40 * YM
-  const rawBoundaryTry = (kExact * correctedMeanExact) / (cExact * nCoefficient);
+  const rawBoundaryTry = (kFactor * correctedMeanTry) / (cRatio * nCoefficient);
   const boundaryValueTry = round2(Math.max(0.4 * ym, rawBoundaryTry));
   const rFactor = round6(boundaryValueTry / ym);
 
@@ -280,7 +282,7 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     boundaryValueTry > 0 ? round2(((ourBid - boundaryValueTry) / boundaryValueTry) * 100) : 0;
 
   return {
-    ruleVersion: "kik-4734-m38-2026.2",
+    ruleVersion: "kik-4734-m38-2026.3",
     sourceCitation:
       "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
     hasTenderSessionInputs: true,

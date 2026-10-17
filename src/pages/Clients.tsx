@@ -147,47 +147,47 @@ export function Clients() {
             >
                 <Plus size={16} /> Yeni Müşteri Ekle
             </DialogTrigger>
-            <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 sm:max-w-md p-0 overflow-hidden">
-              <DialogHeader className="p-6 border-b border-zinc-900 bg-zinc-900/50">
-                <DialogTitle className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+            <DialogContent className="bg-background border-border text-foreground sm:max-w-md p-0 overflow-hidden">
+              <DialogHeader className="p-6 border-b border-zinc-900 bg-card">
+                <DialogTitle className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
                   <User size={18} className="text-orange-500" /> Yeni Müşteri Kaydı
                 </DialogTitle>
               </DialogHeader>
               <div className="p-6 space-y-5">
-                <Field label="Müşteri Adı / Ünvan" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                <Field label="Müşteri Adı / Ünvan" labelClassName="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   <Input
                     placeholder="Örn: Aras Yapı Denetim Ltd."
                     value={newClient.name}
-                    className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
+                    className="h-12 bg-card border-border focus:border-orange-500/50"
                     onChange={(e) => setNewClient({...newClient, name: e.target.value})}
                   />
                 </Field>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="client-type" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tip</Label>
+                    <Label htmlFor="client-type" className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Tip</Label>
                     <Select
                       value={newClient.type}
                       onValueChange={(v) => setNewClient({...newClient, type: v as any})}
                     >
-                      <SelectTrigger id="client-type" className="h-12 bg-zinc-900 border-zinc-800">
+                      <SelectTrigger id="client-type" className="h-12 bg-card border-border">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                      <SelectContent className="bg-card border-border">
                         <SelectItem value="company" className="text-xs font-bold">Şirket</SelectItem>
                         <SelectItem value="person" className="text-xs font-bold">Bireysel</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="client-pipeline-stage" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pipeline Durumu</Label>
+                    <Label htmlFor="client-pipeline-stage" className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Pipeline Durumu</Label>
                     <Select
                       value={newClient.pipelineStage}
                       onValueChange={(v) => setNewClient({...newClient, pipelineStage: v as PipelineStage})}
                     >
-                      <SelectTrigger id="client-pipeline-stage" className="h-12 bg-zinc-900 border-zinc-800">
+                      <SelectTrigger id="client-pipeline-stage" className="h-12 bg-card border-border">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                      <SelectContent className="bg-card border-border">
                         <SelectItem value={PipelineStage.NEW_LEAD} className="text-xs font-bold">Yeni Potansiyel</SelectItem>
                         <SelectItem value={PipelineStage.CONTACTED} className="text-xs font-bold">Görüşüldü</SelectItem>
                         <SelectItem value={PipelineStage.PROPOSAL_SENT} className="text-xs font-bold">Teklif Hazır</SelectItem>
@@ -198,26 +198,26 @@ export function Clients() {
                     </Select>
                   </div>
                 </div>
-                <Field label="İletişim E-posta" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                <Field label="İletişim E-posta" labelClassName="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   <Input
                     type="email"
                     placeholder="info@sirket.com"
                     value={newClient.email}
-                    className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
+                    className="h-12 bg-card border-border focus:border-orange-500/50"
                     onChange={(e) => setNewClient({...newClient, email: e.target.value})}
                   />
                 </Field>
-                <Field label="Telefon" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                <Field label="Telefon" labelClassName="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   <Input
                     placeholder="+90 5XX XXX XX XX"
                     value={newClient.phone}
-                    className="h-12 bg-zinc-900 border-zinc-800 focus:border-orange-500/50"
+                    className="h-12 bg-card border-border focus:border-orange-500/50"
                     onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
                   />
                 </Field>
               </div>
-              <DialogFooter className="p-6 bg-zinc-900/50 border-t border-zinc-900">
-                <Button variant="outline" className="border-zinc-800 hover:bg-zinc-800 text-zinc-400 font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setOpen(false)}>İptal</Button>
+              <DialogFooter className="p-6 bg-card border-t border-zinc-900">
+                <Button variant="outline" className="border-border hover:bg-surface-elevated text-muted-foreground font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setOpen(false)}>İptal</Button>
                 <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-11 px-8 shadow-lg shadow-orange-900/20" onClick={handleCreate}>Müşteriyi Kaydet</Button>
               </DialogFooter>
             </DialogContent>
@@ -241,57 +241,57 @@ export function Clients() {
         })}
       </div>
 
-      <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
+      <Card className="bg-card border-border shadow-none overflow-hidden">
         <CardContent className="p-0">
-          <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-4 bg-zinc-900/50">
+          <div className="p-4 border-b border-border flex items-center justify-between gap-4 bg-card">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Müşteri adı veya e-postaya göre ara..."
-                className="pl-10 h-10 bg-zinc-950/50 border-zinc-800 focus:border-orange-500/50 transition-all text-sm font-medium"
+                className="pl-10 h-10 bg-background border-border focus:border-orange-500/50 transition-all text-sm font-medium"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-zinc-950/30">
-                <TableRow className="border-zinc-800 hover:bg-transparent">
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest pl-6">MÜŞTERİ BİLGİSİ</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">İLETİŞİM KANALLARI</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">PIPELINE ADIMI</TableHead>
-                  <TableHead className="py-4 text-zinc-500 font-black text-[10px] uppercase tracking-widest text-center">KAYIT TARİHİ</TableHead>
+              <TableHeader className="bg-background">
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="py-4 text-muted-foreground font-black text-[10px] uppercase tracking-widest pl-6">MÜŞTERİ BİLGİSİ</TableHead>
+                  <TableHead className="py-4 text-muted-foreground font-black text-[10px] uppercase tracking-widest text-center">İLETİŞİM KANALLARI</TableHead>
+                  <TableHead className="py-4 text-muted-foreground font-black text-[10px] uppercase tracking-widest text-center">PIPELINE ADIMI</TableHead>
+                  <TableHead className="py-4 text-muted-foreground font-black text-[10px] uppercase tracking-widest text-center">KAYIT TARİHİ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow className="border-zinc-800 bg-zinc-900/10">
+                  <TableRow className="border-border bg-card">
                     <TableCell colSpan={4} className="text-center py-24">
                        <div className="flex flex-col items-center gap-4">
                         <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Müşteri Verileri Çekiliyor...</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Müşteri Verileri Çekiliyor...</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : error ? (
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
+                  <TableRow className="border-border hover:bg-transparent">
                     <TableCell colSpan={4} className="text-center py-24">
                       <div className="flex flex-col items-center gap-4">
                         <AlertTriangle className="text-red-500" size={28} />
                         <div>
-                          <p className="text-xs font-black text-white uppercase tracking-widest">Müşteriler yüklenemedi</p>
-                          <p className="text-[10px] text-zinc-500 mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
+                          <p className="text-xs font-black text-foreground uppercase tracking-widest">Müşteriler yüklenemedi</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">Sunucuya ulaşılamadı; bağlantınızı kontrol edip tekrar deneyin.</p>
                         </div>
-                        <Button onClick={fetchClients} variant="outline" size="sm" className="border-zinc-800 bg-zinc-900 text-zinc-300 gap-2 font-black text-[10px] uppercase tracking-widest h-9 px-4">
+                        <Button onClick={fetchClients} variant="outline" size="sm" className="border-border bg-card text-foreground dark:text-muted-foreground gap-2 font-black text-[10px] uppercase tracking-widest h-9 px-4">
                           <RefreshCw size={14} /> Tekrar Dene
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : clients.length === 0 ? (
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
+                  <TableRow className="border-border hover:bg-transparent">
                     <TableCell colSpan={4} className="text-center py-24 px-8">
                       <EmptyState
                         icon={Users}
@@ -303,8 +303,8 @@ export function Clients() {
                     </TableCell>
                   </TableRow>
                 ) : filteredClients.length === 0 ? (
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
-                    <TableCell colSpan={4} className="text-center py-16 text-xs text-zinc-600">
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableCell colSpan={4} className="text-center py-16 text-xs text-muted-foreground">
                       "{searchTerm}" için sonuç bulunamadı.
                     </TableCell>
                   </TableRow>
@@ -313,8 +313,8 @@ export function Clients() {
                     <TableRow 
                       key={client.id} 
                       className={cn(
-                        "border-zinc-800 hover:bg-zinc-800/20 transition-all group",
-                        idx % 2 === 0 ? "bg-transparent" : "bg-zinc-900/10"
+                        "border-border hover:bg-surface-elevated transition-all group",
+                        idx % 2 === 0 ? "bg-transparent" : "bg-card"
                       )}
                     >
                       <TableCell className="py-4 pl-6">
@@ -323,10 +323,10 @@ export function Clients() {
                             {client.type === 'company' ? <Building2 size={18} /> : <User size={18} />}
                           </div>
                           <div>
-                            <p className="font-black text-xs text-white uppercase tracking-tight">{client.name}</p>
+                            <p className="font-black text-xs text-foreground uppercase tracking-tight">{client.name}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <Briefcase size={10} className="text-zinc-600" />
-                              <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">
+                              <Briefcase size={10} className="text-muted-foreground" />
+                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
                                 {client.type === 'company' ? 'KURUMSAL' : 'BİREYSEL'}
                               </p>
                             </div>
@@ -335,12 +335,12 @@ export function Clients() {
                       </TableCell>
                       <TableCell className="py-4">
                         <div className="flex flex-col items-center gap-1.5">
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 hover:text-orange-500 transition-colors cursor-pointer">
-                            <Mail size={12} className="text-zinc-600" />
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground hover:text-orange-500 transition-colors cursor-pointer">
+                            <Mail size={12} className="text-muted-foreground" />
                             {client.email || '-'}
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 hover:text-orange-500 transition-colors cursor-pointer">
-                            <Phone size={12} className="text-zinc-600" />
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground hover:text-orange-500 transition-colors cursor-pointer">
+                            <Phone size={12} className="text-muted-foreground" />
                             {client.phone || '-'}
                           </div>
                         </div>
@@ -348,7 +348,7 @@ export function Clients() {
                       <TableCell className="py-4 text-center">
                         <StageBadge stage={client.pipelineStage} />
                       </TableCell>
-                      <TableCell className="py-4 text-zinc-500 text-[10px] text-center font-black uppercase tracking-widest font-mono">
+                      <TableCell className="py-4 text-muted-foreground text-[10px] text-center font-black uppercase tracking-widest font-mono">
                         {new Date(client.createdAt).toLocaleDateString('tr-TR')}
                       </TableCell>
                     </TableRow>
@@ -376,7 +376,7 @@ export function normalizePipelineStage(stage: string): PipelineStage | null {
 
 function StageBadge({ stage }: { stage: PipelineStage | string }) {
   const configs: Record<PipelineStage, { label: string, color: string }> = {
-    [PipelineStage.NEW_LEAD]: { label: 'POTANSİYEL', color: 'bg-zinc-800 text-zinc-400 border-zinc-700' },
+    [PipelineStage.NEW_LEAD]: { label: 'POTANSİYEL', color: 'bg-surface-elevated text-muted-foreground border-border' },
     [PipelineStage.CONTACTED]: { label: 'GÖRÜŞÜLDÜ', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
     [PipelineStage.PROPOSAL_SENT]: { label: 'TEKLİF HAZIR', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
     [PipelineStage.NEGOTIATION]: { label: 'PAZARLIK', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
@@ -386,9 +386,9 @@ function StageBadge({ stage }: { stage: PipelineStage | string }) {
   const normalizedStage = normalizePipelineStage(stage);
   const config = normalizedStage
     ? configs[normalizedStage]
-    : { label: 'BİLİNMEYEN', color: 'bg-zinc-800 text-zinc-300 border-zinc-600' };
+    : { label: 'BİLİNMEYEN', color: 'bg-surface-elevated text-foreground dark:text-muted-foreground border-zinc-600' };
   return (
-    <Badge variant="outline" className={cn("text-[9px] px-2 py-0.5 font-black tracking-widest rounded-md uppercase border transition-all", config.color)}>
+    <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5 font-black tracking-widest rounded-md uppercase border transition-all", config.color)}>
       {config.label}
     </Badge>
   );

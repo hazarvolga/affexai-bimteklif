@@ -3,6 +3,20 @@ import { mkdir } from 'node:fs/promises';
 import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
 
+// Optional visual-parity capture (SMOKE_SHOTS=<dir>): light and dark screenshots of the page under test.
+const shoot = async (page: import('puppeteer').Page, name: string) => {
+  const dir = process.env.SMOKE_SHOTS;
+  if (!dir) return;
+  const { mkdir: makeDir } = await import('node:fs/promises');
+  await makeDir(dir, { recursive: true });
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; document.documentElement.classList.toggle('dark', value === 'dark'); }, theme);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await page.screenshot({ path: `${dir}/${name}-${theme}.png`, fullPage: true });
+  }
+};
+
+
 // Browser contract fixtures only: no imports of the app server or database.
 const vite = await createServer({ server: { port: 0, host: '127.0.0.1', hmr: false }, appType: 'spa' });
 let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
@@ -17,7 +31,7 @@ try {
   browser = await puppeteer.launch({ headless: true, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH });
   const page = await browser.newPage();
   const errors: string[] = [];
-  const missingAuth: string[] = [];
+  const bearerHeaders: string[] = []; // sessions are HttpOnly cookies now: no request may carry a script-held Bearer token
   let role = 'owner';
   let unavailable = false;
   let rejectWrite = false;
@@ -25,12 +39,12 @@ try {
   let deal = { id: dealId, name: 'İzole CRM fırsatı', stage: 'lead', value: '2500', probability: '0.4', riskLevel: 'medium', aiInsights: 'Önceki kayıtlı analiz', quotationId: clientId };
   let activities: { id: string; type: string; description: string; createdAt: string }[] = [];
   page.on('pageerror', error => errors.push(String(error)));
-  await page.evaluateOnNewDocument(() => localStorage.setItem('token', 'isolated-browser-fixture'));
+  await page.evaluateOnNewDocument(() => localStorage.setItem('bm_authed', '1'));
   await page.setRequestInterception(true);
   page.on('request', request => {
     const url = new URL(request.url());
     if (!url.pathname.startsWith('/api/')) { void request.continue(); return; }
-    if (request.headers().authorization !== 'Bearer isolated-browser-fixture') missingAuth.push(url.pathname);
+    if (request.headers().authorization) bearerHeaders.push(url.pathname);
     const respond = (body: unknown, status = 200) => request.respond({ status, contentType: 'application/json', body: JSON.stringify(body) });
     void (async () => {
       if (url.pathname === '/api/auth/me') return respond({ user: { id: clientId, email: 'fixture@example.test', fullName: 'Test Owner', emailVerified: '2026-10-08' }, company: { id: clientId, name: 'Isolated UI', defaultCurrency: 'TRY', defaultVatRate: 20 }, role, accountType: 'workspace' });
@@ -79,6 +93,7 @@ try {
   for (const width of [1440, 390]) {
     await page.setViewport({ width, height: 900 });
     await page.goto(`${base}/app/crm`, { waitUntil: 'networkidle0' });
+    await shoot(page, 'crm');
     await page.waitForSelector(`a[href="/app/crm/deals/${dealId}"]`);
     assert.doesNotMatch(await visibleText(), /U1|U2|FIRSATA DÖNÜŞTÜR/);
     await snapshot(`crm-${width}`);
@@ -115,9 +130,10 @@ try {
       billingMode = mode;
       await page.goto(`${base}/app/billing`, { waitUntil: 'networkidle0' });
       await page.waitForSelector('section[aria-label="Teklif"]');
+      if (mode === 'near') await shoot(page, 'billing');
       const text = await visibleText();
       assert.doesNotMatch(text, /NaN|Infinity|YÜKSELT/);
-      assert.ok(text.includes('Online ödeme ve otomatik abonelik bağlı değil'));
+      assert.ok(text.includes('Kartla ödeme henüz yayında değildir'));
       assert.ok(text.includes(mode === 'zero' ? 'Kota doldu.' : mode === 'null' ? 'Kullanım izni yok.' : '%80 seviyesinde'));
       assert.equal(await page.$$eval('section[aria-label="AI üretimi"] [role="status"]', items => items.length), 0);
       const percentages = await page.$$eval('progress', items => items.map(item => item.value));
@@ -139,7 +155,7 @@ try {
   await page.waitForFunction(() => document.body.innerText.includes('Aktivite geçmişi'));
   assert.equal(await page.$('#deal-note'), null);
   assert.equal(await page.$('#detail-stage'), null);
-  assert.deepEqual(missingAuth, []);
+  assert.deepEqual(bearerHeaders, []);
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ passed: true, database: 'not used; isolated API contract fixtures', viewports: [1440, 390], createNoteStageReload: true, aiFailurePreservesAnalysis: true, billingZeroNullEnforced: true, viewerReadOnly: true, screenshots: output }));
 } finally {

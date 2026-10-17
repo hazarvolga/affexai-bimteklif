@@ -157,7 +157,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           </span>
           <div className="flex flex-col">
             <span className="font-display-serif text-2xl leading-none tracking-tight">BIMMetraj</span>
-            <span className="mt-1 text-[9px] text-muted-foreground font-mono tracking-widest uppercase">openBIM &amp; 5D İhale Masası</span>
+            <span className="mt-1 text-[10px] text-muted-foreground font-mono tracking-widest uppercase">openBIM &amp; 5D İhale Masası</span>
           </div>
         </a>
 
@@ -450,7 +450,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="relative h-44 border border-border bg-card p-4 flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0 bg-hairline-grid opacity-50" />
                     {/* Isometric structural wireframe representation */}
-                    <div className="relative z-10 w-full max-w-[200px] h-28 border border-primary/40 bg-background flex flex-col justify-between p-2 font-mono text-[9px] text-muted-foreground">
+                    <div className="relative z-10 w-full max-w-[200px] h-28 border border-primary/40 bg-background flex flex-col justify-between p-2 font-mono text-[10px] text-muted-foreground">
                       <div className="flex justify-between border-b border-border pb-1">
                         <span>C30/37 KOLON</span>
                         <span className="text-primary font-semibold">420.00 m³</span>
@@ -783,7 +783,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <Button 
               onClick={() => navigate('/register')}
               size="lg" 
-              className="h-11 shrink-0 bg-primary px-7 text-white hover:bg-primary/90 font-semibold shadow-xs"
+              className="h-11 shrink-0 bg-primary px-7 text-foreground hover:bg-primary/90 font-semibold shadow-xs"
             >
               Hemen Ücretsiz Başlayın <ArrowRight size={16} className="ml-2" />
             </Button>
@@ -796,7 +796,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <div className="mx-auto grid max-w-6xl gap-8 text-xs text-muted-foreground md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5 text-base font-bold text-foreground">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xs bg-primary text-xs font-mono font-black text-white">BM</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-xs bg-primary text-xs font-mono font-black text-foreground">BM</span>
               BIMMetraj
             </div>
             <p className="mt-3 max-w-sm leading-relaxed text-muted-foreground">

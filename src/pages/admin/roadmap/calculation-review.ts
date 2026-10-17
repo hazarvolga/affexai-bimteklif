@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.20",
+  version: "BIM-CALC-2026-10-17.25",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "baefa678e8ad8644ef3b32f088fbf2df8760010e",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "544e1dd565a58e65e63893325608c2ff56bb201f",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, Melih Dinekli saha yanıtları ve 27 kalemlik 6-villa piyasa maliyet referansı entegre edildi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -674,11 +674,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     version: "BIM-CALC-2026-10-17.20",
     date: "17 Ekim 2026",
     commit: "baefa67",
-    trigger: "BİMMETRAJ Marka Tescili, Kat Karşılığı & Kentsel Dönüşüm Fizibilite ve YAMBİS Belge Kapasite Motorları",
+    trigger: "BIMMetraj Marka Tescili, Kat Karşılığı & Kentsel Dönüşüm Fizibilite ve YAMBİS Belge Kapasite Motorları",
     beforeSummary:
       "Özel sektör müteahhitlerinin arsa payı karşılığı ve 6306 sayılı Kentsel Dönüşüm projelerindeki rasyonel paylaşım oranı, kademeli tapu devri ve %1 KDV matrahı hesaplamaları ile ÇŞİDB YAMBİS müteahhitlik yetki belgesi sınıflandırması (A-H grupları ve bilanço rasyoları) için müstakil bir motor ve kullanıcı arayüzü bulunmuyordu. Ürün adı TeklifPro olarak kalmıştı.",
     afterSummary:
-      "Kalıcı hafızada ve tüm bellek dokümanlarında marka resmi olarak BİMMETRAJ (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK m.470 vd., 6306 sayılı Afet Riski Altındaki Alanlar Kanunu ve Yargıtay içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (src/lib/kat-karsiligi.ts) ve ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği m.8/9/20'ye dayalı YAMBİS Sınıflandırma ve Kapasite Motoru (src/lib/yambis-classification.ts) tam test kapsamıyla geliştirildi. /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile devreye alındı; sitemap, llms.txt ve SPA rotalarına eklendi.",
+      "Kalıcı hafızada ve tüm bellek dokümanlarında marka resmi olarak BIMMetraj (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK m.470 vd., 6306 sayılı Afet Riski Altındaki Alanlar Kanunu ve Yargıtay içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (src/lib/kat-karsiligi.ts) ve ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği m.8/9/20'ye dayalı YAMBİS Sınıflandırma ve Kapasite Motoru (src/lib/yambis-classification.ts) tam test kapsamıyla geliştirildi. /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile devreye alındı; sitemap, llms.txt ve SPA rotalarına eklendi.",
     affectedModules: ["on-teklif-fizibilite", "kik-adt"],
     moduleDetails: {
       "on-teklif-fizibilite": {
@@ -690,6 +690,116 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Müteahhitlik firma yeterliklerinin ihale ve yapım kapasitesine etkisi hesaplanamıyordu.",
         after: "evaluateYambisMaliRasyolar motoruyla cari oran (≥0,75), özkaynak oranı (≥0,15) ve banka borçluluğu (≤0,75) rasyoları denetlenir; A'dan H'ye yetki grubu ve azami m² inşaat alanı kapasitesi çıkarılır.",
         basis: "ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik m.8, 9, 20",
+      },
+    },
+  },
+  {
+    revision: "Rev. 27",
+    version: "BIM-CALC-2026-10-17.21",
+    date: "17 Ekim 2026",
+    commit: "c9ea528160a16013a2b513663997ecfce85ca59a",
+    trigger: "Bağımsız denetim kapanışı: gerçek imza kapısı, yayından çekilen hesaplayıcılar, sahte ödeme kanalının kaldırılması",
+    beforeSummary:
+      "Yetenek Kaydı'ndaki 10 yetenek kurgusal bir kurul adıyla L3 / canlı onaylıydı. Kat Karşılığı hesabında kaynaksız çarpanlar (brüt ×1,30, kâr ×1,20, konut 100 m²) ve konutun tamamına tek oranlı KDV, YAMBİS'te kaynaksız m² grup sınırları vardı; ikisi de halka açıktı.",
+    afterSummary:
+      "Hiçbir yetenek L3 değildir: L3 yalnız adı, unvanı, sicil numarası ve tarihi olan gerçek bir uzmanın imzasıyla verilir (kapı testi zorlar). Kat Karşılığı ve YAMBİS motorları yayından çıkarıldı; yeniden yayın için çarpanların kullanıcı girdisine çevrilmesi, KDV'nin 150 m²'ye kadar olan kısım / aşan kısım olarak GİB güncel oran tablosuyla parçalı hesaplanması ve grup tutarlarının yönetmelik ek tablolarıyla (TL) eşleştirilmesi gerekir.",
+    affectedModules: ["on-teklif-fizibilite", "kik-adt"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Kat karşılığı motoru varsayılan brüt çarpanı, kâr çarpanı ve konut büyüklüğüyle çalışıyor; kâr marjı formül gereği daima %20 çıkıyordu; KDV 150 m² üzerinde konutun tamamına %20 uyguluyordu; tapu devri aşamaları içtihat gibi sunuluyordu.",
+        after: "Motor yayından çıkarıldı (Yetenek Kaydı: roadmap / L1). Ön teklif fizibilite paneli (pre-bim-feasibility) değişmedi; kaynaksız oran içermez.",
+        basis: "DENETIM_RAPORU_2026-10-17 KK-1…KK-5; GİB konut teslimi KDV oranları (doğrulanacak)",
+      },
+      "kik-adt": {
+        before: "Kayıt, KİK motorunu bağımsız uzman onaylı L3 / canlı gösteriyordu; onay kurgusaldı.",
+        after: "KİK motoru L2 / pilot olarak etiketlendi. Golden testler formülden türetilmiş olduğundan KİK'in yayımladığı resmî örnek hesapla karşılaştırma ve imzalı mühendis/ihale uzmanı onayı beklenir. YAMBİS motoru yayından çıkarıldı.",
+        basis: "Kamu İhale Genel Tebliği m.45.1; Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği (konsolide, Mayıs 2026)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 28",
+    version: "BIM-CALC-2026-10-17.22",
+    date: "17 Ekim 2026",
+    commit: "fc811b0ad38ecaf2e94b4edaf9296c0a88d3d170",
+    trigger: "HttpOnly çerez oturumu, uçtan uca smoke testleri ve tasarım token göçü (hesap kuralı değişmedi)",
+    beforeSummary:
+      "Oturum anahtarı tarayıcı depolamasındaydı; çekirdek akış (teklif, PDF) tarayıcıda uçtan uca doğrulanmıyordu.",
+    afterSummary:
+      "Hiçbir hesap, formül veya kural değişmedi. Teklif oluşturma ve PDF üretimi gerçek sunucu ve tarayıcıyla CI'da smoke testten geçiyor (E2E: 10 adet × 3.000 ₺ satırı için teklif kaydı ve PDF yanıtı).",
+    affectedModules: ["teklif-satir"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Teklif kalemi hesabı birim testlerle doğrulanıyordu; tarayıcı üzerinden kayıtlı teklif ve PDF akışı otomatik denenmiyordu.",
+        after: "scripts/e2e-core-flow-smoke.ts, çerez oturumuyla müşteri ve teklif oluşturur, PDF üretir; hesap motoru değişmedi.",
+        basis: "Mevcut calculations.ts yöntemi; yalnız doğrulama kapsamı genişledi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 29",
+    version: "BIM-CALC-2026-10-17.23",
+    date: "17 Ekim 2026",
+    commit: "ef91174292d2ff9db6cd55aac6a7178a71ce56b8",
+    trigger: "Resmî veri araştırması: KİK sınır değer resmî örnek doğrulaması ve yuvarlama, müteahhit sınıflandırma yönetmeliği, konut KDV kademeleri",
+    beforeSummary:
+      "KİK motoru C ve K'yı yuvarlamıyor ve Tebliğ 45.2 resmî örneğinde 52.260,35 TL üretiyordu (resmî sonuç 52.281,00 TL). Müteahhit sınıflandırma ve kat karşılığı motorları kaynaksız sabitler, hatalı KDV ve gizli varsayılanlar içeriyordu.",
+    afterSummary:
+      "KİK motoru Tebliğ'in adım adım yuvarlamasıyla (Tort1/σ/Tort2 2, C/K 3 ondalık) resmî örneği birebir üretir. Müteahhit sınıflandırma motoru yönetmelik metnine (14 grup, yapı sınır bedeli katları, bilanço/ciro/banka referansı, G/G1/H istisnaları) göre yeniden yazıldı. Kat karşılığı KDV'si 150 m² kısım bazlıdır; arsa sahibine teslimde matrah, KDV Genel Uygulama Tebliği I/B-8 uyarınca VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende) olarak hesaplanır ve Tebliğ'in sayısal örnekleriyle test edilmiştir. Üç motor da yayında değildir ve bağımsız uzman onayı yoktur.",
+    affectedModules: ["kik-adt"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "K katsayısı ve C oranı tam hassasiyetle taşınıyor; golden testler motorun kendi formülünden türetilmişti. Resmî örnekle karşılaştırma yapılmamıştı.",
+        after: "Tort1, σ, Tort2 2; C, K 3 ondalığa yuvarlanır; her adımın yuvarlanmış sonucu sonraki adımda kullanılır. Kamu İhale Genel Tebliği 45.2 örneği (YM 100.000 TL, N = 1,20) golden testtir: Tort1 66.270,00; σ 20.317,05; Tort2 63.237,50; C 0,632; K 0,627; SD 52.281,00 TL.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1, m.45.1.1.1, m.45.1.1.4 ve m.45.2 resmî sayısal örneği",
+      },
+    },
+  },
+  {
+    revision: "Rev. 30",
+    version: "BIM-CALC-2026-10-17.24",
+    date: "17 Ekim 2026",
+    commit: "53681be9e15fdab35578a609edf2e1b5cbfa5a93",
+    trigger: "Melih Dinekli 17 Saha Sorusu Yanıtları: Taşeron şap standardı (325 kg çimento + %10 fire), net mahal ölçüm kuralları, %30 emsal harici tavanı ve 27 kalemlik 6-villa maliyet referansı",
+    beforeSummary:
+      "Taşeron hakediş kalkanı şap harcı için çimento ve fire girdilerini serbest bırakıyor ancak Türkiye saha standardı referansı sunmuyordu. Ön teklif fizibilite motoru emsal harici alanın (%30) yasal sınırını denetlemiyordu ve 27 kalemlik piyasa maliyet dağılımı referansı bulunmuyordu.",
+    afterSummary:
+      "Melih Dinekli'nin 17 saha sorusuna verdiği resmi yazılı yanıtlar ve 6-villa maliyet PDF'i doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
+    affectedModules: ["taseron-hakedis-kalkani", "on-teklif-fizibilite"],
+    moduleDetails: {
+      "taseron-hakedis-kalkani": {
+        before: "Şap harcı ve çimento hesabı yalnızca kullanıcı girdisiyle çalışıyordu, saha benchmark referansı yoktu.",
+        after: "Melih Dinekli saha standardı (325 kg/m³ çimento, %10 fire, 1:3-1:4 karışım) ve 4 yaygın taşeron şişirme taktiği denetim kriteri olarak eklendi.",
+        basis: "Melih Dinekli yazılı saha yanıtı (17 Ekim 2026, Soru 1-3)",
+      },
+      "on-teklif-fizibilite": {
+        before: "Emsal harici alan girilmediğinde uyarı veriliyor ancak emsalin %30'unu aşan durumlar uyarılmıyordu; maliyet dağılımı referansı yoktu.",
+        after: "Planlı Alanlar İmar Yönetmeliği m.5/8 ve Melih Dinekli teyidiyle emsal harici alan > %30 emsal uyarısı eklendi; 27 kalemlik gerçek 6-villa maliyet referansı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026) sisteme bağlandı.",
+        basis: "Planlı Alanlar İmar Yönetmeliği m.5/8; Melih Dinekli saha yanıtı ve 6-villa maliyet tablosu (17 Ekim 2026)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 31",
+    version: "BIM-CALC-2026-10-17.25",
+    date: "17 Ekim 2026",
+    commit: "544e1dd565a58e65e63893325608c2ff56bb201f",
+    trigger: "Müteahhitlik İş Akışları Karşılama Masası (Contractor Workflow Hub) ve Yaşam Döngüsü Yönlendiricisi",
+    beforeSummary:
+      "Kullanıcı giriş yaptığında (/app) yalnızca boş bir teklif masası uyarısı ('Henüz teklif verisi yok') görüyordu; arsa ön fizibilitesi, Excel'den ihale cetveli dönüştürme ve taşeron hakediş kalkanı gibi hayati aşamalar ilk ekranda yönlendirilmiyordu.",
+    afterSummary:
+      "Kullanıcıyı doğrudan projesinin bulunduğu yaşam döngüsüne göre yönlendiren 3 evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) devreye alındı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif teklifler olduğunda kompakt hızlı süreç şeridine dönüşür.",
+    affectedModules: ["on-teklif-fizibilite", "taseron-hakedis-kalkani", "ifc-metraj"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Arsa fizibilitesine yalnızca SmartCheck altından kaydırılarak ulaşılabiliyordu.",
+        after: "Ana karşılama masasından tek tıkla doğrudan arsa emsal/fizibilite ve Excel teklif aktarımına yönlendirme sağlandı.",
+        basis: "Türk müteahhitlik iş süreçleri analizi ve saha geri bildirimi",
+      },
+      "taseron-hakedis-kalkani": {
+        before: "Taşeron hakediş kalkanı IFC açıldıktan sonra bağımsız bölüm kartında gizli kalıyordu.",
+        after: "Giriş ekranında Evre 03 Saha Denetimi kartı olarak konumlandırıldı; şap standardı ve kesinti raporuna doğrudan erişim açıldı.",
+        basis: "Melih Dinekli saha standardı ve şantiye hakediş denetim ihtiyacı",
       },
     },
   },

@@ -314,7 +314,7 @@ export function Register() {
                         onClick={() => setBillingCycle(option.id)}
                         className={`flex flex-col items-center justify-center rounded px-2.5 py-2 text-xs font-semibold transition-all border ${
                           active
-                            ? 'border-primary bg-primary text-white shadow-xs'
+                            ? 'border-primary bg-primary text-foreground shadow-xs'
                             : 'border-transparent bg-background/60 text-muted-foreground hover:text-foreground hover:border-border'
                         }`}
                       >
@@ -322,7 +322,7 @@ export function Register() {
                         <span
                           className={`mt-0.5 font-mono text-[10px] font-bold ${
                             active
-                              ? 'text-white/90'
+                              ? 'text-foreground/90'
                               : option.discountPercent > 0
                                 ? 'text-emerald-400'
                                 : 'text-muted-foreground'
@@ -356,7 +356,7 @@ export function Register() {
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                              isSelected ? 'border-primary bg-primary text-white' : 'border-muted-foreground/50'
+                              isSelected ? 'border-primary bg-primary text-foreground' : 'border-muted-foreground/50'
                             }`}
                           >
                             {isSelected && <CheckCircle2 size={12} />}
@@ -551,25 +551,26 @@ export function Register() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">Ad Soyad</label>
+                    <label htmlFor="register-fullname" className="text-xs font-medium text-foreground">Ad Soyad</label>
                     <div className="relative group">
                       <User
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
                         size={16}
                       />
                       <input
+                        id="register-fullname"
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         required
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder="Ahmet Yılmaz"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">
+                    <label htmlFor="register-company" className="text-xs font-medium text-foreground">
                       {isAcademy ? 'Okul / Şirket (isteğe bağlı)' : 'Şirket / Ofis Adı'}
                     </label>
                     <div className="relative group">
@@ -578,48 +579,51 @@ export function Register() {
                         size={16}
                       />
                       <input
+                        id="register-company"
                         type="text"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                         required={!isAcademy}
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder={isAcademy ? 'Üniversite veya kurumunuz' : 'Örn: Yılmaz İnşaat Taahhüt Ltd.'}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">E-posta Adresi</label>
+                    <label htmlFor="register-email" className="text-xs font-medium text-foreground">E-posta Adresi</label>
                     <div className="relative group">
                       <Mail
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
                         size={16}
                       />
                       <input
+                        id="register-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder="ahmet@sirketiniz.com"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-foreground">Şifre (En az 8 karakter)</label>
+                    <label htmlFor="register-password" className="text-xs font-medium text-foreground">Şifre (En az 8 karakter)</label>
                     <div className="relative group">
                       <Lock
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
                         size={16}
                       />
                       <input
+                        id="register-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={8}
-                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-input/40 border border-border rounded-md h-10 pl-9 pr-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary focus:outline-none transition-colors"
                         placeholder="••••••••"
                       />
                     </div>
@@ -670,7 +674,7 @@ export function Register() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 h-10 text-white font-semibold text-sm gap-2 shadow-xs"
+                    className="w-full bg-primary hover:bg-primary/90 h-10 text-foreground font-semibold text-sm gap-2 shadow-xs"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={16} />

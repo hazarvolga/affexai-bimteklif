@@ -61,7 +61,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-6 space-y-6">
+    <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
       {/* Disclaimer and Non-authoritative Demo labels */}
       <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-[10px] text-orange-500 font-sans space-y-1">
         <p className="font-black uppercase tracking-wider">⚠️ Donatı Detaylandırma Demo Simülatörü</p>
@@ -73,21 +73,21 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
         </p>
       </div>
 
-      <div className="flex justify-between items-center border-b border-zinc-800/80 pb-3">
+      <div className="flex justify-between items-center border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Scale className="text-orange-500" size={18} />
-          <h4 className="font-black text-zinc-100 uppercase tracking-widest text-[10px]">ALLPLAN Sandbox: Donatı Detaylandırma Simülatörü (Demo)</h4>
+          <h4 className="font-black text-foreground uppercase tracking-widest text-[10px]">ALLPLAN Sandbox: Donatı Detaylandırma Simülatörü (Demo)</h4>
         </div>
         <Button
           variant="ghost"
           onClick={resetSimulator}
-          className="text-zinc-500 hover:text-zinc-300 font-mono text-[9px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
+          className="text-muted-foreground hover:text-zinc-300 font-mono text-[9px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
         >
           <RefreshCw size={10} /> Sıfırla
         </Button>
       </div>
 
-      <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+      <p className="text-xs text-muted-foreground leading-relaxed font-sans">
         XC3 etiketli demo senaryosunda hedef demo değeri 35 mm olarak seçilmiştir. Gerçek nominal beton örtüsü; maruziyet sınıfı, yapısal sınıf, aderans gereksinimi, uygulama toleransı, ulusal ek ve proje koşullarına göre belirlenmelidir. Aşağıdaki paspayı ayarını 35 mm yaparak donatı yerleşim simülasyonunu tamamlayın!
       </p>
 
@@ -96,8 +96,8 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
         <div className="col-span-12 md:col-span-5 space-y-4">
           <div className="space-y-3">
             {/* Cover range slider */}
-            <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2">
-              <div className="flex justify-between text-[10px] font-mono text-zinc-400 font-bold">
+            <div className="p-4 bg-background border border-border rounded-xl space-y-2">
+              <div className="flex justify-between text-[10px] font-mono text-muted-foreground font-bold">
                 <span>AKTİF PASPAYI (COVER)</span>
                 <span className={coverMm >= 35 ? "text-emerald-500" : "text-red-500"}>{coverMm} mm</span>
               </div>
@@ -108,9 +108,9 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
                 step="5"
                 value={coverMm}
                 onChange={(e) => handleCoverChange(parseInt(e.target.value))}
-                className="w-full accent-orange-500 h-1 bg-zinc-800 rounded-lg cursor-pointer"
+                className="w-full accent-orange-500 h-1 bg-surface-elevated rounded-lg cursor-pointer"
               />
-              <div className="flex justify-between text-[8px] text-zinc-600 font-mono">
+              <div className="flex justify-between text-[8px] text-muted-foreground font-mono">
                 <span>15 mm (Minimum)</span>
                 <span>35 mm (Gerekli)</span>
                 <span>50 mm (Maksimum)</span>
@@ -119,35 +119,35 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
 
             {/* Standard Selection */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Bindirme Hesabı Standardı</label>
+              <label className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Bindirme Hesabı Standardı</label>
               <div className="grid grid-cols-2 gap-1">
                 {([['TS500', 'TS 500 (Denk. 9.1–9.2)'], ['EC2', 'Eurocode 2 (demo)']] as const).map(([value, label]) => (
                   <button
                     key={value}
                     onClick={() => setStandard(value)}
                     className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
-                      standard === value ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                      standard === value ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-zinc-700'
                     }`}
                   >
                     {label}
                   </button>
                 ))}
               </div>
-              <p className="text-[8px] text-zinc-600 font-mono">
+              <p className="text-[8px] text-muted-foreground font-mono">
                 {standard === 'TS500' ? 'B420C, nervürlü, iyi aderans, tüm çubuklar aynı kesitte eklenir (r = 1, α1 = 1,5).' : 'Sabit çelik gerilmesi senaryolu basitleştirilmiş EN 1992-1-1 demosu.'}
               </p>
             </div>
 
             {/* Concrete Selection */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">Beton Sınıfı</label>
+              <label className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Beton Sınıfı</label>
               <div className="grid grid-cols-5 gap-1">
                 {['C20/25', 'C25/30', 'C30/37', 'C35/45', 'C40/50'].map(grade => (
                   <button
                     key={grade}
                     onClick={() => setConcreteGrade(grade)}
                     className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
-                      concreteGrade === grade ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                      concreteGrade === grade ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-zinc-700'
                     }`}
                   >
                     {grade}
@@ -158,8 +158,8 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
 
             {/* Bar Diameter */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[9px] font-mono text-zinc-400">
-                <span className="uppercase font-black text-zinc-500 tracking-wider">DONATI ÇAPI (Φ)</span>
+              <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
+                <span className="uppercase font-black text-muted-foreground tracking-wider">DONATI ÇAPI (Φ)</span>
                 <span className="text-orange-500 font-bold">{barDiameter} mm</span>
               </div>
               <div className="grid grid-cols-6 gap-1">
@@ -168,7 +168,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
                     key={dia}
                     onClick={() => setBarDiameter(dia)}
                     className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
-                      barDiameter === dia ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                      barDiameter === dia ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-zinc-700'
                     }`}
                   >
                     Φ{dia}
@@ -180,8 +180,8 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
         </div>
 
         {/* Dynamic Structural drawing */}
-        <div className="col-span-12 md:col-span-7 bg-zinc-950 border border-zinc-800 p-4 flex flex-col items-center justify-center relative min-h-[300px] rounded-xl">
-          <div className="absolute top-3 left-3 text-[9px] font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+        <div className="col-span-12 md:col-span-7 bg-background border border-border p-4 flex flex-col items-center justify-center relative min-h-[300px] rounded-xl">
+          <div className="absolute top-3 left-3 text-[9px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1">
             <Info size={10} /> Ölçekli Donatı Bindirme Çizimi
           </div>
 
@@ -219,13 +219,13 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
           </div>
 
           {/* Results Summary Box */}
-          <div className="w-full bg-zinc-900 border border-zinc-800 p-3 flex justify-between items-center font-mono text-[10px] mt-2 rounded-xl">
+          <div className="w-full bg-card border border-border p-3 flex justify-between items-center font-mono text-[10px] mt-2 rounded-xl">
             <div>
-              <p className="text-zinc-500 uppercase text-[8px] font-bold">Simülasyon sonucu (l0) · {standard === 'TS500' ? 'TS 500' : 'EC2 demo'}</p>
-              <p className="text-sm font-black text-zinc-100">{calculatedLapLength} mm <span className="text-[9px] text-zinc-400">({(calculatedLapLength/10).toFixed(1)} cm)</span></p>
+              <p className="text-muted-foreground uppercase text-[8px] font-bold">Simülasyon sonucu (l0) · {standard === 'TS500' ? 'TS 500' : 'EC2 demo'}</p>
+              <p className="text-sm font-black text-foreground">{calculatedLapLength} mm <span className="text-[9px] text-muted-foreground">({(calculatedLapLength/10).toFixed(1)} cm)</span></p>
             </div>
             <div className="text-right">
-              <p className="text-zinc-500 uppercase text-[8px] font-bold">Paspayı Durumu</p>
+              <p className="text-muted-foreground uppercase text-[8px] font-bold">Paspayı Durumu</p>
               <p className={`text-[10px] font-bold uppercase ${coverMm >= 35 ? "text-emerald-500" : "text-red-500 animate-pulse"}`}>
                 {coverMm >= 35 ? "Hedef Değer Sağlandı" : "Yetersiz Paspayı"}
               </p>
