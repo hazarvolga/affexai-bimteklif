@@ -1,7 +1,8 @@
-import { describe, it, after } from 'node:test';
+import { describe, it, before, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApiApp } from '../app';
 import { AuthService } from '../../services/auth/authService';
+import { db } from '../../db';
 
 describe('Super Admin Security & Features Integration', () => {
   const app = createApiApp();
@@ -9,7 +10,22 @@ describe('Super Admin Security & Features Integration', () => {
   const address = server.address() as { port: number };
   const baseUrl = `http://127.0.0.1:${address.port}`;
 
+  before(() => {
+    mock.method(db, 'select', (() => ({
+      from() {
+        return {
+          where() {
+            const rows: any[] = [];
+            (rows as any).limit = async () => [];
+            return Promise.resolve(rows);
+          },
+        };
+      },
+    })) as any);
+  });
+
   after(() => {
+    mock.restoreAll();
     server.close();
   });
 

@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1792064330.5631754,
-    "ast_hash": "6753e9a7ce2a0f038436d76937e8076f",
+    "mtime": 1792203543.4930518,
+    "ast_hash": "7ccf9454fe08b384f493f025fe76c347",
     "semantic_hash": ""
   },
   "src/academy/activation.test.ts": {
@@ -1415,8 +1415,8 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1778748316.0,
-    "ast_hash": "2b36426d5ad7e08ef79746aa524f4fb7",
+    "mtime": 1792203463.704113,
+    "ast_hash": "44072607d3530c012da079cea3190897",
     "semantic_hash": ""
   },
   "src/pages/AIAssistant.tsx": {
@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1792200928.2537901,
-    "ast_hash": "35c1304fdeffc045728c49c08d0f8a8d",
+    "mtime": 1792203285.6995516,
+    "ast_hash": "a6beccc053fc0efc96ab8a00f56568af",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -1555,8 +1555,8 @@
     "semantic_hash": ""
   },
   "src/pages/PilotApplications.tsx": {
-    "mtime": 1791720672.3159997,
-    "ast_hash": "e7b092672a157286f4a7065e9ce7e9b9",
+    "mtime": 1792203423.2437117,
+    "ast_hash": "7228a27efbb00416d0fb605aeb4cca84",
     "semantic_hash": ""
   },
   "src/pages/PilotEvidence.tsx": {
@@ -1755,8 +1755,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/pilot.ts": {
-    "mtime": 1791720672.3464134,
-    "ast_hash": "a85b55376030e1797ec5e800f58f17d4",
+    "mtime": 1792202941.282263,
+    "ast_hash": "70a53dc165454bb1bc0170ef8ca8a5c2",
     "semantic_hash": ""
   },
   "src/server/routes/pricing.integration.test.ts": {
@@ -3865,8 +3865,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1792200407.7610328,
-    "ast_hash": "1f1ca4a9d9c591a25f5509c41762b6cf",
+    "mtime": 1792202327.7218907,
+    "ast_hash": "908b845e8c76962183e5f7e9f8ba444b",
     "semantic_hash": ""
   },
   "PRODUCT.md": {
@@ -4270,8 +4270,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792200418.8680975,
-    "ast_hash": "76eec6384b3ec9c1becf4b6db4f76ad2",
+    "mtime": 1792203444.0493224,
+    "ast_hash": "02bb45fef985edf61665d027e713c731",
     "semantic_hash": ""
   },
   "notebooklm/AUTHENTICATION.md": {
@@ -4565,8 +4565,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/AdminShell.tsx": {
-    "mtime": 1792200573.4760828,
-    "ast_hash": "0f951f06d4cc9c7f8a69a75e7b0e7e47",
+    "mtime": 1792203322.566036,
+    "ast_hash": "97d6d8450a0b33426e6224495f84d9c2",
     "semantic_hash": ""
   },
   "src/components/ui/field.tsx": {
@@ -4680,8 +4680,8 @@
     "semantic_hash": ""
   },
   "src/services/pilot/PilotRepository.ts": {
-    "mtime": 1791720672.3611522,
-    "ast_hash": "2b67cbf0dbdcfe7a0994e6c865949f6b",
+    "mtime": 1792202918.4130685,
+    "ast_hash": "4ba204c0e73aacdce529930eeace7b82",
     "semantic_hash": ""
   },
   "src/services/pilot/PilotService.ts": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792201308.7786493,
-    "ast_hash": "c5b9b2afc7ca2506d56fbd11c18e0143",
+    "mtime": 1792202389.4810736,
+    "ast_hash": "52c80483611eeff6d7ae160f914f2bfc",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6075,8 +6075,8 @@
     "semantic_hash": ""
   },
   "src/server/security/web-hardening.ts": {
-    "mtime": 1792064162.8798664,
-    "ast_hash": "2c3d7b0914d3d4d36b2923b2a0f594e0",
+    "mtime": 1792203489.5454288,
+    "ast_hash": "f2fa2a5d8126db013b3ca5d973a8311c",
     "semantic_hash": ""
   },
   "src/services/billing/feature-limits.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792201360.974471,
-    "ast_hash": "9b6094fa3a0e82a5cedc99d38940ca8a",
+    "mtime": 1792203613.3463597,
+    "ast_hash": "4935e1d8aa1247f91e5d8ddfe008e201",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6472,6 +6472,11 @@
   "src/components/ui/ThemeToggle.tsx": {
     "mtime": 1792200513.5116987,
     "ast_hash": "dcb137567a4388ea24bc5cebb306a630",
+    "semantic_hash": ""
+  },
+  "GAP_RAPORU_2026-10-17.md": {
+    "mtime": 1792203519.746181,
+    "ast_hash": "1f24ac0b6ed0760210ae17d5e44c4ede",
     "semantic_hash": ""
   }
 }

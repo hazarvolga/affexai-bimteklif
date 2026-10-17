@@ -256,23 +256,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 8",
     version: "BIM-CALC-2026-10-17.2",
     date: "17 Ekim 2026",
-    commit: "2cd4c4a5407cad47b384a47006b70fae6622538b",
-    trigger: "Merkezi Pafta Design System (Light/Dark Modu) & Dinamik 16 Daire Cetveli (5.000 Satır Kapasitesi)",
+    commit: "a78e6f9edb20945eeaf1b3f30b2269fb76435774",
+    trigger: "Merkezi Pafta Design System (Açık Pafta #f3f1e9 & Koyu Antrasit #141517), Yüksek Kontrast, Erken Erişim Ön Kayıt (/admin/leads) & GAP_RAPORU_2026-10-17 Düzeltmeleri (Y-1, Y-2, Y-4, Y-5)",
     beforeSummary:
-      "/app/smartcheck üzerinde dosya yüklenmeden önce referans veri görünüyor ve 1.000 satır sınırı nedeniyle büyük IFC modellerinde IfcSpace oda verileri kesilebiliyordu; ayrıca farklı sayfalarda sabit renkler (bg-zinc-950, bg-blue-600) kullanılıyordu.",
+      "/app/smartcheck üzerinde dosya adında '2026_45' geçen müşteri dosyaları kalibre edilmiş referans veri setine düşebiliyor (Y-1) ve 1.000 satır sınırı nedeniyle büyük IFC modellerinde IfcSpace oda verileri kesilebiliyordu; ayrıca farklı sayfalarda sabit renkler (bg-zinc-950, text-white, pastel metinler), ana sayfada ön kayıt toplama eksikliği ve mükerrer ön kayıtta PII sızıntısı riski (Y-2) bulunuyordu.",
     afterSummary:
-      "DESIGN.md ve src/index.css üzerinde Açık Pafta (#f3f1e9) ve Gece Paftası (#1e2623) token mimarisi + ThemeToggle + PaftaDrawing kuruldu; /app/smartcheck ön yükleme referans verisi kaldırıldı, API satır limiti 5.000'e çıkarıldı ve buildApartmentScheduleFromElements ile gerçek yüklenen IFC satırlarından dinamik daire cetveli üretildi.",
+      "calm-icmal.ts içindeki /2026_45/i dosya adı kısa devresi kaldırılarak tüm gerçek müşteri IFC dosyalarının yalnızca kendi elemanlarından hesaplanması garanti altına alındı (Y-1); DESIGN.md ve src/index.css üzerinde Açık Pafta (#f3f1e9) ve Koyu Antrasit Gece Paftası (#141517) yüksek kontrastlı token mimarisi kuruldu; ana sayfaya Ön Kayıt formu ve /admin/leads potansiyel müşteri yönetimi (KVKK/PII korumalı, Y-2) eklendi; /app/smartcheck API satır limiti 5.000'e çıkarıldı ve dinamik daire cetveli üretildi.",
     affectedModules: ["ifc-metraj", "ifc-teklif-aktarim"],
     moduleDetails: {
       "ifc-metraj": {
-        before: "GET /api/smartcheck/documents/:id/rows 1.000 satırla sınırlıydı ve CalmIfcWorkspace daire cetveli yalnız hazır apartmentSchedule nesnesi varsa doluyordu.",
-        after: "API satır limiti 5.000'e (maks 10.000) çıkarıldı ve buildApartmentScheduleFromElements ile yüklenen IFC'nin IfcSpace satırlarından dinamik daire/oda m² cetveli üretildi.",
-        basis: "src/ifc/calm-icmal.ts & src/server/routes/smartcheck.ts",
+        before: "GET /api/smartcheck/documents/:id/rows 1.000 satırla sınırlıydı ve calm-icmal.ts içinde dosya adında '2026_45' geçen yüklemeler kalibre edilmiş referans veri setine yönlendirilebiliyordu (Y-1).",
+        after: "API satır limiti 5.000'e (maks 10.000) çıkarıldı; /2026_45/i dosya adı kontrolü kaldırılarak her IFC dosyasının yalnızca kendi gerçek elemanlarından ve IfcSpace satırlarından dinamik daire/oda m² cetveli üretmesi sağlandı.",
+        basis: "src/ifc/calm-icmal.ts, src/ifc/calm-icmal.test.ts & GAP_RAPORU_2026-10-17 (Y-1)",
       },
       "ifc-teklif-aktarim": {
-        before: "Farklı ekranlarda sabit renk kodları (bg-zinc-950, bg-blue-600, rounded-2xl) kullanıldığı için görsel bütünlük ve gece/gündüz modu uyumu yoktu.",
-        after: "Merkezi Pafta Design System (DESIGN.md, src/index.css, ThemeToggle, PaftaDrawing) ile tüm ekranlar Sıcak Pafta Kâğıdı (#f3f1e9) ve Gece Paftası (#1e2623) tokenlarına bağlandı.",
-        basis: "DESIGN.md & src/index.css Single Source of Truth Mimarisi",
+        before: "Farklı ekranlarda sabit renk kodları (bg-zinc-950, text-white, pastel -300 metinler) kullanıldığı için açık/koyu mod kontrastı bozulabiliyordu.",
+        after: "Merkezi Pafta Design System (DESIGN.md, src/index.css, ThemeToggle, PaftaDrawing) ile tüm ekranlar Sıcak Pafta Kâğıdı (#f3f1e9) ve Koyu Antrasit Gece Paftası (#141517) yüksek kontrastlı tokenlarına bağlandı; ana sayfa ön kayıt formu (/admin/leads, Y-2 PII korumalı) ve PageSpeed/CSP iyileştirmeleri devreye alındı.",
+        basis: "DESIGN.md, src/index.css & GAP_RAPORU_2026-10-17 (Y-2, Y-4)",
       },
     },
   },

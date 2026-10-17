@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Building2, CheckCircle2, ClipboardList, Mail, Phone, RefreshCw, UserPlus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Building2, CheckCircle2, ClipboardList, Download, Mail, Phone, RefreshCw, Search, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ type PilotApplication = {
   phone: string | null;
   teamSize: string | null;
   currentWorkflow: string | null;
+  source?: string | null;
   status: string;
   offerAmount: string | null;
   offerCurrency: string;
@@ -24,11 +25,11 @@ type PilotApplication = {
 type PilotMetrics = { total: number; converted: number; paid: number; newLeads: number; bottleneckContacted: number; conversionRate: number; paidRate: number; averageDaysToConvert: number | null };
 
 const statuses = [
-  { value: 'new', label: 'Yeni', className: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
-  { value: 'contacted', label: 'İletişimde', className: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
-  { value: 'qualified', label: 'Nitelikli', className: 'border-purple-500/30 bg-purple-500/10 text-purple-300' },
-  { value: 'converted', label: 'Müşteriye Dönüştü', className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
-  { value: 'rejected', label: 'Uygun değil', className: 'border-zinc-700 bg-zinc-800/50 text-zinc-400' },
+  { value: 'new', label: 'Yeni Ön Kayıt', className: 'border-primary/40 bg-primary/10 text-primary' },
+  { value: 'contacted', label: 'İletişimde', className: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
+  { value: 'qualified', label: 'Nitelikli Aday', className: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300' },
+  { value: 'converted', label: 'Müşteriye Dönüştü', className: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
+  { value: 'rejected', label: 'Arşiv / Uygun Değil', className: 'border-border bg-card text-muted-foreground' },
 ];
 // "converted" statüsüne yalnızca gerçek hesap oluşturma eylemiyle ulaşılır — dropdown'dan seçilemez.
 const selectableStatuses = statuses.filter((status) => status.value !== 'converted');
@@ -44,16 +45,18 @@ export function PilotApplications() {
   const [metrics, setMetrics] = useState<PilotMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const loadApplications = async () => {
     setLoading(true);
     try {
       const [response, metricsResponse] = await Promise.all([fetchWithAuth('/api/pilot-applications'), fetchWithAuth('/api/pilot-applications/metrics')]);
-      if (!response.ok || !metricsResponse.ok) throw new Error('Başvurular yüklenemedi.');
+      if (!response.ok || !metricsResponse.ok) throw new Error('Ön kayıt ve aday listesi yüklenemedi.');
       setApplications(await response.json());
       setMetrics(await metricsResponse.json());
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Başvurular yüklenemedi.');
+      toast.error(error instanceof Error ? error.message : 'Ön kayıt listesi yüklenemedi.');
     } finally {
       setLoading(false);
     }
@@ -61,13 +64,55 @@ export function PilotApplications() {
 
   useEffect(() => { loadApplications(); }, []);
 
+  const filteredApplications = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return applications.filter((app) => {
+      if (statusFilter !== 'all' && app.status !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        app.email.toLowerCase().includes(q) ||
+        app.fullName.toLowerCase().includes(q) ||
+        app.companyName.toLowerCase().includes(q) ||
+        (app.teamSize || '').toLowerCase().includes(q) ||
+        (app.currentWorkflow || '').toLowerCase().includes(q)
+      );
+    });
+  }, [applications, searchQuery, statusFilter]);
+
+  const handleExportCsv = () => {
+    if (filteredApplications.length === 0) {
+      toast.info('Dışa aktarılacak kayıt bulunmuyor.');
+      return;
+    }
+    const headers = ['Kayit Tarihi', 'E-Posta', 'Ad Soyad', 'Firma / Ofis', 'Uzmanlik / Ekip', 'Kaynak', 'Durum', 'Not'];
+    const escapeCsv = (val: unknown) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+    const rows = filteredApplications.map((a) => [
+      new Date(a.createdAt).toLocaleString('tr-TR'),
+      a.email,
+      a.fullName,
+      a.companyName,
+      a.teamSize || '',
+      a.source === 'landing_waitlist' ? 'Ana Sayfa Ön Kayıt' : 'Pilot Başvuru Formu',
+      statuses.find((s) => s.value === a.status)?.label || a.status,
+      a.currentWorkflow || '',
+    ]);
+    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(';'), ...rows.map((r) => r.map(escapeCsv).join(';'))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bimmetraj-on-kayit-adaylar-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const updateApplication = async (id: string, changes: Record<string, string>) => {
     try {
       const response = await fetchWithAuth(`/api/pilot-applications/${id}`, { method: 'PATCH', body: JSON.stringify(changes) });
       if (!response.ok) throw new Error('Durum güncellenemedi.');
       const updated = await response.json();
       setApplications((current) => current.map((application) => application.id === id ? updated : application));
-      toast.success('Pilot kaydı güncellendi.');
+      toast.success('Aday kaydı güncellendi.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Durum güncellenemedi.');
     }
@@ -102,109 +147,227 @@ export function PilotApplications() {
   return (
     <PageContainer>
       <PageHeader
-        title="Deneme Sürümü & Müşteriler"
-        description="Platformunuza başvuran deneme sürümü taleplerini yönetin ve ödeme yapan müşterilere (SaaS kiracılarına) dönüştürün."
+        title="Ön Kayıt & Potansiyel Müşteri Listesi (Erken Erişim / Pilot)"
+        description="Ana sayfadaki 'Geliştirme Aşaması Ön Kayıt' formundan ve '/pilot' sayfasından e-posta bırakan potansiyel müşterileri görüntüleyin, CSV olarak dışa aktarın veya tek tıkla deneme hesabına dönüştürün."
         icon={ClipboardList}
-        actions={<Button variant="outline" onClick={loadApplications} disabled={loading} className="border-zinc-800 text-zinc-300 hover:bg-zinc-900"><RefreshCw size={16} className={loading ? 'mr-2 animate-spin' : 'mr-2'} />Yenile</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleExportCsv} disabled={loading || filteredApplications.length === 0}>
+              <Download size={15} className="mr-2" />
+              CSV İndir ({filteredApplications.length})
+            </Button>
+            <Button variant="outline" onClick={loadApplications} disabled={loading}>
+              <RefreshCw size={15} className={loading ? 'mr-2 animate-spin' : 'mr-2'} />
+              Yenile
+            </Button>
+          </div>
+        }
       />
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Health / Overview */}
-        <div className="border border-zinc-800 bg-zinc-950 p-5 rounded-xl flex flex-col justify-between">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="border border-border bg-card p-5 flex flex-col justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Dönüşüm Sağlığı</p>
-            <p className="text-3xl font-black text-white">{metrics ? `${metrics.conversionRate.toFixed(1)}%` : '—'}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+              01 / TOPLAM ÖN KAYIT &amp; ADAY
+            </p>
+            <p className="font-mono text-3xl font-bold tabular-nums text-foreground">{metrics?.total ?? applications.length}</p>
           </div>
-          <p className="text-xs text-zinc-500 mt-4 border-t border-zinc-800/50 pt-3">Toplam <span className="text-white font-medium">{metrics?.total || 0}</span> başvurudan <span className="text-emerald-400 font-medium">{metrics?.converted || 0}</span> firma pilota alındı.</p>
+          <p className="text-xs text-muted-foreground mt-4 border-t border-border pt-3">
+            Toplam <strong className="text-foreground">{metrics?.total || 0}</strong> ön kayıttan{' '}
+            <strong className="text-primary">{metrics?.converted || 0}</strong> firma aktif hesaba dönüştürüldü.
+          </p>
         </div>
 
-        {/* Actionable / New */}
-        <div className="border border-blue-500/30 bg-blue-500/5 p-5 rounded-xl flex flex-col justify-between relative overflow-hidden">
-          {(metrics?.newLeads || 0) > 0 && <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/20 blur-2xl rounded-full -mr-8 -mt-8" />}
+        <div className="border border-border bg-card p-5 flex flex-col justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Aksiyon Bekleyen (Yeni)</p>
-            <p className="text-3xl font-black text-white">{metrics?.newLeads || 0}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary mb-1">
+              02 / YENİ ÖN KAYITLAR
+            </p>
+            <p className="font-mono text-3xl font-bold tabular-nums text-foreground">{metrics?.newLeads || 0}</p>
           </div>
-          <p className="text-xs text-zinc-500 mt-4 border-t border-blue-500/10 pt-3">Hemen iletişime geçip nitelendirmeniz gereken taze başvurular.</p>
+          <p className="text-xs text-muted-foreground mt-4 border-t border-border pt-3">
+            Ana sayfadan veya pilot formundan yeni e-posta bırakan potansiyel müşteriler.
+          </p>
         </div>
 
-        {/* Bottleneck */}
-        <div className="border border-amber-500/30 bg-amber-500/5 p-5 rounded-xl flex flex-col justify-between relative overflow-hidden">
-          {(metrics?.bottleneckContacted || 0) > 0 && <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/20 blur-2xl rounded-full -mr-8 -mt-8" />}
+        <div className="border border-border bg-card p-5 flex flex-col justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">Darboğaz: İletişimde Bekleyen</p>
-            <p className="text-3xl font-black text-white">{metrics?.bottleneckContacted || 0}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+              03 / İLETİŞİMDE BEKLEYEN
+            </p>
+            <p className="font-mono text-3xl font-bold tabular-nums text-foreground">{metrics?.bottleneckContacted || 0}</p>
           </div>
-          <p className="text-xs text-zinc-500 mt-4 border-t border-amber-500/10 pt-3">Görüşülen ama "Pilota Dönüştürülmeyen" firmalar. Takip maili atın.</p>
+          <p className="text-xs text-muted-foreground mt-4 border-t border-border pt-3">
+            Bilgilendirme / erken erişim daveti gönderilen ve geri dönüş beklenen adaylar.
+          </p>
         </div>
 
-        {/* Performance */}
-        <div className="border border-emerald-500/30 bg-emerald-500/5 p-5 rounded-xl flex flex-col justify-between">
+        <div className="border border-border bg-card p-5 flex flex-col justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Ödeme Performansı</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+              04 / DÖNÜŞÜM ORANI
+            </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-black text-white">{metrics?.paid || 0}</p>
-              <span className="text-sm font-medium text-emerald-500">({metrics ? `${metrics.paidRate.toFixed(1)}%` : '—'})</span>
+              <p className="font-mono text-3xl font-bold tabular-nums text-foreground">
+                {metrics ? `%${metrics.conversionRate.toFixed(1)}` : '—'}
+              </p>
+              <span className="font-mono text-xs text-muted-foreground">({metrics?.paid || 0} ücretli)</span>
             </div>
           </div>
-          <p className="text-xs text-zinc-500 mt-4 border-t border-emerald-500/10 pt-3">Pilota alınan firmalar içinden ödeme yapanların oranı.</p>
+          <p className="text-xs text-muted-foreground mt-4 border-t border-border pt-3">
+            Ön kayıttan aktif SaaS kiracısına (tenant) dönüşenlerin oranı.
+          </p>
+        </div>
+      </div>
+
+      {/* Arama ve Durum Filtresi */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border bg-card p-4">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="E-posta, ad soyad, firma veya uzmanlık alanına göre ara..."
+            className="h-10 w-full border border-border bg-background pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {[
+            { value: 'all', label: `Tümü (${applications.length})` },
+            { value: 'new', label: 'Yeni Ön Kayıt' },
+            { value: 'contacted', label: 'İletişimde' },
+            { value: 'qualified', label: 'Nitelikli' },
+            { value: 'converted', label: 'Müşteriye Dönüştü' },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setStatusFilter(tab.value)}
+              className={`border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                statusFilter === tab.value
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="border border-zinc-800 bg-zinc-900/30 p-12 text-center text-sm text-zinc-500">Başvurular yükleniyor...</div>
-      ) : applications.length === 0 ? (
-        <div className="border border-dashed border-zinc-800 bg-zinc-900/20 p-12 text-center">
-          <ClipboardList className="mx-auto text-zinc-600" size={32} />
-          <p className="mt-4 font-medium text-zinc-300">Henüz pilot başvurusu yok.</p>
-          <p className="mt-2 text-sm text-zinc-600">Public pilot formundan gelen başvurular burada görünecek.</p>
+        <div className="border border-border bg-card p-12 text-center text-sm text-muted-foreground">
+          Ön kayıt ve potansiyel müşteri listesi yükleniyor...
+        </div>
+      ) : filteredApplications.length === 0 ? (
+        <div className="border border-dashed border-border bg-card p-12 text-center">
+          <ClipboardList className="mx-auto text-muted-foreground" size={32} />
+          <p className="mt-4 font-semibold text-foreground">Kayıt bulunamadı.</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Ana sayfadaki &ldquo;Ön Kayıt Oluştur&rdquo; formundan veya /pilot sayfasından bırakılan e-postalar otomatik olarak burada listelenir.
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {applications.map((application) => {
+          {filteredApplications.map((application) => {
             const meta = statuses.find((item) => item.value === application.status) || statuses[0];
             const isConverted = Boolean(application.provisionedCompanyId);
+            const isLandingWaitlist = application.source === 'landing_waitlist' || application.companyName === 'Erken Erişim Ön Kayıt';
             return (
-              <article key={application.id} className="border border-zinc-800 bg-zinc-900/40 p-5">
+              <article key={application.id} className="border border-border bg-card p-5">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h2 className="text-lg font-semibold text-white">{application.fullName}</h2>
-                      <span className={`rounded border px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${meta.className}`}>{meta.label}</span>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <h2 className="text-base font-bold text-foreground">{application.email}</h2>
+                      <span className={`border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${meta.className}`}>
+                        {meta.label}
+                      </span>
+                      <span className="border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {isLandingWaitlist ? 'ANA SAYFA ÖN KAYIT' : 'PİLOT BAŞVURUSU'}
+                      </span>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-zinc-400">
-                      <span className="inline-flex items-center gap-2"><Building2 size={14} className="text-zinc-600" />{application.companyName}</span>
-                      <a href={`mailto:${application.email}`} className="inline-flex items-center gap-2 hover:text-orange-400"><Mail size={14} className="text-zinc-600" />{application.email}</a>
-                      {application.phone && <span className="inline-flex items-center gap-2"><Phone size={14} className="text-zinc-600" />{application.phone}</span>}
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5 text-foreground font-medium">
+                        Ad / İlgili: <strong>{application.fullName}</strong>
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Building2 size={13} className="text-primary" />
+                        {application.companyName}
+                      </span>
+                      <a href={`mailto:${application.email}`} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                        <Mail size={13} />
+                        {application.email}
+                      </a>
+                      {application.phone && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Phone size={13} />
+                          {application.phone}
+                        </span>
+                      )}
                     </div>
-                    <p className="mt-3 text-xs text-zinc-600">Başvuru: {new Date(application.createdAt).toLocaleString('tr-TR')} {application.teamSize ? `· Ekip: ${application.teamSize}` : ''}</p>
-                    {application.currentWorkflow && <p className="mt-4 max-w-3xl border-l-2 border-orange-500/40 pl-3 text-sm leading-relaxed text-zinc-400">{application.currentWorkflow}</p>}
+                    <p className="mt-2.5 font-mono text-[11px] text-muted-foreground">
+                      KAYIT TARİHİ: {new Date(application.createdAt).toLocaleString('tr-TR')}{' '}
+                      {application.teamSize ? `· UZMANLIK / EKİP: ${application.teamSize}` : ''}
+                    </p>
+                    {application.currentWorkflow && (
+                      <p className="mt-3 max-w-3xl border-l-2 border-primary pl-3 text-xs leading-relaxed text-foreground">
+                        {application.currentWorkflow}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
-                    <label className="text-xs text-zinc-500">Durum
-                      <select value={application.status} disabled={isConverted} onChange={(event) => updateApplication(application.id, { status: event.target.value })} className="mt-2 block h-10 min-w-44 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-white outline-none focus:border-orange-500 disabled:opacity-50">
-                        {selectableStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+                    <label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Durum
+                      <select
+                        value={application.status}
+                        disabled={isConverted}
+                        onChange={(event) => updateApplication(application.id, { status: event.target.value })}
+                        className="mt-1.5 block h-9 min-w-44 border border-border bg-background px-3 font-sans text-xs text-foreground outline-none focus:border-primary disabled:opacity-50"
+                      >
+                        {selectableStatuses.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
                       </select>
                     </label>
-                    <label className="text-xs text-zinc-500">Ödeme durumu
-                      <select value={application.paymentStatus} onChange={(event) => updateApplication(application.id, { paymentStatus: event.target.value })} className="mt-2 block h-10 min-w-44 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-white outline-none focus:border-orange-500">
-                        {paymentStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+                    <label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Ödeme durumu
+                      <select
+                        value={application.paymentStatus}
+                        onChange={(event) => updateApplication(application.id, { paymentStatus: event.target.value })}
+                        className="mt-1.5 block h-9 min-w-44 border border-border bg-background px-3 font-sans text-xs text-foreground outline-none focus:border-primary"
+                      >
+                        {paymentStatuses.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
                       </select>
                     </label>
-                    <label className="text-xs text-zinc-500">Pilot teklif tutarı ({application.offerCurrency})
-                      <input defaultValue={application.offerAmount || ''} onBlur={(event) => updateApplication(application.id, { offerAmount: event.target.value })} inputMode="decimal" placeholder="Örn. 25000" className="mt-2 block h-10 min-w-44 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-orange-500" />
+                    <label className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Teklif tutarı ({application.offerCurrency})
+                      <input
+                        defaultValue={application.offerAmount || ''}
+                        onBlur={(event) => updateApplication(application.id, { offerAmount: event.target.value })}
+                        inputMode="decimal"
+                        placeholder="Örn. 25000"
+                        className="mt-1.5 block h-9 min-w-44 border border-border bg-background px-3 font-sans text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
+                      />
                     </label>
                     {isConverted ? (
-                      <div className="mt-1 flex items-center gap-2 text-xs font-medium text-emerald-400">
+                      <div className="mt-1 flex items-center gap-2 text-xs font-semibold text-primary">
                         <CheckCircle2 size={14} /> Müşteri hesabı oluşturuldu
                       </div>
                     ) : (
                       <Button
                         onClick={() => convertApplication(application)}
                         disabled={convertingId === application.id}
-                        className="h-10 min-w-44 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                        className="h-9 min-w-44 gap-2 bg-primary text-primary-foreground hover:opacity-90 text-xs"
                       >
-                        <UserPlus size={14} /> {convertingId === application.id ? 'Oluşturuluyor…' : 'Hesap Oluştur (Deneme Başlat)'}
+                        <UserPlus size={14} />
+                        {convertingId === application.id ? 'Oluşturuluyor…' : 'Hesap Oluştur (Deneme Başlat)'}
                       </Button>
                     )}
                   </div>

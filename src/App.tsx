@@ -7,11 +7,11 @@ import { lazy, Suspense, type ComponentType } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Shell } from '@/components/layout/Shell';
 import { Toaster } from '@/components/ui/sonner';
 import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
+import { LandingPage } from '@/pages/LandingPage';
 
 import { ACADEMY_ENABLED } from '@/config/features';
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) =>
@@ -33,6 +33,7 @@ const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name:
       throw error;
     }
   });
+const Shell = page(() => import('@/components/layout/Shell'), 'Shell');
 const Dashboard = page(() => import('@/pages/Dashboard'), 'Dashboard');
 const AdminShell = page(() => import('@/components/layout/AdminShell'), 'AdminShell');
 const AdminDashboard = page(() => import('@/pages/admin/AdminDashboard'), 'AdminDashboard');
@@ -61,7 +62,6 @@ const Profitability = page(() => import('@/pages/Profitability'), 'Profitability
 const Billing = page(() => import('@/pages/Billing'), 'Billing');
 const AcceptInvite = page(() => import('@/pages/AcceptInvite'), 'AcceptInvite');
 const VerifyEmail = page(() => import('@/pages/VerifyEmail'), 'VerifyEmail');
-const LandingPage = page(() => import('@/pages/LandingPage'), 'LandingPage');
 const PublicAcademy = page(() => import('@/pages/PublicAcademy'), 'PublicAcademy');
 const PublicAcademyDetail = page(() => import('@/pages/PublicAcademyDetail'), 'PublicAcademyDetail');
 const CompleteAcademyContent = page(() => import('@/pages/CompleteAcademyContent'), 'CompleteAcademyContent');
@@ -94,7 +94,7 @@ function AppRoutes() {
 
   return (
     <SmartCheckDemoProvider>
-      <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-zinc-950 text-sm text-zinc-400">Yükleniyor…</div>}><Routes>
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background font-mono text-xs uppercase tracking-wider text-muted-foreground">Yükleniyor…</div>}><Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
       <Route path="/about" element={<LandingPage onGetStarted={() => navigate('/login')} onPilotRequest={() => navigate('/pilot')} />} />
@@ -125,6 +125,8 @@ function AppRoutes() {
         {/* SÜPER ADMIN (PLATFORM YÖNETİMİ) ROTASI */}
         <Route path="/admin" element={<AdminShell />}>
           <Route index element={<AdminDashboard />} />
+          <Route path="leads" element={<PilotApplications />} />
+          <Route path="pilot-applications" element={<PilotApplications />} />
           <Route path="tenants" element={<TenantsList />} />
           <Route path="tenants/:companyId" element={<TenantDetail />} />
           <Route path="queue" element={<AdminQueue />} />

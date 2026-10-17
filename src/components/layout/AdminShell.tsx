@@ -1,12 +1,13 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon } from 'lucide-react';
+import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon, ClipboardList } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 const adminNavigation = [
   { label: 'Genel Bakış', path: '/admin', icon: LayoutDashboard },
+  { label: 'Ön Kayıt & Adaylar', path: '/admin/leads', icon: ClipboardList },
   { label: 'Firmalar', path: '/admin/tenants', icon: Building2 },
   { label: 'IFC Kuyruk', path: '/admin/queue', icon: Cpu },
   { label: 'Fiyat & Poz Kaynakları', path: '/admin/pricing-sources', icon: Database },

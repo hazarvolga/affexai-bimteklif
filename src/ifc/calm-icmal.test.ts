@@ -152,3 +152,24 @@ test("parseSmartCheckRowToPseudoElement accurately converts sample project rows 
   assert.equal(flat.length, 2);
   assert.equal(ds.apartments.length, 0);
 });
+
+test("customer IFC files containing 2026_45 in filename compute strictly from actual elements and never leak calibrated reference data", () => {
+  const sampleRows = [
+    {
+      rawDescription: "IfcSlab · MM-DSM-zemin (Zemin Kat Betonarme Döşeme — Beton_C30)",
+      rawUnit: "m3",
+      rawQuantity: "12.80",
+      rawPositionCode: "15.150.1006",
+      formulaJson: {},
+    },
+  ];
+  const elements = sampleRows.map((r, i) => parseSmartCheckRowToPseudoElement(r, i));
+  const ds = buildCalmIfcDatasetFromElements(elements, null, "Proje_2026_450_Musteri.ifc");
+  const flat = ds.groups.flatMap((g) => g.items);
+
+  assert.equal(flat.length, 1);
+  assert.equal(flat[0].netQuantity, 12.8);
+  assert.equal(ds.apartments.length, 0);
+  assert.equal(ds.residentialUnitCount, 0);
+});
+

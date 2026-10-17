@@ -14,6 +14,15 @@ export class PilotRepository {
     return application || null;
   }
 
+  async findByEmail(email: string) {
+    const [application] = await db
+      .select()
+      .from(pilotApplications)
+      .where(eq(pilotApplications.email, email.toLowerCase().trim()))
+      .orderBy(desc(pilotApplications.createdAt));
+    return application || null;
+  }
+
   async updateStatus(id: string, status: string, payload: any = {}) {
     const [updated] = await db
       .update(pilotApplications)
@@ -24,7 +33,13 @@ export class PilotRepository {
   }
 
   async create(data: any) {
-    const [created] = await db.insert(pilotApplications).values(data).returning();
+    const [created] = await db
+      .insert(pilotApplications)
+      .values({
+        ...data,
+        consentAt: data.consentAt ?? new Date(),
+      })
+      .returning();
     return created;
   }
 

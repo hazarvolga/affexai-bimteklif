@@ -29,6 +29,7 @@ type AuthDependencies = {
   findUser(userId: string): Promise<AuthUser | undefined>;
   findMembership(userId: string, companyId: string): Promise<AuthMembership | undefined>;
   isImpersonationRevoked?(tokenHash: string): Promise<boolean>;
+  findSubscription?(companyId: string): Promise<{ status: string } | undefined>;
 };
 
 const sessionClaims = z.object({
@@ -61,6 +62,11 @@ const authDependencies: AuthDependencies = {
       .where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
     return membership;
   },
+  async findSubscription(companyId) {
+    const [sub] = await db.select({ status: subscriptions.status }).from(subscriptions)
+      .where(eq(subscriptions.companyId, companyId));
+    return sub;
+  },
 };
 
 export const createAuthenticate = (dependencies: AuthDependencies = authDependencies) => async (req: any, res: any, next: any) => {
@@ -77,8 +83,10 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     const impersonationTokenHash = impersonatedBy ? hashActionToken(token) : undefined;
     if (impersonatedBy) {
       const admin = await dependencies.findUser(impersonatedBy);
-      if (!admin?.isSuperAdmin || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000))
-          || !dependencies.isImpersonationRevoked || await dependencies.isImpersonationRevoked(impersonationTokenHash!)) {
+      const revoked = dependencies.isImpersonationRevoked
+        ? await dependencies.isImpersonationRevoked(impersonationTokenHash!)
+        : false;
+      if (!admin?.isSuperAdmin || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) || revoked) {
         return res.status(401).json({ error: "Impersonation session expired" });
       }
     }
@@ -98,15 +106,17 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       impersonationTokenHash,
     };
 
+    const isReadMethod = !req.method || ["GET", "HEAD", "OPTIONS"].includes(req.method);
+
     // Impersonation read-only guard: block mutating methods
     const isImpersonationExit = req.method === "POST" && req.originalUrl?.split("?")[0] === "/api/auth/impersonate/exit";
-    if (req.user.impersonatedBy && req.user.readOnly && !isImpersonationExit && !["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    if (req.user.impersonatedBy && req.user.readOnly && !isImpersonationExit && !isReadMethod) {
       return res.status(403).json({ error: "Salt-okunur impersonate modundasınız. Değişiklik yapılamaz.", code: "IMPERSONATION_READ_ONLY" });
     }
 
     // Suspended tenant guard: block mutating methods for non-active subscription
-    if (!req.user.isSuperAdmin && !req.user.impersonatedBy && companyId && !["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-      const [sub] = await db.select({ status: subscriptions.status }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
+    if (!req.user.isSuperAdmin && !req.user.impersonatedBy && companyId && !isReadMethod && dependencies.findSubscription) {
+      const sub = await dependencies.findSubscription(companyId);
       if (sub && sub.status !== "active") {
         return res.status(403).json({
           error: "Aboneliğiniz askıya alınmıştır veya ödeme beklenmektedir. Lütfen aboneliğinizi yenileyiniz.",

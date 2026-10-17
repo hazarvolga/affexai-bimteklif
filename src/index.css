@@ -13,16 +13,16 @@
 
 :root,
 :root[data-theme="light"] {
-  /* Çekirdek Pafta Tokenları — Açık Mod (Sıcak Pafta Kâğıdı) */
+  /* Çekirdek Pafta Tokenları — Açık Mod (Sıcak Pafta Kâğıdı - Yüksek Kontrast) */
   --paper: #f3f1e9;
-  --surface: #eae8df;
+  --surface: #e8e5db;
   --surface-elevated: #fcfbf7;
-  --ink: #242d29;
-  --muted-ink: #62665e;
-  --rule: #c9cbc1;
+  --ink: #181f1c;
+  --muted-ink: #484d46;
+  --rule: #bec1b6;
   --accent-brand: #a13c1b;
-  --accent-wash: #a13c1b14;
-  --inverse: #eeeee5;
+  --accent-wash: #a13c1b18;
+  --inverse: #fcfbf7;
 
   /* Tipografi Aileleri */
   --font-display: 'Instrument Serif', Georgia, serif;
@@ -35,7 +35,7 @@
   --foreground: var(--ink);
   --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: var(--paper);
+  --popover: var(--surface-elevated);
   --popover-foreground: var(--ink);
   --primary: var(--accent-brand);
   --primary-foreground: var(--inverse);
@@ -45,17 +45,17 @@
   --muted-foreground: var(--muted-ink);
   --accent: var(--accent-wash);
   --accent-foreground: var(--ink);
-  --destructive: #9e2a2b;
+  --destructive: #8f1d1d;
   --border: var(--rule);
   --input: var(--rule);
   --ring: var(--accent-brand);
 
   /* Grafik & Veri Serileri */
   --chart-1: #a13c1b;
-  --chart-2: #2d5a43;
-  --chart-3: #8c6239;
-  --chart-4: #3d5a6c;
-  --chart-5: #5c4d7d;
+  --chart-2: #145334;
+  --chart-3: #8f3910;
+  --chart-4: #1d3b66;
+  --chart-5: #4c236e;
 
   /* Pafta Keskin Köşe Kuralı (0px) */
   --radius: 0rem;
@@ -75,22 +75,22 @@
 
 :root[data-theme="dark"],
 .dark {
-  /* Çekirdek Pafta Tokenları — Koyu Mod (Gece Paftası) */
-  --paper: #1e2623;
-  --surface: #29312d;
-  --surface-elevated: #232b27;
-  --ink: #ecece2;
-  --muted-ink: #b1b8ab;
-  --rule: #485148;
-  --accent-brand: #f18f64;
-  --accent-wash: #f18f6419;
-  --inverse: #232a25;
+  /* Çekirdek Pafta Tokenları — Koyu Mod (Koyu Antrasit Gece Paftası - Yüksek Kontrast) */
+  --paper: #141517;
+  --surface: #1c1e21;
+  --surface-elevated: #24272b;
+  --ink: #f3f1e9;
+  --muted-ink: #aeb4bc;
+  --rule: #2f3339;
+  --accent-brand: #e8825a;
+  --accent-wash: #e8825a1f;
+  --inverse: #141517;
 
   --background: var(--paper);
   --foreground: var(--ink);
   --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: var(--surface);
+  --popover: var(--surface-elevated);
   --popover-foreground: var(--ink);
   --primary: var(--accent-brand);
   --primary-foreground: var(--inverse);
@@ -100,7 +100,7 @@
   --muted-foreground: var(--muted-ink);
   --accent: var(--accent-wash);
   --accent-foreground: var(--ink);
-  --destructive: #e06c60;
+  --destructive: #f07167;
   --border: var(--rule);
   --input: var(--rule);
   --ring: var(--accent-brand);
@@ -384,42 +384,155 @@
 
 /* ==========================================================================
    Teknik Borç Önleyici Köprü (Legacy Dark/SaaS Sınıflarının Pafta Şemasına Eşlenmesi)
-   Alt sayfalarda kalmış sabit zinc/slate koyu sınıfları açık/koyu pafta moduna uyarlar
+   Alt sayfalarda kalmış sabit zinc/slate koyu sınıfları ve açık pastel metinleri
+   Açık Pafta (#f3f1e9) ve Koyu Antrasit Pafta (#141517) modlarına yüksek kontrastla uyarlar
    ========================================================================== */
-:root[data-theme="light"] .bg-zinc-950,
-:root[data-theme="light"] .bg-slate-950,
-:root[data-theme="light"] .bg-\[\#F8FAFC\] {
+:root .bg-zinc-950,
+:root .bg-zinc-950\/20,
+:root .bg-zinc-950\/30,
+:root .bg-zinc-950\/40,
+:root .bg-zinc-950\/50,
+:root .bg-zinc-950\/60,
+:root .bg-zinc-950\/70,
+:root .bg-zinc-950\/80,
+:root .bg-slate-950,
+:root .bg-\[\#09090b\],
+:root .bg-\[\#F8FAFC\] {
   background-color: var(--paper) !important;
 }
 
-:root[data-theme="light"] .bg-zinc-900,
-:root[data-theme="light"] .bg-zinc-900\/50,
-:root[data-theme="light"] .bg-zinc-900\/60,
-:root[data-theme="light"] .bg-zinc-900\/80,
-:root[data-theme="light"] .bg-slate-900 {
+:root .bg-zinc-900,
+:root .bg-zinc-900\/20,
+:root .bg-zinc-900\/30,
+:root .bg-zinc-900\/40,
+:root .bg-zinc-900\/50,
+:root .bg-zinc-900\/60,
+:root .bg-zinc-900\/70,
+:root .bg-zinc-900\/80,
+:root .bg-zinc-900\/90,
+:root .bg-slate-900,
+:root .bg-\[\#0c0c0e\] {
   background-color: var(--surface) !important;
 }
 
-:root[data-theme="light"] .text-zinc-50,
-:root[data-theme="light"] .text-zinc-100,
-:root[data-theme="light"] .text-zinc-200,
-:root[data-theme="light"] .text-slate-900 {
+:root .bg-zinc-800,
+:root .bg-zinc-800\/40,
+:root .bg-zinc-800\/50,
+:root .bg-zinc-800\/60,
+:root .bg-zinc-800\/70,
+:root .bg-zinc-800\/80,
+:root .bg-slate-800 {
+  background-color: var(--surface-elevated) !important;
+}
+
+/* Açık Modda (Light Mode) kart/tablo üzerindeki beyaz ve açık gri metinleri koyu mürekkebe çevir */
+:root:not(.dark) .text-white:not([class*="bg-indigo-6"]):not([class*="bg-indigo-5"]):not([class*="bg-emerald-6"]):not([class*="bg-emerald-5"]):not([class*="bg-blue-6"]):not([class*="bg-blue-5"]):not([class*="bg-red-6"]):not([class*="bg-red-5"]):not([class*="bg-amber-6"]):not([class*="bg-orange-6"]):not([class*="bg-orange-5"]):not([class*="bg-purple-6"]):not([class*="bg-primary"]):not([class*="bg-black"]):not(.pafta-button),
+:root:not(.dark) .text-zinc-50,
+:root:not(.dark) .text-zinc-100,
+:root:not(.dark) .text-zinc-200,
+:root:not(.dark) .text-zinc-300,
+:root:not(.dark) .text-slate-50,
+:root:not(.dark) .text-slate-100,
+:root:not(.dark) .text-slate-200,
+:root:not(.dark) .text-slate-300,
+:root:not(.dark) .text-slate-900 {
   color: var(--ink) !important;
 }
 
-:root[data-theme="light"] .text-zinc-300,
-:root[data-theme="light"] .text-zinc-400,
-:root[data-theme="light"] .text-zinc-500,
-:root[data-theme="light"] .text-slate-500,
-:root[data-theme="light"] .text-slate-600 {
+:root:not(.dark) .text-zinc-400,
+:root:not(.dark) .text-zinc-500,
+:root:not(.dark) .text-zinc-600,
+:root:not(.dark) .text-slate-400,
+:root:not(.dark) .text-slate-500,
+:root:not(.dark) .text-slate-600 {
   color: var(--muted-ink) !important;
 }
 
-:root[data-theme="light"] .border-zinc-800,
-:root[data-theme="light"] .border-zinc-800\/80,
-:root[data-theme="light"] .border-zinc-700,
-:root[data-theme="light"] .border-slate-200,
-:root[data-theme="light"] .border-slate-300 {
+/* Açık Modda (Light Mode) pastel -200/-300/-400 vurgu metinlerini yüksek kontrastlı pafta mürekkebine çevir */
+:root:not(.dark) .text-amber-200,
+:root:not(.dark) .text-amber-300,
+:root:not(.dark) .text-amber-400,
+:root:not(.dark) .text-amber-500,
+:root:not(.dark) .text-orange-200,
+:root:not(.dark) .text-orange-300,
+:root:not(.dark) .text-orange-400,
+:root:not(.dark) .text-yellow-200,
+:root:not(.dark) .text-yellow-300,
+:root:not(.dark) .text-yellow-400 {
+  color: #8f3910 !important;
+}
+
+:root:not(.dark) .text-emerald-200,
+:root:not(.dark) .text-emerald-300,
+:root:not(.dark) .text-emerald-400,
+:root:not(.dark) .text-emerald-500,
+:root:not(.dark) .text-green-200,
+:root:not(.dark) .text-green-300,
+:root:not(.dark) .text-green-400,
+:root:not(.dark) .text-teal-300,
+:root:not(.dark) .text-teal-400 {
+  color: #145334 !important;
+}
+
+:root:not(.dark) .text-indigo-200,
+:root:not(.dark) .text-indigo-300,
+:root:not(.dark) .text-indigo-400,
+:root:not(.dark) .text-blue-200,
+:root:not(.dark) .text-blue-300,
+:root:not(.dark) .text-blue-400,
+:root:not(.dark) .text-sky-200,
+:root:not(.dark) .text-sky-300,
+:root:not(.dark) .text-sky-400,
+:root:not(.dark) .text-cyan-200,
+:root:not(.dark) .text-cyan-300,
+:root:not(.dark) .text-cyan-400 {
+  color: #1d3b66 !important;
+}
+
+:root:not(.dark) .text-purple-200,
+:root:not(.dark) .text-purple-300,
+:root:not(.dark) .text-purple-400,
+:root:not(.dark) .text-violet-200,
+:root:not(.dark) .text-violet-300,
+:root:not(.dark) .text-violet-400 {
+  color: #4c236e !important;
+}
+
+:root:not(.dark) .text-red-200,
+:root:not(.dark) .text-red-300,
+:root:not(.dark) .text-red-400,
+:root:not(.dark) .text-rose-200,
+:root:not(.dark) .text-rose-300,
+:root:not(.dark) .text-rose-400 {
+  color: #8f1d1d !important;
+}
+
+/* Koyu Antrasit Modda (Dark Mode) metin kontrastı */
+.dark .text-zinc-50,
+.dark .text-zinc-100,
+.dark .text-zinc-200,
+.dark .text-slate-900 {
+  color: var(--ink) !important;
+}
+
+.dark .text-zinc-300,
+.dark .text-zinc-400,
+.dark .text-zinc-500,
+.dark .text-zinc-600,
+.dark .text-slate-400,
+.dark .text-slate-500,
+.dark .text-slate-600 {
+  color: var(--muted-ink) !important;
+}
+
+:root .border-zinc-800,
+:root .border-zinc-800\/50,
+:root .border-zinc-800\/70,
+:root .border-zinc-800\/80,
+:root .border-zinc-700,
+:root .border-slate-200,
+:root .border-slate-300,
+:root .divide-zinc-800\/70 > :not([hidden]) ~ :not([hidden]) {
   border-color: var(--rule) !important;
 }
 

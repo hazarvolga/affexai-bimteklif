@@ -14,16 +14,16 @@ Klasik SaaS panellerinin yuvarlatılmış balon kutuları, gölgeleri, gradyanla
 
 Hiçbir bileşen içinde sabit `#hex`, `bg-zinc-950`, `bg-blue-600` veya `from-indigo-500` kullanılmaz. Tüm yüzeyler [src/index.css](file:///Users/hazarvolgaekiz/dev/products/bimplanacademy/TeklifPro-repo/src/index.css) içindeki aşağıdaki 8 temel token üzerinden yönetilir:
 
-| Anlamsal Token | Tailwind Karşılığı | Açık Mod (`light` — Sıcak Pafta) | Koyu Mod (`dark` — Gece Paftası) | Mimari Rolü |
+| Anlamsal Token | Tailwind Karşılığı | Açık Mod (`light` — Sıcak Pafta) | Koyu Mod (`dark` — Koyu Antrasit Pafta) | Mimari Rolü |
 | :--- | :--- | :--- | :--- | :--- |
-| `--paper` | `bg-background` / `bg-paper` | `#f3f1e9` | `#1e2623` | Ana pafta kâğıdı zemini |
-| `--surface` | `bg-card` / `bg-surface` | `#eae8df` | `#29312d` | İkincil yüzey, tablo başlığı ve yan panel |
-| `--ink` | `text-foreground` / `text-ink` | `#242d29` | `#ecece2` | Ana metin ve teknik rapido mürekkebi |
-| `--muted` | `text-muted-foreground` | `#62665e` | `#b1b8ab` | İkincil açıklama / kurşun kalem notu |
-| `--rule` | `border-border` / `border-rule` | `#c9cbc1` | `#485148` | `1px` pafta cetvel ve katlama çizgisi |
-| `--accent` | `bg-primary` / `text-primary` | `#a13c1b` | `#f18f64` | Teknik kiremit / sülüğen vurgu (odak & CTA) |
-| `--accent-wash` | `bg-primary/10` | `#a13c1b14` | `#f18f6419` | Seçili tablo satırı ve aktif sekme yıkaması |
-| `--inverse` | `text-primary-foreground` | `#eeeee5` | `#232a25` | Kontrast yüzey üzerindeki metin |
+| `--paper` | `bg-background` / `bg-paper` | `#f3f1e9` | `#141517` | Ana pafta kâğıdı / koyu antrasit zemin |
+| `--surface` | `bg-card` / `bg-surface` | `#eae8df` | `#1c1e21` | İkincil yüzey, tablo başlığı ve yan panel |
+| `--ink` | `text-foreground` / `text-ink` | `#242d29` | `#eceae4` | Ana metin ve teknik rapido mürekkebi |
+| `--muted` | `text-muted-foreground` | `#62665e` | `#9ca0a6` | İkincil açıklama / kurşun kalem notu |
+| `--rule` | `border-border` / `border-rule` | `#c9cbc1` | `#2e3237` | `1px` pafta cetvel ve katlama çizgisi |
+| `--accent` | `bg-primary` / `text-primary` | `#a13c1b` | `#e07a52` | Teknik kiremit / sülüğen vurgu (odak & CTA) |
+| `--accent-wash` | `bg-primary/10` | `#a13c1b14` | `#e07a521a` | Seçili tablo satırı ve aktif sekme yıkaması |
+| `--inverse` | `text-primary-foreground` | `#eeeee5` | `#141517` | Kontrast yüzey üzerindeki metin |
 
 ---
 

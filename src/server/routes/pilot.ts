@@ -61,26 +61,54 @@ export function registerPilotRoutes(app: Express) {
   });
 
   app.post("/api/pilot-applications", async (req, res) => {
-
     try {
+      const email = clean(req.body?.email, 240).toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        throw new ApiError(400, "Eksik veya geçersiz bilgi: Lütfen geçerli bir e-posta adresi girin.");
+      }
+
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
 
-      const rate = await consumeRateLimit(`pilot-app:${ip}`, 5, 3600_000);
+      const rate = await consumeRateLimit(`pilot-app:${ip}`, 10, 3600_000);
       if (!rate.allowed) {
         return res.status(429).set("Retry-After", String(rate.retryAfterSeconds)).json({ error: "Çok fazla başvuru yapıldı. Lütfen daha sonra tekrar deneyin." });
       }
 
-      const fullName = clean(req.body?.fullName, 120);
-      const companyName = clean(req.body?.companyName, 160);
-      const email = clean(req.body?.email, 240).toLowerCase();
-      
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!fullName || !companyName || !email || !emailRegex.test(email)) {
-        throw new ApiError(400, "Eksik veya geçersiz bilgi.");
+      const rawFullName = clean(req.body?.fullName, 120);
+      const rawCompanyName = clean(req.body?.companyName, 160);
+      const phone = clean(req.body?.phone, 40) || null;
+      const teamSize = clean(req.body?.teamSize || req.body?.role, 80) || null;
+      const currentWorkflow = clean(req.body?.currentWorkflow || req.body?.note, 2000) || null;
+      const source = clean(req.body?.source, 60) || (rawFullName && rawCompanyName ? "pilot_form" : "landing_waitlist");
+
+      const emailLocalPart = email.split("@")[0]?.replace(/[._-]+/g, " ").trim() || "Ön Kayıt Adayı";
+      const fullName = rawFullName || emailLocalPart;
+      const companyName = rawCompanyName || "Erken Erişim Ön Kayıt";
+
+      const existing = await pilotRepository.findByEmail(email);
+      if (existing) {
+        return res.status(200).json({
+          ok: true,
+          alreadyRegistered: true,
+        });
       }
-      
-      const application = await pilotRepository.create({ fullName, companyName, email });
-      return res.status(201).json(application);
+
+      const application = await pilotRepository.create({
+        fullName,
+        companyName,
+        email,
+        phone,
+        teamSize,
+        currentWorkflow,
+        source,
+        consentAt: new Date(),
+      });
+      return res.status(201).json({
+        id: application.id,
+        ok: true,
+        alreadyRegistered: false,
+      });
     } catch (error) {
       return errorHandler(error, res);
     }

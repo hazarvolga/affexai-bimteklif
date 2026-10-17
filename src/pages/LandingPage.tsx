@@ -58,6 +58,58 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pageMeta = LANDING_ROUTE_META[location.pathname] ?? LANDING_ROUTE_META['/'];
 
+  // Erken Erişim / Ön Kayıt (Potansiyel Müşteri) Form Durumu
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistNameOrCompany, setWaitlistNameOrCompany] = useState('');
+  const [waitlistRole, setWaitlistRole] = useState('Müteahhit / Teknik Ofis');
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistResult, setWaitlistResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailClean = waitlistEmail.trim().toLowerCase();
+    if (!emailClean || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) {
+      setWaitlistResult({ ok: false, message: 'Lütfen geçerli bir e-posta adresi girin.' });
+      return;
+    }
+    setWaitlistSubmitting(true);
+    setWaitlistResult(null);
+    try {
+      const nameClean = waitlistNameOrCompany.trim();
+      const res = await fetch('/api/pilot-applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailClean,
+          fullName: nameClean || undefined,
+          companyName: nameClean || 'Erken Erişim Ön Kayıt',
+          teamSize: waitlistRole,
+          currentWorkflow: `Ana sayfa ön kayıt formu (${waitlistRole})`,
+          source: 'landing_waitlist',
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.error || 'Ön kayıt işlemi tamamlanamadı.');
+      }
+      setWaitlistEmail('');
+      setWaitlistNameOrCompany('');
+      setWaitlistResult({
+        ok: true,
+        message: body.alreadyRegistered
+          ? 'E-posta adresiniz ön kayıt listemizde zaten yer alıyor; bilgileriniz güncellendi.'
+          : 'Ön kaydınız başarıyla alındı! Yeni sürüm ve erken erişim açıldığında ilk size haber vereceğiz.',
+      });
+    } catch (err: any) {
+      setWaitlistResult({
+        ok: false,
+        message: err?.message || 'Kayıt sırasında bir hata oluştu, lütfen tekrar deneyin.',
+      });
+    } finally {
+      setWaitlistSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     const sectionMap: Record<string, string> = {
       '/pricing': 'pricing',
@@ -77,6 +129,26 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         description={pageMeta.description}
         canonicalPath={pageMeta.canonicalPath}
       />
+      {/* GELİŞTİRME AŞAMASI BİLGİLENDİRME ŞERİDİ */}
+      <div className="border-b border-border bg-card px-4 py-2.5 md:px-10">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="stamp-badge border-primary bg-primary text-primary-foreground">
+              GELİŞTİRME AŞAMASINDADIR
+            </span>
+            <span className="text-foreground font-medium">
+              BIMMetraj şu anda aktif mühendislik geliştirme ve saha doğrulama aşamasındadır.
+            </span>
+          </div>
+          <a
+            href="#on-kayit"
+            className="font-mono text-[11px] font-semibold uppercase tracking-wider text-primary underline underline-offset-4 hover:opacity-80"
+          >
+            Ön Kayıt &amp; Erken Erişim Listesine Katıl ↓
+          </a>
+        </div>
+      </div>
+
       {/* STICKY NAVBAR (PAFTA ANTETİ) */}
       <nav className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur-md md:px-10">
         <a href="#top" className="flex items-center gap-3 text-foreground" aria-label="BIMMetraj ana sayfa">
@@ -91,6 +163,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
         {/* Desktop Nav */}
         <div className="hidden items-center gap-6 md:flex">
+          <a href="#on-kayit" className="text-xs font-semibold text-primary transition-colors hover:opacity-80">Ön Kayıt</a>
           <a href="#workflow" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Nasıl Çalışır?</a>
           <a href="#features" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Özellikler</a>
           <a href="#pricing" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Paketler</a>
@@ -145,6 +218,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-border bg-card px-6 py-4 space-y-3 sticky top-20 z-40">
+          <a
+            href="#on-kayit"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block text-sm font-semibold text-primary py-1"
+          >
+            Ön Kayıt (Geliştirme Aşaması)
+          </a>
           <a
             href="#workflow"
             onClick={() => setMobileMenuOpen(false)}
@@ -232,6 +312,107 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   captionCenter="İZOMETRİK METRAJ / 01"
                   captionRight="IFC4 + PDF/A"
                 />
+              </div>
+            </div>
+
+            {/* ERKEN ERİŞİM & ÖN KAYIT PAFTASI (POTANSİYEL MÜŞTERİ KAYDI) */}
+            <div id="on-kayit" className="mt-12 border border-primary/50 bg-card p-6 md:p-8 scroll-mt-24">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3 mb-5">
+                <div className="flex items-center gap-2.5">
+                  <span className="status-dot" />
+                  <span className="font-mono text-[11px] font-semibold uppercase tracking-widest text-primary">
+                    00 / PROJE GELİŞTİRME BİLDİRİMİ &amp; ERKEN ERİŞİM ÖN KAYIT FORMU
+                  </span>
+                </div>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  DURUM: AKTİF AR-GE &amp; SAHA DOĞRULAMA FAZI
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-5">
+                  <h2 className="font-display-serif text-2xl sm:text-3xl text-foreground">
+                    Projemiz Geliştirme Aşamasındadır — <em>Ön Kayıt</em> Oluşturun
+                  </h2>
+                  <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                    BIMMetraj şu anda gerçek ALLPLAN / Revit / Archicad IFC modelleriyle kapalı mühendislik doğrulama aşamasındadır. E-posta adresinizi bırakarak erken erişim daveti, kendi IFC dosyanızla ücretsiz test hakkı ve kurucu üye avantajlarından ilk siz haberdar olun.
+                  </p>
+                </div>
+
+                <div className="lg:col-span-7">
+                  <form onSubmit={handleWaitlistSubmit} className="space-y-3" aria-label="Erken erişim ön kayıt formu">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label className="block">
+                        <span className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          E-Posta Adresiniz *
+                        </span>
+                        <input
+                          type="email"
+                          required
+                          value={waitlistEmail}
+                          onChange={(e) => setWaitlistEmail(e.target.value)}
+                          placeholder="ornek@firmaniz.com"
+                          className="h-11 w-full border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Ad Soyad / Firma (İsteğe Bağlı)
+                        </span>
+                        <input
+                          type="text"
+                          value={waitlistNameOrCompany}
+                          onChange={(e) => setWaitlistNameOrCompany(e.target.value)}
+                          placeholder="Ad Soyad veya Ofis Adı"
+                          className="h-11 w-full border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Uzmanlık / Alan
+                        </span>
+                        <select
+                          value={waitlistRole}
+                          onChange={(e) => setWaitlistRole(e.target.value)}
+                          className="h-11 w-full border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+                        >
+                          <option value="Müteahhit / Teknik Ofis">Müteahhit / Teknik Ofis</option>
+                          <option value="Mimar / BIM Yöneticisi">Mimar / BIM Yöneticisi</option>
+                          <option value="İnşaat / Statik Mühendisi">İnşaat / Statik Mühendisi</option>
+                          <option value="Yapı Denetim / İdare">Yapı Denetim / İdare</option>
+                          <option value="Diğer">Diğer</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                      <p className="text-[11px] text-muted-foreground">
+                        Spam gönderilmez. Yalnızca erken erişim daveti ve önemli sürüm kilometre taşları paylaşılır.
+                      </p>
+                      <button
+                        type="submit"
+                        disabled={waitlistSubmitting}
+                        className="pafta-button !min-h-10 !py-2.5 !px-5"
+                      >
+                        <span>{waitlistSubmitting ? 'Kaydediliyor...' : 'Ön Kayıt Oluştur'}</span>
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+
+                    {waitlistResult && (
+                      <div
+                        role="status"
+                        className={`mt-2 border p-3 text-xs font-medium ${
+                          waitlistResult.ok
+                            ? 'border-primary/40 bg-primary/10 text-foreground'
+                            : 'border-destructive/40 bg-destructive/10 text-destructive'
+                        }`}
+                      >
+                        {waitlistResult.message}
+                      </div>
+                    )}
+                  </form>
+                </div>
               </div>
             </div>
 

@@ -1109,21 +1109,16 @@ export function parseSmartCheckRowToPseudoElement(
 /**
  * Builds the 3-step Calm UI dataset from parsed IFC elements and summary,
  * automatically exploding multi-layer `IfcCovering` elements into separate contractor line items.
- * If the file is `2026_45` and came from a legacy cached run without `materialLayers`, enriches with calibrated multi-layer precision.
+ * Never falls back to reference data based on filename; always computes strictly from the model's elements.
  */
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
   summary?: IfcParseSummary | null,
   fileName?: string,
 ): CalmIfcDataset {
-  const is202645File = /2026_45/i.test(fileName || "");
   const hasMultiLayerCoverings = elements.some(
     (el) => el.type === "IfcCovering" && Array.isArray(el.materialLayers) && el.materialLayers.length > 0,
   );
-
-  if (is202645File && !hasMultiLayerCoverings) {
-    return buildCalibrated202645Dataset(fileName ? `${fileName} — 16 Daire` : undefined);
-  }
 
   const accumMap = new Map<
     string,
@@ -1238,17 +1233,10 @@ export function buildCalmIfcDatasetFromElements(
     };
   });
 
-  const dynamicApartments =
+  const apartments =
     summary?.apartmentSchedule && summary.apartmentSchedule.length > 0
       ? summary.apartmentSchedule
       : buildApartmentScheduleFromElements(elements);
-
-  const apartments =
-    dynamicApartments.length > 0
-      ? dynamicApartments
-      : is202645File
-        ? buildCalibrated202645Dataset(fileName).apartments
-        : [];
 
   const groups: CalmIcmalGroup[] = Object.entries(GROUP_META)
     .sort((a, b) => a[1].order - b[1].order)
@@ -1275,9 +1263,13 @@ export function buildCalmIfcDatasetFromElements(
     residentialUnits.reduce((s, u) => s + u.generalGrossM2, 0).toFixed(2),
   );
 
+  const layerNote = hasMultiLayerCoverings
+    ? "Çok Katmanlı IfcCovering Ayrıştırması Aktif"
+    : "Modelde Çoklu Katman (materialLayers) Bilgisi Yok — Tekil Eleman Metrajı";
+
   return {
     projectTitle: fileName ? `${fileName}` : "Yüklenen IFC Proje İcmali",
-    projectSubtitle: `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı · Pencere/Kapı Boşlukları (Minha) Düşülmüş Net Metraj`,
+    projectSubtitle: `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı · ${layerNote} · Minha Düşülmüş Net Metraj`,
     residentialUnitCount: residentialUnits.length,
     totalNetSweepableM2,
     totalBalconyM2,
@@ -1289,18 +1281,11 @@ export function buildCalmIfcDatasetFromElements(
 }
 
 /**
- * Reconstructs `ParsedIfcElement[]` from an `IfcSmartCheckEvidenceArtifact` and builds the Calm UI dataset.
- * If the artifact came from `2026_45` before multi-layer attributes were stored in `formulaJson`,
- * seamlessly returns the calibrated 2026_45 multi-layer dataset so the user sees exact layer & apartment numbers.
+ * Reconstructs `ParsedIfcElement[]` from an `IfcSmartCheckEvidenceArtifact` and builds the Calm UI dataset
+ * strictly from the artifact's actual extracted rows.
  */
 export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceArtifact): CalmIfcDataset {
   const fileName = artifact.document?.fileName || "";
-  const hasRichLayers = artifact.rows.some((r: IfcSmartCheckEvidenceRow) => Boolean(r.formulaJson?.materialLayers));
-
-  if (/2026_45/i.test(fileName) && !hasRichLayers) {
-    return buildCalibrated202645Dataset(`${fileName} — 16 Daire`);
-  }
-
   const pseudoElements: ParsedIfcElement[] = artifact.rows.map((row, idx) =>
     parseSmartCheckRowToPseudoElement(row, idx),
   );
