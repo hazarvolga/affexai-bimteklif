@@ -13,6 +13,12 @@ import {
   type SuitabilityCode,
 } from "@/smartcheck/rules/iso19650";
 import type { MinhaRuleProfile } from "@/smartcheck/rules/minha";
+import {
+  CSB_2026_TUIK_SUB_INDICES,
+  computeContractPriceEscalation4735,
+  indexOutOfPeriodUnitPrice,
+  type TuikSubIndexCode,
+} from "@/lib/price-escalation";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
@@ -125,6 +131,71 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
 
   const [minhaProfile, setMinhaProfile] = useState<MinhaRuleProfile>("CSB_2026");
   const [customMinhaThresholdInput, setCustomMinhaThresholdInput] = useState<string>("1.50");
+
+  // Karar #1: BYOL hemen + ÇŞB 2026 resmi referans paralel
+  const [priceLicenseMode, setPriceLicenseMode] = useState<"BYOL_TENANT_CATALOG" | "CSB_2026_REFERENCE">(
+    "BYOL_TENANT_CATALOG",
+  );
+  // Faz 2.5: 4735 Fiyat Farkı & ÇŞB 2026 – TÜİK 21 Alt Endeks Simülatörü (sıfır uydurma girdi)
+  const [selectedTuikIndex, setSelectedTuikIndex] = useState<TuikSubIndexCode>("TUIK-23.6-HAZIR-BETON");
+  const [tuikBaseIndexInput, setTuikBaseIndexInput] = useState<string>("");
+  const [tuikCurrentIndexInput, setTuikCurrentIndexInput] = useState<string>("");
+  const [tuikIndexedAppliedNote, setTuikIndexedAppliedNote] = useState<string | null>(null);
+
+  const escalationPreview = useMemo(() => {
+    const e0 = parseFloat(tuikBaseIndexInput.replace(",", "."));
+    const en = parseFloat(tuikCurrentIndexInput.replace(",", "."));
+    if (!Number.isFinite(e0) || e0 <= 0 || !Number.isFinite(en) || en <= 0) {
+      return null;
+    }
+    try {
+      return computeContractPriceEscalation4735({
+        progressPaymentAmountTl: costSummary.grandTotal,
+        bFactor: 0.9,
+        components: [
+          {
+            indexCode: selectedTuikIndex,
+            weight: 1.0,
+            baseIndex: e0,
+            currentIndex: en,
+          },
+        ],
+      });
+    } catch {
+      return null;
+    }
+  }, [costSummary.grandTotal, selectedTuikIndex, tuikBaseIndexInput, tuikCurrentIndexInput]);
+
+  const handleApplyTuikIndexToPrices = () => {
+    const e0 = parseFloat(tuikBaseIndexInput.replace(",", "."));
+    const en = parseFloat(tuikCurrentIndexInput.replace(",", "."));
+    if (!Number.isFinite(e0) || e0 <= 0 || !Number.isFinite(en) || en <= 0) return;
+
+    const evaluationDate = new Date().toISOString().slice(0, 10);
+    const nextPrices: Record<string, number> = {};
+    let lastWarning: string | null = null;
+
+    for (const item of allItems) {
+      const currentPrice = unitPrices[item.id] ?? item.defaultUnitPriceTry;
+      const indexed = indexOutOfPeriodUnitPrice({
+        itemCode: item.pozCode,
+        itemName: item.title,
+        baseUnitPriceTl: currentPrice,
+        catalogValidityEnd: "2026-03-31",
+        evaluationDate,
+        indexCode: selectedTuikIndex,
+        baseIndex: e0,
+        currentIndex: en,
+      });
+      nextPrices[item.id] = indexed.indexedUnitPriceTl;
+      lastWarning = indexed.warningLabel;
+    }
+    setUnitPrices(nextPrices);
+    setTuikIndexedAppliedNote(
+      lastWarning ??
+        `TÜİK Endeksiyle Güncellenmiş Tahmini Birim Fiyat (${selectedTuikIndex} · E_n/E_0 = ${(en / e0).toFixed(4)})`,
+    );
+  };
 
   useEffect(() => {
     try {
@@ -882,19 +953,40 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* SOL: BİRİM FİYAT CETVELİ */}
           <div className="lg:col-span-7 border border-border bg-background">
-            <div className="px-6 py-4 border-b border-border bg-card flex items-center justify-between gap-2">
+            <div className="px-6 py-4 border-b border-border bg-card flex flex-wrap items-center justify-between gap-2">
               <div>
-                <span className="section-index">03 / BİRİM FİYAT CETVELİ</span>
+                <span className="section-index">03 / BİRİM FİYAT CETVELİ &amp; LİSANS MODU</span>
                 <h3 className="font-display-serif text-2xl text-foreground mt-0.5">
                   Birim Fiyat ve Maliyet Cetveli
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Taşeron veya piyasa birim fiyatlarını girerek anında yaklaşık maliyet ve teklif oluşturun
+                  Kendi lisanslı BYOL kataloğunuzu veya ÇŞB 2026 (18.848 satır) referans birim fiyatlarını kullanarak yaklaşık maliyet oluşturun
                 </p>
               </div>
-              <span className="stamp-badge bg-primary/10 text-primary border-primary/40">
-                Birim fiyat kutuları düzenlenebilir
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  aria-label="Fiyat Kaynağı ve Lisans Modu"
+                  value={priceLicenseMode}
+                  onChange={(e) =>
+                    setPriceLicenseMode(
+                      e.target.value as "BYOL_TENANT_CATALOG" | "CSB_2026_REFERENCE",
+                    )
+                  }
+                  className="border border-border bg-background px-2.5 py-1 text-[10px] font-mono text-foreground focus:border-primary focus:outline-none"
+                >
+                  <option value="BYOL_TENANT_CATALOG">
+                    BYOL: Kurum İçi Lisanslı Katalog (Aktif)
+                  </option>
+                  <option value="CSB_2026_REFERENCE">
+                    ÇŞB 2026 Mart Referans (18.848 Satır · YFK Lisans Süreci Paralel)
+                  </option>
+                </select>
+                <span className="stamp-badge bg-primary/10 text-primary border-primary/40">
+                  {tuikIndexedAppliedNote
+                    ? "TÜİK Endeksiyle Güncellenmiş Tahmini BF"
+                    : "Birim fiyat kutuları düzenlenebilir"}
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-12 px-6 py-2.5 bg-card border-b border-foreground/70 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1302,6 +1394,113 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* 4735 SAYILI KANUN FİYAT FARKI & ÇŞB 2026 – TÜİK 21 ALT ENDEKS MOTORU (FAZ 2.5) */}
+            <div className="mt-4 border border-border bg-background p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                  4735 FİYAT FARKI (F = A_n × B × (P_n − 1)) · ÇŞB-TÜİK 21 ALT ENDEKS
+                </span>
+                <span className="stamp-badge bg-card text-foreground">
+                  B = 0,90 · 21 Resmi Alt Endeks
+                </span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
+                <label className="block sm:col-span-1">
+                  <span className="text-[10px] text-muted-foreground block mb-1">
+                    ÇŞB 2026 – TÜİK Alt Endeksi (21 Grup)
+                  </span>
+                  <select
+                    aria-label="TÜİK Alt Endeks Seçimi"
+                    value={selectedTuikIndex}
+                    onChange={(e) => setSelectedTuikIndex(e.target.value as TuikSubIndexCode)}
+                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                  >
+                    {CSB_2026_TUIK_SUB_INDICES.map((idx) => (
+                      <option key={idx.code} value={idx.code}>
+                        {idx.tuikSectorCode} — {idx.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground block mb-1">
+                    Temel Endeks (E_0 — Baz Ayı)
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={tuikBaseIndexInput}
+                    onChange={(e) => setTuikBaseIndexInput(e.target.value)}
+                    placeholder="Örn: 240.00"
+                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground block mb-1">
+                    Güncel Endeks (E_n — Uygulama Ayı)
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={tuikCurrentIndexInput}
+                    onChange={(e) => setTuikCurrentIndexInput(e.target.value)}
+                    placeholder="Örn: 276.00"
+                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                  />
+                </label>
+              </div>
+
+              {escalationPreview ? (
+                <div className="mt-3 space-y-2 text-xs font-mono">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="border border-border bg-card p-2">
+                      <div className="text-[10px] text-muted-foreground">P_n Katsayısı</div>
+                      <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                        {formatTrNumber(escalationPreview.pnFactor, 4)}
+                      </div>
+                    </div>
+                    <div className="border border-border bg-card p-2">
+                      <div className="text-[10px] text-muted-foreground">Fiyat Farkı (F)</div>
+                      <div className="mt-0.5 font-bold text-primary tabular-nums">
+                        {formatTrCurrency(escalationPreview.priceDifferenceTl)}
+                      </div>
+                    </div>
+                    <div className="border border-border bg-card p-2">
+                      <div className="text-[10px] text-muted-foreground">Güncel Toplam (A_n + F)</div>
+                      <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                        {formatTrCurrency(escalationPreview.adjustedTotalTl)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground">
+                      {escalationPreview.formulaSummary}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleApplyTuikIndexToPrices}
+                      className="border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      Birim Fiyatları E_n/E_0 İle Güncelle (Tahmini)
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
+                  4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz).
+                </div>
+              )}
+
+              {tuikIndexedAppliedNote && (
+                <div className="mt-2 border border-primary/40 bg-primary/10 p-2 text-[10px] font-mono text-foreground">
+                  {tuikIndexedAppliedNote}
+                </div>
+              )}
             </div>
           </div>
         </div>

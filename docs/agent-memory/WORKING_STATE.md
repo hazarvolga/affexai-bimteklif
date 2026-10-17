@@ -195,10 +195,13 @@ Release status (2026-10-13):
 - **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 2.1 / 2.2 & Section 7 Decisions (#2, #3, #4, #6) — CDE State Transition Validator (`validateCdeStateTransition`), 4-Stage EIR/LOIN Engine (`evaluateLoinByMilestone`), Interactive Minha Selector & Dated Roadmap Badges (`Rev. 12` · `BIM-CALC-2026-10-17.6`):**
   - **`Faz 2.1` & `Faz 2.2` (`src/smartcheck/rules/iso19650.ts`, `src/smartcheck/rules/iso19650.test.ts`, `src/components/smartcheck/CalmIfcWorkspace.tsx`, `src/capabilities/registry.ts`):** Added `validateCdeStateTransition` (blocking direct `WIP -> PUBLISHED` jumps without `SHARED`, verifying suitability/revision codes) and `evaluateLoinByMilestone` (`CONCEPT` LOD 200, `DEFINITIVE` LOD 300, `IMPLEMENTATION` LOD 350, `AS_BUILT` LOD 400). Upgraded `iso19650-cde-workflow-state-machine` to `L3` `live` (`BIM-CAP-2026-10-17.3`).
   - **Section 7 Decisions #2, #3, #4, #6 (`CalmIfcWorkspace.tsx`, `LandingPage.tsx`, `index.html`):** Persisted KİK `YM`/`T_i`, CDE transition log, and Minha profile in `localStorage`; added interactive Minha profile selector (`CSB_2026: 0,50 m²`, `DIN_18350: 2,50 m²`, `CUSTOM_CONTRACT: m²`); standardized ISO 19650 `"destekler"` wording; added `"Yol Haritasında · 2026 Q4"` badges for EKAP and Ghostscript/veraPDF.
+- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 2.5 & Section 7 Decision (#1) — 4735 Price Escalation ($F = A_n \times B \times (P_n - 1)$), ÇŞB 2026 – TÜİK 21 Sub-Index Engine & BYOL License Mode (`Rev. 13` · `BIM-CALC-2026-10-17.7`):**
+  - **`Faz 2.5` (`src/lib/price-escalation.ts`, `src/lib/price-escalation.test.ts`, `src/capabilities/registry.ts`):** Implemented `CSB_2026_TUIK_SUB_INDICES` (21 official sub-indices), `computeContractPriceEscalation4735` ($F = A_n \times 0,90 \times (P_n - 1)$, $\sum w_i = 1,00$, exact kuruş precision), and `indexOutOfPeriodUnitPrice` (explicit `TUIK_INDEXED_ESTIMATE` tag). Registered as `L3` `live` in `BIM-CAP-2026-10-17.4`.
+  - **Section 7 Decision #1 (`CalmIfcWorkspace.tsx`):** Added BYOL (`BYOL_TENANT_CATALOG`) vs `CSB_2026_REFERENCE` license mode selector and interactive 4735 / TÜİK 21 sub-index simulator in Tab 3.
 
 ## Next code work
 
-- Execute `Paket B` (`Faz 2.5` 21-sub-index TÜİK price escalation engine + Section 7 Decision #1 BYOL tenant price book indicator) and `Paket C` (Section 7 Decision #5 local TR payment gateway adapter `iyzico / PayTR` in `Billing.tsx`).
+- Execute `Paket C` (Section 7 Decision #5 local TR payment gateway adapter `iyzico / PayTR` in `Billing.tsx`).
 
 ## Ground rules for agents
 

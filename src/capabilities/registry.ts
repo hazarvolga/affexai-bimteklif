@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.3';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.4';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -282,6 +282,35 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
     reviewer: {
       name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
       title: 'Birim Fiyat & Maliyet Veri Başdenetçisi',
+      discipline: 'COST',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'tuik-21-subindex-price-escalation-4735',
+    title: '4735 Sayılı Kanun Fiyat Farkı (F = A_n × B × (P_n − 1)) & ÇŞB 2026 – TÜİK 21 Alt Endeks Güncelleme Motoru',
+    shortClaim:
+      '4735 Sayılı Kamu İhale Sözleşmeleri Kanunu Fiyat Farkı Esasları (B=0,90, P_n ağırlıklı endeks) ve 21 resmi ÇŞB-TÜİK alt endeksiyle dönem dışı birim fiyat eskalasyonu (TUIK_INDEXED_ESTIMATE).',
+    longDescription:
+      'ÇŞB Yüksek Fen Kurulu 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 alt endeksi (TÜFE Genel İşçilik + 20 Yİ-ÜFE sektörel alt endeksi) kullanarak hem 4735 sayılı Kanun kapsamındaki hakediş fiyat farkını (F = A_n × B × (P_n − 1)) kuruş hassasiyetiyle hesaplar hem de geçerlilik dönemi dolmuş aylık birim fiyatları açık "TÜİK Endeksiyle Güncellenmiş Tahmini Birim Fiyat" etiketiyle hedef aya taşır.',
+    level: 'L3',
+    status: 'live',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/lib/price-escalation.ts',
+      goldenTestPath: 'src/lib/price-escalation.test.ts',
+      officialSource: {
+        institution: 'Cumhurbaşkanlığı & T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK / TÜİK',
+        documentTitle: '4735 Sayılı Kanun Yapım İşleri Fiyat Farkı Esasları & ÇŞB 2026 Ocak Rayiç–TÜİK Endeks Eşleştirme Tablosu',
+        articleOrTable: 'Madde 5–6 (F = A_n × B × (P_n − 1)) & 21 TÜFE/Yİ-ÜFE Alt Endeks Eşleştirme Tablosu',
+        publicationDate: '2026-01-01',
+        sha256: '3519e5a631d6043b72e7637e1521456f1da00e7a794f39655cc5c628ae76d93e',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Kamu İhale Fiyat Farkı & Maliyet Başdenetçisi',
       discipline: 'COST',
       approvedAt: '2026-10-17',
     },

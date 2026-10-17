@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1792212772.9073536,
-    "ast_hash": "033608b31e24217aa5bb499c8b8a0abd",
+    "mtime": 1792213423.8230553,
+    "ast_hash": "6499baca5c85c8b846d8cfa3062e577d",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792212561.886228,
-    "ast_hash": "9c79bc5413dbf50241b93d16a5b5efaa",
+    "mtime": 1792213301.5211084,
+    "ast_hash": "a72ebc2632717e42552574469895b571",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792212469.8372731,
-    "ast_hash": "313480b53aeacbd1b53959a70ded6d38",
+    "mtime": 1792213258.6820323,
+    "ast_hash": "6f66973529192240c0d6724b2aefb216",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6425,8 +6425,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/CalmIfcWorkspace.tsx": {
-    "mtime": 1792211880.4146824,
-    "ast_hash": "94fb5aa5f4c4cf29a21ed4fe20638274",
+    "mtime": 1792213139.1895585,
+    "ast_hash": "5d5dc2f65e17129685ac870d4fca36b7",
     "semantic_hash": ""
   },
   "src/ifc/calm-icmal.test.ts": {
@@ -6485,8 +6485,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-17.md": {
-    "mtime": 1792212754.6518614,
-    "ast_hash": "a6c3edfa6b71785d62705da3d16fe19e",
+    "mtime": 1792213383.457771,
+    "ast_hash": "cd5a84cb2ec8f8e0792dd7907292556e",
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
@@ -6495,13 +6495,23 @@
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
-    "mtime": 1792212652.6264384,
-    "ast_hash": "26cf8e0c4e66a1693aa4b678bad36b1d",
+    "mtime": 1792213190.702056,
+    "ast_hash": "5ba863c05cde38641a9f6a28b688727e",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.golden.test.ts": {
     "mtime": 1792209802.7509527,
     "ast_hash": "8bd5242b4f9e70efb099cdc2f0109317",
+    "semantic_hash": ""
+  },
+  "src/lib/price-escalation.test.ts": {
+    "mtime": 1792212954.2172022,
+    "ast_hash": "70418a0f9065a942c3380276f82156be",
+    "semantic_hash": ""
+  },
+  "src/lib/price-escalation.ts": {
+    "mtime": 1792213351.0610113,
+    "ast_hash": "e211bc2a1be1a3f97a270d61fd6d19ec",
     "semantic_hash": ""
   }
 }

@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.6",
+  version: "BIM-CALC-2026-10-17.7",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "4b273de2fa8d1ab34a1a9fa20d4261c63c48550e",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.3), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, ISO 19650 CDE durum geçiş doğrulayıcısı (validateCdeStateTransition) ve 4 teslim aşamalı EIR/LOIN (evaluateLoinByMilestone) motoru mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "63ea8731144df836ef92e54a1bf38a27138b4d7c",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru (price-escalation.ts) ve ISO 19650 CDE durum geçiş doğrulayıcısı mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -397,6 +397,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 13",
+    version: "BIM-CALC-2026-10-17.7",
+    date: "17 Ekim 2026",
+    commit: "63ea873",
+    trigger: "YOL_HARITASI_2026-10-17 Faz 2.5 & Bölüm 7 Karar #1: 4735 Sayılı Kanun Fiyat Farkı (F = A_n × B × (P_n − 1)) & ÇŞB 2026 – TÜİK 21 Alt Endeks Güncelleme Motoru (price-escalation.ts) ve BYOL Lisans Modu Seçicisi",
+    beforeSummary:
+      "csb_2026_tuik_endeks_eslestirme içindeki 21 resmi TÜFE/Yİ-ÜFE alt endeksini kullanarak 4735 Sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkını (F = A_n × B × (P_n − 1)) ve geçerlilik dönemi dolmuş aylık ÇŞB birim fiyatlarının dönem dışı eskalasyonunu hesaplayan bağımsız bir motor yoktu; ayrıca CalmIfcWorkspace üzerinde BYOL / ÇŞB lisans modu seçicisi bulunmuyordu.",
+    afterSummary:
+      "src/lib/price-escalation.ts ve 5 senaryolu golden test seti (src/lib/price-escalation.test.ts) oluşturularak 21 resmi ÇŞB 2026 – TÜİK alt endeksiyle hem 4735 Fiyat Farkı Kararnamesi (F = A_n × 0,90 × (P_n − 1), Σw_i = 1,00 kontrolü ve tam kuruş hassasiyeti) hem de dönem dışı birim fiyat eskalasyonu (indexOutOfPeriodUnitPrice: açık 'TÜİK Endeksiyle Güncellenmiş Tahmini Birim Fiyat' etiketiyle) devreye alındı ve Yetenek Kaydına L3 live olarak eklendi (BIM-CAP-2026-10-17.4). CalmIfcWorkspace 3. sekmesine BYOL / ÇŞB 2026 lisans modu seçicisi (Karar #1) ve interaktif 4735 Fiyat Farkı & TÜİK 21 Alt Endeks kartı entegre edildi.",
+    affectedModules: ["eskalasyon", "fiyat-eslestirme"],
+    moduleDetails: {
+      eskalasyon: {
+        before: "Yalnızca nakit akışı T/2 harcama dağılımı tahmini vardı; 4735 Sayılı Kanun Fiyat Farkı Esasları (F = A_n × B × (P_n − 1)) ve 21 TÜİK alt endeksiyle hakediş fiyat farkı hesabı bulunmuyordu.",
+        after: "computeContractPriceEscalation4735 ve indexOutOfPeriodUnitPrice ile 21 ÇŞB-TÜİK alt endeksi üzerinden resmi 4735 fiyat farkı ve dönem dışı tahmini birim fiyat güncellemesi eklendi.",
+        basis: "4735 Sayılı Kanun Fiyat Farkı Esasları & ÇŞB 2026 Ocak Rayiç–TÜİK Endeks Eşleştirme Tablosu (src/lib/price-escalation.ts — Faz 2.5)",
+      },
+      "fiyat-eslestirme": {
+        before: "CalmIfcWorkspace 3. sekmesinde BYOL (Kurum İçi Lisanslı Katalog) ile ÇŞB 2026 Mart Referans Kataloğu ayrımını ve dönem dışı TÜİK endeks güncellemesini gösteren açık bir kontrol yoktu.",
+        after: "BYOL / ÇŞB 2026 Lisans Modu seçicisi (Karar #1) ve dönem dışı pozlar için 'TÜİK Endeksiyle Güncellenmiş Tahmini Birim Fiyat' rozeti eklendi.",
+        basis: "YOL_HARITASI_2026-10-17.md §4 Faz 2.5 & §7 Karar #1",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -423,8 +447,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Net hakediş miktarı ile fireli maliyet miktarının örnek gerçek teklifle karşılaştırılması.",
   },
   eskalasyon: {
-    scope: "Harcama dağılımı için T/2 varsayımı; sözleşmeye bağlı fiyat farkı hesabı değildir.",
-    testFiles: ["src/lib/calculations.test.ts", "src/pages/admin/roadmap/content.test.ts"],
+    scope: "T/2 harcama dağılımı simülasyonu + 4735 Sayılı Kanun Fiyat Farkı Esasları (F = A_n × B × (P_n − 1)) ve ÇŞB 2026 – TÜİK 21 Alt Endeks dönem dışı birim fiyat eskalasyon motoru aktif.",
+    testFiles: ["src/lib/calculations.test.ts", "src/lib/price-escalation.test.ts", "src/pages/admin/roadmap/content.test.ts"],
     pending: "Harcama takvimi, eskale edilen kategoriler ve prim varsayımlarının proje için onayı.",
   },
   "risk-fiyat-araligi": {
@@ -458,8 +482,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "İş türüne göre fire sınırlarının gerçek saha verileriyle kalibrasyonu.",
   },
   "fiyat-eslestirme": {
-    scope: "Kanıtlı fiyat kayıtlarını sıralayan öneri; kendi başına fiyat onayı vermez.",
-    testFiles: ["src/smartcheck/pricing/snapshots.test.ts", "src/server/crawler/csb-pdf-parser.test.ts"],
+    scope: "6 resmi ÇŞB 2026 kitabında 18.848 satır tam kapsam, BYOL kurum içi lisanslı katalog modu ve TÜİK 21 alt endeksiyle dönem dışı güncelleme önerisi aktif.",
+    testFiles: ["src/smartcheck/pricing/snapshots.test.ts", "src/server/crawler/csb-pdf-parser.test.ts", "src/lib/price-escalation.test.ts"],
     pending: "Gerçek katalogda poz/birim eşleşmesi, lisans, tarih ve öneri kalitesinin doğrulanması.",
   },
   "aykiri-fiyat": {
