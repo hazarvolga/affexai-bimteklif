@@ -12,7 +12,7 @@ test('CSP locks scripts to self and only opens the origins the app really uses',
   assert.deepEqual(directives['frame-ancestors'], ["'none'"]);
   assert.ok(directives['connect-src'].includes('https://acct.r2.cloudflarestorage.com'));
   assert.ok(directives['connect-src'].includes('https://*.acct.r2.cloudflarestorage.com'), 'virtual-hosted bucket uploads');
-  assert.ok(directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase');
+  assert.ok(!directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase omitted while ACADEMY_ENABLED is false');
   assert.ok(!policy.includes("'unsafe-eval'"));
   assert.ok(!contentSecurityPolicy({}).includes('undefined'));
   assert.ok(!contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'not a url' }).includes('not a url'));

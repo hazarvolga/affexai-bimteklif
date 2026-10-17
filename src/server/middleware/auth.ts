@@ -40,7 +40,7 @@ const sessionClaims = z.object({
   readOnly: z.boolean().optional(),
 });
 
-const authDependencies: AuthDependencies = {
+export const authDependencies: AuthDependencies = {
   async isImpersonationRevoked(tokenHash) {
     const rows = await db.select({ id: adminAuditLogs.id }).from(adminAuditLogs).where(and(
       eq(adminAuditLogs.action, "impersonation.ended"),
@@ -83,9 +83,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     const impersonationTokenHash = impersonatedBy ? hashActionToken(token) : undefined;
     if (impersonatedBy) {
       const admin = await dependencies.findUser(impersonatedBy);
-      const revoked = dependencies.isImpersonationRevoked
-        ? await dependencies.isImpersonationRevoked(impersonationTokenHash!)
-        : false;
+      const revoked = !dependencies.isImpersonationRevoked || await dependencies.isImpersonationRevoked(impersonationTokenHash!);
       if (!admin?.isSuperAdmin || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) || revoked) {
         return res.status(401).json({ error: "Impersonation session expired" });
       }

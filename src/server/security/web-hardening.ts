@@ -34,7 +34,7 @@ export function contentSecurityPolicy(env: Record<string, string | undefined>): 
     'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
-    'connect-src': ["'self'", ...storageOrigins, ...FIREBASE_ORIGINS],
+    'connect-src': ["'self'", ...storageOrigins, ...(ACADEMY_ENABLED ? FIREBASE_ORIGINS : [])],
     'worker-src': ["'self'", 'blob:'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],

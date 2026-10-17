@@ -80,14 +80,16 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   const csp = contentSecurityPolicy(process.env);
   const buildRevision = readBuildRevision();
 
-  // HTTP hardening headers (SEC-09, OPS-10)
+  // HTTP hardening headers (SEC-08, SEC-09, OPS-10)
   app.use((_req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "0");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
     if (process.env.NODE_ENV === "production") {
-      res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+      res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
       // Dev keeps Vite's inline HMR preamble working; production enforces the policy.
       res.setHeader("Content-Security-Policy", csp);
     }
@@ -96,14 +98,20 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
 
   app.use(requestIdMiddleware);
 
-  app.use("/api/admin/pricing-sources/:id/import-pdf", express.json({ limit: "50mb" }));
-
-  app.use(express.json({
+  const defaultJsonParser = express.json({
     limit: "1mb",
     verify: (req: any, _res, buffer) => {
       if (req.originalUrl?.split("?")[0] === "/api/academy/allplan/webhooks/payment") req.rawBody = Buffer.from(buffer);
     },
-  }));
+  });
+
+  // SEC-2: Do not parse 50MB bodies before authentication; let /import-pdf authenticate first.
+  app.use((req, res, next) => {
+    if (/^\/api\/admin\/pricing-sources\/[^/]+\/import-pdf$/.test(req.path)) {
+      return next();
+    }
+    return defaultJsonParser(req, res, next);
+  });
 
   // Liveness probe (fast, no external dependencies) - OPS-12
   app.get("/healthz", (_req, res) => {

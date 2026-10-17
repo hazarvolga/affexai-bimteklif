@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { Express } from 'express';
+import express, { type Express } from 'express';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
@@ -227,12 +227,13 @@ export function registerPricingFileImportRoutes(app: Express) {
     }
   );
 
-  // Import official ÇŞB PDF directly from uploaded file
+  // Import official ÇŞB PDF directly from uploaded file (SEC-2: 50MB parser runs only after SuperAdmin auth)
   app.post(
     '/api/admin/pricing-sources/:id/import-pdf',
     authenticate,
     checkSuperAdmin(),
     requireVerifiedEmail,
+    express.json({ limit: '50mb' }),
     async (req, res) => {
       if (!z.string().uuid().safeParse(req.params.id).success) {
         return res.status(400).json({ error: 'Kaynak kimliği geçersiz.' });
