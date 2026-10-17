@@ -407,16 +407,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Minha eşiği modeldeki gerçek kapı/pencere ölçülerine bağlandı (kaynaksız 1,50 varsayılanı kaldırıldı). Rev. 18'deki sunucu yolu hatası (şema alanı siliyordu) düzeltildi ve gerçek IFC ile uçtan uca test eklendi.",
           ],
           [
-            "Rev. 22 (Güncel)",
+            "Rev. 22",
             "17 Ekim 2026 (Ücretsiz hesaplayıcılar)",
             "BIM-CALC-2026-10-17.16",
             "Ücretsiz halka açık hesaplayıcılar eklendi: aşırı düşük teklif sınır değeri ve 4735 fiyat farkı. Varsayılan değer yok; bağımsız doğrulanmamıştır uyarısı var; sitemap ve llms.txt'de listeli. 4735 motoruna sabit katsayı desteği eklendi.",
+          ],
+          [
+            "Rev. 23 (Güncel)",
+            "17 Ekim 2026 (Dış kaynak incelemesi)",
+            "BIM-CALC-2026-10-17.17",
+            "Müteahhit süreç analizi raporu incelendi: KİK algoritması kodla tutarlı bulundu; N katsayısı 1,00–1,20 aralık denetimi ve hesaplayıcıda idare N alanı eklendi; doğrulanamayan iddialar ürüne alınmadı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 22 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 23 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -679,6 +685,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "KİK ve 4735 hesapları yalnızca giriş yapmış kullanıcıya açıktı; 4735 motoru sabit katsayıyı temsil edemiyordu.",
             "CalculatorShell, KikAdtCalculatorPage, PriceEscalationCalculatorPage ve CalculatorsIndexPage halka açık rotalar olarak eklendi; kik-form.ts ve escalation-form.ts form-motor eşlemesini yapar; tr-number.ts Türkçe sayıları okur; web-hardening sitemap/llms.txt/SPA rotalarına eklendi; price-escalation.ts constantWeight aldı.",
             "src/pages/calculators/*, src/lib/calculators/*, src/lib/tr-number.ts, src/lib/price-escalation.ts, src/App.tsx, src/server/security/web-hardening.ts, LandingPage.tsx, src/capabilities/registry.ts",
+          ],
+          [
+            "Rev. 23.1 · 17 Ekim 2026 (KİK N aralık denetimi)",
+            "Kamu İhale Genel Tebliği m.45.1.1.1 — idarenin 1,00–1,20 arasında N belirleme yetkisi (dış rapor bulgusu)",
+            "evaluateKikAbnormallyLowBid, nCoefficientOverride için herhangi bir pozitif sayıyı kabul ediyordu; yanlış N yanlış sınır değer üretirdi.",
+            "Motor 1,00–1,20 dışı N değerini hata olarak reddeder; kik-form.ts nOverride alanını doğrular; KikAdtCalculatorPage'e N alanı ve yapım işi/açıklama seçeneği notu eklendi; testler eklendi.",
+            "src/lib/kik-adt.ts, src/lib/kik-adt.test.ts, src/lib/calculators/kik-form.ts, calculators-forms.test.ts, KikAdtCalculatorPage.tsx, PriceEscalationCalculatorPage.tsx",
           ],
         ],
       },

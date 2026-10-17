@@ -103,8 +103,16 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
   const rawYm = Number(input.estimatedCostTry);
   const ourBid = Math.max(0, Number(input.ourBidTry) || 0);
   const workCategory: KikWorkCategory = input.workCategory ?? "ust_yapi";
+  // İdare, işin niteliğine göre N'yi 1,00–1,20 arasında belirleyebilir (ilan/idari şartnamede yayımlanır).
+  // Aralık dışı bir değer sessizce kabul edilmez; yanlış sınır değer üretir.
+  if (input.nCoefficientOverride !== undefined && input.nCoefficientOverride !== null) {
+    const n = input.nCoefficientOverride;
+    if (typeof n !== "number" || !Number.isFinite(n) || n < 1 || n > 1.2) {
+      throw new Error("N katsayısı 1,00 ile 1,20 arasında olmalıdır.");
+    }
+  }
   const nCoefficient =
-    typeof input.nCoefficientOverride === "number" && input.nCoefficientOverride > 0
+    typeof input.nCoefficientOverride === "number"
       ? input.nCoefficientOverride
       : workCategory === "alt_yapi"
         ? 1.2

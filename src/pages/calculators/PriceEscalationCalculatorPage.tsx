@@ -41,7 +41,7 @@ export const PriceEscalationCalculatorPage: React.FC = () => {
             <CalcField label="B katsayısı" hint="Sözleşmenizdeki değer.">
               <input className={calcInputClass} inputMode="decimal" aria-label="B katsayısı" value={form.bFactor} onChange={(e) => setForm({ ...form, bFactor: e.target.value })} />
             </CalcField>
-            <CalcField label="Sabit katsayı a (varsa)" hint="Yoksa boş bırakın.">
+            <CalcField label="Endekse bağlı olmayan sabit terim (varsa)" hint="Sözleşmenizin formülünde sabit bir katsayı varsa girin (sembolü sözleşmeye göre değişir); yoksa boş bırakın.">
               <input className={calcInputClass} inputMode="decimal" aria-label="Sabit katsayı" value={form.constantWeight} onChange={(e) => setForm({ ...form, constantWeight: e.target.value })} />
             </CalcField>
           </div>

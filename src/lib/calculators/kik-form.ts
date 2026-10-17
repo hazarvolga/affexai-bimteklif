@@ -11,6 +11,8 @@ export interface KikFormState {
   bids: string;
   ourBid: string;
   items: string;
+  /** İdare ilanda farklı bir N belirlediyse (1,00–1,20); boşsa iş grubunun N değeri. */
+  nOverride?: string;
 }
 
 export type KikFormOutcome =
@@ -51,6 +53,10 @@ export function evaluateKikForm(f: KikFormState): KikFormOutcome {
   if (items.invalid.length > 0) errors.push(`Okunamayan iş kalemi satırı (biçim: açıklama;tutar): ${items.invalid.join(" | ")}`);
   const ourBid = f.ourBid.trim() === "" ? null : parseTrNumber(f.ourBid);
   if (f.ourBid.trim() !== "" && (ourBid === null || ourBid <= 0)) errors.push("Sizin teklifiniz sıfırdan büyük bir sayı olmalı.");
+  const nOverride = (f.nOverride ?? "").trim() === "" ? null : parseTrNumber(f.nOverride as string);
+  if ((f.nOverride ?? "").trim() !== "" && (nOverride === null || nOverride < 1 || nOverride > 1.2)) {
+    errors.push("N katsayısı 1,00 ile 1,20 arasında olmalı (idarenin ilanda belirttiği değer).");
+  }
   if (errors.length > 0) return { status: "error", errors };
 
   const result = evaluateKikAbnormallyLowBid({
@@ -58,6 +64,7 @@ export function evaluateKikForm(f: KikFormState): KikFormOutcome {
     validBidsTry: bids.values,
     ourBidTry: ourBid ?? (ym as number),
     workCategory: f.category as KikWorkCategory,
+    ...(nOverride !== null ? { nCoefficientOverride: nOverride } : {}),
     lineItems: items.items,
   });
   const warnings: string[] = [];

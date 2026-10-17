@@ -51,7 +51,7 @@ export function evaluateEscalationForm(f: EscalationFormState): EscalationFormOu
     return { indexCode: r.indexCode as TuikSubIndexCode, weight: w ?? 0, baseIndex: e0 ?? 0, currentIndex: en ?? 0 };
   });
   const a = f.constantWeight.trim() === "" ? 0 : parseTrNumber(f.constantWeight);
-  if (a === null || a < 0 || a > 1) errors.push("Sabit katsayı (a) 0 ile 1 arasında olmalı; yoksa boş bırakın.");
+  if (a === null || a < 0 || a > 1) errors.push("Sabit terim 0 ile 1 arasında olmalı; yoksa boş bırakın.");
   if (errors.length > 0) return { status: "error", errors };
 
   try {

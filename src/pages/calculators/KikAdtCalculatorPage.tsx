@@ -3,7 +3,7 @@ import { evaluateKikForm, type KikFormState } from "@/lib/calculators/kik-form";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 export const KikAdtCalculatorPage: React.FC = () => {
-  const [form, setForm] = useState<KikFormState>({ ym: "", category: "", bids: "", ourBid: "", items: "" });
+  const [form, setForm] = useState<KikFormState>({ ym: "", category: "", bids: "", ourBid: "", items: "", nOverride: "" });
   const set = <K extends keyof KikFormState>(k: K, v: KikFormState[K]) => setForm((f) => ({ ...f, [k]: v }));
   const outcome = useMemo(() => evaluateKikForm(form), [form]);
 
@@ -36,6 +36,9 @@ export const KikAdtCalculatorPage: React.FC = () => {
               <option value="ust_yapi">Üstyapı, elektrik, mekanik, elektronik/iletişim (N = 1,00)</option>
               <option value="alt_yapi">Diğer yapım işleri, altyapı vb. (N = 1,20)</option>
             </select>
+          </CalcField>
+          <CalcField label="İdarenin belirlediği N (isteğe bağlı)" hint="İdare ilanda veya idari şartnamede 1,00–1,20 arasında farklı bir N belirlediyse girin; boşsa iş grubunun N değeri kullanılır.">
+            <input className={calcInputClass} inputMode="decimal" aria-label="İdarenin belirlediği N" value={form.nOverride ?? ""} onChange={(e) => set("nOverride", e.target.value)} placeholder="örn. 1,10" />
           </CalcField>
           <CalcField label="Geçerli teklifler (₺)" hint="Her satıra bir teklif yazın. İlk oturumdaki geçerli teklifler.">
             <textarea
@@ -129,6 +132,7 @@ export const KikAdtCalculatorPage: React.FC = () => {
 
       <section className="space-y-3 text-sm text-muted-foreground">
         <h2 className="font-display-serif text-2xl text-foreground">Hesap nasıl yapılır?</h2>
+        <p className="text-xs">Bu hesaplayıcı yalnızca <strong>yapım işleri</strong> içindir; hizmet alımlarında eşikler farklıdır. İdari şartnamede sınır değerin altında kalan tekliften açıklama istenip istenmeyeceği idarenin seçimine bağlıdır; açıklama istenmeyen ihalelerde sınır değerin altındaki teklif doğrudan reddedilebilir, bu yüzden N değerini ve bu seçeneği ihale dokümanından okuyun.</p>
         <ol className="list-decimal space-y-1 pl-5">
           <li>YM'nin %40'ından düşük ve %120'sinden yüksek teklifler dikkate alınmaz.</li>
           <li>Kalan tekliflerin aritmetik ortalaması (T_ort1) ve standart sapması (σ) bulunur.</li>

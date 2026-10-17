@@ -103,3 +103,17 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
   });
 });
 
+
+describe("N katsayısı aralığı", () => {
+  it("idare 1,00–1,20 arasında belirleyebilir; aralık dışı değer reddedilir", async () => {
+  const { evaluateKikAbnormallyLowBid } = await import("./kik-adt");
+  const base = { estimatedCostTry: 100_000_000, validBidsTry: [70_000_000, 80_000_000, 90_000_000], ourBidTry: 60_000_000 };
+  const n100 = evaluateKikAbnormallyLowBid({ ...base, workCategory: "ust_yapi" });
+  const n110 = evaluateKikAbnormallyLowBid({ ...base, workCategory: "ust_yapi", nCoefficientOverride: 1.1 });
+  assert.equal(n110.nCoefficient, 1.1);
+  assert.ok(n110.boundaryValueTry <= n100.boundaryValueTry, "N büyüdükçe sınır değer düşer (paydada)");
+  for (const bad of [0.5, 1.3, 5, Number.NaN]) {
+    assert.throws(() => evaluateKikAbnormallyLowBid({ ...base, nCoefficientOverride: bad }), /1,00 ile 1,20/);
+  }
+  });
+});

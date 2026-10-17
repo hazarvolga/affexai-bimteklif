@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.16",
+  version: "BIM-CALC-2026-10-17.17",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "9584df2e930662c7d9d413667f6529ed816dd1f2",
+  implementationBaseline: "4b83f24979153b5075c334bd8e2a4cd4b2dc8a25",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -599,6 +599,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "4735 motoru sabit katsayıyı (a) temsil edemiyordu ve yalnızca çalışma alanından kullanılabiliyordu.",
         after: "constantWeight (a) isteğe bağlı olarak eklendi (Σ ağırlık + a = 1,00, Pn += a); halka açık sayfadan B ve tüm katsayılar kullanıcı girdisiyle hesaplanır.",
         basis: "4735 m.8 ve sözleşme fiyat farkı formülü; src/lib/calculators/escalation-form.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 23",
+    version: "BIM-CALC-2026-10-17.17",
+    date: "17 Ekim 2026",
+    commit: "4b83f24",
+    trigger: "Dış kaynak incelemesi (müteahhit süreç analizi raporu): KİK N katsayısı aralık denetimi ve hesaplayıcı iyileştirmeleri",
+    beforeSummary:
+      "KİK motoru nCoefficientOverride değerini aralık denetimi olmadan kabul ediyordu (N = 5 gibi bir değer yanlış sınır değer üretirdi); halka açık hesaplayıcıda idarenin farklı N belirleyebilmesi yoktu; 4735 sayfasındaki 'sabit katsayı a' etiketi sözleşmeye göre değişen sembolü yanlış tanımlayabilirdi.",
+    afterSummary:
+      "İdare N'yi ilanda 1,00–1,20 arasında farklı belirleyebildiğinden motor bu aralık dışındaki N değerlerini hata olarak reddeder; hesaplayıcıya 'İdarenin belirlediği N' alanı eklendi; sayfaya yalnız yapım işleri için olduğu ve idarenin açıklama isteyip istemeyeceğinin ihale dokümanına bağlı olduğu notu eklendi; 4735 sayfasındaki etiket 'endekse bağlı olmayan sabit terim' olarak nötrleştirildi. Raporun KİK sınır değer algoritması kodumuzla tutarlı bulundu; KDV, ödeme dilimi ve pay yüzdeleri gibi doğrulanamayan iddialar ürüne alınmadı.",
+    affectedModules: ["kik-adt"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "nCoefficientOverride aralık denetimsizdi; hesaplayıcıda idarenin N'si girilemiyordu.",
+        after: "N yalnızca 1,00–1,20 aralığında kabul edilir, dışı hata verir; hesaplayıcıda isteğe bağlı N alanı vardır.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1.1 (idarenin N belirleme yetkisi) — dış rapor bulgusu, bağımsız doğrulanmadı",
       },
     },
   },

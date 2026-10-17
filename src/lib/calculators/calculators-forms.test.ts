@@ -92,3 +92,11 @@ test("4735 formu: ağırlık toplamı 1 değilse motor hatası kullanıcıya ile
   assert.equal(r.status, "error");
   if (r.status === "error") assert.ok(r.errors[0].includes("1,00"));
 });
+
+test("KİK formu: idarenin N değeri uygulanır; 1,00–1,20 dışı reddedilir", () => {
+  const ok = evaluateKikForm({ ym: "100000000", category: "ust_yapi", bids: "70000000;80000000;90000000", ourBid: "", items: "", nOverride: "1,10" });
+  assert.equal(ok.status, "ok");
+  if (ok.status === "ok") assert.equal(ok.result.nCoefficient, 1.1);
+  const bad = evaluateKikForm({ ym: "100000000", category: "ust_yapi", bids: "70000000", ourBid: "", items: "", nOverride: "1,5" });
+  assert.equal(bad.status, "error");
+});
