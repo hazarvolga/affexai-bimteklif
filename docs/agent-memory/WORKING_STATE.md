@@ -198,10 +198,12 @@ Release status (2026-10-13):
 - **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 2.5 & Section 7 Decision (#1) — 4735 Price Escalation ($F = A_n \times B \times (P_n - 1)$), ÇŞB 2026 – TÜİK 21 Sub-Index Engine & BYOL License Mode (`Rev. 13` · `BIM-CALC-2026-10-17.7`):**
   - **`Faz 2.5` (`src/lib/price-escalation.ts`, `src/lib/price-escalation.test.ts`, `src/capabilities/registry.ts`):** Implemented `CSB_2026_TUIK_SUB_INDICES` (21 official sub-indices), `computeContractPriceEscalation4735` ($F = A_n \times 0,90 \times (P_n - 1)$, $\sum w_i = 1,00$, exact kuruş precision), and `indexOutOfPeriodUnitPrice` (explicit `TUIK_INDEXED_ESTIMATE` tag). Registered as `L3` `live` in `BIM-CAP-2026-10-17.4`.
   - **Section 7 Decision #1 (`CalmIfcWorkspace.tsx`):** Added BYOL (`BYOL_TENANT_CATALOG`) vs `CSB_2026_REFERENCE` license mode selector and interactive 4735 / TÜİK 21 sub-index simulator in Tab 3.
+- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Section 7 Decision (#5) — Local TR Card & Installment Payment Channel (`iyzico / PayTR / Stripe TR`) in `Billing.tsx` (`Rev. 14` · `BIM-CALC-2026-10-17.8`):**
+  - Added dual payment channel selector (`Havale / EFT (%10–%30 İskonto)` vs `Türkiye Kartları & Taksit (iyzico / PayTR)`) and interactive 1 / 3 / 6 / 9 / 12 installment schedule preview for Turkish commercial cards (Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy) in `src/pages/Billing.tsx`.
 
 ## Next code work
 
-- Execute `Paket C` (Section 7 Decision #5 local TR payment gateway adapter `iyzico / PayTR` in `Billing.tsx`).
+- Faz 3 integrations (2026 Q4 roadmap): EKAP tender XML/PDF import, Ghostscript/veraPDF + PAdES cryptographic chain verification, and OpenCDE BCF 3.0 sync.
 
 ## Ground rules for agents
 

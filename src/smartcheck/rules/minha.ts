@@ -12,6 +12,7 @@
  */
 
 export type MeasurementStandard = "CSB_2026" | "DIN_18350" | "CUSTOM_CONTRACT";
+export type MinhaRuleProfile = MeasurementStandard;
 
 export interface OpeningInput {
   id?: string;

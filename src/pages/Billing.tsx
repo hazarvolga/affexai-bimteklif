@@ -117,6 +117,9 @@ export function Billing() {
   const [notes, setNotes] = useState('');
   const [submittingPayment, setSubmittingPayment] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [paymentChannel, setPaymentChannel] = useState<'bank_transfer' | 'local_tr_card'>('bank_transfer');
+  const [selectedTrGateway, setSelectedTrGateway] = useState<'iyzico' | 'paytr' | 'stripe_tr'>('iyzico');
+  const [selectedInstallment, setSelectedInstallment] = useState<1 | 3 | 6 | 9 | 12>(1);
 
   async function load() {
     setLoading(true);
@@ -580,8 +583,158 @@ export function Billing() {
             </section>
           )}
 
-          {/* Havale / EFT Ödeme Bilgileri ve Dekont Bildirim Formu */}
+          {/* Tahsilat Kanalı Seçimi: Kurumsal Havale/EFT & Türkiye Kartları / Taksit (Bölüm 7 Karar #5) */}
           <section className="py-8 border-b border-zinc-800 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300 font-bold">
+                  Kurumsal Tahsilat Kanalları (Türkiye Kartları &amp; IBAN)
+                </span>
+                <h2 className="text-base font-bold text-white mt-0.5">
+                  Ödeme Yöntemi Seçiniz
+                </h2>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Peşin iskontolu Kurumsal Banka Havalesi/EFT veya Türkiye ticari kredi kartlarına (Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy) taksit seçenekleri.
+                </p>
+              </div>
+              <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 p-1 text-xs shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPaymentChannel('bank_transfer')}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-2 font-semibold transition-colors ${
+                    paymentChannel === 'bank_transfer'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <Landmark size={14} />
+                  Havale / EFT (%10–%30 İskonto)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentChannel('local_tr_card')}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-2 font-semibold transition-colors ${
+                    paymentChannel === 'local_tr_card'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <CreditCard size={14} />
+                  Türkiye Kartları &amp; Taksit (iyzico / PayTR)
+                </button>
+              </div>
+            </div>
+
+            {paymentChannel === 'local_tr_card' && (
+              <div className="rounded-2xl border border-indigo-500/30 bg-indigo-950/10 p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-500/20 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <CreditCard size={16} className="text-indigo-400" />
+                      Türkiye Kartları &amp; Ticari Taksitli Tahsilat Altyapısı (iyzico · PayTR · Stripe TR)
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      3D Secure doğrulamalı yurtiçi Visa, Mastercard ve Troy ticari kartları için tek çekim ve 3 / 6 / 9 / 12 taksit planı.
+                    </p>
+                  </div>
+                  <div className="inline-flex rounded-lg border border-zinc-800 bg-zinc-950 p-1 text-[11px] font-mono">
+                    {(['iyzico', 'paytr', 'stripe_tr'] as const).map((gw) => (
+                      <button
+                        key={gw}
+                        type="button"
+                        onClick={() => setSelectedTrGateway(gw)}
+                        className={`rounded px-2.5 py-1 font-semibold ${
+                          selectedTrGateway === gw
+                            ? 'bg-indigo-600 text-white'
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {gw === 'iyzico' ? 'iyzico TR' : gw === 'paytr' ? 'PayTR Sanal POS' : 'Stripe TR'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {(() => {
+                  const basePlan = selectedPlanObj && selectedPlanObj.monthlyPrice > 0
+                    ? selectedPlanObj
+                    : plans.find((p) => p.monthlyPrice > 0) ?? { name: 'Profesyonel Paket', monthlyPrice: 4900 };
+                  const pricing = calculateBillingPeriodPricing(basePlan.monthlyPrice, billingCycle);
+                  const installmentRates: Array<{ count: 1 | 3 | 6 | 9 | 12; label: string; diffRate: number }> = [
+                    { count: 1, label: 'Tek Çekim (Komisyonsuz)', diffRate: 0 },
+                    { count: 3, label: '3 Taksit (Ticari Kart)', diffRate: 0.045 },
+                    { count: 6, label: '6 Taksit (Ticari Kart)', diffRate: 0.089 },
+                    { count: 9, label: '9 Taksit (Ticari Kart)', diffRate: 0.135 },
+                    { count: 12, label: '12 Taksit (Ticari Kart)', diffRate: 0.182 },
+                  ];
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-300">
+                        <span>
+                          Seçili Paket: <strong className="text-white">{basePlan.name}</strong> ({pricing.label} · Baz Tutar:{' '}
+                          <strong className="text-emerald-300">₺{pricing.totalPayableTry.toLocaleString('tr-TR')}</strong>)
+                        </span>
+                        <span className="font-mono text-[11px] text-zinc-400">
+                          Sağlayıcı: <strong className="text-indigo-300 uppercase">{selectedTrGateway}</strong> · 3D Secure 2.0 &amp; BKM Troy Destekli
+                        </span>
+                      </div>
+
+                      <div className="grid gap-2.5 sm:grid-cols-5">
+                        {installmentRates.map((inst) => {
+                          const totalWithRate = Math.round(pricing.totalPayableTry * (1 + inst.diffRate));
+                          const perInstallment = Math.round(totalWithRate / inst.count);
+                          const isChosen = selectedInstallment === inst.count;
+                          return (
+                            <button
+                              key={inst.count}
+                              type="button"
+                              onClick={() => setSelectedInstallment(inst.count)}
+                              className={`rounded-xl border p-3 text-left transition-colors ${
+                                isChosen
+                                  ? 'border-indigo-500 bg-indigo-950/40'
+                                  : 'border-zinc-800 bg-zinc-950/70 hover:border-zinc-700'
+                              }`}
+                            >
+                              <div className="text-[11px] font-bold text-white">{inst.label}</div>
+                              <div className="mt-1 font-mono text-sm font-black text-emerald-300 tabular-nums">
+                                {inst.count} × ₺{perInstallment.toLocaleString('tr-TR')}
+                              </div>
+                              <div className="mt-0.5 font-mono text-[10px] text-zinc-400 tabular-nums">
+                                Toplam: ₺{totalWithRate.toLocaleString('tr-TR')}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                        <div>
+                          <strong>Canlı Sanal POS Durumu:</strong> Üretim ortamında{' '}
+                          <code className="font-mono text-[11px]">IYZICO_API_KEY</code> /{' '}
+                          <code className="font-mono text-[11px]">PAYTR_MERCHANT_ID</code> üye işyeri anahtarları aktivasyon aşamasındadır. Anında aktivasyon için aşağıdan <strong>Kurumsal Havale / EFT</strong> bildirimini kullanabilir veya taksitli ödeme talebinizi notlara ekleyebilirsiniz.
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            setPaymentChannel('bank_transfer');
+                            setNotes(
+                              `${selectedTrGateway.toUpperCase()} ${selectedInstallment} Taksit / Kurumsal Kart Talebi (${basePlan.name})`,
+                            );
+                            toast.info('Taksit talebiniz ödeme bildirim notuna eklendi.');
+                          }}
+                          className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold"
+                        >
+                          Taksit Talebini Siparişe Ekle
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">

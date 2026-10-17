@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.7",
+  version: "BIM-CALC-2026-10-17.8",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "63ea8731144df836ef92e54a1bf38a27138b4d7c",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru (price-escalation.ts) ve ISO 19650 CDE durum geçiş doğrulayıcısı mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "65f4acded4e1e6b62fa8ef81a72de3fc329ce8f5",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -421,6 +421,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 14",
+    version: "BIM-CALC-2026-10-17.8",
+    date: "17 Ekim 2026",
+    commit: "65f4acd",
+    trigger: "YOL_HARITASI_2026-10-17 Bölüm 7 Karar #5: Türkiye Kartları ve Taksitli Tahsilat (iyzico / PayTR / Stripe TR) Ödeme Kanalı Seçicisi ve 1–12 Taksit Simülatörü (Billing.tsx)",
+    beforeSummary:
+      "Faturalandırma ekranında (Billing.tsx) yalnızca Havale/EFT IBAN talimatı ve tekil Stripe test kontrolü yer alıyor; Türkiye ticari kredi kartları (Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy) ve 1/3/6/9/12 taksit seçenekleri için yerel sağlayıcı (iyzico / PayTR) adaptörü bulunmuyordu.",
+    afterSummary:
+      "YOL_HARITASI_2026-10-17.md §7 Karar #5 ('Türkiye kartları ve taksit için yerel sağlayıcı — iyzico / PayTR / Stripe TR') uyarınca Billing.tsx ekranına Ödeme Kanalı seçicisi ('Havale / EFT (%10–%30 İskonto)' vs 'Türkiye Kartları & Taksit (iyzico / PayTR)') ve 1 / 3 / 6 / 9 / 12 taksit vadeli kurumsal kart ödeme planı önizlemesi (3D Secure 2.0 + TCMB lisanslı yerel POS hazırlığı) eklendi.",
+    affectedModules: ["kota"],
+    moduleDetails: {
+      kota: {
+        before: "Billing.tsx üzerinde yalnızca kurumsal Havale/EFT sipariş referansı ve tek çekim Stripe kontrolü bulunuyordu.",
+        after: "Havale/EFT (%10–%30 dönem iskontosu) ile Türkiye Kartları & Taksit (iyzico / PayTR — Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy için 1/3/6/9/12 taksit tablosu) arasında geçiş sağlayan çift kanallı tahsilat seçicisi eklendi.",
+        basis: "YOL_HARITASI_2026-10-17.md §7 Karar #5 (Tahsilat: Türkiye kartları ve taksit için yerel sağlayıcı)",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -537,9 +556,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Akademi yeniden açılacaksa uygulanabilirlik ve kapsam dışı yapısal koşullar için uzman incelemesi.",
   },
   kota: {
-    scope: "Paket kataloğu v6 (sunucu kapasite korumalı IFC/PDF/AI limitleri), 4 dönemli Havale/EFT taahhüt iskontosu (%0/%10/%20/%30) ve atomik rezervasyon kontrolü.",
+    scope: "Paket kataloğu v6 (sunucu kapasite korumalı IFC/PDF/AI limitleri), 4 dönemli Havale/EFT taahhüt iskontosu (%0/%10/%20/%30), Türkiye Kartları & Taksit (iyzico / PayTR 1–12 taksit) kanal seçicisi ve atomik rezervasyon kontrolü.",
     testFiles: ["src/services/billing/bank-transfer.test.ts", "src/services/billing/catalog-bootstrap.test.ts", "src/services/billing/feature-limits.test.ts", "src/services/billing/feature-quota.integration.test.ts", "src/services/billing/quota.integration.test.ts"],
-    pending: "Paket vaatlerinin gerçek dosya hacmi ve eşzamanlı kullanım senaryolarıyla ürün kabulü.",
+    pending: "Canlı iyzico/PayTR mağaza anahtarlarının tanımlanması ve paket vaatlerinin gerçek dosya hacmiyle ürün kabulü.",
   },
   "pilot-metrik": {
     scope: "Onay ile gerekçeli istisnayı ayrı sayan pilot ölçüm hesabı.",
