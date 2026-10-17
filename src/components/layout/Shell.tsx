@@ -1,10 +1,11 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ACADEMY_ENABLED } from '@/config/features';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Plus,
   LogOut,
-  Menu
+  Menu,
+  Compass
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,7 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
 
 export function Shell() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, company, role, accountType, isDemoMode, logout, exitImpersonation } = useAuth();
   const isLearner = ACADEMY_ENABLED && accountType === 'academy_learner';
   const [verificationSent, setVerificationSent] = useState(false);
@@ -144,6 +146,22 @@ export function Shell() {
           </div>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          if (location.pathname === '/app') {
+            window.dispatchEvent(new CustomEvent('bimmetraj:start-tour'));
+          } else {
+            navigate('/app?tour=1');
+          }
+        }}
+        className="w-full flex items-center justify-start text-primary hover:bg-primary/10 text-xs font-mono uppercase tracking-wider h-8 gap-2 px-3 border border-primary/30 rounded-xs transition-colors"
+        title="BIMMetraj Sistem Hızlı Turunu Başlat"
+      >
+        <Compass size={14} className="text-primary shrink-0" />
+        <span>Sistem Hızlı Turu</span>
+      </button>
 
       <Button
         onClick={logout}
@@ -259,7 +277,22 @@ export function Shell() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                if (location.pathname === '/app') {
+                  window.dispatchEvent(new CustomEvent('bimmetraj:start-tour'));
+                } else {
+                  navigate('/app?tour=1');
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 border border-primary/40 bg-card hover:bg-primary/10 text-primary text-xs font-mono font-medium rounded-xs transition-colors"
+              title="BIMMetraj Sistem Hızlı Turunu Başlat"
+            >
+              <Compass size={14} className="text-primary shrink-0" />
+              <span className="hidden sm:inline">Hızlı Tur</span>
+            </button>
             <ThemeToggle />
             {!isLearner && (
               <Link to="/app/quotes/new" className="pafta-button !min-h-9 !py-2 !px-3.5">

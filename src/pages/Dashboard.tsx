@@ -24,7 +24,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -62,10 +62,24 @@ function buildMonthlyPipeline(quotes: Quote[]) {
 export function Dashboard() {
   const { company, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
+
+  // Listen to global tour trigger event or URL ?tour=1
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('tour') === '1') {
+      setIsTourOpen(true);
+      navigate('/app', { replace: true });
+    }
+
+    const handleStartTour = () => setIsTourOpen(true);
+    window.addEventListener('bimmetraj:start-tour', handleStartTour);
+    return () => window.removeEventListener('bimmetraj:start-tour', handleStartTour);
+  }, [location.search, navigate]);
 
   // Redirect super admins to their operational dashboard
   if (user?.isSuperAdmin) {
@@ -362,6 +376,17 @@ export function Dashboard() {
           </div>
         </>
       )}
+
+      {/* Permanent floating Quick Tour trigger pill on Dashboard */}
+      <button
+        type="button"
+        onClick={() => setIsTourOpen(true)}
+        className="fixed bottom-5 right-5 z-30 flex items-center gap-2 px-3.5 py-2 bg-card hover:bg-card/90 border border-primary text-primary shadow-2xl rounded-xs text-xs font-mono font-semibold transition-all hover:scale-105 active:scale-95 group backdrop-blur-xs"
+        title="BIMMetraj Sistem Hızlı Turunu Başlat"
+      >
+        <Compass size={15} className="text-primary group-hover:rotate-45 transition-transform shrink-0" />
+        <span>🧭 Hızlı Tur</span>
+      </button>
 
       {/* Interactive System Quick Tour & First-Time Welcome Banner */}
       <SystemQuickTour
