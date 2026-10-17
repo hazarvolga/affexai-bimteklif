@@ -8,11 +8,15 @@ test('CSP locks scripts to self and only opens the origins the app really uses',
   const policy = contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com' });
   const directives = Object.fromEntries(policy.split('; ').map(part => [part.split(' ')[0], part.split(' ').slice(1)]));
   assert.deepEqual(directives['script-src'], ["'self'"]);
+  assert.deepEqual(directives['style-src'], ["'self'", "'unsafe-inline'"]);
+  assert.deepEqual(directives['font-src'], ["'self'", 'data:']);
   assert.deepEqual(directives['object-src'], ["'none'"]);
   assert.deepEqual(directives['frame-ancestors'], ["'none'"]);
   assert.ok(directives['connect-src'].includes('https://acct.r2.cloudflarestorage.com'));
   assert.ok(directives['connect-src'].includes('https://*.acct.r2.cloudflarestorage.com'), 'virtual-hosted bucket uploads');
   assert.ok(!directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase omitted while ACADEMY_ENABLED is false');
+  assert.ok(!policy.includes('fonts.googleapis.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
+  assert.ok(!policy.includes('fonts.gstatic.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
   assert.ok(!policy.includes("'unsafe-eval'"));
   assert.ok(!contentSecurityPolicy({}).includes('undefined'));
   assert.ok(!contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'not a url' }).includes('not a url'));

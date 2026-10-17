@@ -31,9 +31,9 @@ export function contentSecurityPolicy(env: Record<string, string | undefined>): 
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
     'script-src': ["'self'"],
-    'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+    'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:'],
-    'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
+    'font-src': ["'self'", 'data:'],
     'connect-src': ["'self'", ...storageOrigins, ...(ACADEMY_ENABLED ? FIREBASE_ORIGINS : [])],
     'worker-src': ["'self'", 'blob:'],
     'object-src': ["'none'"],

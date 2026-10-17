@@ -12,14 +12,6 @@ try {
   // Ignore storage access errors in restricted frames
 }
 
-if (typeof document !== 'undefined' && !document.getElementById('pafta-google-fonts')) {
-  const link = document.createElement('link');
-  link.id = 'pafta-google-fonts';
-  link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap';
-  document.head.appendChild(link);
-}
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
