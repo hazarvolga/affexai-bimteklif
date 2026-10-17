@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
+import { parseThresholdInput, summarizeOpeningsMinha } from "@/ifc/openings-minha";
 import { parseRatioInput, resolveApartmentGross, sumResidentialGross, type GrossRatios } from "@/ifc/apartment-gross";
 import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/ApartmentSubcontractorShieldCard";
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
@@ -152,7 +153,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [cdeTransitionFeedback, setCdeTransitionFeedback] = useState<string>("");
 
   const [minhaProfile, setMinhaProfile] = useState<MinhaRuleProfile>("CSB_2026");
-  const [customMinhaThresholdInput, setCustomMinhaThresholdInput] = useState<string>("1.50");
+  const [customMinhaThresholdInput, setCustomMinhaThresholdInput] = useState<string>("");
+  // Sözleşmesel minha: eşik, modeldeki her kapı/pencerenin tekil alanına uygulanır.
+  const openingsMinha = useMemo(
+    () => summarizeOpeningsMinha(dataset.openings, minhaProfile, parseThresholdInput(customMinhaThresholdInput)),
+    [dataset.openings, minhaProfile, customMinhaThresholdInput],
+  );
 
   // Karar #1: BYOL hemen + ÇŞB 2026 resmi referans paralel
   const [priceLicenseMode, setPriceLicenseMode] = useState<"BYOL_TENANT_CATALOG" | "CSB_2026_REFERENCE">(
@@ -758,6 +764,34 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     </div>
                   </div>
                 </div>
+                )}
+              </div>
+
+              {/* MODELDEKİ KAPI/PENCERELERE MİNHA UYGULAMASI */}
+              <div className="mt-4 border border-border bg-background p-4 text-xs" data-testid="openings-minha">
+                <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Modeldeki kapı / pencerelere minha ({minhaProfile})
+                </div>
+                {openingsMinha.status === "no_openings" && (
+                  <p className="text-muted-foreground">
+                    Bu kayıtta kapı/pencere listesi yok (dosya bu bilgiyi taşımıyor veya kayıt eski). Eşik bu nedenle uygulanamadı.
+                  </p>
+                )}
+                {openingsMinha.status === "threshold_required" && (
+                  <p className="text-muted-foreground">
+                    Özel şartname için yukarıdaki kutuya eşik (m²) girin; girilmeden hesap yapılmaz.
+                  </p>
+                )}
+                {openingsMinha.status === "ok" && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between"><span>Eşik (tekil boşluk alanı)</span><span className="font-mono tabular-nums">{formatTrNumber(openingsMinha.thresholdM2 ?? 0)} m²</span></div>
+                    <div className="flex justify-between"><span>Düşülecek ({openingsMinha.deductedCount} adet)</span><span className="font-mono font-semibold tabular-nums">−{formatTrNumber(openingsMinha.deductedAreaM2)} m²</span></div>
+                    <div className="flex justify-between"><span>Düşülmeyecek ({openingsMinha.notDeductedCount} adet)</span><span className="font-mono tabular-nums">{formatTrNumber(openingsMinha.notDeductedAreaM2)} m²</span></div>
+                    <div className="flex justify-between text-muted-foreground"><span>{openingsMinha.doorCount} kapı · {openingsMinha.windowCount} pencere</span><span>{openingsMinha.unmeasuredCount > 0 ? `${openingsMinha.unmeasuredCount} boşluğun ölçüsü okunamadı` : "tüm ölçüler okundu"}</span></div>
+                    <p className="pt-1 text-[11px] text-muted-foreground">
+                      Bu özet modeldeki tüm ölçülebilen kapı/pencereyi kapsar; yukarıdaki kalemin net miktarını değiştirmez, çünkü boşlukların hangi kaplama kalemine ait olduğu kalem düzeyinde eşlenmiyor.
+                    </p>
+                  </div>
                 )}
               </div>
 

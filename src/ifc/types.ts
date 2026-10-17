@@ -75,6 +75,15 @@ export interface TrPsetCsbProjectCompliance {
   sourcePath?: string;
 }
 
+/** Modeldeki kapı/pencere; ölçü okunamadıysa widthM/heightM null. */
+export interface ParsedOpening {
+  id: string;
+  kind: "door" | "window";
+  name?: string | null;
+  widthM: number | null;
+  heightM: number | null;
+}
+
 export interface IfcParseSummary {
   parseStatus: "succeeded" | "failed";
   extractionMode: "demo_estimate";
@@ -109,5 +118,7 @@ export interface IfcParseSummary {
   authoringSoftware?: AuthoringSoftwareDetection;
   /** Sunucu (Python) yolundan gelen ham başlık bilgisi; sınıflandırma TS'de yapılır. */
   authoringSoftwareRaw?: AuthoringSoftwareRaw;
+  /** Kapı/pencere listesi (sunucu yolu); sözleşmesel minha için. */
+  openings?: ParsedOpening[];
 }
 

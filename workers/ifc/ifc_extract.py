@@ -1330,6 +1330,44 @@ def read_authoring_software(model: Any) -> Dict[str, Any]:
     }
 
 
+MAX_OPENINGS = 3000
+
+
+def extract_openings(model: Any) -> List[Dict[str, Any]]:
+    """Kapı/pencere ölçülerini IFC özniteliklerinden (OverallWidth/OverallHeight) okur.
+
+    Ölçü yoksa widthM/heightM None döner; uydurma değer üretilmez. Sözleşmesel minha eşiği her
+    boşluğun tekil alanına uygulandığı için boşluklar tek tek listelenir.
+    """
+    try:
+        length_scale = project_unit_scale(model, "LENGTHUNIT")
+    except Exception:
+        length_scale = float("nan")
+    out: List[Dict[str, Any]] = []
+    for kind, ifc_type in (("door", "IfcDoor"), ("window", "IfcWindow")):
+        try:
+            entities = model.by_type(ifc_type)
+        except Exception:
+            continue
+        for e in entities:
+            if len(out) >= MAX_OPENINGS:
+                return out
+            width = getattr(e, "OverallWidth", None)
+            height = getattr(e, "OverallHeight", None)
+            ok = (
+                isinstance(width, (int, float)) and isinstance(height, (int, float))
+                and width > 0 and height > 0 and math.isfinite(length_scale) and length_scale > 0
+            )
+            out.append({
+                "id": str(e.id()),
+                "kind": kind,
+                "name": (str(getattr(e, "Name", "") or "").strip() or None),
+                "widthM": round(float(width) * length_scale, 4) if ok else None,
+                "heightM": round(float(height) * length_scale, 4) if ok else None,
+            })
+    return out
+
+
 def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
     if not os.path.exists(input_path):
         sys.stderr.write(f"IFC_PARSE_FAILED: Input file does not exist: {input_path}\n")
@@ -1814,6 +1852,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "elementsWithPozNoCount": sum(1 for el in parsed_elements if el.get("pozNo")),
         "elementsMissingPozNoCount": sum(1 for el in parsed_elements if not el.get("pozNo")),
         "authoringSoftwareRaw": read_authoring_software(model),
+        "openings": extract_openings(model),
     }
 
     result = {

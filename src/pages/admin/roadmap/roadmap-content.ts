@@ -395,16 +395,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Ön teklif parsel listesi doğrudan .xlsx olarak yüklenebilir (CSV de sürer). exceljs yalnızca .xlsx seçilince yüklenir; ana açılış boyutu etkilenmez.",
           ],
           [
-            "Rev. 20 (Güncel)",
+            "Rev. 20",
             "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 3)",
             "BIM-CALC-2026-10-17.14",
             "Kaynaksız brüt/boşluk çarpanları (×1,115, ×1,08, ×1,215, ×1,03) ve daire brüt çarpanları (×1,132/×1,298 ve ×1,12/×1,28) kaldırıldı. Brüt/boşluk yalnızca modelden gelir; daire brütü kullanıcı katsayısıyla hesaplanır. Kapı testi eklendi.",
+          ],
+          [
+            "Rev. 21 (Güncel)",
+            "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 4)",
+            "BIM-CALC-2026-10-17.15",
+            "Minha eşiği modeldeki gerçek kapı/pencere ölçülerine bağlandı (kaynaksız 1,50 varsayılanı kaldırıldı). Rev. 18'deki sunucu yolu hatası (şema alanı siliyordu) düzeltildi ve gerçek IFC ile uçtan uca test eklendi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 20 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 21 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -653,6 +659,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "calm-icmal.ts model verisi yokken brüt ve boşluğu sabit çarpanlarla üretiyordu; Python ve TypeScript yolları daire brütü için birbirinden farklı çarpanlar kullanıyordu; sonuçlar modelden geliyormuş gibi gösteriliyordu.",
             "CalmIcmalItem.grossAvailable eklendi; model brütü yoksa yalnız net gösterilir. ApartmentUnitScheduleItem.unitGrossM2/generalGrossM2 null olabilir; apartment-gross.ts kullanıcı katsayısıyla (1–3 aralığı) hesaplar. Arayüzde katsayı girişleri, '—' gösterimi ve 'brüt katsayısı girilmedi' uyarısı var. registry.test.ts kapı testi çarpanların geri gelmesini engeller.",
             "src/ifc/calm-icmal.ts, apartment-gross.ts, types.ts, CalmIfcWorkspace.tsx, workers/ifc/ifc_extract.py, ifc-python-runner.ts, registry.test.ts",
+          ],
+          [
+            "Rev. 21.1 · 17 Ekim 2026 (Minha bağlama ve sunucu yolu düzeltmesi)",
+            "ÇŞB/DIN minha eşikleri & IFC IfcDoor/IfcWindow OverallWidth/OverallHeight; Rev. 18 düzeltmesi",
+            "Minha seçicisi hesaba bağlı değildi; sunucu çıktı şeması authoringSoftwareRaw alanını siliyordu, Rev. 18 sunucu yolu çalışmıyordu.",
+            "extract_openings (Python) kapı/pencere ölçülerini okur; openings-minha.ts eşiği tekil alana uygular; IfcParseSummarySchema yeni alanları tanımlar; artifact ve Calm veri seti openings taşır; server-path.e2e.test.ts gerçek IFC dosyalarıyla uçtan uca doğrular.",
+            "workers/ifc/ifc_extract.py, src/ifc/openings-minha.ts, server-path.e2e.test.ts, ifc-python-runner.ts, smartcheck-evidence.ts, calm-icmal.ts, types.ts, CalmIfcWorkspace.tsx",
           ],
         ],
       },

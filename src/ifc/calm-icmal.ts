@@ -3,6 +3,7 @@ import type {
   ApartmentUnitScheduleItem,
   IfcParseSummary,
   ParsedIfcElement,
+  ParsedOpening,
 } from "./types";
 import { buildAuthoringAdvisory, classifyAuthoringSoftware, type AuthoringAdvisory } from "./authoring-software-diagnostics";
 import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./smartcheck-evidence";
@@ -66,6 +67,8 @@ export interface CalmIfcDataset {
   apartments: ApartmentUnitScheduleItem[];
   /** Kaynak yazılım uyarısı; tespit edilemediyse (ör. sunucu kanıt yolu) undefined. */
   authoringAdvisory?: AuthoringAdvisory;
+  /** Modeldeki kapı/pencere listesi; sözleşmesel minha için. Yoksa undefined. */
+  openings?: ParsedOpening[];
 }
 
 export const GROUP_META: Record<CalmIcmalGroupKey, { order: number; title: string; unitLabel: string }> = {
@@ -759,6 +762,7 @@ export function buildCalmIfcDatasetFromElements(
       : summary?.authoringSoftwareRaw
         ? buildAuthoringAdvisory(classifyAuthoringSoftware(summary.authoringSoftwareRaw))
         : undefined,
+    openings: summary?.openings,
   };
 }
 
@@ -774,5 +778,9 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
 
   const dataset = buildCalmIfcDatasetFromElements(pseudoElements, null, fileName);
   const authoring = artifact.summary.authoringSoftware;
-  return authoring ? { ...dataset, authoringAdvisory: buildAuthoringAdvisory(authoring) } : dataset;
+  return {
+    ...dataset,
+    ...(authoring ? { authoringAdvisory: buildAuthoringAdvisory(authoring) } : {}),
+    openings: artifact.summary.openings,
+  };
 }

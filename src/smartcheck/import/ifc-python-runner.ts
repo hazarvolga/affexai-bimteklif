@@ -67,6 +67,14 @@ export const ApartmentUnitScheduleItemSchema = z.object({
   rooms: z.array(ApartmentRoomScheduleItemSchema),
 });
 
+export const ParsedOpeningSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["door", "window"]),
+  name: z.string().nullable().optional(),
+  widthM: z.number().nullable(),
+  heightM: z.number().nullable(),
+});
+
 export const IfcParseSummarySchema = z.object({
   parseStatus: z.enum(["succeeded", "failed"]),
   extractionMode: z.string(),
@@ -106,6 +114,15 @@ export const IfcParseSummarySchema = z.object({
   apartmentSchedule: z.array(ApartmentUnitScheduleItemSchema).optional(),
   elementsWithPozNoCount: z.number(),
   elementsMissingPozNoCount: z.number(),
+  // Not: z.object bilinmeyen alanları siler; yeni worker alanları burada tanımlanmalıdır.
+  authoringSoftwareRaw: z
+    .object({
+      originatingSystem: z.string().nullable(),
+      preprocessorVersion: z.string().nullable(),
+      applicationNames: z.array(z.string()),
+    })
+    .optional(),
+  openings: z.array(ParsedOpeningSchema).optional(),
 });
 
 export const IfcExtractorOutputSchema = z.object({

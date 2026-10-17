@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.14",
+  version: "BIM-CALC-2026-10-17.15",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "1c8af3e9099d4058832972d746aed28726bc07ef",
+  implementationBaseline: "57468db6e189b1c68573b2205d354623ce45be78",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -554,6 +554,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 21",
+    version: "BIM-CALC-2026-10-17.15",
+    date: "17 Ekim 2026",
+    commit: "57468db",
+    trigger: "Yanıt beklenen sorulardan bağımsız iş 4: Minha eşiğinin gerçek kapı/pencere ölçülerine bağlanması ve Rev. 18 sunucu yolu hatasının düzeltilmesi",
+    beforeSummary:
+      "Minha profil seçicisi ve 'Kullanıcı Tanımlı Eşik' kutusu (kaynaksız 1,50 m² varsayılanıyla) hiçbir hesaba bağlı değildi; yalnızca etiketti. Ayrıca Rev. 18'de 'sunucu yolunda kaynak yazılım tespiti' tamamlandı denmişti, ancak sunucu çıktı şeması (zod) bilinmeyen alanları sildiği için authoringSoftwareRaw sunucu yolunda hiçbir zaman arayüze ulaşmıyordu; testler elle kurulmuş özetle çalıştığından bu görülmemişti.",
+    afterSummary:
+      "Python worker kapı/pencereleri tek tek (OverallWidth × OverallHeight, proje birimiyle metreye çevrilerek) okur; ölçü yoksa null döner. Seçilen profilin eşiği her boşluğun tekil alanına uygulanır ve düşülecek/düşülmeyecek adet ve alan ile ölçüsü okunamayan boşluk sayısı gösterilir; özel şartnamede eşik girilmeden hesap yapılmaz, kaynaksız 1,50 varsayılanı kaldırıldı. Sunucu şeması authoringSoftwareRaw ve openings alanlarını tanımlar. Gerçek IFC dosyalarıyla Python → şema → kanıt → arayüz verisi uçtan uca testi eklendi (Rev. 18'in sunucu yolu ilk kez gerçekten doğrulandı).",
+    affectedModules: ["minha", "kaynak-yazilim-guvenilirligi"],
+    moduleDetails: {
+      "minha": {
+        before: "Eşik seçicisi hesaba bağlı değildi; özel eşik kutusunun kaynaksız 1,50 varsayılanı vardı.",
+        after: "summarizeOpeningsMinha ile modeldeki her kapı/pencerenin tekil alanına seçilen profilin eşiği uygulanır; ölçüsüz boşluklar ayrıca sayılır; özel eşik girilmeden hesap yapılmaz.",
+        basis: "Minha profilleri (CSB_2026 0,50 m², DIN_18350 2,50 m², CUSTOM_CONTRACT) & IFC IfcDoor/IfcWindow OverallWidth/OverallHeight",
+      },
+      "kaynak-yazilim-guvenilirligi": {
+        before: "Sunucu çıktı şeması authoringSoftwareRaw alanını siliyordu; sunucu yolunda uyarı arayüze ulaşmıyordu (Rev. 18'de yanlış olarak tamamlandı sayılmıştı).",
+        after: "IfcParseSummarySchema alanı tanımlar; gerçek IFC ile uçtan uca test (Python → zod → artifact → dataset) Revit başlığında yazılım adı bulunmayan durumu doğrular.",
+        basis: "Gerçek IFC başlıkları ve uçtan uca test",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -635,9 +659,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Kiriş–kolon düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
   },
   minha: {
-    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Kullanıcı Tanımlı Özel Şartname (CUSTOM_CONTRACT: customThresholdM2) boşluk düşüm motoru ve CalmIfcWorkspace profil seçicisi aktif.",
-    testFiles: ["src/smartcheck/rules/minha.test.ts"],
-    pending: "Özel idare şartnameleri ve alternatif ölçü esası profillerinin saha kabulü.",
+    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Kullanıcı Tanımlı Özel Şartname (CUSTOM_CONTRACT: customThresholdM2) boşluk düşüm motoru; profil seçicisi modeldeki her kapı/pencerenin (OverallWidth × OverallHeight) tekil alanına eşiği uygular. Özel eşik girilmeden hesap yapılmaz.",
+    testFiles: ["src/smartcheck/rules/minha.test.ts", "src/ifc/openings-minha.test.ts", "src/ifc/server-path.e2e.test.ts"],
+    pending: "Eşiğin boşluk düzeyinde mi toplamda mı uygulandığı ve kalem bazlı (hangi kaplamaya ait) eşleme saha kabulü bekliyor; ölçüsü okunamayan boşluklar sayılır ama düşülemez.",
   },
   "taseron-hakedis-kalkani": {
     scope: "IFC mahal cetvelinden daire başına şap/zemin kaplaması hakediş tavanı, kullanıcı girdili kalınlık/fire/dozajla harç hacmi ve çimento, taşeron beyanı karşılaştırması (pilot).",
@@ -646,7 +670,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   "kaynak-yazilim-guvenilirligi": {
     scope: "IFC başlığından (tarayıcı ve sunucu yolu) kaynak yazılım tespiti, yazılıma göre model kontrolü uyarısı ve kullanıcı girdili tek oda katman daralması aritmetiği (pilot).",
-    testFiles: ["src/ifc/authoring-software-diagnostics.test.ts"],
+    testFiles: ["src/ifc/authoring-software-diagnostics.test.ts", "src/ifc/server-path.e2e.test.ts"],
     pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması.",
   },
   "on-teklif-fizibilite": {
