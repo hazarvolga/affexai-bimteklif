@@ -22,6 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useSmartCheckDemo } from '@/smartcheck/SmartCheckDemoContext';
@@ -94,6 +95,7 @@ export function SmartCheckDemo() {
       <PageHeader
         title="SmartCheck Model & Kalite Denetimi"
         description="Mühendislik, mevzuat ve metraj tolerans kurallarının doğruluğunu bu ekrandan izleyin."
+        actions={<ThemeToggle />}
       />
 
       {/* Recheck Action Banner */}

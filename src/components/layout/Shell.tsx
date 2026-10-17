@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { fetchWithAuth } from '@/lib/api';
@@ -26,37 +27,40 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
     .filter((g) => g.items.length > 0);
 
   return (
-    <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
-      {groups.map(({ group, items: groupItems }) => (
-        <div key={group} className="space-y-1">
+    <nav className="flex-1 overflow-y-auto divide-y divide-border">
+      {groups.map(({ group, items: groupItems }, groupIdx) => (
+        <div key={group} className="py-3">
           {groups.length > 1 && (
-            <p className="px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-              {group}
+            <p className="px-5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <span className="text-primary">0{groupIdx + 1} /</span>
+              <span>{group}</span>
             </p>
           )}
-          {groupItems.map((item) => {
-            const isActive = isNavItemActive(pathname, item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={onNavigate}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-medium transition-colors group",
-                  isActive
-                    ? "bg-primary/10 text-primary border border-primary/30 font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
-                )}
-              >
-                <item.icon size={16} className={cn(
-                  "shrink-0 transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                )} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          <div className="mt-1">
+            {groupItems.map((item) => {
+              const isActive = isNavItemActive(pathname, item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={onNavigate}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    "flex items-center gap-3 px-5 py-2.5 text-xs font-medium transition-colors group border-l-[3px]",
+                    isActive
+                      ? "border-primary bg-primary/10 text-primary font-semibold"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background/60"
+                  )}
+                >
+                  <item.icon size={15} className={cn(
+                    "shrink-0 transition-colors",
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  )} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       ))}
     </nav>
@@ -66,7 +70,6 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
 export function Shell() {
   const location = useLocation();
   const { user, company, role, accountType, isDemoMode, logout, exitImpersonation } = useAuth();
-  // While Academy is out of scope, learner accounts get the normal workspace shell.
   const isLearner = ACADEMY_ENABLED && accountType === 'academy_learner';
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -93,29 +96,25 @@ export function Shell() {
   }, [company?.id, isSuperAdmin, isLearner, location.pathname]);
 
   const filteredNavItems = navigationConfig.filter(item => {
-    // If the user is a super admin, they should ONLY see system management and settings tools
     if (isSuperAdmin) {
       return item.roles.includes("super_admin") || item.path === '/app/settings';
     }
-    // Normal tenants should NOT see super admin tools
     if (item.roles.includes("super_admin")) return false;
-    
-    // Normal role checks for tenants
     return (!role || item.roles.includes(role)) && (!isLearner || item.path === '/app/academy');
   });
 
   const brandBlock = (
-    <div className="p-5 pb-6 border-b border-border mb-3">
-      <Link to={isLearner ? "/app/academy/allplan" : "/app"} className="flex items-center gap-3 group transition-all">
-        <div className="w-8 h-8 bg-primary rounded-xs flex items-center justify-center font-mono font-black text-white text-xs shadow-xs">
+    <div className="px-5 py-5 border-b border-border bg-background">
+      <Link to={isLearner ? "/app/academy/allplan" : "/app"} className="flex items-center gap-3 group">
+        <div className="w-8 h-8 bg-primary flex items-center justify-center font-mono font-bold text-primary-foreground text-xs border border-primary">
           {isLearner ? 'BP' : 'BM'}
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-base tracking-tight text-foreground leading-none">
+          <span className="font-display-serif text-2xl tracking-tight text-foreground leading-none">
             {isLearner ? 'BIMPlan Academy' : 'BIMMetraj'}
           </span>
-          <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
-            {isLearner ? 'Öğrenci Alanı' : 'openBIM & 5D İhale'}
+          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest mt-1">
+            {isLearner ? 'EĞİTİM PAFTASI' : 'MİMARİ METRAJ & İHALE PAFTASI'}
           </span>
         </div>
       </Link>
@@ -123,24 +122,24 @@ export function Shell() {
   );
 
   const accountBlock = (
-    <div className="mt-auto p-4 border-t border-border space-y-3 bg-muted/20">
-      <div className="rounded-sm p-2.5 border border-border bg-card space-y-1.5">
+    <div className="mt-auto p-4 border-t border-border space-y-3 bg-background">
+      <div className="p-3 border border-border bg-card space-y-2">
         <div>
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
-            {isLearner ? 'ÖĞRENCİ HESABI' : 'ÇALIŞMA ALANI'}
+          <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5">
+            {isLearner ? 'ÖĞRENCİ HESABI' : 'AKTİF PROJE OFİSİ'}
           </p>
           <p className="text-xs font-semibold text-foreground truncate">{company?.name || 'Yükleniyor...'}</p>
         </div>
         {!isLearner && !isSuperAdmin && (
-          <div className="border-t border-border/70 pt-1.5 flex items-center justify-between gap-2">
-            <span className="inline-block truncate rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-400">
+          <div className="border-t border-border pt-2 flex items-center justify-between gap-2">
+            <span className="inline-block truncate border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-primary">
               {activePlanName || '14 Günlük Deneme'}
             </span>
             <Link
               to="/app/billing"
-              className="shrink-0 font-mono text-[10px] font-semibold text-primary hover:underline"
+              className="shrink-0 font-mono text-[10px] font-semibold text-foreground hover:text-primary underline underline-offset-4"
             >
-              Paketler →
+              Paketler ↗
             </Link>
           </div>
         )}
@@ -149,24 +148,24 @@ export function Shell() {
       <Button
         onClick={logout}
         variant="ghost"
-        className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs font-medium h-9 gap-2.5 px-3 rounded-sm"
+        className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs font-mono uppercase tracking-wider h-9 gap-2.5 px-3 border border-transparent hover:border-destructive/30"
       >
-        <LogOut size={15} /> Çıkış Yap
+        <LogOut size={14} /> Çıkış Yap
       </Button>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
+    <div className="flex min-h-screen bg-background text-foreground font-sans">
       <a
         href="#main-content"
-        className="fixed left-4 top-4 z-50 -translate-y-24 rounded-sm bg-primary px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider text-white transition-transform focus:translate-y-0"
+        className="fixed left-4 top-4 z-50 -translate-y-24 bg-primary px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider text-primary-foreground transition-transform focus:translate-y-0"
       >
         İçeriğe geç
       </a>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-60 border-r border-border bg-card flex-col h-screen sticky top-0 z-40">
+      <aside className="hidden lg:flex w-64 border-r border-border bg-card flex-col h-screen sticky top-0 z-40">
         {brandBlock}
         <NavList items={filteredNavItems} pathname={location.pathname} />
         {accountBlock}
@@ -185,56 +184,56 @@ export function Shell() {
       </Sheet>
 
       {/* Main Content */}
-      <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col min-w-0 outline-none">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col min-w-0 outline-none bg-background">
         {(user?.impersonatedBy || Boolean(localStorage.getItem('admin_session_backup'))) && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-amber-500/40 bg-amber-500/15 px-6 py-2 text-xs text-amber-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-primary bg-primary/10 px-6 py-2 text-xs text-foreground">
             <div className="flex items-center gap-2 font-medium">
-              <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+              <span className="status-dot" />
               <span>
                 Şu anda <strong>{company?.name || 'Müşteri'}</strong> adına impersonate modundasınız
-                {user?.readOnly && <span className="ml-2 rounded-xs bg-amber-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-600/50">SALT-OKUNUR</span>}
+                {user?.readOnly && <span className="ml-2 bg-card px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary border border-primary/40">SALT-OKUNUR</span>}
               </span>
             </div>
             <Button
               size="sm"
               variant="outline"
               onClick={exitImpersonation}
-              className="border-amber-400/50 bg-amber-500/20 text-amber-100 hover:bg-amber-500/30 text-xs font-mono uppercase tracking-wider h-7 px-2.5"
+              className="border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground text-xs font-mono uppercase tracking-wider h-7 px-2.5"
             >
               Çıkış Yap / Admin Paneline Dön
             </Button>
           </div>
         )}
         {isLearner && user && !user.emailVerified && (
-          <div className="flex flex-col gap-3 border-b border-amber-500/25 bg-amber-500/[0.07] px-6 py-2.5 text-xs text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-border bg-card px-6 py-2.5 text-xs text-foreground sm:flex-row sm:items-center sm:justify-between">
             <p>E-posta adresinizi doğrulayın. Dersleri kullanabilirsiniz; sertifika işlemleri doğrulama tamamlanana kadar kilitlidir.</p>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               size="sm"
-              disabled={verificationSent} 
-              onClick={async () => { 
-                const response = await fetch('/api/auth/resend-verification', { 
-                  method: 'POST', 
-                  headers: { 'Content-Type': 'application/json' }, 
-                  body: JSON.stringify({ email: user.email }) 
-                }); 
-                if (response.ok) setVerificationSent(true); 
-              }} 
-              className="border-amber-500/30 bg-transparent text-amber-100 hover:bg-amber-500/10 text-xs h-7"
+              disabled={verificationSent}
+              onClick={async () => {
+                const response = await fetch('/api/auth/resend-verification', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: user.email })
+                });
+                if (response.ok) setVerificationSent(true);
+              }}
+              className="border-border bg-background text-foreground hover:border-primary hover:text-primary text-xs h-7"
             >
               {verificationSent ? 'Bağlantı Gönderildi' : 'Doğrulama Bağlantısı Gönder'}
             </Button>
           </div>
         )}
         {isDemoMode && (
-          <div className="border-b border-primary/20 bg-primary/10 px-6 py-1.5 text-center text-xs font-mono font-semibold text-primary">
+          <div className="border-b border-border bg-card px-6 py-1.5 text-center text-[11px] font-mono uppercase tracking-wider text-primary">
             Demo modu — geliştirme ortamında otomatik erişim aktif
           </div>
         )}
-        
-        {/* Header */}
-        <header className="h-16 border-b border-border bg-card/60 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+
+        {/* Header (Pafta Antet Şeridi) */}
+        <header className="h-16 border-b border-border bg-background px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3 sm:gap-4">
             <Button
               onClick={() => setMobileNavOpen(true)}
@@ -245,36 +244,41 @@ export function Shell() {
             >
               <Menu size={20} />
             </Button>
-            <div className="hidden lg:flex items-center gap-3 pr-4 border-r border-border">
-               <div className="w-8 h-8 rounded-xs bg-muted border border-border flex items-center justify-center font-mono font-bold text-primary text-xs">
-                 {user?.fullName?.charAt(0) || 'U'}
-               </div>
-               <div className="flex flex-col">
-                 <span className="text-xs font-semibold text-foreground leading-tight">{user?.fullName}</span>
-                 <span className="font-mono text-[10px] text-muted-foreground uppercase">{role || 'Üye'}</span>
-               </div>
+            <div className="hidden lg:flex items-center gap-3 pr-5 border-r border-border">
+              <div className="w-8 h-8 bg-card border border-border flex items-center justify-center font-mono font-bold text-primary text-xs">
+                {user?.fullName?.charAt(0) || 'U'}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-foreground leading-tight">{user?.fullName}</span>
+                <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">{role || 'Üye'}</span>
+              </div>
             </div>
+            <span className="hidden xl:inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              <span className="status-dot" />
+              TEKNİK OFİS PAFTASI · RG 33331 &amp; ÇŞB UYUMLU
+            </span>
           </div>
 
-          {!isLearner && (
-            <Link to="/app/quotes/new">
-              <Button className="bg-primary hover:bg-primary/90 text-white text-xs font-semibold h-9 px-3 sm:px-4 rounded-sm shadow-xs gap-1.5">
-                <Plus size={15} />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {!isLearner && (
+              <Link to="/app/quotes/new" className="pafta-button !min-h-9 !py-2 !px-3.5">
+                <Plus size={14} />
                 <span>Yeni Teklif Hazırla</span>
-              </Button>
-            </Link>
-          )}
+              </Link>
+            )}
+          </div>
         </header>
 
         {/* Content Area */}
-        <div id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto">
+        <div id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-background">
           <Outlet />
         </div>
 
         {/* Footer */}
-        <footer className="px-8 py-3 border-t border-border bg-card/40 flex items-center justify-between text-xs font-mono text-muted-foreground">
-          <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'BIMMetraj'} · openBIM & 5D İhale Masası</span>
-          <span className="hidden sm:inline">openBIM QTO · RG 33331 e-PYS & Kanıtlı Metraj</span>
+        <footer className="px-8 py-3 border-t border-border bg-card flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+          <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'BIMMetraj'} · MİMARİ METRAJ VE İHALE PAFTASI</span>
+          <span className="hidden sm:inline">IFC4 QTO · RG 33331 e-PYS · KANITLI MİNHA CETVELİ</span>
         </footer>
       </main>
     </div>

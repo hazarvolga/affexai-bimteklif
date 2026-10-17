@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   BILLING_PERIOD_OPTIONS,
   type BillingCycleId,
@@ -253,18 +254,26 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background bg-hairline-grid flex items-center justify-center p-4 sm:p-6 lg:p-10 relative">
+    <div className="min-h-screen bg-background bg-hairline-grid flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 relative">
       <div className={`w-full ${isAcademy ? 'max-w-md' : 'max-w-5xl'} space-y-6 relative z-10`}>
-        <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2.5 mb-4 focus:outline-none">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xs bg-primary text-sm font-mono font-black text-white shadow-xs">
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <Link to="/" className="inline-flex items-center gap-3 focus:outline-none">
+            <span className="flex h-8 w-8 items-center justify-center border border-primary bg-primary text-xs font-mono font-bold text-primary-foreground">
               {isAcademy ? 'BP' : 'BM'}
             </span>
-            <span className="text-2xl font-bold text-foreground tracking-tight">
+            <span className="font-display-serif text-2xl text-foreground tracking-tight">
               {isAcademy ? 'BIMPlan Academy' : 'BIMMetraj'}
             </span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+          <ThemeToggle />
+        </div>
+
+        <div className="text-center space-y-2">
+          <div className="eyebrow justify-center">
+            <span className="status-dot" />
+            <span>01 / YENİ PROJE OFİSİ VE ÇALIŞMA ALANI KAYDI</span>
+          </div>
+          <h1 className="font-display-serif text-3xl sm:text-5xl text-foreground">
             {isAcademy
               ? 'Ücretsiz Öğrenci Hesabı'
               : isPilot

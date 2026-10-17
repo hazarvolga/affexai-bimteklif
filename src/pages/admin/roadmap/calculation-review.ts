@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.1",
+  version: "BIM-CALC-2026-10-17.2",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "410576cd286cf148b140b7a55197384eacfe1cfd",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, çok katmanlı icmal + 16 daire cetveli (Calm UI) ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "2cd4c4a5407cad47b384a47006b70fae6622538b",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, çok katmanlı icmal + 16 daire cetveli (Merkezi Pafta Design System Light/Dark) ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -249,6 +249,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Metrajdan teklife geçiş çok adımlı teknik tablo üzerinden yapılıyordu.",
         after: "3. Adım (Maliyet & Teklif) sekmesinde çok katmanlı net miktarların yanına doğrudan birim fiyat (₺) girilerek anında grup ara toplamları, müteahhitlik kârı, daire başı ortalama maliyet ve teklif çıktısı üretilir.",
         basis: "3 Adımlı Kağıt İcmal + Sağ Detay Kartı (CalmIfcWorkspace.tsx)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 8",
+    version: "BIM-CALC-2026-10-17.2",
+    date: "17 Ekim 2026",
+    commit: "2cd4c4a5407cad47b384a47006b70fae6622538b",
+    trigger: "Merkezi Pafta Design System (Light/Dark Modu) & Dinamik 16 Daire Cetveli (5.000 Satır Kapasitesi)",
+    beforeSummary:
+      "/app/smartcheck üzerinde dosya yüklenmeden önce referans veri görünüyor ve 1.000 satır sınırı nedeniyle büyük IFC modellerinde IfcSpace oda verileri kesilebiliyordu; ayrıca farklı sayfalarda sabit renkler (bg-zinc-950, bg-blue-600) kullanılıyordu.",
+    afterSummary:
+      "DESIGN.md ve src/index.css üzerinde Açık Pafta (#f3f1e9) ve Gece Paftası (#1e2623) token mimarisi + ThemeToggle + PaftaDrawing kuruldu; /app/smartcheck ön yükleme referans verisi kaldırıldı, API satır limiti 5.000'e çıkarıldı ve buildApartmentScheduleFromElements ile gerçek yüklenen IFC satırlarından dinamik daire cetveli üretildi.",
+    affectedModules: ["ifc-metraj", "ifc-teklif-aktarim"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "GET /api/smartcheck/documents/:id/rows 1.000 satırla sınırlıydı ve CalmIfcWorkspace daire cetveli yalnız hazır apartmentSchedule nesnesi varsa doluyordu.",
+        after: "API satır limiti 5.000'e (maks 10.000) çıkarıldı ve buildApartmentScheduleFromElements ile yüklenen IFC'nin IfcSpace satırlarından dinamik daire/oda m² cetveli üretildi.",
+        basis: "src/ifc/calm-icmal.ts & src/server/routes/smartcheck.ts",
+      },
+      "ifc-teklif-aktarim": {
+        before: "Farklı ekranlarda sabit renk kodları (bg-zinc-950, bg-blue-600, rounded-2xl) kullanıldığı için görsel bütünlük ve gece/gündüz modu uyumu yoktu.",
+        after: "Merkezi Pafta Design System (DESIGN.md, src/index.css, ThemeToggle, PaftaDrawing) ile tüm ekranlar Sıcak Pafta Kâğıdı (#f3f1e9) ve Gece Paftası (#1e2623) tokenlarına bağlandı.",
+        basis: "DESIGN.md & src/index.css Single Source of Truth Mimarisi",
       },
     },
   },

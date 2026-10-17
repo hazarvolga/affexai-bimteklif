@@ -6,108 +6,355 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+/* ==========================================================================
+   BIMMetraj (TeklifPro) — Merkezi Pafta Tasarım Şeması (Single Source of Truth)
+   Referans: DESIGN.md ("Mimarlık Ofisinin Açık Proje Paftası")
+   ========================================================================== */
+
+:root,
+:root[data-theme="light"] {
+  /* Çekirdek Pafta Tokenları — Açık Mod (Sıcak Pafta Kâğıdı) */
+  --paper: #f3f1e9;
+  --surface: #eae8df;
+  --surface-elevated: #fcfbf7;
+  --ink: #242d29;
+  --muted-ink: #62665e;
+  --rule: #c9cbc1;
+  --accent-brand: #a13c1b;
+  --accent-wash: #a13c1b14;
+  --inverse: #eeeee5;
+
+  /* Tipografi Aileleri */
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'Manrope', 'Geist Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono-tech: 'IBM Plex Mono', 'Geist Mono Variable', ui-monospace, monospace;
+  --gutter: clamp(20px, 4vw, 64px);
+
+  /* Shadcn & Tailwind Anlamsal Eşlemeleri */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent-brand);
+  --primary-foreground: var(--inverse);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--accent-wash);
+  --accent-foreground: var(--ink);
+  --destructive: #9e2a2b;
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--accent-brand);
+
+  /* Grafik & Veri Serileri */
+  --chart-1: #a13c1b;
+  --chart-2: #2d5a43;
+  --chart-3: #8c6239;
+  --chart-4: #3d5a6c;
+  --chart-5: #5c4d7d;
+
+  /* Pafta Keskin Köşe Kuralı (0px) */
+  --radius: 0rem;
+
+  /* Yan Menü (Sidebar) Pafta Eşlemesi */
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--accent-brand);
+  --sidebar-primary-foreground: var(--inverse);
+  --sidebar-accent: var(--accent-wash);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--accent-brand);
+
+  color-scheme: light;
 }
 
-:root {
-    --background: oklch(0.16 0.012 255);
-    --foreground: oklch(0.98 0.005 255);
-    --card: oklch(0.19 0.014 255);
-    --card-foreground: oklch(0.98 0.005 255);
-    --popover: oklch(0.18 0.013 255);
-    --popover-foreground: oklch(0.98 0.005 255);
-    --primary: oklch(0.68 0.195 45);
-    --primary-foreground: #ffffff;
-    --secondary: oklch(0.24 0.016 255);
-    --secondary-foreground: oklch(0.96 0.006 255);
-    --muted: oklch(0.22 0.015 255);
-    --muted-foreground: oklch(0.72 0.015 255);
-    --accent: oklch(0.25 0.016 255);
-    --accent-foreground: oklch(0.98 0.005 255);
-    --destructive: oklch(0.55 0.22 27);
-    --border: oklch(0.28 0.016 255);
-    --input: oklch(0.22 0.015 255);
-    --ring: oklch(0.68 0.195 45);
-    --chart-1: oklch(0.68 0.195 45);
-    --chart-2: oklch(0.72 0.16 150);
-    --chart-3: oklch(0.78 0.17 80);
-    --chart-4: oklch(0.65 0.15 240);
-    --chart-5: oklch(0.65 0.18 300);
-    --radius: 0.5rem;
-    --sidebar: oklch(0.14 0.012 255);
-    --sidebar-foreground: oklch(0.98 0.005 255);
-    --sidebar-primary: oklch(0.68 0.195 45);
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: oklch(0.22 0.015 255);
-    --sidebar-accent-foreground: oklch(0.98 0.005 255);
-    --sidebar-border: oklch(0.26 0.016 255);
-    --sidebar-ring: oklch(0.68 0.195 45);
-}
-
+:root[data-theme="dark"],
 .dark {
-    --background: oklch(0.16 0.012 255);
-    --foreground: oklch(0.98 0.005 255);
+  /* Çekirdek Pafta Tokenları — Koyu Mod (Gece Paftası) */
+  --paper: #1e2623;
+  --surface: #29312d;
+  --surface-elevated: #232b27;
+  --ink: #ecece2;
+  --muted-ink: #b1b8ab;
+  --rule: #485148;
+  --accent-brand: #f18f64;
+  --accent-wash: #f18f6419;
+  --inverse: #232a25;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent-brand);
+  --primary-foreground: var(--inverse);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--accent-wash);
+  --accent-foreground: var(--ink);
+  --destructive: #e06c60;
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--accent-brand);
+
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--accent-brand);
+  --sidebar-primary-foreground: var(--inverse);
+  --sidebar-accent: var(--accent-wash);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--accent-brand);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-display: var(--font-display);
+  --font-heading: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono-tech);
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-ink: var(--ink);
+  --color-rule: var(--rule);
+  --color-accent-brand: var(--accent-brand);
+  --color-accent-wash: var(--accent-wash);
+  --color-inverse: var(--inverse);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+  --radius-2xl: 0rem;
+  --radius-3xl: 0rem;
+  --radius-4xl: 0rem;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    box-sizing: border-box;
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--accent-brand);
+    color: var(--paper);
+  }
+  em {
+    font-style: normal;
+    color: var(--accent-brand);
   }
 }
 
-/* Teknik Pafta & Metraj Yardımcı Sınıfları */
+/* ==========================================================================
+   Mimari Pafta & Antet Bileşen Sınıfları (allplan-e-PYS Uyumlu)
+   ========================================================================== */
+
+.font-display-serif {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
+}
+
+.eyebrow,
+.section-index,
+.pafta-meta {
+  font-family: var(--font-mono-tech);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted-ink);
+}
+
+.section-index {
+  color: var(--accent-brand);
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-brand);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.pafta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 46px;
+  padding: 11px 20px;
+  background: var(--accent-brand);
+  color: var(--paper);
+  border: 1px solid var(--accent-brand);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  transition: background-color 0.18s, border-color 0.18s, color 0.18s;
+  cursor: pointer;
+}
+
+.pafta-button:hover:not(:disabled) {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.pafta-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pafta-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 44px;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  transition: border-color 0.18s, color 0.18s, background-color 0.18s;
+  cursor: pointer;
+}
+
+.pafta-button-secondary:hover:not(:disabled) {
+  border-color: var(--accent-brand);
+  color: var(--accent-brand);
+  background: var(--accent-wash);
+}
+
+.pafta-text-link {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  min-height: 40px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  transition: color 0.18s, border-color 0.18s;
+}
+
+.pafta-text-link:hover {
+  color: var(--accent-brand);
+  border-color: var(--accent-brand);
+}
+
+/* Mühendislik Cetveli / Tablo Stili */
+.pafta-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.pafta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.pafta-table thead {
+  background: var(--surface);
+}
+
+.pafta-table th,
+.pafta-table td {
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--rule);
+  padding: 14px 18px;
+}
+
+.pafta-table th {
+  font-family: var(--font-mono-tech);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.pafta-table tr[data-highlight="true"] td,
+.pafta-table tr[data-highlight="true"] th {
+  background: var(--accent-wash);
+  box-shadow: inset 3px 0 var(--accent-brand);
+}
+
 .bg-hairline-grid {
-  background-image: 
-    linear-gradient(to right, oklch(0.28 0.016 255 / 0.35) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.28 0.016 255 / 0.35) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--rule) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--rule) 45%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
@@ -116,12 +363,64 @@
 }
 
 .pafta-antet {
-  @apply border border-border bg-card/80 p-4 relative;
-  background-image: radial-gradient(circle at 100% 0%, oklch(0.68 0.195 45 / 0.06) 0%, transparent 60%);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 1rem;
+  position: relative;
 }
 
 .stamp-badge {
-  @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold border uppercase tracking-wider rounded-sm;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-mono-tech);
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--rule);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   Teknik Borç Önleyici Köprü (Legacy Dark/SaaS Sınıflarının Pafta Şemasına Eşlenmesi)
+   Alt sayfalarda kalmış sabit zinc/slate koyu sınıfları açık/koyu pafta moduna uyarlar
+   ========================================================================== */
+:root[data-theme="light"] .bg-zinc-950,
+:root[data-theme="light"] .bg-slate-950,
+:root[data-theme="light"] .bg-\[\#F8FAFC\] {
+  background-color: var(--paper) !important;
+}
+
+:root[data-theme="light"] .bg-zinc-900,
+:root[data-theme="light"] .bg-zinc-900\/50,
+:root[data-theme="light"] .bg-zinc-900\/60,
+:root[data-theme="light"] .bg-zinc-900\/80,
+:root[data-theme="light"] .bg-slate-900 {
+  background-color: var(--surface) !important;
+}
+
+:root[data-theme="light"] .text-zinc-50,
+:root[data-theme="light"] .text-zinc-100,
+:root[data-theme="light"] .text-zinc-200,
+:root[data-theme="light"] .text-slate-900 {
+  color: var(--ink) !important;
+}
+
+:root[data-theme="light"] .text-zinc-300,
+:root[data-theme="light"] .text-zinc-400,
+:root[data-theme="light"] .text-zinc-500,
+:root[data-theme="light"] .text-slate-500,
+:root[data-theme="light"] .text-slate-600 {
+  color: var(--muted-ink) !important;
+}
+
+:root[data-theme="light"] .border-zinc-800,
+:root[data-theme="light"] .border-zinc-800\/80,
+:root[data-theme="light"] .border-zinc-700,
+:root[data-theme="light"] .border-slate-200,
+:root[data-theme="light"] .border-slate-300 {
+  border-color: var(--rule) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -133,7 +432,6 @@
   }
 }
 
-/* Printable admin documents (Geliştirici Yol Haritası, Hesaplama Yöntemleri): black on white. */
 @media print {
   .print-doc, .print-doc * {
     color: #111 !important;

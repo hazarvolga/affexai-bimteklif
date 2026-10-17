@@ -1,52 +1,47 @@
-# BIMPlan Academy Design Direction
+# BIMMetraj (TeklifPro) — Tasarım Sistemi (Design System)
 
-## Product Surface
+Bu belge, **BIMMetraj (`TeklifPro`)** platformunun tek merkezli tasarım anayasasıdır (`Single Source of Truth`). Tüm genel vitrin sayfaları, müşteri çalışma alanı (`/app/*`), metraj icmal paftaları (`/app/smartcheck`) ve yönetim paneli (`/admin/*`) bu şemadaki anlamsal (semantic) tokenları kullanır.
 
-The primary surface is a B2B construction estimating and quality workflow. The interface should communicate control, traceability, and practical technical confidence.
+## 1. Estetik Yön ve Arketip
 
-## Physical Scene
+> **"Bir Mimarlık Ofisinin Açık Proje Paftası (Architectural Drawing Sheet & Engineering Schedule)"**
 
-A technical-office lead reviews a quotation on a large monitor during a deadline-driven workday and needs to trust the numbers, see what changed, and act without deciphering a decorative dashboard.
+Klasik SaaS panellerinin yuvarlatılmış balon kutuları, gölgeleri, gradyanları ve çok renkli trafik ışığı rozetleri yerine; mimar ve mühendislerin alışkın olduğu **antetli proje paftası**, **1px teknik cetvel çizgileri (hairline rules)**, **editöryal serif başlıklar** ve **tabular monospace metraj cetvelleri** kullanılır.
 
-## Visual Direction
+---
 
-- Corporate and evidence-led rather than futuristic AI theatre.
-- Dark workspace surfaces may remain for the product shell, but content areas must have strong hierarchy and readable contrast.
-- Orange is a controlled action and status accent, not the entire brand voice.
-- Use restrained surfaces, clear dividers, and purposeful density.
-- Avoid decorative glows, empty hero space, fake reference blocks, excessive pills, and repeated card grids.
+## 2. Renk Token Şeması (Açık Pafta & Gece Paftası Modları)
 
-## Color Roles
+Hiçbir bileşen içinde sabit `#hex`, `bg-zinc-950`, `bg-blue-600` veya `from-indigo-500` kullanılmaz. Tüm yüzeyler [src/index.css](file:///Users/hazarvolgaekiz/dev/products/bimplanacademy/TeklifPro-repo/src/index.css) içindeki aşağıdaki 8 temel token üzerinden yönetilir:
 
-Existing dark/orange identity is retained as a starting point:
+| Anlamsal Token | Tailwind Karşılığı | Açık Mod (`light` — Sıcak Pafta) | Koyu Mod (`dark` — Gece Paftası) | Mimari Rolü |
+| :--- | :--- | :--- | :--- | :--- |
+| `--paper` | `bg-background` / `bg-paper` | `#f3f1e9` | `#1e2623` | Ana pafta kâğıdı zemini |
+| `--surface` | `bg-card` / `bg-surface` | `#eae8df` | `#29312d` | İkincil yüzey, tablo başlığı ve yan panel |
+| `--ink` | `text-foreground` / `text-ink` | `#242d29` | `#ecece2` | Ana metin ve teknik rapido mürekkebi |
+| `--muted` | `text-muted-foreground` | `#62665e` | `#b1b8ab` | İkincil açıklama / kurşun kalem notu |
+| `--rule` | `border-border` / `border-rule` | `#c9cbc1` | `#485148` | `1px` pafta cetvel ve katlama çizgisi |
+| `--accent` | `bg-primary` / `text-primary` | `#a13c1b` | `#f18f64` | Teknik kiremit / sülüğen vurgu (odak & CTA) |
+| `--accent-wash` | `bg-primary/10` | `#a13c1b14` | `#f18f6419` | Seçili tablo satırı ve aktif sekme yıkaması |
+| `--inverse` | `text-primary-foreground` | `#eeeee5` | `#232a25` | Kontrast yüzey üzerindeki metin |
 
-- Background: near-black neutral
-- Surface: dark neutral with clear elevation separation
-- Text: high-contrast neutral
-- Muted text: readable neutral, never the only carrier of meaning
-- Action: orange
-- Success: green
-- Warning: amber
-- Error: red
+---
 
-The landing page should use the accent sparingly. Product status must also use labels and icons, not color alone.
+## 3. Tipografik Üçlü
 
-## Typography
+1. **Editöryal Başlık (`--font-display` — `Instrument Serif`):**
+   - `h1` ve `h2` ana başlıklarında kullanılır (`font-weight: 400`, `letter-spacing: -0.03em`, `line-height: 1.06`).
+   - Başlık içindeki `<em>` etiketleri italik olmaz; doğrudan `--accent` (teknik kiremit) rengini alır.
+2. **Gövde ve Arayüz (`--font-sans` — `Manrope`):**
+   - Paragraflar, butonlar, form etiketleri ve açıklamalar için kullanılır (`15px/1.75`).
+3. **Teknik Antet ve Metraj Sayıları (`--font-mono` — `IBM Plex Mono`):**
+   - Bölüm indeksleri (`01 /`, `02 /`), pafta antet şeritleri (`PROJE METRAJ PAFTASI · IFC4`), poz numaraları (`15.180.1003`) ve tüm metraj/fiyat sütunlarında (`font-variant-numeric: tabular-nums`) kullanılır.
 
-- Keep Geist as the primary UI family unless a later brand review proves a better fit.
-- Use the mono face only for technical values, IDs, or code-like metadata.
-- Keep display headings below the current oversized `text-7xl` default where responsive behavior or trust benefits from restraint.
-- Use balanced headings and readable 65–75ch body measure.
+---
 
-## Component Rules
+## 4. Yapısal Pafta Kuralları
 
-- Cards are for distinct decisions or evidence, not every content block.
-- Keep card radii in the 10–16px range; reserve pills for tags and compact status.
-- Do not combine decorative wide shadows with borders by default.
-- Buttons must have a real action or be visibly marked as coming soon.
-- Empty, loading, error, and permission states are first-class product surfaces.
-- Engineering/demo states must show source, authority level, version, and limitation.
-
-## Public Landing Direction
-
-The public site introduces BIMPlan Academy and sells TeklifPro first. SmartCheck is shown as a quality advantage. Academy is shown as the enablement layer. BIMPLAN and ALLPLAN Academy are presented as roadmap/ecosystem context, not as finished products unless the relevant workflow is live.
+- **Sıfır Köşe Yuvarlatma (`--radius: 0rem`):** Kartlar, butonlar, tablolar ve input alanları keskin pafta köşelerine sahiptir.
+- **Gölge Yok (`box-shadow: none`):** Derinlik hissi gölgeyle değil, `1px solid var(--rule)` çizgileri ve `--paper` / `--surface` ton farkıyla verilir.
+- **Seçili Satır Vurgusu (`tr[data-highlight]`):** Metraj ve icmal tablolarında aktif/seçili satır sol kenarında `inset 3px 0 var(--accent)` çizgisi ve `--accent-wash` arka planı ile vurgulanır.
+- **Pafta Kros İşaretleri (`+`) ve Antet Şeridi:** Teknik çizim ve hesap kanıtı panellerinin köşelerinde `+` kros (registration) işaretleri ve altında `IBM Plex Mono` antet bilgisi yer alır.

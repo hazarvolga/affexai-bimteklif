@@ -21,6 +21,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, type ReactNode } from 'react';
 import { PublicPricingSection } from '@/features/public-pricing/PublicPricingSection';
 import { PublicMetadata } from '@/components/PublicMetadata';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { PaftaDrawing } from '@/components/ui/PaftaDrawing';
 
 type LandingPageProps = {
   onGetStarted: () => void;
@@ -75,53 +77,57 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         description={pageMeta.description}
         canonicalPath={pageMeta.canonicalPath}
       />
-      {/* STICKY NAVBAR */}
-      <nav className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background/90 px-6 backdrop-blur-md md:px-8">
-        <a href="#top" className="flex items-center gap-3 font-semibold tracking-tight text-foreground" aria-label="BIMMetraj ana sayfa">
-          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-primary text-xs font-mono font-black text-white shadow-xs">
+      {/* STICKY NAVBAR (PAFTA ANTETİ) */}
+      <nav className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur-md md:px-10">
+        <a href="#top" className="flex items-center gap-3 text-foreground" aria-label="BIMMetraj ana sayfa">
+          <span className="flex h-8 w-8 items-center justify-center border border-primary bg-primary text-xs font-mono font-bold text-primary-foreground">
             BM
           </span>
           <div className="flex flex-col">
-            <span className="text-base font-bold leading-tight tracking-tight">BIMMetraj</span>
-            <span className="text-[10px] text-muted-foreground font-mono tracking-wider uppercase">openBIM & 5D İhale Masası</span>
+            <span className="font-display-serif text-2xl leading-none tracking-tight">BIMMetraj</span>
+            <span className="mt-1 text-[9px] text-muted-foreground font-mono tracking-widest uppercase">openBIM &amp; 5D İhale Masası</span>
           </div>
         </a>
 
         {/* Desktop Nav */}
         <div className="hidden items-center gap-6 md:flex">
-          <a href="#workflow" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Nasıl Çalışır?</a>
-          <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Özellikler</a>
-          <a href="#pricing" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Paketler</a>
-          <Link to="/smartcheck" className="text-sm text-muted-foreground transition-colors hover:text-foreground">SmartCheck Demo</Link>
-          
-          <div className="h-4 w-px bg-border mx-1" />
+          <a href="#workflow" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Nasıl Çalışır?</a>
+          <a href="#features" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Özellikler</a>
+          <a href="#pricing" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Paketler</a>
+          <Link to="/smartcheck" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">SmartCheck Demo</Link>
 
-          <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground" onClick={onGetStarted}>
+          <div className="h-5 w-px bg-border mx-1" />
+
+          <ThemeToggle />
+
+          <Button variant="ghost" size="sm" className="text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground" onClick={onGetStarted}>
             Giriş Yap
           </Button>
-          <Button 
-            size="sm"
+          <button
+            type="button"
             onClick={() => navigate('/register')}
-            className="bg-primary px-4 text-white hover:bg-primary/90 font-medium text-sm shadow-xs"
+            className="pafta-button !min-h-9 !py-2 !px-4"
           >
-            Teklif Hazırlayın
-          </Button>
+            <span>Teklif Hazırlayın</span>
+            <ArrowRight size={14} />
+          </button>
         </div>
 
         {/* Mobile Nav Toggle */}
         <div className="flex items-center gap-2 md:hidden">
-          <Button 
-            size="sm" 
-            variant="ghost" 
+          <ThemeToggle showLabel={false} />
+          <Button
+            size="sm"
+            variant="ghost"
             onClick={onGetStarted}
             className="text-xs"
           >
             Giriş
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={() => navigate('/register')}
-            className="bg-primary text-xs text-white px-3 font-semibold"
+            className="bg-primary text-xs text-primary-foreground px-3 font-semibold"
           >
             Ücretsiz Başla
           </Button>
@@ -138,29 +144,29 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-card px-6 py-4 space-y-3 sticky top-16 z-40">
-          <a 
-            href="#workflow" 
+        <div className="md:hidden border-b border-border bg-card px-6 py-4 space-y-3 sticky top-20 z-40">
+          <a
+            href="#workflow"
             onClick={() => setMobileMenuOpen(false)}
             className="block text-sm text-muted-foreground py-1 hover:text-foreground"
           >
             Nasıl Çalışır?
           </a>
-          <a 
-            href="#features" 
+          <a
+            href="#features"
             onClick={() => setMobileMenuOpen(false)}
             className="block text-sm text-muted-foreground py-1 hover:text-foreground"
           >
             Özellikler
           </a>
-          <a 
-            href="#pricing" 
+          <a
+            href="#pricing"
             onClick={() => setMobileMenuOpen(false)}
             className="block text-sm text-muted-foreground py-1 hover:text-foreground"
           >
             Paketler
           </a>
-          <Link 
+          <Link
             to="/smartcheck"
             onClick={() => setMobileMenuOpen(false)}
             className="block text-sm text-muted-foreground py-1 hover:text-foreground"
@@ -171,7 +177,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <Button variant="outline" className="w-full" onClick={() => { setMobileMenuOpen(false); onGetStarted(); }}>
               Giriş Yap
             </Button>
-            <Button className="w-full bg-primary text-white font-medium" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}>
+            <Button className="w-full bg-primary text-primary-foreground font-medium" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}>
               14 Gün Ücretsiz Başla
             </Button>
           </div>
@@ -179,44 +185,60 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       )}
 
       <main id="top">
-        {/* HERO SECTION */}
-        <section className="relative overflow-hidden border-b border-border bg-hairline-grid px-6 pb-20 pt-16 md:px-8 md:pb-28 md:pt-20">
+        {/* HERO SECTION (PAFTA ANTETİ + EDİTÖRYAL BAŞLIK + TEKNİK İZOMETRİK ÇİZİM) */}
+        <section className="relative overflow-hidden border-b border-border px-6 pb-20 pt-8 md:px-10 md:pb-24">
           <div className="relative z-10 mx-auto max-w-6xl">
-            {/* Engineering Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 border border-border bg-card/80 px-3 py-1 text-xs font-mono text-muted-foreground rounded-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-              openBIM QTO · ÇŞB 2026 Poz & Rayiç Kataloğu · RG 33331 e-PYS EK-9 Ön Kontrol
+            <div className="mb-8 flex items-center justify-between border-b border-border pb-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              <span>DİJİTAL PROJE / METRAJ &amp; e-PYS PAFTASI</span>
+              <span>TEKNİK REHBER &amp; 5D İHALE — 2026</span>
             </div>
 
-            <h1 className="max-w-4xl text-3xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight text-foreground">
-              İhale Masasında Hata Payı Bırakmayın.
-            </h1>
-            <p className="mt-6 max-w-3xl text-base sm:text-lg leading-relaxed text-muted-foreground font-normal">
-              IFC modellerinizi, PDF/A paftalarınızı ve Excel metrajlarınızı ÇŞB 2026 poz kataloğuyla eşleştirin; TS 500 kiriş–döşeme kesişim düşümü, <code className="text-xs font-mono text-foreground">CSB_2026_V1</code> Minha motoru ve RG 33331 e-PYS ön kontrolü ile teslim öncesi denetleyin.
-            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              <div className="lg:col-span-7">
+                <div className="eyebrow mb-4">
+                  <span className="status-dot" />
+                  <span>openBIM QTO · ÇŞB 2026 Poz &amp; Rayiç Kataloğu · RG 33331 e-PYS EK-9 Ön Kontrol</span>
+                </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button 
-                onClick={() => navigate('/register')}
-                size="lg" 
-                className="h-11 bg-primary px-6 text-white hover:bg-primary/90 font-semibold w-full sm:w-auto shadow-xs"
-              >
-                14 Gün Ücretsiz Başlayın <ArrowRight size={16} className="ml-2" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => navigate('/smartcheck')}
-                className="h-11 border-border bg-card/60 px-6 text-sm font-medium hover:bg-muted"
-              >
-                SmartCheck Demosunu İnceleyin
-              </Button>
+                <h1 className="font-display-serif text-4xl sm:text-6xl lg:text-7xl text-foreground">
+                  İhale Masasında <em>Hata Payı</em> Bırakmayın.
+                </h1>
+                <p className="mt-6 max-w-2xl text-sm sm:text-base leading-relaxed text-muted-foreground font-normal">
+                  IFC modellerinizi, PDF/A paftalarınızı ve Excel metrajlarınızı ÇŞB 2026 poz kataloğuyla eşleştirin; TS 500 kiriş–döşeme kesişim düşümü, <code className="text-xs font-mono text-primary">CSB_2026_V1</code> Minha motoru ve RG 33331 e-PYS ön kontrolü ile teslim öncesi denetleyin.
+                </p>
+
+                <div className="mt-8 flex flex-wrap items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="pafta-button"
+                  >
+                    <span>14 Gün Ücretsiz Başlayın</span>
+                    <ArrowRight size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/smartcheck')}
+                    className="pafta-button-secondary"
+                  >
+                    <span>SmartCheck Demosunu İnceleyin</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5">
+                <PaftaDrawing
+                  captionLeft="01 / MODEL → TESLİM"
+                  captionCenter="İZOMETRİK METRAJ / 01"
+                  captionRight="IFC4 + PDF/A"
+                />
+              </div>
             </div>
 
             {/* PRODUCT SHOWCASE MOCKUP (Pafta & Metraj Cetveli) */}
-            <div className="mt-14 overflow-hidden rounded-md border border-border bg-card shadow-2xl">
+            <div className="mt-14 overflow-hidden border border-border bg-card">
               {/* Mockup Title Block (Pafta Anteti) */}
-              <div className="border-b border-border bg-muted/40 px-4 py-3 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+              <div className="border-b border-border bg-background px-5 py-3 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
                 <div className="flex items-center gap-4">
                   <span className="text-muted-foreground">PROJE: <strong className="text-foreground">Kadıköy Konutları Kaba Yapı</strong></span>
                   <span className="hidden sm:inline text-muted-foreground">REV: <strong className="text-primary font-bold">02</strong></span>
@@ -234,29 +256,29 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               {/* Split Workspace View */}
               <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-border">
                 {/* Left: Structural CAD / Wireframe preview */}
-                <div className="lg:col-span-5 p-5 bg-background/50 flex flex-col justify-between min-h-[260px]">
+                <div className="lg:col-span-5 p-5 bg-background flex flex-col justify-between min-h-[260px]">
                   <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-4">
                     <span className="flex items-center gap-1.5">
                       <Layers size={14} className="text-primary" />
                       IFC Yapısal Model (STR)
                     </span>
-                    <span className="text-emerald-400">● 142 Eleman Ayrıştırıldı</span>
+                    <span className="text-primary font-semibold">● 142 Eleman Ayrıştırıldı</span>
                   </div>
 
                   {/* Wireframe Graphic Illustration */}
-                  <div className="relative h-44 rounded-sm border border-border/60 bg-muted/20 p-4 flex items-center justify-center overflow-hidden">
+                  <div className="relative h-44 border border-border bg-card p-4 flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0 bg-hairline-grid opacity-50" />
                     {/* Isometric structural wireframe representation */}
-                    <div className="relative z-10 w-full max-w-[200px] h-28 border border-primary/40 rounded-xs flex flex-col justify-between p-2 font-mono text-[9px] text-muted-foreground">
-                      <div className="flex justify-between border-b border-border/60 pb-1">
+                    <div className="relative z-10 w-full max-w-[200px] h-28 border border-primary/40 bg-background flex flex-col justify-between p-2 font-mono text-[9px] text-muted-foreground">
+                      <div className="flex justify-between border-b border-border pb-1">
                         <span>C30/37 KOLON</span>
-                        <span className="text-primary">420.00 m³</span>
+                        <span className="text-primary font-semibold">420.00 m³</span>
                       </div>
                       <div className="flex justify-between py-1">
                         <span>B420C DONATI</span>
-                        <span className="text-foreground">34.50 ton</span>
+                        <span className="text-foreground font-semibold">34.50 ton</span>
                       </div>
-                      <div className="flex justify-between border-t border-border/60 pt-1">
+                      <div className="flex justify-between border-t border-border pt-1">
                         <span>KALIP İSKELESİ</span>
                         <span>1.120 m²</span>
                       </div>

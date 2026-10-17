@@ -10,6 +10,7 @@ import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/map
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
 import { CalmIfcWorkspace } from "./CalmIfcWorkspace";
+import { PaftaDrawing } from "@/components/ui/PaftaDrawing";
 import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } from "@/ifc/calm-icmal";
 import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
@@ -777,107 +778,171 @@ export function SmartCheckImportWorkspace() {
 
       {/* STATE 2: FILE IS CURRENTLY UPLOADING OR PROCESSING IN BACKGROUND */}
       {busy && !preview && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+        <div className="border border-border bg-card p-10 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center border border-primary/40 bg-primary/10 text-primary">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-          <h3 className="mt-4 text-base font-bold text-slate-900">
+          <h3 className="mt-4 font-display-serif text-3xl text-foreground">
             {file?.name || openedFileName || "Dosya"} Analiz Ediliyor…
           </h3>
-          <p className="mx-auto mt-1.5 max-w-lg text-xs leading-relaxed text-slate-500">
+          <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-muted-foreground">
             {isPdfFile
               ? "PDF/A-2B (ISO 19005-2), ISO 216 standart kağıt ölçüsü ve e-imza (/Sig) kontrolleri yürütülüyor."
-              : "IFC katmanları, kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) net/brüt alanları çıkarılıyor. İşlem tamamlandığında İcmal Tablosu otomatik açılacaktır."}
+              : "IFC katmanları, kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) net/brüt alanları çıkarılıyor. İşlem tamamlandığında İcmal Paftası otomatik açılacaktır."}
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-semibold text-blue-700">
+          <div className="mt-4 stamp-badge bg-background text-primary border-primary/40">
             {stage}
           </div>
         </div>
       )}
 
-      {/* STATE 3: CLEAN UPLOAD CARD (SHOWN WHEN NO FILE IS LOADED YET) */}
+      {/* STATE 3: CLEAN PAFTA UPLOAD WORKSPACE (SHOWN WHEN NO FILE IS LOADED YET) */}
       {!calmDataset && !busy && !preview && !(documentId && isPdfFile) && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm text-slate-900">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700 border border-blue-200">
-              BIM → Kağıt İcmal & Daire Metrekareleri
+        <div className="border border-border bg-background text-foreground">
+          <div className="border-b border-border bg-card px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="eyebrow">
+              <span className="status-dot" />
+              <span>PAFTA 00 / DİJİTAL PROJE VE METRAJ GİRİŞİ</span>
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              IFC4 · IFC2X3 · XLSX · CSV · PDF/A-2B
             </span>
-            <h2 className="mt-2.5 text-xl font-bold text-slate-900">
-              Proje Dosyanızı Yükleyin (.ifc, .xlsx, .csv, .pdf)
-            </h2>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
-              IFC modelinizi yüklediğinizde çok katmanlı imalatlar (Şap, Parke, Seramik, Fayans, Sıva, Boya, Süpürgelik), kapı/pencere boşluk düşümleri (minha) ve daire m² cetveli otomatik çıkarılır.
-            </p>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-12 items-start">
-            {/* Left: File Dropzone & Upload Button */}
-            <div className="lg:col-span-7 space-y-3">
-              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition-colors hover:border-blue-500 hover:bg-blue-50/30">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xs border border-slate-200 text-blue-600">
-                  {isIfcFile ? <FileCode2 className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
-                </div>
-                <div>
-                  <span className="block text-sm font-bold text-slate-800">
-                    {file?.name ?? openedFileName ?? "Bilgisayarınızdan .ifc, .xlsx, .csv veya .pdf dosyası seçin"}
-                  </span>
-                  <span className="mt-1 block text-xs text-slate-500">
-                    Allplan, Revit ve ArchiCAD IFC4 / IFC4X3 modelleri ile Excel metraj cetvelleri desteklenir
-                  </span>
-                </div>
-                <input
-                  className="sr-only"
-                  type="file"
-                  accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  onChange={(event) => {
-                    setFile(event.target.files?.[0] ?? null);
-                    setOpenedFileName(null);
-                    setDocumentId(null);
-                    setPilotCaseId(null);
-                    setPreview(null);
-                    setRows([]);
-                    setStage("Dosya seçildi — Yüklemeye hazır");
-                  }}
-                />
-              </label>
+          <div className="p-6 sm:p-8 grid gap-8 lg:grid-cols-12 items-start">
+            {/* Sol: Dosya Seçimi ve Örnek Paftalar */}
+            <div className="lg:col-span-7 space-y-6">
+              <div>
+                <h2 className="font-display-serif text-3xl sm:text-4xl text-foreground">
+                  Proje Dosyanızı Yükleyin ve <em>Resmi İcmal Paftası</em> Üretin
+                </h2>
+                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground max-w-xl">
+                  IFC modelinizi yüklediğinizde çok katmanlı imalatlar (Şap, Parke, Seramik, Fayans, Sıva, Boya, Süpürgelik), kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) m² cetveli otomatik çıkarılır.
+                </p>
+              </div>
 
-              <Button
-                disabled={!file || busy}
-                onClick={upload}
-                className="h-11 w-full gap-2 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 shadow-xs"
-              >
-                <Upload size={15} />
-                {isIfcFile
-                  ? "IFC Modelini Yükle ve İcmal Çıkar"
-                  : isPdfFile
-                    ? "PDF/A Ön Kontrolü Başlat"
-                    : "Dosyayı Yükle ve Analiz Et"}
-              </Button>
+              <div className="space-y-3">
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-3 border border-dashed border-foreground/40 bg-card/60 p-8 text-center transition-colors hover:border-primary hover:bg-primary/5">
+                  <div className="flex h-11 w-11 items-center justify-center border border-border bg-background text-primary">
+                    {isIfcFile ? <FileCode2 className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-foreground">
+                      {file?.name ?? openedFileName ?? "Bilgisayarınızdan .ifc, .xlsx, .csv veya .pdf dosyası seçin"}
+                    </span>
+                    <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      ALLPLAN · REVIT · ARCHICAD (IFC4 / IFC4X3) VE EXCEL METRAJ CETVELLERİ
+                    </span>
+                  </div>
+                  <input
+                    className="sr-only"
+                    type="file"
+                    accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(event) => {
+                      setFile(event.target.files?.[0] ?? null);
+                      setOpenedFileName(null);
+                      setDocumentId(null);
+                      setPilotCaseId(null);
+                      setPreview(null);
+                      setRows([]);
+                      setStage("Dosya seçildi — Yüklemeye hazır");
+                    }}
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  disabled={!file || busy}
+                  onClick={upload}
+                  className="pafta-button w-full !justify-center"
+                >
+                  <Upload size={15} />
+                  <span>
+                    {isIfcFile
+                      ? "IFC Modelini Yükle ve İcmal Paftası Çıkar"
+                      : isPdfFile
+                        ? "PDF/A Ön Kontrolü Başlat"
+                        : "Dosyayı Yükle ve Analiz Et"}
+                  </span>
+                </button>
+              </div>
+
+              {/* Örnek Projeler ve e-PYS Kitleri */}
+              <div className="border-t border-border pt-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="section-index">01 / ÖRNEK PAFTALAR (KOTADAN DÜŞMEZ)</span>
+                  <span className="stamp-badge bg-card text-foreground">HAZIR VERİ</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={Boolean(sampleBusyId) || busy}
+                    onClick={() => void loadSampleProject("mm-mimari-tablo-9-1")}
+                    className="pafta-button-secondary !min-h-9 !py-1.5 !px-3"
+                  >
+                    {sampleBusyId === "mm-mimari-tablo-9-1" ? <Loader2 size={12} className="animate-spin" /> : <FileCode2 size={12} className="text-primary" />}
+                    <span>Mimari (Tablo 9.1)</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={Boolean(sampleBusyId) || busy}
+                    onClick={() => void loadSampleProject("st-statik-tablo-9-2")}
+                    className="pafta-button-secondary !min-h-9 !py-1.5 !px-3"
+                  >
+                    {sampleBusyId === "st-statik-tablo-9-2" ? <Loader2 size={12} className="animate-spin" /> : <Layers3 size={12} className="text-primary" />}
+                    <span>Statik (Tablo 9.2)</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={Boolean(sampleBusyId) || busy}
+                    onClick={() => void loadSampleProject("pdfa-pafta-iso216")}
+                    className="pafta-button-secondary !min-h-9 !py-1.5 !px-3"
+                  >
+                    {sampleBusyId === "pdfa-pafta-iso216" ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} className="text-primary" />}
+                    <span>PDF/A-2B Pafta</span>
+                  </button>
+                </div>
+                <div className="pt-2 flex flex-wrap items-center gap-4 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <a href="/api/smartcheck/epys-ids" download="tr-epys-rg33331-ek6-ek7.ids" className="inline-flex items-center gap-1.5 text-foreground hover:text-primary underline underline-offset-4">
+                    <Download size={12} /> e-PYS IDS (.ids)
+                  </a>
+                  <a href="/api/smartcheck/epys-allplan-kit" download="allplan-2026-epys-kit-v1.json" className="inline-flex items-center gap-1.5 text-foreground hover:text-primary underline underline-offset-4">
+                    <Download size={12} /> ALLPLAN 2026 Kiti (.json)
+                  </a>
+                </div>
+              </div>
             </div>
 
-            {/* Right: Recent Uploaded Files (Queue) & Quick Samples */}
-            <div className="lg:col-span-5 space-y-4">
+            {/* Sağ: İzometrik Teknik Pafta Çizimi & Son İşlenen Dosyalar */}
+            <div className="lg:col-span-5 space-y-5">
+              <PaftaDrawing
+                compact
+                captionLeft="01 / MODEL → METRAJ"
+                captionCenter="BRÜT − MİNHA = NET"
+                captionRight="IFC4 + ÇŞB POZ"
+              />
+
               {queue.length > 0 && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                  <div className="mb-2.5 flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">Son İşlenen Dosyalarınız</span>
+                <div className="border border-border bg-card p-4">
+                  <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+                    <span className="section-index">02 / SON İŞLENEN DOSYALARINIZ</span>
                     <button
                       type="button"
                       onClick={loadQueue}
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-800"
+                      className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary"
                     >
-                      <RefreshCw size={12} /> Yenile
+                      <RefreshCw size={11} /> Yenile
                     </button>
                   </div>
                   <div className="space-y-2 max-h-52 overflow-y-auto">
                     {queue.slice(0, 5).map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs"
+                        className="flex items-center justify-between gap-2 border border-border bg-background px-3 py-2 text-xs"
                       >
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-800">{item.fileName ?? "Dosya"}</p>
-                          <p className="text-[11px] text-slate-500">
+                          <p className="truncate font-semibold text-foreground">{item.fileName ?? "Dosya"}</p>
+                          <p className="font-mono text-[10px] text-muted-foreground">
                             {item.status === "succeeded"
                               ? "Analiz tamamlandı"
                               : item.status === "failed"
@@ -890,7 +955,7 @@ export function SmartCheckImportWorkspace() {
                             <button
                               type="button"
                               onClick={() => openQueueDocument(item.documentId, item.fileName, item.status)}
-                              className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-700"
+                              className="pafta-button !min-h-7 !py-1 !px-2.5 !text-[10px]"
                             >
                               İcmali Aç
                             </button>
@@ -899,7 +964,7 @@ export function SmartCheckImportWorkspace() {
                             <button
                               type="button"
                               onClick={() => retry(item.documentId)}
-                              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                              className="pafta-button-secondary !min-h-7 !py-1 !px-2.5 !text-[10px]"
                             >
                               Yeniden Dene
                             </button>
@@ -910,52 +975,6 @@ export function SmartCheckImportWorkspace() {
                   </div>
                 </div>
               )}
-
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800">Örnek Projeler (Kotadan Düşmez)</span>
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Hazır Veri
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    disabled={Boolean(sampleBusyId) || busy}
-                    onClick={() => void loadSampleProject("mm-mimari-tablo-9-1")}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    {sampleBusyId === "mm-mimari-tablo-9-1" ? <Loader2 size={12} className="animate-spin" /> : <FileCode2 size={12} className="text-blue-600" />}
-                    Mimari (Tablo 9.1)
-                  </button>
-                  <button
-                    type="button"
-                    disabled={Boolean(sampleBusyId) || busy}
-                    onClick={() => void loadSampleProject("st-statik-tablo-9-2")}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    {sampleBusyId === "st-statik-tablo-9-2" ? <Loader2 size={12} className="animate-spin" /> : <Layers3 size={12} className="text-blue-600" />}
-                    Statik (Tablo 9.2)
-                  </button>
-                  <button
-                    type="button"
-                    disabled={Boolean(sampleBusyId) || busy}
-                    onClick={() => void loadSampleProject("pdfa-pafta-iso216")}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    {sampleBusyId === "pdfa-pafta-iso216" ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} className="text-emerald-600" />}
-                    PDF/A-2B Pafta
-                  </button>
-                </div>
-                <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-                  <a href="/api/smartcheck/epys-ids" download="tr-epys-rg33331-ek6-ek7.ids" className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline">
-                    <Download size={12} /> e-PYS IDS (.ids)
-                  </a>
-                  <a href="/api/smartcheck/epys-allplan-kit" download="allplan-2026-epys-kit-v1.json" className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline">
-                    <Download size={12} /> ALLPLAN 2026 Kiti (.json)
-                  </a>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -1110,8 +1110,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/BimIfcParser.tsx": {
-    "mtime": 1792064964.007477,
-    "ast_hash": "283f5f95a399ca09b745afdc652304c9",
+    "mtime": 1792195716.7100005,
+    "ast_hash": "de16c2e13c3d88c6047094b267b10031",
     "semantic_hash": ""
   },
   "src/components/bimplan/DocumentsView.tsx": {
@@ -1170,8 +1170,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/PageHeader.tsx": {
-    "mtime": 1778748316.0,
-    "ast_hash": "db0e7eadba285d2e424f8055e82fd77c",
+    "mtime": 1792200626.8498776,
+    "ast_hash": "173ea4376f5367e5adbd462b68a85d4b",
     "semantic_hash": ""
   },
   "src/components/layout/SectionWrapper.tsx": {
@@ -1180,8 +1180,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/Shell.tsx": {
-    "mtime": 1792064552.6115983,
-    "ast_hash": "91063d52c0eccd811438e8cdeb94d7f2",
+    "mtime": 1792200571.62643,
+    "ast_hash": "54412b7b60d59fe8099e8381f3042954",
     "semantic_hash": ""
   },
   "src/components/smartcheck/RegulationImpactPanel.tsx": {
@@ -1190,8 +1190,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/SmartCheckImportWorkspace.tsx": {
-    "mtime": 1792085473.9382064,
-    "ast_hash": "e54f25a9cb40348ba34c1d7b3992ddee",
+    "mtime": 1792200816.3218393,
+    "ast_hash": "7a491ef62320af15f4f612364456a394",
     "semantic_hash": ""
   },
   "src/components/smartcheck/SourceIntelligencePanel.tsx": {
@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1792082048.415677,
-    "ast_hash": "a8b6021cefa7e4906b77c64332609766",
+    "mtime": 1792200928.2537901,
+    "ast_hash": "35c1304fdeffc045728c49c08d0f8a8d",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -1535,8 +1535,8 @@
     "semantic_hash": ""
   },
   "src/pages/Login.tsx": {
-    "mtime": 1791880512.027428,
-    "ast_hash": "0da0ab2c8c81401aa7684ae5e46d2c08",
+    "mtime": 1792200981.2644238,
+    "ast_hash": "906c5af8d3eb1b0ca6e20862da28d840",
     "semantic_hash": ""
   },
   "src/pages/MarketIntelligence.tsx": {
@@ -1595,8 +1595,8 @@
     "semantic_hash": ""
   },
   "src/pages/Register.tsx": {
-    "mtime": 1792069155.5971677,
-    "ast_hash": "6c4261b87d9baba2a063205a3126044f",
+    "mtime": 1792201009.571615,
+    "ast_hash": "e28d98261ba37d485d5fc789fd7d0914",
     "semantic_hash": ""
   },
   "src/pages/Regulations.tsx": {
@@ -1610,13 +1610,13 @@
     "semantic_hash": ""
   },
   "src/pages/SmartCheck.tsx": {
-    "mtime": 1792063925.7683675,
-    "ast_hash": "d6c71fef81b3eb607f87e808f9e67d19",
+    "mtime": 1792198131.1770823,
+    "ast_hash": "5627c1a22028b430ecee74ec0a1ea357",
     "semantic_hash": ""
   },
   "src/pages/SmartCheckDemo.tsx": {
-    "mtime": 1792064555.8633552,
-    "ast_hash": "d0571eb10535547d4e80f0c4a0983a25",
+    "mtime": 1792201034.138606,
+    "ast_hash": "e7ef27f995ddfc2d05a50a0a74558fca",
     "semantic_hash": ""
   },
   "src/pages/VerifyEmail.tsx": {
@@ -1800,8 +1800,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/smartcheck.ts": {
-    "mtime": 1792085858.4435668,
-    "ast_hash": "3960c51722ef013ed386751fb313f4b1",
+    "mtime": 1792197513.2513251,
+    "ast_hash": "9af167a386cab3cd84abfab0743bf08e",
     "semantic_hash": ""
   },
   "src/server/routes/source-intelligence.integration.test.ts": {
@@ -3850,8 +3850,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1778754195.0,
-    "ast_hash": "37b39dfd4c331921b2b6f7ef3856a6a3",
+    "mtime": 1792088024.5240397,
+    "ast_hash": "9e0d45115e30501394a6080f956783de",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -3865,8 +3865,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1791720671.7274005,
-    "ast_hash": "1c60ece5b51cda18f6c416bf6377bc55",
+    "mtime": 1792200407.7610328,
+    "ast_hash": "1f1ca4a9d9c591a25f5509c41762b6cf",
     "semantic_hash": ""
   },
   "PRODUCT.md": {
@@ -4010,8 +4010,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/AGENT_PROTOCOL.md": {
-    "mtime": 1778754196.0,
-    "ast_hash": "a8e001c459944a53fb2f0df7a0055af0",
+    "mtime": 1792088027.6117413,
+    "ast_hash": "aa9347fd05559e0aa1ccf46a86b41f60",
     "semantic_hash": ""
   },
   "docs/agent-memory/ARCHITECTURE_DECISIONS.md": {
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1792087006.9277852,
-    "ast_hash": "c4ddf714bc03ccc994fb79210f9eea6c",
+    "mtime": 1792196281.7637722,
+    "ast_hash": "112fab989e6204a171fded6af168467d",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4270,8 +4270,8 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792064321.1131399,
-    "ast_hash": "7662508b73f9f13545f500fb069ea33b",
+    "mtime": 1792200418.8680975,
+    "ast_hash": "76eec6384b3ec9c1becf4b6db4f76ad2",
     "semantic_hash": ""
   },
   "notebooklm/AUTHENTICATION.md": {
@@ -4450,8 +4450,8 @@
     "semantic_hash": ""
   },
   "src/ifc/parser/quantity-extractor.ts": {
-    "mtime": 1791720672.3019235,
-    "ast_hash": "5d27d6601d418f74ac7c748ca4f59ef8",
+    "mtime": 1792144962.8503206,
+    "ast_hash": "ab7fefac4fb7d3e88864ce4fb8359602",
     "semantic_hash": ""
   },
   "src/ifc/parser/spatial-extractor.test.ts": {
@@ -4460,8 +4460,8 @@
     "semantic_hash": ""
   },
   "src/ifc/parser/spatial-extractor.ts": {
-    "mtime": 1791720672.3024306,
-    "ast_hash": "8b20972208286669f971c0f64c166239",
+    "mtime": 1792144964.0550666,
+    "ast_hash": "091f9bad8c8b5e0f9657decd2ee77439",
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-evidence.test.ts": {
@@ -4470,18 +4470,18 @@
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-evidence.ts": {
-    "mtime": 1791991505.8220782,
-    "ast_hash": "8cf0b6c227a7359a5c8ff183502613b1",
+    "mtime": 1792195362.2474084,
+    "ast_hash": "67418e49ad80803e9d048ef7af4a289b",
     "semantic_hash": ""
   },
   "src/ifc/types.ts": {
-    "mtime": 1792064958.5794146,
-    "ast_hash": "9f85ecc5291b055c86cdc07791d5094a",
+    "mtime": 1792195328.0009966,
+    "ast_hash": "e88decbaa5a32ea9ac87a23951ef804a",
     "semantic_hash": ""
   },
   "src/ifc/parser/legacy-parser.ts": {
-    "mtime": 1792064962.1741498,
-    "ast_hash": "fcdb5ebcc3e17d6d06d115a0e4be1dc4",
+    "mtime": 1792144966.2752492,
+    "ast_hash": "a9dbe09ce4f858929b48eaddb245f140",
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-processing.test.ts": {
@@ -4500,8 +4500,8 @@
     "semantic_hash": ""
   },
   "src/ifc/parser/qto-extractor.ts": {
-    "mtime": 1791720672.3014207,
-    "ast_hash": "da86aa5b76a24bd83b786e42d388b76d",
+    "mtime": 1792144961.4376793,
+    "ast_hash": "63ae78e26d983b28ba0fdf588ad2ba65",
     "semantic_hash": ""
   },
   "src/ifc/evidence-policy.test.ts": {
@@ -4565,8 +4565,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/AdminShell.tsx": {
-    "mtime": 1792064554.1655314,
-    "ast_hash": "d81f9d339b67a5102f418e22091b4ef8",
+    "mtime": 1792200573.4760828,
+    "ast_hash": "0f951f06d4cc9c7f8a69a75e7b0e7e47",
     "semantic_hash": ""
   },
   "src/components/ui/field.tsx": {
@@ -5205,8 +5205,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/import/ifc-python-runner.ts": {
-    "mtime": 1791991502.592323,
-    "ast_hash": "b4301d8adc5743c89116b9f036b995da",
+    "mtime": 1792195361.040431,
+    "ast_hash": "3db5f76ef7ebe10850688dfa2b2f279d",
     "semantic_hash": ""
   },
   "src/smartcheck/import/ifc-worker.ts": {
@@ -5270,8 +5270,8 @@
     "semantic_hash": ""
   },
   "workers/ifc/ifc_extract.py": {
-    "mtime": 1792084752.9651215,
-    "ast_hash": "c71f9d9d2faa04aef544d33676a4b839",
+    "mtime": 1792195947.6809611,
+    "ast_hash": "3204bc0aa2e17b2e4afe79a29a28cd8f",
     "semantic_hash": ""
   },
   "workers/ifc/test_ifc_extract.py": {
@@ -5435,13 +5435,13 @@
     "semantic_hash": ""
   },
   "src/ifc/browser-preview.test.ts": {
-    "mtime": 1791720672.2992158,
-    "ast_hash": "82cac517b5a414c138b03fe91f87eef1",
+    "mtime": 1792144827.3665729,
+    "ast_hash": "f02dc86dcaac3f066737993da4e423b0",
     "semantic_hash": ""
   },
   "src/ifc/browser-preview.ts": {
-    "mtime": 1791720672.2994237,
-    "ast_hash": "f8e8b0abb38faaae2677c25c2e7caf09",
+    "mtime": 1792144825.0440066,
+    "ast_hash": "5d9a93b392d4fd71546b07aaefa14b03",
     "semantic_hash": ""
   },
   "src/ifc/parser/units.test.ts": {
@@ -5450,8 +5450,8 @@
     "semantic_hash": ""
   },
   "src/ifc/parser/units.ts": {
-    "mtime": 1791720672.3035812,
-    "ast_hash": "676a8401045b2713feb4ba6ea6661325",
+    "mtime": 1792144857.414282,
+    "ast_hash": "428e4b8b0bfe730f9dcf130ee3e3886f",
     "semantic_hash": ""
   },
   "src/server/auth/email-policy.test.ts": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792087614.669843,
-    "ast_hash": "5dcd35d11fd39fba8a5b687939d90ad9",
+    "mtime": 1792201308.7786493,
+    "ast_hash": "c5b9b2afc7ca2506d56fbd11c18e0143",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6140,8 +6140,8 @@
     "semantic_hash": ""
   },
   "workers/ifc/epys_preflight.py": {
-    "mtime": 1792080353.4721744,
-    "ast_hash": "240f46bd8aecc2464f198672f639c1e0",
+    "mtime": 1792144578.7861643,
+    "ast_hash": "8d8eb02771f271d130f2485bcc795ae0",
     "semantic_hash": ""
   },
   "workers/ifc/pdf_preflight.py": {
@@ -6210,8 +6210,8 @@
     "semantic_hash": ""
   },
   "workers/ifc/vendor/ifc_ruhsat/kontrol.py": {
-    "mtime": 1792080168.5140593,
-    "ast_hash": "c36486897c86905510cf3f492f096c07",
+    "mtime": 1792144580.4769218,
+    "ast_hash": "2d451686d1d029cd45959db32c6edf4c",
     "semantic_hash": ""
   },
   "workers/ifc/vendor/ifc_ruhsat/kurallar/__init__.py": {
@@ -6245,8 +6245,8 @@
     "semantic_hash": ""
   },
   "workers/ifc/vendor/ifc_ruhsat/kurallar/ortak.py": {
-    "mtime": 1792084514.4237247,
-    "ast_hash": "77d68e25c3e226a0431778663593e8b4",
+    "mtime": 1792144581.4636486,
+    "ast_hash": "8a15d487df01a5aefa623f4b7857f218",
     "semantic_hash": ""
   },
   "workers/ifc/vendor/ifc_ruhsat/kurallar/ozellik.py": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792087451.3238382,
-    "ast_hash": "952871dc4dc0b4ec121ea87caf563792",
+    "mtime": 1792201360.974471,
+    "ast_hash": "9b6094fa3a0e82a5cedc99d38940ca8a",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6405,8 +6405,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-15.md": {
-    "mtime": 1792087008.3075266,
-    "ast_hash": "4ca7a2721079e6bafaaf3704089d226f",
+    "mtime": 1792088080.9152422,
+    "ast_hash": "02dfdd2960e354c87591b48cdc1826a0",
     "semantic_hash": ""
   },
   "docs/audits/BAKANLIK_SON_PDFLER_ANALIZ_VE_YOL_HARITASI.md": {
@@ -6422,6 +6422,56 @@
   "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md": {
     "mtime": 1792085530.2242901,
     "ast_hash": "f57b44643d1eaa76a132f8d0c9e6ad1a",
+    "semantic_hash": ""
+  },
+  "IfcSampleFiles-main/README.md": {
+    "mtime": 1629817595.0,
+    "ast_hash": "5c76d0a7259d0199a1849e4073e98740",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/CalmIfcWorkspace.tsx": {
+    "mtime": 1792200736.2998946,
+    "ast_hash": "2dc74ccf28263420de1b3854e23cdb9c",
+    "semantic_hash": ""
+  },
+  "src/ifc/calm-icmal.test.ts": {
+    "mtime": 1792198255.6236646,
+    "ast_hash": "a35ee84ea6dd4105157531b9f59d61c9",
+    "semantic_hash": ""
+  },
+  "src/ifc/calm-icmal.ts": {
+    "mtime": 1792197733.8732915,
+    "ast_hash": "87d32a78bba8b56b83e6d2eea1f19d77",
+    "semantic_hash": ""
+  },
+  "TeklifPro_Melih_Bey_4_Excel_Dosyasi_Analizi.pdf": {
+    "mtime": 1792164309.9180336,
+    "ast_hash": "1388814e1fc8993e0d54b47735d16b0c",
+    "semantic_hash": ""
+  },
+  "TeklifPro_Melih_Bey_Degerlendirme_Notu.pdf": {
+    "mtime": 1792163793.1751068,
+    "ast_hash": "0dc3a9284edc6efa30d628067e10a4a5",
+    "semantic_hash": ""
+  },
+  "TeklifPro_Melih_Bey_Sunum_ve_Yol_Haritasi.pdf": {
+    "mtime": 1792194316.2023165,
+    "ast_hash": "3addcfafd49119c414f8509335da84e3",
+    "semantic_hash": ""
+  },
+  "TeklifPro_Nihai_Mimari_ve_Urun_Onerisi_Sunumu.pdf": {
+    "mtime": 1792194316.1123042,
+    "ast_hash": "3addcfafd49119c414f8509335da84e3",
+    "semantic_hash": ""
+  },
+  "src/components/ui/PaftaDrawing.tsx": {
+    "mtime": 1792200515.2759337,
+    "ast_hash": "7d6c885cf057dca345990bcee3e8fb04",
+    "semantic_hash": ""
+  },
+  "src/components/ui/ThemeToggle.tsx": {
+    "mtime": 1792200513.5116987,
+    "ast_hash": "dcb137567a4388ea24bc5cebb306a630",
     "semantic_hash": ""
   }
 }
