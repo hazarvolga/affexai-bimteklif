@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  getOfficialCatalogCoverageReport,
   getOfficialCsbCatalogById,
   listOfficialCsbCatalogs,
   parseCsbPdfDocument,
@@ -47,7 +48,14 @@ test('listOfficialCsbCatalogs exposes verified 2026 ÇŞB PDF catalogs with SHA-
   assert.match(insaatBf.documentHash, /^[a-f0-9]{64}$/);
   assert.equal(insaatBf.validityStart, '2026-03-01');
   assert.equal(insaatBf.validityEnd, '2026-03-31');
-  assert.ok(insaatBf.rows.length >= 200);
+  assert.equal(insaatBf.rows.length, 1861);
+  assert.equal(insaatBf.totalMatchedInPdf, 1861);
+
+  const report = getOfficialCatalogCoverageReport();
+  const insaatReportItem = report.books.find((b) => b.id === 'csb_2026_mart_insaat_bf');
+  assert.ok(insaatReportItem);
+  assert.equal(insaatReportItem.coveragePercent, 100);
+  assert.equal(insaatReportItem.isFullCoverage, true);
 
   const ybm = getOfficialCsbCatalogById('csb_2026_yapi_yaklasik_maliyet');
   assert.ok(ybm);

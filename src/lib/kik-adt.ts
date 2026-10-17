@@ -85,14 +85,18 @@ function round6(n: number): number {
   return Math.round((n + Number.EPSILON) * 1_000_000) / 1_000_000;
 }
 
-export function computeKikKFactor(c: number): number {
+export function computeKikKFactorExact(c: number): number {
   if (c < 0.6) {
-    return round6(c);
+    return c;
   }
   if (c <= 1.0) {
-    return round6((3.2 * c - c * c - 0.6) / (c + 1));
+    return (3.2 * c - c * c - 0.6) / (c + 1);
   }
-  return round6((c * c - 0.8 * c + 1.4) / (c + 1));
+  return (c * c - 0.8 * c + 1.4) / (c + 1);
+}
+
+export function computeKikKFactor(c: number): number {
+  return round6(computeKikKFactorExact(c));
 }
 
 export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
@@ -255,10 +259,11 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
 
   const cExact = correctedMeanExact / ym;
   const cRatio = round6(cExact);
-  const kFactor = computeKikKFactor(cExact);
+  const kExact = computeKikKFactorExact(cExact);
+  const kFactor = round6(kExact);
 
   // SD = (K * T_ort2) / (C * N) ; m.45.1.1.4 uyarınca alt sınır 0,40 * YM
-  const rawBoundaryTry = (kFactor * correctedMeanExact) / (cExact * nCoefficient);
+  const rawBoundaryTry = (kExact * correctedMeanExact) / (cExact * nCoefficient);
   const boundaryValueTry = round2(Math.max(0.4 * ym, rawBoundaryTry));
   const rFactor = round6(boundaryValueTry / ym);
 

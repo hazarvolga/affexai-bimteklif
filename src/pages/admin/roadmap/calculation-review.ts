@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.4",
+  version: "BIM-CALC-2026-10-17.5",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "116c7de210234821a5b2c5fa3945ff67d7001613",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, RG 33331 EK-2 sözlük doğrulamalı ISO 19650 / LOIN motoru, Kamu İhale Genel Tebliği m.45.1.1 resmi formüllü KİK sınır değer motoru ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "96f6e6330a70d1107332719119cbbd6f5b2eae27",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.1), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, ÇŞB 2026 Mart İnşaat BF 1.861/1.861 tam satır alımı ve kullanıcı kontrollü ISO 19650 CDE / LOIN kartı mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -336,6 +336,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Mart 2026 aylık ÇŞB birim fiyat ve rayiç kataloglarında validityEnd = 2026-12-31 tanımlıydı.",
         after: "Aylık Mart 2026 kataloglarının geçerlilik dönemi 2026-03-01 – 2026-03-31 olarak düzeltildi (yıllık Yapı Yaklaşık Maliyet Tebliği 2026-01-01 – 2026-12-31 korundu).",
         basis: "ÇŞB YFK Aylık Yayın Kuralı & src/server/crawler/data/csb-2026-official-catalogs.json (0.6)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 11",
+    version: "BIM-CALC-2026-10-17.5",
+    date: "17 Ekim 2026",
+    commit: "96f6e63",
+    trigger: "YOL_HARITASI_2026-10-17 Faz 1.5 / 1.6 / 1.7 & Faz 2.1: Yetenek Kaydı ve Kanıt Kapısı (BIM-CAP-2026-10-17.1), KİK Kuruş Hassasiyetli Golden Test Seti, ÇŞB 2026 Mart İnşaat BF Tam Alımı (1.861 Satır) ve İnteraktif ISO 19650 CDE / LOIN Denetim Kartı",
+    beforeSummary:
+      "Yeteneklerin L0–L4 doğrulama seviyelerini ve sabit girdi yasağını CI'da denetleyen merkezi bir Yetenek Kaydı yoktu; KİK Sınır Değer hesabında K katsayısı çarpım öncesinde 6 haneye yuvarlandığı için 100 milyon TL ölçeğinde kuruş farkı oluşabiliyordu; ayrıca 2026 Mart İnşaat Birim Fiyat kataloğunda PDF'teki 1.861 satırın yalnız 220'si gömülüydü.",
+    afterSummary:
+      "Merkezi Yetenek Kaydı (src/capabilities/registry.ts — BIM-CAP-2026-10-17.1) ve Kanıt Kapısı CI testi (registry.test.ts) kurularak llms.txt doğrudan bu kayda bağlandı (Faz 1.5). KİK motorunda (src/lib/kik-adt.ts) computeKikKFactorExact ile ara çarpım tam IEEE-754 hassasiyetine alınarak 5 senaryolu kuruş hassasiyetli Golden Test seti (src/lib/kik-adt.golden.test.ts) eklendi (Faz 1.6). 2026 Mart İnşaat Birim Fiyat PDF'indeki 1.861 pozun tamamı (1.861 / 1.861 tam kapsam) csb-2026-official-catalogs.json içine aktarıldı ve getOfficialCatalogCoverageReport() kapsam raporu eklendi (Faz 1.7). CalmIfcWorkspace 3. sekmesine sıfır varsayılanlı kullanıcı kontrollü ISO 19650 CDE & LOIN denetim kartı entegre edildi (Faz 2.1).",
+    affectedModules: ["kik-adt", "iso19650", "fiyat-eslestirme"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "computeKikKFactor ara değerde 6 ondalık basamağa yuvarlandığı için 100.000.000 TL YM ölçeğinde 33,33 TL yuvarlama farkı oluşuyordu.",
+        after: "computeKikKFactorExact ile SD = (K × Tort2) / (C × N) çarpımı tam hassasiyetle yapılıp yalnız nihai TL tutarı kuruşa (round2) yuvarlandı; 5 resmi Tebliğ senaryolu kik-adt.golden.test.ts eklendi.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1 & src/lib/kik-adt.golden.test.ts (Faz 1.6)",
+      },
+      iso19650: {
+        before: "CalmIfcWorkspace üzerinde yalnızca dosya adı şablonu rozeti gösteriliyor, kullanıcı CDE durumunu ve teslim aşamasını seçerek etkileşimli denetim yapamıyordu.",
+        after: "CalmIfcWorkspace 3. sekmesine CDE Durumu (WIP/SHARED/PUBLISHED/ARCHIVED), Uygunluk Kodu (S0..B), Revizyon Kodu (Pxx.xx/Cxx) ve Teslim Aşaması seçicileri ile gerçek LOIN tamlık yüzdesi kartı eklendi (seçilmediğinde 'CDE Değerlendirilmedi' gösterir).",
+        basis: "TS EN ISO 19650-1/2 & EN 17412-1 (CalmIfcWorkspace.tsx — Faz 2.1)",
+      },
+      "fiyat-eslestirme": {
+        before: "csb_2026_mart_insaat_bf kataloğunda PDF'teki 1.861 satırın yalnız 220 adedi yer alıyordu ve kapsam raporu fonksiyonu yoktu.",
+        after: "2026-Mart-n-aat-B-F-20260303131312.pdf içindeki 1.861 pozun tamamı (1.861 / 1.861 satır) mühürlü kataloğa aktarıldı; getOfficialCatalogCoverageReport() ve 20.000 satır PDF içe aktarma kapasitesi devreye alındı.",
+        basis: "ÇŞB YFK 2026 Mart İnşaat Birim Fiyat Listesi & src/server/crawler/csb-pdf-parser.ts (Faz 1.7)",
       },
     },
   },

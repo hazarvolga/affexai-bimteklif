@@ -40,17 +40,47 @@ const pdfImportRequestSchema = z
     validityStart: dateSchema,
     validityEnd: dateSchema,
     autoApprove: z.boolean().optional(),
-    maxRows: z.number().int().min(1).max(2000).optional(),
+    maxRows: z.number().int().min(1).max(20_000).optional(),
   })
   .refine((val) => val.validityStart <= val.validityEnd, 'Geçerlilik aralığı hatalı');
 
 const CATALOGS: Record<string, OfficialCsbCatalog> = officialCatalogsJson as Record<string, OfficialCsbCatalog>;
 
-export function listOfficialCsbCatalogs(): Array<Omit<OfficialCsbCatalog, 'rows'> & { rowCount: number }> {
-  return Object.values(CATALOGS).map(({ rows, ...meta }) => ({
-    ...meta,
-    rowCount: rows.length,
-  }));
+export interface OfficialCatalogCoverageItem extends Omit<OfficialCsbCatalog, 'rows'> {
+  rowCount: number;
+  coveragePercent: number;
+  isFullCoverage: boolean;
+}
+
+export function listOfficialCsbCatalogs(): OfficialCatalogCoverageItem[] {
+  return Object.values(CATALOGS).map(({ rows, ...meta }) => {
+    const rowCount = rows.length;
+    const total = meta.totalMatchedInPdf > 0 ? meta.totalMatchedInPdf : rowCount;
+    const coveragePercent = total > 0 ? Math.round((rowCount / total) * 10_000) / 100 : 100;
+    return {
+      ...meta,
+      rowCount,
+      coveragePercent,
+      isFullCoverage: rowCount >= total && total > 0,
+    };
+  });
+}
+
+export function getOfficialCatalogCoverageReport() {
+  const books = listOfficialCsbCatalogs();
+  const totalRowsInBooks = books.reduce((sum, b) => sum + b.rowCount, 0);
+  const totalMatchedInPdfs = books.reduce((sum, b) => sum + b.totalMatchedInPdf, 0);
+  const fullCoverageBookCount = books.filter((b) => b.isFullCoverage).length;
+  return {
+    generatedAt: '2026-10-17',
+    bookCount: books.length,
+    fullCoverageBookCount,
+    totalRowsInBooks,
+    totalMatchedInPdfs,
+    overallCoveragePercent:
+      totalMatchedInPdfs > 0 ? Math.round((totalRowsInBooks / totalMatchedInPdfs) * 10_000) / 100 : 100,
+    books,
+  };
 }
 
 export function getOfficialCsbCatalogById(catalogId: string): OfficialCsbCatalog | null {
@@ -301,10 +331,10 @@ export function parseCsbPdfDocument(input: unknown) {
   }
 
   const documentHash = createHash('sha256').update(pdfBuffer).digest('hex');
-  const maxRows = data.maxRows ?? 500;
 
   // Check if the uploaded PDF matches one of our pre-verified official 2026 catalogs by exact SHA-256 hash
   const matchedCatalog = Object.values(CATALOGS).find((c) => c.documentHash === documentHash);
+  const maxRows = data.maxRows ?? (matchedCatalog ? matchedCatalog.rows.length : 5000);
 
   let rows: ParsedPriceRow[] = [];
   if (matchedCatalog && matchedCatalog.rows.length > 0) {

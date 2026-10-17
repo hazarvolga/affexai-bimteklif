@@ -1,4 +1,10 @@
 import type { RequestHandler } from 'express';
+import {
+  CAPABILITY_REGISTRY_VERSION,
+  getLiveCapabilities,
+  getPilotCapabilities,
+  getRoadmapCapabilities,
+} from '../../capabilities/registry';
 import { ACADEMY_ENABLED } from '../../config/features';
 
 /** Firebase (Academy profile/certificates) is the only third-party runtime the SPA talks to. */
@@ -109,6 +115,16 @@ export function robotsTxt(publicAppUrl: string): string {
 
 export function llmsTxt(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
+  const liveLines = getLiveCapabilities().map(
+    (c) =>
+      `- **[${c.level} CANLI] ${c.title}**: ${c.shortClaim} (Kaynak: ${c.evidence.officialSource.documentTitle} — ${c.evidence.officialSource.articleOrTable}; Modül: \`${c.evidence.modulePath}\`; Golden Test: \`${c.evidence.goldenTestPath}\`)`,
+  );
+  const pilotLines = getPilotCapabilities().map(
+    (c) => `- **[${c.level} PİLOT] ${c.title}**: ${c.shortClaim} (Modül: \`${c.evidence.modulePath}\`)`,
+  );
+  const roadmapLines = getRoadmapCapabilities().map(
+    (c) => `- **[${c.level} YOL HARİTASI] ${c.title}**: ${c.shortClaim}`,
+  );
   return [
     '# BIMMetraj (TeklifPro) — openBIM (IFC) Metraj, RG 33331 e-PYS & 5D İhale Masası',
     '',
@@ -121,6 +137,11 @@ export function llmsTxt(publicAppUrl: string): string {
     '- **4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT) Motoru**: Teklif kalemlerinden %80 Pareto sıralı iş kalemleri analizi ve kullanıcı tarafından YM + geçerli teklifler girildiğinde Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K, N=1,00 Üstyapı / N=1,20 Diğer Yapım, SD = K × Tort2 / (C × N)) ile Sınır Değer hesabı (`src/lib/kik-adt.ts`). Tam KİK açıklama dosyası üretimi Faz 3 yol haritasındadır.',
     '- **RG 33331 e-PYS & PDF/A Ön Kontrol**: 5 Ağustos 2026 tarihli Resmi Gazete Yönetmeliği EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) / Tablo 9.2 (Diğer Disiplinler 16 satır) kurallarına göre IFC ön kontrolü; 2B PDF paftalarda PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta düzeni ve 5070 sayılı Kanun gömülü e-imza (/Sig) ön kontrolü (Ghostscript/veraPDF ile tam PDF/A-2b arşiv üretimi Faz 2 yol haritasındadır).',
     '- **ÇŞB 2026 Poz & 5D Teklif Cetveli**: SHA-256 mühürlü ÇŞB 2026 poz/rayiç kataloğu, firma fiyat hafızası, eskalasyon, kârlılık simülasyonu ve kurumsal PDF/Excel teklif çıktısı.',
+    '',
+    `## Yetenek Kaydı ve Kanıt Kapısı (${CAPABILITY_REGISTRY_VERSION})`,
+    ...liveLines,
+    ...pilotLines,
+    ...roadmapLines,
     '',
     '## Paketler (Katalog v6 — 5 Paket)',
     '- **14 Günlük Ücretsiz Deneme**: 0 ₺/ay (3 Teklif, 1 IFC / 25 MB, 3 PDF ön kontrol)',

@@ -8,6 +8,7 @@ import { authenticate, checkSuperAdmin, requireVerifiedEmail } from '../middlewa
 import { consumeRateLimit } from '../auth/security';
 import { parseLicensedPriceCsv } from '../crawler/licensed-csv';
 import {
+  getOfficialCatalogCoverageReport,
   getOfficialCsbCatalogById,
   listOfficialCsbCatalogs,
   parseCsbPdfDocument,
@@ -173,7 +174,10 @@ export function registerPricingFileImportRoutes(app: Express) {
     checkSuperAdmin(),
     requireVerifiedEmail,
     (_req, res) => {
-      return res.json({ catalogs: listOfficialCsbCatalogs() });
+      return res.json({
+        catalogs: listOfficialCsbCatalogs(),
+        coverageReport: getOfficialCatalogCoverageReport(),
+      });
     }
   );
 

@@ -29,12 +29,12 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
     assert.equal(res.firstMeanTry, 80_000_000);
     // In-band bids: [78M, 80M, 82M] -> T_ort2 = 80,000,000 -> C = 0.80
     // K = (3.2 * 0.8 - 0.64 - 0.6) / 1.8 = 1.32 / 1.8 = 0.733333
-    // SD = (K * T_ort2) / (C * 1.00) = 73,333,300 TL
+    // SD = (K * T_ort2) / (C * 1.00) = 73,333,333.33 TL
     assert.equal(res.correctedMeanTry, 80_000_000);
     assert.equal(res.cRatio, 0.8);
     assert.equal(res.kFactor, 0.733333);
     assert.equal(res.nCoefficient, 1.0);
-    assert.equal(res.boundaryValueTry, 73_333_300);
+    assert.equal(res.boundaryValueTry, 73_333_333.33);
     assert.equal(res.isAbnormallyLow, true);
   });
 
@@ -55,8 +55,8 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
     assert.equal(res.nCoefficient, 1.2);
     assert.equal(res.correctedMeanTry, 110_000_000);
     assert.equal(res.cRatio, 1.1);
-    // SD = (0.82381 * 110,000,000) / (1.1 * 1.20) = 68,650,833.33 TL
-    assert.equal(res.boundaryValueTry, 68_650_833.33);
+    // SD = ((1.73 / 2.1) * 110,000,000) / (1.1 * 1.20) = 68,650,793.65 TL
+    assert.equal(res.boundaryValueTry, 68_650_793.65);
     assert.equal(res.isAbnormallyLow, false);
   });
 

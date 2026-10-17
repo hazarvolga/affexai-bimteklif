@@ -10,8 +10,8 @@ Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-17.md`.
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `f7aa3d5` (previous build `a78e6f9edb20945eeaf1b3f30b2269fb76435774`,
-  `/api/health`, `revisionSource: "build"`, 2026-10-17, Coolify deploy `4fbe6799-5729-4350-b217-07435cc724fd`). Transactional e-mail uses Stalwart SMTP 465 at
+- Last verified live revision: `96f6e6330a70d1107332719119cbbd6f5b2eae27` (previous build `116c7de3b2a98d903c9f153e9c212c0072a91bb8`,
+  `/api/health`, `revisionSource: "build"`, 2026-10-17, Coolify deploy `03f0e413-cfa1-449e-b324-5737370f8435`). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`), plus Early-Access Waitlist on `/` and lead management at `/admin/leads`.
 - Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
   SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.
@@ -187,10 +187,15 @@ Release status (2026-10-13):
   - **`K-2` / `0.2` (`src/smartcheck/rules/ifc-rule-run.ts`, `src/smartcheck/rules/iso19650.ts`):** Removed hardcoded `"SHARED"`, `"S3"`, `"P01.01"`, `"Zemin Kat"`, `"row-N"`, and `r.rawDescription` fallbacks; returns `cdeEvaluationStatus: "not_evaluated"` when CDE metadata is absent; bound 9-part RG 33331 EK-2 filename validation directly to `workers/ifc/vendor/ifc_ruhsat/ekler/ek2_disiplinler.json` (`bakanlıktan-gelen-son-pdfler/EKLER.pdf`).
   - **`K-3` / `0.3` (`src/smartcheck/rules/minha.ts`):** Replaced unsourced `CSB_FORMWORK_4M2` with `CUSTOM_CONTRACT` requiring an explicit `customThresholdM2` parameter.
   - **`K-4` / `0.4` (`src/server/production-frontend.test.ts`), `K-5` / `0.5` (`index.html`, `src/server/security/web-hardening.ts`) & `0.6` (`csb-2026-official-catalogs.json`):** Fixed SPA route vs 404 test assertions, updated storefront/LLM metadata (`N=1,00 / N=1,20`), and set `validityStart: "2026-03-01"` / `validityEnd: "2026-03-31"` on the 4 March 2026 monthly ÇŞB lists.
+- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 1 (`1.5`, `1.6`, `1.7`) & Faz 2 (`2.1`) — Capability Registry & Evidence Gate, KİK Golden Test Suite, Full 1,861-Row ÇŞB 2026 Mart İnşaat BF Ingestion & Interactive ISO 19650 CDE/LOIN Card (`Rev. 11` · `BIM-CALC-2026-10-17.5`):**
+  - **`Faz 1.5` (`src/capabilities/registry.ts`, `src/capabilities/registry.test.ts`, `src/server/security/web-hardening.ts`):** Created Single Source of Truth Capability Registry (`BIM-CAP-2026-10-17.1`) with `L0..L4` verification levels, `live | pilot | roadmap` statuses, official regulatory sources, golden test links, and reviewer sign-offs; wired `llms.txt` directly to the registry and enforced CI gates against <L3 live claims and hardcoded inputs.
+  - **`Faz 1.6` (`src/lib/kik-adt.ts`, `src/lib/kik-adt.golden.test.ts`):** Added `computeKikKFactorExact` for unrounded intermediate $K$ multiplication (exact kuruş precision at $10^8$ TL scale) and 5 official Tebliğ m.45.1 golden test scenarios.
+  - **`Faz 1.7` (`src/server/crawler/data/csb-2026-official-catalogs.json`, `src/server/crawler/csb-pdf-parser.ts`, `src/server/routes/pricing-file-import.ts`):** Ingested 100% (`1,861 / 1,861` rows) of the official 2026 March Construction Unit Price PDF (`2026-Mart-n-aat-B-F-20260303131312.pdf`), raised `maxRows` cap to `20,000`, and added `getOfficialCatalogCoverageReport()`.
+  - **`Faz 2.1` (`src/components/smartcheck/CalmIfcWorkspace.tsx`):** Added an interactive zero-default ISO 19650-1/2 CDE (`WIP`/`SHARED`/`PUBLISHED`/`ARCHIVED`), suitability (`S0..B`), revision (`Pxx.xx`/`Cxx`), and delivery stage inspection card alongside the real EN 17412-1 LOIN completeness badge.
 
 ## Next code work
 
-- Execute `YOL_HARITASI_2026-10-17.md` Faz 1 (persistent CDE/LOIN metadata on `smartcheck_documents` + UI inputs) and Faz 2 (persistent tender session inputs + KİK explanation report export), and collect external pilot office field feedback on `/app/smartcheck`.
+- Execute remaining `YOL_HARITASI_2026-10-17.md` Faz 2 items (full row ingestion for Mekanik/Elektrik/Rayiç books + `/admin/pricing-sources` 6-tab layout, persistent CDE/tender session columns in Drizzle schema) and collect external pilot office field feedback on `/app/smartcheck`.
 
 ## Ground rules for agents
 

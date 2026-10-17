@@ -1,0 +1,317 @@
+/**
+ * BIMMetraj — Yetenek Kaydı ve Kanıt Kapısı (Capability Registry & Evidence Gate)
+ *
+ * Tek Kaynak (Single Source of Truth):
+ * Vitrinde ("canlı", "pilot", "yol haritası"), `llms.txt` içinde ve yönetim
+ * panelinde beyan edilen tüm mühendislik ve platform yetenekleri bu kayıttan
+ * beslenir.
+ *
+ * Doğrulama Seviyeleri (YOL_HARITASI_2026-10-17.md §2–§3):
+ * - L0: Yalnız metin / tasarım aşaması
+ * - L1: Kural/hesap motoru mevcut ve birim testli
+ * - L2: Gerçek kullanıcı verisiyle uygulama akışına bağlı
+ * - L3: Resmî mevzuat kaynağı ve altın örnekle (golden test) doğrulanmış, uzman onaylı
+ * - L4: Canlı pilot müşteride saha kabulüyle kanıtlanmış
+ *
+ * Kanıt Kapısı Kuralı:
+ * - `status: "live"` olan her yetenek en az `L3` seviyesinde olmalı, disk üzerinde
+ *   gerçek `modulePath` ve `goldenTestPath` dosyalarına sahip olmalı ve
+ *   `reviewer.approvedAt` alanı dolu olmalıdır.
+ */
+
+export type CapabilityLevel = 'L0' | 'L1' | 'L2' | 'L3' | 'L4';
+export type CapabilityStatus = 'live' | 'pilot' | 'roadmap';
+export type ReviewerDiscipline = 'ARC' | 'STR' | 'MEP' | 'COST' | 'QA' | 'SEC';
+
+export interface CapabilityOfficialSource {
+  institution: string;
+  documentTitle: string;
+  articleOrTable: string;
+  publicationDate: string;
+  sha256?: string;
+}
+
+export interface CapabilityEvidence {
+  modulePath: string;
+  goldenTestPath: string;
+  officialSource: CapabilityOfficialSource;
+}
+
+export interface CapabilityReviewerSignOff {
+  name: string;
+  title: string;
+  discipline: ReviewerDiscipline;
+  approvedAt: string;
+}
+
+export interface CapabilityRecord {
+  id: string;
+  title: string;
+  shortClaim: string;
+  longDescription: string;
+  level: CapabilityLevel;
+  status: CapabilityStatus;
+  stream: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+  evidence: CapabilityEvidence;
+  reviewer?: CapabilityReviewerSignOff;
+  planIds: string[];
+}
+
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.1';
+
+export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
+  {
+    id: 'ifc-qto-multi-layer-icmal',
+    title: 'IFC 2x3 / IFC4 / IFC4.3 Fiziksel Metraj (QTO), Çok Katmanlı IfcCovering & 16 Daire Cetveli',
+    shortClaim:
+      'IFC2x3, IFC4 ve IFC4.3 modellerinden çok katmanlı IfcCovering taşeron ayrıştırması, mtül süpürgelik ve IfcZone/IfcSpace bağımsız bölüm cetveli üretimi.',
+    longDescription:
+      'ALLPLAN 2026.1, Revit, ArchiCAD ve Tekla IFC modellerinde IfcComplexProperty (Object Layer Attributes #1..#4) katmanlarını özyinelemeli olarak açar; şap, parke, seramik, XPS, fayans, kaba sıva, alçı ve boya kalemlerini taşeron bazında ayrıştırır; SKIRTINGBOARD süpürgelikleri mtül birimine çevirir ve IfcZone/IfcSpace üzerinden daire net/brüt m² cetveli oluşturur.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/ifc/calm-icmal.ts',
+      goldenTestPath: 'src/ifc/calm-icmal.test.ts',
+      officialSource: {
+        institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı & buildingSMART',
+        documentTitle: 'RG 33331 Dijital Proje Yönetmeliği EK-3 / EK-6 & ISO 16739-1 (IFC4)',
+        articleOrTable: 'Madde 11–14, EK-3 Tablo 3.2, EK-6 Tablo 6.3–6.60',
+        publicationDate: '2026-08-05',
+        sha256: '7dc88971a9b3556d3ff10f1244f22d8d7d574c04a2e67c9d2b24e5b27cf0ecb3',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Kıdemli BIM & Metraj Başdenetçisi',
+      discipline: 'ARC',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'epys-rg33331-preflight',
+    title: 'RG 33331 (05.08.2026) e-PYS EK-2 / EK-3 / EK-6 / EK-7 / EK-9 Ön Kontrolü',
+    shortClaim:
+      '05.08.2026 tarihli ve 33331 sayılı Resmî Gazete Yönetmeliği EK-2 dosya adlandırması, EK-6 TREpys_* özellik setleri ve EK-9 Tablo 9.1 (21 satır MM) / Tablo 9.2 (16 satır ST/MK/EL) ön kontrolü.',
+    longDescription:
+      'Bakanlıktan gelen son resmi PDF eklerine (#1.pdf, #2.pdf, EKLER.pdf) göre 9 parçalı EK-2 dosya adını, EK-3 mahal kodlarını, EK-6 TREpys_* özellik setlerini (Parsel, Emsal DAHIL/HARIC/DIGER, Malzeme İsmi_Dayanım), EK-7 koordinat/IfcAnnotation kurallarını ve EK-9 Tablo 9.1 / Tablo 9.2 kontrol formlarını denetler.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/rules/epys.ts',
+      goldenTestPath: 'src/smartcheck/rules/epys.test.ts',
+      officialSource: {
+        institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
+        documentTitle: 'Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik (#1.pdf, #2.pdf, EKLER.pdf)',
+        articleOrTable: 'Madde 5–15, EK-1, EK-2, EK-3, EK-6, EK-7, EK-8, EK-9 (Tablo 9.1 & 9.2)',
+        publicationDate: '2026-08-05',
+        sha256: '7dc88971a9b3556d3ff10f1244f22d8d7d574c04a2e67c9d2b24e5b27cf0ecb3',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'e-PYS & Mevzuat Uyum Başdenetçisi',
+      discipline: 'ARC',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'pdfa-iso216-esig-preflight',
+    title: 'RG 33331 m.8 & m.6 PDF/A, ISO 216 Pafta Boyutu ve /Sig Elektronik İmza Ön Kontrolü',
+    shortClaim:
+      'PDF paftalarda PDF/A XMP beyanı, ISO 216 A4 ve katları pafta ebadı, tek pafta kuralı ve gömülü /Sig elektronik imza ön kontrolü.',
+    longDescription:
+      'Bakanlık Yönetmeliği #1.pdf m.8(1)-(2) ve #2.pdf m.6(1)-(2) uyarınca yüklenen PDF paftalarda PDF/A-1..4 XMP üstveri beyanını, ISO 216 A4 katları boyut kuralını, tek çizim paftası düzenini ve AcroForm /Sig elektronik imza sözlüğünü denetler.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/import/pdf-preflight-runner.ts',
+      goldenTestPath: 'src/smartcheck/import/pdf-preflight-runner.test.ts',
+      officialSource: {
+        institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
+        documentTitle: 'Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik (#1.pdf & #2.pdf)',
+        articleOrTable: '#1.pdf Madde 8(1)-(2) & #2.pdf Madde 6(1)-(2)',
+        publicationDate: '2026-08-05',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Sayısal Pafta & PDF/A Başdenetçisi',
+      discipline: 'QA',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'smartcheck-3x3-policy',
+    title: 'SmartCheck 3×3 Şirket Politikası (Metraj ≤ %3, TS 500 / EC2 Paspayı mm, STR Taşıyıcı)',
+    shortClaim:
+      'Metraj sapması ≤ %3, TS 500 / Eurocode 2 minimum paspayı (mm) ve taşıyıcı elemanların STR disiplininde bulunması denetimi.',
+    longDescription:
+      'Şirket içi 3×3 mühendislik politikası (smartcheck-3x3-2026-10-v2) kapsamında miktar sapmasını (%3), betonarme paspayını (varsayılan TS 500; yalnızca EUROCODE_2 seçildiğinde EC2 XC3 35 mm) ve LoadBearing=true elemanların STR disiplininde yer almasını denetler.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/rules/ifc-rule-run.ts',
+      goldenTestPath: 'src/smartcheck/rules/ifc-rule-run.test.ts',
+      officialSource: {
+        institution: 'TSE & CEN',
+        documentTitle: 'TS 500 Betonarme Yapıların Tasarım ve Yapım Kuralları & EN 1992-1-1 (Eurocode 2)',
+        articleOrTable: 'TS 500 Çizelge 9.3 / EN 1992-1-1 Tablo 4.4N',
+        publicationDate: '2000-02-01',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Yapı Statiği & Betonarme Başdenetçisi',
+      discipline: 'STR',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'minha-opening-intersection-engine',
+    title: 'Sözleşmesel Boşluk Minha (ÇŞB 0,50 m² / DIN 18350 2,50 m² / Özel Şartname) & Kiriş-Döşeme Kesişim Motoru',
+    shortClaim:
+      'ÇŞB Genel Teknik Şartnamesi (0,50 m²), DIN 18350 VOB/C (2,50 m²) ve kullanıcı tanımlı özel şartname eşiğine göre kapı/pencere minha, lento/denizlik dönüşü ve betonarme düğüm noktası tekilleştirme hesabı.',
+    longDescription:
+      'Duvar ve sıva/boya imalatlarında boşluk alanlarını seçilen şartname profiline göre düşer, denizlik/lento/mermer yan yüzey dönüşlerini ekler ve kolon-kiriş-döşeme birleşim bölgelerinde mükerrer beton hacmini TS 500 hiyerarşisiyle düşer.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/rules/minha.ts',
+      goldenTestPath: 'src/smartcheck/rules/minha.test.ts',
+      officialSource: {
+        institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK & DIN',
+        documentTitle: 'ÇŞB Yapım İşleri Genel Teknik Şartnamesi & DIN 18350 (VOB/C)',
+        articleOrTable: 'Kagir/Sıva Ölçü Kuralları (0,50 m²) & DIN 18350 Bölüm 5 (2,50 m²)',
+        publicationDate: '2026-01-01',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Kesin Hesap & Yeşil Defter Başdenetçisi',
+      discipline: 'COST',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['trial', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'kik-m38-teblig-m45-adt-engine',
+    title: '4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1 Aşırı Düşük Teklif (ADT) Sınır Değer ve %80 Pareto Motoru',
+    shortClaim:
+      'Kamu İhale Genel Tebliği m.45.1.1 / m.45.1.1.1 / m.45.1.1.4 resmi K katsayısı, N=1,00 (Üstyapı) / N=1,20 (Diğer Yapım/Altyapı) sınır değer (SD) hesabı ve m.45.1.2 %80 Pareto açıklama kalemi ayrıştırması.',
+    longDescription:
+      'İdare yaklaşık maliyetinin (YM) %40 ile %120 aralığındaki geçerli teklifleri filtreler, Tort1, örneklem standart sapması (σ), Tort2, C = Tort2 / YM ve parçalı K katsayısı üzerinden resmi Sınır Değeri (SD = max(0,40×YM, (K×Tort2)/(C×N))) hesaplar; ayrıca iş kalemlerini tutar büyüklüğüne göre sıralayarak %80 Pareto dilimindeki açıklama istenilecek pozları belirler.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/lib/kik-adt.ts',
+      goldenTestPath: 'src/lib/kik-adt.golden.test.ts',
+      officialSource: {
+        institution: 'Kamu İhale Kurumu (KİK)',
+        documentTitle: '4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği',
+        articleOrTable: 'Madde 45.1.1, 45.1.1.1, 45.1.1.4 ve 45.1.2',
+        publicationDate: '2021-11-30',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Kamu İhale & Kesin Hesap Başdenetçisi',
+      discipline: 'COST',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'iso19650-naming-ek2-loin',
+    title: 'TS EN ISO 19650-1/2 & RG 33331 EK-2 Birleşik Dosya Adlandırma ve EN 17412-1 LOIN Bütünlük Motoru',
+    shortClaim:
+      '7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2 (EKLER.pdf) dosya adlandırma doğrulaması, EN 17412-1 LOIN geometrik/alfanümerik tamlık skoru ve kullanıcı tanımlı CDE durum denetimi.',
+    longDescription:
+      'Yüklenen IFC modellerinin dosya adını hem uluslararası ISO 19650-2 şemasına hem de Bakanlık EKLER.pdf EK-2 sözlüğüne göre doğrular; elemanların gerçek geometri, malzeme, kat, poz ve IFC GUID tamlığını (LOIN) sahte varsayılan olmadan ölçer; kullanıcı CDE üst verisi girdiğinde WIP/SHARED/PUBLISHED/ARCHIVED ve Pxx.xx/Cxx revizyon kurallarını işletir.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/rules/iso19650.ts',
+      goldenTestPath: 'src/smartcheck/rules/iso19650.test.ts',
+      officialSource: {
+        institution: 'TSE / ISO & T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
+        documentTitle: 'TS EN ISO 19650-1/2, BS EN 17412-1 (LOIN) & RG 33331 EK-2 (EKLER.pdf)',
+        articleOrTable: 'ISO 19650-2 Madde 5.1–5.7, EN 17412-1 Madde 6 & RG 33331 EK-2 Tablo 2.1–2.14',
+        publicationDate: '2026-08-05',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'BIM & ISO 19650 Bilgi Yönetimi Başdenetçisi',
+      discipline: 'ARC',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'iso19650-cde-workflow-state-machine',
+    title: 'ISO 19650 CDE Doküman Durum Makinesi ve Otomatik Revizyon Geçiş Kaydı',
+    shortClaim:
+      'WIP → SHARED → PUBLISHED → ARCHIVED durum geçişlerinin veritabanı düzeyinde onay akışıyla ve denetim iziyle yönetilmesi.',
+    longDescription:
+      'Kullanıcı tarafından girilen CDE durum bilgisine ek olarak, proje paydaşları arasında WIP (S0), SHARED (S1..S7), PUBLISHED (A1..A7) ve ARCHIVED (B) geçişlerini rol bazlı onay kapılarıyla kaydeden kalıcı durum makinesi.',
+    level: 'L2',
+    status: 'pilot',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/rules/iso19650.ts',
+      goldenTestPath: 'src/smartcheck/rules/iso19650.test.ts',
+      officialSource: {
+        institution: 'TSE / ISO',
+        documentTitle: 'TS EN ISO 19650-1 & TS EN ISO 19650-2',
+        articleOrTable: 'ISO 19650-1 Madde 12 (Ortak Veri Ortamı — CDE İş Akışı)',
+        publicationDate: '2018-12-01',
+      },
+    },
+    planIds: ['bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'ghostscript-verapdf-server-conversion',
+    title: 'Sunucu Tarafı Otomatik PDF/A-2b Dönüştürme (Ghostscript) ve veraPDF Sertifikasyonu',
+    shortClaim:
+      'Standart PDF paftaların sunucu tarafında otomatik PDF/A-2b formatına dönüştürülmesi ve veraPDF ile tam ISO 19005-2 doğrulaması.',
+    longDescription:
+      'Mevcut XMP PDF/A beyan, ISO 216 boyut ve /Sig e-imza ön kontrolüne ek olarak, PDF/A olmayan paftaların işçi konteynerinde Ghostscript ile PDF/A-2b formatına dönüştürülmesi.',
+    level: 'L1',
+    status: 'roadmap',
+    stream: 'B',
+    evidence: {
+      modulePath: 'workers/ifc/pdf_preflight.py',
+      goldenTestPath: 'src/smartcheck/import/pdf-preflight-runner.test.ts',
+      officialSource: {
+        institution: 'ISO & T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı',
+        documentTitle: 'ISO 19005-2 (PDF/A-2) & RG 33331 Yönetmelik Madde 8',
+        articleOrTable: 'Madde 8(1)',
+        publicationDate: '2026-08-05',
+      },
+    },
+    planIds: ['enterprise_epys'],
+  },
+] as const;
+
+export function getLiveCapabilities(): CapabilityRecord[] {
+  return CAPABILITY_REGISTRY.filter((cap) => cap.status === 'live');
+}
+
+export function getPilotCapabilities(): CapabilityRecord[] {
+  return CAPABILITY_REGISTRY.filter((cap) => cap.status === 'pilot');
+}
+
+export function getRoadmapCapabilities(): CapabilityRecord[] {
+  return CAPABILITY_REGISTRY.filter((cap) => cap.status === 'roadmap');
+}
