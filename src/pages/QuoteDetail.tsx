@@ -401,25 +401,25 @@ export function QuoteDetail() {
 
           {/* Financial Intelligence Panel */}
           <SectionWrapper title="Kalibrasyon Gözlemi" description="Proje kapandıktan sonra gerçekleşen maliyet ve süreyi kaydedin. Bu alan sonraki katsayı incelemeleri için kullanılır.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6 space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gerçekleşen toplam maliyet</label><input type="number" min="0" value={calibrationForm.actualCost} onChange={(e) => setCalibrationForm({...calibrationForm, actualCost: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 font-mono text-sm text-white" placeholder={`Para birimi: ${data.currency}`} /></div>
-                  <div><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gerçekleşen süre (ay)</label><input type="number" min="1" step="1" value={calibrationForm.actualDurationMonths} onChange={(e) => setCalibrationForm({...calibrationForm, actualDurationMonths: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 font-mono text-sm text-white" placeholder="Örn. 18" /></div>
+                  <div><label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gerçekleşen toplam maliyet</label><input type="number" min="0" value={calibrationForm.actualCost} onChange={(e) => setCalibrationForm({...calibrationForm, actualCost: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-border bg-background px-3 font-mono text-sm text-foreground focus:border-primary" placeholder={`Para birimi: ${data.currency}`} /></div>
+                  <div><label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gerçekleşen süre (ay)</label><input type="number" min="1" step="1" value={calibrationForm.actualDurationMonths} onChange={(e) => setCalibrationForm({...calibrationForm, actualDurationMonths: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-border bg-background px-3 font-mono text-sm text-foreground focus:border-primary" placeholder="Örn. 18" /></div>
                 </div>
-                <textarea value={calibrationForm.note} onChange={(e) => setCalibrationForm({...calibrationForm, note: e.target.value})} rows={2} maxLength={2000} className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white" placeholder="Katsayı incelemesine yardımcı olacak kısa not..." />
-                <Button onClick={saveCalibrationObservation} disabled={calibrationSaving} className="bg-orange-700 hover:bg-orange-800 text-white text-[10px] font-black uppercase tracking-widest">{calibrationSaving ? 'Kaydediliyor...' : 'Gözlemi Kaydet'}</Button>
+                <textarea value={calibrationForm.note} onChange={(e) => setCalibrationForm({...calibrationForm, note: e.target.value})} rows={2} maxLength={2000} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary" placeholder="Katsayı incelemesine yardımcı olacak kısa not..." />
+                <Button onClick={saveCalibrationObservation} disabled={calibrationSaving} className="bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-widest">{calibrationSaving ? 'Kaydediliyor...' : 'Gözlemi Kaydet'}</Button>
               </CardContent>
             </Card>
           </SectionWrapper>
 
           <SectionWrapper title="Finansal Zeka Paneli" description="AI tarafından oluşturulan kârlılık ve risk analiz raporu.">
-            <Card className="bg-zinc-900/30 border-orange-500/20 shadow-xl shadow-orange-950/20 overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-              <CardHeader className="border-b border-zinc-800/10 pb-4">
+            <Card className="bg-card border-border shadow-md overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+              <CardHeader className="border-b border-border pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-gray-100 flex items-center gap-2">
-                    <TrendingUp className="text-orange-500" size={20} />
+                  <CardTitle className="text-foreground flex items-center gap-2">
+                    <TrendingUp className="text-primary" size={20} />
                     Kârlılık ve Risk Analizi
                   </CardTitle>
                   <Button 
@@ -427,7 +427,7 @@ export function QuoteDetail() {
                     disabled={finLoading}
                     variant="ghost" 
                     size="sm" 
-                    className="text-[10px] font-bold text-zinc-500 hover:text-white h-7 gap-1"
+                    className="text-[10px] font-bold text-muted-foreground hover:text-foreground h-7 gap-1"
                   >
                     <RefreshCw size={12} className={cn(finLoading && "animate-spin")} /> YENİLE
                   </Button>
@@ -436,93 +436,93 @@ export function QuoteDetail() {
               <CardContent className="p-0">
               {finLoading && !financials ? (
                 <div className="p-12 flex flex-col items-center justify-center gap-3">
-                  <Loader2 className="animate-spin text-orange-500" size={32} />
-                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Finans verileri işleniyor...</span>
+                  <Loader2 className="animate-spin text-primary" size={32} />
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Finans verileri işleniyor...</span>
                 </div>
               ) : financials?.financials ? (
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-border">
                   {((financials.financials.costStatus || financials.financials.costDataStatus) !== 'complete') && (
-                    <div className="m-5 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-200">
-                      <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-500" />
+                    <div className="m-5 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-200">
+                      <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
                       <div>
-                        <p className="text-xs font-black uppercase tracking-widest">Maliyet verisi eksik</p>
-                        <p className="mt-1 text-xs text-amber-200/70">Maliyet birim fiyatları tamamlanmadan kâr ve marj gösterilmez. Aşağıdaki rakamlar karar vermek için güvenilir değildir.</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-amber-950 dark:text-amber-300">Maliyet verisi eksik</p>
+                        <p className="mt-1 text-xs text-amber-900 dark:text-amber-200/80">Maliyet birim fiyatları tamamlanmadan kâr ve marj gösterilmez. Aşağıdaki rakamlar karar vermek için güvenilir değildir.</p>
                       </div>
                     </div>
                   )}
                   {/* Summary row */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-zinc-800">
+                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
                     <div className="p-5">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Toplam Maliyet</p>
-                      <p className="text-xl font-black text-white">{Number(financials.financials.totalCost).toLocaleString()} <span className="text-xs text-zinc-600 font-medium">{data.currency}</span></p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Toplam Maliyet</p>
+                      <p className="text-xl font-black text-foreground">{Number(financials.financials.totalCost).toLocaleString()} <span className="text-xs text-muted-foreground font-medium">{data.currency}</span></p>
                     </div>
                     <div className="p-5">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Brüt Kâr</p>
-                      <p className="text-xl font-black text-emerald-500">{(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' ? Number(financials.financials.profit).toLocaleString() : '—'} <span className="text-xs text-emerald-900 font-medium">{data.currency}</span></p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Brüt Kâr</p>
+                      <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' ? Number(financials.financials.profit).toLocaleString() : '—'} <span className="text-xs text-muted-foreground font-medium">{data.currency}</span></p>
                     </div>
                     <div className="p-5">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Kâr Marjı</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Kâr Marjı</p>
                       <div className="flex items-end gap-2">
-                        <p className="text-xl font-black text-white">{(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' ? `%${financials.financials.margin}` : '—'}</p>
+                        <p className="text-xl font-black text-foreground">{(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' ? `%${financials.financials.margin}` : '—'}</p>
                         {(financials.financials.costStatus || financials.financials.costDataStatus) === 'complete' && <ProfitabilityBadge margin={Number(financials.financials.margin)} />}
                       </div>
                     </div>
                     <div className="p-5">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Risk Skoru</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Risk Skoru</p>
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between">
                           <span className={cn(
                             "text-xs font-black uppercase tracking-tighter",
-                            financials.financials.riskLevel === 'HIGH' ? 'text-red-500' :
-                            financials.financials.riskLevel === 'MEDIUM' ? 'text-amber-500' :
-                            financials.financials.riskLevel === 'UNKNOWN' ? 'text-amber-500' : 'text-emerald-500'
+                            financials.financials.riskLevel === 'HIGH' ? 'text-destructive' :
+                            financials.financials.riskLevel === 'MEDIUM' ? 'text-amber-600 dark:text-amber-400' :
+                            financials.financials.riskLevel === 'UNKNOWN' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
                           )}>
                             {financials.financials.riskLevel === 'UNKNOWN' ? 'VERİ BEKLENİYOR' : financials.financials.riskLevel}
                           </span>
-                          <span className="text-[10px] text-zinc-500 font-mono">{financials.financials.riskScore}/100</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">{financials.financials.riskScore}/100</span>
                         </div>
-                        <Progress value={financials.financials.riskScore} className="h-1 bg-zinc-800" />
+                        <Progress value={financials.financials.riskScore} className="h-1 bg-muted" />
                       </div>
                     </div>
                   </div>
 
                   {/* Insights & Logic (Contextual Piyasa Verisi ve Mevzuat) */}
                   <div className="grid grid-cols-1 lg:grid-cols-2">
-                    <div className="p-5 border-b lg:border-b-0 lg:border-r border-zinc-800 bg-orange-500/5">
-                      <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <div className="p-5 border-b lg:border-b-0 lg:border-r border-border bg-primary/5">
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-1.5">
                         <Zap size={10} /> Piyasa Verisi & Mevzuat Asistanı
                       </p>
-                      <p className="text-xs text-orange-300/80 leading-relaxed italic mb-3">
+                      <p className="text-xs text-muted-foreground leading-relaxed italic mb-3">
                         "{financials.financials.insights || "Güncel inşaat maliyet endeksleri ve ÇŞB rayiç bedelleri baz alınarak analiz ediliyor..."}"
                       </p>
                       <div className="space-y-2">
-                        <div className="bg-zinc-950 border border-orange-500/20 p-2.5 rounded-lg text-xs text-zinc-300">
-                          <strong className="text-white block mb-1">Piyasa Ortalama Marjı: %18</strong>
+                        <div className="bg-card border border-border p-2.5 rounded-lg text-xs text-foreground">
+                          <strong className="text-foreground block mb-1">Piyasa Ortalama Marjı: %18</strong>
                           Seçtiğiniz lokasyon için rekabetçi kâr marjı aralığı %15-20 bandındadır. Sizin marjınız piyasa normlarına uygundur.
                         </div>
-                        <div className="bg-zinc-950 border border-blue-500/20 p-2.5 rounded-lg text-xs text-zinc-300">
-                          <strong className="text-blue-400 block mb-1">Mevzuat Uygunluğu</strong>
+                        <div className="bg-card border border-border p-2.5 rounded-lg text-xs text-foreground">
+                          <strong className="text-sky-600 dark:text-sky-400 block mb-1">Mevzuat Uygunluğu</strong>
                           ÇŞB Madde 4.2 gereği kalıp iskelesi %5 fire payı maliyetlere otomatik olarak yansıtılmıştır.
                         </div>
                       </div>
                     </div>
-                    <div className="p-5 bg-zinc-950/30">
-                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-orange-500">Zaman Risk Primi</p>
-                       <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.escalationPremium || 0).toLocaleString('tr-TR')} {data.currency} · {data.projectDurationMonths || 1} ay · aylık %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} bileşik, malzeme + işçilik</p>
-                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-emerald-500">Karbon/Tedarik Risk Primi</p>
-                       <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.carbonRiskPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} senaryo katsayısı</p>
-                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-blue-400">Bilgi Teslim Maliyeti</p>
-                       <p className="mb-4 text-xs text-zinc-400">{Number(financials.financials.informationDeliveryCostPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.informationDeliveryCostPercent || 0).toLocaleString('tr-TR')} kapsam katsayısı</p>
-                       <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Maliyet Bazlı Fiyat Aralıkları</p>
+                    <div className="p-5 bg-muted/20">
+                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-primary">Zaman Risk Primi</p>
+                       <p className="mb-4 text-xs text-muted-foreground">{Number(financials.financials.escalationPremium || 0).toLocaleString('tr-TR')} {data.currency} · {data.projectDurationMonths || 1} ay · aylık %{Number(data.escalationVolatilityPercent || 0).toLocaleString('tr-TR')} bileşik, malzeme + işçilik</p>
+                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Karbon/Tedarik Risk Primi</p>
+                       <p className="mb-4 text-xs text-muted-foreground">{Number(financials.financials.carbonRiskPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.carbonRiskPremiumPercent || 0).toLocaleString('tr-TR')} senaryo katsayısı</p>
+                       <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400">Bilgi Teslim Maliyeti</p>
+                       <p className="mb-4 text-xs text-muted-foreground">{Number(financials.financials.informationDeliveryCostPremium || 0).toLocaleString('tr-TR')} {data.currency} · %{Number(data.informationDeliveryCostPercent || 0).toLocaleString('tr-TR')} kapsam katsayısı</p>
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Maliyet Bazlı Fiyat Aralıkları</p>
                        <div className="space-y-2.5">
-                          {(financials.financials.costStatus || financials.financials.costDataStatus) !== 'complete' ? <p className="text-xs text-zinc-600">Maliyet verisi tamamlandığında gösterilecek.</p> : null}
+                          {(financials.financials.costStatus || financials.financials.costDataStatus) !== 'complete' ? <p className="text-xs text-muted-foreground">Maliyet verisi tamamlandığında gösterilecek.</p> : null}
                           {[
-                            { label: 'Minimum Güvenli', val: (financials.financials.totalCost * 1.1).toFixed(0), color: 'text-zinc-400' },
-                            { label: 'Rekabetçi Piyasa', val: (financials.financials.totalCost * 1.2).toFixed(0), color: 'text-blue-400' },
-                            { label: 'Optimum Kârlılık', val: (financials.financials.totalCost * 1.3).toFixed(0), color: 'text-emerald-400' }
+                            { label: 'Minimum Güvenli', val: (financials.financials.totalCost * 1.1).toFixed(0), color: 'text-muted-foreground' },
+                            { label: 'Rekabetçi Piyasa', val: (financials.financials.totalCost * 1.2).toFixed(0), color: 'text-sky-600 dark:text-sky-400' },
+                            { label: 'Optimum Kârlılık', val: (financials.financials.totalCost * 1.3).toFixed(0), color: 'text-emerald-600 dark:text-emerald-400' }
                           ].filter(() => (financials.financials.costStatus || financials.financials.costDataStatus) === 'complete').map((range, i) => (
                             <div key={i} className="flex items-center justify-between text-[11px]">
-                               <span className="text-zinc-500">{range.label}</span>
+                               <span className="text-muted-foreground">{range.label}</span>
                                <span className={cn("font-bold", range.color)}>{Number(range.val).toLocaleString()} {data.currency}</span>
                             </div>
                           ))}
@@ -531,9 +531,9 @@ export function QuoteDetail() {
                   </div>
                 </div>
               ) : (
-                <div className="p-8 text-center text-zinc-500">
+                <div className="p-8 text-center text-muted-foreground">
                    <p className="text-xs">Bu teklif için henüz finansal analiz oluşturulmamış.</p>
-                   <Button variant="link" className="text-orange-500 text-xs" onClick={recalculateFinancials}>Analizi Başlat</Button>
+                   <Button variant="link" className="text-primary text-xs" onClick={recalculateFinancials}>Analizi Başlat</Button>
                 </div>
               )}
             </CardContent>
@@ -542,57 +542,57 @@ export function QuoteDetail() {
           </SectionWrapper>
 
           <SectionWrapper title="Fiyat kanıtı" description="Teklifte kullanılan fiyatların kaynağını, geçerlilik tarihini ve kilit durumunu gösterir.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-5">
                 {pricingLoading && !pricingSnapshot ? (
-                  <div className="flex items-center gap-2 text-xs text-zinc-500"><Loader2 size={14} className="animate-spin text-orange-500" /> Fiyat kanıtı yükleniyor...</div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 size={14} className="animate-spin text-primary" /> Fiyat kanıtı yükleniyor...</div>
                 ) : pricingSnapshot ? (
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <ShieldCheck size={17} className={pricingSnapshot.quote?.pricingSnapshotLockStatus === 'locked' ? 'text-emerald-500' : 'text-amber-500'} />
-                        <span className="text-xs font-black uppercase tracking-widest text-zinc-300">{pricingSnapshot.quote?.pricingSnapshotLockStatus === 'locked' ? 'Fiyat kanıtı kilitli' : 'Fiyat kanıtı kilitli değil'}</span>
-                        {pricingSnapshot.quote?.pricingSnapshotLockHash && <span className="font-mono text-[10px] text-zinc-600">#{String(pricingSnapshot.quote.pricingSnapshotLockHash).slice(0, 12)}</span>}
+                        <span className="text-xs font-black uppercase tracking-widest text-foreground">{pricingSnapshot.quote?.pricingSnapshotLockStatus === 'locked' ? 'Fiyat kanıtı kilitli' : 'Fiyat kanıtı kilitli değil'}</span>
+                        {pricingSnapshot.quote?.pricingSnapshotLockHash && <span className="font-mono text-[10px] text-muted-foreground">#{String(pricingSnapshot.quote.pricingSnapshotLockHash).slice(0, 12)}</span>}
                       </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={fetchPricingSnapshot} disabled={pricingLoading} className="h-7 gap-1 text-[10px] font-bold text-zinc-500 hover:text-white"><RefreshCw size={12} className={cn(pricingLoading && 'animate-spin')} /> YENİLE</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={fetchPricingSnapshot} disabled={pricingLoading} className="h-7 gap-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"><RefreshCw size={12} className={cn(pricingLoading && 'animate-spin')} /> YENİLE</Button>
                     </div>
                     {pricingSnapshot.warnings?.length > 0 && (
-                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"><AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-500" /><span>{pricingSnapshot.warnings.length} kalemde fiyat snapshot eksik veya süresi geçmiş. Göndermeden önce kaynak kanıtını tamamlayın.</span></div>
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-200"><AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" /><span>{pricingSnapshot.warnings.length} kalemde fiyat snapshot eksik veya süresi geçmiş. Göndermeden önce kaynak kanıtını tamamlayın.</span></div>
                     )}
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                       {(pricingSnapshot.items || []).map((entry: any) => (
-                        <div key={entry.item.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-3">
+                        <div key={entry.item.id} className="rounded-lg border border-border bg-card p-3">
                           <div className="flex items-start justify-between gap-3">
-                            <div><p className="text-xs font-semibold text-zinc-200">{entry.item.description}</p><p className="mt-1 text-[10px] text-zinc-500">{entry.item.quantity} {entry.item.unit}</p></div>
-                            <Badge className={cn('text-[9px] font-black', entry.missing || entry.stale ? 'border-amber-500/20 bg-amber-500/10 text-amber-300' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300')}>{entry.missing ? 'EKSİK' : entry.stale ? 'ESKİ' : 'KANITLI'}</Badge>
+                            <div><p className="text-xs font-semibold text-foreground">{entry.item.description}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.item.quantity} {entry.item.unit}</p></div>
+                            <Badge className={cn('text-[9px] font-black', entry.missing || entry.stale ? 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300')}>{entry.missing ? 'EKSİK' : entry.stale ? 'ESKİ' : 'KANITLI'}</Badge>
                           </div>
-                          {entry.snapshot && <p className="mt-2 font-mono text-[10px] text-zinc-500">{Number(entry.snapshot.amount).toLocaleString('tr-TR')} {entry.snapshot.currency} · geçerlilik: {entry.snapshot.validUntil ? new Date(entry.snapshot.validUntil).toLocaleDateString('tr-TR') : 'süresiz'}</p>}
+                          {entry.snapshot && <p className="mt-2 font-mono text-[10px] text-muted-foreground">{Number(entry.snapshot.amount).toLocaleString('tr-TR')} {entry.snapshot.currency} · geçerlilik: {entry.snapshot.validUntil ? new Date(entry.snapshot.validUntil).toLocaleDateString('tr-TR') : 'süresiz'}</p>}
                         </div>
                       ))}
                     </div>
                   </div>
-                ) : <p className="text-xs text-zinc-500">Bu teklif için fiyat kanıtı bulunamadı.</p>}
+                ) : <p className="text-xs text-muted-foreground">Bu teklif için fiyat kanıtı bulunamadı.</p>}
               </CardContent>
             </Card>
           </SectionWrapper>
 
           <SectionWrapper title="Teklif Kalemleri" description="Detaylı ürün ve hizmet dökümü.">
             {audit?.status === 'needs_review' && (
-              <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-200">
-                <p className="font-black uppercase tracking-widest">SmartCheck: inceleme gerekli</p>
-                <p className="mt-1 text-amber-200/70">Bu kontrol kaynak izlenebilirliğini gösterir; mühendislik veya mevzuat uygunluğu kararı değildir. {audit.issues.length} uyarı bulundu.</p>
+              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-950 dark:text-amber-200">
+                <p className="font-black uppercase tracking-widest text-amber-950 dark:text-amber-300">SmartCheck: inceleme gerekli</p>
+                <p className="mt-1 text-amber-900 dark:text-amber-200/80">Bu kontrol kaynak izlenebilirliğini gösterir; mühendislik veya mevzuat uygunluğu kararı değildir. {audit.issues.length} uyarı bulundu.</p>
                 {ACADEMY_ENABLED && <div className="mt-3 flex flex-wrap gap-2">
                   {Array.from(new Map((audit.issues as any[]).map(issue => [issue.academyGuidance?.lessonSlug, issue.academyGuidance])).values())
                     .filter((guidance: any) => guidance?.lessonSlug)
                     .map((guidance: any) => (
-                      <Link key={guidance.lessonSlug} to={`/app/academy/allplan/lesson/${guidance.lessonSlug}?returnTo=${encodeURIComponent(`/app/quotes/${id}`)}`} className="inline-flex items-center gap-1 rounded-lg border border-amber-400/20 bg-zinc-950/40 px-3 py-2 font-black uppercase tracking-wider text-amber-100 transition-colors hover:border-orange-400/50 hover:text-white">
+                      <Link key={guidance.lessonSlug} to={`/app/academy/allplan/lesson/${guidance.lessonSlug}?returnTo=${encodeURIComponent(`/app/quotes/${id}`)}`} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-muted/40 px-3 py-2 font-black uppercase tracking-wider text-amber-950 dark:text-amber-100 transition-colors hover:border-primary/50 hover:text-foreground">
                         <BookOpen size={12} /> {guidance.label} <ChevronRight size={12} />
                       </Link>
                     ))}
                 </div>}
               </div>
             )}
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
+            <Card className="bg-card border border-border shadow-none">
               <CardContent className="p-0">
                 <Table>
                   <TableHeader className="bg-muted/40">
@@ -613,7 +613,7 @@ export function QuoteDetail() {
                         <TableCell className="text-center text-muted-foreground text-xs font-mono py-3">{item.unit}</TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground text-xs py-3 tabular-nums">{item.quantity}</TableCell>
                         <TableCell className="text-right font-mono text-foreground font-semibold text-xs py-3 tabular-nums">{Number(item.unitPrice).toLocaleString('tr-TR')} {data.currency}</TableCell>
-                        <TableCell className="text-right font-mono text-amber-300 font-semibold text-xs py-3 tabular-nums">{item.costUnitPrice == null ? '—' : `${Number(item.costUnitPrice).toLocaleString('tr-TR')} ${data.currency}`}</TableCell>
+                        <TableCell className="text-right font-mono text-amber-700 dark:text-amber-300 font-semibold text-xs py-3 tabular-nums">{item.costUnitPrice == null ? '—' : `${Number(item.costUnitPrice).toLocaleString('tr-TR')} ${data.currency}`}</TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground text-xs py-3 tabular-nums">%{Number(item.wastePercent || 0).toLocaleString('tr-TR')}</TableCell>
                         <TableCell className="text-right font-mono text-foreground font-bold text-xs pr-6 py-3 tabular-nums">{Number(item.total).toLocaleString('tr-TR')} {data.currency}</TableCell>
                       </TableRow>
@@ -652,39 +652,39 @@ export function QuoteDetail() {
 
         {/* Sidebar Revisions */}
         <div className="space-y-6">
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-xl overflow-hidden border-l-4 border-l-orange-600">
-            <CardHeader className="bg-zinc-900/10 border-b border-zinc-800/10 pb-3">
-              <CardTitle className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase flex items-center gap-2">
-                <History size={14} className="text-orange-500" />
+          <Card className="bg-card border-border shadow-md overflow-hidden border-l-4 border-l-primary">
+            <CardHeader className="bg-muted/20 border-b border-border pb-3">
+              <CardTitle className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center gap-2">
+                <History size={14} className="text-primary" />
                 Revizyon Geçmişi
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-border">
                 {data.revisions.map((rev: any) => (
                   <Link 
                     key={rev.id} 
                     to={`/app/quotes/${rev.id}`}
                     className={cn(
-                      "block p-4 transition-all hover:bg-zinc-800 group relative",
-                      rev.id === id ? "bg-zinc-800/80 pointer-events-none" : "bg-transparent"
+                      "block p-4 transition-all hover:bg-muted/60 group relative",
+                      rev.id === id ? "bg-muted/80 pointer-events-none" : "bg-transparent"
                     )}
                   >
-                    {rev.id === id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />}
+                    {rev.id === id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-zinc-100 uppercase tracking-tighter">VERSİYON {rev.revisionVersion}</span>
+                          <span className="font-mono font-bold text-sm text-foreground uppercase tracking-tighter">VERSİYON {rev.revisionVersion}</span>
                           {rev.isLatest && (
-                            <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] h-4 border-emerald-500/20 font-black">LATEST</Badge>
+                            <Badge className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 text-[8px] h-4 border-emerald-500/20 font-black">LATEST</Badge>
                           )}
                         </div>
-                        <p className="text-[10px] text-zinc-500 mt-1">{new Date(rev.createdAt).toLocaleDateString('tr-TR')} - {new Date(rev.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">{new Date(rev.createdAt).toLocaleDateString('tr-TR')} - {new Date(rev.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                       <StatusBadge status={rev.status} />
                     </div>
                     {rev.id === id && (
-                      <div className="mt-2 text-[10px] font-bold text-orange-500/80 flex items-center gap-1">
+                      <div className="mt-2 text-[10px] font-bold text-primary flex items-center gap-1">
                         <ChevronRight size={10} /> Şu anki versiyon
                       </div>
                     )}
@@ -694,50 +694,50 @@ export function QuoteDetail() {
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-none border-dashed text-center">
+          <Card className="bg-card border-border shadow-none border-dashed text-center">
             <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center justify-center gap-1.5">
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-1.5">
                 <ShieldCheck size={12} className="text-emerald-500" /> Compliance AI
               </CardTitle>
             </CardHeader>
             <CardContent>
               {recentAlerts.length > 0 ? (
                 <div className="space-y-3">
-                  <p className="text-[9px] text-zinc-400 leading-tight">
+                  <p className="text-[9px] text-muted-foreground leading-tight">
                     Bu teklifle ilişkili sektörler için {recentAlerts.length} yeni mevzuat uyarısı mevcut.
                   </p>
                   <div className="space-y-2">
                     {recentAlerts.map(alert => (
-                      <div key={alert.id} className="p-2 rounded bg-zinc-800/50 border border-zinc-700/50 text-left">
+                      <div key={alert.id} className="p-2 rounded bg-muted/50 border border-border text-left">
                         <div className="flex items-center justify-between mb-1">
-                          <Badge variant="outline" className="text-[7px] px-1 h-3 font-bold border-orange-500/20 text-orange-500">{alert.category}</Badge>
-                          <span className="text-[8px] text-zinc-500 font-mono tracking-tighter">{alert.impactLevel.toUpperCase()}</span>
+                          <Badge variant="outline" className="text-[7px] px-1 h-3 font-bold border-primary/20 text-primary">{alert.category}</Badge>
+                          <span className="text-[8px] text-muted-foreground font-mono tracking-tighter">{alert.impactLevel.toUpperCase()}</span>
                         </div>
-                        <p className="text-[10px] font-bold text-zinc-200 line-clamp-1">{alert.title}</p>
+                        <p className="text-[10px] font-bold text-foreground line-clamp-1">{alert.title}</p>
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline" className="w-full text-[10px] h-7 border-orange-500/30 text-orange-500 hover:bg-orange-500/10 font-bold" onClick={() => navigate('/app/regulations')}>
+                  <Button variant="outline" className="w-full text-[10px] h-7 border-primary/30 text-primary hover:bg-primary/10 font-bold" onClick={() => navigate('/app/regulations')}>
                     DETAYLI ANALİZ
                   </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center py-4">
                   <CheckCircle2 size={24} className="text-emerald-500/20 mb-2" />
-                  <p className="text-[10px] text-zinc-500">Mevzuat Uyumluluk Tamam</p>
+                  <p className="text-[10px] text-muted-foreground">Mevzuat Uyumluluk Tamam</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900/30 border-zinc-800 shadow-none border-dashed">
+          <Card className="bg-card border-border shadow-none border-dashed">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-zinc-400">Veri Güvenliği</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Veri Güvenliği</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3">
                 <ShieldCheck size={16} className="text-emerald-500 mt-0.5 shrink-0" />
-                <p className="text-[10px] text-zinc-500 leading-relaxed">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
                   Bu teklif çoklu şirket mimarisi ile korunmaktadır. Bu veriye yalnızca yetkili şirket personeli erişebilir.
                 </p>
               </div>

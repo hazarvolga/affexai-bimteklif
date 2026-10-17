@@ -516,76 +516,73 @@ export function CreateQuote() {
           onClick: () => navigate('/app/quotes')
         }}
         actions={
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {!id && <>
             <Button
               variant="outline" 
               onClick={() => navigate('/app/smartcheck')}
-              className="border-sky-500/30 bg-sky-950/30 text-sky-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-sky-900/50"
+              className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
             >
-              <ShieldCheck size={14} /> SmartCheck & e-PYS
+              <ShieldCheck size={14} className="text-muted-foreground" /> SmartCheck & e-PYS
             </Button>
             <Button
               variant="outline" 
               onClick={() => navigate('/app/ifc-parser')}
-              className="border-emerald-500/30 bg-emerald-950/30 text-emerald-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-emerald-900/50"
+              className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
             >
-              <Box size={14} /> 5D IFC Metraj Yükle
+              <Box size={14} className="text-muted-foreground" /> 5D IFC Metraj Yükle
             </Button>
             <Button 
               variant="outline" 
               onClick={handleLoadDemoTemplate}
-              className="border-orange-500/30 bg-orange-950/30 text-orange-400 font-black text-[10px] uppercase tracking-widest h-10 px-4 gap-2 hover:bg-orange-900/50"
+              className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
             >
-              <Sparkles size={14} /> Demo Şablon Yükle
+              <Sparkles size={14} className="text-muted-foreground" /> Demo Şablon Yükle
             </Button></>}
             <Button 
-              className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-8 gap-2 shadow-lg shadow-orange-900/20" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-xs uppercase tracking-wider h-10 px-6 gap-2 shadow-none" 
               onClick={() => handleSave()}
               disabled={loading}
             >
-              <Save size={16} /> {loading ? 'Kaydediliyor...' : 'Taslağı Kaydet'}
+              <Save size={15} /> {loading ? 'Kaydediliyor...' : 'Taslağı Kaydet'}
             </Button>
           </div>
         }
       />
-      {saveError && <div role="alert" className="mb-4 text-red-400">{saveError} {id && <Button variant="outline" onClick={() => window.location.reload()}>Yeniden yükle</Button>}</div>}
+      {saveError && <div role="alert" className="mb-4 text-xs font-mono text-destructive">{saveError} {id && <Button variant="outline" size="sm" onClick={() => window.location.reload()}>Yeniden yükle</Button>}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="min-w-0 lg:col-span-8 space-y-8">
           {/* AI Wizard Section */}
-          {!id && <Card className="border-orange-500/20 bg-orange-600/5 overflow-hidden shadow-none transition-all hover:bg-orange-600/10 group relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
-            <CardHeader className="pb-3 border-b border-orange-500/10">
-              <CardTitle className="text-orange-500 flex items-center gap-3 text-[10px] uppercase tracking-widest font-black">
-                <div className="p-1.5 bg-orange-600/20 rounded-lg">
-                  <Sparkles size={16} className="text-orange-500 animate-pulse" />
-                </div>
+          {!id && <Card className="border border-border bg-card shadow-none">
+            <CardHeader className="pb-3 border-b border-border">
+              <CardTitle className="text-foreground flex items-center gap-2 text-xs font-mono uppercase tracking-wider font-bold">
+                <Sparkles size={14} className="text-primary" />
                 AI Teklif Sihirbazı
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-5 p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-full md:w-48 shrink-0">
-                  <Label htmlFor="quote-industry" className="text-[10px] font-black text-orange-600/70 uppercase tracking-widest mb-1.5 block">Sektör</Label>
+                  <Label htmlFor="quote-industry" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">Sektör</Label>
                   <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                    <SelectTrigger id="quote-industry" className="bg-zinc-950 border-zinc-800 text-zinc-300 h-12">
+                    <SelectTrigger id="quote-industry" className="bg-background border-border text-foreground h-11 text-xs">
                       <SelectValue placeholder="Sektör" />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
+                    <SelectContent className="bg-card border-border text-foreground">
                       {industries.map(ind => (
-                        <SelectItem key={ind.id} value={ind.id} className="text-xs font-bold">{ind.name}</SelectItem>
+                        <SelectItem key={ind.id} value={ind.id} className="text-xs font-medium">{ind.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <Label htmlFor="quote-description" className="text-[10px] font-black text-orange-600/70 uppercase tracking-widest mb-1.5 block">Proje Detayları</Label>
+                  <Label htmlFor="quote-description" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">Proje Detayları</Label>
                   <div className="flex gap-2">
                     <Input
                       id="quote-description"
                       placeholder="Proje tipini anlatın... (Örn: 200m2 villa kaba inşaat)"
-                      className="bg-zinc-950 border-zinc-800 focus:border-orange-500/50 text-zinc-200 h-12 font-medium"
+                      className="bg-background border-border focus:border-primary text-foreground h-11 text-xs"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && generateWithAi()}
@@ -593,48 +590,43 @@ export function CreateQuote() {
                     <Button 
                       onClick={generateWithAi} 
                       disabled={aiLoading}
-                      className="bg-orange-700 hover:bg-orange-800 text-white shrink-0 font-black text-[10px] uppercase tracking-widest h-12 px-8"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 font-mono text-xs uppercase tracking-wider h-11 px-6 shadow-none"
                     >
-                      {aiLoading ? <Loader2 className="animate-spin" size={18} /> : 'Oluştur'}
+                      {aiLoading ? <Loader2 className="animate-spin" size={16} /> : 'Oluştur'}
                     </Button>
                   </div>
                 </div>
               </div>
 
               {aiResult && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top duration-500">
-                  <div className="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
-                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <Zap size={12} /> AI Kalem Varsayımları
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top duration-300">
+                  <div className="bg-muted/20 p-4 border border-border">
+                    <p className="text-[10px] font-mono font-bold text-foreground uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <Zap size={12} className="text-primary" /> AI Kalem Varsayımları
                     </p>
-                    <p className="mb-3 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] font-bold leading-relaxed text-amber-300">
+                    <p className="mb-3 border border-border bg-card px-2.5 py-1.5 text-[11px] font-mono text-muted-foreground leading-relaxed">
                       AI çıktısı doğrulanmış metraj veya maliyet kaynağı değildir. Miktarı, satış fiyatını ve gerçek maliyeti kontrol edin.
                     </p>
-                    <ul className="space-y-2">
+                    <ul className="space-y-1.5">
                       {aiResult.assumptions?.map((a: string, i: number) => (
-                        <li key={i} className="text-[11px] text-zinc-400 flex items-start gap-2.5 font-medium">
-                          <span className="w-1 h-1 rounded-full bg-orange-500/50 mt-1.5" /> {a}
+                        <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                          <span className="w-1 h-1 rounded-full bg-primary mt-2 shrink-0" /> {a}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-2">
-                        <AlertTriangle size={12} /> Risk Analizi
+                  <div className="bg-muted/20 p-4 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-mono font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <AlertTriangle size={12} className="text-primary" /> Risk Analizi
                       </p>
-                      <Badge className={cn(
-                        "text-[8px] font-black tracking-widest px-2 py-0.5 uppercase border",
-                        aiResult.riskLevel === 'high' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
-                        aiResult.riskLevel === 'medium' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                        'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                      )}>
-                        {aiResult.riskLevel === 'high' ? 'YÜKSEK RİSK ETKİSİ' : aiResult.riskLevel === 'medium' ? 'ORTA RİSK ETKİSİ' : 'DÜŞÜK RİSK ETKİSİ'}
+                      <Badge variant="outline" className="text-[9px] font-mono tracking-wider px-2 py-0.5 uppercase border-border text-foreground">
+                        {aiResult.riskLevel === 'high' ? 'YÜKSEK RİSK' : aiResult.riskLevel === 'medium' ? 'ORTA RİSK' : 'DÜŞÜK RİSK'}
                       </Badge>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 mt-3">
                       {aiResult.riskFlags?.map((f: string, i: number) => (
-                        <span key={i} className="text-[9px] bg-zinc-900 px-2 py-1 rounded border border-zinc-800 text-zinc-500 font-black uppercase tracking-widest">
+                        <span key={i} className="text-[10px] font-mono bg-card px-2 py-1 border border-border text-muted-foreground uppercase">
                           #{f}
                         </span>
                       ))}
@@ -644,11 +636,9 @@ export function CreateQuote() {
               )}
               
               {!aiResult && (
-                <div className="flex items-center gap-2 px-1">
-                  <div className="p-1 bg-orange-500/10 rounded">
-                    <Info size={12} className="text-orange-500" />
-                  </div>
-                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Info size={13} className="text-primary shrink-0" />
+                  <p className="text-[11px] font-mono">
                     Birim fiyatlar piyasa verilerine göre AI asistanı tarafından hesaplanır.
                   </p>
                 </div>
@@ -659,54 +649,64 @@ export function CreateQuote() {
           {/* Line Items Table */}
           <SectionWrapper title="Teklif Kalemleri" description="Proje kapsamında sunacağınız iş kalemleri ve birim fiyatlar.">
             {ifcTransferNotice && (
-              <Card className="mb-4 border-amber-500/25 bg-amber-500/[0.06] shadow-none">
-                <CardContent className="flex flex-col gap-2 p-4 text-xs text-amber-200 md:flex-row md:items-center md:justify-between">
+              <div className="mb-4 border border-border border-l-2 border-l-primary bg-card p-4 shadow-none">
+                <div className="flex flex-col gap-2 text-xs md:flex-row md:items-center md:justify-between">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div>
-                      <p className="font-black uppercase tracking-widest text-amber-300">IFC Ön Metraj Aktarımı Teknik İnceleme Bekliyor</p>
-                      <p className="mt-1 leading-relaxed text-amber-100/80">
+                      <p className="font-mono text-xs font-bold uppercase tracking-wider text-foreground">
+                        IFC Ön Metraj Aktarımı · Teknik İnceleme Bekliyor
+                      </p>
+                      <p className="mt-1 leading-relaxed text-muted-foreground">
                         {ifcTransferNotice.importedItems} tahmini betonarme kalem teklife aktarıldı.
                         {ifcTransferNotice.skippedItems > 0 ? ` ${ifcTransferNotice.skippedItems} türev kalem kanıt eksikliği nedeniyle aktarılmadı.` : ''}
                         {ifcTransferNotice.evidenceElementCount ? ` ${ifcTransferNotice.evidenceElementCount} IFC özellik/QTO kanıtlı eleman bulundu.` : ''}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="w-fit border-amber-500/30 text-amber-300">Onay Bekliyor</Badge>
-                </CardContent>
-              </Card>
+                  <Badge variant="outline" className="w-fit font-mono text-[10px] uppercase border-border text-muted-foreground">
+                    Onay Bekliyor
+                  </Badge>
+                </div>
+              </div>
             )}
 
             {preBimNotice && (
-              <Card className="mb-4 border-sky-500/25 bg-sky-500/[0.06] shadow-none">
-                <CardContent className="flex flex-col gap-2 p-4 text-xs text-sky-200 md:flex-row md:items-center md:justify-between">
+              <div className="mb-4 border border-border border-l-2 border-l-primary bg-card p-4 shadow-none">
+                <div className="flex flex-col gap-2 text-xs md:flex-row md:items-center md:justify-between">
                   <div className="flex items-start gap-3">
-                    <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+                    <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div>
-                      <p className="font-black uppercase tracking-widest text-sky-300">Ön Teklif Fizibilitesinden Aktarıldı (Kat Karşılığı / Emsal)</p>
-                      <p className="mt-1 leading-relaxed text-sky-100/80">
+                      <p className="font-mono text-xs font-bold uppercase tracking-wider text-foreground">
+                        Ön Teklif Fizibilitesinden Aktarıldı (Kat Karşılığı / Emsal)
+                      </p>
+                      <p className="mt-1 leading-relaxed text-muted-foreground">
                         {preBimNotice.itemCount} kalem teklif taslağına aktarıldı. İmar durumu belgesi ve proje mimarının değerleri esastır; birim fiyat ve KDV oranlarını kontrol edin.
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="w-fit border-sky-500/30 text-sky-300">Ön Taslak</Badge>
-                </CardContent>
-              </Card>
+                  <Badge variant="outline" className="w-fit font-mono text-[10px] uppercase border-border text-muted-foreground">
+                    Ön Taslak
+                  </Badge>
+                </div>
+              </div>
             )}
 
             {excelImportNotice && (
-              <Card className="mb-4 border-emerald-500/25 bg-emerald-500/[0.06] shadow-none">
-                <CardContent className="flex flex-col gap-2 p-4 text-xs text-emerald-200 md:flex-row md:items-center md:justify-between">
+              <div className="mb-4 border border-border border-l-2 border-l-primary bg-card p-4 shadow-none">
+                <div className="flex flex-col gap-2 text-xs md:flex-row md:items-center md:justify-between">
                   <div className="flex items-start gap-3">
-                    <FileSpreadsheet className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                    <FileSpreadsheet className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div>
-                      <p className="font-black uppercase tracking-widest text-emerald-300">Excel / CSV İçe Aktarımı Tamamlandı</p>
-                      <p className="mt-1 leading-relaxed text-emerald-100/80">
+                      <p className="font-mono text-xs font-bold uppercase tracking-wider text-foreground">
+                        Excel / CSV İçe Aktarımı Tamamlandı
+                      </p>
+                      <p className="mt-1 leading-relaxed text-muted-foreground">
                         <strong>{excelImportNotice.fileName}</strong> dosyasından {excelImportNotice.itemCount} iş kalemi teklife eklendi.
                         {excelImportNotice.warnings.length > 0 && ` (${excelImportNotice.warnings.length} adet uyarı / bilgi notu)`}
                       </p>
                       {excelImportNotice.warnings.length > 0 && (
-                        <ul className="mt-1.5 list-disc pl-4 text-[11px] text-emerald-200/70 space-y-0.5">
+                        <ul className="mt-1.5 list-disc pl-4 text-[11px] font-mono text-muted-foreground space-y-0.5">
                           {excelImportNotice.warnings.slice(0, 3).map((w, i) => (
                             <li key={i}>{w}</li>
                           ))}
@@ -717,74 +717,77 @@ export function CreateQuote() {
                       )}
                     </div>
                   </div>
-                  <Badge variant="outline" className="w-fit border-emerald-500/30 text-emerald-300">İçe Aktarıldı</Badge>
-                </CardContent>
-              </Card>
+                  <Badge variant="outline" className="w-fit font-mono text-[10px] uppercase border-border text-muted-foreground">
+                    İçe Aktarıldı
+                  </Badge>
+                </div>
+              </div>
             )}
+
             {/* PRICE VALIDITY & DISCLAIMER BANNER */}
             {benchmarksData && (
-              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-amber-500/20">
+              <div className="mb-4 border border-border bg-card p-4 shadow-none">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-border">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle size={16} className="text-amber-400 shrink-0" />
-                    <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
+                    <Info size={15} className="text-primary shrink-0" />
+                    <span className="text-xs font-mono font-bold text-foreground uppercase tracking-wider">
                       Piyasa Rayiçleri & Fiyat Geçerlilik Bildirimi
                     </span>
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                      Önemli Uyarı
-                    </span>
+                    <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-mono">
+                      Bilgilendirme
+                    </Badge>
                   </div>
                   <Button
                     type="button"
                     onClick={() => setShowBenchmarkDrawer(!showBenchmarkDrawer)}
                     variant="outline"
-                    className="border-amber-500/40 bg-amber-900/30 text-amber-200 hover:bg-amber-900/50 text-[11px] font-bold h-7 gap-1.5"
+                    className="border-border bg-background hover:bg-muted text-foreground text-xs font-mono h-7 gap-1.5 shadow-none"
                   >
-                    <Sparkles size={12} className="text-amber-400" />
+                    <Sparkles size={12} className="text-primary" />
                     {showBenchmarkDrawer ? 'Rayiç Havuzunu Gizle' : `Onaylı Rayiçleri Gör (${benchmarksData.items.length} Kalem)`}
                     {showBenchmarkDrawer ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                   </Button>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mt-3 text-[11px] text-zinc-300">
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mt-3 text-xs">
                   {benchmarksData.sourcesSummary.slice(0, 3).map((s, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800">
-                      <Calendar size={13} className="text-amber-400 shrink-0" />
+                    <div key={idx} className="flex items-center gap-2 bg-muted/20 p-2.5 border border-border">
+                      <Calendar size={13} className="text-muted-foreground shrink-0" />
                       <div className="truncate">
-                        <span className="font-bold text-white block truncate">{s.name}</span>
-                        <span className="text-[10px] text-zinc-400">Geçerlilik: {s.validityRange}</span>
+                        <span className="font-bold text-foreground block truncate text-xs">{s.name}</span>
+                        <span className="text-[10px] font-mono text-muted-foreground">Geçerlilik: {s.validityRange}</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <p className="mt-3 text-[11px] text-amber-200/80 leading-relaxed bg-amber-950/40 p-2.5 rounded-lg border border-amber-500/20">
-                  <strong>⚠️ Kullanıcı Sorumluluğu & Manuel Teyit:</strong> {benchmarksData.disclaimer}
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed bg-muted/10 p-3 border border-border font-sans">
+                  <strong className="text-foreground">⚠️ Kullanıcı Sorumluluğu & Manuel Teyit:</strong> {benchmarksData.disclaimer}
                 </p>
 
                 {/* BENCHMARK QUICK PICKER DRAWER */}
                 {showBenchmarkDrawer && (
-                  <div className="mt-4 pt-3 border-t border-amber-500/20">
-                    <p className="text-[11px] font-bold text-white mb-2 flex items-center gap-1.5">
-                      <Zap size={13} className="text-amber-400" /> Taranmış Güncel Rayiçlerden Teklife Ekle:
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <p className="text-xs font-mono font-bold text-foreground mb-2 flex items-center gap-1.5">
+                      <Zap size={13} className="text-primary" /> Taranmış Güncel Rayiçlerden Teklife Ekle:
                     </p>
                     <div className="grid gap-2 sm:grid-cols-2 max-h-60 overflow-y-auto pr-1">
                       {benchmarksData.items.map((bm) => (
                         <div
                           key={bm.id}
-                          className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-amber-500/50 transition-all text-xs"
+                          className="flex items-center justify-between p-2.5 bg-muted/20 border border-border hover:border-primary/50 transition-all text-xs"
                         >
                           <div className="min-w-0 pr-2">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-bold">
+                              <span className="font-mono text-[10px] bg-background border border-border text-foreground px-1.5 py-0.5 font-bold">
                                 {bm.itemCode}
                               </span>
-                              <span className="font-bold text-white truncate text-[11px]">{bm.itemName}</span>
+                              <span className="font-bold text-foreground truncate text-xs">{bm.itemName}</span>
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-400">
-                              <span>Canlı: <strong className="text-white">₺{Number(bm.crawledPrice).toLocaleString('tr-TR')}</strong> /{bm.unit}</span>
+                            <div className="flex items-center gap-2 mt-1 text-[11px] font-mono text-muted-foreground">
+                              <span>Canlı: <strong className="text-foreground">₺{Number(bm.crawledPrice).toLocaleString('tr-TR')}</strong> /{bm.unit}</span>
                               {bm.diffPercent && Number(bm.diffPercent) !== 0 && (
-                                <span className={Number(bm.diffPercent) > 0 ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}>
+                                <span className={Number(bm.diffPercent) > 0 ? 'text-primary font-bold' : 'text-foreground font-bold'}>
                                   {Number(bm.diffPercent) > 0 ? `+${bm.diffPercent}%` : `${bm.diffPercent}%`}
                                 </span>
                               )}
@@ -794,7 +797,7 @@ export function CreateQuote() {
                             type="button"
                             size="sm"
                             onClick={() => applyBenchmarkItem(bm)}
-                            className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold h-7 px-2.5 shrink-0"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-xs h-7 px-3 shrink-0 shadow-none"
                           >
                             + Ekle
                           </Button>
@@ -806,13 +809,13 @@ export function CreateQuote() {
               </div>
             )}
 
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none overflow-hidden">
+            <Card className="bg-card border border-border shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table className="min-w-[980px]">
                     <TableHeader className="bg-muted/40">
                       <TableRow className="border-border">
-                        <TableHead className="w-[30%] min-w-[200px] sticky left-0 z-10 bg-zinc-950/95 text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
+                        <TableHead className="w-[30%] min-w-[200px] sticky left-0 z-10 bg-card border-r border-border text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Kategori</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Birim</TableHead>
                         <TableHead className="text-muted-foreground font-mono text-xs uppercase text-center py-3">Miktar</TableHead>
@@ -831,7 +834,7 @@ export function CreateQuote() {
                           key={item.id} 
                           className="border-border/60 group hover:bg-muted/30 transition-colors"
                         >
-                          <TableCell className="pl-5 py-2.5 sticky left-0 z-10 bg-zinc-950/95 group-hover:bg-zinc-900/95">
+                          <TableCell className="pl-5 py-2.5 sticky left-0 z-10 bg-card group-hover:bg-muted/80 border-r border-border transition-colors">
                             <Input 
                               value={item.description} 
                               onChange={(e) => updateItem(item.id!, { description: e.target.value })}
@@ -844,7 +847,7 @@ export function CreateQuote() {
                               aria-label="Maliyet kategorisi"
                               value={item.costCategory || 'material'}
                               onChange={(e) => updateItem(item.id!, { costCategory: e.target.value as QuoteItem['costCategory'] })}
-                              className="bg-zinc-950/70 border border-zinc-800 rounded px-1.5 py-1 text-[11px] font-mono text-zinc-300"
+                              className="bg-background border border-border rounded px-1.5 py-1 text-[11px] font-mono text-foreground focus:border-primary"
                             >
                               <option value="material">Malzeme</option>
                               <option value="labor">İşçilik</option>
@@ -877,13 +880,13 @@ export function CreateQuote() {
                             />
                           </TableCell>
                           <TableCell className="text-right py-2.5">
-                            <Input type="number" min="0" placeholder="Gerekli" value={item.costUnitPrice ?? ''} onChange={(e) => updateItem(item.id!, { costUnitPrice: e.target.value === '' ? null : Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-amber-300 font-semibold text-xs placeholder:text-muted-foreground/50 tabular-nums" />
+                            <Input type="number" min="0" placeholder="Gerekli" value={item.costUnitPrice ?? ''} onChange={(e) => updateItem(item.id!, { costUnitPrice: e.target.value === '' ? null : Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-amber-700 dark:text-amber-300 font-semibold text-xs placeholder:text-muted-foreground/60 tabular-nums" />
                           </TableCell>
                           <TableCell className="text-right py-2.5">
                             <Input type="number" min="0" value={item.wastePercent ?? 0} onChange={(e) => updateItem(item.id!, { wastePercent: Number(e.target.value) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-muted-foreground text-xs tabular-nums" />
                           </TableCell>
                           <TableCell className="text-right py-2.5">
-                            <Input type="number" min="0" max="100" value={item.discountPercent ?? 0} onChange={(e) => updateItem(item.id!, { discountPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-orange-300 text-xs tabular-nums" />
+                            <Input type="number" min="0" max="100" value={item.discountPercent ?? 0} onChange={(e) => updateItem(item.id!, { discountPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-orange-600 dark:text-orange-300 font-semibold text-xs tabular-nums" />
                           </TableCell>
                           <TableCell className="text-right py-2.5">
                             <Input type="number" min="0" max="100" value={item.vatPercent ?? 20} onChange={(e) => updateItem(item.id!, { vatPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="bg-transparent border-none text-right p-0 h-auto focus-visible:ring-0 font-mono text-muted-foreground text-xs tabular-nums" />
@@ -921,9 +924,9 @@ export function CreateQuote() {
                       variant="outline"
                       disabled={importingFile}
                       onClick={() => fileInputRef.current?.click()}
-                      className="font-mono text-xs h-8 px-3 gap-1.5 border-border bg-background hover:bg-card"
+                      className="font-mono text-xs h-8 px-3 gap-1.5 border-border bg-background hover:bg-card text-foreground shadow-none"
                     >
-                      {importingFile ? <Loader2 size={13} className="animate-spin text-primary" /> : <FileSpreadsheet size={13} className="text-emerald-400" />}
+                      {importingFile ? <Loader2 size={13} className="animate-spin text-primary" /> : <FileSpreadsheet size={13} className="text-muted-foreground" />}
                       Excel / CSV'den Kalem Aktar
                     </Button>
                     <Button
@@ -945,97 +948,96 @@ export function CreateQuote() {
         </div>
 
         {/* Sidebar Controls */}
-        <div className="min-w-0 lg:col-span-4 space-y-8">
+        <div className="min-w-0 lg:col-span-4 space-y-6">
           <SectionWrapper title="Genel Taslak Bilgileri" description="Teklifin temel parametrelerini belirleyin.">
-            <Card className="bg-zinc-900/30 border-zinc-800 shadow-none">
-              <CardContent className="space-y-6 pt-6">
-                <div className="space-y-2">
-                  <Label htmlFor="quote-client" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <Users size={12} className="text-orange-500" /> Müşteri İlişkilendirme
+            <Card className="bg-card border border-border shadow-none">
+              <CardContent className="space-y-5 pt-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="quote-client" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                    <Users size={12} className="text-primary" /> Müşteri İlişkilendirme
                   </Label>
                   <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})}>
-                    <SelectTrigger id="quote-client" className="bg-zinc-950 border-zinc-800 focus:ring-orange-500 h-12 text-sm font-bold">
+                    <SelectTrigger id="quote-client" className="bg-background border-border text-foreground focus:ring-primary h-11 text-xs font-semibold">
                       <SelectValue placeholder="Bir müşteri atayın..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-300">
+                    <SelectContent className="bg-card border-border text-foreground">
                       {clients.map(c => (
-                        <SelectItem key={c.id} value={c.id} className="text-xs font-bold">{c.name}</SelectItem>
+                        <SelectItem key={c.id} value={c.id} className="text-xs font-medium">{c.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <Field
-                  label={<span className="flex items-center gap-2"><Calculator size={12} className="text-orange-500" /> Proje Başlığı</span>}
-                  labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+                  label={<span className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest"><Calculator size={12} className="text-primary" /> Proje Başlığı</span>}
                 >
                   <Input
                     aria-label="Proje başlığı"
                     value={formData.projectName}
                     onChange={(e) => setFormData({...formData, projectName: e.target.value})}
-                    className="bg-zinc-950 border-zinc-800 focus:border-orange-500 h-12 text-sm font-bold"
+                    className="bg-background border-border text-foreground focus:border-primary h-11 text-xs font-semibold"
                     placeholder="Örn: Villa Restorasyonu Faz 1"
                   />
                 </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="quote-currency" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Para Birimi</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="quote-currency" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Para Birimi</Label>
                     <Select value={formData.currency} onValueChange={(v) => setFormData({...formData, currency: v as Currency})}>
-                      <SelectTrigger id="quote-currency" className="bg-zinc-950 border-zinc-800 h-12">
+                      <SelectTrigger id="quote-currency" className="bg-background border-border text-foreground h-11 text-xs">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-zinc-800">
-                        <SelectItem value={Currency.TRY} className="text-xs font-bold">Türk Lirası (₺)</SelectItem>
-                        <SelectItem value={Currency.USD} className="text-xs font-bold">Dolar ($)</SelectItem>
-                        <SelectItem value={Currency.EUR} className="text-xs font-bold">Euro (€)</SelectItem>
+                      <SelectContent className="bg-card border-border text-foreground">
+                        <SelectItem value={Currency.TRY} className="text-xs font-medium">Türk Lirası (₺)</SelectItem>
+                        <SelectItem value={Currency.USD} className="text-xs font-medium">Dolar ($)</SelectItem>
+                        <SelectItem value={Currency.EUR} className="text-xs font-medium">Euro (€)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">KDV Oranı</Label>
-                    <div className="h-12 flex items-center px-4 bg-zinc-950 border border-zinc-800 rounded-lg text-sm font-bold text-zinc-400">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">KDV Oranı</Label>
+                    <div className="h-11 flex items-center px-3 bg-muted/30 border border-border text-xs font-mono font-bold text-foreground">
                       %20 (Standart)
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="quote-delivery-level" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Bilgi Teslimi</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="quote-delivery-level" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Bilgi Teslimi</Label>
                     <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})}>
-                      <SelectTrigger id="quote-delivery-level" className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-zinc-800">
-                        <SelectItem value="none" className="text-xs font-bold">Kapsam yok</SelectItem>
-                        <SelectItem value="as_built" className="text-xs font-bold">As-built teslim</SelectItem>
-                        <SelectItem value="cobie" className="text-xs font-bold">COBie veri teslimi</SelectItem>
-                        <SelectItem value="digital_twin" className="text-xs font-bold">Dijital ikiz hazırlığı</SelectItem>
+                      <SelectTrigger id="quote-delivery-level" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-card border-border text-foreground">
+                        <SelectItem value="none" className="text-xs font-medium">Kapsam yok</SelectItem>
+                        <SelectItem value="as_built" className="text-xs font-medium">As-built teslim</SelectItem>
+                        <SelectItem value="cobie" className="text-xs font-medium">COBie veri teslimi</SelectItem>
+                        <SelectItem value="digital_twin" className="text-xs font-medium">Dijital ikiz hazırlığı</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
-                    <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                  <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
+                    <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
                   </Field>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="quote-procurement-profile" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tedarik Profili</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="quote-procurement-profile" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Tedarik Profili</Label>
                     <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})}>
-                      <SelectTrigger id="quote-procurement-profile" className="bg-zinc-950 border-zinc-800 h-12"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-zinc-800">
-                        <SelectItem value="standard" className="text-xs font-bold">Standart</SelectItem>
-                        <SelectItem value="low_carbon" className="text-xs font-bold">Düşük karbon hedefi</SelectItem>
-                        <SelectItem value="high_carbon_risk" className="text-xs font-bold">Yüksek karbon riski</SelectItem>
+                      <SelectTrigger id="quote-procurement-profile" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-card border-border text-foreground">
+                        <SelectItem value="standard" className="text-xs font-medium">Standart</SelectItem>
+                        <SelectItem value="low_carbon" className="text-xs font-medium">Düşük karbon hedefi</SelectItem>
+                        <SelectItem value="high_carbon_risk" className="text-xs font-medium">Yüksek karbon riski</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <Field label="Karbon Risk Primi %" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest" hint="Senaryo katsayısıdır; vergi/uyum kararı değildir.">
-                    <Input type="number" min="0" step="0.1" value={formData.carbonRiskPremiumPercent} onChange={(e) => setFormData({...formData, carbonRiskPremiumPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                  <Field label="Karbon Risk Primi %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Senaryo katsayısıdır; vergi/uyum kararı değildir.">
+                    <Input type="number" min="0" step="0.1" value={formData.carbonRiskPremiumPercent} onChange={(e) => setFormData({...formData, carbonRiskPremiumPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
                   </Field>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Süre (Ay)" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                    <Input type="number" min="1" value={formData.projectDurationMonths} onChange={(e) => setFormData({...formData, projectDurationMonths: Math.max(1, Number(e.target.value) || 1)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Süre (Ay)" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
+                    <Input type="number" min="1" value={formData.projectDurationMonths} onChange={(e) => setFormData({...formData, projectDurationMonths: Math.max(1, Number(e.target.value) || 1)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
                   </Field>
-                  <Field label="Aylık Volatilite %" labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest" hint="Şirket varsayımıdır; otomatik piyasa verisi değildir.">
-                    <Input type="number" min="0" step="0.1" value={formData.escalationVolatilityPercent} onChange={(e) => setFormData({...formData, escalationVolatilityPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-zinc-950 border-zinc-800 h-12 font-mono" />
+                  <Field label="Aylık Volatilite %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket varsayımıdır; otomatik piyasa verisi değildir.">
+                    <Input type="number" min="0" step="0.1" value={formData.escalationVolatilityPercent} onChange={(e) => setFormData({...formData, escalationVolatilityPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
                   </Field>
                 </div>
               </CardContent>
@@ -1043,51 +1045,48 @@ export function CreateQuote() {
           </SectionWrapper>
 
           {/* Pricing Summary Card */}
-          <Card className="bg-zinc-100 text-zinc-950 border-none shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-orange-600/10 blur-3xl -mr-24 -mt-24 group-hover:bg-orange-600/20 transition-all duration-700"></div>
-            <CardContent className="p-8">
-              <div className="space-y-4 mb-8">
+          <Card className="bg-card text-card-foreground border border-border shadow-none">
+            <CardContent className="p-6">
+              <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ara Toplam</span>
-                  <span className="font-mono font-black text-sm">{totals.subtotal.toLocaleString('tr-TR')} {formData.currency}</span>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Ara Toplam</span>
+                  <span className="font-mono text-xs text-foreground font-semibold tabular-nums">{totals.subtotal.toLocaleString('tr-TR')} {formData.currency}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">İndirimler</span>
-                  <span className="font-mono font-black text-sm text-red-600">-{totals.discountTotal.toLocaleString('tr-TR')} {formData.currency}</span>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">İndirimler</span>
+                  <span className="font-mono text-xs text-destructive font-semibold tabular-nums">-{totals.discountTotal.toLocaleString('tr-TR')} {formData.currency}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Yasal Vergi (KDV)</span>
-                  <span className="font-mono font-black text-sm text-zinc-600">+{totals.vatTotal.toLocaleString('tr-TR')} {formData.currency}</span>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Yasal Vergi (KDV)</span>
+                  <span className="font-mono text-xs text-muted-foreground tabular-nums">+{totals.vatTotal.toLocaleString('tr-TR')} {formData.currency}</span>
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-zinc-200">
-                  <p className="text-[11px] font-black text-orange-600 uppercase tracking-[0.4em] mb-3 leading-none">Net Teklif Toplamı</p>
-                <div className="flex items-baseline gap-3">
-                  <h2 className="text-5xl font-black tracking-tighter text-zinc-950">
+              <div className="pt-6 border-t border-border">
+                <p className="text-[10px] font-mono font-bold text-primary uppercase tracking-[0.25em] mb-2 leading-none">Net Teklif Toplamı</p>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-4xl font-serif tracking-tight text-foreground tabular-nums">
                     {totals.grandTotal.toLocaleString('tr-TR')}
                   </h2>
-                  <span className="text-2xl font-black text-zinc-400 font-mono">{formData.currency}</span>
+                  <span className="text-lg font-mono text-muted-foreground">{formData.currency}</span>
                 </div>
               </div>
 
-              <div className={cn("mt-8 flex items-center gap-3 p-4 backdrop-blur-sm rounded-2xl border font-black text-[10px] uppercase tracking-widest shadow-lg", costInputsComplete ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-amber-50 border-amber-100 text-amber-700")}>
-                <div className={cn("p-1.5 rounded-lg", costInputsComplete ? "bg-emerald-100" : "bg-amber-100")}>
-                  {costInputsComplete ? <TrendingUp size={16} className="text-emerald-600" /> : <AlertCircle size={16} className="text-amber-600" />}
-                </div>
-                {costInputsComplete ? `Risk primleri dahil marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
+              <div className="mt-6 flex items-center gap-2.5 p-3 border border-border bg-muted/20 text-xs font-mono">
+                {costInputsComplete ? <TrendingUp size={15} className="text-primary shrink-0" /> : <AlertCircle size={15} className="text-muted-foreground shrink-0" />}
+                <span className={costInputsComplete ? "text-foreground font-medium" : "text-muted-foreground"}>
+                  {costInputsComplete ? `Risk primleri dahil marj: %${estimatedMargin.toFixed(1)}` : 'Maliyet birim fiyatlarını girin; marj hesaplanmaz.'}
+                </span>
               </div>
             </CardContent>
           </Card>
 
           {/* Tips Card */}
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex gap-4 items-start group">
-            <div className="p-2 bg-orange-600/20 rounded-xl shrink-0 group-hover:bg-orange-600/30 transition-colors">
-              <ShieldCheck size={20} className="text-orange-500" />
-            </div>
+          <div className="bg-card border border-border p-4 flex gap-3 items-start shadow-none">
+            <ShieldCheck size={18} className="text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-black text-white uppercase tracking-widest mb-1.5">Profesyonel İpucu</p>
-              <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
+              <p className="text-xs font-mono font-bold text-foreground uppercase tracking-wider mb-1">Profesyonel İpucu</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Pazarlık payı için %5-8 arası indirim kalemini AI asistanınıza eklemesini söyleyebilirsiniz.
               </p>
             </div>

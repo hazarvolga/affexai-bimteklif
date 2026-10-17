@@ -209,6 +209,7 @@ Release status (2026-10-13):
 - `Rev. 18` (Python worker FILE_NAME & IfcApplication), `Rev. 19` (pre-BIM .xlsx import), `Rev. 20` (kaynaksız çarpan temizliği), `Rev. 21` (minha & server-path uçtan uca test), `Rev. 22` (ücretsiz hesaplayıcılar), `Rev. 23` (KİK N aralık denetimi), `Rev. 24` (fizibiliteden teklif taslağı köprüsü & CreateQuote doğrudan Excel/CSV kalem aktarımı) DONE.
 - Melih Dinekli'den 17 soru yanıtı bekleniyor (`docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md`).
 - Ücretsiz hesaplayıcılar kullanıcı isteğiyle şimdilik vitrinde/menüde bekletiliyor; bağımsız uzman teyidi sonrası açılacak.
+- **Rev. 25 (BIM-CALC-2026-10-17.19):** CreateQuote (`/app/quotes/new`) ve QuoteDetail (`/app/quotes/:id`) sayfalarındaki tüm sabit `zinc-*` sınıfları, gölgeler, gradyan balonları ve neon butonlar Pafta Tasarım Sistemi'ne (`DESIGN.md`) uygun olarak semantik tokenlere (`bg-card`, `bg-background`, `border-border`, `text-foreground`, `text-muted-foreground`, `bg-primary`) uyarlandı; açık modda siyah blok ve düşük kontrast problemleri tamamen giderildi.
 
 ## Ground rules for agents
 

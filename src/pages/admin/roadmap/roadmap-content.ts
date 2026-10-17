@@ -419,16 +419,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Müteahhit süreç analizi raporu incelendi: KİK algoritması kodla tutarlı bulundu; N katsayısı 1,00–1,20 aralık denetimi ve hesaplayıcıda idare N alanı eklendi; doğrulanamayan iddialar ürüne alınmadı.",
           ],
           [
-            "Rev. 24 (Güncel)",
+            "Rev. 24",
             "17 Ekim 2026 (Fizibiliteden Teklif & Excel Kalem Aktarımı)",
             "BIM-CALC-2026-10-17.18",
             "Ön teklif fizibilitesinden tek tıkla teklif taslağı oluşturma (pre-bim-quote-draft) ve CreateQuote tablosuna doğrudan Excel (.xlsx) / CSV dosyasından kalem aktarma motoru (quote-excel-import) eklendi.",
+          ],
+          [
+            "Rev. 25 (Güncel)",
+            "17 Ekim 2026 (Pafta Tasarım Sistemi Kontrast & Uyumluluk Refaktörü)",
+            "BIM-CALC-2026-10-17.19",
+            "CreateQuote ve QuoteDetail sayfalarındaki sabit zinc-* sınıfları, neon butonlar ve renkli kartlar temizlenerek Pafta Tasarım Sistemi (DESIGN.md) mimarisine uyarlandı; açık modda siyah blok sorunu ve düşük kontrast giderildi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 24 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 25 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -705,6 +711,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Fizibilite sonucu ile teklif ekranı kopuktu; CreateQuote ekranında doğrudan Excel (.xlsx) / CSV dosyasından toplu kalem yükleme ve şablon indirme UI'ı yoktu.",
             "PreBimFeasibilityPanel'e 'Teklif Taslağı Oluştur →' butonu eklendi; sessionStorage üzerinden kalemler ve notlar taşınır; CreateQuote'a 'Excel / CSV'den Kalem Aktar' ve 'Şablon İndir (CSV)' butonları ile dinamik exceljs/csv motoru (quote-excel-import.ts) eklendi.",
             "src/lib/pre-bim-quote-draft.ts, src/lib/quote-excel-import.ts, PreBimFeasibilityPanel.tsx, CreateQuote.tsx",
+          ],
+          [
+            "Rev. 25.1 · 17 Ekim 2026 (Pafta Tasarım Sistemi Kontrast & Uyumluluk Refaktörü)",
+            "DESIGN.md Pafta Tasarım Sistemi (Açık Pafta & Koyu Antrasit) & WCAG 2.2 Seviye AA kontrast standartları",
+            "CreateQuote ve QuoteDetail sayfalarında 'Detay / İş Kalemi' sabit tablosunda, form girdilerinde ve bildirim kartlarında sabit bg-zinc-950/95, border-zinc-800, renkli gradyanlar ve açık pastel metinler (sky, emerald, amber) kullanılıyordu; açık modda ilk sütun siyah blok olarak çıkıyor ve metinler okunmuyordu.",
+            "Tüm sabit renkler, gölgeler, gradyan balonları ve neon butonlar kaldırılarak Pafta Tasarım Sistemi'nin 1px teknik cetvel çizgileri (border-border), kağıt/yüzey tonları (bg-card, bg-background) ve antetli teknik tipografisi (IBM Plex Mono & Manrope) uygulandı. Açık ve koyu modda kusursuz kontrast sağlandı.",
+            "src/pages/CreateQuote.tsx, src/pages/QuoteDetail.tsx, DESIGN.md",
           ],
         ],
       },

@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.18",
+  version: "BIM-CALC-2026-10-17.19",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "e397b285e5c5bf5ab8a7e0c8cdf472f7cdac3af5",
+  implementationBaseline: "b73f088a6460b8f96a2fca05be579ce8aff0717c",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -642,6 +642,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Teklif hazırlama ekranında Excel/CSV dosyasıyla toplu kalem yükleme UI'ı yoktu.",
         after: "parseQuoteXlsx / parseQuoteCsv motoru ile .xlsx ve .csv dosyaları 5 MB sınırı ve formül korumasıyla okunur; örnek şablon indirilebilir; içe aktarılan kalemler uyarılarıyla listelenir.",
         basis: "Müteahhit saha pratiği: mevcut Excel teklif/metraj tablolarının sisteme doğrudan aktarılması",
+      },
+    },
+  },
+  {
+    revision: "Rev. 25",
+    version: "BIM-CALC-2026-10-17.19",
+    date: "17 Ekim 2026",
+    commit: "b73f088",
+    trigger: "Teklif hazırlama ve detay ekranlarında Light Mode kontrast ve erişilebilirlik refaktörü (WCAG 2.2 AA)",
+    beforeSummary:
+      "Teklif hazırlama (/app/quotes/new) ve detay (/app/quotes/:id) sayfalarında 'Detay / İş Kalemi' sabit sütununda ve girdi kutularında sabit bg-zinc-950/95, border-zinc-800 ve açık tonlu pastel metinler (text-amber-200, text-emerald-200, text-sky-200) kullanıldığı için Light Mode'da sütun siyah bir blok halinde görünüyor, koyu metinler siyah zemin üzerinde tamamen okunamaz hale geliyordu.",
+    afterSummary:
+      "CreateQuote ve QuoteDetail sayfalarındaki tüm sabit zinc-* sınıfları semantik pafta tasarım sistemi tema belirteçlerine (bg-card, bg-background, border-border, text-foreground, text-muted-foreground, bg-primary, text-primary) dönüştürüldü. Tablo sabit ilk sütunu bg-card border-r border-border ile hem Light hem Dark Mode'da şeffaf ve yüksek kontrastlı hale getirildi; bildirim ve uyarı kartlarında WCAG 2.2 AA uyumlu koyu metinler (text-amber-950 dark:text-amber-300, text-emerald-950 dark:text-emerald-300, text-sky-950 dark:text-sky-300) uygulandı; sağ panel parametreleri, fiyatlandırma özet kartı ve ipucu kutuları semantik temaya bağlandı.",
+    affectedModules: ["teklif-satir", "maliyet-marj"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Tablo ilk sütunu sabit bg-zinc-950/95 olduğu için Light Mode'da siyah blok olarak çıkıyor ve girdi yazısı okunmuyordu.",
+        after: "Sabit sütun bg-card border-r border-border sınıflarıyla açık modda kağıt tonuna, koyu modda antrasite adapte edildi; girdi kutuları ve butonlar semantik tokenlere bağlandı.",
+        basis: "Tasarım Sistemi & WCAG 2.2 Seviye AA kontrast standartları (DESIGN.md)",
+      },
+      "maliyet-marj": {
+        before: "Maliyet birim fiyatı ve iskonto alanları açık modda okunması zor açık sarı/turuncu (text-amber-300, text-orange-300) kullanıyordu.",
+        after: "Açık modda koyu okunabilir (text-amber-700 dark:text-amber-300, text-orange-600 dark:text-orange-300) renk hiyerarşisi uygulandı.",
+        basis: "Kullanıcı arayüzü okunabilirlik doğrulaması",
       },
     },
   },
