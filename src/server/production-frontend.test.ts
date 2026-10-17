@@ -43,9 +43,14 @@ test('production static serving keeps frontend assets and SPA while rejecting se
     assert.equal(await response.text(), files[name]);
     if (name.startsWith('assets/')) assert.match(response.headers.get('cache-control') ?? '', /immutable/);
   }
-  for (const route of ['/', '/index.html', '/quotes/123', '/academy/allplan/lessons/example']) {
+  for (const route of ['/', '/index.html', '/app/quotes/123', '/smartcheck', '/academy/allplan/lessons/example']) {
     const response = await fetch(base + route);
     assert.equal(response.status, 200, route);
+    assert.equal(await response.text(), files['index.html']);
+  }
+  for (const unknownRoute of ['/bu-sayfa-yok-404', '/quotes/123']) {
+    const response = await fetch(base + unknownRoute);
+    assert.equal(response.status, 404, unknownRoute);
     assert.equal(await response.text(), files['index.html']);
   }
 });

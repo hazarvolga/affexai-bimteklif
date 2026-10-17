@@ -39,13 +39,20 @@ test('parseCsbPdfText parses 2026 Mart İnşaat, Mekanik, Elektrik and Yapı Yak
   assert.match(rows[3].itemName, /Montaj Bedeli: 400,29 TL/);
 });
 
-test('listOfficialCsbCatalogs exposes verified 2026 ÇŞB PDF catalogs with SHA-256 hashes', () => {
+test('listOfficialCsbCatalogs exposes verified 2026 ÇŞB PDF catalogs with SHA-256 hashes and period-accurate validity dates', () => {
   const catalogs = listOfficialCsbCatalogs();
   assert.ok(catalogs.length >= 6);
   const insaatBf = getOfficialCsbCatalogById('csb_2026_mart_insaat_bf');
   assert.ok(insaatBf);
   assert.match(insaatBf.documentHash, /^[a-f0-9]{64}$/);
+  assert.equal(insaatBf.validityStart, '2026-03-01');
+  assert.equal(insaatBf.validityEnd, '2026-03-31');
   assert.ok(insaatBf.rows.length >= 200);
+
+  const ybm = getOfficialCsbCatalogById('csb_2026_yapi_yaklasik_maliyet');
+  assert.ok(ybm);
+  assert.equal(ybm.validityStart, '2026-01-01');
+  assert.equal(ybm.validityEnd, '2026-12-31');
 });
 
 test('parseCsbPdfDocument extracts rows from a synthetic uncompressed PDF buffer', () => {

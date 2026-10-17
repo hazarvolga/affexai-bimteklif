@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { evaluateIso19650Compliance, parseContainerIdentity } from "./iso19650";
 
-describe("TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) Rule Engine", () => {
-  it("parses both ISO 19650-2 hyphenated and RG 33331 EK-2 underscore container names", () => {
+describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", () => {
+  it("parses ISO 19650-2 hyphenated and RG 33331 EK-2 underscore container names against official ek2_disiplinler.json", () => {
     const iso = parseContainerIdentity("PRJ26-ARC-ZZ-01-M3-A-0001.ifc");
     assert.equal(iso.namingStandard, "ISO_19650_2");
     assert.equal(iso.projectCode, "PRJ26");
@@ -14,6 +14,33 @@ describe("TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) Rule Engine", () => {
     assert.equal(ek2.namingStandard, "RG_33331_EK2");
     assert.equal(ek2.projectCode, "123456");
     assert.equal(ek2.originatorOrDiscipline, "MM");
+
+    const invalidEk2 = parseContainerIdentity("123456_00_XX_YYYY_MD_BIM_999_01_000.ifc");
+    assert.equal(invalidEk2.namingStandard, "NON_CONFORMING");
+    assert.ok((invalidEk2.ek2DictionaryErrors?.length ?? 0) >= 3);
+  });
+
+  it("returns cdeEvaluationStatus = not_evaluated with null CDE fields when CDE metadata is not provided", () => {
+    const res = evaluateIso19650Compliance({
+      fileName: "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc",
+      elements: [
+        {
+          id: "1",
+          guid: null,
+          type: "IfcWall",
+          storey: null,
+          material: null,
+          hasAdmissibleQuantity: true,
+        },
+      ],
+    });
+
+    assert.equal(res.cdeEvaluationStatus, "not_evaluated");
+    assert.equal(res.cdeState, null);
+    assert.equal(res.suitabilityCode, null);
+    assert.equal(res.revisionCode, null);
+    assert.equal(res.loin.uniqueGuidRatio, 0);
+    assert.equal(res.loin.alphanumericCompletenessRatio, 0);
   });
 
   it("validates PUBLISHED contractual container with C01 revision and full LOIN completeness", () => {
@@ -43,6 +70,7 @@ describe("TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) Rule Engine", () => {
       ],
     });
 
+    assert.equal(res.cdeEvaluationStatus, "evaluated");
     assert.equal(res.isValid, true);
     assert.equal(res.score, 100);
     assert.equal(res.loin.geometricCompletenessRatio, 1);
@@ -84,3 +112,4 @@ describe("TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) Rule Engine", () => {
     assert.ok(res.errors.some((e) => e.includes("mükerrer")));
   });
 });
+

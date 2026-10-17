@@ -50,10 +50,10 @@
             "inLanguage": "tr-TR",
             "featureList": [
               "openBIM IFC 2x3 / IFC4 / IFC4.3 Otomatik Metraj (QTO) ve Çok Katmanlı Kaplama (IfcCovering) Çıkarımı",
-              "SmartCheck 3x3 (Şirket Politikası ≤%3 QTO Toleransı & TS 500 Paspayı) ve Minha Denetimi (0,50 m² / 2,50 m² / 4,00 m² Profilleri)",
-              "5 Ağustos 2026 RG 33331 e-PYS EK-1..EK-9 ve TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) Bilgi Konteyneri Denetimi",
-              "4734 KİK m.38 Aşırı Düşük Teklif (Sınır Değer & %80 Pareto Sıralı İş Kalemleri) Analizi",
-              "RG 33331 PDF/A Üstveri, ISO 216 Pafta Boyutu ve 5070 Sayılı Kanun Gömülü e-İmza (/Sig) Ön Kontrolü",
+              "SmartCheck 3x3 (Şirket Politikası ≤%3 QTO Toleransı & TS 500 Paspayı) ve Minha Denetimi (ÇŞB 2026: 0,50 m², DIN 18350: 2,50 m² ve Kullanıcı Tanımlı Şartname Eşiği)",
+              "5 Ağustos 2026 RG 33331 e-PYS EK-1..EK-9 Ön Kontrolü ve TS EN ISO 19650-2 / EN 17412-1 (LOIN) Dosya Adı & Eleman Bütünlüğü Desteği",
+              "4734 KİK m.38 & Genel Tebliğ m.45.1.1 Kullanıcı Girdili Sınır Değer (SD) Hesaplayıcı ve %80 Pareto Sıralı İş Kalemleri Analizi",
+              "RG 33331 PDF/A Üstveri Beyanı, ISO 216 Pafta Boyutu ve 5070 Sayılı Kanun Gömülü e-İmza (/Sig) Ön Kontrolü",
               "ÇŞB 2026 Birim Fiyat Poz Eşleştirme, Firma Fiyat Hafızası ve Kurumsal PDF/Excel Teklif Çıktısı"
             ],
             "offers": {
@@ -73,7 +73,7 @@
                 "name": "BIMMetraj hangi dosya formatlarını ve BIM standartlarını destekler?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "BIMMetraj; buildingSMART IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerini, Excel (XLSX/CSV) metraj cetvellerini ve PDF paftalarını destekler. TS 500, TS 708, ÇŞB 2026 Genel Teknik Şartnamesi (CSB_2026_V1), TS EN ISO 19650-1/2 & EN 17412-1 (LOIN) ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-1..EK-9 kurallarına göre denetim sağlar."
+                  "text": "BIMMetraj; buildingSMART IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerini, Excel (XLSX/CSV) metraj cetvellerini ve PDF paftalarını destekler. TS 500, TS 708, ÇŞB 2026 Genel Teknik Şartnamesi (CSB_2026_V1) ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-1..EK-9 ön kontrol kurallarını çalıştırır; TS EN ISO 19650-2 dosya adlandırma şablonunu ve EN 17412-1 (LOIN) eleman üstveri tamlığını destekler (tam CDE iş akışı durum makinesi yol haritasındadır)."
                 }
               },
               {
@@ -81,7 +81,7 @@
                 "name": "SmartCheck 3x3 ve Minha denetimi nedir?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "SmartCheck; IFC modelinden gelen miktarları şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm) kuralları ve seçilen ölçü standardına göre boşluk/kesişim minha kurallarına (ÇŞB 2026: 0,50 m², DIN 18350: 2,50 m², Kalıp/İskele Özel Şartname: 4,00 m² eşikleri) göre denetleyen insan onaylı kalite kontrol motorudur."
+                  "text": "SmartCheck; IFC modelinden gelen miktarları şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm) kuralları ve seçilen ölçü standardına göre boşluk/kesişim minha kurallarına (ÇŞB 2026: 0,50 m², DIN 18350: 2,50 m² hazır profilleri ile kullanıcı tanımlı özel şartname eşiği) göre denetleyen insan onaylı kalite kontrol motorudur."
                 }
               },
               {
@@ -89,7 +89,7 @@
                 "name": "4734 KİK aşırı düşük teklif (sınır değer) analizi nasıl çalışır?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "4734 sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1 uyarınca yaklaşık maliyet (YM) ve geçerli teklifler üzerinden standart sapma bandı, R katsayısı (Üstyapı N=1,00 / Altyapı N=0,80) ve Sınır Değer (SD) hesaplanır; ayrıca teklif tutarının %80'ini oluşturan açıklama istenecek sıralı iş kalemleri otomatik belirlenir."
+                  "text": "Teklif kalemlerinizden Kamu İhale Genel Tebliği m.45.1.2 uyarınca toplam teklifin %80'ini oluşturan açıklama istenecek sıralı iş kalemleri otomatik belirlenir. Ayrıca kullanıcı tarafından ihale açılış tutanağındaki Yaklaşık Maliyet (YM) ve geçerli teklifler girildiğinde, Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K ve Üstyapı N=1,00 / Diğer Yapım N=1,20 katsayıları) ile Sınır Değer (SD) hesaplanır (tam açıklama dosyası üretimi yol haritasındadır)."
                 }
               },
               {
@@ -97,7 +97,7 @@
                 "name": "RG 33331 e-PYS ve PDF/A ön kontrolü neleri kapsar?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "5 Ağustos 2026 tarihli Resmi Gazete (Sayı: 33331) kapsamında IFC modellerinde EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ön kontrolü yapılır. 2B PDF paftalarda ise PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta kuralı ve gömülü e-imza (/Sig) varlığı denetlenir (tam PDF/A sertifikasyonu için veraPDF önerilir)."
+                  "text": "5 Ağustos 2026 tarihli Resmi Gazete (Sayı: 33331) kapsamında IFC modellerinde EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ön kontrolü yapılır. 2B PDF paftalarda ise PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta kuralı ve gömülü e-imza (/Sig) varlığı denetlenir (Ghostscript/veraPDF ile tam PDF/A-2b arşiv üretimi ve doğrulaması yol haritasındadır)."
                 }
               },
               {

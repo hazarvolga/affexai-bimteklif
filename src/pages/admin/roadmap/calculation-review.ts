@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.3",
+  version: "BIM-CALC-2026-10-17.4",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "142aa713eaa64e15adfb8a60844e9afd6973fdbf",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, ISO 19650-1/2 & LOIN motoru, 4734 KİK m.38 aşırı düşük teklif motoru ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "116c7de210234821a5b2c5fa3945ff67d7001613",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, RG 33331 EK-2 sözlük doğrulamalı ISO 19650 / LOIN motoru, Kamu İhale Genel Tebliği m.45.1.1 resmi formüllü KİK sınır değer motoru ve PDF/A-2B kabul koşuları mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -300,8 +300,42 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
       minha: {
         before: "evaluatePlasterPaintMinha yalnız CSB_2026 (0,50 m²) ve DIN_18350 (2,50 m²) standartlarını destekliyordu.",
-        after: "CSB_FORMWORK_4M2 (4,00 m² kalıp/iskele/özel şartname) profili eklendi ve birim testiyle doğrulandı.",
+        after: "Kullanıcı tanımlı özel şartname eşiği profili eklendi.",
         basis: "src/smartcheck/rules/minha.ts & src/smartcheck/rules/minha.test.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 10",
+    version: "BIM-CALC-2026-10-17.4",
+    date: "17 Ekim 2026",
+    commit: "116c7de",
+    trigger: "YOL_HARITASI_2026-10-17 Faz 0 Doğrulaması: KİK Tebliğ m.45.1.1 Resmi Formülü (K-1 / K-1b), ISO 19650 Sabit Girdi Temizliği & EK-2 Sözlük Eşleşmesi (K-2), CUSTOM_CONTRACT Minha (K-3) ve ÇŞB Dönem Geçerliliği (0.6)",
+    beforeSummary:
+      "İlk KİK motorunda (c78683e) %40–%120 YM bandı yerine yalnız <= YM filtresi, parçalı K polinomu yerine doğrusal R ve Altyapı için N=0,80 kullanılmış; CalmIfcWorkspace içinde uydurma YM (directTotal × 1,25) ve sahte rakip teklifler gösterilmiş (K-1/K-1b); ifc-rule-run.ts içinde sabit 'SHARED/S3/P01.01' ve yedek 'Zemin Kat/row-N' ile LOIN şişirilmiş (K-2); ayrıca Mart 2026 aylık ÇŞB kataloglarının bitiş tarihi 2026-12-31 olarak yazılmıştı (0.6).",
+    afterSummary:
+      "Kamu İhale Genel Tebliği m.45.1.1, m.45.1.1.1 ve m.45.1.1.4 tam formülü ([0,40×YM, 1,20×YM] bandı, Tort1, σ, Tort2, C = Tort2/YM, parçalı K katsayısı, Üstyapı N=1,00 / Diğer Yapım N=1,20, SD = max(0,40×YM; K×Tort2/(C×N))) devreye alındı ve CalmIfcWorkspace'teki tüm uydurma YM/rakip teklif girdileri kaldırılarak açık kullanıcı girişine bağlandı (K-1/K-1b). ISO 19650 motorunda sabit CDE/LOIN yedekleri kaldırılıp üstveri yoksa cdeEvaluationStatus = 'not_evaluated' döndürüldü ve 9 alanlı dosya adı ek2_disiplinler.json sözlüğüne bağlandı (K-2). Kaynaksız 4,00 m² minha profili CUSTOM_CONTRACT (zorunlu customThresholdM2) ile değiştirildi (K-3) ve Mart 2026 ÇŞB listelerinin geçerlilik aralığı 2026-03-01..2026-03-31 olarak düzeltildi (0.6).",
+    affectedModules: ["kik-adt", "iso19650", "minha", "fiyat-eslestirme"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "Yalnız <= YM filtresi, doğrusal R katsayısı, N=0,80 altyapı katsayısı ve CalmIfcWorkspace içinde uydurma YM/rakip teklif dizisi vardı.",
+        after: "Tebliğ m.45.1.1 (%40–%120 YM bandı, K = (3,2C − C² − 0,6)/(C+1) veya (C² − 0,8C + 1,4)/(C+1), N=1,00 Üstyapı / N=1,20 Diğer Yapım, SD = K×Tort2/(C×N), %40 YM alt sınır güvencesi) ve sıfır uydurma girdi (hasTenderSessionInputs = false) uygulandı.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1, m.45.1.1.1, m.45.1.1.4 & m.45.1.2 (src/lib/kik-adt.ts)",
+      },
+      iso19650: {
+        before: "ifc-rule-run.ts içinde sabit 'SHARED / S3 / P01.01' ve yedek 'Zemin Kat / row-N' geçildiği için CDE her zaman yeşil, LOIN ise şişirilmiş çıkıyordu.",
+        after: "Sabit CDE ve LOIN yedekleri kaldırıldı; CDE üstverisi yoksa cdeEvaluationStatus = 'not_evaluated' döner, 9 alanlı RG 33331 EK-2 dosya adı resmi ek2_disiplinler.json tablolarından doğrulanır.",
+        basis: "TS EN ISO 19650-1/2, EN 17412-1 & RG 33331 EK-2 (src/smartcheck/rules/iso19650.ts, ifc-rule-run.ts)",
+      },
+      minha: {
+        before: "Kaynaksız CSB_FORMWORK_4M2 (4,00 m²) hazır profili bulunuyordu.",
+        after: "Kaynaksız sabit eşik kaldırılarak çağırandan açık customThresholdM2 bekleyen CUSTOM_CONTRACT moduna dönüştürüldü.",
+        basis: "src/smartcheck/rules/minha.ts & YOL_HARITASI_2026-10-17 (K-3)",
+      },
+      "fiyat-eslestirme": {
+        before: "Mart 2026 aylık ÇŞB birim fiyat ve rayiç kataloglarında validityEnd = 2026-12-31 tanımlıydı.",
+        after: "Aylık Mart 2026 kataloglarının geçerlilik dönemi 2026-03-01 – 2026-03-31 olarak düzeltildi (yıllık Yapı Yaklaşık Maliyet Tebliği 2026-01-01 – 2026-12-31 korundu).",
+        basis: "ÇŞB YFK Aylık Yayın Kuralı & src/server/crawler/data/csb-2026-official-catalogs.json (0.6)",
       },
     },
   },
@@ -367,7 +401,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   "fiyat-eslestirme": {
     scope: "Kanıtlı fiyat kayıtlarını sıralayan öneri; kendi başına fiyat onayı vermez.",
-    testFiles: ["src/smartcheck/pricing/snapshots.test.ts"],
+    testFiles: ["src/smartcheck/pricing/snapshots.test.ts", "src/server/crawler/csb-pdf-parser.test.ts"],
     pending: "Gerçek katalogda poz/birim eşleşmesi, lisans, tarih ve öneri kalitesinin doğrulanması.",
   },
   "aykiri-fiyat": {
@@ -386,17 +420,17 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Kiriş–kolon düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
   },
   minha: {
-    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Özel Şartname Kalıp/İskele (CSB_FORMWORK_4M2: 4,00 m²) boşluk düşüm motoru aktif.",
+    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Kullanıcı Tanımlı Özel Şartname (CUSTOM_CONTRACT: customThresholdM2) boşluk düşüm motoru aktif.",
     testFiles: ["src/smartcheck/rules/minha.test.ts"],
     pending: "Özel idare şartnameleri ve alternatif ölçü esası profillerinin saha kabulü.",
   },
   iso19650: {
-    scope: "TS EN ISO 19650-1/2 bilgi konteyneri adlandırma (7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2), CDE durumu (WIP S0 / SHARED S1..S7 / PUBLISHED A1..A7 / ARCHIVED B), revizyon kodu (Pxx.xx / Cxx) ve EN 17412-1 LOIN tamlık motoru aktif.",
+    scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, açık üstveri verildiğinde CDE/revizyon kontrolü (yoksa not_evaluated) ve EN 17412-1 LOIN gerçek öznitelik tamlık motoru aktif.",
     testFiles: ["src/smartcheck/rules/iso19650.test.ts", "src/smartcheck/rules/ifc-rule-run.test.ts"],
-    pending: "Kurum bazlı BEP (BIM Uygulama Planı) kod sözlüklerinin şirket ayarlarıyla eşleştirilmesi.",
+    pending: "Doküman üstverisinde tam CDE durum makinesi (WIP/Shared/Published/Archived geçiş kaydı) Faz 2 yol haritasında.",
   },
   "kik-adt": {
-    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1 yapım işleri Sınır Değer (SD = R × YM, Üstyapı N=1,00 / Altyapı N=0,80) ve %80 Pareto açıklama istenecek sıralı iş kalemleri motoru aktif.",
+    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili) ve %80 Pareto açıklama istenecek sıralı iş kalemleri motoru aktif.",
     testFiles: ["src/lib/kik-adt.test.ts"],
     pending: "Gerçek kamu ihale dosyalarıyla sınır değer ve aşırı düşük açıklama cetveli saha kabulü.",
   },

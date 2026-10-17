@@ -2,16 +2,16 @@
  * Contractual Opening Deduction (Minha), Reveal Addition (Merkez/Denizlik),
  * and Structural Concrete/Formwork Intersection Engine.
  *
- * Implements the three primary measurement standards used in Turkish & international
- * construction tenders:
+ * Implements the two sourced official measurement standards plus a user-defined
+ * contractual threshold mode:
  * - CSB_2026: ÇŞB Genel Teknik Şartnamesi (<= 0.50 m² openings not deducted for
  *   plaster/paint; > 0.50 m² deducted with reveal/return surfaces added back).
  * - DIN_18350: VOB/C DIN 18350 (<= 2.50 m² openings not deducted; > 2.50 m² deducted).
- * - CSB_FORMWORK_4M2: Özel Şartname / Dış Cephe İskele & Kalıp Minha Standardı
- *   (<= 4.00 m² openings not deducted; > 4.00 m² deducted).
+ * - CUSTOM_CONTRACT: Kullanıcı Tanımlı Özel Şartname Eşiği (explicit `customThresholdM2`
+ *   required from the caller; no unsourced hardcoded preset).
  */
 
-export type MeasurementStandard = "CSB_2026" | "DIN_18350" | "CSB_FORMWORK_4M2";
+export type MeasurementStandard = "CSB_2026" | "DIN_18350" | "CUSTOM_CONTRACT";
 
 export interface OpeningInput {
   id?: string;
@@ -40,12 +40,14 @@ export interface PlasterPaintMinhaInput {
   grossAreaM2: number;
   openings: OpeningInput[];
   standard?: MeasurementStandard;
+  /** Required when standard === "CUSTOM_CONTRACT" (user-defined contractual threshold in m²). */
+  customThresholdM2?: number;
   wallThicknessM?: number;
   includeRevealOnDeducted?: boolean;
 }
 
 export interface PlasterPaintMinhaResult {
-  ruleVersion: "minha-2026.1";
+  ruleVersion: "minha-2026.2";
   standard: MeasurementStandard;
   thresholdM2: number;
   grossAreaM2: number;
@@ -94,8 +96,22 @@ function round4(n: number): number {
 
 export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): PlasterPaintMinhaResult {
   const standard: MeasurementStandard = input.standard ?? "CSB_2026";
+  if (
+    standard === "CUSTOM_CONTRACT" &&
+    (typeof input.customThresholdM2 !== "number" ||
+      !Number.isFinite(input.customThresholdM2) ||
+      input.customThresholdM2 < 0)
+  ) {
+    throw new Error(
+      "CUSTOM_CONTRACT minha standardı için geçerli bir customThresholdM2 (m²) değeri belirtilmelidir.",
+    );
+  }
   const thresholdM2 =
-    standard === "CSB_FORMWORK_4M2" ? 4.0 : standard === "DIN_18350" ? 2.5 : 0.5;
+    standard === "CUSTOM_CONTRACT"
+      ? round4(Number(input.customThresholdM2))
+      : standard === "DIN_18350"
+        ? 2.5
+        : 0.5;
   const defaultRevealDepthM =
     typeof input.wallThicknessM === "number" && input.wallThicknessM > 0
       ? input.wallThicknessM
@@ -162,7 +178,7 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
   );
 
   return {
-    ruleVersion: "minha-2026.1",
+    ruleVersion: "minha-2026.2",
     standard,
     thresholdM2,
     grossAreaM2: round4(grossAreaM2),

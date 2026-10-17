@@ -98,6 +98,8 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   }, [dataset.groups, dataset.residentialUnitCount, dataset.totalGeneralGrossM2, overheadPercent, unitPrices]);
 
   const [kikWorkCategory, setKikWorkCategory] = useState<KikWorkCategory>("ust_yapi");
+  const [tenderYmInput, setTenderYmInput] = useState<string>("");
+  const [tenderBidsInput, setTenderBidsInput] = useState<string>("");
 
   const isoContainerIdentity = useMemo(
     () => parseContainerIdentity(dataset.projectTitle),
@@ -105,17 +107,20 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   );
 
   const kikAdtAnalysis = useMemo(() => {
-    const estimatedYm = Math.max(1, Math.round(costSummary.directTotal * 1.25));
-    const ourBid = Math.max(1, Math.round(costSummary.grandTotal));
-    const sampleBids = [
-      ourBid,
-      Math.round(estimatedYm * 0.84),
-      Math.round(estimatedYm * 0.88),
-      Math.round(estimatedYm * 0.92),
-    ];
+    const parsedYm = Number(tenderYmInput.replace(/\./g, "").replace(",", ".").trim());
+    const validYm = Number.isFinite(parsedYm) && parsedYm > 0 ? parsedYm : null;
+    const ourBid = Math.max(0, Math.round(costSummary.grandTotal));
+    const parsedCompetitorBids = tenderBidsInput
+      .split(/[;\n]+|(?:\s+)/)
+      .flatMap((token) => token.split(","))
+      .map((raw) => Number(raw.replace(/\./g, "").trim()))
+      .filter((v) => Number.isFinite(v) && v > 0);
+    const sessionBids =
+      validYm && parsedCompetitorBids.length > 0 ? [ourBid, ...parsedCompetitorBids] : [];
+
     return evaluateKikAbnormallyLowBid({
-      estimatedCostTry: estimatedYm,
-      validBidsTry: sampleBids,
+      estimatedCostTry: validYm,
+      validBidsTry: sessionBids,
       ourBidTry: ourBid,
       workCategory: kikWorkCategory,
       lineItems: allItems.map((it) => ({
@@ -125,7 +130,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         totalAmount: Math.round(it.netQuantity * (unitPrices[it.id] ?? it.defaultUnitPriceTry)),
       })),
     });
-  }, [allItems, costSummary.directTotal, costSummary.grandTotal, kikWorkCategory, unitPrices]);
+  }, [allItems, costSummary.grandTotal, kikWorkCategory, tenderBidsInput, tenderYmInput, unitPrices]);
 
   const handleDownloadCsv = () => {
     const lines: string[] = [];
@@ -910,31 +915,67 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                         : "text-muted-foreground"
                     }`}
                   >
-                    Altyapı (N=0,80)
+                    Diğer Yapım / Altyapı (N=1,20)
                   </button>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
-                <div className="border border-border bg-card p-2">
-                  <div className="text-[10px] text-muted-foreground">Sınır Değer (SD = R × YM)</div>
-                  <div className="mt-0.5 font-bold text-foreground tabular-nums">
-                    {formatTrCurrency(kikAdtAnalysis.boundaryValueTry)}
-                  </div>
-                </div>
-                <div className="border border-border bg-card p-2">
-                  <div className="text-[10px] text-muted-foreground">KİK m.38 Durumu</div>
-                  <div
-                    className={`mt-0.5 font-bold tabular-nums ${
-                      kikAdtAnalysis.isAbnormallyLow ? "text-primary" : "text-foreground"
-                    }`}
-                  >
-                    {kikAdtAnalysis.isAbnormallyLow
-                      ? `Aşırı Düşük (${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`
-                      : `Sınır Değer Üstü (+${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`}
-                  </div>
-                </div>
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground block mb-1">
+                    İdare Yaklaşık Maliyeti (YM - TL)
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={tenderYmInput}
+                    onChange={(e) => setTenderYmInput(e.target.value)}
+                    placeholder="Örn: 125000000"
+                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground block mb-1">
+                    Rakip Teklifler (TL, noktalı virgül ile)
+                  </span>
+                  <input
+                    type="text"
+                    value={tenderBidsInput}
+                    onChange={(e) => setTenderBidsInput(e.target.value)}
+                    placeholder="Örn: 98000000; 102500000; 106000000"
+                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                  />
+                </label>
               </div>
+
+              {kikAdtAnalysis.hasTenderSessionInputs ? (
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="border border-border bg-card p-2">
+                    <div className="text-[10px] text-muted-foreground">
+                      Sınır Değer (SD = K × Tort2 / (C × N))
+                    </div>
+                    <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                      {formatTrCurrency(kikAdtAnalysis.boundaryValueTry)}
+                    </div>
+                  </div>
+                  <div className="border border-border bg-card p-2">
+                    <div className="text-[10px] text-muted-foreground">KİK m.38 Durumu</div>
+                    <div
+                      className={`mt-0.5 font-bold tabular-nums ${
+                        kikAdtAnalysis.isAbnormallyLow ? "text-primary" : "text-foreground"
+                      }`}
+                    >
+                      {kikAdtAnalysis.isAbnormallyLow
+                        ? `Aşırı Düşük (${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`
+                        : `Sınır Değer Üstü (+${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
+                  Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz).
+                </div>
+              )}
 
               <div className="mt-2.5 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
                 <span>
@@ -944,7 +985,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   </strong>
                 </span>
                 <span>
-                  Adlandırma:{" "}
+                  Dosya Adı Şablonu:{" "}
                   <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
                 </span>
               </div>

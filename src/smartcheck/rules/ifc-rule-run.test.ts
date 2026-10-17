@@ -73,5 +73,11 @@ describe("server-side IFC rule run (E-1, E-6)", () => {
     assert.deepEqual(result.threeByThree.coverage[RULE_IDS.COVER_MIN_TS500], { evaluated: 1, missingInput: 1 });
     assert.deepEqual(result.threeByThree.coverage[RULE_IDS.LAYER_PRIORITY], { evaluated: 1, missingInput: 1 });
     assert.equal(result.threeByThree.violations.length, 3);
+    assert.ok(result.iso19650);
+    assert.equal(result.iso19650.cdeEvaluationStatus, "not_evaluated");
+    assert.equal(result.iso19650.cdeState, null);
+    assert.equal(result.iso19650.loin.uniqueGuidRatio, 0);
+    assert.equal(result.iso19650.loin.alphanumericCompletenessRatio, 0);
   });
 });
+

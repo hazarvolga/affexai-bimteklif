@@ -1,19 +1,25 @@
 /**
- * 4734 Sayılı Kamu İhale Kanunu (KİK) Madde 38 & Kamu İhale Genel Tebliği Madde 45
- * Yapım İşleri Aşırı Düşük Teklif (ADT) Sınır Değer ve Sıralı İş Kalemleri (%80 Pareto) Motoru.
+ * 4734 Sayılı Kamu İhale Kanunu (KİK) Madde 38 & Kamu İhale Genel Tebliği Madde 45.1.1
+ * Yapım İşleri Aşırı Düşük Teklif (ADT) Sınır Değer (SD) ve Sıralı İş Kalemleri (%80 Pareto) Motoru.
  *
- * Resmi Formülasyon:
- * 1. Yaklaşık Maliyetin (YM) üzerindeki teklifler sınır değer hesabına katılmaz.
- * 2. Geçerli tekliflerin (T_i <= YM) aritmetik ortalaması (T_ort1) ve standart sapması (sigma) hesaplanır.
- *    (Teklif sayısı n >= 3 ise örneklem standart sapması s = sqrt(sum((T_i - T_ort1)^2) / (n - 1)) kullanılır.)
- * 3. [T_ort1 - sigma, T_ort1 + sigma] aralığında kalan tekliflerin ikinci aritmetik ortalaması (T_ort2) alınır.
- * 4. C = T_ort2 / YM oranı hesaplanır:
- *    - C < 0,60         => R = 0,60 * N
- *    - 0,60 <= C <= 1,00 => R = C * N
- *    - C > 1,00         => R = 1,00 * N
- *    Burada N katsayısı: Üstyapı (Bina) işlerinde N = 1,00; Altyapı işlerinde N = 0,80.
- * 5. Sınır Değer (SD) = R * YM. SD'nin altındaki teklifler Aşırı Düşük Teklif (ADT) olarak sınıflandırılır.
- * 6. Kamu İhale Genel Tebliği m.45.1.2 uyarınca teklif kalemleri tutarlarına göre büyükten küçüğe sıralanır;
+ * Resmi Formülasyon (Kamu İhale Genel Tebliği m.45.1.1, m.45.1.1.1, m.45.1.1.4 ve m.45.1.2):
+ * 1. İdarece belirlenen Yaklaşık Maliyetin (YM) %120'sinin üzerindeki (> 1,20 * YM) ve
+ *    %40'ının altındaki (< 0,40 * YM) teklifler dikkate alınmaz.
+ * 2. [0,40 * YM, 1,20 * YM] aralığında kalan n adet geçerli teklifin aritmetik ortalaması (T_ort1)
+ *    ve (n - 1) serbestlik dereceli standart sapması (sigma = sqrt(sum((T_i - T_ort1)^2) / (n - 1))) hesaplanır.
+ * 3. [T_ort1 - sigma, T_ort1 + sigma] aralığında (sınırlar dahil) yer alan tekliflerin ikinci
+ *    aritmetik ortalaması (T_ort2) alınır. (Tek geçerli teklif varsa m.45.1.1.4 uyarınca T_ort2 = T_1 alınır.)
+ * 4. C = T_ort2 / YM oranı hesaplanır ve C değerine göre K katsayısı bulunur:
+ *    - C < 0,60          => K = C
+ *    - 0,60 <= C <= 1,00 => K = (3,2 * C - C^2 - 0,6) / (C + 1)
+ *    - C > 1,00          => K = (C^2 - 0,8 * C + 1,4) / (C + 1)
+ * 5. Sınır Değer Katsayısı (N — Tebliğ m.45.1.1.1):
+ *    - Üstyapı (Bina), Elektrik, Mekanik Tesisat, Elektronik ve İletişim işleri: N = 1,00
+ *    - Diğer Yapım İşleri (Altyapı vb.): N = 1,20
+ * 6. Sınır Değer (SD) = (K * T_ort2) / (C * N).
+ *    Tebliğ m.45.1.1.4 uyarınca %40-%120 aralığında geçerli teklif bulunmaması veya hesaplanan SD'nin
+ *    0,40 * YM'nin altında çıkması halinde SD = 0,40 * YM olarak belirlenir.
+ * 7. Kamu İhale Genel Tebliği m.45.1.2 uyarınca teklif kalemleri tutarlarına göre büyükten küçüğe sıralanır;
  *    toplam teklif tutarının %80'ine ulaşılana kadar olan kalemler "Açıklama İstenecek Sıralı İş Kalemleri"dir.
  */
 
@@ -27,8 +33,10 @@ export interface KikLineItemInput {
 }
 
 export interface KikAdtInput {
-  estimatedCostTry: number;
-  validBidsTry: number[];
+  /** İdare Yaklaşık Maliyeti (YM - TL). Girilmediyse (<= 0 veya null/undefined) sınır değer hesaplanmaz, yalnız Pareto çalışır. */
+  estimatedCostTry?: number | null;
+  /** İhale ilk oturumundaki geçerli teklifler (TL). */
+  validBidsTry?: number[];
   ourBidTry: number;
   workCategory?: KikWorkCategory;
   nCoefficientOverride?: number;
@@ -42,18 +50,24 @@ export interface KikRankedLineItem extends KikLineItemInput {
 }
 
 export interface KikAdtResult {
-  ruleVersion: "kik-4734-m38-2026.1";
+  ruleVersion: "kik-4734-m38-2026.2";
   sourceCitation: string;
+  /** True only when real YM (> 0) and at least 1 valid bid were provided by the user. */
+  hasTenderSessionInputs: boolean;
   estimatedCostTry: number;
   workCategory: KikWorkCategory;
   nCoefficient: number;
   admittedBidsTry: number[];
+  excludedBelow40PercentYmBidsTry: number[];
+  excludedAbove120PercentYmBidsTry: number[];
+  /** Alias for bids excluded above 120% YM. */
   excludedAboveYmBidsTry: number[];
   firstMeanTry: number;
   standardDeviationTry: number;
   inBandBidsTry: number[];
   correctedMeanTry: number;
   cRatio: number;
+  kFactor: number;
   rFactor: number;
   boundaryValueTry: number;
   ourBidTry: number;
@@ -71,63 +85,33 @@ function round6(n: number): number {
   return Math.round((n + Number.EPSILON) * 1_000_000) / 1_000_000;
 }
 
+export function computeKikKFactor(c: number): number {
+  if (c < 0.6) {
+    return round6(c);
+  }
+  if (c <= 1.0) {
+    return round6((3.2 * c - c * c - 0.6) / (c + 1));
+  }
+  return round6((c * c - 0.8 * c + 1.4) / (c + 1));
+}
+
 export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
-  const ym = Math.max(0.01, Number(input.estimatedCostTry) || 0);
+  const rawYm = Number(input.estimatedCostTry);
   const ourBid = Math.max(0, Number(input.ourBidTry) || 0);
   const workCategory: KikWorkCategory = input.workCategory ?? "ust_yapi";
   const nCoefficient =
     typeof input.nCoefficientOverride === "number" && input.nCoefficientOverride > 0
       ? input.nCoefficientOverride
       : workCategory === "alt_yapi"
-        ? 0.8
+        ? 1.2
         : 1.0;
 
   const rawBids = (input.validBidsTry ?? [])
     .map((b) => Number(b))
     .filter((b) => Number.isFinite(b) && b > 0);
 
-  const admittedBidsTry = rawBids.filter((b) => b <= ym);
-  const excludedAboveYmBidsTry = rawBids.filter((b) => b > ym);
-
-  const n = admittedBidsTry.length;
-  const firstMeanTry =
-    n > 0 ? round2(admittedBidsTry.reduce((sum, b) => sum + b, 0) / n) : round2(ym);
-
-  let standardDeviationTry = 0;
-  if (n >= 2) {
-    const variance =
-      admittedBidsTry.reduce((acc, b) => acc + Math.pow(b - firstMeanTry, 2), 0) / (n - 1);
-    standardDeviationTry = round2(Math.sqrt(variance));
-  }
-
-  const lowerBand = firstMeanTry - standardDeviationTry;
-  const upperBand = firstMeanTry + standardDeviationTry;
-
-  const inBandBidsTry =
-    n >= 3
-      ? admittedBidsTry.filter((b) => b >= lowerBand - 1e-6 && b <= upperBand + 1e-6)
-      : [...admittedBidsTry];
-
-  const correctedMeanTry =
-    inBandBidsTry.length > 0
-      ? round2(inBandBidsTry.reduce((sum, b) => sum + b, 0) / inBandBidsTry.length)
-      : firstMeanTry;
-
-  const cRatio = round6(correctedMeanTry / ym);
-
-  let rFactor: number;
-  if (cRatio < 0.6) {
-    rFactor = round6(0.6 * nCoefficient);
-  } else if (cRatio <= 1.0) {
-    rFactor = round6(cRatio * nCoefficient);
-  } else {
-    rFactor = round6(1.0 * nCoefficient);
-  }
-
-  const boundaryValueTry = round2(rFactor * ym);
-  const isAbnormallyLow = ourBid < boundaryValueTry;
-  const marginToBoundaryPercent =
-    boundaryValueTry > 0 ? round2(((ourBid - boundaryValueTry) / boundaryValueTry) * 100) : 0;
+  const hasTenderSessionInputs = Number.isFinite(rawYm) && rawYm > 0 && rawBids.length > 0;
+  const ym = hasTenderSessionInputs ? rawYm : 0;
 
   // Kamu İhale Genel Tebliği m.45.1.2 — Sıralı İş Kalemleri (%80 Pareto Analizi)
   const sortedItems = [...(input.lineItems ?? [])]
@@ -167,20 +151,139 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     }
   }
 
+  if (!hasTenderSessionInputs) {
+    return {
+      ruleVersion: "kik-4734-m38-2026.2",
+      sourceCitation:
+        "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+      hasTenderSessionInputs: false,
+      estimatedCostTry: 0,
+      workCategory,
+      nCoefficient,
+      admittedBidsTry: [],
+      excludedBelow40PercentYmBidsTry: [],
+      excludedAbove120PercentYmBidsTry: [],
+      excludedAboveYmBidsTry: [],
+      firstMeanTry: 0,
+      standardDeviationTry: 0,
+      inBandBidsTry: [],
+      correctedMeanTry: 0,
+      cRatio: 0,
+      kFactor: 0,
+      rFactor: 0,
+      boundaryValueTry: 0,
+      ourBidTry: round2(ourBid),
+      isAbnormallyLow: false,
+      marginToBoundaryPercent: 0,
+      explanationRequiredItems,
+      exemptMinorItems,
+    };
+  }
+
+  const minAdmissibleBid = 0.4 * ym;
+  const maxAdmissibleBid = 1.2 * ym;
+
+  const excludedBelow40PercentYmBidsTry = rawBids.filter((b) => b < minAdmissibleBid - 1e-6);
+  const excludedAbove120PercentYmBidsTry = rawBids.filter((b) => b > maxAdmissibleBid + 1e-6);
+  const admittedBidsTry = rawBids.filter(
+    (b) => b >= minAdmissibleBid - 1e-6 && b <= maxAdmissibleBid + 1e-6,
+  );
+
+  const n = admittedBidsTry.length;
+
+  // Tebliğ m.45.1.1.4: %40 - %120 aralığında geçerli teklif bulunmaması durumunda sınır değer YM'nin %40'ıdır.
+  if (n === 0) {
+    const floorBoundary = round2(0.4 * ym);
+    const isAbnormallyLow = ourBid < floorBoundary;
+    const marginToBoundaryPercent =
+      floorBoundary > 0 ? round2(((ourBid - floorBoundary) / floorBoundary) * 100) : 0;
+
+    return {
+      ruleVersion: "kik-4734-m38-2026.2",
+      sourceCitation:
+        "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+      hasTenderSessionInputs: true,
+      estimatedCostTry: round2(ym),
+      workCategory,
+      nCoefficient,
+      admittedBidsTry: [],
+      excludedBelow40PercentYmBidsTry,
+      excludedAbove120PercentYmBidsTry,
+      excludedAboveYmBidsTry: excludedAbove120PercentYmBidsTry,
+      firstMeanTry: 0,
+      standardDeviationTry: 0,
+      inBandBidsTry: [],
+      correctedMeanTry: 0,
+      cRatio: 0,
+      kFactor: 0,
+      rFactor: 0.4,
+      boundaryValueTry: floorBoundary,
+      ourBidTry: round2(ourBid),
+      isAbnormallyLow,
+      marginToBoundaryPercent,
+      explanationRequiredItems,
+      exemptMinorItems,
+    };
+  }
+
+  const firstMeanExact = admittedBidsTry.reduce((sum, b) => sum + b, 0) / n;
+  const firstMeanTry = round2(firstMeanExact);
+
+  let standardDeviationExact = 0;
+  if (n >= 2) {
+    const variance =
+      admittedBidsTry.reduce((acc, b) => acc + Math.pow(b - firstMeanExact, 2), 0) / (n - 1);
+    standardDeviationExact = Math.sqrt(variance);
+  }
+  const standardDeviationTry = round2(standardDeviationExact);
+
+  // Tebliğ m.45.1.1 & m.45.1.1.4: Tek geçerli teklif varsa T_ort2 = tek geçerli teklif;
+  // n >= 2 ise [T_ort1 - sigma, T_ort1 + sigma] aralığındaki tekliflerin ortalaması.
+  const lowerBand = firstMeanExact - standardDeviationExact;
+  const upperBand = firstMeanExact + standardDeviationExact;
+
+  const inBandBidsTry =
+    n >= 2
+      ? admittedBidsTry.filter((b) => b >= lowerBand - 1e-6 && b <= upperBand + 1e-6)
+      : [...admittedBidsTry];
+
+  const correctedMeanExact =
+    inBandBidsTry.length > 0
+      ? inBandBidsTry.reduce((sum, b) => sum + b, 0) / inBandBidsTry.length
+      : firstMeanExact;
+  const correctedMeanTry = round2(correctedMeanExact);
+
+  const cExact = correctedMeanExact / ym;
+  const cRatio = round6(cExact);
+  const kFactor = computeKikKFactor(cExact);
+
+  // SD = (K * T_ort2) / (C * N) ; m.45.1.1.4 uyarınca alt sınır 0,40 * YM
+  const rawBoundaryTry = (kFactor * correctedMeanExact) / (cExact * nCoefficient);
+  const boundaryValueTry = round2(Math.max(0.4 * ym, rawBoundaryTry));
+  const rFactor = round6(boundaryValueTry / ym);
+
+  const isAbnormallyLow = ourBid < boundaryValueTry;
+  const marginToBoundaryPercent =
+    boundaryValueTry > 0 ? round2(((ourBid - boundaryValueTry) / boundaryValueTry) * 100) : 0;
+
   return {
-    ruleVersion: "kik-4734-m38-2026.1",
+    ruleVersion: "kik-4734-m38-2026.2",
     sourceCitation:
-      "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+      "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+    hasTenderSessionInputs: true,
     estimatedCostTry: round2(ym),
     workCategory,
     nCoefficient,
     admittedBidsTry,
-    excludedAboveYmBidsTry,
+    excludedBelow40PercentYmBidsTry,
+    excludedAbove120PercentYmBidsTry,
+    excludedAboveYmBidsTry: excludedAbove120PercentYmBidsTry,
     firstMeanTry,
     standardDeviationTry,
     inBandBidsTry,
     correctedMeanTry,
     cRatio,
+    kFactor,
     rFactor,
     boundaryValueTry,
     ourBidTry: round2(ourBid),
@@ -190,3 +293,4 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     exemptMinorItems,
   };
 }
+
