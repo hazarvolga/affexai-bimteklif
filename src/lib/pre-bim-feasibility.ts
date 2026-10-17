@@ -158,6 +158,11 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
 
   const footprint = round(area * taks, 2);
   const emsal = round(area * kaks, 2);
+  if (harici > 0 && emsal > 0 && harici > round(emsal * 0.3, 2)) {
+    warnings.push(
+      `${label}: emsal harici alan (${harici} m²), emsal alanının (${emsal} m²) %30'unu (${round(emsal * 0.3, 2)} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve saha uygulamasına göre emsal harici alan kural olarak emsalin en fazla %30'u kadardır (Melih Dinekli saha teyidi, 17 Ekim 2026).`,
+    );
+  }
   return {
     name: label,
     valid: true,
@@ -169,6 +174,61 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
     approxFloorCount: footprint > 0 ? Math.ceil(emsal / footprint - 1e-9) : null,
   };
 }
+
+/**
+ * Melih Dinekli Saha Doğrulaması (17 Ekim 2026):
+ * 6-Villa Projesi Gerçek Piyasa Maliyet Dağılımı Referansı (27 Kalem).
+ *
+ * Kaynak: Melih Dinekli saha yanıtı ve `6-villa 2 A'dan Z'ye piyasa maliyetii.pdf` dökümü.
+ * Toplam inşaat maliyeti: 4.135.752,77 TL (tam %100,00).
+ * Bu referans, kullanıcılara karşılaştırma ve piyasa kontrol göstergesi olarak sunulur;
+ * gizli varsayılan olarak hesaba otomatik uygulanmaz (kullanıcı kendi yüzdelerini girer).
+ */
+export interface CostBenchmarkItem {
+  id: string;
+  name: string;
+  percent: number;
+  sampleAmountTry: number;
+  category: "ruhsat_proje" | "santiye_kamu" | "kaba_yapi" | "tesisat" | "ince_yapi" | "cevre_diger";
+}
+
+export const MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026: {
+  readonly source: string;
+  readonly sampleTotalCostTry: number;
+  readonly items: readonly CostBenchmarkItem[];
+} = {
+  source: "Melih Dinekli 6-Villa Projesi Gerçek Piyasa Maliyet Analizi (17 Ekim 2026)",
+  sampleTotalCostTry: 4135752.77,
+  items: [
+    { id: "projelendirme", name: "Projelendirme", percent: 7.13, sampleAmountTry: 295000.0, category: "ruhsat_proje" },
+    { id: "santiye_kurulumu", name: "Şantiye Kurulumu", percent: 8.1, sampleAmountTry: 335000.0, category: "santiye_kamu" },
+    { id: "hafriyat", name: "Hafriyat", percent: 0.86, sampleAmountTry: 35590.53, category: "kaba_yapi" },
+    { id: "aylik_odemeler", name: "Aylık Ödemeler", percent: 2.32, sampleAmountTry: 96000.0, category: "santiye_kamu" },
+    { id: "kamu_odemeler", name: "Kamu Ödemeleri", percent: 7.03, sampleAmountTry: 290825.51, category: "ruhsat_proje" },
+    { id: "is_makinalari", name: "İş Makinaları", percent: 1.33, sampleAmountTry: 55012.5, category: "kaba_yapi" },
+    { id: "beton_demir", name: "Beton-Demir", percent: 20.43, sampleAmountTry: 844810.0, category: "kaba_yapi" },
+    { id: "su_yalitimi_drenaj", name: "Su Yalıtımı ve Drenaj", percent: 1.2, sampleAmountTry: 49681.0, category: "kaba_yapi" },
+    { id: "duvar", name: "Duvar", percent: 2.26, sampleAmountTry: 93584.0, category: "kaba_yapi" },
+    { id: "cati", name: "Çatı", percent: 4.32, sampleAmountTry: 178794.2, category: "kaba_yapi" },
+    { id: "dis_cephe", name: "Dış Cephe", percent: 4.03, sampleAmountTry: 166557.0, category: "ince_yapi" },
+    { id: "isitma_sogutma", name: "Isıtma ve Soğutma", percent: 5.27, sampleAmountTry: 218141.0, category: "tesisat" },
+    { id: "sap", name: "Şap", percent: 1.0, sampleAmountTry: 41457.78, category: "ince_yapi" },
+    { id: "seramik", name: "Seramik", percent: 2.75, sampleAmountTry: 113605.25, category: "ince_yapi" },
+    { id: "mermer", name: "Mermer", percent: 2.36, sampleAmountTry: 97631.0, category: "ince_yapi" },
+    { id: "elektrik", name: "Elektrik", percent: 6.35, sampleAmountTry: 262792.0, category: "tesisat" },
+    { id: "siva", name: "Sıva", percent: 1.95, sampleAmountTry: 80688.0, category: "ince_yapi" },
+    { id: "boya", name: "Boya", percent: 1.8, sampleAmountTry: 74360.0, category: "ince_yapi" },
+    { id: "alcipan", name: "Alçıpan", percent: 0.42, sampleAmountTry: 17430.0, category: "ince_yapi" },
+    { id: "pencere", name: "Pencere", percent: 4.84, sampleAmountTry: 200241.0, category: "ince_yapi" },
+    { id: "parke", name: "Parke", percent: 0.66, sampleAmountTry: 27300.0, category: "ince_yapi" },
+    { id: "celik_kapi", name: "Çelik Kapı", percent: 1.03, sampleAmountTry: 42680.0, category: "ince_yapi" },
+    { id: "ic_kapilar", name: "İç Kapılar", percent: 1.0, sampleAmountTry: 41400.0, category: "ince_yapi" },
+    { id: "ahsap_isleri_dolap", name: "Ahşap İşleri ve Dolap", percent: 3.54, sampleAmountTry: 146250.0, category: "ince_yapi" },
+    { id: "ankastre", name: "Ankastre", percent: 3.49, sampleAmountTry: 144362.0, category: "ince_yapi" },
+    { id: "balkon_korkuluk", name: "Balkon ve Korkuluk", percent: 0.76, sampleAmountTry: 31500.0, category: "ince_yapi" },
+    { id: "peyzaj", name: "Peyzaj", percent: 3.75, sampleAmountTry: 155060.0, category: "cevre_diger" },
+  ],
+};
 
 export function computeFeasibility(input: FeasibilityInput): FeasibilityResult {
   const warnings: string[] = [];

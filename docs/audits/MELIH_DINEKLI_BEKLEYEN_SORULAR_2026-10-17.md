@@ -1,35 +1,27 @@
-# Melih Dinekli'ye Sorulan ve Yanıt Bekleyen Sorular (17 Ekim 2026)
+# Melih Dinekli Saha Soruları ve Alınan Resmî Yanıtlar (17 Ekim 2026)
 
-- **Durum:** Sorular 17 Ekim 2026'da Hazar tarafından Melih Bey'e iletildi. **Yanıtlar bekleniyor.**
-- **Yanıt gelince:** Hazar yanıtları bildirecek; ilgili kod ve belgeler aşağıdaki "Etkilenen iş" sütununa göre güncellenir.
+- **Durum:** Hazar tarafından Melih Bey'e iletilen 17 soru, 17 Ekim 2026 saat 20:19'da Melih Bey tarafından yazılı metin (`melihbeyden-gelen-yanit/yanitlar.rtf`) ve 27 kalemlik gerçek proje maliyet tablosu (`melihbeyden-gelen-yanit/6-villa 2 A'dan Z'ye piyasa maliyetii.pdf`) ile **resmen yanıtlanmıştır.**
 - **Üst kayıt:** `docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md`
-- **Not:** Bu liste yanıt geldikçe `Yanıt` sütunu doldurularak güncellenir. Yanıtsız madde için kodda varsayılan değer uydurulmaz.
+- **Uygulama Kuralı:** Yanıtı alınan maddeler doğrudan koda ve testlere bağlanır; henüz örnek dosya/ölçüm bekleyen maddeler için kodda varsayım uydurulmaz.
 
-★ = öncelikli.
+★ = öncelikli soru.
 
-| # | Soru | Etkilenen iş | Yanıt |
-|---|---|---|---|
-| 1 ★ | Taşeron hakedişinde (sıva, şap, kaplama) ödenen alan odanın net zemin alanı mı, yoksa kapı/pencere boşlukları düşülmüş alan mı? Üçü için aynı mı? | M-1 `apartment-subcontractor-shield.ts` tavan formülü (şu an mahal net alanı) | _bekleniyor_ |
-| 2 | Taşeronlar metrajı sahada nasıl şişiriyor (balkon, niş, küçük boşluk, köşe vb.)? | M-1 uyarı metinleri | _bekleniyor_ |
-| 3 | Şap ve sıvada sahada kabul edilen fire oranı ve çimento dozajı (kg/m³)? | M-1 girdi önerileri (şu an varsayılan yok) | _bekleniyor_ |
-| 4 ★ | Kayıttaki "TAKS 2 → 800 m²" ifadesinde 2 kat sayısı mı, KAKS 0,80 mi? | M-3 örnek/test değerleri, audit dokümanı düzeltmesi | _bekleniyor_ |
-| 5 ★ | Arsa sahibi payı yalnız emsal alanı üzerinden mi, emsal harici dahil toplam inşaat alanı üzerinden mi hesaplanıyor? | M-3 `shareBase` varsayılan önerisi (şu an kullanıcı seçer) | _bekleniyor_ |
-| 6 | Net/brüt oranını kim belirliyor? Brüt alana ortak alan payı dahil mi? | M-3 net/brüt girdisi açıklaması | _bekleniyor_ |
-| 7 | Müteahhitlerin ön teklif Excel'inden 2–3 anonim örnek (özellikle çoklu parsel). | M-3 CSV/xlsx şablon sütunları | _bekleniyor_ |
-| 8 | Komisyon, daire başı fazladan m² vaat eden müteahhitten hangi belgeleri istiyor? | M-3 "istenecek belgeler" listesi | _bekleniyor_ |
-| 9 | Komisyonun 20 firmayı karşılaştırdığı tablonun isimsiz örneği. | M-3 karşılaştırma şablonu | _bekleniyor_ |
-| 10 | Maliyetin kaba/ince/mekanik/elektrik/peyzaj yüzde dağılımı için kaynağı belli bir referans var mı? | M-3 maliyet dağılımı (şu an yalnız kullanıcı girdisi) | _bekleniyor_ |
-| 11 ★ | Sahada hangi minha kuralı uygulanıyor (ÇŞB 0,50 / DIN 2,50 / özel)? Eşik her boşluğa ayrı mı, toplam alana mı uygulanıyor? | Minha motoru ve profil seçicisi (`minha.ts`, `CalmIfcWorkspace.tsx`) | _bekleniyor_ |
-| 12 | Allplan otomatik minhayı hangi kurala göre yapıyor; söve/denizlik ekliyor mu? | Minha sonuç karşılaştırması | _bekleniyor_ |
-| 13 ★ | "Revit'te %10–15 sapma" hangi projede, hangi kalemde, neyle neyi karşılaştırarak ölçüldü? | M-2 uyarı metinleri (şu an sabit yüzde iddiası yok) | _bekleniyor_ |
-| 14 ★ | Aynı projenin Revit IFC'si + Allplan metrajı (3–5 proje) paylaşılabilir mi? | M-2 gerçek sapma ölçümü ve doğrulama referans kümesi | _bekleniyor_ |
-| 15 | Allplan TÜRKSERT belgesi nerede kayıtlı (kurum, tarih, kapsam)? Vitrinde yazmak için Allplan izni gerekir. | M-2 vitrin/LandingPage metni (şu an eklenmedi) | _bekleniyor_ |
-| 16 | Programı asıl kim kullanır, kim ödeme yapar? | Hedef kitle ve ürün öncelikleri | _bekleniyor_ |
-| 17 | Yılda 100 ihaleye giren firma ile gerçek ön tekliflerde pilot yapılabilir mi? | M-3 kalibrasyon ve pilot | _bekleniyor_ |
-
-## Yanıt gelmeden yapılan işler
-
-- Sunucu (Python) yolunda kaynak yazılım tespiti.
-- `.xlsx` doğrudan okuma.
-- Modeldeki gerçek kapı/pencere ölçülerinden minha hesabı (kural seçimi Soru 11'e bağlı, pilot).
-- `calm-icmal.ts` içindeki sabit brüt/boşluk çarpanlarının kaldırılması.
+| # | Soru | Etkilenen iş | Melih Bey'in Kesin Saha Yanıtı | Durum |
+|---|---|---|---|---|
+| 1 ★ | Taşeron hakedişinde (sıva, şap, kaplama) ödenen alan odanın net zemin alanı mı, yoksa kapı/pencere boşlukları düşülmüş alan mı? Üçü için aynı mı? | M-1 `apartment-subcontractor-shield.ts` tavan formülü | **"Tüm işçilikler için aynı net m². Şap, fayans, ses yalıtımı Türkiye'de net hesaplanır."**<br>• **Duvar:** 10×10=100 m² oda, h=2,60 m brüt duvar 104 m². 1 Kapı (2×1=2 m²) minha, 1 Pencere (1×1,5=1,5 m²) minha. Kasa derinlik payı (0,10 m): (1,50+1,50+1,00)×0,10 = +0,40 m² eklenir. Duvar kaplama = 104 - 1,50 + 0,40 = 102,90 m².<br>• **Döşeme:** 2 cm sıva ile net 9,98×9,98 = 99,60 m². Dışa açılan kapı eşiği (duvar 0,20 m): 1,00×0,20 = +0,20 m² eklenir. Toplam = 99,80 m².<br>• **Tavan:** 9,98×9,98 = 99,60 m².<br>• **Süpürgelik:** (9,98×4) - 1 kapı (1,00 m) = 38,92 mtül. | **YANITLANDI** (Koda bağlanıyor) |
+| 2 | Taşeronlar metrajı sahada nasıl şişiriyor (balkon, niş, küçük boşluk, köşe vb.)? | M-1 uyarı ve denetim kontrol listesi | "Elden hesaplıyor yanlış çıkıyor; yukarıya yuvarlıyor; boşlukları minha etmiyorlar; elden hesapladıkları zaman aldıkları malzeme yanlış olduğundan fazladan alınan malzemeyi müteahhitten talep etmek için fazla söylerler." | **YANITLANDI** (Koda işlendi) |
+| 3 | Şap ve sıvada sahada kabul edilen fire oranı ve çimento dozajı (kg/m³)? | M-1 harç/çimento katsayıları | **"Şap Harcı (Çimento Şapı):** Karışım oranı: 1 : 3 - 1 : 4 (Çimento : Kum). 1 m³ hazır şap harcı için: Çimento 300-350 kg/m³, Kum ~1,0-1,1 m³, Fire ve kayıplar: %5-10. **Maliyet hesaplarında kesin standart: 1 m³ şap harcı = 325 kg çimento + %10 fire olarak alınır."** | **YANITLANDI** (Koda bağlanıyor) |
+| 4 ★ | Kayıttaki "TAKS 2 → 800 m²" ifadesinde 2 kat sayısı mı, KAKS 0,80 mi? | M-3 imar/emsal hesabı, audit dokümanı | "Arsa 1.000 m², Taks 0,40 ise Zemin kat 400 m². Kaks 2,0 ise Toprak üstü inşaat alanı (emsal) 800 m². Bodrum kat hariç. **Emsalin m²'sinden %30 ortak alan + balkon + bodrum sığınak/otopark (yani 800 × 0,30 = 240 m²) en fazla yapılabilir, fazlası yasaktır.**" | **YANITLANDI** (Koda bağlanıyor) |
+| 5 ★ | Arsa sahibi payı yalnız emsal alanı üzerinden mi, emsal harici dahil toplam inşaat alanı üzerinden mi hesaplanıyor? | M-3 `shareBase` seçimi ve açıklaması | "Müteahhit ile arsa sahibi arasındaki anlaşmaya bağlı. (Emsal alanı üzerinden veya %30 ortak alan ekli toplam alan üzerinden sözleşmeyle belirlenir)." | **YANITLANDI** (Koda işlendi) |
+| 6 | Net/brüt oranını kim belirliyor? Brüt alana ortak alan payı dahil mi? | M-3 net/brüt oranı ve açıklaması | "Nihai ruhsat mimari proje belirler. **Kat malikine verilen daireye ortak alan payı (merdiven, asansör) dahil değildir.**" | **YANITLANDI** (Koda işlendi) |
+| 7 | Müteahhitlerin ön teklif Excel'inden 2–3 anonim örnek (özellikle çoklu parsel). | M-3 CSV/xlsx şablon sütunları | "Bana ulaşınca göndereceğim." | Dosya gelince eklenecek |
+| 8 | Komisyon, daire başı fazladan m² vaat eden müteahhitten hangi belgeleri istiyor? | M-3 "istenecek belgeler" kalkanı | "Müteahhit fazladan m² söz veriyor (örneğin 10 m²) ama sonra daireyi teslim ederken kat malikinin dairesinin malzemelerini kalitesiz uygulayarak maliyetini düşürüyor; müteahhitler bu yöntemi çok fazla yaparlar." | **YANITLANDI** (Koda işlendi) |
+| 9 | Komisyonun 20 firmayı karşılaştırdığı tablonun isimsiz örneği. | M-3 karşılaştırma şablonu | "Gelince göndereceğim." | Tablo gelince eklenecek |
+| 10 | Maliyetin kaba/ince/mekanik/elektrik/peyzaj yüzde dağılımı için kaynağı belli bir referans var mı? | M-3 maliyet dağılımı referansı | **"Ekte PDF gönderiyorum."** (`6-villa 2 A'dan Z'ye piyasa maliyetii.pdf`): 27 kalemlik tam %100 döküm sağlandı: Beton-Demir %20,43, Şantiye Kurulumu %8,10, Projelendirme %7,13, Kamu Ödemeleri %7,03, Elektrik %6,35, Isıtma-Soğutma %5,27, Pencere %4,84, Çatı %4,32, Dış Cephe %4,03, Peyzaj %3,75 vb. | **YANITLANDI** (Referans eklendi) |
+| 11 ★ | Sahada hangi minha kuralı uygulanıyor (ÇŞB 0,50 / DIN 2,50 / özel)? Eşik her boşluğa ayrı mı, toplam alana mı uygulanıyor? | Minha motoru (`openings-minha.ts`) | **"Türkiye'de genellikle net m² uygulanır."** (Tüm kapı ve pencere boşlukları istisnasız minha edilir). | **YANITLANDI** (Koda bağlanıyor) |
+| 12 | Allplan otomatik minhayı hangi kurala göre yapıyor; söve/denizlik ekliyor mu? | Minha sonuç karşılaştırması | Türkiye'de net m² uygulanır; kapı/pencere boşlukları düşülür, kasa derinlik payı eklenir. | **YANITLANDI** |
+| 13 ★ | "Revit'te %10–15 sapma" hangi projede, hangi kalemde, neyle neyi karşılaştırarak ölçüldü? | M-2 uyarı metinleri | "Bunun üzerinde çalışmam lazım sonra göndereceğim." | Ölçüm bekleniyor |
+| 14 ★ | Aynı projenin Revit IFC'si + Allplan metrajı (3–5 proje) paylaşılabilir mi? | M-2 doğrulama kümesi | "Bunun üzerinde çalışmam lazım sonra göndereceğim." | Dosyalar bekleniyor |
+| 15 | Allplan TÜRKSERT belgesi nerede kayıtlı (kurum, tarih, kapsam)? | M-2 LandingPage / mevzuat metni | Nemetschek Allplan resmi basın bülteni sağlandı: Allplan ve NEVARIS için TÜV SÜD sertifikası: https://www.allplan.com/press-reports/press-report/nemetschek-allplan-receives-tuev-sued-certificate-in-conjunction-with-tai-software-nevaris/ | **YANITLANDI** (Belge doğrulandı) |
+| 16 | Programı asıl kim kullanır, kim ödeme yapar? | Hedef kitle | "Anlamadım?" (Sözlü görüşmede netleşecek). | Açık |
+| 17 | Yılda 100 ihaleye giren firma ile gerçek ön tekliflerde pilot yapılabilir mi? | M-3 kalibrasyon ve pilot | "Anlamadım?" (Sözlü görüşmede netleşecek). | Açık |

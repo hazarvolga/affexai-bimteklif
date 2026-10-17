@@ -449,16 +449,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Oturum jetonu localStorage'dan kaldırıldı: sunucu HttpOnly + SameSite=Strict çerez yazar, çerezle gelen değiştirici isteklerde aynı-origin kanıtı (CSRF) aranır, çıkış ve impersonation çıkışı sunucuda çerezi siler. Kayıt → giriş → müşteri → teklif → PDF → yenileme → çıkış akışı gerçek tarayıcıda CI'da koşan smoke testle doğrulanıyor. 2.962 sabit zinc/slate sınıfı köprüyle aynı pafta token'larına çevrildi (açık modda 4 sayfada piksel farkı 0).",
           ],
           [
-            "Rev. 29 (Güncel)",
+            "Rev. 29",
             "17 Ekim 2026 (Resmî Veri Araştırması: KİK Yuvarlama ve Resmî Örnek, Müteahhit Sınıflandırma, Konut KDV)",
             "BIM-CALC-2026-10-17.23",
             "KİK sınır değer motoru Tebliğ 45.2 resmî örneğiyle birebir doğrulandı (SD = 52.281,00 TL) ve ara değerlerin resmî yuvarlaması (Tort1/σ/Tort2 2, C/K 3 ondalık) uygulandı; önceki yuvarlamasız sürüm örnekte 52.260,35 TL veriyordu. Yapı müteahhitleri sınıflandırma motoru yönetmeliğin güncel metnine göre yeniden yazıldı (14 grup, yapı sınır bedeli 2026 = 1.238.250.000 TL). Kat karşılığı motorunda konut KDV'si kısım bazlı (ilk 150 m²) hesaplanır; arsa sahibine teslimin matrahı KDV Genel Uygulama Tebliği I/B-8'e göre VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende)'dir (resmî örneklerle test edildi). Sunucu genel sayfalara JavaScript'siz okunabilir içerik ekler. Kaynaklar ve güven düzeyleri docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md.",
+          ],
+          [
+            "Rev. 30 (Güncel)",
+            "17 Ekim 2026 (Melih Dinekli 17 Saha Sorusu Yanıtları ve Benchmark Entegrasyonu)",
+            "BIM-CALC-2026-10-17.24",
+            "Melih Dinekli'nin 17 saha sorusuna verdiği resmi yazılı yanıtlar ve 6-villa maliyet PDF'i doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 29 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 30 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -770,6 +776,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "KİK motoru C ve K'yı yuvarlamıyordu: resmî örnekte 52.260,35 TL (resmî sonuç 52.281,00 TL). Müteahhit sınıflandırma motoru grupları sabit TL ve m² ile (10 grup) tanımlıyordu; yönetmelik grupları yapı sınır bedelinin katlarıyla ve 14 grup olarak tanımlar. Kat karşılığı motoru 150 m² üzeri konutun tamamına %20 uyguluyor, piyasa fiyatını KDV matrahı sayıyor ve gizli çarpanlar kullanıyordu.",
             "kik-adt.ts Tebliğ'in adım adım yuvarlamasını uygular ve golden testlerin ilki resmî 45.2 örneğidir. yambis-classification.ts yönetmelik maddelerine göre (iş deneyimi katları, iş gücü, bilanço oranları, ciro, banka referansı, G/G1 ve H istisnaları, azami iş tutarları) yeniden yazıldı; yapı sınır bedeli katalogdaki resmî 2026 birim maliyetlerinden hesaplanır. kat-karsiligi.ts konutKdv() ile kısım bazlı KDV, emsal bedel matrahı ve girdi olarak alınan tüm çarpanlarla yeniden yazıldı. route-meta.ts her genel rotaya <noscript> içerik ekler. Üç hesap motoru ve hesaplayıcı sayfaları yayında değildir (uzman onayı bekliyor).",
             "src/lib/kik-adt.ts, src/lib/kik-adt.golden.test.ts, src/lib/yambis-classification.ts, src/lib/kat-karsiligi.ts, src/pages/calculators/YambisCalculatorPage.tsx, src/pages/calculators/KatKarsiligiCalculatorPage.tsx, src/server/security/route-meta.ts, docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md",
+          ],
+          [
+            "Rev. 30.1 · 17 Ekim 2026 (Melih Dinekli 17 Saha Sorusu Yanıtları ve Benchmark Entegrasyonu)",
+            "Melih Dinekli 17 saha sorusu yazılı yanıtı (yanitlar.rtf); 6-villa maliyet PDF dökümü (17 Ekim 2026); Planlı Alanlar İmar Yönetmeliği m.5/8",
+            "Taşeron şap hakediş tavanında çimento/fire katsayıları serbestti, Türkiye şantiye referansı yoktu. Ön teklif fizibilitesinde emsal harici alanın (%30) yasal tavanı uyarılmıyordu ve gerçek piyasa maliyet referansı yoktu.",
+            "1) Taşeron şap harcında Türkiye piyasa standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı, dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik kuralı doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik 6-villa gerçek maliyet referansı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) eklendi.",
+            "src/ifc/apartment-subcontractor-shield.ts, src/ifc/apartment-subcontractor-shield.test.ts, src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-feasibility.test.ts, docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md",
           ],
         ],
       },

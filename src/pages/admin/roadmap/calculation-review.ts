@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.23",
+  version: "BIM-CALC-2026-10-17.24",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "ef91174292d2ff9db6cd55aac6a7178a71ce56b8",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "53681be9e15fdab35578a609edf2e1b5cbfa5a93",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, Melih Dinekli saha yanıtları ve 27 kalemlik 6-villa piyasa maliyet referansı entegre edildi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -752,6 +752,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "K katsayısı ve C oranı tam hassasiyetle taşınıyor; golden testler motorun kendi formülünden türetilmişti. Resmî örnekle karşılaştırma yapılmamıştı.",
         after: "Tort1, σ, Tort2 2; C, K 3 ondalığa yuvarlanır; her adımın yuvarlanmış sonucu sonraki adımda kullanılır. Kamu İhale Genel Tebliği 45.2 örneği (YM 100.000 TL, N = 1,20) golden testtir: Tort1 66.270,00; σ 20.317,05; Tort2 63.237,50; C 0,632; K 0,627; SD 52.281,00 TL.",
         basis: "Kamu İhale Genel Tebliği m.45.1.1, m.45.1.1.1, m.45.1.1.4 ve m.45.2 resmî sayısal örneği",
+      },
+    },
+  },
+  {
+    revision: "Rev. 30",
+    version: "BIM-CALC-2026-10-17.24",
+    date: "17 Ekim 2026",
+    commit: "53681be9e15fdab35578a609edf2e1b5cbfa5a93",
+    trigger: "Melih Dinekli 17 Saha Sorusu Yanıtları: Taşeron şap standardı (325 kg çimento + %10 fire), net mahal ölçüm kuralları, %30 emsal harici tavanı ve 27 kalemlik 6-villa maliyet referansı",
+    beforeSummary:
+      "Taşeron hakediş kalkanı şap harcı için çimento ve fire girdilerini serbest bırakıyor ancak Türkiye saha standardı referansı sunmuyordu. Ön teklif fizibilite motoru emsal harici alanın (%30) yasal sınırını denetlemiyordu ve 27 kalemlik piyasa maliyet dağılımı referansı bulunmuyordu.",
+    afterSummary:
+      "Melih Dinekli'nin 17 saha sorusuna verdiği resmi yazılı yanıtlar ve 6-villa maliyet PDF'i doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
+    affectedModules: ["taseron-hakedis-kalkani", "on-teklif-fizibilite"],
+    moduleDetails: {
+      "taseron-hakedis-kalkani": {
+        before: "Şap harcı ve çimento hesabı yalnızca kullanıcı girdisiyle çalışıyordu, saha benchmark referansı yoktu.",
+        after: "Melih Dinekli saha standardı (325 kg/m³ çimento, %10 fire, 1:3-1:4 karışım) ve 4 yaygın taşeron şişirme taktiği denetim kriteri olarak eklendi.",
+        basis: "Melih Dinekli yazılı saha yanıtı (17 Ekim 2026, Soru 1-3)",
+      },
+      "on-teklif-fizibilite": {
+        before: "Emsal harici alan girilmediğinde uyarı veriliyor ancak emsalin %30'unu aşan durumlar uyarılmıyordu; maliyet dağılımı referansı yoktu.",
+        after: "Planlı Alanlar İmar Yönetmeliği m.5/8 ve Melih Dinekli teyidiyle emsal harici alan > %30 emsal uyarısı eklendi; 27 kalemlik gerçek 6-villa maliyet referansı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026) sisteme bağlandı.",
+        basis: "Planlı Alanlar İmar Yönetmeliği m.5/8; Melih Dinekli saha yanıtı ve 6-villa maliyet tablosu (17 Ekim 2026)",
       },
     },
   },

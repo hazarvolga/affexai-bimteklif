@@ -130,3 +130,17 @@ test("Golden 7: mahal listesi boş daire için tavan üretilmez", () => {
   assert.equal(r.claimChecks.screed.status, "not_declared");
   assert.ok(r.warnings.some((w) => w.includes("mahal")));
 });
+
+test("Golden 8: Melih Dinekli saha standardı (325 kg/m³ çimento, %10 fire) ile şap çimento hesabı", () => {
+  const r = computeApartmentSubcontractorShield({
+    apartment,
+    screedThicknessCm: 5, // 108 m² × 0,05 = 5,4 m³
+    plasterThicknessCm: null,
+    wastePercent: 10,
+    cementKgPerM3: 325,
+  });
+  assert.equal(r.screedVolumeM3, 5.4);
+  assert.equal(r.screedVolumeWithWasteM3, 5.94); // 5,4 × 1,10
+  assert.equal(r.screedCementKg, 1930.5); // 5,94 × 325
+});
+
