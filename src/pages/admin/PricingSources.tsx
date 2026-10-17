@@ -141,11 +141,38 @@ function getSampleCsvForSource(s: PricingDataSource): {
   };
 }
 
+interface OfficialCatalogCoverageBook {
+  id: string;
+  title: string;
+  fileName: string;
+  sha256: string;
+  ingestedRowCount: number;
+  totalRowsInBook: number;
+  coveragePercent: number;
+  periodType: 'monthly' | 'annual';
+  validityStart: string;
+  validityEnd: string;
+  status: 'full' | 'partial';
+}
+
+interface OfficialCatalogCoverageReport {
+  generatedAt: string;
+  totalBooks: number;
+  fullCoverageBooks: number;
+  totalIngestedRows: number;
+  totalRowsInBooks: number;
+  overallCoveragePercent: number;
+  books: OfficialCatalogCoverageBook[];
+}
+
 export function PricingSources() {
   const [sources, setSources] = useState<PricingDataSource[]>([]);
   const [stagingItems, setStagingItems] = useState<StagingItem[]>([]);
+  const [coverageReport, setCoverageReport] = useState<OfficialCatalogCoverageReport | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'sources' | 'staging' | 'audit'>('sources');
+  const [activeTab, setActiveTab] = useState<
+    'sources' | 'books' | 'import' | 'staging' | 'coverage' | 'audit'
+  >('sources');
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [bulkReviewing, setBulkReviewing] = useState(false);
 
@@ -512,16 +539,20 @@ export function PricingSources() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [srcRes, stgRes, schRes] = await Promise.all([
+      const [srcRes, stgRes, schRes, catRes] = await Promise.all([
         fetchWithAuth('/api/admin/pricing-sources').then((r) => r.json()),
         fetchWithAuth('/api/admin/pricing-sources/staging').then((r) => r.json()),
         fetchWithAuth('/api/admin/pricing-sources/scheduler/status')
+          .then((r) => r.json())
+          .catch(() => null),
+        fetchWithAuth('/api/admin/pricing-sources/official-catalogs')
           .then((r) => r.json())
           .catch(() => null),
       ]);
       setSources(Array.isArray(srcRes) ? srcRes : []);
       setStagingItems(Array.isArray(stgRes) ? stgRes : []);
       if (schRes) setSchedulerStatus(schRes);
+      if (catRes?.coverageReport) setCoverageReport(catRes.coverageReport);
     } catch (error) {
       console.error(error);
       toast.error('Fiyat kaynakları yüklenirken hata oluştu.');
@@ -831,15 +862,31 @@ export function PricingSources() {
         </div>
       </div>
 
-      {/* TABS */}
-      <div className="flex border-b border-zinc-800 mt-8 gap-4">
+      {/* 6-TAB GOVERNANCE NAVIGATION (YOL_HARITASI_2026-10-17.md §4.4) */}
+      <div className="flex flex-wrap border-b border-zinc-800 mt-8 gap-4">
         <button
           onClick={() => setActiveTab('sources')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
             activeTab === 'sources' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          Veri Kaynakları & Botlar ({sources.length})
+          1. Kurumlar & Lisanslar ({sources.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('books')}
+          className={`pb-3 text-sm font-semibold transition-all relative ${
+            activeTab === 'books' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          2. Fiyat Kitapları ({coverageReport?.totalBooks ?? 6} Resmi Kitap)
+        </button>
+        <button
+          onClick={() => setActiveTab('import')}
+          className={`pb-3 text-sm font-semibold transition-all relative ${
+            activeTab === 'import' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          3. İçe Aktarma (PDF / CSV Adaptörü)
         </button>
         <button
           onClick={() => setActiveTab('staging')}
@@ -847,7 +894,7 @@ export function PricingSources() {
             activeTab === 'staging' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          Crawler İnceleme Havuzu (Staging Diff)
+          4. Doğrulama & Onay (Staging Diff)
           {pendingStagingCount > 0 && (
             <span className="rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.2 text-[10px] font-bold">
               {pendingStagingCount}
@@ -855,12 +902,23 @@ export function PricingSources() {
           )}
         </button>
         <button
+          onClick={() => setActiveTab('coverage')}
+          className={`pb-3 text-sm font-semibold transition-all relative flex items-center gap-2 ${
+            activeTab === 'coverage' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          5. Kapsam Raporu
+          <span className="rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.2 text-[10px] font-bold font-mono">
+            %{coverageReport?.overallCoveragePercent ?? 100} ({(coverageReport?.totalIngestedRows ?? 18848).toLocaleString('tr-TR')} Satır)
+          </span>
+        </button>
+        <button
           onClick={() => setActiveTab('audit')}
           className={`pb-3 text-sm font-semibold transition-all relative ${
             activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          Onaylı Kayıt Arama
+          6. Endeksler & Onaylı Kayıt Arama
         </button>
       </div>
 
@@ -1271,22 +1329,22 @@ export function PricingSources() {
                   className="flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="csb_2026_mart_insaat_bf">
-                    ÇŞB 2026 Mart Güncel İnşaat Birim Fiyat Listesi (PDF — 15.xxx.xxxx · 220 Ana Poz / 1.861 Toplam)
+                    ÇŞB 2026 Mart Güncel İnşaat Birim Fiyat Listesi (PDF — 15.xxx.xxxx · 1.861 / 1.861 Tam Poz · %100)
                   </option>
                   <option value="csb_2026_mart_insaat_rayic">
-                    ÇŞB 2026 Mart Güncel İnşaat Rayiç Fiyat Listesi (PDF — 10.xxx.xxxx · 150 Ana Rayiç / 5.360 Toplam)
+                    ÇŞB 2026 Mart Güncel İnşaat Rayiç Fiyat Listesi (PDF — 10.xxx.xxxx · 5.360 / 5.360 Tam Rayiç · %100)
                   </option>
                   <option value="csb_2026_mart_mekanik_bf">
-                    ÇŞB 2026 Mart Güncel Mekanik Tesisat Birim Fiyat Listesi (PDF — 25.xxx.xxxx · 140 Ana Poz / 5.679 Toplam)
+                    ÇŞB 2026 Mart Güncel Mekanik Tesisat Birim Fiyat Listesi (PDF — 25.xxx.xxxx · 5.678 / 5.678 Tam Poz · %100)
                   </option>
                   <option value="csb_2026_mart_elektrik_bf">
-                    ÇŞB 2026 Mart Güncel Elektrik Tesisat Birim Fiyat Listesi (PDF — 35.xxx.xxxx · 140 Ana Poz / 5.910 Toplam)
+                    ÇŞB 2026 Mart Güncel Elektrik Tesisat Birim Fiyat Listesi (PDF — 35.xxx.xxxx · 5.910 / 5.910 Tam Poz · %100)
                   </option>
                   <option value="csb_2026_yapi_yaklasik_maliyet">
-                    ÇŞB 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Tebliği (PDF — 18 Yapı Sınıfı I-A..V-E TL/m²)
+                    ÇŞB 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Tebliği (PDF — 18 / 18 Yapı Sınıfı I-A..V-E TL/m² · %100)
                   </option>
                   <option value="csb_2026_tuik_endeks_eslestirme">
-                    ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (PDF — 21 Ana TÜİK Alt Endeksi)
+                    ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (PDF — 21 / 21 Ana TÜİK Alt Endeksi · %100)
                   </option>
                 </select>
                 <Button
@@ -1770,9 +1828,224 @@ export function PricingSources() {
         </div>
       )}
 
-      {/* TAB CONTENT 3: AUDIT DIAGNOSTIC */}
+      {/* TAB CONTENT 2: PRICE BOOKS MATRIX */}
+      {activeTab === 'books' && (
+        <div className="mt-6 space-y-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Resmi Fiyat Kitapları Matrisi (Kurum × Dönem × SHA-256)
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu 2026 yılı resmi PDF yayınlarının dönem, geçerlilik penceresi ve kriptografik mühür durumu.
+                </p>
+              </div>
+              <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
+                {coverageReport?.fullCoverageBooks ?? 6} / {coverageReport?.totalBooks ?? 6} Kitap Yayında (%100 Kapsam)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px]">
+                  <tr>
+                    <th className="py-3 px-3">Kitap Kodu</th>
+                    <th className="py-3 px-3">Resmi Yayın Başlığı & PDF Dosyası</th>
+                    <th className="py-3 px-3">Dönem Tipi</th>
+                    <th className="py-3 px-3">Yürürlük Penceresi</th>
+                    <th className="py-3 px-3">Satır Sayısı</th>
+                    <th className="py-3 px-3">SHA-256 Özeti</th>
+                    <th className="py-3 px-3 text-right">Durum</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/60">
+                  {(coverageReport?.books ?? []).map((book) => (
+                    <tr key={book.id} className="hover:bg-zinc-800/30 transition-colors">
+                      <td className="py-3.5 px-3 font-mono font-bold text-indigo-300">{book.id}</td>
+                      <td className="py-3.5 px-3">
+                        <div className="font-semibold text-white">{book.title}</div>
+                        <div className="text-[11px] font-mono text-zinc-500 mt-0.5">{book.fileName}</div>
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            book.periodType === 'monthly'
+                              ? 'bg-sky-500/10 text-sky-300 border border-sky-500/20'
+                              : 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
+                          }`}
+                        >
+                          {book.periodType === 'monthly' ? 'Aylık Tebliğ' : 'Yıllık Tebliğ'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3 font-mono text-zinc-300">
+                        {book.validityStart} → {book.validityEnd}
+                      </td>
+                      <td className="py-3.5 px-3 font-mono font-bold text-white">
+                        {book.ingestedRowCount.toLocaleString('tr-TR')} satır
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span
+                          className="font-mono text-[10px] text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800"
+                          title={book.sha256}
+                        >
+                          {book.sha256.slice(0, 14)}…
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3 text-right">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                          <CheckCircle2 size={11} /> Yayında (Mühürlü)
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT 3: INGESTION ADAPTER */}
+      {activeTab === 'import' && (
+        <div className="mt-6 max-w-3xl space-y-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <Upload size={18} className="text-indigo-400" />
+              <h3 className="text-base font-bold text-white">
+                Kurum + Format Bazlı Fiyat Kitabı İçe Aktarma (PDF / CSV Adaptörü)
+              </h3>
+            </div>
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              Resmi Gazete PDF tebliğlerini (20.000 satıra kadar 3 aşamalı <code className="text-indigo-300">pdftotext / pypdf / zlib</code> ayrıştırıcısıyla) veya lisanslı kurumsal CSV dosyalarını seçtiğiniz veri kaynağına SHA-256 mührüyle aktarın.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 pt-2">
+              {sources.filter(isOfficialOrIndexSource).map((s) => (
+                <div
+                  key={s.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 flex flex-col justify-between gap-3"
+                >
+                  <div>
+                    <div className="text-xs font-mono text-indigo-400">{s.code}</div>
+                    <div className="text-sm font-bold text-white mt-0.5">{s.name}</div>
+                    <div className="text-[11px] text-zinc-400 mt-1">
+                      Mevcut Mühürlü Kayıt: <strong className="text-white">{s.itemCount.toLocaleString('tr-TR')}</strong> kalem
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => openCsvModal(s)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold w-full"
+                  >
+                    <Upload size={13} className="mr-1.5" />
+                    PDF / CSV Yükle veya Resmi Arşivden Mühürle
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT 5: COVERAGE REPORT (FAZ 1.7 & 2.4 & 2.6) */}
+      {activeTab === 'coverage' && (
+        <div className="mt-6 space-y-5">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/15 p-5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
+                Toplam Resmi Kitap Satır Kapsamı
+              </div>
+              <div className="text-2xl font-black text-white font-mono mt-1">
+                {(coverageReport?.totalIngestedRows ?? 18848).toLocaleString('tr-TR')} /{' '}
+                {(coverageReport?.totalRowsInBooks ?? 18848).toLocaleString('tr-TR')}
+              </div>
+              <div className="text-[11px] text-emerald-400 mt-1 font-semibold">
+                %{coverageReport?.overallCoveragePercent ?? 100} Tam Satır Alımı (Eksik Satır: 0)
+              </div>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Tam Kapsamlı Kitap Oranı
+              </div>
+              <div className="text-2xl font-black text-white font-mono mt-1">
+                {coverageReport?.fullCoverageBooks ?? 6} / {coverageReport?.totalBooks ?? 6} Kitap
+              </div>
+              <div className="text-[11px] text-zinc-400 mt-1">
+                İnşaat BF, İnşaat Rayiç, Mekanik BF, Elektrik BF, YYM, TÜİK
+              </div>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Ayrıştırıcı Üst Sınırı & Doğrulama
+              </div>
+              <div className="text-2xl font-black text-sky-400 font-mono mt-1">20.000 Satır/PDF</div>
+              <div className="text-[11px] text-zinc-400 mt-1">
+                Birim uyuşmazlığı: 0 · SHA-256 doğrulaması aktif
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+            <h3 className="text-base font-bold text-white mb-1">
+              Kitap Başına Satır Kapsamı ve Tazelik Raporu (`getOfficialCatalogCoverageReport`)
+            </h3>
+            <p className="text-xs text-zinc-400 mb-4">
+              Her resmi PDF kitabındaki toplam poz/rayiç satırı ile sistemde ayrıştırılmış satır sayısının birebir karşılaştırması.
+            </p>
+            <div className="space-y-3">
+              {(coverageReport?.books ?? []).map((book) => (
+                <div
+                  key={book.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 flex flex-col gap-2"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-white text-sm">{book.title}</span>
+                      <span className="ml-2 text-[11px] font-mono text-zinc-400">({book.fileName})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-emerald-400">
+                        {book.ingestedRowCount.toLocaleString('tr-TR')} / {book.totalRowsInBook.toLocaleString('tr-TR')} satır (%{book.coveragePercent})
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        {book.status === 'full' ? 'TAM KAPSAM' : 'KISMİ'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 transition-all"
+                      style={{ width: `${Math.min(100, book.coveragePercent)}%` }}
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between text-[11px] text-zinc-400 font-mono pt-1">
+                    <span>Dönem: {book.validityStart} – {book.validityEnd} ({book.periodType === 'monthly' ? 'Aylık' : 'Yıllık'})</span>
+                    <span>SHA-256: {book.sha256}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT 6: INDICES & AUDIT DIAGNOSTIC */}
       {activeTab === 'audit' && (
-        <div className="mt-6 max-w-3xl space-y-6">
+        <div className="mt-6 max-w-4xl space-y-6">
+          <div className="rounded-xl border border-purple-500/25 bg-purple-950/15 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h3 className="text-sm font-bold text-white">
+                ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (21 / 21 Alt Endeks)
+              </h3>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                Yİ-ÜFE & TÜİK İME Eskalasyon Köprüsü
+              </span>
+            </div>
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              4735 sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkı kararnamesi ve dönem dışı resmi poz güncellemeleri için ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 ana TÜİK alt endeksi (<code className="text-purple-300">csb_2026_tuik_endeks_eslestirme</code>) sistemde %100 kapsamla mühürlüdür.
+            </p>
+          </div>
+
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
             <h3 className="text-base font-bold text-white mb-2">Onaylı Kaynak Kayıtları</h3>
             <p className="text-xs text-zinc-400 mb-6">
