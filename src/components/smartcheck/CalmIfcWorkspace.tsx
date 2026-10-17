@@ -3,6 +3,7 @@ import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
 import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/ApartmentSubcontractorShieldCard";
+import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
 import {
   evaluateIso19650Compliance,
@@ -578,6 +579,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           </span>
         </button>
       </div>
+
+      {/* KAYNAK YAZILIM UYARISI (PAKET M-2) */}
+      <AuthoringAdvisoryBanner advisory={dataset.authoringAdvisory} />
 
       {/* ADIM 01: MALZEME İCMAL LİSTESİ (SOL PAFTA CETVELİ + SAĞ HESAP KANITI KARTI) */}
       {activeStep === "icmal" && (

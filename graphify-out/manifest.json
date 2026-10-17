@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1792244133.2163272,
-    "ast_hash": "1c5f76205d132caad89e4364bbf1975f",
+    "mtime": 1792244409.2431073,
+    "ast_hash": "ee94dad7d0341b89401f0f5aec8c1d7c",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -4475,13 +4475,13 @@
     "semantic_hash": ""
   },
   "src/ifc/types.ts": {
-    "mtime": 1792195328.0009966,
-    "ast_hash": "e88decbaa5a32ea9ac87a23951ef804a",
+    "mtime": 1792244271.0137973,
+    "ast_hash": "cdc3628ba56312f6b379ae0d2a5d310b",
     "semantic_hash": ""
   },
   "src/ifc/parser/legacy-parser.ts": {
-    "mtime": 1792144966.2752492,
-    "ast_hash": "a9dbe09ce4f858929b48eaddb245f140",
+    "mtime": 1792244312.924316,
+    "ast_hash": "58dbd013db8a8d311febea97f320082a",
     "semantic_hash": ""
   },
   "src/ifc/smartcheck-processing.test.ts": {
@@ -6030,8 +6030,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-content.ts": {
-    "mtime": 1792243993.0657532,
-    "ast_hash": "f755f73b819f49c719bc69924474c2ca",
+    "mtime": 1792244366.386828,
+    "ast_hash": "6cc1fad2691047d2ee4a7492e03295ef",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/content.test.ts": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792244083.203254,
-    "ast_hash": "2670a758f3b3e1798177651bd53cfdd3",
+    "mtime": 1792244366.387694,
+    "ast_hash": "7cc09dc464e4ea32e4ee20bfef84a1b6",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792244036.5903034,
-    "ast_hash": "5807cd796b71fdabb806540617e0acf9",
+    "mtime": 1792244390.192255,
+    "ast_hash": "a29ff33adc9d7825b4a0598ae38e3cad",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6425,8 +6425,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/CalmIfcWorkspace.tsx": {
-    "mtime": 1792243923.148973,
-    "ast_hash": "174c0ba5575bfdc21c576f22b907d635",
+    "mtime": 1792244293.635883,
+    "ast_hash": "58a5c214c8d6e36d18b3f0ca99947e57",
     "semantic_hash": ""
   },
   "src/ifc/calm-icmal.test.ts": {
@@ -6435,8 +6435,8 @@
     "semantic_hash": ""
   },
   "src/ifc/calm-icmal.ts": {
-    "mtime": 1792206789.887231,
-    "ast_hash": "a5765e8118a6c31af703e1a65593db4b",
+    "mtime": 1792244271.0144222,
+    "ast_hash": "321ab60843ab4fa118ff575b7f6c5c11",
     "semantic_hash": ""
   },
   "src/components/ui/PaftaDrawing.tsx": {
@@ -6485,8 +6485,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-17.md": {
-    "mtime": 1792244133.213586,
-    "ast_hash": "61744c3feae4c3ab884686304f7b7285",
+    "mtime": 1792244409.2428603,
+    "ast_hash": "d981e7fd961946da093d0e247e2327c3",
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
@@ -6495,8 +6495,8 @@
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
-    "mtime": 1792244058.8102148,
-    "ast_hash": "d229a6779f48b0c23943406cd57aabf1",
+    "mtime": 1792244366.387301,
+    "ast_hash": "4ded43052f43efc7710764236719c14a",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.golden.test.ts": {
@@ -6532,6 +6532,21 @@
   "docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md": {
     "mtime": 1792243193.9959652,
     "ast_hash": "1800ad5d451ab1d3cd28b4b3b739267f",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/AuthoringAdvisoryBanner.tsx": {
+    "mtime": 1792244287.3624158,
+    "ast_hash": "fccad5b18381b0bee989be9012a1b664",
+    "semantic_hash": ""
+  },
+  "src/ifc/authoring-software-diagnostics.test.ts": {
+    "mtime": 1792244321.5151563,
+    "ast_hash": "7daad64d9a7b647e3a4d2c83ae751c8c",
+    "semantic_hash": ""
+  },
+  "src/ifc/authoring-software-diagnostics.ts": {
+    "mtime": 1792244234.9907703,
+    "ast_hash": "3aac8a32caf157abd864df2012933a46",
     "semantic_hash": ""
   }
 }

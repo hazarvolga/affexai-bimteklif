@@ -4,6 +4,7 @@ import type {
   IfcParseSummary,
   ParsedIfcElement,
 } from "./types";
+import { buildAuthoringAdvisory, type AuthoringAdvisory } from "./authoring-software-diagnostics";
 import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./smartcheck-evidence";
 
 export type CalmIcmalGroupKey =
@@ -58,6 +59,8 @@ export interface CalmIfcDataset {
   totalGeneralGrossM2: number;
   groups: CalmIcmalGroup[];
   apartments: ApartmentUnitScheduleItem[];
+  /** Kaynak yazılım uyarısı; tespit edilemediyse (ör. sunucu kanıt yolu) undefined. */
+  authoringAdvisory?: AuthoringAdvisory;
 }
 
 export const GROUP_META: Record<CalmIcmalGroupKey, { order: number; title: string; unitLabel: string }> = {
@@ -725,6 +728,9 @@ export function buildCalmIfcDatasetFromElements(
     totalGeneralGrossM2,
     groups,
     apartments,
+    authoringAdvisory: summary?.authoringSoftware
+      ? buildAuthoringAdvisory(summary.authoringSoftware)
+      : undefined,
   };
 }
 

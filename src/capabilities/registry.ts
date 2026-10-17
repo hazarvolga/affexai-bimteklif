@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.5';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.6';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -383,6 +383,28 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & IFC IfcSpace/IfcZone',
         documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 & ISO 16739-1 (IFC4) mahal net alanları',
         articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 6',
+        publicationDate: '2026-10-17',
+      },
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'ifc-authoring-software-advisory',
+    title: 'IFC Kaynak Yazılım Tespiti ve Metraj Güvenilirliği Uyarısı — Allplan / Revit / Archicad (Pilot · L2)',
+    shortClaim:
+      'IFC başlığından kaynak yazılımı tespit eder ve yazılıma göre model kontrolü uyarısı gösterir; uyarılar uzman saha gözlemidir, doğruluk garantisi veya sabit sapma yüzdesi içermez.',
+    longDescription:
+      'FILE_NAME ve IFCAPPLICATION kaydından Allplan, Revit, Archicad ve Tekla tespit edilir. Revit kaynaklı dosyalarda kaba yapı birleşimi, kalıp görünür yüzeyi ve ince yapı katman daralması için model kontrolü önerilir. Tek odalık katman daralması aritmetiği kullanıcının kendi ölçüsüyle hesaplanır. Bağımsız uzman kabulü alınana kadar pilot olarak işaretlidir.',
+    level: 'L2',
+    status: 'pilot',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/ifc/authoring-software-diagnostics.ts',
+      goldenTestPath: 'src/ifc/authoring-software-diagnostics.test.ts',
+      officialSource: {
+        institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & ISO 10303-21',
+        documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 & STEP HEADER FILE_NAME',
+        articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 1–3',
         publicationDate: '2026-10-17',
       },
     },

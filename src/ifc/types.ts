@@ -1,3 +1,5 @@
+import type { AuthoringSoftwareDetection } from "./authoring-software-diagnostics";
+
 export interface ParsedIfcElement {
   id: string;
   guid: string;
@@ -102,5 +104,7 @@ export interface IfcParseSummary {
   elementsMissingPozNoCount: number;
   materialNames?: string[];
   spaceNames?: string[];
+  /** IFC başlığından tespit edilen kaynak yazılım (Paket M-2). */
+  authoringSoftware?: AuthoringSoftwareDetection;
 }
 

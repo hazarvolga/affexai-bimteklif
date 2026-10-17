@@ -341,6 +341,36 @@ export const CALC_MODULES: CalcModule[] = [
     questions: ["Taşeron sözleşmelerinde hakediş tavanı net alan mı yoksa minha uygulanmış alan üzerinden mi hesaplanmalı; ürün hangisini varsayılan sunmalı?"],
   },
   {
+    id: "kaynak-yazilim-guvenilirligi",
+    title: "IFC kaynak yazılım tespiti ve metraj güvenilirliği uyarısı — Allplan / Revit / Archicad (Pilot)",
+    area: "SmartCheck / Metraj",
+    status: "bilgi_amacli",
+    sourceFiles: ["src/ifc/authoring-software-diagnostics.ts", "src/ifc/authoring-software-diagnostics.test.ts"],
+    references: [
+      "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 1–3) — uzman gözlemidir, bağımsız ölçüm veya sertifikasyon değildir",
+      "ISO 10303-21 (STEP) HEADER FILE_NAME alanları ve IFC IFCAPPLICATION kaydı",
+    ],
+    purpose: "IFC başlığındaki FILE_NAME (originating_system / preprocessor_version) ve IFCAPPLICATION kaydından kaynak yazılımı tespit eder ve yazılıma göre model kontrolü uyarısı gösterir. Uyarılar uzman saha gözlemi olarak etiketlenir; hiçbir yazılım için metrajın doğru olduğu garanti edilmez ve sabit bir sapma yüzdesi iddia edilmez. Katman daralması için yalnızca kullanıcının kendi ölçüsüyle tek odalık aritmetik hesaplanır.",
+    formulas: [
+      "Modellenen zemin alanı = (L − 2t) × (W − 2t); t = duvar katmanı kalınlığı (m)",
+      "Fark (m²) = L × W − (L − 2t) × (W − 2t); Fark (%) = Fark / (L × W) × 100",
+    ],
+    example: {
+      inputs: [["Oda", "10,00 × 10,00 m"], ["Duvar katmanı", "2 cm (her iki yüzde)"]],
+      steps: [
+        "Modellenen boyut = 10,00 − 2 × 0,02 = 9,96 m",
+        "Modellenen alan = 9,96 × 9,96 = 99,20 m² (net 100,00 m²)",
+        "Fark = 0,80 m² = %0,80",
+      ],
+      result: "Net: 100,00 m² · Modelde: 99,20 m² · Fark: 0,80 m² (%0,80) — yalnızca bu tek odanın aritmetiği",
+    },
+    assumptions: [
+      "Tek odalık katman daralması örneği proje toplam sapmasını tahmin etmez. Uzmanın bildirdiği %10–15 toplam sapma, bu aritmetikten türetilmemiştir ve doğrulanmış bir ölçüm değildir; ürün bu oranı kullanıcıya iddia olarak göstermez.",
+      "Kaynak yazılım yalnızca IFC başlığındaki metne dayanır; başlık silinmiş veya değiştirilmişse tespit yanlış olabilir.",
+    ],
+    questions: ["Revit kaynaklı gerçek modellerde kaba yapı girişimi, kalıp ve ince yapı sapması ölçülüp doğrulanmış bir referans kümesi (ör. 3–5 proje) oluşturulabilir mi?"],
+  },
+  {
     id: "iso19650",
     title: "TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Bilgi Konteyneri Denetimi",
     area: "Mevzuat / BIM",

@@ -1,6 +1,6 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.9",
+  version: "BIM-CALC-2026-10-17.10",
   updatedOn: "17 Ekim 2026",
   implementationBaseline: "2672889bfc17280575e5b4af2670503fe9f3062c",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
@@ -459,6 +459,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 16",
+    version: "BIM-CALC-2026-10-17.10",
+    date: "17 Ekim 2026",
+    commit: "dcd64d2",
+    trigger: "Melih Dinekli saha geri bildirimi (17 Ekim 2026) Paket M-2: IFC Kaynak Yazılım Tespiti ve Metraj Güvenilirliği Uyarısı (authoring-software-diagnostics.ts)",
+    beforeSummary:
+      "IFC dosyasının hangi yazılımdan (Allplan, Revit, Archicad) geldiği okunmuyor, kullanıcıya kaynak yazılıma bağlı model kontrolü uyarısı gösterilmiyordu.",
+    afterSummary:
+      "IFC başlığındaki FILE_NAME ve IFCAPPLICATION kaydından kaynak yazılım tespit edilir ve Calm çalışma alanının üstünde uyarı gösterilir. Uyarılar uzman saha gözlemi olarak etiketlenir; hiçbir yazılım için doğruluk garantisi veya sabit sapma yüzdesi iddia edilmez. Kullanıcının kendi ölçüsüyle tek odalık katman daralması aritmetiği (10 × 10 m, 2 cm → 99,20 m², %0,80) eklendi. Yetenek Kaydına pilot (L2) olarak işlendi.",
+    affectedModules: ["kaynak-yazilim-guvenilirligi"],
+    moduleDetails: {
+      "kaynak-yazilim-guvenilirligi": {
+        before: "Kaynak yazılım tespiti ve yazılıma bağlı model kontrolü uyarısı yoktu.",
+        after: "detectAuthoringSoftware ve buildAuthoringAdvisory ile Allplan/Revit/Archicad/Tekla tespiti ve uyarı; computeFinishLayerShrinkage ile tek odalık katman daralması aritmetiği.",
+        basis: "Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 1–3) — uzman gözlemi; ISO 10303-21 HEADER FILE_NAME",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -548,6 +567,11 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     scope: "IFC mahal cetvelinden daire başına şap/zemin kaplaması hakediş tavanı, kullanıcı girdili kalınlık/fire/dozajla harç hacmi ve çimento, taşeron beyanı karşılaştırması (pilot).",
     testFiles: ["src/ifc/apartment-subcontractor-shield.test.ts"],
     pending: "Gerçek taşeron sözleşmesi ve şantiye hakediş örneğiyle tavan mantığının (net alan mı, minha uygulanmış alan mı) uzman kabulü; duvar sıvası için IFC'den çevre × yükseklik türetimi açık.",
+  },
+  "kaynak-yazilim-guvenilirligi": {
+    scope: "IFC başlığından kaynak yazılım tespiti, yazılıma göre model kontrolü uyarısı ve kullanıcı girdili tek oda katman daralması aritmetiği (pilot).",
+    testFiles: ["src/ifc/authoring-software-diagnostics.test.ts"],
+    pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması; sunucu (Python) kanıt yolunda başlık okumanın eklenmesi.",
   },
   iso19650: {
     scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, CDE durum geçiş doğrulayıcısı (validateCdeStateTransition: WIP→SHARED→PUBLISHED→ARCHIVED) ve EN 17412-1 4 teslim aşamalı (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) LOIN tamlık motoru (evaluateLoinByMilestone) aktif.",

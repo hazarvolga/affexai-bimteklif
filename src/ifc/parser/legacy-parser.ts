@@ -1,3 +1,4 @@
+import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "../authoring-software-diagnostics";
 import { extractAllplanVolumeQuantities } from "./quantity-extractor";
 import { extractIfcQtoVolumeQuantities } from "./qto-extractor";
 import { extractIfcStoreyContainment } from "./spatial-extractor";
@@ -226,7 +227,13 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     ]);
   }
 
-  return calculateSummary(elements, trPsetCsb, Array.from(materialNamesSet), Array.from(spaceNamesSet));
+  return calculateSummary(
+    elements,
+    trPsetCsb,
+    Array.from(materialNamesSet),
+    Array.from(spaceNamesSet),
+    detectAuthoringSoftware(ifcText),
+  );
 }
 
 export function calculateSummary(
@@ -234,6 +241,7 @@ export function calculateSummary(
   trPsetCsb: TrPsetCsbProjectCompliance = { source: null },
   materialNames: string[] = [],
   spaceNames: string[] = [],
+  authoringSoftware?: AuthoringSoftwareDetection,
 ): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   let totalVolumeM3 = 0;
   let totalFormworkM2 = 0;
@@ -308,6 +316,7 @@ export function calculateSummary(
       elementsMissingPozNoCount: elements.filter((el) => !el.pozNo).length,
       materialNames,
       spaceNames,
+      authoringSoftware,
     },
   };
 }
