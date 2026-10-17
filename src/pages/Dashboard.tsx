@@ -33,6 +33,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Quote, QuoteStatus } from '@/types';
+import { ContractorWorkflowHub } from '@/components/dashboard/ContractorWorkflowHub';
 
 const MONTH_LABELS_TR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
 const ACTIVE_STATUSES: QuoteStatus[] = [QuoteStatus.DRAFT, QuoteStatus.SENT, QuoteStatus.NEGOTIATION];
@@ -190,19 +191,10 @@ export function Dashboard() {
       />
 
       {!loading && quotes.length === 0 ? (
-        <Card className="border border-border bg-card shadow-xs rounded-sm mb-6">
-          <CardContent className="py-14">
-            <EmptyState
-              icon={FileText}
-              title="Henüz teklif verisi yok"
-              description="İlk teklifinizi oluşturduğunuzda panel gerçek satış ve metraj performansınızı göstermeye başlar."
-              actionText="SMARTCHECK İLE DOSYA YÜKLE"
-              onAction={() => navigate('/app/smartcheck')}
-            />
-          </CardContent>
-        </Card>
+        <ContractorWorkflowHub compact={false} />
       ) : (
         <>
+          <ContractorWorkflowHub compact={true} />
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatCard title="Aktif Teklifler" value={loading ? '—' : activeQuotes.length} icon={FileText} color="blue" />

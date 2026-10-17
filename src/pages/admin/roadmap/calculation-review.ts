@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.24",
+  version: "BIM-CALC-2026-10-17.25",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "53681be9e15fdab35578a609edf2e1b5cbfa5a93",
+  implementationBaseline: "544e1dd565a58e65e63893325608c2ff56bb201f",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, Melih Dinekli saha yanıtları ve 27 kalemlik 6-villa piyasa maliyet referansı entegre edildi · bağımsız uzman imzasına hazır",
 };
 
@@ -776,6 +776,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Emsal harici alan girilmediğinde uyarı veriliyor ancak emsalin %30'unu aşan durumlar uyarılmıyordu; maliyet dağılımı referansı yoktu.",
         after: "Planlı Alanlar İmar Yönetmeliği m.5/8 ve Melih Dinekli teyidiyle emsal harici alan > %30 emsal uyarısı eklendi; 27 kalemlik gerçek 6-villa maliyet referansı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026) sisteme bağlandı.",
         basis: "Planlı Alanlar İmar Yönetmeliği m.5/8; Melih Dinekli saha yanıtı ve 6-villa maliyet tablosu (17 Ekim 2026)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 31",
+    version: "BIM-CALC-2026-10-17.25",
+    date: "17 Ekim 2026",
+    commit: "544e1dd565a58e65e63893325608c2ff56bb201f",
+    trigger: "Müteahhitlik İş Akışları Karşılama Masası (Contractor Workflow Hub) ve Yaşam Döngüsü Yönlendiricisi",
+    beforeSummary:
+      "Kullanıcı giriş yaptığında (/app) yalnızca boş bir teklif masası uyarısı ('Henüz teklif verisi yok') görüyordu; arsa ön fizibilitesi, Excel'den ihale cetveli dönüştürme ve taşeron hakediş kalkanı gibi hayati aşamalar ilk ekranda yönlendirilmiyordu.",
+    afterSummary:
+      "Kullanıcıyı doğrudan projesinin bulunduğu yaşam döngüsüne göre yönlendiren 3 evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) devreye alındı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif teklifler olduğunda kompakt hızlı süreç şeridine dönüşür.",
+    affectedModules: ["on-teklif-fizibilite", "taseron-hakedis-kalkani", "ifc-metraj"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Arsa fizibilitesine yalnızca SmartCheck altından kaydırılarak ulaşılabiliyordu.",
+        after: "Ana karşılama masasından tek tıkla doğrudan arsa emsal/fizibilite ve Excel teklif aktarımına yönlendirme sağlandı.",
+        basis: "Türk müteahhitlik iş süreçleri analizi ve saha geri bildirimi",
+      },
+      "taseron-hakedis-kalkani": {
+        before: "Taşeron hakediş kalkanı IFC açıldıktan sonra bağımsız bölüm kartında gizli kalıyordu.",
+        after: "Giriş ekranında Evre 03 Saha Denetimi kartı olarak konumlandırıldı; şap standardı ve kesinti raporuna doğrudan erişim açıldı.",
+        basis: "Melih Dinekli saha standardı ve şantiye hakediş denetim ihtiyacı",
       },
     },
   },

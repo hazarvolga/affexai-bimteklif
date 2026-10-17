@@ -455,16 +455,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "KİK sınır değer motoru Tebliğ 45.2 resmî örneğiyle birebir doğrulandı (SD = 52.281,00 TL) ve ara değerlerin resmî yuvarlaması (Tort1/σ/Tort2 2, C/K 3 ondalık) uygulandı; önceki yuvarlamasız sürüm örnekte 52.260,35 TL veriyordu. Yapı müteahhitleri sınıflandırma motoru yönetmeliğin güncel metnine göre yeniden yazıldı (14 grup, yapı sınır bedeli 2026 = 1.238.250.000 TL). Kat karşılığı motorunda konut KDV'si kısım bazlı (ilk 150 m²) hesaplanır; arsa sahibine teslimin matrahı KDV Genel Uygulama Tebliği I/B-8'e göre VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende)'dir (resmî örneklerle test edildi). Sunucu genel sayfalara JavaScript'siz okunabilir içerik ekler. Kaynaklar ve güven düzeyleri docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md.",
           ],
           [
-            "Rev. 30 (Güncel)",
+            "Rev. 30",
             "17 Ekim 2026 (Melih Dinekli 17 Saha Sorusu Yanıtları ve Benchmark Entegrasyonu)",
             "BIM-CALC-2026-10-17.24",
             "Melih Dinekli'nin 17 saha sorusuna verdiği resmi yazılı yanıtlar ve 6-villa maliyet PDF'i doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
+          ],
+          [
+            "Rev. 31 (Güncel)",
+            "17 Ekim 2026 (Müteahhitlik Süreç Karşılama Masası ve UX Yaşam Döngüsü Yönlendiricisi)",
+            "BIM-CALC-2026-10-17.25",
+            "Kullanıcıyı doğrudan projesinin bulunduğu yaşam döngüsüne göre yönlendiren 3 evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) devreye alındı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif teklifler olduğunda kompakt hızlı süreç şeridine dönüşür.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 30 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 31 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -783,6 +789,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Taşeron şap hakediş tavanında çimento/fire katsayıları serbestti, Türkiye şantiye referansı yoktu. Ön teklif fizibilitesinde emsal harici alanın (%30) yasal tavanı uyarılmıyordu ve gerçek piyasa maliyet referansı yoktu.",
             "1) Taşeron şap harcında Türkiye piyasa standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı, dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik kuralı doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik 6-villa gerçek maliyet referansı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) eklendi.",
             "src/ifc/apartment-subcontractor-shield.ts, src/ifc/apartment-subcontractor-shield.test.ts, src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-feasibility.test.ts, docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md",
+          ],
+          [
+            "Rev. 31.1 · 17 Ekim 2026 (Müteahhitlik Süreç Karşılama Masası ve UX Yaşam Döngüsü Yönlendiricisi)",
+            "Türk İnşaat Müteahhitleri Süreç Analizi Raporu ve Saha Yaşam Döngüsü İhtiyaçları",
+            "Sisteme giriş yapan müteahhit veya teknik ofis şefi boş bir teklif masası uyarısıyla ('Henüz teklif verisi yok') karşılaşıyordu; elinde arsa olan veya ihale Excel'i olan kullanıcının nereye başvuracağı yönlendirilmiyordu.",
+            "3 ana evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) tasarlandı ve Dashboard'a bağlandı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif tekliflerde kompakt süreç şeridi, boş durumda ise rehber onboarding vitrini sunulur.",
+            "src/components/dashboard/ContractorWorkflowHub.tsx, src/pages/Dashboard.tsx, src/components/smartcheck/PreBimFeasibilityPanel.tsx",
           ],
         ],
       },
