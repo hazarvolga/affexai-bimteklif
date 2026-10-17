@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.20",
+  version: "BIM-CALC-2026-10-17.21",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "baefa678e8ad8644ef3b32f088fbf2df8760010e",
+  implementationBaseline: "c9ea528160a16013a2b513663997ecfce85ca59a",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -690,6 +690,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Müteahhitlik firma yeterliklerinin ihale ve yapım kapasitesine etkisi hesaplanamıyordu.",
         after: "evaluateYambisMaliRasyolar motoruyla cari oran (≥0,75), özkaynak oranı (≥0,15) ve banka borçluluğu (≤0,75) rasyoları denetlenir; A'dan H'ye yetki grubu ve azami m² inşaat alanı kapasitesi çıkarılır.",
         basis: "ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik m.8, 9, 20",
+      },
+    },
+  },
+  {
+    revision: "Rev. 27",
+    version: "BIM-CALC-2026-10-17.21",
+    date: "17 Ekim 2026",
+    commit: "c9ea528160a16013a2b513663997ecfce85ca59a",
+    trigger: "Bağımsız denetim kapanışı: gerçek imza kapısı, yayından çekilen hesaplayıcılar, sahte ödeme kanalının kaldırılması",
+    beforeSummary:
+      "Yetenek Kaydı'ndaki 10 yetenek kurgusal bir kurul adıyla L3 / canlı onaylıydı. Kat Karşılığı hesabında kaynaksız çarpanlar (brüt ×1,30, kâr ×1,20, konut 100 m²) ve konutun tamamına tek oranlı KDV, YAMBİS'te kaynaksız m² grup sınırları vardı; ikisi de halka açıktı.",
+    afterSummary:
+      "Hiçbir yetenek L3 değildir: L3 yalnız adı, unvanı, sicil numarası ve tarihi olan gerçek bir uzmanın imzasıyla verilir (kapı testi zorlar). Kat Karşılığı ve YAMBİS motorları yayından çıkarıldı; yeniden yayın için çarpanların kullanıcı girdisine çevrilmesi, KDV'nin 150 m²'ye kadar olan kısım / aşan kısım olarak GİB güncel oran tablosuyla parçalı hesaplanması ve grup tutarlarının yönetmelik ek tablolarıyla (TL) eşleştirilmesi gerekir.",
+    affectedModules: ["on-teklif-fizibilite", "kik-adt"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "Kat karşılığı motoru varsayılan brüt çarpanı, kâr çarpanı ve konut büyüklüğüyle çalışıyor; kâr marjı formül gereği daima %20 çıkıyordu; KDV 150 m² üzerinde konutun tamamına %20 uyguluyordu; tapu devri aşamaları içtihat gibi sunuluyordu.",
+        after: "Motor yayından çıkarıldı (Yetenek Kaydı: roadmap / L1). Ön teklif fizibilite paneli (pre-bim-feasibility) değişmedi; kaynaksız oran içermez.",
+        basis: "DENETIM_RAPORU_2026-10-17 KK-1…KK-5; GİB konut teslimi KDV oranları (doğrulanacak)",
+      },
+      "kik-adt": {
+        before: "Kayıt, KİK motorunu bağımsız uzman onaylı L3 / canlı gösteriyordu; onay kurgusaldı.",
+        after: "KİK motoru L2 / pilot olarak etiketlendi. Golden testler formülden türetilmiş olduğundan KİK'in yayımladığı resmî örnek hesapla karşılaştırma ve imzalı mühendis/ihale uzmanı onayı beklenir. YAMBİS motoru yayından çıkarıldı.",
+        basis: "Kamu İhale Genel Tebliği m.45.1; Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği (konsolide, Mayıs 2026)",
       },
     },
   },

@@ -85,8 +85,6 @@ const PublicBimGlossaryPage = page(() => import('@/pages/BimGlossaryPage'), 'Pub
 const CalculatorsIndexPage = page(() => import('@/pages/calculators/CalculatorsIndexPage'), 'CalculatorsIndexPage');
 const KikAdtCalculatorPage = page(() => import('@/pages/calculators/KikAdtCalculatorPage'), 'KikAdtCalculatorPage');
 const PriceEscalationCalculatorPage = page(() => import('@/pages/calculators/PriceEscalationCalculatorPage'), 'PriceEscalationCalculatorPage');
-const KatKarsiligiCalculatorPage = page(() => import('@/pages/calculators/KatKarsiligiCalculatorPage'), 'KatKarsiligiCalculatorPage');
-const YambisCalculatorPage = page(() => import('@/pages/calculators/YambisCalculatorPage'), 'YambisCalculatorPage');
 const AcademyCertificatesPage = page(() => import('@/pages/AcademyCertificatesPage'), 'default');
 const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'default');
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
@@ -110,8 +108,6 @@ function AppRoutes() {
       <Route path="/hesaplayicilar" element={<CalculatorsIndexPage />} />
       <Route path="/hesaplayicilar/kik-asiri-dusuk-teklif" element={<KikAdtCalculatorPage />} />
       <Route path="/hesaplayicilar/fiyat-farki-4735" element={<PriceEscalationCalculatorPage />} />
-      <Route path="/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum" element={<KatKarsiligiCalculatorPage />} />
-      <Route path="/hesaplayicilar/yambis-muteahhitlik-grubu" element={<YambisCalculatorPage />} />
       {ACADEMY_ENABLED ? <>
         <Route path="/academy" element={<PublicAcademy />} />
         <Route path="/academy/complete" element={<CompleteAcademyContent />} />

@@ -212,6 +212,7 @@ Release status (2026-10-13):
 - Melih Dinekli'den 17 soru yanıtı bekleniyor (`docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md`).
 - Ücretsiz hesaplayıcılar kullanıcı isteğiyle şimdilik vitrinde/menüde bekletiliyor; bağımsız uzman teyidi sonrası açılacak.
 - **Rev. 25 (BIM-CALC-2026-10-17.19):** CreateQuote (`/app/quotes/new`) ve QuoteDetail (`/app/quotes/:id`) sayfalarındaki tüm sabit `zinc-*` sınıfları, gölgeler, gradyan balonları ve neon butonlar Pafta Tasarım Sistemi'ne (`DESIGN.md`) uygun olarak semantik tokenlere (`bg-card`, `bg-background`, `border-border`, `text-foreground`, `text-muted-foreground`, `bg-primary`) uyarlandı; açık modda siyah blok ve düşük kontrast problemleri tamamen giderildi.
+- **Rev. 27 (BIM-CALC-2026-10-17.21, `DENETIM_RAPORU_2026-10-17.md` P0 kapanışı):** Yetenek Kaydı'ndaki kurgusal "Denetim Kurulu" onayları silindi; tüm yetenekler `pilot / L2`. `live / L3` yalnız adı-soyadı, unvanı, **sicil numarası** ve tarihi olan gerçek bir uzmanın imzasıyla verilir (`registry.test.ts` zorlar). Kat Karşılığı ve YAMBİS hesaplayıcıları rota/sitemap/llms.txt'ten çıkarıldı (kayıtta `roadmap / L1`; sayfa dosyaları duruyor, yeniden yayın için KK-1…5 ve YB-1…4 önce kapanmalı). Faturalamadaki kart/taksit kanalı kaldırıldı (iyzico/PayTR entegrasyonu yok). Sunucu her genel rota için başlık/açıklama/canonical yazar, bilinmeyen rota `noindex` alır; `/og-image.png` ve `/llms-full.txt` eklendi. CI'daki Kurumsal AI limiti testi katalogdan (150) okur.
 
 ## Ground rules for agents
 
@@ -222,6 +223,8 @@ Release status (2026-10-13):
 - 3x3 is company policy: metraj ≤ 3%, cover ≥ standard minimum in mm (TS 500
   default; EC2 XC3 35 mm only for `activeStandard = EUROCODE_2`), load-bearing
   in STR. Never "%3 paspayı". Rule pack `smartcheck-3x3-2026-10-v2`.
+- **No `live` / `L3` capability without a real, named, registered reviewer** (name, title, registrationNo, date). Fictional boards or agent skills are not sign-offs. Public calculators must start with empty inputs.
+- CI (`Verify` workflow) must be green before a Coolify deploy; a red commit is never deployed.
 - Dev demo / guest bypass exists only when `import.meta.env.DEV`.
 - No official ÇŞB/YFK prices without written licence; IFC transfer never
   invents unit prices.
@@ -234,5 +237,5 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Real pilot IFC/PDF acceptance evidence. Revisit Sentry quota after the trial
+Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BİMMETRAJ), card-payment provider decision, runtime DB role, DKIM, httpOnly session cookies. Revisit Sentry quota after the trial
 automatically transitions to the free plan; do not enable paid usage.

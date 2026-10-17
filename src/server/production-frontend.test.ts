@@ -81,3 +81,36 @@ test('production frontend serves sitemap.xml and robots.txt for the canonical or
   assert.match(await llms.text(), /# BIMMetraj \(TeklifPro\)/);
 });
 
+
+test('production frontend injects per-route head tags, noindex for unknown paths, serves og-image and llms-full when PUBLIC_APP_URL is set', async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'bimmetraj-meta-'));
+  await mkdir(path.join(root, 'assets'));
+  await writeFile(path.join(root, 'index.html'), '<html><head><meta name="description" content="eski" /><link rel="canonical" href="https://bimmetraj.com/" /><title>eski</title></head><body></body></html>');
+  await writeFile(path.join(root, 'og-image.png'), 'PNG');
+  const previous = process.env.PUBLIC_APP_URL;
+  process.env.PUBLIC_APP_URL = 'https://bimmetraj.com';
+  const app = express();
+  registerProductionFrontend(app, root);
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise<void>(resolve => server.once('listening', resolve));
+  t.after(async () => {
+    if (previous === undefined) delete process.env.PUBLIC_APP_URL; else process.env.PUBLIC_APP_URL = previous;
+    server.closeAllConnections();
+    await new Promise<void>(resolve => server.close(() => resolve()));
+    await rm(root, { recursive: true, force: true });
+  });
+  const base = `http://127.0.0.1:${(server.address() as any).port}`;
+  const known = await fetch(`${base}/pricing`);
+  assert.equal(known.status, 200);
+  const knownHtml = await known.text();
+  assert.match(knownHtml, /<title>Paketler ve Fiyatlandırma/);
+  assert.match(knownHtml, /rel="canonical" href="https:\/\/bimmetraj\.com\/pricing"/);
+  assert.match(knownHtml, /property="og:image"/);
+  const unknown = await fetch(`${base}/yok-boyle-sayfa`);
+  assert.equal(unknown.status, 404);
+  assert.match(await unknown.text(), /noindex, nofollow/);
+  assert.equal((await fetch(`${base}/og-image.png`)).status, 200);
+  const full = await fetch(`${base}/llms-full.txt`);
+  assert.equal(full.status, 200);
+  assert.match(await full.text(), /Yetenek Ayrıntıları/);
+});

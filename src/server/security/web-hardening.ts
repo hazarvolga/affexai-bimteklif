@@ -65,8 +65,6 @@ const CALCULATOR_PAGES = [
   '/hesaplayicilar',
   '/hesaplayicilar/kik-asiri-dusuk-teklif',
   '/hesaplayicilar/fiyat-farki-4735',
-  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
-  '/hesaplayicilar/yambis-muteahhitlik-grubu'
 ];
 const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
 
@@ -138,7 +136,7 @@ export function llmsTxt(publicAppUrl: string): string {
     '',
     '> BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3 / IFC4 / IFC4.3 model tabanlı metraj (QTO) çıkarma, çok katmanlı IfcCovering imalat ayrıştırma, ÇŞB 2026 poz birim fiyat eşleştirme, 4734 KİK m.38 kullanıcı girdili sınır değer & %80 sıralı iş kalemleri analizi, TS EN ISO 19650-2 / EN 17412-1 (LOIN) dosya adı ve eleman üstveri desteği, SmartCheck 3x3 & Minha kalite denetimi ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-9 dijital ruhsat ön-kontrol platformudur.',
     '',
-    '## Temel Mühendislik Yetenekleri',
+    '## Temel Mühendislik Yetenekleri (pilot aşaması; bağımsız mühendis/uzman doğrulaması henüz yoktur — sonuçlar ön kontrol niteliğindedir)',
     '- **openBIM IFC Metraj (QTO) Motoru**: IfcBeam, IfcColumn, IfcSlab, IfcWall ve çok katmanlı IfcCovering elemanlarından BaseQuantities, IfcComplexProperty ve 3B geometri tabanlı net metraj (m³, m², süpürgelik mtül) ve bağımsız bölüm (IfcZone/IfcSpace) daire cetveli çıkarımı. Kalıp ve IfcReinforcingBar donatı miktarları model tahmini (model_estimate) olarak raporlanır ve mühendis onayı gerektirir.',
     '- **SmartCheck 3x3 & Minha Denetimi**: Şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm), TS 500 kiriş–döşeme kesişim düşümü ve ÇŞB 2026 (0,50 m²) / DIN 18350 (2,50 m²) / Kullanıcı Tanımlı Özel Şartname boşluk minha kuralları ile kanıta dayalı metraj kontrolü.',
     '- **TS EN ISO 19650-2 & EN 17412-1 (LOIN) Desteği**: RG 33331 EK-2 (9 alanlı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri dosya adlandırma şeması ile LOIN geometrik/alfa-sayısal eleman bütünlük kontrolü (`src/smartcheck/rules/iso19650.ts`). Doküman üstverisinde CDE durumu girilmediğinde uydurma varsayılan üretilmez ("değerlendirilmedi" döner); tam CDE durum makinesi Faz 2 yol haritasındadır.',
@@ -146,7 +144,7 @@ export function llmsTxt(publicAppUrl: string): string {
     '- **RG 33331 e-PYS & PDF/A Ön Kontrol**: 5 Ağustos 2026 tarihli Resmi Gazete Yönetmeliği EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) / Tablo 9.2 (Diğer Disiplinler 16 satır) kurallarına göre IFC ön kontrolü; 2B PDF paftalarda PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta düzeni ve 5070 sayılı Kanun gömülü e-imza (/Sig) ön kontrolü (Ghostscript/veraPDF ile tam PDF/A-2b arşiv üretimi Faz 2 yol haritasındadır).',
     '- **ÇŞB 2026 Poz & 5D Teklif Cetveli**: SHA-256 mühürlü ÇŞB 2026 poz/rayiç kataloğu, firma fiyat hafızası, eskalasyon, kârlılık simülasyonu ve kurumsal PDF/Excel teklif çıktısı.',
     '',
-    `## Yetenek Kaydı ve Kanıt Kapısı (${CAPABILITY_REGISTRY_VERSION})`,
+    `## Yetenek Kaydı ve Kanıt Kapısı (${CAPABILITY_REGISTRY_VERSION}) — seviye L3 ve üzeri yalnız gerçek, imzalı uzman onayıyla verilir; şu an hiçbir yetenek L3 değildir`,
     ...liveLines,
     ...pilotLines,
     ...roadmapLines,
@@ -167,8 +165,6 @@ export function llmsTxt(publicAppUrl: string): string {
     `- [Ücretsiz Hesaplayıcılar](${origin}/hesaplayicilar): Giriş gerektirmeyen, varsayılan değer içermeyen ön hesaplayıcılar (bağımsız doğrulanmamıştır).`,
     `- [Aşırı Düşük Teklif Sınır Değeri](${origin}/hesaplayicilar/kik-asiri-dusuk-teklif): KİK m.38 ve Tebliğ m.45.1.1 yapım işleri sınır değer hesabı.`,
     `- [4735 Fiyat Farkı](${origin}/hesaplayicilar/fiyat-farki-4735): F = A × B × (Pn − 1) fiyat farkı hesabı, kullanıcı girdili katsayı ve endeks.`,
-    `- [Kat Karşılığı & Kentsel Dönüşüm](${origin}/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum): TBK 6098 ve 6306 sayılı Kanun rasyonel paylaşım oranı, kademeli tapu devri ve %1 KDV teşvik hesabı.`,
-    `- [YAMBİS Belge Grubu Danışmanı](${origin}/hesaplayicilar/yambis-muteahhitlik-grubu): ÇŞİDB cari oran, özkaynak, banka borcu rasyoları ile A-H yetki grubu ve m² kapasite hesabı.`,
     `- [Pilot Başvurusu](${origin}/pilot): Kurumsal teknik ofisler için gerçek proje dosyalarıyla pilot çalışma başvurusu.`,
     `- [Kullanım Koşulları](${origin}/terms): Mühendislik sorumluluğu, ön-kontrol niteliği ve abonelik koşulları.`,
     `- [KVKK ve Gizlilik Bildirimi](${origin}/privacy): 6698 sayılı KVKK aydınlatma metni ve proje dosyalarında kişisel veri maskeleme politikası.`,
@@ -176,3 +172,32 @@ export function llmsTxt(publicAppUrl: string): string {
   ].join('\n');
 }
 
+
+/**
+ * Genişletilmiş makine-okunur özet (llms-full.txt): yetenek kaydındaki her kaydın tam açıklaması,
+ * dayandığı kaynak ve doğrulama seviyesi. Yalnız kayıttan üretilir; elle iddia eklenmez.
+ */
+export function llmsFullTxt(publicAppUrl: string): string {
+  const all = [...getLiveCapabilities(), ...getPilotCapabilities(), ...getRoadmapCapabilities()];
+  const statusLabel = { live: 'CANLI', pilot: 'PİLOT', roadmap: 'YOL HARİTASI' } as const;
+  const blocks = all.map((c) =>
+    [
+      `### ${c.title}`,
+      `- Durum: ${statusLabel[c.status]} · Doğrulama seviyesi: ${c.level}`,
+      `- Özet: ${c.shortClaim}`,
+      `- Ayrıntı: ${c.longDescription}`,
+      `- Dayanak: ${c.evidence.officialSource.institution} — ${c.evidence.officialSource.documentTitle} (${c.evidence.officialSource.articleOrTable})`,
+      `- Uzman onayı: ${c.reviewer ? `${c.reviewer.name}, ${c.reviewer.title} (${c.reviewer.registrationNo}), ${c.reviewer.approvedAt}` : 'Yok (bağımsız mühendis/uzman doğrulaması henüz alınmadı)'}`,
+      '',
+    ].join('\n'),
+  );
+  return [
+    llmsTxt(publicAppUrl).trimEnd(),
+    '',
+    `## Yetenek Ayrıntıları (${CAPABILITY_REGISTRY_VERSION})`,
+    'Seviyeler: L1 motor ve birim test; L2 uygulama akışına bağlı; L3 resmî kaynak ve altın örnekle doğrulanmış, imzalı uzman onaylı; L4 pilot müşteride saha kabulü.',
+    'Bu platformun sonuçları ön kontrol niteliğindedir; mühendislik, hukuk ve vergi kararlarında resmî metinler ve yetkili uzman görüşü esastır.',
+    '',
+    ...blocks,
+  ].join('\n');
+}

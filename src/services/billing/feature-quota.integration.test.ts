@@ -31,7 +31,8 @@ test('the enterprise package gets its own AI allowance instead of the starter 20
   await db.insert(schema.subscriptions).values({ companyId: company.id, planId: plan.id, currentPeriodStart: new Date('2020-01-01') });
   await db.insert(schema.usageLogs).values({ companyId: company.id, userId: user.id, feature: 'AI_QUOTATION_GENERATED', count: 20 });
   const reservation = await reserveAiUsage(company.id, user.id);
-  assert.deepEqual([reservation.current, reservation.limit], [21, 1000]);
+  assert.deepEqual([reservation.current, reservation.limit], [21, enterprise.monthlyAiLimit]);
+  assert.ok((enterprise.monthlyAiLimit ?? 0) > 20, 'the enterprise catalog AI limit must exceed the starter 20');
   const report = await import('./usage-report').then(module => module.readBillingUsage(company.id));
   const pdf = report.usage.find(row => row.feature === 'PDF_GENERATED');
   assert.equal(pdf?.enforced, true);

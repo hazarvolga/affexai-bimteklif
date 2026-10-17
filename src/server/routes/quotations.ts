@@ -11,6 +11,7 @@ import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { QuotaError } from "../../services/billing/quota";
 import { consumeRateLimit } from "../auth/security";
+import { captureError } from "../observability/error-tracking";
 
 export function registerQuotationRoutes(app: Express, canMutate: any) {
   const pdfRateLimit = async (req: any, res: any, next: any) => {
@@ -36,7 +37,9 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
         metadataJson: mergedMetadata,
       });
     } catch (auditErr) {
+      // The business action already succeeded; a lost audit row must still be visible to operators (Sentry), not only stdout.
       console.error("Failed to write quotation audit log:", auditErr);
+      captureError(auditErr, { area: "quotation-audit", action, quotationId });
     }
   };
 

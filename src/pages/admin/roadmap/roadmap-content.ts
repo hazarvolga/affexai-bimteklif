@@ -431,16 +431,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "CreateQuote ve QuoteDetail sayfalarındaki sabit zinc-* sınıfları, neon butonlar ve renkli kartlar temizlenerek Pafta Tasarım Sistemi (DESIGN.md) mimarisine uyarlandı; açık modda siyah blok sorunu ve düşük kontrast giderildi.",
           ],
           [
-            "Rev. 26 (Güncel)",
+            "Rev. 26",
             "17 Ekim 2026 (BİMMETRAJ Marka Tescili & Kat Karşılığı / YAMBİS Motorları)",
             "BIM-CALC-2026-10-17.20",
             "Kalıcı hafızada marka resmi olarak BİMMETRAJ (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK, 6306 sayılı Kentsel Dönüşüm ve Yargıtay 15. HD içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (rasyonel müteahhit payı, 4 aşamalı kademeli tapu devri, % 1 KDV matrahı) ve ÇŞİDB Yönetmeliğine dayalı YAMBİS Müteahhitlik Belge Grubu & Kapasite Danışmanı (cari oran, özkaynak, banka borcu rasyoları) devreye alındı.",
+          ],
+          [
+            "Rev. 27 (Güncel)",
+            "17 Ekim 2026 (Bağımsız Denetim Kapanışı: Gerçek İmza Kapısı, Yayından Çekilen Hesaplayıcılar, Sahte Ödeme Kanalı Kaldırıldı)",
+            "BIM-CALC-2026-10-17.21",
+            "DENETIM_RAPORU_2026-10-17 bulguları kapatıldı: Yetenek Kaydı'ndaki kurgusal 'Denetim Kurulu' onayları silindi, tüm yetenekler gerçek imza alınana kadar pilot/L2 seviyesine indirildi ve kapı testi gerçek kişi + sicil numarası şartı koştu. Kat Karşılığı ve YAMBİS hesaplayıcıları kaynak doğrulaması bitene kadar rota, sitemap ve llms.txt'ten çıkarıldı. Faturalama ekranındaki var olmayan kart/taksit kanalı kaldırıldı. CI'yı kıran Kurumsal AI limiti testi katalogdan okunur hâle getirildi. Sunucu tarafı sayfa üst verisi, og-image ve llms-full.txt eklendi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 26 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 27 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -731,6 +737,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Özel sektör müteahhitleri için kat karşılığı paylaşım oranı, kademeli tapu devir planı, kentsel dönüşüm KDV avantajı ve YAMBİS A-H yetki grubu hesaplayıcıları bulunmuyordu.",
             "kat-karsiligi.ts ve yambis-classification.ts motorları geliştirildi; /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile eklendi; sitemap ve SPA rotaları güncellendi.",
             "src/lib/kat-karsiligi.ts, src/lib/yambis-classification.ts, src/pages/calculators/KatKarsiligiCalculatorPage.tsx, src/pages/calculators/YambisCalculatorPage.tsx, src/App.tsx, src/server/security/web-hardening.ts",
+          ],
+          [
+            "Rev. 27.1 · 17 Ekim 2026 (Bağımsız Denetim Kapanışı)",
+            "DENETIM_RAPORU_2026-10-17 P0-1…P0-5; yanıltıcı ticari uygulama yasağı ilkesi (6502 sayılı Kanun; hukuk onayı bekliyor)",
+            "Yetenek Kaydı 10 yeteneği 'Yüksek Mühendis / Mimar Denetim Kurulu' adlı kurgusal onayla L3 / canlı gösteriyordu; Kat Karşılığı ve YAMBİS hesaplayıcıları kaynaksız çarpanlar, kaynaksız m² sınırları ve hatalı KDV kuralıyla halka açıktı; Faturalama ekranı kodda karşılığı olmayan iyzico/PayTR taksit kanalı ve uydurma vade oranları gösteriyordu; CI testi eski Kurumsal AI limitini (1000) bekleyip 15 Ekim v6 kataloğuyla (150) çelişiyordu.",
+            "Kurgusal onaylar kaldırıldı, 10 yetenek pilot/L2 oldu, registry.test.ts gerçek kişi + sicil numarası şartı ve yayınlanan hesaplayıcılarda varsayılan değer yasağı koşuyor; iki hesaplayıcı roadmap/L1 olarak kayda alınıp yayından çıkarıldı; kart/taksit kanalı kaldırıldı; test katalog değerini okuyor; denetim kaydı yazılamazsa Sentry'ye bildirilir; her genel rota için sunucuda başlık/açıklama/canonical yazılır, bilinmeyen rota noindex alır; og-image.png ve llms-full.txt eklendi.",
+            "src/capabilities/registry.ts, src/capabilities/registry.test.ts, src/App.tsx, src/pages/calculators/CalculatorsIndexPage.tsx, src/pages/Billing.tsx, src/services/billing/feature-quota.integration.test.ts, src/server/routes/quotations.ts, src/server/app.ts, src/server/security/route-meta.ts, src/server/security/web-hardening.ts, public/og-image.png",
           ],
         ],
       },
