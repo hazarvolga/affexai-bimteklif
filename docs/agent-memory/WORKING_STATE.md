@@ -1,18 +1,18 @@
 # Working State
 
-Last updated: 2026-10-15. Keep this file to one page: current truth only.
+Last updated: 2026-10-17. Keep this file to one page: current truth only.
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
-Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-15.md`.
+Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-17.md`.
 
 ## Production
 
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Last verified live revision: `8b9ba991379d73d5245c8ac6c491461660371146`
-  (`/api/health`, `revisionSource: "build"`, 2026-10-15, Coolify deploy `vwtsbkmmc8ozojk2h3ww7vmz`). Transactional e-mail uses Stalwart SMTP 465 at
-  `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`).
+- Last verified live revision: `f7aa3d5` (previous build `a78e6f9edb20945eeaf1b3f30b2269fb76435774`,
+  `/api/health`, `revisionSource: "build"`, 2026-10-17, Coolify deploy `4fbe6799-5729-4350-b217-07435cc724fd`). Transactional e-mail uses Stalwart SMTP 465 at
+  `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`), plus Early-Access Waitlist on `/` and lead management at `/admin/leads`.
 - Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
   SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.
 - Production R2 bucket `bimmetraj-production` and scoped app credentials are
@@ -172,6 +172,10 @@ Release status (2026-10-13):
     2. **Skirting (`SKIRTINGBOARD`) Linear Meter Conversion (`lengthM` in `mtül`):** Converted skirting coverings from `m²` (`53,61 m²`) to contractor-ready linear meters (`893,54 mtül` Parke Süpürgeliği + `753,92 mtül` Seramik/Granit Süpürgelik).
     3. **Independent Unit / 16-Apartment Schedule (`IfcZone` + `IfcSpace`):** Extracted `summary.apartmentSchedule` (`D01..D16` + `OAL` + `BDR`) with room-by-room net sweepable `m²`, balcony `m²`, unit gross `m²`, and general gross `m²`.
     4. **3-Step "Kağıt İcmal + Sağ Detay Kartı" Calm UI (`src/components/smartcheck/CalmIfcWorkspace.tsx`):** Mounted on both `SmartCheckImportWorkspace.tsx` and `BimIfcParser.tsx` with 3 tabs (`1. Malzeme İcmal Listesi` | `2. Daire Metrekareleri (16 Daire)` | `3. Maliyet & Teklif`), 3-column paper sheet on the left, and `Brüt − Kapı/Pencere Boşluğu (Minha) = Net` + storey/room Green Book inspector card on the right.
+- **2026-10-17 Centralized Pafta Design System (Light `#f3f1e9` / Dark Anthracite `#141517`), High-Contrast Bridge, Early-Access Waitlist (`/admin/leads`), PageSpeed Optimization & `GAP_RAPORU_2026-10-17.md` Remediation (`Rev. 8.1–8.2` · `BIM-CALC-2026-10-17.2`):**
+  - Centralized Light/Dark tokens in `DESIGN.md` & `src/index.css` (`ThemeToggle.tsx`, `PaftaDrawing.tsx`), mapping legacy `.text-white` and pastel `-200/-300/-400` classes to deep high-contrast pigments in Light Mode and setting Dark Mode to deep anthracite (`#141517`).
+  - Added Development Notice + Early-Access Waitlist (`#on-kayit`) on `LandingPage.tsx` and `/admin/leads` (`PilotApplications.tsx`) with search, status filtering, and CSV export.
+  - Remediated `GAP_RAPORU_2026-10-17.md`: removed `/2026_45/i` filename fallback in `src/ifc/calm-icmal.ts` (`Y-1`), hardened `POST /api/pilot-applications` against duplicate-email PII leakage and overwrite (`Y-2`), injected `findSubscription` in `src/server/middleware/auth.ts` for DB-free unit tests (`Y-4`), protected customer/sample IFC & PDF files in `.gitignore` (`Y-5`), and eliminated render-blocking Google Fonts + inline `<script>` in `index.html` (`src/main.tsx`, `src/App.tsx`).
 
 ## Next code work
 

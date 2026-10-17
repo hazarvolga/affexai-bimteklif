@@ -1,6 +1,6 @@
 # TeklifPro Agent Memory
 
-Last updated: 2026-10-15
+Last updated: 2026-10-17
 
 This folder is the canonical short memory for agents working on TeklifPro. It is
 intentionally much smaller than the full codebase and `.proje_` archive.
@@ -10,7 +10,7 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 1. `PROJECT_BRIEF.md` - product and business goal.
 2. `WORKING_STATE.md` - one-page current repo/runtime state and known constraints
    (history in `archive/`).
-3. `HANDOFF_2026-10-15.md` - complete handoff briefing for the next agent (live revision, deploy commands, environment paths, completed 2026-10-15 milestones, and next priorities).
+3. `HANDOFF_2026-10-17.md` - complete handoff briefing for the next agent (live revision, deploy commands, environment paths, completed 2026-10-16/17 milestones, and next priorities).
 4. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions (ADR-001 through ADR-010).
 5. `PILOT_PLAN.md` - current repo production-hardening plan.
 6. `AGENT_PROTOCOL.md` - how agents should work safely in this repo.
@@ -18,8 +18,9 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 
 ## Source Of Truth Layers
 
-- Latest session handoff: `docs/agent-memory/HANDOFF_2026-10-15.md`.
+- Latest session handoff: `docs/agent-memory/HANDOFF_2026-10-17.md` (previous: `HANDOFF_2026-10-15.md`).
 - Latest comprehensive audit & Ministry PDF sync reports:
+  - `GAP_RAPORU_2026-10-17.md` (17 Oct audit & P0/P1/P2 remediation).
   - `docs/audits/GAP_VE_DENETIM_RAPORU_2026-10-15.md` (5-skill comprehensive gap audit & closure).
   - `docs/audits/BAKANLIK_SON_PDFLER_ANALIZ_VE_YOL_HARITASI.md` (RG 33331 final PDFs `#1.pdf`, `#2.pdf`, `EKLER.pdf` analysis & 5-phase implementation).
   - `docs/audits/BAKANLIK_TEKNIK_GORUS_VE_TOPLANTI_DOSYASI.md` (6 technical questions & field dossier for the Ministry of Environment, Urbanization and Climate Change).
