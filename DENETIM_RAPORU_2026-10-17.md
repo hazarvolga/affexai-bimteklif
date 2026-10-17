@@ -1,4 +1,4 @@
-# BİMMETRAJ — Bağımsız GAP ve Canlıya Hazırlık (Production Readiness) Denetim Raporu
+# BIMMetraj — Bağımsız GAP ve Canlıya Hazırlık (Production Readiness) Denetim Raporu
 
 **Tarih:** 17 Ekim 2026 · **Kod:** `main` @ `c9ea528` · **Canlı:** `a2cb114` (Rev. 26, `BIM-CALC-2026-10-17.20`) · **Yöntem:** "Kanıtı olmayan iddia geçersizdir." Bu rapor yalnız inceleme ve okuma amaçlı komutlarla üretildi; kodda değişiklik yapılmadı.
 
@@ -75,7 +75,7 @@
 | ⚠️ Form etiketleri | 281 form alanının yalnız 44'ünde `id`/`aria-label` doğrudan görünüyor; geri kalanı sarmalayıcı `<label>` olabilir, manuel denetim gerekli | WCAG 1.3.1 / 4.1.2 riski |
 | ⚠️ Odak görünürlüğü | 10 `outline-none` kullanımında `focus-visible` karşılığı yok | WCAG 2.4.7 |
 | ✅ Semantik | 12 sayfada `<main>`; temel tokenların kontrastı (`#181f1c` / `#f3f1e9`) AA'yı geçiyor | — |
-| ⚠️ Marka tutarsız | Rev. 26 "BİMMETRAJ" dedi; `<title>`, JSON-LD ve `llms.txt` hâlâ "BIMMetraj"; `package.json` adı `react-example` | Varlık sinyali bölünür |
+| ⚠️ Marka tutarsız | Ajan hafızası ve Rev. 26 metinleri büyük harfli "BİMMETRAJ", vitrin ve kod "BIMMetraj" yazıyordu; `package.json` adı `react-example` | Varlık sinyali bölünür |
 
 ### Eksen 4 — SEO, GEO, LLM hazırlığı · FAIL
 
@@ -200,7 +200,7 @@
 | P1-9 | Genel sayfalar ve hesaplayıcılar için build-time prerender; sayfa başına `<title>`/açıklama sunucuda; `og:image`; `llms-full.txt` |
 | P1-10 | Playwright smoke: kayıt → teklif → PDF; IFC yükle → icmal; süper admin girişi; CI'da |
 | P1-11 | Denetim kaydı yazılamazsa Sentry'ye hata + metrik; `user_id` boş gelen yolu düzelt |
-| P1-12 | Marka birliği: `<title>`, JSON-LD, `llms.txt`, e-posta şablonları "BİMMETRAJ" |
+| P1-12 | Marka birliği: tek yazım "BIMMetraj" (karar: 17 Ekim 2026); `<title>`, JSON-LD, `llms.txt`, e-posta şablonları ve ajan hafızası buna hizalı |
 
 ### P2 — İyileştirme
 
@@ -269,7 +269,7 @@ Kodla kapatılabilen maddeler uygulandı; **henüz commit edilmedi ve deploy edi
 | P0-5 | ✅ | Yayındaki hesaplayıcılarda başlangıç değeri yasağı testi |
 | P1-9 | 🟡 Kısmen | Sunucu her genel rota için başlık/açıklama/canonical yazıyor, bilinmeyen rota `noindex`; `og:image` + `/og-image.png`; `/llms-full.txt`. Sayfa **gövdesi** hâlâ istemcide üretiliyor (tam ön-render yapılmadı) |
 | P1-11 | ✅ | Denetim kaydı yazılamazsa Sentry'ye bildirim. (CI logundaki `user_id` hataları test sahte kullanıcısından; üretim kodunda `userId` her zaman dolu) |
-| P1-12 | ⏸ Karar bekliyor | Repoda "BIMMetraj" 87, "BİMMETRAJ" 1 yerde; yazımı siz seçin, sonra tek seferde değişir |
+| P1-12 | ✅ | Marka yazımı **BIMMetraj** olarak kararlaştırıldı; tüm kod, vitrin ve ajan hafızası bu yazıma hizalandı |
 | P1-1…P1-4, P1-10 | ⏸ Dış işlem | Gerçek imzalı uzman onayı; KİK'in resmî örnek hesabı; GİB/yönetmelik kaynaklarıyla KDV ve YAMBİS düzeltmesi; Playwright |
 | P1-5…P1-8 | ⏸ Altyapı | httpOnly çerez (oturum mimarisi değişikliği), runtime DB rolü, DKIM (DNS + Stalwart), kesintisiz deploy (Coolify) |
 | P2-1…P2-7 | ⏸ Açık | Tasarım token göçü, form etiketi taraması, `strict` TS, Fiyat Kitabı tablolarına geçiş, ifcopenshell sürüm eşitlemesi, CORP, alarmlar |

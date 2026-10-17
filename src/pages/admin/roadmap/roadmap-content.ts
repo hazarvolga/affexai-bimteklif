@@ -432,9 +432,9 @@ export const ROADMAP_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 26",
-            "17 Ekim 2026 (BİMMETRAJ Marka Tescili & Kat Karşılığı / YAMBİS Motorları)",
+            "17 Ekim 2026 (BIMMetraj Marka Tescili & Kat Karşılığı / YAMBİS Motorları)",
             "BIM-CALC-2026-10-17.20",
-            "Kalıcı hafızada marka resmi olarak BİMMETRAJ (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK, 6306 sayılı Kentsel Dönüşüm ve Yargıtay 15. HD içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (rasyonel müteahhit payı, 4 aşamalı kademeli tapu devri, % 1 KDV matrahı) ve ÇŞİDB Yönetmeliğine dayalı YAMBİS Müteahhitlik Belge Grubu & Kapasite Danışmanı (cari oran, özkaynak, banka borcu rasyoları) devreye alındı.",
+            "Kalıcı hafızada marka resmi olarak BIMMetraj (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK, 6306 sayılı Kentsel Dönüşüm ve Yargıtay 15. HD içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (rasyonel müteahhit payı, 4 aşamalı kademeli tapu devri, % 1 KDV matrahı) ve ÇŞİDB Yönetmeliğine dayalı YAMBİS Müteahhitlik Belge Grubu & Kapasite Danışmanı (cari oran, özkaynak, banka borcu rasyoları) devreye alındı.",
           ],
           [
             "Rev. 27 (Güncel)",

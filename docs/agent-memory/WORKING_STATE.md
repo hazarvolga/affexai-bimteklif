@@ -1,7 +1,7 @@
-# Working State: BİMMETRAJ
+# Working State: BIMMetraj
 
 Last updated: 2026-10-17. Keep this file to one page: current truth only.
-> **Brand Note:** Project brand is officially **BİMMETRAJ** (formerly TeklifPro; domain `https://bimmetraj.com`).
+> **Brand Note:** Project brand is officially **BIMMetraj** (formerly TeklifPro; domain `https://bimmetraj.com`).
 
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
@@ -237,5 +237,5 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BİMMETRAJ), card-payment provider decision, runtime DB role, DKIM, httpOnly session cookies. Revisit Sentry quota after the trial
+Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BIMMetraj), card-payment provider decision, runtime DB role, DKIM, httpOnly session cookies. Revisit Sentry quota after the trial
 automatically transitions to the free plan; do not enable paid usage.

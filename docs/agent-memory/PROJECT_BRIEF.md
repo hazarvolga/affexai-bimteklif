@@ -1,6 +1,6 @@
-# Project Brief: BİMMETRAJ (formerly TeklifPro)
+# Project Brief: BIMMetraj (formerly TeklifPro)
 
-BİMMETRAJ (production domain: `bimmetraj.com`, formerly TeklifPro) is a production-grade
+BIMMetraj (production domain: `bimmetraj.com`, formerly TeklifPro) is a production-grade
 AI-assisted BIM quantity takeoff (metraj), regulatory compliance, quotation and
 profitability platform for AEC, contracting, and construction businesses. The main business flow is:
 

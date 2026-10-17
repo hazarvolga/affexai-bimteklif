@@ -674,11 +674,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     version: "BIM-CALC-2026-10-17.20",
     date: "17 Ekim 2026",
     commit: "baefa67",
-    trigger: "BİMMETRAJ Marka Tescili, Kat Karşılığı & Kentsel Dönüşüm Fizibilite ve YAMBİS Belge Kapasite Motorları",
+    trigger: "BIMMetraj Marka Tescili, Kat Karşılığı & Kentsel Dönüşüm Fizibilite ve YAMBİS Belge Kapasite Motorları",
     beforeSummary:
       "Özel sektör müteahhitlerinin arsa payı karşılığı ve 6306 sayılı Kentsel Dönüşüm projelerindeki rasyonel paylaşım oranı, kademeli tapu devri ve %1 KDV matrahı hesaplamaları ile ÇŞİDB YAMBİS müteahhitlik yetki belgesi sınıflandırması (A-H grupları ve bilanço rasyoları) için müstakil bir motor ve kullanıcı arayüzü bulunmuyordu. Ürün adı TeklifPro olarak kalmıştı.",
     afterSummary:
-      "Kalıcı hafızada ve tüm bellek dokümanlarında marka resmi olarak BİMMETRAJ (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK m.470 vd., 6306 sayılı Afet Riski Altındaki Alanlar Kanunu ve Yargıtay içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (src/lib/kat-karsiligi.ts) ve ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği m.8/9/20'ye dayalı YAMBİS Sınıflandırma ve Kapasite Motoru (src/lib/yambis-classification.ts) tam test kapsamıyla geliştirildi. /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile devreye alındı; sitemap, llms.txt ve SPA rotalarına eklendi.",
+      "Kalıcı hafızada ve tüm bellek dokümanlarında marka resmi olarak BIMMetraj (bimmetraj.com) olarak tescil edildi. 6098 sayılı TBK m.470 vd., 6306 sayılı Afet Riski Altındaki Alanlar Kanunu ve Yargıtay içtihatlarına dayalı Kat Karşılığı Fizibilite Motoru (src/lib/kat-karsiligi.ts) ve ÇŞİDB Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği m.8/9/20'ye dayalı YAMBİS Sınıflandırma ve Kapasite Motoru (src/lib/yambis-classification.ts) tam test kapsamıyla geliştirildi. /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum ve /hesaplayicilar/yambis-muteahhitlik-grubu sayfaları Pafta Tasarım Sistemi ile devreye alındı; sitemap, llms.txt ve SPA rotalarına eklendi.",
     affectedModules: ["on-teklif-fizibilite", "kik-adt"],
     moduleDetails: {
       "on-teklif-fizibilite": {

@@ -1,10 +1,10 @@
-# BİMMETRAJ (formerly TeklifPro) Agent Memory
+# BIMMetraj (formerly TeklifPro) Agent Memory
 
 Last updated: 2026-10-17
 
-> **Brand Note (2026-10-17):** The project is officially named **BİMMETRAJ** (formerly TeklifPro; production domain: `bimmetraj.com`). All technical documentation, prompts, and future modules treat BİMMETRAJ as the canonical product brand.
+> **Brand Note (2026-10-17):** The project is officially named **BIMMetraj** (formerly TeklifPro; production domain: `bimmetraj.com`). All technical documentation, prompts, and future modules treat BIMMetraj as the canonical product brand.
 
-This folder is the canonical short memory for agents working on BİMMETRAJ. It is
+This folder is the canonical short memory for agents working on BIMMetraj. It is
 intentionally much smaller than the full codebase and `.proje_` archive.
 
 ## What To Read First
