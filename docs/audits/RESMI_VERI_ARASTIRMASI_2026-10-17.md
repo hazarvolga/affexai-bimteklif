@@ -95,7 +95,7 @@ Azami iş tutarı çarpanları (m.14(3)): B–D1 → asgari tutar; E → 1,15; E
 
 ## 4. Konut KDV oranları ve kat karşılığı — Güven: **Orta**
 
-**Kaynaklar:** [7346 sayılı CK (RG 7.7.2023) özeti — alomaliye](https://www.alomaliye.com/2023/07/10/konut-teslimlerinde-kdv-orani/amp/), [Net Haberler, 4.6.2026](https://www.nethaberler.com/haber-konut-teslimlerinde-kdv-oranlari-2026-guncel-113725.html), [İSFA YMM bülteni 2026/05](https://www.isfaymm.com/mali-bulten/kentsel-donusum-kdv-orani-2026). GİB'in resmî tablosuna ([ivdb.gib.gov.tr](https://ivdb.gib.gov.tr/sites/all/olusturulanDosyalar/konut_isyeri_kdv_orani.pdf)) erişilemedi (HTTP 503); **Genel Uygulama Tebliği metniyle karşılaştırma yapılmadı**.
+**Konut oranları için kaynaklar:** [7346 sayılı CK (RG 7.7.2023) özeti — alomaliye](https://www.alomaliye.com/2023/07/10/konut-teslimlerinde-kdv-orani/amp/), [Net Haberler, 4.6.2026](https://www.nethaberler.com/haber-konut-teslimlerinde-kdv-oranlari-2026-guncel-113725.html), [İSFA YMM bülteni 2026/05](https://www.isfaymm.com/mali-bulten/kentsel-donusum-kdv-orani-2026). GİB'in resmî tablosuna ([ivdb.gib.gov.tr](https://ivdb.gib.gov.tr/sites/all/olusturulanDosyalar/konut_isyeri_kdv_orani.pdf)) erişilemedi (HTTP 503); **Genel Uygulama Tebliği metniyle karşılaştırma yapılmadı**.
 
 Üç kaynağın ortak bulgusu (1/4/2022 ve sonrasında yapı ruhsatı alan konutlar):
 
@@ -108,10 +108,12 @@ Matrah, net alana oranla kısımlara bölünür (ör. 160 m²'de 150/160 ve 10/1
 
 **Eski motorun hatası:** KDV, 150 m² üzeri konutun **tamamına** tek oranla (%20) ve tüm proje hasılatına uygulanıyordu; oysa oran kısım bazındadır. Düzeltildi: `konutKdv()` ilk 150 m² ve fazlasını ayrı vergilendirir (`src/lib/kat-karsiligi.ts`).
 
-**Kat karşılığı özelliği:**
-- Arsa (kat) karşılığı inşaat **trampa** niteliğindedir (7104 sayılı Kanun, RG 6.4.2018/30383) ([alomaliye](https://www.alomaliye.com/2025/06/13/kat-karsiligi-insaat-islerinde-arsa-sahiplerince-odenen-bedeller/), [hukukcularevi](https://hukukcularevi.com/kat-karsiligi-insaatta-vergilendirme-trampa-emsal-bedel-ticari-kazanc-kdvk-27/)).
-- Müteahhidin arsa sahibine teslimi **emsal bedel** üzerinden KDV'ye tabidir (213 sayılı VUK m.267 ikinci sıra maliyet bedeli; genel idare ve genel giderlerden pay dahil). **Piyasa satış fiyatı matrah değildir.** Motor, arsa sahibine teslimin KDV'sini kullanıcının girdiği emsal bedelden hesaplar.
-- Arsa sahibinin arsa payı teslimi de vergiye tabidir; durumu işlemin niteliğine bağlıdır (kapsam dışı).
+**Kat karşılığı özelliği — birincil kaynak (güven: Yüksek):** KDV Genel Uygulama Tebliği **I/B-8 "Arsa Karşılığı İnşaat İşleri"**, [Resmî Gazete 5.6.2018 (18 Seri No'lu değişiklik)](https://www.resmigazete.gov.tr/eskiler/2018/06/20180605-15.htm). Kullanıcının sağladığı `gib-detay-1.pdf` yalnızca bu tebliğin içindekiler sayfalarıdır (I/B-8 ve II/B-12 başlıklarını gösterir; gövde metni yoktur); gövde metni Resmî Gazete'den okundu.
+- Arsa (kat) karşılığı inşaat trampa niteliğindedir (7104 sayılı Kanun, RG 6.4.2018/30383; KDVK m.27(6)).
+- **Müteahhidin arsa sahibine bıraktığı konut/işyeri teslimi**, VUK m.267/2'deki **ikinci sıra maliyet bedeli** esasına göre belirlenen tutar üzerinden vergilendirilir. Maliyet bedeli biliniyorsa **toptan satışlarda %5, perakendede %10** eklenerek emsal bedel bulunur. Genel idare ve genel giderlerden konuta düşen pay maliyete dahildir; **arsa sahibinde kalan birimlerin maliyetinde arsa payı dikkate alınmaz**. Piyasa satış fiyatı matrah değildir.
+- **Arsa sahibinin arsa payı teslimi:** arsa iktisadi işletmeye dahilse veya arsa alım satımı mutat ve sürekli faaliyetse KDV'ye tabidir (matrah: alınan birimlerin maliyet esaslı tutarı; genel oran); arızi faaliyette vergi uygulanmaz.
+- **Resmî sayısal örnekler** testlerde aynen kullanılır: maliyet 800.000 / 300.000 → toptan 840.000 / 315.000, perakende 880.000 / 330.000; arsa payı matrahı 1.155.000 (2018'in %18 oranıyla KDV 207.900). Örneklerin oranları 2018'e aittir; bugünkü genel oran %20'dir.
+- Önceki taslağımda "emsal bedel = VUK m.267 maliyet bedeli" demiştim; doğrusu maliyet bedeli **artı %5/%10**'dur. Düzeltildi (`emsalBedel()`).
 
 **Düzeltilen diğer hatalar:** brüt çarpanı ×1,30, kâr çarpanı ×1,20 ve ortalama konut 100 m² gizli varsayılanları kaldırıldı (hepsi girdi); "müteahhit kâr marjı" artık formül gereği hep %20 çıkan bir sonuç olarak sunulmuyor; payın %100'ü aşması durumunda açık uyarı veriliyor; %10/%20/%40/%30 tapu devri "Yargıtay standardı" olmaktan çıkarılıp **örnek sözleşme şablonu** (içtihat değildir) yapıldı ve toplamı %100 doğrulanan, kullanıcı tanımlı aşamalarla çalışıyor.
 
@@ -132,7 +134,7 @@ Matrah, net alana oranla kısımlara bölünür (ör. 160 m²'de 150/160 ve 10/1
 
 ## 6. Bu araştırmanın doğrulamadıkları
 
-1. GİB KDV Genel Uygulama Tebliği'nin kendisi ve resmî oran tablosu (503 / erişilemedi).
+1. GİB'in güncel konsolide KDV Genel Uygulama Tebliği'nin **konut oranları** bölümü (kullanıcının sağladığı `gib-detay-1.pdf` yalnızca içindekiler; GİB oran tablosu 503). Arsa karşılığı bölümü (I/B-8) ise Resmî Gazete 5.6.2018'den birincil olarak okundu; sonraki değişikliklerle karşılaştırılmadı.
 2. ÇŞB kendi sitesindeki PDF'ler (sertifika doğrulanamadı; aynı metin mevzuat.gov.tr'den alındı).
 3. 4735 için resmî sayısal örnek (Esaslar örnek içermiyor).
 4. K'nın yuvarlanmış mı yuvarlanmamış C'den mi hesaplanacağını ayıran bir resmî örnek.

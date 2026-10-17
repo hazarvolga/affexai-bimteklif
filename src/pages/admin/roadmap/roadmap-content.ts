@@ -452,7 +452,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Rev. 29 (Güncel)",
             "17 Ekim 2026 (Resmî Veri Araştırması: KİK Yuvarlama ve Resmî Örnek, Müteahhit Sınıflandırma, Konut KDV)",
             "BIM-CALC-2026-10-17.23",
-            "KİK sınır değer motoru Tebliğ 45.2 resmî örneğiyle birebir doğrulandı (SD = 52.281,00 TL) ve ara değerlerin resmî yuvarlaması (Tort1/σ/Tort2 2, C/K 3 ondalık) uygulandı; önceki yuvarlamasız sürüm örnekte 52.260,35 TL veriyordu. Yapı müteahhitleri sınıflandırma motoru yönetmeliğin güncel metnine göre yeniden yazıldı (14 grup, yapı sınır bedeli 2026 = 1.238.250.000 TL). Kat karşılığı motorunda konut KDV'si kısım bazlı (ilk 150 m²) ve emsal bedelden hesaplanır. Sunucu genel sayfalara JavaScript'siz okunabilir içerik ekler. Kaynaklar ve güven düzeyleri docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md.",
+            "KİK sınır değer motoru Tebliğ 45.2 resmî örneğiyle birebir doğrulandı (SD = 52.281,00 TL) ve ara değerlerin resmî yuvarlaması (Tort1/σ/Tort2 2, C/K 3 ondalık) uygulandı; önceki yuvarlamasız sürüm örnekte 52.260,35 TL veriyordu. Yapı müteahhitleri sınıflandırma motoru yönetmeliğin güncel metnine göre yeniden yazıldı (14 grup, yapı sınır bedeli 2026 = 1.238.250.000 TL). Kat karşılığı motorunda konut KDV'si kısım bazlı (ilk 150 m²) hesaplanır; arsa sahibine teslimin matrahı KDV Genel Uygulama Tebliği I/B-8'e göre VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende)'dir (resmî örneklerle test edildi). Sunucu genel sayfalara JavaScript'siz okunabilir içerik ekler. Kaynaklar ve güven düzeyleri docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md.",
           ],
         ],
       },

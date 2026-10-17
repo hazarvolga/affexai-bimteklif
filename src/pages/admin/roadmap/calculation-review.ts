@@ -745,7 +745,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     beforeSummary:
       "KİK motoru C ve K'yı yuvarlamıyor ve Tebliğ 45.2 resmî örneğinde 52.260,35 TL üretiyordu (resmî sonuç 52.281,00 TL). Müteahhit sınıflandırma ve kat karşılığı motorları kaynaksız sabitler, hatalı KDV ve gizli varsayılanlar içeriyordu.",
     afterSummary:
-      "KİK motoru Tebliğ'in adım adım yuvarlamasıyla (Tort1/σ/Tort2 2, C/K 3 ondalık) resmî örneği birebir üretir. Müteahhit sınıflandırma motoru yönetmelik metnine (14 grup, yapı sınır bedeli katları, bilanço/ciro/banka referansı, G/G1/H istisnaları) göre yeniden yazıldı. Kat karşılığı KDV'si 150 m² kısım bazlıdır ve arsa sahibine teslimde emsal bedelden hesaplanır. Üç motor da yayında değildir ve bağımsız uzman onayı yoktur.",
+      "KİK motoru Tebliğ'in adım adım yuvarlamasıyla (Tort1/σ/Tort2 2, C/K 3 ondalık) resmî örneği birebir üretir. Müteahhit sınıflandırma motoru yönetmelik metnine (14 grup, yapı sınır bedeli katları, bilanço/ciro/banka referansı, G/G1/H istisnaları) göre yeniden yazıldı. Kat karşılığı KDV'si 150 m² kısım bazlıdır; arsa sahibine teslimde matrah, KDV Genel Uygulama Tebliği I/B-8 uyarınca VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende) olarak hesaplanır ve Tebliğ'in sayısal örnekleriyle test edilmiştir. Üç motor da yayında değildir ve bağımsız uzman onayı yoktur.",
     affectedModules: ["kik-adt"],
     moduleDetails: {
       "kik-adt": {

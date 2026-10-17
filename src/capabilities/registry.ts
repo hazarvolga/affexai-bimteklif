@@ -451,7 +451,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
     shortClaim:
       'Arsa sahibi ve müteahhit paylaşımı ile 6306 kapsamındaki KDV etkisinin kullanıcı girdili hesaplanması (Yol Haritasında; kaynak ve uzman doğrulaması bekliyor).',
     longDescription:
-      'Motor (src/lib/kat-karsiligi.ts) resmî kurallara göre yeniden yazıldı: gizli varsayılan yok, konut KDV\'si net alana göre kısım bazlı (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1, fazlası %20), arsa sahibine teslim emsal bedelden vergilendirilir, tapu devri aşamaları örnek şablondur. Yayına alınmadı: GİB Genel Uygulama Tebliği ile karşılaştırma ve mali müşavir onayı bekliyor (docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md).',
+      'Motor (src/lib/kat-karsiligi.ts) resmî kurallara göre yeniden yazıldı: gizli varsayılan yok, konut KDV\'si net alana göre kısım bazlı (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1, fazlası %20), arsa sahibine teslim, VUK m.267/2 maliyet bedeline toptan %5 / perakende %10 eklenerek bulunan emsal bedelden vergilendirilir (KDV Genel Uygulama Tebliği I/B-8, RG 5.6.2018), tapu devri aşamaları örnek şablondur. Yayına alınmadı: GİB Genel Uygulama Tebliği ile karşılaştırma ve mali müşavir onayı bekliyor (docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md).',
     level: 'L1',
     status: 'roadmap',
     stream: 'C',

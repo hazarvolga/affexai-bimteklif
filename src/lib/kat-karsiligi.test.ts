@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { calculateKatKarsiligi, konutKdv, ORNEK_TAPU_DEVIR_ASAMALARI, tapuDevirPlani, type KatKarsiligiInput } from './kat-karsiligi';
+import { arsaPayiTeslimiKdv, calculateKatKarsiligi, emsalBedel, konutKdv, ORNEK_TAPU_DEVIR_ASAMALARI, tapuDevirPlani, type KatKarsiligiInput } from './kat-karsiligi';
 
 // KDV kademeleri (1/4/2022 sonrası ruhsat): 7346 sayılı CK (RG 7.7.2023): ≤150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1.
 test('KDV: 160 m² konut, genel rejim — bedel 150/160 ve 10/160 oranında bölünür (%10 ve %20)', () => {
@@ -36,10 +36,10 @@ test('KDV: 1/4/2022 öncesi ruhsat desteklenmez ve geçersiz girdi reddedilir', 
 const base: KatKarsiligiInput = {
   arsaAlaniM2: 1000, kaksEmsal: 1.5, brutInsaatCarpani: 1.3, satilabilirNetAlanOrani: 0.8,
   birimInsaatMaliyetiTry: 20_000, satisFiyatiTry: 50_000, hedeflenenKarCarpani: 1.2,
-  ortalamaKonutNetM2: 100, emsalBirimBedeliTry: 30_000, kdvRejimi: 'genel', ruhsat2022Sonrasi: true,
+  ortalamaKonutNetM2: 100, maliyetBedeliBirimTry: 20_000, emsalSatisTuru: 'toptan', arsaSahibiKdvMukellefi: true, kdvRejimi: 'genel', ruhsat2022Sonrasi: true,
 };
 
-test('paylaşım: müteahhit payı = maliyet × kâr çarpanı / proje değeri; KDV arsa sahibine emsal bedelden, satışta satış bedelinden', () => {
+test('paylaşım: müteahhit payı = maliyet × kâr çarpanı / proje değeri; KDV arsa sahibine maliyet esaslı emsal bedelden, satışta satış bedelinden', () => {
   const r = calculateKatKarsiligi(base);
   assert.equal(r.emsaleEsasAlanM2, 1500);
   assert.equal(r.toplamBrutInsaatAlaniM2, 1950);
@@ -52,10 +52,14 @@ test('paylaşım: müteahhit payı = maliyet × kâr çarpanı / proje değeri; 
   assert.equal(r.arsaSahibiPayiM2, 264);
   assert.equal(r.muteahhitNetKariTry, 7_800_000);
   assert.equal(r.hedefKarSaglanabilir, true);
-  // Arsa sahibine teslim: konut başına emsal bedel 3.000.000 -> KDV 300.000; 2,64 konut
-  assert.equal(r.arsaSahibineTeslim.konutBasinaEmsalBedelTry, 3_000_000);
-  assert.equal(r.arsaSahibineTeslim.konutBasinaKdv.kdvTutariTry, 300_000);
-  assert.equal(r.arsaSahibineTeslim.toplamKdvTry, 792_000);
+  // Arsa sahibine teslim: konut başına maliyet 2.000.000 → toptan +%5 = emsal bedel 2.100.000 → KDV 210.000; 2,64 konut
+  assert.equal(r.arsaSahibineTeslim.konutBasinaEmsalBedelTry, 2_100_000);
+  assert.equal(r.arsaSahibineTeslim.konutBasinaKdv.kdvTutariTry, 210_000);
+  assert.equal(r.arsaSahibineTeslim.toplamKdvTry, 554_400);
+  // Arsa payı teslimi (arsa sahibi KDV mükellefi): matrah = bırakılan birimlerin toplam emsal bedeli (5.544.000) × %20
+  assert.equal(r.arsaSahibineTeslim.toplamEmsalBedelTry, 5_544_000);
+  assert.equal(r.arsaPayiTeslimiKdvTry, 1_108_800);
+  assert.equal(calculateKatKarsiligi({ ...base, arsaSahibiKdvMukellefi: false }).arsaPayiTeslimiKdvTry, 0);
   // Müteahhit satışı: konut başına 5.000.000 -> KDV 500.000; 9,36 konut
   assert.equal(r.muteahhitSatisi.konutBasinaSatisBedeliTry, 5_000_000);
   assert.equal(r.muteahhitSatisi.toplamKdvTry, 4_680_000);
@@ -75,7 +79,8 @@ test('6306 rejimi KDV\'yi düşürür; gizli varsayılan yoktur (eksik/hatalı g
   const normal = calculateKatKarsiligi(base);
   const donusum = calculateKatKarsiligi({ ...base, kdvRejimi: 'kentsel_donusum_6306' });
   assert.ok(donusum.arsaSahibineTeslim.toplamKdvTry < normal.arsaSahibineTeslim.toplamKdvTry);
-  assert.equal(donusum.arsaSahibineTeslim.konutBasinaKdv.kdvTutariTry, 30_000);
+  assert.equal(donusum.arsaSahibineTeslim.konutBasinaKdv.kdvTutariTry, 21_000);
+  assert.throws(() => calculateKatKarsiligi({ ...base, emsalSatisTuru: 'karisik' as never }), /toptan veya perakende/);
   assert.throws(() => calculateKatKarsiligi({ ...base, hedeflenenKarCarpani: 0.9 }), /en az 1/);
   assert.throws(() => calculateKatKarsiligi({ ...base, satilabilirNetAlanOrani: 1.2 }), /0 ile 1/);
   assert.throws(() => calculateKatKarsiligi({ ...base, arsaAlaniM2: -10 }), /pozitif/);
@@ -90,4 +95,20 @@ test('tapu devri aşamaları ÖRNEKTİR: toplam %100 doğrulanır, kümülatif h
   assert.throws(() => tapuDevirPlani([]), RangeError);
   const source = ORNEK_TAPU_DEVIR_ASAMALARI.map(a => `${a.ad} ${a.kriter}`).join(' ');
   assert.equal(/yargıtay|içtihat/i.test(source), false);
+});
+
+// KDV Genel Uygulama Tebliği I/B-8 resmî örnekleri (RG 5.6.2018): maliyet + %5 (toptan) veya %10 (perakende) = emsal bedel.
+test('Tebliğ I/B-8 örneği 1 (toptan, %5): 800.000 → 840.000 ve 300.000 → 315.000; arsa payı matrahı 1.155.000, %18 ile 207.900', () => {
+  assert.equal(emsalBedel(800_000, 'toptan'), 840_000);
+  assert.equal(emsalBedel(300_000, 'toptan'), 315_000);
+  assert.equal(emsalBedel(800_000, 'toptan') + emsalBedel(300_000, 'toptan'), 1_155_000);
+  assert.equal(arsaPayiTeslimiKdv(1_155_000, 18), 207_900); // 2018 oranı; bugünkü genel oran %20'dir
+  assert.equal(arsaPayiTeslimiKdv(1_155_000), 231_000);
+});
+
+test('Tebliğ I/B-8 örneği 2 (perakende, %10): 800.000 → 880.000 ve 300.000 → 330.000', () => {
+  assert.equal(emsalBedel(800_000, 'perakende'), 880_000);
+  assert.equal(emsalBedel(300_000, 'perakende'), 330_000);
+  assert.throws(() => emsalBedel(0, 'toptan'), RangeError);
+  assert.throws(() => arsaPayiTeslimiKdv(1, -1), RangeError);
 });

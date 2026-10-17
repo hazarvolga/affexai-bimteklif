@@ -16,10 +16,16 @@
  *    Kaynak kalitesi: oran kararının Resmî Gazete özeti ve iki 2026 tarihli mali müşavirlik yayını; GİB Genel Uygulama Tebliği
  *    metniyle doğrudan karşılaştırma ve mali müşavir onayı bekliyor (bkz. docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md).
  *
- * 3. Kat karşılığı işlemlerinde müteahhidin arsa sahibine yaptığı konut teslimi trampa niteliğindedir (7104 sayılı Kanun, 2018);
- *    KDV matrahı emsal bedeldir (213 sayılı VUK m.267 ikinci sıra maliyet bedeli; genel idare ve genel giderlerden pay dahil).
- *    Bu nedenle arsa sahibine teslimin KDV'si piyasa satış fiyatı üzerinden DEĞİL, kullanıcının girdiği emsal bedel üzerinden hesaplanır.
- *    Arsa sahibinin arsa payı teslimi ve onun KDV/gelir vergisi durumu bu motorun kapsamı dışındadır.
+ * 3. Arsa (kat) karşılığı inşaat (KDV Genel Uygulama Tebliği I/B-8; RG 5.6.2018/30444, 18 Seri No'lu Tebliğ; 7104 sayılı Kanun:
+ *    arsa karşılığı inşaat trampa niteliğindedir; 3065 s.K. m.27(6)):
+ *    - Müteahhidin arsa sahibine bıraktığı konut/işyeri teslimi, VUK m.267/2'deki İKİNCİ SIRA maliyet bedeli esasına göre belirlenen
+ *      tutar üzerinden vergilendirilir. Mükellef, bilinen maliyet bedeline toptan satışlarda %5, perakende satışlarda %10 ekleyerek
+ *      emsal bedeli kendisi belirler; genel idare ve genel giderlerden konuta düşen pay maliyete dahildir; arsa sahibinde kalan
+ *      birimlerin maliyetinde ARSA PAYI dikkate alınmaz. Matrah piyasa satış fiyatı değildir.
+ *    - Arsa sahibinin arsa payı teslimi: arsa bir iktisadi işletmeye dahilse veya arsa alım satımı mutat ve sürekli bir faaliyetse
+ *      KDV'ye tabidir (matrah, alınan birimlerin maliyet esaslı tutarıdır, genel oranla); arızi faaliyette vergi uygulanmaz.
+ *    - Tebliğ örnekleri (maliyet 800.000 → toptan 840.000; 300.000 → 315.000; perakende 880.000 ve 330.000; arsa payı matrahı 1.155.000)
+ *      testlerde aynen kullanılmıştır. Örneklerdeki oranlar (konut %1, işyeri/arsa %18) 2018 oranlarıdır; bugünkü oranlar değildir.
  */
 
 export type KdvRejimi = 'genel' | 'kentsel_donusum_6306';
@@ -35,6 +41,26 @@ export const KONUT_KDV_2022_SONRASI: Readonly<Record<KdvRejimi, KdvKademesi>> = 
   genel: { ilkKisimEsikM2: 150, ilkKisimOraniYuzde: 10, fazlaKisimOraniYuzde: 20 },
   kentsel_donusum_6306: { ilkKisimEsikM2: 150, ilkKisimOraniYuzde: 1, fazlaKisimOraniYuzde: 20 },
 };
+
+/** Genel KDV oranı (%): 7346 sayılı CK ile 10.7.2023'ten itibaren %20 (öncesi %18). Arsa payı teslimi gibi konut dışı teslimlerde kullanılır. */
+export const GENEL_KDV_ORANI_YUZDE = 20;
+
+export type EmsalSatisTuru = 'toptan' | 'perakende';
+/** VUK m.267/2 ikinci sıra: maliyet bedeline toptan satışlarda %5, perakendede %10 eklenir (KDV Genel Uygulama Tebliği I/B-8.2). */
+export const EMSAL_ILAVE_ORANI: Readonly<Record<EmsalSatisTuru, number>> = { toptan: 0.05, perakende: 0.1 };
+
+/** Arsa sahibine bırakılan birimin emsal bedeli = maliyet bedeli × (1 + %5 veya %10). Maliyet; genel idare/genel gider payı dahil, arsa payı hariçtir. */
+export function emsalBedel(maliyetBedeliTry: number, satisTuru: EmsalSatisTuru): number {
+  assertPositive('Maliyet bedeli', maliyetBedeliTry);
+  return round2(maliyetBedeliTry * (1 + EMSAL_ILAVE_ORANI[satisTuru]));
+}
+
+/** Arsa sahibinin arsa payı teslimindeki KDV (arsa işletmeye dahil veya mutat faaliyet ise); oran parametresi tarihsel örnekler içindir. */
+export function arsaPayiTeslimiKdv(matrahTry: number, oranYuzde: number = GENEL_KDV_ORANI_YUZDE): number {
+  assertPositive('Arsa payı teslimi matrahı', matrahTry);
+  if (!(oranYuzde >= 0)) throw new RangeError('KDV oranı negatif olamaz.');
+  return round2((matrahTry * oranYuzde) / 100);
+}
 
 export interface KonutKdvInput {
   /** Konutun NET alanı (m²). */
@@ -108,8 +134,12 @@ export interface KatKarsiligiInput {
   hedeflenenKarCarpani: number;
   /** Ortalama bir konutun net alanı (m²); KDV kademesi için. */
   ortalamaKonutNetM2: number;
-  /** Arsa sahibine teslim edilen konutun emsal bedeli (TL/net m², KDV hariç; VUK m.267 maliyet esaslı). */
-  emsalBirimBedeliTry: number;
+  /** Arsa sahibine bırakılan konutun maliyet bedeli (TL/net m², KDV hariç; VUK m.267/2 ikinci sıra; genel gider payı dahil, arsa payı hariç). */
+  maliyetBedeliBirimTry: number;
+  /** Emsal bedele eklenecek oran türü: toptan %5, perakende %10 (Tebliğ I/B-8.2). */
+  emsalSatisTuru: EmsalSatisTuru;
+  /** Arsa sahibi arsa payını iktisadi işletmesine dahil ettiyse veya arsa alım satımı mutat faaliyetiyse true (arsa payı teslimi KDV'ye tabi). */
+  arsaSahibiKdvMukellefi: boolean;
   kdvRejimi: KdvRejimi;
   ruhsat2022Sonrasi: boolean;
 }
@@ -129,7 +159,9 @@ export interface KatKarsiligiResult {
   arsaSahibiPayiM2: number;
   muteahhitSatisHasilatiTry: number;
   muteahhitNetKariTry: number;
-  arsaSahibineTeslim: { konutAdedi: number; konutBasinaEmsalBedelTry: number; konutBasinaKdv: KonutKdvResult; toplamKdvTry: number };
+  arsaSahibineTeslim: { konutAdedi: number; konutBasinaEmsalBedelTry: number; konutBasinaKdv: KonutKdvResult; toplamKdvTry: number; toplamEmsalBedelTry: number };
+  /** Arsa sahibinin arsa payı teslimi KDV'si (mükellef değilse 0). Matrah: arsa sahibine bırakılan birimlerin toplam emsal bedeli. */
+  arsaPayiTeslimiKdvTry: number;
   muteahhitSatisi: { konutAdedi: number; konutBasinaSatisBedeliTry: number; konutBasinaKdv: KonutKdvResult; toplamKdvTry: number };
   uyarilar: string[];
 }
@@ -141,7 +173,8 @@ export function calculateKatKarsiligi(input: KatKarsiligiInput): KatKarsiligiRes
   assertPositive('Birim inşaat maliyeti', input.birimInsaatMaliyetiTry);
   assertPositive('Satış fiyatı', input.satisFiyatiTry);
   assertPositive('Ortalama konut net alanı', input.ortalamaKonutNetM2);
-  assertPositive('Emsal birim bedeli', input.emsalBirimBedeliTry);
+  assertPositive('Maliyet bedeli', input.maliyetBedeliBirimTry);
+  if (input.emsalSatisTuru !== 'toptan' && input.emsalSatisTuru !== 'perakende') throw new RangeError('Emsal satış türü toptan veya perakende olmalıdır.');
   if (!(input.satilabilirNetAlanOrani > 0 && input.satilabilirNetAlanOrani <= 1)) throw new RangeError('Satılabilir net alan oranı 0 ile 1 arasında (1 dahil) olmalıdır.');
   if (!(input.hedeflenenKarCarpani >= 1)) throw new RangeError('Hedeflenen kâr çarpanı en az 1 olmalıdır.');
 
@@ -160,7 +193,7 @@ export function calculateKatKarsiligi(input: KatKarsiligiInput): KatKarsiligiRes
   const arsaSahibiPayiM2 = netSatilabilirAlanM2 - muteahhitPayiM2;
   const muteahhitSatisHasilatiTry = muteahhitPayiM2 * input.satisFiyatiTry;
 
-  const konutBasinaEmsalBedelTry = input.ortalamaKonutNetM2 * input.emsalBirimBedeliTry;
+  const konutBasinaEmsalBedelTry = emsalBedel(input.ortalamaKonutNetM2 * input.maliyetBedeliBirimTry, input.emsalSatisTuru);
   const konutBasinaSatisBedeliTry = input.ortalamaKonutNetM2 * input.satisFiyatiTry;
   const kdvArsa = konutKdv({ netAlanM2: input.ortalamaKonutNetM2, matrahTry: konutBasinaEmsalBedelTry, rejim: input.kdvRejimi, ruhsat2022Sonrasi: input.ruhsat2022Sonrasi });
   const kdvSatis = konutKdv({ netAlanM2: input.ortalamaKonutNetM2, matrahTry: konutBasinaSatisBedeliTry, rejim: input.kdvRejimi, ruhsat2022Sonrasi: input.ruhsat2022Sonrasi });
@@ -169,7 +202,7 @@ export function calculateKatKarsiligi(input: KatKarsiligiInput): KatKarsiligiRes
 
   const uyarilar: string[] = [
     'Kâr çarpanı, brüt çarpanı ve emsal bedel sizin girdinizdir; sonuç bu varsayımların doğruluğuna bağlıdır.',
-    'Arsa sahibine teslimin KDV matrahı emsal bedeldir (VUK m.267); piyasa satış fiyatı değildir. Emsal bedelin belirlenmesi için mali müşavire danışın.',
+    'Arsa sahibine teslimin KDV matrahı, VUK m.267/2 maliyet bedeline toptan %5 / perakende %10 eklenerek bulunan emsal bedeldir (KDV Genel Uygulama Tebliği I/B-8.2); piyasa satış fiyatı değildir. Maliyet bedelinin belirlenmesi için mali müşavire danışın.',
     'KDV hesabı yalnızca 1/4/2022 ve sonrasında yapı ruhsatı alan konutlar içindir ve konut adedini kesirli bırakır; gerçek projede konut sayısı tam sayıdır.',
     'Tapu devri aşamaları, vergilendirme ve temerrüt hükümleri için sözleşmenizi bir avukata ve mali müşavire inceletin.',
   ];
@@ -188,7 +221,11 @@ export function calculateKatKarsiligi(input: KatKarsiligiInput): KatKarsiligiRes
     arsaSahibiPayiM2: round2(arsaSahibiPayiM2),
     muteahhitSatisHasilatiTry: round2(muteahhitSatisHasilatiTry),
     muteahhitNetKariTry: round2(muteahhitSatisHasilatiTry - toplamInsaatMaliyetiTry),
-    arsaSahibineTeslim: { konutAdedi: round2(arsaKonutAdedi), konutBasinaEmsalBedelTry: round2(konutBasinaEmsalBedelTry), konutBasinaKdv: kdvArsa, toplamKdvTry: round2(kdvArsa.kdvTutariTry * arsaKonutAdedi) },
+    arsaSahibineTeslim: {
+      konutAdedi: round2(arsaKonutAdedi), konutBasinaEmsalBedelTry: round2(konutBasinaEmsalBedelTry), konutBasinaKdv: kdvArsa,
+      toplamKdvTry: round2(kdvArsa.kdvTutariTry * arsaKonutAdedi), toplamEmsalBedelTry: round2(konutBasinaEmsalBedelTry * arsaKonutAdedi),
+    },
+    arsaPayiTeslimiKdvTry: input.arsaSahibiKdvMukellefi && arsaKonutAdedi > 0 ? arsaPayiTeslimiKdv(konutBasinaEmsalBedelTry * arsaKonutAdedi) : 0,
     muteahhitSatisi: { konutAdedi: round2(satisKonutAdedi), konutBasinaSatisBedeliTry: round2(konutBasinaSatisBedeliTry), konutBasinaKdv: kdvSatis, toplamKdvTry: round2(kdvSatis.kdvTutariTry * satisKonutAdedi) },
     uyarilar,
   };

@@ -12,6 +12,7 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 1. `PROJECT_BRIEF.md` - product and business goal.
 2. `WORKING_STATE.md` - one-page current repo/runtime state and known constraints
    (history in `archive/`).
+3. `NEXT_AGENT_PROMPT_2026-10-17.md` - yeni ajana yapıştırılacak hazır görev metni.
 3. `HANDOFF_2026-10-17.md` - complete handoff briefing for the next agent (live revision, deploy commands, environment paths, completed 2026-10-16/17 milestones, and next priorities).
 4. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions (ADR-001 through ADR-010).
 5. `PILOT_PLAN.md` - current repo production-hardening plan.

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { calculateKatKarsiligi, type KatKarsiligiInput, type KdvRejimi } from "@/lib/kat-karsiligi";
+import { calculateKatKarsiligi, type EmsalSatisTuru, type KatKarsiligiInput, type KdvRejimi } from "@/lib/kat-karsiligi";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 /**
@@ -18,7 +18,7 @@ const FIELDS: { key: FormKey; label: string; hint?: string; aria: string }[] = [
   { key: "satis", label: "Satış fiyatı (₺/net m², KDV hariç)", aria: "Satış fiyatı" },
   { key: "karCarpani", label: "Hedeflenen kâr çarpanı (≥ 1)", hint: "Maliyetin kaç katı hasılat hedeflediğiniz", aria: "Hedeflenen kâr çarpanı" },
   { key: "konutNet", label: "Ortalama konut net alanı (m²)", hint: "KDV'nin 150 m² kademesi için", aria: "Ortalama konut net alanı" },
-  { key: "emsalBedel", label: "Emsal bedel (₺/net m², KDV hariç)", hint: "Arsa sahibine teslimin KDV matrahı (VUK m.267 maliyet esaslı)", aria: "Emsal bedel" },
+  { key: "emsalBedel", label: "Maliyet bedeli (₺/net m², KDV hariç)", hint: "Arsa sahibine bırakılan konutun VUK m.267/2 maliyet bedeli; genel gider payı dahil, arsa payı hariç", aria: "Maliyet bedeli" },
 ];
 
 const EMPTY: Record<FormKey, string> = { arsaAlani: "", kaks: "", brutCarpani: "", netOrani: "", maliyet: "", satis: "", karCarpani: "", konutNet: "", emsalBedel: "" };
@@ -34,19 +34,21 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
   const [form, setForm] = useState<Record<FormKey, string>>(EMPTY);
   const [rejim, setRejim] = useState<KdvRejimi | "">("");
   const [ruhsat2022, setRuhsat2022] = useState(false);
+  const [satisTuru, setSatisTuru] = useState<EmsalSatisTuru | "">("");
+  const [arsaMukellef, setArsaMukellef] = useState(false);
 
   const outcome = useMemo(() => {
     const missing = (Object.keys(EMPTY) as FormKey[]).filter(key => parse(form[key]) === null);
-    if (missing.length || !rejim) return { error: "Tüm alanları doldurun ve KDV rejimini seçin. Hiçbir değer varsayılmaz." as string };
+    if (missing.length || !rejim || !satisTuru) return { error: "Tüm alanları doldurun; KDV rejimini ve emsal satış türünü seçin. Hiçbir değer varsayılmaz." as string };
     const n = (key: FormKey) => parse(form[key]) as number;
     const input: KatKarsiligiInput = {
       arsaAlaniM2: n("arsaAlani"), kaksEmsal: n("kaks"), brutInsaatCarpani: n("brutCarpani"), satilabilirNetAlanOrani: n("netOrani"),
       birimInsaatMaliyetiTry: n("maliyet"), satisFiyatiTry: n("satis"), hedeflenenKarCarpani: n("karCarpani"),
-      ortalamaKonutNetM2: n("konutNet"), emsalBirimBedeliTry: n("emsalBedel"), kdvRejimi: rejim, ruhsat2022Sonrasi: ruhsat2022,
+      ortalamaKonutNetM2: n("konutNet"), maliyetBedeliBirimTry: n("emsalBedel"), emsalSatisTuru: satisTuru, arsaSahibiKdvMukellefi: arsaMukellef, kdvRejimi: rejim, ruhsat2022Sonrasi: ruhsat2022,
     };
     try { return { result: calculateKatKarsiligi(input) }; }
     catch (error) { return { error: error instanceof Error ? error.message : "Hesaplanamadı." }; }
-  }, [form, rejim, ruhsat2022]);
+  }, [form, rejim, ruhsat2022, satisTuru, arsaMukellef]);
 
   return (
     <CalculatorShell
@@ -58,7 +60,7 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
       sources={[
         { label: "3065 sayılı KDV Kanunu; 7346 sayılı Cumhurbaşkanı Kararı (RG 7.7.2023) — konut teslimlerinde kısım bazlı oranlar" },
         { label: "6306 sayılı Kanun kapsamındaki dönüşüm: ilk 150 m² için %1" },
-        { label: "7104 sayılı Kanun: arsa karşılığı inşaat trampa niteliğindedir; matrah emsal bedeldir (VUK m.267)" },
+        { label: "KDV Genel Uygulama Tebliği I/B-8 (RG 5.6.2018): arsa karşılığı inşaat; matrah VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende); 7104 sayılı Kanun" },
       ]}
     >
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -77,6 +79,17 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
               <option value="kentsel_donusum_6306">6306 kapsamı (ilk 150 m² %1, fazlası %20)</option>
             </select>
           </CalcField>
+          <CalcField label="Emsal bedel türü" hint="Maliyet bedeline toptan %5, perakende %10 eklenir (Tebliğ I/B-8.2)">
+            <select className={calcInputClass} aria-label="Emsal bedel türü" value={satisTuru} onChange={event => setSatisTuru(event.target.value as EmsalSatisTuru | "")}>
+              <option value="">Seçiniz</option>
+              <option value="toptan">Toptan (+%5)</option>
+              <option value="perakende">Perakende (+%10)</option>
+            </select>
+          </CalcField>
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" checked={arsaMukellef} onChange={event => setArsaMukellef(event.target.checked)} />
+            <span>Arsa sahibi KDV mükellefi (arsa işletmeye dahil veya arsa alım satımı mutat faaliyet)</span>
+          </label>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" checked={ruhsat2022} onChange={event => setRuhsat2022(event.target.checked)} />
             <span>Yapı ruhsatı 1/4/2022 veya sonrasında alındı</span>
@@ -95,6 +108,7 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
                 <dt>Toplam inşaat maliyeti</dt><dd className="text-right font-mono">{fmtTry(outcome.result.toplamInsaatMaliyetiTry)}</dd>
                 <dt>Müteahhit net kârı</dt><dd className="text-right font-mono">{fmtTry(outcome.result.muteahhitNetKariTry)}</dd>
                 <dt>Arsa sahibine teslim KDV (emsal bedelden)</dt><dd className="text-right font-mono">{fmtTry(outcome.result.arsaSahibineTeslim.toplamKdvTry)}</dd>
+                <dt>Arsa payı teslimi KDV (arsa sahibi mükellefse)</dt><dd className="text-right font-mono">{fmtTry(outcome.result.arsaPayiTeslimiKdvTry)}</dd>
                 <dt>Müteahhit satışı KDV</dt><dd className="text-right font-mono">{fmtTry(outcome.result.muteahhitSatisi.toplamKdvTry)}</dd>
               </dl>
               <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
