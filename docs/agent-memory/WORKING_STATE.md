@@ -205,7 +205,7 @@ Release status (2026-10-13):
 
 ## Next code work
 
-- `Paket M-1` DONE (Rev. 15) and `Paket M-2` DONE (Rev. 16): both pilot L2, no unsourced % claims. Execute `Paket M-3` (Pre-IFC TAKS/KAKS/multi-parcel & +10 m² quality-risk feasibility engine with Excel import/export).
+- `Paket M-1` DONE (Rev. 15) and `Paket M-2` DONE (Rev. 16), `Paket M-3` DONE (Rev. 17): all pilot L2, no unsourced % claims. Melih Dinekli packages M-1..M-3 complete; open: expert acceptance, server-path authoring detection, .xlsx import.
 
 ## Ground rules for agents
 

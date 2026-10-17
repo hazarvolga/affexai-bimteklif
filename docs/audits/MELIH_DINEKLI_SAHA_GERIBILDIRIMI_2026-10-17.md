@@ -51,7 +51,7 @@
    - **Somut Örnek:**
      - Arsa alanı $= 1.000\text{ m}^2$
      - Belediye TAKS $= 0{,}40 \implies \text{Taban Oturumu} = 400\text{ m}^2$
-     - KAKS / Emsal $= 2{,}0 \implies \text{Emsal İnşaat Alanı} = 2.000\text{ m}^2$ (veya kat adedine göre $800\text{ m}^2$ + bodrum hariç + emsal harici alanlar).
+     - **Düzeltme notu (18 Ekim 2026):** Kayıtta Melih Bey "taks diyelim ki 2" deyip sonucu **800 m²** olarak söylemiştir; bu, 400 m² taban × 2 kat = 800 m² (yani $\text{KAKS} = 0{,}80$) ile tutarlıdır. İlk transkript yorumunda yazılan "KAKS 2,0 → 2.000 m²" **yanlıştı**. Motor ve testler 1.000 m² × KAKS 0,80 = 800 m² örneğini kullanır. Kayıttaki "2" değerinin kat adedi mi KAKS mı olduğu Melih Bey'den teyit edilmelidir.
    - Çoklu parsel projelerde (Melih Beylerin kendi sitesi gibi) her parsel ayrı ayrı hesaplanır.
    - **En Çok Aranan Çıktı:** Bu imar ve Excel verisinden hareketle hem müteahhit kendisi için maliyeti hesaplayabilmeli hem de **kat maliklerine hangi dairenin kaç $\text{m}^2$ Brüt ve kaç $\text{m}^2$ Net düşeceğini** şeffafça çıkarabilmelidir.
 

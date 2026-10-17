@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.6';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.7';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -405,6 +405,28 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
         institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & ISO 10303-21',
         documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 & STEP HEADER FILE_NAME',
         articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 1–3',
+        publicationDate: '2026-10-17',
+      },
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'pre-bim-feasibility-kat-karsiligi',
+    title: 'IFC Öncesi Ön Teklif / Kat Karşılığı Fizibilite — Arsa, TAKS–KAKS, Çoklu Parsel ve Daire Paylaşımı (Pilot · L2)',
+    shortClaim:
+      'Kullanıcının girdiği arsa, TAKS ve KAKS değerlerinden çoklu parsel alanlarını, arsa sahibi/müteahhit paylaşımını ve daire başı brüt/net alanı hesaplar; vaat edilen alanın paylaşım kapasitesini aşıp aşmadığını aritmetik olarak denetler.',
+    longDescription:
+      'Projesi veya IFC dosyası olmayan ön teklif aşamasında çalışır. Tüm sayısal girdiler kullanıcıdan gelir; varsayılan, piyasa ortalaması veya tipik maliyet dağılımı kullanılmaz. TAKS/KAKS değerleri imar durumu belgesinden alınmalıdır. CSV (noktalı virgül) içe/dışa aktarım desteklenir. Bağımsız uzman kabulü alınana kadar pilot olarak işaretlidir.',
+    level: 'L2',
+    status: 'pilot',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/lib/pre-bim-feasibility.ts',
+      goldenTestPath: 'src/lib/pre-bim-feasibility.test.ts',
+      officialSource: {
+        institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & imar durumu belgesi (kullanıcı girdisi)',
+        documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 — ön teklif / kat karşılığı akışı',
+        articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 4–5',
         publicationDate: '2026-10-17',
       },
     },

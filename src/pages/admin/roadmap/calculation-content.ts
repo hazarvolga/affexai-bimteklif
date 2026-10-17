@@ -371,6 +371,41 @@ export const CALC_MODULES: CalcModule[] = [
     questions: ["Revit kaynaklı gerçek modellerde kaba yapı girişimi, kalıp ve ince yapı sapması ölçülüp doğrulanmış bir referans kümesi (ör. 3–5 proje) oluşturulabilir mi?"],
   },
   {
+    id: "on-teklif-fizibilite",
+    title: "IFC öncesi ön teklif / kat karşılığı fizibilite — arsa, TAKS–KAKS, çoklu parsel ve daire paylaşımı (Pilot)",
+    area: "Ön Teklif / Metraj",
+    status: "bilgi_amacli",
+    sourceFiles: ["src/lib/pre-bim-feasibility.ts", "src/lib/pre-bim-feasibility.test.ts"],
+    references: [
+      "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 4–5) — müteahhitlerin Excel'le yaptığı ön teklif akışı",
+      "İmar durumu belgesi: TAKS ve KAKS (emsal) değerleri kullanıcı tarafından belgeden alınır; bu modül imar mevzuatını yorumlamaz",
+    ],
+    purpose: "Projesi veya IFC dosyası olmayan aşamada, kullanıcının girdiği arsa alanı, TAKS, KAKS ve emsal harici alanlardan çoklu parsel için taban ve emsal alanını hesaplar; kullanıcının seçtiği pay tabanı ve yüzdesiyle arsa sahibi / müteahhit paylaşımını, net/brüt oranıyla daire başı alanı çıkarır; müteahhidin vaat ettiği daire başı brüt alanın paylaşım kapasitesini aşıp aşmadığını yalnızca aritmetik olarak denetler. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması kullanılmaz.",
+    formulas: [
+      "Taban alanı (m²) = Arsa alanı × TAKS",
+      "Emsal alanı (m²) = Arsa alanı × KAKS; Toplam inşaat alanı = Emsal + Emsal harici",
+      "Arsa sahibi brüt (m²) = Pay tabanı × Pay % / 100; Müteahhit brüt = Pay tabanı − Arsa sahibi brüt",
+      "Arsa sahibi net = Arsa sahibi brüt × Net/Brüt oranı; Daire başı = Alan / Daire sayısı",
+      "Vaat aşımı (m²) = Vaat daire başı brüt × Daire sayısı − Arsa sahibi brüt; Aşım maliyeti = Aşım × Birim maliyet",
+    ],
+    example: {
+      inputs: [["Parsel A", "1.000 m², TAKS 0,40, KAKS 0,80"], ["Parsel B", "500 m², TAKS 0,35, KAKS 1,50"], ["Paylaşım", "Emsal tabanı, %50, net/brüt 0,85, 5 daire"], ["Vaat / birim maliyet", "165 m² daire başı / 40.000 TL/m²"]],
+      steps: [
+        "Taban = 1.000 × 0,40 + 500 × 0,35 = 575 m²; Emsal = 800 + 750 = 1.550 m²",
+        "Arsa sahibi brüt = 1.550 × %50 = 775 m²; net = 775 × 0,85 = 658,75 m²",
+        "Daire başı brüt = 775 / 5 = 155 m²; net = 131,75 m²",
+        "Vaat toplamı = 165 × 5 = 825 m²; aşım = 825 − 775 = 50 m² (daire başı 10 m²); aşım maliyeti = 50 × 40.000 = 2.000.000 TL",
+      ],
+      result: "Arsa sahibi: 775,00 m² brüt / 658,75 m² net · Daire başı 155,00 / 131,75 m² · Vaat aşımı: 50,00 m² (2.000.000 ₺)",
+    },
+    assumptions: [
+      "TAKS, KAKS, emsal harici alan, pay oranı, net/brüt oranı, birim maliyet ve maliyet yüzde dağılımı yalnızca kullanıcı girdisidir; maliyet dağılımı için 'tipik' bir oran ürüne gömülü değildir.",
+      "Vaat aşımı yalnızca aritmetiktir; aşan alanın nasıl karşılanacağı (kalite, malzeme vb.) hakkında hüküm verilmez, yazılı açıklama istenmesi önerilir.",
+      "Excel içe/dışa aktarım CSV (noktalı virgül) biçimindedir; .xlsx doğrudan okunmaz.",
+    ],
+    questions: ["Kat karşılığı payı pratikte yalnız emsal alanı üzerinden mi yoksa emsal harici alanlar dahil toplam inşaat alanı üzerinden mi hesaplanıyor; ürün hangisini önermeli (şu an kullanıcı seçer)?"],
+  },
+  {
     id: "iso19650",
     title: "TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Bilgi Konteyneri Denetimi",
     area: "Mevzuat / BIM",

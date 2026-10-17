@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.10",
+  version: "BIM-CALC-2026-10-17.11",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "2672889bfc17280575e5b4af2670503fe9f3062c",
+  implementationBaseline: "cd7c4789a8cf2e83d8dfe104c0961cece45e4d16",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -478,6 +478,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 17",
+    version: "BIM-CALC-2026-10-17.11",
+    date: "17 Ekim 2026",
+    commit: "cd7c478",
+    trigger: "Melih Dinekli saha geri bildirimi (17 Ekim 2026) Paket M-3: IFC Öncesi Ön Teklif / Kat Karşılığı Fizibilite Motoru (pre-bim-feasibility.ts)",
+    beforeSummary:
+      "Ürün yalnızca yüklenmiş IFC/Excel/PDF dosyasından metraj çıkarıyordu; projesi olmayan ön teklif aşamasında arsa, TAKS/KAKS ve çoklu parselden alan, daire paylaşımı ve vaat denetimi hesaplanamıyordu.",
+    afterSummary:
+      "Kullanıcının girdiği arsa alanı, TAKS, KAKS ve emsal harici alanlardan çoklu parsel taban/emsal/toplam inşaat alanı, seçilen pay tabanı ve yüzdesiyle arsa sahibi/müteahhit paylaşımı, net/brüt oranıyla daire başı alan, isteğe bağlı birim maliyet ve maliyet yüzde dağılımı hesaplanır; vaat edilen daire başı brüt alanın paylaşım kapasitesini aşıp aşmadığı aritmetik olarak denetlenir. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması yoktur; CSV (noktalı virgül) içe/dışa aktarım vardır. Yetenek Kaydına pilot (L2) olarak işlendi.",
+    affectedModules: ["on-teklif-fizibilite"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "IFC/Excel dosyası olmadan arsa ve imar değerlerinden ön teklif hesabı yoktu.",
+        after: "computeFeasibility ile parsel alanları, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; parseParcelCsv / exportFeasibilityCsv ile Excel uyumlu CSV.",
+        basis: "Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 4–5); TAKS/KAKS değerleri imar durumu belgesinden kullanıcı girdisi",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -572,6 +591,11 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     scope: "IFC başlığından kaynak yazılım tespiti, yazılıma göre model kontrolü uyarısı ve kullanıcı girdili tek oda katman daralması aritmetiği (pilot).",
     testFiles: ["src/ifc/authoring-software-diagnostics.test.ts"],
     pending: "Uzmanın bildirdiği Revit sapmasının (kaba yapı girişimi, kalıp, ince yapı) gerçek modellerde ölçülüp doğrulanması; sunucu (Python) kanıt yolunda başlık okumanın eklenmesi.",
+  },
+  "on-teklif-fizibilite": {
+    scope: "Kullanıcı girdili arsa/TAKS/KAKS/çoklu parselden alan, kat karşılığı paylaşımı, daire başı brüt/net, maliyet ve vaat-kapasite aritmetiği; CSV içe/dışa aktarım (pilot).",
+    testFiles: ["src/lib/pre-bim-feasibility.test.ts"],
+    pending: "Gerçek müteahhit ön teklif Excel örnekleriyle akışın karşılaştırılması; pay tabanı (emsal / toplam) pratiğinin uzmanca netleştirilmesi; .xlsx doğrudan okuma açık.",
   },
   iso19650: {
     scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, CDE durum geçiş doğrulayıcısı (validateCdeStateTransition: WIP→SHARED→PUBLISHED→ARCHIVED) ve EN 17412-1 4 teslim aşamalı (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) LOIN tamlık motoru (evaluateLoinByMilestone) aktif.",

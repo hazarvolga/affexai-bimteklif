@@ -7,6 +7,7 @@ import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SmartCheckImportWorkspace } from '@/components/smartcheck/SmartCheckImportWorkspace';
+import { PreBimFeasibilityPanel } from '@/components/smartcheck/PreBimFeasibilityPanel';
 
 export function SmartCheck() {
   return (
@@ -17,6 +18,8 @@ export function SmartCheck() {
       />
 
       <SmartCheckImportWorkspace />
+
+      <PreBimFeasibilityPanel />
     </PageContainer>
   );
 }
