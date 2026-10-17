@@ -52,6 +52,10 @@ test('listOfficialCsbCatalogs exposes verified 2026 ÇŞB PDF catalogs with SHA-
   assert.equal(insaatBf.totalMatchedInPdf, 1861);
 
   const report = getOfficialCatalogCoverageReport();
+  assert.equal(report.bookCount, 6);
+  assert.equal(report.fullCoverageBookCount, 6);
+  assert.equal(report.overallCoveragePercent, 100);
+  assert.equal(report.totalRowsInBooks, 18848);
   const insaatReportItem = report.books.find((b) => b.id === 'csb_2026_mart_insaat_bf');
   assert.ok(insaatReportItem);
   assert.equal(insaatReportItem.coveragePercent, 100);

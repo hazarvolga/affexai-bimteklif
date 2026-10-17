@@ -343,12 +343,12 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 11",
     version: "BIM-CALC-2026-10-17.5",
     date: "17 Ekim 2026",
-    commit: "96f6e63",
-    trigger: "YOL_HARITASI_2026-10-17 Faz 1.5 / 1.6 / 1.7 & Faz 2.1: Yetenek Kaydı ve Kanıt Kapısı (BIM-CAP-2026-10-17.1), KİK Kuruş Hassasiyetli Golden Test Seti, ÇŞB 2026 Mart İnşaat BF Tam Alımı (1.861 Satır) ve İnteraktif ISO 19650 CDE / LOIN Denetim Kartı",
+    commit: "2973095",
+    trigger: "YOL_HARITASI_2026-10-17 Faz 1.5 / 1.6 / 1.7 & Faz 2.1 / 2.4: Yetenek Kaydı ve Kanıt Kapısı (BIM-CAP-2026-10-17.2), KİK Kuruş Hassasiyetli Golden Test Seti, 6 Resmi ÇŞB 2026 Kitabında 18.848 Satır Tam Alım ve İnteraktif ISO 19650 CDE / LOIN Denetim Kartı",
     beforeSummary:
-      "Yeteneklerin L0–L4 doğrulama seviyelerini ve sabit girdi yasağını CI'da denetleyen merkezi bir Yetenek Kaydı yoktu; KİK Sınır Değer hesabında K katsayısı çarpım öncesinde 6 haneye yuvarlandığı için 100 milyon TL ölçeğinde kuruş farkı oluşabiliyordu; ayrıca 2026 Mart İnşaat Birim Fiyat kataloğunda PDF'teki 1.861 satırın yalnız 220'si gömülüydü.",
+      "Yeteneklerin L0–L4 doğrulama seviyelerini ve sabit girdi yasağını CI'da denetleyen merkezi bir Yetenek Kaydı yoktu; KİK Sınır Değer hesabında K katsayısı çarpım öncesinde 6 haneye yuvarlandığı için 100 milyon TL ölçeğinde kuruş farkı oluşabiliyordu; ayrıca 6 resmi ÇŞB 2026 kataloğunda PDF'lerdeki 18.848 satırın yalnız 689'u gömülüydü.",
     afterSummary:
-      "Merkezi Yetenek Kaydı (src/capabilities/registry.ts — BIM-CAP-2026-10-17.1) ve Kanıt Kapısı CI testi (registry.test.ts) kurularak llms.txt doğrudan bu kayda bağlandı (Faz 1.5). KİK motorunda (src/lib/kik-adt.ts) computeKikKFactorExact ile ara çarpım tam IEEE-754 hassasiyetine alınarak 5 senaryolu kuruş hassasiyetli Golden Test seti (src/lib/kik-adt.golden.test.ts) eklendi (Faz 1.6). 2026 Mart İnşaat Birim Fiyat PDF'indeki 1.861 pozun tamamı (1.861 / 1.861 tam kapsam) csb-2026-official-catalogs.json içine aktarıldı ve getOfficialCatalogCoverageReport() kapsam raporu eklendi (Faz 1.7). CalmIfcWorkspace 3. sekmesine sıfır varsayılanlı kullanıcı kontrollü ISO 19650 CDE & LOIN denetim kartı entegre edildi (Faz 2.1).",
+      "Merkezi Yetenek Kaydı (src/capabilities/registry.ts — BIM-CAP-2026-10-17.2) ve Kanıt Kapısı CI testi (registry.test.ts) kurularak llms.txt doğrudan bu kayda bağlandı (Faz 1.5). KİK motorunda (src/lib/kik-adt.ts) computeKikKFactorExact ile ara çarpım tam IEEE-754 hassasiyetine alınarak 5 senaryolu kuruş hassasiyetli Golden Test seti (src/lib/kik-adt.golden.test.ts) eklendi (Faz 1.6). 6 resmi 2026 ÇŞB PDF kitabındaki toplam 18.848 poz ve rayicin tamamı (İnşaat BF: 1.861, İnşaat Rayiç: 5.360, Mekanik BF: 5.678, Elektrik BF: 5.910, Yapı Yaklaşık Maliyet: 18, TÜİK Endeks: 21 — 18.848 / 18.848 tam kapsam) csb-2026-official-catalogs.json içine aktarıldı ve getOfficialCatalogCoverageReport() kapsam raporu eklendi (Faz 1.7 & Faz 2.4). CalmIfcWorkspace 3. sekmesine sıfır varsayılanlı kullanıcı kontrollü ISO 19650 CDE & LOIN denetim kartı entegre edildi (Faz 2.1).",
     affectedModules: ["kik-adt", "iso19650", "fiyat-eslestirme"],
     moduleDetails: {
       "kik-adt": {
@@ -362,9 +362,9 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         basis: "TS EN ISO 19650-1/2 & EN 17412-1 (CalmIfcWorkspace.tsx — Faz 2.1)",
       },
       "fiyat-eslestirme": {
-        before: "csb_2026_mart_insaat_bf kataloğunda PDF'teki 1.861 satırın yalnız 220 adedi yer alıyordu ve kapsam raporu fonksiyonu yoktu.",
-        after: "2026-Mart-n-aat-B-F-20260303131312.pdf içindeki 1.861 pozun tamamı (1.861 / 1.861 satır) mühürlü kataloğa aktarıldı; getOfficialCatalogCoverageReport() ve 20.000 satır PDF içe aktarma kapasitesi devreye alındı.",
-        basis: "ÇŞB YFK 2026 Mart İnşaat Birim Fiyat Listesi & src/server/crawler/csb-pdf-parser.ts (Faz 1.7)",
+        before: "6 resmi ÇŞB 2026 kataloğunda PDF'lerdeki 18.848 satırın yalnız 689 adedi yer alıyordu ve kapsam raporu fonksiyonu yoktu.",
+        after: "6 resmi 2026 ÇŞB PDF kitabındaki toplam 18.848 poz ve rayicin tamamı (18.848 / 18.848 satır; 6/6 kitap tam kapsam) mühürlü kataloğa aktarıldı; getOfficialCatalogCoverageReport() ve 20.000 satır PDF içe aktarma kapasitesi devreye alındı.",
+        basis: "ÇŞB YFK 2026 Mart İnşaat/Mekanik/Elektrik BF & Rayiç Listeleri (src/server/crawler/csb-pdf-parser.ts — Faz 1.7 & Faz 2.4)",
       },
     },
   },

@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.1';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.2';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -257,6 +257,35 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       approvedAt: '2026-10-17',
     },
     planIds: ['trial', 'epys_auditor', 'quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'csb-2026-official-catalogs-full',
+    title: 'ÇŞB 2026 Resmi Birim Fiyat, Rayiç, Yapı Yaklaşık Maliyet & TÜİK Endeks Kitapları (6 Kitap · 18.848 Satır Tam Kapsam)',
+    shortClaim:
+      'SHA-256 mühürlü 6 resmi 2026 ÇŞB PDF kitabındaki 18.848 poz ve rayiç satırının tamamı (İnşaat BF 1.861, İnşaat Rayiç 5.360, Mekanik BF 5.678, Elektrik BF 5.910, Yapı Yaklaşık Maliyet 18, TÜİK Endeks 21) ve dönem doğrulamalı kapsam raporu.',
+    longDescription:
+      'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu 2026 Mart İnşaat/Mekanik/Elektrik Birim Fiyat ve Rayiç listeleri (`2026-03-01..2026-03-31`) ile 2026 Yapı Yaklaşık Birim Maliyetleri Tebliği (`2026-01-01..2026-12-31`) içindeki toplam 18.848 pozun tamamını SHA-256 belge özeti ve kapsam raporu ile sunar.',
+    level: 'L3',
+    status: 'live',
+    stream: 'C',
+    evidence: {
+      modulePath: 'src/server/crawler/csb-pdf-parser.ts',
+      goldenTestPath: 'src/server/crawler/csb-pdf-parser.test.ts',
+      officialSource: {
+        institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Yüksek Fen Kurulu',
+        documentTitle: '2026 Mart Ayı Güncel İnşaat / Mekanik / Elektrik Birim Fiyat & Rayiç Listeleri ve 2026 Yapı Yaklaşık Maliyet Tebliği',
+        articleOrTable: '15.xxx, 10.xxx, 25.xxx, 35.xxx Poz/Rayiç Tabloları ve I-A..V-E Yapı Sınıfları (18.848 Satır)',
+        publicationDate: '2026-03-03',
+        sha256: 'dcf153503f5b487dcaa741228666f6b83a6ed04a28249cbe43f010e41bffe69c',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'Birim Fiyat & Maliyet Veri Başdenetçisi',
+      discipline: 'COST',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],
   },
   {
     id: 'iso19650-cde-workflow-state-machine',
