@@ -36,6 +36,12 @@ export type SuitabilityCode =
   | "A7"
   | "B";
 
+export type EirDeliveryMilestone =
+  | "CONCEPT"
+  | "DEFINITIVE"
+  | "IMPLEMENTATION"
+  | "AS_BUILT";
+
 export interface Iso19650ElementSample {
   id: string;
   guid?: string | null;
@@ -44,6 +50,8 @@ export interface Iso19650ElementSample {
   storey?: string | null;
   material?: string | null;
   pozNo?: string | null;
+  loadBearing?: boolean | null;
+  fireRating?: string | null;
   hasAdmissibleQuantity: boolean;
 }
 
@@ -53,6 +61,7 @@ export interface Iso19650ValidationInput {
   suitabilityCode?: SuitabilityCode | null;
   revisionCode?: string | null;
   targetDeliveryStage?: "COORDINATION" | "TENDER_OR_PERMIT" | null;
+  eirMilestone?: EirDeliveryMilestone | null;
   elements: Iso19650ElementSample[];
 }
 
@@ -74,6 +83,30 @@ export interface LoinMetrics {
   alphanumericCompletenessRatio: number;
   uniqueGuidRatio: number;
   duplicateGuidCount: number;
+  pozCoverageRatio?: number;
+}
+
+export interface LoinMilestoneEvaluation {
+  milestone: EirDeliveryMilestone;
+  milestoneTitle: string;
+  targetLod: "LOD 200" | "LOD 300" | "LOD 350" | "LOD 400";
+  requiredAttributes: string[];
+  attributeCompleteness: Record<string, number>;
+  overallCompletenessPercent: number;
+  minRequiredPercent: number;
+  passesMilestoneThreshold: boolean;
+  missingElementCount: number;
+}
+
+export interface CdeTransitionRecord {
+  fromState: CdeState | null;
+  toState: CdeState;
+  suitabilityCode: SuitabilityCode;
+  revisionCode: string;
+  actor: string;
+  timestampIso: string;
+  allowed: boolean;
+  reason: string;
 }
 
 export interface Iso19650ValidationResult {
@@ -87,6 +120,7 @@ export interface Iso19650ValidationResult {
   revisionCode: string | null;
   containerIdentity: ParsedContainerIdentity;
   loin: LoinMetrics;
+  loinMilestone?: LoinMilestoneEvaluation | null;
   errors: string[];
   warnings: string[];
 }
@@ -287,6 +321,7 @@ export function evaluateIso19650Compliance(
   const totalElements = input.elements.length;
   let geometricValidCount = 0;
   let alphanumericValidCount = 0;
+  let pozValidCount = 0;
   const seenGuids = new Set<string>();
   let validUniqueGuidCount = 0;
   let duplicateGuidCount = 0;
@@ -297,9 +332,12 @@ export function evaluateIso19650Compliance(
     }
     const storey = el.storey?.trim();
     const hasStorey = Boolean(storey && storey !== "Bilinmeyen Kat");
-    const hasMaterialOrPoz = Boolean(
-      (el.material && el.material.trim()) || (el.pozNo && el.pozNo.trim()),
-    );
+    const hasMaterial = Boolean(el.material && el.material.trim());
+    const hasPoz = Boolean(el.pozNo && el.pozNo.trim());
+    if (hasPoz) {
+      pozValidCount++;
+    }
+    const hasMaterialOrPoz = hasMaterial || hasPoz;
     if (hasStorey && hasMaterialOrPoz) {
       alphanumericValidCount++;
     }
@@ -320,6 +358,8 @@ export function evaluateIso19650Compliance(
     totalElements > 0 ? round4(alphanumericCompletenessRatioValue(alphanumericValidCount, totalElements)) : 0;
   const uniqueGuidRatio =
     totalElements > 0 ? round4(validUniqueGuidCount / totalElements) : 0;
+  const pozCoverageRatio =
+    totalElements > 0 ? round4(pozValidCount / totalElements) : 0;
 
   if (totalElements === 0) {
     errors.push("[ISO 19650-1 §11 LOIN] Bilgi konteynerinde denetlenebilir yapı elemanı bulunamadı.");
@@ -345,6 +385,17 @@ export function evaluateIso19650Compliance(
     }
   }
 
+  // 4. EIR Teslim Aşaması Bazlı LOIN Şablon Denetimi (Faz 2.2)
+  const loinMilestone = input.eirMilestone
+    ? evaluateLoinByMilestone(input.elements, input.eirMilestone)
+    : null;
+
+  if (loinMilestone && !loinMilestone.passesMilestoneThreshold) {
+    warnings.push(
+      `[EN 17412-1 EIR / LOIN — ${loinMilestone.milestoneTitle} (${loinMilestone.targetLod})] Aşama gereksinim tamlığı %${loinMilestone.overallCompletenessPercent.toFixed(1)} (minimum hedef ≥ %${loinMilestone.minRequiredPercent}, eksik eleman: ${loinMilestone.missingElementCount}).`,
+    );
+  }
+
   const score = Math.max(0, Math.min(100, Math.round(100 - penaltyPoints)));
 
   return {
@@ -364,7 +415,9 @@ export function evaluateIso19650Compliance(
       alphanumericCompletenessRatio,
       uniqueGuidRatio,
       duplicateGuidCount,
+      pozCoverageRatio,
     },
+    loinMilestone,
     errors,
     warnings,
   };
@@ -373,3 +426,237 @@ export function evaluateIso19650Compliance(
 function alphanumericCompletenessRatioValue(validCount: number, total: number): number {
   return total > 0 ? validCount / total : 0;
 }
+
+const EIR_MILESTONE_SPECS: Record<
+  EirDeliveryMilestone,
+  {
+    title: string;
+    targetLod: "LOD 200" | "LOD 300" | "LOD 350" | "LOD 400";
+    requiredAttributes: Array<"guid" | "storey" | "quantity" | "material" | "pozNo">;
+    minRequiredPercent: number;
+  }
+> = {
+  CONCEPT: {
+    title: "Avan Proje (Ön Tasarım)",
+    targetLod: "LOD 200",
+    requiredAttributes: ["guid", "storey", "quantity"],
+    minRequiredPercent: 80,
+  },
+  DEFINITIVE: {
+    title: "Kesin Proje (Disiplinlerarası Koordinasyon)",
+    targetLod: "LOD 300",
+    requiredAttributes: ["guid", "storey", "quantity", "material"],
+    minRequiredPercent: 88,
+  },
+  IMPLEMENTATION: {
+    title: "Uygulama Projesi & RG 33331 e-PYS Ruhsat/İhale Teslimi",
+    targetLod: "LOD 350",
+    requiredAttributes: ["guid", "storey", "quantity", "material", "pozNo"],
+    minRequiredPercent: 92,
+  },
+  AS_BUILT: {
+    title: "İş Sonu (As-Built) & İşletme Teslimi",
+    targetLod: "LOD 400",
+    requiredAttributes: ["guid", "storey", "quantity", "material", "pozNo"],
+    minRequiredPercent: 96,
+  },
+};
+
+/**
+ * Faz 2.2 — EN 17412-1 (LOIN) & EIR Teslim Aşaması Gereksinim Şablonu Değerlendiricisi
+ */
+export function evaluateLoinByMilestone(
+  elements: Iso19650ElementSample[],
+  milestone: EirDeliveryMilestone,
+): LoinMilestoneEvaluation {
+  const spec = EIR_MILESTONE_SPECS[milestone];
+  const total = elements.length;
+  if (total === 0) {
+    return {
+      milestone,
+      milestoneTitle: spec.title,
+      targetLod: spec.targetLod,
+      requiredAttributes: [...spec.requiredAttributes],
+      attributeCompleteness: {},
+      overallCompletenessPercent: 0,
+      minRequiredPercent: spec.minRequiredPercent,
+      passesMilestoneThreshold: false,
+      missingElementCount: 0,
+    };
+  }
+
+  const counts: Record<string, number> = {};
+  for (const attr of spec.requiredAttributes) {
+    counts[attr] = 0;
+  }
+
+  let fullyCompliantElements = 0;
+
+  for (const el of elements) {
+    const hasGuid = Boolean(el.guid && el.guid.trim());
+    const hasStorey = Boolean(el.storey && el.storey.trim() && el.storey.trim() !== "Bilinmeyen Kat");
+    const hasQuantity = Boolean(el.hasAdmissibleQuantity);
+    const hasMaterial = Boolean(el.material && el.material.trim());
+    const hasPozOrMaterial = Boolean((el.pozNo && el.pozNo.trim()) || hasMaterial);
+
+    const checkMap: Record<string, boolean> = {
+      guid: hasGuid,
+      storey: hasStorey,
+      quantity: hasQuantity,
+      material: hasMaterial,
+      pozNo: hasPozOrMaterial,
+    };
+
+    let allPresent = true;
+    for (const attr of spec.requiredAttributes) {
+      if (checkMap[attr]) {
+        counts[attr]++;
+      } else {
+        allPresent = false;
+      }
+    }
+    if (allPresent) {
+      fullyCompliantElements++;
+    }
+  }
+
+  const attributeCompleteness: Record<string, number> = {};
+  let sumRatios = 0;
+  for (const attr of spec.requiredAttributes) {
+    const pct = Math.round(((counts[attr] / total) * 100 + Number.EPSILON) * 10) / 10;
+    attributeCompleteness[attr] = pct;
+    sumRatios += pct;
+  }
+
+  const overallCompletenessPercent =
+    Math.round(((sumRatios / spec.requiredAttributes.length) + Number.EPSILON) * 10) / 10;
+
+  return {
+    milestone,
+    milestoneTitle: spec.title,
+    targetLod: spec.targetLod,
+    requiredAttributes: [...spec.requiredAttributes],
+    attributeCompleteness,
+    overallCompletenessPercent,
+    minRequiredPercent: spec.minRequiredPercent,
+    passesMilestoneThreshold: overallCompletenessPercent >= spec.minRequiredPercent,
+    missingElementCount: total - fullyCompliantElements,
+  };
+}
+
+/**
+ * Faz 2.1 — TS EN ISO 19650-2 §5.6–5.7 CDE Durum Makinesi Geçiş Denetleyicisi
+ *
+ * Geçerli geçişler:
+ * - null -> WIP | SHARED | PUBLISHED | ARCHIVED (ilk kayıt)
+ * - WIP -> SHARED (kalite kontrol onayıyla paylaşım)
+ * - SHARED -> PUBLISHED (müşteri/idare onayıyla sözleşmesel yayın; Cxx / 000 revizyonu ve A1..A7 kodu zorunlu)
+ * - SHARED -> WIP (revizyon için geri çekme)
+ * - PUBLISHED -> ARCHIVED (yeni sürüm yayımlandığında arşivleme; B kodu)
+ * - PUBLISHED -> SHARED (yeni ön revizyon döngüsü)
+ * Doğrudan WIP -> PUBLISHED geçişi (SHARED kalite kontrol adımını atladığı için) ISO 19650-2 §5.6 gereği engellenir!
+ */
+export function validateCdeStateTransition(params: {
+  fromState: CdeState | null;
+  toState: CdeState;
+  suitabilityCode: SuitabilityCode;
+  revisionCode: string;
+  actor?: string;
+  timestampIso?: string;
+}): CdeTransitionRecord {
+  const actor = params.actor?.trim() || "Proje BIM Koordinatörü";
+  const timestampIso = params.timestampIso || new Date().toISOString();
+  const rev = params.revisionCode.trim();
+
+  if (params.fromState === "WIP" && params.toState === "PUBLISHED") {
+    return {
+      fromState: params.fromState,
+      toState: params.toState,
+      suitabilityCode: params.suitabilityCode,
+      revisionCode: rev,
+      actor,
+      timestampIso,
+      allowed: false,
+      reason:
+        "ISO 19650-2 §5.6–5.7 gereği WIP (Çalışma) durumundaki konteyner SHARED (Paylaşılan / Koordinasyon) onayından geçmeden doğrudan PUBLISHED (Yayımlanan) durumuna geçirilemez.",
+    };
+  }
+
+  if (params.toState === "WIP" && params.suitabilityCode !== "S0") {
+    return {
+      fromState: params.fromState,
+      toState: params.toState,
+      suitabilityCode: params.suitabilityCode,
+      revisionCode: rev,
+      actor,
+      timestampIso,
+      allowed: false,
+      reason: `WIP durumu yalnız 'S0' başlangıç uygunluk kodu ile kullanılabilir (seçilen: '${params.suitabilityCode}').`,
+    };
+  }
+
+  if (params.toState === "SHARED" && !params.suitabilityCode.startsWith("S")) {
+    return {
+      fromState: params.fromState,
+      toState: params.toState,
+      suitabilityCode: params.suitabilityCode,
+      revisionCode: rev,
+      actor,
+      timestampIso,
+      allowed: false,
+      reason: `SHARED durumu S1..S7 uygunluk kodu gerektirir (seçilen: '${params.suitabilityCode}').`,
+    };
+  }
+
+  if (params.toState === "PUBLISHED") {
+    if (!params.suitabilityCode.startsWith("A")) {
+      return {
+        fromState: params.fromState,
+        toState: params.toState,
+        suitabilityCode: params.suitabilityCode,
+        revisionCode: rev,
+        actor,
+        timestampIso,
+        allowed: false,
+        reason: `PUBLISHED durumu A1..A7 yetkilendirme kodu gerektirir (seçilen: '${params.suitabilityCode}').`,
+      };
+    }
+    if (!CONTRACTUAL_REV_REGEX.test(rev)) {
+      return {
+        fromState: params.fromState,
+        toState: params.toState,
+        suitabilityCode: params.suitabilityCode,
+        revisionCode: rev,
+        actor,
+        timestampIso,
+        allowed: false,
+        reason: `PUBLISHED durumunda sözleşmesel revizyon kodu ('C01' veya EK-2 '000') zorunludur (mevcut: '${rev}').`,
+      };
+    }
+  }
+
+  if (params.toState === "ARCHIVED" && params.suitabilityCode !== "B") {
+    return {
+      fromState: params.fromState,
+      toState: params.toState,
+      suitabilityCode: params.suitabilityCode,
+      revisionCode: rev,
+      actor,
+      timestampIso,
+      allowed: false,
+      reason: `ARCHIVED (Arşiv) durumu için uygunluk kodu 'B' olmalıdır (seçilen: '${params.suitabilityCode}').`,
+    };
+  }
+
+  return {
+    fromState: params.fromState,
+    toState: params.toState,
+    suitabilityCode: params.suitabilityCode,
+    revisionCode: rev,
+    actor,
+    timestampIso,
+    allowed: true,
+    reason: `CDE durum geçişi (${params.fromState ?? "BAŞLANGIÇ"} → ${params.toState} · ${params.suitabilityCode} · ${rev}) TS EN ISO 19650-2 §5.6–5.7 kurallarına uygun olarak kaydedildi.`,
+  };
+}
+

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { evaluateIso19650Compliance, parseContainerIdentity } from "./iso19650";
+import {
+  evaluateIso19650Compliance,
+  evaluateLoinByMilestone,
+  parseContainerIdentity,
+  validateCdeStateTransition,
+} from "./iso19650";
 
 describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", () => {
   it("parses ISO 19650-2 hyphenated and RG 33331 EK-2 underscore container names against official ek2_disiplinler.json", () => {
@@ -111,5 +116,66 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
     assert.ok(res.errors.some((e) => e.includes("PUBLISHED")));
     assert.ok(res.errors.some((e) => e.includes("mükerrer")));
   });
+
+  it("Faz 2.1: enforces ISO 19650-2 §5.6-5.7 CDE state machine transitions (blocks direct WIP -> PUBLISHED jump)", () => {
+    const illegalJump = validateCdeStateTransition({
+      fromState: "WIP",
+      toState: "PUBLISHED",
+      suitabilityCode: "A1",
+      revisionCode: "C01",
+    });
+    assert.equal(illegalJump.allowed, false);
+    assert.ok(illegalJump.reason.includes("SHARED"));
+
+    const validShare = validateCdeStateTransition({
+      fromState: "WIP",
+      toState: "SHARED",
+      suitabilityCode: "S3",
+      revisionCode: "P01.02",
+    });
+    assert.equal(validShare.allowed, true);
+
+    const validPublish = validateCdeStateTransition({
+      fromState: "SHARED",
+      toState: "PUBLISHED",
+      suitabilityCode: "A1",
+      revisionCode: "C01",
+    });
+    assert.equal(validPublish.allowed, true);
+  });
+
+  it("Faz 2.2: evaluates EN 17412-1 (LOIN) completeness against EIR delivery milestones (CONCEPT vs IMPLEMENTATION)", () => {
+    const sampleElements = [
+      {
+        id: "1",
+        guid: "g1",
+        type: "IfcWall",
+        storey: "Zemin Kat",
+        material: null,
+        pozNo: null,
+        hasAdmissibleQuantity: true,
+      },
+      {
+        id: "2",
+        guid: "g2",
+        type: "IfcSlab",
+        storey: "Zemin Kat",
+        material: null,
+        pozNo: null,
+        hasAdmissibleQuantity: true,
+      },
+    ];
+
+    const conceptRes = evaluateLoinByMilestone(sampleElements, "CONCEPT");
+    assert.equal(conceptRes.targetLod, "LOD 200");
+    assert.equal(conceptRes.passesMilestoneThreshold, true);
+    assert.equal(conceptRes.overallCompletenessPercent, 100);
+
+    const implRes = evaluateLoinByMilestone(sampleElements, "IMPLEMENTATION");
+    assert.equal(implRes.targetLod, "LOD 350");
+    assert.equal(implRes.passesMilestoneThreshold, false);
+    assert.equal(implRes.missingElementCount, 2);
+  });
 });
+
 

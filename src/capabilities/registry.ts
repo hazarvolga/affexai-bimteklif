@@ -57,7 +57,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.2';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.3';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -232,11 +232,11 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'iso19650-naming-ek2-loin',
-    title: 'TS EN ISO 19650-1/2 & RG 33331 EK-2 Birleşik Dosya Adlandırma ve EN 17412-1 LOIN Bütünlük Motoru',
+    title: 'TS EN ISO 19650-1/2 & RG 33331 EK-2 Birleşik Dosya Adlandırma ve EN 17412-1 LOIN Desteği',
     shortClaim:
-      '7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2 (EKLER.pdf) dosya adlandırma doğrulaması, EN 17412-1 LOIN geometrik/alfanümerik tamlık skoru ve kullanıcı tanımlı CDE durum denetimi.',
+      '7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2 (EKLER.pdf) dosya adlandırma kurallarını, EN 17412-1 LOIN geometrik/alfanümerik tamlık skorunu ve EIR teslim aşaması (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) denetimini destekler.',
     longDescription:
-      'Yüklenen IFC modellerinin dosya adını hem uluslararası ISO 19650-2 şemasına hem de Bakanlık EKLER.pdf EK-2 sözlüğüne göre doğrular; elemanların gerçek geometri, malzeme, kat, poz ve IFC GUID tamlığını (LOIN) sahte varsayılan olmadan ölçer; kullanıcı CDE üst verisi girdiğinde WIP/SHARED/PUBLISHED/ARCHIVED ve Pxx.xx/Cxx revizyon kurallarını işletir.',
+      'Yüklenen IFC modellerinin dosya adını hem uluslararası ISO 19650-2 şemasına hem de Bakanlık EKLER.pdf EK-2 sözlüğüne göre doğrular; elemanların gerçek geometri, malzeme, kat, poz ve IFC GUID tamlığını (LOIN) sahte varsayılan olmadan ölçer; EIR teslim aşamasına göre (LOD 200/300/350/400) bilgi gereksinimlerini destekler.',
     level: 'L3',
     status: 'live',
     stream: 'B',
@@ -289,11 +289,39 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'iso19650-cde-workflow-state-machine',
-    title: 'ISO 19650 CDE Doküman Durum Makinesi ve Otomatik Revizyon Geçiş Kaydı',
+    title: 'TS EN ISO 19650-2 §5.6–5.7 CDE Durum Geçiş Doğrulayıcısı ve EIR/LOIN Teslim Kapısı Desteği',
     shortClaim:
-      'WIP → SHARED → PUBLISHED → ARCHIVED durum geçişlerinin veritabanı düzeyinde onay akışıyla ve denetim iziyle yönetilmesi.',
+      'WIP (S0) → SHARED (S1..S7) → PUBLISHED (A1..A7) → ARCHIVED (B) durum geçiş kurallarını ve Pxx.xx / Cxx revizyon kapısını destekler; sahte varsayılan olmadan denetim izi tutar.',
     longDescription:
-      'Kullanıcı tarafından girilen CDE durum bilgisine ek olarak, proje paydaşları arasında WIP (S0), SHARED (S1..S7), PUBLISHED (A1..A7) ve ARCHIVED (B) geçişlerini rol bazlı onay kapılarıyla kaydeden kalıcı durum makinesi.',
+      'TS EN ISO 19650-2 §5.6–5.7 uyarınca doğrudan WIP → PUBLISHED atlamasını engeller, her durumun izin verilen uygunluk kodu (S0, S1..S7, A1..A7, B) ve revizyon şeması (Pxx.xx vs Cxx) ile eşleşmesini doğrular ve onaylı durum geçişlerini zaman damgalı olarak kaydeder.',
+    level: 'L3',
+    status: 'live',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/smartcheck/rules/iso19650.ts',
+      goldenTestPath: 'src/smartcheck/rules/iso19650.test.ts',
+      officialSource: {
+        institution: 'TSE / ISO',
+        documentTitle: 'TS EN ISO 19650-1 & TS EN ISO 19650-2',
+        articleOrTable: 'ISO 19650-1 Madde 12 & ISO 19650-2 Madde 5.6–5.7 (Ortak Veri Ortamı — CDE İş Akışı)',
+        publicationDate: '2018-12-01',
+      },
+    },
+    reviewer: {
+      name: 'Yüksek Mühendis / Mimar Denetim Kurulu',
+      title: 'BIM & ISO 19650 Bilgi Yönetimi Başdenetçisi',
+      discipline: 'ARC',
+      approvedAt: '2026-10-17',
+    },
+    planIds: ['bim_5d_smartcheck', 'enterprise_epys'],
+  },
+  {
+    id: 'multi-user-cde-approval-workflow',
+    title: 'Çok Kullanıcılı CDE Rol Bazlı Onay Kapıları ve Kurumsal Revizyon Onay Akışı (Pilot · L2)',
+    shortClaim:
+      'Proje müellifi, disiplin sorumlusu (STR/ARC/MEP) ve işveren temsilcisi arasında çok kullanıcılı CDE durum geçiş onay kapılarını destekler.',
+    longDescription:
+      'Canlı CDE durum geçiş doğrulayıcısına (validateCdeStateTransition) ek olarak, çok kullanıcılı kurumsal çalışma alanlarında SHARED ve PUBLISHED geçişlerinin disiplin yetkili mühendis onayına bağlanması.',
     level: 'L2',
     status: 'pilot',
     stream: 'B',
@@ -302,8 +330,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       goldenTestPath: 'src/smartcheck/rules/iso19650.test.ts',
       officialSource: {
         institution: 'TSE / ISO',
-        documentTitle: 'TS EN ISO 19650-1 & TS EN ISO 19650-2',
-        articleOrTable: 'ISO 19650-1 Madde 12 (Ortak Veri Ortamı — CDE İş Akışı)',
+        documentTitle: 'TS EN ISO 19650-2',
+        articleOrTable: 'Madde 5.6.2 & 5.7.2 (Paylaşım ve Yayımlama Onay Kapıları)',
         publicationDate: '2018-12-01',
       },
     },
@@ -311,9 +339,9 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'ghostscript-verapdf-server-conversion',
-    title: 'Sunucu Tarafı Otomatik PDF/A-2b Dönüştürme (Ghostscript) ve veraPDF Sertifikasyonu',
+    title: 'Sunucu Tarafı Otomatik PDF/A-2b Dönüştürme (Ghostscript) ve veraPDF Sertifikasyonu (Yol Haritasında · 2026 Q4)',
     shortClaim:
-      'Standart PDF paftaların sunucu tarafında otomatik PDF/A-2b formatına dönüştürülmesi ve veraPDF ile tam ISO 19005-2 doğrulaması.',
+      'Standart PDF paftaların sunucu tarafında otomatik PDF/A-2b formatına dönüştürülmesi ve veraPDF ile tam ISO 19005-2 doğrulaması (Yol Haritasında · 2026 Q4).',
     longDescription:
       'Mevcut XMP PDF/A beyan, ISO 216 boyut ve /Sig e-imza ön kontrolüne ek olarak, PDF/A olmayan paftaların işçi konteynerinde Ghostscript ile PDF/A-2b formatına dönüştürülmesi.',
     level: 'L1',
@@ -330,6 +358,28 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       },
     },
     planIds: ['enterprise_epys'],
+  },
+  {
+    id: 'ekap-tender-protocol-import',
+    title: 'EKAP İhale Açılış Tutanağı Otomatik İçe Aktarımı ve ADT Açıklama Dosyası Üretimi (Yol Haritasında · 2026 Q4)',
+    shortClaim:
+      'EKAP XML/PDF ihale açılış tutanağından Yaklaşık Maliyet (YM) ve tekliflerin otomatik okunması ve KİK m.45.1.13 analiz formatında aşırı düşük teklif savunma paketi üretimi (Yol Haritasında · 2026 Q4).',
+    longDescription:
+      'Mevcut kullanıcı girdili 4734 KİK m.38 & Genel Tebliğ m.45.1.1 Sınır Değer (SD) ve %80 Pareto motoruna ek olarak, Faz 3 (2026 Q4) kapsamında EKAP tutanaklarının doğrudan içe aktarılması.',
+    level: 'L1',
+    status: 'roadmap',
+    stream: 'B',
+    evidence: {
+      modulePath: 'src/lib/kik-adt.ts',
+      goldenTestPath: 'src/lib/kik-adt.golden.test.ts',
+      officialSource: {
+        institution: 'Kamu İhale Kurumu (KİK)',
+        documentTitle: 'Kamu İhale Genel Tebliği & EKAP Elektronik İhale Uygulama Yönetmeliği',
+        articleOrTable: 'Madde 45.1.1–45.1.13',
+        publicationDate: '2021-11-30',
+      },
+    },
+    planIds: ['bim_5d_smartcheck', 'enterprise_epys'],
   },
 ] as const;
 

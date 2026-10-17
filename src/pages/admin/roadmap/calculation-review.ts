@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.5",
+  version: "BIM-CALC-2026-10-17.6",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "96f6e6330a70d1107332719119cbbd6f5b2eae27",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.1), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, ÇŞB 2026 Mart İnşaat BF 1.861/1.861 tam satır alımı ve kullanıcı kontrollü ISO 19650 CDE / LOIN kartı mühürlendi · bağımsız uzman imzasına hazır",
+  implementationBaseline: "4b273de2fa8d1ab34a1a9fa20d4261c63c48550e",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.3), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, ISO 19650 CDE durum geçiş doğrulayıcısı (validateCdeStateTransition) ve 4 teslim aşamalı EIR/LOIN (evaluateLoinByMilestone) motoru mühürlendi · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -368,6 +368,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 12",
+    version: "BIM-CALC-2026-10-17.6",
+    date: "17 Ekim 2026",
+    commit: "4b273de",
+    trigger: "YOL_HARITASI_2026-10-17 Faz 2.1 / 2.2 / 2.6 & Bölüm 7 Karar #2 / #3 / #4 / #6: ISO 19650 CDE Durum Geçiş Doğrulayıcısı (validateCdeStateTransition), 4 Teslim Aşamalı EIR/LOIN Kural Motoru (evaluateLoinByMilestone), İnteraktif Minha Profili Seçicisi (ÇŞB 0,50 m² / DIN 18350 2,50 m² / Özel Şartname) ve Tarihli Yol Haritası Rozetleri",
+    beforeSummary:
+      "ISO 19650 motorunda WIP → SHARED → PUBLISHED → ARCHIVED geçiş sırasını ve doğrudan WIP → PUBLISHED atlama yasağını doğrulayan durum geçiş fonksiyonu (validateCdeStateTransition) ile 4 teslim aşamasına (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) göre farklılaşan EIR/LOIN denetimi (evaluateLoinByMilestone) bulunmuyordu; ayrıca CalmIfcWorkspace 1. sekmesinde kullanıcı tanımlı Minha profil seçicisi ve oturum kalıcılığı yoktu.",
+    afterSummary:
+      "src/smartcheck/rules/iso19650.ts içine TS EN ISO 19650-2 §5.6–5.7 durum geçiş doğrulayıcısı (validateCdeStateTransition: doğrudan WIP→PUBLISHED geçişini reddeder, S0/S1..S7/A1..A7/B ve Pxx.xx/Cxx uyumunu denetler) ve BS EN 17412-1 4 teslim aşamalı EIR/LOIN motoru (evaluateLoinByMilestone: CONCEPT LOD 200, DEFINITIVE LOD 300, IMPLEMENTATION LOD 350, AS_BUILT LOD 400) eklendi; CalmIfcWorkspace üzerinde CDE geçiş kaydı, EIR aşaması, KİK YM/T_i girdileri ve Minha profili (CSB_2026: 0,50 m², DIN_18350: 2,50 m², CUSTOM_CONTRACT: kullanıcı tanımlı m²) localStorage kalıcılığıyla bağlandı; Bölüm 7 kararları doğrultusunda ISO 19650 için 'destekler' dili ve EKAP/veraPDF için 'Yol Haritasında · 2026 Q4' rozetleri uygulandı.",
+    affectedModules: ["iso19650", "minha", "kik-adt"],
+    moduleDetails: {
+      iso19650: {
+        before: "CDE durum ve revizyon kodu yalnızca tekil anlık değer olarak kontrol ediliyor; durumlar arası geçiş sırası (WIP → SHARED → PUBLISHED) ve teslim aşamasına (CONCEPT..AS_BUILT) göre değişen LOIN gereksinimleri denetlenmiyordu.",
+        after: "validateCdeStateTransition ile WIP→PUBLISHED doğrudan geçişi engellenip onaylı geçiş geçmişi kaydedildi; evaluateLoinByMilestone ile 4 teslim aşamasına (LOD 200/300/350/400) göre gerçek IFC elemanlarında poz, kat, malzeme ve geometri tamlığı denetlendi.",
+        basis: "TS EN ISO 19650-2 §5.6–5.7 & BS EN 17412-1 (src/smartcheck/rules/iso19650.ts — Faz 2.1 & 2.2)",
+      },
+      minha: {
+        before: "minha.ts içinde CUSTOM_CONTRACT profili tanımlıydı ancak CalmIfcWorkspace 1. sekmesinde (Kağıt İcmal) kullanıcının CSB_2026 (0,50 m²), DIN_18350 (2,50 m²) ve Özel Şartname (m²) arasında canlı geçiş yapabileceği seçici yoktu.",
+        after: "CalmIfcWorkspace 1. sekmesine interaktif Minha Profili seçicisi ve özel şartname m² giriş alanı eklendi; seçilen eşik sağ detay kartındaki minha açıklamasına ve localStorage oturumuna bağlandı.",
+        basis: "ÇŞB YFK 2026 Genel Teknik Şartnamesi, DIN 18350 VOB/C & YOL_HARITASI §7 Karar #4",
+      },
+      "kik-adt": {
+        before: "Kullanıcı tarafından girilen YM ve rakip teklifler sayfa yenilendiğinde sıfırlanıyor, EKAP tutanak içe aktarımının yol haritası takvimi kart üzerinde belirtilmiyordu.",
+        after: "KİK YM, iş grubu (N=1,00 / 1,20) ve rakip teklif listesi oturum boyunca localStorage üzerinde kalıcı hale getirildi; 'EKAP Tutanak İçe Aktarımı: Yol Haritasında · 2026 Q4 (Faz 3)' rozeti eklendi.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1 & YOL_HARITASI §7 Karar #2 & #6",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -449,19 +478,19 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Kiriş–kolon düğüm noktası ortak hacim/kalıp düşümlerinin gerçek uygulama projeleriyle uzman kabulü.",
   },
   minha: {
-    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Kullanıcı Tanımlı Özel Şartname (CUSTOM_CONTRACT: customThresholdM2) boşluk düşüm motoru aktif.",
+    scope: "ÇŞB 2026 (CSB_2026: 0,50 m², CSB_2026_V1: duvar 0,50 m², sıva/boya 2,00 m², kalıp 1,00 m²), DIN 18350 (2,50 m²) ve Kullanıcı Tanımlı Özel Şartname (CUSTOM_CONTRACT: customThresholdM2) boşluk düşüm motoru ve CalmIfcWorkspace profil seçicisi aktif.",
     testFiles: ["src/smartcheck/rules/minha.test.ts"],
     pending: "Özel idare şartnameleri ve alternatif ölçü esası profillerinin saha kabulü.",
   },
   iso19650: {
-    scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, açık üstveri verildiğinde CDE/revizyon kontrolü (yoksa not_evaluated) ve EN 17412-1 LOIN gerçek öznitelik tamlık motoru aktif.",
+    scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, CDE durum geçiş doğrulayıcısı (validateCdeStateTransition: WIP→SHARED→PUBLISHED→ARCHIVED) ve EN 17412-1 4 teslim aşamalı (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) LOIN tamlık motoru (evaluateLoinByMilestone) aktif.",
     testFiles: ["src/smartcheck/rules/iso19650.test.ts", "src/smartcheck/rules/ifc-rule-run.test.ts"],
-    pending: "Doküman üstverisinde tam CDE durum makinesi (WIP/Shared/Published/Archived geçiş kaydı) Faz 2 yol haritasında.",
+    pending: "Çok kullanıcılı kurumsal CDE iş akışında rol bazlı e-imza / onay kapılarının saha kabulü.",
   },
   "kik-adt": {
     scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili) ve %80 Pareto açıklama istenecek sıralı iş kalemleri motoru aktif.",
-    testFiles: ["src/lib/kik-adt.test.ts"],
-    pending: "Gerçek kamu ihale dosyalarıyla sınır değer ve aşırı düşük açıklama cetveli saha kabulü.",
+    testFiles: ["src/lib/kik-adt.test.ts", "src/lib/kik-adt.golden.test.ts"],
+    pending: "EKAP ihale açılış tutanağı XML/PDF içe aktarımı (Yol Haritasında · 2026 Q4 — Faz 3).",
   },
   "epys-on-kontrol": {
     scope: "IFC → sunucu ön kontrolü (EK-1/2/3/5/6, EK-7 Tablo 7.1–7.9 IfcAnnotation dahil) → disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ekranı, kotadan düşmeyen canlı örnek projeler ve ALLPLAN 2026 e-PYS Kiti v1 aktif.",

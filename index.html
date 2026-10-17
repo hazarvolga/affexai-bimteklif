@@ -51,10 +51,10 @@
             "featureList": [
               "openBIM IFC 2x3 / IFC4 / IFC4.3 Otomatik Metraj (QTO) ve Çok Katmanlı Kaplama (IfcCovering) Çıkarımı",
               "SmartCheck 3x3 (Şirket Politikası ≤%3 QTO Toleransı & TS 500 Paspayı) ve Minha Denetimi (ÇŞB 2026: 0,50 m², DIN 18350: 2,50 m² ve Kullanıcı Tanımlı Şartname Eşiği)",
-              "5 Ağustos 2026 RG 33331 e-PYS EK-1..EK-9 Ön Kontrolü ve TS EN ISO 19650-2 / EN 17412-1 (LOIN) Dosya Adı & Eleman Bütünlüğü Desteği",
+              "5 Ağustos 2026 RG 33331 e-PYS EK-1..EK-9 Ön Kontrolü ve TS EN ISO 19650-2 CDE Durum Geçiş / EN 17412-1 (LOIN) EIR Teslim Aşaması Desteği",
               "4734 KİK m.38 & Genel Tebliğ m.45.1.1 Kullanıcı Girdili Sınır Değer (SD) Hesaplayıcı ve %80 Pareto Sıralı İş Kalemleri Analizi",
               "RG 33331 PDF/A Üstveri Beyanı, ISO 216 Pafta Boyutu ve 5070 Sayılı Kanun Gömülü e-İmza (/Sig) Ön Kontrolü",
-              "ÇŞB 2026 Birim Fiyat Poz Eşleştirme, Firma Fiyat Hafızası ve Kurumsal PDF/Excel Teklif Çıktısı"
+              "ÇŞB 2026 18.848 Satır (6 Resmi Kitap) Birim Fiyat/Rayiç Kataloğu, Firma Fiyat Hafızası (BYOL) ve Kurumsal PDF/Excel Teklif Çıktısı"
             ],
             "offers": {
               "@type": "AggregateOffer",
@@ -73,7 +73,7 @@
                 "name": "BIMMetraj hangi dosya formatlarını ve BIM standartlarını destekler?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "BIMMetraj; buildingSMART IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerini, Excel (XLSX/CSV) metraj cetvellerini ve PDF paftalarını destekler. TS 500, TS 708, ÇŞB 2026 Genel Teknik Şartnamesi (CSB_2026_V1) ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-1..EK-9 ön kontrol kurallarını çalıştırır; TS EN ISO 19650-2 dosya adlandırma şablonunu ve EN 17412-1 (LOIN) eleman üstveri tamlığını destekler (tam CDE iş akışı durum makinesi yol haritasındadır)."
+                  "text": "BIMMetraj; buildingSMART IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerini, Excel (XLSX/CSV) metraj cetvellerini ve PDF paftalarını destekler. TS 500, TS 708, ÇŞB 2026 Genel Teknik Şartnamesi (CSB_2026_V1) ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-1..EK-9 ön kontrol kurallarını çalıştırır; TS EN ISO 19650-2 dosya adlandırma, WIP/SHARED/PUBLISHED/ARCHIVED CDE durum geçiş doğrulaması ve EN 17412-1 (LOIN) EIR teslim aşaması (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) kurallarını destekler."
                 }
               },
               {
@@ -89,7 +89,7 @@
                 "name": "4734 KİK aşırı düşük teklif (sınır değer) analizi nasıl çalışır?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Teklif kalemlerinizden Kamu İhale Genel Tebliği m.45.1.2 uyarınca toplam teklifin %80'ini oluşturan açıklama istenecek sıralı iş kalemleri otomatik belirlenir. Ayrıca kullanıcı tarafından ihale açılış tutanağındaki Yaklaşık Maliyet (YM) ve geçerli teklifler girildiğinde, Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K ve Üstyapı N=1,00 / Diğer Yapım N=1,20 katsayıları) ile Sınır Değer (SD) hesaplanır (tam açıklama dosyası üretimi yol haritasındadır)."
+                  "text": "Teklif kalemlerinizden Kamu İhale Genel Tebliği m.45.1.2 uyarınca toplam teklifin %80'ini oluşturan açıklama istenecek sıralı iş kalemleri otomatik belirlenir. Ayrıca kullanıcı tarafından ihale açılış tutanağındaki Yaklaşık Maliyet (YM) ve geçerli teklifler girildiğinde, Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K ve Üstyapı N=1,00 / Diğer Yapım N=1,20 katsayıları) ile Sınır Değer (SD) hesaplanır (EKAP tutanak içe aktarımı ve tam açıklama dosyası üretimi Yol Haritasında · 2026 Q4)."
                 }
               },
               {
@@ -97,7 +97,7 @@
                 "name": "RG 33331 e-PYS ve PDF/A ön kontrolü neleri kapsar?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "5 Ağustos 2026 tarihli Resmi Gazete (Sayı: 33331) kapsamında IFC modellerinde EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ön kontrolü yapılır. 2B PDF paftalarda ise PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta kuralı ve gömülü e-imza (/Sig) varlığı denetlenir (Ghostscript/veraPDF ile tam PDF/A-2b arşiv üretimi ve doğrulaması yol haritasındadır)."
+                  "text": "5 Ağustos 2026 tarihli Resmi Gazete (Sayı: 33331) kapsamında IFC modellerinde EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ön kontrolü yapılır. 2B PDF paftalarda ise PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta kuralı ve gömülü e-imza (/Sig) varlığı denetlenir (Ghostscript/veraPDF ile sunucu tarafı PDF/A-2b dönüştürme Yol Haritasında · 2026 Q4)."
                 }
               },
               {

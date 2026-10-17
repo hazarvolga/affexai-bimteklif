@@ -532,18 +532,18 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">ÇŞB 2026 & Fiyat Kataloğu</span>
-                <p className="mt-1 text-sm font-medium text-foreground">570+ Onaylı Poz & Rayiç Kaydı</p>
-                <p className="mt-1 text-xs text-muted-foreground">SHA-256 mühürlü resmi ÇŞB pozları ve kurum içi fiyat kataloglarınız kaynak iziyle cetvele bağlanır.</p>
+                <p className="mt-1 text-sm font-medium text-foreground">18.848 Onaylı Poz & Rayiç (6 Kitap)</p>
+                <p className="mt-1 text-xs text-muted-foreground">SHA-256 mühürlü 6 resmi ÇŞB 2026 PDF kitabı (İnşaat/Mekanik/Elektrik BF, Rayiç, Yaklaşık Maliyet, TÜİK Endeks) ve firma fiyat kataloğunuz (BYOL) kaynak iziyle cetvele bağlanır.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
-                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 & PDF/A</span>
-                <p className="mt-1 text-sm font-medium text-foreground">ALLPLAN 2026 e-PYS Kiti & RG 33331</p>
-                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-7 (Tablo 7.1–7.9), EK-9 (Tablo 9.1 Mimari 21 satır & Tablo 9.2 Diğer Disiplinler 16 satır) ve PDF/A ISO 216 pafta & e-imza uyumluluğunu teslim öncesi denetleyin.</p>
+                <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 · ISO 19650 & PDF/A</span>
+                <p className="mt-1 text-sm font-medium text-foreground">RG 33331 e-PYS & ISO 19650 Desteği</p>
+                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-9 ön kontrolü ile TS EN ISO 19650-2 CDE durum geçiş (WIP/SHARED/PUBLISHED/ARCHIVED) ve EN 17412-1 (LOIN) EIR teslim aşaması kurallarını destekler.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">SmartCheck 3×3 & Minha</span>
-                <p className="mt-1 text-sm font-medium text-foreground">TS 500 Kesişim & Boşluk Düşümü</p>
-                <p className="mt-1 text-xs text-muted-foreground">≤%3 QTO toleransı, TS 500 paspayı (mm), kiriş–döşeme kesişim ve CSB_2026_V1 Minha düşümlerini doğrulayın.</p>
+                <p className="mt-1 text-sm font-medium text-foreground">ÇŞB 0,50 m² · DIN 18350 2,50 m² · Özel Eşik</p>
+                <p className="mt-1 text-xs text-muted-foreground">≤%3 QTO toleransı, TS 500 paspayı (mm), kiriş–döşeme kesişim ve seçilebilir Minha profillerini (0,50 m² / 2,50 m² / kullanıcı tanımlı özel şartname) doğrulayın.</p>
               </div>
             </div>
           </div>
@@ -568,7 +568,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">5D BIM & TS 500 Metraj Motoru</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    IFC elemanlarında QTO okuma, TS 500 kiriş–döşeme kesişim düşümü, <code className="font-mono text-[11px]">CSB_2026_V1</code> Minha boşluk düşümü ve kalıp/donatı sihirbazı.
+                    IFC elemanlarında QTO okuma, TS 500 kiriş–döşeme kesişim düşümü, <code className="font-mono text-[11px]">CSB_2026 (0,50 m²)</code> / <code className="font-mono text-[11px]">DIN_18350 (2,50 m²)</code> / özel şartname Minha düşümü ve kalıp/donatı sihirbazı.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-primary font-mono">
@@ -581,13 +581,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
                     <Building2 size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">ÇŞB 2026 Poz & Rayiç Kataloğu</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">ÇŞB 2026 6 Resmi Kitap & BYOL</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    SHA-256 mühürlü 570+ onaylı ÇŞB 2026 imalat pozu ve rayiç kaydı; <code className="font-mono text-[11px]">TREpys_PozOzellikSeti.PozNo</code> ve birim uyum kontrolü.
+                    SHA-256 mühürlü 18.848 onaylı ÇŞB 2026 imalat pozu ve rayiç kaydı (İnşaat/Mekanik/Elektrik); kurum içi BYOL fiyat yükleme ve <code className="font-mono text-[11px]">TREpys_PozOzellikSeti.PozNo</code> birim uyum kontrolü.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-emerald-400 font-mono">
-                  SHA-256 Kaynak & Birim Kontrolü
+                  18.848 Resmi Satır · SHA-256 & BYOL
                 </div>
               </div>
 
@@ -596,13 +596,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4">
                     <FileCheck2 size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">RG 33331 e-PYS & PDF/A Ön Kontrol</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">RG 33331 e-PYS, ISO 19650 & PDF/A</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    EK-1..EK-7 (Tablo 7.1–7.9), EK-9 (Tablo 9.1 Mimari 21 satır & Tablo 9.2 Diğer Disiplinler 16 satır), PDF/A ISO 216 pafta, tek pafta ve e-imza (<code className="font-mono text-[11px]">/Sig</code>) denetimi.
+                    EK-1..EK-9 ön kontrolü, PDF/A ISO 216 pafta & e-imza (<code className="font-mono text-[11px]">/Sig</code>) denetimi; TS EN ISO 19650-2 CDE durum geçiş ve EN 17412-1 LOIN EIR teslim kurallarını destekler.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-sky-400 font-mono">
-                  EK-9 (Tablo 9.1 & 9.2) · PDF/A & e-İmza
+                  RG 33331 EK-9 · ISO 19650 Desteği
                 </div>
               </div>
 
@@ -611,14 +611,30 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4">
                     <ShieldCheck size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">SmartCheck 3×3 & Disiplin Onayı</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">4734 KİK m.38 ADT & SmartCheck 3×3</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    ≤%3 QTO sapması, TS 500 paspayı (mm) ve <code className="font-mono text-[11px]">LoadBearing</code> denetimi; disiplin yetkili (<code className="font-mono text-[11px]">STR/ARC/MEP</code>) mühendis onayı.
+                    Kullanıcı girdili Genel Tebliğ m.45.1.1 Sınır Değer (SD) ve %80 Pareto analizi; ≤%3 QTO sapması, TS 500 paspayı (mm) ve disiplin yetkili (<code className="font-mono text-[11px]">STR/ARC/MEP</code>) mühendis onayı.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-primary font-mono">
-                  STR / ARC / MEP Uzman Onay İzi
+                  KİK m.45.1 SD · STR / ARC / MEP Onayı
                 </div>
+              </div>
+            </div>
+
+            {/* Dated Roadmap Badges Bar (YOL_HARITASI §7 Karar #2 & #6) */}
+            <div className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/5 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs text-muted-foreground">
+                <strong className="text-foreground font-semibold">Şeffaf Ürün Vitrini (Kanıt Kapısı L3):</strong>{' '}
+                Canlı özellikler gerçek kural motorları ve altın testlerle doğrulanmıştır; geliştirme aşamasındaki modüller tarihli yol haritası rozetiyle açıkça ayrılır.
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0 text-[11px] font-mono">
+                <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
+                  Yol Haritasında · 2026 Q4: EKAP Tutanak İçe Aktarımı
+                </span>
+                <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
+                  Yol Haritasında · 2026 Q4: Ghostscript / veraPDF Sunucu PDF/A-2b
+                </span>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
@@ -6,9 +6,13 @@ import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt
 import {
   evaluateIso19650Compliance,
   parseContainerIdentity,
+  validateCdeStateTransition,
   type CdeState,
+  type CdeTransitionRecord,
+  type EirDeliveryMilestone,
   type SuitabilityCode,
 } from "@/smartcheck/rules/iso19650";
+import type { MinhaRuleProfile } from "@/smartcheck/rules/minha";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
@@ -102,6 +106,11 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     };
   }, [dataset.groups, dataset.residentialUnitCount, dataset.totalGeneralGrossM2, overheadPercent, unitPrices]);
 
+  const storageKey = useMemo(
+    () => `bimmetraj:calm-session:v1:${dataset.projectTitle}`,
+    [dataset.projectTitle],
+  );
+
   const [kikWorkCategory, setKikWorkCategory] = useState<KikWorkCategory>("ust_yapi");
   const [tenderYmInput, setTenderYmInput] = useState<string>("");
   const [tenderBidsInput, setTenderBidsInput] = useState<string>("");
@@ -110,6 +119,101 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [suitabilityInput, setSuitabilityInput] = useState<SuitabilityCode | "">("");
   const [revisionInput, setRevisionInput] = useState<string>("");
   const [deliveryStageInput, setDeliveryStageInput] = useState<"COORDINATION" | "TENDER_OR_PERMIT">("COORDINATION");
+  const [eirMilestoneInput, setEirMilestoneInput] = useState<EirDeliveryMilestone>("IMPLEMENTATION");
+  const [cdeTransitionLog, setCdeTransitionLog] = useState<CdeTransitionRecord[]>([]);
+  const [cdeTransitionFeedback, setCdeTransitionFeedback] = useState<string>("");
+
+  const [minhaProfile, setMinhaProfile] = useState<MinhaRuleProfile>("CSB_2026");
+  const [customMinhaThresholdInput, setCustomMinhaThresholdInput] = useState<string>("1.50");
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<{
+        kikWorkCategory: KikWorkCategory;
+        tenderYmInput: string;
+        tenderBidsInput: string;
+        cdeStateInput: CdeState | "";
+        suitabilityInput: SuitabilityCode | "";
+        revisionInput: string;
+        deliveryStageInput: "COORDINATION" | "TENDER_OR_PERMIT";
+        eirMilestoneInput: EirDeliveryMilestone;
+        cdeTransitionLog: CdeTransitionRecord[];
+        minhaProfile: MinhaRuleProfile;
+        customMinhaThresholdInput: string;
+      }>;
+      if (parsed.kikWorkCategory) setKikWorkCategory(parsed.kikWorkCategory);
+      if (typeof parsed.tenderYmInput === "string") setTenderYmInput(parsed.tenderYmInput);
+      if (typeof parsed.tenderBidsInput === "string") setTenderBidsInput(parsed.tenderBidsInput);
+      if (typeof parsed.cdeStateInput === "string") setCdeStateInput(parsed.cdeStateInput);
+      if (typeof parsed.suitabilityInput === "string") setSuitabilityInput(parsed.suitabilityInput);
+      if (typeof parsed.revisionInput === "string") setRevisionInput(parsed.revisionInput);
+      if (parsed.deliveryStageInput) setDeliveryStageInput(parsed.deliveryStageInput);
+      if (parsed.eirMilestoneInput) setEirMilestoneInput(parsed.eirMilestoneInput);
+      if (Array.isArray(parsed.cdeTransitionLog)) setCdeTransitionLog(parsed.cdeTransitionLog);
+      if (parsed.minhaProfile) setMinhaProfile(parsed.minhaProfile);
+      if (typeof parsed.customMinhaThresholdInput === "string") {
+        setCustomMinhaThresholdInput(parsed.customMinhaThresholdInput);
+      }
+    } catch {
+      // ignore localStorage read errors
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          kikWorkCategory,
+          tenderYmInput,
+          tenderBidsInput,
+          cdeStateInput,
+          suitabilityInput,
+          revisionInput,
+          deliveryStageInput,
+          eirMilestoneInput,
+          cdeTransitionLog,
+          minhaProfile,
+          customMinhaThresholdInput,
+        }),
+      );
+    } catch {
+      // ignore localStorage write errors
+    }
+  }, [
+    cdeStateInput,
+    cdeTransitionLog,
+    customMinhaThresholdInput,
+    deliveryStageInput,
+    eirMilestoneInput,
+    kikWorkCategory,
+    minhaProfile,
+    revisionInput,
+    storageKey,
+    suitabilityInput,
+    tenderBidsInput,
+    tenderYmInput,
+  ]);
+
+  const handleRecordCdeTransition = () => {
+    if (!cdeStateInput || !suitabilityInput || !revisionInput.trim()) {
+      setCdeTransitionFeedback(
+        "Geçiş kaydı oluşturmak için CDE Durumu, Uygunluk Kodu ve Revizyon Kodu alanlarını doldurunuz.",
+      );
+      return;
+    }
+    const lastAccepted = [...cdeTransitionLog].reverse().find((r) => r.allowed);
+    const record = validateCdeStateTransition({
+      fromState: lastAccepted?.toState ?? null,
+      toState: cdeStateInput,
+      suitabilityCode: suitabilityInput,
+      revisionCode: revisionInput.trim(),
+    });
+    setCdeTransitionLog((prev) => [record, ...prev].slice(0, 10));
+    setCdeTransitionFeedback(record.reason);
+  };
 
   const isoContainerIdentity = useMemo(
     () => parseContainerIdentity(dataset.projectTitle),
@@ -124,6 +228,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         suitabilityCode: suitabilityInput || null,
         revisionCode: revisionInput.trim() || null,
         targetDeliveryStage: deliveryStageInput,
+        eirMilestone: eirMilestoneInput,
         elements: allItems.map((it) => ({
           id: it.id,
           guid: it.id && !/^row-\d+$/i.test(it.id) ? it.id : null,
@@ -135,7 +240,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           hasAdmissibleQuantity: it.netQuantity > 0,
         })),
       }),
-    [allItems, cdeStateInput, dataset.projectTitle, deliveryStageInput, revisionInput, suitabilityInput],
+    [
+      allItems,
+      cdeStateInput,
+      dataset.projectTitle,
+      deliveryStageInput,
+      eirMilestoneInput,
+      revisionInput,
+      suitabilityInput,
+    ],
   );
 
   const kikAdtAnalysis = useMemo(() => {
@@ -488,10 +601,35 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               </h4>
               <p className="text-xs text-muted-foreground mt-1">{selectedItem.formulaNote}</p>
 
-              {/* MİNHA FORMÜL KUTUSU */}
+              {/* MİNHA FORMÜL KUTUSU & SÖZLEŞMESEL MİNHA PROFİLİ (KARAR #4) */}
               <div className="mt-5 border border-border bg-background p-4">
-                <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                  Bu Rakam Nereden Geldi? (Brüt − Boşluk = Net)
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Bu Rakam Nereden Geldi? (Brüt − Boşluk = Net)
+                  </div>
+                  <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                    <select
+                      aria-label="Minha Kural Profili"
+                      value={minhaProfile}
+                      onChange={(e) => setMinhaProfile(e.target.value as MinhaRuleProfile)}
+                      className="border border-border bg-card px-2 py-0.5 text-[10px] font-mono text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="CSB_2026">ÇŞB 2026 (0,50 m²)</option>
+                      <option value="DIN_18350">DIN 18350 / VOB (2,50 m²)</option>
+                      <option value="CUSTOM_CONTRACT">Kullanıcı Tanımlı Eşik (m²)</option>
+                    </select>
+                    {minhaProfile === "CUSTOM_CONTRACT" && (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        aria-label="Özel Sözleşme Minha Eşiği m2"
+                        value={customMinhaThresholdInput}
+                        onChange={(e) => setCustomMinhaThresholdInput(e.target.value)}
+                        className="w-16 border border-border bg-card px-1.5 py-0.5 text-[10px] font-mono text-foreground text-right tabular-nums"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 items-center text-center">
                   <div className="bg-card p-2.5 border border-border">
@@ -1009,16 +1147,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
               )}
 
-              <div className="mt-2.5 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground">
                 <span>
                   Tebliğ m.45.1.2 Sıralı İş Kalemi (%80):{" "}
                   <strong className="text-foreground">
                     {kikAdtAnalysis.explanationRequiredItems.length} / {allItems.length} Kalem
                   </strong>
                 </span>
-                <span>
-                  Dosya Adı Şablonu:{" "}
-                  <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
+                <span className="stamp-badge bg-card text-muted-foreground">
+                  EKAP Tutanak İçe Aktarımı: Yol Haritasında · 2026 Q4 (Faz 3)
                 </span>
               </div>
             </div>
@@ -1027,14 +1164,19 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             <div className="mt-4 border border-border bg-background p-4">
               <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
                 <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  TS EN ISO 19650-1/2 · RG 33331 EK-2 &amp; EN 17412-1 (LOIN)
+                  TS EN ISO 19650-1/2 · RG 33331 EK-2 &amp; EN 17412-1 (LOIN) DESTEKLER
                 </span>
                 <span className="stamp-badge bg-card text-foreground">
-                  LOIN Tamlık: %{formatTrNumber(iso19650Evaluation.loin.alphanumericCompletenessRatio * 100, 1)}
+                  LOIN ({iso19650Evaluation.loinMilestone?.targetLod ?? "LOD 350"}): %
+                  {formatTrNumber(
+                    iso19650Evaluation.loinMilestone?.overallCompletenessPercent ??
+                      iso19650Evaluation.loin.alphanumericCompletenessRatio * 100,
+                    1,
+                  )}
                 </span>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-mono">
                 <label className="block">
                   <span className="text-[10px] text-muted-foreground block mb-1">CDE Durumu</span>
                   <select
@@ -1095,21 +1237,69 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     <option value="TENDER_OR_PERMIT">İhale / e-PYS Ruhsat</option>
                   </select>
                 </label>
+
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground block mb-1">EIR / LOIN Şablonu</span>
+                  <select
+                    aria-label="EIR LOIN Teslim Şablonu"
+                    value={eirMilestoneInput}
+                    onChange={(e) => setEirMilestoneInput(e.target.value as EirDeliveryMilestone)}
+                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                  >
+                    <option value="CONCEPT">Avan Proje (LOD 200)</option>
+                    <option value="DEFINITIVE">Kesin Proje (LOD 300)</option>
+                    <option value="IMPLEMENTATION">Uygulama / Ruhsat (LOD 350)</option>
+                    <option value="AS_BUILT">İş Sonu / As-Built (LOD 400)</option>
+                  </select>
+                </label>
               </div>
 
-              <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  Dosya Adı Şablonu:{" "}
+                  <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleRecordCdeTransition}
+                  className="border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  CDE Durum Geçişini Doğrula &amp; Kaydet
+                </button>
+              </div>
+
+              <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground space-y-1.5">
                 {iso19650Evaluation.cdeEvaluationStatus === "not_evaluated" ? (
-                  <span>
+                  <div>
                     CDE Değerlendirilmedi — Doküman CDE durumu, uygunluk ve revizyon kodu girildiğinde TS EN ISO 19650-2 geçiş kuralları denetlenir.
-                  </span>
+                  </div>
                 ) : iso19650Evaluation.errors.length === 0 ? (
-                  <span className="text-foreground font-semibold">
-                    CDE Durumu Uyumlu ({iso19650Evaluation.cdeState} · {iso19650Evaluation.suitabilityCode ?? "—"} · {iso19650Evaluation.revisionCode ?? "—"})
-                  </span>
+                  <div className="text-foreground font-semibold">
+                    CDE Durumu Geçerli ({iso19650Evaluation.cdeState} · {iso19650Evaluation.suitabilityCode ?? "—"} · {iso19650Evaluation.revisionCode ?? "—"})
+                  </div>
                 ) : (
-                  <span className="text-primary font-semibold">
+                  <div className="text-primary font-semibold">
                     {iso19650Evaluation.errors[0]}
-                  </span>
+                  </div>
+                )}
+                {cdeTransitionFeedback && (
+                  <div className="pt-1 border-t border-border text-[10px] text-foreground">
+                    {cdeTransitionFeedback}
+                  </div>
+                )}
+                {cdeTransitionLog.length > 0 && (
+                  <div className="pt-1 border-t border-border text-[10px] space-y-0.5">
+                    {cdeTransitionLog.slice(0, 3).map((entry, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2">
+                        <span>
+                          {entry.fromState ?? "BAŞLANGIÇ"} → {entry.toState} ({entry.suitabilityCode} · {entry.revisionCode})
+                        </span>
+                        <span className={entry.allowed ? "text-foreground font-bold" : "text-primary font-bold"}>
+                          {entry.allowed ? "ONAYLI GEÇİŞ" : "REDDEDİLDİ"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
