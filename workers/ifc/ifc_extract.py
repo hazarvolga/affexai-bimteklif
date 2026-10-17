@@ -1762,8 +1762,10 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 rooms.sort(key=lambda r: r["code"])
                 total_unit_net = round(net_sweepable_m2 + balcony_m2, 2)
                 is_residential = z_code.upper().startswith("D") and z_code[1:].isdigit()
-                unit_gross = round(total_unit_net * (1.132 if is_residential else 1.0), 2)
-                general_gross = round(total_unit_net * (1.298 if is_residential else 1.0), 2)
+                # Brüt alan (duvar kalınlığı, ortak alan payı) IFC mahal cetvelinde bulunmaz; çarpanla
+                # üretilmez. Kullanıcı katsayısı arayüzde uygulanır.
+                unit_gross = None
+                general_gross = None
                 apartment_schedule.append({
                     "unitCode": z_code,
                     "unitLabel": f"Daire {z_code}" if is_residential else ("Ortak Alanlar (Sirkülasyon)" if z_code == "OAL" else ("Bodrum Ortak & Sığınak" if z_code == "BDR" else z_code)),

@@ -4475,8 +4475,8 @@
     "semantic_hash": ""
   },
   "src/ifc/types.ts": {
-    "mtime": 1792245342.1489737,
-    "ast_hash": "a39064020e18a048fcfadadd132220ea",
+    "mtime": 1792246068.4937093,
+    "ast_hash": "d0b46463a71d84de01559ced2aeb49f9",
     "semantic_hash": ""
   },
   "src/ifc/parser/legacy-parser.ts": {
@@ -5205,8 +5205,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/import/ifc-python-runner.ts": {
-    "mtime": 1792195361.040431,
-    "ast_hash": "3db5f76ef7ebe10850688dfa2b2f279d",
+    "mtime": 1792246068.4940445,
+    "ast_hash": "94f628e5f904ab8ab617b1cf19f5ecdd",
     "semantic_hash": ""
   },
   "src/smartcheck/import/ifc-worker.ts": {
@@ -5270,8 +5270,8 @@
     "semantic_hash": ""
   },
   "workers/ifc/ifc_extract.py": {
-    "mtime": 1792245312.6571448,
-    "ast_hash": "333b1ab9271487ed8f52d91036c90d95",
+    "mtime": 1792246068.494306,
+    "ast_hash": "0c79cd153b20ff5cde5644a8cd5c58c7",
     "semantic_hash": ""
   },
   "workers/ifc/test_ifc_extract.py": {
@@ -6045,8 +6045,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1792245830.4868186,
-    "ast_hash": "d1f8306dab13bb19fde99e95f818c50f",
+    "mtime": 1792246162.233501,
+    "ast_hash": "956d9af5fd64081653ebe66db16507f5",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1792245830.4862816,
-    "ast_hash": "b5ff422fb2a08e0b75df8d50b4d202dd",
+    "mtime": 1792246162.2329273,
+    "ast_hash": "c5b544cf97996cdc7f8549ed697642eb",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6425,18 +6425,18 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/CalmIfcWorkspace.tsx": {
-    "mtime": 1792244293.635883,
-    "ast_hash": "58a5c214c8d6e36d18b3f0ca99947e57",
+    "mtime": 1792246068.4931142,
+    "ast_hash": "5c3eaa264178a6a8d13465eadabcb47e",
     "semantic_hash": ""
   },
   "src/ifc/calm-icmal.test.ts": {
-    "mtime": 1792206689.171487,
-    "ast_hash": "a92ad81f221bc4a5b9d8369f67a92ca6",
+    "mtime": 1792246104.1528025,
+    "ast_hash": "01b9d5170d7dbb48c6551bf023367a24",
     "semantic_hash": ""
   },
   "src/ifc/calm-icmal.ts": {
-    "mtime": 1792245342.149413,
-    "ast_hash": "d7319ffd84339c4db784736f2793833c",
+    "mtime": 1792246068.493471,
+    "ast_hash": "e355786ac80b498ea3a4530c2ffbb233",
     "semantic_hash": ""
   },
   "src/components/ui/PaftaDrawing.tsx": {
@@ -6455,8 +6455,8 @@
     "semantic_hash": ""
   },
   "src/ifc/calibrated-2026-45-fixture.ts": {
-    "mtime": 1792206991.9376109,
-    "ast_hash": "61542d441bdc925cf83c734b2b7a51cd",
+    "mtime": 1792246068.493284,
+    "ast_hash": "e0e5852a607bb90dcc23abb5d844ae66",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.test.ts": {
@@ -6485,13 +6485,13 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-17.md": {
-    "mtime": 1792245830.4870286,
-    "ast_hash": "d287d12db533325ac8a8772c8969b2a3",
+    "mtime": 1792246162.2337193,
+    "ast_hash": "491c286416e100f6f207555208c509d2",
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
-    "mtime": 1792209650.1981444,
-    "ast_hash": "71db9462c6a5aa277be70b200cd388a3",
+    "mtime": 1792246136.2318287,
+    "ast_hash": "bbae7830f0d176beffbd1532577b62f0",
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
@@ -6582,6 +6582,16 @@
   "src/lib/pre-bim-xlsx.ts": {
     "mtime": 1792245768.5942428,
     "ast_hash": "06fe4a539a0f61955e9e8ab58d9abe43",
+    "semantic_hash": ""
+  },
+  "src/ifc/apartment-gross.test.ts": {
+    "mtime": 1792245983.0429673,
+    "ast_hash": "c625833647f684fda2f6f27b2d8d5646",
+    "semantic_hash": ""
+  },
+  "src/ifc/apartment-gross.ts": {
+    "mtime": 1792245983.0407894,
+    "ast_hash": "683ddb0861807de2a42ae94623864370",
     "semantic_hash": ""
   }
 }

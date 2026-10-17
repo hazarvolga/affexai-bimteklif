@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.13",
+  version: "BIM-CALC-2026-10-17.14",
   updatedOn: "17 Ekim 2026",
-  implementationBaseline: "28e6339ecae56439f729443cfbba51a504f664a1",
+  implementationBaseline: "1c8af3e9099d4058832972d746aed28726bc07ef",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı ve Bölüm 7 (6/6 karar) mühürlendi · bağımsız uzman imzasına hazır",
 };
 
@@ -532,6 +532,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Parsel listesi yalnızca CSV olarak içe aktarılabiliyordu.",
         after: "parseParcelXlsx ile .xlsx doğrudan okunur; CSV ve xlsx ortak parseParcelRows kullanır; dosya boyutu sınırı ve hata mesajları var.",
         basis: "Melih Dinekli saha geri bildirimi (Tespit 4): müteahhitlerin Excel ile ön teklif çalışması",
+      },
+    },
+  },
+  {
+    revision: "Rev. 20",
+    version: "BIM-CALC-2026-10-17.14",
+    date: "17 Ekim 2026",
+    commit: "1c8af3e",
+    trigger: "Yanıt beklenen sorulardan bağımsız iş 3: Kaynaksız brüt/boşluk ve daire brüt çarpanlarının kaldırılması",
+    beforeSummary:
+      "Calm icmal, modelde brüt/boşluk verisi yokken sabit çarpanlarla brüt ve boşluk üretiyordu (duvar/tavan ×1,115, süpürgelik ×1,08, ytong ×1,215, beton ×1,03). Daire brüt alanı da kaynaksız çarpanlarla üretiliyordu (Python: ×1,132 ve ×1,298; TypeScript yedeği: ×1,12 ve ×1,28 — iki yol birbirinden de farklıydı). Ekranda 'Brüt − Boşluk = Net' ve 'Daire Brüt' olarak modelden geliyormuş gibi görünüyordu.",
+    afterSummary:
+      "Brüt ve boşluk yalnızca modelde (GrossSideArea/NetSideArea) varsa gösterilir; yoksa kalem 'modelde brüt/boşluk verisi yok' notuyla yalnız net miktarı gösterir (grossAvailable=false). Süpürgelikte uzunluk yoksa kullanılan alan ÷ 0,06 m varsayımı formül notunda açıkça belirtilir. Daire brüt alanı IFC'den gelmez (null); kullanıcı brüt/net katsayısını girerse hesaplanır, girmezse '—' görünür ve m² başı maliyet hesaplanmaz. Sabit çarpanların geri gelmesini engelleyen bir kapı testi eklendi.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Modelde brüt/boşluk yokken sabit çarpanlarla üretilip modelden geliyormuş gibi gösteriliyordu; daire brütü kaynaksız çarpanlarla üretiliyordu.",
+        after: "grossAvailable bayrağı ile yalnızca model verisi gösterilir; daire brütü kullanıcı katsayısıyla (apartment-gross.ts) hesaplanır, katsayı yoksa null.",
+        basis: "Dürüstlük kuralı: kaynaksız çarpan yok; modelden gelmeyen değer modelden geliyormuş gibi sunulmaz",
       },
     },
   },

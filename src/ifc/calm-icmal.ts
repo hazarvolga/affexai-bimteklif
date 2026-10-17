@@ -35,6 +35,11 @@ export interface CalmIcmalItem {
   netQuantity: number;
   grossQuantity: number;
   deductedOpeningQuantity: number;
+  /**
+   * Brüt ve boşluk değerleri modelden mi geliyor? false ise modelde brüt/boşluk verisi yoktur;
+   * grossQuantity = netQuantity ve deductedOpeningQuantity = 0 gösterilir, hiçbir değer uydurulmaz.
+   */
+  grossAvailable: boolean;
   defaultUnitPriceTry: number;
   formulaNote: string;
   storeyBreakdown: CalmStoreyBreakdownRow[];
@@ -55,8 +60,8 @@ export interface CalmIfcDataset {
   residentialUnitCount: number;
   totalNetSweepableM2: number;
   totalBalconyM2: number;
-  totalUnitGrossM2: number;
-  totalGeneralGrossM2: number;
+  totalUnitGrossM2: number | null;
+  totalGeneralGrossM2: number | null;
   groups: CalmIcmalGroup[];
   apartments: ApartmentUnitScheduleItem[];
   /** Kaynak yazılım uyarısı; tespit edilemediyse (ör. sunucu kanıt yolu) undefined. */
@@ -449,8 +454,9 @@ export function buildApartmentScheduleFromElements(
     );
     const totalNetM2 = Number((netSweepableM2 + balconyM2).toFixed(2));
     const isResidential = /^D\d+$/i.test(unitCode);
-    const unitGrossM2 = isResidential ? Number((totalNetM2 * 1.12).toFixed(2)) : totalNetM2;
-    const generalGrossM2 = isResidential ? Number((totalNetM2 * 1.28).toFixed(2)) : totalNetM2;
+    // Brüt alan IFC mahal cetvelinde yoktur; çarpanla üretilmez (kullanıcı katsayısı arayüzde uygulanır).
+    const unitGrossM2: number | null = null;
+    const generalGrossM2: number | null = null;
 
     const unitLabel = isResidential
       ? `Daire ${unitCode}`
@@ -578,6 +584,8 @@ export function buildCalmIfcDatasetFromElements(
       netQuantity: number;
       grossQuantity: number;
       deductedOpeningQuantity: number;
+      grossKnown: boolean;
+      derivedFromAssumption: boolean;
       byStorey: Map<string, number>;
       sampleRooms: CalmRoomSampleRow[];
     }
@@ -597,32 +605,40 @@ export function buildCalmIfcDatasetFromElements(
       let netQty = 0;
       let grossQty = 0;
       let openingQty = 0;
+      // Brüt/boşluk yalnızca modelden geldiğinde "known" olur; çarpanla üretilmez.
+      let grossKnown = false;
+      let derivedFromAssumption = false;
 
       if (spec.unit === "mtül") {
-        netQty =
-          typeof el.lengthM === "number" && el.lengthM > 0
-            ? el.lengthM
-            : typeof el.areaM2 === "number" && el.areaM2 > 0
-              ? el.areaM2 / 0.06
-              : 0;
-        grossQty = netQty * 1.08;
-        openingQty = Math.max(0, grossQty - netQty);
+        if (typeof el.lengthM === "number" && el.lengthM > 0) {
+          netQty = el.lengthM;
+        } else if (typeof el.areaM2 === "number" && el.areaM2 > 0) {
+          // Uzunluk modelde yok: alan ÷ süpürgelik yüksekliği (6 cm) varsayımı. Açıkça işaretlenir.
+          netQty = el.areaM2 / 0.06;
+          derivedFromAssumption = true;
+        }
+        grossQty = netQty;
+        openingQty = 0;
       } else if (spec.unit === "m²") {
         netQty = typeof el.areaM2 === "number" && el.areaM2 > 0 ? el.areaM2 : 0;
-        grossQty =
-          typeof el.grossAreaM2 === "number" && el.grossAreaM2 >= netQty
-            ? el.grossAreaM2
-            : spec.groupKey === "wall_finish" || spec.groupKey === "ceiling_plaster_paint"
-              ? netQty * 1.115
-              : netQty;
-        openingQty =
-          typeof el.openingAreaM2 === "number" && el.openingAreaM2 > 0
-            ? el.openingAreaM2
-            : Math.max(0, grossQty - netQty);
+        if (typeof el.grossAreaM2 === "number" && el.grossAreaM2 >= netQty) {
+          grossQty = el.grossAreaM2;
+          openingQty =
+            typeof el.openingAreaM2 === "number" && el.openingAreaM2 > 0
+              ? el.openingAreaM2
+              : Math.max(0, grossQty - netQty);
+          grossKnown = true;
+        } else {
+          grossQty = netQty;
+          openingQty = 0;
+          // Döşeme kaplamalarında düşülecek boşluk yoktur (brüt = net doğru); duvar/tavan yüzeyinde
+          // brüt ve boşluk modelde yoksa bilinmiyor sayılır.
+          grossKnown = spec.groupKey === "floor_finish";
+        }
       } else {
         netQty = typeof el.volumeM3 === "number" && el.volumeM3 > 0 ? el.volumeM3 : 0;
-        grossQty = spec.id === "bims-ytong-duvar" ? netQty * 1.215 : netQty * 1.03;
-        openingQty = Math.max(0, grossQty - netQty);
+        grossQty = netQty;
+        openingQty = 0;
       }
 
       if (netQty <= 0) continue;
@@ -634,6 +650,8 @@ export function buildCalmIfcDatasetFromElements(
           netQuantity: 0,
           grossQuantity: 0,
           deductedOpeningQuantity: 0,
+          grossKnown: true,
+          derivedFromAssumption: false,
           byStorey: new Map<string, number>(),
           sampleRooms: [],
         };
@@ -643,6 +661,8 @@ export function buildCalmIfcDatasetFromElements(
       entry.netQuantity += netQty;
       entry.grossQuantity += grossQty;
       entry.deductedOpeningQuantity += openingQty;
+      if (!grossKnown) entry.grossKnown = false;
+      if (derivedFromAssumption) entry.derivedFromAssumption = true;
 
       const stLabel = normalizeStoreyLabel(el.storey, el.spaceCode);
       entry.byStorey.set(stLabel, (entry.byStorey.get(stLabel) || 0) + netQty);
@@ -675,10 +695,13 @@ export function buildCalmIfcDatasetFromElements(
       pozCode: entry.spec.pozCode,
       unit: entry.spec.unit,
       netQuantity: Number(entry.netQuantity.toFixed(2)),
-      grossQuantity: Number(entry.grossQuantity.toFixed(2)),
-      deductedOpeningQuantity: Number(entry.deductedOpeningQuantity.toFixed(2)),
+      grossQuantity: entry.grossKnown ? Number(entry.grossQuantity.toFixed(2)) : Number(entry.netQuantity.toFixed(2)),
+      deductedOpeningQuantity: entry.grossKnown ? Number(entry.deductedOpeningQuantity.toFixed(2)) : 0,
+      grossAvailable: entry.grossKnown,
       defaultUnitPriceTry: entry.spec.defaultUnitPriceTry,
-      formulaNote: entry.spec.formulaNote,
+      formulaNote: entry.derivedFromAssumption
+        ? `${entry.spec.formulaNote} · Uzunluk modelde yok; alan ÷ 0,06 m süpürgelik yüksekliği varsayımıyla türetildi`
+        : entry.spec.formulaNote,
       storeyBreakdown,
       sampleRooms: entry.sampleRooms,
     };
@@ -707,12 +730,15 @@ export function buildCalmIfcDatasetFromElements(
   const totalBalconyM2 = Number(
     residentialUnits.reduce((s, u) => s + u.balconyM2, 0).toFixed(2),
   );
-  const totalUnitGrossM2 = Number(
-    residentialUnits.reduce((s, u) => s + u.unitGrossM2, 0).toFixed(2),
-  );
-  const totalGeneralGrossM2 = Number(
-    residentialUnits.reduce((s, u) => s + u.generalGrossM2, 0).toFixed(2),
-  );
+  // Model brütü yoksa toplam da yoktur; yalnız tüm konutların brütü modelden geliyorsa toplanır.
+  const allUnitGrossKnown = residentialUnits.length > 0 && residentialUnits.every((u) => u.unitGrossM2 !== null);
+  const allGeneralGrossKnown = residentialUnits.length > 0 && residentialUnits.every((u) => u.generalGrossM2 !== null);
+  const totalUnitGrossM2 = allUnitGrossKnown
+    ? Number(residentialUnits.reduce((s, u) => s + (u.unitGrossM2 as number), 0).toFixed(2))
+    : null;
+  const totalGeneralGrossM2 = allGeneralGrossKnown
+    ? Number(residentialUnits.reduce((s, u) => s + (u.generalGrossM2 as number), 0).toFixed(2))
+    : null;
 
   const layerNote = hasMultiLayerCoverings
     ? "Çok Katmanlı IfcCovering Ayrıştırması Aktif"

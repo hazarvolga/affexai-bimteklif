@@ -56,8 +56,9 @@ export interface ApartmentUnitScheduleItem {
   netSweepableM2: number;
   balconyM2: number;
   totalNetM2: number;
-  unitGrossM2: number;
-  generalGrossM2: number;
+  /** Daire brüt alanı. IFC mahal cetvelinde brüt/duvar/ortak alan verisi olmadığından modelden gelmez; null ise kullanıcı katsayısıyla hesaplanır. */
+  unitGrossM2: number | null;
+  generalGrossM2: number | null;
   rooms: ApartmentRoomScheduleItem[];
 }
 

@@ -114,3 +114,13 @@ test('Sabit/Sahte Girdi Yasağı (No Hardcoded/Fabricated Inputs Gate): hesap ve
     'minha.ts içinde kaynaksız CSB_FORMWORK_4M2 profili bulunamaz',
   );
 });
+
+test('Uydurma brüt çarpanı yasağı: icmal ve daire brüt hesabında kaynaksız sabit çarpan bulunmamalı', () => {
+  const forbidden = ['* 1.115', '* 1.08', '* 1.215', '* 1.03', '1.132', '1.298', '* 1.12)', '* 1.28)'];
+  for (const rel of ['src/ifc/calm-icmal.ts', 'workers/ifc/ifc_extract.py']) {
+    const src = fs.readFileSync(path.resolve(REPO_ROOT, rel), 'utf8');
+    for (const token of forbidden) {
+      assert.equal(src.includes(token), false, `${rel} içinde kaynaksız brüt çarpanı bulunamaz: ${token}`);
+    }
+  }
+});

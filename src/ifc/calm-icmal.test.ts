@@ -173,3 +173,120 @@ test("customer IFC files containing 2026_45 in filename compute strictly from ac
   assert.equal(ds.residentialUnitCount, 0);
 });
 
+
+test("brüt/boşluk yalnızca modelden gelir: model verisi olan kalem grossAvailable=true, olmayan kalem çarpanla üretilmez", () => {
+  const base = {
+    guid: "g",
+    type: "IfcCovering" as const,
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial" as const,
+    volumeM3: 0.1,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto" as const,
+    smartCheckStatus: "pass" as const,
+    spaceCode: "K00_D01_006",
+    spaceName: "MUTFAK",
+    zoneName: "D01",
+  };
+  const withModelGross: ParsedIfcElement = {
+    ...base,
+    id: "1",
+    name: "Duvar A",
+    areaM2: 35.4,
+    grossAreaM2: 40.68,
+    openingAreaM2: 5.28,
+    materialLayers: ["Fayans_a"],
+    coveringPredefinedType: "CLADDING",
+  };
+  const withoutModelGross: ParsedIfcElement = {
+    ...base,
+    id: "2",
+    name: "Duvar B",
+    guid: "g2",
+    areaM2: 10,
+    materialLayers: ["Sıva_2CM"],
+    coveringPredefinedType: "CLADDING",
+  };
+  const skirting: ParsedIfcElement = {
+    ...base,
+    id: "3",
+    guid: "g3",
+    name: "Süpürgelik",
+    areaM2: 1,
+    lengthM: 20,
+    materialLayers: ["Parke_Süpürgelik"],
+    coveringPredefinedType: "SKIRTINGBOARD",
+  };
+  const items = buildCalmIfcDatasetFromElements([withModelGross, withoutModelGross, skirting], null, "x.ifc").groups.flatMap(
+    (g) => g.items,
+  );
+
+  const fayans = items.find((i) => i.id === "duvar-fayans")!;
+  assert.equal(fayans.grossAvailable, true);
+  assert.equal(fayans.grossQuantity, 40.68);
+  assert.equal(fayans.deductedOpeningQuantity, 5.28);
+
+  const siva = items.find((i) => i.id === "duvar-ic-siva-2cm")!;
+  assert.equal(siva.netQuantity, 10);
+  assert.equal(siva.grossAvailable, false);
+  assert.equal(siva.grossQuantity, 10, "×1,115 gibi uydurma çarpan uygulanmamalı");
+  assert.equal(siva.deductedOpeningQuantity, 0);
+
+  const supurgelik = items.find((i) => i.id === "parke-supurgelik")!;
+  assert.equal(supurgelik.netQuantity, 20);
+  assert.equal(supurgelik.grossQuantity, 20, "×1,08 gibi uydurma çarpan uygulanmamalı");
+  assert.equal(supurgelik.grossAvailable, false);
+});
+
+test("süpürgelik uzunluğu modelde yoksa alan ÷ 0,06 varsayımı formül notunda açıkça belirtilir", () => {
+  const el: ParsedIfcElement = {
+    id: "9",
+    guid: "g9",
+    type: "IfcCovering",
+    name: "Süpürgelik",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 0,
+    areaM2: 1.2,
+    materialLayers: ["Parke_Süpürgelik"],
+    coveringPredefinedType: "SKIRTINGBOARD",
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "pass",
+  };
+  const item = buildCalmIfcDatasetFromElements([el], null, "x.ifc").groups.flatMap((g) => g.items)[0];
+  assert.equal(item.netQuantity, 20);
+  assert.ok(item.formulaNote.includes("varsayımıyla türetildi"));
+});
+
+test("daire brüt alanı: IFC'den gelmez, sabit çarpanla üretilmez (null)", () => {
+  const rooms: ParsedIfcElement[] = [
+    {
+      id: "r1",
+      guid: "r1",
+      type: "IfcCovering",
+      name: "Zemin",
+      storey: "Zemin Kat",
+      storeySource: "ifc_spatial",
+      volumeM3: 0,
+      areaM2: 50,
+      materialLayers: ["Laminat_Parke"],
+      coveringPredefinedType: "FLOORING",
+      spaceCode: "K00_D01_005",
+      spaceName: "SALON",
+      zoneName: "D01",
+      formworkM2: 0,
+      rebarKg: 0,
+      quantitySource: "qto",
+      smartCheckStatus: "pass",
+    },
+  ];
+  const ds = buildCalmIfcDatasetFromElements(rooms, null, "x.ifc");
+  const apt = ds.apartments.find((a) => a.unitCode === "D01");
+  assert.ok(apt);
+  assert.equal(apt.unitGrossM2, null);
+  assert.equal(apt.generalGrossM2, null);
+  assert.equal(ds.totalGeneralGrossM2, null);
+});

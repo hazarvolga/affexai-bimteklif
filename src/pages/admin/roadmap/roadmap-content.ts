@@ -389,16 +389,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Sunucu (Python) yolunda kaynak yazılım tespiti eklendi: IFC başlığı ve IfcApplication ham bilgisi okunur, TypeScript'te sınıflandırılır ve kanıt özetinden Calm çalışma alanı uyarısına taşınır. Gerçek dosya başlıklarıyla doğrulandı.",
           ],
           [
-            "Rev. 19 (Güncel)",
+            "Rev. 19",
             "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 2)",
             "BIM-CALC-2026-10-17.13",
             "Ön teklif parsel listesi doğrudan .xlsx olarak yüklenebilir (CSV de sürer). exceljs yalnızca .xlsx seçilince yüklenir; ana açılış boyutu etkilenmez.",
+          ],
+          [
+            "Rev. 20 (Güncel)",
+            "17 Ekim 2026 (Yanıt beklenen sorulardan bağımsız iş 3)",
+            "BIM-CALC-2026-10-17.14",
+            "Kaynaksız brüt/boşluk çarpanları (×1,115, ×1,08, ×1,215, ×1,03) ve daire brüt çarpanları (×1,132/×1,298 ve ×1,12/×1,28) kaldırıldı. Brüt/boşluk yalnızca modelden gelir; daire brütü kullanıcı katsayısıyla hesaplanır. Kapı testi eklendi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 19 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 20 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -640,6 +646,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Parsel listesi yalnızca CSV (noktalı virgül) olarak alınabiliyordu; Excel kullanıcısı dosyayı önce dönüştürmek zorundaydı.",
             "parseParcelRows ortak ayrıştırıcı oldu; parseParcelXlsx (exceljs, dinamik yükleme, 5 MB sınırı, formül sonucu okuma) .xlsx dosyasını doğrudan okur. PreBimFeasibilityPanel dosya türünü uzantıdan seçer.",
             "src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-xlsx.ts, pre-bim-xlsx.test.ts, PreBimFeasibilityPanel.tsx",
+          ],
+          [
+            "Rev. 20.1 · 17 Ekim 2026 (Kaynaksız brüt çarpanlarının kaldırılması)",
+            "Dürüstlük kuralı (kaynaksız sabit girdi yasağı) & IFC Qto_*BaseQuantities GrossSideArea/NetSideArea",
+            "calm-icmal.ts model verisi yokken brüt ve boşluğu sabit çarpanlarla üretiyordu; Python ve TypeScript yolları daire brütü için birbirinden farklı çarpanlar kullanıyordu; sonuçlar modelden geliyormuş gibi gösteriliyordu.",
+            "CalmIcmalItem.grossAvailable eklendi; model brütü yoksa yalnız net gösterilir. ApartmentUnitScheduleItem.unitGrossM2/generalGrossM2 null olabilir; apartment-gross.ts kullanıcı katsayısıyla (1–3 aralığı) hesaplar. Arayüzde katsayı girişleri, '—' gösterimi ve 'brüt katsayısı girilmedi' uyarısı var. registry.test.ts kapı testi çarpanların geri gelmesini engeller.",
+            "src/ifc/calm-icmal.ts, apartment-gross.ts, types.ts, CalmIfcWorkspace.tsx, workers/ifc/ifc_extract.py, ifc-python-runner.ts, registry.test.ts",
           ],
         ],
       },

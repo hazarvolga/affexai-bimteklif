@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
+import { parseRatioInput, resolveApartmentGross, sumResidentialGross, type GrossRatios } from "@/ifc/apartment-gross";
 import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/ApartmentSubcontractorShieldCard";
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
@@ -40,6 +41,10 @@ function formatTrNumber(val: number, decimals = 2): string {
   }).format(Number.isFinite(val) ? val : 0);
 }
 
+function formatGross(val: number | null, decimals = 2): string {
+  return val === null || !Number.isFinite(val) ? "—" : formatTrNumber(val, decimals);
+}
+
 function formatTrCurrency(val: number): string {
   return (
     new Intl.NumberFormat("tr-TR", {
@@ -58,6 +63,18 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   onResetOrNewFile,
 }) => {
   const allItems = useMemo(() => dataset.groups.flatMap((g) => g.items), [dataset.groups]);
+
+  // Brüt alan IFC mahal cetvelinde yok: katsayılar kullanıcı girdisidir, varsayılan yoktur.
+  const [unitRatioInput, setUnitRatioInput] = useState<string>("");
+  const [generalRatioInput, setGeneralRatioInput] = useState<string>("");
+  const grossRatios = useMemo<GrossRatios>(
+    () => ({ unitRatio: parseRatioInput(unitRatioInput), generalRatio: parseRatioInput(generalRatioInput) }),
+    [unitRatioInput, generalRatioInput],
+  );
+  const grossTotals = useMemo(
+    () => sumResidentialGross(dataset.apartments, grossRatios),
+    [dataset.apartments, grossRatios],
+  );
 
   const [activeStep, setActiveStep] = useState<CalmStep>("icmal");
   const [selectedItemId, setSelectedItemId] = useState<string>(() => {
@@ -102,7 +119,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     const overheadAmount = directTotal * (overheadPercent / 100);
     const grandTotal = directTotal + overheadAmount;
     const perApartment = dataset.residentialUnitCount > 0 ? grandTotal / dataset.residentialUnitCount : grandTotal;
-    const perGrossM2 = dataset.totalGeneralGrossM2 > 0 ? grandTotal / dataset.totalGeneralGrossM2 : 0;
+    const perGrossM2 =
+      grossTotals.totalGeneralGrossM2 !== null && grossTotals.totalGeneralGrossM2 > 0
+        ? grandTotal / grossTotals.totalGeneralGrossM2
+        : null;
 
     return {
       groupTotals,
@@ -112,7 +132,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       perApartment,
       perGrossM2,
     };
-  }, [dataset.groups, dataset.residentialUnitCount, dataset.totalGeneralGrossM2, overheadPercent, unitPrices]);
+  }, [dataset.groups, dataset.residentialUnitCount, grossTotals.totalGeneralGrossM2, overheadPercent, unitPrices]);
 
   const storageKey = useMemo(
     () => `bimmetraj:calm-session:v1:${dataset.projectTitle}`,
@@ -380,7 +400,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           apt.storey,
           apt.unitCode,
           apt.unitLabel,
-          formatTrNumber(apt.generalGrossM2),
+          formatGross(resolveApartmentGross(apt, grossRatios).generalGrossM2).replace("—", ""),
           formatTrNumber(apt.balconyM2),
           formatTrNumber(apt.netSweepableM2),
           "m²",
@@ -553,7 +573,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </span>
           </div>
           <span className="font-mono text-[10px] text-muted-foreground">
-            {formatTrNumber(dataset.totalGeneralGrossM2, 0)} m²
+            {formatGross(grossTotals.totalGeneralGrossM2, 0)} m²
           </span>
         </button>
 
@@ -707,6 +727,17 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     )}
                   </div>
                 </div>
+                {!selectedItem.grossAvailable ? (
+                  <div className="border border-border bg-card p-3 text-xs" data-testid="gross-unavailable">
+                    <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Net miktar (modelin değeri)</div>
+                    <div className="mt-1 font-mono text-sm font-bold tabular-nums text-foreground">
+                      {formatTrNumber(selectedItem.netQuantity)} {selectedItem.unit}
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Bu kalem için modelde brüt ve boşluk verisi bulunmuyor; bu yüzden "Brüt − Boşluk" hesabı gösterilmiyor. Hiçbir değer çarpanla üretilmedi.
+                    </p>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-3 gap-2 items-center text-center">
                   <div className="bg-card p-2.5 border border-border">
                     <div className="font-mono text-[10px] uppercase text-muted-foreground">Brüt Miktar</div>
@@ -727,6 +758,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     </div>
                   </div>
                 </div>
+                )}
               </div>
 
               {/* KATLARA GÖRE DAĞILIM */}
@@ -807,6 +839,35 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Arsa sahibi paylaşım tablosu, satış broşürü ve daire bazlı şerefiye kontrolü
                 </p>
+                <div className="mt-2 flex flex-wrap items-end gap-3" data-testid="gross-ratio-inputs">
+                  <label className="block">
+                    <span className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Daire brüt / net katsayısı</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      aria-label="Daire brüt net katsayısı"
+                      value={unitRatioInput}
+                      placeholder="örn. 1,15"
+                      onChange={(e) => setUnitRatioInput(e.target.value)}
+                      className="w-24 border border-border bg-card px-2 py-1 text-xs font-mono text-right tabular-nums"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Genel brüt / net katsayısı</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      aria-label="Genel brüt net katsayısı"
+                      value={generalRatioInput}
+                      placeholder="örn. 1,30"
+                      onChange={(e) => setGeneralRatioInput(e.target.value)}
+                      className="w-24 border border-border bg-card px-2 py-1 text-xs font-mono text-right tabular-nums"
+                    />
+                  </label>
+                  <span className="text-[10px] text-muted-foreground max-w-xs">
+                    IFC mahal cetvelinde brüt alan (duvar kalınlığı, ortak alan payı) yoktur. Katsayıyı proje mimarınızdan alıp girin; girmezseniz brüt hesaplanmaz.
+                  </span>
+                </div>
               </div>
               <span className="stamp-badge bg-background text-muted-foreground">
                 Oda listesi için daireye tıklayın →
@@ -862,7 +923,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                           isSelected ? "text-primary" : "text-foreground"
                         }`}
                       >
-                        {formatTrNumber(apt.generalGrossM2)} m²
+                        {formatGross(resolveApartmentGross(apt, grossRatios).generalGrossM2)} m²
                       </div>
                     </button>
                   );
@@ -882,7 +943,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 +{formatTrNumber(dataset.totalBalconyM2)} m²
               </div>
               <div className="col-span-3 text-right font-mono font-bold tabular-nums">
-                {formatTrNumber(dataset.totalGeneralGrossM2)} m²
+                {formatGross(grossTotals.totalGeneralGrossM2)} m²
               </div>
             </div>
           </div>
@@ -915,13 +976,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 <div className="bg-card p-2.5 border border-border">
                   <div className="font-mono text-[10px] uppercase text-muted-foreground">Daire Brüt</div>
                   <div className="mt-1 font-mono text-sm font-semibold text-foreground tabular-nums">
-                    {formatTrNumber(selectedApartment.unitGrossM2)} m²
+                    {formatGross(resolveApartmentGross(selectedApartment, grossRatios).unitGrossM2)} m²
                   </div>
                 </div>
                 <div className="bg-primary/10 p-2.5 border border-primary/40">
                   <div className="font-mono text-[10px] uppercase font-semibold text-primary">Genel Brüt</div>
                   <div className="mt-1 font-mono text-sm font-bold text-primary tabular-nums">
-                    {formatTrNumber(selectedApartment.generalGrossM2)} m²
+                    {formatGross(resolveApartmentGross(selectedApartment, grossRatios).generalGrossM2)} m²
                   </div>
                 </div>
               </div>
@@ -1136,10 +1197,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
                 <div>
                   <div className="font-mono text-[10px] uppercase opacity-75">
-                    m² Başı ({formatTrNumber(dataset.totalGeneralGrossM2, 0)} m²)
+                    m² Başı ({formatGross(grossTotals.totalGeneralGrossM2, 0)} m²)
                   </div>
                   <div className="mt-0.5 font-mono font-semibold tabular-nums">
-                    {formatTrCurrency(costSummary.perGrossM2)} / m²
+                    {costSummary.perGrossM2 === null ? "— (brüt katsayısı girilmedi)" : `${formatTrCurrency(costSummary.perGrossM2)} / m²`}
                   </div>
                 </div>
               </div>

@@ -27,6 +27,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 1761.33,
       grossQuantity: 1761.33,
       deductedOpeningQuantity: 0,
+      grossAvailable: true,
       defaultUnitPriceTry: 320,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #2: Şap_3CM) · 138 mahal net döşeme alanı toplamı",
       storeyBreakdown: [
@@ -54,6 +55,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 921.11,
       grossQuantity: 921.11,
       deductedOpeningQuantity: 0,
+      grossAvailable: true,
       defaultUnitPriceTry: 640,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #3: Laminat_Parke) · 64 kuru hacim net alanı",
       storeyBreakdown: [
@@ -79,6 +81,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 840.22,
       grossQuantity: 840.22,
       deductedOpeningQuantity: 0,
+      grossAvailable: true,
       defaultUnitPriceTry: 780,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #3: Seramik / Mermer) · Islak hacim, balkon ve sahanlıklar",
       storeyBreakdown: [
@@ -106,6 +109,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 1599.13,
       grossQuantity: 1599.13,
       deductedOpeningQuantity: 0,
+      grossAvailable: true,
       defaultUnitPriceTry: 240,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #1: XPS_5CM + Yalıtım_Levhası)",
       storeyBreakdown: [
@@ -129,6 +133,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 363.26,
       grossQuantity: 363.26,
       deductedOpeningQuantity: 0,
+      grossAvailable: true,
       defaultUnitPriceTry: 560,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #2: Epoksi_Kaplama) · Bodrum kat 6 teknik mahal",
       storeyBreakdown: [
@@ -149,6 +154,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 1175.15,
       grossQuantity: 1318.4,
       deductedOpeningQuantity: 143.25,
+      grossAvailable: true,
       defaultUnitPriceTry: 790,
       formulaNote: "Brüt Duvar Yüzeyi (1.318,40 m²) − Kapı/Pencere Boşluğu (143,25 m²) = 1.175,15 m² Net",
       storeyBreakdown: [
@@ -175,6 +181,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 1175.15,
       grossQuantity: 1318.4,
       deductedOpeningQuantity: 143.25,
+      grossAvailable: true,
       defaultUnitPriceTry: 290,
       formulaNote: "Allplan Çok Katmanlı Duvar (Katman #1: Sıva_2CM) · Minha düşülmüş net yüzey",
       storeyBreakdown: [
@@ -199,6 +206,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 4775.62,
       grossQuantity: 5290.42,
       deductedOpeningQuantity: 514.8,
+      grossAvailable: true,
       defaultUnitPriceTry: 270,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #1: Kaba_Sıva) · Brüt 5.290,42 − Boşluk 514,80 m²",
       storeyBreakdown: [
@@ -224,6 +232,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 4775.62,
       grossQuantity: 5290.42,
       deductedOpeningQuantity: 514.8,
+      grossAvailable: true,
       defaultUnitPriceTry: 210,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #2: Saten_Alçı) · Minha düşülmüş net yüzey",
       storeyBreakdown: [
@@ -249,6 +258,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 4775.62,
       grossQuantity: 5290.42,
       deductedOpeningQuantity: 514.8,
+      grossAvailable: true,
       defaultUnitPriceTry: 165,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #3: Plastik_Boya) · Minha düşülmüş net yüzey",
       storeyBreakdown: [
@@ -274,6 +284,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 893.54,
       grossQuantity: 965.14,
       deductedOpeningQuantity: 71.6,
+      grossAvailable: true,
       defaultUnitPriceTry: 145,
       formulaNote: "Allplan Hesaplama Modu: m · 53,61 m² yüzey / 0,06 m yükseklik = 893,54 mtül",
       storeyBreakdown: [
@@ -299,6 +310,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 753.92,
       grossQuantity: 832.4,
       deductedOpeningQuantity: 78.48,
+      grossAvailable: true,
       defaultUnitPriceTry: 185,
       formulaNote: "Allplan Hesaplama Modu: m · Seramik (673,83 mtül) + Granit (80,09 mtül) = 753,92 mtül",
       storeyBreakdown: [
@@ -324,6 +336,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 842.99,
       grossQuantity: 868.4,
       deductedOpeningQuantity: 25.41,
+      grossAvailable: true,
       defaultUnitPriceTry: 3450,
       formulaNote: "Qto_SlabBaseQuantities + Qto_WallBaseQuantities + Qto_ColumnBaseQuantities + Qto_BeamBaseQuantities",
       storeyBreakdown: [
@@ -350,6 +363,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       netQuantity: 356.11,
       grossQuantity: 432.85,
       deductedOpeningQuantity: 76.74,
+      grossAvailable: true,
       defaultUnitPriceTry: 2950,
       formulaNote: "Brüt Duvar Hacmi (432,85 m³) − Kapı/Pencere Boşluğu (76,74 m³) = 356,11 m³ Net",
       storeyBreakdown: [

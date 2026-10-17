@@ -62,8 +62,8 @@ export const ApartmentUnitScheduleItemSchema = z.object({
   netSweepableM2: z.number(),
   balconyM2: z.number(),
   totalNetM2: z.number(),
-  unitGrossM2: z.number(),
-  generalGrossM2: z.number(),
+  unitGrossM2: z.number().nullable(),
+  generalGrossM2: z.number().nullable(),
   rooms: z.array(ApartmentRoomScheduleItemSchema),
 });
 
