@@ -36,11 +36,11 @@ export function contentSecurityPolicy(env: Record<string, string | undefined>): 
   const storageOrigins = storage ? [storage.origin, `https://*.${storage.host}`] : [];
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': ["'self'"],
+    'script-src': ["'self'", 'https://static.cloudflareinsights.com'],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", ...storageOrigins, ...(ACADEMY_ENABLED ? FIREBASE_ORIGINS : [])],
+    'connect-src': ["'self'", 'https://cloudflareinsights.com', ...storageOrigins, ...(ACADEMY_ENABLED ? FIREBASE_ORIGINS : [])],
     'worker-src': ["'self'", 'blob:'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
@@ -109,7 +109,7 @@ export function isKnownSpaRoute(pathname: string): boolean {
 
 export function sitemapXml(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
-  const lastmod = '2026-10-17';
+  const lastmod = '2026-10-18';
   const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
@@ -117,6 +117,17 @@ export function sitemapXml(publicAppUrl: string): string {
 export function robotsTxt(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
   return ['User-agent: *', 'Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', '', `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
+}
+
+export function securityTxt(publicAppUrl: string): string {
+  const origin = new URL(publicAppUrl).origin;
+  return [
+    'Contact: mailto:info@bimmetraj.com',
+    'Preferred-Languages: tr, en',
+    `Canonical: ${origin}/.well-known/security.txt`,
+    'Expires: 2027-10-18T00:00:00.000Z',
+    '',
+  ].join('\n');
 }
 
 export function llmsTxt(publicAppUrl: string): string {

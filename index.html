@@ -15,7 +15,10 @@
     <meta name="twitter:description" content="IFC 2x3/4/4.3 QTO metraj çıkarma, ÇŞB poz eşleştirme, SmartCheck 3x3 & Minha denetimi ve RG 33331 e-PYS dijital ruhsat ön-kontrol platformu." />
     <link rel="canonical" href="https://bimmetraj.com/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>BIMMetraj | BIM Tabanlı Metraj ve İhale Masası</title>
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f3f1e9" />
+    <title>BIMMetraj | openBIM (IFC) Metraj, e-PYS &amp; 5D İhale Masası</title>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -25,7 +28,13 @@
             "@id": "https://bimmetraj.com/#organization",
             "name": "BIMMetraj",
             "url": "https://bimmetraj.com",
-            "logo": "https://bimmetraj.com/favicon.svg",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://bimmetraj.com/og-image.png",
+              "width": 1200,
+              "height": 630
+            },
+            "image": "https://bimmetraj.com/og-image.png",
             "email": "info@bimmetraj.com",
             "address": {
               "@type": "PostalAddress",
@@ -63,52 +72,55 @@
               "highPrice": "8900",
               "offerCount": "5"
             }
+          }
+        ]
+      }
+    </script>
+    <script id="faq-jsonld" type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "@id": "https://bimmetraj.com/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "BIMMetraj hangi dosya formatlarını ve BIM standartlarını destekler?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "BIMMetraj; buildingSMART IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerini, Excel (XLSX/CSV) metraj cetvellerini ve PDF paftalarını destekler. TS 500, TS 708, ÇŞB 2026 Genel Teknik Şartnamesi (CSB_2026_V1) ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-1..EK-9 ön kontrol kurallarını çalıştırır; TS EN ISO 19650-2 dosya adlandırma, WIP/SHARED/PUBLISHED/ARCHIVED CDE durum geçiş doğrulaması ve EN 17412-1 (LOIN) EIR teslim aşaması (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) kurallarını destekler."
+            }
           },
           {
-            "@type": "FAQPage",
-            "@id": "https://bimmetraj.com/#faq",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "BIMMetraj hangi dosya formatlarını ve BIM standartlarını destekler?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "BIMMetraj; buildingSMART IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerini, Excel (XLSX/CSV) metraj cetvellerini ve PDF paftalarını destekler. TS 500, TS 708, ÇŞB 2026 Genel Teknik Şartnamesi (CSB_2026_V1) ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-1..EK-9 ön kontrol kurallarını çalıştırır; TS EN ISO 19650-2 dosya adlandırma, WIP/SHARED/PUBLISHED/ARCHIVED CDE durum geçiş doğrulaması ve EN 17412-1 (LOIN) EIR teslim aşaması (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) kurallarını destekler."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "SmartCheck 3x3 ve Minha denetimi nedir?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "SmartCheck; IFC modelinden gelen miktarları şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm) kuralları ve seçilen ölçü standardına göre boşluk/kesişim minha kurallarına (ÇŞB 2026: 0,50 m², DIN 18350: 2,50 m² hazır profilleri ile kullanıcı tanımlı özel şartname eşiği) göre denetleyen insan onaylı kalite kontrol motorudur."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "4734 KİK aşırı düşük teklif (sınır değer) analizi nasıl çalışır?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Teklif kalemlerinizden Kamu İhale Genel Tebliği m.45.1.2 uyarınca toplam teklifin %80'ini oluşturan açıklama istenecek sıralı iş kalemleri otomatik belirlenir. Ayrıca kullanıcı tarafından ihale açılış tutanağındaki Yaklaşık Maliyet (YM) ve geçerli teklifler girildiğinde, Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K ve Üstyapı N=1,00 / Diğer Yapım N=1,20 katsayıları) ile Sınır Değer (SD) hesaplanır (EKAP tutanak içe aktarımı ve tam açıklama dosyası üretimi Yol Haritasında · 2026 Q4)."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "RG 33331 e-PYS ve PDF/A ön kontrolü neleri kapsar?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "5 Ağustos 2026 tarihli Resmi Gazete (Sayı: 33331) kapsamında IFC modellerinde EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ön kontrolü yapılır. 2B PDF paftalarda ise PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta kuralı ve gömülü e-imza (/Sig) varlığı denetlenir (Ghostscript/veraPDF ile sunucu tarafı PDF/A-2b dönüştürme Yol Haritasında · 2026 Q4)."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Kalıp ve donatı metrajları teklife doğrudan aktarılır mı?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "IFC modelinden doğrudan kanıtlanan beton hacmi (m³), çok katmanlı kaplama alanları (m²) ve süpürgelik tülü (mtül) inceleme sonrası teklife aktarılır. Modelden türetilen kalıp (m²) ve teorik donatı kütlesi (kg/ton) ise model tahmini (model_estimate) olarak işaretlenir ve mühendis onayı olmadan otomatik teklif satırına dönüştürülmez."
-                }
-              }
-            ]
+            "@type": "Question",
+            "name": "SmartCheck 3x3 ve Minha denetimi nedir?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SmartCheck; IFC modelinden gelen miktarları şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm) kuralları ve seçilen ölçü standardına göre boşluk/kesişim minha kurallarına (ÇŞB 2026: 0,50 m², DIN 18350: 2,50 m² hazır profilleri ile kullanıcı tanımlı özel şartname eşiği) göre denetleyen insan onaylı kalite kontrol motorudur."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "4734 KİK aşırı düşük teklif (sınır değer) analizi nasıl çalışır?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Teklif kalemlerinizden Kamu İhale Genel Tebliği m.45.1.2 uyarınca toplam teklifin %80'ini oluşturan açıklama istenecek sıralı iş kalemleri otomatik belirlenir. Ayrıca kullanıcı tarafından ihale açılış tutanağındaki Yaklaşık Maliyet (YM) ve geçerli teklifler girildiğinde, Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K ve Üstyapı N=1,00 / Diğer Yapım N=1,20 katsayıları) ile Sınır Değer (SD) hesaplanır (EKAP tutanak içe aktarımı ve tam açıklama dosyası üretimi Yol Haritasında · 2026 Q4)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "RG 33331 e-PYS ve PDF/A ön kontrolü neleri kapsar?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "5 Ağustos 2026 tarihli Resmi Gazete (Sayı: 33331) kapsamında IFC modellerinde EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) veya Tablo 9.2 (Diğer Disiplinler 16 satır) ön kontrolü yapılır. 2B PDF paftalarda ise PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta kuralı ve gömülü e-imza (/Sig) varlığı denetlenir (Ghostscript/veraPDF ile sunucu tarafı PDF/A-2b dönüştürme Yol Haritasında · 2026 Q4)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Kalıp ve donatı metrajları teklife doğrudan aktarılır mı?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "IFC modelinden doğrudan kanıtlanan beton hacmi (m³), çok katmanlı kaplama alanları (m²) ve süpürgelik tülü (mtül) inceleme sonrası teklife aktarılır. Modelden türetilen kalıp (m²) ve teorik donatı kütlesi (kg/ton) ise model tahmini (model_estimate) olarak işaretlenir ve mühendis onayı olmadan otomatik teklif satırına dönüştürülmez."
+            }
           }
         ]
       }

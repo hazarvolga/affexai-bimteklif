@@ -46,7 +46,7 @@ const LANDING_ROUTE_META: Record<string, { title: string; description: string; c
     canonicalPath: '/about',
   },
   '/': {
-    title: 'BIMMetraj | openBIM (IFC) Tabanlı Metraj, RG 33331 e-PYS ve 5D İhale Masası',
+    title: 'BIMMetraj | openBIM (IFC) Metraj, e-PYS & 5D İhale Masası',
     description: 'BIMMetraj — İnşaat ve teknik ofis ekipleri için açık BIM (IFC) ve Excel tabanlı metraj çıkarma, ÇŞB 2026 poz entegrasyonu, TS 500 & Minha motoru ve SmartCheck denetimli teklif platformu.',
     canonicalPath: '/',
   },
@@ -130,7 +130,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         canonicalPath={pageMeta.canonicalPath}
       />
       {/* GELİŞTİRME AŞAMASI BİLGİLENDİRME ŞERİDİ */}
-      <div className="border-b border-border bg-card px-4 py-2.5 md:px-10">
+      <div role="region" aria-label="Proje geliştirme duyurusu" className="border-b border-border bg-card px-4 py-2.5 md:px-10">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2.5">
             <span className="stamp-badge border-primary bg-primary text-primary-foreground">
@@ -151,7 +151,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
       {/* STICKY NAVBAR (PAFTA ANTETİ) */}
       <nav className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur-md md:px-10">
-        <a href="#top" className="flex items-center gap-3 text-foreground" aria-label="BIMMetraj ana sayfa">
+        <a href="#top" className="flex items-center gap-3 text-foreground">
           <span className="flex h-8 w-8 items-center justify-center border border-primary bg-primary text-xs font-mono font-bold text-primary-foreground">
             BM
           </span>
@@ -475,7 +475,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 </div>
 
                 {/* Right: Dense Metraj Cetveli Table */}
-                <div className="lg:col-span-7 overflow-x-auto">
+                <div className="lg:col-span-7 overflow-x-auto" tabIndex={0} role="region" aria-label="Metraj Cetveli ve Fiyat Dağılımı">
                   <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between font-mono text-xs">
                     <span className="font-semibold text-foreground">Metraj Cetveli & Fiyat Dağılımı</span>
                     <span className="text-muted-foreground tabular-nums">Toplam: <strong className="text-foreground">2.888.250,00 ₺</strong></span>
@@ -785,7 +785,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <Button 
               onClick={() => navigate('/register')}
               size="lg" 
-              className="h-11 shrink-0 bg-primary px-7 text-foreground hover:bg-primary/90 font-semibold shadow-xs"
+              className="h-11 shrink-0 bg-primary px-7 text-primary-foreground hover:bg-primary/90 font-semibold shadow-xs"
             >
               Hemen Ücretsiz Başlayın <ArrowRight size={16} className="ml-2" />
             </Button>
@@ -798,7 +798,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <div className="mx-auto grid max-w-6xl gap-8 text-xs text-muted-foreground md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5 text-base font-bold text-foreground">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xs bg-primary text-xs font-mono font-black text-foreground">BM</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-xs bg-primary text-xs font-mono font-black text-primary-foreground">BM</span>
               BIMMetraj
             </div>
             <p className="mt-3 max-w-sm leading-relaxed text-muted-foreground">

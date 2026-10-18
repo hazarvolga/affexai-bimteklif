@@ -4,6 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { PublicMetadata } from '@/components/PublicMetadata';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,7 +44,13 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background bg-hairline-grid flex flex-col justify-between p-6 relative">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background bg-hairline-grid flex flex-col justify-between p-6 relative">
+      <PublicMetadata
+        title="Giriş Yap — Kurumsal İhale ve BIM Masası | BIMMetraj"
+        description="BIMMetraj kurumsal teklif, openBIM IFC metraj ve SmartCheck çalışma alanınıza giriş yapın."
+        canonicalPath="/login"
+        noIndex
+      />
       <div className="flex items-center justify-between max-w-6xl w-full mx-auto">
         <Link to="/" className="inline-flex items-center gap-3 focus:outline-none">
           <span className="flex h-8 w-8 items-center justify-center border border-primary bg-primary text-xs font-mono font-bold text-primary-foreground">
@@ -120,7 +127,7 @@ export function Login() {
             <div className="pt-3 border-t border-border text-center">
               <p className="text-xs text-muted-foreground">
                 Hesabınız yok mu?{' '}
-                <Link to="/register" className="text-primary font-semibold hover:underline">
+                <Link to="/register" className="text-primary font-semibold underline underline-offset-2 hover:opacity-80">
                   14 Gün Ücretsiz Kaydolun
                 </Link>
               </p>
@@ -132,6 +139,6 @@ export function Login() {
       <div className="text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
         <span>openBIM &amp; ÇŞB 2026 UYUMLU METRAJ PLATFORMU</span>
       </div>
-    </div>
+    </main>
   );
 }

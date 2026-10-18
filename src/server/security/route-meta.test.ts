@@ -84,3 +84,24 @@ test('bilinmeyen rota ve noscript: 404 sayfasına içerik eklenmez; kullanıcı 
   assert.equal(evil.includes('<script>alert(1)</script>'), false);
   assert.match(evil, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 });
+
+test('P1-4 ve P2 SEO: /bim-sozlugu noscript terimleri taşır, ana sayfa başlığı <=60 karakterdir, /login ve /register noindex alır ve FAQPage yalnız ana sayfada kalır', () => {
+  const shellWithFaq = SHELL.replace('</head>', '<script id="faq-jsonld" type="application/ld+json">{"@type":"FAQPage"}</script></head>');
+  const home = injectRouteMeta(shellWithFaq, { pathname: '/', origin: 'https://bimmetraj.com' });
+  const homeMeta = getRouteMeta('/')!;
+  assert.ok(homeMeta.title.length <= 60, `Home title length (${homeMeta.title.length}) should be <= 60`);
+  assert.equal(home.includes('id="faq-jsonld"'), true, 'FAQPage JSON-LD ana sayfada korunmalı');
+
+  const glossary = injectRouteMeta(shellWithFaq, { pathname: '/bim-sozlugu', origin: 'https://bimmetraj.com' });
+  assert.equal(glossary.includes('id="faq-jsonld"'), false, 'FAQPage JSON-LD alt sayfalardan kaldırılmalı');
+  assert.match(glossary, /EIR \(Bilgi Gereksinimleri/);
+  assert.match(glossary, /IFC ve IFC 4\.3/);
+  assert.match(glossary, /RG 33331 e-PYS ve EK-9/);
+  assert.match(glossary, /4734 KİK m\.38/);
+
+  const loginHtml = injectRouteMeta(shellWithFaq, { pathname: '/login', origin: 'https://bimmetraj.com' });
+  assert.match(loginHtml, /<title>Giriş Yap — Kurumsal İhale ve BIM Masası \| BIMMetraj<\/title>/);
+  assert.match(loginHtml, /<link rel="canonical" href="https:\/\/bimmetraj\.com\/login" \/>/);
+  assert.match(loginHtml, /<meta name="robots" content="noindex, follow" \/>/);
+});
+

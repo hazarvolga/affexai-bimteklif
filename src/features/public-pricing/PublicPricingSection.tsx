@@ -49,7 +49,7 @@ function PlanCard({ plan, billingCycle }: { plan: PublicPlan; billingCycle: Bill
   return (
     <article className={`relative flex min-h-[360px] flex-col justify-between rounded-md border bg-card p-5 ${plan.isFeatured ? 'border-2 border-primary bg-primary/5 shadow-lg' : 'border-border'}`}>
       {plan.isFeatured && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-xs bg-primary px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider text-foreground">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-xs bg-primary px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider text-primary-foreground">
           {plan.marketingBadge || 'Öne çıkan'}
         </span>
       )}
@@ -170,7 +170,7 @@ export function PublicPricingSection() {
                   onClick={() => setBillingCycle(option.id)}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                     active
-                      ? 'bg-primary text-foreground shadow-xs'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
@@ -179,7 +179,7 @@ export function PublicPricingSection() {
                     <span
                       className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-bold ${
                         active
-                          ? 'bg-white/20 text-white'
+                          ? 'bg-primary-foreground/15 text-primary-foreground'
                           : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                       }`}
                     >
@@ -201,7 +201,7 @@ export function PublicPricingSection() {
         {status === 'error' && <div role="alert" className="mx-auto max-w-xl rounded-md border border-destructive/30 bg-destructive/5 p-5 text-center text-sm text-muted-foreground">Paketler şu anda yüklenemedi. <button type="button" onClick={() => void loadPlans()} className="ml-1 font-semibold text-primary underline">Tekrar deneyin</button></div>}
         {status === 'ready' && layout === 'empty' && <div className="mx-auto max-w-xl rounded-md border border-border bg-card p-5 text-center text-sm text-muted-foreground">Yayınlanmış paket yakında burada görünecek.</div>}
         {status === 'ready' && layout === 'grid' && <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{plans.map((plan) => <PlanCard key={plan.id} plan={plan} billingCycle={billingCycle} />)}</div>}
-        {status === 'ready' && layout === 'carousel' && <div className="relative"><div ref={carouselRef} className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 pr-1 [scrollbar-width:thin]">{plans.map((plan) => <div key={plan.id} className="w-[min(86vw,320px)] shrink-0 snap-start"><PlanCard plan={plan} billingCycle={billingCycle} /></div>)}</div><div className="mt-3 flex justify-end gap-2"><Button type="button" variant="outline" size="icon" aria-label="Önceki paketler" onClick={() => scroll(-1)}><ChevronLeft size={16} /></Button><Button type="button" variant="outline" size="icon" aria-label="Sonraki paketler" onClick={() => scroll(1)}><ChevronRight size={16} /></Button></div></div>}
+        {status === 'ready' && layout === 'carousel' && <div className="relative"><div ref={carouselRef} tabIndex={0} role="region" aria-label="Abonelik paketleri listesi" className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 pr-1 [scrollbar-width:thin]">{plans.map((plan) => <div key={plan.id} className="w-[min(86vw,320px)] shrink-0 snap-start"><PlanCard plan={plan} billingCycle={billingCycle} /></div>)}</div><div className="mt-3 flex justify-end gap-2"><Button type="button" variant="outline" size="icon" aria-label="Önceki paketler" onClick={() => scroll(-1)}><ChevronLeft size={16} /></Button><Button type="button" variant="outline" size="icon" aria-label="Sonraki paketler" onClick={() => scroll(1)}><ChevronRight size={16} /></Button></div></div>}
       </div>
     </section>
   );

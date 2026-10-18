@@ -26,13 +26,13 @@ export function PublicBimGlossaryPage() {
       />
       <div className="mx-auto max-w-6xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-orange-400 hover:underline">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
             ← BIMMetraj Ana Sayfa
           </Link>
           <div className="flex items-center gap-3 text-xs">
-            <Link to="/pricing" className="text-foreground dark:text-muted-foreground hover:text-foreground">Paketler</Link>
-            <Link to="/smartcheck" className="text-foreground dark:text-muted-foreground hover:text-foreground">SmartCheck Demo</Link>
-            <Link to="/register" className="rounded bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-500">
+            <Link to="/pricing" className="text-muted-foreground hover:text-foreground">Paketler</Link>
+            <Link to="/smartcheck" className="text-muted-foreground hover:text-foreground">SmartCheck Demo</Link>
+            <Link to="/register" className="rounded bg-primary px-3 py-1.5 font-semibold text-primary-foreground hover:bg-primary/90">
               Ücretsiz Deneyin
             </Link>
           </div>

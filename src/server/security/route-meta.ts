@@ -10,13 +10,14 @@
 export interface RouteMeta {
   title: string;
   description: string;
+  noindex?: boolean;
 }
 
 const SITE = 'BIMMetraj';
 
 const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   '/': {
-    title: `${SITE} | openBIM (IFC) Tabanlı Metraj, RG 33331 e-PYS ve İhale Masası`,
+    title: `${SITE} | openBIM (IFC) Metraj, e-PYS & 5D İhale Masası`,
     description:
       'İnşaat ve teknik ofis ekipleri için IFC ve Excel tabanlı metraj, ÇŞB 2026 poz eşleştirme, RG 33331 e-PYS ön kontrolü ve SmartCheck denetimli teklif hazırlama. Sonuçlar ön kontrol niteliğindedir.',
   },
@@ -39,7 +40,7 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   },
   '/bim-sozlugu': {
     title: `BIM ve Mevzuat Sözlüğü | ${SITE}`,
-    description: 'IFC, QTO, LOD, COBie, ÇŞB poz ve RG 33331 e-PYS kavramlarının Türkçe açıklamaları.',
+    description: 'IFC, QTO, LOD, LOIN, CDE, COBie, ÇŞB poz, TS 500, Minha ve RG 33331 e-PYS kavramlarının Türkçe mühendislik açıklamaları.',
   },
   '/hesaplayicilar': {
     title: `Ücretsiz İnşaat Hesaplayıcıları | ${SITE}`,
@@ -65,6 +66,21 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
     title: `KVKK Aydınlatma ve Gizlilik Bildirimi | ${SITE}`,
     description: '6698 sayılı KVKK kapsamında kişisel veri işleme ve proje dosyalarında kişisel veri maskeleme politikası.',
   },
+  '/login': {
+    title: `Giriş Yap — Kurumsal İhale ve BIM Masası | ${SITE}`,
+    description: 'BIMMetraj kurumsal teklif, openBIM IFC metraj ve SmartCheck çalışma alanınıza giriş yapın.',
+    noindex: true,
+  },
+  '/register': {
+    title: `Kayıt Ol — 14 Günlük Ücretsiz Deneme | ${SITE}`,
+    description: 'BIMMetraj 14 günlük ücretsiz deneme hesabı oluşturun ve IFC/Excel tabanlı metraj ile teklif hazırlamaya başlayın.',
+    noindex: true,
+  },
+  '/forgot-password': {
+    title: `Şifre Sıfırlama | ${SITE}`,
+    description: 'BIMMetraj hesap şifrenizi e-posta doğrulamasıyla sıfırlayın.',
+    noindex: true,
+  },
 };
 
 /**
@@ -73,6 +89,41 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
  * Yalnız kodla desteklenen ve kaynağı belirtilen bilgiler yazılır.
  */
 const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
+  '/': [
+    'BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerinden ve Excel metraj cetvellerinden otomatik miktar çıkarımı (QTO), ÇŞB 2026 poz birim fiyat eşleştirme, RG 33331 e-PYS dijital ruhsat ön kontrolü ve SmartCheck 3×3 kalite denetimi sağlayan 5D ihale ve metraj platformudur.',
+    'Tüm mühendislik ve mevzuat kontrolleri insan onaylı ön kontrol niteliğindedir; imzalı uzman onayı gerektiren kararlarda resmî mevzuat metinleri ve yetkili mühendis görüşü esastır.',
+  ],
+  '/features': [
+    'openBIM IFC Metraj (QTO) Motoru: IfcBeam, IfcColumn, IfcSlab, IfcWall ve çok katmanlı IfcCovering elemanlarından BaseQuantities, IfcComplexProperty ve 3B geometri tabanlı net metraj (m³, m², süpürgelik mtül) ve bağımsız bölüm (IfcZone/IfcSpace) daire cetveli çıkarımı yapar. Kalıp ve donatı miktarları model tahmini (model_estimate) olarak raporlanır.',
+    'SmartCheck 3×3 ve Minha Denetimi: Şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm), TS 500 kiriş–döşeme kesişim düşümü ve ÇŞB 2026 (0,50 m²) / DIN 18350 (2,50 m²) / Özel Şartname boşluk minha kuralları ile kanıta dayalı metraj kontrolü sağlar.',
+    'RG 33331 e-PYS ve ISO 19650-2 Desteği: 5 Ağustos 2026 tarihli Resmî Gazete Yönetmeliği EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) / Tablo 9.2 (Diğer Disiplinler 16 satır) kuralları ile TS EN ISO 19650-2 dosya adlandırma ve EN 17412-1 (LOIN) eleman bütünlük ön kontrolünü çalıştırır.',
+  ],
+  '/about': [
+    'BIMMetraj 4 adımlı kanıta dayalı iş akışı: 1) IFC 2x3/4/4.3 modelinizi, 2B PDF paftanızı veya Excel metraj cetvelinizi yükleyin. 2) RG 33331 e-PYS EK-9, ISO 19650-2 ve PDF/A ön kontrol bulgularını inceleyin. 3) SmartCheck 3×3, TS 500 kesişim ve Minha düşüm kurallarıyla net metrajları doğrulayın. 4) ÇŞB 2026 poz kataloğu veya firma fiyat hafızanızla eşleştirip kurumsal teklif cetvelini oluşturun.',
+    'Modelden doğrudan kanıtlanan beton, kaplama ve süpürgelik miktarları ile mühendis onayı gerektiren kalıp ve donatı tahminleri birbirinden ayrı gösterilir.',
+  ],
+  '/smartcheck': [
+    'SmartCheck Canlı Demo; örnek IFC/metraj verileri üzerinde ≤%3 QTO sapma politikası, TS 500 betonarme paspayı kontrolü, ÇŞB 2026 / DIN 18350 boşluk minha düşümü ve RG 33331 e-PYS EK-9 ön kontrol kurallarını tarayıcıda deneyimlemenizi sağlar.',
+    'Bu sayfadaki veriler tanıtım amaçlı örnek senaryolardır; gerçek proje dosyalarınızı test etmek için ücretsiz deneme hesabı oluşturabilir veya pilot başvurusunda bulunabilirsiniz.',
+  ],
+  '/bim-sozlugu': [
+    'EIR (Bilgi Gereksinimleri — Exchange Information Requirements): İdarenin veya işverenin ihale/sözleşme aşamasında müteahhitten talep ettiği BIM model standartlarını, teslim formatlarını (IFC 4.3, COBie) ve veri derinliğini tanımlayan teknik şartnamedir (TS EN ISO 19650-2).',
+    'BEP (BIM Uygulama Planı — BIM Execution Plan): Yüklenici teknik ofisinin işveren EIR şartnamesine cevaben hazırladığı; modelleme yazılımlarını, koordinat sistemini, çakışma testi periyotlarını ve disiplin sorumluluklarını belirleyen uygulama planıdır.',
+    'CDE (Ortak Veri Ortamı — Common Data Environment): TS EN ISO 19650 standardına göre tüm proje paydaşlarının model, pafta ve metraj revizyonlarını WIP (Çalışılıyor), SHARED (Paylaşıldı), PUBLISHED (Yayınlandı) ve ARCHIVED (Arşiv) durum geçişleriyle yönettiği tekil doğruluk kaynağıdır.',
+    'IFC ve IFC 4.3 (Industry Foundation Classes — ISO 16739-1:2024): buildingSMART tarafından geliştirilen, farklı BIM yazılımları (Revit, Allplan, Archicad, Tekla) arasında geometri, malzeme ve metraj (QTO) verilerinin kayıpsız aktarılmasını sağlayan açık veri standardıdır. IFC 4.3 özellikle üstyapı ve altyapı projelerinde güncel açık BIM şemasıdır.',
+    'QTO (Quantity Take-Off — Otomatik Metraj Çıkarımı): IFC modelindeki yapı elemanlarının (IfcWall, IfcSlab, IfcColumn, IfcBeam, IfcCovering) hacim (NetVolume), alan (NetArea) ve uzunluk özelliklerinin Qto_*BaseQuantities ve 3B geometriden otomatik okunarak metraj cetveline dönüştürülmesidir.',
+    'LOD ve LOIN (Level of Development / Level of Information Need — EN 17412-1): Bir BIM elemanının geometrik detay (LOD 100–500) ve alfa-sayısal bilgi gereksinimi (LOIN) seviyesidir. Hakediş ve yaklaşık maliyet için en az LOD 300–350 ve LOIN aşama doğrulaması gerekir.',
+    'COBie (Construction Operations Building Information Exchange): Yapım aşamasında toplanan ekipman, mahal (IfcSpace), garanti ve bakım verilerinin tesis yönetimine (FM) devredilmesini sağlayan standart veri yapısıdır.',
+    'ÇŞB Pozu (Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Birim Fiyatları): Kamu ve özel sektör inşaat ihalelerinde imalat kalemlerini tanımlayan standart poz numaraları (örn. 15.150.1005 C25/30 beton, 15.180.1003 nervürlü çelik), ölçü kuralları ve resmî birim fiyat tarifleridir.',
+    'Minha (Boşluk ve Kesişim Düşümü): Duvar, sıva, boya ve kaplama metrajlarında kapı/pencere boşluklarının ve yapısal kesişimlerin brüt alandan düşülmesi işlemidir. ÇŞB 2026 Genel Teknik Şartnamesi (0,50 m² eşiği), DIN 18350 VOB/C (2,50 m² eşiği) veya özel şartname kurallarına göre uygulanır.',
+    'TS 500 (Betonarme Yapıların Tasarım ve Yapım Kuralları): Betonarme elemanların minimum paspayı (örtü betonu), malzeme dayanımı ve kiriş–döşeme–kolon birleşim bölgelerinde mükerrer beton hacminin düşülmesi esaslarını belirleyen Türk Standardıdır.',
+    'RG 33331 e-PYS ve EK-9 Kontrol Formu: 5 Ağustos 2026 tarihli Resmî Gazete (Sayı: 33331) ile yayımlanan Elektronik Proje Yönetim Sistemi kapsamında yapı ruhsatı eki BIM (IFC) modellerinin ve PDF/A paftalarının sağlaması gereken EK-1..EK-7 ve EK-9 (Tablo 9.1 Mimari 21 satır, Tablo 9.2 Diğer Disiplinler 16 satır) teknik doğrulama kriterleridir.',
+    '4734 KİK m.38 ve Tebliğ m.45.1.1 Aşırı Düşük Teklif Sınır Değeri: Kamu yapım ihalelerinde yaklaşık maliyet (YM) ve geçerli tekliflerden Tort1, standart sapma (σ), Tort2, C, K ve N katsayılarıyla sınır değer (SD) hesaplanması ve toplam teklifin %80\'ini oluşturan açıklama istenecek sıralı iş kalemlerinin belirlenmesi sürecidir.',
+  ],
+  '/hesaplayicilar': [
+    'BIMMetraj ücretsiz inşaat hesaplayıcıları, kayıt gerektirmeden ve uydurma varsayılan değer dayatmadan doğrudan tarayıcınızda çalışır: 1) 4734 KİK m.38 ve Kamu İhale Genel Tebliği m.45.1.1 Yapım İşleri Aşırı Düşük Teklif Sınır Değeri (SD) Hesaplayıcı, 2) 4735 Sayılı Kanun m.8 Yapım İşleri Fiyat Farkı F = An × B × (Pn − 1) Hesaplayıcı.',
+    'Tüm hesaplamalar ön kontrol ve bilgilendirme amaçlıdır; bağımsız uzman onayı henüz alınmamıştır. İhale ve hakediş kararlarında resmî mevzuat metinleri ve ilgili idare esastır.',
+  ],
   '/hesaplayicilar/kik-asiri-dusuk-teklif': [
     'Yapım işlerinde aşırı düşük teklif sınır değeri, 4734 sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1.1 uyarınca şu adımlarla hesaplanır:',
     '1) Yaklaşık maliyetin (YM) %120\'sinin üzerindeki ve %40\'ının altındaki teklifler hesaba katılmaz. 2) Kalan geçerli tekliflerin aritmetik ortalaması (Tort1) ve standart sapması (σ) bulunur. 3) Tort1 − σ ile Tort1 + σ aralığındaki tekliflerin ortalaması Tort2 olur. 4) C = Tort2 / YM. 5) K katsayısı: C < 0,60 için K = C; 0,60 ≤ C ≤ 1,00 için K = (3,2C − C² − 0,6) / (C + 1); C > 1,00 için K = (C² − 0,8C + 1,4) / (C + 1). 6) Sınır değer SD = K × Tort2 / (C × N). Üstyapı, elektrik, mekanik tesisat ve elektronik işlerinde N = 1,00; diğer yapım işlerinde N = 1,20 (idare 1,00–1,20 arasında farklı bir değer belirleyebilir). 7) Hesaplanan değer YM\'nin %40\'ından küçükse SD = YM × %40 alınır.',
@@ -85,10 +136,19 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
     'Bu hesaplayıcı bilgilendirme amaçlıdır; sözleşmenizdeki katsayı ve endeks değerlerini siz girersiniz.',
   ],
   '/pricing': [
-    '14 günlük ücretsiz deneme ve beş kademeli aylık paket. Havale/EFT ile 6, 12 ve 24 aylık taahhütlerde sırasıyla %10, %20 ve %30 iskonto uygulanır. Kartla ödeme henüz yayında değildir.',
+    '14 günlük ücretsiz deneme (0 TL/ay) ve beş kademeli aylık paket kataloğu: e-PYS & BIM Standart Denetçi (1.250 TL/ay), Teklif & Şantiye (2.950 TL/ay), 5D BIM & SmartCheck (5.450 TL/ay) ve Kurumsal Taahhüt & e-PYS (8.900 TL/ay).',
+    'Havale/EFT ile 6, 12 ve 24 aylık taahhütlerde sırasıyla %10, %20 ve %30 iskonto uygulanır. Kredi kartı ile çevrimiçi tahsilat henüz yayında değildir; tüm ödemeler kurumsal banka havalesi/EFT ve fatura onayı ile yürütülür.',
   ],
-  '/terms': ['BIMMetraj sonuçları ön kontrol niteliğindedir; mühendislik, hukuk ve vergi kararlarında resmî metinler ve yetkili uzman görüşü esastır.'],
-  '/privacy': ['Proje dosyalarındaki kişisel veriler (TC kimlik, VKN, telefon, e-posta) ön kontrol çıktılarında maskelenir. 6698 sayılı KVKK kapsamındaki haklarınız için info@bimmetraj.com.'],
+  '/pilot': [
+    'Kurumsal teknik ofisler, mimarlık büroları ve yüklenici firmalar gerçek IFC modelleri, PDF paftaları ve Excel keşif listeleriyle BIMMetraj pilot programına başvurabilir.',
+    'Pilot çalışmada QTO metraj sapması, Revit/Allplan IFC dışa aktarım ayarları, ÇŞB 2026 poz eşleştirmesi ve RG 33331 e-PYS EK-9 ön kontrol akışı kendi proje verileriniz üzerinde birlikte doğrulanır.',
+  ],
+  '/terms': [
+    'BIMMetraj sonuçları ön kontrol niteliğindedir; mühendislik, mimarlık, ihale hukuku ve vergi kararlarında resmî mevzuat metinleri ve yetkili uzman görüşü esastır. Kalıp ve donatı tahminleri mühendis onayı olmadan hakediş veya teklif taahhüdü yerine geçmez.',
+  ],
+  '/privacy': [
+    'Proje dosyalarındaki kişisel veriler (TC kimlik, VKN, telefon, e-posta) ön kontrol çıktılarında maskelenir. 6698 sayılı KVKK kapsamındaki başvuru ve haklarınız için info@bimmetraj.com adresinden iletişime geçebilirsiniz.',
+  ],
 };
 
 const NAV_LINKS: readonly (readonly [string, string])[] = [
@@ -141,8 +201,14 @@ export interface InjectOptions {
 export function injectRouteMeta(html: string, options: InjectOptions): string {
   const { pathname, origin, notFound = false, ogImagePath = null, capabilityLines = [] } = options;
   let out = html;
+  const normalizedPath = normalize(pathname);
   const meta = getRouteMeta(pathname);
-  const canonical = `${origin}${normalize(pathname) === '/' ? '/' : normalize(pathname)}`;
+  const canonical = `${origin}${normalizedPath === '/' ? '/' : normalizedPath}`;
+
+  // FAQPage JSON-LD yalnız ana sayfada kalmalı (P2 SEO: diğer rotalarda tekrar etmemeli)
+  if (normalizedPath !== '/') {
+    out = out.replace(/\s*<script id="faq-jsonld" type="application\/ld\+json">[\s\S]*?<\/script>/, '');
+  }
 
   if (meta && !notFound) {
     out = out.replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(meta.title)}</title>`);
@@ -163,8 +229,12 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
     );
   }
 
-  if (meta && !notFound && !out.includes('<noscript><main>') && out.includes('<div id="root"></div>')) {
+  if (meta && !notFound && !meta.noindex && !out.includes('<noscript><main>') && out.includes('<div id="root"></div>')) {
     out = out.replace('<div id="root"></div>', `<div id="root"></div>\n    ${renderNoscript(pathname, origin, meta, capabilityLines)}`);
+  }
+
+  if (meta?.noindex && !notFound && out.includes('</head>') && !/name="robots"/.test(out)) {
+    out = out.replace('</head>', '    <meta name="robots" content="noindex, follow" />\n  </head>');
   }
 
   // Bilinmeyen rota ana sayfaya canonical vermemeli (kopya içerik sinyali); noindex ile birlikte kaldırılır.

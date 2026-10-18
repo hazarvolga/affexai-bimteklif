@@ -1,0 +1,24 @@
+{
+  "name": "BIMMetraj — openBIM (IFC) Metraj, e-PYS & 5D İhale Masası",
+  "short_name": "BIMMetraj",
+  "description": "İnşaat ve teknik ofis ekipleri için IFC ve Excel tabanlı metraj, ÇŞB 2026 poz eşleştirme, RG 33331 e-PYS ön kontrolü ve SmartCheck denetimli teklif platformu.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f1e9",
+  "theme_color": "#f3f1e9",
+  "lang": "tr-TR",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

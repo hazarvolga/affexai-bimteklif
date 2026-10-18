@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-18.28",
+  version: "BIM-CALC-2026-10-18.29",
   updatedOn: "18 Ekim 2026",
   implementationBaseline: "57d288d5d43e49fc274b78829eaa704b5e5b824d",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi (Areas and Volumes vs. 2nd Level Space Boundaries, NetSideArea minha doğrulaması, IFCCARTESIANPOINT IEEE-754 kayan nokta ayrımı), 27 kalemlik 6-villa piyasa maliyet referansı, kurumsal terminoloji kapısı ve Pafta Tasarım Sistemi tam token/WCAG 2.2 AA erişilebilirlik denetimi tamamlandı · bağımsız uzman imzasına hazır",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, PreBimFeasibilityPanel arayüzüne bağlanmış 27 kalemlik 6-villa piyasa maliyet referansı, Planlı Alanlar İmar Yön. m.5/8 & m.22 istisna açıklaması ve gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı tamamlandı · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -885,6 +885,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "6-villa maliyet referans sabiti ve imar uyarı mesajı şahıs ismi içeriyordu.",
         after: "Referans sabiti 'VILLA_MARKET_COST_BENCHMARK_2026' olarak güncellendi ve imar uyarısı doğrudan Planlı Alanlar İmar Yönetmeliği m.5/8 dayanağına bağlandı.",
         basis: "Planlı Alanlar İmar Yönetmeliği m.5/8 & kurumsal mühendislik otorite standardı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 35",
+    version: "BIM-CALC-2026-10-18.29",
+    date: "18 Ekim 2026",
+    commit: "HEAD",
+    trigger: "Üretim Hazırlığı Raporu (PRODUCTION_READINESS_RAPORU_2026-10-18) P0/P1/P2 Kapanışı, Gerçek Tarayıcı axe-core Kapısı, 6-Villa Maliyet Referans Arayüzü & İmar m.22 İstisna Netleştirmesi",
+    beforeSummary:
+      "VILLA_MARKET_COST_BENCHMARK_2026 sabiti yalnız kodda tanımlıydı ve PreBimFeasibilityPanel arayüzünde gösterilmiyordu; %30 emsal harici uyarısında Planlı Alanlar İmar Yönetmeliği m.22 tam muafiyet istisnaları (zorunlu otopark, sığınak, yangın merdiveni, asansör boşluğu) belirtilmiyordu; ayrıca erişilebilirlik testi yalnızca jsdom üzerinde çalıştığından gerçek tarayıcı renk kontrastını ve koyu mod (:root[data-theme='light'] özgüllük çakışmasını) denetlemiyordu.",
+    afterSummary:
+      "VILLA_MARKET_COST_BENCHMARK_2026 (27 kalem, 4.135.752,77 TL) PreBimFeasibilityPanel içine gizli varsayılan dayatmadan bilgi amaçlı açılır referans çekmecesi olarak bağlandı; computeParcel içindeki %30 emsal harici uyarısına Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve Madde 22 tam muafiyet istisnaları ile belediye plan notu teyidi eklendi. Gerçek Chromium (puppeteer + axe-core) ile 8 genel rotayı hem Açık Pafta hem Gece Paftası modunda denetleyen scripts/e2e-a11y-smoke.ts (16/16 kontrol, 0 ihlal) CI hattına eklendi; /bim-sozlugu noscript GEO terimleri, PWA manifest, security.txt, /api/* Cache-Control: no-store, hesap bazlı giriş yavaşlatma ve 105 kB ana paket ayrımı tamamlandı.",
+    affectedModules: ["on-teklif-fizibilite", "kik-adt", "eskalasyon"],
+    moduleDetails: {
+      "on-teklif-fizibilite": {
+        before: "VILLA_MARKET_COST_BENCHMARK_2026 arayüzde görünmüyordu ve %30 emsal harici uyarısı yönetmelikteki m.22 tam muafiyet istisnalarını (zorunlu otopark, sığınak vb.) açıklamıyordu.",
+        after: "PreBimFeasibilityPanel içine 27 kalemlik saha referans çekmecesi (otomatik uygulanmaz, bilgi amaçlı) eklendi; %30 emsal harici uyarısına Planlı Alanlar İmar Yön. m.5/8 ve m.22 istisnaları ile belediye plan notu teyit uyarısı işlendi.",
+        basis: "Planlı Alanlar İmar Yönetmeliği m.5/8 & m.22 ve 6-Villa saha gerçekleşme dökümü",
+      },
+      "kik-adt": {
+        before: "Halka açık KİK aşırı düşük teklif hesaplayıcı rotası yalnızca jsdom birim testiyle denetleniyordu.",
+        after: "Gerçek Chromium + axe-core E2E denetimi (scripts/e2e-a11y-smoke.ts) ile hem açık hem koyu modda 0 kontrast/ARIA ihlali doğrulandı.",
+        basis: "WCAG 2.2 AA & Kamu İhale Genel Tebliği m.45.1.1",
+      },
+      eskalasyon: {
+        before: "Fiyat farkı ve sözlük sayfalarının sunucu tarafı <noscript> GEO içerikleri sınırlıydı.",
+        after: "route-meta.ts içinde /bim-sozlugu ve hesaplayıcı sayfalarının ham HTML <noscript> içerikleri zenginleştirildi ve FAQPage JSON-LD yalnız ana sayfayla sınırlandı.",
+        basis: "4735 Sayılı Kanun m.8 & GEO/SEO Üretim Hazırlığı Raporu P1-4 / P2",
       },
     },
   },

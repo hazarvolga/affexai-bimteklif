@@ -5,6 +5,7 @@ import {
   computeFeasibility,
   exportFeasibilityCsv,
   parseParcelCsv,
+  VILLA_MARKET_COST_BENCHMARK_2026,
   type ParcelInput,
   type ShareBase,
 } from "@/lib/pre-bim-feasibility";
@@ -233,6 +234,24 @@ export const PreBimFeasibilityPanel: React.FC = () => {
               <Field label="Elektrik" value={split.elk} onChange={(v) => setSplit((s) => ({ ...s, elk: v }))} />
               <Field label="Peyzaj+altyapı" value={split.pey} onChange={(v) => setSplit((s) => ({ ...s, pey: v }))} />
             </div>
+            <details className="mt-3 border border-border bg-card p-3 text-xs">
+              <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-wider text-primary select-none">
+                Saha Referansı: {VILLA_MARKET_COST_BENCHMARK_2026.source} ({VILLA_MARKET_COST_BENCHMARK_2026.items.length} Kalem — Bilgi Amaçlı, Otomatik Uygulanmaz)
+              </summary>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Aşağıdaki dağılım gerçek bir 6-villa projesinin saha gerçekleşme dökümüdür (Toplam örnek bütçe:{" "}
+                <span className="font-mono text-foreground">{fmtTry(VILLA_MARKET_COST_BENCHMARK_2026.sampleTotalCostTry)}</span>
+                ). Hesaba gizli varsayılan olarak uygulanmaz; kendi projenizin yüzdelerini yukarıdaki alanlara kendiniz girersiniz.
+              </p>
+              <div className="mt-2 max-h-48 overflow-y-auto border-t border-border pt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                {VILLA_MARKET_COST_BENCHMARK_2026.items.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-2 text-[11px] border-b border-border/50 py-0.5">
+                    <span className="truncate text-foreground">{item.name}</span>
+                    <span className="font-mono tabular-nums text-muted-foreground shrink-0">%{fmt(item.percent)}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         </div>
 

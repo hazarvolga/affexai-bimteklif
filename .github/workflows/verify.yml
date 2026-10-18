@@ -79,6 +79,7 @@ jobs:
       - run: pnpm exec tsx scripts/gap-invitation-ui-smoke.ts
       - run: pnpm exec tsx scripts/e2e-core-flow-smoke.ts
       - run: pnpm exec tsx scripts/gap-crm-billing-ui-smoke.ts
+      - run: pnpm exec tsx scripts/e2e-a11y-smoke.ts
       - run: node scripts/dependency-audit-policy.mjs
       # Both targets share the same local Docker build cache: compile the source once.
       - name: Build app and IFC worker images

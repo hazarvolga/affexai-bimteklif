@@ -317,12 +317,12 @@ export default function BimGlossary() {
   return (
     <div className="space-y-12">
       {/* HEADER SECTION */}
-      <div className="bg-card text-foreground rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
-        <div className="absolute right-0 bottom-0 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl"></div>
+      <div className="bg-card text-foreground rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl border border-border">
+        <div className="absolute right-0 bottom-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="max-w-3xl space-y-4">
-          <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-widest block">ETKİLEŞİMLİ SÖZLÜK</span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-none">BIM Terimleri &amp; Kısaltmalar Sözlüğü</h1>
-          <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">
+          <span className="text-[11px] font-extrabold text-primary uppercase tracking-widest block">ETKİLEŞİMLİ SÖZLÜK</span>
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-foreground">BIM Terimleri &amp; Kısaltmalar Sözlüğü</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Dijital inşaat ekosistemindeki en çok kullanılan akronimler, teknik kavramlar ve ISO 19650 terminolojisi. Kelimelerin üzerine tıklayarak detaylı tanımlara, İngilizce karşılıklarına ve proje içi önem seviyelerine erişebilirsiniz.
           </p>
         </div>
@@ -332,17 +332,18 @@ export default function BimGlossary() {
         
         {/* GLOSSARY LIST PANEL */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white border border-border rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
             
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
+                aria-label="BIM sözlüğünde terim veya tanım ara"
                 placeholder="Terim veya tanım ara... (örn: EIR, COBie, Çakışma...)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-orange-500 font-medium text-foreground"
+                className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary font-medium text-foreground placeholder:text-muted-foreground"
                 id="search-glossary"
               />
             </div>
@@ -355,8 +356,8 @@ export default function BimGlossary() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     selectedCategory === category
-                      ? 'bg-orange-600 text-white shadow-sm'
-                      : 'bg-card text-muted-foreground hover:bg-muted'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                   id={`filter-glossary-cat-${category}`}
                 >
@@ -373,10 +374,10 @@ export default function BimGlossary() {
               return (
                 <div
                   key={item.term}
-                  className={`border rounded-2xl transition-all duration-300 bg-white ${
+                  className={`border rounded-2xl transition-all duration-300 bg-card ${
                     isExpanded 
-                      ? 'border-orange-500 shadow-md ring-1 ring-orange-100' 
-                      : 'border-border hover:border-border shadow-sm'
+                      ? 'border-primary shadow-md ring-1 ring-primary/30' 
+                      : 'border-border hover:border-primary/40 shadow-sm'
                   }`}
                   id={`term-wrapper-${item.term}`}
                 >
@@ -396,22 +397,22 @@ export default function BimGlossary() {
                         )}
                       </div>
                       <div className="flex gap-2">
-                        <span className="px-2.5 py-0.5 bg-card text-muted-foreground rounded text-[10px] font-black uppercase tracking-wider">
+                        <span className="px-2.5 py-0.5 bg-background border border-border text-muted-foreground rounded text-[10px] font-black uppercase tracking-wider">
                           {item.category}
                         </span>
                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
                           item.importance === 'Çok Yüksek'
-                            ? 'bg-red-50 text-red-600 border border-red-100'
+                            ? 'bg-destructive/10 text-destructive border border-destructive/30'
                             : item.importance === 'Yüksek'
-                            ? 'bg-orange-50 text-orange-600 border border-orange-100'
-                            : 'bg-card text-muted-foreground'
+                            ? 'bg-primary/10 text-primary border border-primary/30'
+                            : 'bg-background border border-border text-muted-foreground'
                         }`}>
                           ÖNEM: {item.importance}
                         </span>
                       </div>
                     </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-orange-600 shrink-0" />
+                      <ChevronUp className="w-5 h-5 text-primary shrink-0" />
                     ) : (
                       <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
                     )}
@@ -438,7 +439,7 @@ export default function BimGlossary() {
                           {/* Definition */}
                           <div>
                             <span className="font-extrabold text-muted-foreground uppercase text-[10px] tracking-widest block mb-1">KISA TANIMI</span>
-                            <p className="text-foreground bg-card p-3.5 rounded-xl border border-border font-medium">
+                            <p className="text-foreground bg-background p-3.5 rounded-xl border border-border font-medium">
                               {item.definition}
                             </p>
                           </div>
@@ -466,7 +467,7 @@ export default function BimGlossary() {
             })}
 
             {filteredTerms.length === 0 && (
-              <div className="text-center py-12 bg-white border border-border rounded-2xl text-muted-foreground">
+              <div className="text-center py-12 bg-card border border-border rounded-2xl text-muted-foreground">
                 Arama kriterlerine uygun terim bulunamadı.
               </div>
             )}
@@ -474,9 +475,9 @@ export default function BimGlossary() {
         </div>
 
         {/* INTERACTIVE QUIZ SIDEBAR */}
-        <div className="lg:col-span-5 bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 sticky top-24" id="quiz-panel">
+        <div className="lg:col-span-5 bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 sticky top-24" id="quiz-panel">
           <div className="flex items-center gap-2 pb-4 border-b border-border">
-            <Trophy className="w-5 h-5 text-orange-600" />
+            <Trophy className="w-5 h-5 text-primary" />
             <h3 className="text-lg font-black text-foreground tracking-tight">
               BIM Terimleri Bilgi Testi
             </h3>
@@ -484,7 +485,7 @@ export default function BimGlossary() {
 
           {!quizStarted ? (
             <div className="space-y-4 text-center py-4">
-              <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto text-orange-600">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
                 <HelpCircle className="w-8 h-8" />
               </div>
               <div className="space-y-1">
@@ -495,19 +496,19 @@ export default function BimGlossary() {
               </div>
               <button
                 onClick={handleStartQuiz}
-                className="w-full bg-card hover:bg-orange-600 text-foreground py-3 px-4 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-sm"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-4 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-sm"
               >
                 TESTİ BAŞLAT
               </button>
             </div>
           ) : quizCompleted ? (
             <div className="space-y-6 text-center py-4 animate-in fade-in">
-              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+              <div className="w-16 h-16 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto text-emerald-400">
                 <Trophy className="w-8 h-8" />
               </div>
               <div className="space-y-2">
                 <h4 className="font-extrabold text-base text-foreground">Test Tamamlandı!</h4>
-                <p className="text-sm font-bold text-foreground">Skorunuz: <span className="text-orange-600 text-lg">{score} / {quizQuestions.length}</span></p>
+                <p className="text-sm font-bold text-foreground">Skorunuz: <span className="text-primary text-lg">{score} / {quizQuestions.length}</span></p>
                 <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
                   {score === quizQuestions.length 
                     ? "Tebrikler! Kusursuz bir BIM uzmanısınız. Tüm standartlara hakimsiniz!" 
@@ -518,9 +519,9 @@ export default function BimGlossary() {
               </div>
               <button
                 onClick={handleStartQuiz}
-                className="w-full border border-border hover:bg-card text-foreground py-3 px-4 rounded-xl text-xs font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2"
+                className="w-full border border-border hover:bg-background text-foreground py-3 px-4 rounded-xl text-xs font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2"
               >
-                <RefreshCw className="w-4 h-4 text-orange-600" />
+                <RefreshCw className="w-4 h-4 text-primary" />
                 YENİDEN BAŞLAT
               </button>
             </div>
@@ -529,13 +530,13 @@ export default function BimGlossary() {
               {/* Progress */}
               <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground">
                 <span>SORU {currentQuestionIndex + 1} / {quizQuestions.length}</span>
-                <span className="mono bg-card text-foreground px-2 py-0.5 rounded">SKOR: {score}</span>
+                <span className="mono bg-background border border-border text-foreground px-2 py-0.5 rounded">SKOR: {score}</span>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-card h-1 rounded-full overflow-hidden">
+              <div className="w-full bg-background h-1 rounded-full overflow-hidden">
                 <div 
-                  className="bg-orange-500 h-full transition-all duration-300"
+                  className="bg-primary h-full transition-all duration-300"
                   style={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
                 ></div>
               </div>
@@ -552,15 +553,15 @@ export default function BimGlossary() {
                 {quizQuestions[currentQuestionIndex].options.map((opt) => {
                   const isSelected = selectedAnswer === opt;
                   const isCorrect = opt === quizQuestions[currentQuestionIndex].answer;
-                  let optStyle = 'border-border hover:border-orange-200 bg-white';
+                  let optStyle = 'border-border hover:border-primary/40 bg-background text-foreground';
                   
                   if (selectedAnswer !== null) {
                     if (isCorrect) {
-                      optStyle = 'border-emerald-500 bg-emerald-50/50 text-emerald-900 ring-1 ring-emerald-500';
+                      optStyle = 'border-emerald-500 bg-emerald-500/15 text-foreground ring-1 ring-emerald-500';
                     } else if (isSelected) {
-                      optStyle = 'border-red-500 bg-red-50/50 text-red-900 ring-1 ring-red-500';
+                      optStyle = 'border-destructive bg-destructive/15 text-foreground ring-1 ring-destructive';
                     } else {
-                      optStyle = 'border-border bg-card text-muted-foreground';
+                      optStyle = 'border-border bg-background text-muted-foreground';
                     }
                   }
 
@@ -574,10 +575,10 @@ export default function BimGlossary() {
                     >
                       <span>{opt}</span>
                       {selectedAnswer !== null && isCorrect && (
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                       )}
                       {selectedAnswer !== null && isSelected && !isCorrect && (
-                        <X className="w-4 h-4 text-red-600 shrink-0" />
+                        <X className="w-4 h-4 text-destructive shrink-0" />
                       )}
                     </button>
                   );
@@ -586,8 +587,8 @@ export default function BimGlossary() {
 
               {/* Tip or Feedback */}
               {selectedAnswer !== null && (
-                <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-xl space-y-1.5 animate-in slide-in-from-bottom-2 duration-200">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-700 uppercase tracking-wider">
+                <div className="bg-primary/10 border border-primary/30 p-4 rounded-xl space-y-1.5 animate-in slide-in-from-bottom-2 duration-200">
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5" />
                     AÇIKLAYICI TEKNİK NOT
                   </div>
@@ -597,7 +598,7 @@ export default function BimGlossary() {
                   
                   <button
                     onClick={handleNextQuestion}
-                    className="w-full bg-card hover:bg-orange-600 text-foreground py-2.5 px-3 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all flex items-center justify-center gap-1.5 mt-3"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 px-3 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all flex items-center justify-center gap-1.5 mt-3"
                   >
                     <span>{currentQuestionIndex === quizQuestions.length - 1 ? 'SONUÇLARI GÖR' : 'SONRAKİ SORU'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />

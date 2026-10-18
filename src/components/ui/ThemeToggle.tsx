@@ -50,7 +50,7 @@ export function ThemeToggle({
       type="button"
       onClick={() => applyPaftaTheme(isDark ? 'light' : 'dark')}
       title={isDark ? 'Açık Pafta Moduna Geç (#f3f1e9)' : 'Gece Paftası Moduna Geç (#1e2623)'}
-      aria-label={isDark ? 'Açık Pafta Moduna Geç' : 'Gece Paftası Moduna Geç'}
+      aria-label={showLabel ? undefined : (isDark ? 'Açık Pafta Moduna Geç' : 'Gece Paftası Moduna Geç')}
       className={cn(
         'inline-flex items-center gap-2 border border-border bg-background px-3 py-2 font-mono text-[10px] font-medium uppercase tracking-wider text-foreground transition-colors hover:border-primary hover:text-primary',
         className,

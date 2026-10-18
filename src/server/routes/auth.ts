@@ -332,6 +332,11 @@ export function registerAuthRoutes(app: Express) {
       const rate = await guardedRateLimit(res, `login:${clientAddress(req)}:${email}`, 10, 15 * 60 * 1000);
       if (!rate) return;
       if (!rate.allowed) return res.set('Retry-After', String(rate.retryAfterSeconds)).status(429).json({ error: "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin." });
+      if (email) {
+        const accountRate = await guardedRateLimit(res, `login-account:${email}`, 20, 15 * 60 * 1000);
+        if (!accountRate) return;
+        if (!accountRate.allowed) return res.set('Retry-After', String(accountRate.retryAfterSeconds)).status(429).json({ error: "Bu hesap için çok fazla giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin." });
+      }
       const [user] = await db.select().from(users).where(eq(users.email, email));
       if (!user || !(await AuthService.comparePassword(password, user.passwordHash || ""))) {
         return res.status(401).json({ error: "Invalid credentials" });

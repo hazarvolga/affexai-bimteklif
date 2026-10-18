@@ -15,8 +15,7 @@
    Referans: DESIGN.md ("Mimarlık Ofisinin Açık Proje Paftası")
    ========================================================================== */
 
-:root,
-:root[data-theme="light"] {
+:root {
   /* Çekirdek Pafta Tokenları — Açık Mod (Sıcak Pafta Kâğıdı - Yüksek Kontrast) */
   --paper: #f3f1e9;
   --surface: #e8e5db;
@@ -78,6 +77,7 @@
 }
 
 :root[data-theme="dark"],
+:root.dark,
 .dark {
   /* Çekirdek Pafta Tokenları — Koyu Mod (Koyu Antrasit Gece Paftası - Yüksek Kontrast) */
   --paper: #141517;

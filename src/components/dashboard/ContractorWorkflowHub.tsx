@@ -136,7 +136,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
               </Button>
             </Link>
             <Link to="/app/smartcheck">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-foreground gap-1.5 text-xs font-semibold shadow-xs">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-semibold shadow-xs">
                 <Box size={14} />
                 SmartCheck Dosya Yükle
               </Button>
@@ -190,7 +190,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
 
             <div className="pt-3 border-t border-border flex flex-col gap-2">
               <Link to="/app/smartcheck#pre-bim-feasibility" className="w-full">
-                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-foreground text-xs font-semibold gap-1.5 shadow-xs">
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold gap-1.5 shadow-xs">
                   <span>Arsa Fizibilitesini Aç</span>
                   <ArrowRight size={13} />
                 </Button>
@@ -248,7 +248,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
 
             <div className="pt-3 border-t border-border flex flex-col gap-2">
               <Link to="/app/smartcheck" className="w-full">
-                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-foreground text-xs font-semibold gap-1.5 shadow-xs">
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold gap-1.5 shadow-xs">
                   <span>3D IFC Dosyası Yükle</span>
                   <ArrowRight size={13} />
                 </Button>
@@ -306,7 +306,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
 
             <div className="pt-3 border-t border-border flex flex-col gap-2">
               <Link to="/app/smartcheck" className="w-full">
-                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-foreground text-xs font-semibold gap-1.5 shadow-xs">
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold gap-1.5 shadow-xs">
                   <span>Hakediş Denetim Masasını Aç</span>
                   <ArrowRight size={13} />
                 </Button>

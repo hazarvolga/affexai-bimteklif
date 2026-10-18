@@ -270,3 +270,25 @@ Canlı axe ve Core Web Vitals ölçümü için kullanılan betik (puppeteer + ax
 - Gerçek kullanıcıyla kullanılabilirlik testi ve ekran okuyucuyla manuel test.
 - Harici sızma testi ve yük testi.
 - Hukuki metinlerin (KVKK, mesafeli satış) hukukçu onayı.
+
+---
+
+## 7. Kapanış Durumu (Rev. 35 · `BIM-CALC-2026-10-18.29` — 18 Ekim 2026)
+
+Aşağıdaki tablo, bu rapordaki tüm P0, P1 ve P2 bulgularının **Rev. 35 (`BIM-CALC-2026-10-18.29`)** itibarıyla kapanış durumunu ve doğrulama kanıtlarını özetler:
+
+| Kod | Bulgu | Durum | Çözüm ve Doğrulama Kanıtı |
+| --- | --- | --- | --- |
+| **P0-1** | 16 yerde `bg-primary … text-foreground` kontrast hatası (2,95:1) | **KAPATILDI (Kod)** | 7 dosyadaki 16 kullanımın tamamı `text-primary-foreground` olarak düzeltildi (`grep` sonucu `0`). Kontrast oranı `10,87:1` seviyesine çıktı. |
+| **P0-2** | `/smartcheck` `aria-required-children` kritik ihlali ve `<main>` eksikliği | **KAPATILDI (Kod)** | `SmartCheckDemo.tsx` içindeki `role="list"` kapsayıcısının çocuklarına `role="listitem"` eklendi ve bağımsız görünüm `<main id="main-content">` içine alındı. |
+| **P0-3** | Cloudflare kenarında TLS 1.0 ve 1.1 açık | **HARİCİ PANEL AYARI** | Cloudflare Dashboard → `bimmetraj.com` → SSL/TLS → Edge Certificates → **Minimum TLS Version = 1.2** seçilmelidir (uygulama kodu dışındadır). |
+| **P0-4** | `bimmetraj.com` DKIM DNS TXT kaydı eksik | **HARİCİ DNS AYARI** | `mail.affexai.tr` (Stalwart) panelinden `bimmetraj.com` DKIM anahtarı alınıp Cloudflare DNS'e `TXT <seçici>._domainkey.bimmetraj.com` olarak eklenmelidir. |
+| **P1-1** | Gerçek tarayıcıda (`puppeteer` + `axe-core`) erişilebilirlik kapısı CI'da yok | **KAPATILDI (Kod + CI)** | `scripts/e2e-a11y-smoke.ts` (`npm run test:a11y:e2e`) yazıldı ve `.github/workflows/verify.yml` içine eklendi. 8 genel rota × 2 tema = 16 kombinasyonda **0 ihlal**. |
+| **P1-2** | Koyu modda 64 kontrast ihlali (`:root[data-theme="light"]` özgüllük tuzağı) | **KAPATILDI (Kod)** | `src/index.css` içindeki `:root[data-theme="light"]` seçicileri `html:not(.dark)` ile sınırlandı ve `src/main.tsx` içine `MutationObserver` eklendi; koyu moddaki 64 kontrast ihlali `0`'a indi. |
+| **P1-3** | `/login`, `/register`, `/pilot` `<main>` eksikliği; `label-content-name-mismatch`; `/bim-sozlugu` çift `<h1>` | **KAPATILDI (Kod)** | Tüm genel sayfalara `<main id="main-content" tabIndex={-1}>` eklendi, `ThemeToggle.tsx` ve `LandingPage.tsx` `aria-label` uyumsuzlukları giderildi, `/bim-sozlugu` tek `<h1>` hiyerarşisine kavuşturuldu. |
+| **P1-4** | `/bim-sozlugu` ve genel rotalarda sunucu tarafı terim/içerik özeti | **KAPATILDI (Kod)** | `src/server/security/route-meta.ts` içinde `/bim-sozlugu` `<noscript>` bloğuna 12 temel openBIM/mevzuat teriminin (EIR, BEP, CDE, IFC 4.3, QTO, LOD/LOIN, COBie, ÇŞB Pozu, Minha, TS 500, e-PYS EK-9, KİK m.38) tam tanımları eklendi. |
+| **P2-SEO** | `/` başlığı > 60 kr; `/login` & `/register` `noindex`; FAQ JSON-LD tekrarı; raster logo; PWA manifest | **KAPATILDI (Kod)** | `/` `<title>` 57 karaktere çekildi; `/login`, `/register`, `/forgot-password` `noindex, follow` yapıldı; `FAQPage` JSON-LD yalnız `/` rotasında bırakıldı; `public/manifest.webmanifest` ve `public/apple-touch-icon.png` (180×180) eklendi. |
+| **P2-SEC** | CSP Cloudflare Insights hatası; `/api/*` `Cache-Control`; hesap bazlı login rate-limit; `security.txt` | **KAPATILDI (Kod)** | CSP'ye Cloudflare Insights eklendi, `/api/*` yanıtlarına `Cache-Control: no-store` tanımlandı, `POST /api/auth/login` için `login-account:${email}` hız sınırlayıcı ve `/.well-known/security.txt` eklendi. |
+| **P2-PERF** | Ana JS paketi ~570 kB (> 500 kB Vite uyarısı) | **KAPATILDI (Kod)** | `vite.config.ts` içinde `react-vendor` (`263,97 kB`) ve `motion` (`128,89 kB`) ayrıştırıldı; ana giriş paketi **`105,41 kB` (`33,81 kB` gzip)** seviyesine düşürüldü. |
+| **P2-ENG** | İmar Yönetmeliği m.5/8 vs m.22 tam muafiyet ayrımı & `VILLA_MARKET_COST_BENCHMARK_2026` | **KAPATILDI (Kod)** | `pre-bim-feasibility.ts` `%30` uyarısında m.5/8 ve m.22 tam muafiyetleri (zorunlu otopark, sığınak, yangın merdiveni, asansör boşluğu) ayrıştırıldı ve 27 kalemlik `VILLA_MARKET_COST_BENCHMARK_2026` tablosu `PreBimFeasibilityPanel.tsx` arayüzüne bağlandı. |
+

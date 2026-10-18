@@ -2,16 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import express from 'express';
 import http from 'node:http';
-import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, sitemapXml } from './web-hardening';
+import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, securityTxt, sitemapXml } from './web-hardening';
 
-test('CSP locks scripts to self and only opens the origins the app really uses', () => {
+test('CSP locks scripts to self (+ Cloudflare Insights beacon) and only opens the origins the app really uses', () => {
   const policy = contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com' });
   const directives = Object.fromEntries(policy.split('; ').map(part => [part.split(' ')[0], part.split(' ').slice(1)]));
-  assert.deepEqual(directives['script-src'], ["'self'"]);
+  assert.deepEqual(directives['script-src'], ["'self'", 'https://static.cloudflareinsights.com']);
   assert.deepEqual(directives['style-src'], ["'self'", "'unsafe-inline'"]);
   assert.deepEqual(directives['font-src'], ["'self'", 'data:']);
   assert.deepEqual(directives['object-src'], ["'none'"]);
   assert.deepEqual(directives['frame-ancestors'], ["'none'"]);
+  assert.ok(directives['connect-src'].includes('https://cloudflareinsights.com'));
   assert.ok(directives['connect-src'].includes('https://acct.r2.cloudflarestorage.com'));
   assert.ok(directives['connect-src'].includes('https://*.acct.r2.cloudflarestorage.com'), 'virtual-hosted bucket uploads');
   assert.ok(!directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase omitted while ACADEMY_ENABLED is false');
@@ -38,11 +39,11 @@ test('www requests are redirected permanently to the apex with path and query ke
   assert.equal((await get('/', 'evil.example')).status, 200, 'never redirects to attacker-controlled hosts');
 });
 
-test('sitemap lists public pages on the canonical origin and robots/llms point to it', () => {
+test('sitemap lists public pages on the canonical origin and robots/llms/security.txt point to it', () => {
   const xml = sitemapXml('https://bimmetraj.com');
   assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/);
   for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/smartcheck', 'https://bimmetraj.com/bim-sozlugu']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
-  assert.ok(xml.includes('<lastmod>2026-10-17</lastmod>'));
+  assert.ok(xml.includes('<lastmod>2026-10-18</lastmod>'));
   assert.ok(!xml.includes('/app'));
   assert.ok(!xml.includes('/login'));
   assert.ok(!xml.includes('/academy'), 'Academy is out of scope while ACADEMY_ENABLED is false');
@@ -50,6 +51,9 @@ test('sitemap lists public pages on the canonical origin and robots/llms point t
   assert.match(robots, /Sitemap: https:\/\/bimmetraj.com\/sitemap.xml/);
   assert.match(robots, /Disallow: \/app\//);
   assert.match(robots, /Disallow: \/api\//);
+  const secTxt = securityTxt('https://bimmetraj.com');
+  assert.match(secTxt, /Contact: mailto:info@bimmetraj\.com/);
+  assert.match(secTxt, /Canonical: https:\/\/bimmetraj\.com\/\.well-known\/security\.txt/);
   const llms = llmsTxt('https://bimmetraj.com');
   assert.match(llms, /# BIMMetraj \(TeklifPro\)/);
   assert.match(llms, /RG 33331 e-PYS/);

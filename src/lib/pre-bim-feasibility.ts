@@ -160,7 +160,7 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
   const emsal = round(area * kaks, 2);
   if (harici > 0 && emsal > 0 && harici > round(emsal * 0.3, 2)) {
     warnings.push(
-      `${label}: emsal harici alan (${harici} m²), emsal alanının (${emsal} m²) %30'unu (${round(emsal * 0.3, 2)} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve saha uygulamasına göre emsal harici alan kural olarak emsalin en fazla %30'u kadardır.`,
+      `${label}: emsal harici alan (${harici} m²), emsal alanının (${emsal} m²) %30'unu (${round(emsal * 0.3, 2)} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve Madde 22 uyarınca emsal harici alan kural olarak emsalin en fazla %30'u kadardır (zorunlu otopark, sığınak, yangın merdiveni ve asansör boşluğu gibi yönetmelikte sayılan tam muafiyetli alanlar hariç; imar durum belgeniz ve belediye plan notlarınızla teyit edin).`,
     );
   }
   return {

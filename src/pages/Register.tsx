@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { PublicMetadata } from '@/components/PublicMetadata';
 import {
   BILLING_PERIOD_OPTIONS,
   type BillingCycleId,
@@ -254,7 +255,13 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background bg-hairline-grid flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 relative">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background bg-hairline-grid flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 relative">
+      <PublicMetadata
+        title="Kayıt Ol — 14 Günlük Ücretsiz Deneme | BIMMetraj"
+        description="BIMMetraj 14 günlük ücretsiz deneme hesabı oluşturun ve IFC/Excel tabanlı metraj ile teklif hazırlamaya başlayın."
+        canonicalPath="/register"
+        noIndex
+      />
       <div className={`w-full ${isAcademy ? 'max-w-md' : 'max-w-5xl'} space-y-6 relative z-10`}>
         <div className="flex items-center justify-between border-b border-border pb-4">
           <Link to="/" className="inline-flex items-center gap-3 focus:outline-none">
@@ -314,7 +321,7 @@ export function Register() {
                         onClick={() => setBillingCycle(option.id)}
                         className={`flex flex-col items-center justify-center rounded px-2.5 py-2 text-xs font-semibold transition-all border ${
                           active
-                            ? 'border-primary bg-primary text-foreground shadow-xs'
+                            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
                             : 'border-transparent bg-background/60 text-muted-foreground hover:text-foreground hover:border-border'
                         }`}
                       >
@@ -322,7 +329,7 @@ export function Register() {
                         <span
                           className={`mt-0.5 font-mono text-[10px] font-bold ${
                             active
-                              ? 'text-foreground/90'
+                              ? 'text-primary-foreground'
                               : option.discountPercent > 0
                                 ? 'text-emerald-400'
                                 : 'text-muted-foreground'
@@ -356,7 +363,7 @@ export function Register() {
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                              isSelected ? 'border-primary bg-primary text-foreground' : 'border-muted-foreground/50'
+                              isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground'
                             }`}
                           >
                             {isSelected && <CheckCircle2 size={12} />}
@@ -369,7 +376,7 @@ export function Register() {
                                   className={`rounded-xs px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
                                     isFree
                                       ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                      : 'bg-primary/15 text-primary border border-primary/30'
+                                      : 'bg-background text-primary border border-primary/30'
                                   }`}
                                 >
                                   {plan.marketingBadge}
@@ -466,7 +473,7 @@ export function Register() {
                   </p>
                   {bankAccounts.length > 0 && (
                     <div className="pt-2 border-t border-amber-500/20 space-y-1.5">
-                      <p className="text-[11px] font-mono uppercase text-amber-300/90 font-semibold">
+                      <p className="text-[11px] font-mono uppercase text-amber-300 font-semibold">
                         Aktif Banka Hesaplarımız:
                       </p>
                       {bankAccounts.slice(0, 2).map((acc) => (
@@ -643,7 +650,7 @@ export function Register() {
                         className="mt-0.5 accent-primary"
                       />
                       <span>
-                        <Link to="/terms" target="_blank" className="text-primary hover:underline">
+                        <Link to="/terms" target="_blank" className="text-primary underline underline-offset-2 hover:opacity-80">
                           Kullanım koşullarını
                         </Link>{' '}
                         okudum ve kabul ediyorum.
@@ -660,7 +667,7 @@ export function Register() {
                         className="mt-0.5 accent-primary"
                       />
                       <span>
-                        <Link to="/privacy" target="_blank" className="text-primary hover:underline">
+                        <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2 hover:opacity-80">
                           Gizlilik bildirimini
                         </Link>{' '}
                         okudum ve kabul ediyorum.
@@ -682,7 +689,7 @@ export function Register() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 h-10 text-foreground font-semibold text-sm gap-2 shadow-xs"
+                    className="w-full bg-primary hover:bg-primary/90 h-10 text-primary-foreground font-semibold text-sm gap-2 shadow-xs"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={16} />
@@ -702,7 +709,7 @@ export function Register() {
                 <div className="pt-3 border-t border-border text-center">
                   <p className="text-xs text-muted-foreground">
                     Zaten hesabınız var mı?{' '}
-                    <Link to="/login" className="text-primary font-medium hover:underline">
+                    <Link to="/login" className="text-primary font-medium underline underline-offset-2 hover:opacity-80">
                       Oturum Açın
                     </Link>
                   </p>
@@ -712,6 +719,6 @@ export function Register() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

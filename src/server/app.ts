@@ -52,7 +52,7 @@ import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, readBuildRevision } from "./observability/error-tracking";
-import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml } from "./security/web-hardening";
+import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
 import { injectRouteMeta } from "./security/route-meta";
 import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
@@ -84,13 +84,16 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   const buildRevision = readBuildRevision();
 
   // HTTP hardening headers (SEC-08, SEC-09, OPS-10)
-  app.use((_req, res, next) => {
+  app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "0");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    if (req.path === "/api" || req.path.startsWith("/api/")) {
+      res.setHeader("Cache-Control", "no-store");
+    }
     if (process.env.NODE_ENV === "production") {
       res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
       // Dev keeps Vite's inline HMR preamble working; production enforces the policy.
@@ -206,6 +209,10 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
 }
 
 export function registerProductionFrontend(app: express.Express, distPath: string) {
+  app.get('/.well-known/security.txt', (_req, res) => {
+    if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
+    res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=86400').send(securityTxt(process.env.PUBLIC_APP_URL));
+  });
   // The same dist contains server/worker bundles. Never mount its root publicly.
   app.use((req, res, next) => {
     let pathname: string;
@@ -217,9 +224,18 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
   app.use('/assets', express.static(path.join(distPath, 'assets'), {
     maxAge: '1y', immutable: true, dotfiles: 'deny', index: false, redirect: false,
   }));
-  // Vite public/ currently contains this single root asset. Add future root assets
-  // explicitly here rather than reopening the mixed frontend/backend dist directory.
+  // Vite public/ root assets are mounted explicitly rather than reopening the mixed frontend/backend dist directory.
   app.get('/favicon.svg', (_req, res) => { res.sendFile(path.join(distPath, 'favicon.svg')); });
+  const appleIconFile = path.join(distPath, 'apple-touch-icon.png');
+  app.get('/apple-touch-icon.png', (_req, res) => {
+    if (!fs.existsSync(appleIconFile)) return res.status(404).end();
+    res.set('Cache-Control', 'public, max-age=86400').sendFile(appleIconFile);
+  });
+  const manifestFile = path.join(distPath, 'manifest.webmanifest');
+  app.get('/manifest.webmanifest', (_req, res) => {
+    if (!fs.existsSync(manifestFile)) return res.status(404).end();
+    res.type('application/manifest+json').set('Cache-Control', 'public, max-age=86400').sendFile(manifestFile);
+  });
   const ogImageFile = path.join(distPath, 'og-image.png');
   const hasOgImage = fs.existsSync(ogImageFile);
   app.get('/og-image.png', (_req, res) => {

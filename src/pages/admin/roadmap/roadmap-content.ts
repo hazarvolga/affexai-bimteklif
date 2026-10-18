@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (18 Ekim 2026 · Rev. 34)",
+    title: "Uygulama durumu (18 Ekim 2026 · Rev. 35)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -202,7 +202,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Kişisel veri maskeleme ve PDF/A + Pafta + e-İmza ön kontrolü", "Kurum içi pilotta canlı", "TC/VKN/e-posta/telefon maskelenir; 2B PDF teslim dosyalarında PDF/A kimliği, şifreleme, taranmış sayfa (m.6(4)), ISO 216 A4 katları pafta boyutu (m.8(1)), çizim paftalarında tek pafta düzeni (m.8(2)), gömülü e-imza (/Sig, m.6(1)-(2)) ve EK-2 dosya adı denetlenir"],
         ["Kotadan Düşmeyen Canlı Örnek Projeler (/app/smartcheck) & Mühendislik Kabul Kanıt Paketi", "Hazır (BIM-CALC-2026-10-15.3)", "IfcOpenShell 0.8.5 ve pypdf 6.10.2 ile üretilen MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) referans koşuları SHA-256 özetleriyle mühürlendi ve /app/smartcheck ekranında tek tıkla kotadan düşmeden denenebilir hale getirildi"],
-        ["Pafta Tasarım Sistemi Tam Token Göçü, İnteraktif Hızlı Tur & WCAG 2.2 AA Erişilebilirlik", "Hazır (Rev. 32–33)", "Tüm ekranlarda semantik Pafta tokenları, %42 şeffaf perdeli 5 adımlı SystemQuickTour ve axe-core tabanlı otomatik erişilebilirlik denetimi (pnpm run test:a11y) sıfır ihlal ile devrede"],
+        ["Gerçek Tarayıcı (Chromium) axe-core Açık/Koyu Mod Erişilebilirlik, SEO/GEO & Üretim Sertleştirmesi", "Hazır (Rev. 35 · BIM-CALC-2026-10-18.29)", "8 genel rotada hem Açık Pafta hem Gece Paftası (html.dark) modunda gerçek Chromium + axe-core denetimi (scripts/e2e-a11y-smoke.ts) 0 ihlal ile CI'a bağlandı; /bim-sozlugu noscript terimleri, PWA manifest, /.well-known/security.txt, /api/* Cache-Control: no-store, hesap bazlı giriş yavaşlatma, VILLA_MARKET_COST_BENCHMARK_2026 arayüz çekmecesi ve 105 kB ana paket ayrımı tamamlandı"],
         ["Gerçek proje saha/mühendislik kabulü", "ALLPLAN 2026.1 Uzman Modeli & 4 Excel Çapraz Doğrulaması Tamamlandı", "31,4 MB ALLPLAN 2026.1 gerçek mimari modeli (1.731 eleman) ve 4 ham Allplan Excel raporu çapraz doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada"],
       ] },
     ],
@@ -248,7 +248,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["7 — ALLPLAN e-PYS kiti v1 & RG 33331 tam senkronizasyonu", "Tamamlandı (15–16 Ekim 2026 · Rev. 3, Rev. 4 & Rev. 6)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, m.13(3) + 15 kr. malzeme kütüphanesi, EK-1..EK-9 sözlükleri, gerçek ALLPLAN 2026.1 Object Layer Attributes (IfcComplexProperty) okuma ve IfcSpace → IfcBuildingStorey kat çözümlemesi canlıda"],
         ["8 — Paket kataloğu v6, 4 dönemli iskonto ve abone göçü", "Tamamlandı (15 Ekim 2026 · Rev. 3)", "Tek VPS kapasite korumalı v6 paket kataloğu (bimmetraj-2026-10-15-v6), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 Havale/EFT dönem iskontosu ve paket pasife alma sırasında aktif aboneleri alternatif pakete atomik aktarma canlıya alındı"],
         ["9 — Kurumsal işlemsel e-posta (Transactional Email) sistemi", "Tamamlandı (15 Ekim 2026 · Rev. 4)", "8 kurumsal HTML/Text şablonu (Hoş Geldiniz, E-Posta Doğrulama, Şifre Sıfırlama, Havale/EFT Talimatı, Ödeme Onayı, Ekip Daveti, Teklif Gönderimi, Teklif Kararı) ve Süper Admin /admin/email-templates canlı önizleme & test gönderim merkezi devreye alındı"],
-        ["10 — Süreç öncesi Revit → IFC dışa aktarım kontrol listesi, Hızlı Tur & WCAG 2.2 AA", "Tamamlandı (17–18 Ekim 2026 · Rev. 31–34)", "Müteahhitlik Süreç Masası, 5 adımlı SystemQuickTour, semantik Pafta token göçü, axe-core erişilebilirlik testi ve dosya seçildiği anda ilk 128 KB başlığından otomatik Revit tespiti + 6 maddelik dışa aktarım kontrol listesi (REVIT_PRE_EXPORT_CHECKLIST) devreye alındı"],
+        ["10 — Süreç öncesi Revit → IFC kontrol listesi, Gerçek Tarayıcı axe-core Kapısı & Üretim Hazırlığı", "Tamamlandı (17–18 Ekim 2026 · Rev. 31–35)", "Müteahhitlik Süreç Masası, SystemQuickTour, ilk 128 KB Revit başlık tespiti + 6 maddelik dışa aktarım kontrol listesi, 8 genel rotada Açık/Koyu mod gerçek Chromium axe-core kapısı (0 ihlal), /bim-sozlugu noscript GEO içeriği, PWA manifest, security.txt, hesap bazlı giriş yavaşlatma ve 105 kB ana paket ayrımı tamamlandı"],
         ["11 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
@@ -261,17 +261,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 34 · 13–18 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 35 · 13–18 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 34)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (18 Ekim 2026 Rev. 34 · BIM-CALC-2026-10-18.28) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 35)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (18 Ekim 2026 Rev. 35 · BIM-CALC-2026-10-18.29) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 7):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 35):",
       },
       {
         type: "table",
@@ -482,16 +482,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Tüm sayfa ve bileşenlerdeki 400'ün üzerinde sabit zinc-*, slate-* sınıfı semantik Pafta Tasarım Sistemi belirteçlerine dönüştürüldü; 10px altı mikro metinler okunabilirlik seviyesine çekildi. Tüm girdi, dosya yükleme ve aksiyon butonlarına htmlFor/id ve aria-label bağlantıları eklendi. axe-core tabanlı otomatik erişilebilirlik test paketi (pnpm run test:a11y) ile WCAG 2.2 AA tam uyumu doğrulandı.",
           ],
           [
-            "Rev. 34 (Güncel)",
+            "Rev. 34",
             "18 Ekim 2026 (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, İlk 128 KB Başlık Tespiti & Kurumsal Terminoloji Kapısı)",
             "BIM-CALC-2026-10-18.28 (63a77a5 / 57d288d)",
             "Revit ile işlem yapacak kullanıcılara hem dosya yükleme öncesinde (PAFTA 00 ekranında) hem de dosya seçildiği anda ilk 128 KB başlığından otomatik Revit tespitiyle açılan 6 maddelik doğrulanmış kontrol listesi (REVIT_PRE_EXPORT_CHECKLIST) eklendi: 1) Mimari hakediş hacmi için 'Architecture > Room & Area > Areas and Volumes' vs. termal/BEM analizleri için '2nd Level Space Boundaries' ayrımı, 2) 'Export base quantities' ve Dion Moult (thinkmoult.com) 'NetSideArea/NetSideVolume' brüt/minha tuzağı, 3) 'Join Geometry' kaba yapı hakimiyeti, 4) İnce yapı katman kısalması ve kalıp yüzeyi, 5) 'LoD Low/Medium' & Autodesk/revit-ifc#63 dosya şişmesi önlemi, 6) 'Shared Coordinates' ve IFCCARTESIANPOINT IEEE-754 kayan nokta açıklaması. Ayrıca ürün arayüzü, hesap motorları ve yönetim sayfalarındaki şahıs ismi referansları tamamen temizlenerek kurumsal mühendislik terminolojisine ('Şantiye Şap Standardı', 'SITE_SCREED_BENCHMARK', 'VILLA_MARKET_COST_BENCHMARK_2026') geçirildi ve registry.test.ts içine kalıcı 'Kişi ismi otorite yasağı' kapı testi eklendi.",
+          ],
+          [
+            "Rev. 35 (Güncel)",
+            "18 Ekim 2026 (Üretim Hazırlığı Raporu Tam Kapanışı: Gerçek Tarayıcı axe-core Kapısı, Açık/Koyu Mod 0 İhlal, GEO Sözlük, PWA, Güvenlik & 105 kB Ana Paket)",
+            "BIM-CALC-2026-10-18.29",
+            "PRODUCTION_READINESS_RAPORU_2026-10-18 bulgularının tamamı kapatıldı: 1) Açık ve koyu moddaki 103 erişilebilirlik/kontrast ihlali (:root[data-theme='light'] özgüllük tuzağı, bg-primary text-foreground → text-primary-foreground, BimGlossary/PilotApplication semantik Pafta belirteçleri, SmartCheckDemo role='listitem', /login-/register-/pilot-/smartcheck <main> iskeleti, ThemeToggle label-content-name-mismatch, /bim-sozlugu tek <h1>) giderildi ve gerçek Chromium (puppeteer + axe-core) ile 8 genel rotayı hem açık hem koyu modda denetleyen scripts/e2e-a11y-smoke.ts (16/16 kontrol, 0 ihlal) CI hattına eklendi. 2) /bim-sozlugu terimleri ve diğer genel rotalar ham HTML <noscript> içine eklendi, ana sayfa başlığı ≤60 karaktere indirildi, /login ve /register için noindex + özgün meta tanımlandı, FAQPage JSON-LD yalnız ana sayfayla sınırlandı, Organization logosu 1200×630 PNG yapıldı, manifest.webmanifest ve apple-touch-icon.png eklendi. 3) /.well-known/security.txt, /api/* Cache-Control: no-store, CSP Cloudflare Insights izni ve hesap bazlı (login-account:<email>) giriş yavaşlatma devreye alındı. 4) Vite manualChunks ile ana JS paketi 570 kB'dan 105,41 kB'a (gzip 33,81 kB) düşürüldü; VILLA_MARKET_COST_BENCHMARK_2026 PreBimFeasibilityPanel arayüzüne bağlandı ve Planlı Alanlar İmar Yön. m.5/8 & m.22 istisna notu netleştirildi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 34 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 35 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -834,10 +840,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 34.1 · 18 Ekim 2026 (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, İlk 128 KB Başlık Tespiti & Kurumsal Terminoloji Kapısı)",
-            "Autodesk revit-ifc#63 (2018 vs 2019 B-Rep/Tessellation dosya şişmesi), Autodesk IFCCARTESIANPOINT IEEE-754 teknik makalesi, Dion Moult (thinkmoult.com) openBIM incelemesi ve kurumsal mühendislik otorite standardı",
+            "Autodesk revit-ifc#63 (2018 vs 2019 B-Rep/Tessellation dosya şişmesi), Autodesk IFCCARTESIANPOINT teknik makalesi, Dion Moult (thinkmoult.com) openBIM incelemesi ve kurumsal mühendislik otorite standardı",
             "Revit kaynak yazılım uyarısı yalnız dosya yüklenip işlendikten sonra 3 maddelik metin olarak görünüyor; süreç öncesinde 'Areas and Volumes' (IfcSpace 3B hacim) ile '2nd Level Space Boundaries' (BEM/HVAC termal sınır) ayrımı ve Dion Moult NetSideArea/NetSideVolume minha tuzağı yer almıyordu. Ayrıca arayüz ve bazı modüllerde saha standardı için şahıs ismi referansı bulunuyordu.",
             "REVIT_PRE_EXPORT_CHECKLIST (6 madde) ve RevitPreUploadChecklistPanel bileşeni eklendi. Dosya yükleme ekranlarında (SmartCheckImportWorkspace.tsx ve BimIfcParser.tsx) kullanıcıya süreç öncesi rehber sunulur ve seçilen .ifc dosyasının ilk 128 KB başlığı istemcide anında okunarak Revit tespit edildiğinde uyarı kartı otomatik açılır. Arayüz, hesap modülleri ve yönetim sayfalarındaki tüm şahıs ismi referansları kurumsal mühendislik terminolojisine ('Şantiye Şap Standardı', 'SITE_SCREED_BENCHMARK', 'VILLA_MARKET_COST_BENCHMARK_2026') taşındı ve registry.test.ts içine kalıcı kapı testi eklendi.",
             "src/ifc/authoring-software-diagnostics.ts, src/ifc/authoring-software-diagnostics.test.ts, src/components/smartcheck/AuthoringAdvisoryBanner.tsx, src/components/smartcheck/SmartCheckImportWorkspace.tsx, src/components/bimplan/BimIfcParser.tsx, src/components/dashboard/ContractorWorkflowHub.tsx, src/components/dashboard/SystemQuickTour.tsx, src/ifc/apartment-subcontractor-shield.ts, src/lib/pre-bim-feasibility.ts, src/capabilities/registry.ts, src/capabilities/registry.test.ts",
+          ],
+          [
+            "Rev. 35.1 · 18 Ekim 2026 (Üretim Hazırlığı Raporu P0/P1/P2 Tam Kapanışı: Gerçek Tarayıcı axe-core Kapısı, GEO/SEO, Güvenlik & Performans)",
+            "PRODUCTION_READINESS_RAPORU_2026-10-18 (WCAG 2.2 AA 1.4.3 / 4.1.2 / 2.5.3, OWASP ASVS, RFC 9116 security.txt, Schema.org ve Planlı Alanlar İmar Yön. m.5/8 & m.22)",
+            "Gerçek tarayıcıda yapılan canlı denetimde açık modda 39, koyu modda 64 kontrast/erişilebilirlik ihlali (:root[data-theme='light'] özgüllük tuzağı, bg-primary text-foreground, SmartCheckDemo eksik role='listitem', /login-/register-/pilot-/smartcheck eksik <main>, ThemeToggle aria-label uyumsuzluğu, /bim-sozlugu çift <h1>), /bim-sozlugu sayfasında yalnız 36 kelimelik <noscript>, /login ve /register'da ana sayfa canonical'ı, 570 kB ana JS paketi ve arayüze bağlanmamış VILLA_MARKET_COST_BENCHMARK_2026 sabiti tespit edildi.",
+            "1) Tüm kontrast, landmark ve ARIA ihlalleri düzeltildi; Puppeteer + axe-core ile 8 genel rotayı açık ve koyu modda denetleyen scripts/e2e-a11y-smoke.ts (0 ihlal) CI'a eklendi. 2) route-meta.ts içinde /bim-sozlugu ve tüm genel rotalara zengin <noscript> içerik, /login ve /register için noindex + kendi canonical'ı, ≤60 karakter ana sayfa başlığı ve yalnız ana sayfada FAQPage JSON-LD sağlandı; manifest.webmanifest, apple-touch-icon.png ve raster Organization logosu eklendi. 3) /.well-known/security.txt, /api/* Cache-Control: no-store, CSP Cloudflare Insights izni ve hesap bazlı (login-account:<email>) giriş yavaşlatma eklendi. 4) Vite manualChunks ile ana JS paketi 105,41 kB'a indirildi ve VILLA_MARKET_COST_BENCHMARK_2026 PreBimFeasibilityPanel arayüzüne bağlandı.",
+            "src/index.css, src/main.tsx, scripts/e2e-a11y-smoke.ts, .github/workflows/verify.yml, src/server/security/route-meta.ts, src/server/security/web-hardening.ts, src/server/app.ts, src/server/routes/auth.ts, vite.config.ts, index.html, public/manifest.webmanifest, public/apple-touch-icon.png, src/components/smartcheck/PreBimFeasibilityPanel.tsx, src/lib/pre-bim-feasibility.ts",
           ],
         ],
       },

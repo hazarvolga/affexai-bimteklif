@@ -44,6 +44,19 @@ export default defineConfig(({mode}) => {
             if (pkg.startsWith('lucide-react/')) {
               return 'icons';
             }
+            if (
+              pkg.startsWith('react/') ||
+              pkg.startsWith('react-dom/') ||
+              pkg.startsWith('scheduler/') ||
+              pkg.startsWith('react-router/') ||
+              pkg.startsWith('react-router-dom/') ||
+              pkg.startsWith('@remix-run/router/')
+            ) {
+              return 'react-vendor';
+            }
+            if (pkg.startsWith('motion/') || pkg.startsWith('framer-motion/') || pkg.startsWith('motion-dom/') || pkg.startsWith('motion-utils/')) {
+              return 'motion';
+            }
           },
         },
       },

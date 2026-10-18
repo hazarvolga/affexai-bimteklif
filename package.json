@@ -16,6 +16,7 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test:a11y": "tsx --test src/lib/a11y-audit.test.ts",
+    "test:a11y:e2e": "tsx scripts/e2e-a11y-smoke.ts",
     "academy:parity": "node scripts/academy-parity-check.mjs",
     "allplan:inventory": "node scripts/allplan-source-inventory.mjs",
     "allplan:structural-audit": "tsx scripts/allplan-structural-audit.mjs",
