@@ -132,7 +132,7 @@ export function Regulations() {
                 <FileSearch size={48} className="mb-6 opacity-10" />
                 <p className="text-sm font-bold text-muted-foreground mb-2">Henüz bir mevzuat güncellemesi kayıtlı değil.</p>
                 <p className="text-xs text-muted-foreground mb-6 max-w-xs">Kaynak değişikliğini önce advisory olarak inceleyin; reviewer onayı olmadan hiçbir kural veya fiyat değişmez.</p>
-                <Button onClick={handleSync} disabled={syncing || !sourceUrl.trim()} className="bg-surface-elevated hover:bg-zinc-700 text-foreground dark:text-muted-foreground font-bold text-[10px] tracking-widest uppercase h-9 px-6">Belgeyi İncelemeye Al</Button>
+                <Button onClick={handleSync} disabled={syncing || !sourceUrl.trim()} className="bg-surface-elevated hover:bg-surface-elevated text-foreground dark:text-muted-foreground font-bold text-[10px] tracking-widest uppercase h-9 px-6">Belgeyi İncelemeye Al</Button>
               </CardContent>
             </Card>
           ) : (
@@ -239,7 +239,7 @@ export function Regulations() {
             </CardContent>
           </Card>
 
-          <div className="bg-gradient-to-br from-zinc-900 to-[#09090b] p-6 rounded-2xl border border-border text-center relative overflow-hidden group">
+          <div className="bg-gradient-to-br from-background to-[#09090b] p-6 rounded-2xl border border-border text-center relative overflow-hidden group">
              <div className="absolute inset-0 bg-surface-elevated opacity-0 group-hover:opacity-100 transition-opacity"></div>
              <MessageSquare size={32} className="text-foreground mx-auto mb-4 group-hover:text-orange-500 transition-colors" />
              <h5 className="text-[11px] font-black text-foreground mb-2 uppercase tracking-widest">Hukuki Danışmanlık?</h5>

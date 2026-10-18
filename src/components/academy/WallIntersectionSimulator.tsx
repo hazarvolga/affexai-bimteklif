@@ -81,7 +81,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
         <Button
           variant="ghost"
           onClick={resetSimulator}
-          className="text-muted-foreground hover:text-zinc-300 font-mono text-[9px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
+          className="text-muted-foreground hover:text-foreground font-mono text-[10px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
         >
           <RefreshCw size={10} /> Sıfırla
         </Button>
@@ -102,7 +102,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                   key={layer.name}
                   onClick={() => setActiveLayerIdx(idx)}
                   className={`p-3 border transition-all cursor-pointer rounded-xl ${
-                    isSelected ? 'bg-zinc-900 border-orange-500' : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700'
+                    isSelected ? 'bg-card border-orange-500' : 'bg-background border-border hover:border-border'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -118,7 +118,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                   {isSelected && (
                     <div className="space-y-2 mt-2 pt-2 border-t border-border">
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
+                        <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
                           <span>PRIORITY (ÖNCELİK DEĞERİ)</span>
                           <span>{layer.priority} (100 - 900)</span>
                         </div>
@@ -134,7 +134,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
                       </div>
 
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
+                        <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
                           <span>KALINLIK (GENİŞLİK)</span>
                           <span>{layer.width} cm</span>
                         </div>
@@ -157,7 +157,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
           <div className="p-3 bg-background border border-border space-y-2 font-mono text-[10px] rounded-xl">
             <div className="flex items-center gap-1 text-emerald-500">
               <Sparkles size={12} />
-              <span className="font-black uppercase text-[9px] tracking-wider">Hiyerarşik Sıralama</span>
+              <span className="font-black uppercase text-[10px] tracking-wider">Hiyerarşik Sıralama</span>
             </div>
             <ol className="list-decimal pl-4 space-y-1 text-muted-foreground">
               {sortedLayersByPriority.map((layer, i) => (
@@ -171,7 +171,7 @@ export const WallIntersectionSimulator: React.FC<WallIntersectionSimulatorProps>
 
         {/* Dynamic CAD Canvas View */}
         <div className="col-span-12 md:col-span-7 bg-background border border-border p-4 flex flex-col items-center justify-center relative min-h-[300px] rounded-xl">
-          <div className="absolute top-3 left-3 text-[9px] font-mono text-muted-foreground uppercase tracking-widest">
+          <div className="absolute top-3 left-3 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
             2D CAD Köşe Detayı (Kat Planı Görünümü)
           </div>
 

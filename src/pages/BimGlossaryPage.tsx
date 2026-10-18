@@ -30,8 +30,8 @@ export function PublicBimGlossaryPage() {
             ← BIMMetraj Ana Sayfa
           </Link>
           <div className="flex items-center gap-3 text-xs">
-            <Link to="/pricing" className="text-foreground dark:text-muted-foreground hover:text-white">Paketler</Link>
-            <Link to="/smartcheck" className="text-foreground dark:text-muted-foreground hover:text-white">SmartCheck Demo</Link>
+            <Link to="/pricing" className="text-foreground dark:text-muted-foreground hover:text-foreground">Paketler</Link>
+            <Link to="/smartcheck" className="text-foreground dark:text-muted-foreground hover:text-foreground">SmartCheck Demo</Link>
             <Link to="/register" className="rounded bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-500">
               Ücretsiz Deneyin
             </Link>

@@ -23,7 +23,7 @@ interface QuotationCardProps {
 export function QuotationCard({ quote, onClick, className }: QuotationCardProps) {
   return (
     <Card 
-      className={cn("bg-card border-border hover:bg-zinc-900/50 transition-all cursor-pointer group shadow-none", className)}
+      className={cn("bg-card border-border hover:bg-card transition-all cursor-pointer group shadow-none", className)}
       onClick={onClick}
     >
       <CardContent className="p-5">
@@ -41,7 +41,7 @@ export function QuotationCard({ quote, onClick, className }: QuotationCardProps)
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+          <Button variant="ghost" size="icon" aria-label="Teklif işlemleri menüsü" className="h-8 w-8 text-muted-foreground">
             <MoreVertical size={16} />
           </Button>
         </div>

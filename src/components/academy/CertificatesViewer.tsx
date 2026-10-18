@@ -87,7 +87,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
             <Award className="text-signal-orange" size={28} />
             My Certificates
           </h1>
-          <p className="text-sm text-muted-foreground dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Monitor qualification milestones and access certified credentials.
           </p>
         </div>
@@ -109,7 +109,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                   {hasPassedExam ? (
                     <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">✓ PASSED</span>
                   ) : (
-                    <span className="text-[9px] text-signal-orange uppercase flex items-center gap-1">
+                    <span className="text-[10px] text-signal-orange uppercase flex items-center gap-1">
                       <AlertTriangle size={12} /> INCOMPLETE
                     </span>
                   )}
@@ -132,7 +132,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                   {hasCompletedCourse ? (
                     <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">✓ COMPLETED</span>
                   ) : (
-                    <span className="text-[9px] text-signal-orange uppercase flex items-center gap-1">
+                    <span className="text-[10px] text-signal-orange uppercase flex items-center gap-1">
                       <AlertTriangle size={12} /> INCOMPLETE
                     </span>
                   )}
@@ -178,7 +178,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
               {/* Actions & Name Control */}
               <div className="bg-graphite-900 border border-graphite-700 p-4 rounded-[1px] flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="space-y-1 w-full sm:w-auto">
-                  <p className="tech-label text-[9px] text-graphite-400">DIPLOMA RECIPIENT NAME</p>
+                  <p className="tech-label text-[10px] text-graphite-400">DIPLOMA RECIPIENT NAME</p>
                   {isEditingName ? (
                     <div className="flex gap-2">
                       <input 
@@ -236,10 +236,10 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                 <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
                 
                 {/* Top Corner Technical Accents */}
-                <div className="absolute top-4 left-4 font-mono text-[7px] text-graphite-500 text-left">
+                <div className="absolute top-4 left-4 font-mono text-[10px] text-graphite-500 text-left">
                   ALLPLAN CERTIFICATION DEPT · OFFICE OF EDUCATION
                 </div>
-                <div className="absolute top-4 right-4 font-mono text-[7px] text-graphite-500 text-right">
+                <div className="absolute top-4 right-4 font-mono text-[10px] text-graphite-500 text-right">
                   CERT-ID: {certId}
                 </div>
 
@@ -250,7 +250,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                     <span className="text-[10px] font-mono tracking-[0.2em] bg-tech-blue/10 border border-tech-blue/30 text-tech-blue px-2 py-0.5">ACADEMY</span>
                   </div>
                   <div className="h-0.5 w-16 bg-tech-blue/40 mx-auto" />
-                  <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-graphite-400">VERIFIABLE PROFESSIONAL CREDENTIAL</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-graphite-400">VERIFIABLE PROFESSIONAL CREDENTIAL</p>
                 </div>
 
                 {/* Title */}
@@ -274,7 +274,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                 {/* Signatures & Badges Footer */}
                 <div className="grid grid-cols-3 items-end gap-4 mt-4">
                   {/* Left Signature */}
-                  <div className="text-center font-mono text-[8px] space-y-1">
+                  <div className="text-center font-mono text-[10px] space-y-1">
                     <div className="italic text-graphite-300 font-sans text-xs select-none">Eduard Müller</div>
                     <div className="h-px bg-graphite-700 w-24 mx-auto" />
                     <div className="text-graphite-500 uppercase">Director of Education</div>
@@ -291,7 +291,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                         <QrCode className="text-graphite-900 size-10" />
                         
                         {/* Hover Tooltip detailing Cryptographic Signatures */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-graphite-950 border border-tech-blue text-left rounded-[2px] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 z-50 shadow-[0_4px_16px_rgba(0,0,0,0.9)] space-y-1.5 text-[8px] font-mono leading-relaxed">
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-graphite-950 border border-tech-blue text-left rounded-[2px] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 z-50 shadow-[0_4px_16px_rgba(0,0,0,0.9)] space-y-1.5 text-[10px] font-mono leading-relaxed">
                           <p className="text-tech-blue font-bold uppercase tracking-wider flex items-center gap-1">
                             <ShieldCheck size={10} className="text-signal-green" />
                             SECURE VERIFIABLE LEDGER
@@ -301,15 +301,15 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                           <p className="text-graphite-100"><span className="text-graphite-500 font-bold">CREDENTIAL:</span> BIM SPECIALIST II</p>
                           <p className="text-graphite-100"><span className="text-graphite-500 font-bold">CERT-ID:</span> {certId}</p>
                           <p className="text-graphite-100 truncate"><span className="text-graphite-500 font-bold">HASH:</span> {verificationHash}</p>
-                          <p className="text-signal-green uppercase font-bold text-[7px] text-right pt-0.5">✓ SIGNATURE VALID</p>
+                          <p className="text-signal-green uppercase font-bold text-[10px] text-right pt-0.5">✓ SIGNATURE VALID</p>
                         </div>
                       </div>
                     </div>
-                    <span className="font-mono text-[7px] text-graphite-400 uppercase tracking-widest">{verificationHash}</span>
+                    <span className="font-mono text-[10px] text-graphite-400 uppercase tracking-widest">{verificationHash}</span>
                   </div>
 
                   {/* Right Signature */}
-                  <div className="text-center font-mono text-[8px] space-y-1">
+                  <div className="text-center font-mono text-[10px] space-y-1">
                     <div className="italic text-graphite-300 font-sans text-xs select-none">M. Soydan</div>
                     <div className="h-px bg-graphite-700 w-24 mx-auto" />
                     <div className="text-graphite-500 uppercase">Senior BIM Specialist</div>
@@ -318,7 +318,7 @@ export const CertificatesViewer: React.FC<CertificatesViewerProps> = ({
                 </div>
 
                 {/* Bottom verification block */}
-                <div className="mt-6 border-t border-graphite-800/60 pt-4 flex flex-col sm:flex-row justify-between text-[7px] font-mono text-graphite-500">
+                <div className="mt-6 border-t border-graphite-800/60 pt-4 flex flex-col sm:flex-row justify-between text-[10px] font-mono text-graphite-500">
                   <span>SYSTEM TIME: 2026-07-17 CERTIFICATE_VERIFIED</span>
                   <span className="text-tech-blue uppercase">HASH: {verificationHash}</span>
                 </div>

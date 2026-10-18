@@ -115,7 +115,7 @@ export function Shell() {
           <span className="font-display-serif text-2xl tracking-tight text-foreground leading-none">
             {isLearner ? 'BIMPlan Academy' : 'BIMMetraj'}
           </span>
-          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest mt-1">
+          <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
             {isLearner ? 'EĞİTİM PAFTASI' : 'MİMARİ METRAJ & İHALE PAFTASI'}
           </span>
         </div>
@@ -127,14 +127,14 @@ export function Shell() {
     <div className="mt-auto p-4 border-t border-border space-y-3 bg-background">
       <div className="p-3 border border-border bg-card space-y-2">
         <div>
-          <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5">
+          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5">
             {isLearner ? 'ÖĞRENCİ HESABI' : 'AKTİF PROJE OFİSİ'}
           </p>
           <p className="text-xs font-semibold text-foreground truncate">{company?.name || 'Yükleniyor...'}</p>
         </div>
         {!isLearner && !isSuperAdmin && (
           <div className="border-t border-border pt-2 flex items-center justify-between gap-2">
-            <span className="inline-block truncate border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-primary">
+            <span className="inline-block truncate border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
               {activePlanName || '14 Günlük Deneme'}
             </span>
             <Link

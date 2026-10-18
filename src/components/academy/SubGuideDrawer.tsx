@@ -35,7 +35,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-muted-foreground hover:bg-zinc-800 hover:text-white transition-colors"
+              className="rounded-lg p-2 text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors"
               title="Kapat"
             >
               <X size={20} />
@@ -101,7 +101,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
                         </thead>
                         <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
                           {table.rows.map((row, rIdx) => (
-                            <tr key={rIdx} className="hover:bg-zinc-800/20 transition-colors">
+                            <tr key={rIdx} className="hover:bg-surface-elevated transition-colors">
                               {row.map((cell, cIdx) => (
                                 <td key={cIdx} className={`px-4 py-3 leading-relaxed ${cIdx === 0 ? 'font-medium text-foreground' : ''}`}>
                                   {cell}
@@ -165,7 +165,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
 
                         <div className="space-y-2 pt-1">
                           {q.options.map((opt, optIdx) => {
-                            let btnStyle = 'border-border bg-card text-foreground dark:text-muted-foreground hover:border-zinc-700 hover:bg-zinc-800/80';
+                            let btnStyle = 'border-border bg-card text-foreground dark:text-muted-foreground hover:border-border hover:bg-surface-elevated';
                             if (isAnswered) {
                               if (optIdx === q.correctIndex) {
                                 btnStyle = 'border-emerald-500/60 bg-emerald-500/20 text-emerald-200 font-medium';
@@ -249,7 +249,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
             <span className="text-xs text-muted-foreground">BIMPlan Academy · Mühendislik Standart Rehberi</span>
             <button
               onClick={onClose}
-              className="rounded-md border border-border bg-surface-elevated px-4 py-1.5 text-xs font-medium text-foreground hover:bg-zinc-700 transition-colors"
+              className="rounded-md border border-border bg-surface-elevated px-4 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated transition-colors"
             >
               Kapat
             </button>

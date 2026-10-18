@@ -518,7 +518,7 @@ export function PlansList() {
                     <li className="flex items-center gap-2 text-xs text-foreground dark:text-muted-foreground">
                       {plan.monthlyQuoteLimit === 0 ? (
                         <>
-                          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                           <span className="text-muted-foreground">Teklif Modülü Dahil Değil</span>
                         </>
                       ) : (
@@ -571,7 +571,7 @@ export function PlansList() {
                           <Link
                             key={sub.companyId}
                             to={`/admin/tenants/${sub.companyId}`}
-                            className="inline-flex items-center rounded bg-surface-elevated hover:bg-zinc-700 px-1.5 py-0.5 text-[10px] text-indigo-300 font-medium truncate max-w-[120px]"
+                            className="inline-flex items-center rounded bg-surface-elevated hover:bg-surface-elevated px-1.5 py-0.5 text-[10px] text-indigo-300 font-medium truncate max-w-[120px]"
                             title={sub.companyName}
                           >
                             {sub.companyName}

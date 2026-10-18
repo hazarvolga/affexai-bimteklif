@@ -39,7 +39,7 @@ const DECISION_CLASS: Record<string, string> = {
   "Evet": "border-emerald-500/30 text-emerald-400",
   "Evet (uyarıyla)": "border-amber-500/30 text-amber-300",
   "Hayır": "border-red-500/30 text-red-400",
-  "Elle": "border-zinc-600 text-muted-foreground",
+  "Elle": "border-border text-muted-foreground",
   "Kısmen (elle tamamlanacak)": "border-sky-500/30 text-sky-300",
 };
 
@@ -83,7 +83,7 @@ export function EpysPreflightPanel({ documentId, refreshKey }: { documentId: str
         <div className="flex gap-2 text-[10px]">
           <Badge variant="outline" className="border-red-500/30 text-red-400">{report.summary.hata} hata</Badge>
           <Badge variant="outline" className="border-amber-500/30 text-amber-300">{report.summary.uyari} uyarı</Badge>
-          <Badge variant="outline" className="border-zinc-600 text-muted-foreground">{report.summary.elle} elle</Badge>
+          <Badge variant="outline" className="border-border text-muted-foreground">{report.summary.elle} elle</Badge>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -91,7 +91,7 @@ export function EpysPreflightPanel({ documentId, refreshKey }: { documentId: str
           <thead className="bg-card text-muted-foreground"><tr><th className="p-2">No</th><th className="p-2">Bölüm</th><th className="p-2">Kontrol</th><th className="p-2">Karar</th><th className="p-2">Bulgu</th></tr></thead>
           <tbody>
             {report.ek9.map(row => (
-              <tr key={row.no} className="border-t border-zinc-900 align-top">
+              <tr key={row.no} className="border-t border-border align-top">
                 <td className="p-2 font-mono text-muted-foreground">{row.no}</td>
                 <td className="p-2 text-muted-foreground">{row.bolum}</td>
                 <td className="p-2 text-foreground dark:text-muted-foreground"><b>{row.baslik}</b><div className="text-[11px] text-muted-foreground">{row.soru}</div>{row.elleNotu && <div className="mt-1 text-[11px] text-muted-foreground">{row.elleNotu}</div>}</td>

@@ -18,8 +18,8 @@ export function LegalPage() {
             ← BIMMetraj Ana Sayfa
           </Link>
           <div className="flex gap-4 text-xs text-muted-foreground">
-            <Link to="/terms" className={!privacy ? 'font-bold text-foreground underline' : 'hover:text-white'}>Kullanım Koşulları</Link>
-            <Link to="/privacy" className={privacy ? 'font-bold text-foreground underline' : 'hover:text-white'}>KVKK & Gizlilik Bildirimi</Link>
+            <Link to="/terms" className={!privacy ? 'font-bold text-foreground underline' : 'hover:text-foreground'}>Kullanım Koşulları</Link>
+            <Link to="/privacy" className={privacy ? 'font-bold text-foreground underline' : 'hover:text-foreground'}>KVKK & Gizlilik Bildirimi</Link>
           </div>
         </div>
 

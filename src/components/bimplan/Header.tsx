@@ -38,8 +38,8 @@ export default function Header({ currentView, setView }: HeaderProps) {
           <div className="w-9 h-9 bg-card rounded-lg flex items-center justify-center text-foreground font-black group-hover:bg-orange-600 transition-colors duration-300 shadow-md shadow-slate-200">
             B
           </div>
-          <span className="text-xl font-extrabold tracking-tighter text-slate-900">
-            BIM<span className="text-orange-600 font-black tracking-tight transition-colors duration-300 group-hover:text-slate-900">MASTER</span>
+          <span className="text-xl font-extrabold tracking-tighter text-foreground">
+            BIM<span className="text-orange-600 font-black tracking-tight transition-colors duration-300 group-hover:text-foreground">MASTER</span>
           </span>
         </div>
 
@@ -55,7 +55,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
                   isActive 
                     ? 'text-orange-600 bg-orange-50/70 border border-orange-100' 
-                    : 'text-muted-foreground hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-card border border-transparent'
                 }`}
                 id={`nav-item-${item.view}`}
               >
@@ -81,7 +81,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
         <div className="lg:hidden">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-muted-foreground hover:text-slate-900 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+            className="text-muted-foreground hover:text-foreground p-2 rounded-lg hover:bg-card transition-colors"
             aria-label="Menüyü Aç/Kapat"
             id="mobile-menu-btn"
           >
@@ -104,7 +104,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
                   className={`flex items-center justify-between w-full p-3.5 rounded-xl text-sm font-bold tracking-tight transition-all ${
                     isActive 
                       ? 'text-orange-600 bg-orange-50/70 border border-orange-100' 
-                      : 'text-muted-foreground hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card border border-transparent'
                   }`}
                   id={`mobile-nav-item-${item.view}`}
                 >
@@ -117,7 +117,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
               );
             })}
             
-            <div className="pt-4 border-t border-slate-100">
+            <div className="pt-4 border-t border-border">
               <button 
                 onClick={() => handleNavClick('dokumanlar')}
                 className="w-full bg-card text-foreground p-3.5 rounded-xl text-center text-xs font-bold tracking-widest uppercase hover:bg-orange-600 transition-colors duration-300"

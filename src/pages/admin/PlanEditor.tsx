@@ -634,7 +634,7 @@ export function PlanEditor() {
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${
                   lifecycleMode === 'active_hidden'
                     ? 'border-indigo-500/60 bg-indigo-500/10 shadow-lg shadow-indigo-950/30'
-                    : 'border-zinc-800 bg-zinc-950/60 hover:border-zinc-700'
+                    : 'border-border bg-background hover:border-border'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -661,7 +661,7 @@ export function PlanEditor() {
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${
                   lifecycleMode === 'inactive'
                     ? 'border-amber-500/60 bg-amber-500/10 shadow-lg shadow-amber-950/30'
-                    : 'border-zinc-800 bg-zinc-950/60 hover:border-zinc-700'
+                    : 'border-border bg-background hover:border-border'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -688,7 +688,7 @@ export function PlanEditor() {
                 className={`rounded-xl border p-4 space-y-3 ${
                   isDeactivating
                     ? 'border-amber-500/40 bg-amber-500/10'
-                    : 'border-zinc-800 bg-zinc-950/70'
+                    : 'border-border bg-background'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -1276,7 +1276,7 @@ export function PlanEditor() {
               className={`rounded-2xl border p-5 space-y-4 transition-all ${
                 isFeatured
                   ? 'border-indigo-500/60 bg-indigo-950/20 shadow-lg shadow-indigo-950/30'
-                  : 'border-zinc-800 bg-zinc-900/70'
+                  : 'border-border bg-card'
               }`}
             >
               <div className="flex items-start justify-between gap-2">

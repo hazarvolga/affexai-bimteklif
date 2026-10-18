@@ -213,7 +213,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
                 <BookOpen size={14} className="text-tech-blue" />
                 Detailed Question-by-Question Review
               </h3>
-              <span className="text-[9px] font-mono bg-tech-blue/15 text-tech-blue border border-tech-blue/20 px-2 py-0.5">EXPERT CITATIONS</span>
+              <span className="text-[10px] font-mono bg-tech-blue/15 text-tech-blue border border-tech-blue/20 px-2 py-0.5">EXPERT CITATIONS</span>
             </div>
 
             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
@@ -228,7 +228,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
                       <h4 className="font-bold text-graphite-200">
                         Q{idx + 1}: {q.subject}
                       </h4>
-                      <span className={`px-2 py-0.5 text-[8px] font-bold border rounded-[1px] uppercase shrink-0 ${
+                      <span className={`px-2 py-0.5 text-[10px] font-bold border rounded-[1px] uppercase shrink-0 ${
                         isCorrect 
                           ? 'bg-signal-green/10 border-signal-green/30 text-signal-green' 
                           : 'bg-signal-red/10 border-signal-red/30 text-signal-red'
@@ -257,7 +257,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
                     </div>
 
                     <div className="bg-graphite-950 p-3 border border-graphite-800 space-y-1">
-                      <p className="text-tech-blue text-[9px] font-bold uppercase tracking-wider">ACADEMIC EXPLANATION & STANDARDS CITATION:</p>
+                      <p className="text-tech-blue text-[10px] font-bold uppercase tracking-wider">ACADEMIC EXPLANATION & STANDARDS CITATION:</p>
                       <p className="text-graphite-400 text-[10px] leading-relaxed font-sans">
                         {q.explanation}
                       </p>
@@ -426,7 +426,7 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
       </div>
 
       {/* Status Bar */}
-      <footer className="h-6 bg-graphite-900 border-t border-graphite-500 px-8 flex items-center justify-between text-[9px] font-mono text-graphite-500 uppercase tracking-widest">
+      <footer className="h-6 bg-graphite-900 border-t border-graphite-500 px-8 flex items-center justify-between text-[10px] font-mono text-graphite-500 uppercase tracking-widest">
         <div className="flex gap-6">
           <span>CONNECTION: SECURE</span>
           <span>SERVER: CLOUD-RUN-FIREBASE</span>

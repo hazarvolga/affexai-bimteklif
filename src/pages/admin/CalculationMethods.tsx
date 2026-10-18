@@ -13,7 +13,7 @@ const STATUS_CLASS: Record<CalcModule["status"], string> = {
   standart: "border-sky-500/30 text-sky-300",
   sirket_politikasi: "border-amber-500/30 text-amber-300",
   sezgisel: "border-orange-500/30 text-orange-300",
-  bilgi_amacli: "border-zinc-600 text-muted-foreground",
+  bilgi_amacli: "border-border text-muted-foreground",
 };
 
 function Field({ title, children }: { title: string; children: React.ReactNode }) {
@@ -140,6 +140,7 @@ export function CalculationMethods() {
               <span className="text-muted-foreground">Proje / dosya kimliği ve SHA-256:</span>
               <input
                 type="text"
+                aria-label="Proje / dosya kimliği ve SHA-256"
                 placeholder="Örn: PRJ-2026-01 · sha256:..."
                 className="w-full rounded border border-border bg-background px-2.5 py-1.5 font-mono text-xs text-foreground"
               />
@@ -148,6 +149,7 @@ export function CalculationMethods() {
               <span className="text-muted-foreground">Test koşusu / bağımsız hesap eki ve Disiplin (STR/ARC/MEP):</span>
               <input
                 type="text"
+                aria-label="Test koşusu / bağımsız hesap eki ve Disiplin (STR/ARC/MEP)"
                 placeholder="Örn: STR · İMO Sicil No / Hesap Eki Referansı"
                 className="w-full rounded border border-border bg-background px-2.5 py-1.5 font-mono text-xs text-foreground"
               />

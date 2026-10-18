@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-17. Keep this file to one page: current truth only.
+Last updated: 2026-10-18. Keep this file to one page: current truth only.
 > **Brand Note:** Project brand is officially **BIMMetraj** (formerly TeklifPro; domain `https://bimmetraj.com`).
 
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
@@ -12,6 +12,7 @@ Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-17.md`.
 - `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
   Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
   `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
+- Latest implemented revision: Rev. 33 (`BIM-CALC-2026-10-18.27`, Tasarım Sistemi Tam Token Göçü, Sabit Renk Temizliği & WCAG 2.2 AA (axe-core) Erişilebilirlik Denetimi). 400'ün üzerinde eski nötr sınıf (zinc/slate) ve 10px altı mikro metin temizlendi; tüm form kontrolleri ve ikon butonları erişilebilir etiketlere (htmlFor/id ve aria-label) bağlandı; `pnpm run test:a11y` (`src/lib/a11y-audit.test.ts`) sıfır kritik ihlal ile doğrulandı.
 - Last verified live revision: `f871a067a1b3cb7922f6e7963d68baa3bf4034f1` (Rev. 32.2, Global Shell & Sidebar Quick Tour Buttons + 100% Transparent Spotlight Cutout,
   `/api/health`, `revisionSource: "build"`, 2026-10-17, Coolify deploy `54e21c87-7ca5-44a0-9ff7-7bc2a5479086`). Transactional e-mail uses Stalwart SMTP 465 at
   `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`), plus Early-Access Waitlist on `/` and lead management at `/admin/leads`.

@@ -103,24 +103,24 @@ export function RegulationImpactPanel() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className={cn("text-[8px] font-black uppercase tracking-widest", impactStyles[version.impactLevel])}>{version.impactLevel}</Badge>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{version.category}</span>
+                    <Badge variant="outline" className={cn("text-[10px] font-black uppercase tracking-widest", impactStyles[version.impactLevel])}>{version.impactLevel}</Badge>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{version.category}</span>
                   </div>
                   <p className="mt-2 text-[11px] font-black uppercase tracking-tight text-foreground">{version.title}</p>
-                  <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-muted-foreground">{version.summary}</p>
+                  <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-muted-foreground">{version.summary}</p>
                 </div>
-                <Button aria-label={`${version.title} etki analizini aç`} variant="ghost" size="icon-sm" onClick={() => void toggleImpact(version)} disabled={busyId === version.id} className="shrink-0 text-muted-foreground hover:text-white">
+                <Button aria-label={`${version.title} etki analizini aç`} variant="ghost" size="icon-sm" onClick={() => void toggleImpact(version)} disabled={busyId === version.id} className="shrink-0 text-muted-foreground hover:text-foreground">
                   {busyId === version.id ? <Loader2 size={13} className="animate-spin" /> : isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                 </Button>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-muted-foreground"><span className="flex items-center gap-1"><Clock3 size={10} /> {formatDate(version.effectiveFrom)}</span><span className="flex items-center gap-1"><FileText size={10} /> {version.sourceDocumentIdentifier}</span></div>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><Clock3 size={10} /> {formatDate(version.effectiveFrom)}</span><span className="flex items-center gap-1"><FileText size={10} /> {version.sourceDocumentIdentifier}</span></div>
               {isExpanded && (
                 <div className="mt-3 border-t border-border pt-3">
                   {!versionImpacts?.length ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-3 text-[9px] text-muted-foreground"><ShieldCheck size={12} className="text-emerald-500" /> Bu sürüm için mevcut latest tekliflerde deterministik eşleşme bulunmadı.</div>
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-3 text-[10px] text-muted-foreground"><ShieldCheck size={12} className="text-emerald-500" /> Bu sürüm için mevcut latest tekliflerde deterministik eşleşme bulunmadı.</div>
                   ) : (
                     <div className="space-y-2">
-                      {versionImpacts.map((impact) => <div key={impact.quotation.id} className="rounded-lg border border-orange-500/10 bg-orange-500/[0.03] p-3"><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-black uppercase tracking-tight text-foreground">{impact.quotation.quoteNumber} · {impact.quotation.projectName}</p><Badge variant="outline" className="text-[8px] uppercase tracking-widest text-amber-400">{impact.effectiveStatus}</Badge></div><p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{impact.reason}</p><p className="mt-1 text-[8px] text-zinc-700">{impact.itemIds.length} kalem · {impact.matchType} · güven {impact.confidence}</p></div>)}
+                      {versionImpacts.map((impact) => <div key={impact.quotation.id} className="rounded-lg border border-orange-500/10 bg-orange-500/[0.03] p-3"><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-black uppercase tracking-tight text-foreground">{impact.quotation.quoteNumber} · {impact.quotation.projectName}</p><Badge variant="outline" className="text-[10px] uppercase tracking-widest text-amber-400">{impact.effectiveStatus}</Badge></div><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{impact.reason}</p><p className="mt-1 text-[10px] text-foreground">{impact.itemIds.length} kalem · {impact.matchType} · güven {impact.confidence}</p></div>)}
                     </div>
                   )}
                 </div>
@@ -128,8 +128,8 @@ export function RegulationImpactPanel() {
             </div>
           );
         })}
-        {versions.length > 8 && <p className="text-center text-[9px] text-muted-foreground">+{versions.length - 8} advisory sürüm daha</p>}
-        <div className="flex items-start gap-2 rounded-xl border border-orange-500/10 bg-orange-500/[0.03] p-3 text-[9px] leading-relaxed text-muted-foreground"><AlertCircle size={13} className="mt-0.5 shrink-0 text-orange-500" /> Bu eşleşme mühendislik veya hukuk onayı değildir; kullanıcı, kaynak metni ve proje sözleşmesini kontrol etmeden teklif değiştirmemelidir.</div>
+        {versions.length > 8 && <p className="text-center text-[10px] text-muted-foreground">+{versions.length - 8} advisory sürüm daha</p>}
+        <div className="flex items-start gap-2 rounded-xl border border-orange-500/10 bg-orange-500/[0.03] p-3 text-[10px] leading-relaxed text-muted-foreground"><AlertCircle size={13} className="mt-0.5 shrink-0 text-orange-500" /> Bu eşleşme mühendislik veya hukuk onayı değildir; kullanıcı, kaynak metni ve proje sözleşmesini kontrol etmeden teklif değiştirmemelidir.</div>
       </CardContent>
     </Card>
   );

@@ -81,7 +81,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
         <Button
           variant="ghost"
           onClick={resetSimulator}
-          className="text-muted-foreground hover:text-zinc-300 font-mono text-[9px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
+          className="text-muted-foreground hover:text-foreground font-mono text-[10px] h-auto p-0 flex items-center gap-1 uppercase tracking-widest"
         >
           <RefreshCw size={10} /> Sıfırla
         </Button>
@@ -110,7 +110,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
                 onChange={(e) => handleCoverChange(parseInt(e.target.value))}
                 className="w-full accent-orange-500 h-1 bg-surface-elevated rounded-lg cursor-pointer"
               />
-              <div className="flex justify-between text-[8px] text-muted-foreground font-mono">
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
                 <span>15 mm (Minimum)</span>
                 <span>35 mm (Gerekli)</span>
                 <span>50 mm (Maksimum)</span>
@@ -119,35 +119,35 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
 
             {/* Standard Selection */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Bindirme Hesabı Standardı</label>
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Bindirme Hesabı Standardı</label>
               <div className="grid grid-cols-2 gap-1">
                 {([['TS500', 'TS 500 (Denk. 9.1–9.2)'], ['EC2', 'Eurocode 2 (demo)']] as const).map(([value, label]) => (
                   <button
                     key={value}
                     onClick={() => setStandard(value)}
-                    className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
-                      standard === value ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-zinc-700'
+                    className={`font-mono text-[10px] py-1 border rounded-md transition-colors ${
+                      standard === value ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-border'
                     }`}
                   >
                     {label}
                   </button>
                 ))}
               </div>
-              <p className="text-[8px] text-muted-foreground font-mono">
+              <p className="text-[10px] text-muted-foreground font-mono">
                 {standard === 'TS500' ? 'B420C, nervürlü, iyi aderans, tüm çubuklar aynı kesitte eklenir (r = 1, α1 = 1,5).' : 'Sabit çelik gerilmesi senaryolu basitleştirilmiş EN 1992-1-1 demosu.'}
               </p>
             </div>
 
             {/* Concrete Selection */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Beton Sınıfı</label>
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Beton Sınıfı</label>
               <div className="grid grid-cols-5 gap-1">
                 {['C20/25', 'C25/30', 'C30/37', 'C35/45', 'C40/50'].map(grade => (
                   <button
                     key={grade}
                     onClick={() => setConcreteGrade(grade)}
-                    className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
-                      concreteGrade === grade ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-zinc-700'
+                    className={`font-mono text-[10px] py-1 border rounded-md transition-colors ${
+                      concreteGrade === grade ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-border'
                     }`}
                   >
                     {grade}
@@ -158,7 +158,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
 
             {/* Bar Diameter */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
+              <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
                 <span className="uppercase font-black text-muted-foreground tracking-wider">DONATI ÇAPI (Φ)</span>
                 <span className="text-orange-500 font-bold">{barDiameter} mm</span>
               </div>
@@ -167,8 +167,8 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
                   <button
                     key={dia}
                     onClick={() => setBarDiameter(dia)}
-                    className={`font-mono text-[9px] py-1 border rounded-md transition-colors ${
-                      barDiameter === dia ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-zinc-700'
+                    className={`font-mono text-[10px] py-1 border rounded-md transition-colors ${
+                      barDiameter === dia ? 'bg-orange-600 border-orange-600 text-white font-bold' : 'bg-background border-border text-muted-foreground hover:border-border'
                     }`}
                   >
                     Φ{dia}
@@ -181,7 +181,7 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
 
         {/* Dynamic Structural drawing */}
         <div className="col-span-12 md:col-span-7 bg-background border border-border p-4 flex flex-col items-center justify-center relative min-h-[300px] rounded-xl">
-          <div className="absolute top-3 left-3 text-[9px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+          <div className="absolute top-3 left-3 text-[10px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1">
             <Info size={10} /> Ölçekli Donatı Bindirme Çizimi
           </div>
 
@@ -221,11 +221,11 @@ export const ReinforcementEstimator: React.FC<ReinforcementEstimatorProps> = ({
           {/* Results Summary Box */}
           <div className="w-full bg-card border border-border p-3 flex justify-between items-center font-mono text-[10px] mt-2 rounded-xl">
             <div>
-              <p className="text-muted-foreground uppercase text-[8px] font-bold">Simülasyon sonucu (l0) · {standard === 'TS500' ? 'TS 500' : 'EC2 demo'}</p>
-              <p className="text-sm font-black text-foreground">{calculatedLapLength} mm <span className="text-[9px] text-muted-foreground">({(calculatedLapLength/10).toFixed(1)} cm)</span></p>
+              <p className="text-muted-foreground uppercase text-[10px] font-bold">Simülasyon sonucu (l0) · {standard === 'TS500' ? 'TS 500' : 'EC2 demo'}</p>
+              <p className="text-sm font-black text-foreground">{calculatedLapLength} mm <span className="text-[10px] text-muted-foreground">({(calculatedLapLength/10).toFixed(1)} cm)</span></p>
             </div>
             <div className="text-right">
-              <p className="text-muted-foreground uppercase text-[8px] font-bold">Paspayı Durumu</p>
+              <p className="text-muted-foreground uppercase text-[10px] font-bold">Paspayı Durumu</p>
               <p className={`text-[10px] font-bold uppercase ${coverMm >= 35 ? "text-emerald-500" : "text-red-500 animate-pulse"}`}>
                 {coverMm >= 35 ? "Hedef Değer Sağlandı" : "Yetersiz Paspayı"}
               </p>

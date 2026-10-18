@@ -86,7 +86,7 @@ export function PublicAcademy() {
             <span className="text-lg">BIMPlan Academy</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/" className="hidden text-sm text-muted-foreground transition-colors hover:text-white sm:inline">Ana sayfa</Link>
+            <Link to="/" className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline">Ana sayfa</Link>
             <Link to="/pilot" className="inline-flex h-10 items-center rounded-md bg-orange-600 px-4 text-sm font-medium text-white transition-colors hover:bg-orange-700">Pilot başvurusu</Link>
           </div>
         </nav>
@@ -101,7 +101,7 @@ export function PublicAcademy() {
               <p className="mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">BIMPlan Academy; standartları, maliyet mühendisliğini, saha pratiğini ve dijital teslim süreçlerini gerçek iş kararlarıyla ilişkilendiren açık bir öğrenme ve uygulama alanıdır.</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="#tracks" className="inline-flex h-12 items-center justify-center rounded-md bg-orange-600 px-6 text-sm font-medium text-white transition-colors hover:bg-orange-700">Müfredatı incele <ArrowRight size={17} className="ml-2" /></a>
-                <Link to="/" className="inline-flex h-12 items-center justify-center rounded-md border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-zinc-800">BIMPlan ekosistemini gör</Link>
+                <Link to="/" className="inline-flex h-12 items-center justify-center rounded-md border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-surface-elevated">BIMPlan ekosistemini gör</Link>
               </div>
             </div>
             <aside className="border border-border bg-[#0c0c0e] p-6 md:p-7">
@@ -124,7 +124,7 @@ export function PublicAcademy() {
             </div>
             <div className="mt-14 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {tracks.map((track) => (
-                <Link to={`/academy/${track.slug}`} key={track.title} className="border border-border bg-[#09090b] p-6 transition-colors hover:border-zinc-600">
+                <Link to={`/academy/${track.slug}`} key={track.title} className="border border-border bg-[#09090b] p-6 transition-colors hover:border-border">
                   <div className="flex items-start justify-between gap-4"><Layers3 size={20} className="text-orange-400" /><span className={`border px-2 py-1 text-[11px] ${toneClasses[track.tone]}`}>{track.label}</span></div>
                   <h3 className="mt-8 text-xl font-semibold text-foreground">{track.title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{track.summary}</p>

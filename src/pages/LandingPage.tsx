@@ -342,11 +342,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 <div className="lg:col-span-7">
                   <form onSubmit={handleWaitlistSubmit} className="space-y-3" aria-label="Erken erişim ön kayıt formu">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <label className="block">
+                      <label htmlFor="waitlist-email" className="block">
                         <span className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                           E-Posta Adresiniz *
                         </span>
                         <input
+                          id="waitlist-email"
                           type="email"
                           required
                           value={waitlistEmail}
@@ -355,11 +356,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                           className="h-11 w-full border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none"
                         />
                       </label>
-                      <label className="block">
+                      <label htmlFor="waitlist-name" className="block">
                         <span className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                           Ad Soyad / Firma (İsteğe Bağlı)
                         </span>
                         <input
+                          id="waitlist-name"
                           type="text"
                           value={waitlistNameOrCompany}
                           onChange={(e) => setWaitlistNameOrCompany(e.target.value)}

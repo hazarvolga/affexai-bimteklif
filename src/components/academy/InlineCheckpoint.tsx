@@ -136,7 +136,7 @@ export const InlineCheckpoint: React.FC<{ lessonTitle: string }> = ({ lessonTitl
         </div>
         <div className="flex items-center gap-1 bg-tech-blue/10 px-2 py-0.5 rounded-[1px] border border-tech-blue/20">
           <Sparkles size={10} className="text-tech-blue" />
-          <span className="text-[8px] font-mono text-tech-blue uppercase">Precision Check</span>
+          <span className="text-[10px] font-mono text-tech-blue uppercase">Precision Check</span>
         </div>
       </div>
 

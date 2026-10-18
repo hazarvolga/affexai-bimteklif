@@ -170,7 +170,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
             <User className="text-tech-blue" size={28} />
             Student Profile
           </h1>
-          <p className="text-sm text-muted-foreground dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Manage your credentials, track course completions, and download verified BIM certificates.
           </p>
         </div>
@@ -295,37 +295,37 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
           <TechnicalPanel id="progress-summary-panel" title="ACADEMIC PROGRESS REPORT" accentColor="#10b981">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs">
               <div className="bg-graphite-950 p-3 border border-graphite-850 rounded-[1px] space-y-1">
-                <span className="text-graphite-500 block text-[8px] uppercase tracking-wider flex items-center gap-1">
+                <span className="text-graphite-500 block text-[10px] uppercase tracking-wider flex items-center gap-1">
                   <BookOpen size={10} className="text-tech-blue" /> SYLLABUS COMPLETED
                 </span>
                 <span className="text-lg font-black text-foreground">{completedCount} / {totalLessonsCount}</span>
-                <div className="text-[9px] text-graphite-400 font-bold">{progressPercent}% rate</div>
+                <div className="text-[10px] text-graphite-400 font-bold">{progressPercent}% rate</div>
               </div>
 
               <div className="bg-graphite-950 p-3 border border-graphite-850 rounded-[1px] space-y-1">
-                <span className="text-graphite-500 block text-[8px] uppercase tracking-wider flex items-center gap-1">
+                <span className="text-graphite-500 block text-[10px] uppercase tracking-wider flex items-center gap-1">
                   <Clock size={10} className="text-emerald-400" /> TOTAL STUDY TIME
                 </span>
                 <span className="text-lg font-black text-emerald-400">{formatTotalTime(totalSeconds)}</span>
-                <div className="text-[9px] text-graphite-400 font-bold">Time-on-page tracking</div>
+                <div className="text-[10px] text-graphite-400 font-bold">Time-on-page tracking</div>
               </div>
 
               <div className="bg-graphite-950 p-3 border border-graphite-850 rounded-[1px] space-y-1">
-                <span className="text-graphite-500 block text-[8px] uppercase tracking-wider flex items-center gap-1">
+                <span className="text-graphite-500 block text-[10px] uppercase tracking-wider flex items-center gap-1">
                   <Trophy size={10} className="text-signal-orange" /> HIGHEST EXAM SCORE
                 </span>
                 <span className="text-lg font-black text-signal-orange">
                   {highestScore !== null ? `${highestScore}%` : 'N/A'}
                 </span>
-                <div className="text-[9px] text-graphite-400 font-bold">{hasPassedExam ? 'PASSED (>=60%)' : 'AWAITING EVAL'}</div>
+                <div className="text-[10px] text-graphite-400 font-bold">{hasPassedExam ? 'PASSED (>=60%)' : 'AWAITING EVAL'}</div>
               </div>
 
               <div className="bg-graphite-950 p-3 border border-graphite-850 rounded-[1px] space-y-1">
-                <span className="text-graphite-500 block text-[8px] uppercase tracking-wider flex items-center gap-1 flex-wrap">
+                <span className="text-graphite-500 block text-[10px] uppercase tracking-wider flex items-center gap-1 flex-wrap">
                   <Bookmark size={10} className="text-purple-400 inline" /> BOOKMARKS / NOTES
                 </span>
                 <span className="text-lg font-black text-purple-400">{bookmarks.length} / {notes.length}</span>
-                <div className="text-[9px] text-graphite-400 font-bold">Saved snippets & topics</div>
+                <div className="text-[10px] text-graphite-400 font-bold">Saved snippets & topics</div>
               </div>
             </div>
 
@@ -350,7 +350,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                   {/* Weekly Goal Progress & Completion Estimate */}
                   <div className="bg-graphite-950 p-3.5 border border-graphite-850 rounded-[1px] space-y-3 flex flex-col justify-between">
                     <div className="space-y-1">
-                      <div className="flex justify-between text-[9px] text-graphite-400">
+                      <div className="flex justify-between text-[10px] text-graphite-400">
                         <span className="flex items-center gap-1"><Target size={11} className="text-signal-orange" /> WEEKLY STUDY GOAL (3 hrs)</span>
                         <span className="font-bold text-foreground">{weeklyProgressPercent}%</span>
                       </div>
@@ -375,12 +375,12 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
 
                   {/* Domain-based Study Time Breakdown */}
                   <div className="bg-graphite-950 p-3.5 border border-graphite-850 rounded-[1px] space-y-2.5 flex flex-col justify-between">
-                    <div className="text-[9px] text-graphite-400 uppercase tracking-wider flex items-center gap-1">
+                    <div className="text-[10px] text-graphite-400 uppercase tracking-wider flex items-center gap-1">
                       <TrendingUp size={11} className="text-emerald-400" /> STUDY DENSITY BY BIM DOMAIN
                     </div>
                     <div className="space-y-1.5 max-h-[110px] overflow-y-auto scrollbar-none">
                       {pathStudyTimes.map(domain => (
-                        <div key={domain.id} className="space-y-0.5 text-[9px]">
+                        <div key={domain.id} className="space-y-0.5 text-[10px]">
                           <div className="flex justify-between text-graphite-300">
                             <span className="truncate max-w-[150px] font-bold uppercase">{domain.title}</span>
                             <span className="text-graphite-400">{domain.formatted || '0s'} ({domain.percent}%)</span>
@@ -397,8 +397,8 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                 {/* Recharts Graphical Visualization Chart */}
                 <div className="bg-graphite-950 p-4 border border-graphite-850 rounded-[1px] space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-tech-blue">BIM Domain Study Time (Minutes)</span>
-                    <span className="text-[8px] font-mono text-graphite-500 uppercase">REAL-TIME TELEMETRY</span>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-tech-blue">BIM Domain Study Time (Minutes)</span>
+                    <span className="text-[10px] font-mono text-graphite-500 uppercase">REAL-TIME TELEMETRY</span>
                   </div>
                   <div className="h-44 w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -467,7 +467,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{path.title}</h4>
-                        <span className="text-[9px] text-graphite-500 uppercase font-bold tracking-wider block">
+                        <span className="text-[10px] text-graphite-500 uppercase font-bold tracking-wider block">
                           Total Lessons: {path.lessonsCount || `${modulesForPath.length} Modules`}
                         </span>
                       </div>
@@ -487,7 +487,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
 
                     <div className="pt-2 border-t border-graphite-850 text-[10px] text-graphite-400 flex items-center justify-between">
                       <span>Course children synced: {path.children?.length || 0} tracks</span>
-                      <span className="text-[9px] text-muted-foreground uppercase">{isPathDone ? 'GRADUATED' : 'ACTIVE INTAKE'}</span>
+                      <span className="text-[10px] text-muted-foreground uppercase">{isPathDone ? 'GRADUATED' : 'ACTIVE INTAKE'}</span>
                     </div>
                   </div>
                 );
@@ -512,11 +512,11 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                 <div className="p-4 bg-graphite-950 border border-graphite-850 space-y-3 rounded-[1px]">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[9px] text-graphite-500 uppercase block">CREDENTIAL SERIAL</span>
+                      <span className="text-[10px] text-graphite-500 uppercase block">CREDENTIAL SERIAL</span>
                       <span className="text-[11px] font-bold text-graphite-250 select-all">{certId}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-graphite-500 uppercase block">SECURITY VERIFICATION HASH</span>
+                      <span className="text-[10px] text-graphite-500 uppercase block">SECURITY VERIFICATION HASH</span>
                       <span className={`text-[11px] font-bold select-all ${isEligibleForCert ? 'text-emerald-400' : 'text-graphite-500'}`}>
                         {verificationHash}
                       </span>
@@ -542,7 +542,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                     <AlertTriangle className="text-signal-red shrink-0 size-4 mt-0.5" />
                     <div>
                       <p className="font-bold text-signal-red uppercase">Requirements Unfulfilled</p>
-                      <p className="mt-0.5 text-[9px]">
+                      <p className="mt-0.5 text-[10px]">
                         To unlock this certificate, you must satisfy at least one of the conditions: Pass the final certification exam (score &gt;= 60%) OR complete 100% of all syllabus lessons.
                       </p>
                     </div>
@@ -574,7 +574,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({
                 </TechnicalButton>
 
                 {isEligibleForCert && (
-                  <div className="text-center text-[9px] text-graphite-500 font-mono italic">
+                  <div className="text-center text-[10px] text-graphite-500 font-mono italic">
                     * Standard printable PDF ready. Ready to share on LinkedIn.
                   </div>
                 )}

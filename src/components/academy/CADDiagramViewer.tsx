@@ -158,10 +158,10 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
       <div className="bg-graphite-900 px-3 py-2 flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center border-b border-graphite-500">
         <div className="flex items-center gap-2 flex-wrap">
           <div className={`size-2 rounded-full ${loading ? 'bg-tech-blue animate-pulse' : generatedDiagram ? 'bg-emerald-400' : 'bg-orange-400'}`} />
-          <span className="text-[9px] font-bold text-graphite-300 tracking-wider">
+          <span className="text-[10px] font-bold text-graphite-300 tracking-wider">
             {generatedDiagram ? generatedDiagram.viewportTitle : `ALLPLAN VIEWPORT: ${lessonTitle.toUpperCase()}`}
           </span>
-          <span className="text-[8px] px-1.5 py-0.5 rounded-[1px] font-bold uppercase tracking-wide bg-graphite-950 border border-graphite-800 flex items-center gap-1">
+          <span className="text-[10px] px-1.5 py-0.5 rounded-[1px] font-bold uppercase tracking-wide bg-graphite-950 border border-graphite-800 flex items-center gap-1">
             {loading ? (
               <>
                 <Cpu className="size-2 text-tech-blue animate-spin" />
@@ -183,27 +183,27 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             onClick={() => setRefreshCount(prev => prev + 1)}
             disabled={loading}
             title="Force regenerate CAD viewport with Gemini"
-            className="p-1 rounded-[1px] hover:bg-graphite-800 text-graphite-400 hover:text-white disabled:opacity-50 transition-colors"
+            className="p-1 rounded-[1px] hover:bg-graphite-800 text-graphite-400 hover:text-foreground disabled:opacity-50 transition-colors"
           >
             <RefreshCw size={10} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
-        <div className="flex items-center gap-2 text-[9px] text-graphite-400">
+        <div className="flex items-center gap-2 text-[10px] text-graphite-400">
           <button 
             onClick={() => setActiveLayer('all')}
-            className={`px-1.5 py-0.5 rounded-[1px] border ${activeLayer === 'all' ? 'border-tech-blue text-tech-blue bg-tech-blue/10' : 'border-transparent hover:text-white'}`}
+            className={`px-1.5 py-0.5 rounded-[1px] border ${activeLayer === 'all' ? 'border-tech-blue text-tech-blue bg-tech-blue/10' : 'border-transparent hover:text-foreground'}`}
           >
             All Layers
           </button>
           <button 
             onClick={() => setActiveLayer('structural')}
-            className={`px-1.5 py-0.5 rounded-[1px] border ${activeLayer === 'structural' ? 'border-tech-blue text-tech-blue bg-tech-blue/10' : 'border-transparent hover:text-white'}`}
+            className={`px-1.5 py-0.5 rounded-[1px] border ${activeLayer === 'structural' ? 'border-tech-blue text-tech-blue bg-tech-blue/10' : 'border-transparent hover:text-foreground'}`}
           >
             Structural Only
           </button>
           <button 
             onClick={() => setActiveLayer('dimensions')}
-            className={`px-1.5 py-0.5 rounded-[1px] border ${activeLayer === 'dimensions' ? 'border-tech-blue text-tech-blue bg-tech-blue/10' : 'border-transparent hover:text-white'}`}
+            className={`px-1.5 py-0.5 rounded-[1px] border ${activeLayer === 'dimensions' ? 'border-tech-blue text-tech-blue bg-tech-blue/10' : 'border-transparent hover:text-foreground'}`}
           >
             Dims Only
           </button>
@@ -366,7 +366,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
                 <path d="M 50,40 L 50,80 L 100,100 L 100,60" stroke="#0284c7" strokeWidth="1.5" />
                 <path d="M 150,40 L 150,80 L 100,100" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3,1" />
                 <text x="100" y="115" textAnchor="middle" fill="#0284c7" className="text-[10px] font-bold">Parasolid Kernel</text>
-                <text x="100" y="127" textAnchor="middle" fill="#94a3b8" className="text-[8px]">Precision Engine</text>
+                <text x="100" y="127" textAnchor="middle" fill="#94a3b8" className="text-[10px]">Precision Engine</text>
               </g>
             )}
 
@@ -377,7 +377,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
                 <path d="M 80,10 L 80,20" stroke="#0099ff" strokeWidth="1.5" />
                 <circle cx="80" cy="45" r="14" fill="#0099ff" fillOpacity="0.2" stroke="#0099ff" strokeWidth="1.5" />
                 <text x="80" y="48" textAnchor="middle" fill="#38bdf8" className="text-[11px] font-bold">BIMPLUS</text>
-                <text x="80" y="80" textAnchor="middle" fill="#94a3b8" className="text-[8px] font-semibold">Common Data Cloud</text>
+                <text x="80" y="80" textAnchor="middle" fill="#94a3b8" className="text-[10px] font-semibold">Common Data Cloud</text>
                 {/* Animated pulsing rings */}
                 <circle cx="80" cy="45" r="22" stroke="#0099ff" strokeWidth="0.5" strokeDasharray="4,4" className="animate-spin" style={{ transformOrigin: '80px 45px' }} />
               </g>
@@ -387,13 +387,13 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             {activeLayer !== 'structural' && (
               <g className="translate-x-[400px] translate-y-[40px]">
                 <rect x="0" y="0" width="160" height="110" rx="2" fill="#111827" stroke="#10b981" strokeWidth="1" />
-                <text x="10" y="20" fill="#10b981" className="text-[9px] font-bold">IFC4 CLASSIFICATION TREE</text>
-                <text x="15" y="40" fill="#e2e8f0" className="text-[8px]">IfcProject (Allplan Project)</text>
-                <text x="25" y="55" fill="#e2e8f0" className="text-[8px]">└── IfcBuildingStorey</text>
-                <text x="35" y="70" fill="#34d399" className="text-[8px]">    └── IfcWallStandardCase</text>
+                <text x="10" y="20" fill="#10b981" className="text-[10px] font-bold">IFC4 CLASSIFICATION TREE</text>
+                <text x="15" y="40" fill="#e2e8f0" className="text-[10px]">IfcProject (Allplan Project)</text>
+                <text x="25" y="55" fill="#e2e8f0" className="text-[10px]">└── IfcBuildingStorey</text>
+                <text x="35" y="70" fill="#34d399" className="text-[10px]">    └── IfcWallStandardCase</text>
                 {/* Attribute tags */}
                 <rect x="45" y="82" width="105" height="18" rx="1" fill="#047857" fillOpacity="0.3" stroke="#10b981" strokeWidth="0.5" />
-                <text x="50" y="93" fill="#10b981" className="text-[7px]">Pset_WallCommon [FireRating: EI90]</text>
+                <text x="50" y="93" fill="#10b981" className="text-[10px]">Pset_WallCommon [FireRating: EI90]</text>
               </g>
             )}
 
@@ -409,31 +409,31 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             {/* Top Toolbar (Actionbar Mockup) */}
             <rect x="10" y="10" width="580" height="32" fill="#1e293b" stroke="#334155" strokeWidth="1" />
             <text x="20" y="30" fill="#38bdf8" className="text-[10px] font-bold">ACTIONBAR:</text>
-            <text x="100" y="29" fill="#e2e8f0" className="text-[9px]">Role: Engineering</text>
+            <text x="100" y="29" fill="#e2e8f0" className="text-[10px]">Role: Engineering</text>
             {/* Active tool highlight button */}
             <rect x="230" y="15" width="50" height="22" fill="#0284c7" rx="1" />
-            <text x="255" y="29" textAnchor="middle" fill="#ffffff" className="text-[8px] font-bold">Wall [F3]</text>
+            <text x="255" y="29" textAnchor="middle" fill="#ffffff" className="text-[10px] font-bold">Wall [F3]</text>
             
             <rect x="285" y="15" width="50" height="22" fill="#334155" rx="1" />
-            <text x="310" y="29" textAnchor="middle" fill="#94a3b8" className="text-[8px]">Slab [F4]</text>
+            <text x="310" y="29" textAnchor="middle" fill="#94a3b8" className="text-[10px]">Slab [F4]</text>
 
             <rect x="340" y="15" width="60" height="22" fill="#334155" rx="1" />
-            <text x="370" y="29" textAnchor="middle" fill="#94a3b8" className="text-[8px]">Reinforcement</text>
+            <text x="370" y="29" textAnchor="middle" fill="#94a3b8" className="text-[10px]">Reinforcement</text>
 
             {/* Left Properties Panel */}
             <rect x="10" y="50" width="130" height="230" fill="#111827" stroke="#334155" strokeWidth="1" />
-            <text x="18" y="68" fill="#38bdf8" className="text-[9px] font-bold">PROPERTIES PALETTE</text>
+            <text x="18" y="68" fill="#38bdf8" className="text-[10px] font-bold">PROPERTIES PALETTE</text>
             <line x1="15" y1="75" x2="135" y2="75" stroke="#334155" />
             
             {/* Properties fields */}
-            <text x="18" y="95" fill="#94a3b8" className="text-[8px]">Wall Thickness</text>
-            <text x="18" y="108" fill="#e2e8f0" className="text-[9px] font-semibold">300.00 mm</text>
+            <text x="18" y="95" fill="#94a3b8" className="text-[10px]">Wall Thickness</text>
+            <text x="18" y="108" fill="#e2e8f0" className="text-[10px] font-semibold">300.00 mm</text>
             
-            <text x="18" y="130" fill="#94a3b8" className="text-[8px]">Priority Join</text>
-            <text x="18" y="143" fill="#34d399" className="text-[9px] font-semibold">500 (Concrete Core)</text>
+            <text x="18" y="130" fill="#94a3b8" className="text-[10px]">Priority Join</text>
+            <text x="18" y="143" fill="#34d399" className="text-[10px] font-semibold">500 (Concrete Core)</text>
 
-            <text x="18" y="165" fill="#94a3b8" className="text-[8px]">Drawing Layer</text>
-            <text x="18" y="178" fill="#38bdf8" className="text-[9px] font-semibold">AR_WALL_EXT</text>
+            <text x="18" y="165" fill="#94a3b8" className="text-[10px]">Drawing Layer</text>
+            <text x="18" y="178" fill="#38bdf8" className="text-[10px] font-semibold">AR_WALL_EXT</text>
 
             {/* Main view split visualization */}
             <rect x="150" y="50" width="440" height="230" fill="#020617" stroke="#334155" strokeWidth="1" />
@@ -442,10 +442,10 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             <line x1="150" y1="165" x2="590" y2="165" stroke="#334155" strokeDasharray="3,3" />
 
             {/* Viewport label text */}
-            <text x="160" y="65" fill="#64748b" className="text-[8px] font-bold">PLAN VIEW (XY)</text>
-            <text x="380" y="65" fill="#64748b" className="text-[8px] font-bold">ISOMETRIC WIREFRAME (XYZ)</text>
-            <text x="160" y="180" fill="#64748b" className="text-[8px] font-bold">FRONT ELEVATION (XZ)</text>
-            <text x="380" y="180" fill="#34d399" className="text-[8px] font-bold">REAL-TIME F4 RENDER (OPENGL)</text>
+            <text x="160" y="65" fill="#64748b" className="text-[10px] font-bold">PLAN VIEW (XY)</text>
+            <text x="380" y="65" fill="#64748b" className="text-[10px] font-bold">ISOMETRIC WIREFRAME (XYZ)</text>
+            <text x="160" y="180" fill="#64748b" className="text-[10px] font-bold">FRONT ELEVATION (XZ)</text>
+            <text x="380" y="180" fill="#34d399" className="text-[10px] font-bold">REAL-TIME F4 RENDER (OPENGL)</text>
 
             {/* Render concrete structure inside F4 view */}
             <g className="translate-x-[440px] translate-y-[210px] scale-[0.6]">
@@ -463,17 +463,17 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             {/* Left panel: Structural Tree Hierarchy */}
             <g className="translate-x-[10px] translate-y-[20px]">
               <rect x="0" y="0" width="220" height="230" rx="2" fill="#111827" stroke="#334155" strokeWidth="1" />
-              <text x="12" y="20" fill="#38bdf8" className="text-[9px] font-bold">BUILDING STRUCTURE TREE</text>
+              <text x="12" y="20" fill="#38bdf8" className="text-[10px] font-bold">BUILDING STRUCTURE TREE</text>
               <line x1="10" y1="28" x2="210" y2="28" stroke="#334155" />
               
-              <text x="15" y="50" fill="#e2e8f0" className="text-[8px]">🏢 Project: BIM Plan Academy Istanbul</text>
-              <text x="25" y="70" fill="#e2e8f0" className="text-[8px]">└── 🏗️ Building Model A</text>
-              <text x="35" y="90" fill="#e2e8f0" className="text-[8px]">    └── 🪜 Storey: Ground Floor</text>
+              <text x="15" y="50" fill="#e2e8f0" className="text-[10px]">🏢 Project: BIM Plan Academy Istanbul</text>
+              <text x="25" y="70" fill="#e2e8f0" className="text-[10px]">└── 🏗️ Building Model A</text>
+              <text x="35" y="90" fill="#e2e8f0" className="text-[10px]">    └── 🪜 Storey: Ground Floor</text>
               
               {/* Drawing files detail */}
-              <text x="45" y="115" fill="#38bdf8" className="text-[8px] font-semibold">├── 📄 Teilbild 101: Concrete Frame [Active]</text>
-              <text x="45" y="135" fill="#94a3b8" className="text-[8px]">├── 📄 Teilbild 102: Slab Reinforcement [Ref]</text>
-              <text x="45" y="155" fill="#94a3b8" className="text-[8px]">└── 📄 Teilbild 110: SmartPart Windows [Ref]</text>
+              <text x="45" y="115" fill="#38bdf8" className="text-[10px] font-semibold">├── 📄 Teilbild 101: Concrete Frame [Active]</text>
+              <text x="45" y="135" fill="#94a3b8" className="text-[10px]">├── 📄 Teilbild 102: Slab Reinforcement [Ref]</text>
+              <text x="45" y="155" fill="#94a3b8" className="text-[10px]">└── 📄 Teilbild 110: SmartPart Windows [Ref]</text>
 
               {/* Status footer */}
               <rect x="10" y="195" width="200" height="24" rx="1" fill="#1e293b" />
@@ -489,22 +489,22 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
               <g className="translate-y-[50px]">
                 <line x1="10" y1="0" x2="230" y2="0" stroke="#38bdf8" strokeWidth="2" />
                 <circle cx="230" cy="0" r="3" fill="#38bdf8" />
-                <text x="240" y="4" fill="#38bdf8" className="text-[9px] font-bold">Hu: +3.200 m</text>
-                <text x="15" y="-6" fill="#64748b" className="text-[8px]">Upper Constraint Plane</text>
+                <text x="240" y="4" fill="#38bdf8" className="text-[10px] font-bold">Hu: +3.200 m</text>
+                <text x="15" y="-6" fill="#64748b" className="text-[10px]">Upper Constraint Plane</text>
               </g>
 
               {/* Lower plane line */}
               <g className="translate-y-[150px]">
                 <line x1="10" y1="0" x2="230" y2="0" stroke="#0284c7" strokeWidth="2" strokeDasharray="4,2" />
                 <circle cx="230" cy="0" r="3" fill="#0284c7" />
-                <text x="240" y="4" fill="#0284c7" className="text-[9px] font-bold">Hl: 0.000 m (Ground Level)</text>
-                <text x="15" y="-6" fill="#64748b" className="text-[8px]">Lower Reference Plane</text>
+                <text x="240" y="4" fill="#0284c7" className="text-[10px] font-bold">Hl: 0.000 m (Ground Level)</text>
+                <text x="15" y="-6" fill="#64748b" className="text-[10px]">Lower Reference Plane</text>
               </g>
 
               {/* Wall height projection indicators */}
               <path d="M 60,150 L 60,50 L 140,50 L 140,150 Z" fill="#1e293b" fillOpacity="0.4" stroke="#475569" strokeWidth="1" />
-              <text x="100" y="105" textAnchor="middle" fill="#94a3b8" className="text-[9px]">Wall Element (H = 3.20m)</text>
-              <text x="100" y="120" textAnchor="middle" fill="#38bdf8" className="text-[8px]">Constraint: Hu to Hl</text>
+              <text x="100" y="105" textAnchor="middle" fill="#94a3b8" className="text-[10px]">Wall Element (H = 3.20m)</text>
+              <text x="100" y="120" textAnchor="middle" fill="#38bdf8" className="text-[10px]">Constraint: Hu to Hl</text>
 
               {/* Dimensions line on the side */}
               {activeLayer !== 'structural' && (
@@ -513,7 +513,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
                   <path d="M -4,50 L 4,50" stroke="#f59e0b" strokeWidth="1" />
                   <path d="M -4,150 L 4,150" stroke="#f59e0b" strokeWidth="1" />
                   {/* Extension tick lines */}
-                  <text x="8" y="105" fill="#f59e0b" className="text-[9px] font-bold">3200 mm</text>
+                  <text x="8" y="105" fill="#f59e0b" className="text-[10px] font-bold">3200 mm</text>
                 </g>
               )}
             </g>
@@ -529,14 +529,14 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             
             {/* Global Origin */}
             <circle cx="300" cy="150" r="5" fill="#ef4444" fillOpacity="0.3" stroke="#ef4444" strokeWidth="1.5" />
-            <text x="310" y="165" fill="#ef4444" className="text-[8px] font-bold">GLOBAL ORIGIN (0.0, 0.0)</text>
+            <text x="310" y="165" fill="#ef4444" className="text-[10px] font-bold">GLOBAL ORIGIN (0.0, 0.0)</text>
 
             {/* Rotated User Coordinate System (UCS) */}
             <g className="translate-x-[300px] translate-y-[150px] rotate-[25]">
               <line x1="0" y1="0" x2="160" y2="0" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="4,2" />
-              <text x="170" y="3" fill="#38bdf8" className="text-[8px] font-bold">Rotated U-Axis (25°)</text>
+              <text x="170" y="3" fill="#38bdf8" className="text-[10px] font-bold">Rotated U-Axis (25°)</text>
               <line x1="0" y1="0" x2="0" y2="-100" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="4,2" />
-              <text x="5" y="-105" fill="#38bdf8" className="text-[8px] font-bold">V-Axis</text>
+              <text x="5" y="-105" fill="#38bdf8" className="text-[10px] font-bold">V-Axis</text>
             </g>
 
             {/* active snapping test coordinate point */}
@@ -544,15 +544,15 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
               {/* snap anchor */}
               <circle cx="0" cy="0" r="4" stroke="#10b981" strokeWidth="2" fill="none" />
               <rect x="-4" y="-4" width="8" height="8" stroke="#10b981" strokeWidth="1" fill="none" />
-              <text x="12" y="3" fill="#10b981" className="text-[9px] font-bold">ENDPOINT SNAP</text>
+              <text x="12" y="3" fill="#10b981" className="text-[10px] font-bold">ENDPOINT SNAP</text>
               <text x="12" y="14" fill="#94a3b8" className="text-[7.5px]">Reference CAD element edge</text>
 
               {/* Delta line coordinate values */}
               {activeLayer !== 'structural' && (
                 <g className="translate-x-[-120px] translate-y-[50px]">
                   <path d="M 0,0 L 120,0 L 120,-50" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3,3" />
-                  <text x="55" y="-5" fill="#f59e0b" className="text-[8px]" textAnchor="middle">dx = 1500 mm</text>
-                  <text x="125" y="-25" fill="#f59e0b" className="text-[8px]">dy = 625 mm</text>
+                  <text x="55" y="-5" fill="#f59e0b" className="text-[10px]" textAnchor="middle">dx = 1500 mm</text>
+                  <text x="125" y="-25" fill="#f59e0b" className="text-[10px]">dy = 625 mm</text>
                 </g>
               )}
             </g>
@@ -560,8 +560,8 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
             {/* Grid lock configuration */}
             <g className="translate-x-[30px] translate-y-[40px]">
               <rect x="0" y="0" width="130" height="40" rx="1" fill="#111827" stroke="#334155" strokeWidth="1" />
-              <text x="8" y="15" fill="#38bdf8" className="text-[8px] font-bold">COORDINATE TRACKER</text>
-              <text x="8" y="28" fill="#e2e8f0" className="text-[8px]">Snap Interval: 50.0 mm</text>
+              <text x="8" y="15" fill="#38bdf8" className="text-[10px] font-bold">COORDINATE TRACKER</text>
+              <text x="8" y="28" fill="#e2e8f0" className="text-[10px]">Snap Interval: 50.0 mm</text>
             </g>
           </svg>
         )}
@@ -598,12 +598,12 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
               {/* Structural markings & priority annotations */}
               <g className="translate-x-[40px] translate-y-[90px]">
                 <rect x="0" y="0" width="120" height="24" rx="1" fill="#0284c7" fillOpacity="0.2" stroke="#38bdf8" strokeWidth="0.5" />
-                <text x="60" y="15" textAnchor="middle" fill="#38bdf8" className="text-[9px] font-bold">C30/37 CORE: PRIORITY 500</text>
+                <text x="60" y="15" textAnchor="middle" fill="#38bdf8" className="text-[10px] font-bold">C30/37 CORE: PRIORITY 500</text>
               </g>
 
               {activeLayer !== 'structural' && (
                 <g className="translate-x-[20px] translate-y-[25px]">
-                  <text x="0" y="12" fill="#94a3b8" className="text-[8px] font-bold">EPS INSULATION: PRIORITY 200</text>
+                  <text x="0" y="12" fill="#94a3b8" className="text-[10px] font-bold">EPS INSULATION: PRIORITY 200</text>
                 </g>
               )}
 
@@ -626,7 +626,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
                   {/* Dimension text readings */}
                   <text x="22" y="11" fill="#f59e0b" className="text-[7.5px]">20</text>
                   <text x="22" y="42" fill="#f59e0b" className="text-[7.5px]">150</text>
-                  <text x="22" y="105" fill="#f59e0b" className="text-[8px] font-bold">300 mm</text>
+                  <text x="22" y="105" fill="#f59e0b" className="text-[10px] font-bold">300 mm</text>
                 </g>
               )}
             </g>
@@ -655,12 +655,12 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
               <circle cx="110" cy="170" r="10" fill="#10b981" stroke="#047857" strokeWidth="1.5" />
               <circle cx="170" cy="170" r="10" fill="#10b981" stroke="#047857" strokeWidth="1.5" />
               <circle cx="230" cy="170" r="10" fill="#10b981" stroke="#047857" strokeWidth="1.5" />
-              <text x="140" y="195" textAnchor="middle" fill="#10b981" className="text-[9px] font-bold">TENSION BARS: 4 Φ 20 [Grade B500B]</text>
+              <text x="140" y="195" textAnchor="middle" fill="#10b981" className="text-[10px] font-bold">TENSION BARS: 4 Φ 20 [Grade B500B]</text>
 
               {/* Longitudinal compression bars at top (2 * Φ12) */}
               <circle cx="50" cy="50" r="7" fill="#10b981" stroke="#047857" strokeWidth="1" />
               <circle cx="230" cy="50" r="7" fill="#10b981" stroke="#047857" strokeWidth="1" />
-              <text x="140" y="70" textAnchor="middle" fill="#10b981" className="text-[8px]">COMPRESSION BARS: 2 Φ 12</text>
+              <text x="140" y="70" textAnchor="middle" fill="#10b981" className="text-[10px]">COMPRESSION BARS: 2 Φ 12</text>
 
               {/* Concrete Nominal Cover dimensions visualization */}
               {activeLayer !== 'structural' && (
@@ -669,7 +669,7 @@ export const CADDiagramViewer: React.FC<CADDiagramViewerProps> = ({ lessonTitle 
                   <line x1="0" y1="0" x2="35" y2="0" stroke="#f59e0b" strokeWidth="1" />
                   <path d="M 0,-4 L 0,4" stroke="#f59e0b" strokeWidth="1" />
                   <path d="M 35,-4 L 35,4" stroke="#f59e0b" strokeWidth="1" />
-                  <text x="-5" y="-12" fill="#f59e0b" className="text-[8px] font-bold">C_nom = 35 mm</text>
+                  <text x="-5" y="-12" fill="#f59e0b" className="text-[10px] font-bold">C_nom = 35 mm</text>
                   <text x="-5" y="-3" fill="#64748b" className="text-[6.5px]">EC2 Concrete Cover</text>
                 </g>
               )}

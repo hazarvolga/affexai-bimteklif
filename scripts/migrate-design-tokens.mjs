@@ -25,26 +25,51 @@ const files = args.filter(arg => !arg.startsWith('--'));
 const BOUNDARY_BEFORE = '(?<![\\w\\[./:-])';
 const BOUNDARY_AFTER = '(?![\\w-])';
 const OPACITY = '(?:/\\d{1,3})?';
-const PREFIX = '(?:(hover|focus|group-hover|active|sm|md|lg|xl):)?';
+const PREFIX = '(?:((?:(?:hover|focus|focus-visible|group-hover|active|disabled|dark|sm|md|lg|xl|print):)+))?';
+const NEUTRAL = '(?:zinc|slate|neutral)';
+
 const rules = [
-  [`bg-(?:zinc|slate)-950${OPACITY}`, 'bg-background'],
-  [`bg-(?:zinc|slate)-900${OPACITY}`, 'bg-card'],
-  [`bg-(?:zinc|slate)-800${OPACITY}`, 'bg-surface-elevated'],
-  [`bg-(?:zinc|slate)-(?:50|100)${OPACITY}`, 'bg-card'],
-  [`border-(?:zinc-800|zinc-700|slate-100|slate-150|slate-200|slate-300)${OPACITY}`, 'border-border'],
-  [`divide-(?:zinc-800|slate-100|slate-200)${OPACITY}`, 'divide-border'],
-  [`text-(?:zinc|slate)-(?:50|100|200)`, 'text-foreground'],
-  [`text-(?:zinc|slate)-(?:700|800|900|950)`, 'text-foreground'],
-  // Köprüde -300 açık modda mürekkep, koyu modda soluk mürekkeptir.
-  [`text-(?:zinc|slate)-300`, 'text-foreground dark:text-muted-foreground'],
-  [`text-(?:zinc|slate)-(?:400|500|600)`, 'text-muted-foreground'],
-  [`text-\\[(?:7|8|9)px\\]`, 'text-[10px]'],
+  // Placeholder
+  [`placeholder:text-${NEUTRAL}-(?:100|200|300|400|500|600|700|800|900)`, (pfx) => `${pfx}placeholder:text-muted-foreground`],
+
+  // Arka planlar
+  [`bg-${NEUTRAL}-950${OPACITY}`, (pfx) => `${pfx}bg-background`],
+  [`bg-${NEUTRAL}-900${OPACITY}`, (pfx) => `${pfx}bg-card`],
+  [`bg-${NEUTRAL}-800${OPACITY}`, (pfx) => `${pfx}bg-surface-elevated`],
+  [`bg-${NEUTRAL}-700${OPACITY}`, (pfx) => `${pfx}bg-surface-elevated`],
+  [`bg-${NEUTRAL}-(?:50|100)${OPACITY}`, (pfx) => `${pfx}bg-card`],
+  [`bg-${NEUTRAL}-200${OPACITY}`, (pfx) => `${pfx}bg-muted`],
+  [`bg-${NEUTRAL}-(?:500|600)${OPACITY}`, (pfx) => `${pfx}bg-muted-foreground`],
+
+  // Çerçeveler, bölücüler ve halkalar
+  [`border-${NEUTRAL}-(?:100|150|200|300|400|500|600|700|800|900|950)${OPACITY}`, (pfx) => `${pfx}border-border`],
+  [`divide-${NEUTRAL}-(?:100|150|200|300|400|500|600|700|800|900|950)${OPACITY}`, (pfx) => `${pfx}divide-border`],
+  [`ring-${NEUTRAL}-(?:100|200|300|400|500|600|700|800|900|950)${OPACITY}`, (pfx) => `${pfx}ring-border`],
+
+  // Gradyanlar
+  [`from-${NEUTRAL}-(?:900|950)${OPACITY}`, (pfx) => `${pfx}from-background`],
+  [`via-${NEUTRAL}-(?:900|950)${OPACITY}`, (pfx) => `${pfx}via-background`],
+  [`to-${NEUTRAL}-(?:900|950)${OPACITY}`, (pfx) => `${pfx}to-background`],
+  [`to-${NEUTRAL}-800${OPACITY}`, (pfx) => `${pfx}to-card`],
+
+  // Metinler
+  [`text-${NEUTRAL}-(?:50|100|200|700|800|900|950)`, (pfx) => `${pfx}text-foreground`],
+  [`text-${NEUTRAL}-300`, (pfx) => {
+    if (!pfx) return 'text-foreground dark:text-muted-foreground';
+    if (pfx.includes('dark:')) return `${pfx}text-muted-foreground`;
+    return `${pfx}text-foreground`;
+  }],
+  [`text-${NEUTRAL}-(?:400|500|600)`, (pfx) => `${pfx}text-muted-foreground`],
+
+  // Mikro metinler (< 10px WCAG ihlali)
+  [`text-\\[(?:7|8|9)px\\]`, (pfx) => `${pfx}text-[10px]`],
 ];
+
 const SATURATED_BG = /(?<![\w:[./-])bg-(?:indigo|emerald|red|rose|amber|sky|blue|violet|green|purple|orange|teal|cyan|yellow|fuchsia|pink)-[5-9]00/;
-const textWhite = new RegExp(`${BOUNDARY_BEFORE}(?:(hover|focus|group-hover|active|sm|md|lg|xl):)?text-white${BOUNDARY_AFTER}`, 'g');
-const compiled = rules.map(([pattern, replacement]) => [
+const textWhite = new RegExp(`${BOUNDARY_BEFORE}${PREFIX}text-white${BOUNDARY_AFTER}`, 'g');
+const compiled = rules.map(([pattern, fn]) => [
   new RegExp(`${BOUNDARY_BEFORE}${PREFIX}(?:${pattern})${BOUNDARY_AFTER}`, 'g'),
-  replacement,
+  fn,
 ]);
 
 /** Sınıf listesi içeren her string parçası (", ', `) ayrı ele alınır; `${}` içindeki dallar ayrı parçadır. */
@@ -52,29 +77,53 @@ const STRING_SEGMENT = /(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
 
 export function migrateSource(source) {
   let count = 0;
-  const out = source.replace(STRING_SEGMENT, (whole, quote, body) => {
-    if (!/\b(?:bg|text|border|divide)-/.test(body) && !/text-\[[789]px\]/.test(body)) return whole;
-    let next = body;
-    for (const [regex, replacement] of compiled) {
-      next = next.replace(regex, (match, pfx) => {
-        count += 1;
-        return (pfx ? `${pfx}:` : '') + replacement;
-      });
-    }
-    if (!SATURATED_BG.test(next)) {
-      next = next.replace(textWhite, (match, pfx) => {
-        count += 1;
-        return (pfx ? `${pfx}:` : '') + 'text-foreground';
-      });
-    }
-    return `${quote}${next}${quote}`;
+  let next = source;
+
+  for (const [regex, fn] of compiled) {
+    next = next.replace(regex, (match, pfx) => {
+      count += 1;
+      return fn(pfx || '');
+    });
+  }
+
+  // text-white: yalnız doymuş arka plan taşımayan parçalarda text-foreground'a çevrilir
+  next = next.replace(STRING_SEGMENT, (whole, quote, body) => {
+    if (!/\btext-white\b/.test(body) || SATURATED_BG.test(body)) return whole;
+    const replaced = body.replace(textWhite, (match, pfx) => {
+      count += 1;
+      return (pfx || '') + 'text-foreground';
+    });
+    return `${quote}${replaced}${quote}`;
   });
-  return { out, count };
+
+  return { out: next, count };
+}
+
+function collectFiles(targets) {
+  const fileList = [];
+  for (const t of targets) {
+    if (!fs.existsSync(t)) continue;
+    const stat = fs.statSync(t);
+    if (stat.isDirectory()) {
+      const items = fs.readdirSync(t);
+      for (const item of items) {
+        const fullPath = `${t}/${item}`;
+        if (fullPath.includes('src/pages/admin/roadmap') || fullPath.includes('src/academy/reference')) continue;
+        fileList.push(...collectFiles([fullPath]));
+      }
+    } else if (/\.(tsx|ts|jsx|js|html)$/.test(t)) {
+      if (!t.includes('src/pages/admin/roadmap') && !t.includes('src/academy/reference') && !t.endsWith('.test.ts') && !t.endsWith('.test.tsx')) {
+        fileList.push(t);
+      }
+    }
+  }
+  return fileList;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   let total = 0;
-  for (const file of files) {
+  const allFiles = collectFiles(files);
+  for (const file of allFiles) {
     const source = fs.readFileSync(file, 'utf8');
     const { out, count } = migrateSource(source);
     total += count;

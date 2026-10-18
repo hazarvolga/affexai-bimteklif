@@ -346,7 +346,7 @@ export default function BimGlossary() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     selectedCategory === category
                       ? 'bg-orange-600 text-white shadow-sm'
-                      : 'bg-card text-muted-foreground hover:bg-slate-200'
+                      : 'bg-card text-muted-foreground hover:bg-muted'
                   }`}
                   id={`filter-glossary-cat-${category}`}
                 >

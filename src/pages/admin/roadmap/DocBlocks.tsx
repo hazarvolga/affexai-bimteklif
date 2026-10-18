@@ -45,7 +45,7 @@ export function DocBlockView({ block }: { block: DocBlock }) {
 
 export function DocSectionView({ section, index }: { section: DocSection; index: number }) {
   return (
-    <section id={section.id} className="scroll-mt-24 space-y-3 rounded-xl border border-border bg-card p-5 print:break-inside-avoid-page print:border-zinc-300">
+    <section id={section.id} className="scroll-mt-24 space-y-3 rounded-xl border border-border bg-card p-5 print:break-inside-avoid-page print:border-border">
       <h2 className="text-base font-bold text-foreground">{index + 1}. {section.title}</h2>
       {section.blocks.map((block, blockIndex) => <DocBlockView key={blockIndex} block={block} />)}
     </section>

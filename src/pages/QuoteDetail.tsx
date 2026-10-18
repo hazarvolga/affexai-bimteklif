@@ -404,10 +404,17 @@ export function QuoteDetail() {
             <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6 space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gerçekleşen toplam maliyet</label><input type="number" min="0" value={calibrationForm.actualCost} onChange={(e) => setCalibrationForm({...calibrationForm, actualCost: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-border bg-background px-3 font-mono text-sm text-foreground focus:border-primary" placeholder={`Para birimi: ${data.currency}`} /></div>
-                  <div><label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gerçekleşen süre (ay)</label><input type="number" min="1" step="1" value={calibrationForm.actualDurationMonths} onChange={(e) => setCalibrationForm({...calibrationForm, actualDurationMonths: e.target.value})} className="mt-2 h-11 w-full rounded-md border border-border bg-background px-3 font-mono text-sm text-foreground focus:border-primary" placeholder="Örn. 18" /></div>
+                  <div>
+                    <label htmlFor="calibration-actual-cost" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-2">Gerçekleşen toplam maliyet</label>
+                    <input id="calibration-actual-cost" type="number" min="0" value={calibrationForm.actualCost} onChange={(e) => setCalibrationForm({...calibrationForm, actualCost: e.target.value})} className="h-11 w-full rounded-md border border-border bg-background px-3 font-mono text-sm text-foreground focus:border-primary" placeholder={`Para birimi: ${data.currency}`} />
+                  </div>
+                  <div>
+                    <label htmlFor="calibration-actual-duration" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-2">Gerçekleşen süre (ay)</label>
+                    <input id="calibration-actual-duration" type="number" min="1" step="1" value={calibrationForm.actualDurationMonths} onChange={(e) => setCalibrationForm({...calibrationForm, actualDurationMonths: e.target.value})} className="h-11 w-full rounded-md border border-border bg-background px-3 font-mono text-sm text-foreground focus:border-primary" placeholder="Örn. 18" />
+                  </div>
                 </div>
-                <textarea value={calibrationForm.note} onChange={(e) => setCalibrationForm({...calibrationForm, note: e.target.value})} rows={2} maxLength={2000} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary" placeholder="Katsayı incelemesine yardımcı olacak kısa not..." />
+                <label htmlFor="calibration-note" className="sr-only">Katsayı inceleme notu</label>
+                <textarea id="calibration-note" aria-label="Katsayı inceleme notu" value={calibrationForm.note} onChange={(e) => setCalibrationForm({...calibrationForm, note: e.target.value})} rows={2} maxLength={2000} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary" placeholder="Katsayı incelemesine yardımcı olacak kısa not..." />
                 <Button onClick={saveCalibrationObservation} disabled={calibrationSaving} className="bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-widest">{calibrationSaving ? 'Kaydediliyor...' : 'Gözlemi Kaydet'}</Button>
               </CardContent>
             </Card>

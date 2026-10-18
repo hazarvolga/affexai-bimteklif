@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-17.26",
-  updatedOn: "17 Ekim 2026",
-  implementationBaseline: "119fb36573ace19a544f85a2f92eaec49e5bb232",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, Melih Dinekli saha yanıtları ve 27 kalemlik 6-villa piyasa maliyet referansı entegre edildi · bağımsız uzman imzasına hazır",
+  version: "BIM-CALC-2026-10-18.27",
+  updatedOn: "18 Ekim 2026",
+  implementationBaseline: "404fcf054dbe42ec3aff381866c042fe69b43382",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, Melih Dinekli saha yanıtları, 27 kalemlik 6-villa piyasa maliyet referansı ve Pafta Tasarım Sistemi tam token/WCAG 2.2 AA erişilebilirlik denetimi tamamlandı · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -829,6 +829,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Firma anteti ve para birimi ayarları hızlı rehberde açıklanmıyordu.",
         after: "Hızlı turun 5. adımında Pafta Anteti ile resmi teklif ve hakediş antet düzeni tanıtılır.",
         basis: "Pafta Tasarım Sistemi ve resmi teklif yönetim standardı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 33",
+    version: "BIM-CALC-2026-10-18.27",
+    date: "18 Ekim 2026",
+    commit: "404fcf0",
+    trigger: "Tasarım Sistemi Tam Token Göçü, Sabit Renk Temizliği & WCAG 2.2 AA (axe-core) Erişilebilirlik Denetimi",
+    beforeSummary:
+      "Bileşenler ve sayfalarda 400'ün üzerinde eski nötr renk sınıfı (bg-zinc-*, text-slate-*, border-slate-*) ve 10px altı mikro metin kalıntıları vardı; form kontrollerinde ve etkileşimli butonlarda etiket (htmlFor/id) ve aria-label bağlantıları tam standartlaşmamıştı.",
+    afterSummary:
+      "Tüm bileşen ve sayfalardaki sabit renkler Pafta Tasarım Sistemi semantik tokenlarına (bg-card, bg-background, border-border, text-foreground, text-muted-foreground, bg-primary) göç ettirildi; 10px altı mikro metinler WCAG okunabilirlik seviyesine çekildi. Tüm form girdilerine, dosya yükleme alanlarına ve ikon butonlarına aria-label ve htmlFor/id ilişkileri eklendi. axe-core tabanlı otomatik erişilebilirlik test paketi (pnpm run test:a11y) kurularak WCAG 2.2 Seviye AA sıfır kritik ihlal ile doğrulandı.",
+    affectedModules: ["teklif-satir", "on-teklif-fizibilite", "kota"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Teklif oluşturma ve detay formlarında bazı dosya yükleme ve kalibrasyon girdileri açık etiket bağlantısından yoksundu.",
+        after: "Tüm girdi, dosya yükleme ve aksiyon butonları htmlFor/id ve aria-label ile donatıldı; semantik tokenlarla tam kontrast güvencesi sağlandı.",
+        basis: "WCAG 2.2 Level AA ve Pafta Tasarım Sistemi kuralları (DESIGN.md)",
+      },
+      "on-teklif-fizibilite": {
+        before: "Parsel şablonu CSV/Excel dosya yükleme alanı sr-only etiketle bağlantısızdı.",
+        after: "label htmlFor='parcel-file-upload' ve aria-label ile ekran okuyucu uyumlu hale getirildi.",
+        basis: "Erişilebilirlik standartları (WAI-ARIA 1.2)",
+      },
+      kota: {
+        before: "Banka havale ve fatura bildirim formundaki 5 metin girdisi etiketleriyle programatik olarak bağlı değildi.",
+        after: "Tüm fatura alanları (senderName, transferReference, taxOffice, taxNumber, notes) htmlFor/id eşleşmesiyle erişilebilir yapıldı.",
+        basis: "WCAG 2.2 AA Form Labeling",
       },
     },
   },

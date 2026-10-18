@@ -492,7 +492,7 @@ Bu gap analizi ve aksiyon raporu BIM Teknik Portal denetleyicisi tarafından ür
                   onClick={() => setActiveGapId(gap.id)}
                   className={`w-full p-4 rounded-xl text-left border transition-all flex gap-3 items-start cursor-pointer ${
                     isActive
-                      ? 'bg-card border-slate-900 text-foreground shadow-md translate-x-1'
+                      ? 'bg-card border-border text-foreground shadow-md translate-x-1'
                       : 'bg-white border-border hover:border-border text-foreground hover:bg-card'
                   }`}
                   id={`gap-selector-${gap.id}`}

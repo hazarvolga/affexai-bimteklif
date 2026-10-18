@@ -155,7 +155,7 @@ export default function BimDashboard() {
               className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all flex items-center gap-2 ${
                 dashboardTab === 'genel'
                   ? 'bg-orange-600 text-white shadow-md'
-                  : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                  : 'bg-white/10 text-foreground hover:bg-white/20'
               }`}
             >
               <BarChart2 className="w-4 h-4" />
@@ -166,7 +166,7 @@ export default function BimDashboard() {
               className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all flex items-center gap-2 ${
                 dashboardTab === 'roi'
                   ? 'bg-orange-600 text-white shadow-md'
-                  : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                  : 'bg-white/10 text-foreground hover:bg-white/20'
               }`}
               id="dashboard-roi-tab-btn"
             >
@@ -318,7 +318,7 @@ export default function BimDashboard() {
 
             {/* Strategic Insights Cards */}
             <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-foreground rounded-2xl p-6 shadow-md flex-1 flex flex-col justify-between space-y-4">
+              <div className="bg-gradient-to-br from-background to-card text-foreground rounded-2xl p-6 shadow-md flex-1 flex flex-col justify-between space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-orange-400 text-xs font-black uppercase tracking-wider">
                     <Sparkles className="w-4 h-4" />
@@ -329,7 +329,7 @@ export default function BimDashboard() {
                     Geleneksel 2D çizimlerde metraj hataları ve buna bağlı bütçe sapmaları ortalama <strong className="text-orange-400">%15 - %18</strong> civarındadır. BIM 5D modelleme yönteminde ise nesne parametreleri doğrudan T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı pozlarıyla eşleştiği için bu sapma <strong className="text-emerald-400">%2'nin altına</strong> indirilir.
                   </p>
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground pt-2 border-t border-slate-700/50">
+                <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground pt-2 border-t border-border">
                   <span>KAYNAK: buildingSMART Türkiye</span>
                   <span>RAPOR: 2026-Q2</span>
                 </div>
@@ -398,7 +398,7 @@ export default function BimDashboard() {
                   step="10"
                   value={projectBudget} 
                   onChange={(e) => setProjectBudget(Number(e.target.value))}
-                  className="w-full accent-orange-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-orange-600 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
                   id="budget-range-slider"
                 />
                 <div className="flex justify-between text-[10px] text-muted-foreground font-bold">
@@ -424,8 +424,8 @@ export default function BimDashboard() {
                       onClick={() => setProjectType(t.id as any)}
                       className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         projectType === t.id
-                          ? 'border-orange-500 bg-orange-50/15 text-slate-900 ring-1 ring-orange-500'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                          ? 'border-orange-500 bg-orange-50/15 text-foreground ring-1 ring-orange-500'
+                          : 'border-border bg-white text-muted-foreground hover:border-border'
                       }`}
                       id={`proj-type-${t.id}`}
                     >
@@ -446,8 +446,8 @@ export default function BimDashboard() {
                       onClick={() => setBimLevel(lvl)}
                       className={`p-3 rounded-xl border font-black text-xs text-center transition-all cursor-pointer flex flex-col justify-center items-center ${
                         bimLevel === lvl
-                          ? 'bg-slate-900 border-slate-900 text-white'
-                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                          ? 'bg-card border-border text-white'
+                          : 'border-border bg-white text-muted-foreground hover:bg-card'
                       }`}
                       id={`target-bim-lvl-${lvl}`}
                     >
@@ -486,7 +486,7 @@ export default function BimDashboard() {
                     </span>
                   </div>
 
-                  <div className="border-t sm:border-t-0 sm:border-l border-slate-700/50 pt-4 sm:pt-0 sm:pl-6">
+                  <div className="border-t sm:border-t-0 sm:border-l border-border pt-4 sm:pt-0 sm:pl-6">
                     <span className="text-xs text-foreground dark:text-muted-foreground font-bold block">Yatırım Geri Dönüş Oranı (ROI)</span>
                     <span className="text-3xl sm:text-4xl font-black text-orange-500 block tracking-tight mt-1">
                       {roiResult.netROI === 0 ? 'Sıfır Getiri' : `%${roiResult.netROI}`}

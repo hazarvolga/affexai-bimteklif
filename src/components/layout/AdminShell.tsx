@@ -43,7 +43,7 @@ export function AdminShell() {
           </div>
           <div>
             <span className="block font-display-serif text-2xl leading-none text-foreground">TeklifPro</span>
-            <span className="mt-1 block font-mono text-[9px] uppercase tracking-widest text-primary">PLATFORM YÖNETİM PAFTASI</span>
+            <span className="mt-1 block font-mono text-[10px] uppercase tracking-widest text-primary">PLATFORM YÖNETİM PAFTASI</span>
           </div>
         </Link>
       </div>
@@ -83,7 +83,7 @@ export function AdminShell() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold text-foreground">{user.email}</p>
-            <p className="truncate font-mono text-[9px] uppercase tracking-wider text-primary">Süper Admin</p>
+            <p className="truncate font-mono text-[10px] uppercase tracking-wider text-primary">Süper Admin</p>
           </div>
         </div>
         <button

@@ -34,7 +34,7 @@ export function VerifyEmail() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-zinc-950 to-zinc-950">
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-background to-background">
       <Card className="w-full max-w-md bg-card border-border backdrop-blur-xl shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 border transition-all duration-500">
@@ -74,7 +74,7 @@ export function VerifyEmail() {
               <p className="text-sm text-muted-foreground">
                 Bağlantı geçersiz veya süresi dolmuş olabilir. Lütfen yeni bir doğrulama bağlantısı talep edin.
               </p>
-              <Button render={<Link to="/" />} variant="outline" className="w-full h-12 border-border text-foreground dark:text-muted-foreground hover:bg-zinc-800">Ana Sayfaya Dön</Button>
+              <Button render={<Link to="/" />} variant="outline" className="w-full h-12 border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated">Ana Sayfaya Dön</Button>
             </div>
           )}
 

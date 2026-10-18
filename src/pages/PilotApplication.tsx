@@ -43,5 +43,5 @@ export function PilotApplication() {
 }
 
 function Field({ label, value, onChange, required = false, type = 'text', placeholder }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; type?: string; placeholder: string }) {
-  return <label className="block text-sm text-muted-foreground">{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} placeholder={placeholder} className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none placeholder:text-zinc-700 focus:border-orange-500" /></label>;
+  return <label className="block text-sm text-muted-foreground">{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} placeholder={placeholder} className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-orange-500" /></label>;
 }

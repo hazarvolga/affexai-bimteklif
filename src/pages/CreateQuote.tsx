@@ -914,6 +914,8 @@ export function CreateQuote() {
                   <div className="flex items-center gap-2">
                     <input
                       ref={fileInputRef}
+                      id="quote-file-upload"
+                      aria-label="Excel veya CSV teklif dosyası yükle"
                       type="file"
                       accept=".xlsx,.xls,.csv,text/csv"
                       className="sr-only"

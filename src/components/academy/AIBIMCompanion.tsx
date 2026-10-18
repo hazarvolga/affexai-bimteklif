@@ -316,14 +316,14 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsDrawerOpen(true)}
-              className="text-graphite-400 hover:text-white transition-colors p-1 hover:bg-graphite-700 rounded-[1px]"
+              className="text-graphite-400 hover:text-foreground transition-colors p-1 hover:bg-graphite-700 rounded-[1px]"
               title="Open Fullscreen Sidebar"
             >
               <Maximize2 size={12} />
             </button>
             <button 
               onClick={handleResetChat}
-              className="text-graphite-400 hover:text-white transition-colors p-1 hover:bg-graphite-700 rounded-[1px]"
+              className="text-graphite-400 hover:text-foreground transition-colors p-1 hover:bg-graphite-700 rounded-[1px]"
               title="Reset Chat"
             >
               <RefreshCw size={12} />
@@ -356,7 +356,7 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-center gap-2 p-2 bg-graphite-950/50 text-graphite-500 font-mono text-[9px] border border-graphite-900">
+            <div className="flex items-center gap-2 p-2 bg-graphite-950/50 text-graphite-500 font-mono text-[10px] border border-graphite-900">
               <Loader2 size={10} className="animate-spin text-tech-blue" />
               <span>Study Buddy is analyzing the lesson content...</span>
             </div>
@@ -373,7 +373,7 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
                 key={idx}
                 onClick={() => handleSend(action.prompt)}
                 disabled={isLoading}
-                className={`px-2 py-1 bg-graphite-900 text-graphite-400 text-[8px] font-mono border border-graphite-800 rounded-[1px] transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 ${action.color}`}
+                className={`px-2 py-1 bg-graphite-900 text-graphite-400 text-[10px] font-mono border border-graphite-800 rounded-[1px] transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 ${action.color}`}
               >
                 <Icon size={9} />
                 <span>{action.label.split(' ').slice(1).join(' ')}</span>
@@ -451,13 +451,13 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
                   </div>
                   <div>
                     <h3 className="text-xs font-bold font-sans text-graphite-50 uppercase tracking-wider">AI Study Buddy</h3>
-                    <p className="text-[9px] text-emerald-400 font-mono tracking-wider mt-0.5 uppercase">Allplan Expert System Live</p>
+                    <p className="text-[10px] text-emerald-400 font-mono tracking-wider mt-0.5 uppercase">Allplan Expert System Live</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={handleResetChat}
-                    className="text-graphite-400 hover:text-white transition-colors p-2 hover:bg-graphite-800 rounded-[1px]"
+                    className="text-graphite-400 hover:text-foreground transition-colors p-2 hover:bg-graphite-800 rounded-[1px]"
                     title="Reset Chat History"
                   >
                     <RefreshCw size={14} />
@@ -474,7 +474,7 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
 
               {/* Drawer Interactive Technical Quick Actions Dashboard */}
               <div className="bg-graphite-900/60 px-5 py-3 border-b border-graphite-800 shrink-0">
-                <p className="text-[9px] font-mono text-graphite-400 uppercase tracking-widest mb-2.5">Smart Module Shortcuts</p>
+                <p className="text-[10px] font-mono text-graphite-400 uppercase tracking-widest mb-2.5">Smart Module Shortcuts</p>
                 <div className="grid grid-cols-3 gap-2">
                   {QUICK_ACTIONS.map((action, idx) => {
                     const Icon = action.icon;
@@ -486,7 +486,7 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
                         className="flex flex-col items-center justify-center p-2.5 bg-graphite-950 hover:bg-graphite-900 border border-graphite-800 hover:border-graphite-700 rounded-[2px] text-center cursor-pointer transition-all group disabled:opacity-50"
                       >
                         <Icon className="text-tech-blue group-hover:scale-110 transition-transform mb-1.5" size={16} />
-                        <span className="text-[9px] font-mono text-graphite-300 font-bold tracking-tight">{action.label}</span>
+                        <span className="text-[10px] font-mono text-graphite-300 font-bold tracking-tight">{action.label}</span>
                       </button>
                     );
                   })}
@@ -558,8 +558,8 @@ export const AIBIMCompanion: React.FC<AIBIMCompanionProps> = ({ lessonTitle, cou
                   </button>
                 </div>
                 <div className="flex justify-between items-center mt-2.5 px-1">
-                  <span className="text-[8px] font-mono text-graphite-500 tracking-wider">GEMINI 3.5 API PROXIED SECURELY</span>
-                  <span className="text-[8px] font-mono text-graphite-500 hover:text-graphite-300 cursor-pointer" onClick={() => setIsDrawerOpen(false)}>CLOSE SIDEBAR</span>
+                  <span className="text-[10px] font-mono text-graphite-500 tracking-wider">GEMINI 3.5 API PROXIED SECURELY</span>
+                  <span className="text-[10px] font-mono text-graphite-500 hover:text-graphite-300 cursor-pointer" onClick={() => setIsDrawerOpen(false)}>CLOSE SIDEBAR</span>
                 </div>
               </div>
             </motion.div>

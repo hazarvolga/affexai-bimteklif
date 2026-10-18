@@ -365,7 +365,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
   return (
     <div className="space-y-8 font-sans">
       {/* HEADER BANNER */}
-      <div className="relative overflow-hidden rounded-3xl border border-orange-500/30 bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl border border-orange-500/30 bg-gradient-to-r from-background via-background to-background p-8 shadow-2xl">
         <div className="absolute top-0 right-0 h-64 w-64 translate-x-16 -translate-y-16 rounded-full bg-orange-600/10 blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3">
@@ -410,7 +410,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 handleFileUpload(e.dataTransfer.files[0]);
               }
             }}
-            className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-[#0c0c0e] p-10 text-center transition-all hover:border-orange-500/50 hover:bg-zinc-900/30"
+            className="group relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-[#0c0c0e] p-10 text-center transition-all hover:border-orange-500/50 hover:bg-card"
           >
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-600/10 text-orange-500 group-hover:scale-110 transition-transform">
               <Upload className="h-8 w-8" />
@@ -461,7 +461,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <button
                   key={demo.id}
                   onClick={() => handleLoadDemo(demo.id)}
-                  className="w-full text-left p-3.5 rounded-xl border border-border bg-card hover:bg-zinc-800/60 hover:border-orange-500/40 transition-all flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-3.5 rounded-xl border border-border bg-card hover:bg-surface-elevated hover:border-orange-500/40 transition-all flex items-center justify-between group cursor-pointer"
                 >
                   <div>
                     <div className="text-xs font-bold text-white group-hover:text-orange-300 transition-colors">{demo.title}</div>
@@ -475,7 +475,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-zinc-900 text-[11px] text-muted-foreground">
+          <div className="mt-4 pt-4 border-t border-border text-[11px] text-muted-foreground">
             💡 <em>İpucu:</em> Allplan &amp; Revit donatı ve hacim verileri istemci tarafında (client-side) anında parse edilip TS 708 donatı tablosuna dönüştürülür.
           </div>
         </div>
@@ -725,7 +725,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     {Object.entries(parsedData.summary.rebarByDiameter).map(([diam, rawData]) => {
                       const data = rawData as { lengthM: number; weightKg: number };
                       return (
-                        <tr key={diam} className="hover:bg-zinc-900/30">
+                        <tr key={diam} className="hover:bg-card">
                           <td className="p-3 font-bold text-orange-400">∅{diam} mm</td>
                           <td className="p-3">{data.lengthM.toLocaleString('tr-TR')} m</td>
                           <td className="p-3 font-bold">{data.weightKg.toLocaleString('tr-TR')} kg</td>
@@ -771,11 +771,11 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
               </div>
 
               {/* ACTION BUTTONS */}
-              <div className="mt-6 pt-4 border-t border-zinc-900 flex flex-col sm:flex-row gap-3">
+              <div className="mt-6 pt-4 border-t border-border flex flex-col sm:flex-row gap-3">
                 <Button 
                   onClick={handleExportCsv}
                   variant="outline" 
-                  className="flex-1 border-border bg-card text-foreground hover:bg-zinc-800 text-xs font-bold"
+                  className="flex-1 border-border bg-card text-foreground hover:bg-surface-elevated text-xs font-bold"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   CSV Raporu İndir
@@ -808,7 +808,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     placeholder="GUID, Eleman adı ara..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 bg-card border-border text-xs h-9 text-white placeholder:text-zinc-600"
+                    className="pl-9 bg-card border-border text-xs h-9 text-white placeholder:text-muted-foreground"
                   />
                 </div>
 
@@ -854,7 +854,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                   </thead>
                   <tbody className="divide-y divide-border font-mono">
                     {groupedByType.map((group) => (
-                      <tr key={group.type} className="hover:bg-zinc-900/40 transition-colors">
+                      <tr key={group.type} className="hover:bg-card transition-colors">
                         <td className="p-3 font-semibold text-foreground">{IFC_TYPE_LABELS[group.type]}</td>
                         <td className="p-3">{group.count}</td>
                         <td className="p-3 text-emerald-400">{group.byStatus.pass}</td>
@@ -867,7 +867,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => setExpandedType(expandedType === group.type ? null : group.type)}
-                            className="h-7 border-border bg-card text-[10px] text-foreground dark:text-muted-foreground hover:bg-zinc-800"
+                            className="h-7 border-border bg-card text-[10px] text-foreground dark:text-muted-foreground hover:bg-surface-elevated"
                           >
                             {expandedType === group.type ? 'Kapat' : 'Detayları Gör'}
                           </Button>
@@ -908,7 +908,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                     </tr>
                   ) : (
                     (hasActiveFilter ? filteredElements : filteredElements.filter((el) => el.type === expandedType)).map((el) => (
-                      <tr key={el.id} className="hover:bg-zinc-900/40 transition-colors">
+                      <tr key={el.id} className="hover:bg-card transition-colors">
                         <td className="p-3 text-muted-foreground">#{el.id}</td>
                         <td className="p-3 text-muted-foreground text-[11px]">{el.guid}</td>
                         <td className="p-3">

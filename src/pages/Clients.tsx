@@ -148,7 +148,7 @@ export function Clients() {
                 <Plus size={16} /> Yeni Müşteri Ekle
             </DialogTrigger>
             <DialogContent className="bg-background border-border text-foreground sm:max-w-md p-0 overflow-hidden">
-              <DialogHeader className="p-6 border-b border-zinc-900 bg-card">
+              <DialogHeader className="p-6 border-b border-border bg-card">
                 <DialogTitle className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
                   <User size={18} className="text-orange-500" /> Yeni Müşteri Kaydı
                 </DialogTitle>
@@ -216,7 +216,7 @@ export function Clients() {
                   />
                 </Field>
               </div>
-              <DialogFooter className="p-6 bg-card border-t border-zinc-900">
+              <DialogFooter className="p-6 bg-card border-t border-border">
                 <Button variant="outline" className="border-border hover:bg-surface-elevated text-muted-foreground font-black text-[10px] uppercase tracking-widest h-11 px-6" onClick={() => setOpen(false)}>İptal</Button>
                 <Button className="bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-11 px-8 shadow-lg shadow-orange-900/20" onClick={handleCreate}>Müşteriyi Kaydet</Button>
               </DialogFooter>
@@ -386,7 +386,7 @@ function StageBadge({ stage }: { stage: PipelineStage | string }) {
   const normalizedStage = normalizePipelineStage(stage);
   const config = normalizedStage
     ? configs[normalizedStage]
-    : { label: 'BİLİNMEYEN', color: 'bg-surface-elevated text-foreground dark:text-muted-foreground border-zinc-600' };
+    : { label: 'BİLİNMEYEN', color: 'bg-surface-elevated text-foreground dark:text-muted-foreground border-border' };
   return (
     <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5 font-black tracking-widest rounded-md uppercase border transition-all", config.color)}>
       {config.label}

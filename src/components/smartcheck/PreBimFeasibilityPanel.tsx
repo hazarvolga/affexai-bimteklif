@@ -162,9 +162,9 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                 <button type="button" className="underline text-primary" onClick={() => download("parsel-sablonu.csv", buildParcelCsvTemplate())}>
                   CSV şablonu indir
                 </button>
-                <label className="underline text-primary cursor-pointer">
+                <label htmlFor="parcel-file-upload" className="underline text-primary cursor-pointer">
                   Excel / CSV'den içe aktar
-                  <input type="file" accept=".xlsx,.csv,text/csv" className="sr-only" onChange={(e) => void onCsv(e.target.files?.[0])} />
+                  <input id="parcel-file-upload" aria-label="Parsel şablonu Excel veya CSV dosyası yükle" type="file" accept=".xlsx,.csv,text/csv" className="sr-only" onChange={(e) => void onCsv(e.target.files?.[0])} />
                 </label>
               </div>
             </div>

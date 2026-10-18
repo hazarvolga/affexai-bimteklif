@@ -247,7 +247,7 @@ export function Quotes() {
                         <TableCell className="py-3 text-right pr-5" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger render={
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                              <Button variant="ghost" size="icon" aria-label="Teklif işlemleri menüsü" className="h-7 w-7 text-muted-foreground hover:text-foreground">
                                 <MoreHorizontal size={15} />
                               </Button>
                             } />

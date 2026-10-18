@@ -544,6 +544,8 @@ export function Register() {
                       <input
                         tabIndex={-1}
                         autoComplete="off"
+                        aria-hidden="true"
+                        aria-label="Web sitesi"
                         value={website}
                         onChange={(event) => setWebsite(event.target.value)}
                       />
@@ -630,8 +632,10 @@ export function Register() {
                   </div>
 
                   <div className="space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
-                    <label className="flex items-start gap-2.5 cursor-pointer">
+                    <label htmlFor="register-terms" className="flex items-start gap-2.5 cursor-pointer">
                       <input
+                        id="register-terms"
+                        aria-label="Kullanım koşullarını okudum ve kabul ediyorum"
                         type="checkbox"
                         checked={termsAccepted}
                         onChange={(event) => setTermsAccepted(event.target.checked)}
@@ -645,8 +649,10 @@ export function Register() {
                         okudum ve kabul ediyorum.
                       </span>
                     </label>
-                    <label className="flex items-start gap-2.5 cursor-pointer">
+                    <label htmlFor="register-privacy" className="flex items-start gap-2.5 cursor-pointer">
                       <input
+                        id="register-privacy"
+                        aria-label="Gizlilik bildirimini okudum ve kabul ediyorum"
                         type="checkbox"
                         checked={privacyAccepted}
                         onChange={(event) => setPrivacyAccepted(event.target.checked)}
@@ -660,8 +666,10 @@ export function Register() {
                         okudum ve kabul ediyorum.
                       </span>
                     </label>
-                    <label className="flex items-start gap-2.5 cursor-pointer">
+                    <label htmlFor="register-marketing" className="flex items-start gap-2.5 cursor-pointer">
                       <input
+                        id="register-marketing"
+                        aria-label="Ürün ve teknik eğitim duyurularını e-posta ile almak istiyorum"
                         type="checkbox"
                         checked={marketingConsent}
                         onChange={(event) => setMarketingConsent(event.target.checked)}

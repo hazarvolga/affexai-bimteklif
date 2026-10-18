@@ -143,7 +143,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
       loi: ["Sistem Sınıfı", "Kaba Hacim Takdiri", "Tahmini Alan", "Disiplin Sorumlusu"],
       graphicStyle: "border-border bg-card text-muted-foreground",
       graphicName: "Kaba Kutu (Bounding Box)",
-      visualClass: "h-20 w-20 bg-slate-200 border-2 border-border rounded"
+      visualClass: "h-20 w-20 bg-muted border-2 border-border rounded"
     },
     200: {
       log: "Genel sistem tasarımı. Elemanın kaba boyutları, kalınlığı ve yaklaşık konumu modellenmiştir.",
@@ -201,7 +201,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                     onClick={() => setActiveDocId(doc.id)}
                     className={`w-full p-4 rounded-xl text-left transition-all border flex items-start gap-3.5 ${
                       isActive
-                        ? 'bg-card text-foreground border-slate-900 shadow-md translate-x-1'
+                        ? 'bg-card text-foreground border-border shadow-md translate-x-1'
                         : 'bg-card text-foreground border-border hover:border-border hover:bg-card'
                     }`}
                     id={`doc-btn-${doc.id}`}
@@ -314,7 +314,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
               onClick={() => setActiveLod(level)}
               className={`py-3.5 px-2 rounded-xl text-center font-black text-xs sm:text-sm tracking-wider transition-all border ${
                 activeLod === level
-                  ? 'bg-card text-foreground border-slate-900 shadow-md scale-[1.03]'
+                  ? 'bg-card text-foreground border-border shadow-md scale-[1.03]'
                   : 'bg-card text-muted-foreground border-border hover:border-border'
               }`}
               id={`lod-tab-${level}`}
@@ -397,7 +397,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                   onClick={() => setGeneratorDocType('EIR')}
                   className={`py-2.5 rounded-lg text-xs font-black uppercase tracking-wider border transition-all ${
                     generatorDocType === 'EIR'
-                      ? 'bg-card text-foreground border-slate-900'
+                      ? 'bg-card text-foreground border-border'
                       : 'bg-card text-muted-foreground border-border hover:border-border'
                   }`}
                 >
@@ -408,7 +408,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
                   onClick={() => setGeneratorDocType('BEP')}
                   className={`py-2.5 rounded-lg text-xs font-black uppercase tracking-wider border transition-all ${
                     generatorDocType === 'BEP'
-                      ? 'bg-card text-foreground border-slate-900'
+                      ? 'bg-card text-foreground border-border'
                       : 'bg-card text-muted-foreground border-border hover:border-border'
                   }`}
                 >
@@ -472,7 +472,7 @@ Bu taslak ${generatorDocType} dökümanı BIM MASTER portalı jeneratörü taraf
 
           {/* Copy-paste area output */}
           <div className="lg:col-span-7 bg-background text-foreground p-6 sm:p-8 rounded-2xl relative">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-800 mb-4">
+            <div className="flex justify-between items-center pb-4 border-b border-border mb-4">
               <span className="text-[10px] text-orange-500 font-extrabold tracking-wider uppercase flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
                 DİNAMİK ÇIKTI ÖNİZLEMESİ

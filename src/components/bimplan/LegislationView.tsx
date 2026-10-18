@@ -131,14 +131,14 @@ export default function LegislationView() {
                   <span className={`absolute -left-[25px] top-1 w-4 h-4 rounded-full border-2 transition-all ${
                     isActive
                       ? 'bg-orange-600 border-white ring-4 ring-orange-100 scale-125'
-                      : 'bg-white border-slate-300 group-hover:border-orange-500'
+                      : 'bg-white border-border group-hover:border-orange-500'
                   }`}></span>
 
                   <div>
-                    <span className={`text-xs font-black mono ${isActive ? 'text-orange-600' : 'text-slate-400'}`}>
+                    <span className={`text-xs font-black mono ${isActive ? 'text-orange-600' : 'text-muted-foreground'}`}>
                       {ev.year}
                     </span>
-                    <h4 className={`text-sm font-extrabold transition-colors ${isActive ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                    <h4 className={`text-sm font-extrabold transition-colors ${isActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>
                       {ev.title}
                     </h4>
                   </div>

@@ -344,16 +344,16 @@ export function Settings() {
 
       <Tabs defaultValue="company" className="space-y-8">
         <TabsList className="bg-card border border-border p-1 w-full md:w-auto h-12 inline-flex">
-          <TabsTrigger value="company" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="company" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <Building2 size={14} className="mr-2" /> ŞİRKET
           </TabsTrigger>
-          <TabsTrigger value="team" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="team" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <Users size={14} className="mr-2" /> EKİP
           </TabsTrigger>
-          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <CreditCard size={14} className="mr-2" /> ABONELİK
           </TabsTrigger>
-          <TabsTrigger value="industries" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
+          <TabsTrigger value="industries" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-8 h-10">
             <Layout size={14} className="mr-2" /> EKLENTİLER
           </TabsTrigger>
         </TabsList>

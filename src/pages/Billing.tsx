@@ -566,7 +566,7 @@ export function Billing() {
                             className={`w-full text-xs font-bold ${
                               isSelectedForTransfer
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                                : 'bg-surface-elevated hover:bg-zinc-700 text-white'
+                                : 'bg-surface-elevated hover:bg-surface-elevated text-white'
                             }`}
                           >
                             {isSelectedForTransfer ? 'Seçili Paket (Havale Yap)' : 'Bu Pakete Geç (Havale/EFT)'}
@@ -763,10 +763,11 @@ export function Billing() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
+                      <label htmlFor="billing-sender-name" className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
                         Gönderen Ad Soyad / Firma Ünvanı *
                       </label>
                       <input
+                        id="billing-sender-name"
                         type="text"
                         required
                         value={senderName}
@@ -777,10 +778,11 @@ export function Billing() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
+                      <label htmlFor="billing-transfer-reference" className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
                         Dekont / İşlem Referans No
                       </label>
                       <input
+                        id="billing-transfer-reference"
                         type="text"
                         value={transferReference}
                         onChange={(e) => setTransferReference(e.target.value)}
@@ -790,8 +792,9 @@ export function Billing() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">Fatura Vergi Dairesi</label>
+                      <label htmlFor="billing-tax-office" className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">Fatura Vergi Dairesi</label>
                       <input
+                        id="billing-tax-office"
                         type="text"
                         value={taxOffice}
                         onChange={(e) => setTaxOffice(e.target.value)}
@@ -801,10 +804,11 @@ export function Billing() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
+                      <label htmlFor="billing-tax-number" className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
                         Vergi Kimlik No (VKN / TCKN)
                       </label>
                       <input
+                        id="billing-tax-number"
                         type="text"
                         value={taxNumber}
                         onChange={(e) => setTaxNumber(e.target.value)}
@@ -815,8 +819,9 @@ export function Billing() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">Ek Not / Açıklama</label>
+                    <label htmlFor="billing-notes" className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">Ek Not / Açıklama</label>
                     <input
+                      id="billing-notes"
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}

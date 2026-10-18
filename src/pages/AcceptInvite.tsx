@@ -88,7 +88,7 @@ export function AcceptInvite() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-zinc-950 to-zinc-950">
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-background to-background">
         <Card className="w-full max-w-md bg-card border-border backdrop-blur-xl shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-emerald-600/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
@@ -104,7 +104,7 @@ export function AcceptInvite() {
                Davet edildiğiniz şirket için oturumunuz hazır.
              </p>
              <Button 
-               className="w-full h-12 bg-zinc-100 text-zinc-950 hover:bg-white font-bold"
+               className="w-full h-12 bg-card text-foreground hover:bg-white font-bold"
                onClick={() => navigate("/app")}
              >
                Şirket paneline git
@@ -125,7 +125,7 @@ export function AcceptInvite() {
   );
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-zinc-950 to-zinc-950">
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-background to-background">
       <Card className="w-full max-w-md bg-card border-border backdrop-blur-xl shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-orange-600/10 rounded-full flex items-center justify-center mb-4 border border-orange-500/20">

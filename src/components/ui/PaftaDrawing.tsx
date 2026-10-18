@@ -113,7 +113,7 @@ export function PaftaDrawing({
           </text>
         </g>
       </svg>
-      <div className="flex items-center justify-between gap-2 border-t border-border bg-card/60 px-4 py-2.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-card/60 px-4 py-2.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
         <span>{captionLeft}</span>
         <span>{captionCenter}</span>
         <span>{captionRight}</span>

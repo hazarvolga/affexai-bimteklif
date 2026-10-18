@@ -144,8 +144,8 @@ export function DosyadanTeklifDemo() {
         const isPast = ['upload', 'review', 'price', 'quote'].indexOf(currentStep) > index;
         return (
           <div key={s.id} className="flex items-center">
-            <div className={`flex flex-col items-center ${isActive ? 'text-primary' : isPast ? 'text-zinc-100' : 'text-zinc-400'}`}>
-              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 mb-2 ${isActive ? 'border-primary bg-primary/10' : isPast ? 'border-zinc-200 bg-zinc-900' : 'border-zinc-800 bg-zinc-900'}`}>
+            <div className={`flex flex-col items-center ${isActive ? 'text-primary' : isPast ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 mb-2 ${isActive ? 'border-primary bg-primary/10' : isPast ? 'border-border bg-card' : 'border-border bg-card'}`}>
                 {isPast ? <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" /> : <Icon className="w-5 h-5 sm:w-6 sm:h-6" />}
               </div>
               <span className="text-xs sm:text-sm font-medium">{s.label}</span>
@@ -291,7 +291,7 @@ export function DosyadanTeklifDemo() {
                <button onClick={() => setCurrentStep('upload')} className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors">
                 İptal Et
               </button>
-              <button onClick={() => setCurrentStep('price')} className="bg-white text-foreground px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 flex items-center transition-colors">
+              <button onClick={() => setCurrentStep('price')} className="bg-white text-foreground px-8 py-3 rounded-xl font-bold hover:bg-muted flex items-center transition-colors">
                 Devam Et: Fiyatlandır <ChevronRight className="w-5 h-5 ml-2" />
               </button>
             </div>
@@ -391,7 +391,7 @@ export function DosyadanTeklifDemo() {
               Beton, donatı ve kalıp metrajlarınız ile girdiğiniz birim fiyatlar yeni teklif taslağına aktarılmak üzere hazırlandı.
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-foreground px-8 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors w-full shadow-lg">
+              <button onClick={() => navigate('/app/quotes/new')} className="bg-white text-foreground px-8 py-4 rounded-xl font-bold hover:bg-muted transition-colors w-full shadow-lg">
                 Teklif Cetveline Aktar
               </button>
               <button onClick={() => { setParsedData(null); setCurrentStep('upload'); }} className="bg-card border border-border text-foreground dark:text-muted-foreground px-8 py-4 rounded-xl font-bold hover:bg-surface-elevated transition-colors w-full">

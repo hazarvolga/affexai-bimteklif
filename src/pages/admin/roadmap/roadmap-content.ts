@@ -467,16 +467,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Kullanıcıyı doğrudan projesinin bulunduğu yaşam döngüsüne göre yönlendiren 3 evreli Müteahhitlik Süreç Masası (ContractorWorkflowHub.tsx) devreye alındı: Evre 01 (Arsa & Ön Fizibilite / Excel İhale), Evre 02 (3D openBIM IFC Otomatik Metraj & Minha), Evre 03 (Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı). Aktif teklifler olduğunda kompakt hızlı süreç şeridine dönüşür.",
           ],
           [
-            "Rev. 32 (Güncel)",
+            "Rev. 32",
             "17 Ekim 2026 (Sistem Hızlı Turu & İnteraktif Onboarding Rehberi)",
             "BIM-CALC-2026-10-17.26",
             "Sisteme ilk defa giren mühendisler ve denetçiler için Pafta Tasarım Sistemi ile uyumlu 5 adımlı interaktif SystemQuickTour devreye alındı. Müteahhitlik süreç masası, SmartCheck dosya yükleme, Melih Dinekli taşeron şap tavanı, Kamu İhale araçları ve Pafta Anteti hedefli spotlight ile taranır. ESC, yön tuşları, localStorage kalıcılığı ve kalıcı [🧭 Hızlı Tur] butonu eklendi.",
+          ],
+          [
+            "Rev. 33 (Güncel)",
+            "18 Ekim 2026 (Tasarım Sistemi Tam Token Göçü, Sabit Renk Temizliği & WCAG 2.2 AA Erişilebilirlik Denetimi)",
+            "BIM-CALC-2026-10-18.27",
+            "Tüm sayfa ve bileşenlerdeki 400'ün üzerinde sabit zinc-*, slate-* sınıfı semantik Pafta Tasarım Sistemi belirteçlerine dönüştürüldü; 10px altı mikro metinler okunabilirlik seviyesine çekildi. Tüm girdi, dosya yükleme ve aksiyon butonlarına htmlFor/id ve aria-label bağlantıları eklendi. axe-core tabanlı otomatik erişilebilirlik test paketi (pnpm run test:a11y) ile WCAG 2.2 AA tam uyumu doğrulandı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 32 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 33 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -809,6 +815,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Müteahhitlik Süreç Masası ve hesap araçları bulunuyor ancak teknik ofis kullanıcıları ve denetçiler için adım adım hedef odaklı interaktif bir tur/rehber sistemi yer almıyordu.",
             "Sıfır harici bağımlılıkla Pafta Tasarım Sistemi (1px teknik çizgiler, köşe krosları +, semantik tokenlar) uyumlu SystemQuickTour.tsx ve TourWelcomeBanner bileşenleri geliştirildi. 5 temel süreç adım adım taranıp vurgulanır. ESC, ok tuşları, localStorage kalıcılığı ve Dashboard'da kalıcı [🧭 Hızlı Tur] butonu bağlandı.",
             "src/components/dashboard/SystemQuickTour.tsx, src/components/dashboard/SystemQuickTour.test.ts, src/pages/Dashboard.tsx, src/components/dashboard/ContractorWorkflowHub.tsx",
+          ],
+          [
+            "Rev. 33.1 · 18 Ekim 2026 (Tasarım Sistemi Tam Token Göçü & axe-core Erişilebilirlik Denetimi)",
+            "Pafta Tasarım Sistemi (DESIGN.md), WCAG 2.2 AA ve WAI-ARIA 1.2 Standartları",
+            "Bileşen ve sayfalarda eski nötr renk sınıfları (bg-zinc-*, text-slate-* vb.) ve 10px altı mikro metin kalıntıları vardı; form kontrollerinde ve butonlarda etiket ve aria-label bağlantıları tam standartlaşmamıştı.",
+            "Tüm sabit nötr renk sınıfları semantik tokenlara (bg-card, bg-background, border-border, text-foreground, text-muted-foreground, bg-primary) taşındı; mikro metinler text-[10px]'e çekildi. Tüm form girdileri ve aksiyon butonları htmlFor/id ve aria-label ile donatıldı. axe-core test paketi (src/lib/a11y-audit.test.ts) kurularak sıfır kritik ihlal ile onaylandı.",
+            "scripts/migrate-design-tokens.mjs, src/lib/design-token-migration.test.ts, src/lib/a11y-audit.test.ts, src/pages/CreateQuote.tsx, src/pages/QuoteDetail.tsx, src/pages/Billing.tsx, src/pages/LandingPage.tsx, src/pages/Register.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx, src/components/smartcheck/PreBimFeasibilityPanel.tsx",
           ],
         ],
       },

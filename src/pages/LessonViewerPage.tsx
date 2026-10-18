@@ -63,10 +63,10 @@ export function LessonViewerPage() {
     <PageContainer>
       {/* Back button */}
       <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
-        <Link to={course.domain === 'product' ? "/app/academy/allplan" : "/app/academy"} className="text-muted-foreground hover:text-zinc-300 font-mono text-[9px] uppercase tracking-widest flex items-center gap-1">
+        <Link to={course.domain === 'product' ? "/app/academy/allplan" : "/app/academy"} className="text-muted-foreground hover:text-foreground font-mono text-[10px] uppercase tracking-widest flex items-center gap-1">
           <ArrowLeft size={10} /> Akademiye Dön
         </Link>
-        <Badge className="bg-orange-500/10 text-orange-500 border-none px-2 py-0.5 text-[8px] font-black uppercase tracking-wider">
+        <Badge className="bg-orange-500/10 text-orange-500 border-none px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
           İnteraktif Laboratuvar
         </Badge>
       </div>
@@ -75,7 +75,7 @@ export function LessonViewerPage() {
         {/* Left Side: Instructions and Theory */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
           <div className="space-y-3">
-            <Badge className="bg-background text-muted-foreground border border-border text-[8px] font-mono px-2 py-0.5 rounded-md uppercase">
+            <Badge className="bg-background text-muted-foreground border border-border text-[10px] font-mono px-2 py-0.5 rounded-md uppercase">
               {course.area === 'allplan' ? 'ALLPLAN AKADEMİSİ' : 'TEKLİF VE METRAJ'}
             </Badge>
             <h1 className="text-xl font-black text-foreground uppercase tracking-widest leading-tight">
@@ -88,7 +88,7 @@ export function LessonViewerPage() {
 
           {/* Theoretical info card */}
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4 font-sans text-xs text-foreground dark:text-muted-foreground leading-relaxed">
-            <h3 className="font-black text-foreground uppercase tracking-widest text-[9px] flex items-center gap-1">
+            <h3 className="font-black text-foreground uppercase tracking-widest text-[10px] flex items-center gap-1">
               <Info size={12} className="text-orange-500" /> Teorik Altyapı ve Uyarı
             </h3>
 
@@ -127,7 +127,7 @@ export function LessonViewerPage() {
 
             {/* Instruction Box */}
             <div className="p-3 bg-background border border-border rounded-xl space-y-2 mt-4">
-              <span className="text-[9px] font-black uppercase tracking-wider text-orange-500 block">DERS ADIMI</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-orange-500 block">DERS ADIMI</span>
 
               {course.slug === 'quantity-and-unit-mapping' && (
                 <>
@@ -140,7 +140,7 @@ export function LessonViewerPage() {
                   <Button
                     onClick={handleFixUnit}
                     disabled={demoState.values.quantityUnit === 'm³'}
-                    className="w-full bg-orange-700 hover:bg-orange-800 text-white font-black uppercase tracking-widest text-[9px] h-8 mt-2 rounded-lg"
+                    className="w-full bg-orange-700 hover:bg-orange-800 text-white font-black uppercase tracking-widest text-[10px] h-8 mt-2 rounded-lg"
                   >
                     {demoState.values.quantityUnit === 'm³' ? 'm³ Olarak Eşitlendi' : 'm³ Olarak Eşitle'}
                   </Button>
@@ -175,13 +175,13 @@ export function LessonViewerPage() {
               <div className="bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-xl flex items-start gap-2">
                 <CheckCircle className="text-emerald-500 shrink-0 mt-0.5" size={14} />
                 <div className="space-y-1">
-                  <span className="text-[9px] font-black uppercase text-emerald-500 tracking-wider">Değer Düzeltildi!</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider">Değer Düzeltildi!</span>
                   <p className="text-[10px] text-muted-foreground leading-normal">
                     Parametre doğru değere getirildi. Şimdi SmartCheck sayfasına dönerek "Re-check" çalıştırabilir ve hatayı çözebilirsiniz.
                   </p>
                   <Button
                     onClick={() => navigate('/app/smartcheck/checks/demo')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-[8px] font-black uppercase tracking-widest h-7 px-3 mt-1.5 rounded-lg"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest h-7 px-3 mt-1.5 rounded-lg"
                   >
                     SmartCheck'e Dön
                   </Button>
@@ -217,12 +217,12 @@ export function LessonViewerPage() {
               <div className="bg-background border border-border rounded-xl p-4 space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                   <div className="p-3 bg-card rounded-lg">
-                    <span className="text-[8px] text-muted-foreground block uppercase font-bold">BIM PLAN SÖZLÜĞÜ (STANDART)</span>
+                    <span className="text-[10px] text-muted-foreground block uppercase font-bold">BIM PLAN SÖZLÜĞÜ (STANDART)</span>
                     <span className="text-foreground font-bold block mt-1">Poz: DEMO-15.120.1001</span>
                     <span className="text-emerald-500 font-bold text-sm block mt-1">m³ (Hacim)</span>
                   </div>
                   <div className="p-3 bg-card rounded-lg border border-border">
-                    <span className="text-[8px] text-muted-foreground block uppercase font-bold">TEKLİF DETAYI (GİRİLEN)</span>
+                    <span className="text-[10px] text-muted-foreground block uppercase font-bold">TEKLİF DETAYI (GİRİLEN)</span>
                     <span className="text-foreground font-bold block mt-1">Birim: {demoState.values.quantityUnit}</span>
                     <span className={`font-bold text-sm block mt-1 ${demoState.values.quantityUnit === 'm³' ? 'text-emerald-500' : 'text-red-500'}`}>
                       {demoState.values.quantityUnit === 'm³' ? 'Uyumlu' : 'Uyuşmazlık Mevcut'}

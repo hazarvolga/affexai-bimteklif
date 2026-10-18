@@ -35,3 +35,19 @@ test('sınıf içermeyen metinler ve benzer adlı sınıflar bozulmaz', () => {
   assert.equal(run('"Beyaz metin: text-whiteboard bg-zinc-9500"'), '"Beyaz metin: text-whiteboard bg-zinc-9500"');
   assert.equal(run('const x = "merhaba dünya";'), 'const x = "merhaba dünya";');
 });
+
+test('genişletilmiş kurallar: neutral varyantları, dark önekleri, placeholder, mikro metin ve gradyanlar', () => {
+  assert.equal(
+    run('"dark:bg-slate-900 dark:border-slate-800 text-neutral-400 placeholder:text-zinc-700"'),
+    '"dark:bg-card dark:border-border text-muted-foreground placeholder:text-muted-foreground"',
+  );
+  assert.equal(
+    run('"from-slate-900 to-zinc-950"'),
+    '"from-background to-background"',
+  );
+  assert.equal(
+    run('"text-[7px] hover:text-[8px] md:text-[9px]"'),
+    '"text-[10px] hover:text-[10px] md:text-[10px]"',
+  );
+});
+

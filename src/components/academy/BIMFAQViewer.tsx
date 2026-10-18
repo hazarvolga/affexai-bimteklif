@@ -88,7 +88,7 @@ export const BIMFAQViewer: React.FC = () => {
               className={`p-3 border text-left flex flex-col justify-between transition-all rounded-[1px] h-20 ${
                 isSelected
                   ? 'bg-tech-blue/10 border-tech-blue text-foreground shadow-md shadow-tech-blue/5'
-                  : 'bg-graphite-900/60 border-graphite-800 text-graphite-400 hover:border-graphite-600 hover:text-white'
+                  : 'bg-graphite-900/60 border-graphite-800 text-graphite-400 hover:border-graphite-600 hover:text-foreground'
               }`}
             >
               <Icon size={14} className={isSelected ? 'text-tech-blue' : 'text-graphite-500'} />
@@ -106,7 +106,7 @@ export const BIMFAQViewer: React.FC = () => {
         headerRight={
           <div className="flex items-center gap-2">
             {isFallback && (
-              <span className="text-[8px] font-mono bg-amber-500/10 text-amber-500 px-1.5 py-0.5 border border-amber-500/20 uppercase">
+              <span className="text-[10px] font-mono bg-amber-500/10 text-amber-500 px-1.5 py-0.5 border border-amber-500/20 uppercase">
                 DEMO MODE
               </span>
             )}
@@ -116,7 +116,7 @@ export const BIMFAQViewer: React.FC = () => {
               onClick={() => fetchFAQs(selectedTopic, true)}
               disabled={isLoading}
               icon={isLoading ? RefreshCw : Sparkles}
-              className="font-mono text-[9px] py-1"
+              className="font-mono text-[10px] py-1"
             >
               {isLoading ? 'GENERATING...' : 'ASK GEMINI'}
             </TechnicalButton>
@@ -146,7 +146,7 @@ export const BIMFAQViewer: React.FC = () => {
                 <p className="text-xs font-mono text-foreground animate-pulse uppercase tracking-widest">
                   Gemini API is drafting solutions...
                 </p>
-                <p className="text-[9px] font-mono text-graphite-500 uppercase tracking-widest">
+                <p className="text-[10px] font-mono text-graphite-500 uppercase tracking-widest">
                   Consulting openBIM & Eurocode 2 engineering databases
                 </p>
               </div>
@@ -195,7 +195,7 @@ export const BIMFAQViewer: React.FC = () => {
             </div>
           )}
 
-          <div className="flex items-center justify-between text-[8px] font-mono text-graphite-500 uppercase border-t border-graphite-900 pt-3">
+          <div className="flex items-center justify-between text-[10px] font-mono text-graphite-500 uppercase border-t border-graphite-900 pt-3">
             <span>Powered by Gemini-3.5-flash AI Model</span>
             <span>Allplan Integrated Helper Framework</span>
           </div>

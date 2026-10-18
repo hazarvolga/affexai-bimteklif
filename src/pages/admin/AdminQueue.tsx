@@ -177,6 +177,7 @@ export function AdminQueue() {
           <label className="flex items-center gap-2 cursor-pointer text-xs text-foreground dark:text-muted-foreground">
             <input
               type="checkbox"
+              aria-label="15 sn Otomatik Yenile"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="rounded border-border bg-card text-indigo-500"
@@ -263,7 +264,7 @@ export function AdminQueue() {
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
                 statusFilter === tab.key
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-surface-elevated text-muted-foreground hover:bg-zinc-700 hover:text-white'
+                  : 'bg-surface-elevated text-muted-foreground hover:bg-surface-elevated hover:text-white'
               }`}
             >
               {tab.label}
@@ -275,10 +276,11 @@ export function AdminQueue() {
           <Search size={15} className="absolute left-3 top-2.5 text-muted-foreground" />
           <input
             type="text"
+            aria-label="Firma, dosya adı veya ID ara"
             placeholder="Firma, dosya adı veya ID ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background py-1.5 pl-9 pr-3 text-xs text-foreground placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-background py-1.5 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
         </div>
       </div>

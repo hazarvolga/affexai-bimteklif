@@ -850,7 +850,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
               )}
 
-              <div className="mt-5 pt-3 border-t border-border flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+              <div className="mt-5 pt-3 border-t border-border flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                 <span>ÇŞB GENEL TEKNİK ŞARTNAMESİ</span>
                 <span>ÖLÇEK: BİREBİR IFC4</span>
               </div>
@@ -1295,6 +1295,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   <input
                     type="text"
                     inputMode="numeric"
+                    aria-label="İdare Yaklaşık Maliyeti (YM - TL)"
                     value={tenderYmInput}
                     onChange={(e) => setTenderYmInput(e.target.value)}
                     placeholder="Örn: 125000000"
@@ -1307,6 +1308,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   </span>
                   <input
                     type="text"
+                    aria-label="Rakip Teklifler (TL, noktalı virgül ile)"
                     value={tenderBidsInput}
                     onChange={(e) => setTenderBidsInput(e.target.value)}
                     placeholder="Örn: 98000000; 102500000; 106000000"
@@ -1538,6 +1540,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   <input
                     type="text"
                     inputMode="decimal"
+                    aria-label="Temel Endeks (E_0 — Baz Ayı)"
                     value={tuikBaseIndexInput}
                     onChange={(e) => setTuikBaseIndexInput(e.target.value)}
                     placeholder="Örn: 240.00"
@@ -1552,6 +1555,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   <input
                     type="text"
                     inputMode="decimal"
+                    aria-label="Güncel Endeks (E_n — Uygulama Ayı)"
                     value={tuikCurrentIndexInput}
                     onChange={(e) => setTuikCurrentIndexInput(e.target.value)}
                     placeholder="Örn: 276.00"
