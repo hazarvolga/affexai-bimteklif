@@ -2,7 +2,7 @@
 export const CALC_REVIEW_META = {
   version: "BIM-CALC-2026-10-18.29",
   updatedOn: "18 Ekim 2026",
-  implementationBaseline: "57d288d5d43e49fc274b78829eaa704b5e5b824d",
+  implementationBaseline: "9c59971e5cb26e7b89eccf985f3302e351801243",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, PreBimFeasibilityPanel arayüzüne bağlanmış 27 kalemlik 6-villa piyasa maliyet referansı, Planlı Alanlar İmar Yön. m.5/8 & m.22 istisna açıklaması ve gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı tamamlandı · bağımsız uzman imzasına hazır",
 };
 
@@ -892,7 +892,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 35",
     version: "BIM-CALC-2026-10-18.29",
     date: "18 Ekim 2026",
-    commit: "HEAD",
+    commit: "9c59971",
     trigger: "Üretim Hazırlığı Raporu (PRODUCTION_READINESS_RAPORU_2026-10-18) P0/P1/P2 Kapanışı, Gerçek Tarayıcı axe-core Kapısı, 6-Villa Maliyet Referans Arayüzü & İmar m.22 İstisna Netleştirmesi",
     beforeSummary:
       "VILLA_MARKET_COST_BENCHMARK_2026 sabiti yalnız kodda tanımlıydı ve PreBimFeasibilityPanel arayüzünde gösterilmiyordu; %30 emsal harici uyarısında Planlı Alanlar İmar Yönetmeliği m.22 tam muafiyet istisnaları (zorunlu otopark, sığınak, yangın merdiveni, asansör boşluğu) belirtilmiyordu; ayrıca erişilebilirlik testi yalnızca jsdom üzerinde çalıştığından gerçek tarayıcı renk kontrastını ve koyu mod (:root[data-theme='light'] özgüllük çakışmasını) denetlemiyordu.",
