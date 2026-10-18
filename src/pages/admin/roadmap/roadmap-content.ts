@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (17 Ekim 2026)",
+    title: "Uygulama durumu (18 Ekim 2026 · Rev. 34)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -193,6 +193,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["Çok Katmanlı İcmal Motoru, Süpürgelik (mtül) & 16 Daire Bağımsız Bölüm Cetveli", "Hazır (BIM-CALC-2026-10-17.1)", "IfcCovering çoklu katmanları (Şap 3 cm, Laminat Parke, Seramik, XPS, Kaba Sıva, Saten Alçı, Boya, Fayans) ayrı ihale kalemlerine ayrıştırılır; SKIRTINGBOARD süpürgelikler m² yerine mtül birimine çevrilir; IfcZone/IfcSpace üzerinden D01..D16 daire bazlı net/brüt m² cetveli üretilir"],
         ["3 Adımlı 'Kağıt İcmal + Sağ Detay Kartı' (Calm UI) Metraj ve Maliyet Ekranı", "Hazır (Rev. 7)", "Müteahhit ve saha mühendisleri için 12 sütunlu karmaşık tablo yerine 3 adımlı sade arayüz (1. Malzeme İcmal Listesi · 2. Daire Metrekareleri · 3. Maliyet & Teklif) ve sağ detay kartında 'Brüt − Kapı/Pencere Boşluğu = Net' (Minha) formülü devreye alındı"],
         ["Çok Yazılımlı Gerçek IFC Saha Doğrulaması (33 Model · ALLPLAN / Revit / Archicad / Tekla / BIMcollab / IFC4X2)", "Hazır (BIM-CALC-2026-10-16.1)", "Uzman mühendisten gelen 31,4 MB ALLPLAN 2026.1 modeli (1.731 eleman) ile 32 uluslararası örnek IFC modelinde (IFC2X3, IFC4, IFC4X1, IFC4X2, IFC4X3_ADD2) IfcComplexProperty açılımı, çok iş parçacıklı C++ 3B geometri motoru, IfcSectionedSolidHorizontal analitik integrasyonu ve Revit QTO birim hatası (mm³/ft²·mm) normalizasyonu doğrulandı"],
+        ["IFC Kaynak Yazılım Tespiti & Süreç Öncesi 6 Maddelik Revit Kontrol Listesi", "Hazır (Rev. 34 · BIM-CALC-2026-10-18.28)", "Dosya seçildiği anda ilk 128 KB başlığından kaynak yazılım (Revit/Allplan/Archicad/Tekla) tespit edilir; Revit ile işlem yapacak kullanıcılara süreç öncesinde 'Areas and Volumes' vs. '2nd Level Space Boundaries', 'Export base quantities' & Dion Moult 'NetSideArea' minha tuzağı, 'Join Geometry', 'LoD Low/Medium' (Autodesk/revit-ifc#63) ve 'Shared Coordinates / IFCCARTESIANPOINT' (IEEE-754) kontrol listesi gösterilir"],
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve m.13(3) + 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
         ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
@@ -201,6 +202,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Kişisel veri maskeleme ve PDF/A + Pafta + e-İmza ön kontrolü", "Kurum içi pilotta canlı", "TC/VKN/e-posta/telefon maskelenir; 2B PDF teslim dosyalarında PDF/A kimliği, şifreleme, taranmış sayfa (m.6(4)), ISO 216 A4 katları pafta boyutu (m.8(1)), çizim paftalarında tek pafta düzeni (m.8(2)), gömülü e-imza (/Sig, m.6(1)-(2)) ve EK-2 dosya adı denetlenir"],
         ["Kotadan Düşmeyen Canlı Örnek Projeler (/app/smartcheck) & Mühendislik Kabul Kanıt Paketi", "Hazır (BIM-CALC-2026-10-15.3)", "IfcOpenShell 0.8.5 ve pypdf 6.10.2 ile üretilen MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) referans koşuları SHA-256 özetleriyle mühürlendi ve /app/smartcheck ekranında tek tıkla kotadan düşmeden denenebilir hale getirildi"],
+        ["Pafta Tasarım Sistemi Tam Token Göçü, İnteraktif Hızlı Tur & WCAG 2.2 AA Erişilebilirlik", "Hazır (Rev. 32–33)", "Tüm ekranlarda semantik Pafta tokenları, %42 şeffaf perdeli 5 adımlı SystemQuickTour ve axe-core tabanlı otomatik erişilebilirlik denetimi (pnpm run test:a11y) sıfır ihlal ile devrede"],
         ["Gerçek proje saha/mühendislik kabulü", "ALLPLAN 2026.1 Uzman Modeli & 4 Excel Çapraz Doğrulaması Tamamlandı", "31,4 MB ALLPLAN 2026.1 gerçek mimari modeli (1.731 eleman) ve 4 ham Allplan Excel raporu çapraz doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada"],
       ] },
     ],
@@ -246,7 +248,8 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["7 — ALLPLAN e-PYS kiti v1 & RG 33331 tam senkronizasyonu", "Tamamlandı (15–16 Ekim 2026 · Rev. 3, Rev. 4 & Rev. 6)", "SHA-256 mühürlü TREpys nitelik kataloğu, IFC4X3 eşlemesi, m.13(3) + 15 kr. malzeme kütüphanesi, EK-1..EK-9 sözlükleri, gerçek ALLPLAN 2026.1 Object Layer Attributes (IfcComplexProperty) okuma ve IfcSpace → IfcBuildingStorey kat çözümlemesi canlıda"],
         ["8 — Paket kataloğu v6, 4 dönemli iskonto ve abone göçü", "Tamamlandı (15 Ekim 2026 · Rev. 3)", "Tek VPS kapasite korumalı v6 paket kataloğu (bimmetraj-2026-10-15-v6), Aylık %0 / 6 Aylık %10 / 1 Yıllık %20 / 2 Yıllık %30 Havale/EFT dönem iskontosu ve paket pasife alma sırasında aktif aboneleri alternatif pakete atomik aktarma canlıya alındı"],
         ["9 — Kurumsal işlemsel e-posta (Transactional Email) sistemi", "Tamamlandı (15 Ekim 2026 · Rev. 4)", "8 kurumsal HTML/Text şablonu (Hoş Geldiniz, E-Posta Doğrulama, Şifre Sıfırlama, Havale/EFT Talimatı, Ödeme Onayı, Ekip Daveti, Teklif Gönderimi, Teklif Kararı) ve Süper Admin /admin/email-templates canlı önizleme & test gönderim merkezi devreye alındı"],
-        ["10 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
+        ["10 — Süreç öncesi Revit → IFC dışa aktarım kontrol listesi, Hızlı Tur & WCAG 2.2 AA", "Tamamlandı (17–18 Ekim 2026 · Rev. 31–34)", "Müteahhitlik Süreç Masası, 5 adımlı SystemQuickTour, semantik Pafta token göçü, axe-core erişilebilirlik testi ve dosya seçildiği anda ilk 128 KB başlığından otomatik Revit tespiti + 6 maddelik dışa aktarım kontrol listesi (REVIT_PRE_EXPORT_CHECKLIST) devreye alındı"],
+        ["11 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
@@ -258,13 +261,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 7 · 13–17 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 34 · 13–18 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → Rev. 2 → Rev. 3 → Rev. 4 → Rev. 5 → Rev. 6 → Rev. 7)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (17 Ekim 2026 Rev. 7 · BIM-CALC-2026-10-17.1) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 34)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (18 Ekim 2026 Rev. 34 · BIM-CALC-2026-10-18.28) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
       },
       {
         type: "p",

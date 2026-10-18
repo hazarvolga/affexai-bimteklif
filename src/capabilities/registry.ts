@@ -337,11 +337,11 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'ifc-authoring-software-advisory',
-    title: 'IFC Kaynak Yazılım Tespiti ve Metraj Güvenilirliği Uyarısı — Allplan / Revit / Archicad (Pilot · L2)',
+    title: 'IFC Kaynak Yazılım Tespiti, Süreç Öncesi Revit Kontrol Listesi ve Metraj Güvenilirliği Uyarısı — Allplan / Revit / Archicad (Pilot · L2)',
     shortClaim:
-      'IFC başlığından kaynak yazılımı tespit eder ve yazılıma göre model kontrolü uyarısı gösterir; uyarılar uzman saha gözlemidir, doğruluk garantisi veya sabit sapma yüzdesi içermez.',
+      'IFC başlığından (dosya seçildiği anda ilk 128 KB istemci taraması ve sunucu yolu) kaynak yazılımı tespit eder; Revit ile işlem yapacak kullanıcılara süreç öncesinde 6 maddelik dışa aktarım kontrol listesi sunar.',
     longDescription:
-      'FILE_NAME ve IFCAPPLICATION kaydından Allplan, Revit, Archicad ve Tekla tespit edilir. Revit kaynaklı dosyalarda kaba yapı birleşimi, kalıp görünür yüzeyi ve ince yapı katman daralması için model kontrolü önerilir. Tek odalık katman daralması aritmetiği kullanıcının kendi ölçüsüyle hesaplanır. Bağımsız uzman kabulü alınana kadar pilot olarak işaretlidir.',
+      'FILE_NAME ve IFCAPPLICATION kaydından Allplan, Revit, Archicad ve Tekla tespit edilir. Revit kaynaklı dosyalarda hem süreç öncesinde (PAFTA 00 dosya yükleme ekranında) hem de analiz sonrasında 6 maddelik kontrol listesi (Areas and Volumes vs. 2nd Level Space Boundaries ayrımı, Export Base Quantities & Dion Moult NetSideArea minha tuzağı, Join Geometry, Katman daralması/kalıp, LoD Low/Medium & Autodesk/revit-ifc#63 ve Shared Coordinates / IFCCARTESIANPOINT IEEE-754 açıklaması) sunulur. Tek odalık katman daralması aritmetiği kullanıcının kendi ölçüsüyle hesaplanır.',
     level: 'L2',
     status: 'pilot',
     stream: 'C',
@@ -349,10 +349,10 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       modulePath: 'src/ifc/authoring-software-diagnostics.ts',
       goldenTestPath: 'src/ifc/authoring-software-diagnostics.test.ts',
       officialSource: {
-        institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli) & ISO 10303-21',
-        documentTitle: 'Saha Geri Bildirimi 17 Ekim 2026 & STEP HEADER FILE_NAME',
-        articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 1–3',
-        publicationDate: '2026-10-17',
+        institution: 'Uzman mühendis saha geri bildirimi (Melih Dinekli), ISO 10303-21 & openBIM Saha Kaynakları',
+        documentTitle: 'Saha Geri Bildirimi 17–18 Ekim 2026, STEP HEADER FILE_NAME, Autodesk revit-ifc#63 & Dion Moult Qto İncelemesi',
+        articleOrTable: 'docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md Tespit 1–3 & REVIT_PRE_EXPORT_CHECKLIST',
+        publicationDate: '2026-10-18',
       },
     },
     planIds: ['quote_site', 'bim_5d_smartcheck', 'enterprise_epys'],

@@ -232,6 +232,16 @@ export default function BimGlossary() {
       englishTranslation: 'OpenBIM',
       isoRole: 'Kamu ihalelerinde tekelleşmeyi engeller ve açık rekabet koşulları sağlar.',
       importance: 'Çok Yüksek'
+    },
+    {
+      term: 'IfcSpace & Space Boundaries',
+      abbreviation: 'Areas and Volumes vs. 2nd Level Space Boundary',
+      turkishName: 'Mahal Hacim Hesabı ve Termal Sınır Ayrımı',
+      category: 'Teknoloji',
+      definition: 'Revit gibi yazılımlarda mimari/hakediş hacim doğruluğu için dışa aktarım öncesi "Architecture > Room & Area > Areas and Volumes" seçeneğinin aktif edilmesi gerekir ("Areas only" bırakılırsa IfcSpace kiriş/asma tavan eğimlerini kesmez, 2B alanı düz yukarı uzatır). "2nd Level Space Boundaries" (IfcRelSpaceBoundary2ndLevel) ise hakediş metrajı için değil, enerji ve ısı kaybı/kazancı (BEM/HVAC) yazılımlarında ısı transfer yüzeylerini bölmek için kullanılır.',
+      englishTranslation: 'Room Volume Computations vs. Thermal Space Boundaries',
+      isoRole: '5D metraj doğruluğu ile 6D enerji simülasyonu (BEM) veri gereksinimlerinin birbirine karıştırılmamasını sağlar.',
+      importance: 'Çok Yüksek'
     }
   ];
 
