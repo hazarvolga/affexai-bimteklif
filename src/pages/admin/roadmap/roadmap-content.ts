@@ -473,16 +473,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Sisteme ilk defa giren mühendisler ve denetçiler için Pafta Tasarım Sistemi ile uyumlu 5 adımlı interaktif SystemQuickTour devreye alındı. Müteahhitlik süreç masası, SmartCheck dosya yükleme, Melih Dinekli taşeron şap tavanı, Kamu İhale araçları ve Pafta Anteti hedefli spotlight ile taranır. ESC, yön tuşları, localStorage kalıcılığı ve kalıcı [🧭 Hızlı Tur] butonu eklendi.",
           ],
           [
-            "Rev. 33 (Güncel)",
+            "Rev. 33",
             "18 Ekim 2026 (Tasarım Sistemi Tam Token Göçü, Sabit Renk Temizliği & WCAG 2.2 AA Erişilebilirlik Denetimi)",
             "BIM-CALC-2026-10-18.27",
             "Tüm sayfa ve bileşenlerdeki 400'ün üzerinde sabit zinc-*, slate-* sınıfı semantik Pafta Tasarım Sistemi belirteçlerine dönüştürüldü; 10px altı mikro metinler okunabilirlik seviyesine çekildi. Tüm girdi, dosya yükleme ve aksiyon butonlarına htmlFor/id ve aria-label bağlantıları eklendi. axe-core tabanlı otomatik erişilebilirlik test paketi (pnpm run test:a11y) ile WCAG 2.2 AA tam uyumu doğrulandı.",
+          ],
+          [
+            "Rev. 34 (Güncel)",
+            "18 Ekim 2026 (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi & İlk 128 KB Otomatik Başlık Tespiti)",
+            "BIM-CALC-2026-10-18.28",
+            "Revit ile işlem yapacak kullanıcılara hem dosya yükleme öncesinde (PAFTA 00 ekranında) hem de dosya seçildiği anda ilk 128 KB başlığından otomatik Revit tespitiyle açılan 6 maddelik doğrulanmış kontrol listesi (REVIT_PRE_EXPORT_CHECKLIST) eklendi: 1) Mimari hakediş hacmi için 'Architecture > Room & Area > Areas and Volumes' vs. termal/BEM analizleri için '2nd Level Space Boundaries' ayrımı, 2) 'Export base quantities' ve Dion Moult (thinkmoult.com) 'NetSideArea/NetSideVolume' brüt/minha tuzağı, 3) 'Join Geometry' kaba yapı hakimiyeti, 4) İnce yapı katman kısalması ve kalıp yüzeyi, 5) 'LoD Low/Medium' & Autodesk/revit-ifc#63 dosya şişmesi önlemi, 6) 'Shared Coordinates' ve IFCCARTESIANPOINT IEEE-754 kayan nokta açıklaması.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 33 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 34 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -822,6 +828,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Bileşen ve sayfalarda eski nötr renk sınıfları (bg-zinc-*, text-slate-* vb.) ve 10px altı mikro metin kalıntıları vardı; form kontrollerinde ve butonlarda etiket ve aria-label bağlantıları tam standartlaşmamıştı.",
             "Tüm sabit nötr renk sınıfları semantik tokenlara (bg-card, bg-background, border-border, text-foreground, text-muted-foreground, bg-primary) taşındı; mikro metinler text-[10px]'e çekildi. Tüm form girdileri ve aksiyon butonları htmlFor/id ve aria-label ile donatıldı. axe-core test paketi (src/lib/a11y-audit.test.ts) kurularak sıfır kritik ihlal ile onaylandı.",
             "scripts/migrate-design-tokens.mjs, src/lib/design-token-migration.test.ts, src/lib/a11y-audit.test.ts, src/pages/CreateQuote.tsx, src/pages/QuoteDetail.tsx, src/pages/Billing.tsx, src/pages/LandingPage.tsx, src/pages/Register.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx, src/components/smartcheck/PreBimFeasibilityPanel.tsx",
+          ],
+          [
+            "Rev. 34.1 · 18 Ekim 2026 (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi & İlk 128 KB Otomatik Başlık Tespiti)",
+            "Autodesk revit-ifc#63 (2018 vs 2019 B-Rep/Tessellation dosya şişmesi), Autodesk IFCCARTESIANPOINT IEEE-754 teknik makalesi, Dion Moult (thinkmoult.com) openBIM incelemesi ve Melih Dinekli saha geri bildirimi",
+            "Revit kaynak yazılım uyarısı yalnız dosya yüklenip işlendikten sonra 3 maddelik metin olarak görünüyor; süreç öncesinde 'Areas and Volumes' (IfcSpace 3B hacim) ile '2nd Level Space Boundaries' (BEM/HVAC termal sınır) ayrımı ve Dion Moult NetSideArea/NetSideVolume minha tuzağı yer almıyordu.",
+            "REVIT_PRE_EXPORT_CHECKLIST (6 madde) ve RevitPreUploadChecklistPanel bileşeni eklendi. Dosya yükleme ekranlarında (SmartCheckImportWorkspace.tsx ve BimIfcParser.tsx) kullanıcıya süreç öncesi rehber sunulur; ayrıca seçilen .ifc dosyasının ilk 128 KB başlığı istemcide anında okunarak Revit tespit edildiğinde uyarı kartı yükleme öncesinde otomatik açılır.",
+            "src/ifc/authoring-software-diagnostics.ts, src/ifc/authoring-software-diagnostics.test.ts, src/components/smartcheck/AuthoringAdvisoryBanner.tsx, src/components/smartcheck/SmartCheckImportWorkspace.tsx, src/components/bimplan/BimIfcParser.tsx",
           ],
         ],
       },

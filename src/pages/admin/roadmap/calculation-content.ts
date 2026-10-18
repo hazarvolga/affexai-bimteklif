@@ -342,15 +342,21 @@ export const CALC_MODULES: CalcModule[] = [
   },
   {
     id: "kaynak-yazilim-guvenilirligi",
-    title: "IFC kaynak yazılım tespiti ve metraj güvenilirliği uyarısı — Allplan / Revit / Archicad (Pilot)",
+    title: "IFC kaynak yazılım tespiti, süreç öncesi Revit kontrol listesi ve metraj güvenilirliği uyarısı — Allplan / Revit / Archicad (Pilot)",
     area: "SmartCheck / Metraj",
     status: "bilgi_amacli",
-    sourceFiles: ["src/ifc/authoring-software-diagnostics.ts", "src/ifc/authoring-software-diagnostics.test.ts"],
+    sourceFiles: [
+      "src/ifc/authoring-software-diagnostics.ts",
+      "src/ifc/authoring-software-diagnostics.test.ts",
+      "src/components/smartcheck/AuthoringAdvisoryBanner.tsx",
+      "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
+    ],
     references: [
       "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 1–3) — uzman gözlemidir, bağımsız ölçüm veya sertifikasyon değildir",
       "ISO 10303-21 (STEP) HEADER FILE_NAME alanları ve IFC IFCAPPLICATION kaydı",
+      "Autodesk revit-ifc#63 (Revit 2018 vs 2019 B-Rep/Tessellation dosya boyutu farkı), Autodesk IFCCARTESIANPOINT IEEE-754 kayan nokta makalesi ve Dion Moult (thinkmoult.com) Revit Qto NetSideArea/NetSideVolume incelemesi",
     ],
-    purpose: "IFC başlığındaki FILE_NAME (originating_system / preprocessor_version) ve IFCAPPLICATION kaydından kaynak yazılımı tespit eder ve yazılıma göre model kontrolü uyarısı gösterir. Uyarılar uzman saha gözlemi olarak etiketlenir; hiçbir yazılım için metrajın doğru olduğu garanti edilmez ve sabit bir sapma yüzdesi iddia edilmez. Katman daralması için yalnızca kullanıcının kendi ölçüsüyle tek odalık aritmetik hesaplanır.",
+    purpose: "IFC başlığındaki FILE_NAME (originating_system / preprocessor_version) ve IFCAPPLICATION kaydından kaynak yazılımı hem dosya seçildiği anda (süreç öncesi ilk 128 KB istemci başlık taramasıyla) hem de analiz sonrasında tespit eder. Revit kaynaklı dosyalarda veya Revit ile işlem yapacak kullanıcılara süreç öncesinde 6 maddelik doğrulanmış kontrol listesi (Areas and Volumes vs. 2nd Level Space Boundaries ayrımı, Export Base Quantities & NetSideArea minha tuzağı, Join Geometry, Katman daralması/kalıp, LoD Low/Medium ve Shared Coordinates / IFCCARTESIANPOINT IEEE-754 notu) sunar. Hiçbir yazılım için sabit bir sapma yüzdesi iddia edilmez.",
     formulas: [
       "Modellenen zemin alanı = (L − 2t) × (W − 2t); t = duvar katmanı kalınlığı (m)",
       "Fark (m²) = L × W − (L − 2t) × (W − 2t); Fark (%) = Fark / (L × W) × 100",
@@ -366,7 +372,7 @@ export const CALC_MODULES: CalcModule[] = [
     },
     assumptions: [
       "Tek odalık katman daralması örneği proje toplam sapmasını tahmin etmez. Uzmanın bildirdiği %10–15 toplam sapma, bu aritmetikten türetilmemiştir ve doğrulanmış bir ölçüm değildir; ürün bu oranı kullanıcıya iddia olarak göstermez.",
-      "Kaynak yazılım yalnızca IFC başlığındaki metne dayanır; başlık silinmiş veya değiştirilmişse tespit yanlış olabilir.",
+      "IFCCARTESIANPOINT satırlarındaki .000000000001 / .9999999985 küsuratları IEEE-754 ikili kayan nokta (floating-point) temsilidir ve metraj sapması yaratmaz; gerçek mahal hacmi doğruluğu için Revit içinde dışa aktarım öncesi 'Areas and Volumes' seçeneğinin aktif edilmesi gerekir.",
     ],
     questions: ["Revit kaynaklı gerçek modellerde kaba yapı girişimi, kalıp ve ince yapı sapması ölçülüp doğrulanmış bir referans kümesi (ör. 3–5 proje) oluşturulabilir mi?"],
   },

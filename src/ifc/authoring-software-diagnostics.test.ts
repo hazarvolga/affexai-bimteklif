@@ -4,6 +4,7 @@ import {
   buildAuthoringAdvisory,
   computeFinishLayerShrinkage,
   detectAuthoringSoftware,
+  REVIT_PRE_EXPORT_CHECKLIST,
 } from "./authoring-software-diagnostics";
 
 const header = (fileNameArgs: string, extra = "") => `ISO-10303-21;
@@ -56,7 +57,7 @@ test("Golden 5: bilgi yoksa unknown, tanınmayan yazılım other döner", () => 
   );
 });
 
-test("Golden 6: Revit uyarısı model kontrolü önerir ve sabit sapma yüzdesi iddia etmez", () => {
+test("Golden 6: Revit uyarısı 6 maddelik süreç öncesi kontrol listesi içerir ve sabit sapma yüzdesi iddia etmez", () => {
   const adv = buildAuthoringAdvisory({
     family: "revit",
     rawOriginatingSystem: "Autodesk Revit",
@@ -65,8 +66,14 @@ test("Golden 6: Revit uyarısı model kontrolü önerir ve sabit sapma yüzdesi 
     evidence: "file_name_header",
   });
   assert.equal(adv.tone, "caution");
+  assert.equal(REVIT_PRE_EXPORT_CHECKLIST.length, 6);
+  assert.equal(adv.preExportChecklist?.length, 6);
   const text = JSON.stringify(adv);
   assert.ok(!/%\s?10|%\s?15|10\s?[–-]\s?15/.test(text), "uydurma sapma yüzdesi içermemeli");
+  assert.ok(text.includes("Areas and Volumes"), "IfcSpace hacim hesaplaması ayarı bulunmalı");
+  assert.ok(text.includes("2nd Level"), "2nd Level Space Boundaries termal ayrımı bulunmalı");
+  assert.ok(text.includes("NetSideArea"), "Dion Moult NetSideArea/minha uyarısı bulunmalı");
+  assert.ok(text.includes("IFCCARTESIANPOINT"), "IEEE-754 kayan nokta açıklaması bulunmalı");
   assert.ok(adv.disclaimer.includes("saha gözlemi"));
 });
 

@@ -28,6 +28,7 @@ import { describeIfcQuantityEvidence, summarizeIfcEvidencePolicy } from '@/ifc/e
 import { calculateSummary, parseIfcText } from '@/ifc/parser/legacy-parser';
 import { validateEpysRules } from "@/smartcheck/rules/epys";
 import { CalmIfcWorkspace } from "@/components/smartcheck/CalmIfcWorkspace";
+import { RevitPreUploadChecklistPanel } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { buildCalmIfcDatasetFromElements } from "@/ifc/calm-icmal";
 
 import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
@@ -444,6 +445,9 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 Yüklü Dosya: {fileName}
               </div>
             )}
+          </div>
+          <div className="mt-4">
+            <RevitPreUploadChecklistPanel selectedDetection={parsedData?.summary.authoringSoftware ?? null} />
           </div>
         </div>
 

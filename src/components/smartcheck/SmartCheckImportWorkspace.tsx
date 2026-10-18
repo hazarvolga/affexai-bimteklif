@@ -10,8 +10,10 @@ import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/map
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
 import { CalmIfcWorkspace } from "./CalmIfcWorkspace";
+import { RevitPreUploadChecklistPanel } from "./AuthoringAdvisoryBanner";
 import { PaftaDrawing } from "@/components/ui/PaftaDrawing";
 import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } from "@/ifc/calm-icmal";
+import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "@/ifc/authoring-software-diagnostics";
 import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
 
@@ -202,7 +204,30 @@ function parsePriceCatalogCsv(text: string): PriceCatalogImportRow[] {
 
 export function SmartCheckImportWorkspace() {
   const [file, setFile] = useState<File | null>(null);
+  const [selectedIfcDetection, setSelectedIfcDetection] = useState<AuthoringSoftwareDetection | null>(null);
   const [openedFileName, setOpenedFileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!file || !isIfcSmartCheckFile(file)) {
+      setSelectedIfcDetection(null);
+      return;
+    }
+    file
+      .slice(0, 131072)
+      .text()
+      .then((headText) => {
+        if (!cancelled) {
+          setSelectedIfcDetection(detectAuthoringSoftware(headText));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedIfcDetection(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -849,6 +874,9 @@ export function SmartCheckImportWorkspace() {
                     }}
                   />
                 </label>
+
+                {/* SÜREÇ ÖNCESİ REVIT & IFC DIŞA AKTARIM KONTROL LİSTESİ (DOSYA SEÇİLDİĞİNDE OTOMATİK TESPİT EDER) */}
+                <RevitPreUploadChecklistPanel selectedDetection={selectedIfcDetection} />
 
                 <button
                   type="button"
