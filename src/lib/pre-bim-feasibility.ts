@@ -1,7 +1,7 @@
 /**
  * IFC öncesi ön teklif / kat karşılığı fizibilite motoru (Paket M-3)
  *
- * Saha dayanağı: Melih Dinekli geri bildirimi (17 Ekim 2026, Tespit 4–5). Müteahhit
+ * Saha dayanağı: Uzman saha geri bildirimi (17 Ekim 2026, Tespit 4–5). Müteahhit
  * işi almadan önce IFC çizmez; Arsa m², TAKS, KAKS (emsal) ve çoklu parsel Excel'iyle
  * ön teklif verir ve kat maliklerine düşen dairelerin brüt/net m²'sini hesaplar.
  *
@@ -160,7 +160,7 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
   const emsal = round(area * kaks, 2);
   if (harici > 0 && emsal > 0 && harici > round(emsal * 0.3, 2)) {
     warnings.push(
-      `${label}: emsal harici alan (${harici} m²), emsal alanının (${emsal} m²) %30'unu (${round(emsal * 0.3, 2)} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve saha uygulamasına göre emsal harici alan kural olarak emsalin en fazla %30'u kadardır (Melih Dinekli saha teyidi, 17 Ekim 2026).`,
+      `${label}: emsal harici alan (${harici} m²), emsal alanının (${emsal} m²) %30'unu (${round(emsal * 0.3, 2)} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve saha uygulamasına göre emsal harici alan kural olarak emsalin en fazla %30'u kadardır.`,
     );
   }
   return {
@@ -176,10 +176,10 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
 }
 
 /**
- * Melih Dinekli Saha Doğrulaması (17 Ekim 2026):
+ * Saha Doğrulaması (17 Ekim 2026):
  * 6-Villa Projesi Gerçek Piyasa Maliyet Dağılımı Referansı (27 Kalem).
  *
- * Kaynak: Melih Dinekli saha yanıtı ve `6-villa 2 A'dan Z'ye piyasa maliyetii.pdf` dökümü.
+ * Kaynak: Uzman saha yanıtı ve `6-villa 2 A'dan Z'ye piyasa maliyetii.pdf` dökümü.
  * Toplam inşaat maliyeti: 4.135.752,77 TL (tam %100,00).
  * Bu referans, kullanıcılara karşılaştırma ve piyasa kontrol göstergesi olarak sunulur;
  * gizli varsayılan olarak hesaba otomatik uygulanmaz (kullanıcı kendi yüzdelerini girer).
@@ -192,12 +192,12 @@ export interface CostBenchmarkItem {
   category: "ruhsat_proje" | "santiye_kamu" | "kaba_yapi" | "tesisat" | "ince_yapi" | "cevre_diger";
 }
 
-export const MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026: {
+export const VILLA_MARKET_COST_BENCHMARK_2026: {
   readonly source: string;
   readonly sampleTotalCostTry: number;
   readonly items: readonly CostBenchmarkItem[];
 } = {
-  source: "Melih Dinekli 6-Villa Projesi Gerçek Piyasa Maliyet Analizi (17 Ekim 2026)",
+  source: "6-Villa Projesi Gerçek Piyasa Maliyet Analizi (17 Ekim 2026)",
   sampleTotalCostTry: 4135752.77,
   items: [
     { id: "projelendirme", name: "Projelendirme", percent: 7.13, sampleAmountTry: 295000.0, category: "ruhsat_proje" },

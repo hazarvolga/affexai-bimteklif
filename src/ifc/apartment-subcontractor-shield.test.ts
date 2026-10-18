@@ -131,7 +131,7 @@ test("Golden 7: mahal listesi boş daire için tavan üretilmez", () => {
   assert.ok(r.warnings.some((w) => w.includes("mahal")));
 });
 
-test("Golden 8: Melih Dinekli saha standardı (325 kg/m³ çimento, %10 fire) ile şap çimento hesabı", () => {
+test("Golden 8: Şantiye şap standardı (325 kg/m³ çimento, %10 fire) ile şap çimento hesabı", () => {
   const r = computeApartmentSubcontractorShield({
     apartment,
     screedThicknessCm: 5, // 108 m² × 0,05 = 5,4 m³

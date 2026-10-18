@@ -50,7 +50,7 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'ŞANTİYE KORUMASI',
     title: 'Taşeron Hakediş Kalkanı',
     description:
-      'Sahada imalat yapıldığında taşeron metrajlarını denetleyin. Melih Dinekli standardı olan 325 kg/m³ çimento ve %10 fire tavanı, net mahal sıva/söve kuralları ile fazla hakediş taleplerini anında saptayın ve kesinti tutanağı çıkarın.',
+      'Sahada imalat yapıldığında taşeron metrajlarını denetleyin. Şantiye uygulama standardı olan 325 kg/m³ çimento ve %10 fire tavanı, net mahal sıva/söve kuralları ile fazla hakediş taleplerini anında saptayın ve kesinti tutanağı çıkarın.',
     tip: 'Hakediş kesinti raporunu PDF veya Excel olarak doğrudan taşerona sunabilirsiniz.',
     preferredPlacement: 'top',
   },

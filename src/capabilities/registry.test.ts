@@ -165,3 +165,23 @@ test('Halka açık hesaplayıcılar boş başlar: sayfalarda başlangıç değer
     }
   }
 });
+
+test('Kişi ismi otorite yasağı: arayüz ve hesap modüllerinde şahıs ismi standart/otorite olarak kullanılamaz', () => {
+  const checkedFiles = [
+    'src/components/dashboard/ContractorWorkflowHub.tsx',
+    'src/components/dashboard/SystemQuickTour.tsx',
+    'src/ifc/apartment-subcontractor-shield.ts',
+    'src/ifc/authoring-software-diagnostics.ts',
+    'src/lib/pre-bim-feasibility.ts',
+    'src/capabilities/registry.ts',
+  ];
+  for (const rel of checkedFiles) {
+    const src = fs.readFileSync(path.resolve(REPO_ROOT, rel), 'utf8');
+    assert.equal(
+      /melih\s*dinekli/i.test(src),
+      false,
+      `${rel} içinde kişi ismi otorite/standart olarak kullanılamaz`,
+    );
+  }
+});
+

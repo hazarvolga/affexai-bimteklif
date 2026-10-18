@@ -291,7 +291,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
               <div className="space-y-2 pt-1 border-t border-border/60">
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Melih Dinekli Standardı:</strong> 325 kg/m³ çimento ve %10 fire şap tavanı.</span>
+                  <span><strong>Şantiye Şap Standardı:</strong> 325 kg/m³ çimento ve %10 fire şap tavanı.</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />

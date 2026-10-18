@@ -314,7 +314,7 @@ export const CALC_MODULES: CalcModule[] = [
     status: "bilgi_amacli",
     sourceFiles: ["src/ifc/apartment-subcontractor-shield.ts", "src/ifc/apartment-subcontractor-shield.test.ts"],
     references: [
-      "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026) — taşeron hakedişinde metraj şişirmesine karşı daire bazlı tavan ihtiyacı",
+      "Şantiye hakediş geri bildirimi (17 Ekim 2026) — taşeron hakedişinde metraj şişirmesine karşı daire bazlı tavan ihtiyacı",
       "IFC mahal cetveli (IfcSpace / IfcZone) net alanları — src/ifc/types.ts ApartmentUnitScheduleItem",
     ],
     purpose: "Seçilen dairenin IFC mahal cetvelindeki net alanlardan şap ve zemin kaplaması için hakediş tavanı üretir; kullanıcının girdiği kalınlık, fire ve çimento dozajıyla harç hacmini ve çimento miktarını hesaplar; taşeronun beyan ettiği m² değerini tavanla karşılaştırır. Duvar sıvası alanı IFC mahal cetvelinde bulunmadığı için yalnızca kullanıcı girdisiyle hesaplanır.",
@@ -352,7 +352,7 @@ export const CALC_MODULES: CalcModule[] = [
       "src/components/smartcheck/SmartCheckImportWorkspace.tsx",
     ],
     references: [
-      "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 1–3) — uzman gözlemidir, bağımsız ölçüm veya sertifikasyon değildir",
+      "openBIM saha geri bildirimi (17 Ekim 2026, Tespit 1–3) — uzman gözlemidir, bağımsız ölçüm veya sertifikasyon değildir",
       "ISO 10303-21 (STEP) HEADER FILE_NAME alanları ve IFC IFCAPPLICATION kaydı",
       "Autodesk revit-ifc#63 (Revit 2018 vs 2019 B-Rep/Tessellation dosya boyutu farkı), Autodesk IFCCARTESIANPOINT IEEE-754 kayan nokta makalesi ve Dion Moult (thinkmoult.com) Revit Qto NetSideArea/NetSideVolume incelemesi",
     ],
@@ -383,7 +383,7 @@ export const CALC_MODULES: CalcModule[] = [
     status: "bilgi_amacli",
     sourceFiles: ["src/lib/pre-bim-feasibility.ts", "src/lib/pre-bim-feasibility.test.ts", "src/lib/pre-bim-xlsx.ts", "src/lib/pre-bim-quote-draft.ts", "src/lib/pre-bim-quote-draft.test.ts"],
     references: [
-      "Uzman mühendis Melih Dinekli saha geri bildirimi (17 Ekim 2026, Tespit 4–5) — müteahhitlerin Excel'le yaptığı ön teklif akışı",
+      "Şantiye saha geri bildirimi (17 Ekim 2026, Tespit 4–5) — müteahhitlerin Excel'le yaptığı ön teklif akışı",
       "İmar durumu belgesi: TAKS ve KAKS (emsal) değerleri kullanıcı tarafından belgeden alınır; bu modül imar mevzuatını yorumlamaz",
     ],
     purpose: "Projesi veya IFC dosyası olmayan aşamada, kullanıcının girdiği arsa alanı, TAKS, KAKS ve emsal harici alanlardan çoklu parsel için taban ve emsal alanını hesaplar; kullanıcının seçtiği pay tabanı ve yüzdesiyle arsa sahibi / müteahhit paylaşımını, net/brüt oranıyla daire başı alanı çıkarır; müteahhidin vaat ettiği daire başı brüt alanın paylaşım kapasitesini aşıp aşmadığını yalnızca aritmetik olarak denetler. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması kullanılmaz.",

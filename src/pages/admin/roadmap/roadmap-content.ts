@@ -369,21 +369,21 @@ export const ROADMAP_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 15",
-            "17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-1)",
+            "17 Ekim 2026 (Şantiye Saha Geri Bildirimi · Paket M-1)",
             "BIM-CALC-2026-10-17.9 (dcd64d2)",
-            "Uzman mühendis Melih Dinekli'nin 17 Ekim 2026 saha geri bildirimi (6 tespit) docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md altında kalıcı kayda alındı. Paket M-1 kapsamında bağımsız bölüm cetveline Daire Bazlı Taşeron Hakediş Kalkanı eklendi: IFC mahal cetvelinden şap ve zemin kaplaması tavanı, kullanıcı girdili kalınlık / fire / çimento dozajıyla harç hacmi ve taşeron beyanı karşılaştırması. Yetenek Kaydına pilot (L2) olarak işlendi; Paket M-2 ve M-3 sırada.",
+            "17 Ekim 2026 şantiye saha geri bildirimi (6 tespit) kalıcı kayda alındı. Paket M-1 kapsamında bağımsız bölüm cetveline Daire Bazlı Taşeron Hakediş Kalkanı eklendi: IFC mahal cetvelinden şap ve zemin kaplaması tavanı, kullanıcı girdili kalınlık / fire / çimento dozajıyla harç hacmi ve taşeron beyanı karşılaştırması. Yetenek Kaydına pilot (L2) olarak işlendi; Paket M-2 ve M-3 sırada.",
           ],
           [
             "Rev. 16",
-            "17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-2)",
+            "17 Ekim 2026 (openBIM Saha Geri Bildirimi · Paket M-2)",
             "BIM-CALC-2026-10-17.10 (cd7c478)",
             "IFC başlığındaki FILE_NAME ve IFCAPPLICATION kaydından kaynak yazılım (Allplan / Revit / Archicad / Tekla) tespit edilir ve çalışma alanında uyarı olarak gösterilir. Uyarılar uzman saha gözlemi olarak etiketlenir; doğruluk garantisi veya sabit sapma yüzdesi iddia edilmez. Kullanıcının kendi ölçüsüyle tek odalık katman daralması aritmetiği eklendi. Yetenek Kaydına pilot (L2) olarak işlendi; Paket M-3 sırada.",
           ],
           [
             "Rev. 17",
-            "17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-3)",
+            "17 Ekim 2026 (Şantiye Saha Geri Bildirimi · Paket M-3)",
             "BIM-CALC-2026-10-17.11",
-            "IFC öncesi ön teklif aşaması için kat karşılığı fizibilite motoru eklendi (/app/smartcheck): kullanıcının girdiği arsa, TAKS, KAKS ve emsal harici alanlardan çoklu parsel taban/emsal/toplam inşaat alanı, arsa sahibi/müteahhit paylaşımı, daire başı brüt/net alan, birim maliyet ve vaat-kapasite aritmetiği. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması yoktur; CSV içe/dışa aktarım vardır. Yetenek Kaydına pilot (L2) olarak işlendi. Melih Dinekli paketleri M-1, M-2 ve M-3 tamamlandı.",
+            "IFC öncesi ön teklif aşaması için kat karşılığı fizibilite motoru eklendi (/app/smartcheck): kullanıcının girdiği arsa, TAKS, KAKS ve emsal harici alanlardan çoklu parsel taban/emsal/toplam inşaat alanı, arsa sahibi/müteahhit paylaşımı, daire başı brüt/net alan, birim maliyet ve vaat-kapasite aritmetiği. Hiçbir sayısal girdi için varsayılan veya piyasa ortalaması yoktur; CSV içe/dışa aktarım vardır. Yetenek Kaydına pilot (L2) olarak işlendi. Saha paketleri M-1, M-2 ve M-3 tamamlandı.",
           ],
           [
             "Rev. 18",
@@ -459,9 +459,9 @@ export const ROADMAP_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 30",
-            "17 Ekim 2026 (Melih Dinekli 17 Saha Sorusu Yanıtları ve Benchmark Entegrasyonu)",
+            "17 Ekim 2026 (17 Saha Sorusu Yanıtları ve Piyasa Benchmark Entegrasyonu)",
             "BIM-CALC-2026-10-17.24",
-            "Melih Dinekli'nin 17 saha sorusuna verdiği resmi yazılı yanıtlar ve 6-villa maliyet PDF'i doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
+            "17 saha sorusuna verilen yazılı yanıtlar ve 6-villa maliyet analizi doğrultusunda: 1) Taşeron şap harcında Türkiye saha standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 yaygın taşeron şişirme taktiği koda bağlandı (SITE_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı (9,98x9,98), dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik formülü doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik gerçek 6-villa piyasa maliyet dağılımı (VILLA_MARKET_COST_BENCHMARK_2026, 4.135.752,77 TL) sisteme referans olarak entegre edildi.",
           ],
           [
             "Rev. 31",
@@ -473,7 +473,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Rev. 32",
             "17 Ekim 2026 (Sistem Hızlı Turu & İnteraktif Onboarding Rehberi)",
             "BIM-CALC-2026-10-17.26",
-            "Sisteme ilk defa giren mühendisler ve denetçiler için Pafta Tasarım Sistemi ile uyumlu 5 adımlı interaktif SystemQuickTour devreye alındı. Müteahhitlik süreç masası, SmartCheck dosya yükleme, Melih Dinekli taşeron şap tavanı, Kamu İhale araçları ve Pafta Anteti hedefli spotlight ile taranır. ESC, yön tuşları, localStorage kalıcılığı ve kalıcı [🧭 Hızlı Tur] butonu eklendi.",
+            "Sisteme ilk defa giren mühendisler ve denetçiler için Pafta Tasarım Sistemi ile uyumlu 5 adımlı interaktif SystemQuickTour devreye alındı. Müteahhitlik süreç masası, SmartCheck dosya yükleme, şantiye taşeron şap tavanı, Kamu İhale araçları ve Pafta Anteti hedefli spotlight ile taranır. ESC, yön tuşları, localStorage kalıcılığı ve kalıcı [🧭 Hızlı Tur] butonu eklendi.",
           ],
           [
             "Rev. 33",
@@ -700,21 +700,21 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "src/pages/Billing.tsx",
           ],
           [
-            "Rev. 15.1 · 17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-1)",
+            "Rev. 15.1 · 17 Ekim 2026 (Şantiye Saha Geri Bildirimi · Paket M-1)",
             "Uzman mühendis saha geri bildirimi (Tespit 6) & IFC IfcSpace/IfcZone mahal net alanları",
             "Bağımsız bölüm cetveli yalnızca daire/oda net alanlarını gösteriyordu; sıva, şap ve kaplama taşeronlarının hakedişte beyan ettiği m² değerini daire bazında denetleyen tavan, harç hacmi veya çimento hesabı yoktu.",
             "Seçilen dairenin mahal cetvelinden şap/zemin kaplaması tavanı, kullanıcı girdili kalınlık, fire ve çimento dozajıyla harç hacmi (m³) ve çimento (kg), taşeron beyanı fazlası (m²) hesaplanır. Duvar sıvası alanı IFC'de olmadığından yalnızca kullanıcı girdisiyle hesaplanır; gizli varsayılan yoktur.",
             "src/ifc/apartment-subcontractor-shield.ts, apartment-subcontractor-shield.test.ts, ApartmentSubcontractorShieldCard.tsx, CalmIfcWorkspace.tsx, src/capabilities/registry.ts",
           ],
           [
-            "Rev. 16.1 · 17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-2)",
+            "Rev. 16.1 · 17 Ekim 2026 (openBIM Saha Geri Bildirimi · Paket M-2)",
             "Uzman mühendis saha geri bildirimi (Tespit 1–3) & ISO 10303-21 HEADER FILE_NAME",
             "Kaynak yazılım IFC başlığından okunmuyordu; Revit kaynaklı dosyalarda kaba yapı birleşimi, kalıp görünür yüzeyi ve ince yapı katman daralması için kullanıcıya model kontrolü uyarısı verilmiyordu.",
             "detectAuthoringSoftware başlıktan yazılımı tespit eder; buildAuthoringAdvisory yazılıma göre uyarıyı uzman gözlemi olarak etiketleyerek üretir ve CalmIfcDataset.authoringAdvisory üzerinden çalışma alanının üstünde gösterir. computeFinishLayerShrinkage tek odalık katman daralmasını kullanıcı ölçüsüyle hesaplar (10 × 10 m, 2 cm → 99,20 m², %0,80). Toplam proje sapması için sayı iddia edilmez.",
             "src/ifc/authoring-software-diagnostics.ts, authoring-software-diagnostics.test.ts, AuthoringAdvisoryBanner.tsx, legacy-parser.ts, calm-icmal.ts, types.ts, CalmIfcWorkspace.tsx, src/capabilities/registry.ts",
           ],
           [
-            "Rev. 17.1 · 17 Ekim 2026 (Melih Dinekli Saha Geri Bildirimi · Paket M-3)",
+            "Rev. 17.1 · 17 Ekim 2026 (Şantiye Saha Geri Bildirimi · Paket M-3)",
             "Uzman mühendis saha geri bildirimi (Tespit 4–5) & imar durumu belgesi (kullanıcı girdisi)",
             "Projesi veya IFC dosyası olmayan ön teklif aşamasında arsa alanı, TAKS/KAKS ve çoklu parselden alan hesabı, arsa sahibi/müteahhit paylaşımı, daire başı brüt/net alan ve vaat denetimi yapılamıyordu; müteahhitler bunu elle Excel'de yapıyordu.",
             "computeFeasibility parsel alanlarını, kat karşılığı paylaşımını, daire başı brüt/net alanı, maliyeti ve vaat-kapasite aritmetiğini hesaplar; vaat kapasiteyi aşarsa fark (m², daire başı m², TL) gösterilir ve açıklama istenmesi önerilir, aşımın nasıl karşılanacağı hakkında hüküm verilmez. parseParcelCsv / exportFeasibilityCsv Excel uyumlu CSV sağlar. Maliyet yüzde dağılımı yalnızca kullanıcı girdisidir.",
@@ -729,7 +729,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 19.1 · 17 Ekim 2026 (.xlsx içe aktarım)",
-            "Melih Dinekli saha geri bildirimi (Tespit 4) — müteahhitler ön teklifi Excel'de yapıyor",
+            "Şantiye saha geri bildirimi (Tespit 4) — müteahhitler ön teklifi Excel'de yapıyor",
             "Parsel listesi yalnızca CSV (noktalı virgül) olarak alınabiliyordu; Excel kullanıcısı dosyayı önce dönüştürmek zorundaydı.",
             "parseParcelRows ortak ayrıştırıcı oldu; parseParcelXlsx (exceljs, dinamik yükleme, 5 MB sınırı, formül sonucu okuma) .xlsx dosyasını doğrudan okur. PreBimFeasibilityPanel dosya türünü uzantıdan seçer.",
             "src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-xlsx.ts, pre-bim-xlsx.test.ts, PreBimFeasibilityPanel.tsx",
@@ -805,11 +805,11 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "src/lib/kik-adt.ts, src/lib/kik-adt.golden.test.ts, src/lib/yambis-classification.ts, src/lib/kat-karsiligi.ts, src/pages/calculators/YambisCalculatorPage.tsx, src/pages/calculators/KatKarsiligiCalculatorPage.tsx, src/server/security/route-meta.ts, docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md",
           ],
           [
-            "Rev. 30.1 · 17 Ekim 2026 (Melih Dinekli 17 Saha Sorusu Yanıtları ve Benchmark Entegrasyonu)",
-            "Melih Dinekli 17 saha sorusu yazılı yanıtı (yanitlar.rtf); 6-villa maliyet PDF dökümü (17 Ekim 2026); Planlı Alanlar İmar Yönetmeliği m.5/8",
+            "Rev. 30.1 · 17 Ekim 2026 (17 Saha Sorusu Yanıtları ve Piyasa Benchmark Entegrasyonu)",
+            "17 saha sorusu yazılı yanıtı; 6-villa maliyet PDF dökümü (17 Ekim 2026); Planlı Alanlar İmar Yönetmeliği m.5/8",
             "Taşeron şap hakediş tavanında çimento/fire katsayıları serbestti, Türkiye şantiye referansı yoktu. Ön teklif fizibilitesinde emsal harici alanın (%30) yasal tavanı uyarılmıyordu ve gerçek piyasa maliyet referansı yoktu.",
-            "1) Taşeron şap harcında Türkiye piyasa standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 taşeron şişirme taktiği koda bağlandı (MELIH_DINEKLI_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı, dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik kuralı doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik 6-villa gerçek maliyet referansı (MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026, 4.135.752,77 TL) eklendi.",
-            "src/ifc/apartment-subcontractor-shield.ts, src/ifc/apartment-subcontractor-shield.test.ts, src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-feasibility.test.ts, docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md",
+            "1) Taşeron şap harcında Türkiye piyasa standardı (1 m³ şap = 325 kg çimento + %10 fire) ve 4 taşeron şişirme taktiği koda bağlandı (SITE_SCREED_BENCHMARK). 2) Net oda mahal ölçümünde 2 cm sıva payı, dışa açılan kapı eşik payı (+0,20 m²), kasa derinlik payı (+0,40 m²) ve süpürgelik kuralı doğrulandı. 3) Ön teklif fizibilitesinde emsal harici alanın emsalin %30'unu aşamayacağı kuralı ve uyarısı eklendi. 4) 27 kalemlik 6-villa gerçek maliyet referansı (VILLA_MARKET_COST_BENCHMARK_2026, 4.135.752,77 TL) eklendi.",
+            "src/ifc/apartment-subcontractor-shield.ts, src/ifc/apartment-subcontractor-shield.test.ts, src/lib/pre-bim-feasibility.ts, src/lib/pre-bim-feasibility.test.ts",
           ],
           [
             "Rev. 31.1 · 17 Ekim 2026 (Müteahhitlik Süreç Karşılama Masası ve UX Yaşam Döngüsü Yönlendiricisi)",
@@ -834,7 +834,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 34.1 · 18 Ekim 2026 (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi & İlk 128 KB Otomatik Başlık Tespiti)",
-            "Autodesk revit-ifc#63 (2018 vs 2019 B-Rep/Tessellation dosya şişmesi), Autodesk IFCCARTESIANPOINT IEEE-754 teknik makalesi, Dion Moult (thinkmoult.com) openBIM incelemesi ve Melih Dinekli saha geri bildirimi",
+            "Autodesk revit-ifc#63 (2018 vs 2019 B-Rep/Tessellation dosya şişmesi), Autodesk IFCCARTESIANPOINT IEEE-754 teknik makalesi, Dion Moult (thinkmoult.com) openBIM incelemesi ve openBIM saha geri bildirimi",
             "Revit kaynak yazılım uyarısı yalnız dosya yüklenip işlendikten sonra 3 maddelik metin olarak görünüyor; süreç öncesinde 'Areas and Volumes' (IfcSpace 3B hacim) ile '2nd Level Space Boundaries' (BEM/HVAC termal sınır) ayrımı ve Dion Moult NetSideArea/NetSideVolume minha tuzağı yer almıyordu.",
             "REVIT_PRE_EXPORT_CHECKLIST (6 madde) ve RevitPreUploadChecklistPanel bileşeni eklendi. Dosya yükleme ekranlarında (SmartCheckImportWorkspace.tsx ve BimIfcParser.tsx) kullanıcıya süreç öncesi rehber sunulur; ayrıca seçilen .ifc dosyasının ilk 128 KB başlığı istemcide anında okunarak Revit tespit edildiğinde uyarı kartı yükleme öncesinde otomatik açılır.",
             "src/ifc/authoring-software-diagnostics.ts, src/ifc/authoring-software-diagnostics.test.ts, src/components/smartcheck/AuthoringAdvisoryBanner.tsx, src/components/smartcheck/SmartCheckImportWorkspace.tsx, src/components/bimplan/BimIfcParser.tsx",

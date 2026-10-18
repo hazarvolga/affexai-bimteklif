@@ -1,7 +1,7 @@
 /**
  * Daire Bazlı Taşeron Hakediş Kalkanı (Paket M-1)
  *
- * Saha dayanağı: Melih Dinekli geri bildirimi (17 Ekim 2026) — sıvacı / şapçı /
+ * Saha dayanağı: Şantiye hakediş geri bildirimi (17 Ekim 2026) — sıvacı / şapçı /
  * kaplamacı taşeronların hakedişte metrajı şişirmesine karşı müteahhidi korumak
  * için daire bazında net hakediş tavanı üretilir.
  *
@@ -18,23 +18,23 @@ import type { ApartmentRoomScheduleItem, ApartmentUnitScheduleItem } from "./typ
 export const MAX_LAYER_THICKNESS_CM = 20;
 
 /**
- * Melih Dinekli Saha Doğrulamalı Şap Standardı (17 Ekim 2026 Resmî Yanıtı):
+ * Şantiye Uygulama Standardı Şap Harcı Referansı (17 Ekim 2026 Saha Doğrulaması):
  * - Karışım: 1 : 3 - 1 : 4 (Çimento : Kum)
  * - 1 m³ hazır şap harcı = 325 kg çimento + %10 fire.
  */
-export const MELIH_DINEKLI_SCREED_BENCHMARK = {
+export const SITE_SCREED_BENCHMARK = {
   cementKgPerM3: 325,
   wastePercent: 10,
   kumM3PerM3: 1.05,
   mixRatio: "1:3 - 1:4",
-  reference: "Melih Dinekli saha yanıtı (17 Ekim 2026)",
+  reference: "Şantiye şap uygulama standardı (17 Ekim 2026)",
 };
 
 /**
- * Melih Dinekli Taşeron Şişirme Denetim Kriterleri (Soru 2 Yanıtı):
+ * Taşeron Hakediş Şişirme Denetim Kriterleri:
  * Taşeronların metraj şişirmede en sık başvurduğu 4 yöntem.
  */
-export const MELIH_DINEKLI_CLAIM_INSPECTION_CRITERIA = [
+export const SITE_CLAIM_INSPECTION_CRITERIA = [
   "Elden metraj çıkarma hatası (cetvel/hesap hatası)",
   "Metrajı yukarıya yuvarlama eğilimi",
   "Kapı ve pencere boşluklarını minha etmeme",

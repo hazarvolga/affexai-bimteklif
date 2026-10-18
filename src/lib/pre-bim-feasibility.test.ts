@@ -6,7 +6,7 @@ import {
   exportFeasibilityCsv,
   parseParcelCsv,
   parseParcelRows,
-  MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026,
+  VILLA_MARKET_COST_BENCHMARK_2026,
   type FeasibilityInput,
 } from "./pre-bim-feasibility";
 
@@ -193,7 +193,7 @@ test("Golden 12: parseParcelRows sayı hücrelerini ve metin sayıları (Türkç
   assert.ok(r.errors[0].includes("Satır 5"));
 });
 
-test("Golden 13: Melih Dinekli saha imar kuralı — emsal harici alan emsalin %30'unu aşarsa uyarı verilir", () => {
+test("Golden 13: Saha imar kuralı — emsal harici alan emsalin %30'unu aşarsa uyarı verilir", () => {
   // 1.000 m² arsa, TAKS 0,40, KAKS 0,80 → 800 m² emsal.
   // %30 üst sınır: 240 m². 250 m² girildiğinde açık uyarı verilmelidir.
   const r = computeFeasibility(
@@ -204,12 +204,12 @@ test("Golden 13: Melih Dinekli saha imar kuralı — emsal harici alan emsalin %
   assert.equal(r.totalEmsalAreaM2, 800);
   assert.equal(r.totalEmsalHariciM2, 250);
   assert.ok(
-    r.warnings.some((w) => w.includes("%30'unu") && w.includes("240 m²") && w.includes("Melih Dinekli")),
+    r.warnings.some((w) => w.includes("%30'unu") && w.includes("240 m²") && w.includes("Planlı Alanlar İmar Yönetmeliği")),
   );
 });
 
-test("Golden 14: Melih Dinekli 27 kalemlik 6-villa maliyet referansı tam ve tutarlıdır", () => {
-  const benchmark = MELIH_DINEKLI_VILLA_COST_BENCHMARK_2026;
+test("Golden 14: 27 kalemlik 6-villa maliyet referansı tam ve tutarlıdır", () => {
+  const benchmark = VILLA_MARKET_COST_BENCHMARK_2026;
   assert.equal(benchmark.items.length, 27);
   // 2 basamağa yuvarlanmış 27 kalemin toplamı Excel yuvarlaması nedeniyle %99,98'dir.
   const totalPercent = benchmark.items.reduce((sum, item) => sum + item.percent, 0);

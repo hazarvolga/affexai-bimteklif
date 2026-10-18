@@ -1,7 +1,7 @@
 /**
  * IFC kaynak yazılım tespiti ve metraj güvenilirliği uyarıları (Paket M-2)
  *
- * Saha dayanağı: Melih Dinekli geri bildirimi (17 Ekim 2026). Bu modülün ürettiği
+ * Saha dayanağı: openBIM saha geri bildirimi (17 Ekim 2026). Bu modülün ürettiği
  * uyarılar bir UZMAN SAHA GÖZLEMİDİR; bağımsız ölçüm veya sertifikasyon değildir.
  * Hiçbir yazılım için "metraj garantili doğrudur" veya sabit bir sapma yüzdesi
  * iddia edilmez. Sapma ancak modelin kendi sayılarıyla (ör. katman daralması
