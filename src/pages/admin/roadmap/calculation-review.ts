@@ -2,8 +2,8 @@
 export const CALC_REVIEW_META = {
   version: "BIM-CALC-2026-10-18.28",
   updatedOn: "18 Ekim 2026",
-  implementationBaseline: "b3078bcb114ed09f3c061d633279253b00f1c5d9",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi (Areas and Volumes vs. 2nd Level Space Boundaries, NetSideArea minha doğrulaması, IFCCARTESIANPOINT IEEE-754 kayan nokta ayrımı), 27 kalemlik 6-villa piyasa maliyet referansı ve Pafta Tasarım Sistemi tam token/WCAG 2.2 AA erişilebilirlik denetimi tamamlandı · bağımsız uzman imzasına hazır",
+  implementationBaseline: "57d288d5d43e49fc274b78829eaa704b5e5b824d",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi (Areas and Volumes vs. 2nd Level Space Boundaries, NetSideArea minha doğrulaması, IFCCARTESIANPOINT IEEE-754 kayan nokta ayrımı), 27 kalemlik 6-villa piyasa maliyet referansı, kurumsal terminoloji kapısı ve Pafta Tasarım Sistemi tam token/WCAG 2.2 AA erişilebilirlik denetimi tamamlandı · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -865,16 +865,26 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 34",
     version: "BIM-CALC-2026-10-18.28",
     date: "18 Ekim 2026",
-    commit: "b3078bc → HEAD (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi & İlk 128 KB Otomatik Başlık Tespiti)",
-    trigger: "Kullanıcı geri bildirimi & birincil kaynak doğrulaması: Revit kaynaklı IFC'lerde süreç öncesi 'Areas and Volumes' vs. '2nd Level Space Boundaries' ayrımı, Dion Moult NetSideArea/NetSideVolume minha tuzağı, LoD (Autodesk/revit-ifc#63) ve IFCCARTESIANPOINT IEEE-754 kayan nokta açıklamalarının süreç başında kullanıcıya gösterilmesi",
-    beforeSummary: "Revit kaynak yazılım uyarısı (AuthoringAdvisoryBanner) yalnızca dosya sunucuya yüklenip analiz tamamlandıktan sonra 3 maddelik metin olarak gösteriliyor; süreç/yükleme öncesinde (PAFTA 00 ekranında) veya dosya seçildiği anda otomatik Revit başlık tespiti ve 6 maddelik dışa aktarım kontrol listesi sunmuyordu.",
-    afterSummary: "authoring-software-diagnostics.ts içine 6 maddelik doğrulanmış REVIT_PRE_EXPORT_CHECKLIST eklendi (1: Architecture > Room & Area > Areas and Volumes vs. BEM/HVAC 2nd Level Space Boundaries ayrımı; 2: Export base quantities & Dion Moult NetSideArea/NetSideVolume brüt/minha tuzağı; 3: Join Geometry; 4: İnce yapı katman kısalması & kalıp yüzeyi; 5: LoD Low/Medium & Autodesk/revit-ifc#63 üçgenleme şişmesi; 6: Shared Coordinates & IFCCARTESIANPOINT IEEE-754 kayan nokta açıklaması). SmartCheckImportWorkspace.tsx ve BimIfcParser.tsx yükleme ekranlarına süreç öncesi RevitPreUploadChecklistPanel ve seçilen .ifc dosyasının ilk 128 KB başlığından anında istemci tarafı Revit tespiti eklendi.",
-    affectedModules: ["kaynak-yazilim-guvenilirligi"],
+    commit: "63a77a5 / 57d288d (Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, İlk 128 KB Otomatik Başlık Tespiti & Kurumsal Terminoloji Kapısı)",
+    trigger: "Kullanıcı geri bildirimi & birincil kaynak doğrulaması: Revit kaynaklı IFC'lerde süreç öncesi 'Areas and Volumes' vs. '2nd Level Space Boundaries' ayrımı, Dion Moult NetSideArea/NetSideVolume minha tuzağı, LoD (Autodesk/revit-ifc#63), IFCCARTESIANPOINT IEEE-754 kayan nokta açıklamaları ve ürün genelinde şahıs ismi otorite yasağı",
+    beforeSummary: "Revit kaynak yazılım uyarısı (AuthoringAdvisoryBanner) yalnızca dosya sunucuya yüklenip analiz tamamlandıktan sonra 3 maddelik metin olarak gösteriliyor; süreç/yükleme öncesinde (PAFTA 00 ekranında) veya dosya seçildiği anda otomatik Revit başlık tespiti ve 6 maddelik dışa aktarım kontrol listesi sunmuyordu. Ayrıca arayüz ve bazı modüllerde saha standardı için şahıs ismi referansı yer alıyordu.",
+    afterSummary: "authoring-software-diagnostics.ts içine 6 maddelik doğrulanmış REVIT_PRE_EXPORT_CHECKLIST eklendi (1: Architecture > Room & Area > Areas and Volumes vs. BEM/HVAC 2nd Level Space Boundaries ayrımı; 2: Export base quantities & Dion Moult NetSideArea/NetSideVolume brüt/minha tuzağı; 3: Join Geometry; 4: İnce yapı katman kısalması & kalıp yüzeyi; 5: LoD Low/Medium & Autodesk/revit-ifc#63 üçgenleme şişmesi; 6: Shared Coordinates & IFCCARTESIANPOINT IEEE-754 kayan nokta açıklaması). SmartCheckImportWorkspace.tsx ve BimIfcParser.tsx yükleme ekranlarına süreç öncesi RevitPreUploadChecklistPanel ve seçilen .ifc dosyasının ilk 128 KB başlığından anında istemci tarafı Revit tespiti eklendi. Arayüz, hesap modülleri ve yönetim sayfalarındaki şahıs ismi referansları tamamen kaldırılarak kurumsal mühendislik terminolojisine ('Şantiye Şap Standardı', 'SITE_SCREED_BENCHMARK', 'VILLA_MARKET_COST_BENCHMARK_2026') geçirildi ve registry.test.ts içine kalıcı kapı testi eklendi.",
+    affectedModules: ["kaynak-yazilim-guvenilirligi", "taseron-hakedis-kalkani", "on-teklif-fizibilite"],
     moduleDetails: {
       "kaynak-yazilim-guvenilirligi": {
         before: "Yalnızca analiz sonrasında 3 maddelik özet uyarı gösteriliyor; süreç öncesinde 'Areas and Volumes' (IfcSpace 3B hacim) ile '2nd Level Space Boundaries' (BEM/HVAC termal yüzey) ayrımı ve Dion Moult NetSideArea minha uyarısı yer almıyordu.",
         after: "Hem süreç öncesinde (dosya seçildiği anda ilk 128 KB başlık taramasıyla otomatik açılan RevitPreUploadChecklistPanel) hem de analiz sonrasında 6 maddelik REVIT_PRE_EXPORT_CHECKLIST devreye alındı; sabit/uydurma sapma yüzdesi yasağı Golden 6 testiyle korundu.",
         basis: "Autodesk revit-ifc#63, Autodesk IFCCARTESIANPOINT teknik makalesi, Dion Moult (thinkmoult.com) openBIM incelemesi ve openBIM saha geri bildirimi",
+      },
+      "taseron-hakedis-kalkani": {
+        before: "Şap harcı referans sabitleri ve Evre 03 kartı şahıs ismi ile etiketleniyordu.",
+        after: "Tüm referans sabitleri ve arayüz etiketleri kurumsal mühendislik terminolojisine ('Şantiye Şap Standardı', 'SITE_SCREED_BENCHMARK', 'SITE_CLAIM_INSPECTION_CRITERIA') taşındı; registry.test.ts kapı testi ile koruma altına alındı.",
+        basis: "Kurumsal mühendislik otorite standardı — şahıs ismi otorite yasağı",
+      },
+      "on-teklif-fizibilite": {
+        before: "6-villa maliyet referans sabiti ve imar uyarı mesajı şahıs ismi içeriyordu.",
+        after: "Referans sabiti 'VILLA_MARKET_COST_BENCHMARK_2026' olarak güncellendi ve imar uyarısı doğrudan Planlı Alanlar İmar Yönetmeliği m.5/8 dayanağına bağlandı.",
+        basis: "Planlı Alanlar İmar Yönetmeliği m.5/8 & kurumsal mühendislik otorite standardı",
       },
     },
   },
