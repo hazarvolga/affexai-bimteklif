@@ -230,7 +230,7 @@ async function main() {
   const fileArgIdx = process.argv.indexOf("--file");
   const filePath = fileArgIdx !== -1 && process.argv[fileArgIdx + 1]
     ? path.resolve(process.argv[fileArgIdx + 1])
-    : path.resolve(process.cwd(), "ifc-document-sample/e-proje_4x3.ifc");
+    : path.resolve(process.cwd(), "harici-kaynaklar/klasorler-ve-ornekler/ifc-document-sample/e-proje_4x3.ifc");
 
   await compareIfcParsers(filePath);
 }

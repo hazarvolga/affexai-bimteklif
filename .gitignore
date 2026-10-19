@@ -28,4 +28,5 @@ IfcSampleFiles-main/
 2026_45_*.ifc
 TeklifPro_*.pdf
 graphify-out/2026-*/
-
+# Harici kaynak dokümanları ve örnek modeller yalnız yerelde tutulur
+harici-kaynaklar/
