@@ -583,6 +583,8 @@ export function parseSmartCheckRowToPseudoElement(
  * automatically exploding multi-layer `IfcCovering` elements into separate contractor line items.
  * Never falls back to reference data based on filename; always computes strictly from the model's elements.
  */
+type ElementPlacement = Pick<ParsedIfcElement, "matchedPozCode" | "isUncovered" | "uncoveredReason">;
+
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
   summary?: Partial<IfcParseSummary> | null,
@@ -609,21 +611,19 @@ export function buildCalmIfcDatasetFromElements(
   let placedElementCount = 0;
   const unplacedUncoveredElements: NonNullable<IfcConsistencyReport["uncoveredElements"]> = [];
   const unplacedFindings: NonNullable<IfcConsistencyReport["findings"]> = [];
+  const placements: Array<ElementPlacement | undefined> = [];
 
-  for (const el of elements) {
+  for (const [elIndex, el] of elements.entries()) {
     if (el.type === "IfcReinforcingBar") {
       if (el.measured !== false && el.pozNo) {
-        el.matchedPozCode = el.pozNo;
-        el.isUncovered = false;
+        placements[elIndex] = { matchedPozCode: el.pozNo, isUncovered: false };
         placedElementCount++;
       } else {
         const reason =
           el.measured === false
             ? "Geçerli net miktar ölçülemediği için icmale alınamadı."
             : "Donatı elemanı için açık PozNo etiketi bulunamadı ve otomatik icmal grubuna yerleşemedi.";
-        el.matchedPozCode = null;
-        el.isUncovered = true;
-        el.uncoveredReason = reason;
+        placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
         unplacedUncoveredElements.push({
           globalId: el.guid,
           ifcClass: el.ifcClass || el.type,
@@ -650,9 +650,7 @@ export function buildCalmIfcDatasetFromElements(
         (el.ifcClass === "IfcBuildingElementProxy"
           ? "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
           : "Geçerli net miktar ölçülemediği için icmale alınamadı.");
-      el.matchedPozCode = null;
-      el.isUncovered = true;
-      el.uncoveredReason = reason;
+      placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
       unplacedUncoveredElements.push({
         globalId: el.guid,
         ifcClass: el.ifcClass || el.type,
@@ -760,14 +758,11 @@ export function buildCalmIfcDatasetFromElements(
 
     if (elementPlacedInIcmal && firstPlacedPozCode) {
       placedElementCount++;
-      el.matchedPozCode = firstPlacedPozCode;
-      el.isUncovered = false;
+      placements[elIndex] = { matchedPozCode: firstPlacedPozCode, isUncovered: false };
     } else {
       const reason =
         "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
-      el.matchedPozCode = null;
-      el.isUncovered = true;
-      el.uncoveredReason = reason;
+      placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
       unplacedUncoveredElements.push({
         globalId: el.guid,
         ifcClass: el.ifcClass || el.type,
@@ -836,9 +831,6 @@ export function buildCalmIfcDatasetFromElements(
       findings: mergedFindings,
       uncoveredElements: mergedUncovered,
     };
-    if (summary) {
-      summary.consistencyReport = resolvedConsistencyReport;
-    }
   }
 
   const items: CalmIcmalItem[] = Array.from(accumMap.values()).map((entry) => {
@@ -922,7 +914,7 @@ export function buildCalmIfcDatasetFromElements(
         : undefined,
     openings: summary?.openings,
     consistencyReport: resolvedConsistencyReport,
-    elements,
+    elements: elements.map((el, i) => (placements[i] ? { ...el, ...placements[i] } : el)),
   };
 }
 

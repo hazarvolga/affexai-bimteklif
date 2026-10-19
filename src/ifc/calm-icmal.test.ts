@@ -458,3 +458,20 @@ test("hiçbir kurala uymayan kaplama yalnız açık PozNo etiketiyle, kendi pozu
   assert.equal(byPoz.get("15.999.0001"), 4);
   assert.equal(byPoz.get("15.999.0002"), 6);
 });
+
+test("icmal oluşturucu girdi elemanlarını ve özet nesnesini değiştirmez; yerleşim sonucu yeni eleman kopyalarında döner", () => {
+  const slab = Object.freeze({
+    id: "1", guid: "SLAB_FROZEN_0000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", storey: "Zemin Kat",
+    storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review",
+    measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false,
+  }) as ParsedIfcElement;
+  const odd = Object.freeze(coveringFixture("COV_FROZEN_UNMAPPED01", "WRAPPING", ["Akustik_Tekstil"], 2));
+  const summary = Object.freeze({ openings: [] });
+  const ds = buildCalmIfcDatasetFromElements(Object.freeze([slab, odd]) as ParsedIfcElement[], summary, "x.ifc");
+  const byGuid = new Map((ds.elements ?? []).map((e) => [e.guid, e]));
+  assert.equal(byGuid.get("SLAB_FROZEN_0000000001")?.matchedPozCode, "15.150.1006");
+  assert.equal(byGuid.get("COV_FROZEN_UNMAPPED01")?.isUncovered, true);
+  assert.equal(slab.matchedPozCode, null);
+  assert.equal(odd.isUncovered, false);
+  assert.equal("consistencyReport" in summary, false);
+});
