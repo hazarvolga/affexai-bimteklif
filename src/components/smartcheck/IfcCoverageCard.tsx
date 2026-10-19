@@ -5,9 +5,9 @@ import type {
   IfcConsistencyFindingCode,
   IfcConsistencyReport,
   IfcSuppressedAssemblyPartRecord,
-  IfcUncoveredElementRecord,
   ParsedIfcElement,
 } from "@/ifc/types";
+import { UncoveredItemsView } from "./IfcUncoveredItemsView";
 
 export type CoverageFilterMode = "none" | "uncovered" | "high" | "medium" | "unmeasured" | "suppressed";
 
@@ -64,49 +64,6 @@ function filterFindingsByMode(
     return findings.filter((f) => f.code === "UNCOVERED_PROXY_ELEMENT" || f.code === "UNMAPPED_POZ_ELEMENT");
   }
   return [...findings];
-}
-
-function UncoveredItemsView({
-  items,
-  selectedGlobalId,
-  onRowClick,
-}: {
-  items: readonly IfcUncoveredElementRecord[];
-  selectedGlobalId: string | null;
-  onRowClick: (globalId: string) => void;
-}) {
-  if (items.length === 0) {
-    return (
-      <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
-        <CheckCircle2 className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
-        <span>Açıkta kalan (poza eşleşmeyen veya proxy) eleman bulunmadı.</span>
-      </p>
-    );
-  }
-  return (
-    <div className="mt-2 max-h-60 overflow-y-auto divide-y divide-border">
-      {items.map((item, idx) => (
-        <button
-          key={`${item.globalId}-${idx}`}
-          type="button"
-          onClick={() => onRowClick(item.globalId)}
-          className={`w-full text-left py-2 px-2 flex flex-wrap items-center justify-between gap-2 transition-colors ${
-            selectedGlobalId === item.globalId ? "bg-primary/10" : "hover:bg-card"
-          }`}
-        >
-          <div className="min-w-0">
-            <span className="inline-block border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-foreground mr-2">
-              AÇIKTA KALAN · {item.ifcClass}
-            </span>
-            <span className="font-mono text-xs font-semibold text-foreground">{item.globalId}</span>
-            <span className="ml-2 text-xs text-foreground">{item.name}</span>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{item.reason}</p>
-          </div>
-          <span className="font-mono text-[11px] text-muted-foreground">Kat: {item.storey}</span>
-        </button>
-      ))}
-    </div>
-  );
 }
 
 function SuppressedPartsView({ parts }: { parts: readonly IfcSuppressedAssemblyPartRecord[] }) {
