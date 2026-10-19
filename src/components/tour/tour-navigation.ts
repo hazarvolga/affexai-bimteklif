@@ -18,9 +18,33 @@ export function targetSelectorsFor(step: TourStep): string[] {
 }
 
 /** Sorgu dizgesi ve sondaki "/" yok sayılarak sayfanın adımın rotasında olup olmadığını söyler. */
+const normalizePath = (path: string) => {
+  const clean = path.split("?")[0];
+  return clean.length > 1 ? clean.replace(/\/+$/, "") : clean;
+};
+
 export function isOnStepRoute(pathname: string, step: TourStep): boolean {
-  const normalize = (path: string) => (path.length > 1 ? path.replace(/\/+$/, "") : path);
-  return normalize(pathname.split("?")[0]) === normalize(step.route);
+  return normalizePath(pathname) === normalizePath(step.route);
+}
+
+/**
+ * Turun hangi adımdan açılacağı: önce bulunulan sayfanın ilk adımı, yoksa yolu bu sayfayı kapsayan
+ * en uzun rotanın adımı (ör. /app/quotes/abc → Teklifler), o da yoksa ilk adım.
+ */
+export function startIndexForPath(pathname: string, steps: readonly TourStep[]): number {
+  const path = normalizePath(pathname);
+  const exact = steps.findIndex((step) => normalizePath(step.route) === path);
+  if (exact >= 0) return exact;
+  let best = 0;
+  let bestLength = -1;
+  steps.forEach((step, index) => {
+    const route = normalizePath(step.route);
+    if (path.startsWith(`${route}/`) && route.length > bestLength) {
+      best = index;
+      bestLength = route.length;
+    }
+  });
+  return best;
 }
 
 export function clampStepIndex(index: number, total: number): number {

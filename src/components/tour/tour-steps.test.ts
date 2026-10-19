@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { ADMIN_TOUR_STEPS } from "./admin-tour-steps";
 import { USER_TOUR_STEPS } from "./user-tour-steps";
-import { clampStepIndex, isOnStepRoute, stepsForRole, targetSelectorsFor } from "./tour-navigation";
+import { clampStepIndex, isOnStepRoute, startIndexForPath, stepsForRole, targetSelectorsFor } from "./tour-navigation";
 import type { TourStep } from "./tour-types";
 
 const appRoutes = new Set(
@@ -64,4 +64,21 @@ test("tur gezinme yardımcıları rota, hedef ve adım sınırlarını doğru ç
   assert.equal(clampStepIndex(99, 5), 4);
   assert.equal(clampStepIndex(-1, 5), 0);
   assert.equal(clampStepIndex(3, 0), 0);
+});
+
+test("tur, başlatıldığı sayfanın adımından açılır", () => {
+  const routeOf = (path: string, steps: readonly TourStep[]) => steps[startIndexForPath(path, steps)].route;
+  assert.equal(startIndexForPath("/app", USER_TOUR_STEPS), 0);
+  assert.equal(routeOf("/app/smartcheck", USER_TOUR_STEPS), "/app/smartcheck");
+  assert.equal(routeOf("/app/ifc-parser/", USER_TOUR_STEPS), "/app/ifc-parser");
+  assert.equal(routeOf("/app/quotes/new", USER_TOUR_STEPS), "/app/quotes/new");
+  assert.equal(routeOf("/app/quotes/abc-123", USER_TOUR_STEPS), "/app/quotes");
+  assert.equal(routeOf("/admin/roadmap/calculations", ADMIN_TOUR_STEPS), "/admin/roadmap/calculations");
+  assert.equal(routeOf("/admin/tenants", ADMIN_TOUR_STEPS), "/admin/tenants");
+});
+
+test("turu olmayan sayfada ilk adımdan başlanır", () => {
+  assert.equal(startIndexForPath("/app/bilinmeyen", USER_TOUR_STEPS), 0);
+  assert.equal(startIndexForPath("/baska", USER_TOUR_STEPS), 0);
+  assert.equal(startIndexForPath("/app", []), 0);
 });

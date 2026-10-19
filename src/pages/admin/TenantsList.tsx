@@ -290,7 +290,7 @@ export function TenantsList() {
                             Teklif: {usage}{' '}
                             <span className="text-muted-foreground font-normal">/ {totalLimit ?? '∞'}</span>
                           </div>
-                          <div className="h-1.5 w-20 bg-surface-elevated rounded-full overflow-hidden">
+                          <div className="h-1.5 w-20 bg-border rounded-full overflow-hidden">
                             <div
                               className={`h-full ${
                                 isDanger ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-indigo-500'
