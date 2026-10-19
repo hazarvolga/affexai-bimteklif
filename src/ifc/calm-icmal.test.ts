@@ -475,3 +475,18 @@ test("icmal oluşturucu girdi elemanlarını ve özet nesnesini değiştirmez; y
   assert.equal(odd.isUncovered, false);
   assert.equal("consistencyReport" in summary, false);
 });
+
+test("kapsam dışı sınıflar açıkta kalan sayısına katılmaz, ayrı sayaçta raporlanır", () => {
+  const slab = { id: "1", guid: "SLAB_SCOPE_00000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", storey: "Zemin Kat", storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as ParsedIfcElement;
+  const odd = coveringFixture("COV_SCOPE_UNMAPPED001", "WRAPPING", ["Akustik_Tekstil"], 2);
+  const consistencyReport = {
+    totalElementCount: 2, measuredElementCount: 2, unmeasuredElementCount: 0, pozMatchedElementCount: 0, pozMatchedRatio: 0,
+    uncoveredElementCount: 1, outOfScopeElementCount: 1, typeInheritedElementCount: 0, suppressedAssemblyPartCount: 0,
+    highSeverityCount: 0, mediumSeverityCount: 0, findings: [], suppressedAssemblyParts: [],
+    uncoveredElements: [{ globalId: "CW_SCOPE_000000000001", ifcClass: "IfcCurtainWall", name: "Cephe", storey: "Zemin Kat", reason: "kapsam dışı", scope: "out_of_scope" as const }],
+  };
+  const report = buildCalmIfcDatasetFromElements([slab, odd], { consistencyReport }, "x.ifc").consistencyReport;
+  assert.equal(report?.uncoveredElementCount, 1);
+  assert.equal(report?.outOfScopeElementCount, 1);
+  assert.equal(report?.uncoveredElements.find((u) => u.globalId === "COV_SCOPE_UNMAPPED001")?.scope, "in_takeoff");
+});

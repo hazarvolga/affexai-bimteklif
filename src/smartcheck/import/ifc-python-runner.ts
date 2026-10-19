@@ -31,6 +31,7 @@ export const IfcUncoveredElementRecordSchema = z.object({
   name: z.string(),
   storey: z.string(),
   reason: z.string(),
+  scope: z.enum(["in_takeoff", "out_of_scope"]).optional(),
 });
 
 export const IfcSuppressedAssemblyPartRecordSchema = z.object({
@@ -49,6 +50,7 @@ export const IfcConsistencyReportSchema = z.object({
   pozMatchedElementCount: z.number(),
   pozMatchedRatio: z.number().nullable(),
   uncoveredElementCount: z.number(),
+  outOfScopeElementCount: z.number().optional(),
   typeInheritedElementCount: z.number(),
   suppressedAssemblyPartCount: z.number(),
   highSeverityCount: z.number(),

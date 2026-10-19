@@ -1973,6 +1973,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "name": name,
                 "storey": storey,
                 "reason": uncovered_reason or "Metraja alınmayan / açıkta kalan eleman.",
+                "scope": "in_takeoff",
             })
             if raw_type == "IfcBuildingElementProxy":
                 consistency_findings.append({
@@ -2103,6 +2104,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                     "name": nt_name,
                     "storey": nt_storey,
                     "reason": nt_reason,
+                    "scope": "out_of_scope",
                 })
                 consistency_findings.append({
                     "code": nt_code,
@@ -2141,7 +2143,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
     measured_el_count = sum(1 for el in parsed_elements if el.get("measured") is True)
     unmeasured_el_count = total_el_count - measured_el_count
     poz_matched_el_count = sum(1 for el in parsed_elements if el.get("pozNo") and el.get("measured") is True)
-    uncovered_el_count = len(uncovered_elements)
+    uncovered_el_count = sum(1 for u in uncovered_elements if u.get("scope") != "out_of_scope")
+    out_of_scope_el_count = len(uncovered_elements) - uncovered_el_count
     type_inherited_el_count = sum(1 for el in parsed_elements if el.get("inheritedFromType") is True)
     high_sev_count = sum(1 for f in consistency_findings if f.get("severity") == "high")
     med_sev_count = sum(1 for f in consistency_findings if f.get("severity") == "medium")
@@ -2153,6 +2156,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "pozMatchedElementCount": poz_matched_el_count,
         "pozMatchedRatio": round(poz_matched_el_count / total_el_count, 6) if total_el_count > 0 else None,
         "uncoveredElementCount": uncovered_el_count,
+        "outOfScopeElementCount": out_of_scope_el_count,
         "typeInheritedElementCount": type_inherited_el_count,
         "suppressedAssemblyPartCount": len(suppressed_assembly_parts),
         "highSeverityCount": high_sev_count,

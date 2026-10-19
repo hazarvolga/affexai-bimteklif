@@ -563,7 +563,9 @@ def test_consistency_check_5_proxy_and_unmapped_poz_elements():
     assert report["measuredElementCount"] == 2
     # Python only carries explicit PozNo tags from IFC (does not fabricate fallback Poz codes)
     assert report["pozMatchedElementCount"] == 1
-    assert report["uncoveredElementCount"] == 1
+    # The proxy is outside the takeoff element total, so it is counted as out-of-scope, not uncovered
+    assert report["uncoveredElementCount"] == 0
+    assert report["outOfScopeElementCount"] == 1
     assert report["pozMatchedRatio"] == pytest.approx(1 / 2, rel=1e-4)
 
     assert by_guid["WALL_POZ_MATCHED_00001"]["isUncovered"] is False
@@ -673,5 +675,14 @@ def test_curtain_wall_and_stair_excluded_from_takeoff_totals_and_formwork():
     assert "STAIR_FLIGHT_CHILD_001" in uncovered_by_guid
     assert "CW_PARENT_000000000001" in uncovered_by_guid
     assert "metraja alınmayan eleman" in uncovered_by_guid["CW_PARENT_000000000001"]["reason"]
+
+    # Out-of-scope classes are counted separately so "uncovered" never exceeds the takeoff element total
+    for out_guid in ("STAIR_PARENT_000000001", "STAIR_FLIGHT_CHILD_001", "CW_PARENT_000000000001"):
+        assert uncovered_by_guid[out_guid]["scope"] == "out_of_scope"
+    out_of_scope = [u for u in report["uncoveredElements"] if u["scope"] == "out_of_scope"]
+    in_takeoff = [u for u in report["uncoveredElements"] if u["scope"] == "in_takeoff"]
+    assert report["outOfScopeElementCount"] == len(out_of_scope)
+    assert report["uncoveredElementCount"] == len(in_takeoff)
+    assert report["uncoveredElementCount"] <= report["totalElementCount"]
 
 

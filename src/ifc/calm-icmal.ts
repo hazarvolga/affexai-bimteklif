@@ -630,6 +630,7 @@ export function buildCalmIfcDatasetFromElements(
           name: el.name,
           storey: el.storey || "Kat atanmamış",
           reason,
+          scope: "in_takeoff",
         });
         unplacedFindings.push({
           code: "UNMAPPED_POZ_ELEMENT",
@@ -657,6 +658,7 @@ export function buildCalmIfcDatasetFromElements(
         name: el.name,
         storey: el.storey || "Kat atanmamış",
         reason,
+        scope: "in_takeoff",
       });
       continue;
     }
@@ -769,6 +771,7 @@ export function buildCalmIfcDatasetFromElements(
         name: el.name,
         storey: el.storey || "Kat atanmamış",
         reason,
+        scope: "in_takeoff",
       });
       unplacedFindings.push({
         code: "UNMAPPED_POZ_ELEMENT",
@@ -825,7 +828,8 @@ export function buildCalmIfcDatasetFromElements(
       totalElementCount: totalCount,
       pozMatchedElementCount: placedElementCount,
       pozMatchedRatio: totalCount > 0 ? Number((placedElementCount / totalCount).toFixed(6)) : null,
-      uncoveredElementCount: mergedUncovered.length,
+      uncoveredElementCount: mergedUncovered.filter((u) => u.scope !== "out_of_scope").length,
+      outOfScopeElementCount: mergedUncovered.filter((u) => u.scope === "out_of_scope").length,
       highSeverityCount: mergedFindings.filter((f) => f.severity === "high").length,
       mediumSeverityCount: mergedFindings.filter((f) => f.severity === "medium").length,
       findings: mergedFindings,

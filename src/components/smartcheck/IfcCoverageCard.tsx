@@ -257,7 +257,9 @@ function CoverageMetricsGrid({
           {hasReport ? formatMetricValue(report?.uncoveredElementCount) : "değerlendirilmedi"}
         </span>
         <span className={`mt-0.5 block text-[11px] ${subCls(activeFilter === "uncovered")}`}>
-          {hasReport ? "Filtrelemek için tıklayın (Proxy / Eşleşmeyen)" : "Durum: değerlendirilmedi"}
+          {hasReport
+            ? `Kapsam dışı sınıf (merdiven, cephe, proxy): ${formatMetricValue(report?.outOfScopeElementCount)} · Filtrelemek için tıklayın`
+            : "Durum: değerlendirilmedi"}
         </span>
       </button>
 

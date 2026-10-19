@@ -160,6 +160,7 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
           name: prxName,
           storey: prxStorey,
           reason: "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; açık PozNo etiketi olmadan poza eşlenemez.",
+          scope: "out_of_scope",
         });
       }
       continue;
@@ -456,7 +457,8 @@ export function buildConsistencyReportFromElements(
     unmeasuredElementCount,
     pozMatchedElementCount: pozMatchedCount,
     pozMatchedRatio: totalElementCount > 0 ? Number((pozMatchedCount / totalElementCount).toFixed(6)) : null,
-    uncoveredElementCount: uncoveredElements.length,
+    uncoveredElementCount: uncoveredElements.filter((u) => u.scope !== "out_of_scope").length,
+    outOfScopeElementCount: uncoveredElements.filter((u) => u.scope === "out_of_scope").length,
     typeInheritedElementCount: typeInheritedCount,
     suppressedAssemblyPartCount: suppressedAssemblyParts.length,
     highSeverityCount,

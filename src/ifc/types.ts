@@ -26,6 +26,8 @@ export interface IfcUncoveredElementRecord {
   name: string;
   storey: string;
   reason: string;
+  /** in_takeoff: metraja giren sınıftan ama icmale yerleşemeyen eleman; out_of_scope: otomatik metraj kapsamı dışındaki sınıf. */
+  scope?: "in_takeoff" | "out_of_scope";
 }
 
 export interface IfcSuppressedAssemblyPartRecord {
@@ -44,6 +46,8 @@ export interface IfcConsistencyReport {
   pozMatchedElementCount: number;
   pozMatchedRatio: number | null;
   uncoveredElementCount: number;
+  /** Otomatik metraj kapsamı dışındaki sınıflardan raporlanan eleman sayısı (toplam eleman sayısına dahil değildir). */
+  outOfScopeElementCount?: number;
   typeInheritedElementCount: number;
   suppressedAssemblyPartCount: number;
   highSeverityCount: number;
