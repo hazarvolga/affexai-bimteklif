@@ -685,4 +685,8 @@ def test_curtain_wall_and_stair_excluded_from_takeoff_totals_and_formwork():
     assert report["uncoveredElementCount"] == len(in_takeoff)
     assert report["uncoveredElementCount"] <= report["totalElementCount"]
 
+    # Out-of-scope records carry the model quantity (unpriced) so takeoff volume never silently disappears
+    assert uncovered_by_guid["STAIR_PARENT_000000001"]["quantity"] == {"value": 3.5, "unit": "m³"}
+    assert uncovered_by_guid["CW_PARENT_000000000001"]["quantity"] == {"value": 1.8, "unit": "m³"}
+
 
