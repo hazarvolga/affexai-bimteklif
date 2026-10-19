@@ -1,7 +1,7 @@
 import { benchmarkQuoteItem } from '../services/pricing/benchmark-policy';
 /**
  * @license
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2026 BIMMetraj ve BIMPlan Academy. Tüm hakları saklıdır. Bkz. LICENSE.
  */
 
 import { useState, useEffect, useRef } from 'react';
