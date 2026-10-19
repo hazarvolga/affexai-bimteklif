@@ -60,7 +60,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
                 <ArrowRight size={12} className="text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <p className="text-xs font-medium text-foreground truncate mt-0.5">Ön Fizibilite & Excel Teklif</p>
-              <p className="text-[11px] text-muted-foreground truncate">Arsa TAKS/KAKS, kat karşılığı & ÇŞB cetveli</p>
+              <p className="text-[11px] text-muted-foreground truncate">Arsa TAKS/KAKS, kat karşılığı & ihale cetveli</p>
             </div>
           </Link>
 
@@ -78,7 +78,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
                 <ArrowRight size={12} className="text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <p className="text-xs font-medium text-foreground truncate mt-0.5">3D IFC Model Tabanlı Metraj</p>
-              <p className="text-[11px] text-muted-foreground truncate">Otomatik minha düşümü, beton/demir icmali</p>
+              <p className="text-[11px] text-muted-foreground truncate">Kanıtlı IFC miktarlarıyla ön icmal</p>
             </div>
           </Link>
 
@@ -97,7 +97,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
                 <ArrowRight size={12} className="text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <p className="text-xs font-medium text-foreground truncate mt-0.5">Taşeron Hakediş Kalkanı</p>
-              <p className="text-[11px] text-muted-foreground truncate">325 kg/m³ şap çimento tavanı & kesinti</p>
+              <p className="text-[11px] text-muted-foreground truncate">Daire bazlı net tavan & beyan kontrolü</p>
             </div>
           </Link>
         </div>
@@ -123,7 +123,7 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
               Hangi Aşamada İşlem Yapmak İstiyorsunuz?
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              BIMMetraj, Türk müteahhitlik ve teknik ofis iş süreçlerine tam uyumludur. 
+              BIMMetraj, müteahhitlik ve teknik ofis iş süreçleri için ön hesap araçları sunar; sonuçlar yetkili mühendis kontrolü gerektirir.
               Elinizdeki belgenin veya projenin durumuna göre aşağıdaki 3 ana evreden birini seçerek başlayabilirsiniz:
             </p>
           </div>
@@ -175,15 +175,15 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
               <div className="space-y-2 pt-1 border-t border-border/60">
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Arsa & Emsal:</strong> TAKS/KAKS, emsal harici yasal %30 tavan denetimi.</span>
+                  <span><strong>Arsa & Emsal:</strong> TAKS/KAKS ön hesabı; emsal harici alan emsalin %30'unu aşarsa uyarı (imar durumunuzla teyit edin).</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Kat Karşılığı:</strong> Daire paylaşımı, kademeli tapu devri, %1 KDV marjı.</span>
+                  <span><strong>Kat Karşılığı:</strong> Girdiğiniz maliyet ve satış fiyatıyla paylaşım oranı, aşamalı tapu devir planı ve net alana göre konut KDV ön hesabı.</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Excel'den İhale:</strong> İdare metraj cetvelini ÇŞB 2026 pozlarıyla eşleştirme.</span>
+                  <span><strong>Excel'den İhale:</strong> İdare metraj cetvelini içe aktarıp poz kodlarını ÇŞB 2026 birim fiyat listeleriyle karşılaştırma.</span>
                 </div>
               </div>
             </div>
@@ -233,15 +233,15 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
               <div className="space-y-2 pt-1 border-t border-border/60">
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>5D openBIM Metraj:</strong> Betonarme, kalıp, demir ve duvar hacim icmali.</span>
+                  <span><strong>openBIM Ön İcmal:</strong> IFC'de QTO veya özellik kanıtı olan beton ve duvar miktarları icmale alınır; donatı ve kalıp tahminleri uzman doğrulamasına kadar askıda tutulur.</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Geometrik Minha:</strong> Kapı, pencere ve düğüm noktalarında hatasız boşluk düşümü.</span>
+                  <span><strong>Boşluk Minhası:</strong> Girdiğiniz sözleşme eşiği her kapı/pencerenin tekil alanına uygulanır; ölçüsü okunamayan boşluklar ayrıca sayılır.</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Eksik Poz Denetimi:</strong> Çizilmiş ama pozu tanımlanmamış kaçak kalemleri bulma.</span>
+                  <span><strong>Eksik Poz Denetimi:</strong> PozNo etiketi olmayan elemanları listeler; poz kodu uydurulmaz.</span>
                 </div>
               </div>
             </div>
@@ -291,15 +291,15 @@ export const ContractorWorkflowHub: React.FC<ContractorWorkflowHubProps> = ({ co
               <div className="space-y-2 pt-1 border-t border-border/60">
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Şantiye Şap Standardı:</strong> 325 kg/m³ çimento ve %10 fire şap tavanı.</span>
+                  <span><strong>Şap & Sıva Ön Hesabı:</strong> IFC mahal alanı ile girdiğiniz kalınlık, çimento dozajı ve fire oranından hacim ve çimento miktarı.</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Net Mahal Minha:</strong> 2 cm sıva düşümü, süpürgelik tavanı, +0,40 m² söve dönüşü.</span>
+                  <span><strong>Net Sıva Alanı:</strong> Girdiğiniz duvar sıvası alanından girdiğiniz kapı/pencere boşluğu düşülür; sabit pay eklenmez.</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 size={13} className="text-primary shrink-0 mt-0.5" />
-                  <span><strong>Hakediş Kesinti Raporu:</strong> Şişirilmiş beyanları tespit edip tutanak çıkarma.</span>
+                  <span><strong>Beyan Kontrolü:</strong> Taşeronun şap, sıva ve kaplama beyanını daire bazlı net tavanla, girdiğiniz toleransla karşılaştırır.</span>
                 </div>
               </div>
             </div>
