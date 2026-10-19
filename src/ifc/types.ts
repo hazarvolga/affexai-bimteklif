@@ -1,9 +1,67 @@
 import type { AuthoringSoftwareDetection, AuthoringSoftwareRaw } from "./authoring-software-diagnostics";
 
+export type IfcConsistencyFindingCode =
+  | "DUPLICATE_GLOBAL_ID"
+  | "ORPHAN_OPENING_ELEMENT"
+  | "NEGATIVE_NET_QUANTITY"
+  | "ZERO_NET_QUANTITY"
+  | "MISSING_NET_QUANTITY"
+  | "MISSING_SPATIAL_STOREY"
+  | "UNCOVERED_PROXY_ELEMENT"
+  | "UNMAPPED_POZ_ELEMENT";
+
+export interface IfcConsistencyFinding {
+  code: IfcConsistencyFindingCode;
+  severity: "high" | "medium";
+  globalId: string;
+  ifcClass: string;
+  storey: string;
+  elementName?: string;
+  message: string;
+}
+
+export interface IfcUncoveredElementRecord {
+  globalId: string;
+  ifcClass: string;
+  name: string;
+  storey: string;
+  reason: string;
+  /** in_takeoff: metraja giren sınıftan ama icmale yerleşemeyen eleman; out_of_scope: otomatik metraj kapsamı dışındaki sınıf. */
+  scope?: "in_takeoff" | "out_of_scope";
+}
+
+export interface IfcSuppressedAssemblyPartRecord {
+  globalId: string;
+  ifcClass: string;
+  name: string;
+  parentGlobalId: string;
+  parentIfcClass: string;
+  storey: string;
+}
+
+export interface IfcConsistencyReport {
+  totalElementCount: number;
+  measuredElementCount: number;
+  unmeasuredElementCount: number;
+  pozMatchedElementCount: number;
+  pozMatchedRatio: number | null;
+  uncoveredElementCount: number;
+  /** Otomatik metraj kapsamı dışındaki sınıflardan raporlanan eleman sayısı (toplam eleman sayısına dahil değildir). */
+  outOfScopeElementCount?: number;
+  typeInheritedElementCount: number;
+  suppressedAssemblyPartCount: number;
+  highSeverityCount: number;
+  mediumSeverityCount: number;
+  findings: IfcConsistencyFinding[];
+  uncoveredElements: IfcUncoveredElementRecord[];
+  suppressedAssemblyParts: IfcSuppressedAssemblyPartRecord[];
+}
+
 export interface ParsedIfcElement {
   id: string;
   guid: string;
   type: "IfcBeam" | "IfcColumn" | "IfcSlab" | "IfcWall" | "IfcReinforcingBar" | "IfcCovering";
+  ifcClass?: string;
   name: string;
   storey: string;
   storeySource: "estimate" | "ifc_spatial";
@@ -37,6 +95,12 @@ export interface ParsedIfcElement {
   coverMm?: number;
   discipline?: string;
   expectedQuantity?: number;
+  measured?: boolean;
+  measurementStatus?: "ölçüldü" | "ölçülemedi";
+  matchedPozCode?: string | null;
+  isUncovered?: boolean;
+  uncoveredReason?: string;
+  inheritedFromType?: boolean;
 }
 
 export interface ApartmentRoomScheduleItem {
@@ -120,5 +184,8 @@ export interface IfcParseSummary {
   authoringSoftwareRaw?: AuthoringSoftwareRaw;
   /** Kapı/pencere listesi (sunucu yolu); sözleşmesel minha için. */
   openings?: ParsedOpening[];
+  /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
+  consistencyReport?: IfcConsistencyReport;
 }
+
 
