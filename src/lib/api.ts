@@ -51,13 +51,25 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   // JSON header corrupted SmartCheck CSV/XLSX uploads in the browser.
   if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
-  const response = await fetch(url, {
+  const response = await drainBody(await fetch(url, {
     ...options,
     headers,
     credentials: 'same-origin',
-  });
+  }));
 
   if (response.status === 401 && hasSessionHint()) handleSessionExpired();
 
   return response;
+}
+
+const NULL_BODY_STATUSES = new Set([101, 204, 205, 304]);
+
+/**
+ * API yanıtları `Cache-Control: no-store` taşır; tarayıcı önbelleği artık gövdeyi tüketmez. Gövdesi okunmayan
+ * bir yanıt (iptal edilen efekt, hata dalı) bağlantıyı açık bırakır. Gövde burada bir kez okunur ve aynı durum,
+ * başlık ve içerikle yeni bir yanıt döner; çağıranlar eskisi gibi `json()` / `blob()` kullanır.
+ */
+async function drainBody(response: Response): Promise<Response> {
+  const body = NULL_BODY_STATUSES.has(response.status) ? null : await response.arrayBuffer();
+  return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
 }
