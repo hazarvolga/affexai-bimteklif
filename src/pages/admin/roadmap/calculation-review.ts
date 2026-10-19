@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-19.30",
+  version: "BIM-CALC-2026-10-19.31",
   updatedOn: "19 Ekim 2026",
-  implementationBaseline: "2a5c8658495a7ad707e2bec4a613dc0eb23b80bd",
+  implementationBaseline: "f32da232f21dc09844e2689c25ed686331990407",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) tamamlandı · bağımsız uzman imzasına hazır",
 };
 
@@ -946,6 +946,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 37",
+    version: "BIM-CALC-2026-10-19.31",
+    date: "19 Ekim 2026",
+    commit: "feat/ifc-opportunities-rev37",
+    trigger: "Açık kaynak QTO repolarından kalan fırsatların değerlendirilmesi: malzemesiz eleman kuralı ve kapsam dışı miktarların görünürlüğü; inceleme sırasında icmalin malzemeye bakmadan betonarme varsaydığı görüldü.",
+    beforeSummary:
+      "İcmal döşeme, kiriş ve kolonu malzemeye bakmadan 'C30/37 Betonarme' (15.150.1006) kalemine koyuyor, duvarları eleman adına göre ayırıyordu (adında 10/15/20 geçen her duvar Ytong/Bims). BIMcollab ARC ve STR örneklerinde taş, ahşap, çelik ve bakır boru malzemeli elemanlar betonarme olarak fiyatlanıyordu; 2026_45 modelinde malzemesiz 4 döşeme beton sayılıyor, 15 Ytong duvar adı yüzünden betonarme kaleminde kalıyordu. İcmale girmeyen elemanların miktarı kartta görünmüyordu.",
+    afterSummary:
+      "Yapısal sınıflandırma src/ifc/structural-material.ts ile malzemeye bağlandı: yalnız beton katmanlı eleman betonarme, yalnız gazbeton/Ytong/bims katmanlı duvar kâgir duvar kalemine girer; malzemesiz eleman MISSING_MATERIAL bulgusuyla, başka malzemeli ya da karma katmanlı eleman nedeni yazılarak açıkta kalır. Modeldeki beton sınıfı C30/37 değilse eleman kalemde kalır ve CONCRETE_CLASS_DIFFERS bulgusu üretilir (sınıfa uygun poz ve fiyat doğrulanmadı). Açıkta kalan ve kapsam dışı kayıtlar modelin verdiği miktarı taşır; kart bunları 'fiyatlandırılmadı' notuyla ve metraja giren açıkta kalanlar için birim bazında toplamla gösterir. Python çıkarıcının eleman listesi ve hacim/alan/kalıp toplamları değişmedi; değişen icmal yerleşimidir: 2026_45'te betonarme 948,9 → 887,2 m³ ve kâgir 392,9 → 421,4 m³; ARC'de betonarme 1.161,9 → 255,9 m³; STR'de 608,4 → 432,0 m³.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Yapısal elemanların icmal kalemi IFC sınıfı ve eleman adıyla seçiliyor, malzeme okunmuyordu.",
+        after: "İcmal kalemi IfcRelAssociatesMaterial katmanlarıyla seçilir; uymayan elemanlar açıkta kalır, miktarları fiyatsız görünür.",
+        basis: "ISO 16739-1 IfcRelAssociatesMaterial / IfcMaterialLayerSet; hiçbir değer varsayılmaz ilkesi",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -983,7 +1002,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   "ifc-metraj": {
     scope: "Modeldeki beton hacmi (m³), çok katmanlı IfcCovering kaplama alanı (m²), süpürgelik tülü (mtül), 16 daire bağımsız bölüm cetveli (IfcZone/IfcSpace), TREpys_PozOzellikSeti.PozNo, IfcComplexProperty katman nicelikleri, C++ 3B geometri yedeklemesi ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) aktif.",
-    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/calm-icmal.test.ts", "src/ifc/smartcheck-evidence.test.ts", "src/ifc/server-path.e2e.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
+    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/calm-icmal.test.ts", "src/ifc/smartcheck-evidence.test.ts", "src/ifc/server-path.e2e.test.ts", "src/ifc/uncovered-quantity.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
     pending: "33 çok yazılımlı IFC modeli ve 4 Allplan Excel raporu çapraz doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada.",
   },
   kalip: {

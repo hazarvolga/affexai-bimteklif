@@ -112,3 +112,27 @@ Kontrol: `main` ile dal, üç örnek modelde (`2026_45_…duzenlenmis.ifc`, `01_
 **Doğrulama (izole PostgreSQL 16 ile):** `tsc --noEmit` 0 hata; tam test paketi 1.077 testten 1.071 geçti, 5 atlandı, 1 başarısız (`email-policy.test.ts`, main'de de aynı şekilde başarısız; yerel e-posta ayarıyla ilgili, bu dalla ilgisiz); `pytest workers/ifc` 60/60; `vite build` başarılı. Kart tarayıcıda `duplicate_guid_and_orphan_opening.ifc` ile açıldı: 2 eleman, 3 yüksek bulgu; bulguya tıklayınca satırlar vurgulanıyor ve icmal başlığında "Filtreyi Temizle" çıkıyor.
 
 **Kapsam dışı, ayrıca ele alınmalı:** Hesapta e-posta doğrulaması, aktif plan veya abonelik yoksa `/api/ifc/browser-analyses` 403 dönüyor ve IFC sayfası kullanıcıya hiçbir hata göstermeden bekliyor.
+
+---
+
+## 7. Rev. 37 — Malzemeye göre yapısal sınıflandırma ve fiyatlandırılmamış miktarlar
+
+Dal: `feat/ifc-opportunities-rev37` (main `f32da23` üzerinden). Kaynak: `docs/agent-memory/ACIK_KAYNAK_REPOLAR_REV36_KAZANIM_VE_FIRSAT_RAPORU.md` fırsatlarının değerlendirilmesi.
+
+| Commit | İçerik |
+|---|---|
+| `4f1e687` | İcmal yapısal elemanları malzemeye göre sınıflandırır (`src/ifc/structural-material.ts`); `MISSING_MATERIAL`, `CONCRETE_CLASS_DIFFERS` bulguları; tablo satırlarında açıklama malzeme metni olarak kullanılır. |
+| `73566db` | Test fikstürü tip düzeltmesi. |
+| `0375a14` | Python: kapsam dışı kayıtlara modelin miktarı (yalnız QTO/özellik). |
+| `5a5ab92` | İcmal: açıkta kalan kayıtlara miktar; `summarizeUncoveredQuantities` (kapsam dışı toplanmaz). |
+| `f37bd38` | Kart: miktar + "fiyatlandırılmadı"; liste `IfcUncoveredItemsView.tsx`'e taşındı. |
+| `22523c6` | `/admin/roadmap` ve `/admin/roadmap/calculations` Rev. 37. |
+
+**Etki (icmal, main → dal):** 2026_45: betonarme 948,9 → 887,2 m³, kâgir 392,9 → 421,4 m³, 4 malzemesiz döşeme açıkta, 15 Ytong duvar betondan kâgire, 1 karma (Ytong+Tuğla) duvar açıkta, 47 eleman `CONCRETE_CLASS_DIFFERS`. ARC: betonarme 1.161,9 → 255,9 m³. STR: 608,4 → 432,0 m³. Python çıkarıcının eleman listesi ve toplamları değişmedi.
+
+**Doğrulama:** izole PostgreSQL 16 ile tam paket 1.085 test (1.080 geçti, 5 atlandı, 0 başarısız); `pytest workers/ifc` 60/60; `vite build` başarılı; 4 tarayıcı smoke (`gap-invitation-ui`, `e2e-core-flow`, `gap-crm-billing-ui`, `e2e-a11y`) geçti. Kart tarayıcıda `assembly_double_count.ifc` ile açıldı: 4 malzemesiz eleman açıkta, toplam "8 m³ (4 eleman)", satır başına miktar + "fiyatlandırılmadı".
+
+**Bilinen sınırlar:**
+- Tarayıcı ön analizi (`legacy-parser.ts`) montaj parçalarını bastırmaz ve kapsam dışı sınıfları (merdiven, cephe) taramaz; sunucu (Python) yolu yapar. Fark Rev. 36'dan beri var.
+- `CONCRETE_CLASS_DIFFERS` yalnız uyarıdır: C35/C45 için ayrı poz ve birim fiyat mühendis doğrulaması olmadan eklenmedi.
+- Bilinçli olarak yapılmadı: İngilizce katman sözlüğü, isimsiz/tekrarlanan isim kuralları, çok ülkeli sınıflandırma, merdiven/cephe/astar/macun için yeni poz kalemleri.

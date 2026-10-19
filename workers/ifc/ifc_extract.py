@@ -1481,6 +1481,29 @@ def extract_openings(model: Any) -> List[Dict[str, Any]]:
     return out
 
 
+def _unpriced_model_quantity(
+    elem: Any, vol_scale: float, area_scale: float, mass_scale: float, length_scale: float
+) -> Optional[Dict[str, Any]]:
+    """Quantity the model itself states for an element kept out of the takeoff (no poz, no price).
+
+    Only explicit QTO / property values are reported; nothing is estimated. Returns None when the
+    model gives no positive volume or area.
+    """
+    try:
+        q_res = extract_quantities_and_properties(elem, vol_scale, area_scale, mass_scale, length_scale)
+    except Exception:
+        return None
+    volume_m3, metadata = q_res[0], q_res[12]
+    if metadata.get("_quantityAnomaly"):
+        return None
+    if volume_m3 > 0.0:
+        return {"value": round(volume_m3, 4), "unit": "m³"}
+    area_m2 = metadata.get("areaM2")
+    if isinstance(area_m2, (int, float)) and area_m2 > 0.0:
+        return {"value": round(float(area_m2), 4), "unit": "m²"}
+    return None
+
+
 def _find_parent_assembly_in_set(entity: Any, candidate_ids: set, hops: int = 0) -> Optional[Any]:
     if entity is None or hops > 8:
         return None
@@ -2098,14 +2121,18 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 else:
                     nt_reason = f"{nt_cls} sınıfı otomatik metraj kapsamı dışındadır (metraja alınmayan eleman)."
                     nt_code = "UNMAPPED_POZ_ELEMENT"
-                uncovered_elements.append({
+                nt_record: Dict[str, Any] = {
                     "globalId": nt_guid,
                     "ifcClass": nt_cls,
                     "name": nt_name,
                     "storey": nt_storey,
                     "reason": nt_reason,
                     "scope": "out_of_scope",
-                })
+                }
+                nt_quantity = _unpriced_model_quantity(nt_elem, vol_scale, area_scale, mass_scale, length_scale)
+                if nt_quantity is not None:
+                    nt_record["quantity"] = nt_quantity
+                uncovered_elements.append(nt_record)
                 consistency_findings.append({
                     "code": nt_code,
                     "severity": "medium",

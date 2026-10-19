@@ -296,6 +296,7 @@ test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy), eşle
     id: "10",
     guid: "SLAB_VALID_00000000001",
     type: "IfcSlab",
+    materialLayers: ["Beton_C30"],
     ifcClass: "IfcSlab",
     name: "Betonarme Döşeme",
     storey: "Zemin Kat",
@@ -439,8 +440,8 @@ test("PredefinedType'ı olmayan seramik ve kaba olmayan tavan sıvası tahminle 
 
 test("modeldeki açık PozNo kural eşleşen kalemin pozunu değiştirmez; farklı pozlu miktarlar tek satırda karışmaz", () => {
   const base = { type: "IfcSlab", ifcClass: "IfcSlab", storey: "Zemin Kat", storeySource: "ifc_spatial", formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as const;
-  const tagged: ParsedIfcElement = { ...base, id: "1", guid: "SLAB_TAGGED_0000000001", name: "Döşeme A", volumeM3: 5, pozNo: "15.150.9999" };
-  const plain: ParsedIfcElement = { ...base, id: "2", guid: "SLAB_PLAIN_00000000001", name: "Döşeme B", volumeM3: 7 };
+  const tagged: ParsedIfcElement = { ...base, materialLayers: ["Beton_C30"], id: "1", guid: "SLAB_TAGGED_0000000001", name: "Döşeme A", volumeM3: 5, pozNo: "15.150.9999" };
+  const plain: ParsedIfcElement = { ...base, materialLayers: ["Beton_C30"], id: "2", guid: "SLAB_PLAIN_00000000001", name: "Döşeme B", volumeM3: 7 };
   const ds = buildCalmIfcDatasetFromElements([tagged, plain], null, "x.ifc");
   const items = ds.groups.flatMap((g) => g.items);
   assert.equal(items.length, 1);
@@ -461,7 +462,7 @@ test("hiçbir kurala uymayan kaplama yalnız açık PozNo etiketiyle, kendi pozu
 
 test("icmal oluşturucu girdi elemanlarını ve özet nesnesini değiştirmez; yerleşim sonucu yeni eleman kopyalarında döner", () => {
   const slab = Object.freeze({
-    id: "1", guid: "SLAB_FROZEN_0000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", storey: "Zemin Kat",
+    id: "1", guid: "SLAB_FROZEN_0000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", materialLayers: ["Beton_C30"], storey: "Zemin Kat",
     storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review",
     measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false,
   }) as ParsedIfcElement;
@@ -477,7 +478,7 @@ test("icmal oluşturucu girdi elemanlarını ve özet nesnesini değiştirmez; y
 });
 
 test("kapsam dışı sınıflar açıkta kalan sayısına katılmaz, ayrı sayaçta raporlanır", () => {
-  const slab = { id: "1", guid: "SLAB_SCOPE_00000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", storey: "Zemin Kat", storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as ParsedIfcElement;
+  const slab = { id: "1", guid: "SLAB_SCOPE_00000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", materialLayers: ["Beton_C30"], storey: "Zemin Kat", storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as ParsedIfcElement;
   const odd = coveringFixture("COV_SCOPE_UNMAPPED001", "WRAPPING", ["Akustik_Tekstil"], 2);
   const consistencyReport = {
     totalElementCount: 2, measuredElementCount: 2, unmeasuredElementCount: 0, pozMatchedElementCount: 0, pozMatchedRatio: 0,
@@ -489,4 +490,58 @@ test("kapsam dışı sınıflar açıkta kalan sayısına katılmaz, ayrı saya�
   assert.equal(report?.uncoveredElementCount, 1);
   assert.equal(report?.outOfScopeElementCount, 1);
   assert.equal(report?.uncoveredElements.find((u) => u.globalId === "COV_SCOPE_UNMAPPED001")?.scope, "in_takeoff");
+});
+
+function structuralFixture(guid: string, type: ParsedIfcElement["type"], name: string, materialLayers: string[] | undefined, volumeM3: number): ParsedIfcElement {
+  return {
+    id: guid, guid, type, ifcClass: type, name, storey: "Zemin Kat", storeySource: "ifc_spatial",
+    volumeM3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review",
+    measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false,
+    ...(materialLayers ? { materialLayers } : {}),
+  };
+}
+
+test("yapısal elemanlar ada göre değil malzemeye göre sınıflandırılır; beton olmayan malzeme betonarme kalemine girmez", () => {
+  const elements = [
+    structuralFixture("SLAB_BETON_C30_000001", "IfcSlab", "Döşeme", ["Beton_C30"], 10),
+    structuralFixture("WALL_YTONG_25_0000001", "IfcWall", "Duvar", ["Ytong_25cm"], 4),
+    structuralFixture("WALL_YTONG_BACA_00001", "IfcWall", "Baca", ["Ytong_Baca"], 1),
+    structuralFixture("WALL_PERDE_BETON_0001", "IfcWall", "Perde Duvar 20", ["Beton_C30"], 3),
+    structuralFixture("BEAM_WOOD_PINE_000001", "IfcBeam", "Kiriş", ["Wood - pine"], 2),
+    structuralFixture("WALL_STONE_MIXED_0001", "IfcWall", "Dış Duvar 20", ["Stone - limestone", "Insulation - plastic hard"], 5),
+  ];
+  const ds = buildCalmIfcDatasetFromElements(elements, null, "x.ifc");
+  const items = new Map(ds.groups.flatMap((g) => g.items).map((i) => [i.id, i.netQuantity]));
+  assert.equal(items.get("c30-betonarme"), 13);
+  assert.equal(items.get("bims-ytong-duvar"), 5);
+  const uncovered = new Map(ds.consistencyReport?.uncoveredElements.map((u) => [u.globalId, u.reason]));
+  assert.match(uncovered.get("BEAM_WOOD_PINE_000001") ?? "", /Wood - pine/);
+  assert.match(uncovered.get("WALL_STONE_MIXED_0001") ?? "", /katman/);
+  assert.equal(uncovered.size, 2);
+});
+
+test("malzemesi olmayan yapısal eleman betonarme varsayılmaz ve MISSING_MATERIAL bulgusu üretir", () => {
+  const ds = buildCalmIfcDatasetFromElements([structuralFixture("SLAB_NO_MATERIAL_0001", "IfcSlab", "Döşeme", undefined, 7)], null, "x.ifc");
+  assert.equal(ds.groups.flatMap((g) => g.items).length, 0);
+  const finding = ds.consistencyReport?.findings.find((f) => f.globalId === "SLAB_NO_MATERIAL_0001");
+  assert.equal(finding?.code, "MISSING_MATERIAL");
+  assert.equal(finding?.severity, "medium");
+});
+
+test("C30/37 dışındaki beton sınıfı kalemde kalır ama CONCRETE_CLASS_DIFFERS bulgusuyla işaretlenir", () => {
+  const elements = [
+    structuralFixture("SLAB_BETON_C35_000001", "IfcSlab", "Döşeme", ["Beton_C35"], 6),
+    structuralFixture("SLAB_PREFAB_C45_00001", "IfcSlab", "Döşeme", ["concrete_prefab_C45_55"], 2),
+    structuralFixture("COL_RC_NOCLASS_000001", "IfcColumn", "Kolon", ["Reinforced concrete - prefab white"], 1),
+  ];
+  const ds = buildCalmIfcDatasetFromElements(elements, null, "x.ifc");
+  assert.equal(new Map(ds.groups.flatMap((g) => g.items).map((i) => [i.id, i.netQuantity])).get("c30-betonarme"), 9);
+  const differs = ds.consistencyReport?.findings.filter((f) => f.code === "CONCRETE_CLASS_DIFFERS").map((f) => f.globalId).sort();
+  assert.deepEqual(differs, ["SLAB_BETON_C35_000001", "SLAB_PREFAB_C45_00001"]);
+});
+
+test("açıkta kalan icmal kayıtları elemanın kendi miktarını fiyatsız olarak taşır", () => {
+  const ds = buildCalmIfcDatasetFromElements([structuralFixture("BEAM_WOOD_QTY_0000001", "IfcBeam", "Kiriş", ["Wood - pine"], 2.4)], null, "x.ifc");
+  const record = ds.consistencyReport?.uncoveredElements.find((u) => u.globalId === "BEAM_WOOD_QTY_0000001");
+  assert.deepEqual(record?.quantity, { value: 2.4, unit: "m³" });
 });

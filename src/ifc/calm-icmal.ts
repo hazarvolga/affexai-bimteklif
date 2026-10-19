@@ -5,9 +5,12 @@ import type {
   IfcParseSummary,
   ParsedIfcElement,
   ParsedOpening,
+  UncoveredQuantity,
 } from "./types";
 import { buildAuthoringAdvisory, classifyAuthoringSoftware, type AuthoringAdvisory } from "./authoring-software-diagnostics";
 import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./smartcheck-evidence";
+import { elementQuantity } from "./uncovered-quantity";
+import { classifyStructuralMaterial, concreteClassDiffers, ICMAL_CONCRETE_CLASS, isStructuralType } from "./structural-material";
 
 export type CalmIcmalGroupKey =
   | "floor_finish"
@@ -116,6 +119,28 @@ interface ClassifiedLayerSpec {
   formulaNote: string;
 }
 
+const CONCRETE_SPEC: ClassifiedLayerSpec = {
+  id: "c30-betonarme",
+  groupKey: "structural",
+  title: "C30/37 Betonarme (Döşeme, Kolon, Perde, Kiriş)",
+  subtitle: "Malzemesi beton olan taşıyıcı elemanların boşluklar düşülmüş net beton hacmi",
+  pozCode: "15.150.1006",
+  unit: "m³",
+  defaultUnitPriceTry: 3450,
+  formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
+};
+
+const MASONRY_SPEC: ClassifiedLayerSpec = {
+  id: "bims-ytong-duvar",
+  groupKey: "structural",
+  title: "Ytong / Bims Blok Duvar Örülmesi (10 - 15 - 20 cm)",
+  subtitle: "Malzemesi gazbeton/bims olan duvarlarda kapı ve pencere boşlukları (minha) düşülmüş net hacim",
+  pozCode: "15.225.1004",
+  unit: "m³",
+  defaultUnitPriceTry: 2950,
+  formulaNote: "Brüt Duvar Hacmi − Kapı/Pencere Boşluğu = Net Duvar Hacmi",
+};
+
 function classifyMaterialLayer(
   layerToken: string,
   coveringPredefinedType: string,
@@ -127,44 +152,6 @@ function classifyMaterialLayer(
   const lower = token.toLowerCase();
   const predef = coveringPredefinedType.toUpperCase();
   const cleanExplicitPoz = explicitPozNo?.trim() || "";
-
-  if (elementType === "IfcSlab" || elementType === "IfcBeam" || elementType === "IfcColumn") {
-    return {
-      id: "c30-betonarme",
-      groupKey: "structural",
-      title: "C30/37 Betonarme (Döşeme, Kolon, Perde, Kiriş)",
-      subtitle: "Taşıyıcı betonarme elemanların boşluklar düşülmüş net beton hacmi",
-      pozCode: "15.150.1006",
-      unit: "m³",
-      defaultUnitPriceTry: 3450,
-      formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
-    };
-  }
-
-  if (elementType === "IfcWall") {
-    if (/bims|ytong|tuğla|tugla|gazbeton|duvar|20|15|10/i.test(rawName)) {
-      return {
-        id: "bims-ytong-duvar",
-        groupKey: "structural",
-        title: "Ytong / Bims Blok Duvar Örülmesi (10 - 15 - 20 cm)",
-        subtitle: "Kapı ve pencere boşlukları (minha) düşülmüş net kâgir duvar hacmi",
-        pozCode: "15.225.1004",
-        unit: "m³",
-        defaultUnitPriceTry: 2950,
-        formulaNote: "Brüt Duvar Hacmi − Kapı/Pencere Boşluğu = Net Duvar Hacmi",
-      };
-    }
-    return {
-      id: "c30-betonarme",
-      groupKey: "structural",
-      title: "C30/37 Betonarme (Döşeme, Kolon, Perde, Kiriş)",
-      subtitle: "Taşıyıcı betonarme elemanların boşluklar düşülmüş net beton hacmi",
-      pozCode: "15.150.1006",
-      unit: "m³",
-      defaultUnitPriceTry: 3450,
-      formulaNote: "IFC Qto_WallBaseQuantities NetVolume",
-    };
-  }
 
   if (predef === "SKIRTINGBOARD" || /süpürgelik|supurgelik/i.test(lower) || /süpürgelik|supurgelik/i.test(rawName)) {
     if (/parke|ahşap|ahsap|lake|mdf/i.test(lower) || /parke/i.test(rawName)) {
@@ -565,7 +552,8 @@ export function parseSmartCheckRowToPseudoElement(
     lengthM: isLength ? qty : row.formulaJson?.lengthM ? Number(row.formulaJson.lengthM) : undefined,
     grossAreaM2: row.formulaJson?.grossAreaM2 ? Number(row.formulaJson.grossAreaM2) : undefined,
     openingAreaM2: row.formulaJson?.openingAreaM2 ? Number(row.formulaJson.openingAreaM2) : undefined,
-    materialLayers,
+    // Tablo satırlarında malzeme alanı yoktur; yapısal satırda malzemeyi kullanıcının açıklaması söyler.
+    materialLayers: materialLayers ?? (isStructuralType(elType) && desc ? [desc] : undefined),
     coveringPredefinedType: row.formulaJson?.coveringPredefinedType,
     spaceCode: row.formulaJson?.spaceCode,
     spaceName: row.formulaJson?.spaceName,
@@ -583,6 +571,12 @@ export function parseSmartCheckRowToPseudoElement(
  * automatically exploding multi-layer `IfcCovering` elements into separate contractor line items.
  * Never falls back to reference data based on filename; always computes strictly from the model's elements.
  */
+/** Açıkta kalan kayda elemanın kendi miktarını ekler (yoksa hiçbir şey eklemez). */
+function withQuantity(el: ParsedIfcElement): { quantity?: UncoveredQuantity } {
+  const quantity = elementQuantity(el);
+  return quantity ? { quantity } : {};
+}
+
 type ElementPlacement = Pick<ParsedIfcElement, "matchedPozCode" | "isUncovered" | "uncoveredReason">;
 
 export function buildCalmIfcDatasetFromElements(
@@ -663,6 +657,30 @@ export function buildCalmIfcDatasetFromElements(
       continue;
     }
 
+    const structural = isStructuralType(el.type) ? classifyStructuralMaterial(el.type, el.materialLayers) : null;
+    if (structural?.kind === "unplaced") {
+      placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: structural.reason };
+      unplacedUncoveredElements.push({
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason: structural.reason,
+        scope: "in_takeoff",
+        ...withQuantity(el),
+      });
+      unplacedFindings.push({
+        code: structural.missingMaterial ? "MISSING_MATERIAL" : "UNMAPPED_POZ_ELEMENT",
+        severity: "medium",
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: structural.reason,
+      });
+      continue;
+    }
+
     const predef = (el.coveringPredefinedType || "").toUpperCase();
     const layers =
       el.type === "IfcCovering" && Array.isArray(el.materialLayers) && el.materialLayers.length > 0
@@ -673,7 +691,9 @@ export function buildCalmIfcDatasetFromElements(
     let firstPlacedPozCode: string | null = null;
 
     for (const layerToken of layers) {
-      const spec = classifyMaterialLayer(layerToken, predef, el.type, el.name, el.pozNo);
+      const spec = structural
+        ? structural.kind === "concrete" ? CONCRETE_SPEC : MASONRY_SPEC
+        : classifyMaterialLayer(layerToken, predef, el.type, el.name, el.pozNo);
       if (!spec) continue;
 
       let netQty = 0;
@@ -761,6 +781,17 @@ export function buildCalmIfcDatasetFromElements(
     if (elementPlacedInIcmal && firstPlacedPozCode) {
       placedElementCount++;
       placements[elIndex] = { matchedPozCode: firstPlacedPozCode, isUncovered: false };
+      if (structural?.kind === "concrete" && concreteClassDiffers(structural.concreteClass)) {
+        unplacedFindings.push({
+          code: "CONCRETE_CLASS_DIFFERS",
+          severity: "medium",
+          globalId: el.guid,
+          ifcClass: el.ifcClass || el.type,
+          storey: el.storey || "Kat atanmamış",
+          elementName: el.name,
+          message: `Modeldeki beton sınıfı ${structural.concreteClass}; icmal bu hacmi ${ICMAL_CONCRETE_CLASS} pozu ve birim fiyatıyla gösterir. Sınıfa uygun poz ve fiyat ayrıca doğrulanmalı.`,
+        });
+      }
     } else {
       const reason =
         "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
@@ -772,6 +803,7 @@ export function buildCalmIfcDatasetFromElements(
         storey: el.storey || "Kat atanmamış",
         reason,
         scope: "in_takeoff",
+        ...withQuantity(el),
       });
       unplacedFindings.push({
         code: "UNMAPPED_POZ_ELEMENT",
