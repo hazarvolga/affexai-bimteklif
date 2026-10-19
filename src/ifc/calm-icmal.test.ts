@@ -539,3 +539,9 @@ test("C30/37 dışındaki beton sınıfı kalemde kalır ama CONCRETE_CLASS_DIFF
   const differs = ds.consistencyReport?.findings.filter((f) => f.code === "CONCRETE_CLASS_DIFFERS").map((f) => f.globalId).sort();
   assert.deepEqual(differs, ["SLAB_BETON_C35_000001", "SLAB_PREFAB_C45_00001"]);
 });
+
+test("açıkta kalan icmal kayıtları elemanın kendi miktarını fiyatsız olarak taşır", () => {
+  const ds = buildCalmIfcDatasetFromElements([structuralFixture("BEAM_WOOD_QTY_0000001", "IfcBeam", "Kiriş", ["Wood - pine"], 2.4)], null, "x.ifc");
+  const record = ds.consistencyReport?.uncoveredElements.find((u) => u.globalId === "BEAM_WOOD_QTY_0000001");
+  assert.deepEqual(record?.quantity, { value: 2.4, unit: "m³" });
+});

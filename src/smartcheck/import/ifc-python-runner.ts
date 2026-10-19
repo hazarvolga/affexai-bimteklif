@@ -34,6 +34,7 @@ export const IfcUncoveredElementRecordSchema = z.object({
   storey: z.string(),
   reason: z.string(),
   scope: z.enum(["in_takeoff", "out_of_scope"]).optional(),
+  quantity: z.object({ value: z.number(), unit: z.enum(["m³", "m²", "mtül"]) }).optional(),
 });
 
 export const IfcSuppressedAssemblyPartRecordSchema = z.object({

@@ -30,6 +30,15 @@ export interface IfcUncoveredElementRecord {
   reason: string;
   /** in_takeoff: metraja giren sınıftan ama icmale yerleşemeyen eleman; out_of_scope: otomatik metraj kapsamı dışındaki sınıf. */
   scope?: "in_takeoff" | "out_of_scope";
+  /** Modelin bu eleman için verdiği miktar; fiyatlandırılmaz, poz atanmaz. */
+  quantity?: UncoveredQuantity;
+}
+
+export type UncoveredQuantityUnit = "m³" | "m²" | "mtül";
+
+export interface UncoveredQuantity {
+  value: number;
+  unit: UncoveredQuantityUnit;
 }
 
 export interface IfcSuppressedAssemblyPartRecord {

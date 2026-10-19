@@ -5,9 +5,11 @@ import type {
   IfcParseSummary,
   ParsedIfcElement,
   ParsedOpening,
+  UncoveredQuantity,
 } from "./types";
 import { buildAuthoringAdvisory, classifyAuthoringSoftware, type AuthoringAdvisory } from "./authoring-software-diagnostics";
 import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./smartcheck-evidence";
+import { elementQuantity } from "./uncovered-quantity";
 import { classifyStructuralMaterial, concreteClassDiffers, ICMAL_CONCRETE_CLASS, isStructuralType } from "./structural-material";
 
 export type CalmIcmalGroupKey =
@@ -569,6 +571,12 @@ export function parseSmartCheckRowToPseudoElement(
  * automatically exploding multi-layer `IfcCovering` elements into separate contractor line items.
  * Never falls back to reference data based on filename; always computes strictly from the model's elements.
  */
+/** Açıkta kalan kayda elemanın kendi miktarını ekler (yoksa hiçbir şey eklemez). */
+function withQuantity(el: ParsedIfcElement): { quantity?: UncoveredQuantity } {
+  const quantity = elementQuantity(el);
+  return quantity ? { quantity } : {};
+}
+
 type ElementPlacement = Pick<ParsedIfcElement, "matchedPozCode" | "isUncovered" | "uncoveredReason">;
 
 export function buildCalmIfcDatasetFromElements(
@@ -659,6 +667,7 @@ export function buildCalmIfcDatasetFromElements(
         storey: el.storey || "Kat atanmamış",
         reason: structural.reason,
         scope: "in_takeoff",
+        ...withQuantity(el),
       });
       unplacedFindings.push({
         code: structural.missingMaterial ? "MISSING_MATERIAL" : "UNMAPPED_POZ_ELEMENT",
@@ -794,6 +803,7 @@ export function buildCalmIfcDatasetFromElements(
         storey: el.storey || "Kat atanmamış",
         reason,
         scope: "in_takeoff",
+        ...withQuantity(el),
       });
       unplacedFindings.push({
         code: "UNMAPPED_POZ_ELEMENT",
