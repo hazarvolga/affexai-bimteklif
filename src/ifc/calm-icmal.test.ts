@@ -439,9 +439,9 @@ test("PredefinedType'ı olmayan seramik ve kaba olmayan tavan sıvası tahminle 
 });
 
 test("modeldeki açık PozNo kural eşleşen kalemin pozunu değiştirmez; farklı pozlu miktarlar tek satırda karışmaz", () => {
-  const base = { type: "IfcSlab", ifcClass: "IfcSlab", materialLayers: ["Beton_C30"], storey: "Zemin Kat", storeySource: "ifc_spatial", formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as const;
-  const tagged: ParsedIfcElement = { ...base, id: "1", guid: "SLAB_TAGGED_0000000001", name: "Döşeme A", volumeM3: 5, pozNo: "15.150.9999" };
-  const plain: ParsedIfcElement = { ...base, id: "2", guid: "SLAB_PLAIN_00000000001", name: "Döşeme B", volumeM3: 7 };
+  const base = { type: "IfcSlab", ifcClass: "IfcSlab", storey: "Zemin Kat", storeySource: "ifc_spatial", formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as const;
+  const tagged: ParsedIfcElement = { ...base, materialLayers: ["Beton_C30"], id: "1", guid: "SLAB_TAGGED_0000000001", name: "Döşeme A", volumeM3: 5, pozNo: "15.150.9999" };
+  const plain: ParsedIfcElement = { ...base, materialLayers: ["Beton_C30"], id: "2", guid: "SLAB_PLAIN_00000000001", name: "Döşeme B", volumeM3: 7 };
   const ds = buildCalmIfcDatasetFromElements([tagged, plain], null, "x.ifc");
   const items = ds.groups.flatMap((g) => g.items);
   assert.equal(items.length, 1);
