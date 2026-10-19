@@ -436,3 +436,25 @@ test("PredefinedType'ı olmayan seramik ve kaba olmayan tavan sıvası tahminle 
   assert.ok(uncovered.has("COV_SERAMIK_NOPREDEF1"));
   assert.ok(uncovered.has("COV_TAVAN_SIVA_00001"));
 });
+
+test("modeldeki açık PozNo kural eşleşen kalemin pozunu değiştirmez; farklı pozlu miktarlar tek satırda karışmaz", () => {
+  const base = { type: "IfcSlab", ifcClass: "IfcSlab", storey: "Zemin Kat", storeySource: "ifc_spatial", formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as const;
+  const tagged: ParsedIfcElement = { ...base, id: "1", guid: "SLAB_TAGGED_0000000001", name: "Döşeme A", volumeM3: 5, pozNo: "15.150.9999" };
+  const plain: ParsedIfcElement = { ...base, id: "2", guid: "SLAB_PLAIN_00000000001", name: "Döşeme B", volumeM3: 7 };
+  const ds = buildCalmIfcDatasetFromElements([tagged, plain], null, "x.ifc");
+  const items = ds.groups.flatMap((g) => g.items);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].pozCode, "15.150.1006");
+  assert.equal(items[0].netQuantity, 12);
+  const placed = new Map((ds.elements ?? []).map((e) => [e.guid, e.matchedPozCode]));
+  assert.equal(placed.get("SLAB_TAGGED_0000000001"), "15.150.1006");
+});
+
+test("hiçbir kurala uymayan kaplama yalnız açık PozNo etiketiyle, kendi pozuna ayrılmış satıra yerleşir", () => {
+  const a = { ...coveringFixture("COV_TAGGED_A00000001", "WRAPPING", ["Akustik_Tekstil"], 4), pozNo: "15.999.0001" };
+  const b = { ...coveringFixture("COV_TAGGED_B00000001", "WRAPPING", ["Akustik_Tekstil"], 6), pozNo: "15.999.0002" };
+  const items = buildCalmIfcDatasetFromElements([a, b], null, "x.ifc").groups.flatMap((g) => g.items);
+  const byPoz = new Map(items.map((i) => [i.pozCode, i.netQuantity]));
+  assert.equal(byPoz.get("15.999.0001"), 4);
+  assert.equal(byPoz.get("15.999.0002"), 6);
+});
