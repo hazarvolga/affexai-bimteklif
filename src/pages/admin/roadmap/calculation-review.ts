@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-19.32",
+  version: "BIM-CALC-2026-10-19.33",
   updatedOn: "19 Ekim 2026",
-  implementationBaseline: "b0ec3d46f109f40c1b1aa6cc0c138717b10105c1",
+  implementationBaseline: "420008e0d224a2bfca60c51728ea71c69315aefb",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) tamamlandı · bağımsız uzman imzasına hazır",
 };
 
@@ -969,7 +969,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 38",
     version: "BIM-CALC-2026-10-19.32",
     date: "19 Ekim 2026",
-    commit: "feat/full-app-tour",
+    commit: "420008e",
     trigger: "Hızlı Tur'un tüm uygulamayı kapsaması ve süper admin turu; tur metinlerinin doğrulanmış davranışa göre düzeltilmesi.",
     beforeSummary:
       "Hızlı Tur yalnız Panel'de 5 adımdı; hesaplayıcıları 'resmî tebliğ algoritmalarına birebir uygun' diye ve taşeron kontrolünü sabit '325 kg/m³ çimento ve %10 fire' değerleriyle anlatıyordu (Rev. 32 kaydı). Hesap motorlarında bu değerler kullanıcı girdisidir ve hesaplar uzman onaylı değildir.",
@@ -980,6 +980,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       "taseron-hakedis-kalkani": {
         before: "Rev. 32 turu sabit 325 kg/m³ çimento ve %10 fire tavanından söz ediyordu.",
         after: "Tur, kalınlık, fire ve dozajın kullanıcı tarafından girildiğini anlatır; hesap değişmedi.",
+        basis: "Ürün metinleri yalnız doğrulanmış davranışı anlatır",
+      },
+    },
+  },
+  {
+    revision: "Rev. 39",
+    version: "BIM-CALC-2026-10-19.33",
+    date: "19 Ekim 2026",
+    commit: "PR #8, PR #9",
+    trigger: "Panel'deki Evre kartlarının hesaplayıcıların gerçek davranışına göre yeniden yazılması.",
+    beforeSummary:
+      "Panel Evre 03 kartı 'Şantiye Şap Standardı: 325 kg/m³ çimento ve %10 fire şap tavanı' ve 'Net Mahal Minha: 2 cm sıva düşümü, +0,40 m² söve dönüşü' diyordu; Evre 01 kartı '%1 KDV marjı' diyordu. Hesaplayıcılarda dozaj, fire, kalınlık ve tolerans kullanıcı girdisidir; sabit söve payı eklenmez.",
+    afterSummary:
+      "Kartlar şap/sıva hacminin IFC mahal alanı ile girilen kalınlık, dozaj ve fireden hesaplandığını, sıva alanından yalnız girilen boşlukların düşüldüğünü ve sonuçların ön hesap olduğunu söyler. Hesap yöntemleri değişmedi; kaldırılan ifadeler testle engellenir.",
+    affectedModules: ["taseron-hakedis-kalkani"],
+    moduleDetails: {
+      "taseron-hakedis-kalkani": {
+        before: "Panel kartı sabit 325 kg/m³ çimento, %10 fire ve +0,40 m² söve payından söz ediyordu.",
+        after: "Kart, dozaj, fire, kalınlık ve toleransın kullanıcı tarafından girildiğini anlatır; hesap değişmedi.",
         basis: "Ürün metinleri yalnız doğrulanmış davranışı anlatır",
       },
     },
