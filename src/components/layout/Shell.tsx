@@ -1,4 +1,8 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { GuidedTour } from '@/components/tour/GuidedTour';
+import { USER_TOUR_STEPS } from '@/components/tour/user-tour-steps';
+import { stepsForRole } from '@/components/tour/tour-navigation';
+import { startTour, useTourTrigger, USER_TOUR_EVENT } from '@/components/tour/useTourTrigger';
 import { ACADEMY_ENABLED } from '@/config/features';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -78,6 +82,9 @@ export function Shell() {
   const [activePlanName, setActivePlanName] = useState<string | null>(null);
 
   const isSuperAdmin = Boolean(user?.isSuperAdmin);
+  const [tourOpen, setTourOpen] = useTourTrigger(USER_TOUR_EVENT);
+  // Süper admin çalışma alanı Paneli yerine /admin'e yönlendirilir; onun için yönetici turu açılır.
+  const launchTour = () => (isSuperAdmin ? navigate('/admin?tour=1') : startTour(USER_TOUR_EVENT));
 
   useEffect(() => {
     if (isSuperAdmin || isLearner || !company?.id) return;
@@ -149,13 +156,7 @@ export function Shell() {
 
       <button
         type="button"
-        onClick={() => {
-          if (location.pathname === '/app') {
-            window.dispatchEvent(new CustomEvent('bimmetraj:start-tour'));
-          } else {
-            navigate('/app?tour=1');
-          }
-        }}
+        onClick={launchTour}
         className="w-full flex items-center justify-start text-primary hover:bg-primary/10 text-xs font-mono uppercase tracking-wider h-8 gap-2 px-3 border border-primary/30 rounded-xs transition-colors"
         title="BIMMetraj Sistem Hızlı Turunu Başlat"
       >
@@ -280,13 +281,7 @@ export function Shell() {
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              onClick={() => {
-                if (location.pathname === '/app') {
-                  window.dispatchEvent(new CustomEvent('bimmetraj:start-tour'));
-                } else {
-                  navigate('/app?tour=1');
-                }
-              }}
+              onClick={launchTour}
               className="flex items-center gap-1.5 px-2.5 py-1.5 border border-primary/40 bg-card hover:bg-primary/10 text-primary text-xs font-mono font-medium rounded-xs transition-colors"
               title="BIMMetraj Sistem Hızlı Turunu Başlat"
             >
@@ -306,6 +301,15 @@ export function Shell() {
         {/* Content Area */}
         <div id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto bg-background">
           <Outlet />
+          {!isSuperAdmin && (
+            <GuidedTour
+              steps={stepsForRole(USER_TOUR_STEPS, role)}
+              open={tourOpen}
+              onClose={() => setTourOpen(false)}
+              storageKey="bimmetraj_quick_tour_status"
+              ariaLabel="BIMMetraj Hızlı Sistem Turu"
+            />
+          )}
         </div>
 
         {/* Footer */}
