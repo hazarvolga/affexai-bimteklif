@@ -1,0 +1,44 @@
+BIMMetraj — Tescilli Yazılım Lisansı / Proprietary Software License
+
+Copyright (c) 2026 BIMMetraj ve BIMPlan Academy. Tüm hakları saklıdır.
+Copyright (c) 2026 BIMMetraj and BIMPlan Academy. All rights reserved.
+
+TÜRKÇE
+
+Bu depodaki kaynak kodu, derlenmiş çıktılar, veri dosyaları, belgeler, tasarımlar
+ve diğer tüm içerik ("Yazılım") BIMMetraj ve BIMPlan Academy'nin ticari mülküdür.
+
+1. Bu Yazılım için hiçbir kullanım, kopyalama, değiştirme, birleştirme, yayımlama,
+   dağıtma, alt lisanslama, satma, barındırma (hosting) ya da hizmet olarak sunma
+   hakkı verilmez. Yazılımın yapay zekâ / makine öğrenmesi modellerini eğitmek veya
+   değerlendirmek için kullanılması da yasaktır.
+2. Deponun herkese açık olması ya da kodun görüntülenebilmesi, yukarıdaki haklardan
+   hiçbirini vermez.
+3. Yazılım yalnızca BIMMetraj ve BIMPlan Academy'nin önceden verdiği yazılı izinle ve
+   o izinde belirtilen koşullarla kullanılabilir.
+4. Yazılım "OLDUĞU GİBİ" sunulur; açık ya da örtülü hiçbir garanti verilmez. Hak
+   sahipleri, Yazılımın yetkisiz kullanımından doğan hiçbir zarardan sorumlu değildir.
+5. Yazılımda kullanılan üçüncü taraf bileşenler (örneğin npm ve PyPI paketleri) kendi
+   lisanslarına tabidir; bu lisans o bileşenlerin lisanslarını değiştirmez.
+
+İzin ve lisans talepleri: info@bimmetraj.com
+
+ENGLISH
+
+All source code, build outputs, data files, documentation, designs and other content
+in this repository (the "Software") are the commercial property of BIMMetraj and
+BIMPlan Academy.
+
+1. No right is granted to use, copy, modify, merge, publish, distribute, sublicense,
+   sell, host or offer the Software as a service. Using the Software to train or
+   evaluate artificial intelligence / machine learning models is also prohibited.
+2. The repository being publicly visible, or the code being viewable, grants none of
+   the rights above.
+3. The Software may be used only with prior written permission from BIMMetraj and
+   BIMPlan Academy, and only under the terms of that permission.
+4. The Software is provided "AS IS", without warranty of any kind, express or implied.
+   The rights holders are not liable for any damage arising from unauthorised use.
+5. Third-party components used by the Software (for example npm and PyPI packages)
+   remain under their own licences; this licence does not change them.
+
+Permission and licensing requests: info@bimmetraj.com
