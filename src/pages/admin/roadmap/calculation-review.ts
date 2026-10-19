@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-18.29",
-  updatedOn: "18 Ekim 2026",
-  implementationBaseline: "9c59971e5cb26e7b89eccf985f3302e351801243",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, PreBimFeasibilityPanel arayüzüne bağlanmış 27 kalemlik 6-villa piyasa maliyet referansı, Planlı Alanlar İmar Yön. m.5/8 & m.22 istisna açıklaması ve gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı tamamlandı · bağımsız uzman imzasına hazır",
+  version: "BIM-CALC-2026-10-19.30",
+  updatedOn: "19 Ekim 2026",
+  implementationBaseline: "2a5c8658495a7ad707e2bec4a613dc0eb23b80bd",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) tamamlandı · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -917,6 +917,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 36",
+    version: "BIM-CALC-2026-10-19.30",
+    date: "19 Ekim 2026",
+    commit: "feat/ifc-consistency-gate",
+    trigger: "IFC Kapsam, Veri Tutarlılığı ve Metraj Bütünlüğü Kapısı (Mükerrer GlobalId, Yetim Boşluk, Ölçülemedi Kapısı, Kat Ataması, Proxy/Poz Kapsamı, IfcTypeObject Pset Kalıtımı & Montaj Çift Sayım Koruması)",
+    beforeSummary:
+      "IFC çıkarımında mükerrer GlobalId tekilleştirilmeden sayılıyor, IfcRelVoidsElement bağlantısı olmayan yetim IfcOpeningElement sessizce atlanıyor, QTO miktarı <= 0 veya eksik olan elemanlar metraj toplamına 0 m³ olarak sızabiliyor, kat ataması olmayan elemanlar fark edilmeden geçiyor, IfcBuildingElementProxy ve PozNo/sınıflandırma dışı kalan elemanlar için kapsam yüzdesi raporlanmıyor, IfcTypeObject.HasPropertySets (IfcRelDefinesByType) Pset özellikleri örneğe miras alınmıyor ve IfcElementAssembly alt parçaları (IfcRelAggregates) ana montajla birlikte çift sayılabiliyordu.",
+    afterSummary:
+      "workers/ifc/ifc_extract.py, src/ifc/parser/legacy-parser.ts, src/ifc/smartcheck-evidence.ts ve src/ifc/calm-icmal.ts üzerinde 7 maddelik IFC Tutarlılık Kapısı (IfcConsistencyReport) devreye alındı: (1) DUPLICATE_GLOBAL_ID ilk örneği koruyup mükerrerleri eler; (2) ORPHAN_OPENING_ELEMENT yetim boşlukları minha hesabından düşer; (3) NEGATIVE/ZERO/MISSING_NET_QUANTITY elemanları measured: false ve measurementStatus: 'ölçülemedi' olarak işaretleyip toplamdan hariç tutar; (4) MISSING_SPATIAL_STOREY elemanlara uydurma kat atamadan 'Kat atanmamış' yazar; (5) UNCOVERED_PROXY_ELEMENT ve UNMAPPED_POZ_ELEMENT ile coveredRatio / pozMappedRatio hesaplar; (6) IfcTypeObject.HasPropertySets özelliklerini örnek önceliğiyle (instance > type) miras alır; (7) IfcElementAssembly kendi QTO'suna sahipse alt parçaları çift sayımdan korur, yoksa alt parçaları ana montaj altında toplar. Sonuçlar IfcCoverageCard.tsx bileşeniyle CalmIfcWorkspace üzerinde filtrelenebilir olarak gösterilir.",
+    affectedModules: ["ifc-metraj", "minha", "uc-x-uc"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Mükerrer GlobalId, QTO <= 0/eksik elemanlar, IfcBuildingElementProxy kapsam dışı elemanlar, IfcTypeObject Pset kalıtımı ve IfcElementAssembly alt parça çift sayımı için yapılandırılmış tutarlılık raporu bulunmuyordu.",
+        after: "7 maddelik IfcConsistencyReport (coveredRatio, pozMappedRatio, duplicateGlobalIdCount, unmeasuredElementCount, suppressedAssemblyPartCount, findings) ve IfcCoverageCard.tsx bileşeni devreye alındı; ölçüsü olmayan elemanlar uydurma 0 yerine 'ölçülemedi' olarak işaretlenir.",
+        basis: "ISO 16739-1 (IFC4/IFC4X3) Spatial/Type/Aggregation kuralları & RG 33331 EK-1/EK-4/EK-6 veri bütünlüğü",
+      },
+      minha: {
+        before: "IfcRelVoidsElement ilişkisi kurulmamış sahipsiz IfcOpeningElement kayıtları görünür bir uyarı üretmeden atlanıyordu.",
+        after: "Yetim boşluklar ORPHAN_OPENING_ELEMENT (high) bulgusu olarak raporlanır ve minha düşüm hesabına dahil edilmez.",
+        basis: "ISO 16739-1 IfcRelVoidsElement & ÇŞB YFK 2026 Ölçü Esasları",
+      },
+      "uc-x-uc": {
+        before: "Pset_ConcreteElementGeneral, TREpys_PozOzellikSeti ve Pset_*Common özellikleri yalnızca doğrudan örnek (IfcRelDefinesByProperties) üzerinden okunuyordu.",
+        after: "IfcRelDefinesByType -> IfcTypeObject.HasPropertySets zinciri eklendi; örnek özelliği mevcutsa tip özelliğini ezer (instance > type).",
+        basis: "ISO 16739-1 IfcRelDefinesByType & RG 33331 EK-4 Pset kalıtımı",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -953,8 +982,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Mevcut test kota davranışını kapsar; risk/fiyat katsayıları için bağımsız hesap testi ve sektör kalibrasyonu açık.",
   },
   "ifc-metraj": {
-    scope: "Modeldeki beton hacmi (m³), çok katmanlı IfcCovering kaplama alanı (m²), süpürgelik tülü (mtül), 16 daire bağımsız bölüm cetveli (IfcZone/IfcSpace), TREpys_PozOzellikSeti.PozNo, IfcComplexProperty katman nicelikleri ve C++ 3B geometri yedeklemesini okur.",
-    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/calm-icmal.test.ts", "src/ifc/smartcheck-evidence.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
+    scope: "Modeldeki beton hacmi (m³), çok katmanlı IfcCovering kaplama alanı (m²), süpürgelik tülü (mtül), 16 daire bağımsız bölüm cetveli (IfcZone/IfcSpace), TREpys_PozOzellikSeti.PozNo, IfcComplexProperty katman nicelikleri, C++ 3B geometri yedeklemesi ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) aktif.",
+    testFiles: ["workers/ifc/test_ifc_extract.py", "src/ifc/calm-icmal.test.ts", "src/ifc/smartcheck-evidence.test.ts", "src/ifc/server-path.e2e.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
     pending: "33 çok yazılımlı IFC modeli ve 4 Allplan Excel raporu çapraz doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada.",
   },
   kalip: {

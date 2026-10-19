@@ -6,6 +6,7 @@ import { parseThresholdInput, summarizeOpeningsMinha } from "@/ifc/openings-minh
 import { parseRatioInput, resolveApartmentGross, sumResidentialGross, type GrossRatios } from "@/ifc/apartment-gross";
 import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/ApartmentSubcontractorShieldCard";
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
+import { IfcCoverageCard } from "@/components/smartcheck/IfcCoverageCard";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
 import {
   evaluateIso19650Compliance,
@@ -608,6 +609,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
 
       {/* KAYNAK YAZILIM UYARISI (PAKET M-2) */}
       <AuthoringAdvisoryBanner advisory={dataset.authoringAdvisory} />
+
+      {/* METRAJ KAPSAMA VE IFC TUTARLILIK KARTI (REV. 36) */}
+      <IfcCoverageCard report={dataset.consistencyReport} elements={dataset.elements} />
 
       {/* ADIM 01: MALZEME İCMAL LİSTESİ (SOL PAFTA CETVELİ + SAĞ HESAP KANITI KARTI) */}
       {activeStep === "icmal" && (

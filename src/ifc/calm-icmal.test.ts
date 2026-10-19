@@ -290,3 +290,68 @@ test("daire brüt alanı: IFC'den gelmez, sabit çarpanla üretilmez (null)", ()
   assert.equal(apt.generalGrossM2, null);
   assert.equal(ds.totalGeneralGrossM2, null);
 });
+
+test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy) ve ölçülemeyen elemanlar icmale dahil edilmez", () => {
+  const validSlab: ParsedIfcElement = {
+    id: "10",
+    guid: "SLAB_VALID_00000000001",
+    type: "IfcSlab",
+    ifcClass: "IfcSlab",
+    name: "Betonarme Döşeme",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 12.5,
+    formworkM2: 40,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: "15.150.1005",
+    isUncovered: false,
+  };
+  const unmeasuredColumn: ParsedIfcElement = {
+    id: "11",
+    guid: "COL_UNMEASURED_0000001",
+    type: "IfcColumn",
+    ifcClass: "IfcColumn",
+    name: "Ölçüsüz Kolon",
+    storey: "Kat atanmamış",
+    storeySource: "estimate",
+    volumeM3: 0,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "estimate",
+    smartCheckStatus: "review",
+    measured: false,
+    measurementStatus: "ölçülemedi",
+    matchedPozCode: null,
+    isUncovered: true,
+    uncoveredReason: "Geçerli net miktar ölçülemediği için poza eşlenemedi.",
+  };
+  const proxyElem: ParsedIfcElement = {
+    id: "12",
+    guid: "PROXY_ELEM_00000000001",
+    type: "IfcBeam",
+    ifcClass: "IfcBuildingElementProxy",
+    name: "Özel Cephe Süsü",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 2.4,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: true,
+    uncoveredReason: "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; açık PozNo etiketi olmadan poza eşlenemez.",
+  };
+
+  const ds = buildCalmIfcDatasetFromElements([validSlab, unmeasuredColumn, proxyElem], null, "consistency.ifc");
+  const allItems = ds.groups.flatMap((g) => g.items);
+  assert.equal(allItems.length, 1);
+  assert.equal(allItems[0].netQuantity, 12.5);
+});
+

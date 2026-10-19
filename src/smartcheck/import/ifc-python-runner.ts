@@ -6,10 +6,63 @@ import path from "node:path";
 import { z } from "zod";
 import type { IfcParseSummary, ParsedIfcElement } from "../../ifc/types";
 
+export const IfcConsistencyFindingSchema = z.object({
+  code: z.enum([
+    "DUPLICATE_GLOBAL_ID",
+    "ORPHAN_OPENING_ELEMENT",
+    "NEGATIVE_NET_QUANTITY",
+    "ZERO_NET_QUANTITY",
+    "MISSING_NET_QUANTITY",
+    "MISSING_SPATIAL_STOREY",
+    "UNCOVERED_PROXY_ELEMENT",
+    "UNMAPPED_POZ_ELEMENT",
+  ]),
+  severity: z.enum(["high", "medium"]),
+  globalId: z.string(),
+  ifcClass: z.string(),
+  storey: z.string(),
+  elementName: z.string().optional(),
+  message: z.string(),
+});
+
+export const IfcUncoveredElementRecordSchema = z.object({
+  globalId: z.string(),
+  ifcClass: z.string(),
+  name: z.string(),
+  storey: z.string(),
+  reason: z.string(),
+});
+
+export const IfcSuppressedAssemblyPartRecordSchema = z.object({
+  globalId: z.string(),
+  ifcClass: z.string(),
+  name: z.string(),
+  parentGlobalId: z.string(),
+  parentIfcClass: z.string(),
+  storey: z.string(),
+});
+
+export const IfcConsistencyReportSchema = z.object({
+  totalElementCount: z.number(),
+  measuredElementCount: z.number(),
+  unmeasuredElementCount: z.number(),
+  pozMatchedElementCount: z.number(),
+  pozMatchedRatio: z.number().nullable(),
+  uncoveredElementCount: z.number(),
+  typeInheritedElementCount: z.number(),
+  suppressedAssemblyPartCount: z.number(),
+  highSeverityCount: z.number(),
+  mediumSeverityCount: z.number(),
+  findings: z.array(IfcConsistencyFindingSchema),
+  uncoveredElements: z.array(IfcUncoveredElementRecordSchema),
+  suppressedAssemblyParts: z.array(IfcSuppressedAssemblyPartRecordSchema),
+});
+
 export const ParsedIfcElementSchema = z.object({
   id: z.string(),
   guid: z.string(),
   type: z.enum(["IfcBeam", "IfcColumn", "IfcSlab", "IfcWall", "IfcReinforcingBar", "IfcCovering"]),
+  ifcClass: z.string().optional(),
   name: z.string(),
   storey: z.string(),
   storeySource: z.enum(["estimate", "ifc_spatial"]),
@@ -43,6 +96,12 @@ export const ParsedIfcElementSchema = z.object({
   coverMm: z.number().optional(),
   discipline: z.string().optional(),
   expectedQuantity: z.number().optional(),
+  measured: z.boolean().optional(),
+  measurementStatus: z.enum(["ölçüldü", "ölçülemedi"]).optional(),
+  matchedPozCode: z.string().nullable().optional(),
+  isUncovered: z.boolean().optional(),
+  uncoveredReason: z.string().optional(),
+  inheritedFromType: z.boolean().optional(),
 });
 
 export const ApartmentRoomScheduleItemSchema = z.object({
@@ -123,12 +182,14 @@ export const IfcParseSummarySchema = z.object({
     })
     .optional(),
   openings: z.array(ParsedOpeningSchema).optional(),
+  consistencyReport: IfcConsistencyReportSchema.optional(),
 });
 
 export const IfcExtractorOutputSchema = z.object({
   elements: z.array(ParsedIfcElementSchema),
   summary: IfcParseSummarySchema,
 });
+
 
 export type IfcExtractorOutput = z.infer<typeof IfcExtractorOutputSchema>;
 

@@ -1,6 +1,7 @@
 import type {
   ApartmentRoomScheduleItem,
   ApartmentUnitScheduleItem,
+  IfcConsistencyReport,
   IfcParseSummary,
   ParsedIfcElement,
   ParsedOpening,
@@ -69,7 +70,12 @@ export interface CalmIfcDataset {
   authoringAdvisory?: AuthoringAdvisory;
   /** Modeldeki kapı/pencere listesi; sözleşmesel minha için. Yoksa undefined. */
   openings?: ParsedOpening[];
+  /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
+  consistencyReport?: IfcConsistencyReport;
+  /** Ham eleman listesi (kapsama kartı filtrelemesi için). */
+  elements?: ParsedIfcElement[];
 }
+
 
 export const GROUP_META: Record<CalmIcmalGroupKey, { order: number; title: string; unitLabel: string }> = {
   floor_finish: {
@@ -596,6 +602,9 @@ export function buildCalmIfcDatasetFromElements(
 
   for (const el of elements) {
     if (el.type === "IfcReinforcingBar") continue;
+    if (el.measured === false) continue;
+    if (el.isUncovered === true) continue;
+    if (el.ifcClass === "IfcBuildingElementProxy" && !el.pozNo) continue;
 
     const predef = (el.coveringPredefinedType || "").toUpperCase();
     const layers =
@@ -763,6 +772,8 @@ export function buildCalmIfcDatasetFromElements(
         ? buildAuthoringAdvisory(classifyAuthoringSoftware(summary.authoringSoftwareRaw))
         : undefined,
     openings: summary?.openings,
+    consistencyReport: summary?.consistencyReport,
+    elements,
   };
 }
 
@@ -782,5 +793,7 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     ...dataset,
     ...(authoring ? { authoringAdvisory: buildAuthoringAdvisory(authoring) } : {}),
     openings: artifact.summary.openings,
+    consistencyReport: artifact.summary.consistencyReport,
   };
 }
+
