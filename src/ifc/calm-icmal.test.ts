@@ -392,3 +392,47 @@ test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy), eşle
 });
 
 
+
+function coveringFixture(guid: string, predef: string, layers: string[], areaM2: number): ParsedIfcElement {
+  return {
+    id: guid,
+    guid,
+    type: "IfcCovering",
+    ifcClass: "IfcCovering",
+    name: layers.join("+"),
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 0,
+    areaM2,
+    coveringPredefinedType: predef,
+    materialLayers: layers,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: false,
+  };
+}
+
+test("astar ve macun katmanları boya ve saten alçı kalemlerine eklenmez (aynı yüzey iki kez sayılmaz)", () => {
+  const ceiling = coveringFixture("CEIL_LAYERED_0000001", "CEILING", ["Kaba_Sıva", "Macun_c", "Astar_2mm", "Plastik_Boya"], 10);
+  const items = buildCalmIfcDatasetFromElements([ceiling], null, "x.ifc").groups.flatMap((g) => g.items);
+  const byId = new Map(items.map((i) => [i.id, i.netQuantity]));
+  assert.equal(byId.get("plastik-boya"), 10);
+  assert.equal(byId.get("kaba-siva"), 10);
+  assert.equal(byId.has("saten-alci"), false);
+});
+
+test("PredefinedType'ı olmayan seramik ve kaba olmayan tavan sıvası tahminle bir kaleme yerleştirilmez", () => {
+  const seramik = coveringFixture("COV_SERAMIK_NOPREDEF1", "", ["Seramik_60x60"], 12);
+  const tavanSiva = coveringFixture("COV_TAVAN_SIVA_00001", "CEILING", ["Ince_Sıva"], 8);
+  const ds = buildCalmIfcDatasetFromElements([seramik, tavanSiva], null, "x.ifc");
+  const items = ds.groups.flatMap((g) => g.items);
+  assert.equal(items.length, 0);
+  const uncovered = new Set(ds.consistencyReport?.uncoveredElements.map((u) => u.globalId));
+  assert.ok(uncovered.has("COV_SERAMIK_NOPREDEF1"));
+  assert.ok(uncovered.has("COV_TAVAN_SIVA_00001"));
+});

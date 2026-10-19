@@ -217,7 +217,7 @@ function classifyMaterialLayer(
     };
   }
 
-  if (/seramik|mermer|granit/i.test(lower) && (predef === "FLOORING" || (!predef && !/duvar/i.test(lower)))) {
+  if (/seramik|mermer|granit/i.test(lower) && predef === "FLOORING") {
     return {
       id: "seramik-doseme",
       groupKey: "floor_finish",
@@ -282,7 +282,7 @@ function classifyMaterialLayer(
     };
   }
 
-  if (/kaba_sıva|kaba_siva|kaba sıva/i.test(lower) || (predef === "CEILING" && /sıva|siva/i.test(lower))) {
+  if (/kaba_sıva|kaba_siva|kaba sıva/i.test(lower)) {
     return {
       id: "kaba-siva",
       groupKey: "ceiling_plaster_paint",
@@ -295,7 +295,7 @@ function classifyMaterialLayer(
     };
   }
 
-  if (/saten|alçı|alci|macun/i.test(lower)) {
+  if (/saten|alçı|alci/i.test(lower)) {
     return {
       id: "saten-alci",
       groupKey: "ceiling_plaster_paint",
@@ -308,7 +308,7 @@ function classifyMaterialLayer(
     };
   }
 
-  if (/boya|plastik|astar/i.test(lower)) {
+  if (/boya|plastik/i.test(lower)) {
     return {
       id: "plastik-boya",
       groupKey: "ceiling_plaster_paint",
