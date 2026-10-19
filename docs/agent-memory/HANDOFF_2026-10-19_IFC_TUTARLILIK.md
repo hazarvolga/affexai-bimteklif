@@ -93,3 +93,22 @@ Gerçek bir IFC modelinde karşılaşılabilecek şema ve metraj tutarsızlıkla
 2. `./node_modules/.bin/tsx --test src/ifc/*.test.ts src/pages/admin/roadmap/content.test.ts` → **66/66 test geçti, 0 hata** *(Not: Depodaki 4 adet DB entegrasyon testi paylaşımlı yerel servislere dokunmama güvenlik kuralı gereği izole PostgreSQL 16 ortamı gerektirir ve yerelde çalıştırılmamıştır).*
 3. `workers/ifc/.venv/bin/python -m pytest workers/ifc -q` → **60 passed in 6.15s**
 4. `./node_modules/.bin/vite build` → **✓ built (exit code 0)**
+
+---
+
+## 6. Bağımsız kontrol ve ek düzeltmeler (7d6ba96 sonrası)
+
+Kontrol: `main` ile dal, üç örnek modelde (`2026_45_…duzenlenmis.ifc`, `01_BIMcollab_Example_ARC.ifc`, `02_BIMcollab_Example_STR_optimized.ifc`) karşılaştırıldı. Python çıktısında eleman/GUID kümesi ve `volumeM3`/`areaM2`/`formworkM2` toplamları birebir aynı. İcmal (calm-icmal) tarafında bulunan sorunlar ayrı commit'lerle düzeltildi:
+
+| Commit | Düzeltme |
+|---|---|
+| `a9ee466` | Astar/macun/tavan sıvası/PredefinedType'sız seramik katmanlarının istenmeden boya ve saten alçıya eklenmesi geri alındı (aynı yüzey iki kez sayılıyordu; 2026_45'te boya 2.688 → 3.330 m²). |
+| `a588f52` | Modeldeki açık PozNo, kuralla eşleşen kalemin pozunu artık değiştirmiyor; farklı pozlu miktarlar tek satırda karışmıyor. Açık PozNo yalnız hiçbir kurala uymayan kaplamada, kendi satırında kullanılır. |
+| `40d99b6` | İcmal oluşturucu girdi elemanlarını ve özet nesnesini yerinde değiştirmiyor; yerleşim sonucu `dataset.elements` içinde yeni kopyalarla dönüyor. |
+| `10bbbda` | Kapsam dışı sınıflar (merdiven, giydirme cephe, proxy) `outOfScopeElementCount` ile ayrı sayılıyor; "açıkta kalan" yalnız metraja giren elemanları sayıyor (ARC: önce 681 > 335 toplam, şimdi 0 açıkta + 681 kapsam dışı). |
+
+**Bilinçli davranış değişikliği:** Main'de hiçbir kurala uymayan kaplamalar sahte `15.390.1001` pozuyla icmale giriyordu. Artık icmale girmiyor, "açıkta kalan" olarak raporlanıyor. Etki: 2026_45'te 2 katman (Astar_2mm, Macun_c, 641,98 m² × 2); ARC örneğinde (İngilizce katman adları) 2.298 m² kaplamanın tamamı. Bu katmanlar için kural eklenmesi ayrı, mühendis doğrulamalı bir iştir.
+
+**Doğrulama (izole PostgreSQL 16 ile):** `tsc --noEmit` 0 hata; tam test paketi 1.077 testten 1.071 geçti, 5 atlandı, 1 başarısız (`email-policy.test.ts`, main'de de aynı şekilde başarısız; yerel e-posta ayarıyla ilgili, bu dalla ilgisiz); `pytest workers/ifc` 60/60; `vite build` başarılı. Kart tarayıcıda `duplicate_guid_and_orphan_opening.ifc` ile açıldı: 2 eleman, 3 yüksek bulgu; bulguya tıklayınca satırlar vurgulanıyor ve icmal başlığında "Filtreyi Temizle" çıkıyor.
+
+**Kapsam dışı, ayrıca ele alınmalı:** Hesapta e-posta doğrulaması, aktif plan veya abonelik yoksa `/api/ifc/browser-analyses` 403 dönüyor ve IFC sayfası kullanıcıya hiçbir hata göstermeden bekliyor.
