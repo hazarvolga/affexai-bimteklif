@@ -261,8 +261,8 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     const ifcClass = formatIfcClassName(rawType);
     const measured = type === "IfcReinforcingBar" ? rebarKg > 0 || volumeM3 > 0 : volumeM3 > 0;
     const measurementStatus: "ölçüldü" | "ölçülemedi" = measured ? "ölçüldü" : "ölçülemedi";
-    const matchedPozCode = pozNoEntry?.value || (measured ? (type === "IfcReinforcingBar" ? "15.160.1003" : "15.150.1005") : null);
-    const isUncovered = !matchedPozCode;
+    const matchedPozCode = pozNoEntry?.value || null;
+    const isUncovered = !measured || ifcClass === "IfcBuildingElementProxy";
 
     elements.push({
       id: stepId,
@@ -288,7 +288,7 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       measurementStatus,
       matchedPozCode,
       isUncovered,
-      ...(isUncovered ? { uncoveredReason: "Geçerli net miktar ölçülemediği için poza eşlenemedi." } : {}),
+      ...(isUncovered ? { uncoveredReason: "Geçerli net miktar ölçülemediği için icmale alınamadı." } : {}),
     });
   }
 
@@ -370,17 +370,18 @@ export function buildConsistencyReportFromElements(
     const isUncov =
       typeof el.isUncovered === "boolean"
         ? el.isUncovered
-        : ifcClass === "IfcBuildingElementProxy" && !el.pozNo
+        : ifcClass === "IfcBuildingElementProxy"
           ? true
           : !isMeasured;
 
-    if (!isUncov) {
+    if (isMeasured && !isUncov && Boolean(el.matchedPozCode || el.pozNo)) {
       pozMatchedCount++;
-    } else {
+    }
+    if (isUncov) {
       const reason =
         el.uncoveredReason ||
         (ifcClass === "IfcBuildingElementProxy"
-          ? "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; açık PozNo etiketi olmadan poza eşlenemez."
+          ? "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
           : "Geçerli net miktar veya poz eşleşmesi bulunamadı.");
       uncoveredElements.push({
         globalId: el.guid,
@@ -389,15 +390,17 @@ export function buildConsistencyReportFromElements(
         storey: el.storey || "Kat atanmamış",
         reason,
       });
-      findings.push({
-        code: ifcClass === "IfcBuildingElementProxy" ? "UNCOVERED_PROXY_ELEMENT" : "UNMAPPED_POZ_ELEMENT",
-        severity: "medium",
-        globalId: el.guid,
-        ifcClass,
-        storey: el.storey || "Kat atanmamış",
-        elementName: el.name,
-        message: reason,
-      });
+      if (ifcClass === "IfcBuildingElementProxy") {
+        findings.push({
+          code: "UNCOVERED_PROXY_ELEMENT",
+          severity: "medium",
+          globalId: el.guid,
+          ifcClass,
+          storey: el.storey || "Kat atanmamış",
+          elementName: el.name,
+          message: reason,
+        });
+      }
     }
 
     if (el.inheritedFromType) {
@@ -442,7 +445,7 @@ export function buildConsistencyReportFromElements(
     });
   }
 
-  const totalElementCount = elements.length + extraUncovered.length;
+  const totalElementCount = elements.length;
   const unmeasuredElementCount = totalElementCount - measuredCount;
   const highSeverityCount = findings.filter((f) => f.severity === "high").length;
   const mediumSeverityCount = findings.filter((f) => f.severity === "medium").length;

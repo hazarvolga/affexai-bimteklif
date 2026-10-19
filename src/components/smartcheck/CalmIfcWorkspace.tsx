@@ -315,6 +315,34 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     setCdeTransitionFeedback(record.reason);
   };
 
+  const [selectedGlobalId, setSelectedGlobalId] = useState<string | null>(null);
+
+  const selectedGlobalElementInfo = useMemo(() => {
+    if (!selectedGlobalId) return null;
+    const el = dataset.elements?.find((e) => e.guid === selectedGlobalId);
+    const uncov = dataset.consistencyReport?.uncoveredElements?.find((u) => u.globalId === selectedGlobalId);
+    const finding = dataset.consistencyReport?.findings?.find((f) => f.globalId === selectedGlobalId);
+    return {
+      ifcClass: el?.ifcClass || el?.type || uncov?.ifcClass || finding?.ifcClass || "IfcElement",
+      name: el?.name || uncov?.name || finding?.elementName || selectedGlobalId,
+      storey: el?.storey || uncov?.storey || finding?.storey || "Kat atanmamış",
+      matchedPozCode: el?.matchedPozCode || el?.pozNo || null,
+      reason: uncov?.reason || finding?.message || el?.uncoveredReason || null,
+    };
+  }, [dataset.consistencyReport, dataset.elements, selectedGlobalId]);
+
+  const displayedGroups = useMemo(() => {
+    if (!selectedGlobalId) return dataset.groups;
+    const matchedPoz = selectedGlobalElementInfo?.matchedPozCode;
+    if (!matchedPoz) return [];
+    return dataset.groups
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((it) => it.pozCode === matchedPoz),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [dataset.groups, selectedGlobalElementInfo, selectedGlobalId]);
+
   const isoContainerIdentity = useMemo(
     () => parseContainerIdentity(dataset.projectTitle),
     [dataset.projectTitle],
@@ -611,7 +639,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       <AuthoringAdvisoryBanner advisory={dataset.authoringAdvisory} />
 
       {/* METRAJ KAPSAMA VE IFC TUTARLILIK KARTI (REV. 36) */}
-      <IfcCoverageCard report={dataset.consistencyReport} elements={dataset.elements} />
+      <IfcCoverageCard
+        report={dataset.consistencyReport}
+        elements={dataset.elements}
+        selectedGlobalId={selectedGlobalId}
+        onSelectGlobalId={(gid) => {
+          setSelectedGlobalId(gid);
+          if (gid) setActiveStep("icmal");
+        }}
+      />
 
       {/* ADIM 01: MALZEME İCMAL LİSTESİ (SOL PAFTA CETVELİ + SAĞ HESAP KANITI KARTI) */}
       {activeStep === "icmal" && (
@@ -633,6 +669,32 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               </span>
             </div>
 
+            {selectedGlobalId && (
+              <div
+                data-testid="icmal-globalid-filter-banner"
+                className="px-6 py-3 border-b border-border bg-primary/10 flex flex-wrap items-center justify-between gap-2"
+              >
+                <div className="text-xs text-foreground">
+                  <span className="font-mono font-semibold">GlobalId Filtresi Aktif: {selectedGlobalId}</span>
+                  {selectedGlobalElementInfo && (
+                    <span className="ml-2 text-muted-foreground">
+                      ({selectedGlobalElementInfo.ifcClass} · {selectedGlobalElementInfo.name} · Kat: {selectedGlobalElementInfo.storey})
+                    </span>
+                  )}
+                  {selectedGlobalElementInfo?.reason && (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{selectedGlobalElementInfo.reason}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedGlobalId(null)}
+                  className="border border-border bg-card px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-background"
+                >
+                  Filtreyi Temizle
+                </button>
+              </div>
+            )}
+
             {/* Tablo Sütun Başlığı */}
             <div className="grid grid-cols-12 px-6 py-2.5 bg-card border-b border-foreground/70 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <div className="col-span-8">İmalat Kalemi</div>
@@ -641,7 +703,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </div>
 
             <div className="divide-y divide-border">
-              {dataset.groups.map((grp, grpIdx) => (
+              {displayedGroups.length === 0 && selectedGlobalId && (
+                <div className="px-6 py-6 text-xs text-muted-foreground">
+                  Seçilen eleman (<span className="font-mono font-semibold text-foreground">{selectedGlobalId}</span>) açıkta kalan / ölçülemeyen veya kapsam dışı eleman olduğu için hiçbir icmal pozuna dahil edilmemiştir. Tüm icmal kalemlerini görmek için <strong>Filtreyi Temizle</strong> düğmesine tıklayın.
+                </div>
+              )}
+              {displayedGroups.map((grp, grpIdx) => (
                 <React.Fragment key={grp.key}>
                   {/* Grup Alt Başlığı */}
                   <div className="px-6 py-2 bg-card/70 border-y border-border flex items-center justify-between">

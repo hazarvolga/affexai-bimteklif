@@ -443,8 +443,8 @@ def extract_quantities_and_properties(
         target_vol_cands = type_volume_candidates if is_from_type else inst_volume_candidates
         target_prop_cands = type_property_candidates if is_from_type else inst_property_candidates
 
-        # Handle IfcElementQuantity
-        if prop_def.is_a("IfcElementQuantity"):
+        # Handle IfcElementQuantity (instance-only; type objects do not supply instance geometric quantities)
+        if prop_def.is_a("IfcElementQuantity") and not is_from_type:
             vol_overrides, area_overrides = normalize_qto_set_quantities(
                 prop_def, eff_length_scale, vol_scale, area_scale
             )
@@ -469,8 +469,6 @@ def extract_quantities_and_properties(
                             if scaled_vol is None:
                                 scaled_vol = val * quantity_scale(qty, "VOLUMEUNIT", vol_scale)
                             target_vol_cands.append((0 if "net" in qty_name_lower else 1, rank, source_path_item, scaled_vol))
-                            if is_from_type:
-                                inherited_from_type = True
 
                 elif qty.is_a("IfcQuantityArea"):
                     if qty_id in area_overrides and area_overrides[qty_id] is None:
@@ -486,21 +484,18 @@ def extract_quantities_and_properties(
                             scaled_area = area_overrides.get(qty_id)
                             if scaled_area is None:
                                 scaled_area = val * quantity_scale(qty, "AREAUNIT", area_scale)
-                            area_rank = rank + (10 if is_from_type else 0)
                             if qty_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
-                                explicit_formwork.append((area_rank, scaled_area, source_path_item))
+                                explicit_formwork.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower == "netarea":
-                                net_area.append((area_rank, scaled_area, source_path_item))
+                                net_area.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower in {"grossarea", "grossfootprintarea", "footprintarea"}:
-                                gross_area.append((area_rank, scaled_area, source_path_item))
+                                gross_area.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower == "netsidearea":
-                                net_side_area.append((area_rank, scaled_area, source_path_item))
+                                net_side_area.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower == "grosssidearea":
-                                gross_side_area.append((area_rank, scaled_area, source_path_item))
+                                gross_side_area.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower == "outersurfacearea":
-                                outer_surface_area.append((area_rank, scaled_area, source_path_item))
-                            if is_from_type:
-                                inherited_from_type = True
+                                outer_surface_area.append((rank, scaled_area, source_path_item))
 
                 elif qty.is_a("IfcQuantityWeight") and qty_name_lower in APPROVED_WEIGHT_QTY_NAMES:
                     val = safe_float(getattr(qty, "WeightValue", None))
@@ -512,15 +507,11 @@ def extract_quantities_and_properties(
                             has_zero_net_qty = True
                         else:
                             qto_weight = val * quantity_scale(qty, "MASSUNIT", mass_scale)
-                            if is_from_type:
-                                inherited_from_type = True
 
                 elif qty.is_a("IfcQuantityLength") and qty_name_lower in {"length", "barlength", "pec_length"}:
                     val = safe_float(getattr(qty, "LengthValue", None))
                     if val is not None and val > 0:
                         prop_bar_length_m = val * quantity_scale(qty, "LENGTHUNIT", eff_length_scale)
-                        if is_from_type:
-                            inherited_from_type = True
 
         # Handle IfcPropertySet (including nested IfcComplexProperty)
         elif prop_def.is_a("IfcPropertySet"):
@@ -592,32 +583,24 @@ def extract_quantities_and_properties(
                     discipline = str(wrapped_val).strip().upper()
                     if is_from_type:
                         inherited_from_type = True
-                elif p_name_lower in {"expectedvolume", "hedefhacim"}:
+                elif p_name_lower in {"expectedvolume", "hedefhacim"} and not is_from_type:
                     e_val = safe_float(wrapped_val)
                     if e_val is not None and e_val > 0:
                         explicit_expected_volume = e_val * quantity_scale(prop, "VOLUMEUNIT", vol_scale)
-                        if is_from_type:
-                            inherited_from_type = True
 
                 # Track layer thickness, nominal height, material layers, and calculation mode for coverings / skirting boards
-                if p_name_lower in {"katman_kalınlığı", "katman_kalinligi"}:
+                if p_name_lower in {"katman_kalınlığı", "katman_kalinligi"} and not is_from_type:
                     t_val = safe_float(wrapped_val)
                     if t_val is not None and t_val > 0:
                         layer_thickness_sum += t_val * (eff_length_scale if t_val > 1.0 else 1.0)
-                        if is_from_type:
-                            inherited_from_type = True
-                elif p_name_lower in {"nominal yükseklik", "nominal yukseklik", "nominal_yükseklik"}:
+                elif p_name_lower in {"nominal yükseklik", "nominal yukseklik", "nominal_yükseklik"} and not is_from_type:
                     h_val = safe_float(wrapped_val)
                     if h_val is not None and h_val > 0:
                         nominal_height_m = h_val * (eff_length_scale if h_val > 2.0 else 1.0)
-                        if is_from_type:
-                            inherited_from_type = True
-                elif p_name_lower in {"pec_length", "barlength"}:
+                elif p_name_lower in {"pec_length", "barlength"} and not is_from_type:
                     l_val = safe_float(wrapped_val)
                     if l_val is not None and l_val > 0:
                         prop_bar_length_m = l_val * eff_length_scale
-                        if is_from_type:
-                            inherited_from_type = True
                 elif p_name_lower in {"malzeme", "katman_malzemesi", "material"} and wrapped_val:
                     m_str = str(wrapped_val).strip()
                     if m_str and m_str not in material_layers:
@@ -629,10 +612,9 @@ def extract_quantities_and_properties(
                     if is_from_type:
                         inherited_from_type = True
 
-                # Property volume/area/weight
-                is_approved = any(pset_name_lower.startswith(prefix) for prefix in APPROVED_PROPERTY_SETS)
+                # Property volume/area/weight (instance-only; type objects do not supply instance geometric quantities)
+                is_approved = (not is_from_type) and any(pset_name_lower.startswith(prefix) for prefix in APPROVED_PROPERTY_SETS)
                 if is_approved:
-                    area_rank = rank + (10 if is_from_type else 0)
                     if p_name_lower in APPROVED_VOLUME_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None:
@@ -648,15 +630,11 @@ def extract_quantities_and_properties(
                                     complex_layer_volumes.append((source_path_item, scaled_v))
                                 else:
                                     target_prop_cands.append((0 if "net" in p_name_lower else 1, rank, source_path_item, scaled_v))
-                                if is_from_type:
-                                    inherited_from_type = True
                     elif p_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
-                            explicit_formwork.append((area_rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
-                            if is_from_type:
-                                inherited_from_type = True
+                            explicit_formwork.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
                     elif p_name_lower in {"netarea", "alan", "yüzey", "yuzey"}:
                         val = safe_float(wrapped_val)
                         if val is not None:
@@ -667,45 +645,33 @@ def extract_quantities_and_properties(
                                 has_zero_net_qty = True
                             else:
                                 eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
-                                net_area.append((area_rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
-                                if is_from_type:
-                                    inherited_from_type = True
+                                net_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
                     elif p_name_lower in {"grossarea", "area"}:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
                             # In Revit IFC2x3 Dimensions, Area is IFCAreaMeasure (already in m2 when AREAUNIT is SQUARE_METRE)
-                            gross_area.append((area_rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
-                            if is_from_type:
-                                inherited_from_type = True
+                            gross_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
                     elif p_name_lower == "netsidearea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
-                            net_side_area.append((area_rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
-                            if is_from_type:
-                                inherited_from_type = True
+                            net_side_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
                     elif p_name_lower in {"grosssidearea", "sidearea"}:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
-                            gross_side_area.append((area_rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
-                            if is_from_type:
-                                inherited_from_type = True
+                            gross_side_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
                     elif p_name_lower == "outersurfacearea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
-                            outer_surface_area.append((area_rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
-                            if is_from_type:
-                                inherited_from_type = True
+                            outer_surface_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
                     elif p_name_lower in APPROVED_WEIGHT_QTY_NAMES:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_m_scale = mass_scale if (math.isfinite(mass_scale) and mass_scale > 0) else 1.0
                             prop_weight = val * (unit_scale(prop.Unit, "MASSUNIT") if getattr(prop, "Unit", None) else eff_m_scale)
-                            if is_from_type:
-                                inherited_from_type = True
 
             if complex_layer_volumes and not target_prop_cands:
                 total_layer_vol = sum(v for _, v in complex_layer_volumes)
@@ -714,10 +680,8 @@ def extract_quantities_and_properties(
     poz_no = inst_poz_no if inst_poz_no is not None else type_poz_no
     poz_source_path = inst_poz_source_path if inst_poz_no is not None else type_poz_source_path
 
-    # Instance volume candidates override Type volume candidates
-    has_instance_volume = bool(inst_volume_candidates or inst_property_candidates)
-    volume_candidates = inst_volume_candidates if has_instance_volume else type_volume_candidates
-    property_candidates = inst_property_candidates if has_instance_volume else type_property_candidates
+    volume_candidates = inst_volume_candidates
+    property_candidates = inst_property_candidates
 
     if property_candidates:
         selected = sorted(property_candidates)[0]
@@ -1573,59 +1537,21 @@ def _detect_orphan_openings(model: Any, length_scale: float) -> List[Dict[str, A
     return orphan_findings
 
 
-def _resolve_matched_poz_code(
-    mapped_type: str,
-    raw_type: str,
-    poz_no: Optional[str],
-    rule_metadata: Dict[str, Any],
-    name: str,
-    measured: bool,
-) -> Tuple[Optional[str], bool, Optional[str]]:
-    if poz_no and str(poz_no).strip():
-        return str(poz_no).strip(), False, None
-
-    if raw_type == "IfcBuildingElementProxy":
-        return (
-            None,
-            True,
-            "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; açık PozNo etiketi olmadan poza eşlenemez.",
-        )
-
-    if not measured:
-        return (
-            None,
-            True,
-            "Geçerli net miktar ölçülemediği için poza eşlenemedi.",
-        )
-
-    if mapped_type == "IfcCovering":
-        cov_predef = str(rule_metadata.get("coveringPredefinedType") or "").upper()
-        mat_text = (" ".join(str(x) for x in (rule_metadata.get("materialLayers") or [])) + " " + name).lower()
-        if cov_predef == "SKIRTINGBOARD" or any(k in mat_text for k in ("süpürgelik", "supurgelik")):
-            return "15.410.1101", False, None
-        if cov_predef == "CEILING" or any(k in mat_text for k in ("asma tavan", "alçıpan", "alcipan", "tavan")):
-            return "15.320.1002", False, None
-        if cov_predef == "CLADDING" or any(k in mat_text for k in ("duvar seramik", "fayans", "duvar kaplama")):
-            return "15.390.1003", False, None
-        if cov_predef == "INSULATION" or any(k in mat_text for k in ("mantolama", "yalıtım", "eps", "xps", "taşyünü", "tasyunu")):
-            return "15.340.1005", False, None
-        if cov_predef == "MEMBRANE" or any(k in mat_text for k in ("su yalıtım", "membran", "sürme", "surme")):
-            return "15.270.1006", False, None
-        if cov_predef == "FLOORING" or any(k in mat_text for k in ("seramik", "parke", "granit", "mermer", "şap", "sap")):
-            return "15.375.1102", False, None
-        return (
-            None,
-            True,
-            "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir standart poza eşleşmedi.",
-        )
-
-    if mapped_type == "IfcReinforcingBar":
-        return "15.160.1003", False, None
-
-    if mapped_type in {"IfcBeam", "IfcColumn", "IfcSlab", "IfcWall"}:
-        return "15.150.1005", False, None
-
-    return None, True, f"{raw_type} sınıfı için eşleşen standart poz bulunamadı."
+def _has_own_positive_explicit_quantity(
+    elem: Any,
+    vol_scale: float,
+    area_scale: float,
+    mass_scale: float,
+    length_scale: float,
+) -> bool:
+    q_res = extract_quantities_and_properties(elem, vol_scale, area_scale, mass_scale, length_scale)
+    rule_metadata = q_res[12]
+    if rule_metadata.get("_quantityAnomaly"):
+        return False
+    vol_m3 = float(q_res[0] or 0.0)
+    rebar_kg = float(q_res[4] or 0.0)
+    area_m2 = float(rule_metadata.get("areaM2") or 0.0)
+    return (vol_m3 > 0.0) or (rebar_kg > 0.0) or (area_m2 > 0.0)
 
 
 def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
@@ -1656,13 +1582,6 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "IfcWallElementedCase",
         "IfcReinforcingBar",
         "IfcCovering",
-        "IfcStair",
-        "IfcStairFlight",
-        "IfcCurtainWall",
-        "IfcPlate",
-        "IfcMember",
-        "IfcElementAssembly",
-        "IfcBuildingElementProxy",
     ]
 
     fallback_types = [
@@ -1694,6 +1613,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
 
     candidates_raw = []
     seen_elem_ids = set()
+    parent_ids_with_own_quantity = set()
+
     for t in primary_types:
         try:
             for elem in model.by_type(t):
@@ -1701,8 +1622,23 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 if eid not in seen_elem_ids:
                     seen_elem_ids.add(eid)
                     candidates_raw.append(elem)
+                    if _has_own_positive_explicit_quantity(elem, vol_scale, area_scale, mass_scale, length_scale):
+                        parent_ids_with_own_quantity.add(eid)
         except RuntimeError:
             continue
+
+    # Include IfcElementAssembly only when it carries its own positive explicit quantity
+    try:
+        for asm in model.by_type("IfcElementAssembly"):
+            eid = asm.id()
+            if eid not in seen_elem_ids and _has_own_positive_explicit_quantity(
+                asm, vol_scale, area_scale, mass_scale, length_scale
+            ):
+                seen_elem_ids.add(eid)
+                parent_ids_with_own_quantity.add(eid)
+                candidates_raw.append(asm)
+    except RuntimeError:
+        pass
 
     if not candidates_raw:
         for t in fallback_types:
@@ -1723,15 +1659,13 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         sys.stderr.write("IFC_EMPTY_MODEL: No supported structural entities found in IFC.\n")
         sys.exit(EXIT_EMPTY_MODEL)
 
-    # Check 7: Prevent assembly double-counting by suppressing decomposed child parts whose parent assembly is also extracted
+    # Check 7: Suppress decomposed child parts ONLY when the parent is a takeoff-eligible element with its own positive explicit quantity
     elements_raw = []
     suppressed_assembly_parts: List[Dict[str, Any]] = []
-    suppressed_children_by_parent_id: Dict[int, List[Any]] = {}
 
     for elem in candidates_raw:
-        parent_asm = _find_parent_assembly_in_set(elem, seen_elem_ids)
+        parent_asm = _find_parent_assembly_in_set(elem, parent_ids_with_own_quantity)
         if parent_asm is not None:
-            suppressed_children_by_parent_id.setdefault(parent_asm.id(), []).append(elem)
             ch_storey, _, _ = extract_spatial_storey(elem, length_scale)
             suppressed_assembly_parts.append({
                 "globalId": str(getattr(elem, "GlobalId", f"GUID-{elem.id()}")),
@@ -1754,32 +1688,6 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         q_res = extract_quantities_and_properties(elem, vol_scale, area_scale, mass_scale, length_scale)
         volume_m3 = q_res[0]
         rule_metadata = q_res[12]
-
-        # If this is a parent assembly with no direct QTO/PropertySet volume on itself, roll up child QTO/PropertySet volumes
-        if volume_m3 <= 0.0 and not rule_metadata.get("_quantityAnomaly") and elem.id() in suppressed_children_by_parent_id:
-            child_vols = []
-            for ch in suppressed_children_by_parent_id[elem.id()]:
-                ch_q = extract_quantities_and_properties(ch, vol_scale, area_scale, mass_scale, length_scale)
-                if ch_q[0] > 0.0:
-                    child_vols.append(ch_q[0])
-            if child_vols:
-                rolled_vol = round(sum(child_vols), 12)
-                q_res = (
-                    rolled_vol,
-                    q_res[1],
-                    q_res[2],
-                    q_res[3],
-                    q_res[4],
-                    "qto",
-                    f"#{elem.id()}:IfcRelAggregates/RolledUpPartsVolume",
-                    0.9,
-                    "review",
-                    "Üst montajın kendi niceliği olmadığı için alt parçaların QTO/PropertySet hacimleri toplandı.",
-                    q_res[10],
-                    q_res[11],
-                    rule_metadata,
-                )
-                volume_m3 = rolled_vol
 
         needs_geom = False
         if not rule_metadata.get("_quantityAnomaly"):
@@ -2049,27 +1957,33 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış).",
             })
 
-        # Check 5: Poz matching & IfcBuildingElementProxy / uncovered element detection
-        matched_poz_code, is_uncovered, uncovered_reason = _resolve_matched_poz_code(
-            mapped_type, raw_type, poz_no, rule_metadata, name, measured
-        )
+        # Check 5 (Python layer): Carry only explicit PozNo tag from IFC; do not fabricate fallback Poz codes.
+        explicit_poz_code = str(poz_no).strip() if (poz_no and str(poz_no).strip()) else None
+        is_uncovered = not measured or raw_type == "IfcBuildingElementProxy"
+        uncovered_reason: Optional[str] = None
+        if raw_type == "IfcBuildingElementProxy":
+            uncovered_reason = "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+        elif not measured:
+            uncovered_reason = "Geçerli net miktar ölçülemediği için icmale alınamadı."
+
         if is_uncovered:
             uncovered_elements.append({
                 "globalId": guid,
                 "ifcClass": raw_type,
                 "name": name,
                 "storey": storey,
-                "reason": uncovered_reason or "Hiçbir poza eşleşmedi.",
+                "reason": uncovered_reason or "Metraja alınmayan / açıkta kalan eleman.",
             })
-            consistency_findings.append({
-                "code": "UNCOVERED_PROXY_ELEMENT" if raw_type == "IfcBuildingElementProxy" else "UNMAPPED_POZ_ELEMENT",
-                "severity": "medium",
-                "globalId": guid,
-                "ifcClass": raw_type,
-                "storey": storey,
-                "elementName": name,
-                "message": uncovered_reason or "Hiçbir poza eşleşmedi.",
-            })
+            if raw_type == "IfcBuildingElementProxy":
+                consistency_findings.append({
+                    "code": "UNCOVERED_PROXY_ELEMENT",
+                    "severity": "medium",
+                    "globalId": guid,
+                    "ifcClass": raw_type,
+                    "storey": storey,
+                    "elementName": name,
+                    "message": uncovered_reason,
+                })
 
         # Totals and counts (only positive measured quantities enter totals)
         if measured:
@@ -2128,7 +2042,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             "smartCheckStatus": status,
             "measured": measured,
             "measurementStatus": measurement_status,
-            "matchedPozCode": matched_poz_code,
+            "matchedPozCode": explicit_poz_code,
             "isUncovered": is_uncovered,
         }
         if uncovered_reason:
@@ -2156,6 +2070,52 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
 
         parsed_elements.append(el_dict)
 
+    # Scan non-takeoff classes (Proxy, Stair, StairFlight, CurtainWall) so they never enter elements/totals,
+    # only consistencyReport.uncoveredElements & findings as "metraja alınmayan eleman".
+    non_takeoff_classes = [
+        "IfcBuildingElementProxy",
+        "IfcStair",
+        "IfcStairFlight",
+        "IfcCurtainWall",
+    ]
+    seen_uncovered_ids = {int(el["id"]) for el in parsed_elements if str(el.get("id", "")).isdigit()}
+    for nt_cls in non_takeoff_classes:
+        try:
+            for nt_elem in model.by_type(nt_cls):
+                if nt_elem.is_a() != nt_cls:
+                    continue
+                eid = nt_elem.id()
+                if eid in seen_uncovered_ids:
+                    continue
+                seen_uncovered_ids.add(eid)
+                nt_guid = str(getattr(nt_elem, "GlobalId", f"GUID-{eid}"))
+                nt_name = str(getattr(nt_elem, "Name", "") or "").strip() or f"{nt_cls}_{eid}"
+                nt_storey, _, _ = extract_spatial_storey(nt_elem, length_scale)
+                if nt_cls == "IfcBuildingElementProxy":
+                    nt_reason = "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+                    nt_code = "UNCOVERED_PROXY_ELEMENT"
+                else:
+                    nt_reason = f"{nt_cls} sınıfı otomatik metraj kapsamı dışındadır (metraja alınmayan eleman)."
+                    nt_code = "UNMAPPED_POZ_ELEMENT"
+                uncovered_elements.append({
+                    "globalId": nt_guid,
+                    "ifcClass": nt_cls,
+                    "name": nt_name,
+                    "storey": nt_storey,
+                    "reason": nt_reason,
+                })
+                consistency_findings.append({
+                    "code": nt_code,
+                    "severity": "medium",
+                    "globalId": nt_guid,
+                    "ifcClass": nt_cls,
+                    "storey": nt_storey,
+                    "elementName": nt_name,
+                    "message": nt_reason,
+                })
+        except RuntimeError:
+            continue
+
     # Check 1: Duplicate GlobalId across extracted elements
     guid_counts: Dict[str, int] = {}
     for el in parsed_elements:
@@ -2180,7 +2140,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
     total_el_count = len(parsed_elements)
     measured_el_count = sum(1 for el in parsed_elements if el.get("measured") is True)
     unmeasured_el_count = total_el_count - measured_el_count
-    poz_matched_el_count = sum(1 for el in parsed_elements if el.get("matchedPozCode") and not el.get("isUncovered"))
+    poz_matched_el_count = sum(1 for el in parsed_elements if el.get("pozNo") and el.get("measured") is True)
     uncovered_el_count = len(uncovered_elements)
     type_inherited_el_count = sum(1 for el in parsed_elements if el.get("inheritedFromType") is True)
     high_sev_count = sum(1 for f in consistency_findings if f.get("severity") == "high")

@@ -75,17 +75,17 @@ test("sunucu yolu uçtan uca: consistencyReport (Tip özellik mirası ve montaj 
     const parsed = IfcExtractorOutputSchema.parse(raw);
     assert.ok(parsed.summary.consistencyReport, "consistencyReport Zod şemasından sonra korunmalı");
     assert.equal(parsed.summary.consistencyReport.totalElementCount, 3);
-    assert.equal(parsed.summary.consistencyReport.suppressedAssemblyPartCount, 5);
-    assert.equal(parsed.summary.totalVolumeM3, 9.3);
+    assert.equal(parsed.summary.consistencyReport.suppressedAssemblyPartCount, 2);
+    assert.equal(parsed.summary.totalVolumeM3, 8.0);
 
     const artifact = buildIfcSmartCheckEvidenceArtifact(parsed.elements as never, parsed.summary as never, {
       fileName: "assembly_double_count.ifc",
     } as never);
-    assert.equal(artifact.summary.consistencyReport?.suppressedAssemblyPartCount, 5);
+    assert.equal(artifact.summary.consistencyReport?.suppressedAssemblyPartCount, 2);
 
     const dataset = buildCalmIfcDatasetFromArtifact(artifact);
     assert.equal(dataset.consistencyReport?.totalElementCount, 3);
-    assert.equal(dataset.consistencyReport?.suppressedAssemblyPartCount, 5);
+    assert.equal(dataset.consistencyReport?.suppressedAssemblyPartCount, 2);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

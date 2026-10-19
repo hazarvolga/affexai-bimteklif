@@ -557,27 +557,32 @@ def test_consistency_check_5_proxy_and_unmapped_poz_elements():
     report = data["summary"]["consistencyReport"]
     by_guid = {el["guid"]: el for el in data["elements"]}
 
-    assert report["totalElementCount"] == 3
-    assert report["measuredElementCount"] == 3
+    # IfcBuildingElementProxy is NOT in primary_types and never enters elements or takeoff totals!
+    assert "PROXY_ELEM_00000000001" not in by_guid
+    assert report["totalElementCount"] == 2
+    assert report["measuredElementCount"] == 2
+    # Python only carries explicit PozNo tags from IFC (does not fabricate fallback Poz codes)
     assert report["pozMatchedElementCount"] == 1
-    assert report["uncoveredElementCount"] == 2
-    assert report["pozMatchedRatio"] == pytest.approx(1 / 3, rel=1e-4)
+    assert report["uncoveredElementCount"] == 1
+    assert report["pozMatchedRatio"] == pytest.approx(1 / 2, rel=1e-4)
 
     assert by_guid["WALL_POZ_MATCHED_00001"]["isUncovered"] is False
+    assert by_guid["WALL_POZ_MATCHED_00001"]["pozNo"] == "15.225.1004"
     assert by_guid["WALL_POZ_MATCHED_00001"]["matchedPozCode"] == "15.225.1004"
 
-    proxy_el = by_guid["PROXY_ELEM_00000000001"]
-    assert proxy_el["ifcClass"] == "IfcBuildingElementProxy"
-    assert proxy_el["isUncovered"] is True
-    assert proxy_el["matchedPozCode"] is None
-
+    # COV_UNMAPPED_000000001 has no explicit PozNo in IFC; Python leaves matchedPozCode as None
+    # so calm-icmal.ts serves as the single source of truth for Poz classification.
     unmapped_cov = by_guid["COV_UNMAPPED_000000001"]
     assert unmapped_cov["ifcClass"] == "IfcCovering"
-    assert unmapped_cov["isUncovered"] is True
+    assert unmapped_cov.get("pozNo") is None
     assert unmapped_cov["matchedPozCode"] is None
 
+    # Proxy is reported in uncoveredElements as "metraja alınmayan eleman"
     uncovered_guids = {u["globalId"] for u in report["uncoveredElements"]}
-    assert uncovered_guids == {"PROXY_ELEM_00000000001", "COV_UNMAPPED_000000001"}
+    assert uncovered_guids == {"PROXY_ELEM_00000000001"}
+    proxy_uncovered = report["uncoveredElements"][0]
+    assert proxy_uncovered["ifcClass"] == "IfcBuildingElementProxy"
+    assert "metraja alınmayan eleman" in proxy_uncovered["reason"]
 
 
 def test_consistency_check_6_type_pset_inheritance_and_instance_override():
@@ -591,7 +596,7 @@ def test_consistency_check_6_type_pset_inheritance_and_instance_override():
     by_guid = {el["guid"]: el for el in data["elements"]}
     report = data["summary"]["consistencyReport"]
 
-    # Wall 1 inherits from IfcWallType.HasPropertySets
+    # Wall 1 inherits metadata from IfcWallType.HasPropertySets while keeping its own instance NetVolume
     w_inherit = by_guid["WALL_INHERITS_TYPE_001"]
     assert w_inherit["volumeM3"] == pytest.approx(8.4)
     assert w_inherit["loadBearing"] is True
@@ -624,22 +629,49 @@ def test_consistency_check_7_assembly_double_counting_prevention():
     report = summary["consistencyReport"]
     by_guid = {el["guid"]: el for el in data["elements"]}
 
-    # Only the 3 parent assemblies (IfcStair=3.5, IfcCurtainWall=1.8, IfcElementAssembly=4.0) are counted;
-    # the 5 decomposed child parts (IfcStairFlight, IfcPlate, IfcMember, 2x IfcBeam) are suppressed!
-    assert summary["totalVolumeM3"] == pytest.approx(9.3)
+    # 1. ASM_PARENT_00000000001 has its own explicit NetVolume=4.0, so its 2 child IfcBeam parts are suppressed.
+    # 2. ASM_NO_QTO_00000000001 has NO quantity of its own, so its child IfcBeam (1.5 m3, 6.0 m2 formwork)
+    #    and IfcColumn (2.5 m3, 10.0 m2 formwork) remain in their own rows (no rollup!).
+    # 3. IfcStair and IfcCurtainWall are excluded from primary_types and takeoff totals (4.0 + 1.5 + 2.5 = 8.0 m3).
+    assert summary["totalVolumeM3"] == pytest.approx(8.0)
+    assert summary["totalFormworkM2"] == pytest.approx(16.0)
     assert len(data["elements"]) == 3
     assert set(by_guid.keys()) == {
-        "STAIR_PARENT_000000001",
-        "CW_PARENT_000000000001",
         "ASM_PARENT_00000000001",
+        "BEAM_OWN_ROW_000000001",
+        "COL_OWN_ROW_0000000001",
     }
-    assert report["suppressedAssemblyPartCount"] == 5
-    suppressed_classes = [p["ifcClass"] for p in report["suppressedAssemblyParts"]]
-    assert sorted(suppressed_classes) == sorted([
-        "IfcStairFlight",
-        "IfcPlate",
-        "IfcMember",
-        "IfcBeam",
-        "IfcBeam",
-    ])
+    assert report["suppressedAssemblyPartCount"] == 2
+    suppressed_guids = {p["globalId"] for p in report["suppressedAssemblyParts"]}
+    assert suppressed_guids == {"ASM_BEAM_CHILD_0000001", "ASM_BEAM_CHILD_0000002"}
+
+
+def test_curtain_wall_and_stair_excluded_from_takeoff_totals_and_formwork():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("assembly_double_count.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    by_guid = {el["guid"]: el for el in data["elements"]}
+    report = data["summary"]["consistencyReport"]
+
+    # IfcStair, IfcStairFlight, IfcCurtainWall, IfcPlate, IfcMember never enter elements or receive formwork/volume
+    for forbidden_guid in (
+        "STAIR_PARENT_000000001",
+        "STAIR_FLIGHT_CHILD_001",
+        "CW_PARENT_000000000001",
+        "CW_PLATE_CHILD_0000001",
+        "CW_MEMBER_CHILD_000001",
+    ):
+        assert forbidden_guid not in by_guid
+
+    # IfcStair, IfcStairFlight, IfcCurtainWall are reported in consistencyReport.uncoveredElements
+    uncovered_by_guid = {u["globalId"]: u for u in report["uncoveredElements"]}
+    assert "STAIR_PARENT_000000001" in uncovered_by_guid
+    assert "STAIR_FLIGHT_CHILD_001" in uncovered_by_guid
+    assert "CW_PARENT_000000000001" in uncovered_by_guid
+    assert "metraja alınmayan eleman" in uncovered_by_guid["CW_PARENT_000000000001"]["reason"]
+
 

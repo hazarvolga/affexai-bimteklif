@@ -6,18 +6,14 @@ import type {
   IfcConsistencyReport,
   IfcSuppressedAssemblyPartRecord,
   IfcUncoveredElementRecord,
+  ParsedIfcElement,
 } from "@/ifc/types";
 
-export type CoverageFilterMode =
-  | "none"
-  | "uncovered"
-  | "high"
-  | "medium"
-  | "unmeasured"
-  | "suppressed";
+export type CoverageFilterMode = "none" | "uncovered" | "high" | "medium" | "unmeasured" | "suppressed";
 
 export interface IfcCoverageCardProps {
   report: IfcConsistencyReport | null | undefined;
+  elements?: readonly ParsedIfcElement[];
   selectedGlobalId?: string | null;
   onSelectGlobalId?: (globalId: string | null) => void;
 }
@@ -34,9 +30,7 @@ const FINDING_CODE_LABELS: Record<IfcConsistencyFindingCode, string> = {
 };
 
 function formatMetricValue(value: number | null | undefined): string {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "değerlendirilmedi";
-  }
+  if (value === null || value === undefined || !Number.isFinite(value)) return "değerlendirilmedi";
   return value.toLocaleString("tr-TR");
 }
 
@@ -45,13 +39,8 @@ function formatRatioPercent(
   matchedCount: number | null | undefined,
   totalCount: number | null | undefined,
 ): string {
-  if (ratio === null || ratio === undefined || !Number.isFinite(ratio)) {
-    return "değerlendirilmedi";
-  }
-  const pct = (ratio * 100).toLocaleString("tr-TR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
+  if (ratio === null || ratio === undefined || !Number.isFinite(ratio)) return "değerlendirilmedi";
+  const pct = (ratio * 100).toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   if (typeof matchedCount === "number" && typeof totalCount === "number") {
     return `%${pct} (${matchedCount.toLocaleString("tr-TR")} / ${totalCount.toLocaleString("tr-TR")})`;
   }
@@ -66,16 +55,11 @@ function filterFindingsByMode(
   if (mode === "medium") return findings.filter((f) => f.severity === "medium");
   if (mode === "unmeasured") {
     return findings.filter(
-      (f) =>
-        f.code === "NEGATIVE_NET_QUANTITY" ||
-        f.code === "ZERO_NET_QUANTITY" ||
-        f.code === "MISSING_NET_QUANTITY",
+      (f) => f.code === "NEGATIVE_NET_QUANTITY" || f.code === "ZERO_NET_QUANTITY" || f.code === "MISSING_NET_QUANTITY",
     );
   }
   if (mode === "uncovered") {
-    return findings.filter(
-      (f) => f.code === "UNCOVERED_PROXY_ELEMENT" || f.code === "UNMAPPED_POZ_ELEMENT",
-    );
+    return findings.filter((f) => f.code === "UNCOVERED_PROXY_ELEMENT" || f.code === "UNMAPPED_POZ_ELEMENT");
   }
   return [...findings];
 }
@@ -134,10 +118,7 @@ function SuppressedPartsView({ parts }: { parts: readonly IfcSuppressedAssemblyP
   return (
     <div className="mt-2 max-h-60 overflow-y-auto divide-y divide-border">
       {parts.map((part, idx) => (
-        <div
-          key={`${part.globalId}-${idx}`}
-          className="py-2 px-2 flex flex-wrap items-center justify-between gap-2 text-xs"
-        >
+        <div key={`${part.globalId}-${idx}`} className="py-2 px-2 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div>
             <span className="inline-block border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-foreground mr-2">
               ALT PARÇA ({part.ifcClass})
@@ -191,15 +172,12 @@ function FindingsListView({
                 <Layers className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
               )}
               <span>
-                {finding.severity === "high" ? "YÜKSEK CİDDİYET" : "ORTA CİDDİYET"} ·{" "}
-                {FINDING_CODE_LABELS[finding.code]}
+                {finding.severity === "high" ? "YÜKSEK CİDDİYET" : "ORTA CİDDİYET"} · {FINDING_CODE_LABELS[finding.code]}
               </span>
             </span>
             <span className="font-mono text-xs font-semibold text-foreground">{finding.globalId}</span>
             <span className="ml-2 font-mono text-[11px] text-muted-foreground">[{finding.ifcClass}]</span>
-            {finding.elementName && (
-              <span className="ml-2 text-xs text-foreground">{finding.elementName}</span>
-            )}
+            {finding.elementName && <span className="ml-2 text-xs text-foreground">{finding.elementName}</span>}
             <p className="text-[11px] text-muted-foreground mt-0.5">{finding.message}</p>
           </div>
           <span className="font-mono text-[11px] text-muted-foreground">Kat: {finding.storey}</span>
@@ -221,12 +199,9 @@ function CoverageMetricsGrid({
   const hasReport = Boolean(report);
   const btnCls = (active: boolean) =>
     `border p-3 text-left transition-colors ${
-      active
-        ? "border-primary bg-primary text-primary-foreground"
-        : "border-border bg-background text-foreground hover:bg-card"
+      active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:bg-card"
     }`;
-  const subCls = (active: boolean) =>
-    active ? "text-primary-foreground" : "text-muted-foreground";
+  const subCls = (active: boolean) => (active ? "text-primary-foreground" : "text-muted-foreground");
 
   return (
     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -265,7 +240,7 @@ function CoverageMetricsGrid({
             ? formatRatioPercent(report.pozMatchedRatio, report.pozMatchedElementCount, report.totalElementCount)
             : "değerlendirilmedi"}
         </span>
-        <span className="mt-0.5 block text-[11px] text-muted-foreground">Bakanlık / PozNo eşleşmesi doğrulanan</span>
+        <span className="mt-0.5 block text-[11px] text-muted-foreground">İcmal grubuna / poza yerleşen elemanlar</span>
       </div>
 
       <button
@@ -338,10 +313,8 @@ export const IfcCoverageCard: React.FC<IfcCoverageCardProps> = ({
   const suppressedParts = useMemo(() => report?.suppressedAssemblyParts ?? [], [report]);
   const filteredFindings = useMemo(() => filterFindingsByMode(findings, activeFilter), [findings, activeFilter]);
 
-  const handleToggleFilter = (next: CoverageFilterMode) =>
-    setActiveFilter((prev) => (prev === next ? "none" : next));
-  const handleRowClick = (globalId: string) =>
-    onSelectGlobalId?.(selectedGlobalId === globalId ? null : globalId);
+  const handleToggleFilter = (next: CoverageFilterMode) => setActiveFilter((prev) => (prev === next ? "none" : next));
+  const handleRowClick = (globalId: string) => onSelectGlobalId?.(selectedGlobalId === globalId ? null : globalId);
 
   return (
     <section

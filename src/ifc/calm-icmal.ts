@@ -121,10 +121,12 @@ function classifyMaterialLayer(
   coveringPredefinedType: string,
   elementType: string,
   rawName: string,
-): ClassifiedLayerSpec {
+  explicitPozNo?: string,
+): ClassifiedLayerSpec | null {
   const token = layerToken.trim();
   const lower = token.toLowerCase();
   const predef = coveringPredefinedType.toUpperCase();
+  const cleanExplicitPoz = explicitPozNo?.trim() || "";
 
   if (elementType === "IfcSlab" || elementType === "IfcBeam" || elementType === "IfcColumn") {
     return {
@@ -132,7 +134,7 @@ function classifyMaterialLayer(
       groupKey: "structural",
       title: "C30/37 Betonarme (Döşeme, Kolon, Perde, Kiriş)",
       subtitle: "Taşıyıcı betonarme elemanların boşluklar düşülmüş net beton hacmi",
-      pozCode: "15.150.1006",
+      pozCode: cleanExplicitPoz || "15.150.1006",
       unit: "m³",
       defaultUnitPriceTry: 3450,
       formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
@@ -146,7 +148,7 @@ function classifyMaterialLayer(
         groupKey: "structural",
         title: "Ytong / Bims Blok Duvar Örülmesi (10 - 15 - 20 cm)",
         subtitle: "Kapı ve pencere boşlukları (minha) düşülmüş net kâgir duvar hacmi",
-        pozCode: "15.225.1004",
+        pozCode: cleanExplicitPoz || "15.225.1004",
         unit: "m³",
         defaultUnitPriceTry: 2950,
         formulaNote: "Brüt Duvar Hacmi − Kapı/Pencere Boşluğu = Net Duvar Hacmi",
@@ -157,7 +159,7 @@ function classifyMaterialLayer(
       groupKey: "structural",
       title: "C30/37 Betonarme (Döşeme, Kolon, Perde, Kiriş)",
       subtitle: "Taşıyıcı betonarme elemanların boşluklar düşülmüş net beton hacmi",
-      pozCode: "15.150.1006",
+      pozCode: cleanExplicitPoz || "15.150.1006",
       unit: "m³",
       defaultUnitPriceTry: 3450,
       formulaNote: "IFC Qto_WallBaseQuantities NetVolume",
@@ -171,7 +173,7 @@ function classifyMaterialLayer(
         groupKey: "skirting",
         title: "Parke Süpürgeliği (h: 6 cm)",
         subtitle: "Salon ve odalar (16 Daire) · Kapı eşikleri düşülmüş net tül",
-        pozCode: "15.365.1102",
+        pozCode: cleanExplicitPoz || "15.365.1102",
         unit: "mtül",
         defaultUnitPriceTry: 145,
         formulaNote: "Allplan Hesaplama Modu: m (Net Çevre Uzunluğu = Alan / 0,06 m)",
@@ -182,7 +184,7 @@ function classifyMaterialLayer(
       groupKey: "skirting",
       title: "Seramik ve Granit Süpürgelik (h: 6–10 cm)",
       subtitle: "Antre, mutfak, balkon, sahanlık ve merdiven kovası net tül",
-      pozCode: "15.390.1012",
+      pozCode: cleanExplicitPoz || "15.390.1012",
       unit: "mtül",
       defaultUnitPriceTry: 185,
       formulaNote: "Allplan Hesaplama Modu: m (Net Çevre Uzunluğu = Alan / h)",
@@ -195,7 +197,7 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "Şap İmalatı (3 cm Tesviye Şapı)",
       subtitle: "Parke, seramik ve mermer altı tüm katlar (Daire içleri + ortak alan + bodrum)",
-      pozCode: "15.340.1002",
+      pozCode: cleanExplicitPoz || "15.340.1002",
       unit: "m²",
       defaultUnitPriceTry: 320,
       formulaNote: "Çok Katmanlı Döşeme (Katman #2: Şap_3CM) · Tüm mahallerin net döşeme alanı",
@@ -208,20 +210,20 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "Laminat Parke Kaplaması (Derzli, AC4 8 mm)",
       subtitle: "Salon, yatak odaları, ebeveyn ve çocuk odaları (16 Daire)",
-      pozCode: "15.365.1001",
+      pozCode: cleanExplicitPoz || "15.365.1001",
       unit: "m²",
       defaultUnitPriceTry: 640,
       formulaNote: "Çok Katmanlı Döşeme (Katman #3: Laminat_Parke) · 16 Daire kuru hacim net alanı",
     };
   }
 
-  if (/seramik|mermer|granit/i.test(lower) && predef === "FLOORING") {
+  if (/seramik|mermer|granit/i.test(lower) && (predef === "FLOORING" || (!predef && !/duvar/i.test(lower)))) {
     return {
       id: "seramik-doseme",
       groupKey: "floor_finish",
       title: "Seramik & Mermer Döşeme Kaplaması (60×60 / 60×120 cm)",
       subtitle: "Antre, hol, mutfak, banyo, balkon ve kat sahanlıkları",
-      pozCode: "15.390.1005",
+      pozCode: cleanExplicitPoz || "15.390.1005",
       unit: "m²",
       defaultUnitPriceTry: 780,
       formulaNote: "Çok Katmanlı Döşeme (Katman #3: Seramik / Mermer) · Islak hacim ve ortak hol net alanı",
@@ -234,7 +236,7 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "XPS Isı Yalıtımı (5 cm) & Şap Altı Ses Yalıtım Şiltesi",
       subtitle: "Daire döşemeleri ve katlar arası darbe/ısı yalıtım katmanı",
-      pozCode: "15.315.1004",
+      pozCode: cleanExplicitPoz || "15.315.1004",
       unit: "m²",
       defaultUnitPriceTry: 240,
       formulaNote: "Çok Katmanlı Döşeme (Katman #1: XPS_5CM / Yalıtım_Levhası)",
@@ -247,7 +249,7 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "Epoksi Zemin Kaplaması (Bodrum Sığınak & Teknik Hacimler)",
       subtitle: "Bodrum kat sığınak, enerji odası ve su deposu zeminleri",
-      pozCode: "15.410.1101",
+      pozCode: cleanExplicitPoz || "15.410.1101",
       unit: "m²",
       defaultUnitPriceTry: 560,
       formulaNote: "Çok Katmanlı Döşeme (Katman #2: Epoksi_Kaplama) · Bodrum kat net alanı",
@@ -260,7 +262,7 @@ function classifyMaterialLayer(
       groupKey: "wall_finish",
       title: "Duvar Fayans Kaplaması (Banyo, WC ve Mutfak)",
       subtitle: "Sıva üstü seramik/fayans · Kapı ve pencere boşlukları (minha) düşülmüş net alan",
-      pozCode: "15.385.1003",
+      pozCode: cleanExplicitPoz || "15.385.1003",
       unit: "m²",
       defaultUnitPriceTry: 790,
       formulaNote: "Brüt Duvar Yüzeyi − Kapı/Pencere Boşluğu (Minha) = Net Fayans Alanı",
@@ -273,63 +275,67 @@ function classifyMaterialLayer(
       groupKey: "wall_finish",
       title: "İç Cephe Duvar Sıvası (2 cm — Fayans ve Boya Altı)",
       subtitle: "Islak hacim fayans altı ve daire içi duvarlar · Pencere/kapı boşlukları düşülmüş",
-      pozCode: "15.275.1002",
+      pozCode: cleanExplicitPoz || "15.275.1002",
       unit: "m²",
       defaultUnitPriceTry: 290,
       formulaNote: "Çok Katmanlı Duvar Kaplaması (Katman #1: Sıva_2CM) · Minha düşülmüş net duvar yüzeyi",
     };
   }
 
-  if (/kaba_sıva|kaba_siva|kaba sıva/i.test(lower)) {
+  if (/kaba_sıva|kaba_siva|kaba sıva/i.test(lower) || (predef === "CEILING" && /sıva|siva/i.test(lower))) {
     return {
       id: "kaba-siva",
       groupKey: "ceiling_plaster_paint",
       title: "Kaba Sıva İmalatı (Tavan ve İç Duvar Yüzeyleri)",
       subtitle: "Saten alçı ve boya altı tüm tavan + iç duvar yüzeyleri toplamı",
-      pozCode: "15.275.1001",
+      pozCode: cleanExplicitPoz || "15.275.1001",
       unit: "m²",
       defaultUnitPriceTry: 270,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #1: Kaba_Sıva) · Pencere/kapı boşlukları düşülmüş",
     };
   }
 
-  if (/saten|alçı|alci/i.test(lower)) {
+  if (/saten|alçı|alci|macun/i.test(lower)) {
     return {
       id: "saten-alci",
       groupKey: "ceiling_plaster_paint",
       title: "Saten Alçı Kaplaması (Boya Altı İnce Alçı)",
       subtitle: "Tavan ve kuru hacim duvarlarında kaba sıva üstü yoklama ve perdah alçısı",
-      pozCode: "15.280.1003",
+      pozCode: cleanExplicitPoz || "15.280.1003",
       unit: "m²",
       defaultUnitPriceTry: 210,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #2: Saten_Alçı) · Net uygulama yüzeyi",
     };
   }
 
-  if (/boya|plastik/i.test(lower)) {
+  if (/boya|plastik|astar/i.test(lower)) {
     return {
       id: "plastik-boya",
       groupKey: "ceiling_plaster_paint",
       title: "İç Cephe Plastik / Silikonlu Boya (2 Kat)",
       subtitle: "Saten alçı üstü tüm daire tavanları, kuru hacim duvarları ve ortak holler",
-      pozCode: "15.540.1002",
+      pozCode: cleanExplicitPoz || "15.540.1002",
       unit: "m²",
       defaultUnitPriceTry: 165,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #3: Plastik_Boya) · Net boya yüzeyi",
     };
   }
 
-  // Fallback for generic coverings
-  return {
-    id: `cov-${lower.replace(/[^a-z0-9]+/g, "-") || "genel"}`,
-    groupKey: predef === "CEILING" ? "ceiling_plaster_paint" : predef === "CLADDING" ? "wall_finish" : "floor_finish",
-    title: token || rawName || "Mimari Kaplama Kalemi",
-    subtitle: "IFC modelinden çıkarılan net yüzey metrajı",
-    pozCode: "15.390.1001",
-    unit: "m²",
-    defaultUnitPriceTry: 450,
-    formulaNote: "IFC Qto_CoveringBaseQuantities NetArea",
-  };
+  // Only allow unmapped generic coverings when the IFC model carries an explicit PozNo tag; never fabricate a fallback Poz code.
+  if (cleanExplicitPoz) {
+    return {
+      id: `cov-${cleanExplicitPoz.replace(/[^a-zA-Z0-9]+/g, "-")}-${lower.replace(/[^a-z0-9]+/g, "-") || "genel"}`,
+      groupKey: predef === "CEILING" ? "ceiling_plaster_paint" : predef === "CLADDING" ? "wall_finish" : "floor_finish",
+      title: token || rawName || "Mimari Kaplama Kalemi",
+      subtitle: "IFC modelindeki açık PozNo etiketi ile eşleşen net yüzey metrajı",
+      pozCode: cleanExplicitPoz,
+      unit: "m²",
+      defaultUnitPriceTry: 450,
+      formulaNote: "IFC Qto_CoveringBaseQuantities NetArea",
+    };
+  }
+
+  return null;
 }
 
 function normalizeStoreyLabel(rawStorey: string, spaceCode?: string): string {
@@ -579,7 +585,7 @@ export function parseSmartCheckRowToPseudoElement(
  */
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
-  summary?: IfcParseSummary | null,
+  summary?: Partial<IfcParseSummary> | null,
   fileName?: string,
 ): CalmIfcDataset {
   const hasMultiLayerCoverings = elements.some(
@@ -600,11 +606,62 @@ export function buildCalmIfcDatasetFromElements(
     }
   >();
 
+  let placedElementCount = 0;
+  const unplacedUncoveredElements: NonNullable<IfcConsistencyReport["uncoveredElements"]> = [];
+  const unplacedFindings: NonNullable<IfcConsistencyReport["findings"]> = [];
+
   for (const el of elements) {
-    if (el.type === "IfcReinforcingBar") continue;
-    if (el.measured === false) continue;
-    if (el.isUncovered === true) continue;
-    if (el.ifcClass === "IfcBuildingElementProxy" && !el.pozNo) continue;
+    if (el.type === "IfcReinforcingBar") {
+      if (el.measured !== false && el.pozNo) {
+        el.matchedPozCode = el.pozNo;
+        el.isUncovered = false;
+        placedElementCount++;
+      } else {
+        const reason =
+          el.measured === false
+            ? "Geçerli net miktar ölçülemediği için icmale alınamadı."
+            : "Donatı elemanı için açık PozNo etiketi bulunamadı ve otomatik icmal grubuna yerleşemedi.";
+        el.matchedPozCode = null;
+        el.isUncovered = true;
+        el.uncoveredReason = reason;
+        unplacedUncoveredElements.push({
+          globalId: el.guid,
+          ifcClass: el.ifcClass || el.type,
+          name: el.name,
+          storey: el.storey || "Kat atanmamış",
+          reason,
+        });
+        unplacedFindings.push({
+          code: "UNMAPPED_POZ_ELEMENT",
+          severity: "medium",
+          globalId: el.guid,
+          ifcClass: el.ifcClass || el.type,
+          storey: el.storey || "Kat atanmamış",
+          elementName: el.name,
+          message: reason,
+        });
+      }
+      continue;
+    }
+
+    if (el.measured === false || el.isUncovered === true || el.ifcClass === "IfcBuildingElementProxy") {
+      const reason =
+        el.uncoveredReason ||
+        (el.ifcClass === "IfcBuildingElementProxy"
+          ? "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+          : "Geçerli net miktar ölçülemediği için icmale alınamadı.");
+      el.matchedPozCode = null;
+      el.isUncovered = true;
+      el.uncoveredReason = reason;
+      unplacedUncoveredElements.push({
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason,
+      });
+      continue;
+    }
 
     const predef = (el.coveringPredefinedType || "").toUpperCase();
     const layers =
@@ -612,8 +669,13 @@ export function buildCalmIfcDatasetFromElements(
         ? el.materialLayers
         : [el.name];
 
+    let elementPlacedInIcmal = false;
+    let firstPlacedPozCode: string | null = null;
+
     for (const layerToken of layers) {
-      const spec = classifyMaterialLayer(layerToken, predef, el.type, el.name);
+      const spec = classifyMaterialLayer(layerToken, predef, el.type, el.name, el.pozNo);
+      if (!spec) continue;
+
       let netQty = 0;
       let grossQty = 0;
       let openingQty = 0;
@@ -655,6 +717,11 @@ export function buildCalmIfcDatasetFromElements(
 
       if (netQty <= 0) continue;
 
+      elementPlacedInIcmal = true;
+      if (!firstPlacedPozCode) {
+        firstPlacedPozCode = spec.pozCode;
+      }
+
       let entry = accumMap.get(spec.id);
       if (!entry) {
         entry = {
@@ -689,6 +756,88 @@ export function buildCalmIfcDatasetFromElements(
           quantity: Number(netQty.toFixed(2)),
         });
       }
+    }
+
+    if (elementPlacedInIcmal && firstPlacedPozCode) {
+      placedElementCount++;
+      el.matchedPozCode = el.pozNo || firstPlacedPozCode;
+      el.isUncovered = false;
+    } else {
+      const reason =
+        "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
+      el.matchedPozCode = null;
+      el.isUncovered = true;
+      el.uncoveredReason = reason;
+      unplacedUncoveredElements.push({
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason,
+      });
+      unplacedFindings.push({
+        code: "UNMAPPED_POZ_ELEMENT",
+        severity: "medium",
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: reason,
+      });
+    }
+  }
+
+  let resolvedConsistencyReport = summary?.consistencyReport;
+  if (resolvedConsistencyReport || unplacedUncoveredElements.length > 0 || elements.length > 0) {
+    const baseReport = resolvedConsistencyReport || {
+      totalElementCount: elements.length,
+      measuredElementCount: elements.filter((e) => e.measured !== false).length,
+      unmeasuredElementCount: elements.filter((e) => e.measured === false).length,
+      pozMatchedElementCount: placedElementCount,
+      pozMatchedRatio: elements.length > 0 ? Number((placedElementCount / elements.length).toFixed(6)) : null,
+      uncoveredElementCount: 0,
+      typeInheritedElementCount: elements.filter((e) => e.inheritedFromType === true).length,
+      suppressedAssemblyPartCount: 0,
+      highSeverityCount: 0,
+      mediumSeverityCount: 0,
+      findings: [],
+      uncoveredElements: [],
+      suppressedAssemblyParts: [],
+    };
+
+    const seenUncoveredGuids = new Set(baseReport.uncoveredElements.map((u) => u.globalId));
+    const mergedUncovered = [...baseReport.uncoveredElements];
+    for (const u of unplacedUncoveredElements) {
+      if (!seenUncoveredGuids.has(u.globalId)) {
+        seenUncoveredGuids.add(u.globalId);
+        mergedUncovered.push(u);
+      }
+    }
+
+    const seenFindingKeys = new Set(baseReport.findings.map((f) => `${f.code}:${f.globalId}`));
+    const mergedFindings = [...baseReport.findings];
+    for (const f of unplacedFindings) {
+      const key = `${f.code}:${f.globalId}`;
+      if (!seenFindingKeys.has(key)) {
+        seenFindingKeys.add(key);
+        mergedFindings.push(f);
+      }
+    }
+
+    const totalCount = baseReport.totalElementCount || elements.length;
+    resolvedConsistencyReport = {
+      ...baseReport,
+      totalElementCount: totalCount,
+      pozMatchedElementCount: placedElementCount,
+      pozMatchedRatio: totalCount > 0 ? Number((placedElementCount / totalCount).toFixed(6)) : null,
+      uncoveredElementCount: mergedUncovered.length,
+      highSeverityCount: mergedFindings.filter((f) => f.severity === "high").length,
+      mediumSeverityCount: mergedFindings.filter((f) => f.severity === "medium").length,
+      findings: mergedFindings,
+      uncoveredElements: mergedUncovered,
+    };
+    if (summary) {
+      summary.consistencyReport = resolvedConsistencyReport;
     }
   }
 
@@ -772,7 +921,7 @@ export function buildCalmIfcDatasetFromElements(
         ? buildAuthoringAdvisory(classifyAuthoringSoftware(summary.authoringSoftwareRaw))
         : undefined,
     openings: summary?.openings,
-    consistencyReport: summary?.consistencyReport,
+    consistencyReport: resolvedConsistencyReport,
     elements,
   };
 }
@@ -787,13 +936,20 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     parseSmartCheckRowToPseudoElement(row, idx),
   );
 
-  const dataset = buildCalmIfcDatasetFromElements(pseudoElements, null, fileName);
+  const dataset = buildCalmIfcDatasetFromElements(
+    pseudoElements,
+    {
+      consistencyReport: artifact.summary.consistencyReport,
+      openings: artifact.summary.openings,
+      authoringSoftware: artifact.summary.authoringSoftware,
+    },
+    fileName,
+  );
   const authoring = artifact.summary.authoringSoftware;
   return {
     ...dataset,
     ...(authoring ? { authoringAdvisory: buildAuthoringAdvisory(authoring) } : {}),
     openings: artifact.summary.openings,
-    consistencyReport: artifact.summary.consistencyReport,
   };
 }
 

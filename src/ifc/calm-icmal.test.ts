@@ -291,7 +291,7 @@ test("daire brüt alanı: IFC'den gelmez, sabit çarpanla üretilmez (null)", ()
   assert.equal(ds.totalGeneralGrossM2, null);
 });
 
-test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy) ve ölçülemeyen elemanlar icmale dahil edilmez", () => {
+test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy), eşleşmeyen kaplama ve ölçülemeyen elemanlar icmale dahil edilmez; poza eşleşme tek kaynak olarak calm-icmal'de hesaplanır", () => {
   const validSlab: ParsedIfcElement = {
     id: "10",
     guid: "SLAB_VALID_00000000001",
@@ -307,7 +307,7 @@ test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy) ve öl
     smartCheckStatus: "review",
     measured: true,
     measurementStatus: "ölçüldü",
-    matchedPozCode: "15.150.1005",
+    matchedPozCode: null,
     isUncovered: false,
   };
   const unmeasuredColumn: ParsedIfcElement = {
@@ -327,10 +327,31 @@ test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy) ve öl
     measurementStatus: "ölçülemedi",
     matchedPozCode: null,
     isUncovered: true,
-    uncoveredReason: "Geçerli net miktar ölçülemediği için poza eşlenemedi.",
+    uncoveredReason: "Geçerli net miktar ölçülemediği için icmale alınamadı.",
+  };
+  const unmappedCovering: ParsedIfcElement = {
+    id: "12",
+    guid: "COV_UNMAPPED_000000001",
+    type: "IfcCovering",
+    ifcClass: "IfcCovering",
+    name: "Özel Akustik Kumaş Panel",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 0,
+    areaM2: 18.0,
+    coveringPredefinedType: "WRAPPING",
+    materialLayers: ["Akustik_Tekstil"],
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: false,
   };
   const proxyElem: ParsedIfcElement = {
-    id: "12",
+    id: "13",
     guid: "PROXY_ELEM_00000000001",
     type: "IfcBeam",
     ifcClass: "IfcBuildingElementProxy",
@@ -346,12 +367,28 @@ test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy) ve öl
     measurementStatus: "ölçüldü",
     matchedPozCode: null,
     isUncovered: true,
-    uncoveredReason: "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; açık PozNo etiketi olmadan poza eşlenemez.",
+    uncoveredReason: "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı.",
   };
 
-  const ds = buildCalmIfcDatasetFromElements([validSlab, unmeasuredColumn, proxyElem], null, "consistency.ifc");
+  const ds = buildCalmIfcDatasetFromElements(
+    [validSlab, unmeasuredColumn, unmappedCovering, proxyElem],
+    null,
+    "consistency.ifc",
+  );
   const allItems = ds.groups.flatMap((g) => g.items);
   assert.equal(allItems.length, 1);
   assert.equal(allItems[0].netQuantity, 12.5);
+  assert.equal(allItems[0].pozCode, "15.150.1006");
+
+  assert.ok(ds.consistencyReport);
+  assert.equal(ds.consistencyReport.totalElementCount, 4);
+  assert.equal(ds.consistencyReport.pozMatchedElementCount, 1);
+  assert.equal(ds.consistencyReport.pozMatchedRatio, 0.25);
+  const uncoveredGuids = new Set(ds.consistencyReport.uncoveredElements.map((u) => u.globalId));
+  assert.deepEqual(
+    uncoveredGuids,
+    new Set(["COL_UNMEASURED_0000001", "COV_UNMAPPED_000000001", "PROXY_ELEM_00000000001"]),
+  );
 });
+
 
