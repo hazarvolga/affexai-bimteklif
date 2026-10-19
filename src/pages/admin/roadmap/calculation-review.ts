@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-19.31",
+  version: "BIM-CALC-2026-10-19.32",
   updatedOn: "19 Ekim 2026",
-  implementationBaseline: "f32da232f21dc09844e2689c25ed686331990407",
+  implementationBaseline: "b0ec3d46f109f40c1b1aa6cc0c138717b10105c1",
   approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) tamamlandı · bağımsız uzman imzasına hazır",
 };
 
@@ -962,6 +962,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Yapısal elemanların icmal kalemi IFC sınıfı ve eleman adıyla seçiliyor, malzeme okunmuyordu.",
         after: "İcmal kalemi IfcRelAssociatesMaterial katmanlarıyla seçilir; uymayan elemanlar açıkta kalır, miktarları fiyatsız görünür.",
         basis: "ISO 16739-1 IfcRelAssociatesMaterial / IfcMaterialLayerSet; hiçbir değer varsayılmaz ilkesi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 38",
+    version: "BIM-CALC-2026-10-19.32",
+    date: "19 Ekim 2026",
+    commit: "feat/full-app-tour",
+    trigger: "Hızlı Tur'un tüm uygulamayı kapsaması ve süper admin turu; tur metinlerinin doğrulanmış davranışa göre düzeltilmesi.",
+    beforeSummary:
+      "Hızlı Tur yalnız Panel'de 5 adımdı; hesaplayıcıları 'resmî tebliğ algoritmalarına birebir uygun' diye ve taşeron kontrolünü sabit '325 kg/m³ çimento ve %10 fire' değerleriyle anlatıyordu (Rev. 32 kaydı). Hesap motorlarında bu değerler kullanıcı girdisidir ve hesaplar uzman onaylı değildir.",
+    afterSummary:
+      "Tur 14 adımda çalışma alanının tüm ana sayfalarını, 10 adımda yönetim panelini gezer. Taşeron kontrolü adımı dozaj ve firenin kullanıcı girdisi olduğunu, kamu ihalesi adımı sonuçların ön hesap olduğunu söyler. Hesap yöntemleri değişmedi.",
+    affectedModules: ["taseron-hakedis-kalkani"],
+    moduleDetails: {
+      "taseron-hakedis-kalkani": {
+        before: "Rev. 32 turu sabit 325 kg/m³ çimento ve %10 fire tavanından söz ediyordu.",
+        after: "Tur, kalınlık, fire ve dozajın kullanıcı tarafından girildiğini anlatır; hesap değişmedi.",
+        basis: "Ürün metinleri yalnız doğrulanmış davranışı anlatır",
       },
     },
   },
