@@ -43,7 +43,8 @@ test('disabled email rejects new email actions before database access and keeps 
   transaction.mock.mockImplementation(async () => ({ allowed: true, retryAfterSeconds: 0 }) as any);
   select.mock.mockImplementation(() => ({ from: () => ({ where: async () => [] }) }) as any);
   assert.equal((await post('/api/auth/login')).status, 401);
-  assert.equal(transaction.mock.callCount(), 1);
+  // Two rate-limit transactions: per client+email and per account (Rev. 35).
+  assert.equal(transaction.mock.callCount(), 2);
   assert.equal(select.mock.callCount(), 1);
 });
 

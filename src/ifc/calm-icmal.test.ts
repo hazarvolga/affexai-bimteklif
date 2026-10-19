@@ -290,3 +290,203 @@ test("daire brüt alanı: IFC'den gelmez, sabit çarpanla üretilmez (null)", ()
   assert.equal(apt.generalGrossM2, null);
   assert.equal(ds.totalGeneralGrossM2, null);
 });
+
+test("IFC tutarlılık kapısı: açıkta kalan (IfcBuildingElementProxy), eşleşmeyen kaplama ve ölçülemeyen elemanlar icmale dahil edilmez; poza eşleşme tek kaynak olarak calm-icmal'de hesaplanır", () => {
+  const validSlab: ParsedIfcElement = {
+    id: "10",
+    guid: "SLAB_VALID_00000000001",
+    type: "IfcSlab",
+    ifcClass: "IfcSlab",
+    name: "Betonarme Döşeme",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 12.5,
+    formworkM2: 40,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: false,
+  };
+  const unmeasuredColumn: ParsedIfcElement = {
+    id: "11",
+    guid: "COL_UNMEASURED_0000001",
+    type: "IfcColumn",
+    ifcClass: "IfcColumn",
+    name: "Ölçüsüz Kolon",
+    storey: "Kat atanmamış",
+    storeySource: "estimate",
+    volumeM3: 0,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "estimate",
+    smartCheckStatus: "review",
+    measured: false,
+    measurementStatus: "ölçülemedi",
+    matchedPozCode: null,
+    isUncovered: true,
+    uncoveredReason: "Geçerli net miktar ölçülemediği için icmale alınamadı.",
+  };
+  const unmappedCovering: ParsedIfcElement = {
+    id: "12",
+    guid: "COV_UNMAPPED_000000001",
+    type: "IfcCovering",
+    ifcClass: "IfcCovering",
+    name: "Özel Akustik Kumaş Panel",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 0,
+    areaM2: 18.0,
+    coveringPredefinedType: "WRAPPING",
+    materialLayers: ["Akustik_Tekstil"],
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: false,
+  };
+  const proxyElem: ParsedIfcElement = {
+    id: "13",
+    guid: "PROXY_ELEM_00000000001",
+    type: "IfcBeam",
+    ifcClass: "IfcBuildingElementProxy",
+    name: "Özel Cephe Süsü",
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 2.4,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: true,
+    uncoveredReason: "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı.",
+  };
+
+  const ds = buildCalmIfcDatasetFromElements(
+    [validSlab, unmeasuredColumn, unmappedCovering, proxyElem],
+    null,
+    "consistency.ifc",
+  );
+  const allItems = ds.groups.flatMap((g) => g.items);
+  assert.equal(allItems.length, 1);
+  assert.equal(allItems[0].netQuantity, 12.5);
+  assert.equal(allItems[0].pozCode, "15.150.1006");
+
+  assert.ok(ds.consistencyReport);
+  assert.equal(ds.consistencyReport.totalElementCount, 4);
+  assert.equal(ds.consistencyReport.pozMatchedElementCount, 1);
+  assert.equal(ds.consistencyReport.pozMatchedRatio, 0.25);
+  const uncoveredGuids = new Set(ds.consistencyReport.uncoveredElements.map((u) => u.globalId));
+  assert.deepEqual(
+    uncoveredGuids,
+    new Set(["COL_UNMEASURED_0000001", "COV_UNMAPPED_000000001", "PROXY_ELEM_00000000001"]),
+  );
+});
+
+
+
+function coveringFixture(guid: string, predef: string, layers: string[], areaM2: number): ParsedIfcElement {
+  return {
+    id: guid,
+    guid,
+    type: "IfcCovering",
+    ifcClass: "IfcCovering",
+    name: layers.join("+"),
+    storey: "Zemin Kat",
+    storeySource: "ifc_spatial",
+    volumeM3: 0,
+    areaM2,
+    coveringPredefinedType: predef,
+    materialLayers: layers,
+    formworkM2: 0,
+    rebarKg: 0,
+    quantitySource: "qto",
+    smartCheckStatus: "review",
+    measured: true,
+    measurementStatus: "ölçüldü",
+    matchedPozCode: null,
+    isUncovered: false,
+  };
+}
+
+test("astar ve macun katmanları boya ve saten alçı kalemlerine eklenmez (aynı yüzey iki kez sayılmaz)", () => {
+  const ceiling = coveringFixture("CEIL_LAYERED_0000001", "CEILING", ["Kaba_Sıva", "Macun_c", "Astar_2mm", "Plastik_Boya"], 10);
+  const items = buildCalmIfcDatasetFromElements([ceiling], null, "x.ifc").groups.flatMap((g) => g.items);
+  const byId = new Map(items.map((i) => [i.id, i.netQuantity]));
+  assert.equal(byId.get("plastik-boya"), 10);
+  assert.equal(byId.get("kaba-siva"), 10);
+  assert.equal(byId.has("saten-alci"), false);
+});
+
+test("PredefinedType'ı olmayan seramik ve kaba olmayan tavan sıvası tahminle bir kaleme yerleştirilmez", () => {
+  const seramik = coveringFixture("COV_SERAMIK_NOPREDEF1", "", ["Seramik_60x60"], 12);
+  const tavanSiva = coveringFixture("COV_TAVAN_SIVA_00001", "CEILING", ["Ince_Sıva"], 8);
+  const ds = buildCalmIfcDatasetFromElements([seramik, tavanSiva], null, "x.ifc");
+  const items = ds.groups.flatMap((g) => g.items);
+  assert.equal(items.length, 0);
+  const uncovered = new Set(ds.consistencyReport?.uncoveredElements.map((u) => u.globalId));
+  assert.ok(uncovered.has("COV_SERAMIK_NOPREDEF1"));
+  assert.ok(uncovered.has("COV_TAVAN_SIVA_00001"));
+});
+
+test("modeldeki açık PozNo kural eşleşen kalemin pozunu değiştirmez; farklı pozlu miktarlar tek satırda karışmaz", () => {
+  const base = { type: "IfcSlab", ifcClass: "IfcSlab", storey: "Zemin Kat", storeySource: "ifc_spatial", formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as const;
+  const tagged: ParsedIfcElement = { ...base, id: "1", guid: "SLAB_TAGGED_0000000001", name: "Döşeme A", volumeM3: 5, pozNo: "15.150.9999" };
+  const plain: ParsedIfcElement = { ...base, id: "2", guid: "SLAB_PLAIN_00000000001", name: "Döşeme B", volumeM3: 7 };
+  const ds = buildCalmIfcDatasetFromElements([tagged, plain], null, "x.ifc");
+  const items = ds.groups.flatMap((g) => g.items);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].pozCode, "15.150.1006");
+  assert.equal(items[0].netQuantity, 12);
+  const placed = new Map((ds.elements ?? []).map((e) => [e.guid, e.matchedPozCode]));
+  assert.equal(placed.get("SLAB_TAGGED_0000000001"), "15.150.1006");
+});
+
+test("hiçbir kurala uymayan kaplama yalnız açık PozNo etiketiyle, kendi pozuna ayrılmış satıra yerleşir", () => {
+  const a = { ...coveringFixture("COV_TAGGED_A00000001", "WRAPPING", ["Akustik_Tekstil"], 4), pozNo: "15.999.0001" };
+  const b = { ...coveringFixture("COV_TAGGED_B00000001", "WRAPPING", ["Akustik_Tekstil"], 6), pozNo: "15.999.0002" };
+  const items = buildCalmIfcDatasetFromElements([a, b], null, "x.ifc").groups.flatMap((g) => g.items);
+  const byPoz = new Map(items.map((i) => [i.pozCode, i.netQuantity]));
+  assert.equal(byPoz.get("15.999.0001"), 4);
+  assert.equal(byPoz.get("15.999.0002"), 6);
+});
+
+test("icmal oluşturucu girdi elemanlarını ve özet nesnesini değiştirmez; yerleşim sonucu yeni eleman kopyalarında döner", () => {
+  const slab = Object.freeze({
+    id: "1", guid: "SLAB_FROZEN_0000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", storey: "Zemin Kat",
+    storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review",
+    measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false,
+  }) as ParsedIfcElement;
+  const odd = Object.freeze(coveringFixture("COV_FROZEN_UNMAPPED01", "WRAPPING", ["Akustik_Tekstil"], 2));
+  const summary = Object.freeze({ openings: [] });
+  const ds = buildCalmIfcDatasetFromElements(Object.freeze([slab, odd]) as ParsedIfcElement[], summary, "x.ifc");
+  const byGuid = new Map((ds.elements ?? []).map((e) => [e.guid, e]));
+  assert.equal(byGuid.get("SLAB_FROZEN_0000000001")?.matchedPozCode, "15.150.1006");
+  assert.equal(byGuid.get("COV_FROZEN_UNMAPPED01")?.isUncovered, true);
+  assert.equal(slab.matchedPozCode, null);
+  assert.equal(odd.isUncovered, false);
+  assert.equal("consistencyReport" in summary, false);
+});
+
+test("kapsam dışı sınıflar açıkta kalan sayısına katılmaz, ayrı sayaçta raporlanır", () => {
+  const slab = { id: "1", guid: "SLAB_SCOPE_00000000001", type: "IfcSlab", ifcClass: "IfcSlab", name: "Döşeme", storey: "Zemin Kat", storeySource: "ifc_spatial", volumeM3: 3, formworkM2: 0, rebarKg: 0, quantitySource: "qto", smartCheckStatus: "review", measured: true, measurementStatus: "ölçüldü", matchedPozCode: null, isUncovered: false } as ParsedIfcElement;
+  const odd = coveringFixture("COV_SCOPE_UNMAPPED001", "WRAPPING", ["Akustik_Tekstil"], 2);
+  const consistencyReport = {
+    totalElementCount: 2, measuredElementCount: 2, unmeasuredElementCount: 0, pozMatchedElementCount: 0, pozMatchedRatio: 0,
+    uncoveredElementCount: 1, outOfScopeElementCount: 1, typeInheritedElementCount: 0, suppressedAssemblyPartCount: 0,
+    highSeverityCount: 0, mediumSeverityCount: 0, findings: [], suppressedAssemblyParts: [],
+    uncoveredElements: [{ globalId: "CW_SCOPE_000000000001", ifcClass: "IfcCurtainWall", name: "Cephe", storey: "Zemin Kat", reason: "kapsam dışı", scope: "out_of_scope" as const }],
+  };
+  const report = buildCalmIfcDatasetFromElements([slab, odd], { consistencyReport }, "x.ifc").consistencyReport;
+  assert.equal(report?.uncoveredElementCount, 1);
+  assert.equal(report?.outOfScopeElementCount, 1);
+  assert.equal(report?.uncoveredElements.find((u) => u.globalId === "COV_SCOPE_UNMAPPED001")?.scope, "in_takeoff");
+});

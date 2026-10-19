@@ -1,7 +1,7 @@
 import { classifyAuthoringSoftware, type AuthoringSoftwareDetection } from "./authoring-software-diagnostics";
 import type { Finding, ParsedQuantityRow } from "@/smartcheck/import/normalize";
 import { validateRows } from "@/smartcheck/import/normalize";
-import type { IfcParseSummary, ParsedIfcElement, ParsedOpening, TrPsetCsbProjectCompliance } from "./types";
+import type { IfcConsistencyReport, IfcParseSummary, ParsedIfcElement, ParsedOpening, TrPsetCsbProjectCompliance } from "./types";
 import type { IfcRuleEvaluations } from "@/smartcheck/rules/ifc-rule-run";
 
 export interface IfcEvidenceDocumentContext {
@@ -71,6 +71,8 @@ export interface IfcSmartCheckEvidenceArtifact {
     authoringSoftware?: AuthoringSoftwareDetection;
     /** Kapı/pencere listesi (sözleşmesel minha için); yoksa yok. */
     openings?: ParsedOpening[];
+    /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
+    consistencyReport?: IfcConsistencyReport;
   };
   rows: IfcSmartCheckEvidenceRow[];
   blockedElements: IfcBlockedEvidenceElement[];
@@ -245,6 +247,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         trPsetCsb: summary.trPsetCsb,
         authoringSoftware: resolveAuthoringSoftware(summary),
         openings: summary.openings,
+        consistencyReport: summary.consistencyReport,
       },
       rows: [],
       blockedElements: elements.map((element) => ({
@@ -305,10 +308,12 @@ export function buildIfcSmartCheckEvidenceArtifact(
       elementsWithPozNoCount: summary.elementsWithPozNoCount,
       elementsMissingPozNoCount: summary.elementsMissingPozNoCount,
       trPsetCsb: summary.trPsetCsb,
-        authoringSoftware: resolveAuthoringSoftware(summary),
-        openings: summary.openings,
+      authoringSoftware: resolveAuthoringSoftware(summary),
+      openings: summary.openings,
+      consistencyReport: summary.consistencyReport,
     },
     rows,
     blockedElements,
   };
 }
+

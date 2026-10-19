@@ -4,7 +4,15 @@ import { extractIfcQtoVolumeQuantities } from "./qto-extractor";
 import { extractIfcStoreyContainment } from "./spatial-extractor";
 import { extractElementPozNo, extractProjectComplianceData } from "./tr-pset-csb-extractor";
 import { normalizeStepLines, projectLengthUnitScale } from "./units";
-import type { IfcParseSummary, ParsedIfcElement, TrPsetCsbProjectCompliance } from "../types";
+import type {
+  IfcConsistencyFinding,
+  IfcConsistencyReport,
+  IfcParseSummary,
+  IfcSuppressedAssemblyPartRecord,
+  IfcUncoveredElementRecord,
+  ParsedIfcElement,
+  TrPsetCsbProjectCompliance,
+} from "../types";
 
 function selectQuantities<T extends { stepId: string; quantityName: string; normalizedValue: number; sourcePath: string }>(items: T[]) {
   const result = new Map<string, T>();
@@ -46,6 +54,22 @@ function splitTopLevelStepArgs(rawArgs: string): string[] {
   return result;
 }
 
+function formatIfcClassName(rawUpper: string): string {
+  const map: Record<string, string> = {
+    IFCBEAM: "IfcBeam",
+    IFCCOLUMN: "IfcColumn",
+    IFCSLAB: "IfcSlab",
+    IFCWALL: "IfcWall",
+    IFCWALLSTANDARDCASE: "IfcWallStandardCase",
+    IFCWALLELEMENTEDCASE: "IfcWallElementedCase",
+    IFCREINFORCINGBAR: "IfcReinforcingBar",
+    IFCCOVERING: "IfcCovering",
+    IFCBUILDINGELEMENTPROXY: "IfcBuildingElementProxy",
+    IFCOPENINGELEMENT: "IfcOpeningElement",
+  };
+  return map[rawUpper] || rawUpper;
+}
+
 export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   const lines = normalizeStepLines(ifcText);
   const lengthScale = projectLengthUnitScale(ifcText);
@@ -82,10 +106,17 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
   const trPsetCsb = extractProjectComplianceData(ifcText);
 
   const entityRegex = /^#(\d+)\s*=\s*(IFCBEAM|IFCCOLUMN|IFCSLAB|IFCWALL|IFCWALLSTANDARDCASE|IFCWALLELEMENTEDCASE|IFCREINFORCINGBAR)\s*\((.*)\);/i;
+  const proxyRegex = /^#(\d+)\s*=\s*IFCBUILDINGELEMENTPROXY\s*\((.*)\);/i;
+  const openingRegex = /^#(\d+)\s*=\s*IFCOPENINGELEMENT\s*\((.*)\);/i;
+  const relVoidsRegex = /^#\d+\s*=\s*IFCRELVOIDSELEMENT\s*\([^,]*,[^,]*,[^,]*,[^,]*,\s*#(\d+)\s*,\s*#(\d+)\s*\);/i;
   const materialRegex = /^#\d+\s*=\s*IFCMATERIAL\s*\(\s*'([^']*)'/i;
   const spaceRegex = /^#\d+\s*=\s*IFCSPACE\s*\(\s*'[^']*'\s*,\s*(?:#[0-9]+|\$)\s*,\s*'([^']*)'/i;
   const materialNamesSet = new Set<string>();
   const spaceNamesSet = new Set<string>();
+
+  const openingRecords: Array<{ stepId: string; guid: string; name: string; storey: string }> = [];
+  const voidedOpeningStepIds = new Set<string>();
+  const proxyUncoveredRecords: IfcUncoveredElementRecord[] = [];
 
   for (const trimmed of lines) {
     const matMatch = trimmed.match(materialRegex);
@@ -96,6 +127,42 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     const spMatch = trimmed.match(spaceRegex);
     if (spMatch && spMatch[1]) {
       spaceNamesSet.add(spMatch[1].trim());
+      continue;
+    }
+    const voidsMatch = trimmed.match(relVoidsRegex);
+    if (voidsMatch) {
+      voidedOpeningStepIds.add(voidsMatch[2]);
+      continue;
+    }
+    const opMatch = trimmed.match(openingRegex);
+    if (opMatch) {
+      const opStepId = opMatch[1];
+      const opArgs = opMatch[2];
+      const opGuid = opArgs.match(/'([A-Za-z0-9_$]{22})'/)?.[1] ?? `GUID-${opStepId}`;
+      const opNames = opArgs.match(/'([^']*)'/g);
+      const opName = opNames && opNames.length > 2 ? opNames[2].replace(/'/g, "") : `IfcOpeningElement_${opStepId}`;
+      const opStorey = storeyByStepId.get(opStepId)?.storeyName ?? "Kat atanmamış";
+      openingRecords.push({ stepId: opStepId, guid: opGuid, name: opName, storey: opStorey });
+      continue;
+    }
+    const prxMatch = trimmed.match(proxyRegex);
+    if (prxMatch) {
+      const prxStepId = prxMatch[1];
+      const prxArgs = prxMatch[2];
+      const prxGuid = prxArgs.match(/'([A-Za-z0-9_$]{22})'/)?.[1] ?? `GUID-${prxStepId}`;
+      const prxNames = prxArgs.match(/'([^']*)'/g);
+      const prxName = prxNames && prxNames.length > 2 ? prxNames[2].replace(/'/g, "") : `IfcBuildingElementProxy_${prxStepId}`;
+      const prxStorey = storeyByStepId.get(prxStepId)?.storeyName ?? "Kat atanmamış";
+      if (!pozNoByStepId.has(prxStepId)) {
+        proxyUncoveredRecords.push({
+          globalId: prxGuid,
+          ifcClass: "IfcBuildingElementProxy",
+          name: prxName,
+          storey: prxStorey,
+          reason: "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; açık PozNo etiketi olmadan poza eşlenemez.",
+          scope: "out_of_scope",
+        });
+      }
       continue;
     }
     const match = trimmed.match(entityRegex);
@@ -113,23 +180,19 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     let volumeM3 = 0;
     let formworkM2 = 0;
     let rebarKg = 0;
-    let storey = "Kat 1 (Zemin)";
+    let storey = "Kat atanmamış";
     let storeySource: ParsedIfcElement["storeySource"] = "estimate";
     let storeySourcePath: string | undefined = undefined;
     let rebarDiameterMm: number | undefined = undefined;
 
     if (rawType === "IFCBEAM") {
       type = "IfcBeam";
-      storey = "Kat 1";
     } else if (rawType === "IFCCOLUMN") {
       type = "IfcColumn";
-      storey = "Kat 1";
     } else if (rawType === "IFCSLAB") {
       type = "IfcSlab";
-      storey = "Kat 1";
     } else if (rawType === "IFCWALL" || rawType === "IFCWALLSTANDARDCASE" || rawType === "IFCWALLELEMENTEDCASE") {
       type = "IfcWall";
-      storey = "Kat 1";
     } else if (rawType === "IFCREINFORCINGBAR") {
       type = "IfcReinforcingBar";
       storey = "Genel Donatı";
@@ -156,7 +219,6 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     }
 
     if (type === "IfcReinforcingBar") {
-      // IfcReinforcingBar attributes: (GlobalId, OwnerHistory, Name, Description, ObjectType, ObjectPlacement, Representation, Tag, SteelGrade, NominalDiameter, CrossSectionArea, BarLength, BarRole/PredefinedType, ...)
       const args = splitTopLevelStepArgs(rawArgs);
       const rawDiam = args[9] && args[9] !== "$" ? Number(args[9]) : NaN;
       const rawArea = args[10] && args[10] !== "$" ? Number(args[10]) : NaN;
@@ -197,18 +259,24 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     }
 
     const pozNoEntry = pozNoByStepId.get(stepId);
+    const ifcClass = formatIfcClassName(rawType);
+    const measured = type === "IfcReinforcingBar" ? rebarKg > 0 || volumeM3 > 0 : volumeM3 > 0;
+    const measurementStatus: "ölçüldü" | "ölçülemedi" = measured ? "ölçüldü" : "ölçülemedi";
+    const matchedPozCode = pozNoEntry?.value || null;
+    const isUncovered = !measured || ifcClass === "IfcBuildingElementProxy";
 
     elements.push({
       id: stepId,
       guid,
       type,
+      ifcClass,
       name: name || `${type}_${stepId}`,
       storey,
       storeySource,
       storeySourcePath,
-      volumeM3,
+      volumeM3: measured ? volumeM3 : 0,
       formworkM2,
-      rebarKg,
+      rebarKg: measured ? rebarKg : 0,
       rebarDiameterMm,
       quantitySource,
       quantitySourcePath,
@@ -217,6 +285,11 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
       smartCheckNote,
       pozNo: pozNoEntry?.value,
       pozNoSourcePath: pozNoEntry?.sourcePath,
+      measured,
+      measurementStatus,
+      matchedPozCode,
+      isUncovered,
+      ...(isUncovered ? { uncoveredReason: "Geçerli net miktar ölçülemediği için icmale alınamadı." } : {}),
     });
   }
 
@@ -227,13 +300,173 @@ export function parseIfcText(ifcText: string): { elements: ParsedIfcElement[]; s
     ]);
   }
 
+  const orphanOpenings = openingRecords.filter((op) => !voidedOpeningStepIds.has(op.stepId));
+
   return calculateSummary(
     elements,
     trPsetCsb,
     Array.from(materialNamesSet),
     Array.from(spaceNamesSet),
     detectAuthoringSoftware(ifcText),
+    orphanOpenings,
+    proxyUncoveredRecords,
   );
+}
+
+export function buildConsistencyReportFromElements(
+  elements: ParsedIfcElement[],
+  orphanOpenings: Array<{ stepId: string; guid: string; name: string; storey: string }> = [],
+  extraUncovered: IfcUncoveredElementRecord[] = [],
+  suppressedAssemblyParts: IfcSuppressedAssemblyPartRecord[] = [],
+): IfcConsistencyReport {
+  const findings: IfcConsistencyFinding[] = [];
+  const uncoveredElements: IfcUncoveredElementRecord[] = [...extraUncovered];
+
+  const guidCounts = new Map<string, number>();
+  for (const el of elements) {
+    guidCounts.set(el.guid, (guidCounts.get(el.guid) || 0) + 1);
+  }
+
+  let measuredCount = 0;
+  let pozMatchedCount = 0;
+  let typeInheritedCount = 0;
+
+  for (const el of elements) {
+    const ifcClass = el.ifcClass || el.type;
+    const isMeasured =
+      typeof el.measured === "boolean"
+        ? el.measured
+        : el.type === "IfcCovering"
+          ? (el.areaM2 ?? 0) > 0 || (el.lengthM ?? 0) > 0 || el.volumeM3 > 0
+          : el.type === "IfcReinforcingBar"
+            ? el.rebarKg > 0 || el.volumeM3 > 0
+            : el.volumeM3 > 0;
+
+    if (isMeasured) {
+      measuredCount++;
+    } else {
+      findings.push({
+        code: "MISSING_NET_QUANTITY",
+        severity: "high",
+        globalId: el.guid,
+        ifcClass,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: "Eleman için QTO, PropertySet veya 3B geometriden geçerli bir net miktar okunamadı (ölçülemedi).",
+      });
+    }
+
+    if (el.storeySource !== "ifc_spatial" && el.type !== "IfcReinforcingBar") {
+      findings.push({
+        code: "MISSING_SPATIAL_STOREY",
+        severity: "medium",
+        globalId: el.guid,
+        ifcClass,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış).",
+      });
+    }
+
+    const isUncov =
+      typeof el.isUncovered === "boolean"
+        ? el.isUncovered
+        : ifcClass === "IfcBuildingElementProxy"
+          ? true
+          : !isMeasured;
+
+    if (isMeasured && !isUncov && Boolean(el.matchedPozCode || el.pozNo)) {
+      pozMatchedCount++;
+    }
+    if (isUncov) {
+      const reason =
+        el.uncoveredReason ||
+        (ifcClass === "IfcBuildingElementProxy"
+          ? "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+          : "Geçerli net miktar veya poz eşleşmesi bulunamadı.");
+      uncoveredElements.push({
+        globalId: el.guid,
+        ifcClass,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason,
+      });
+      if (ifcClass === "IfcBuildingElementProxy") {
+        findings.push({
+          code: "UNCOVERED_PROXY_ELEMENT",
+          severity: "medium",
+          globalId: el.guid,
+          ifcClass,
+          storey: el.storey || "Kat atanmamış",
+          elementName: el.name,
+          message: reason,
+        });
+      }
+    }
+
+    if (el.inheritedFromType) {
+      typeInheritedCount++;
+    }
+
+    const gCount = guidCounts.get(el.guid) || 0;
+    if (gCount > 1) {
+      findings.push({
+        code: "DUPLICATE_GLOBAL_ID",
+        severity: "high",
+        globalId: el.guid,
+        ifcClass,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: `Mükerrer GlobalId (${el.guid}) tespit edildi; aynı kimlik ${gCount} elemanda kullanılmış.`,
+      });
+    }
+  }
+
+  for (const ex of extraUncovered) {
+    findings.push({
+      code: ex.ifcClass === "IfcBuildingElementProxy" ? "UNCOVERED_PROXY_ELEMENT" : "UNMAPPED_POZ_ELEMENT",
+      severity: "medium",
+      globalId: ex.globalId,
+      ifcClass: ex.ifcClass,
+      storey: ex.storey,
+      elementName: ex.name,
+      message: ex.reason,
+    });
+  }
+
+  for (const op of orphanOpenings) {
+    findings.push({
+      code: "ORPHAN_OPENING_ELEMENT",
+      severity: "high",
+      globalId: op.guid,
+      ifcClass: "IfcOpeningElement",
+      storey: op.storey,
+      elementName: op.name,
+      message: "IfcRelVoidsElement ile hiçbir yapı elemanına (RelatingBuildingElement) bağlanmamış sahipsiz boşluk.",
+    });
+  }
+
+  const totalElementCount = elements.length;
+  const unmeasuredElementCount = totalElementCount - measuredCount;
+  const highSeverityCount = findings.filter((f) => f.severity === "high").length;
+  const mediumSeverityCount = findings.filter((f) => f.severity === "medium").length;
+
+  return {
+    totalElementCount,
+    measuredElementCount: measuredCount,
+    unmeasuredElementCount,
+    pozMatchedElementCount: pozMatchedCount,
+    pozMatchedRatio: totalElementCount > 0 ? Number((pozMatchedCount / totalElementCount).toFixed(6)) : null,
+    uncoveredElementCount: uncoveredElements.filter((u) => u.scope !== "out_of_scope").length,
+    outOfScopeElementCount: uncoveredElements.filter((u) => u.scope === "out_of_scope").length,
+    typeInheritedElementCount: typeInheritedCount,
+    suppressedAssemblyPartCount: suppressedAssemblyParts.length,
+    highSeverityCount,
+    mediumSeverityCount,
+    findings,
+    uncoveredElements,
+    suppressedAssemblyParts,
+  };
 }
 
 export function calculateSummary(
@@ -242,6 +475,8 @@ export function calculateSummary(
   materialNames: string[] = [],
   spaceNames: string[] = [],
   authoringSoftware?: AuthoringSoftwareDetection,
+  orphanOpenings: Array<{ stepId: string; guid: string; name: string; storey: string }> = [],
+  extraUncovered: IfcUncoveredElementRecord[] = [],
 ): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   let totalVolumeM3 = 0;
   let totalFormworkM2 = 0;
@@ -284,6 +519,8 @@ export function calculateSummary(
     }
   });
 
+  const consistencyReport = buildConsistencyReportFromElements(elements, orphanOpenings, extraUncovered);
+
   return {
     elements,
     summary: {
@@ -317,9 +554,11 @@ export function calculateSummary(
       materialNames,
       spaceNames,
       authoringSoftware,
+      consistencyReport,
     },
   };
 }
+
 
 function createFailedIfcParseResult(unsupportedReasons: string[]): { elements: ParsedIfcElement[]; summary: IfcParseSummary } {
   return {

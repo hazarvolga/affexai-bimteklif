@@ -445,7 +445,15 @@ def test_trepys_poz_and_emsal_extraction():
 def test_authoring_software_raw_is_extracted_from_real_header():
     """Revit IFC: başlıkta 'Revit' geçmez, yazılım adı yalnız IfcApplication'dadır."""
     sample = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "IfcSampleFiles-main", "Ifc4_Revit_STR.ifc")
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "harici-kaynaklar",
+            "klasorler-ve-ornekler",
+            "IfcSampleFiles-main",
+            "Ifc4_Revit_STR.ifc",
+        )
     )
     if not os.path.exists(sample):
         pytest.skip("IfcSampleFiles-main örnek dosyası yok")
@@ -457,3 +465,224 @@ def test_authoring_software_raw_is_extracted_from_real_header():
             raw = json.load(f)["summary"]["authoringSoftwareRaw"]
     assert "Exporter" in (raw["originatingSystem"] or "")
     assert any("Revit" in n for n in raw["applicationNames"])
+
+
+def _fixture_path(name: str) -> str:
+    return os.path.join(os.path.dirname(__file__), "fixtures", name)
+
+
+def test_consistency_check_1_and_2_duplicate_guid_and_orphan_opening():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("duplicate_guid_and_orphan_opening.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    report = data["summary"]["consistencyReport"]
+    findings = report["findings"]
+
+    dup_findings = [f for f in findings if f["code"] == "DUPLICATE_GLOBAL_ID"]
+    assert len(dup_findings) == 2
+    assert all(f["severity"] == "high" for f in dup_findings)
+    assert all(f["globalId"] == "DUPLICATE_GUID_0000001" for f in dup_findings)
+    assert {f["ifcClass"] for f in dup_findings} == {"IfcWall", "IfcSlab"}
+    assert all("Zemin Kat" in f["storey"] for f in dup_findings)
+
+    orphan_findings = [f for f in findings if f["code"] == "ORPHAN_OPENING_ELEMENT"]
+    assert len(orphan_findings) == 1
+    assert orphan_findings[0]["severity"] == "high"
+    assert orphan_findings[0]["globalId"] == "ORPHAN_OPENING_0000001"
+    assert orphan_findings[0]["ifcClass"] == "IfcOpeningElement"
+
+
+def test_consistency_check_3_and_4_invalid_quantities_and_unassigned_storey():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("invalid_quantities_and_unassigned_storey.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    summary = data["summary"]
+    report = summary["consistencyReport"]
+    by_guid = {el["guid"]: el for el in data["elements"]}
+
+    # Total volume only includes the valid slab (12.5 m3); negative/zero/missing never enter sum
+    assert summary["totalVolumeM3"] == 12.5
+    assert report["totalElementCount"] == 4
+    assert report["measuredElementCount"] == 1
+    assert report["unmeasuredElementCount"] == 3
+
+    assert by_guid["SLAB_VALID_00000000001"]["measured"] is True
+    assert by_guid["SLAB_VALID_00000000001"]["measurementStatus"] == "ölçüldü"
+
+    for bad_guid in ("WALL_NEGATIVE_00000001", "BEAM_ZERO_000000000001", "COL_UNASSIGNED_NO_QTY1"):
+        assert by_guid[bad_guid]["volumeM3"] == 0.0
+        assert by_guid[bad_guid]["measured"] is False
+        assert by_guid[bad_guid]["measurementStatus"] == "ölçülemedi"
+
+    findings = report["findings"]
+    neg_f = next(f for f in findings if f["code"] == "NEGATIVE_NET_QUANTITY")
+    assert neg_f["severity"] == "high"
+    assert neg_f["globalId"] == "WALL_NEGATIVE_00000001"
+    assert neg_f["ifcClass"] == "IfcWall"
+
+    zero_f = next(f for f in findings if f["code"] == "ZERO_NET_QUANTITY")
+    assert zero_f["severity"] == "high"
+    assert zero_f["globalId"] == "BEAM_ZERO_000000000001"
+    assert zero_f["ifcClass"] == "IfcBeam"
+
+    miss_f = next(f for f in findings if f["code"] == "MISSING_NET_QUANTITY")
+    assert miss_f["severity"] == "high"
+    assert miss_f["globalId"] == "COL_UNASSIGNED_NO_QTY1"
+    assert miss_f["ifcClass"] == "IfcColumn"
+
+    storey_f = [f for f in findings if f["code"] == "MISSING_SPATIAL_STOREY"]
+    assert len(storey_f) == 1
+    assert storey_f[0]["severity"] == "medium"
+    assert storey_f[0]["globalId"] == "COL_UNASSIGNED_NO_QTY1"
+    assert storey_f[0]["ifcClass"] == "IfcColumn"
+    assert by_guid["COL_UNASSIGNED_NO_QTY1"]["storey"] == "Kat atanmamış"
+
+
+def test_consistency_check_5_proxy_and_unmapped_poz_elements():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("proxy_and_unmapped_poz.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    report = data["summary"]["consistencyReport"]
+    by_guid = {el["guid"]: el for el in data["elements"]}
+
+    # IfcBuildingElementProxy is NOT in primary_types and never enters elements or takeoff totals!
+    assert "PROXY_ELEM_00000000001" not in by_guid
+    assert report["totalElementCount"] == 2
+    assert report["measuredElementCount"] == 2
+    # Python only carries explicit PozNo tags from IFC (does not fabricate fallback Poz codes)
+    assert report["pozMatchedElementCount"] == 1
+    # The proxy is outside the takeoff element total, so it is counted as out-of-scope, not uncovered
+    assert report["uncoveredElementCount"] == 0
+    assert report["outOfScopeElementCount"] == 1
+    assert report["pozMatchedRatio"] == pytest.approx(1 / 2, rel=1e-4)
+
+    assert by_guid["WALL_POZ_MATCHED_00001"]["isUncovered"] is False
+    assert by_guid["WALL_POZ_MATCHED_00001"]["pozNo"] == "15.225.1004"
+    assert by_guid["WALL_POZ_MATCHED_00001"]["matchedPozCode"] == "15.225.1004"
+
+    # COV_UNMAPPED_000000001 has no explicit PozNo in IFC; Python leaves matchedPozCode as None
+    # so calm-icmal.ts serves as the single source of truth for Poz classification.
+    unmapped_cov = by_guid["COV_UNMAPPED_000000001"]
+    assert unmapped_cov["ifcClass"] == "IfcCovering"
+    assert unmapped_cov.get("pozNo") is None
+    assert unmapped_cov["matchedPozCode"] is None
+
+    # Proxy is reported in uncoveredElements as "metraja alınmayan eleman"
+    uncovered_guids = {u["globalId"] for u in report["uncoveredElements"]}
+    assert uncovered_guids == {"PROXY_ELEM_00000000001"}
+    proxy_uncovered = report["uncoveredElements"][0]
+    assert proxy_uncovered["ifcClass"] == "IfcBuildingElementProxy"
+    assert "metraja alınmayan eleman" in proxy_uncovered["reason"]
+
+
+def test_consistency_check_6_type_pset_inheritance_and_instance_override():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("type_pset_inheritance.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    by_guid = {el["guid"]: el for el in data["elements"]}
+    report = data["summary"]["consistencyReport"]
+
+    # Wall 1 inherits metadata from IfcWallType.HasPropertySets while keeping its own instance NetVolume
+    w_inherit = by_guid["WALL_INHERITS_TYPE_001"]
+    assert w_inherit["volumeM3"] == pytest.approx(8.4)
+    assert w_inherit["loadBearing"] is True
+    assert w_inherit["exposure"] == "exterior"
+    assert w_inherit["exposureClass"] == "XC4"
+    assert w_inherit["pozNo"] == "15.225.1004"
+    assert w_inherit["inheritedFromType"] is True
+
+    # Wall 2 overrides type properties with its own instance properties
+    w_override = by_guid["WALL_OVERRIDES_TYPE_01"]
+    assert w_override["volumeM3"] == pytest.approx(5.2)
+    assert w_override["loadBearing"] is False
+    assert w_override["exposure"] == "interior"
+    assert w_override["exposureClass"] == "XC4"  # still inherited since not overridden on instance
+    assert w_override["pozNo"] == "15.225.1009"
+
+    assert report["typeInheritedElementCount"] == 2
+    assert data["summary"]["totalVolumeM3"] == pytest.approx(13.6)
+
+
+def test_consistency_check_7_assembly_double_counting_prevention():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("assembly_double_count.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    summary = data["summary"]
+    report = summary["consistencyReport"]
+    by_guid = {el["guid"]: el for el in data["elements"]}
+
+    # 1. ASM_PARENT_00000000001 has its own explicit NetVolume=4.0, so its 2 child IfcBeam parts are suppressed.
+    # 2. ASM_NO_QTO_00000000001 has NO quantity of its own, so its child IfcBeam (1.5 m3, 6.0 m2 formwork)
+    #    and IfcColumn (2.5 m3, 10.0 m2 formwork) remain in their own rows (no rollup!).
+    # 3. IfcStair and IfcCurtainWall are excluded from primary_types and takeoff totals (4.0 + 1.5 + 2.5 = 8.0 m3).
+    assert summary["totalVolumeM3"] == pytest.approx(8.0)
+    assert summary["totalFormworkM2"] == pytest.approx(16.0)
+    assert len(data["elements"]) == 3
+    assert set(by_guid.keys()) == {
+        "ASM_PARENT_00000000001",
+        "BEAM_OWN_ROW_000000001",
+        "COL_OWN_ROW_0000000001",
+    }
+    assert report["suppressedAssemblyPartCount"] == 2
+    suppressed_guids = {p["globalId"] for p in report["suppressedAssemblyParts"]}
+    assert suppressed_guids == {"ASM_BEAM_CHILD_0000001", "ASM_BEAM_CHILD_0000002"}
+
+
+def test_curtain_wall_and_stair_excluded_from_takeoff_totals_and_formwork():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(_fixture_path("assembly_double_count.ifc"), out_json)
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    by_guid = {el["guid"]: el for el in data["elements"]}
+    report = data["summary"]["consistencyReport"]
+
+    # IfcStair, IfcStairFlight, IfcCurtainWall, IfcPlate, IfcMember never enter elements or receive formwork/volume
+    for forbidden_guid in (
+        "STAIR_PARENT_000000001",
+        "STAIR_FLIGHT_CHILD_001",
+        "CW_PARENT_000000000001",
+        "CW_PLATE_CHILD_0000001",
+        "CW_MEMBER_CHILD_000001",
+    ):
+        assert forbidden_guid not in by_guid
+
+    # IfcStair, IfcStairFlight, IfcCurtainWall are reported in consistencyReport.uncoveredElements
+    uncovered_by_guid = {u["globalId"]: u for u in report["uncoveredElements"]}
+    assert "STAIR_PARENT_000000001" in uncovered_by_guid
+    assert "STAIR_FLIGHT_CHILD_001" in uncovered_by_guid
+    assert "CW_PARENT_000000000001" in uncovered_by_guid
+    assert "metraja alınmayan eleman" in uncovered_by_guid["CW_PARENT_000000000001"]["reason"]
+
+    # Out-of-scope classes are counted separately so "uncovered" never exceeds the takeoff element total
+    for out_guid in ("STAIR_PARENT_000000001", "STAIR_FLIGHT_CHILD_001", "CW_PARENT_000000000001"):
+        assert uncovered_by_guid[out_guid]["scope"] == "out_of_scope"
+    out_of_scope = [u for u in report["uncoveredElements"] if u["scope"] == "out_of_scope"]
+    in_takeoff = [u for u in report["uncoveredElements"] if u["scope"] == "in_takeoff"]
+    assert report["outOfScopeElementCount"] == len(out_of_scope)
+    assert report["uncoveredElementCount"] == len(in_takeoff)
+    assert report["uncoveredElementCount"] <= report["totalElementCount"]
+
+

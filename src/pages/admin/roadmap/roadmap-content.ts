@@ -488,16 +488,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Revit ile işlem yapacak kullanıcılara hem dosya yükleme öncesinde (PAFTA 00 ekranında) hem de dosya seçildiği anda ilk 128 KB başlığından otomatik Revit tespitiyle açılan 6 maddelik doğrulanmış kontrol listesi (REVIT_PRE_EXPORT_CHECKLIST) eklendi: 1) Mimari hakediş hacmi için 'Architecture > Room & Area > Areas and Volumes' vs. termal/BEM analizleri için '2nd Level Space Boundaries' ayrımı, 2) 'Export base quantities' ve Dion Moult (thinkmoult.com) 'NetSideArea/NetSideVolume' brüt/minha tuzağı, 3) 'Join Geometry' kaba yapı hakimiyeti, 4) İnce yapı katman kısalması ve kalıp yüzeyi, 5) 'LoD Low/Medium' & Autodesk/revit-ifc#63 dosya şişmesi önlemi, 6) 'Shared Coordinates' ve IFCCARTESIANPOINT IEEE-754 kayan nokta açıklaması. Ayrıca ürün arayüzü, hesap motorları ve yönetim sayfalarındaki şahıs ismi referansları tamamen temizlenerek kurumsal mühendislik terminolojisine ('Şantiye Şap Standardı', 'SITE_SCREED_BENCHMARK', 'VILLA_MARKET_COST_BENCHMARK_2026') geçirildi ve registry.test.ts içine kalıcı 'Kişi ismi otorite yasağı' kapı testi eklendi.",
           ],
           [
-            "Rev. 35 (Güncel)",
+            "Rev. 35",
             "18 Ekim 2026 (Üretim Hazırlığı Raporu Tam Kapanışı: Gerçek Tarayıcı axe-core Kapısı, Açık/Koyu Mod 0 İhlal, GEO Sözlük, PWA, Güvenlik & 105 kB Ana Paket)",
-            "BIM-CALC-2026-10-18.29",
+            "BIM-CALC-2026-10-18.29 (2a5c865)",
             "PRODUCTION_READINESS_RAPORU_2026-10-18 bulgularının tamamı kapatıldı: 1) Açık ve koyu moddaki 103 erişilebilirlik/kontrast ihlali (:root[data-theme='light'] özgüllük tuzağı, bg-primary text-foreground → text-primary-foreground, BimGlossary/PilotApplication semantik Pafta belirteçleri, SmartCheckDemo role='listitem', /login-/register-/pilot-/smartcheck <main> iskeleti, ThemeToggle label-content-name-mismatch, /bim-sozlugu tek <h1>) giderildi ve gerçek Chromium (puppeteer + axe-core) ile 8 genel rotayı hem açık hem koyu modda denetleyen scripts/e2e-a11y-smoke.ts (16/16 kontrol, 0 ihlal) CI hattına eklendi. 2) /bim-sozlugu terimleri ve diğer genel rotalar ham HTML <noscript> içine eklendi, ana sayfa başlığı ≤60 karaktere indirildi, /login ve /register için noindex + özgün meta tanımlandı, FAQPage JSON-LD yalnız ana sayfayla sınırlandı, Organization logosu 1200×630 PNG yapıldı, manifest.webmanifest ve apple-touch-icon.png eklendi. 3) /.well-known/security.txt, /api/* Cache-Control: no-store, CSP Cloudflare Insights izni ve hesap bazlı (login-account:<email>) giriş yavaşlatma devreye alındı. 4) Vite manualChunks ile ana JS paketi 570 kB'dan 105,41 kB'a (gzip 33,81 kB) düşürüldü; VILLA_MARKET_COST_BENCHMARK_2026 PreBimFeasibilityPanel arayüzüne bağlandı ve Planlı Alanlar İmar Yön. m.5/8 & m.22 istisna notu netleştirildi.",
+          ],
+          [
+            "Rev. 36 (Güncel)",
+            "19 Ekim 2026 (IFC Tutarlılık Kapısı, Tip Özellik Mirası, Montaj Çift Sayım Koruması ve Metraj Kapsama Kartı)",
+            "BIM-CALC-2026-10-19.30",
+            "IFC çıkarım ve metraj doğrulama hattına 7 denetlenebilir tutarlılık kapısı ve 'Metraj Kapsama Kartı' (IfcCoverageCard.tsx) eklendi: 1) Mükerrer GlobalId tespiti (DUPLICATE_GLOBAL_ID — yüksek ciddiyet), 2) Host'suz IfcOpeningElement tespiti (ORPHAN_OPENING_ELEMENT — yüksek ciddiyet), 3) Sıfır, negatif veya eksik net miktarlı elemanların toplama katılmaması ve 'ölçülemedi' olarak raporlanması (NEGATIVE_NET_QUANTITY, ZERO_NET_QUANTITY, MISSING_NET_QUANTITY — yüksek ciddiyet), 4) Hiçbir IfcBuildingStorey katına bağlanmamış elemanların sahte kat varsayımı olmadan 'Kat atanmamış' olarak işaretlenmesi (MISSING_SPATIAL_STOREY — orta ciddiyet), 5) İcmal motorunun hiçbir kaleme yerleştiremediği elemanların 'açıkta kalan eleman' olarak ayrılması; poza eşleşme oranı tek kaynaktan (calm-icmal.ts) hesaplanır ve hiçbir kurala uymayan kaplamalar artık sahte 15.390.1001 pozuyla icmale girmez, 6) IfcTypeObject.HasPropertySets (IsTypedBy / IfcRelDefinesByType) tip üstverisinin örnek (instance) önceliğiyle okunması, 7) montaj alt parçalarının yalnız üst elemanın kendi pozitif miktarı varken bastırılması (suppressedAssemblyParts). IfcStair, IfcStairFlight, IfcCurtainWall ve IfcBuildingElementProxy metraj toplamına girmez, 'kapsam dışı sınıf' olarak ayrı sayılır. Üç örnek modelde metraj toplamları Rev. 35 ile birebir aynıdır.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 35 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 36 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -852,8 +858,16 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) Tüm kontrast, landmark ve ARIA ihlalleri düzeltildi; Puppeteer + axe-core ile 8 genel rotayı açık ve koyu modda denetleyen scripts/e2e-a11y-smoke.ts (0 ihlal) CI'a eklendi. 2) route-meta.ts içinde /bim-sozlugu ve tüm genel rotalara zengin <noscript> içerik, /login ve /register için noindex + kendi canonical'ı, ≤60 karakter ana sayfa başlığı ve yalnız ana sayfada FAQPage JSON-LD sağlandı; manifest.webmanifest, apple-touch-icon.png ve raster Organization logosu eklendi. 3) /.well-known/security.txt, /api/* Cache-Control: no-store, CSP Cloudflare Insights izni ve hesap bazlı (login-account:<email>) giriş yavaşlatma eklendi. 4) Vite manualChunks ile ana JS paketi 105,41 kB'a indirildi ve VILLA_MARKET_COST_BENCHMARK_2026 PreBimFeasibilityPanel arayüzüne bağlandı.",
             "src/index.css, src/main.tsx, scripts/e2e-a11y-smoke.ts, .github/workflows/verify.yml, src/server/security/route-meta.ts, src/server/security/web-hardening.ts, src/server/app.ts, src/server/routes/auth.ts, vite.config.ts, index.html, public/manifest.webmanifest, public/apple-touch-icon.png, src/components/smartcheck/PreBimFeasibilityPanel.tsx, src/lib/pre-bim-feasibility.ts",
           ],
+          [
+            "Rev. 36 · 19 Ekim 2026 (IFC Tutarlılık Kapısı, Tip Özellik Mirası, Montaj Çift Sayım Koruması ve Metraj Kapsama Kartı)",
+            "TS EN ISO 16739-1 (IFC2X3 / IFC4 / IFC4X3) IfcRelDefinesByType, IfcRelAggregates, IfcRelVoidsElement, IfcRelContainedInSpatialStructure & RG 33331 m.14 (IfcBuildingElementProxy)",
+            "1) Mükerrer GlobalId ve host'suz IfcOpeningElement ayrı bir tutarlılık bulgusu olarak raporlanmıyordu. 2) Negatif/sıfır/eksik miktarlı elemanlar için açık 'ölçülemedi' statüsü ve yüksek ciddiyetli bulgu yoktu; kata bağlı olmayan elemanlara 'Kat 1 (Zemin)' varsayılanı atanıyordu. 3) IfcTypeObject.HasPropertySets (IsTypedBy) özellikleri okunmuyordu. 4) IfcElementAssembly montajlarında alt parçalarla üst montajın birlikte sayılması riski vardı. 5) Hiçbir kurala uymayan kaplamalar sahte 15.390.1001 pozuyla icmale giriyordu. 6) CalmIfcWorkspace üzerinde kapsama ve tutarlılık bulgularını filtreleyen bir 'Metraj Kapsama Kartı' yoktu.",
+            "1) workers/ifc/ifc_extract.py ve src/ifc/parser/legacy-parser.ts içinde 7 tutarlılık kontrolü (DUPLICATE_GLOBAL_ID, ORPHAN_OPENING_ELEMENT, NEGATIVE_NET_QUANTITY / ZERO_NET_QUANTITY / MISSING_NET_QUANTITY, MISSING_SPATIAL_STOREY → 'Kat atanmamış', UNCOVERED_PROXY_ELEMENT / UNMAPPED_POZ_ELEMENT, IfcTypeObject.HasPropertySets örnek-öncelikli üstveri mirası ve IfcRelAggregates alt parça çift sayım bastırması) devreye alındı; ayrıştırıcılar poz eşleştirmez, yalnız açık PozNo etiketini taşır. Merdiven, giydirme cephe ve proxy metraj toplamına girmez, kapsam dışı olarak ayrı sayılır. 2) Zod şeması (ifc-python-runner.ts), kanıt adaptörü (smartcheck-evidence.ts) ve Calm veri seti (calm-icmal.ts) consistencyReport taşıyacak şekilde genişletildi. 3) CalmIfcWorkspace.tsx içine tıklanabilir filtreli IfcCoverageCard.tsx eklendi; veri yoksa 'değerlendirilmedi' gösterilir.",
+            "workers/ifc/ifc_extract.py, workers/ifc/test_ifc_extract.py, workers/ifc/fixtures/*, src/ifc/types.ts, src/smartcheck/import/ifc-python-runner.ts, src/ifc/smartcheck-evidence.ts, src/ifc/parser/legacy-parser.ts, src/ifc/calm-icmal.ts, src/components/smartcheck/IfcCoverageCard.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx",
+          ],
         ],
       },
+
     ],
   },
 ];

@@ -1,6 +1,7 @@
 import type {
   ApartmentRoomScheduleItem,
   ApartmentUnitScheduleItem,
+  IfcConsistencyReport,
   IfcParseSummary,
   ParsedIfcElement,
   ParsedOpening,
@@ -69,7 +70,12 @@ export interface CalmIfcDataset {
   authoringAdvisory?: AuthoringAdvisory;
   /** Modeldeki kapı/pencere listesi; sözleşmesel minha için. Yoksa undefined. */
   openings?: ParsedOpening[];
+  /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
+  consistencyReport?: IfcConsistencyReport;
+  /** Ham eleman listesi (kapsama kartı filtrelemesi için). */
+  elements?: ParsedIfcElement[];
 }
+
 
 export const GROUP_META: Record<CalmIcmalGroupKey, { order: number; title: string; unitLabel: string }> = {
   floor_finish: {
@@ -115,10 +121,12 @@ function classifyMaterialLayer(
   coveringPredefinedType: string,
   elementType: string,
   rawName: string,
-): ClassifiedLayerSpec {
+  explicitPozNo?: string,
+): ClassifiedLayerSpec | null {
   const token = layerToken.trim();
   const lower = token.toLowerCase();
   const predef = coveringPredefinedType.toUpperCase();
+  const cleanExplicitPoz = explicitPozNo?.trim() || "";
 
   if (elementType === "IfcSlab" || elementType === "IfcBeam" || elementType === "IfcColumn") {
     return {
@@ -313,17 +321,21 @@ function classifyMaterialLayer(
     };
   }
 
-  // Fallback for generic coverings
-  return {
-    id: `cov-${lower.replace(/[^a-z0-9]+/g, "-") || "genel"}`,
-    groupKey: predef === "CEILING" ? "ceiling_plaster_paint" : predef === "CLADDING" ? "wall_finish" : "floor_finish",
-    title: token || rawName || "Mimari Kaplama Kalemi",
-    subtitle: "IFC modelinden çıkarılan net yüzey metrajı",
-    pozCode: "15.390.1001",
-    unit: "m²",
-    defaultUnitPriceTry: 450,
-    formulaNote: "IFC Qto_CoveringBaseQuantities NetArea",
-  };
+  // Only allow unmapped generic coverings when the IFC model carries an explicit PozNo tag; never fabricate a fallback Poz code.
+  if (cleanExplicitPoz) {
+    return {
+      id: `cov-${cleanExplicitPoz.replace(/[^a-zA-Z0-9]+/g, "-")}-${lower.replace(/[^a-z0-9]+/g, "-") || "genel"}`,
+      groupKey: predef === "CEILING" ? "ceiling_plaster_paint" : predef === "CLADDING" ? "wall_finish" : "floor_finish",
+      title: token || rawName || "Mimari Kaplama Kalemi",
+      subtitle: "IFC modelindeki açık PozNo etiketi ile eşleşen net yüzey metrajı",
+      pozCode: cleanExplicitPoz,
+      unit: "m²",
+      defaultUnitPriceTry: 450,
+      formulaNote: "IFC Qto_CoveringBaseQuantities NetArea",
+    };
+  }
+
+  return null;
 }
 
 function normalizeStoreyLabel(rawStorey: string, spaceCode?: string): string {
@@ -571,9 +583,11 @@ export function parseSmartCheckRowToPseudoElement(
  * automatically exploding multi-layer `IfcCovering` elements into separate contractor line items.
  * Never falls back to reference data based on filename; always computes strictly from the model's elements.
  */
+type ElementPlacement = Pick<ParsedIfcElement, "matchedPozCode" | "isUncovered" | "uncoveredReason">;
+
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
-  summary?: IfcParseSummary | null,
+  summary?: Partial<IfcParseSummary> | null,
   fileName?: string,
 ): CalmIfcDataset {
   const hasMultiLayerCoverings = elements.some(
@@ -594,8 +608,60 @@ export function buildCalmIfcDatasetFromElements(
     }
   >();
 
-  for (const el of elements) {
-    if (el.type === "IfcReinforcingBar") continue;
+  let placedElementCount = 0;
+  const unplacedUncoveredElements: NonNullable<IfcConsistencyReport["uncoveredElements"]> = [];
+  const unplacedFindings: NonNullable<IfcConsistencyReport["findings"]> = [];
+  const placements: Array<ElementPlacement | undefined> = [];
+
+  for (const [elIndex, el] of elements.entries()) {
+    if (el.type === "IfcReinforcingBar") {
+      if (el.measured !== false && el.pozNo) {
+        placements[elIndex] = { matchedPozCode: el.pozNo, isUncovered: false };
+        placedElementCount++;
+      } else {
+        const reason =
+          el.measured === false
+            ? "Geçerli net miktar ölçülemediği için icmale alınamadı."
+            : "Donatı elemanı için açık PozNo etiketi bulunamadı ve otomatik icmal grubuna yerleşemedi.";
+        placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
+        unplacedUncoveredElements.push({
+          globalId: el.guid,
+          ifcClass: el.ifcClass || el.type,
+          name: el.name,
+          storey: el.storey || "Kat atanmamış",
+          reason,
+          scope: "in_takeoff",
+        });
+        unplacedFindings.push({
+          code: "UNMAPPED_POZ_ELEMENT",
+          severity: "medium",
+          globalId: el.guid,
+          ifcClass: el.ifcClass || el.type,
+          storey: el.storey || "Kat atanmamış",
+          elementName: el.name,
+          message: reason,
+        });
+      }
+      continue;
+    }
+
+    if (el.measured === false || el.isUncovered === true || el.ifcClass === "IfcBuildingElementProxy") {
+      const reason =
+        el.uncoveredReason ||
+        (el.ifcClass === "IfcBuildingElementProxy"
+          ? "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+          : "Geçerli net miktar ölçülemediği için icmale alınamadı.");
+      placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
+      unplacedUncoveredElements.push({
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason,
+        scope: "in_takeoff",
+      });
+      continue;
+    }
 
     const predef = (el.coveringPredefinedType || "").toUpperCase();
     const layers =
@@ -603,8 +669,13 @@ export function buildCalmIfcDatasetFromElements(
         ? el.materialLayers
         : [el.name];
 
+    let elementPlacedInIcmal = false;
+    let firstPlacedPozCode: string | null = null;
+
     for (const layerToken of layers) {
-      const spec = classifyMaterialLayer(layerToken, predef, el.type, el.name);
+      const spec = classifyMaterialLayer(layerToken, predef, el.type, el.name, el.pozNo);
+      if (!spec) continue;
+
       let netQty = 0;
       let grossQty = 0;
       let openingQty = 0;
@@ -646,6 +717,11 @@ export function buildCalmIfcDatasetFromElements(
 
       if (netQty <= 0) continue;
 
+      elementPlacedInIcmal = true;
+      if (!firstPlacedPozCode) {
+        firstPlacedPozCode = spec.pozCode;
+      }
+
       let entry = accumMap.get(spec.id);
       if (!entry) {
         entry = {
@@ -681,6 +757,84 @@ export function buildCalmIfcDatasetFromElements(
         });
       }
     }
+
+    if (elementPlacedInIcmal && firstPlacedPozCode) {
+      placedElementCount++;
+      placements[elIndex] = { matchedPozCode: firstPlacedPozCode, isUncovered: false };
+    } else {
+      const reason =
+        "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
+      placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
+      unplacedUncoveredElements.push({
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason,
+        scope: "in_takeoff",
+      });
+      unplacedFindings.push({
+        code: "UNMAPPED_POZ_ELEMENT",
+        severity: "medium",
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: reason,
+      });
+    }
+  }
+
+  let resolvedConsistencyReport = summary?.consistencyReport;
+  if (resolvedConsistencyReport || unplacedUncoveredElements.length > 0 || elements.length > 0) {
+    const baseReport = resolvedConsistencyReport || {
+      totalElementCount: elements.length,
+      measuredElementCount: elements.filter((e) => e.measured !== false).length,
+      unmeasuredElementCount: elements.filter((e) => e.measured === false).length,
+      pozMatchedElementCount: placedElementCount,
+      pozMatchedRatio: elements.length > 0 ? Number((placedElementCount / elements.length).toFixed(6)) : null,
+      uncoveredElementCount: 0,
+      typeInheritedElementCount: elements.filter((e) => e.inheritedFromType === true).length,
+      suppressedAssemblyPartCount: 0,
+      highSeverityCount: 0,
+      mediumSeverityCount: 0,
+      findings: [],
+      uncoveredElements: [],
+      suppressedAssemblyParts: [],
+    };
+
+    const seenUncoveredGuids = new Set(baseReport.uncoveredElements.map((u) => u.globalId));
+    const mergedUncovered = [...baseReport.uncoveredElements];
+    for (const u of unplacedUncoveredElements) {
+      if (!seenUncoveredGuids.has(u.globalId)) {
+        seenUncoveredGuids.add(u.globalId);
+        mergedUncovered.push(u);
+      }
+    }
+
+    const seenFindingKeys = new Set(baseReport.findings.map((f) => `${f.code}:${f.globalId}`));
+    const mergedFindings = [...baseReport.findings];
+    for (const f of unplacedFindings) {
+      const key = `${f.code}:${f.globalId}`;
+      if (!seenFindingKeys.has(key)) {
+        seenFindingKeys.add(key);
+        mergedFindings.push(f);
+      }
+    }
+
+    const totalCount = baseReport.totalElementCount || elements.length;
+    resolvedConsistencyReport = {
+      ...baseReport,
+      totalElementCount: totalCount,
+      pozMatchedElementCount: placedElementCount,
+      pozMatchedRatio: totalCount > 0 ? Number((placedElementCount / totalCount).toFixed(6)) : null,
+      uncoveredElementCount: mergedUncovered.filter((u) => u.scope !== "out_of_scope").length,
+      outOfScopeElementCount: mergedUncovered.filter((u) => u.scope === "out_of_scope").length,
+      highSeverityCount: mergedFindings.filter((f) => f.severity === "high").length,
+      mediumSeverityCount: mergedFindings.filter((f) => f.severity === "medium").length,
+      findings: mergedFindings,
+      uncoveredElements: mergedUncovered,
+    };
   }
 
   const items: CalmIcmalItem[] = Array.from(accumMap.values()).map((entry) => {
@@ -763,6 +917,8 @@ export function buildCalmIfcDatasetFromElements(
         ? buildAuthoringAdvisory(classifyAuthoringSoftware(summary.authoringSoftwareRaw))
         : undefined,
     openings: summary?.openings,
+    consistencyReport: resolvedConsistencyReport,
+    elements: elements.map((el, i) => (placements[i] ? { ...el, ...placements[i] } : el)),
   };
 }
 
@@ -776,7 +932,15 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     parseSmartCheckRowToPseudoElement(row, idx),
   );
 
-  const dataset = buildCalmIfcDatasetFromElements(pseudoElements, null, fileName);
+  const dataset = buildCalmIfcDatasetFromElements(
+    pseudoElements,
+    {
+      consistencyReport: artifact.summary.consistencyReport,
+      openings: artifact.summary.openings,
+      authoringSoftware: artifact.summary.authoringSoftware,
+    },
+    fileName,
+  );
   const authoring = artifact.summary.authoringSoftware;
   return {
     ...dataset,
@@ -784,3 +948,4 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     openings: artifact.summary.openings,
   };
 }
+
