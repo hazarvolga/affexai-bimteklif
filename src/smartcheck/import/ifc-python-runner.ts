@@ -16,6 +16,8 @@ export const IfcConsistencyFindingSchema = z.object({
     "MISSING_SPATIAL_STOREY",
     "UNCOVERED_PROXY_ELEMENT",
     "UNMAPPED_POZ_ELEMENT",
+    "MISSING_MATERIAL",
+    "CONCRETE_CLASS_DIFFERS",
   ]),
   severity: z.enum(["high", "medium"]),
   globalId: z.string(),

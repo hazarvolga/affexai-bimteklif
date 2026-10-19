@@ -27,6 +27,8 @@ const FINDING_CODE_LABELS: Record<IfcConsistencyFindingCode, string> = {
   MISSING_SPATIAL_STOREY: "Kat Atanmamış",
   UNCOVERED_PROXY_ELEMENT: "Kapsam Dışı Proxy Eleman",
   UNMAPPED_POZ_ELEMENT: "Poza Eşleşmeyen Eleman",
+  MISSING_MATERIAL: "Malzemesi Tanımsız Eleman",
+  CONCRETE_CLASS_DIFFERS: "Beton Sınıfı İcmalden Farklı",
 };
 
 function formatMetricValue(value: number | null | undefined): string {

@@ -8,7 +8,9 @@ export type IfcConsistencyFindingCode =
   | "MISSING_NET_QUANTITY"
   | "MISSING_SPATIAL_STOREY"
   | "UNCOVERED_PROXY_ELEMENT"
-  | "UNMAPPED_POZ_ELEMENT";
+  | "UNMAPPED_POZ_ELEMENT"
+  | "MISSING_MATERIAL"
+  | "CONCRETE_CLASS_DIFFERS";
 
 export interface IfcConsistencyFinding {
   code: IfcConsistencyFindingCode;
