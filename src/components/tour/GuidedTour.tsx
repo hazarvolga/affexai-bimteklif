@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TourCard } from "./TourCard";
-import { clampStepIndex, isOnStepRoute, targetSelectorsFor } from "./tour-navigation";
+import { clampStepIndex, isOnStepRoute, startIndexForPath, targetSelectorsFor } from "./tour-navigation";
 import type { TourStep } from "./tour-types";
 
 /** Sayfa geçişinden sonra hedef öğenin çizilmesi için beklenen en uzun süre. */
@@ -47,20 +47,24 @@ export function GuidedTour({ steps, open, onClose, storageKey, ariaLabel }: Guid
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [loading, setLoading] = useState(false);
+  // Başlangıç adımı belirlenmeden sayfa geçişi yapılmaz; yoksa eski adımın sayfasına gidilir.
+  const [started, setStarted] = useState(false);
   const step = steps[clampStepIndex(index, steps.length)];
 
+  // Tur, başlatıldığı sayfanın adımından açılır; yalnız açılışta okunur, sayfa değişimi adımı sıfırlamaz.
   useEffect(() => {
-    if (open) setIndex(0);
+    if (open) setIndex(startIndexForPath(window.location.pathname, steps));
+    setStarted(open);
   }, [open]);
 
   useEffect(() => {
-    if (!open || !step || isOnStepRoute(location.pathname, step)) return;
+    if (!open || !started || !step || isOnStepRoute(location.pathname, step)) return;
     setLoading(true);
     navigate(step.route);
-  }, [open, step, location.pathname, navigate]);
+  }, [open, started, step, location.pathname, navigate]);
 
   useEffect(() => {
-    if (!open || !step || !isOnStepRoute(location.pathname, step)) return;
+    if (!open || !started || !step || !isOnStepRoute(location.pathname, step)) return;
     let elapsed = 0;
     let timer: ReturnType<typeof setTimeout>;
     const poll = () => {
@@ -78,7 +82,7 @@ export function GuidedTour({ steps, open, onClose, storageKey, ariaLabel }: Guid
     };
     poll();
     return () => clearTimeout(timer);
-  }, [open, step, location.pathname]);
+  }, [open, started, step, location.pathname]);
 
   useEffect(() => {
     if (!open || !step) return;
@@ -122,7 +126,7 @@ export function GuidedTour({ steps, open, onClose, storageKey, ariaLabel }: Guid
     return () => window.removeEventListener("keydown", onKey);
   }, [open, next, prev, close]);
 
-  if (!open || !step) return null;
+  if (!open || !started || !step) return null;
   return (
     <TourCard
       ariaLabel={ariaLabel}
