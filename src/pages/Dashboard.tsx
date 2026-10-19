@@ -35,7 +35,8 @@ import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Quote, QuoteStatus } from '@/types';
 import { ContractorWorkflowHub } from '@/components/dashboard/ContractorWorkflowHub';
-import { SystemQuickTour, TourWelcomeBanner } from '@/components/dashboard/SystemQuickTour';
+import { TourWelcomeBanner } from '@/components/dashboard/SystemQuickTour';
+import { startTour } from '@/components/tour/useTourTrigger';
 
 const MONTH_LABELS_TR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
 const ACTIVE_STATUSES: QuoteStatus[] = [QuoteStatus.DRAFT, QuoteStatus.SENT, QuoteStatus.NEGOTIATION];
@@ -66,20 +67,6 @@ export function Dashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [isTourOpen, setIsTourOpen] = useState(false);
-
-  // Listen to global tour trigger event or URL ?tour=1
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('tour') === '1') {
-      setIsTourOpen(true);
-      navigate('/app', { replace: true });
-    }
-
-    const handleStartTour = () => setIsTourOpen(true);
-    window.addEventListener('bimmetraj:start-tour', handleStartTour);
-    return () => window.removeEventListener('bimmetraj:start-tour', handleStartTour);
-  }, [location.search, navigate]);
 
   // Redirect super admins to their operational dashboard
   if (user?.isSuperAdmin) {
@@ -197,7 +184,7 @@ export function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsTourOpen(true)}
+              onClick={() => startTour()}
               className="gap-1.5 font-mono text-xs border-primary/40 text-primary hover:bg-primary/10"
               title="Sistemi adım adım keşfetmek için hızlı turu başlatın"
             >
@@ -380,7 +367,7 @@ export function Dashboard() {
       {/* Permanent floating Quick Tour trigger pill on Dashboard */}
       <button
         type="button"
-        onClick={() => setIsTourOpen(true)}
+        onClick={() => startTour()}
         className="fixed bottom-5 right-5 z-30 flex items-center gap-2 px-3.5 py-2 bg-card hover:bg-card/90 border border-primary text-primary shadow-2xl rounded-xs text-xs font-mono font-semibold transition-all hover:scale-105 active:scale-95 group backdrop-blur-xs"
         title="BIMMetraj Sistem Hızlı Turunu Başlat"
       >
@@ -388,14 +375,8 @@ export function Dashboard() {
         <span>🧭 Hızlı Tur</span>
       </button>
 
-      {/* Interactive System Quick Tour & First-Time Welcome Banner */}
-      <SystemQuickTour
-        isOpen={isTourOpen}
-        onClose={() => setIsTourOpen(false)}
-      />
-      <TourWelcomeBanner
-        onStartTour={() => setIsTourOpen(true)}
-      />
+      {/* İlk ziyaret daveti; tur Shell'deki GuidedTour ile tüm sayfaları gezer. */}
+      <TourWelcomeBanner onStartTour={() => startTour()} />
     </PageContainer>
   );
 }

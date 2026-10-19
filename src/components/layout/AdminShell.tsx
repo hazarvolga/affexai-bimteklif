@@ -1,9 +1,12 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon, ClipboardList } from 'lucide-react';
+import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon, ClipboardList, Compass } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { GuidedTour } from '@/components/tour/GuidedTour';
+import { ADMIN_TOUR_STEPS } from '@/components/tour/admin-tour-steps';
+import { ADMIN_TOUR_EVENT, startTour, useTourTrigger } from '@/components/tour/useTourTrigger';
 
 const adminNavigation = [
   { label: 'Genel Bakış', path: '/admin', icon: LayoutDashboard },
@@ -21,6 +24,7 @@ export function AdminShell() {
   const { user, logout, loading } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useTourTrigger(ADMIN_TOUR_EVENT);
 
   if (loading) {
     return (
@@ -42,7 +46,7 @@ export function AdminShell() {
             BM
           </div>
           <div>
-            <span className="block font-display-serif text-2xl leading-none text-foreground">TeklifPro</span>
+            <span className="block font-display-serif text-2xl leading-none text-foreground">BIMMetraj</span>
             <span className="mt-1 block font-mono text-[10px] uppercase tracking-widest text-primary">PLATFORM YÖNETİM PAFTASI</span>
           </div>
         </Link>
@@ -76,6 +80,18 @@ export function AdminShell() {
       </div>
 
       <div className="border-t border-border bg-background p-4 space-y-3">
+        <button
+          type="button"
+          onClick={() => {
+            setMenuOpen(false);
+            startTour(ADMIN_TOUR_EVENT);
+          }}
+          className="flex w-full items-center justify-start gap-2 border border-primary/30 px-3 py-2 font-mono text-xs uppercase tracking-wider text-primary transition-colors hover:bg-primary/10"
+          title="Yönetim panelini sayfa sayfa gezen turu başlat"
+        >
+          <Compass size={14} aria-hidden="true" />
+          Yönetici Turu
+        </button>
         <ThemeToggle className="w-full justify-center" />
         <div className="flex items-center gap-3 border border-border bg-card p-2.5">
           <div className="flex h-8 w-8 items-center justify-center border border-border bg-background font-mono text-xs font-bold text-primary">
@@ -110,7 +126,7 @@ export function AdminShell() {
           {navigation}
         </aside>
         <SheetContent side="left" className="gap-0 border-border bg-card p-0 text-foreground" aria-describedby={undefined}>
-          <SheetTitle className="sr-only">TeklifPro Yönetim</SheetTitle>
+          <SheetTitle className="sr-only">BIMMetraj Yönetim</SheetTitle>
           {navigation}
         </SheetContent>
 
@@ -124,11 +140,18 @@ export function AdminShell() {
               >
                 <Menu size={20} />
               </SheetTrigger>
-              <span className="font-display-serif text-xl text-foreground">TeklifPro Yönetim</span>
+              <span className="font-display-serif text-xl text-foreground">BIMMetraj Yönetim</span>
             </div>
             <ThemeToggle showLabel={false} />
           </div>
           <Outlet />
+          <GuidedTour
+            steps={ADMIN_TOUR_STEPS}
+            open={tourOpen}
+            onClose={() => setTourOpen(false)}
+            storageKey="bimmetraj_admin_tour_status"
+            ariaLabel="BIMMetraj Yönetici Turu"
+          />
         </main>
       </div>
     </Sheet>
