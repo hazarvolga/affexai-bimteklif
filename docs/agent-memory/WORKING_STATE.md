@@ -1,11 +1,12 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-19. Keep this file to one page: current truth only.
+Last updated: 2026-10-21. Keep this file to one page: current truth only.
 > **Brand Note:** Project brand is officially **BIMMetraj** (formerly TeklifPro; domain `https://bimmetraj.com`).
 
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
-Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-17.md`.
+Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-21_ARA.md` (previous: `HANDOFF_2026-10-19_ARA.md`, `HANDOFF_2026-10-17.md`).
+Latest full audit & competitor report (2026-10-21): `docs/audits/GENEL_DURUM_GAP_BUG_SEO_GEO_RAKIP_RAPORU_2026-10-21.md` (next agent prompt: `docs/agent-memory/NEXT_AGENT_PROMPT_2026-10-21.md`).
 
 ## Production
 

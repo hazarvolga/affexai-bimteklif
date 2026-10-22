@@ -261,17 +261,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 35 · 13–18 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 40 · 13–22 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 35)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (18 Ekim 2026 Rev. 35 · BIM-CALC-2026-10-18.29) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 40)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (22 Ekim 2026 Rev. 40 · BIM-CALC-2026-10-22.34) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 35):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 40):",
       },
       {
         type: "table",
@@ -512,16 +512,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) Hızlı Tur artık yalnız Panel'de değil, çalışma alanının tüm ana sayfalarında ilerler (14 adım: Panel, Teklifler, Yeni Teklif, SmartCheck & e-PYS, IFC Ön Analiz ve kapsama kartı, CRM, Tedarikçi & Piyasa, Kârlılık, Faturalandırma, Ayarlar, Akademi); tur her adımda ilgili sayfaya gider ve sayfa değişse de kapanmaz. Kullanıcının rolünün açamadığı sayfalar turdan çıkarılır. 2) Süper admin için Platform Yönetimi sayfalarını gezen 10 adımlık Yönetici Turu eklendi. 3) Tur metinlerinden doğrulanmamış ifadeler çıkarıldı ('resmî tebliğ algoritmalarına birebir uygun', sabit '325 kg/m³ ve %10 fire'); hesaplayıcılar ön hesap olarak anılır. 4) Depo tescilli lisansa geçti (LICENSE, package.json UNLICENSED, kaynak dosyalardaki Apache-2.0 başlıkları kaldırıldı).",
           ],
           [
-            "Rev. 39 (Güncel)",
+            "Rev. 39",
             "19 Ekim 2026 (Tur Bulunulan Sayfadan Başlar; Açık Mod Kontrastı; Panel Kartlarında Doğrulanmamış Değerler Kaldırıldı)",
-            "BIM-CALC-2026-10-19.33",
+            "BIM-CALC-2026-10-19.33 (bfb96ea)",
             "1) Hızlı Tur ve Yönetici Turu, başlatıldıkları sayfanın adımından açılır (örn. SmartCheck → 07/14, IFC Ön Analiz → 08/14; /app/quotes/:id gibi alt sayfalar üst sayfanın adımına bağlanır); tur artık önce Panel'e gidip geri dönmez. 2) Açık modda saydamlık ekli pastel metin sınıfları (örn. text-amber-300/90) koyu pafta mürekkebine çevrilir; Firmalar sayfasındaki soluk 'IFC: 0 / 35' satırı ve görünmeyen kota çubuğu düzeltildi; hover:/dark: varyantları ve koyu mod etkilenmez. 3) Panel'deki Evre kartlarından sabit '325 kg/m³ çimento ve %10 fire', '%1 KDV marjı', '2 cm sıva düşümü / +0,40 m² söve' ifadeleri kaldırıldı; kartlar dozaj, fire, kalınlık ve toleransın kullanıcı girdisi, sonuçların ön hesap olduğunu söyler. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 40 (Güncel)",
+            "22 Ekim 2026 (Node.js v24.22.1 Güvenlik Yaması & Üretim Sunucusu Sertleştirmesi)",
+            "BIM-CALC-2026-10-22.34",
+            "1) Node.js güvenlik bülteni (CVE-2026-111497 Brotli çözücü sınır dışı bellek yazma ve CVE-2026-105483 TLS sertifika doğrulama atlama) kapsamında Dockerfile içindeki üç aşama (dependencies, runtime, ifc-runtime) ve CI iş akışı (.github/workflows/verify.yml) node:24.18.0-bookworm-slim sürümünden node:24.22.1-bookworm-slim sürümüne yükseltildi. 2) Üretim sunucusunda (affexai-prod) Coolify .env ve uygulama ortam dosyaları chmod 600 ile kilitlendi, SSH daemon (X11Forwarding no, AllowAgentForwarding no, MaxAuthTries 4) sertleştirildi, sistem güvenlik paketleri (apparmor, libapparmor1, snapd, open-vm-tools) yükseltildi ve gece yarısı habersiz kesintileri önlemek üzere Coolify otomatik güncelleme (is_auto_update_enabled=false) manuel onaylı moda alındı. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 39 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 40 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -901,8 +907,15 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Rev. 39 · 19 Ekim 2026 (Sayfaya Duyarlı Tur, Açık Mod Kontrastı, Panel Kart Metinleri)",
             "Kullanıcı deneyimi ve erişilebilirlik; şirket ilkesi: ürün metinleri yalnız doğrulanmış davranışı anlatır",
             "1) Tur her zaman 01. adımdan (Panel) açılıyordu; SmartCheck'te Hızlı Tur'a basan kullanıcı Panel'e götürülüyordu. Açılışta adım numarası bir çizim gecikmeli ayarlandığı için tur önce /app'e gidiyordu. 2) Açık mod kontrast katmanı sınıf adlarını tek tek sayıyordu; text-amber-300/90 gibi saydamlık ekli ve 100 tonlu sınıflar yakalanmıyor, yönetim panelinde açık zeminde soluk sarı/yeşil metin kalıyordu. 3) Panel Evre kartları sabit dozaj, fire, KDV ve sıva payı değerlerini ürün özelliği gibi anlatıyordu; hesaplayıcılarda bu değerler kullanıcı girdisidir.",
-            "1) tour-navigation.ts startIndexForPath: önce birebir rota, yoksa en uzun kapsayan rota, yoksa 01; GuidedTour başlangıç adımı belirlenmeden sayfa geçişi yapmaz. 2) index.css açık mod katmanı, önek taşımayan text-{renk}-{100–400/500} sınıflarını saydamlık ekiyle birlikte eşler. 3) ContractorWorkflowHub kart metinleri hesaplayıcı davranışına göre yeniden yazıldı; kaldırılan ifadeleri yasaklayan test eklendi.",
+            "1) tour-navigation.ts startIndexForPath: önce birebir rota, yoksa en uzun kapsayan rota, yoksa 01; GuidedTour başlangıç adımı belirlenmeden sayfa geçişi yapmaz. 2) index.css açık mod katmanı, önek taşımayan text-{renk}-{100–400/500} sınıflarını saydamlık ekiyle birlikte eşler. 3) ContractorWorkflowHub kart metinleri hesaplayıcı davranışına göre yeniden yazıldı; kaldırılan ifadeler testle engellenir.",
             "src/components/tour/tour-navigation.ts, src/components/tour/GuidedTour.tsx, src/components/tour/tour-steps.test.ts, src/index.css, src/pages/admin/TenantsList.tsx, src/components/dashboard/ContractorWorkflowHub.tsx, src/components/dashboard/ContractorWorkflowHub.test.ts",
+          ],
+          [
+            "Rev. 40 · 22 Ekim 2026 (Node.js v24.22.1 Konteyner Güvenlik Yaması & Üretim Sunucusu Sertleştirmesi)",
+            "Node.js Güvenlik Bülteni (CVE-2026-111497 Brotli RCE, CVE-2026-105483 TLS Hostname Bypass) & OWASP / CIS Konteyner ve Sunucu Sertleştirme İlkeleri",
+            "1) Dockerfile ve CI (.github/workflows/verify.yml) çalışma zamanı imajları node:24.18.0-bookworm-slim sürümünde sabitlenmişti. 2) Coolify 4.4.7 otomatik gece güncellemesi sırasında /data/coolify/source/.env içindeki tırnaksız boşluk (ROOT_USERNAME) nedeniyle yönetim paneli HTTP 500 döndürüyor ve .env dosya izinleri 644'e düşüyordu; ayrıca SSH daemon'da X11Forwarding açık ve otomatik gece güncellemeleri aktifti.",
+            "1) Dockerfile (dependencies, runtime, ifc-runtime) ve verify.yml içindeki Node.js sürümü v24.22.1 (node:24.22.1-bookworm-slim) güvenlik sürümüne yükseltildi. 2) Sunucu üzerinde Coolify .env ve uygulama ortam dosyaları chmod 600 ile kilitlendi, ROOT_USERNAME tırnak içine alındı, SSHD (X11Forwarding no, AllowAgentForwarding no, MaxAuthTries 4) ve AppArmor/Snapd güvenlik yamaları uygulandı, Coolify gece yarısı otomatik güncellemesi kapatılarak manuel onaylı moda alındı.",
+            "Dockerfile, .github/workflows/verify.yml, docs/audits/GENEL_DURUM_GAP_BUG_SEO_GEO_RAKIP_RAPORU_2026-10-21.md, docs/agent-memory/HANDOFF_2026-10-21_ARA.md",
           ],
         ],
       },

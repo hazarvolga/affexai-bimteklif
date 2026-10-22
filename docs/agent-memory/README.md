@@ -1,6 +1,6 @@
 # BIMMetraj (formerly TeklifPro) Agent Memory
 
-Last updated: 2026-10-17
+Last updated: 2026-10-21
 
 > **Brand Note (2026-10-17):** The project is officially named **BIMMetraj** (formerly TeklifPro; production domain: `bimmetraj.com`). All technical documentation, prompts, and future modules treat BIMMetraj as the canonical product brand.
 
@@ -12,17 +12,19 @@ intentionally much smaller than the full codebase and `.proje_` archive.
 1. `PROJECT_BRIEF.md` - product and business goal.
 2. `WORKING_STATE.md` - one-page current repo/runtime state and known constraints
    (history in `archive/`).
-3. `NEXT_AGENT_PROMPT_2026-10-17.md` - yeni ajana yapıştırılacak hazır görev metni.
-3. `HANDOFF_2026-10-17.md` - complete handoff briefing for the next agent (live revision, deploy commands, environment paths, completed 2026-10-16/17 milestones, and next priorities).
-4. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions (ADR-001 through ADR-010).
-5. `PILOT_PLAN.md` - current repo production-hardening plan.
-6. `AGENT_PROTOCOL.md` - how agents should work safely in this repo.
-7. `graphify-out/GRAPH_REPORT.md` - graph/community view when generated.
+3. `NEXT_AGENT_PROMPT_2026-10-21.md` - yeni ajana yapıştırılacak hazır görev metni (önceki: `NEXT_AGENT_PROMPT_2026-10-19_REV37_KONTROL.md`, `NEXT_AGENT_PROMPT_2026-10-17.md`).
+4. `HANDOFF_2026-10-21_ARA.md` - 21 Ekim 2026 ara verme ve tam denetim handoff özeti (önceki: `HANDOFF_2026-10-19_ARA.md`, `HANDOFF_2026-10-17.md`).
+5. `ARCHITECTURE_DECISIONS.md` - accepted target architecture decisions (ADR-001 through ADR-010).
+6. `PILOT_PLAN.md` - current repo production-hardening plan.
+7. `AGENT_PROTOCOL.md` - how agents should work safely in this repo.
+8. `graphify-out/GRAPH_REPORT.md` - graph/community view when generated.
 
 ## Source Of Truth Layers
 
-- Latest session handoff: `docs/agent-memory/HANDOFF_2026-10-17.md` (previous: `HANDOFF_2026-10-15.md`).
+- Latest session handoff: `docs/agent-memory/HANDOFF_2026-10-21_ARA.md` (previous: `HANDOFF_2026-10-19_ARA.md`, `HANDOFF_2026-10-17.md`, `HANDOFF_2026-10-15.md`).
 - Latest comprehensive audit & Ministry PDF sync reports:
+  - `docs/audits/GENEL_DURUM_GAP_BUG_SEO_GEO_RAKIP_RAPORU_2026-10-21.md` (21 Oct 2026 full read-only calculation verification, 6 BUGs, 8 GAPs, 8 SEO/GEO findings & TR/Global competitor matrix).
+  - `docs/audits/PRODUCTION_READINESS_RAPORU_2026-10-18.md` (18 Oct production readiness audit & Rev. 35 closure).
   - `GAP_RAPORU_2026-10-17.md` (17 Oct audit & P0/P1/P2 remediation).
   - `docs/audits/GAP_VE_DENETIM_RAPORU_2026-10-15.md` (5-skill comprehensive gap audit & closure).
   - `docs/audits/BAKANLIK_SON_PDFLER_ANALIZ_VE_YOL_HARITASI.md` (RG 33331 final PDFs `#1.pdf`, `#2.pdf`, `EKLER.pdf` analysis & 5-phase implementation).

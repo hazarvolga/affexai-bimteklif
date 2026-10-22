@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:24.18.0-bookworm-slim AS dependencies
+FROM node:24.22.1-bookworm-slim AS dependencies
 WORKDIR /app
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm install --global pnpm@11.17.0
@@ -22,7 +22,7 @@ RUN SOURCE_COMMIT="$SOURCE_COMMIT" node -e "require('fs').writeFileSync('dist/bu
 FROM dependencies AS production-dependencies
 RUN pnpm prune --prod --ignore-scripts
 
-FROM node:24.18.0-bookworm-slim AS runtime
+FROM node:24.22.1-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
     PUPPETEER_SKIP_DOWNLOAD=true \
@@ -46,7 +46,7 @@ CMD ["node", "dist/worker.mjs"]
 FROM runtime AS migrate
 CMD ["node", "dist/release-cli.mjs", "apply"]
 
-FROM node:24.18.0-bookworm-slim AS ifc-runtime
+FROM node:24.22.1-bookworm-slim AS ifc-runtime
 ENV NODE_ENV=production \
     PYTHON_BIN=/opt/venv/bin/python3 \
     PATH="/opt/venv/bin:$PATH"

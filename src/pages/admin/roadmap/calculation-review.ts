@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-19.33",
-  updatedOn: "19 Ekim 2026",
-  implementationBaseline: "420008e0d224a2bfca60c51728ea71c69315aefb",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.4), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı ve 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) tamamlandı · bağımsız uzman imzasına hazır",
+  version: "BIM-CALC-2026-10-22.34",
+  updatedOn: "22 Ekim 2026",
+  implementationBaseline: "bfb96eaa64bf06b30dddae473e32ead6ad589761",
+  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.11), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı, 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) ve Node.js v24.22.1 konteyner/sunucu güvenlik sertleştirmesi tamamlandı · bağımsız uzman imzasına hazır",
 };
 
 export interface ModuleRevisionNote {
@@ -1000,6 +1000,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Panel kartı sabit 325 kg/m³ çimento, %10 fire ve +0,40 m² söve payından söz ediyordu.",
         after: "Kart, dozaj, fire, kalınlık ve toleransın kullanıcı tarafından girildiğini anlatır; hesap değişmedi.",
         basis: "Ürün metinleri yalnız doğrulanmış davranışı anlatır",
+      },
+    },
+  },
+  {
+    revision: "Rev. 40",
+    version: "BIM-CALC-2026-10-22.34",
+    date: "22 Ekim 2026",
+    commit: "security/node-24-22-1",
+    trigger: "Node.js v24.22.1 güvenlik bülteni (CVE-2026-111497, CVE-2026-105483) kapsamında konteyner çalışma zamanının yükseltilmesi ve üretim sunucusu sertleştirmesi.",
+    beforeSummary:
+      "Uygulama, kuyruk işçisi ve IFC işçisi konteynerleri node:24.18.0-bookworm-slim taban imajını kullanıyordu; üretim sunucusunda Coolify 4.4.7 gece güncellemesi sonrasında .env izinleri 644'e düşmüş ve otomatik gece güncellemeleri açık kalmıştı.",
+    afterSummary:
+      "Dockerfile (dependencies, runtime, ifc-runtime) ve CI (.github/workflows/verify.yml) node:24.22.1-bookworm-slim sürümüne yükseltildi; üretim sunucusunda .env izinleri chmod 600 ile kilitlendi, SSHD ve sistem güvenlik paketleri (apparmor, snapd) sertleştirildi. Hesaplama formülleri ve kural motorları değişmedi.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Sunucu ve IFC worker konteynerleri Node.js v24.18.0 üzerinde çalışıyordu.",
+        after: "Node.js v24.22.1 güvenlik yamalı taban imajına yükseltildi; Python IfcOpenShell çıkarımı ve metraj hesapları değişmedi.",
+        basis: "Node.js 24 LTS Güvenlik Bülteni (CVE-2026-111497 & CVE-2026-105483)",
       },
     },
   },

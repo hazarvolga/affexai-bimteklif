@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: 24.18.0
+          node-version: 24.22.1
           # pnpm is installed by the following step; automatic cache lookup needs it already on PATH.
           package-manager-cache: false
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
