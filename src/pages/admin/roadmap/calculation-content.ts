@@ -311,6 +311,53 @@ export const CALC_MODULES: CalcModule[] = [
     questions: ["Özel sektör ihaleleri için 'tüm boşlukları eşiksiz düş (0,00 m²)' seçeneği sözleşme profili olarak varsayılan listede yer almalı mı?"],
   },
   {
+    id: "hakedis-donem",
+    title: "Dönemsel ve kümülatif hakediş çekirdeği (Pilot/L2)",
+    area: "Hakediş / Teknik Ofis",
+    status: "bilgi_amacli",
+    sourceFiles: [
+      "src/lib/progress-payment/progress-payment.ts",
+      "src/services/progress-payments/service.ts",
+      "src/contracts/progress-payment.ts",
+      "drizzle-release/0012_progress_payment_evidence.sql",
+    ],
+    references: [
+      "OSKA HakedişPlus kullanım kılavuzu ve Yeşil Defter yardım sayfaları — ürün davranışını anlamak için açık vendor referansı; uyumluluk sertifikası değildir",
+      "AMP Kurumsal Hakediş ve Yaklaşık Maliyet ürün sayfası ve kullanım kılavuzu — rapor ve iş akışı referansı; native dosya kabulü değildir",
+      "BIMMetraj Faz 6 kanıt sözleşmesi — ff057c420641e864e89fa56ced6a1460fc31919b",
+    ],
+    purpose: "Sözleşme kalemlerinin dönem miktarını, önceki ve kümülatif miktar/tutarını sabit noktalı aritmetikle hesaplar; kaynak ölçümlerini ayrı inceleme kararına ve immutable hakediş olayına bağlar. Çıktı teknik çalışma cetvelidir; resmî Yeşil Defter, vendor dosyası veya EKAP gönderimi değildir.",
+    formulas: [
+      "Bu dönem miktarı = onay kapsamındaki kaynak ölçüm miktarlarının sözleşme kalemi için mutabakatlı toplamı",
+      "Kümülatif miktar = önceki onaylı kümülatif miktar + bu dönem miktarı",
+      "Bu dönem tutarı = yuvarla(kümülatif miktar × sözleşme birim fiyatı) − yuvarla(önceki kümülatif miktar × sözleşme birim fiyatı)",
+      "Kümülatif tutar = önceki onaylı kümülatif tutar + bu dönem tutarı; kümülatif satır miktarı sözleşme kalemi miktar tavanını ve dönem satırları sözleşme bedeli mutabakatını aşamaz",
+      "Düzeltme = güncel onaylı dönem supersede edilerek onun tek ardıl taslağı oluşturulur; daha sonraki iptal edilmemiş dönem varsa geçmiş dönem düzeltilemez",
+    ],
+    rules: { columns: ["Kapı", "Kural"], rows: [
+      ["Dönem sırası", "Tenant + sözleşme içinde ardışık ve tekildir; önceki onaylı dönem atlanamaz"],
+      ["Kanıt", "documentId, checksum, kaynak ölçüm ve review kararı aynı kapsamda bağlanır; boş veya mutabakatı bozuk kanıt onaylanamaz"],
+      ["Maker-checker", "Hazırlayan kendi dönemini onaylayamaz; geçiş gerçek aktör ve rol yetkisiyle sunucuda doğrulanır"],
+      ["Değişmezlik", "Onay olayları ve bağlanmış kanıtlar UPDATE/DELETE ile değiştirilemez; kapsam değişimi yeni ardıl kayıt gerektirir"],
+      ["Dışa aktarım", "Vendor çıktısı candidate/internal_roundtrip olarak kalır; compatible=false ve externalAcceptance=false"],
+    ] },
+    example: {
+      inputs: [["Sözleşme kalemi", "100,000 m² × 1.250,00 TL"], ["Önceki onaylı miktar", "40,000 m²"], ["Bu dönem onay kapsamı", "15,500 m²"], ["Alt-kuruş regresyonu", "Ardışık iki dönemde 0,5000 birim × 0,01 TL/birim"]],
+      steps: ["Kümülatif miktar = 40,000 + 15,500 = 55,500 m²", "Bu dönem tutarı = yuvarla(55,500 × 1.250,00) − yuvarla(40,000 × 1.250,00) = 19.375,00 TL", "Kümülatif tutar = 50.000,00 + 19.375,00 = 69.375,00 TL", "Alt-kuruş kontrolünde ilk kümülatif 0,005 TL → 0,01 TL; ikinci kümülatif 0,010 TL → 0,01 TL olur. İkinci dönem farkı 0,00 TL'dir ve toplam 0,01 TL'yi aşmaz"],
+      result: "Bu dönem 19.375,00 TL · kümülatif 69.375,00 TL; kümülatif yuvarlama farkı, sözleşme tavanı ve kaynak/review bağları geçerse onaylanabilir.",
+    },
+    assumptions: [
+      "Miktar ve para sabit noktalı tamsayı ölçeğinde hesaplanır; ikili kayan nokta sonucu ödeme kaydına girmez.",
+      "İş artışı/eksilişi, fiyat farkı snapshot'ı ve kesin hesap çekirdeği deterministiktir; sözleşmeye uygunluk bağımsız teknik ofis fikstürü olmadan kabul edilmiş sayılmaz.",
+      "Özellik varsayılan olarak kapalıdır, production'a dağıtılmamıştır ve L3 değildir.",
+    ],
+    questions: [
+      "İzinli gerçek sözleşme, Yeşil Defter, ataşman ve icmal setinde dönem/kümülatif tutarlar teknik ofis tarafından birebir doğrulanıyor mu?",
+      "İş artışı/eksilişi, fiyat farkı ve kesin hesap sırası kullanılan sözleşme türüne göre doğru mu?",
+      "OSKA/AMP native import ancak lisanslı vendor fixture ve üretici/kullanıcı kabulüyle ayrıca doğrulanabilir mi?",
+    ],
+  },
+  {
     id: "taseron-hakedis-kalkani",
     title: "Daire bazlı taşeron hakediş kalkanı — şap / sıva / kaplama tavanı ve harç hacmi (Pilot)",
     area: "SmartCheck / Metraj",

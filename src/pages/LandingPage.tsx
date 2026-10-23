@@ -632,7 +632,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0 text-[11px] font-mono">
                 <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-                  Yol Haritasında · 2026 Q4: EKAP Tutanak İçe Aktarımı
+                  Pilot/L2 · Hakediş Çekirdeği Varsayılan Kapalı · Resmî EKAP Gönderimi Yok
                 </span>
                 <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
                   Kısmi · veraPDF Runtime & Lisanslı PDF/A Dönüşümü Bekliyor

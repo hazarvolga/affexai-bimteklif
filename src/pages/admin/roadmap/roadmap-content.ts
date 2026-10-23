@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (23 Ekim 2026 · Rev. 44 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 46 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -203,6 +203,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["Kişisel veri maskeleme ve PDF/A + Pafta + e-İmza ön kontrolü", "Kurum içi pilotta canlı", "TC/VKN/e-posta/telefon maskelenir; 2B PDF teslim dosyalarında PDF/A kimliği, şifreleme, taranmış sayfa (m.6(4)), ISO 216 A4 katları pafta boyutu (m.8(1)), çizim paftalarında tek pafta düzeni (m.8(2)), gömülü e-imza (/Sig, m.6(1)-(2)) ve EK-2 dosya adı denetlenir"],
         ["Kotadan Düşmeyen Canlı Örnek Projeler (/app/smartcheck) & Mühendislik Kabul Kanıt Paketi", "Hazır (BIM-CALC-2026-10-15.3)", "IfcOpenShell 0.8.5 ve pypdf 6.10.2 ile üretilen MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) referans koşuları SHA-256 özetleriyle mühürlendi ve /app/smartcheck ekranında tek tıkla kotadan düşmeden denenebilir hale getirildi"],
         ["Gerçek Tarayıcı (Chromium) axe-core Açık/Koyu Mod Erişilebilirlik, SEO/GEO & Üretim Sertleştirmesi", "Hazır (Rev. 35 · BIM-CALC-2026-10-18.29)", "8 genel rotada hem Açık Pafta hem Gece Paftası (html.dark) modunda gerçek Chromium + axe-core denetimi (scripts/e2e-a11y-smoke.ts) 0 ihlal ile CI'a bağlandı; /bim-sozlugu noscript terimleri, PWA manifest, /.well-known/security.txt, /api/* Cache-Control: no-store, hesap bazlı giriş yavaşlatma, VILLA_MARKET_COST_BENCHMARK_2026 arayüz çekmecesi ve 105 kB ana paket ayrımı tamamlandı"],
+        ["Dönemsel Hakediş, Kaynaklı Ölçüm/Review ve Vendor/EKAP Savunma Sınırı", "Kısmi · Pilot/L2 · Varsayılan Kapalı (Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği tamamlandı; T36 kaynak bağlı ölçüm/review çekirdeği resmî Yeşil Defter/ataşman kabulü bekler; T37 bağımsız teknik ofis fikstürü bekler; T38 yalnız candidate/internal_roundtrip, T39 yalnız provenance/manifest yardımcısıdır. OSKA/AMP native import, resmî EKAP gönderimi, uzman onayı, production deploy veya L3 iddiası yoktur."],
         ["Gerçek proje saha/mühendislik kabulü", "ALLPLAN 2026.1 Uzman Modeli & 4 Excel Çapraz Doğrulaması Tamamlandı", "31,4 MB ALLPLAN 2026.1 gerçek mimari modeli (1.731 eleman) ve 4 ham Allplan Excel raporu çapraz doğrulandı; 2–3 pilot ofis sözleşmesel saha kabulü sırada"],
       ] },
     ],
@@ -253,6 +254,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["12 — GAP kapatma Faz 3: mevzuat ve hesap motorları", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 43)", "T19–T26: YAMBİS, KİK yüzde 80, 4735, kat karşılığı KDV, Pre-BIM, Minha, 3×3, e-PYS ve ISO motorları tarihli kaynak/kanıt bağlamıyla fail-closed çalışır. Lisanslı standart erişimi, nihai e-PYS belge kimliği, mali müşavir ve bağımsız mühendis kabulü bekleniyor."],
         ["13 — GAP kapatma Faz 4: gerçek CDE onay akışı", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 44)", "T27–T29: açık geçiş tablosu, tenant/proje/revizyon kapsamlı kalıcı API, gerçek rol/disiplin kimliği, optimistic lock, idempotency, maker-checker, append-only karar izi ve kapsam değişiminde yeniden onay kapısı tamamlandı. Pilot/L2'dir; ISO lisanslı metin incelemesi, e-imza, bağımsız BIM koordinatörü ve gerçek saha kabulü bekleniyor."],
         ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / kapanmadı (23 Ekim 2026 · Rev. 45)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32 NO-GO'dur: gerçek veraPDF CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı ile izinli dosya matrisi tamamlanmadan Faz 5 kapanmaz. Kriptografik imza güveni ve büyük IFC ana iş parçacığı performansı da bağımsız kabul bekler."],
+        ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
@@ -264,17 +266,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 45 · 13–23 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 46 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 45)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay ve güvenli inceleme akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 45 · BIM-CALC-2026-10-23.39 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 45 kısmi pilot/L2 geliştirme kanıtıdır; gerçek PDF/A validator runtime/dönüşüm lisansı, kriptografik e-imza güveni, büyük IFC performans kabulü ve bağımsız uzman saha kabulü bekler, canlı yayın veya L3/L4 iddiası taşımaz.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 46)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay, güvenli inceleme ve dönemsel hakediş akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 24 Ekim 2026 Rev. 46 · BIM-CALC-2026-10-24.40 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 46 kısmi pilot/L2 geliştirme kanıtıdır; gerçek Yeşil Defter/ataşman kabulü, bağımsız teknik ofis fikstürü, lisanslı OSKA/AMP native import kabulü ve adlı ihale uzmanı imzası bekler. Özellik varsayılan kapalıdır, production'a dağıtılmamıştır ve L3/L4 iddiası taşımaz.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 44):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 46):",
       },
       {
         type: "table",
@@ -545,16 +547,28 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T19–T26 kapsamında ortak kaynak manifestosu ve EvaluationEnvelope referans sözleşmesi eklendi; motorlar kendi fail-closed sonuç tiplerini korur. YAMBİS kesin/potansiyel grubu ayırır; KİK yüzde 80 listesi yalnız doğrulanmış idare YM artifact'ından çıkar; 4735 ihale/sözleşme/endeks kronolojisi, KDV pozitif satır matrahı ister. Pre-BIM plan kararı verified artifact'a, Minha uygulaması doğrulanmış sözleşme baskısı ile kaynaklı söve derinliğine bağlandı. 3×3 legacy isValid yanlış yeşil vermez; e-PYS identity_pending, ISO/TS access_required kaldığı için otomatik başarı uzman onayı sayılmaz; production deploy yapılmadı.",
           ],
           [
-            "Rev. 44 (Güncel geliştirme)",
+            "Rev. 44",
             "23 Ekim 2026 (Faz 4 — Gerçek CDE Onay Akışı)",
             "BIM-CALC-2026-10-23.38",
             "T27–T29 kapsamında CDE durum motoru açık whitelist ve en yeni kabul edilmiş durum seçimiyle düzeltildi. Tenant/proje/revizyon kapsamlı PostgreSQL şeması ve HTTP API; gerçek kullanıcı rolü/disiplini, approve/reject/withdraw, optimistic lock, idempotency ve maker-checker kapılarıyla kuruldu. Dosya, kaynak, kural, sonuç veya kod hash'i değişince yeni immutable revizyon WIP durumuna döner; eski karar eski kapsamda korunur. Olay geçmişi DB trigger'ıyla append-only'dir ve UI sunucu geçmişini yükler. Pilot/L2'dir; bağımsız uzman, e-imza, saha kabulü ve production deploy yapılmadı.",
+          ],
+          [
+            "Rev. 45",
+            "23 Ekim 2026 (Faz 5 — Güvenli Çıktı ve İnceleme, Kısmi)",
+            "BIM-CALC-2026-10-23.39 (601ce90)",
+            "T30 güvenli tablo çıktısı, T31 sınırlı PDF imza yapısal ön kontrolü, T33 kaynak kimlikli 3B inceleme pilotu ve T34 immutable Calm icmali→teklif köprüsü tamamlandı. T32 gerçek veraPDF CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı olmadığı için NO-GO kaldı; production deploy ve L3 iddiası yoktur.",
+          ],
+          [
+            "Rev. 46 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 6 — Hakediş ve İhale Savunması, Kısmi)",
+            "BIM-CALC-2026-10-24.40 (ff057c420641e864e89fa56ced6a1460fc31919b)",
+            "T35 tenant bağlı dönemsel/kümülatif hakediş çekirdeği tamamlandı. T36 kaynak ölçüm-review çekirdeği resmî Yeşil Defter/ataşman kabulünü; T37 deterministik icmal/düzeltme/iş artışı-fiyat farkı-kesin hesap çekirdeği bağımsız teknik ofis fikstürünü bekler. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; T39 belge checksum'lu provenance/manifest yardımcısıdır ve automaticOfficialSubmission=false kalır. Faz 6 PARTIAL, feature flag ile varsayılan kapalı, production'a dağıtılmamış ve L3 değildir.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 44 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 46 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -979,6 +993,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T30 ortak güvenli serializer, sürümlü firma sahiplik beyanı ve gerçek LibreOffice açma testiyle; T31 bounded/cycle-safe tüm sayfa ve nested form taramasıyla tamamlandı. T33 kaynak hash + run + STEP elementKey kullanan seçim/vurgulama/gizleme/izolasyon pilotu ve kaynak limitleriyle; T34 sunucuda yeniden kurulan Calm projeksiyonu, yalnız KDV hariç ve açık oranlı yetkili fiyat, immutable ardıl teklif, idempotency, ardışık revizyonda kanıt taşıma, semantik tekrar koruması ve satır lineage'ıyla tamamlandı. T32 ayrı veraPDF validation artifact'ı, resmi 0/1 çıkış kodu ve fail-closed unavailable sözleşmesi düzeyindedir; gerçek CLI runtime, lisanslı dönüşüm sağlayıcısı ve izinli dosya matrisi olmadığı için NO-GO ve Faz 5 kapanmamıştır.",
             "src/lib/tabular-data.ts, workers/ifc/pdf_preflight.py, src/smartcheck/pdf/*, src/ifc/viewer/*, src/components/smartcheck/viewer/*, src/services/quotations/calm-transfer.ts, src/server/routes/smartcheck.ts, src/db/schema.ts, drizzle-release/0011_quotation_transfer_ledger.sql",
           ],
+          [
+            "Rev. 46 · 24 Ekim 2026 (Faz 6 — Hakediş, Yeşil Defter Kanıtı ve İhale Savunması, Kısmi)",
+            "Sabit noktalı dönem/kümülatif hakediş; tenant ve sözleşme kapsamı; kaynak checksum'u ve maker-checker; immutable olay/düzeltme zinciri; OSKA/AMP açık vendor iş akışı referansları; ihale provenance/manifest sınırı",
+            "Dönem sırası, önceki/bu dönem/kümülatif miktar ve tutar, sözleşme tavanı, kaynak ölçüm, review kararı ve düzeltme zinciri tek kalıcı transaction modelinde yoktu. Vendor dosya alışverişi ile ihale savunma paketi için doğrulanabilir sınırlar kodda ifade edilmiyordu.",
+            "T35 BigInt sabit nokta hesabı, dönem sırası, sözleşme tavanı ve draft/submit/approve yaşam döngüsüyle tamamlandı. T36 documentId+checksum bağlı ölçüm ve ayrı review olaylarını maker-checker kararıyla hakedişe bağlar; resmî Yeşil Defter/ataşman kabulü dışarıdadır. T37 düzeltme, iş artışı/eksilişi, fiyat farkı snapshot'ı ve kesin hesapta deterministik/fail-closed çekirdek sunar; bağımsız teknik ofis fikstürü yoktur. T38 çıktılarını candidate/internal_roundtrip ve compatible=false ile sınırlar; lisanslı OSKA/AMP native fixture kabulü yoktur. T39 her girdiyi documentId+checksum manifestine bağlar, OCR/provenance/duplicate belirsizliğinde kapanır ve automaticOfficialSubmission=false bırakır; adlı ihale uzmanı imzası bekler. Özellik varsayılan kapalı, production'a dağıtılmamış ve L3 değildir.",
+            "src/lib/progress-payment/*, src/contracts/progress-payment.ts, src/services/progress-payments/*, src/server/routes/progress-payments.ts, src/domain/vendor-interop/*, src/domain/tender-defense/*, src/db/schema.ts, drizzle-release/0012_progress_payment_evidence.sql, scripts/release-migrations/data-transitions.ts",
+          ],
         ],
       },
 
@@ -987,6 +1008,10 @@ export const ROADMAP_SECTIONS: DocSection[] = [
 ];
 
 export const ROADMAP_SOURCES: DocSource[] = [
+  { label: "OSKA HakedişPlus Kullanım Kılavuzu — açık vendor iş akışı referansı, native uyumluluk kanıtı değildir", url: "https://www.oska.com.tr/pdfdokumanlar/hakedispluskullanim-kilavuzu.pdf" },
+  { label: "OSKA HakedişPlus Yeşil Defter yardımı", url: "https://destek.oska.com.tr/hakedisplus-yardimi/hakedis-islemleri/yesil-defter/" },
+  { label: "AMP Kurumsal Hakediş ve Yaklaşık Maliyet — ürün ve rapor iş akışı", url: "https://www.amp.com.tr/urunler/kurumsal-hakedis-ve-yaklasik-maliyet", note: "Lisanslı native fixture veya import kabulü değildir" },
+  { label: "AMP Kurumsal Hakediş ve Yaklaşık Maliyet Kullanım Kılavuzu", url: "https://www.amp.com.tr/dosyalar/kh/dokumanlar/kullanim-kilavuzu-amp-kurumsal-hakedis-ve-yaklasik-maliyet.pdf" },
   { label: "RG 5.8.2026/33331 — Dijital Hazırlama Yönetmeliği (#1.pdf)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2.htm" },
   { label: "RG 5.8.2026/33331 — Yönetmelik ekleri (EKLER.pdf — EK-1..EK-9, Tablo 7.1–7.9, Tablo 9.1–9.2)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-2-1.pdf", note: "SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3" },
   { label: "RG 5.8.2026/33331 — Elektronik Teslim Yönetmeliği (#2.pdf — Geçici Madde 2 & Madde 14)", url: "https://www.resmigazete.gov.tr/eskiler/2026/08/20260805-3.htm" },

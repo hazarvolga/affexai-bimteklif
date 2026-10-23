@@ -321,6 +321,12 @@ export default function LegislationView() {
               <strong>Önemli 5D Eşleştirme Kuralı:</strong> Modellerinizde 5D metraj ve teklif köprüsü kurarken IFC yapı elemanlarına <code>TREpys_PozOzellikSeti.PozNo</code> (veya geriye dönük uyumluluk için <code>Tr_Pset_CSB.PozNo</code>) eklenebilir. SmartCheck bu kodu aday olarak okur; birim, semantik, geçerlilik ve kaynak kullanım yetkisi doğrulanmadan fiyat üretmez veya teklifi kilitlemez.
             </p>
           </div>
+          <div className="mt-3 flex items-start gap-3 border border-amber-500/30 bg-amber-500/5 p-4 rounded-xl">
+            <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed font-semibold">
+              <strong>Hakediş kapsam sınırı:</strong> Dönemsel ve kümülatif hakediş çekirdeği pilot/L2 düzeyindedir ve varsayılan olarak kapalıdır. Kaynak ölçüm ve review kayıtları teknik çalışma cetveline bağlanır; çıktı resmî Yeşil Defter, OSKA/AMP uyumluluk belgesi veya EKAP gönderimi değildir. Bu kabuller için izinli vendor dosyası, bağımsız teknik ofis fikstürü ve adlı ihale uzmanı imzası gerekir.
+            </p>
+          </div>
         </div>
       </section>
 

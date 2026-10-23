@@ -41,6 +41,10 @@ export function PublicBimGlossaryPage() {
           title="BIM, openBIM (IFC) & RG 33331 e-PYS Mühendislik Sözlüğü"
           description="ISO 19650, IFC 4.3, QTO, COBie, LOD, ÇŞB Poz ve 5 Ağustos 2026 tarihli RG 33331 e-PYS standart terimlerinin kapsamlı Türkçe başvurusu."
         />
+        <aside className="rounded border border-amber-500/30 bg-amber-500/5 p-4 text-sm leading-relaxed text-muted-foreground">
+          <strong className="text-foreground">Hakediş ve Yeşil Defter:</strong>{" "}
+          Hakediş, belirli bir dönemde sözleşme kapsamında gerçekleşen imalatın miktar ve tutar kaydıdır; kümülatif değer önceki onaylı dönemlerle bu dönemi birlikte gösterir. Yeşil Defter ise ölçüm ayrıntılarının teknik çalışma cetvelidir. BIMMetraj'ın Faz 6 çıktısı pilot/L2'dir; resmî belge, OSKA/AMP native dosya uyumluluğu, EKAP gönderimi veya uzman onayı anlamına gelmez.
+        </aside>
         <BimGlossary />
       </div>
     </main>

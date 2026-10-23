@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-23.39",
-  updatedOn: "23 Ekim 2026",
-  implementationBaseline: "601ce90e5cc1945e611b57ae84b669aa0a454731",
-  approvalStatus: "Faz 5 kısmi geliştirme kapısıdır: güvenli CSV/XLSX, sınırlı PDF imza yapısal ön kontrolü, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı tamamlandı. veraPDF rapor entegrasyonu XMP beyanından ayrı doğrulama artifact'ı üretir; ancak gerçek CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı bulunmadığından T32 NO-GO, Faz 5 ise kapanmamıştır. Kriptografik imza/güven zinciri/iptal/zaman damgası doğrulaması, üretim ölçekli IFC ana iş parçacığı performansı ve bağımsız uzman saha kabulü dış kanıt bekler.",
+  version: "BIM-CALC-2026-10-24.40",
+  updatedOn: "24 Ekim 2026",
+  implementationBaseline: "ff057c420641e864e89fa56ced6a1460fc31919b",
+  approvalStatus: "Faz 6 kısmi pilot/L2 geliştirme kapısıdır ve varsayılan olarak kapalıdır. T35 dönemsel/kümülatif hakediş çekirdeği kod ve test kapsamında tamamlandı. T36 kaynak bağlı ölçüm, maker-checker inceleme ve immutable olay çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü dış kanıt bekler. T37 deterministik icmal, düzeltme, iş artışı/eksilişi, fiyat farkı snapshot'ı ve kesin hesap çekirdeğine sahiptir; bağımsız teknik ofis fikstürü yoktur. T38 yalnız candidate/internal_roundtrip üretir; lisanslı OSKA/AMP dosyasıyla native import kabulü yoktur. T39 yalnız kaynak/provenance ve manifest yardımcı katmanıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL'dır; canlıya alınmamış ve L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1172,6 +1172,33 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 46",
+    version: "BIM-CALC-2026-10-24.40",
+    date: "24 Ekim 2026",
+    commit: "ff057c420641e864e89fa56ced6a1460fc31919b",
+    trigger: "GAP kapatma yol haritası Faz 6 (T35–T39): tenant bağlı dönemsel hakediş, ölçüm/inceleme kanıtı, düzeltme ve vendor/ihale savunma sınırları.",
+    beforeSummary: "Hakediş için dönem sırası, önceki/bu dönem/kümülatif tutar ayrımı, sözleşme tavanı, ölçüm kaynağı, maker-checker incelemesi, immutable karar izi ve düzeltme zinciri kalıcı bir modelde yoktu. Vendor ve ihale aktarımı için kanıt sınırları kodla ifade edilmiyordu.",
+    afterSummary: "Sabit noktalı dönemsel hakediş çekirdeği, tenant ve sözleşme kapsamlı PostgreSQL kayıtları, kaynak checksum'una bağlı ölçümler, ayrı review olayları, maker-checker, optimistic lock, idempotency ve append-only korumalarla pilot olarak kuruldu. Düzeltme güncel onaylı dönemi supersede ederek onun tek ardıl taslağını oluşturur; daha sonraki herhangi bir iptal edilmemiş dönem varken geçmiş dönem değiştirilemez. OSKA/AMP çıktısı yalnız aday/iç roundtrip düzeyindedir; resmî uyumluluk veya kabul üretmez. EKAP savunma yardımcısı belge checksum'u ve manifest ister; otomatik resmî gönderim yapmaz. Faz 6 PARTIAL, varsayılan kapalı ve dağıtıma alınmamıştır.",
+    affectedModules: ["hakedis-donem", "taseron-hakedis-kalkani", "kik-adt"],
+    moduleDetails: {
+      "hakedis-donem": {
+        before: "Dönem numarası, önceki/kümülatif miktar ve tutar, sözleşme tavanı, review kararı ve düzeltme zinciri tek transaction ve kanıt kapsamıyla korunmuyordu.",
+        after: "Saf hesap motorunda BigInt sabit nokta, kalıcı servis yolunda PostgreSQL NUMERIC/round yeniden hesabıyla önceki + bu dönem = kümülatif eşitliği ve sözleşme tavanı korunur. Taslak, submit ve approve geçişleri gerçek aktör, tenant, scope hash, version/expectedVersion optimistic lock ve idempotency anahtarına bağlıdır; olaylar ve bağlanmış kanıtlar immutable'dır.",
+        basis: "src/lib/progress-payment/progress-payment.ts, src/services/progress-payments/service.ts, src/contracts/progress-payment.ts, src/db/schema.ts ve drizzle-release/0012_progress_payment_evidence.sql",
+      },
+      "taseron-hakedis-kalkani": {
+        before: "Daire bazlı tavan hesabı tek dönemli bir danışma hesabıydı; kaynak belge checksum'u, yetkili review kararı ve dönemsel ödeme kaydıyla bağlı değildi.",
+        after: "Kaynak bağlı measurement kayıtları ve ayrı inceleme olayları dönemsel hakediş satırına bağlanabilir; onaysız, boş veya mutabakatı bozuk kanıt ödeme onayına geçemez. Resmî Yeşil Defter/ataşman kabulü ve bağımsız teknik ofis fikstürü hâlâ dış kapıdır.",
+        basis: "src/services/progress-payments/service.ts ve scripts/release-migrations/data-transitions.ts",
+      },
+      "kik-adt": {
+        before: "İhale savunma paketi için her girdi belgesini kimlik ve checksum ile bağlayan manifest ve OCR/provenance/duplicate fail-closed sınırı yoktu.",
+        after: "Tender-defense yardımcısı her girdi belgesini documentId + checksum ile manifestte bağlar; eksik provenance, OCR belirsizliği ve mükerrer belgeyi reddeder. automaticOfficialSubmission=false sabittir; adlı ihale uzmanı imzası olmadan resmî EKAP kabulü iddia edilmez.",
+        basis: "src/domain/tender-defense/*; 4734/4735 ve proje kanıt uydurmama ilkesi",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -1182,6 +1209,11 @@ interface CalculationEvidence {
 
 /** Test references identify coverage to inspect; they do not assert a fresh or full test pass. */
 export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
+  "hakedis-donem": {
+    scope: "Tenant bağlı dönemsel/kümülatif hakediş, kaynak ölçüm-review bağı, sabit noktalı tutar, sözleşme tavanı, immutable olay ve düzeltme zinciri; pilot/L2 ve varsayılan kapalı.",
+    testFiles: ["src/lib/progress-payment/progress-payment.test.ts", "src/services/progress-payments/service.integration.test.ts", "src/domain/vendor-interop/vendor-interop.test.ts", "src/domain/tender-defense/tender-defense.test.ts", "scripts/release-migrations/verify.integration.test.ts"],
+    pending: "İzinli gerçek Yeşil Defter/ataşman/icmal ve bağımsız teknik ofis fikstürü; lisanslı OSKA/AMP native import kabulü; adlı ihale uzmanı EKAP savunma imzası. Bunlar olmadan resmî uyumluluk, L3 veya canlı kullanım iddiası yoktur.",
+  },
   "teklif-satir": {
     scope: "Teklif ekranı, sunucu ve PDF toplamlarında kullanılan ortak yöntem.",
     testFiles: ["src/lib/calculations.test.ts", "src/pages/admin/roadmap/content.test.ts"],

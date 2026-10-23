@@ -1,12 +1,19 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-22. Keep this file to one page: current truth only.
+Last updated: 2026-10-24. Keep this file to one page: current truth only.
 > **Brand Note:** Project brand is officially **BIMMetraj** (formerly TeklifPro; domain `https://bimmetraj.com`).
 
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
 only when a decision needs its background; its paths and Vercel notes are stale).
 Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-21_ARA.md` (previous: `HANDOFF_2026-10-19_ARA.md`, `HANDOFF_2026-10-17.md`).
 Latest full audit & competitor report (2026-10-21): `docs/audits/GENEL_DURUM_GAP_BUG_SEO_GEO_RAKIP_RAPORU_2026-10-21.md` (next agent prompt: `docs/agent-memory/NEXT_AGENT_PROMPT_2026-10-21.md`).
+
+## Current local development — do not confuse with production
+
+- Local Phase 6 code baseline is `ff057c420641e864e89fa56ced6a1460fc31919b` (`Rev. 46`, `BIM-CALC-2026-10-24.40`). It adds tenant-bound period/cumulative progress payments, source-linked measurement/review evidence, immutable correction/event rules, candidate vendor roundtrip helpers, and tender-defense provenance/manifest helpers.
+- Status is **PARTIAL / pilot L2**. The feature flag is disabled by default and this revision has **not** been deployed. Production truth remains in the separate Production section below.
+- T35 is code/test complete. T36 still needs permitted official Yeşil Defter/attachment acceptance; T37 needs an independent technical-office fixture; T38 has no licensed OSKA/AMP native import acceptance; T39 has no named procurement expert sign-off and performs no official submission.
+- Phase 6 evidence: `docs/audits/phase-6/PHASE_6_REPORT_2026-10-24.md`. Recorded validation: `pnpm test` 1314/1308/0/6, IFC 72 pass, PostgreSQL lifecycle 14/0/1, service 3/3, artifacts 6/6, build pass, high/critical audit clean with 3 moderate advisories; code and security reviews GO.
 
 ## Production
 
