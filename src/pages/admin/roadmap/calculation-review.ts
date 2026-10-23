@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.41",
+  version: "BIM-CALC-2026-10-24.42",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "eeeaf75f27cd0b65c3f7f44ed6e3668386cceb53",
-  approvalStatus: "Rev. 47, T40 PostgreSQL görev ayrımı için tooling ve izole PostgreSQL 16 adversarial kanıtını ekler; hesap formüllerini değiştirmez. Owner/migrator/app/worker/backup sınırları, exact ACL/RLS ve vendor provenance kapıları kod/test kapsamında hazırdır. Compose/runtime credential cutover, production canary/rollback ve deploy yapılmadığı için T40 ve Faz 7 PARTIAL kalır. Faz 6 mühendislik/vendor/ihale dış kabul kapıları da aynen açıktır; bu kayıt uzman onayı veya L3 değildir.",
+  implementationBaseline: "58cf3205fa6a4c7d2244dd27bb9bd83fe895aef0",
+  approvalStatus: "Rev. 48, T41'in ilk güvenli diliminde beş CDE tablosuna FORCE RLS, transaction-local tenant context ve exact runtime app-role kapısı ekler; hesap formüllerini değiştirmez. İzole PostgreSQL 16 üzerinde iki tenant, pool reuse, concurrency, full CDE lifecycle ve rol sınırları doğrulanmıştır. Kalan tenant tabloları, T40 runtime credential cutover, production canary/rollback ve deploy yapılmadığı için T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1213,6 +1213,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "IFC/SmartCheck hesap kuyruğu uygulama isteği sırasında Graphile şemasını migrate edebiliyor ve app/worker/migrator/backup yetkileri exact, bağımsız bir PostgreSQL sözleşmesiyle denetlenmiyordu.",
         after: "Runtime yalnız migration-18 hazırsa devam eder; app sadece doğrulanmış SmartCheck wrapper'larını çağırır, worker queue DML yürütür, backup salt okunur, migrator explicit SET ROLE ile DDL yapar. Bu altyapı miktar formülünü değiştirmez ve production cutover kanıtı değildir.",
         basis: "scripts/database-roles/*, src/smartcheck/import/queue-readiness.ts, src/contracts/database-role-provision.pgtest.ts ve PostgreSQL 16 least-privilege davranış kanıtı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 48",
+    version: "BIM-CALC-2026-10-24.42",
+    date: "24 Ekim 2026",
+    commit: "58cf3205fa6a4c7d2244dd27bb9bd83fe895aef0",
+    trigger: "GAP kapatma yol haritası Faz 7 / T41 ilk güvenli dilim: CDE tablolarında veritabanı seviyesinde tenant izolasyonu.",
+    beforeSummary: "CDE servisinde companyId filtreleri ve proje RBAC vardı; ancak veritabanı satır politikası yoktu. Yanlış runtime credential, unutulan filtre veya pool bağlam sızıntısı tenant verisini açabilirdi; operasyonel rol inspector'ı CDE policy driftini görmüyordu.",
+    afterSummary: "Beş CDE tablosu FORCE RLS ile korunur. App erişimi transaction-local company/user contextine ve exact restricted bimmetraj_app session/current role kimliğine bağlıdır; worker varsayılan reddedilir, backup salt okunur, migration owner istisnası yalnız migrator→owner oturumuna açıktır. PG16 testi full CDE yazma/okuma yaşam döngüsü, rollback, pool reuse, eşzamanlı A/B tenant ve policy driftini doğrular. Bu yalnız CDE dilimidir; diğer tenant tabloları ile production credential cutover açık olduğundan T41 PARTIAL'dır.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "CDE proje, üye, konteyner, revizyon ve karar olayı sorguları uygulama filtresine ve RBAC'a dayanıyor; DB katmanı filtre unutulmasına karşı ikinci savunma sunmuyordu.",
+        after: "CDE'nin beş tablosu FORCE RLS, app tenant policy, backup read policy ve yalnız migrator session'lı owner policy taşır. CdeService'in bütün girişleri aynı checked-out bağlantıda BEGIN→tenant GUC→iş→COMMIT/ROLLBACK akışını kullanır; owner/superuser/SET ROLE veya yetkili üyelik driftinde callback başlamadan kapanır.",
+        basis: "src/db/tenant-context.ts, src/services/cde/service.ts, src/db/schema.ts, drizzle-release/0013_cde_tenant_rls.sql, scripts/database-roles/inspect.ts ve src/contracts/cde-tenant-rls.pgtest.ts",
       },
     },
   },

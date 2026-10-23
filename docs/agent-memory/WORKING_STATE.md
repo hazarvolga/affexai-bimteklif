@@ -10,8 +10,10 @@ Latest full audit & competitor report (2026-10-21): `docs/audits/GENEL_DURUM_GAP
 
 ## Current local development — do not confuse with production
 
+- Local Phase 7 / T41 first-slice baseline is `58cf3205fa6a4c7d2244dd27bb9bd83fe895aef0` (`Rev. 48`, `BIM-CALC-2026-10-24.42`). Five CDE tables now use FORCE RLS with transaction-local tenant context, exact restricted app-session enforcement, worker default-deny, backup read-only and an explicit migrator-owner path. Real PostgreSQL 16 evidence covers the full CDE lifecycle, rollback, pool reuse, concurrent A/B tenants and policy drift.
+- T41 remains **PARTIAL**: this slice covers only `cde_projects`, `cde_project_members`, `cde_containers`, `cde_revisions` and `cde_transition_events`. The other tenant tables, T40 compose/runtime credential cutover, production canary/rollback and deployment remain open. Evidence: `docs/audits/phase-7/PHASE_7_T41_PARTIAL_2026-10-24.md`; model: `docs/operations/tenant-rls-model.md`.
 - Local Phase 7 / T40 code baseline is `eeeaf75f27cd0b65c3f7f44ed6e3668386cceb53` (`Rev. 47`, `BIM-CALC-2026-10-24.41`). It adds evidence-gated PostgreSQL owner/migrator/app/worker/backup role tooling, exact ACL/RLS/vendor provenance inspection, disposable PG16 adversarial coverage, and removes runtime Graphile auto-migration.
-- T40 status is **PARTIAL**: compose/runtime credentials were not cut over, production was not deployed, and canary/rollback/restore parity remain open. T41–T45 are open. Evidence: `docs/audits/phase-7/PHASE_7_T40_PARTIAL_2026-10-24.md`; operator model: `docs/operations/database-role-model.md`.
+- T40 status is **PARTIAL**: compose/runtime credentials were not cut over, production was not deployed, and canary/rollback/restore parity remain open. Evidence: `docs/audits/phase-7/PHASE_7_T40_PARTIAL_2026-10-24.md`; operator model: `docs/operations/database-role-model.md`.
 - Local Phase 6 code baseline is `ff057c420641e864e89fa56ced6a1460fc31919b` (`Rev. 46`, `BIM-CALC-2026-10-24.40`). It adds tenant-bound period/cumulative progress payments, source-linked measurement/review evidence, immutable correction/event rules, candidate vendor roundtrip helpers, and tender-defense provenance/manifest helpers.
 - Status is **PARTIAL / pilot L2**. The feature flag is disabled by default and this revision has **not** been deployed. Production truth remains in the separate Production section below.
 - T35 is code/test complete. T36 still needs permitted official Yeşil Defter/attachment acceptance; T37 needs an independent technical-office fixture; T38 has no licensed OSKA/AMP native import acceptance; T39 has no named procurement expert sign-off and performs no official submission.
@@ -261,5 +263,5 @@ Release status (2026-10-13):
 
 Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BIMMetraj), card-payment provider decision, runtime DB role cutover/canary/rollback, T41–T45 database hardening, DKIM, (httpOnly cookies: done in Rev. 28). Revisit Sentry quota after the trial
+Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BIMMetraj), card-payment provider decision, runtime DB role cutover/canary/rollback, remaining T41 scope and T42–T45 database hardening, DKIM, (httpOnly cookies: done in Rev. 28). Revisit Sentry quota after the trial
 automatically transitions to the free plan; do not enable paid usage.
