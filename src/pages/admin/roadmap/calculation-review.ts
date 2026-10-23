@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.45",
+  version: "BIM-CALC-2026-10-24.46",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "b8733c0d204bec9e978ab1a98e16df328dbb9d8c",
-  approvalStatus: "Rev. 51, T40 için app, worker/ifc-worker, migrator ve backup runtime credential ayrımını; migrationın doğrulanmış migrator kimliğinden transaction-local owner rolüne geçmesini; worker-drain sırasını ve izole parola doğrulamalı PostgreSQL 16 üzerindeki A→B→A credential rollback kanıtını kaydeder. Hesap yöntemleri ve formüller değişmemiştir. Production cutover, canary, restore/parity ve deploy yapılmadığından T40 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "cd4b640d77cf3662b7f2f0270c1460f56fd0f56e",
+  approvalStatus: "Rev. 52, T41'in ikinci diliminde on hakediş tablosu için FORCE RLS, exact app tenant, backup SELECT, migrator-owner ve worker default-deny policy matrisini; ProgressPaymentService'in bütün DB girişlerinin tek tenant transactionına alınmasını; migration 0015 ile kurulum sonrası driftte fail-closed inspector/provisioner sınırını kaydeder. Tag ve tabloların birlikte bulunmadığı pre-schema bootstrap geçerlidir. Hesap yöntemleri, formüller ve sonuçlar değişmemiştir. Diğer tenant tabloları, production cutover, canary, restore/parity ve deploy ile bağımsız izinli Yeşil Defter kabulü açık olduğundan T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1286,6 +1286,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "IFC/SmartCheck uygulaması, workerları, release migrationı ve backup işi için yerel compose bağlantı kimlikleri canonical rol sözleşmesine ayrı credentiallarla bağlı değildi; rollback tatbikatı yalnız plan düzeyindeydi.",
         after: "Yerel compose app'i bimmetraj_app, worker/ifc-worker'ı bimmetraj_worker, migrate işini bimmetraj_migrator ve backup'ı bimmetraj_backup kimliğiyle sınırlar. Migrator yalnız transaction-local owner rolüyle DDL yürütür; A→B→A parola geri dönüş testi eski credential reddini ve geri kazanımı doğrular. IFC miktar/formül çıktısı değişmez.",
         basis: "compose.coolify.yaml, compose.example.yaml, scripts/database-roles/*, scripts/release-migrations/*, deploy/backup/* ve src/contracts/database-role-provision.pgtest.ts; PostgreSQL 16 parola doğrulama ve SET LOCAL ROLE davranış kanıtı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 52",
+    version: "BIM-CALC-2026-10-24.46",
+    date: "24 Ekim 2026",
+    commit: "cd4b640d77cf3662b7f2f0270c1460f56fd0f56e",
+    trigger: "GAP kapatma yol haritası Faz 7 / T41 ikinci dilim: hakediş bounded context için transaction-local tenant bağlamı ve PostgreSQL FORCE RLS savunması.",
+    beforeSummary: "Beş CDE tablosunda tenant RLS vardı; ancak hakediş bounded context'indeki on tabloda aynı FORCE RLS/policy matrisi ve ProgressPaymentService'in bütün veritabanı girişlerini tek checked-out bağlantı ile tenant transactionına zorlayan ortak sınır yoktu. Migration/inspector imzaları bu tabloların eksik veya kısmi durumunu kapatmıyordu.",
+    afterSummary: "On hakediş tablosu FORCE RLS ile exact app tenant, backup SELECT ve migrator-owner policy'lerini uygular; worker policy olmadığı için default-deny kalır. ProgressPaymentService'in bütün DB girişleri aynı bağlantıda transaction-local tenant context ile çalışır. Inspector/provisioner, hakediş tabloları mevcutken eksik 0015 tag'ini ve 0015 uygulanmışken eksik tablo/policy driftini fail-closed reddeder; tag ve tabloların birlikte bulunmadığı pre-schema bootstrap geçerlidir. Hesap yöntemi, formül ve sonuç değişmedi; diğer tenant tabloları, production cutover/deploy ve bağımsız izinli Yeşil Defter kabulü açık olduğundan T41 PARTIAL'dır.",
+    affectedModules: ["hakedis-donem"],
+    moduleDetails: {
+      "hakedis-donem": {
+        before: "Hakediş hesap ve yaşam döngüsü transactionları tenant filtreleri taşıyordu; ancak ilgili on tablo veritabanında FORCE RLS ile ikinci savunmaya ve servis girişlerinin tamamını tek tenant transactionına zorlayan ortak runtime sınırına sahip değildi.",
+        after: "construction_contracts, construction_contract_items, progress_payment_periods, progress_payment_lines, progress_measurements, progress_measurement_review_events, progress_payment_adjustments, progress_payment_events, contract_variations ve final_accounts aynı FORCE RLS/policy matrisiyle korunur. Bütün ProgressPaymentService DB girişleri exact app session kimliğini ve transaction-local tenant context'i tek bağlantıda doğrular. Hakediş formülleri ve sonuçları değişmez.",
+        basis: "drizzle-release/0015_progress_payment_tenant_rls.sql, src/services/progress-payments/service.ts, src/services/progress-payments/service.tenant-context.test.ts, scripts/database-roles/{contract,inspect}.ts, scripts/release-migrations/{data-transitions,stage-signatures}.ts ve src/contracts/progress-payment-tenant-rls.pgtest.ts; izole PostgreSQL 16 policy/transaction kanıtı",
       },
     },
   },
