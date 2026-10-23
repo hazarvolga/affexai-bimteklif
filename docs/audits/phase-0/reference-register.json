@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-10-23",
+  "references": [
+    {
+      "id": "ifc-normal",
+      "localPath": "workers/ifc/fixtures/type_pset_inheritance.ifc",
+      "sha256": "5af6dd9c40ce2ca278832dfadd7fcc8afdc9fb0b70affdb4a4b81fc14c8dba7e",
+      "origin": "repository fixture",
+      "vendorVersion": null,
+      "permissionBasis": "Repo-contained fixture/reference; ownership and external licensing not independently established.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "ifc-qto",
+      "scenario": "normal",
+      "expertDiscipline": "BIM/QTO",
+      "status": "available",
+      "missingScenarios": [],
+      "expectedOutputStatus": "blocked",
+      "expectedOutputBlocker": "Independent human-authored expected output is not supplied.",
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "ifc-boundary",
+      "localPath": "workers/ifc/fixtures/duplicate_guid_and_orphan_opening.ifc",
+      "sha256": "377e191a37f43a165a10fc1b69ea8723a2ac2965ba8c793388f6b41b1d4c6055",
+      "origin": "repository fixture",
+      "vendorVersion": null,
+      "permissionBasis": "Repo-contained fixture/reference; ownership and external licensing not independently established.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "ifc-qto",
+      "scenario": "boundary",
+      "expertDiscipline": "BIM/QTO",
+      "status": "available",
+      "missingScenarios": [],
+      "expectedOutputStatus": "blocked",
+      "expectedOutputBlocker": "Independent human-authored expected output is not supplied.",
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "ifc-invalid",
+      "localPath": "workers/ifc/fixtures/invalid_quantities_and_unassigned_storey.ifc",
+      "sha256": "7c72306ae22e134b1432dc8565c4f66cdced5654222c23f9ec18d295a95a80b3",
+      "origin": "repository fixture",
+      "vendorVersion": null,
+      "permissionBasis": "Repo-contained fixture/reference; ownership and external licensing not independently established.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "ifc-qto",
+      "scenario": "missing_invalid",
+      "expertDiscipline": "BIM/QTO",
+      "status": "available",
+      "missingScenarios": [],
+      "expectedOutputStatus": "blocked",
+      "expectedOutputBlocker": "Independent human-authored expected output is not supplied.",
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "pdf-preflight-suite",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "pdf-preflight",
+      "scenario": "blocked",
+      "expertDiscipline": "document-signature",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "pricing-reference",
+      "localPath": "docs/fiyatlandirma-kaynaklari/2026-Mart-n-aat-B-F-20260303131312.pdf",
+      "sha256": "dcf153503f5b487dcaa741228666f6b83a6ed04a28249cbe43f010e41bffe69c",
+      "origin": "repository fixture",
+      "vendorVersion": null,
+      "permissionBasis": "Repo-contained fixture/reference; ownership and external licensing not independently established.",
+      "piiStatus": "none_detected",
+      "classification": "licensed_reference",
+      "engine": "pricing",
+      "scenario": "normal",
+      "expertDiscipline": "COST",
+      "status": "available",
+      "missingScenarios": [],
+      "expectedOutputStatus": "blocked",
+      "expectedOutputBlocker": "Independent human-authored expected output is not supplied.",
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "pricing-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "pricing",
+      "scenario": "blocked",
+      "expertDiscipline": "COST",
+      "status": "blocked",
+      "missingScenarios": [
+        "boundary",
+        "missing_invalid"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "kik-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "kik-adt",
+      "scenario": "blocked",
+      "expertDiscipline": "tender",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "price-difference-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "price-difference",
+      "scenario": "blocked",
+      "expertDiscipline": "COST/tender",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "yambis-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "yambis",
+      "scenario": "blocked",
+      "expertDiscipline": "regulatory",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "kat-karsiligi-kdv-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "kat-karsiligi-kdv",
+      "scenario": "blocked",
+      "expertDiscipline": "tax",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "vendor-allplan",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "anonymization_required",
+      "classification": "customer_pilot",
+      "engine": "ifc-qto",
+      "scenario": "blocked",
+      "expertDiscipline": "BIM/QTO",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "vendor-revit",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "anonymization_required",
+      "classification": "customer_pilot",
+      "engine": "ifc-qto",
+      "scenario": "blocked",
+      "expertDiscipline": "BIM/QTO",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "vendor-archicad",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "anonymization_required",
+      "classification": "customer_pilot",
+      "engine": "ifc-qto",
+      "scenario": "blocked",
+      "expertDiscipline": "BIM/QTO",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "vendor-tekla",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "anonymization_required",
+      "classification": "customer_pilot",
+      "engine": "ifc-qto",
+      "scenario": "blocked",
+      "expertDiscipline": "BIM/QTO",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "signed-pdf-customer",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "anonymization_required",
+      "classification": "customer_pilot",
+      "engine": "pdf-preflight",
+      "scenario": "blocked",
+      "expertDiscipline": "document-signature",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal"
+      ],
+      "independentExpectedOutput": null
+    },
+    {
+      "id": "pre-bim-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "pre-bim",
+      "scenario": "blocked",
+      "independentExpectedOutput": null,
+      "expertDiscipline": "ARC/COST",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ]
+    },
+    {
+      "id": "minha-3x3-cases",
+      "localPath": null,
+      "sha256": null,
+      "origin": "required external evidence",
+      "vendorVersion": null,
+      "permissionBasis": "Required provenance and written permission have not been supplied.",
+      "piiStatus": "none_detected",
+      "classification": "synthetic",
+      "engine": "minha-3x3",
+      "scenario": "blocked",
+      "independentExpectedOutput": null,
+      "expertDiscipline": "ARC/STR/COST",
+      "status": "blocked",
+      "missingScenarios": [
+        "normal",
+        "boundary",
+        "missing_invalid"
+      ]
+    }
+  ],
+  "policy": {
+    "syntheticMayProveL4": false,
+    "customerEvidenceRequiresPermission": true,
+    "independentExpectedOutputsRequiredBeforeEngineAcceptance": true,
+    "openSourceSupportingRegister": "docs/audits/phase-0/open-source-fixture-register.json"
+  }
+}

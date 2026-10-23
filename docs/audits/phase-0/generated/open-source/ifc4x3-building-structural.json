@@ -1,0 +1,455 @@
+{
+  "elements": [
+    {
+      "id": "175",
+      "guid": "0fqX614OH1YO1Njdxms2$Q",
+      "type": "IfcBeam",
+      "ifcClass": "IfcBeam",
+      "name": "girder",
+      "storey": "Kat atanmamış",
+      "storeySource": "estimate",
+      "volumeM3": 0.054,
+      "formworkM2": 0.0,
+      "formworkBasis": "none",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Kiriş kalıbı için kesit boyutu gerekli.",
+      "reviewNotes": [
+        "Kiriş kalıbı için kesit boyutu gerekli."
+      ],
+      "quantitySourcePath": "#182/#181/#178:Qto_BeamBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Kiriş kalıbı için kesit boyutu gerekli.",
+      "materialLayers": [
+        "wood_spruce_beam"
+      ]
+    },
+    {
+      "id": "197",
+      "guid": "0rh7bRO0L9fg1NzgGKU$Ut",
+      "type": "IfcBeam",
+      "ifcClass": "IfcBeam",
+      "name": "girder",
+      "storey": "Kat atanmamış",
+      "storeySource": "estimate",
+      "volumeM3": 0.116,
+      "formworkM2": 0.0,
+      "formworkBasis": "none",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Kiriş kalıbı için kesit boyutu gerekli.",
+      "reviewNotes": [
+        "Kiriş kalıbı için kesit boyutu gerekli."
+      ],
+      "quantitySourcePath": "#202/#201/#198:Qto_BeamBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Kiriş kalıbı için kesit boyutu gerekli.",
+      "materialLayers": [
+        "wood_spruce_beam"
+      ]
+    },
+    {
+      "id": "213",
+      "guid": "3roxUKbVv98xiUcl22_T07",
+      "type": "IfcBeam",
+      "ifcClass": "IfcBeam",
+      "name": "girder",
+      "storey": "Kat atanmamış",
+      "storeySource": "estimate",
+      "volumeM3": 0.012,
+      "formworkM2": 0.0,
+      "formworkBasis": "none",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Kiriş kalıbı için kesit boyutu gerekli.",
+      "reviewNotes": [
+        "Kiriş kalıbı için kesit boyutu gerekli."
+      ],
+      "quantitySourcePath": "#218/#217/#214:Qto_BeamBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Kiriş kalıbı için kesit boyutu gerekli.",
+      "materialLayers": [
+        "wood_spruce_beam"
+      ]
+    },
+    {
+      "id": "229",
+      "guid": "0Lvk$Qa81D5et3l3a4S9Vk",
+      "type": "IfcBeam",
+      "ifcClass": "IfcBeam",
+      "name": "girder",
+      "storey": "Kat atanmamış",
+      "storeySource": "estimate",
+      "volumeM3": 0.08,
+      "formworkM2": 0.0,
+      "formworkBasis": "none",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Kiriş kalıbı için kesit boyutu gerekli.",
+      "reviewNotes": [
+        "Kiriş kalıbı için kesit boyutu gerekli."
+      ],
+      "quantitySourcePath": "#234/#233/#230:Qto_BeamBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Kiriş kalıbı için kesit boyutu gerekli.",
+      "materialLayers": [
+        "wood_spruce_beam"
+      ]
+    },
+    {
+      "id": "245",
+      "guid": "2ddLgAnQf4mBfh5IpUp54U",
+      "type": "IfcBeam",
+      "ifcClass": "IfcBeam",
+      "name": "girder",
+      "storey": "Kat atanmamış",
+      "storeySource": "estimate",
+      "volumeM3": 0.116,
+      "formworkM2": 0.0,
+      "formworkBasis": "none",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Kiriş kalıbı için kesit boyutu gerekli.",
+      "reviewNotes": [
+        "Kiriş kalıbı için kesit boyutu gerekli."
+      ],
+      "quantitySourcePath": "#250/#249/#246:Qto_BeamBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Kiriş kalıbı için kesit boyutu gerekli.",
+      "materialLayers": [
+        "wood_spruce_beam"
+      ]
+    },
+    {
+      "id": "261",
+      "guid": "2fjJuPht9EIQaZQYZfC1Op",
+      "type": "IfcBeam",
+      "ifcClass": "IfcBeam",
+      "name": "girder",
+      "storey": "Kat atanmamış",
+      "storeySource": "estimate",
+      "volumeM3": 0.116,
+      "formworkM2": 0.0,
+      "formworkBasis": "none",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Kiriş kalıbı için kesit boyutu gerekli.",
+      "reviewNotes": [
+        "Kiriş kalıbı için kesit boyutu gerekli."
+      ],
+      "quantitySourcePath": "#266/#265/#262:Qto_BeamBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Kiriş kalıbı için kesit boyutu gerekli.",
+      "materialLayers": [
+        "wood_spruce_beam"
+      ]
+    },
+    {
+      "id": "69",
+      "guid": "0DyViLJJ175RvWQi1rE7a6",
+      "type": "IfcWall",
+      "ifcClass": "IfcWall",
+      "name": "house - outer wall - house back",
+      "storey": "00 groundfloor",
+      "storeySource": "ifc_spatial",
+      "volumeM3": 4.286515368539,
+      "formworkM2": 42.87,
+      "formworkBasis": "derived",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "reviewNotes": [
+        "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç."
+      ],
+      "storeySourcePath": "#53/#45:00 groundfloor",
+      "quantitySourcePath": "#77/#76/#72:Qto_WallBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "materialLayers": [
+        "stone_sand-lime"
+      ]
+    },
+    {
+      "id": "93",
+      "guid": "3SGBcf7Lv0r80vKtUCgOpf",
+      "type": "IfcWall",
+      "ifcClass": "IfcWall",
+      "name": "house - outer wall - house front",
+      "storey": "00 groundfloor",
+      "storeySource": "ifc_spatial",
+      "volumeM3": 2.931309307779,
+      "formworkM2": 29.31,
+      "formworkBasis": "derived",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "reviewNotes": [
+        "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç."
+      ],
+      "storeySourcePath": "#53/#45:00 groundfloor",
+      "quantitySourcePath": "#99/#98/#94:Qto_WallBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "materialLayers": [
+        "stone_sand-lime"
+      ]
+    },
+    {
+      "id": "112",
+      "guid": "3oNJ9yHi5FJuFnK8yg68Yt",
+      "type": "IfcWall",
+      "ifcClass": "IfcWall",
+      "name": "house - outer wall - house front right",
+      "storey": "00 groundfloor",
+      "storeySource": "ifc_spatial",
+      "volumeM3": 0.745691342135,
+      "formworkM2": 7.46,
+      "formworkBasis": "derived",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "reviewNotes": [
+        "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç."
+      ],
+      "storeySourcePath": "#53/#45:00 groundfloor",
+      "quantitySourcePath": "#118/#117/#113:Qto_WallBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "materialLayers": [
+        "stone_sand-lime"
+      ]
+    },
+    {
+      "id": "147",
+      "guid": "37GxndZsXCwBzM0QrdRDLo",
+      "type": "IfcWall",
+      "ifcClass": "IfcWall",
+      "name": "house - inner wall",
+      "storey": "00 groundfloor",
+      "storeySource": "ifc_spatial",
+      "volumeM3": 3.044574026405,
+      "formworkM2": 30.45,
+      "formworkBasis": "derived",
+      "rebarKg": 0.0,
+      "quantitySource": "qto",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "reviewNotes": [
+        "Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç."
+      ],
+      "storeySourcePath": "#53/#45:00 groundfloor",
+      "quantitySourcePath": "#153/#152/#148:Qto_WallBaseQuantities/NetVolume",
+      "quantityConfidence": 0.95,
+      "smartCheckNote": "Standart QTO kaynağından okundu; teknik inceleme önerilir. | Tek yüz toprağa/komşu betona dayalıysa gerçek değer daha azdır. Uç ve boşluk yan yüzleri hariç.",
+      "materialLayers": [
+        "stone_sand-lime"
+      ]
+    }
+  ],
+  "summary": {
+    "parseStatus": "succeeded",
+    "extractionMode": "demo_estimate",
+    "quantitySource": "qto",
+    "quoteTransferStatus": "needs_review",
+    "warnings": [
+      "IfcOpenShell parser extracted verified QTO, PropertySet, and 3D representation quantities.",
+      "Quantities marked as estimate have no explicit QTO/Pset/3D solid in the model and require manual takeoff."
+    ],
+    "unsupportedReasons": [],
+    "totalElements": 10,
+    "totalVolumeM3": 11.5,
+    "totalFormworkM2": 110.09,
+    "totalRebarKg": 0.0,
+    "totalRebarTon": 0.0,
+    "beamCount": 6,
+    "beamVolumeM3": 0.49,
+    "columnCount": 0,
+    "columnVolumeM3": 0.0,
+    "slabCount": 0,
+    "slabVolumeM3": 0.0,
+    "wallCount": 4,
+    "wallVolumeM3": 11.01,
+    "coveringCount": 0,
+    "coveringAreaM2": 0.0,
+    "rebarCount": 0,
+    "rebarByDiameter": {},
+    "trPsetCsb": {
+      "taks": null,
+      "kaks": null,
+      "cekmeOn": null,
+      "cekmeYan": null,
+      "cekmeArka": null,
+      "emsalDahilM2": null,
+      "emsalHaricM2": null,
+      "emsalYuzde30M2": null,
+      "source": null,
+      "sourcePath": null
+    },
+    "apartmentSchedule": [],
+    "elementsWithPozNoCount": 0,
+    "elementsMissingPozNoCount": 10,
+    "authoringSoftwareRaw": {
+      "originatingSystem": "BIM_Tools - Sketchup_IFC_manager - 5.6.0",
+      "preprocessorVersion": "Sketchup-IFC-manager 5.6.0 / SketchUp 2026 (26.2.242)",
+      "applicationNames": [
+        "IFC manager for sketchup"
+      ]
+    },
+    "openings": [],
+    "consistencyReport": {
+      "totalElementCount": 10,
+      "measuredElementCount": 10,
+      "unmeasuredElementCount": 0,
+      "pozMatchedElementCount": 0,
+      "pozMatchedRatio": 0.0,
+      "uncoveredElementCount": 0,
+      "outOfScopeElementCount": 2,
+      "typeInheritedElementCount": 0,
+      "suppressedAssemblyPartCount": 0,
+      "highSeverityCount": 0,
+      "mediumSeverityCount": 8,
+      "findings": [
+        {
+          "code": "MISSING_SPATIAL_STOREY",
+          "severity": "medium",
+          "globalId": "0fqX614OH1YO1Njdxms2$Q",
+          "ifcClass": "IfcBeam",
+          "storey": "Kat atanmamış",
+          "elementName": "girder",
+          "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış)."
+        },
+        {
+          "code": "MISSING_SPATIAL_STOREY",
+          "severity": "medium",
+          "globalId": "0rh7bRO0L9fg1NzgGKU$Ut",
+          "ifcClass": "IfcBeam",
+          "storey": "Kat atanmamış",
+          "elementName": "girder",
+          "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış)."
+        },
+        {
+          "code": "MISSING_SPATIAL_STOREY",
+          "severity": "medium",
+          "globalId": "3roxUKbVv98xiUcl22_T07",
+          "ifcClass": "IfcBeam",
+          "storey": "Kat atanmamış",
+          "elementName": "girder",
+          "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış)."
+        },
+        {
+          "code": "MISSING_SPATIAL_STOREY",
+          "severity": "medium",
+          "globalId": "0Lvk$Qa81D5et3l3a4S9Vk",
+          "ifcClass": "IfcBeam",
+          "storey": "Kat atanmamış",
+          "elementName": "girder",
+          "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış)."
+        },
+        {
+          "code": "MISSING_SPATIAL_STOREY",
+          "severity": "medium",
+          "globalId": "2ddLgAnQf4mBfh5IpUp54U",
+          "ifcClass": "IfcBeam",
+          "storey": "Kat atanmamış",
+          "elementName": "girder",
+          "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış)."
+        },
+        {
+          "code": "MISSING_SPATIAL_STOREY",
+          "severity": "medium",
+          "globalId": "2fjJuPht9EIQaZQYZfC1Op",
+          "ifcClass": "IfcBeam",
+          "storey": "Kat atanmamış",
+          "elementName": "girder",
+          "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış)."
+        },
+        {
+          "code": "UNCOVERED_PROXY_ELEMENT",
+          "severity": "medium",
+          "globalId": "2F44QMqSH3TOkM$SZoqCBe",
+          "ifcClass": "IfcBuildingElementProxy",
+          "storey": "Kat atanmamış",
+          "elementName": "origin",
+          "message": "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+        },
+        {
+          "code": "UNCOVERED_PROXY_ELEMENT",
+          "severity": "medium",
+          "globalId": "3Fit2Fad92zf2f6aWdJtF5",
+          "ifcClass": "IfcBuildingElementProxy",
+          "storey": "Kat atanmamış",
+          "elementName": "geo-reference",
+          "message": "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı."
+        }
+      ],
+      "uncoveredElements": [
+        {
+          "globalId": "2F44QMqSH3TOkM$SZoqCBe",
+          "ifcClass": "IfcBuildingElementProxy",
+          "name": "origin",
+          "storey": "Kat atanmamış",
+          "reason": "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı.",
+          "scope": "out_of_scope"
+        },
+        {
+          "globalId": "3Fit2Fad92zf2f6aWdJtF5",
+          "ifcClass": "IfcBuildingElementProxy",
+          "name": "geo-reference",
+          "storey": "Kat atanmamış",
+          "reason": "IfcBuildingElementProxy genel/belirsiz eleman sınıfıdır; metraja alınmayan eleman olarak açıkta bırakıldı.",
+          "scope": "out_of_scope"
+        }
+      ],
+      "suppressedAssemblyParts": []
+    }
+  }
+}

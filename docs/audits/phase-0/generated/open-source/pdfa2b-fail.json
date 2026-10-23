@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "kind": "pdf_preflight",
+  "file": {
+    "fileName": "pdfa2b-fail.pdf",
+    "pageCount": 1
+  },
+  "pdfa": {
+    "claimed": {
+      "part": "2",
+      "conformance": "B"
+    },
+    "note": "Yalnız PDF/A kimlik beyanı okunur; PDF/A uygunluğunun tam doğrulaması veraPDF gibi bir doğrulayıcı gerektirir."
+  },
+  "eSignature": {
+    "present": false,
+    "note": "PDF içinde gömülü elektronik imza (/Sig) tespit edilmedi; e-imza kullanılmayan durumlarda idareye ıslak imzalı çıktı teslimi gerekir (Elektronik Teslim Yön. m.6/2)."
+  },
+  "summary": {
+    "hata": 1,
+    "uyari": 1,
+    "elle": 1
+  },
+  "findings": [
+    {
+      "kod": "DOSYA_ADI_EK2",
+      "seviye": "hata",
+      "mesaj": "Dosya adı EK-2'deki 9 alanlı şablona uymuyor (ör. 260001_00_MM_GNEL_PL_MMC_K00_01_000).",
+      "madde": "Dijital Hazırlama Yönetmeliği m.6, EK-2"
+    },
+    {
+      "kod": "PAFTA_BOYUTU_ISO216",
+      "seviye": "uyari",
+      "mesaj": "Sayfa boyutu A4 ve katları (TS EN ISO 216) standart pafta ölçülerine uymuyor.",
+      "madde": "Dijital Hazırlama Yönetmeliği m.8(1)",
+      "sayfalar": [
+        1
+      ]
+    },
+    {
+      "kod": "PDFA_TAM_DOGRULAMA",
+      "seviye": "elle",
+      "mesaj": "Yalnız PDF/A kimlik beyanı okunur; PDF/A uygunluğunun tam doğrulaması veraPDF gibi bir doğrulayıcı gerektirir.",
+      "madde": "PDF/A (ISO 19005)"
+    }
+  ],
+  "disclaimer": "Otomatik ön kontroldür; resmî uygunluk kararı değildir."
+}

@@ -1,0 +1,468 @@
+{
+  "schemaVersion": 1,
+  "baselineSha": "e748481684b296cc6a1cd5de0365136b47384d2b",
+  "count": 31,
+  "findings": [
+    {
+      "id": "KOD-01",
+      "owner": "technical-team",
+      "todoIds": [
+        "T05",
+        "T06",
+        "T07",
+        "T50"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-02",
+      "owner": "technical-team",
+      "todoIds": [
+        "T08",
+        "T09",
+        "T34"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-03",
+      "owner": "technical-team",
+      "todoIds": [
+        "T02",
+        "T19",
+        "T50"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-04",
+      "owner": "technical-team",
+      "todoIds": [
+        "T20",
+        "T39",
+        "T50"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-05",
+      "owner": "technical-team",
+      "todoIds": [
+        "T27",
+        "T28",
+        "T29",
+        "T46",
+        "T51"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-06",
+      "owner": "technical-team",
+      "todoIds": [
+        "T16",
+        "T17",
+        "T18",
+        "T31"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-07",
+      "owner": "technical-team",
+      "todoIds": [
+        "T02",
+        "T24",
+        "T46",
+        "T50"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-08",
+      "owner": "technical-team",
+      "todoIds": [
+        "T30",
+        "T42"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "KOD-09",
+      "owner": "technical-team",
+      "todoIds": [
+        "T40",
+        "T41",
+        "T42",
+        "T43",
+        "T44",
+        "T52"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "BUG-01",
+      "owner": "technical-team",
+      "todoIds": [
+        "T06",
+        "T07",
+        "T10"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "BUG-02",
+      "owner": "technical-team",
+      "todoIds": [
+        "T06",
+        "T11",
+        "T12"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "BUG-03",
+      "owner": "technical-team",
+      "todoIds": [
+        "T10",
+        "T11"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md",
+        "docs/audits/phase-0/OPEN_SOURCE_FIXTURE_RESEARCH_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "BUG-04",
+      "owner": "technical-team",
+      "todoIds": [
+        "T13",
+        "T14",
+        "T43"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "BUG-05",
+      "owner": "technical-team",
+      "todoIds": [
+        "T15",
+        "T18"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "BUG-06",
+      "owner": "technical-team",
+      "todoIds": [
+        "T31",
+        "T32"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-01",
+      "owner": "technical-team",
+      "todoIds": [
+        "T05",
+        "T06",
+        "T07",
+        "T17",
+        "T46"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-02",
+      "owner": "technical-team",
+      "todoIds": [
+        "T11"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-03",
+      "owner": "technical-team",
+      "todoIds": [
+        "T35",
+        "T36",
+        "T37",
+        "T38"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-04",
+      "owner": "technical-team",
+      "todoIds": [
+        "T21",
+        "T37"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-05",
+      "owner": "technical-team",
+      "todoIds": [
+        "T29",
+        "T50",
+        "T51"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-06",
+      "owner": "technical-team",
+      "todoIds": [
+        "T20",
+        "T39"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-07",
+      "owner": "technical-team",
+      "todoIds": [
+        "T31",
+        "T32",
+        "T33"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md",
+        "docs/audits/phase-0/OPEN_SOURCE_FIXTURE_RESEARCH_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GAP-08",
+      "owner": "technical-team",
+      "todoIds": [
+        "T01",
+        "T14",
+        "T44",
+        "T52"
+      ],
+      "decision": "disproved",
+      "closureStatus": "evidence_rejected_no_change",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Canlı sürümün geride olduğu teşhisi güncel kanıtla reddedildi; rollback/worker operasyon kanıtı ayrı açık."
+    },
+    {
+      "id": "SEO-01",
+      "owner": "technical-team",
+      "todoIds": [
+        "T27",
+        "T28",
+        "T29",
+        "T46"
+      ],
+      "decision": "disproved",
+      "closureStatus": "evidence_rejected_no_change",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "CDE validator mevcut; gerçek açık kalıcı ve yetkili çok kullanıcılı akıştır."
+    },
+    {
+      "id": "SEO-02",
+      "owner": "technical-team",
+      "todoIds": [
+        "T05",
+        "T08",
+        "T09",
+        "T46"
+      ],
+      "decision": "disproved",
+      "closureStatus": "evidence_rejected_no_change",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "18.848 kayıt baseline kodda mevcut; sayı lisans veya fiyat güncelliği kanıtlamaz."
+    },
+    {
+      "id": "SEO-03",
+      "owner": "technical-team",
+      "todoIds": [
+        "T47"
+      ],
+      "decision": "confirmed",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "SEO-04",
+      "owner": "technical-team",
+      "todoIds": [
+        "T47"
+      ],
+      "decision": "disproved",
+      "closureStatus": "evidence_rejected_no_change",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Production URL doğrulaması fail-fast çalışıyor; sessiz fallback eklenmeyecek."
+    },
+    {
+      "id": "SEO-05",
+      "owner": "technical-team",
+      "todoIds": [
+        "T49"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GEO-01",
+      "owner": "technical-team",
+      "todoIds": [
+        "T49"
+      ],
+      "decision": "disproved",
+      "closureStatus": "evidence_rejected_no_change",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Genel robots kuralı kamu sayfalarını engellemiyor; bot-özel Allow zorunlu kabul edilmeyecek."
+    },
+    {
+      "id": "GEO-02",
+      "owner": "technical-team",
+      "todoIds": [
+        "T48"
+      ],
+      "decision": "partial",
+      "closureStatus": "planned",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Kod, test ve kabul kanıtı ilgili To-Do kapsamında tamamlanacak."
+    },
+    {
+      "id": "GEO-03",
+      "owner": "technical-team",
+      "todoIds": [
+        "T49"
+      ],
+      "decision": "optional",
+      "closureStatus": "optional_review",
+      "evidenceRefs": [
+        "docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md"
+      ],
+      "note": "Tek dilde bug değildir; yalnız gerçek yerelleştirilmiş URL ve doğrulanmış kurum bilgisiyle uygulanabilir."
+    }
+  ]
+}

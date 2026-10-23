@@ -1,0 +1,112 @@
+{
+  "elements": [
+    {
+      "id": "45",
+      "guid": "3ZYW59sxj8lei475l7EhLU",
+      "type": "IfcWall",
+      "ifcClass": "IfcWall",
+      "name": "Wall for Test Example",
+      "storey": "Default Building Storey (0.0 m)",
+      "storeySource": "ifc_spatial",
+      "volumeM3": 1500000000.0,
+      "formworkM2": 10000000.0,
+      "formworkBasis": "derived",
+      "rebarKg": 0.0,
+      "quantitySource": "property",
+      "smartCheckStatus": "review",
+      "measured": true,
+      "measurementStatus": "ölçüldü",
+      "matchedPozCode": null,
+      "isUncovered": false,
+      "formworkNote": "3B geometri yan yüzey alanından (2 × SideArea) türetildi.",
+      "reviewNotes": [
+        "3B geometri yan yüzey alanından (2 × SideArea) türetildi."
+      ],
+      "storeySourcePath": "#44/#38:Default Building Storey",
+      "quantitySourcePath": "#45/#48:IfcShapeRepresentation/GeometryVolume",
+      "quantityConfidence": 0.85,
+      "smartCheckNote": "IfcOpenShell 3B katı model geometrisinden net hacim hesaplandı; teknik inceleme önerilir.",
+      "materialLayers": [
+        "Name of the material used for the wall"
+      ],
+      "loadBearing": false,
+      "exposure": "exterior",
+      "discipline": "ARC"
+    }
+  ],
+  "summary": {
+    "parseStatus": "succeeded",
+    "extractionMode": "demo_estimate",
+    "quantitySource": "property",
+    "quoteTransferStatus": "needs_review",
+    "warnings": [
+      "IfcOpenShell parser extracted verified QTO, PropertySet, and 3D representation quantities.",
+      "Quantities marked as estimate have no explicit QTO/Pset/3D solid in the model and require manual takeoff."
+    ],
+    "unsupportedReasons": [],
+    "totalElements": 1,
+    "totalVolumeM3": 1500000000.0,
+    "totalFormworkM2": 10000000.0,
+    "totalRebarKg": 0.0,
+    "totalRebarTon": 0.0,
+    "beamCount": 0,
+    "beamVolumeM3": 0.0,
+    "columnCount": 0,
+    "columnVolumeM3": 0.0,
+    "slabCount": 0,
+    "slabVolumeM3": 0.0,
+    "wallCount": 1,
+    "wallVolumeM3": 1500000000.0,
+    "coveringCount": 0,
+    "coveringAreaM2": 0.0,
+    "rebarCount": 0,
+    "rebarByDiameter": {},
+    "trPsetCsb": {
+      "taks": null,
+      "kaks": null,
+      "cekmeOn": null,
+      "cekmeYan": null,
+      "cekmeArka": null,
+      "emsalDahilM2": null,
+      "emsalHaricM2": null,
+      "emsalYuzde30M2": null,
+      "source": null,
+      "sourcePath": null
+    },
+    "apartmentSchedule": [],
+    "elementsWithPozNoCount": 0,
+    "elementsMissingPozNoCount": 1,
+    "authoringSoftwareRaw": {
+      "originatingSystem": "RDF - Test Application - 0.10",
+      "preprocessorVersion": "IFC Engine DLL version 1.03 beta",
+      "applicationNames": [
+        "Test Application"
+      ]
+    },
+    "openings": [
+      {
+        "id": "102",
+        "kind": "window",
+        "name": "Window for Test Example",
+        "widthM": 1.0,
+        "heightM": 1.0
+      }
+    ],
+    "consistencyReport": {
+      "totalElementCount": 1,
+      "measuredElementCount": 1,
+      "unmeasuredElementCount": 0,
+      "pozMatchedElementCount": 0,
+      "pozMatchedRatio": 0.0,
+      "uncoveredElementCount": 0,
+      "outOfScopeElementCount": 0,
+      "typeInheritedElementCount": 0,
+      "suppressedAssemblyPartCount": 0,
+      "highSeverityCount": 0,
+      "mediumSeverityCount": 0,
+      "findings": [],
+      "uncoveredElements": [],
+      "suppressedAssemblyParts": []
+    }
+  }
+}

@@ -1,0 +1,424 @@
+{
+  "schemaVersion": 1,
+  "registryVersion": "BIM-CAP-2026-10-17.11",
+  "asOf": "2026-10-23",
+  "count": 19,
+  "capabilities": [
+    {
+      "id": "ifc-qto-multi-layer-icmal",
+      "title": "IFC 2x3 / IFC4 / IFC4.3 Fiziksel Metraj (QTO), Çok Katmanlı IfcCovering & 16 Daire Cetveli",
+      "actualBehaviorClaim": "IFC2x3, IFC4 ve IFC4.3 modellerinden çok katmanlı IfcCovering taşeron ayrıştırması, mtül süpürgelik ve IfcZone/IfcSpace bağımsız bölüm cetveli üretimi.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: RG 33331 Dijital Proje Yönetmeliği EK-3 / EK-6 & ISO 16739-1 (IFC4); article/scope: Madde 11–14, EK-3 Tablo 3.2, EK-6 Tablo 6.3–6.60. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/ifc/calm-icmal.ts",
+      "goldenTestPath": "src/ifc/calm-icmal.test.ts",
+      "evidenceRefs": [
+        "src/ifc/calm-icmal.ts",
+        "src/ifc/calm-icmal.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "epys-rg33331-preflight",
+      "title": "RG 33331 (05.08.2026) e-PYS EK-2 / EK-3 / EK-6 / EK-7 / EK-9 Ön Kontrolü",
+      "actualBehaviorClaim": "05.08.2026 tarihli ve 33331 sayılı Resmî Gazete Yönetmeliği EK-2 dosya adlandırması, EK-6 TREpys_* özellik setleri ve EK-9 Tablo 9.1 (21 satır MM) / Tablo 9.2 (16 satır ST/MK/EL) ön kontrolü.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik (#1.pdf, #2.pdf, EKLER.pdf); article/scope: Madde 5–15, EK-1, EK-2, EK-3, EK-6, EK-7, EK-8, EK-9 (Tablo 9.1 & 9.2). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/rules/epys.ts",
+      "goldenTestPath": "src/smartcheck/rules/epys.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/rules/epys.ts",
+        "src/smartcheck/rules/epys.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "pdfa-iso216-esig-preflight",
+      "title": "RG 33331 m.8 & m.6 PDF/A, ISO 216 Pafta Boyutu ve /Sig Elektronik İmza Ön Kontrolü",
+      "actualBehaviorClaim": "PDF paftalarda PDF/A XMP beyanı, ISO 216 A4 ve katları pafta ebadı, tek pafta kuralı ve gömülü /Sig elektronik imza ön kontrolü.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Projelerin Dijital Olarak Hazırlanması Hakkında Yönetmelik (#1.pdf & #2.pdf); article/scope: #1.pdf Madde 8(1)-(2) & #2.pdf Madde 6(1)-(2). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/import/pdf-preflight-runner.ts",
+      "goldenTestPath": "src/smartcheck/import/pdf-preflight-runner.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/import/pdf-preflight-runner.ts",
+        "src/smartcheck/import/pdf-preflight-runner.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "smartcheck-3x3-policy",
+      "title": "SmartCheck 3×3 Şirket Politikası (Metraj ≤ %3, TS 500 / EC2 Paspayı mm, STR Taşıyıcı)",
+      "actualBehaviorClaim": "Metraj sapması ≤ %3, TS 500 / Eurocode 2 minimum paspayı (mm) ve taşıyıcı elemanların STR disiplininde bulunması denetimi.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: TS 500 Betonarme Yapıların Tasarım ve Yapım Kuralları & EN 1992-1-1 (Eurocode 2); article/scope: TS 500 Çizelge 9.3 / EN 1992-1-1 Tablo 4.4N. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/rules/ifc-rule-run.ts",
+      "goldenTestPath": "src/smartcheck/rules/ifc-rule-run.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/rules/ifc-rule-run.ts",
+        "src/smartcheck/rules/ifc-rule-run.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "minha-opening-intersection-engine",
+      "title": "Sözleşmesel Boşluk Minha (ÇŞB 0,50 m² / DIN 18350 2,50 m² / Özel Şartname) & Kiriş-Döşeme Kesişim Motoru",
+      "actualBehaviorClaim": "ÇŞB Genel Teknik Şartnamesi (0,50 m²), DIN 18350 VOB/C (2,50 m²) ve kullanıcı tanımlı özel şartname eşiğine göre kapı/pencere minha, lento/denizlik dönüşü ve betonarme düğüm noktası tekilleştirme hesabı.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: ÇŞB Yapım İşleri Genel Teknik Şartnamesi & DIN 18350 (VOB/C); article/scope: Kagir/Sıva Ölçü Kuralları (0,50 m²) & DIN 18350 Bölüm 5 (2,50 m²). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/rules/minha.ts",
+      "goldenTestPath": "src/smartcheck/rules/minha.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/rules/minha.ts",
+        "src/smartcheck/rules/minha.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "kik-m38-teblig-m45-adt-engine",
+      "title": "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1 Aşırı Düşük Teklif (ADT) Sınır Değer ve %80 Pareto Motoru",
+      "actualBehaviorClaim": "Kamu İhale Genel Tebliği m.45.1.1 / m.45.1.1.1 / m.45.1.1.4 resmi K katsayısı, N=1,00 (Üstyapı) / N=1,20 (Diğer Yapım/Altyapı) sınır değer (SD) hesabı ve m.45.1.2 %80 Pareto açıklama kalemi ayrıştırması.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: 4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği (resmî sayısal örnek m.45.2 ile birebir doğrulandı: SD = 52.281,00 TL); article/scope: Madde 45.1.1, 45.1.1.1, 45.1.1.4, 45.1.2 ve 45.2 örneği; yuvarlama: Tort1/σ/Tort2 2, C/K 3 ondalık. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/lib/kik-adt.ts",
+      "goldenTestPath": "src/lib/kik-adt.golden.test.ts",
+      "evidenceRefs": [
+        "src/lib/kik-adt.ts",
+        "src/lib/kik-adt.golden.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "iso19650-naming-ek2-loin",
+      "title": "TS EN ISO 19650-1/2 & RG 33331 EK-2 Birleşik Dosya Adlandırma ve EN 17412-1 LOIN Desteği",
+      "actualBehaviorClaim": "7 parçalı ISO 19650-2 ve 9 parçalı RG 33331 EK-2 (EKLER.pdf) dosya adlandırma kurallarını, EN 17412-1 LOIN geometrik/alfanümerik tamlık skorunu ve EIR teslim aşaması (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) denetimini destekler.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: TS EN ISO 19650-1/2, BS EN 17412-1 (LOIN) & RG 33331 EK-2 (EKLER.pdf); article/scope: ISO 19650-2 Madde 5.1–5.7, EN 17412-1 Madde 6 & RG 33331 EK-2 Tablo 2.1–2.14. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/rules/iso19650.ts",
+      "goldenTestPath": "src/smartcheck/rules/iso19650.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/rules/iso19650.ts",
+        "src/smartcheck/rules/iso19650.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "csb-2026-official-catalogs-full",
+      "title": "ÇŞB 2026 Resmi Birim Fiyat, Rayiç, Yapı Yaklaşık Maliyet & TÜİK Endeks Kitapları (6 Kitap · 18.848 Satır Tam Kapsam)",
+      "actualBehaviorClaim": "SHA-256 mühürlü 6 resmi 2026 ÇŞB PDF kitabındaki 18.848 poz ve rayiç satırının tamamı (İnşaat BF 1.861, İnşaat Rayiç 5.360, Mekanik BF 5.678, Elektrik BF 5.910, Yapı Yaklaşık Maliyet 18, TÜİK Endeks 21) ve dönem doğrulamalı kapsam raporu.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: 2026 Mart Ayı Güncel İnşaat / Mekanik / Elektrik Birim Fiyat & Rayiç Listeleri ve 2026 Yapı Yaklaşık Maliyet Tebliği; article/scope: 15.xxx, 10.xxx, 25.xxx, 35.xxx Poz/Rayiç Tabloları ve I-A..V-E Yapı Sınıfları (18.848 Satır). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/server/crawler/csb-pdf-parser.ts",
+      "goldenTestPath": "src/server/crawler/csb-pdf-parser.test.ts",
+      "evidenceRefs": [
+        "src/server/crawler/csb-pdf-parser.ts",
+        "src/server/crawler/csb-pdf-parser.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "tuik-21-subindex-price-escalation-4735",
+      "title": "4735 Sayılı Kanun Fiyat Farkı (F = A_n × B × (P_n − 1)) & ÇŞB 2026 – TÜİK 21 Alt Endeks Güncelleme Motoru",
+      "actualBehaviorClaim": "4735 Sayılı Kamu İhale Sözleşmeleri Kanunu Fiyat Farkı Esasları (B=0,90, P_n ağırlıklı endeks) ve 21 resmi ÇŞB-TÜİK alt endeksiyle dönem dışı birim fiyat eskalasyonu (TUIK_INDEXED_ESTIMATE).",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: 4735 Sayılı Kanun Yapım İşleri Fiyat Farkı Esasları & ÇŞB 2026 Ocak Rayiç–TÜİK Endeks Eşleştirme Tablosu; article/scope: Madde 5–6 (F = A_n × B × (P_n − 1); B = 0,90 doğrulandı; resmî sayısal örnek yok) & 21 TÜFE/Yİ-ÜFE Alt Endeks Eşleştirme Tablosu; 2025/10132 değişikliği 1.9.2025. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/lib/price-escalation.ts",
+      "goldenTestPath": "src/lib/price-escalation.test.ts",
+      "evidenceRefs": [
+        "src/lib/price-escalation.ts",
+        "src/lib/price-escalation.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "iso19650-cde-workflow-state-machine",
+      "title": "TS EN ISO 19650-2 §5.6–5.7 CDE Durum Geçiş Doğrulayıcısı ve EIR/LOIN Teslim Kapısı Desteği",
+      "actualBehaviorClaim": "WIP (S0) → SHARED (S1..S7) → PUBLISHED (A1..A7) → ARCHIVED (B) durum geçiş kurallarını ve Pxx.xx / Cxx revizyon kapısını destekler; sahte varsayılan olmadan denetim izi tutar.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: TS EN ISO 19650-1 & TS EN ISO 19650-2; article/scope: ISO 19650-1 Madde 12 & ISO 19650-2 Madde 5.6–5.7 (Ortak Veri Ortamı — CDE İş Akışı). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/rules/iso19650.ts",
+      "goldenTestPath": "src/smartcheck/rules/iso19650.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/rules/iso19650.ts",
+        "src/smartcheck/rules/iso19650.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "multi-user-cde-approval-workflow",
+      "title": "Çok Kullanıcılı CDE Rol Bazlı Onay Kapıları ve Kurumsal Revizyon Onay Akışı (Pilot · L2)",
+      "actualBehaviorClaim": "Proje müellifi, disiplin sorumlusu (STR/ARC/MEP) ve işveren temsilcisi arasında çok kullanıcılı CDE durum geçiş onay kapılarını destekler.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: TS EN ISO 19650-2; article/scope: Madde 5.6.2 & 5.7.2 (Paylaşım ve Yayımlama Onay Kapıları). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/smartcheck/rules/iso19650.ts",
+      "goldenTestPath": "src/smartcheck/rules/iso19650.test.ts",
+      "evidenceRefs": [
+        "src/smartcheck/rules/iso19650.ts",
+        "src/smartcheck/rules/iso19650.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "apartment-subcontractor-hakedis-shield",
+      "title": "Daire Bazlı Taşeron Hakediş Kalkanı — Şap / Zemin Kaplaması Tavanı, Harç Hacmi ve Beyan Kontrolü (Pilot · L2)",
+      "actualBehaviorClaim": "IFC mahal cetvelinden daire başına şap ve zemin kaplaması hakediş tavanı üretir; kullanıcı girdili kalınlık, fire ve dozajla harç hacmi/çimento hesaplar ve taşeron beyanını tavanla karşılaştırır.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Saha Geri Bildirimi 17 Ekim 2026 & ISO 16739-1 (IFC4) mahal net alanları; article/scope: Saha Geri Bildirimi 2026-10-17 Tespit 6 & SITE_SCREED_BENCHMARK. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/ifc/apartment-subcontractor-shield.ts",
+      "goldenTestPath": "src/ifc/apartment-subcontractor-shield.test.ts",
+      "evidenceRefs": [
+        "src/ifc/apartment-subcontractor-shield.ts",
+        "src/ifc/apartment-subcontractor-shield.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "ifc-authoring-software-advisory",
+      "title": "IFC Kaynak Yazılım Tespiti, Süreç Öncesi Revit Kontrol Listesi ve Metraj Güvenilirliği Uyarısı — Allplan / Revit / Archicad (Pilot · L2)",
+      "actualBehaviorClaim": "IFC başlığından (dosya seçildiği anda ilk 128 KB istemci taraması ve sunucu yolu) kaynak yazılımı tespit eder; Revit ile işlem yapacak kullanıcılara süreç öncesinde 6 maddelik dışa aktarım kontrol listesi sunar.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Saha Geri Bildirimi 17–18 Ekim 2026, STEP HEADER FILE_NAME, Autodesk revit-ifc#63 & Dion Moult Qto İncelemesi; article/scope: Saha Geri Bildirimi 2026-10-17 Tespit 1–3 & REVIT_PRE_EXPORT_CHECKLIST. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/ifc/authoring-software-diagnostics.ts",
+      "goldenTestPath": "src/ifc/authoring-software-diagnostics.test.ts",
+      "evidenceRefs": [
+        "src/ifc/authoring-software-diagnostics.ts",
+        "src/ifc/authoring-software-diagnostics.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "pre-bim-feasibility-kat-karsiligi",
+      "title": "IFC Öncesi Ön Teklif / Kat Karşılığı Fizibilite — Arsa, TAKS–KAKS, Çoklu Parsel ve Daire Paylaşımı (Pilot · L2)",
+      "actualBehaviorClaim": "Kullanıcının girdiği arsa, TAKS ve KAKS değerlerinden çoklu parsel alanlarını, arsa sahibi/müteahhit paylaşımını ve daire başı brüt/net alanı hesaplar; vaat edilen alanın paylaşım kapasitesini aşıp aşmadığını aritmetik olarak denetler.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Planlı Alanlar İmar Yönetmeliği m.5/8 & Saha Geri Bildirimi 17 Ekim 2026 — ön teklif / kat karşılığı akışı; article/scope: Planlı Alanlar İmar Yönetmeliği m.5/8 & VILLA_MARKET_COST_BENCHMARK_2026. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/lib/pre-bim-feasibility.ts",
+      "goldenTestPath": "src/lib/pre-bim-feasibility.test.ts",
+      "evidenceRefs": [
+        "src/lib/pre-bim-feasibility.ts",
+        "src/lib/pre-bim-feasibility.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "free-public-calculators",
+      "title": "Ücretsiz Halka Açık Hesaplayıcılar — Aşırı Düşük Teklif Sınır Değeri ve 4735 Fiyat Farkı (Pilot · L2)",
+      "actualBehaviorClaim": "Giriş gerektirmeyen iki ön hesaplayıcı: KİK m.38 / Tebliğ m.45.1.1 sınır değer ve 4735 fiyat farkı. Tüm katsayılar ve endeksler kullanıcı girdisidir; bağımsız doğrulanmamıştır.",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Kamu İhale Genel Tebliği m.45.1 ve Yapım İşlerinde Uygulanacak Fiyat Farkına İlişkin Esaslar; article/scope: 4734 m.38, Tebliğ 45.1.1–45.1.2; 4735 m.8. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L2",
+      "currentStatus": "pilot",
+      "modulePath": "src/lib/calculators/kik-form.ts",
+      "goldenTestPath": "src/lib/calculators/calculators-forms.test.ts",
+      "evidenceRefs": [
+        "src/lib/calculators/kik-form.ts",
+        "src/lib/calculators/calculators-forms.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Independent human expert acceptance and permitted real-world fixture required."
+      ]
+    },
+    {
+      "id": "ghostscript-verapdf-server-conversion",
+      "title": "Sunucu Tarafı Otomatik PDF/A-2b Dönüştürme (Ghostscript) ve veraPDF Sertifikasyonu (Yol Haritasında · 2026 Q4)",
+      "actualBehaviorClaim": "Standart PDF paftaların sunucu tarafında otomatik PDF/A-2b formatına dönüştürülmesi ve veraPDF ile tam ISO 19005-2 doğrulaması (Yol Haritasında · 2026 Q4).",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: ISO 19005-2 (PDF/A-2) & RG 33331 Yönetmelik Madde 8; article/scope: Madde 8(1). Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L1",
+      "currentStatus": "roadmap",
+      "modulePath": "workers/ifc/pdf_preflight.py",
+      "goldenTestPath": "src/smartcheck/import/pdf-preflight-runner.test.ts",
+      "evidenceRefs": [
+        "workers/ifc/pdf_preflight.py",
+        "src/smartcheck/import/pdf-preflight-runner.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Implementation and independent expert acceptance required."
+      ]
+    },
+    {
+      "id": "ekap-tender-protocol-import",
+      "title": "EKAP İhale Açılış Tutanağı Otomatik İçe Aktarımı ve ADT Açıklama Dosyası Üretimi (Yol Haritasında · 2026 Q4)",
+      "actualBehaviorClaim": "EKAP XML/PDF ihale açılış tutanağından Yaklaşık Maliyet (YM) ve tekliflerin otomatik okunması ve KİK m.45.1.13 analiz formatında aşırı düşük teklif savunma paketi üretimi (Yol Haritasında · 2026 Q4).",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Kamu İhale Genel Tebliği & EKAP Elektronik İhale Uygulama Yönetmeliği; article/scope: Madde 45.1.1–45.1.13. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L1",
+      "currentStatus": "roadmap",
+      "modulePath": "src/lib/kik-adt.ts",
+      "goldenTestPath": "src/lib/kik-adt.golden.test.ts",
+      "evidenceRefs": [
+        "src/lib/kik-adt.ts",
+        "src/lib/kik-adt.golden.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Implementation and independent expert acceptance required."
+      ]
+    },
+    {
+      "id": "kat-karsiligi-ve-kentsel-donusum-calculator",
+      "title": "Kat Karşılığı ve Kentsel Dönüşüm Paylaşım / KDV Hesaplayıcısı (Yol Haritasında)",
+      "actualBehaviorClaim": "Arsa sahibi ve müteahhit paylaşımı ile 6306 kapsamındaki KDV etkisinin kullanıcı girdili hesaplanması (Yol Haritasında; kaynak ve uzman doğrulaması bekliyor).",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Konut teslimlerinde KDV oranları ve 6306 kapsamındaki teslimler; article/scope: 7346 sayılı CK (RG 7.7.2023) oranları üç kaynakta tutarlı; GİB Genel Uygulama Tebliği karşılaştırması bekliyor. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L1",
+      "currentStatus": "roadmap",
+      "modulePath": "src/lib/kat-karsiligi.ts",
+      "goldenTestPath": "src/lib/kat-karsiligi.test.ts",
+      "evidenceRefs": [
+        "src/lib/kat-karsiligi.ts",
+        "src/lib/kat-karsiligi.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Implementation and independent expert acceptance required."
+      ]
+    },
+    {
+      "id": "yambis-muteahhitlik-grubu-calculator",
+      "title": "Müteahhitlik Yetki Belgesi Grubu Danışmanı (Yol Haritasında)",
+      "actualBehaviorClaim": "Mali rasyoların ve iş deneyiminin yönetmelik tablolarıyla karşılaştırılarak yetki belgesi grubu ön değerlendirmesi (Yol Haritasında; yönetmelik tabloları doğrulanıyor).",
+      "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
+      "regulatoryScope": "Source label: Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik (konsolide, mevzuat.gov.tr No 31301); article/scope: m.4(1)(k), m.11, m.12, m.14 — metinden doğrulandı; uzman onayı bekliyor. Current source access and effective-date limits remain governed by source-register.json.",
+      "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
+      "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
+      "currentLevel": "L1",
+      "currentStatus": "roadmap",
+      "modulePath": "src/lib/yambis-classification.ts",
+      "goldenTestPath": "src/lib/yambis-classification.test.ts",
+      "evidenceRefs": [
+        "src/lib/yambis-classification.ts",
+        "src/lib/yambis-classification.test.ts",
+        "docs/audits/phase-0/source-register.json"
+      ],
+      "blockers": [
+        "Implementation and independent expert acceptance required."
+      ]
+    }
+  ],
+  "uniqueClaimProtocol": {
+    "category": "Türkiye’de erişilebilen BIM tabanlı metraj, teklif, mevzuat ön-kontrolü ve ihale/hakediş yazılımları",
+    "featureBundle": [
+      "IFC QTO with traceable quantity evidence",
+      "dated Turkish public price provenance",
+      "e-PYS preflight",
+      "tender and progress-payment workflow",
+      "capability evidence gate"
+    ],
+    "asOfDate": "2026-10-23",
+    "geography": "Türkiye",
+    "searchMethod": "Official product documentation, public demos, pricing pages, release notes and direct vendor confirmation; absence of evidence is not evidence of absence.",
+    "decisionOwner": "Product owner plus advertising/legal reviewer",
+    "expiresAt": "2027-01-23",
+    "status": "not_researched",
+    "rule": "Category, bundle, date and geography may not be narrowed after seeing results without a new user-approved protocol."
+  }
+}

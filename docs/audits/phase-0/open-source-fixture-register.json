@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-10-23",
+  "policy": {
+    "classification": "open_conformance_fixture",
+    "mayProveVendorInteroperability": false,
+    "mayProveIndependentEngineeringAccuracy": false,
+    "mayProveCustomerAcceptance": false,
+    "mayProveL3OrL4": false
+  },
+  "machineRun": {
+    "baselineCommit": "e748481684b296cc6a1cd5de0365136b47384d2b",
+    "generatedAt": "2026-10-23T16:43:46Z",
+    "runtime": {
+      "python": "3.12.13",
+      "ifcopenshell": "0.8.4.post1",
+      "pypdf": "6.19.0"
+    },
+    "interpretation": "Repository-generated observations only; not independent expected results.",
+    "worktreeDirty": true,
+    "workerScripts": {
+      "ifc": {
+        "localPath": "workers/ifc/ifc_extract.py",
+        "sha256": "ff7c0ba1510096ed0aa179df4a8c3109ebd4f25384601abb7a7adf1e0464ec49",
+        "trackedDiffAtRun": false
+      },
+      "pdf": {
+        "localPath": "workers/ifc/pdf_preflight.py",
+        "sha256": "7c0dd41b74da4032fd45f4246e4edf049772e975bc1de04a98836ce6b8889b09",
+        "trackedDiffAtRun": false
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "buildingsmart-ifc2x3-building-architecture",
+      "classification": "open_conformance_fixture",
+      "upstreamRepo": "https://github.com/buildingSMART/Certification-datasets",
+      "upstreamCommit": "80d976a9b193a26a8e928c3e79bff67af1de68a8",
+      "upstreamPath": "IFC 2.3.0.1 (IFC 2x3 TC1)/Simple-Scene/Building-Architecture.ifc",
+      "sourceUrl": "https://github.com/buildingSMART/Certification-datasets/blob/80d976a9b193a26a8e928c3e79bff67af1de68a8/IFC%202.3.0.1%20(IFC%202x3%20TC1)/Simple-Scene/Building-Architecture.ifc",
+      "retrievedAt": "2026-10-23",
+      "localPath": "fixtures/phase-0/open-source/buildingsmart/ifc2x3-building-architecture.ifc",
+      "sha256": "c4db65ba847f6b369a95d6c54fa11f4750cbe6d59f021934e8923d8d578e5885",
+      "licenseSpdx": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/buildingSMART/Certification-datasets/blob/80d976a9b193a26a8e928c3e79bff67af1de68a8/LICENSE",
+      "attributionText": "Copyright buildingSMART International Ltd.; CC BY 4.0.",
+      "modified": false,
+      "schemaOrProfile": "IFC2X3 CoordinationView_V2.0",
+      "declaredExpectedCondition": "Public certification/implementation sample; no independent QTO expected result is supplied.",
+      "purpose": "IFC2X3 parser, spatial hierarchy and quantity extraction regression support.",
+      "claimBoundary": "Does not prove vendor export compatibility, QTO correctness, expert approval or field acceptance.",
+      "machineObservation": {
+        "localPath": "docs/audits/phase-0/generated/open-source/ifc2x3-building-architecture.json",
+        "sha256": "6f19e8fa7c4c39c1a343135e9d24f0f476da3b079be51cf8f32ef4641c613608",
+        "resultClass": "parsed_needs_review",
+        "inputSha256": "c4db65ba847f6b369a95d6c54fa11f4750cbe6d59f021934e8923d8d578e5885",
+        "generatedAt": "2026-10-23T16:43:46Z",
+        "command": "workers/ifc/.venv/bin/python -I workers/ifc/ifc_extract.py --input fixtures/phase-0/open-source/buildingsmart/ifc2x3-building-architecture.ifc --output docs/audits/phase-0/generated/open-source/ifc2x3-building-architecture.json --file-name ifc2x3-building-architecture.ifc"
+      },
+      "upstreamGitBlob": "07f1b8014e74b950037f53a0547ded51b435953f"
+    },
+    {
+      "id": "buildingsmart-ifc4-wall-opening-window",
+      "classification": "open_conformance_fixture",
+      "upstreamRepo": "https://github.com/buildingSMART/Certification-datasets",
+      "upstreamCommit": "80d976a9b193a26a8e928c3e79bff67af1de68a8",
+      "upstreamPath": "IFC 4.0.2.1 (IFC 4 ADD2 TC1)/ISO Spec - ReferenceView_V1.2/wall-with-opening-and-window.ifc",
+      "sourceUrl": "https://github.com/buildingSMART/Certification-datasets/blob/80d976a9b193a26a8e928c3e79bff67af1de68a8/IFC%204.0.2.1%20(IFC%204%20ADD2%20TC1)/ISO%20Spec%20-%20ReferenceView_V1.2/wall-with-opening-and-window.ifc",
+      "retrievedAt": "2026-10-23",
+      "localPath": "fixtures/phase-0/open-source/buildingsmart/ifc4-wall-opening-window.ifc",
+      "sha256": "73b0e45d931d5dc13bfee5fdc7bd80f796526445458b2de74c4168d209097832",
+      "licenseSpdx": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/buildingSMART/Certification-datasets/blob/80d976a9b193a26a8e928c3e79bff67af1de68a8/LICENSE",
+      "attributionText": "Copyright buildingSMART International Ltd.; CC BY 4.0.",
+      "modified": false,
+      "schemaOrProfile": "IFC4 ADD2 TC1 ReferenceView_V1.2",
+      "declaredExpectedCondition": "Wall/opening/window reference model; no independent QTO expected result is supplied.",
+      "purpose": "Opening relation and declared-unit regression support.",
+      "claimBoundary": "Observed extreme volume/area values are a defect signal, not an approved expected quantity.",
+      "machineObservation": {
+        "localPath": "docs/audits/phase-0/generated/open-source/ifc4-wall-opening-window.json",
+        "sha256": "bc01abc7dde26b316defc67abd1e70fdc1fb5e495eb0d159babe52ac6e7cf0a0",
+        "resultClass": "parsed_suspect_unit_scaling",
+        "inputSha256": "73b0e45d931d5dc13bfee5fdc7bd80f796526445458b2de74c4168d209097832",
+        "generatedAt": "2026-10-23T16:43:46Z",
+        "command": "workers/ifc/.venv/bin/python -I workers/ifc/ifc_extract.py --input fixtures/phase-0/open-source/buildingsmart/ifc4-wall-opening-window.ifc --output docs/audits/phase-0/generated/open-source/ifc4-wall-opening-window.json --file-name ifc4-wall-opening-window.ifc"
+      },
+      "upstreamGitBlob": "8820193e625f693712be860d79291a0ee48eacd7"
+    },
+    {
+      "id": "buildingsmart-ifc4x3-building-structural",
+      "classification": "open_conformance_fixture",
+      "upstreamRepo": "https://github.com/buildingSMART/Certification-datasets",
+      "upstreamCommit": "80d976a9b193a26a8e928c3e79bff67af1de68a8",
+      "upstreamPath": "IFC 4.3.2.0 (IFC 4.3 ADD2)/Simple-Scene/Building-Structural.ifc",
+      "sourceUrl": "https://github.com/buildingSMART/Certification-datasets/blob/80d976a9b193a26a8e928c3e79bff67af1de68a8/IFC%204.3.2.0%20(IFC%204.3%20ADD2)/Simple-Scene/Building-Structural.ifc",
+      "retrievedAt": "2026-10-23",
+      "localPath": "fixtures/phase-0/open-source/buildingsmart/ifc4x3-building-structural.ifc",
+      "sha256": "db64895488aad4eab082c8292f5632145b0fc864c0642d4fe667404882bacf27",
+      "licenseSpdx": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/buildingSMART/Certification-datasets/blob/80d976a9b193a26a8e928c3e79bff67af1de68a8/LICENSE",
+      "attributionText": "Copyright buildingSMART International Ltd.; CC BY 4.0.",
+      "modified": false,
+      "schemaOrProfile": "IFC4X3_ADD2",
+      "declaredExpectedCondition": "Public certification/implementation sample; no independent structural-QTO expected result is supplied.",
+      "purpose": "IFC4.3 parser and structural element regression support.",
+      "claimBoundary": "Does not establish structural design adequacy, reinforcement quantities or expert approval.",
+      "machineObservation": {
+        "localPath": "docs/audits/phase-0/generated/open-source/ifc4x3-building-structural.json",
+        "sha256": "28d92d4a1f69da8c3e0a0128c27c5a6b3d8e11b8f7e4c25a90b545738217e48c",
+        "resultClass": "parsed_needs_review",
+        "inputSha256": "db64895488aad4eab082c8292f5632145b0fc864c0642d4fe667404882bacf27",
+        "generatedAt": "2026-10-23T16:43:46Z",
+        "command": "workers/ifc/.venv/bin/python -I workers/ifc/ifc_extract.py --input fixtures/phase-0/open-source/buildingsmart/ifc4x3-building-structural.ifc --output docs/audits/phase-0/generated/open-source/ifc4x3-building-structural.json --file-name ifc4x3-building-structural.ifc"
+      },
+      "upstreamGitBlob": "362372ffaf13f592a1c45d9ed8420423a177cea9"
+    },
+    {
+      "id": "verapdf-pdfa2b-6-3-3-t01-pass-a",
+      "classification": "open_conformance_fixture",
+      "upstreamRepo": "https://github.com/veraPDF/veraPDF-corpus",
+      "upstreamCommit": "bb75f4f0073d9350dfd058c0162a367e6fadf25e",
+      "upstreamPath": "PDF_A-2b/6.3 Annotations/6.3.3 Annotation appearances/veraPDF test suite 6-3-3-t01-pass-a.pdf",
+      "sourceUrl": "https://github.com/veraPDF/veraPDF-corpus/blob/bb75f4f0073d9350dfd058c0162a367e6fadf25e/PDF_A-2b/6.3%20Annotations/6.3.3%20Annotation%20appearances/veraPDF%20test%20suite%206-3-3-t01-pass-a.pdf",
+      "retrievedAt": "2026-10-23",
+      "localPath": "fixtures/phase-0/open-source/verapdf/pdfa2b-pass.pdf",
+      "sha256": "93ac7ed7dfcd86d81e7a4865220fc77eb2284297370aca5a87c10e2d3e75d10b",
+      "licenseSpdx": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/veraPDF/veraPDF-corpus/blob/bb75f4f0073d9350dfd058c0162a367e6fadf25e/README.md",
+      "attributionText": "veraPDF Consortium test corpus; CC BY 4.0.",
+      "modified": false,
+      "schemaOrProfile": "PDF/A-2b; ISO 19005 clause case 6.3.3-t01-pass-a",
+      "declaredExpectedCondition": "PASS according to the upstream atomic corpus case name and structure.",
+      "purpose": "PDF/A validator integration regression support.",
+      "claimBoundary": "The current preflight only reads the PDF/A claim and cannot establish conformance or signature validity.",
+      "machineObservation": {
+        "localPath": "docs/audits/phase-0/generated/open-source/pdfa2b-pass.json",
+        "sha256": "83ccad4828000cb5c728aa9824021dc2eca10d137addc45a9c9a026ea2abfc01",
+        "resultClass": "identity_only_manual_validation_required",
+        "inputSha256": "93ac7ed7dfcd86d81e7a4865220fc77eb2284297370aca5a87c10e2d3e75d10b",
+        "generatedAt": "2026-10-23T16:43:46Z",
+        "command": "workers/ifc/.venv/bin/python -I workers/ifc/pdf_preflight.py --input fixtures/phase-0/open-source/verapdf/pdfa2b-pass.pdf --output docs/audits/phase-0/generated/open-source/pdfa2b-pass.json --file-name pdfa2b-pass.pdf"
+      },
+      "upstreamGitBlob": "738f09a8bf23266f1f50f3ca8e6ac5d055ccf052"
+    },
+    {
+      "id": "verapdf-pdfa2b-6-3-3-t01-fail-a",
+      "classification": "open_conformance_fixture",
+      "upstreamRepo": "https://github.com/veraPDF/veraPDF-corpus",
+      "upstreamCommit": "bb75f4f0073d9350dfd058c0162a367e6fadf25e",
+      "upstreamPath": "PDF_A-2b/6.3 Annotations/6.3.3 Annotation appearances/veraPDF test suite 6-3-3-t01-fail-a.pdf",
+      "sourceUrl": "https://github.com/veraPDF/veraPDF-corpus/blob/bb75f4f0073d9350dfd058c0162a367e6fadf25e/PDF_A-2b/6.3%20Annotations/6.3.3%20Annotation%20appearances/veraPDF%20test%20suite%206-3-3-t01-fail-a.pdf",
+      "retrievedAt": "2026-10-23",
+      "localPath": "fixtures/phase-0/open-source/verapdf/pdfa2b-fail.pdf",
+      "sha256": "f99e9e76b5fa37ff7376d870da793662c2346aec1aa4be63d170f58a26bc0e3d",
+      "licenseSpdx": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/veraPDF/veraPDF-corpus/blob/bb75f4f0073d9350dfd058c0162a367e6fadf25e/README.md",
+      "attributionText": "veraPDF Consortium test corpus; CC BY 4.0.",
+      "modified": false,
+      "schemaOrProfile": "PDF/A-2b; ISO 19005 clause case 6.3.3-t01-fail-a",
+      "declaredExpectedCondition": "FAIL according to the upstream atomic corpus case name and structure.",
+      "purpose": "PDF/A validator negative regression support.",
+      "claimBoundary": "The current preflight produces the same PDF/A observation as the PASS case; this remains an implementation gap.",
+      "machineObservation": {
+        "localPath": "docs/audits/phase-0/generated/open-source/pdfa2b-fail.json",
+        "sha256": "efc598fcb06266f553ecab0094bd35cfaa079a60237cbe8d22fa2c7dd82e7c1b",
+        "resultClass": "identity_only_manual_validation_required",
+        "inputSha256": "f99e9e76b5fa37ff7376d870da793662c2346aec1aa4be63d170f58a26bc0e3d",
+        "generatedAt": "2026-10-23T16:43:46Z",
+        "command": "workers/ifc/.venv/bin/python -I workers/ifc/pdf_preflight.py --input fixtures/phase-0/open-source/verapdf/pdfa2b-fail.pdf --output docs/audits/phase-0/generated/open-source/pdfa2b-fail.json --file-name pdfa2b-fail.pdf"
+      },
+      "upstreamGitBlob": "81e01348dadc226e34e104a90d3c63db21f3344a"
+    }
+  ]
+}

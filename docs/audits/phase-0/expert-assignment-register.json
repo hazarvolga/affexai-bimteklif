@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-10-23",
+  "experts": [
+    {
+      "discipline": "STR",
+      "status": "unassigned",
+      "reviewerName": null,
+      "credentials": null,
+      "scope": "TS 500/TBDY/TS 708, structural QTO",
+      "conflictDeclaration": null,
+      "assignedAt": null,
+      "blocker": "Named independent human expert and scope acceptance required; AI/agent review is not expert sign-off."
+    },
+    {
+      "discipline": "ARC",
+      "status": "unassigned",
+      "reviewerName": null,
+      "credentials": null,
+      "scope": "architectural QTO, imar and openings",
+      "conflictDeclaration": null,
+      "assignedAt": null,
+      "blocker": "Named independent human expert and scope acceptance required; AI/agent review is not expert sign-off."
+    },
+    {
+      "discipline": "MEP",
+      "status": "unassigned",
+      "reviewerName": null,
+      "credentials": null,
+      "scope": "mechanical/electrical QTO",
+      "conflictDeclaration": null,
+      "assignedAt": null,
+      "blocker": "Named independent human expert and scope acceptance required; AI/agent review is not expert sign-off."
+    },
+    {
+      "discipline": "COST",
+      "status": "unassigned",
+      "reviewerName": null,
+      "credentials": null,
+      "scope": "poz, unit, price, escalation and hakedis",
+      "conflictDeclaration": null,
+      "assignedAt": null,
+      "blocker": "Named independent human expert and scope acceptance required; AI/agent review is not expert sign-off."
+    },
+    {
+      "discipline": "tax",
+      "status": "unassigned",
+      "reviewerName": null,
+      "credentials": null,
+      "scope": "KDV and kat karşılığı",
+      "conflictDeclaration": null,
+      "assignedAt": null,
+      "blocker": "Named independent human expert and scope acceptance required; AI/agent review is not expert sign-off."
+    },
+    {
+      "discipline": "tender",
+      "status": "unassigned",
+      "reviewerName": null,
+      "credentials": null,
+      "scope": "4734/4735, ADT and EKAP",
+      "conflictDeclaration": null,
+      "assignedAt": null,
+      "blocker": "Named independent human expert and scope acceptance required; AI/agent review is not expert sign-off."
+    }
+  ]
+}

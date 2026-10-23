@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-10-23",
+  "status": "unconfigured",
+  "policy": "Only product-owner-approved external credential issuers and reviewer public keys may be pinned. AI-generated or self-signed identities are not trusted.",
+  "trustedIssuers": [],
+  "trustedReviewers": []
+}
