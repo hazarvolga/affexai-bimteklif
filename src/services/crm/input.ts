@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const crmStages = ['lead', 'contacted', 'quotation_sent', 'negotiation', 'won', 'lost'] as const;
 const id = z.string().uuid();
-const money = z.union([z.number(), z.string().trim().min(1)]).pipe(z.coerce.number().finite().min(0).max(Number.MAX_SAFE_INTEGER));
+const money = z.union([z.number(), z.string().trim().min(1)]).pipe(z.coerce.number<string | number>().finite().min(0).max(Number.MAX_SAFE_INTEGER));
 export const dealInput = z.object({
   clientId: id, name: z.string().trim().min(1).max(300), value: money.default(0),
   stage: z.enum(crmStages).default('lead'),

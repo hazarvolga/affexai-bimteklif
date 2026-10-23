@@ -7,9 +7,11 @@ import {
   ShieldCheck,
   TrendingUp,
   CreditCard,
-  Briefcase
+  Briefcase,
+  FileCheck2
 } from 'lucide-react';
 import { ACADEMY_ENABLED } from '@/config/features';
+import { PROGRESS_PAYMENTS_ENABLED } from '@/config/client-features';
 
 export type NavGroup = 'Ana Menü' | 'Araçlar' | 'Sistem Yönetimi';
 
@@ -59,6 +61,13 @@ export const navigationConfig: NavItem[] = [
     roles: ["owner", "admin", "manager", "viewer"],
     group: "Ana Menü",
   },
+  ...(PROGRESS_PAYMENTS_ENABLED ? [{
+    label: "Hakediş & Kesin Hesap",
+    path: "/app/progress-payments",
+    icon: FileCheck2,
+    roles: ["owner", "admin", "manager", "viewer"],
+    group: "Ana Menü" as const,
+  }] : []),
   {
     label: "Müşteriler (CRM)",
     path: "/app/crm",

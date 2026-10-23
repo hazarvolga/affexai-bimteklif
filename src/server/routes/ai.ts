@@ -16,7 +16,7 @@ const generateQuotationSchema = z.object({
 });
 
 const improveQuotationSchema = z.object({
-  items: z.array(z.record(z.unknown())).max(200),
+  items: z.array(z.record(z.string(), z.unknown())).max(200),
   instructions: z.string().min(1).max(2048),
 });
 

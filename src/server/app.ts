@@ -62,6 +62,7 @@ import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
 import { registerCdeRoutes } from "./routes/cde";
+import { registerProgressPaymentRoutes } from "./routes/progress-payments";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { validateAuthEmailEnvironment } from './auth/email-policy';
 import { pruneExpiredRateLimits } from "./auth/security";
@@ -189,6 +190,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerMarketIntelligenceRoutes(app);
   registerPilotEvidenceRoutes(app);
   registerCdeRoutes(app);
+  registerProgressPaymentRoutes(app);
 
   if (options?.configureRoutes) {
     options.configureRoutes(app);

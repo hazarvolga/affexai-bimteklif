@@ -21,7 +21,7 @@ export const adminPlansSchema = z.array(z.object({
   })).optional(),
 }));
 export const adminDashboardSchema = z.object({
-  totalTenants: count, statusCounts: z.record(count), totalMRR: z.number().nonnegative(),
+  totalTenants: count, statusCounts: z.record(z.string(), count), totalMRR: z.number().nonnegative(),
   totalQuotesThisMonth: count, totalIfcThisMonth: count,
   planDistribution: z.array(z.object({ name: z.string(), count })),
   queueStats: z.object({ queued: count, running: count, failed24h: count, succeeded24h: count }),

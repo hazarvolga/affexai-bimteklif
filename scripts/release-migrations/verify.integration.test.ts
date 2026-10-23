@@ -57,7 +57,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       baselineSignature = state.signature;
       report.baselineSignature = baselineSignature;
     });
-    await check('additive migration reaches 75 tables and matches current Drizzle schema', async () => {
+    await check('additive migration reaches 85 tables and matches current Drizzle schema', async () => {
       assert.deepEqual(await applyMigrations(fresh, migrations, 8), migrations.slice(1, 9).map(m => m.tag));
       const fixture = {
         company: '33333333-3333-4333-8333-333333333333', user: '44444444-4444-4444-8444-444444444444',
@@ -84,7 +84,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         { id: fixture.newerEvidence, status: 'superseded' },
       ]);
       const state = await catalog(fresh);
-      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 75);
+      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 85);
       // Independently materialize the current structured Drizzle schema, not a dump
       // of the baseline-derived database, then compare complete logical catalogs.
       await restore.query('begin');
@@ -243,6 +243,190 @@ test('release migration lifecycle on three owned disposable databases', { timeou
           await fresh.query(`rollback to savepoint ${savepoint}`);
         }
         await fresh.query(`update quotation_transfer_ledgers set sealed_at=now() where id=$1`, [transfer.ledger]);
+
+        const progress = {
+          reviewer: 'fb111111-1111-4111-8111-111111111111', contract: 'fb222222-2222-4222-8222-222222222222',
+          item: 'fb333333-3333-4333-8333-333333333333', period: 'fb444444-4444-4444-8444-444444444444',
+          measurement: 'fb555555-5555-4555-8555-555555555555', reviewEvent: 'fb666666-6666-4666-8666-666666666666',
+          adjustment: 'fb777777-7777-4777-8777-777777777777', line: 'fb888888-8888-4888-8888-888888888888',
+          forgedPeriod: 'fb999999-9999-4999-8999-999999999999', forgedEvent: 'fba11111-1111-4111-8111-111111111111',
+          submitEvent: 'fba22222-2222-4222-8222-222222222222', approveEvent: 'fba33333-3333-4333-8333-333333333333',
+          laterPeriod: 'fba44444-4444-4444-8444-444444444444', correctEvent: 'fba55555-5555-4555-8555-555555555555',
+          laterMeasurement: 'fba66666-6666-4666-8666-666666666666', laterReviewEvent: 'fba77777-7777-4777-8777-777777777777',
+          laterSubmitEvent: 'fba88888-8888-4888-8888-888888888888', laterLine: 'fba99999-9999-4999-8999-999999999999',
+          laterApproveEvent: 'fbb11111-1111-4111-8111-111111111111',
+          sourceDocument: 'fbb22222-2222-4222-8222-222222222222', sourceRun: 'fbb33333-3333-4333-8333-333333333333',
+          sourceRow: 'fbb44444-4444-4444-8444-444444444444',
+        };
+        await fresh.query(`insert into users(id,email,full_name) values ($1,'progress-reviewer@example.test','Progress Reviewer')`, [progress.reviewer]);
+        await fresh.query(`insert into memberships(user_id,company_id,role) values ($1,$2,'admin')`, [progress.reviewer, fixture.company]);
+        await fresh.query(`insert into construction_contracts(id,company_id,contract_number,project_name,currency,regime,initial_amount,source_document_hash,status,created_by_user_id)
+          values ($1,$2,'PP-001','Progress invariants','TRY','test',1000,$3,'active',$4)`, [progress.contract, fixture.company, 'a'.repeat(64), fixture.user]);
+        await fresh.query(`insert into construction_contract_items(id,company_id,contract_id,item_code,description,unit,contract_quantity,unit_price,source_hash)
+          values ($1,$2,$3,'ITEM-1','Invariant item','m2',10,100,$4)`, [progress.item, fixture.company, progress.contract, 'b'.repeat(64)]);
+        await fresh.query(`insert into documents(id,company_id,uploaded_by_user_id,original_file_name,display_name,mime_type,file_size_bytes,storage_key,checksum_sha256,status)
+          values ($1,$2,$3,'progress.xlsx','Progress source','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',1,'progress/source.xlsx',$4,'completed')`, [progress.sourceDocument, fixture.company, fixture.user, 'c'.repeat(64)]);
+        await fresh.query(`insert into document_processing_runs(id,company_id,document_id,status,current_stage,idempotency_key,pipeline_version,provider,model,progress_percent)
+          values ($1,$2,$3,'succeeded','completed','progress-source-run',6,'xlsx-parser','canonical-v1',100)`, [progress.sourceRun, fixture.company, progress.sourceDocument]);
+        await fresh.query(`insert into normalized_quantity_rows(id,company_id,document_id,processing_run_id,sheet_name,source_row_number,source_cell_range,normalized_description,normalized_unit,normalized_quantity,review_status,reviewer_user_id,reviewed_at,reviewer_notes)
+          values ($1,$2,$3,$4,'Metraj',7,'A7:D7','Invariant item','m2',5,'approved',$5,now(),'checked source')`, [progress.sourceRow, fixture.company, progress.sourceDocument, progress.sourceRun, progress.reviewer]);
+        await fresh.query('savepoint progress_direct_variation_approval');
+        await assert.rejects(fresh.query(`insert into contract_variations(company_id,contract_id,variation_number,kind,amount,decision_document_hash,status,created_by_user_id)
+          values ($1,$2,1,'addition',1,$3,'approved',$4)`, [fixture.company, progress.contract, '8'.repeat(64), fixture.user]), /must start in manual_review/);
+        await fresh.query('rollback to savepoint progress_direct_variation_approval');
+        await fresh.query('savepoint progress_direct_final_seal');
+        await assert.rejects(fresh.query(`insert into final_accounts(company_id,contract_id,revision_number,status,result_json,source_aggregate_hash,sealed_at,created_by_user_id)
+          values ($1,$2,1,'sealed','{}'::jsonb,$3,now(),$4)`, [fixture.company, progress.contract, '7'.repeat(64), fixture.user]), /must start as unsealed draft/);
+        await fresh.query('rollback to savepoint progress_direct_final_seal');
+        await fresh.query('savepoint progress_contract_amount_reconcile');
+        await fresh.query(`update construction_contracts set initial_amount=999 where id=$1`, [progress.contract]);
+        await assert.rejects(fresh.query(`insert into progress_payment_periods(company_id,contract_id,payment_number,revision_number,period_start,period_end,status,is_current,version,created_by_user_id)
+          values ($1,$2,98,0,now(),now(),'draft',true,0,$3)`, [fixture.company, progress.contract, fixture.user]), /requires reconciled item scope/);
+        await fresh.query('rollback to savepoint progress_contract_amount_reconcile');
+        await fresh.query('savepoint progress_direct_approved_insert');
+        await assert.rejects(fresh.query(`insert into progress_payment_periods(id,company_id,contract_id,payment_number,revision_number,period_start,period_end,status,is_current,version,scope_hash,submitted_by_user_id,approved_by_user_id,submitted_at,approved_at,sealed_at,created_by_user_id)
+          values ($1,$2,$3,99,0,now(),now(),'approved',true,0,$4,$5,$6,now(),now(),now(),$5)`, [progress.forgedPeriod, fixture.company, progress.contract, 'c'.repeat(64), fixture.user, progress.reviewer]), /must start as unsealed draft version zero/);
+        await fresh.query('rollback to savepoint progress_direct_approved_insert');
+        await fresh.query(`insert into progress_payment_periods(id,company_id,contract_id,payment_number,revision_number,period_start,period_end,status,is_current,version,created_by_user_id)
+          values ($1,$2,$3,1,0,'2026-10-01','2026-10-31','draft',true,0,$4)`, [progress.period, fixture.company, progress.contract, fixture.user]);
+        await fresh.query('savepoint progress_prior_readiness_guard');
+        await assert.rejects(fresh.query(`insert into progress_payment_periods(company_id,contract_id,payment_number,revision_number,period_start,period_end,status,is_current,version,created_by_user_id)
+          values ($1,$2,2,0,'2026-11-01','2026-11-30','draft',true,0,$3)`, [fixture.company, progress.contract, fixture.user]), /requires next number and sealed prior current period/);
+        await fresh.query('rollback to savepoint progress_prior_readiness_guard');
+        await fresh.query('savepoint progress_late_item_guard');
+        await assert.rejects(fresh.query(`insert into construction_contract_items(company_id,contract_id,item_code,description,unit,contract_quantity,unit_price,source_hash)
+          values ($1,$2,'LATE','Late item','m2',1,1,$3)`, [fixture.company, progress.contract, 'c'.repeat(64)]), /cannot be inserted after first progress period/);
+        await fresh.query('rollback to savepoint progress_late_item_guard');
+        await fresh.query('savepoint progress_partial_source_guard');
+        await assert.rejects(fresh.query(`insert into progress_measurements(company_id,contract_id,period_id,contract_item_id,location,source_type,quantity,unit,source_cell_range,source_identity,created_by_user_id)
+          values ($1,$2,$3,$4,'A','manual',1,'m2','forged-cell','partial-source',$5)`, [fixture.company, progress.contract, progress.period, progress.item, fixture.user]), /progress_measurements_source_binding_check/);
+        await fresh.query('rollback to savepoint progress_partial_source_guard');
+        await fresh.query('savepoint progress_source_value_guard');
+        await assert.rejects(fresh.query(`insert into progress_measurements(company_id,contract_id,period_id,contract_item_id,location,source_type,quantity,unit,source_document_id,source_processing_run_id,source_quantity_row_id,source_cell_range,source_identity,created_by_user_id)
+          values ($1,$2,$3,$4,'A','xlsx',6,'m2',$5,$6,$7,'A7:D7','xlsx:bad',$8)`, [fixture.company, progress.contract, progress.period, progress.item, progress.sourceDocument, progress.sourceRun, progress.sourceRow, fixture.user]), /exact approved canonical source row binding/);
+        await fresh.query('rollback to savepoint progress_source_value_guard');
+        await fresh.query(`insert into progress_measurements(id,company_id,contract_id,period_id,contract_item_id,location,source_type,quantity,unit,source_document_id,source_processing_run_id,source_quantity_row_id,source_cell_range,source_identity,created_by_user_id)
+          values ($1,$2,$3,$4,$5,'A','xlsx',5,'m2',$6,$7,$8,'A7:D7','xlsx:Metraj:7',$9)`, [progress.measurement, fixture.company, progress.contract, progress.period, progress.item, progress.sourceDocument, progress.sourceRun, progress.sourceRow, fixture.user]);
+        for (const [savepoint, statement, params] of [
+          ['progress_source_row_drift_guard', `update normalized_quantity_rows set normalized_quantity=6 where id=$1`, [progress.sourceRow]],
+          ['progress_source_sheet_drift_guard', `update normalized_quantity_rows set sheet_name='Tampered' where id=$1`, [progress.sourceRow]],
+          ['progress_source_ordinal_drift_guard', `update normalized_quantity_rows set source_row_number=8 where id=$1`, [progress.sourceRow]],
+          ['progress_source_review_drift_guard', `update normalized_quantity_rows set reviewer_notes='tampered' where id=$1`, [progress.sourceRow]],
+          ['progress_source_run_drift_guard', `update document_processing_runs set pipeline_version=7 where id=$1`, [progress.sourceRun]],
+          ['progress_source_document_drift_guard', `update documents set checksum_sha256=$1 where id=$2`, ['0'.repeat(64), progress.sourceDocument]],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(statement, [...params]), /progress-bound source evidence is immutable/);
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query('savepoint progress_forged_review_event');
+        await assert.rejects(fresh.query(`insert into progress_measurement_review_events(id,company_id,contract_id,period_id,measurement_id,decision,reason,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,$5,'approved','forged',0,1,'forged-review',$6,$7)`, [progress.forgedEvent, fixture.company, progress.contract, progress.period, progress.measurement, 'd'.repeat(64), progress.reviewer]), /review event does not match reviewed measurement/);
+        await fresh.query('rollback to savepoint progress_forged_review_event');
+        await fresh.query('savepoint progress_forged_measurement_update');
+        await fresh.query(`update progress_measurements set review_status='approved',reviewed_by_user_id=$1,reviewed_at=now(),review_reason='no event' where id=$2`, [progress.reviewer, progress.measurement]);
+        await assert.rejects(fresh.query('set constraints progress_measurement_review_binding immediate'), /requires append-only review event/);
+        await fresh.query('rollback to savepoint progress_forged_measurement_update');
+        await fresh.query('savepoint progress_review_rewrite_guard');
+        await assert.rejects(fresh.query(`update progress_measurements set quantity=9,review_status='approved',reviewed_by_user_id=$1,reviewed_at=now(),review_reason='rewritten' where id=$2`, [progress.reviewer, progress.measurement]), /measurement evidence is immutable during review/);
+        await fresh.query('rollback to savepoint progress_review_rewrite_guard');
+        await fresh.query(`update progress_measurements set review_status='approved',reviewed_by_user_id=$1,reviewed_at=now(),review_reason='checked' where id=$2`, [progress.reviewer, progress.measurement]);
+        await fresh.query(`insert into progress_measurement_review_events(id,company_id,contract_id,period_id,measurement_id,decision,reason,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,$5,'approved','checked',0,1,'review-ok',$6,$7)`, [progress.reviewEvent, fixture.company, progress.contract, progress.period, progress.measurement, 'e'.repeat(64), progress.reviewer]);
+        await fresh.query(`update progress_payment_periods set version=1,updated_at=now() where id=$1`, [progress.period]);
+        await fresh.query(`insert into progress_payment_adjustments(id,company_id,contract_id,period_id,adjustment_type,amount,evidence_hash,review_status,created_by_user_id)
+          values ($1,$2,$3,$4,'retention',10,$5,'manual_review',$6)`, [progress.adjustment, fixture.company, progress.contract, progress.period, 'f'.repeat(64), fixture.user]);
+        await fresh.query('savepoint progress_adjustment_self_approval');
+        await assert.rejects(fresh.query(`update progress_payment_adjustments set review_status='approved' where id=$1`, [progress.adjustment]), /requires append-only decision workflow/);
+        await fresh.query('rollback to savepoint progress_adjustment_self_approval');
+        await fresh.query(`delete from progress_payment_adjustments where id=$1`, [progress.adjustment]);
+        await fresh.query('savepoint progress_forged_event_guard');
+        await assert.rejects(fresh.query(`insert into progress_payment_events(company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,'submit','draft','submitted',1,2,'forged-state',$4,$5)`, [fixture.company, progress.contract, progress.period, '7'.repeat(64), fixture.user]), /does not match current period state and version/);
+        await fresh.query('rollback to savepoint progress_forged_event_guard');
+        await fresh.query('savepoint progress_direct_state_guard');
+        await fresh.query(`update progress_payment_periods set status='submitted',version=2,scope_hash=$1,submitted_by_user_id=$2,submitted_at=now(),updated_at=now() where id=$3`, ['1'.repeat(64), fixture.user, progress.period]);
+        await assert.rejects(fresh.query('set constraints progress_payment_event_binding immediate'), /requires matching append-only event/);
+        await fresh.query('rollback to savepoint progress_direct_state_guard');
+        await fresh.query(`update progress_payment_periods set status='submitted',version=2,scope_hash=$1,submitted_by_user_id=$2,submitted_at=now(),updated_at=now() where id=$3`, ['1'.repeat(64), fixture.user, progress.period]);
+        await fresh.query(`insert into progress_payment_events(id,company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,'submit','draft','submitted',1,2,'submit-ok',$5,$6)`, [progress.submitEvent, fixture.company, progress.contract, progress.period, '6'.repeat(64), fixture.user]);
+        await fresh.query('savepoint progress_duplicate_version_event');
+        await assert.rejects(fresh.query(`insert into progress_payment_events(company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,'submit','draft','submitted',1,2,'submit-duplicate',$4,$5)`, [fixture.company, progress.contract, progress.period, '5'.repeat(64), fixture.user]), /progress_payment_events_resulting_version_key/);
+        await fresh.query('rollback to savepoint progress_duplicate_version_event');
+        await fresh.query('savepoint progress_empty_approval_guard');
+        await assert.rejects(fresh.query(`update progress_payment_periods set status='approved',version=3,approved_by_user_id=$1,approved_at=now(),sealed_at=now(),updated_at=now() where id=$2`, [progress.reviewer, progress.period]), /reconciled materialized lines/);
+        await fresh.query('rollback to savepoint progress_empty_approval_guard');
+        for (const [savepoint, previous, current, cumulative, currentAmount, cumulativeAmount, expected] of [
+          ['progress_line_cap_guard', '0', '10.0001', '10.0001', '1000.01', '1000.01', /cumulative quantity exceeds contract quantity/],
+          ['progress_line_amount_guard', '0', '10', '10', '1000.01', '1000', /progress_payment_lines_amount_check|materialized progress amount mismatch/],
+          ['progress_line_previous_guard', '1', '9', '10', '900', '1000', /materialized progress quantity chain mismatch/],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(`insert into progress_payment_lines(company_id,contract_id,period_id,contract_item_id,previous_quantity,current_quantity,cumulative_quantity,unit_price_snapshot,current_amount,cumulative_amount)
+            values ($1,$2,$3,$4,$5,$6,$7,100,$8,$9)`, [fixture.company, progress.contract, progress.period, progress.item, previous, current, cumulative, currentAmount, cumulativeAmount]), expected);
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query(`insert into progress_payment_lines(id,company_id,contract_id,period_id,contract_item_id,previous_quantity,current_quantity,cumulative_quantity,unit_price_snapshot,current_amount,cumulative_amount)
+          values ($1,$2,$3,$4,$5,0,5,5,100,500,500)`, [progress.line, fixture.company, progress.contract, progress.period, progress.item]);
+        await fresh.query('savepoint progress_approved_scope_guard');
+        await assert.rejects(fresh.query(`update progress_payment_periods set status='approved',version=3,scope_hash=null,approved_by_user_id=$1,approved_at=now(),sealed_at=now(),updated_at=now() where id=$2`, [progress.reviewer, progress.period]), /maker-checker evidence|progress_payment_periods_scope_hash_check/);
+        await fresh.query('rollback to savepoint progress_approved_scope_guard');
+        await fresh.query(`update progress_payment_periods set status='approved',version=3,approved_by_user_id=$1,approved_at=now(),sealed_at=now(),updated_at=now() where id=$2`, [progress.reviewer, progress.period]);
+        await fresh.query(`insert into progress_payment_events(id,company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,'approve','submitted','approved',2,3,'approve-ok',$5,$6)`, [progress.approveEvent, fixture.company, progress.contract, progress.period, '4'.repeat(64), progress.reviewer]);
+        for (const [savepoint, statement, params, expected] of [
+          ['progress_review_event_update_guard', `update progress_measurement_review_events set reason='tampered' where id=$1`, [progress.reviewEvent], /append-only/],
+          ['progress_review_event_delete_guard', `delete from progress_measurement_review_events where id=$1`, [progress.reviewEvent], /append-only/],
+          ['progress_contract_header_guard', `update construction_contracts set initial_amount=999 where id=$1`, [progress.contract], /header identity amount and source are immutable/],
+          ['progress_line_update_guard', `update progress_payment_lines set current_amount=999 where id=$1`, [progress.line], /append-only/],
+          ['progress_sealed_mutation_guard', `update progress_payment_periods set status='superseded',is_current=false,version=4,scope_hash=$1,updated_at=now() where id=$2`, ['2'.repeat(64), progress.period], /sealed fields are immutable/],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(statement, [...params]), expected);
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query('savepoint progress_adjustment_late_insert_guard');
+        await assert.rejects(fresh.query(`insert into progress_payment_adjustments(company_id,contract_id,period_id,adjustment_type,amount,evidence_hash,review_status,created_by_user_id)
+          values ($1,$2,$3,'retention',1,$4,'manual_review',$5)`, [fixture.company, progress.contract, progress.period, '9'.repeat(64), fixture.user]), /immutable outside draft/);
+        await fresh.query('rollback to savepoint progress_adjustment_late_insert_guard');
+        await fresh.query('savepoint progress_correction_parent_guard');
+        await assert.rejects(fresh.query(`insert into progress_payment_periods(company_id,contract_id,payment_number,revision_number,parent_period_id,period_start,period_end,status,is_current,version,correction_reason,created_by_user_id)
+          values ($1,$2,1,1,$3,'2026-10-01','2026-10-31','draft',true,0,'forged correction',$4)`, [fixture.company, progress.contract, progress.period, fixture.user]), /exact superseded parent revision/);
+        await fresh.query('rollback to savepoint progress_correction_parent_guard');
+        await fresh.query('savepoint progress_orphan_supersede_guard');
+        await fresh.query(`update progress_payment_periods set status='superseded',is_current=false,version=4,updated_at=now() where id=$1`, [progress.period]);
+        await fresh.query(`insert into progress_payment_events(id,company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,reason,actor_user_id)
+          values ($1,$2,$3,$4,'correct','approved','superseded',3,4,'correct-orphan-guard',$5,'correction test',$6)`, [progress.correctEvent, fixture.company, progress.contract, progress.period, '3'.repeat(64), fixture.user]);
+        await assert.rejects(fresh.query('set constraints all immediate'), /requires exact current draft correction child/);
+        await fresh.query('rollback to savepoint progress_orphan_supersede_guard');
+        await fresh.query('set constraints all deferred');
+        assert.deepEqual((await fresh.query(`select status,is_current,version from progress_payment_periods where id=$1`, [progress.period])).rows[0], {
+          status: 'approved', is_current: true, version: 3,
+        });
+        await fresh.query(`insert into progress_payment_periods(id,company_id,contract_id,payment_number,revision_number,period_start,period_end,status,is_current,version,created_by_user_id)
+          values ($1,$2,$3,2,0,'2026-11-01','2026-11-30','draft',true,0,$4)`, [progress.laterPeriod, fixture.company, progress.contract, fixture.user]);
+        await fresh.query(`insert into progress_measurements(id,company_id,contract_id,period_id,contract_item_id,location,source_type,quantity,unit,source_identity,created_by_user_id)
+          values ($1,$2,$3,$4,$5,'B','manual',5,'m2','manual:B',$6)`, [progress.laterMeasurement, fixture.company, progress.contract, progress.laterPeriod, progress.item, fixture.user]);
+        await fresh.query(`update progress_measurements set review_status='approved',reviewed_by_user_id=$1,reviewed_at=now(),review_reason='checked' where id=$2`, [progress.reviewer, progress.laterMeasurement]);
+        await fresh.query(`insert into progress_measurement_review_events(id,company_id,contract_id,period_id,measurement_id,decision,reason,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,$5,'approved','checked',0,1,'review-period-2',$6,$7)`, [progress.laterReviewEvent, fixture.company, progress.contract, progress.laterPeriod, progress.laterMeasurement, '6'.repeat(64), progress.reviewer]);
+        await fresh.query(`update progress_payment_periods set status='submitted',version=1,scope_hash=$1,submitted_by_user_id=$2,submitted_at=now(),updated_at=now() where id=$3`, ['7'.repeat(64), fixture.user, progress.laterPeriod]);
+        await fresh.query(`insert into progress_payment_events(id,company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,'submit','draft','submitted',0,1,'submit-period-2',$5,$6)`, [progress.laterSubmitEvent, fixture.company, progress.contract, progress.laterPeriod, '7'.repeat(64), fixture.user]);
+        await fresh.query(`insert into progress_payment_lines(id,company_id,contract_id,period_id,contract_item_id,previous_quantity,current_quantity,cumulative_quantity,unit_price_snapshot,current_amount,cumulative_amount)
+          values ($1,$2,$3,$4,$5,5,5,10,100,500,1000)`, [progress.laterLine, fixture.company, progress.contract, progress.laterPeriod, progress.item]);
+        await fresh.query(`update progress_payment_periods set status='approved',version=2,approved_by_user_id=$1,approved_at=now(),sealed_at=now(),updated_at=now() where id=$2`, [progress.reviewer, progress.laterPeriod]);
+        await fresh.query(`insert into progress_payment_events(id,company_id,contract_id,period_id,action,from_status,to_status,expected_version,resulting_version,idempotency_key,request_hash,actor_user_id)
+          values ($1,$2,$3,$4,'approve','submitted','approved',1,2,'approve-period-2',$5,$6)`, [progress.laterApproveEvent, fixture.company, progress.contract, progress.laterPeriod, '8'.repeat(64), progress.reviewer]);
+        assert.equal((await fresh.query(`select count(*)::int count from progress_payment_periods where contract_id=$1 and status='approved'`, [progress.contract])).rows[0].count, 2);
+        await fresh.query('savepoint progress_later_non_cancelled_guard');
+        await assert.rejects(fresh.query(`update progress_payment_periods set status='superseded',is_current=false,version=4,updated_at=now() where id=$1`, [progress.period]), /followed by a later non-cancelled period/);
+        await fresh.query('rollback to savepoint progress_later_non_cancelled_guard');
+        assert.deepEqual((await fresh.query(`select status,is_current,version from progress_payment_periods where id=$1`, [progress.period])).rows[0], {
+          status: 'approved', is_current: true, version: 3,
+        });
         await fresh.query('commit');
         await assert.rejects(fresh.query(`insert into quotation_transfer_source_rows(company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version)
           values ($1,$2,$3,$4,$5,$6,$7,1,'late-lineage','calm-icmal.v1')`, [fixture.company, transfer.ledger, transfer.targetProbeRow, cde.document, cde.run, transfer.targetQuote, transfer.item]), /quotation transfer junction is sealed/);

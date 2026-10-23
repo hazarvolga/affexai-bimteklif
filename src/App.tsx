@@ -91,6 +91,7 @@ const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
 const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
 const BimIfcParserPage = page(() => import('@/pages/BimIfcParserPage'), 'default');
 const DosyadanTeklifDemo = page(() => import('@/pages/DosyadanTeklifDemo'), 'default');
+const ProgressPayments = page(() => import('@/pages/ProgressPayments'), 'ProgressPayments');
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -154,6 +155,7 @@ function AppRoutes() {
           <Route path="quotes/new" element={<CreateQuote />} />
           <Route path="quotes/:id/edit" element={<CreateQuote />} />
           <Route path="quotes/:id" element={<QuoteDetail />} />
+          <Route path="progress-payments" element={<ProgressPayments />} />
           <Route path="clients" element={<Clients />} />
           <Route path="regulations" element={<Regulations />} />
           <Route path="market-intelligence" element={<MarketIntelligence />} />

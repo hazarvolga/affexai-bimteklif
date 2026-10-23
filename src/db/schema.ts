@@ -2143,3 +2143,289 @@ export const cdeTransitionEvents = pgTable("cde_transition_events", {
   idxHistory: index("idx_cde_transition_events_history").on(table.companyId, table.containerId, table.createdAt),
 }));
 
+// ============================================================
+// PHASE 6 — REVISIONED PROGRESS PAYMENTS AND EVIDENCE
+// ============================================================
+
+export const constructionContracts = pgTable("construction_contracts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  sourceQuotationId: uuid("source_quotation_id"),
+  contractNumber: text("contract_number").notNull(),
+  projectName: text("project_name").notNull(),
+  currency: currencyEnum("currency").default("TRY").notNull(),
+  regime: text("regime").notNull(),
+  initialAmount: numeric("initial_amount", { precision: 20, scale: 2 }).notNull(),
+  sourceDocumentHash: text("source_document_hash").notNull(),
+  status: text("status").default("draft").notNull(),
+  version: integer("version").default(0).notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyContractUnique: unique("construction_contracts_id_company_id_key").on(table.id, table.companyId),
+  contractNumberUnique: unique("construction_contracts_company_number_key").on(table.companyId, table.contractNumber),
+  quotationFk: foreignKey({ columns: [table.sourceQuotationId, table.companyId], foreignColumns: [quotations.id, quotations.companyId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  amountCheck: check("construction_contracts_initial_amount_check", sql`${table.initialAmount} >= 0`),
+  statusCheck: check("construction_contracts_status_check", sql`${table.status} in ('draft', 'active', 'closed', 'cancelled')`),
+  regimeCheck: check("construction_contracts_regime_check", sql`length(trim(${table.regime})) between 1 and 80`),
+  sourceHashCheck: check("construction_contracts_source_hash_check", sql`${table.sourceDocumentHash} ~ '^[0-9a-f]{64}$'`),
+}));
+
+export const constructionContractItems = pgTable("construction_contract_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  sourceQuotationItemId: uuid("source_quotation_item_id"),
+  itemCode: text("item_code").notNull(),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  contractQuantity: numeric("contract_quantity", { precision: 20, scale: 4 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 20, scale: 2 }).notNull(),
+  sourceHash: text("source_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyItemUnique: unique("construction_contract_items_id_company_id_key").on(table.id, table.companyId),
+  contractItemUnique: unique("construction_contract_items_id_contract_company_key").on(table.id, table.contractId, table.companyId),
+  itemCodeUnique: unique("construction_contract_items_contract_code_key").on(table.companyId, table.contractId, table.itemCode),
+  contractFk: foreignKey({ columns: [table.contractId, table.companyId], foreignColumns: [constructionContracts.id, constructionContracts.companyId] }).onDelete("restrict"),
+  sourceItemFk: foreignKey({ columns: [table.sourceQuotationItemId, table.companyId], foreignColumns: [quotationItems.id, quotationItems.companyId] }).onDelete("restrict"),
+  quantityCheck: check("construction_contract_items_quantity_check", sql`${table.contractQuantity} >= 0`),
+  priceCheck: check("construction_contract_items_price_check", sql`${table.unitPrice} >= 0`),
+  sourceHashCheck: check("construction_contract_items_source_hash_check", sql`${table.sourceHash} ~ '^[0-9a-f]{64}$'`),
+}));
+
+export const progressPaymentPeriods = pgTable("progress_payment_periods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  paymentNumber: integer("payment_number").notNull(),
+  revisionNumber: integer("revision_number").default(0).notNull(),
+  parentPeriodId: uuid("parent_period_id"),
+  periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
+  periodEnd: timestamp("period_end", { withTimezone: true }).notNull(),
+  status: text("status").default("draft").notNull(),
+  isCurrent: boolean("is_current").default(true).notNull(),
+  version: integer("version").default(0).notNull(),
+  scopeHash: text("scope_hash"),
+  correctionReason: text("correction_reason"),
+  submittedByUserId: uuid("submitted_by_user_id"),
+  approvedByUserId: uuid("approved_by_user_id"),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  sealedAt: timestamp("sealed_at", { withTimezone: true }),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyPeriodUnique: unique("progress_payment_periods_id_company_id_key").on(table.id, table.companyId),
+  periodScopeUnique: unique("progress_payment_periods_id_contract_company_key").on(table.id, table.contractId, table.companyId),
+  parentScopeUnique: unique("progress_payment_periods_parent_scope_key").on(table.id, table.contractId, table.paymentNumber, table.companyId),
+  revisionUnique: unique("progress_payment_periods_revision_key").on(table.companyId, table.contractId, table.paymentNumber, table.revisionNumber),
+  currentRevisionUnique: uniqueIndex("progress_payment_periods_current_key").on(table.companyId, table.contractId, table.paymentNumber).where(sql`${table.isCurrent} = true`),
+  contractFk: foreignKey({ columns: [table.contractId, table.companyId], foreignColumns: [constructionContracts.id, constructionContracts.companyId] }).onDelete("restrict"),
+  parentFk: foreignKey({ columns: [table.parentPeriodId, table.contractId, table.paymentNumber, table.companyId], foreignColumns: [table.id, table.contractId, table.paymentNumber, table.companyId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  submitterFk: foreignKey({ columns: [table.submittedByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  approverFk: foreignKey({ columns: [table.approvedByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  statusCheck: check("progress_payment_periods_status_check", sql`${table.status} in ('draft', 'submitted', 'approved', 'superseded', 'cancelled')`),
+  datesCheck: check("progress_payment_periods_dates_check", sql`${table.periodEnd} >= ${table.periodStart}`),
+  sequenceCheck: check("progress_payment_periods_sequence_check", sql`${table.paymentNumber} > 0 AND ${table.revisionNumber} >= 0 AND ${table.version} >= 0`),
+  scopeHashCheck: check("progress_payment_periods_scope_hash_check", sql`(${table.scopeHash} IS NULL OR ${table.scopeHash} ~ '^[0-9a-f]{64}$') AND (${table.status} <> 'approved' OR ${table.scopeHash} ~ '^[0-9a-f]{64}$')`),
+}));
+
+export const progressPaymentLines = pgTable("progress_payment_lines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  periodId: uuid("period_id").notNull(),
+  contractItemId: uuid("contract_item_id").notNull(),
+  previousQuantity: numeric("previous_quantity", { precision: 20, scale: 4 }).notNull(),
+  currentQuantity: numeric("current_quantity", { precision: 20, scale: 4 }).notNull(),
+  cumulativeQuantity: numeric("cumulative_quantity", { precision: 20, scale: 4 }).notNull(),
+  unitPriceSnapshot: numeric("unit_price_snapshot", { precision: 20, scale: 2 }).notNull(),
+  currentAmount: numeric("current_amount", { precision: 20, scale: 2 }).notNull(),
+  cumulativeAmount: numeric("cumulative_amount", { precision: 20, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyLineUnique: unique("progress_payment_lines_id_company_id_key").on(table.id, table.companyId),
+  periodItemUnique: unique("progress_payment_lines_period_item_key").on(table.companyId, table.periodId, table.contractItemId),
+  idxContractPeriodItem: index("idx_progress_payment_lines_contract_period_item").on(table.companyId, table.contractId, table.periodId, table.contractItemId),
+  periodFk: foreignKey({ columns: [table.periodId, table.contractId, table.companyId], foreignColumns: [progressPaymentPeriods.id, progressPaymentPeriods.contractId, progressPaymentPeriods.companyId] }).onDelete("restrict"),
+  itemFk: foreignKey({ columns: [table.contractItemId, table.contractId, table.companyId], foreignColumns: [constructionContractItems.id, constructionContractItems.contractId, constructionContractItems.companyId] }).onDelete("restrict"),
+  quantityCheck: check("progress_payment_lines_quantity_check", sql`${table.previousQuantity} >= 0 AND ${table.currentQuantity} >= 0 AND ${table.cumulativeQuantity} = ${table.previousQuantity} + ${table.currentQuantity}`),
+  amountCheck: check("progress_payment_lines_amount_check", sql`${table.unitPriceSnapshot} >= 0 AND ${table.currentAmount} >= 0 AND ${table.cumulativeAmount} >= 0 AND ${table.cumulativeAmount} = round(${table.cumulativeQuantity} * ${table.unitPriceSnapshot}, 2) AND ${table.currentAmount} = ${table.cumulativeAmount} - round(${table.previousQuantity} * ${table.unitPriceSnapshot}, 2)`),
+}));
+
+export const progressMeasurements = pgTable("progress_measurements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  periodId: uuid("period_id").notNull(),
+  contractItemId: uuid("contract_item_id").notNull(),
+  parentMeasurementId: uuid("parent_measurement_id"),
+  location: text("location").notNull(),
+  elementKey: text("element_key"),
+  sourceType: text("source_type").notNull(),
+  quantity: numeric("quantity", { precision: 20, scale: 4 }).notNull(),
+  unit: text("unit").notNull(),
+  sourceDocumentId: uuid("source_document_id"),
+  sourceProcessingRunId: uuid("source_processing_run_id"),
+  sourceQuantityRowId: uuid("source_quantity_row_id"),
+  sourceCellRange: text("source_cell_range"),
+  sourceIdentity: text("source_identity").notNull(),
+  reviewStatus: text("review_status").default("pending_review").notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewReason: text("review_reason"),
+  correctionReason: text("correction_reason"),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyMeasurementUnique: unique("progress_measurements_id_company_id_key").on(table.id, table.companyId),
+  measurementScopeUnique: unique("progress_measurements_full_scope_key").on(table.id, table.contractItemId, table.contractId, table.periodId, table.companyId),
+  reviewScopeUnique: unique("progress_measurements_review_scope_key").on(table.id, table.contractId, table.periodId, table.companyId),
+  parentScopeUnique: unique("progress_measurements_parent_scope_key").on(table.id, table.contractItemId, table.contractId, table.companyId),
+  sourceIdentityUnique: unique("progress_measurements_source_identity_key").on(table.companyId, table.periodId, table.sourceIdentity),
+  periodFk: foreignKey({ columns: [table.periodId, table.contractId, table.companyId], foreignColumns: [progressPaymentPeriods.id, progressPaymentPeriods.contractId, progressPaymentPeriods.companyId] }).onDelete("restrict"),
+  itemFk: foreignKey({ columns: [table.contractItemId, table.contractId, table.companyId], foreignColumns: [constructionContractItems.id, constructionContractItems.contractId, constructionContractItems.companyId] }).onDelete("restrict"),
+  parentFk: foreignKey({ columns: [table.parentMeasurementId, table.contractItemId, table.contractId, table.companyId], foreignColumns: [table.id, table.contractItemId, table.contractId, table.companyId] }).onDelete("restrict"),
+  documentFk: foreignKey({ columns: [table.sourceDocumentId, table.companyId], foreignColumns: [documents.id, documents.companyId] }).onDelete("restrict"),
+  runFk: foreignKey({ columns: [table.sourceProcessingRunId, table.sourceDocumentId, table.companyId], foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId] }).onDelete("restrict"),
+  rowFk: foreignKey({ columns: [table.sourceQuantityRowId, table.companyId, table.sourceDocumentId, table.sourceProcessingRunId], foreignColumns: [normalizedQuantityRows.id, normalizedQuantityRows.companyId, normalizedQuantityRows.documentId, normalizedQuantityRows.processingRunId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  reviewerFk: foreignKey({ columns: [table.reviewedByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  quantityCheck: check("progress_measurements_quantity_check", sql`${table.quantity} > 0`),
+  sourceTypeCheck: check("progress_measurements_source_type_check", sql`${table.sourceType} in ('manual', 'ifc', 'xlsx', 'pdf', 'field_record')`),
+  reviewStatusCheck: check("progress_measurements_review_status_check", sql`${table.reviewStatus} in ('pending_review', 'approved', 'rejected', 'superseded')`),
+  sourceBindingCheck: check("progress_measurements_source_binding_check", sql`
+    (${table.sourceType} = 'manual' AND ${table.sourceDocumentId} IS NULL AND ${table.sourceProcessingRunId} IS NULL AND ${table.sourceQuantityRowId} IS NULL AND ${table.sourceCellRange} IS NULL)
+    OR (${table.sourceType} in ('ifc','xlsx') AND ${table.sourceDocumentId} IS NOT NULL AND ${table.sourceProcessingRunId} IS NOT NULL AND ${table.sourceQuantityRowId} IS NOT NULL AND ${table.sourceCellRange} IS NOT NULL)
+    OR (${table.sourceType} in ('pdf','field_record') AND ${table.sourceDocumentId} IS NOT NULL AND ${table.sourceProcessingRunId} IS NOT NULL AND ${table.sourceQuantityRowId} IS NULL AND ${table.sourceCellRange} IS NOT NULL)`),
+  reviewBindingCheck: check("progress_measurements_review_binding_check", sql`
+    (${table.reviewStatus} = 'pending_review' AND ${table.reviewedByUserId} IS NULL AND ${table.reviewedAt} IS NULL AND ${table.reviewReason} IS NULL)
+    OR (${table.reviewStatus} in ('approved','rejected') AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL AND length(trim(${table.reviewReason})) > 0)
+    OR ${table.reviewStatus} = 'superseded'`),
+  idxPeriodCreated: index("idx_progress_measurements_period_created").on(table.companyId, table.periodId, table.createdAt),
+}));
+
+export const progressMeasurementReviewEvents = pgTable("progress_measurement_review_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  periodId: uuid("period_id").notNull(),
+  measurementId: uuid("measurement_id").notNull(),
+  decision: text("decision").notNull(),
+  reason: text("reason").notNull(),
+  expectedVersion: integer("expected_version").notNull(),
+  resultingVersion: integer("resulting_version").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  requestHash: text("request_hash").notNull(),
+  actorUserId: uuid("actor_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyEventUnique: unique("progress_measurement_review_events_id_company_id_key").on(table.id, table.companyId),
+  idempotencyUnique: unique("progress_measurement_review_events_idempotency_key").on(table.companyId, table.periodId, table.idempotencyKey, table.measurementId),
+  periodFk: foreignKey({ columns: [table.periodId, table.contractId, table.companyId], foreignColumns: [progressPaymentPeriods.id, progressPaymentPeriods.contractId, progressPaymentPeriods.companyId] }).onDelete("restrict"),
+  measurementFk: foreignKey({ columns: [table.measurementId, table.contractId, table.periodId, table.companyId], foreignColumns: [progressMeasurements.id, progressMeasurements.contractId, progressMeasurements.periodId, progressMeasurements.companyId] }).onDelete("restrict"),
+  actorFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  decisionCheck: check("progress_measurement_review_events_decision_check", sql`${table.decision} in ('approved', 'rejected')`),
+  versionCheck: check("progress_measurement_review_events_version_check", sql`${table.expectedVersion} >= 0 AND ${table.resultingVersion} = ${table.expectedVersion} + 1`),
+  requestHashCheck: check("progress_measurement_review_events_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
+  idxPeriodCreated: index("idx_progress_measurement_review_events_period_created").on(table.companyId, table.periodId, table.createdAt),
+}));
+
+export const progressPaymentAdjustments = pgTable("progress_payment_adjustments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  periodId: uuid("period_id").notNull(),
+  adjustmentType: text("adjustment_type").notNull(),
+  amount: numeric("amount", { precision: 20, scale: 2 }).notNull(),
+  evidenceHash: text("evidence_hash").notNull(),
+  reviewStatus: text("review_status").default("manual_review").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  periodFk: foreignKey({ columns: [table.periodId, table.contractId, table.companyId], foreignColumns: [progressPaymentPeriods.id, progressPaymentPeriods.contractId, progressPaymentPeriods.companyId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  typeCheck: check("progress_payment_adjustments_type_check", sql`${table.adjustmentType} in ('advance_payment', 'advance_recovery', 'retention', 'penalty', 'tax', 'price_difference', 'other')`),
+  statusCheck: check("progress_payment_adjustments_status_check", sql`${table.reviewStatus} in ('manual_review', 'approved', 'rejected')`),
+  evidenceHashCheck: check("progress_payment_adjustments_evidence_hash_check", sql`${table.evidenceHash} ~ '^[0-9a-f]{64}$'`),
+  idxPeriodCreated: index("idx_progress_payment_adjustments_period_created").on(table.companyId, table.periodId, table.createdAt),
+}));
+
+export const progressPaymentEvents = pgTable("progress_payment_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  periodId: uuid("period_id").notNull(),
+  action: text("action").notNull(),
+  fromStatus: text("from_status").notNull(),
+  toStatus: text("to_status").notNull(),
+  expectedVersion: integer("expected_version").notNull(),
+  resultingVersion: integer("resulting_version").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  requestHash: text("request_hash").notNull(),
+  reason: text("reason"),
+  actorUserId: uuid("actor_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  idempotencyUnique: unique("progress_payment_events_idempotency_key").on(table.companyId, table.periodId, table.idempotencyKey),
+  resultingVersionUnique: unique("progress_payment_events_resulting_version_key").on(table.companyId, table.periodId, table.resultingVersion),
+  periodFk: foreignKey({ columns: [table.periodId, table.contractId, table.companyId], foreignColumns: [progressPaymentPeriods.id, progressPaymentPeriods.contractId, progressPaymentPeriods.companyId] }).onDelete("restrict"),
+  actorFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  actionCheck: check("progress_payment_events_action_check", sql`${table.action} in ('submit', 'approve', 'reject', 'correct', 'cancel')`),
+  statusCheck: check("progress_payment_events_status_check", sql`
+    (${table.action}='submit' AND ${table.fromStatus}='draft' AND ${table.toStatus}='submitted')
+    OR (${table.action}='approve' AND ${table.fromStatus}='submitted' AND ${table.toStatus}='approved')
+    OR (${table.action}='reject' AND ${table.fromStatus}='submitted' AND ${table.toStatus}='draft')
+    OR (${table.action}='cancel' AND ${table.fromStatus} in ('draft','submitted') AND ${table.toStatus}='cancelled')
+    OR (${table.action}='correct' AND ${table.fromStatus}='approved' AND ${table.toStatus}='superseded')`),
+  versionCheck: check("progress_payment_events_version_check", sql`${table.expectedVersion} >= 0 AND ${table.resultingVersion} = ${table.expectedVersion} + 1`),
+  requestHashCheck: check("progress_payment_events_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
+  idxPeriodCreated: index("idx_progress_payment_events_period_created").on(table.companyId, table.periodId, table.createdAt),
+}));
+
+export const contractVariations = pgTable("contract_variations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  variationNumber: integer("variation_number").notNull(),
+  kind: text("kind").notNull(),
+  amount: numeric("amount", { precision: 20, scale: 2 }).notNull(),
+  decisionDocumentHash: text("decision_document_hash"),
+  status: text("status").default("manual_review").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  variationUnique: unique("contract_variations_contract_number_key").on(table.companyId, table.contractId, table.variationNumber),
+  contractFk: foreignKey({ columns: [table.contractId, table.companyId], foreignColumns: [constructionContracts.id, constructionContracts.companyId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  kindCheck: check("contract_variations_kind_check", sql`${table.kind} in ('addition', 'omission', 'new_item')`),
+  statusCheck: check("contract_variations_status_check", sql`${table.status} in ('manual_review', 'approved', 'rejected')`),
+  decisionHashCheck: check("contract_variations_decision_hash_check", sql`${table.decisionDocumentHash} IS NULL OR ${table.decisionDocumentHash} ~ '^[0-9a-f]{64}$'`),
+  approvedEvidenceCheck: check("contract_variations_approved_evidence_check", sql`${table.status} <> 'approved' OR ${table.decisionDocumentHash} ~ '^[0-9a-f]{64}$'`),
+}));
+
+export const finalAccounts = pgTable("final_accounts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  contractId: uuid("contract_id").notNull(),
+  revisionNumber: integer("revision_number").notNull(),
+  status: text("status").default("draft").notNull(),
+  resultJson: jsonb("result_json").$type<Record<string, string | boolean | null>>().notNull(),
+  sourceAggregateHash: text("source_aggregate_hash").notNull(),
+  sealedAt: timestamp("sealed_at", { withTimezone: true }),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  revisionUnique: unique("final_accounts_contract_revision_key").on(table.companyId, table.contractId, table.revisionNumber),
+  contractFk: foreignKey({ columns: [table.contractId, table.companyId], foreignColumns: [constructionContracts.id, constructionContracts.companyId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  statusCheck: check("final_accounts_status_check", sql`${table.status} in ('draft', 'manual_review', 'sealed', 'superseded')`),
+  hashCheck: check("final_accounts_source_hash_check", sql`${table.sourceAggregateHash} ~ '^[0-9a-f]{64}$'`),
+  sealCheck: check("final_accounts_seal_check", sql`(${table.status} = 'sealed' AND ${table.sealedAt} IS NOT NULL) OR (${table.status} <> 'sealed' AND ${table.sealedAt} IS NULL)`),
+}));
+

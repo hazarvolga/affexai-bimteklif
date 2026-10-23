@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import { contextContracts } from "../src/contracts/context-contracts";
 import {
   SMARTCHECK_CONTRACT_VERSION,
@@ -16,11 +16,11 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outputDir = path.join(rootDir, "docs/architecture/generated");
 
 const schemas = {
-  SmartCheckUploadRequest: zodToJsonSchema(smartcheckUploadRequestSchema, { $refStrategy: "none" }),
-  SmartCheckCompleteRequest: zodToJsonSchema(smartcheckCompleteRequestSchema, { $refStrategy: "none" }),
-  SmartCheckMappingRequest: zodToJsonSchema(smartcheckMappingRequestSchema, { $refStrategy: "none" }),
-  SmartCheckRowReviewRequest: zodToJsonSchema(smartcheckRowReviewRequestSchema, { $refStrategy: "none" }),
-  SmartCheckTransferRequest: zodToJsonSchema(smartcheckTransferRequestSchema, { $refStrategy: "none" }),
+  SmartCheckUploadRequest: z.toJSONSchema(smartcheckUploadRequestSchema, { reused: "inline" }),
+  SmartCheckCompleteRequest: z.toJSONSchema(smartcheckCompleteRequestSchema, { reused: "inline" }),
+  SmartCheckMappingRequest: z.toJSONSchema(smartcheckMappingRequestSchema, { reused: "inline" }),
+  SmartCheckRowReviewRequest: z.toJSONSchema(smartcheckRowReviewRequestSchema, { reused: "inline" }),
+  SmartCheckTransferRequest: z.toJSONSchema(smartcheckTransferRequestSchema, { reused: "inline" }),
 } as const;
 
 const requestSchemaByOperation: Record<string, keyof typeof schemas> = {

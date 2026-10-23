@@ -73,11 +73,41 @@ test('calm transfer migration injects deferred revision binding and immutable qu
   assert.equal(statements.filter((statement) => statement.includes('EXECUTE FUNCTION prevent_transfer_bound_source_mutation()')).length, 4);
 });
 
+test('progress payment schema binds tenant aggregate and injects immutable approval guards', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  const periods = tables['public.progress_payment_periods'];
+  const lines = tables['public.progress_payment_lines'];
+  const measurements = tables['public.progress_measurements'];
+  assert.deepEqual(periods.uniqueConstraints.progress_payment_periods_revision_key.columns, ['company_id', 'contract_id', 'payment_number', 'revision_number']);
+  assert.deepEqual(lines.foreignKeys.progress_payment_lines_period_id_contract_id_company_id_progress_payment_periods_id_contract_id_company_id_fk.columnsFrom, ['period_id', 'contract_id', 'company_id']);
+  assert.deepEqual(measurements.foreignKeys.progress_measurements_contract_item_id_contract_id_company_id_construction_contract_items_id_contract_id_company_id_fk.columnsFrom, ['contract_item_id', 'contract_id', 'company_id']);
+  assert.deepEqual(measurements.uniqueConstraints.progress_measurements_review_scope_key.columns, ['id', 'contract_id', 'period_id', 'company_id']);
+  assert.deepEqual(measurements.uniqueConstraints.progress_measurements_parent_scope_key.columns, ['id', 'contract_item_id', 'contract_id', 'company_id']);
+  const statements = injectDataTransitions('0012_progress_payment_evidence', []);
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER progress_payment_period_transition_guard')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE CONSTRAINT TRIGGER progress_correction_child_binding')));
+  assert.ok(statements.some((statement) => statement.includes('approved progress payment requires maker-checker evidence')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER progress_payment_lines_append_only')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER progress_measurements_state_guard')));
+  assert.ok(statements.some((statement) => statement.includes('BEFORE INSERT OR UPDATE OR DELETE ON progress_payment_periods')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER progress_measurement_review_events_append_only')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE CONSTRAINT TRIGGER progress_measurement_review_binding')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER progress_payment_adjustments_state_guard')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER construction_contracts_period_lock')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER progress_payment_event_guard')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE CONSTRAINT TRIGGER progress_payment_event_binding')));
+  assert.ok(statements.some((statement) => statement.includes('cumulative quantity exceeds contract quantity')));
+  assert.ok(statements.some((statement) => statement.includes('materialized progress amount mismatch')));
+  assert.ok(statements.some((statement) => statement.includes('UPDATE OF sheet_name, source_row_number')));
+  assert.ok(statements.some((statement) => statement.includes('SELECT contract_item_id,current_quantity FROM progress_payment_lines')
+    && statement.includes('WHERE period_id=NEW.id AND company_id=NEW.company_id')));
+});
+
 test('release artifacts form an append-only chain matching current schema', async () => {
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 12);
+  assert.equal(migrations.length, 13);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

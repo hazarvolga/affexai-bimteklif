@@ -319,6 +319,416 @@ export const quotationTransferTargetEvidenceTrigger = `CREATE TRIGGER quotation_
 BEFORE INSERT OR UPDATE OR DELETE ON quotation_item_evidence
 FOR EACH ROW EXECUTE FUNCTION prevent_transfer_bound_target_evidence_mutation()`;
 
+export const progressPeriodTransitionFunction = `CREATE FUNCTION enforce_progress_period_transition() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE contract_amount numeric(20,2);
+DECLARE item_amount numeric(20,2);
+DECLARE item_count integer;
+DECLARE latest_payment_number integer;
+DECLARE latest_status text;
+DECLARE latest_sealed_at timestamptz;
+DECLARE latest_scope_hash text;
+DECLARE parent_revision integer;
+DECLARE parent_status text;
+DECLARE parent_is_current boolean;
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    PERFORM pg_advisory_xact_lock(hashtextextended('progress:' || NEW.company_id::text || ':' || NEW.contract_id::text, 0));
+    SELECT initial_amount INTO STRICT contract_amount FROM construction_contracts
+      WHERE id=NEW.contract_id AND company_id=NEW.company_id;
+    SELECT count(*)::integer, coalesce(sum(round(contract_quantity * unit_price, 2)),0)::numeric(20,2)
+      INTO item_count,item_amount FROM construction_contract_items
+      WHERE contract_id=NEW.contract_id AND company_id=NEW.company_id;
+    IF item_count=0 OR item_amount <> contract_amount THEN
+      RAISE EXCEPTION 'progress contract requires reconciled item scope before first period';
+    END IF;
+    IF NEW.status <> 'draft' OR NEW.version <> 0 OR NEW.is_current <> true
+       OR NEW.scope_hash IS NOT NULL OR NEW.submitted_by_user_id IS NOT NULL OR NEW.approved_by_user_id IS NOT NULL
+       OR NEW.submitted_at IS NOT NULL OR NEW.approved_at IS NOT NULL OR NEW.sealed_at IS NOT NULL THEN
+      RAISE EXCEPTION 'new progress payment revision must start as unsealed draft version zero';
+    END IF;
+    IF (NEW.revision_number = 0 AND NEW.parent_period_id IS NOT NULL)
+       OR (NEW.revision_number > 0 AND NEW.parent_period_id IS NULL) THEN
+      RAISE EXCEPTION 'progress payment revision parent binding is invalid';
+    END IF;
+    IF NEW.revision_number = 0 THEN
+      SELECT payment_number,status,sealed_at,scope_hash INTO latest_payment_number,latest_status,latest_sealed_at,latest_scope_hash
+        FROM progress_payment_periods WHERE company_id=NEW.company_id AND contract_id=NEW.contract_id AND is_current=true
+        ORDER BY payment_number DESC LIMIT 1;
+      IF latest_payment_number IS NULL AND NEW.payment_number <> 1 THEN
+        RAISE EXCEPTION 'first progress payment number must be one';
+      END IF;
+      IF latest_payment_number IS NOT NULL AND (
+        NEW.payment_number <> latest_payment_number + 1 OR latest_status <> 'approved'
+        OR latest_sealed_at IS NULL OR latest_scope_hash !~ '^[0-9a-f]{64}$'
+      ) THEN RAISE EXCEPTION 'new progress payment requires next number and sealed prior current period'; END IF;
+    ELSE
+      SELECT revision_number,status,is_current INTO STRICT parent_revision,parent_status,parent_is_current
+        FROM progress_payment_periods WHERE id=NEW.parent_period_id AND company_id=NEW.company_id
+          AND contract_id=NEW.contract_id AND payment_number=NEW.payment_number;
+      IF NEW.revision_number <> parent_revision + 1 OR parent_status <> 'superseded' OR parent_is_current <> false THEN
+        RAISE EXCEPTION 'correction revision requires exact superseded parent revision';
+      END IF;
+      IF EXISTS (SELECT 1 FROM progress_payment_periods p WHERE p.company_id=NEW.company_id AND p.contract_id=NEW.contract_id
+        AND p.payment_number > NEW.payment_number AND p.status <> 'cancelled') THEN
+        RAISE EXCEPTION 'correction revision cannot follow a later non-cancelled period';
+      END IF;
+    END IF;
+    RETURN NEW;
+  END IF;
+  IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'progress payment periods are append-only revisions'; END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended('progress:' || OLD.company_id::text || ':' || OLD.contract_id::text, 0));
+  IF NEW.id IS DISTINCT FROM OLD.id OR NEW.company_id IS DISTINCT FROM OLD.company_id
+     OR NEW.contract_id IS DISTINCT FROM OLD.contract_id OR NEW.payment_number IS DISTINCT FROM OLD.payment_number
+     OR NEW.revision_number IS DISTINCT FROM OLD.revision_number OR NEW.parent_period_id IS DISTINCT FROM OLD.parent_period_id
+     OR NEW.period_start IS DISTINCT FROM OLD.period_start OR NEW.period_end IS DISTINCT FROM OLD.period_end
+     OR NEW.created_by_user_id IS DISTINCT FROM OLD.created_by_user_id OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+    RAISE EXCEPTION 'progress payment revision identity is immutable';
+  END IF;
+  IF NEW.version <> OLD.version + 1 THEN RAISE EXCEPTION 'progress payment version must advance exactly once'; END IF;
+  IF OLD.status = 'draft' AND NEW.status IN ('draft','submitted','cancelled') THEN NULL;
+  ELSIF OLD.status = 'submitted' AND NEW.status IN ('draft','approved','cancelled') THEN NULL;
+  ELSIF OLD.status = 'approved' AND NEW.status = 'superseded' AND NEW.is_current = false THEN NULL;
+  ELSE RAISE EXCEPTION 'invalid progress payment state transition'; END IF;
+  IF OLD.status = 'approved' AND NEW.status = 'superseded' AND EXISTS (
+    SELECT 1 FROM progress_payment_periods p
+    WHERE p.company_id=OLD.company_id AND p.contract_id=OLD.contract_id
+      AND p.payment_number > OLD.payment_number AND p.status <> 'cancelled'
+  ) THEN
+    RAISE EXCEPTION 'progress payment correction cannot supersede a period followed by a later non-cancelled period';
+  END IF;
+  IF OLD.status = 'approved' AND NEW.status = 'superseded'
+     AND (to_jsonb(NEW) - ARRAY['status','is_current','version','updated_at'])
+         IS DISTINCT FROM (to_jsonb(OLD) - ARRAY['status','is_current','version','updated_at']) THEN
+    RAISE EXCEPTION 'approved progress payment sealed fields are immutable while superseding';
+  END IF;
+  IF NEW.status = 'approved' AND (
+    NEW.approved_at IS NULL OR NEW.sealed_at IS NULL OR NEW.approved_by_user_id IS NULL
+    OR NEW.submitted_by_user_id IS NULL OR NEW.submitted_by_user_id = NEW.approved_by_user_id
+    OR NEW.scope_hash IS NULL OR NEW.scope_hash !~ '^[0-9a-f]{64}$'
+  ) THEN RAISE EXCEPTION 'approved progress payment requires maker-checker evidence'; END IF;
+  IF NEW.status = 'approved' THEN
+    IF NOT EXISTS (SELECT 1 FROM progress_measurements m WHERE m.period_id=NEW.id AND m.company_id=NEW.company_id AND m.review_status='approved')
+       OR EXISTS (SELECT 1 FROM progress_measurements m WHERE m.period_id=NEW.id AND m.company_id=NEW.company_id AND m.review_status <> 'approved') THEN
+      RAISE EXCEPTION 'approved progress payment requires only approved measurements';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM progress_payment_lines l WHERE l.period_id=NEW.id AND l.company_id=NEW.company_id)
+       OR EXISTS (
+         WITH measured AS (
+           SELECT contract_item_id,sum(quantity)::numeric(20,4) quantity FROM progress_measurements
+           WHERE period_id=NEW.id AND company_id=NEW.company_id AND review_status='approved' GROUP BY contract_item_id
+         ), lines AS (
+           SELECT contract_item_id,current_quantity FROM progress_payment_lines
+           WHERE period_id=NEW.id AND company_id=NEW.company_id
+         )
+         SELECT 1 FROM measured m FULL JOIN lines l ON l.contract_item_id=m.contract_item_id
+         WHERE m.contract_item_id IS NULL OR l.contract_item_id IS NULL OR m.quantity <> l.current_quantity
+       ) THEN RAISE EXCEPTION 'approved progress payment requires reconciled materialized lines'; END IF;
+    IF EXISTS (SELECT 1 FROM progress_payment_adjustments a WHERE a.period_id=NEW.id AND a.company_id=NEW.company_id AND a.review_status <> 'approved') THEN
+      RAISE EXCEPTION 'approved progress payment requires approved adjustments';
+    END IF;
+    IF EXISTS (SELECT 1 FROM progress_payment_periods p WHERE p.company_id=NEW.company_id AND p.contract_id=NEW.contract_id
+      AND p.is_current=true AND p.payment_number < NEW.payment_number
+      AND (p.status <> 'approved' OR p.sealed_at IS NULL OR p.scope_hash !~ '^[0-9a-f]{64}$')) THEN
+      RAISE EXCEPTION 'approved progress payment requires sealed prior current periods';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressPeriodTransitionTrigger = `CREATE TRIGGER progress_payment_period_transition_guard
+BEFORE INSERT OR UPDATE OR DELETE ON progress_payment_periods
+FOR EACH ROW EXECUTE FUNCTION enforce_progress_period_transition()`;
+
+export const progressCorrectionChildBindingFunction = `CREATE FUNCTION enforce_progress_correction_child_binding() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.status = 'approved' AND NEW.status = 'superseded' AND NOT EXISTS (
+    SELECT 1 FROM progress_payment_periods child
+    WHERE child.company_id=OLD.company_id AND child.contract_id=OLD.contract_id
+      AND child.payment_number=OLD.payment_number AND child.parent_period_id=OLD.id
+      AND child.revision_number=OLD.revision_number + 1 AND child.status='draft'
+      AND child.is_current=true AND child.version=0
+  ) THEN
+    RAISE EXCEPTION 'superseded progress payment requires exact current draft correction child';
+  END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressCorrectionChildBindingTrigger = `CREATE CONSTRAINT TRIGGER progress_correction_child_binding
+AFTER UPDATE OF status,is_current ON progress_payment_periods
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+WHEN (OLD.status = 'approved' AND NEW.status = 'superseded')
+EXECUTE FUNCTION enforce_progress_correction_child_binding()`;
+
+export const progressEvidenceMutationFunction = `CREATE FUNCTION prevent_progress_evidence_mutation() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE bound_period_id uuid;
+DECLARE bound_company_id uuid;
+DECLARE bound_status text;
+DECLARE item_quantity numeric(20,4);
+DECLARE item_price numeric(20,2);
+DECLARE expected_previous numeric(20,4);
+BEGIN
+  IF TG_TABLE_NAME IN ('progress_payment_events','progress_measurement_review_events')
+     OR (TG_TABLE_NAME = 'progress_payment_lines' AND TG_OP <> 'INSERT') THEN
+    RAISE EXCEPTION '% is append-only', TG_TABLE_NAME;
+  END IF;
+  IF TG_TABLE_NAME = 'construction_contract_items' THEN
+    IF TG_OP <> 'INSERT' THEN RAISE EXCEPTION 'construction_contract_items is append-only'; END IF;
+    IF EXISTS (SELECT 1 FROM progress_payment_periods p WHERE p.contract_id=NEW.contract_id AND p.company_id=NEW.company_id) THEN
+      RAISE EXCEPTION 'contract items cannot be inserted after first progress period';
+    END IF;
+  END IF;
+  IF TG_TABLE_NAME = 'final_accounts' THEN
+    IF TG_OP='INSERT' AND (NEW.status <> 'draft' OR NEW.sealed_at IS NOT NULL) THEN
+      RAISE EXCEPTION 'final account must start as unsealed draft';
+    END IF;
+    IF TG_OP <> 'INSERT' AND (OLD.sealed_at IS NOT NULL OR OLD.status = 'sealed') THEN
+      RAISE EXCEPTION 'sealed final account is immutable';
+    END IF;
+    IF TG_OP='UPDATE' AND NEW.status='sealed' THEN
+      RAISE EXCEPTION 'final account sealing requires append-only expert decision workflow';
+    END IF;
+  END IF;
+  IF TG_TABLE_NAME = 'contract_variations' THEN
+    IF TG_OP='INSERT' AND (NEW.status <> 'manual_review' OR NEW.decision_document_hash IS NOT NULL) THEN
+      RAISE EXCEPTION 'contract variation must start in manual_review without decision attestation';
+    END IF;
+    IF TG_OP <> 'INSERT' AND OLD.status = 'approved' THEN RAISE EXCEPTION 'approved contract variation is immutable'; END IF;
+    IF TG_OP='UPDATE' AND NEW.status IS DISTINCT FROM OLD.status THEN
+      RAISE EXCEPTION 'contract variation review requires append-only expert decision workflow';
+    END IF;
+  END IF;
+  IF TG_TABLE_NAME = 'progress_measurements' THEN
+    bound_period_id := (CASE WHEN TG_OP = 'INSERT' THEN to_jsonb(NEW) ELSE to_jsonb(OLD) END ->> 'period_id')::uuid;
+    bound_company_id := (CASE WHEN TG_OP = 'INSERT' THEN to_jsonb(NEW) ELSE to_jsonb(OLD) END ->> 'company_id')::uuid;
+    SELECT status INTO STRICT bound_status FROM progress_payment_periods WHERE id=bound_period_id AND company_id=bound_company_id;
+    IF bound_status <> 'draft' THEN RAISE EXCEPTION 'non-draft progress measurement is immutable'; END IF;
+    IF TG_OP <> 'INSERT' AND OLD.review_status <> 'pending_review' THEN
+      RAISE EXCEPTION 'reviewed progress measurement is immutable';
+    END IF;
+    IF TG_OP='UPDATE' AND (
+      (to_jsonb(NEW) - ARRAY['review_status','reviewed_by_user_id','reviewed_at','review_reason'])
+      IS DISTINCT FROM
+      (to_jsonb(OLD) - ARRAY['review_status','reviewed_by_user_id','reviewed_at','review_reason'])
+    ) THEN RAISE EXCEPTION 'measurement evidence is immutable during review'; END IF;
+    IF NEW.source_type IN ('pdf','field_record') THEN
+      RAISE EXCEPTION 'progress measurement source pipeline is unavailable';
+    END IF;
+    IF NEW.source_type <> 'manual' THEN
+      PERFORM pg_advisory_xact_lock(hashtextextended('progress-source:document:' || NEW.company_id::text || ':' || NEW.source_document_id::text, 0));
+      PERFORM pg_advisory_xact_lock(hashtextextended('progress-source:run:' || NEW.company_id::text || ':' || NEW.source_processing_run_id::text, 0));
+      PERFORM pg_advisory_xact_lock(hashtextextended('progress-source:row:' || NEW.company_id::text || ':' || NEW.source_quantity_row_id::text, 0));
+    END IF;
+    IF (CASE WHEN TG_OP='INSERT' THEN NEW.source_type ELSE NEW.source_type END) <> 'manual' AND NOT EXISTS (
+      SELECT 1 FROM documents d JOIN document_processing_runs r
+        ON r.document_id=d.id AND r.company_id=d.company_id
+      WHERE d.id=NEW.source_document_id AND d.company_id=NEW.company_id AND d.status='completed'
+        AND r.id=NEW.source_processing_run_id AND r.status='succeeded'
+    ) THEN RAISE EXCEPTION 'external progress measurement requires completed document and succeeded run'; END IF;
+    IF NEW.source_type IN ('ifc','xlsx') AND NOT EXISTS (
+      SELECT 1 FROM normalized_quantity_rows n
+      WHERE n.id=NEW.source_quantity_row_id AND n.company_id=NEW.company_id
+        AND n.document_id=NEW.source_document_id AND n.processing_run_id=NEW.source_processing_run_id
+        AND n.source_cell_range=NEW.source_cell_range AND n.review_status IN ('approved','accepted_exception')
+        AND n.normalized_quantity IS NOT NULL AND n.normalized_quantity=NEW.quantity
+        AND n.normalized_unit IS NOT NULL AND n.normalized_unit=NEW.unit
+    ) THEN RAISE EXCEPTION 'external progress measurement requires exact approved canonical source row binding'; END IF;
+  END IF;
+  IF TG_TABLE_NAME = 'progress_payment_adjustments' THEN
+    bound_period_id := (CASE WHEN TG_OP = 'INSERT' THEN to_jsonb(NEW) ELSE to_jsonb(OLD) END ->> 'period_id')::uuid;
+    bound_company_id := (CASE WHEN TG_OP = 'INSERT' THEN to_jsonb(NEW) ELSE to_jsonb(OLD) END ->> 'company_id')::uuid;
+    SELECT status INTO STRICT bound_status FROM progress_payment_periods WHERE id=bound_period_id AND company_id=bound_company_id;
+    IF bound_status <> 'draft' THEN RAISE EXCEPTION 'progress payment adjustments are immutable outside draft'; END IF;
+    IF TG_OP='INSERT' AND NEW.review_status <> 'manual_review' THEN
+      RAISE EXCEPTION 'adjustment must start in manual_review';
+    END IF;
+    IF TG_OP='UPDATE' AND NEW.review_status IS DISTINCT FROM OLD.review_status THEN
+      RAISE EXCEPTION 'adjustment review requires append-only decision workflow';
+    END IF;
+  END IF;
+  IF TG_TABLE_NAME = 'progress_payment_lines' AND TG_OP = 'INSERT' THEN
+    SELECT status INTO STRICT bound_status FROM progress_payment_periods WHERE id=NEW.period_id AND company_id=NEW.company_id;
+    IF bound_status <> 'submitted' THEN RAISE EXCEPTION 'progress lines can only materialize for submitted periods'; END IF;
+    SELECT contract_quantity, unit_price INTO STRICT item_quantity, item_price
+      FROM construction_contract_items WHERE id=NEW.contract_item_id AND contract_id=NEW.contract_id AND company_id=NEW.company_id;
+    SELECT coalesce(sum(l.current_quantity),0)::numeric(20,4) INTO expected_previous
+      FROM progress_payment_lines l JOIN progress_payment_periods p ON p.id=l.period_id AND p.company_id=l.company_id
+      WHERE l.company_id=NEW.company_id AND l.contract_id=NEW.contract_id AND l.contract_item_id=NEW.contract_item_id
+        AND p.status='approved' AND p.payment_number < (SELECT payment_number FROM progress_payment_periods WHERE id=NEW.period_id);
+    IF NEW.previous_quantity <> expected_previous OR NEW.cumulative_quantity <> expected_previous + NEW.current_quantity THEN
+      RAISE EXCEPTION 'materialized progress quantity chain mismatch';
+    END IF;
+    IF NEW.cumulative_quantity > item_quantity THEN RAISE EXCEPTION 'cumulative quantity exceeds contract quantity'; END IF;
+    IF NEW.unit_price_snapshot <> item_price
+       OR NEW.cumulative_amount <> round(NEW.cumulative_quantity * item_price, 2)
+       OR NEW.current_amount <> round(NEW.cumulative_quantity * item_price, 2) - round(expected_previous * item_price, 2) THEN
+      RAISE EXCEPTION 'materialized progress amount mismatch';
+    END IF;
+  END IF;
+  IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressEvidenceMutationTriggers = [
+  `CREATE TRIGGER progress_payment_events_append_only BEFORE UPDATE OR DELETE ON progress_payment_events FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER progress_measurement_review_events_append_only BEFORE UPDATE OR DELETE ON progress_measurement_review_events FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER progress_payment_lines_append_only BEFORE INSERT OR UPDATE OR DELETE ON progress_payment_lines FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER progress_measurements_state_guard BEFORE INSERT OR UPDATE OR DELETE ON progress_measurements FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER progress_payment_adjustments_state_guard BEFORE INSERT OR UPDATE OR DELETE ON progress_payment_adjustments FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER construction_contract_items_append_only BEFORE INSERT OR UPDATE OR DELETE ON construction_contract_items FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER contract_variations_approved_guard BEFORE INSERT OR UPDATE OR DELETE ON contract_variations FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+  `CREATE TRIGGER final_accounts_sealed_guard BEFORE INSERT OR UPDATE OR DELETE ON final_accounts FOR EACH ROW EXECUTE FUNCTION prevent_progress_evidence_mutation()`,
+] as const;
+
+export const progressSourceMutationFunction = `CREATE FUNCTION prevent_progress_bound_source_mutation() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE source_kind text;
+BEGIN
+  source_kind := CASE TG_TABLE_NAME
+    WHEN 'normalized_quantity_rows' THEN 'row'
+    WHEN 'document_processing_runs' THEN 'run'
+    WHEN 'documents' THEN 'document'
+  END;
+  PERFORM pg_advisory_xact_lock(hashtextextended('progress-source:' || source_kind || ':' || OLD.company_id::text || ':' || OLD.id::text, 0));
+  IF (TG_TABLE_NAME = 'normalized_quantity_rows' AND EXISTS (
+      SELECT 1 FROM progress_measurements WHERE source_quantity_row_id=OLD.id AND company_id=OLD.company_id
+    )) OR (TG_TABLE_NAME = 'document_processing_runs' AND EXISTS (
+      SELECT 1 FROM progress_measurements WHERE source_processing_run_id=OLD.id AND company_id=OLD.company_id
+    )) OR (TG_TABLE_NAME = 'documents' AND EXISTS (
+      SELECT 1 FROM progress_measurements WHERE source_document_id=OLD.id AND company_id=OLD.company_id
+    )) THEN
+    RAISE EXCEPTION 'progress-bound source evidence is immutable';
+  END IF;
+  IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressSourceMutationTriggers = [
+  `CREATE TRIGGER progress_source_row_immutable BEFORE UPDATE OF sheet_name, source_row_number, raw_description, raw_position_code, raw_unit, raw_quantity, source_cell_range, review_status, reviewed_at, reviewer_user_id, reviewer_notes, normalized_description, normalized_position_code, normalized_unit, normalized_quantity, normalized_waste_percent, formula_json, quantity_source, mapping_confidence, findings_json OR DELETE ON normalized_quantity_rows FOR EACH ROW EXECUTE FUNCTION prevent_progress_bound_source_mutation()`,
+  `CREATE TRIGGER progress_source_run_immutable BEFORE UPDATE OF pipeline_version, provider, model, status, current_stage OR DELETE ON document_processing_runs FOR EACH ROW EXECUTE FUNCTION prevent_progress_bound_source_mutation()`,
+  `CREATE TRIGGER progress_source_document_immutable BEFORE UPDATE OF checksum_sha256, status OR DELETE ON documents FOR EACH ROW EXECUTE FUNCTION prevent_progress_bound_source_mutation()`,
+] as const;
+
+export const progressMeasurementReviewEventFunction = `CREATE FUNCTION enforce_progress_measurement_review_event() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE measurement_row progress_measurements%ROWTYPE;
+DECLARE period_version integer;
+DECLARE period_status text;
+BEGIN
+  SELECT * INTO STRICT measurement_row FROM progress_measurements
+    WHERE id=NEW.measurement_id AND company_id=NEW.company_id AND contract_id=NEW.contract_id AND period_id=NEW.period_id;
+  SELECT version,status INTO STRICT period_version,period_status FROM progress_payment_periods
+    WHERE id=NEW.period_id AND company_id=NEW.company_id AND contract_id=NEW.contract_id;
+  IF period_status <> 'draft' OR period_version <> NEW.expected_version OR NEW.resulting_version <> period_version + 1 THEN
+    RAISE EXCEPTION 'review event period version or state mismatch';
+  END IF;
+  IF measurement_row.created_by_user_id = NEW.actor_user_id THEN RAISE EXCEPTION 'measurement maker-checker required'; END IF;
+  IF measurement_row.review_status <> NEW.decision OR measurement_row.reviewed_by_user_id <> NEW.actor_user_id
+     OR measurement_row.reviewed_at IS NULL OR measurement_row.review_reason <> NEW.reason THEN
+    RAISE EXCEPTION 'review event does not match reviewed measurement';
+  END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressMeasurementReviewEventTrigger = `CREATE TRIGGER progress_measurement_review_event_guard
+BEFORE INSERT ON progress_measurement_review_events
+FOR EACH ROW EXECUTE FUNCTION enforce_progress_measurement_review_event()`;
+
+export const progressMeasurementReviewBindingFunction = `CREATE FUNCTION enforce_progress_measurement_review_binding() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.review_status IN ('approved','rejected') AND NOT EXISTS (
+    SELECT 1 FROM progress_measurement_review_events e
+    WHERE e.measurement_id=NEW.id AND e.period_id=NEW.period_id AND e.contract_id=NEW.contract_id AND e.company_id=NEW.company_id
+      AND e.decision=NEW.review_status AND e.actor_user_id=NEW.reviewed_by_user_id AND e.reason=NEW.review_reason
+  ) THEN RAISE EXCEPTION 'reviewed measurement requires append-only review event'; END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressMeasurementReviewBindingTrigger = `CREATE CONSTRAINT TRIGGER progress_measurement_review_binding
+AFTER INSERT OR UPDATE OF review_status, reviewed_by_user_id, reviewed_at, review_reason ON progress_measurements
+DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION enforce_progress_measurement_review_binding()`;
+
+export const constructionContractPeriodLockFunction = `CREATE FUNCTION prevent_progress_contract_header_mutation() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM progress_payment_periods p WHERE p.contract_id=OLD.id AND p.company_id=OLD.company_id) THEN
+    IF TG_OP='DELETE' OR NEW.id IS DISTINCT FROM OLD.id OR NEW.company_id IS DISTINCT FROM OLD.company_id
+       OR NEW.source_quotation_id IS DISTINCT FROM OLD.source_quotation_id OR NEW.contract_number IS DISTINCT FROM OLD.contract_number
+       OR NEW.project_name IS DISTINCT FROM OLD.project_name OR NEW.currency IS DISTINCT FROM OLD.currency
+       OR NEW.regime IS DISTINCT FROM OLD.regime OR NEW.initial_amount IS DISTINCT FROM OLD.initial_amount
+       OR NEW.source_document_hash IS DISTINCT FROM OLD.source_document_hash OR NEW.created_by_user_id IS DISTINCT FROM OLD.created_by_user_id
+       OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+      RAISE EXCEPTION 'progress contract header identity amount and source are immutable after first period';
+    END IF;
+  END IF;
+  IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const constructionContractPeriodLockTrigger = `CREATE TRIGGER construction_contracts_period_lock
+BEFORE UPDATE OR DELETE ON construction_contracts
+FOR EACH ROW EXECUTE FUNCTION prevent_progress_contract_header_mutation()`;
+
+export const progressPaymentEventFunction = `CREATE FUNCTION enforce_progress_payment_event() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE period_row progress_payment_periods%ROWTYPE;
+BEGIN
+  SELECT * INTO STRICT period_row FROM progress_payment_periods
+    WHERE id=NEW.period_id AND company_id=NEW.company_id AND contract_id=NEW.contract_id;
+  IF period_row.status <> NEW.to_status OR period_row.version <> NEW.resulting_version THEN
+    RAISE EXCEPTION 'progress payment event does not match current period state and version';
+  END IF;
+  IF NEW.action='submit' AND period_row.submitted_by_user_id IS DISTINCT FROM NEW.actor_user_id THEN
+    RAISE EXCEPTION 'progress payment submit event actor mismatch';
+  END IF;
+  IF NEW.action='approve' AND period_row.approved_by_user_id IS DISTINCT FROM NEW.actor_user_id THEN
+    RAISE EXCEPTION 'progress payment approve event actor mismatch';
+  END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressPaymentEventTrigger = `CREATE TRIGGER progress_payment_event_guard
+BEFORE INSERT ON progress_payment_events
+FOR EACH ROW EXECUTE FUNCTION enforce_progress_payment_event()`;
+
+export const progressPaymentEventBindingFunction = `CREATE FUNCTION enforce_progress_payment_event_binding() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.status IS DISTINCT FROM NEW.status AND NOT EXISTS (
+    SELECT 1 FROM progress_payment_events e
+    WHERE e.period_id=NEW.id AND e.contract_id=NEW.contract_id AND e.company_id=NEW.company_id
+      AND e.from_status=OLD.status AND e.to_status=NEW.status
+      AND e.expected_version=OLD.version AND e.resulting_version=NEW.version
+  ) THEN RAISE EXCEPTION 'progress payment state change requires matching append-only event'; END IF;
+  RETURN NEW;
+END;
+$$`;
+
+export const progressPaymentEventBindingTrigger = `CREATE CONSTRAINT TRIGGER progress_payment_event_binding
+AFTER UPDATE OF status ON progress_payment_periods
+DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION enforce_progress_payment_event_binding()`;
+
 export function injectDataTransitions(tag: string, schemaStatements: readonly string[]): string[] {
   if (tag === '0009_price_source_authorization') {
     const index = schemaStatements.findIndex((statement) => statement.startsWith(currentPriceEvidenceIndex));
@@ -359,6 +769,48 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
       quotationTransferTargetItemTrigger,
       quotationTransferTargetEvidenceFunction,
       quotationTransferTargetEvidenceTrigger,
+    ];
+  }
+  if (tag === '0012_progress_payment_evidence') {
+    const ordered = [...schemaStatements];
+    const includesCde = ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'));
+    const includesTransfer = ordered.some((statement) => statement.startsWith('CREATE TABLE "quotation_transfer_ledgers"'));
+    const cumulativeCde = includesCde
+      ? [cdeCurrentRevisionConstraint, cdeAppendOnlyFunction, cdeAppendOnlyTrigger, cdeRevisionAppendOnlyTrigger, cdeEvidenceLockFunction, ...cdeEvidenceLockTriggers]
+      : [];
+    const cumulativeTransfer = includesTransfer
+      ? [
+        quotationTransferAppendOnlyFunction, ...quotationTransferAppendOnlyTriggers,
+        quotationTransferRevisionBindingFunction, quotationTransferRevisionBindingTrigger,
+        quotationTransferQuotationIdentityFunction, quotationTransferQuotationIdentityTrigger,
+        quotationTransferSourceMutationFunction, ...quotationTransferSourceMutationTriggers,
+        quotationTransferJunctionSealFunction, quotationTransferJunctionSealTrigger,
+        quotationTransferFinalizeFunction, quotationTransferFinalizeTrigger,
+        quotationTransferTargetItemFunction, quotationTransferTargetItemTrigger,
+        quotationTransferTargetEvidenceFunction, quotationTransferTargetEvidenceTrigger,
+      ] : [];
+    return [
+      ...ordered,
+      ...cumulativeCde,
+      ...cumulativeTransfer,
+      progressPeriodTransitionFunction,
+      progressPeriodTransitionTrigger,
+      progressCorrectionChildBindingFunction,
+      progressCorrectionChildBindingTrigger,
+      progressEvidenceMutationFunction,
+      ...progressEvidenceMutationTriggers,
+      progressSourceMutationFunction,
+      ...progressSourceMutationTriggers,
+      progressMeasurementReviewEventFunction,
+      progressMeasurementReviewEventTrigger,
+      progressMeasurementReviewBindingFunction,
+      progressMeasurementReviewBindingTrigger,
+      constructionContractPeriodLockFunction,
+      constructionContractPeriodLockTrigger,
+      progressPaymentEventFunction,
+      progressPaymentEventTrigger,
+      progressPaymentEventBindingFunction,
+      progressPaymentEventBindingTrigger,
     ];
   }
   return [...schemaStatements];

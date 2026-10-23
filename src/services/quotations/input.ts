@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { currencyEnum, quoteStatusEnum } from "../../db/schema";
 
-const number = z.union([z.number(), z.string().trim().min(1)]).pipe(z.coerce.number().finite().nonnegative());
+const number = z.union([z.number(), z.string().trim().min(1)]).pipe(z.coerce.number<string | number>().finite().nonnegative());
 const percent = number.refine(value => value <= 100, "Percentage must not exceed 100");
 const text = z.string().trim().min(1);
 const date = z.string().trim().min(1).pipe(z.coerce.date());

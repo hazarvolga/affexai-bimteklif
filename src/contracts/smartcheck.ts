@@ -68,7 +68,7 @@ const transferOverrideSchema = z.object({
 export const smartcheckTransferRequestSchema = z.object({
   quotationId: z.string().trim().min(1),
   rowIds: z.array(z.string().trim().min(1)).min(1).max(5000),
-  overrides: z.record(transferOverrideSchema).optional(),
+  overrides: z.record(z.string(), transferOverrideSchema).optional(),
 }).passthrough();
 
 export const smartcheckTransferToNewQuotationRequestSchema = z.object({
@@ -79,7 +79,7 @@ export const smartcheckTransferToNewQuotationRequestSchema = z.object({
   currency: z.enum(["TRY", "USD", "EUR"]).optional(),
   expiryDays: z.coerce.number().int().min(1).max(365).optional(),
   rowIds: z.array(z.string().trim().min(1)).min(1).max(5000),
-  overrides: z.record(transferOverrideSchema).optional(),
+  overrides: z.record(z.string(), transferOverrideSchema).optional(),
 }).passthrough().refine((value) => Boolean(value.clientId || value.clientName), {
   message: "clientId veya clientName zorunludur.",
   path: ["clientName"],

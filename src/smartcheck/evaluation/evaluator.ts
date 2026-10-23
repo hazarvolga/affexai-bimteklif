@@ -103,10 +103,12 @@ export function calculateRawPayloadHash(val: unknown): string {
 /**
  * Zod Hata Tanısını Stabil Hale Getirir
  */
-function getZodIssues(error: { issues: Array<{ path: Array<string | number>; code: string }> }): string[] {
+function getZodIssues(error: { issues: Array<{ path: PropertyKey[]; code: string }> }): string[] {
   const list = error.issues.map(issue => {
     const pathStr = issue.path.length > 0 ? issue.path.map(String).join('.') : '<root>';
-    return `${pathStr}:${issue.code}`;
+    // Preserve the diagnostic code exposed by the Zod 3 evaluator contract.
+    const code = issue.code === 'invalid_value' ? 'invalid_enum_value' : issue.code;
+    return `${pathStr}:${code}`;
   });
   // Duplicate'leri temizle ve alfabetik sırala
   return Array.from(new Set(list)).sort();
