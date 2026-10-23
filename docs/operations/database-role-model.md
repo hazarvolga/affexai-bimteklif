@@ -1,7 +1,7 @@
 # BIMMetraj PostgreSQL görev ayrımı modeli
 
-**Sürüm:** Rev. 47 / `BIM-CALC-2026-10-24.41`
-**Kod baseline:** `eeeaf75f27cd0b65c3f7f44ed6e3668386cceb53`
+**Sürüm:** Rev. 51 / `BIM-CALC-2026-10-24.45`
+**Kod baseline:** `b8733c0d204bec9e978ab1a98e16df328dbb9d8c`
 **Durum:** **PARTIAL — tooling, izole PostgreSQL 16 ve yerel runtime credential sözleşmesi hazır; production cutover yapılmadı**
 
 ## Rol sözleşmesi
@@ -26,7 +26,7 @@ Migrator üyeliği yalnız `SET OPTION=true`, `INHERIT=false`, `ADMIN=false` sö
 | `backup` | `bimmetraj_backup` | `BIMMETRAJ_BACKUP_DB_PASSWORD` → `PGPASSWORD` | Salt-okuma rolü zorunlu; bootstrap ve owner kimliği yok |
 | `postgres` | bootstrap `bimmetraj` | `SERVICE_PASSWORD_64_POSTGRES` → `POSTGRES_PASSWORD` | Yalnız PostgreSQL bootstrap konteyneri |
 
-Dört login parolası ve bootstrap parolası birbirinden farklı, en az 32 karakterli ve URL-safe yüksek entropili değerler olmalıdır. Compose eksik değerleri `:?` sözleşmesiyle render aşamasında reddeder. Coolify bütün uygulama ortamını hizmetlere yayabildiği için ham `BIMMETRAJ_*_DB_PASSWORD` ve `SERVICE_PASSWORD_64_POSTGRES` anahtarları her hizmet ortamında dolaylı boş değerle gölgelenir. Hizmet yalnız çalışması için gereken bağlantı değişkenini alır; secret değerleri Git'e, build argümanlarına veya loglara yazılmaz.
+Dört login parolası ve bootstrap parolası birbirinden farklı, en az 32 karakterli ve URL-safe yüksek entropili değerler olmalıdır. Compose eksik değerleri `:?` sözleşmesiyle render aşamasında reddeder. Coolify bütün uygulama ortamını hizmetlere yayabildiği için ham `BIMMETRAJ_*_DB_PASSWORD` ve `SERVICE_PASSWORD_64_POSTGRES` anahtarları her hizmet ortamında dolaylı boş değerle gölgelenir. Hizmet yalnız çalışması için gereken bağlantı değişkenini alır; secret değerleri Git'e veya build argümanlarına konmaz ve provisioner parolayı SQL statement metnine eklemez. Production platform log redaksiyonu cutover öncesinde ayrıca doğrulanır.
 
 Production migration bağlantısı yalnız `bimmetraj_migrator` kullanıcısını kabul eder. Runner sırası `BEGIN → SET LOCAL ROLE bimmetraj_owner → session/current role doğrulaması → hedef kapısı → advisory lock → drain kapısı → migration → COMMIT` şeklindedir. Her hata `ROLLBACK` üretir; transaction bittiğinde `current_user` yeniden `bimmetraj_migrator` olur. `bimmetraj_app`, `bimmetraj_worker` ve `bimmetraj_backup` owner rolüne geçemez.
 
@@ -57,6 +57,8 @@ DATABASE_ROLE_TEST_URL='postgresql://<isolated-pg16-admin>@127.0.0.1:<port>/post
 
 Entegrasyon testi yalnız local, marker'lı disposable PostgreSQL 16 cluster kabul eder. Shared veya production veritabanına karşı çalıştırılmaz.
 
+Parola doğrulamalı yerel PG16 kabulü dört login credentialını A→B döndürür; A credentiallarının tamamının reddedildiğini ve B kimliklerinin exact session/current role ile bağlandığını doğrular. Ardından B→A rollback yapar, B credentiallarını reddeder ve A erişimini yeniden doğrular. Bu tatbikat production credential rotation veya production rollback kanıtı değildir.
+
 ## Cutover kapısı
 
 Bu belge production çalıştırma talimatı veya cutover onayı değildir. T40 ancak şu kanıtlar birlikte mevcutsa kapanabilir:
@@ -65,7 +67,7 @@ Bu belge production çalıştırma talimatı veya cutover onayı değildir. T40 
 2. Secret manager/Coolify içinde dört benzersiz, URL-safe login credential; Compose fail-closed render ve log/image-history redaksiyonu.
 3. Migration job → migrator, app → app, worker/ifc-worker → worker, backup → backup bağlantı ayrımı.
 4. Pre-cutover inspector PASS; canary health, login, SmartCheck enqueue/consume/remove ve backup smoke.
-5. Başarılı forward recovery ve rollback tatbikatı; eski credential'ın kontrollü iptali.
+5. Yerel A→B→A credential rollback kanıtına ek olarak production'da başarılı forward recovery ve rollback tatbikatı; eski credential'ın kontrollü iptali.
 6. Production deploy SHA, çalışan image/source ve dış HTTP/browser kanıtının ayrı kaydı.
 
 `pgaudit` veya DDL/audit logging kullanılırsa parola taşıyan nested DDL/GUC içerikleri loglanmamalı; hedef ortam logging davranışı redakte edilerek ayrıca doğrulanmalıdır.

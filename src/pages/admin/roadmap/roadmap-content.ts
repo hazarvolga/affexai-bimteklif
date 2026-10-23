@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 50 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 51 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -197,7 +197,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve m.13(3) + 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
         ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
-        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve CDE tenant RLS (T41)", "Reviewer hazır · DB güvenliği kısmi (Rev. 48)", "Reviewer disiplin kapsamı sunucuda doğrulanır. DB rol sözleşmesine ek olarak beş CDE tablosunda FORCE RLS, transaction-local tenant context ve exact app-role kapısı PG16 üzerinde kanıtlandı. Diğer tenant tabloları ile compose/runtime credential cutover ve production deploy açık olduğundan genel/canlı tenant izolasyonu iddia edilmez."],
+        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve CDE tenant RLS (T41)", "Reviewer hazır · DB güvenliği kısmi (Rev. 51)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Yerel compose app, worker/ifc-worker, migrator ve backup için ayrı credential kullanır; migration SET LOCAL ROLE ve worker-drain sırasıyla korunur, A→B→A parola rollback'i izole PG16 üzerinde kanıtlanmıştır. Beş CDE tablosunda FORCE RLS de aktiftir. Production cutover/canary/restore/deploy ile kalan tenant tabloları açık olduğundan genel/canlı tenant izolasyonu iddia edilmez."],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Manuel Havale/EFT Yaşam Döngüsü Yarış ve Replay Kapısı (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 49)", "Sipariş init tekilleştirilir; requestId zorunludur; plan/dönem/tutar snapshotı değişmez; dekont NFKC+dar ASCII ile global tekilleşir; submit/review ortak request kilidi kullanır; approve/reject terminaldir; pasif paket onayı kapanır ve ikinci gerçek ödeme aktif aynı-plan dönemini resetlemek yerine uzatır. Production deploy veya banka mutabakat entegrasyonu yapılmadı."],
@@ -242,7 +242,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "p", text: "Aşağıdaki tablo teknik borç ve geliştirme adımlarının güncel durumunu gösterir. Kod ve otomatik testleri tamamlanan maddeler işaretlenmiş olup, saha/uzman kabulü gerektiren maddeler açık tutulmuştur." },
       { type: "table", columns: ["Sıra / İş", "Durum", "Uygulama ve tamamlanma ölçütü"], rows: [
-        ["1 — Runtime DB rolü (P1-1 / T40)", "Kısmi / cutover bekliyor (24 Ekim 2026 · Rev. 47)", "Rev. 2 tamamlandı kaydı kod ve compose denetiminde doğrulanmadı. Rev. 47 owner/migrator/app/worker/backup sözleşmesini, exact ACL/RLS/provenance denetimini ve PostgreSQL 16 adversarial testini ekledi. Mevcut compose/runtime hâlâ tek bootstrap credential düzenindedir; credential rotation, servis bazlı DATABASE_URL geçişi, canary, rollback ve production deploy yapılmadan T40 kapanmaz."],
+        ["1 — Runtime DB rolü (P1-1 / T40)", "Kısmi / yerel cutover hazırlığı kanıtlı (24 Ekim 2026 · Rev. 51)", "Rev. 47 owner/migrator/app/worker/backup sözleşmesini kurdu. Rev. 51 yerel compose bağlantılarını app, worker/ifc-worker, migrator ve backup credentiallarına ayırdı; migrationın doğrulanmış migrator oturumundan SET LOCAL ROLE owner ile çalışmasını, migration öncesi zorunlu worker-drain kapısını ve parola doğrulamalı PG16 üzerinde A→B→A credential rollback'ini kanıtladı. Production secret cutover, canary, restore/parity ve deploy yapılmadan T40 kapanmaz."],
         ["2 — Reviewer disiplin kapsamı (E-9)", "Tamamlandı (14 Ekim 2026 · Rev. 2)", "Sunucu (src/server/smartcheck/review.ts), inceleyenin tenant ve disiplin yetkisini (STR, ARC, MEP, ALL) her kararda doğrular; yetkisiz/belirsiz disiplin için onay 403 ile reddedilir ve denetim kaydına bağlanır"],
         ["3 — IFC özellik girdileri (3×3)", "Tamamlandı (14 Ekim 2026 · Rev. 2)", "workers/ifc/ifc_extract.py ve ifc-python-runner.ts; LoadBearing, IsExternal, ExposureClass, Cover (mm), Disiplin ve ExpectedVolume alanlarını Pset/QTO kanıt yoluyla 3×3 kural motoruna taşır"],
         ["4 — Gerçek proje kabulü ve çok yazılımlı IFC saha doğrulaması", "Tamamlandı (16–17 Ekim 2026 · Rev. 6 & Rev. 7) · Pilot Ofis Kabulü Sırada", "31,4 MB ALLPLAN 2026.1 uzman mühendis modeli (2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc · 1.731 eleman + 16 Daire D01..D16 + 4 Allplan Excel raporu çapraz doğrulaması) ve 32 uluslararası örnek IFC modeli sıfır çökme ile doğrulandı"],
@@ -257,8 +257,8 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["13 — GAP kapatma Faz 4: gerçek CDE onay akışı", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 44)", "T27–T29: açık geçiş tablosu, tenant/proje/revizyon kapsamlı kalıcı API, gerçek rol/disiplin kimliği, optimistic lock, idempotency, maker-checker, append-only karar izi ve kapsam değişiminde yeniden onay kapısı tamamlandı. Pilot/L2'dir; ISO lisanslı metin incelemesi, e-imza, bağımsız BIM koordinatörü ve gerçek saha kabulü bekleniyor."],
         ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / kapanmadı (23 Ekim 2026 · Rev. 45)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32 NO-GO'dur: gerçek veraPDF CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı ile izinli dosya matrisi tamamlanmadan Faz 5 kapanmaz. Kriptografik imza güveni ve büyük IFC ana iş parçacığı performansı da bağımsız kabul bekler."],
         ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
-        ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Kısmi / tooling ve izole PG16 kanıtı hazır (24 Ekim 2026 · Rev. 47)", "Beş canonical rol, SET-only migrator→owner üyeliği, exact object/default/function ACL, queue RLS, SECURITY DEFINER wrapper, Graphile 0.16.0 migration-18 ve SHA-256 yapı/provenance kapıları eklendi. Gerçek PG16 testinde PUBLIC/fazla grant, grant option, body/trigger/UNLOGGED/RLS/migration drift ve NULL/range saldırıları reddedildi. Compose ve production credential cutover yapılmadı; T40 PARTIAL'dır."],
-        ["17 — GAP kapatma Faz 7: CDE tenant RLS (T41 ilk dilim)", "Kısmi / beş CDE tablosu PG16 kanıtlı (24 Ekim 2026 · Rev. 48)", "cde_projects, cde_project_members, cde_containers, cde_revisions ve cde_transition_events FORCE RLS ile korunur. App erişimi transaction-local tenant context ve exact restricted session role ister; worker deny, backup read-only ve migrator-owner policy matrisi inspector/CI ile doğrulanır. Kalan tenant tabloları, T40 runtime cutover, production canary/rollback ve deploy açık olduğundan T41 kapanmamıştır."],
+        ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Kısmi / yerel runtime topolojisi ve rollback PG16 kanıtlı (24 Ekim 2026 · Rev. 51)", "Rev. 47 canonical rol/ACL/RLS/provenance sözleşmesini kurdu. Rev. 51 app, worker/ifc-worker, migrate ve backup bağlantılarını ayrı login credentiallarına ayırdı; migrationı SET LOCAL ROLE owner ve worker-drain sırasıyla sınırladı. İzole parola doğrulamalı PG16 üzerinde A→B→A credential rollback'i ve eski parola reddi doğrulandı. Production credential cutover, canary, restore/parity ve deploy yapılmadığından T40 PARTIAL'dır."],
+        ["17 — GAP kapatma Faz 7: CDE tenant RLS (T41 ilk dilim)", "Kısmi / beş CDE tablosu PG16 kanıtlı (24 Ekim 2026 · Rev. 48)", "cde_projects, cde_project_members, cde_containers, cde_revisions ve cde_transition_events FORCE RLS ile korunur. App erişimi transaction-local tenant context ve exact restricted session role ister; worker deny, backup read-only ve migrator-owner policy matrisi inspector/CI ile doğrulanır. Kalan tenant tabloları, T40 production credential cutover, production canary/rollback ve deploy açık olduğundan T41 kapanmamıştır."],
         ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale ve SmartCheck worker dilimleri PG16 kanıtlı (24 Ekim 2026 · Rev. 50)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını tamamladı. Academy webhook entitlement yarışı, banka mutabakatı, uzun işlem heartbeat/orphan bakım politikası ve production rollout açık olduğundan T42 PARTIAL'dır."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
@@ -271,17 +271,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 50 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 51 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 50)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay, güvenli inceleme, dönemsel hakediş ve tahsilat akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 24 Ekim 2026 Rev. 50 · BIM-CALC-2026-10-24.44 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 50 SmartCheck worker sahipliğini claim, per-delivery lease, stale-owner fencing ve atomik canonical publish ile sertleştirir; production deploy kanıtı değildir. Rev. 49 manuel havale yaşam döngüsünü transaction/idempotency kapılarıyla korur. T42 ve Faz 7 PARTIAL kalır; production'a dağıtım veya L3/L4 iddiası yoktur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 51)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay, güvenli inceleme, dönemsel hakediş ve tahsilat akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 24 Ekim 2026 Rev. 51 · BIM-CALC-2026-10-24.45 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 51 yerel runtime DB credential topolojisini, transaction-local migration rol yükseltmesini ve A→B→A rollback kanıtını tamamlar; production cutover/deploy kanıtı değildir. Rev. 50 SmartCheck worker sahipliğini, Rev. 49 manuel havale yaşam döngüsünü sertleştirmiştir. T40, T42 ve Faz 7 PARTIAL kalır; production'a dağıtım veya L3/L4 iddiası yoktur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 50):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 51):",
       },
       {
         type: "table",
@@ -588,16 +588,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Manuel havale siparişi init/submit/review sınırları transaction içinde serileştirildi. requestId ve dekont referansı zorunlu; plan/dönem/tutar immutable; canonical global receipt replay ve approve/reject yarışı kapalı; pasif paket fail-closed; aynı aktif planın ikinci gerçek ödemesi mevcut dönem sonunu uzatır. 5 gerçek PG16 + 8 unit senaryosu geçti. Academy webhook ve SmartCheck worker yarışları, production deploy ve banka doğrulama/mutabakatı açık olduğundan T42 ve Faz 7 PARTIAL'dır.",
           ],
           [
-            "Rev. 50 (Güncel geliştirme)",
+            "Rev. 50",
             "24 Ekim 2026 (Faz 7 — SmartCheck Worker Claim ve Lease Fencing T42 İkinci Dilim, Kısmi)",
             "BIM-CALC-2026-10-24.44 (c185518834d5c82c468907ad00e3571c5f73587a)",
             "Graphile job kimliği ve her teslimata özgü lease tokenı queued→running claim'i çitler. CSV/PDF/IFC canonical DB publish owner doğrulamalı transactionlarda tamamlanır; tokenlı immutable artifact anahtarı stale blob overwrite yarışını kapatır. Recovery eski tokenı geçersiz kılar. Onaylı release CLI worker drain onayı, sıfır running run ve sıfır locked job olmadan başlamaz; direct apply CTE'si residual run için ek savunmadır. Academy webhook, production rollout ve bağımsız gerçek dosya kabulü açık olduğundan T42/Faz 7 PARTIAL'dır.",
+          ],
+          [
+            "Rev. 51 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T40 Yerel Runtime Credential Topolojisi ve Rollback, Kısmi)",
+            "BIM-CALC-2026-10-24.45 (b8733c0d204bec9e978ab1a98e16df328dbb9d8c)",
+            "Yerel compose app, worker/ifc-worker, migrate ve backup hizmetlerini ayrı bimmetraj_app, bimmetraj_worker, bimmetraj_migrator ve bimmetraj_backup login credentiallarına bağlar. Migration transactionı SET LOCAL ROLE owner sonrasında session/current kimliğini doğrular ve worker-drain kapısını migrationdan önce uygular. Parola doğrulamalı izole PostgreSQL 16 üzerinde A→B→A rotation/rollback ve eski credential reddi geçti. Production secret cutover, canary, restore/parity ve deploy yapılmadığından T40/Faz 7 PARTIAL'dır; hesap yöntemleri değişmemiştir.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 50 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 51 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1040,7 +1046,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Rev. 48 · 24 Ekim 2026 (Faz 7 — CDE Tenant RLS T41 İlk Dilim, Kısmi)",
             "PostgreSQL FORCE RLS; transaction-local tenant context; exact session/current app role; CDE proje RBAC; worker deny, backup read-only ve migrator-owner policy; CI drift kapısı",
             "CDE proje, üye, konteyner, revizyon ve karar olayları uygulama companyId filtrelerine dayanıyordu. DB katmanı filtre unutulmasını, yanlış runtime credentialı veya pool context sızıntısını bağımsız olarak durdurmuyordu; rol inspector'ı CDE policy driftini görmüyordu.",
-            "Beş CDE tablosu FORCE RLS ve exact üç-policy matrisiyle korunur. CdeService bütün okuma/yazma yollarını aynı checked-out bağlantıda transaction-local company/user context ile çalıştırır; session_user ve current_user exact restricted bimmetraj_app değilse callback başlamaz. PG16 testi full lifecycle, rollback, pool reuse, concurrency, cross-tenant WITH CHECK, worker/backup/owner sınırı ve zero/partial table-policy driftini doğrular. Kalan tenant tabloları ile T40 production cutover açık olduğundan T41 PARTIAL'dır.",
+            "Beş CDE tablosu FORCE RLS ve exact üç-policy matrisiyle korunur. CdeService bütün okuma/yazma yollarını aynı checked-out bağlantıda transaction-local company/user context ile çalıştırır; session_user ve current_user exact restricted bimmetraj_app değilse callback başlamaz. PG16 testi full lifecycle, rollback, pool reuse, concurrency, cross-tenant WITH CHECK, worker/backup/owner sınırı ve zero/partial table-policy driftini doğrular. Kalan tenant tabloları ile T40 production credential cutover açık olduğundan T41 PARTIAL'dır.",
             "src/db/tenant-context.ts, src/services/cde/service.ts, src/db/schema.ts, drizzle-release/0013_cde_tenant_rls.sql, scripts/database-roles/inspect.ts, src/contracts/cde-tenant-rls.pgtest.ts, .github/workflows/verify.yml",
           ],
           [
@@ -1056,6 +1062,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Aynı run farklı veya yeniden teslim edilen workerlarca eşzamanlı işlenebiliyor; recovery sonrasında eski worker run, document, kota ve artifact durumunu değiştirebiliyor; ortak object key yeni sahibin blobunu ezebiliyordu. Migration çalışan worker varken başlayabiliyordu.",
             "queued→running claim jobId+leaseToken ile atomiktir. Aynı job redelivery yeni tokenla sahipliği devralabilir; farklı job no-op olur. Her canonical yazma token ve running durumu ile korunur; CSV/PDF/IFC publish aynı transaction sınırındadır. Artifact key token taşır; overlap testinde DB checksum'ı kazanan blobla eşleşir. Onaylı CLI önce worker drain ve sıfır aktif iş ister; migration CTE'si yalnız bypass/direct apply sırasında residual running run ile bağlı documentı birlikte failed yapan ek savunmadır. Production rollout yapılmamıştır.",
             "src/smartcheck/import/processor.ts, src/smartcheck/import/{worker,ifc-worker,service}.ts, src/server/routes/{smartcheck,admin}.ts, src/db/schema.ts, drizzle-release/0014_smartcheck_worker_lease.sql, scripts/release-migrations/worker-drain-gate.ts, .github/workflows/verify.yml",
+          ],
+          [
+            "Rev. 51 · 24 Ekim 2026 (Faz 7 — T40 Yerel Runtime Credential Topolojisi ve Rollback, Kısmi)",
+            "PostgreSQL least privilege; servis bazlı runtime credential ayrımı; transaction-local SET ROLE; migrator kimlik doğrulaması; migration öncesi worker-drain; parola rotation ve rollback",
+            "Canonical roller ve ACL/RLS inspector'ı hazırdı; ancak compose hizmetleri ortak bootstrap bağlantısını kullanıyor, migration runnerı doğrulanmış migrator→owner geçişini ve worker-drain sırasını aynı transactionda zorunlu tutmuyor, credential geri dönüşü parola doğrulamalı gerçek PostgreSQL üzerinde kanıtlanmıyordu.",
+            "App, worker/ifc-worker, migrate ve backup ayrı login credentiallarına bağlandı; eksik secret compose render aşamasında kapanır ve hizmet ortamlarında gereksiz ham secretlar gölgelenir. Release runner BEGIN sonrasında SET LOCAL ROLE owner uygular, session/current kimliğini doğrular ve production migrationdan önce worker-drain kapısını zorunlu tutar. İzole parola doğrulamalı PostgreSQL 16 testi A→B rotationda eski credentialların reddini, yeni credentialların erişimini ve B→A rollback sonrasında eski durumun geri kazanımını doğrular. Focused TypeScript 21/21, Python 6/6, PG 1/1 ve tsc geçti. Production cutover/canary/restore/deploy yapılmadığından T40 PARTIAL'dır; hesap formülü değişmedi.",
+            "compose.coolify.yaml, compose.example.yaml, scripts/database-roles/{cli,provision}.ts, scripts/database-roles/runtime-compose-contract.test.ts, scripts/release-migrations/{cli,runner,safety}.ts, scripts/release-migrations/runner-role.test.ts, deploy/backup/{backup,test_backup}.py, src/contracts/{database-role-contract.test,database-role-provision.pgtest,cde-tenant-rls.pgtest}.ts, .github/workflows/verify.yml",
           ],
         ],
       },

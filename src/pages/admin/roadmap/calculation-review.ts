@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.44",
+  version: "BIM-CALC-2026-10-24.45",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "c185518834d5c82c468907ad00e3571c5f73587a",
-  approvalStatus: "Rev. 50, T42'nin SmartCheck worker diliminde queued→running claim, teslim denemesi lease tokenı, stale-owner fencing, atomik canonical publish ve immutable artifact anahtarlarını doğrular; hesap formüllerini değiştirmez. Aynı ve farklı job redelivery, recovery ve gerçek overlap senaryoları izole PostgreSQL 16 üzerinde sınanmıştır. Academy webhook entitlement yarışı, dış object-store orphan temizliği/uzun iş heartbeat politikası, banka mutabakatı ve production deploy açık olduğundan T42 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "b8733c0d204bec9e978ab1a98e16df328dbb9d8c",
+  approvalStatus: "Rev. 51, T40 için app, worker/ifc-worker, migrator ve backup runtime credential ayrımını; migrationın doğrulanmış migrator kimliğinden transaction-local owner rolüne geçmesini; worker-drain sırasını ve izole parola doğrulamalı PostgreSQL 16 üzerindeki A→B→A credential rollback kanıtını kaydeder. Hesap yöntemleri ve formüller değişmemiştir. Production cutover, canary, restore/parity ve deploy yapılmadığından T40 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1269,6 +1269,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "PDF doğrulama artifactları ile run/document final durumu recovery veya redelivery sırasında farklı workerlar tarafından karıştırılabiliyordu.",
         after: "PDF artifact listesi, run sonucu ve document durumu aynı owner-token kontrollü transactionda yayımlanır; recovery tokenı temizler ve eski teslimat finalizasyonu reddedilir.",
         basis: "src/smartcheck/import/processor.ts, src/smartcheck/import/service.ts, src/server/routes/smartcheck.ts ve worker overlap PostgreSQL testi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 51",
+    version: "BIM-CALC-2026-10-24.45",
+    date: "24 Ekim 2026",
+    commit: "b8733c0d204bec9e978ab1a98e16df328dbb9d8c",
+    trigger: "GAP kapatma yol haritası Faz 7 / T40 yerel cutover hazırlığı: servis bazlı PostgreSQL credential topolojisi, migration rol yükseltme sırası ve credential rollback kanıtı.",
+    beforeSummary: "Canonical rol sözleşmesi ve provisioning denetimi vardı; ancak compose hizmetleri hâlâ ortak bootstrap bağlantısına dayanıyor, release runner owner rolüne kontrollü geçişi ve production zorunlu worker-drain sırasını tek transaction içinde kanıtlamıyor, credential rotation geri dönüşü gerçek parola doğrulamalı PostgreSQL üzerinde sınanmıyordu.",
+    afterSummary: "App, worker/ifc-worker, migrate ve backup hizmetleri ayrı app/worker/migrator/backup login credential'larıyla fail-closed bağlanır. Release transactionı BEGIN sonrasında SET LOCAL ROLE owner uygular, session/current kimliklerini doğrular ve migrationdan önce worker-drain kapısını zorunlu tutar. İzole parola doğrulamalı PostgreSQL 16 testi credentialları A→B döndürüp eski parolaları reddeder, ardından B→A geri dönüşünü doğrular. Hesap yöntemleri değişmedi; production cutover, canary, restore/parity ve deploy yapılmadığından T40 PARTIAL'dır.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "IFC/SmartCheck uygulaması, workerları, release migrationı ve backup işi için yerel compose bağlantı kimlikleri canonical rol sözleşmesine ayrı credentiallarla bağlı değildi; rollback tatbikatı yalnız plan düzeyindeydi.",
+        after: "Yerel compose app'i bimmetraj_app, worker/ifc-worker'ı bimmetraj_worker, migrate işini bimmetraj_migrator ve backup'ı bimmetraj_backup kimliğiyle sınırlar. Migrator yalnız transaction-local owner rolüyle DDL yürütür; A→B→A parola geri dönüş testi eski credential reddini ve geri kazanımı doğrular. IFC miktar/formül çıktısı değişmez.",
+        basis: "compose.coolify.yaml, compose.example.yaml, scripts/database-roles/*, scripts/release-migrations/*, deploy/backup/* ve src/contracts/database-role-provision.pgtest.ts; PostgreSQL 16 parola doğrulama ve SET LOCAL ROLE davranış kanıtı",
       },
     },
   },
