@@ -813,5 +813,14 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
       progressPaymentEventBindingTrigger,
     ];
   }
+  if (tag === '0013_cde_tenant_rls') {
+    const ordered = [...schemaStatements];
+    const forced = ['cde_projects', 'cde_project_members', 'cde_containers', 'cde_revisions', 'cde_transition_events']
+      .map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0012_progress_payment_evidence', statements)
+      : statements;
+  }
   return [...schemaStatements];
 }

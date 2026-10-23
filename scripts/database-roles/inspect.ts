@@ -3,6 +3,7 @@ import pg from "pg";
 import {
   DATABASE_ROLE_CONTRACT,
   DATABASE_FUNCTION_EXECUTE_SPECS,
+  DATABASE_CDE_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
   DATABASE_QUEUE_RLS_TABLES,
   DATABASE_QUEUE_STRUCTURE_FINGERPRINT,
@@ -72,6 +73,41 @@ const sensitiveKey = /(?:password|passwd|secret|token|authorization|cookie|datab
 const connectionUrl = /(?:postgres(?:ql)?:\/\/)[^\s]+/i;
 const managedSchemas = DATABASE_SCHEMA_SPECS.map(({ name }) => name);
 
+async function inspectCdeRlsViolations(client: Queryable): Promise<string[]> {
+  const releaseState = await client.query<{ ledger: string | null; has_tag: boolean }>(`select to_regclass('teklifpro_release.migrations')::text as ledger,
+    exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') as has_tag`);
+  if (!releaseState.rows[0]?.ledger || !releaseState.rows[0].has_tag) return [];
+  const applied = await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0013_cde_tenant_rls') as applied");
+  if (!applied.rows[0]?.applied) return [];
+  const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname as table_name,c.relrowsecurity as enabled,c.relforcerowsecurity as forced
+    from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p') order by c.relname`, [DATABASE_CDE_RLS_TABLES]);
+  const violations: string[] = [];
+  if (states.rowCount !== DATABASE_CDE_RLS_TABLES.length) return ["public CDE: complete RLS table set is required"];
+  const policies = await client.query<{ table_name: string; policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select c.relname as table_name,p.polname as policy_name,p.polcmd as command,p.polroles::oid[] as role_oids,p.polpermissive as permissive,
+      pg_get_expr(p.polqual,p.polrelid) as using_expression,pg_get_expr(p.polwithcheck,p.polrelid) as check_expression
+    from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) order by c.relname,p.polname`, [DATABASE_CDE_RLS_TABLES]);
+  const appExpression = "((CURRENT_USER = 'bimmetraj_app'::name) AND (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))";
+  const backupExpression = "(CURRENT_USER = 'bimmetraj_backup'::name)";
+  const ownerExpression = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  for (const table of DATABASE_CDE_RLS_TABLES) {
+    const state = states.rows.find((candidate) => candidate.table_name === table);
+    const actual = policies.rows.filter((policy) => policy.table_name === table);
+    const app = actual.find((policy) => policy.policy_name === `${table}_app_tenant`);
+    const backup = actual.find((policy) => policy.policy_name === `${table}_backup_read`);
+    const owner = actual.find((policy) => policy.policy_name === `${table}_owner_migration`);
+    const publicPolicy = (policy: typeof app) => policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]);
+    if (!state?.enabled || !state.forced || actual.length !== 3
+      || !publicPolicy(app) || app?.command !== "*" || app.using_expression !== appExpression || app.check_expression !== appExpression
+      || !publicPolicy(backup) || backup?.command !== "r" || backup.using_expression !== backupExpression || backup.check_expression !== null
+      || !publicPolicy(owner) || owner?.command !== "*" || owner.using_expression !== ownerExpression || owner.check_expression !== ownerExpression) {
+      violations.push(`public.${table}: CDE FORCE-RLS policy matrix drift`);
+    }
+  }
+  return violations;
+}
+
 async function inspectQueueStructureViolations(client: Queryable): Promise<string[]> {
   const present = await client.query<{ present: boolean }>("select exists(select 1 from pg_namespace where nspname='teklifpro_queue') as present");
   if (!present.rows[0]?.present) return [];
@@ -117,6 +153,7 @@ export async function inspectRoleProvenanceViolations(client: Queryable, expecte
 
 async function inspectManagedSchemaViolations(client: Queryable): Promise<string[]> {
   const violations: string[] = [];
+  violations.push(...await inspectCdeRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
   const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;

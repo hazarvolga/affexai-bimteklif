@@ -71,7 +71,8 @@ export async function applyMigrations(client: pg.Client, migrations: Migration[]
     for (const migration of migrations.slice(rows?.length ?? 0, through + 1)) {
       for (const statement of migration.statements) await client.query(statement);
       const { signature } = await catalog(client);
-      if (signature !== pinnedSignature(migration)) throw new Error('Applied catalog differs from pinned release signature');
+      const expectedSignature = pinnedSignature(migration);
+      if (signature !== expectedSignature) throw new Error(`Applied catalog differs from pinned release signature at ${migration.tag}: expected ${expectedSignature}, received ${signature}`);
       await client.query(`insert into ${ledgerSchema}.migrations (idx,tag,hash,catalog_hash,mode) values ($1,$2,$3,$4,'applied')`,
         [migration.idx, migration.tag, migration.sha256, signature]);
       applied.push(migration.tag);

@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import http from "node:http";
 import test from "node:test";
 import dotenv from "dotenv";
+import type pg from "pg";
 import { skipIfDatabaseUnavailable } from "./test-db-reachability";
 import { useTestIsolation } from "./test-isolation";
 
@@ -14,8 +15,8 @@ test("CDE project roles, immutable scopes, optimistic lock and idempotent decisi
   if (await skipIfDatabaseUnavailable(t)) return;
   const previousSourceCommit = process.env.SOURCE_COMMIT;
   process.env.SOURCE_COMMIT = "a".repeat(40);
-  const [{ createApiApp }, schema, dbModule, { AuthService }] = await Promise.all([
-    import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"),
+  const [{ createApiApp }, schema, dbModule, { AuthService }, { CdeService }] = await Promise.all([
+    import("../app"), import("../../db/schema"), import("../../db"), import("../../services/auth/authService"), import("../../services/cde/service"),
   ]);
   const { eq } = await import("drizzle-orm");
   const db = dbModule.db;
@@ -53,7 +54,21 @@ test("CDE project roles, immutable scopes, optimistic lock and idempotent decisi
     nonMember: AuthService.generateToken({ userId: nonMember.id, companyId: companyA.id, role: "viewer" }),
     other: AuthService.generateToken({ userId: other.id, companyId: companyB.id, role: "owner" }),
   };
-  const app = createApiApp();
+  const testTransaction = async <T>(_pool: pg.Pool, _context: Readonly<{ companyId: string; userId: string }>, work: (client: pg.PoolClient) => Promise<T>) => {
+    const client = await dbModule.pool.connect();
+    try {
+      await client.query("begin");
+      const result = await work(client);
+      await client.query("commit");
+      return result;
+    } catch (error) {
+      await client.query("rollback");
+      throw error;
+    } finally {
+      client.release();
+    }
+  };
+  const app = createApiApp({ cdeService: new CdeService(dbModule.pool, testTransaction) });
   const server = http.createServer(app);
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();

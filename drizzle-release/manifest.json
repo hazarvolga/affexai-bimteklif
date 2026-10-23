@@ -92,6 +92,13 @@
       "sha256": "01cf4c3e11f3dfd80fefb022d4f3ef61ab0b01b2b5a80d432f7e989e791d445d",
       "snapshotSha256": "2ab122d6b59ab2274033dc838ef80f879bcd24118e3b6064699a326bb3217fc5",
       "statements": 83
+    },
+    {
+      "idx": 13,
+      "tag": "0013_cde_tenant_rls",
+      "sha256": "79fa395da91c65630729da247ce050441fdb3da69de4fa0b768d04eb684b6e23",
+      "snapshotSha256": "a20a292409f16504f8dbbabf4c5dbf6d3620882af5da45390cf09b1fa142839a",
+      "statements": 25
     }
   ]
 }

@@ -1,6 +1,9 @@
 import { and, asc, eq, sql } from "drizzle-orm";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { createHash } from "node:crypto";
-import { db } from "../../db";
+import type pg from "pg";
+import { pool } from "../../db";
+import * as schema from "../../db/schema";
 import {
   cdeContainers,
   cdeProjectMembers,
@@ -13,6 +16,7 @@ import {
   memberships,
   users,
 } from "../../db/schema";
+import { withTenantTransaction, type TenantContext } from "../../db/tenant-context";
 import {
   canonicalCdeScopeHash,
   canonicalCdeTransitionRequestHash,
@@ -31,6 +35,8 @@ export class CdeServiceError extends Error {
 }
 
 type Actor = { companyId: string; userId: string };
+type Executor = NodePgDatabase<typeof schema>;
+export type CdeTenantTransactionRunner = <T>(pool: pg.Pool, context: TenantContext, work: (client: pg.PoolClient) => Promise<T>) => Promise<T>;
 
 type CdeRevisionRequest = { revisionCode: string; processingRunId: string; resultArtifactId: string };
 
@@ -63,10 +69,19 @@ function ruleEvidence(metadata: unknown) {
 }
 
 export class CdeService {
+  constructor(
+    private readonly database: pg.Pool = pool,
+    private readonly tenantTransaction: CdeTenantTransactionRunner = withTenantTransaction,
+  ) {}
+
+  private transaction<T>(actor: Actor, work: (executor: Executor) => Promise<T>): Promise<T> {
+    return this.tenantTransaction(this.database, actor, (client) => work(drizzle(client, { schema })));
+  }
+
   async createProject(actor: Actor, input: { documentId: string; name: string }) {
-    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, input.documentId), eq(documents.companyId, actor.companyId)));
-    if (!document) throw new CdeServiceError(404, "DOCUMENT_NOT_FOUND", "Doküman bulunamadı.");
-    return db.transaction(async (tx) => {
+    return this.transaction(actor, async (tx) => {
+      const [document] = await tx.select({ id: documents.id }).from(documents).where(and(eq(documents.id, input.documentId), eq(documents.companyId, actor.companyId)));
+      if (!document) throw new CdeServiceError(404, "DOCUMENT_NOT_FOUND", "Doküman bulunamadı.");
       const [existing] = await tx.select().from(cdeProjects).where(and(eq(cdeProjects.companyId, actor.companyId), eq(cdeProjects.documentId, input.documentId)));
       if (existing) return { project: existing, created: false };
       const [project] = await tx.insert(cdeProjects).values({ companyId: actor.companyId, documentId: input.documentId, name: input.name, createdByUserId: actor.userId }).returning();
@@ -76,9 +91,13 @@ export class CdeService {
   }
 
   async listProjects(actor: Actor, documentId?: string) {
+    return this.transaction(actor, (tx) => this.listProjectsWith(tx, actor, documentId));
+  }
+
+  private listProjectsWith(tx: Executor, actor: Actor, documentId?: string) {
     const predicates = [eq(cdeProjects.companyId, actor.companyId), eq(cdeProjectMembers.userId, actor.userId)];
     if (documentId) predicates.push(eq(cdeProjects.documentId, documentId));
-    return db.select({ project: cdeProjects, projectRole: cdeProjectMembers.projectRole, discipline: cdeProjectMembers.discipline })
+    return tx.select({ project: cdeProjects, projectRole: cdeProjectMembers.projectRole, discipline: cdeProjectMembers.discipline })
       .from(cdeProjects)
       .innerJoin(cdeProjectMembers, and(eq(cdeProjectMembers.projectId, cdeProjects.id), eq(cdeProjectMembers.companyId, cdeProjects.companyId)))
       .where(and(...predicates))
@@ -86,22 +105,26 @@ export class CdeService {
   }
 
   async projectByDocument(actor: Actor, documentId: string) {
-    const rows = await this.listProjects(actor, documentId);
-    if (!rows[0]) throw new CdeServiceError(404, "CDE_PROJECT_NOT_FOUND", "CDE projesi bulunamadı.");
-    return this.projectDetail(actor, rows[0].project.id);
+    return this.transaction(actor, async (tx) => {
+      const rows = await this.listProjectsWith(tx, actor, documentId);
+      if (!rows[0]) throw new CdeServiceError(404, "CDE_PROJECT_NOT_FOUND", "CDE projesi bulunamadı.");
+      return this.projectDetailWith(tx, actor, rows[0].project.id);
+    });
   }
 
   async projectDetail(actor: Actor, projectId: string) {
-    const { project } = await this.requireProjectRole(actor, projectId);
-    const [members, containers] = await Promise.all([
-      db.select().from(cdeProjectMembers).where(and(eq(cdeProjectMembers.companyId, actor.companyId), eq(cdeProjectMembers.projectId, projectId))).orderBy(asc(cdeProjectMembers.createdAt)),
-      db.select().from(cdeContainers).where(and(eq(cdeContainers.companyId, actor.companyId), eq(cdeContainers.projectId, projectId))).orderBy(asc(cdeContainers.createdAt)),
-    ]);
+    return this.transaction(actor, (tx) => this.projectDetailWith(tx, actor, projectId));
+  }
+
+  private async projectDetailWith(tx: Executor, actor: Actor, projectId: string) {
+    const { project } = await this.requireProjectRole(actor, projectId, tx);
+    const members = await tx.select().from(cdeProjectMembers).where(and(eq(cdeProjectMembers.companyId, actor.companyId), eq(cdeProjectMembers.projectId, projectId))).orderBy(asc(cdeProjectMembers.createdAt));
+    const containers = await tx.select().from(cdeContainers).where(and(eq(cdeContainers.companyId, actor.companyId), eq(cdeContainers.projectId, projectId))).orderBy(asc(cdeContainers.createdAt));
     return { ...project, members, containers };
   }
 
   async assignMember(actor: Actor, projectId: string, input: { userId: string; role: CdeProjectRole; discipline: CdeDiscipline }) {
-    return db.transaction(async (tx) => {
+    return this.transaction(actor, async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${actor.companyId}:${projectId}:members`}, 0))`);
       const { role } = await this.requireProjectRole(actor, projectId, tx);
       if (!canManage(role)) throw new CdeServiceError(403, "CDE_PROJECT_ROLE_FORBIDDEN", "Bu işlem proje koordinatörü rolü gerektirir.");
@@ -119,18 +142,20 @@ export class CdeService {
   }
 
   async createContainer(actor: Actor, projectId: string, input: { containerCode: string; title: string }) {
-    const { role } = await this.requireProjectRole(actor, projectId);
-    if (!canAuthor(role)) throw new CdeServiceError(403, "CDE_PROJECT_ROLE_FORBIDDEN", "Bu işlem CDE içerik üreticisi rolü gerektirir.");
-    const [existing] = await db.select().from(cdeContainers).where(and(eq(cdeContainers.companyId, actor.companyId), eq(cdeContainers.projectId, projectId), eq(cdeContainers.containerCode, input.containerCode)));
-    if (existing) return { container: existing, created: false };
-    const [container] = await db.insert(cdeContainers).values({ companyId: actor.companyId, projectId, containerCode: input.containerCode, title: input.title, createdByUserId: actor.userId }).returning();
-    return { container, created: true };
+    return this.transaction(actor, async (tx) => {
+      const { role } = await this.requireProjectRole(actor, projectId, tx);
+      if (!canAuthor(role)) throw new CdeServiceError(403, "CDE_PROJECT_ROLE_FORBIDDEN", "Bu işlem CDE içerik üreticisi rolü gerektirir.");
+      const [existing] = await tx.select().from(cdeContainers).where(and(eq(cdeContainers.companyId, actor.companyId), eq(cdeContainers.projectId, projectId), eq(cdeContainers.containerCode, input.containerCode)));
+      if (existing) return { container: existing, created: false };
+      const [container] = await tx.insert(cdeContainers).values({ companyId: actor.companyId, projectId, containerCode: input.containerCode, title: input.title, createdByUserId: actor.userId }).returning();
+      return { container, created: true };
+    });
   }
 
   async createOrReuseRevision(actor: Actor, containerId: string, input: CdeRevisionRequest) {
     const initialTransition = validateCdeStateTransition({ fromState: null, toState: "WIP", suitabilityCode: "S0", revisionCode: input.revisionCode, actor: actor.userId });
     if (!initialTransition.allowed) throw new CdeServiceError(422, "CDE_REVISION_CODE_INVALID", initialTransition.reason);
-    return db.transaction(async (tx) => {
+    return this.transaction(actor, async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${actor.companyId}:${containerId}:revision`}, 0))`);
       const [container] = await tx.select().from(cdeContainers).where(and(eq(cdeContainers.id, containerId), eq(cdeContainers.companyId, actor.companyId)));
       if (!container) throw new CdeServiceError(404, "CDE_CONTAINER_NOT_FOUND", "CDE konteyneri bulunamadı.");
@@ -197,7 +222,7 @@ export class CdeService {
 
   async transition(actor: Actor, containerId: string, idempotencyKey: string, input: { action: "approve" | "reject" | "withdraw"; expectedVersion: number; toState?: CdeState; suitabilityCode?: SuitabilityCode; revisionCode?: string; reason?: string }) {
     const requestHash = canonicalCdeTransitionRequestHash(input);
-    return db.transaction(async (tx) => {
+    return this.transaction(actor, async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${actor.companyId}:${containerId}:${idempotencyKey}`}, 0))`);
       const [container] = await tx.select().from(cdeContainers).where(and(eq(cdeContainers.id, containerId), eq(cdeContainers.companyId, actor.companyId)));
       if (!container) throw new CdeServiceError(404, "CDE_CONTAINER_NOT_FOUND", "CDE konteyneri bulunamadı.");
@@ -250,12 +275,12 @@ export class CdeService {
   }
 
   async history(actor: Actor, containerId: string) {
-    const [container] = await db.select().from(cdeContainers).where(and(eq(cdeContainers.id, containerId), eq(cdeContainers.companyId, actor.companyId)));
-    if (!container) throw new CdeServiceError(404, "CDE_CONTAINER_NOT_FOUND", "CDE konteyneri bulunamadı.");
-    await this.requireProjectRole(actor, container.projectId);
-    const [revisions, events] = await Promise.all([
-      db.select().from(cdeRevisions).where(and(eq(cdeRevisions.companyId, actor.companyId), eq(cdeRevisions.containerId, containerId))).orderBy(asc(cdeRevisions.createdAt)),
-      db.select({ event: {
+    return this.transaction(actor, async (tx) => {
+      const [container] = await tx.select().from(cdeContainers).where(and(eq(cdeContainers.id, containerId), eq(cdeContainers.companyId, actor.companyId)));
+      if (!container) throw new CdeServiceError(404, "CDE_CONTAINER_NOT_FOUND", "CDE konteyneri bulunamadı.");
+      await this.requireProjectRole(actor, container.projectId, tx);
+      const revisions = await tx.select().from(cdeRevisions).where(and(eq(cdeRevisions.companyId, actor.companyId), eq(cdeRevisions.containerId, containerId))).orderBy(asc(cdeRevisions.createdAt));
+      const events = await tx.select({ event: {
         id: cdeTransitionEvents.id, revisionId: cdeTransitionEvents.revisionId, action: cdeTransitionEvents.action,
         decision: cdeTransitionEvents.decision, fromState: cdeTransitionEvents.fromState, toState: cdeTransitionEvents.toState,
         suitabilityCode: cdeTransitionEvents.suitabilityCode, revisionCode: cdeTransitionEvents.revisionCode,
@@ -265,12 +290,12 @@ export class CdeService {
         reason: cdeTransitionEvents.reason, createdAt: cdeTransitionEvents.createdAt,
       }, actor: { id: users.id, fullName: users.fullName, email: users.email } }).from(cdeTransitionEvents)
         .innerJoin(users, eq(users.id, cdeTransitionEvents.actorUserId))
-        .where(and(eq(cdeTransitionEvents.companyId, actor.companyId), eq(cdeTransitionEvents.containerId, containerId))).orderBy(asc(cdeTransitionEvents.createdAt)),
-    ]);
-    return { container, revisions, events };
+        .where(and(eq(cdeTransitionEvents.companyId, actor.companyId), eq(cdeTransitionEvents.containerId, containerId))).orderBy(asc(cdeTransitionEvents.createdAt));
+      return { container, revisions, events };
+    });
   }
 
-  private async requireProjectRole(actor: Actor, projectId: string, executor: any = db): Promise<{ project: typeof cdeProjects.$inferSelect; role: CdeProjectRole; discipline: CdeDiscipline }> {
+  private async requireProjectRole(actor: Actor, projectId: string, executor: Executor): Promise<{ project: typeof cdeProjects.$inferSelect; role: CdeProjectRole; discipline: CdeDiscipline }> {
     const [row] = await executor.select({ project: cdeProjects, role: cdeProjectMembers.projectRole, discipline: cdeProjectMembers.discipline }).from(cdeProjects)
       .leftJoin(cdeProjectMembers, and(eq(cdeProjectMembers.projectId, cdeProjects.id), eq(cdeProjectMembers.companyId, cdeProjects.companyId), eq(cdeProjectMembers.userId, actor.userId)))
       .where(and(eq(cdeProjects.id, projectId), eq(cdeProjects.companyId, actor.companyId)));

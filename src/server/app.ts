@@ -62,6 +62,7 @@ import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
 import { registerCdeRoutes } from "./routes/cde";
+import type { CdeService } from "../services/cde/service";
 import { registerProgressPaymentRoutes } from "./routes/progress-payments";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { validateAuthEmailEnvironment } from './auth/email-policy';
@@ -74,7 +75,7 @@ dotenv.config();
 
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
-export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void }) {
+export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService }) {
   const productionConfig = assertProductionEnvironment();
   const app = express();
   app.disable('x-powered-by');
@@ -189,7 +190,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerSourceIntelligenceRoutes(app);
   registerMarketIntelligenceRoutes(app);
   registerPilotEvidenceRoutes(app);
-  registerCdeRoutes(app);
+  registerCdeRoutes(app, options?.cdeService);
   registerProgressPaymentRoutes(app);
 
   if (options?.configureRoutes) {

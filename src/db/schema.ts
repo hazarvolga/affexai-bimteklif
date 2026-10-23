@@ -14,11 +14,39 @@ import {
   bigint,
   jsonb,
   uniqueIndex,
-  unique
+  unique,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import type { SourceEvidence } from "../smartcheck/schemas/source-evidence.schema";
 import type { StructuredCondition } from "../smartcheck/schemas/structured-condition.schema";
+
+const appTenantPolicy = (name: string, companyId: AnyPgColumn) => {
+  const tenantMatch = sql`${companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
+  return pgPolicy(`${name}_app_tenant`, {
+    for: "all",
+    to: "public",
+    using: sql`current_user = 'bimmetraj_app' AND ${tenantMatch}`,
+    withCheck: sql`current_user = 'bimmetraj_app' AND ${tenantMatch}`,
+  });
+};
+
+const backupReadPolicy = (name: string) => pgPolicy(`${name}_backup_read`, {
+  for: "select",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_backup'`,
+});
+
+const ownerMigrationPolicy = (name: string) => {
+  const migratorOwner = sql`session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'`;
+  return pgPolicy(`${name}_owner_migration`, {
+    for: "all",
+    to: "public",
+    using: migratorOwner,
+    withCheck: migratorOwner,
+  });
+};
 
 // ─── GLOBAL ENUMS ───
 export const currencyEnum = pgEnum("currency", ["TRY", "USD", "EUR"]);
@@ -2025,7 +2053,10 @@ export const cdeProjects = pgTable("cde_projects", {
   documentFk: foreignKey({ columns: [table.documentId, table.companyId], foreignColumns: [documents.id, documents.companyId] }).onDelete("restrict"),
   creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   idxDocument: index("idx_cde_projects_document").on(table.companyId, table.documentId),
-}));
+  appTenantPolicy: appTenantPolicy("cde_projects", table.companyId),
+  backupReadPolicy: backupReadPolicy("cde_projects"),
+  ownerMigrationPolicy: ownerMigrationPolicy("cde_projects"),
+})).enableRLS();
 
 export const cdeProjectMembers = pgTable("cde_project_members", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2045,7 +2076,10 @@ export const cdeProjectMembers = pgTable("cde_project_members", {
   assignerFk: foreignKey({ columns: [table.assignedByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   roleCheck: check("cde_project_members_role_check", sql`${table.projectRole} in ('coordinator', 'approver', 'contributor', 'viewer')`),
   disciplineCheck: check("cde_project_members_discipline_check", sql`${table.discipline} in ('ARC', 'STR', 'MEP', 'COST', 'QA', 'BIM')`),
-}));
+  appTenantPolicy: appTenantPolicy("cde_project_members", table.companyId),
+  backupReadPolicy: backupReadPolicy("cde_project_members"),
+  ownerMigrationPolicy: ownerMigrationPolicy("cde_project_members"),
+})).enableRLS();
 
 export const cdeContainers = pgTable("cde_containers", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2070,7 +2104,10 @@ export const cdeContainers = pgTable("cde_containers", {
   lockVersionCheck: check("cde_containers_lock_version_check", sql`${table.lockVersion} >= 0`),
   scopeHashCheck: check("cde_containers_scope_hash_check", sql`${table.currentScopeHash} IS NULL OR ${table.currentScopeHash} ~ '^[0-9a-f]{64}$'`),
   idxProject: index("idx_cde_containers_project").on(table.companyId, table.projectId),
-}));
+  appTenantPolicy: appTenantPolicy("cde_containers", table.companyId),
+  backupReadPolicy: backupReadPolicy("cde_containers"),
+  ownerMigrationPolicy: ownerMigrationPolicy("cde_containers"),
+})).enableRLS();
 
 export const cdeRevisions = pgTable("cde_revisions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2102,7 +2139,10 @@ export const cdeRevisions = pgTable("cde_revisions", {
   creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   hashesCheck: check("cde_revisions_hashes_check", sql`${table.documentChecksumSha256} ~ '^[0-9a-f]{64}$' AND ${table.sourceHash} ~ '^[0-9a-f]{64}$' AND ${table.ruleHash} ~ '^[0-9a-f]{64}$' AND ${table.resultHash} ~ '^[0-9a-f]{64}$' AND ${table.codeHash} ~ '^[0-9a-f]{64}$' AND ${table.scopeHash} ~ '^[0-9a-f]{64}$'`),
   idxContainer: index("idx_cde_revisions_container").on(table.companyId, table.containerId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("cde_revisions", table.companyId),
+  backupReadPolicy: backupReadPolicy("cde_revisions"),
+  ownerMigrationPolicy: ownerMigrationPolicy("cde_revisions"),
+})).enableRLS();
 
 export const cdeTransitionEvents = pgTable("cde_transition_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2141,7 +2181,10 @@ export const cdeTransitionEvents = pgTable("cde_transition_events", {
   requestHashCheck: check("cde_transition_events_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
   versionsCheck: check("cde_transition_events_versions_check", sql`${table.expectedVersion} >= 0 AND ${table.resultingVersion} >= ${table.expectedVersion}`),
   idxHistory: index("idx_cde_transition_events_history").on(table.companyId, table.containerId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("cde_transition_events", table.companyId),
+  backupReadPolicy: backupReadPolicy("cde_transition_events"),
+  ownerMigrationPolicy: ownerMigrationPolicy("cde_transition_events"),
+})).enableRLS();
 
 // ============================================================
 // PHASE 6 — REVISIONED PROGRESS PAYMENTS AND EVIDENCE
