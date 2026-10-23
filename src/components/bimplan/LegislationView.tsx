@@ -222,6 +222,10 @@ export default function LegislationView() {
             EK-9 ön kontrol satırları otomatik veya manuel olarak işaretlenir ve kanıt referansı taşır. Belge kimliği doğrulanmadığı sürece hatasız rapor dahi <code>manual_review_required</code> durumunda kalır.
           </p>
 
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            PDF ön kontrolündeki <code>signed</code> durumu yalnız imza sözlüğü, ByteRange ve Contents yapısının bulunduğunu gösterir; sertifika güven zinciri, iptal ve zaman damgası doğrulaması değildir. PDF/A kimlik beyanı da tek başına uygunluk sayılmaz: harici veraPDF çalışma ortamı yoksa sonuç <code>unavailable</code> kalır ve sistem dönüşüm yapmaz. 3B IFC görüntüleyici kaynak hash + işlem + STEP kimliğiyle incelemeye yardım eder; görüntü geometrisinden teklif miktarı üretmez.
+          </p>
+
           <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl text-xs text-orange-800 font-bold">
             Önemli (m.6): Kâğıda yazdırılıp taranarak oluşturulan PDF'ler kullanılamaz (m.6(4)) ve tüm teslim dosyaları 5070 sayılı Kanuna uygun güvenli elektronik imza ile imzalanır (m.6(1)-(2)).
           </div>

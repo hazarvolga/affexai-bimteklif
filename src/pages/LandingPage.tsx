@@ -600,7 +600,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">RG 33331 e-PYS, ISO 19650 & PDF/A</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    EK-1..EK-9 ön kontrolü, PDF/A ISO 216 pafta & e-imza (<code className="font-mono text-[11px]">/Sig</code>) denetimi ve CDE/LOIN kontrolü. Belge kimliği veya lisanslı standart erişimi eksikse otomatik uygunluk vermez.
+                    EK-1..EK-9 ön kontrolü, PDF/A kimlik/ISO 216 pafta ve e-imza yapısal ön kontrolü ile CDE/LOIN kontrolü. <code className="font-mono text-[11px]">/Sig</code> bulgusu kriptografik güven kanıtı değildir; harici validator veya belge kimliği yoksa otomatik uygunluk verilmez.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-sky-400 font-mono">
@@ -635,7 +635,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   Yol Haritasında · 2026 Q4: EKAP Tutanak İçe Aktarımı
                 </span>
                 <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-                  Yol Haritasında · 2026 Q4: Ghostscript / veraPDF Sunucu PDF/A-2b
+                  Kısmi · veraPDF Runtime & Lisanslı PDF/A Dönüşümü Bekliyor
                 </span>
               </div>
             </div>
@@ -693,7 +693,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 highlights={[
                   '≤%3 QTO şirket politikası & lisanslı standart inceleme ayrımı',
                   'EK-9 Tablo 9.1 (Mimari 21) & Tablo 9.2 (Diğer 16)',
-                  'PDF/A ISO 216 pafta boyutu, tek pafta & e-imza',
+                  'Kaynak kimlikli 3B pilot inceleme; metraj sunucu kanıtından gelir',
                 ]}
               />
               <WorkflowCard
@@ -713,10 +713,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="5D TEKLİF · ESKALASYON · PDF"
                 icon={<ShieldCheck size={20} />}
                 title="5D Teklif, Simülasyon & Çıktı"
-                text="Onaylanan metraj kalemleri 5D İhale Masasına aktarılır. Sunucu IFC işçisi miktarları hacim, alan, uzunluk ve kütle olarak ayrı tutar; dosya hash'i, işlem çalışması, STEP kimliği ve fiyat kanıtıyla izlenebilir PDF/Excel teklif taslağı üretir."
+                text="Seçilen Calm icmal satırları sunucuda aynı IFC kanıtından yeniden kurulur ve yalnız yetkili fiyatla mevcut teklifin kalıcı ardıl revizyonuna aktarılır. Önceki revizyon korunur; dosya hash'i, işlem çalışması, STEP kimliği ve fiyat kaynağı satır izinde saklanır."
                 highlights={[
                   'Kârlılık, opsiyon ve eskalasyon simülasyonu',
-                  'GlobalId ve fiyat kaynak izli 5D cetvel',
+                  'Kaynak hash + run + STEP izli kalıcı teklif revizyonu',
                   'Kurumsal PDF & Excel ihale/hakediş paketi',
                 ]}
               />

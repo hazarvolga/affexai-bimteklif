@@ -107,6 +107,26 @@ export default function BimGlossary() {
       importance: 'Çok Yüksek'
     },
     {
+      term: 'PDF/A Doğrulaması',
+      abbreviation: 'ISO 19005 Conformance Validation',
+      turkishName: 'PDF/A Standart Uygunluk Doğrulaması',
+      category: 'Teknoloji',
+      definition: 'Bir PDF dosyasının yalnız XMP içindeki pdfaid beyanını okumak yerine font, renk, ek ve diğer ISO 19005 kurallarını bir doğrulayıcıyla sınamasıdır. BIMMetraj harici veraPDF raporunu kaynak SHA-256 ile ayrı kanıt olarak saklar; doğrulayıcı çalışma ortamı yoksa uygunluk üretmez ve lisanslı dönüşüm sağlayıcısı seçilmeden dosyayı dönüştürmez.',
+      englishTranslation: 'PDF/A Conformance Validation',
+      isoRole: 'PDF/A kimlik beyanı, standart uygunluk doğrulaması ve dönüştürülmüş türev dosya birbirinden ayrı izlenir.',
+      importance: 'Çok Yüksek'
+    },
+    {
+      term: 'E-İmza Yapısal Ön Kontrolü',
+      abbreviation: 'PDF Signature Structural Preflight',
+      turkishName: 'PDF İmza Alanı Yapısal Ön Kontrolü',
+      category: 'Süreç',
+      definition: 'PDF sayfaları ve AcroForm ağacında imza alanı, değer, ByteRange ve Contents yapısının sınırlandırılmış biçimde taranmasıdır. Yapısal signed bulgusu kriptografik imza geçerliliği, sertifika güven zinciri, iptal kontrolü, zaman damgası veya 5070 sayılı Kanuna uygunluk anlamına gelmez.',
+      englishTranslation: 'PDF Signature Structural Preflight',
+      isoRole: 'Teslim öncesi eksik veya bozuk imza yapısını ayırır; hukuki ve kriptografik kabul PKI doğrulaması ve yetkili incelemesi gerektirir.',
+      importance: 'Çok Yüksek'
+    },
+    {
       term: 'EK-9 Formu',
       abbreviation: 'RG 33331 Model Kalite Kontrol Formu (Tablo 9.1 & 9.2)',
       turkishName: 'Yapı Bilgi Modeli Kalite Kontrol Formu',

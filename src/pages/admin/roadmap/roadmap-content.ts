@@ -82,7 +82,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "table", columns: ["Ek / Madde", "Talep", "Makine ile denetlenebilirlik"], rows: [
         ["EK-1, EK-2 (m.6)", "6 haneli proje kodu (IfcProject.Name = dosya adı öneki) ve 9 alanlı dosya adı; disiplin, alt disiplin, tür, tip ve kat kodları (Tablo 2.1–2.14)", "Tam (şablon ve tüm kod sözlükleri aktif)"],
-        ["m.8(1)-(2) & Teslim Yön. m.6", "PDF/A formatı, ISO 216 A4 ve katları sayfa boyutu, çizim paftalarında tek pafta düzeni, taranmış PDF yasağı ve güvenli e-imza (/Sig)", "Tam (PAFTA_BOYUTU_ISO216, COKLU_PAFTA_DUZENI, TARANMIS_SAYFA_OLASI ve eSignature kontrolleri aktif)"],
+        ["m.8(1)-(2) & Teslim Yön. m.6", "PDF/A formatı, ISO 216 A4 ve katları sayfa boyutu, çizim paftalarında tek pafta düzeni, taranmış PDF yasağı ve güvenli e-imza", "Kısmi: pafta/tarama ve bounded imza yapısı ön kontrolü aktif; XMP beyanı uygunluk sayılmaz. Gerçek veraPDF runtime/dönüşüm lisansı ile kriptografik güven zinciri, iptal ve zaman damgası doğrulaması bekleniyor"],
         ["EK-3 (m.11)", "Mahal numarası (Kat_Fonksiyon_Sıra) ve mahal adı kısaltmaları (Tablo 3.1–3.2)", "Tam (şablon ve ~130 resmî mahal adı/kısaltması sözlüğü aktif)"],
         ["EK-5 (m.12, m.14)", "Eleman adı Disiplin-Kategori-Açıklama (m.12(3)); zorunlu IFC sınıfları; üst sınıf ve IfcBuildingElementProxy yasağı (m.14)", "Tam"],
         ["m.13(3)", "Malzeme adı Malzeme İsmi_Dayanım formatı ve 15 karakter CAD şablon sınırı", "Tam"],
@@ -252,7 +252,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["11 — GAP kapatma Faz 2: IFC kapsam ve metraj bütünlüğü", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 42)", "T10–T18: fail-closed malzeme/beton sınıfı, browser/worker sınırı, dosya-run-STEP kimliği, duplicate/aggregate izi, boyut bazlı kalite kapısı, kaynaklı kg donatı ve kota hata akışı tamamlandı. Gerçek ve izinli vendor dosyalarıyla imzalı mühendis kabulü bekleniyor."],
         ["12 — GAP kapatma Faz 3: mevzuat ve hesap motorları", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 43)", "T19–T26: YAMBİS, KİK yüzde 80, 4735, kat karşılığı KDV, Pre-BIM, Minha, 3×3, e-PYS ve ISO motorları tarihli kaynak/kanıt bağlamıyla fail-closed çalışır. Lisanslı standart erişimi, nihai e-PYS belge kimliği, mali müşavir ve bağımsız mühendis kabulü bekleniyor."],
         ["13 — GAP kapatma Faz 4: gerçek CDE onay akışı", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 44)", "T27–T29: açık geçiş tablosu, tenant/proje/revizyon kapsamlı kalıcı API, gerçek rol/disiplin kimliği, optimistic lock, idempotency, maker-checker, append-only karar izi ve kapsam değişiminde yeniden onay kapısı tamamlandı. Pilot/L2'dir; ISO lisanslı metin incelemesi, e-imza, bağımsız BIM koordinatörü ve gerçek saha kabulü bekleniyor."],
-        ["14 — Faz 5 ve sonrası entegrasyonlar", "Planlandı", "Güvenli CSV/XLSX/PDF/BCF çıktıları, PythonParts ve diğer yazılım şablonları onaylı yol haritası sırasıyla ele alınır"],
+        ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / kapanmadı (23 Ekim 2026 · Rev. 45)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32 NO-GO'dur: gerçek veraPDF CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı ile izinli dosya matrisi tamamlanmadan Faz 5 kapanmaz. Kriptografik imza güveni ve büyük IFC ana iş parçacığı performansı da bağımsız kabul bekler."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
@@ -264,13 +264,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 44 · 13–23 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 45 · 13–23 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 44)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları ve CDE onay akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 44 · BIM-CALC-2026-10-23.38 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 44 pilot/L2 geliştirme kanıtıdır; lisanslı standart erişimi, güvenli e-imza, bağımsız BIM koordinatörü ve gerçek saha kabulü bekler, canlı yayın veya L3/L4 iddiası taşımaz.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 45)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay ve güvenli inceleme akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 45 · BIM-CALC-2026-10-23.39 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 45 kısmi pilot/L2 geliştirme kanıtıdır; gerçek PDF/A validator runtime/dönüşüm lisansı, kriptografik e-imza güveni, büyük IFC performans kabulü ve bağımsız uzman saha kabulü bekler, canlı yayın veya L3/L4 iddiası taşımaz.",
       },
       {
         type: "p",
@@ -971,6 +971,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Durum motoru tanımsız geçişleri kabul edebiliyor, SHARED/S0 geçebiliyor ve eski kabul kaydı seçilebiliyordu. CDE izi localStorage'a bağlıydı; gerçek üyelik, tenant izolasyonu, eşzamanlı karar, idempotency, kapsam hash'i ve append-only geçmiş yoktu.",
             "Açık durum whitelist'i ve durum/suitability/revizyon eşleşmesi fail-closed uygulanır. PostgreSQL proje/üye/konteyner/revizyon/olay modeli ile kimliği doğrulanmış API gerçek rol ve disiplin kullanır; başka tenant/viewer, eski lockVersion, idempotency uyuşmazlığı, son koordinatörün düşürülmesi ve maker-checker ihlali reddedilir. Kapsam kimliği istemciden hash kabul etmez; tenant bağlı doküman, başarılı processing run, saklanan IFC kanıt artifact'ı/kural değerlendirmeleri ve doğrulanmış build kimliğinden sunucuda türetilir. Kapsam değişince WIP yeniden onayı gerekir; revizyon/olay ile bağlanmış kanıt kayıtlarının mutasyonu DB trigger'larıyla engellenir. Geçmiş güvenli DTO ile sunulur; endpoint'ler kalıcı tenant+kullanıcı rate limit taşır; pilot/L2 iddiası korunur.",
             "src/smartcheck/rules/iso19650.ts, src/contracts/cde.ts, src/services/cde/service.ts, src/server/routes/cde.ts, src/db/schema.ts, drizzle-release/0010_cde_workflow.sql, src/components/smartcheck/CdeWorkflowPanel.tsx, src/hooks/useCdeWorkflow.ts",
+          ],
+          [
+            "Rev. 45 · 23 Ekim 2026 (Faz 5 — Güvenli Çıktı ve İnceleme, Kısmi)",
+            "CSV/XLSX formül enjeksiyonu savunması; PDF AcroForm yapısal imza ön kontrolü; veraPDF doğrulama raporu; web-ifc/Three.js kaynak kimlikli 3B inceleme; tenant bağlı immutable teklif revizyonu",
+            "Tablo çıktıları ortak kaçış sözleşmesi kullanmıyor; PDF imza varlığı kriptografik güvenle karışabiliyor; XMP PDF/A beyanı standart doğrulaması gibi okunabiliyordu. IFC kanıt satırı ile 3B model nesnesi arasında duplicate GlobalId güvenli bağ ve Calm icmalinden kalıcı revizyonlu teklife transaction/lineage köprüsü yoktu.",
+            "T30 ortak güvenli serializer, sürümlü firma sahiplik beyanı ve gerçek LibreOffice açma testiyle; T31 bounded/cycle-safe tüm sayfa ve nested form taramasıyla tamamlandı. T33 kaynak hash + run + STEP elementKey kullanan seçim/vurgulama/gizleme/izolasyon pilotu ve kaynak limitleriyle; T34 sunucuda yeniden kurulan Calm projeksiyonu, yalnız KDV hariç ve açık oranlı yetkili fiyat, immutable ardıl teklif, idempotency, ardışık revizyonda kanıt taşıma, semantik tekrar koruması ve satır lineage'ıyla tamamlandı. T32 ayrı veraPDF validation artifact'ı, resmi 0/1 çıkış kodu ve fail-closed unavailable sözleşmesi düzeyindedir; gerçek CLI runtime, lisanslı dönüşüm sağlayıcısı ve izinli dosya matrisi olmadığı için NO-GO ve Faz 5 kapanmamıştır.",
+            "src/lib/tabular-data.ts, workers/ifc/pdf_preflight.py, src/smartcheck/pdf/*, src/ifc/viewer/*, src/components/smartcheck/viewer/*, src/services/quotations/calm-transfer.ts, src/server/routes/smartcheck.ts, src/db/schema.ts, drizzle-release/0011_quotation_transfer_ledger.sql",
           ],
         ],
       },

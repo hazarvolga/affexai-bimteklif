@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-23.38",
+  version: "BIM-CALC-2026-10-23.39",
   updatedOn: "23 Ekim 2026",
-  implementationBaseline: "91b0bf603f66579b58e3f250350e96ee9646c185",
-  approvalStatus: "Faz 4 CDE geliştirme kapısı tamamlandı: açık durum geçiş tablosu, tenant/proje/revizyon kapsamlı kalıcı API, gerçek üyelik rolü ve disiplin kimliği, optimistic lock, idempotency ve append-only karar izi uygulanmıştır. Dosya/kaynak/kural/sonuç/kod kapsam hash'i değişince yeni revizyon WIP durumuna döner ve yeniden onay ister. Bu kayıt pilot/L2 geliştirme kanıtıdır; lisanslı ISO metni, bağımsız BIM koordinatörü incelemesi, güvenli e-imza ve gerçek saha kabulü olmadan L3/L4 veya resmî uygunluk iddiası taşımaz.",
+  implementationBaseline: "601ce90e5cc1945e611b57ae84b669aa0a454731",
+  approvalStatus: "Faz 5 kısmi geliştirme kapısıdır: güvenli CSV/XLSX, sınırlı PDF imza yapısal ön kontrolü, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı tamamlandı. veraPDF rapor entegrasyonu XMP beyanından ayrı doğrulama artifact'ı üretir; ancak gerçek CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı bulunmadığından T32 NO-GO, Faz 5 ise kapanmamıştır. Kriptografik imza/güven zinciri/iptal/zaman damgası doğrulaması, üretim ölçekli IFC ana iş parçacığı performansı ve bağımsız uzman saha kabulü dış kanıt bekler.",
 };
 
 export interface ModuleRevisionNote {
@@ -1135,6 +1135,43 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 45",
+    version: "BIM-CALC-2026-10-23.39",
+    date: "23 Ekim 2026",
+    commit: "601ce90e5cc1945e611b57ae84b669aa0a454731",
+    trigger: "GAP kapatma yol haritası Faz 5 (T30–T34): güvenli tablo çıktısı, PDF imza/PDF-A kanıt sınırı, kaynak kimlikli 3B inceleme ve kalıcı icmal→teklif köprüsü.",
+    beforeSummary: "CSV/XLSX çıktıları ortak formül enjeksiyonu savunması kullanmıyor; PDF imza alanı taraması tüm sayfa ve nested AcroForm kapsamını kanıtlamıyor; XMP PDF/A beyanı standart doğrulamasıyla karışabiliyor; IFC satırı ile 3B model seçimi kaynak kimliği üzerinden kurulmamıştı. Calm icmali kalıcı, revizyonlu gerçek teklif satırlarına transaction ve lineage ile taşınmıyordu.",
+    afterSummary: "Ortak güvenli serializer/parser gerçek LibreOffice açma testiyle doğrulandı. PDF preflight bounded ve döngü korumalı tarama yapar; yapısal imza bulgusunu kriptografik güven doğrulamasından ayırır. veraPDF sonucu ayrı artifact ve kaynak checksum'u ile saklanır, CLI yoksa uygunluk üretmez; lisanslı dönüşüm sağlayıcısı seçilmediği için T32 açık kalır. 3B pilot dosya hash'i + run + STEP elementKey ile seçim/vurgulama/gizleme/izolasyon yapar, görüntüleme geometrisini metraj kaynağı saymaz. Calm aktarımı kanonik seçimi sunucuda yeniden kurar; kaynaklı fiyat yetkisi, immutable ardıl teklif, aktöre bağlı idempotency, semantik tekrar koruması ve satır lineage'ı uygular.",
+    affectedModules: ["tabular-export", "pdf-signature-preflight", "pdfa", "ifc-viewer", "ifc-teklif-aktarim"],
+    moduleDetails: {
+      "tabular-export": {
+        before: "CSV/XLSX üreten ekranlar farklı kaçış kuralları kullanıyor; formül başlangıcı, ayraç, CR/LF ve bozuk tırnak davranışı ortak değildi.",
+        after: "Ortak serializer formül benzeri metni nötralize eder; delimiter, quote, CR/LF ve Unicode'u korur. Parser bozuk tırnakta fail-closed davranır; gerçek LibreOffice dönüşüm testi metin hücresinin formül çalıştırmadığını doğrular.",
+        basis: "src/lib/tabular-data.ts ve src/lib/tabular-data.test.ts; gerçek LibreOffice CSV→XLSX açma kanıtı",
+      },
+      "pdf-signature-preflight": {
+        before: "Yalnız yüzeysel /Sig varlığı gerçek imza geçerliliği gibi yorumlanabiliyor; nested form, geç sayfa, boş/bozuk imza ve tarama sınırı ayrışmıyordu.",
+        after: "Tüm sayfa ve nested AcroForm/Kids ağı derinlik, nesne ve sayfa limitleriyle taranır; absent/empty/signed/malformed/indeterminate ayrılır. /V + /ByteRange + /Contents yalnız yapısal signed bulgusudur; crypto, trust, revocation ve timestamp doğrulaması yapılmadığı açıkça raporlanır.",
+        basis: "workers/ifc/pdf_preflight.py ve workers/ifc/test_pdf_preflight.py",
+      },
+      pdfa: {
+        before: "XMP pdfaid alanı tam PDF/A uygunluğu çağrışımı oluşturabiliyor ve harici doğrulayıcı çıktısı kaynak dosyayla ayrı kanıt zincirinde saklanmıyordu.",
+        after: "veraPDF XML sonucu ayrı validation artifact'ı, kaynak SHA-256 ve lineage ile saklanır; CLI erişilemezse isCompliant=null/unavailable döner. Gerçek validator runtime ve lisanslı dönüşüm sağlayıcısı bulunmadığından dönüşüm kapalı, T32 NO-GO kalır.",
+        basis: "src/smartcheck/pdf/verapdf-report.ts, src/smartcheck/pdf/verapdf-runner.ts ve veraPDF CLI doğrulama sözleşmesi",
+      },
+      "ifc-viewer": {
+        before: "Kanıt satırından IFC model nesnesine duplicate GlobalId güvenli seçim, hide/show/isolate ve kaynak bütünlüğü kontrollü tarayıcı inceleme yolu yoktu.",
+        after: "Self-hosted web-ifc WASM ile kaynak SHA-256 doğrulanır; elementKey=fileSha256:runId:#stepId üzerinden doğru nesne seçilir. Duplicate GlobalId birleştirme anahtarı değildir; bellek, mesh, üçgen ve dosya sınırları vardır. Görüntüleme geometrisi miktar üretmez; büyük model ana iş parçacığı performansı pilot kabulünde ölçülecektir.",
+        basis: "src/ifc/viewer/*, src/components/smartcheck/viewer/* ve buildingSMART izinli fixture tarayıcı smoke testi",
+      },
+      "ifc-teklif-aktarim": {
+        before: "Calm sonucu CSV/callback sınırında kalıyor; kalıcı teklif revizyonu, kaynak satırı bağı, sunucu tarafı miktar yeniden üretimi ve tekrar koruması yoktu.",
+        after: "Mevcut teklife immutable ardıl revizyon açılır; Calm projeksiyonu sunucuda aynı kuralla yeniden kurulur. Kanonik satır seçimi, doğrulanmış fiyat yetkisi, sabit noktalı tutarlar, actor+tenant idempotency, seri çapında semantik tekrar koruması ve junction tablosu lineage'ı transaction içinde uygulanır. Ardışık kaynak belgelerde önceki aggregate kanıtı aynı seri ve tam kaynak satırı kümesiyle yeniden doğrulanır. Teklif aktarımı yalnız KDV hariç ve açık oranlı fiyatı kabul eder; KDV dahil, belirsiz veya oransız fiyatı reddeder.",
+        basis: "src/services/quotations/calm-transfer.ts, src/server/routes/smartcheck.ts, src/db/schema.ts ve drizzle-release/0011_quotation_transfer_ledger.sql",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -1257,8 +1294,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   pdfa: {
     scope: "PDF yükleme, kuyruk, PDF/A kimliği (m.7), ISO 216 A4 katları pafta boyutu (m.8(1)), tek pafta kuralı (m.8(2)), taranmış sayfa (m.6(4)) ve gömülü e-imza (/Sig, m.6(1)-(2)) ön kontrolü aktif.",
-    testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
-    pending: "Tam PDF/A doğrulayıcısı (veraPDF) entegrasyonu, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi.",
+    testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts", "src/smartcheck/pdf/verapdf-runner.test.ts", "src/smartcheck/import/processor.pdf-artifacts.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
+    pending: "veraPDF entegrasyon sözleşmesi ve kaynak bağlı artifact mevcuttur; gerçek sabitlenmiş runtime, izinli font/renk/ek/çok sayfa/imzalı dosya matrisi, lisanslı dönüşüm sağlayıcısı, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi bekler.",
   },
   bindirme: {
     scope: "Akademi kapalı; eğitim simülatörü kodu mevcut, üretim metraj motoru olarak kullanılmıyor.",
