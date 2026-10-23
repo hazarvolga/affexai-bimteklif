@@ -71,6 +71,13 @@
       "when": 1791417600009,
       "tag": "0009_price_source_authorization",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791417600010,
+      "tag": "0010_cde_workflow",
+      "breakpoints": true
     }
   ]
 }

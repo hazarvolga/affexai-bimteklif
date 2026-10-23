@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (23 Ekim 2026 · Rev. 43 geliştirme)",
+    title: "Uygulama durumu (23 Ekim 2026 · Rev. 44 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -251,7 +251,8 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["10 — Süreç öncesi Revit → IFC kontrol listesi, Gerçek Tarayıcı axe-core Kapısı & Üretim Hazırlığı", "Tamamlandı (17–18 Ekim 2026 · Rev. 31–35)", "Müteahhitlik Süreç Masası, SystemQuickTour, ilk 128 KB Revit başlık tespiti + 6 maddelik dışa aktarım kontrol listesi, 8 genel rotada Açık/Koyu mod gerçek Chromium axe-core kapısı (0 ihlal), /bim-sozlugu noscript GEO içeriği, PWA manifest, security.txt, hesap bazlı giriş yavaşlatma ve 105 kB ana paket ayrımı tamamlandı"],
         ["11 — GAP kapatma Faz 2: IFC kapsam ve metraj bütünlüğü", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 42)", "T10–T18: fail-closed malzeme/beton sınıfı, browser/worker sınırı, dosya-run-STEP kimliği, duplicate/aggregate izi, boyut bazlı kalite kapısı, kaynaklı kg donatı ve kota hata akışı tamamlandı. Gerçek ve izinli vendor dosyalarıyla imzalı mühendis kabulü bekleniyor."],
         ["12 — GAP kapatma Faz 3: mevzuat ve hesap motorları", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 43)", "T19–T26: YAMBİS, KİK yüzde 80, 4735, kat karşılığı KDV, Pre-BIM, Minha, 3×3, e-PYS ve ISO motorları tarihli kaynak/kanıt bağlamıyla fail-closed çalışır. Lisanslı standart erişimi, nihai e-PYS belge kimliği, mali müşavir ve bağımsız mühendis kabulü bekleniyor."],
-        ["13 — Faz 4 ve sonrası entegrasyonlar", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları onaylı yol haritası sırasıyla ele alınır"],
+        ["13 — GAP kapatma Faz 4: gerçek CDE onay akışı", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 44)", "T27–T29: açık geçiş tablosu, tenant/proje/revizyon kapsamlı kalıcı API, gerçek rol/disiplin kimliği, optimistic lock, idempotency, maker-checker, append-only karar izi ve kapsam değişiminde yeniden onay kapısı tamamlandı. Pilot/L2'dir; ISO lisanslı metin incelemesi, e-imza, bağımsız BIM koordinatörü ve gerçek saha kabulü bekleniyor."],
+        ["14 — Faz 5 ve sonrası entegrasyonlar", "Planlandı", "Güvenli CSV/XLSX/PDF/BCF çıktıları, PythonParts ve diğer yazılım şablonları onaylı yol haritası sırasıyla ele alınır"],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
@@ -263,17 +264,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 43 · 13–23 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 44 · 13–23 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 43)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj ve mevzuat hesap motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 43 · BIM-CALC-2026-10-23.37 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 43 geliştirme kanıtıdır; lisanslı standart erişimi, nihai e-PYS belge kimliği, mali müşavir ve bağımsız mühendis kabulü bekler, canlı yayın iddiası taşımaz.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 44)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları ve CDE onay akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 44 · BIM-CALC-2026-10-23.38 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 44 pilot/L2 geliştirme kanıtıdır; lisanslı standart erişimi, güvenli e-imza, bağımsız BIM koordinatörü ve gerçek saha kabulü bekler, canlı yayın veya L3/L4 iddiası taşımaz.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 43):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 44):",
       },
       {
         type: "table",
@@ -538,16 +539,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T10–T18 kapsamında gazbeton/grobeton/şap ve sınıfsız beton yanlış eşlemeleri fail-closed kapatıldı; C25/30, C30/37 ve C35/45 gerçek katalog pozlarına bağlandı. IFC-NORMALIZED-1 worker sözleşmesi dosya hash'i, processing run, STEP kimliği, duplicate GlobalId ve aggregate suppression kayıtlarını taşır; hacim, alan, uzunluk, kütle ve kalıp alanı ayrı kalite toplamlarıdır. Kaynaklı pozitif donatı kg satırına alınır, sıfır/tahmini donatı eşleşmez. Browser kapsam sınırı ve Türkçe kota aksiyonları görünürdür. Sentetik örnekler fiyatsızdır; bağımsız vendor dosyası kabulü ve production deploy yapılmadı.",
           ],
           [
-            "Rev. 43 (Güncel geliştirme)",
+            "Rev. 43",
             "23 Ekim 2026 (Faz 3 — Mevzuat ve Hesap Motorları)",
             "BIM-CALC-2026-10-23.37",
             "T19–T26 kapsamında ortak kaynak manifestosu ve EvaluationEnvelope referans sözleşmesi eklendi; motorlar kendi fail-closed sonuç tiplerini korur. YAMBİS kesin/potansiyel grubu ayırır; KİK yüzde 80 listesi yalnız doğrulanmış idare YM artifact'ından çıkar; 4735 ihale/sözleşme/endeks kronolojisi, KDV pozitif satır matrahı ister. Pre-BIM plan kararı verified artifact'a, Minha uygulaması doğrulanmış sözleşme baskısı ile kaynaklı söve derinliğine bağlandı. 3×3 legacy isValid yanlış yeşil vermez; e-PYS identity_pending, ISO/TS access_required kaldığı için otomatik başarı uzman onayı sayılmaz; production deploy yapılmadı.",
+          ],
+          [
+            "Rev. 44 (Güncel geliştirme)",
+            "23 Ekim 2026 (Faz 4 — Gerçek CDE Onay Akışı)",
+            "BIM-CALC-2026-10-23.38",
+            "T27–T29 kapsamında CDE durum motoru açık whitelist ve en yeni kabul edilmiş durum seçimiyle düzeltildi. Tenant/proje/revizyon kapsamlı PostgreSQL şeması ve HTTP API; gerçek kullanıcı rolü/disiplini, approve/reject/withdraw, optimistic lock, idempotency ve maker-checker kapılarıyla kuruldu. Dosya, kaynak, kural, sonuç veya kod hash'i değişince yeni immutable revizyon WIP durumuna döner; eski karar eski kapsamda korunur. Olay geçmişi DB trigger'ıyla append-only'dir ve UI sunucu geçmişini yükler. Pilot/L2'dir; bağımsız uzman, e-imza, saha kabulü ve production deploy yapılmadı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 43 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 44 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -957,6 +964,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Eksik kriterler bazı motorlarda olumlu sonuca dönüşebiliyor; teklif kalemi idare yüzde 80 listesi gibi kullanılabiliyor; tarih, belge kimliği, lisans erişimi, host/kalem ve yerel plan kanıtı sonuçlarda zorunlu değildi.",
             "Ortak kaynak manifestosu ile yeniden kullanılabilir EvaluationEnvelope referansı eklendi; Faz 3 motorları kendi sonuç tiplerinde eksik/tarih dışı girdiyi fail-closed kapatır. YAMBİS kesin/potansiyel; KİK doğrulanmış idare YM artifact'ı; 4735 ihale-sözleşme-endeks kronolojisi; KDV tarih/ünite/pozitif matrah/6306; Pre-BIM verified yerel plan; Minha sözleşme baskısı, host+kalem+katman ve kaynaklı söve kanıtı taşır. 3×3 politika/norm ayrımı, e-PYS veri minimizasyonu ve ISO advisory erişim durumu açıkça raporlanır.",
             "src/lib/regulatory/*, src/lib/yambis-classification.ts, src/lib/kik-adt.ts, src/lib/price-escalation.ts, src/lib/kat-karsiligi.ts, src/lib/pre-bim-feasibility.ts, src/smartcheck/rules/{minha,three-by-three,epys,iso19650}.ts, workers/ifc/epys_preflight.py, hesaplayıcı sayfaları",
+          ],
+          [
+            "Rev. 44 · 23 Ekim 2026 (Faz 4 — Gerçek CDE Onay Akışı)",
+            "ISO 19650 CDE bilgi yönetimi referansı; tenant/RBAC, optimistic concurrency, idempotency ve immutable kanıt kapsamı mühendislik sözleşmeleri",
+            "Durum motoru tanımsız geçişleri kabul edebiliyor, SHARED/S0 geçebiliyor ve eski kabul kaydı seçilebiliyordu. CDE izi localStorage'a bağlıydı; gerçek üyelik, tenant izolasyonu, eşzamanlı karar, idempotency, kapsam hash'i ve append-only geçmiş yoktu.",
+            "Açık durum whitelist'i ve durum/suitability/revizyon eşleşmesi fail-closed uygulanır. PostgreSQL proje/üye/konteyner/revizyon/olay modeli ile kimliği doğrulanmış API gerçek rol ve disiplin kullanır; başka tenant/viewer, eski lockVersion, idempotency uyuşmazlığı, son koordinatörün düşürülmesi ve maker-checker ihlali reddedilir. Kapsam kimliği istemciden hash kabul etmez; tenant bağlı doküman, başarılı processing run, saklanan IFC kanıt artifact'ı/kural değerlendirmeleri ve doğrulanmış build kimliğinden sunucuda türetilir. Kapsam değişince WIP yeniden onayı gerekir; revizyon/olay ile bağlanmış kanıt kayıtlarının mutasyonu DB trigger'larıyla engellenir. Geçmiş güvenli DTO ile sunulur; endpoint'ler kalıcı tenant+kullanıcı rate limit taşır; pilot/L2 iddiası korunur.",
+            "src/smartcheck/rules/iso19650.ts, src/contracts/cde.ts, src/services/cde/service.ts, src/server/routes/cde.ts, src/db/schema.ts, drizzle-release/0010_cde_workflow.sql, src/components/smartcheck/CdeWorkflowPanel.tsx, src/hooks/useCdeWorkflow.ts",
           ],
         ],
       },

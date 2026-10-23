@@ -64,7 +64,7 @@ export interface CapabilityRecord {
   planIds: string[];
 }
 
-export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-17.11';
+export const CAPABILITY_REGISTRY_VERSION = 'BIM-CAP-2026-10-23.12';
 
 export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   {
@@ -295,15 +295,15 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
     id: 'multi-user-cde-approval-workflow',
     title: 'Çok Kullanıcılı CDE Rol Bazlı Onay Kapıları ve Kurumsal Revizyon Onay Akışı (Pilot · L2)',
     shortClaim:
-      'Proje müellifi, disiplin sorumlusu (STR/ARC/MEP) ve işveren temsilcisi arasında çok kullanıcılı CDE durum geçiş onay kapılarını destekler.',
+      'Tenant ve proje üyeliğine bağlı coordinator/approver kapılarıyla kalıcı SHARED/PUBLISHED kararları, immutable revizyon kapsamı ve denetim izi sunar.',
     longDescription:
-      'Canlı CDE durum geçiş doğrulayıcısına (validateCdeStateTransition) ek olarak, çok kullanıcılı kurumsal çalışma alanlarında SHARED ve PUBLISHED geçişlerinin disiplin yetkili mühendis onayına bağlanması.',
+      'CDE proje, üye, konteyner, revizyon ve karar kayıtlarını tenant ayrımlı PostgreSQL tablolarında saklar. Sunucu gerçek oturum kimliği, proje rolü ve disipliniyle yetki denetler; optimistic lock, Idempotency-Key, maker-checker ve append-only olay kaydı uygular. Dosya/kaynak/kural/sonuç/kod kapsamı değiştiğinde önceki revizyonun izini koruyup yeni revizyonu WIP durumunda yeniden onaya açar. Pilot/L2 kapsamındadır; bağımsız uzman onayı, e-imza veya saha kabulü değildir.',
     level: 'L2',
     status: 'pilot',
     stream: 'B',
     evidence: {
-      modulePath: 'src/smartcheck/rules/iso19650.ts',
-      goldenTestPath: 'src/smartcheck/rules/iso19650.test.ts',
+      modulePath: 'src/services/cde/service.ts',
+      goldenTestPath: 'src/server/routes/cde.integration.test.ts',
       officialSource: {
         institution: 'TSE / ISO',
         documentTitle: 'TS EN ISO 19650-2',

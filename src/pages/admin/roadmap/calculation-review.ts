@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-23.37",
+  version: "BIM-CALC-2026-10-23.38",
   updatedOn: "23 Ekim 2026",
-  implementationBaseline: "a836b6ed384e84afd377d3f7cead434a37a4210b",
-  approvalStatus: "Faz 3 mevzuat ve hesap motorları geliştirme kapısı test ediliyor: YAMBİS, KİK ADT, 4735 fiyat farkı, kat karşılığı KDV, Pre-BIM, Minha, 3×3, e-PYS ve ISO kontrolleri tarihli kaynak bağlamı ile fail-closed çalışır. TS 500/TS 708/ISO lisanslı metin erişimi, e-PYS nihai belge kimliği, mali müşavir ve bağımsız mühendis kabulü açık kapıdır; bu kayıt uzman onayı veya canlı yayın değildir.",
+  implementationBaseline: "91b0bf603f66579b58e3f250350e96ee9646c185",
+  approvalStatus: "Faz 4 CDE geliştirme kapısı tamamlandı: açık durum geçiş tablosu, tenant/proje/revizyon kapsamlı kalıcı API, gerçek üyelik rolü ve disiplin kimliği, optimistic lock, idempotency ve append-only karar izi uygulanmıştır. Dosya/kaynak/kural/sonuç/kod kapsam hash'i değişince yeni revizyon WIP durumuna döner ve yeniden onay ister. Bu kayıt pilot/L2 geliştirme kanıtıdır; lisanslı ISO metni, bağımsız BIM koordinatörü incelemesi, güvenli e-imza ve gerçek saha kabulü olmadan L3/L4 veya resmî uygunluk iddiası taşımaz.",
 };
 
 export interface ModuleRevisionNote {
@@ -1103,6 +1103,38 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       "epys-hizli": { before: "Sınırlı tarayıcı kontrollerinde isValid=true resmî uygunluk gibi okunabiliyor ve ham malzeme/mahal adları metadata'ya taşınabiliyordu.", after: "Eksik otomatik kanıt not_evaluated, tamamı geçse dahi belge kimliği manual_review_required üretir; legacy isValid yanlış yeşil vermez. Kalıcı evidenceRefs ham proje adları yerine artifact içi kararlı indeksleri taşır ve rapor dizileri sınırlandırılır.", basis: "e-PYS hızlı kontrol kapsam sınırı, veri minimizasyonu ve kanıt uydurmama ilkesi" },
     },
   },
+  {
+    revision: "Rev. 44",
+    version: "BIM-CALC-2026-10-23.38",
+    date: "23 Ekim 2026",
+    commit: "phase-4-cde-workflow",
+    trigger: "GAP kapatma yol haritası Faz 4 (T27–T29): gerçek CDE durum motoru, kalıcı çok kullanıcılı onay kapısı ve revizyon kapsamı geçersizleştirmesi.",
+    beforeSummary: "Durum doğrulayıcı bazı yasak geçişleri varsayılan olarak kabul edebiliyor, en yeni kabul edilmiş durum yerine eski kayıt seçilebiliyor ve SHARED/S0 eşleşmesi geçebiliyordu. Kullanıcı arayüzündeki CDE izi localStorage ile sınırlıydı; gerçek proje üyeliği, tenant izolasyonu, eşzamanlı karar, idempotency, immutable revizyon kapsamı ve append-only sunucu geçmişi yoktu.",
+    afterSummary: "Açık geçiş tablosu WIP→SHARED→PUBLISHED→ARCHIVED sırasını, geri çalışma sınırlarını ve durum/suitability/revizyon eşleşmesini fail-closed doğrular. Tenant/proje üyeliğine bağlı PostgreSQL CDE modeli ve API gerçek kullanıcı, rol ve disiplin kimliğini kullanır; başka tenant/viewer, maker-checker ihlali, son coordinator'ın düşürülmesi, eski lockVersion ve farklı aktör/gövdeli idempotency replay reddedilir. İstemciden hash alınmaz; kapsam tenant bağlı doküman, başarılı processing run, saklanan IFC kanıt artifact'ı/kural değerlendirmeleri ve doğrulanmış build kimliğinden sunucuda türetilir. Kapsam değişince yeni revizyon WIP durumunda açılır; revizyon, karar olayı ve bağlanmış kanıt kayıtlarının mutasyonu DB trigger'larıyla engellenir. UI yalnız seçili konteynere ait hazır sunucu geçmişiyle karar üretir.",
+    affectedModules: ["iso19650", "cde-workflow", "cde-schema", "cde-ui"],
+    moduleDetails: {
+      iso19650: {
+        before: "Geçiş listesi eksikti; tanımsız bazı durum çiftleri kabul ediliyor, SHARED/S0 geçebiliyor ve geçmişte en yeni kabul edilmiş kayıt güvenilir biçimde seçilmiyordu.",
+        after: "Tüm durum çiftleri açık whitelist ile değerlendirilir; WIP/S0/Pxx.xx, SHARED/S1..S7/Pxx.xx, PUBLISHED/A1..A7/Cxx veya EK-2 revizyonu ve ARCHIVED/B sözleşmesi uygulanır. Eksik aktör, bozuk geçmiş, aynı durum ve yetkisiz atlama reddedilir; en yeni kabul edilmiş kayıt yardımcı fonksiyonla seçilir.",
+        basis: "src/smartcheck/rules/iso19650.ts ve 13 senaryolu src/smartcheck/rules/iso19650.test.ts",
+      },
+      "cde-workflow": {
+        before: "CDE kararı tarayıcı localStorage kaydıydı; sunucuda tenant/proje üyeliği, rol/disiplin veya eşzamanlı karar kapısı yoktu.",
+        after: "Kimliği doğrulanmış CDE API; coordinator/approver rolü, disiplin, tenant izolasyonu, kalıcı rate limit, optimistic lock, aktöre bağlı Idempotency-Key, approve/reject/withdraw, son coordinator koruması ve maker-checker kurallarını transaction içinde uygular. HTTP entegrasyon testi diğer tenant/viewer/non-member reddini, replay/mismatch, withdraw, revizyon eşleşmesi ve eşzamanlı kararın tek kazananını doğrular.",
+        basis: "src/contracts/cde.ts, src/services/cde/service.ts, src/server/routes/cde.ts ve src/server/routes/cde.integration.test.ts",
+      },
+      "cde-schema": {
+        before: "Proje, üyelik, konteyner, revizyon kapsamı ve karar geçmişi için kalıcı CDE şeması bulunmuyordu.",
+        after: "Tenant bağlı proje/üye/konteyner/revizyon/olay tabloları ve doküman-run-artifact zinciri birleşik yabancı anahtarlarla bağlandı. 0010 migration'ı revizyon ve olaylarda UPDATE/DELETE'i; CDE'ye bağlanmış doküman, run ve artifact mutasyonunu reddeder. Release zinciri ve bağımsız katalog imzası doğrulanır.",
+        basis: "src/db/schema.ts, drizzle-release/0010_cde_workflow.sql ve scripts/release-migrations/*",
+      },
+      "cde-ui": {
+        before: "CDE izi cihazdaki localStorage silinince kayboluyor ve varsayılan rol adı gerçek onay gibi görünebiliyordu.",
+        after: "CDE paneli proje, üyelik, konteyner, current revision ve güvenli server history DTO'sunu API'den yükler; gerçek oturum kullanıcısının proje rolünü/disiplinini gösterir. Konteyner değişiminde eski geçmiş temizlenir ve doğru konteyner geçmişi hazır olmadan karar butonları açılmaz. LocalStorage yalnız hesap/form taslakları için kalır.",
+        basis: "src/components/smartcheck/CdeWorkflowPanel.tsx, src/hooks/useCdeWorkflow.ts ve src/hooks/cde-workflow-model.test.ts",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -1204,9 +1236,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Gerçek müteahhit ön teklif Excel örnekleriyle akışın karşılaştırılması; pay tabanı (emsal / toplam) pratiğinin uzmanca netleştirilmesi.",
   },
   iso19650: {
-    scope: "RG 33331 EK-2 (9 alanlı ek2_disiplinler.json sözlük doğrulamalı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri adlandırma, CDE durum geçiş doğrulayıcısı (validateCdeStateTransition: WIP→SHARED→PUBLISHED→ARCHIVED) ve EN 17412-1 4 teslim aşamalı (CONCEPT/DEFINITIVE/IMPLEMENTATION/AS_BUILT) LOIN tamlık motoru (evaluateLoinByMilestone) aktif.",
-    testFiles: ["src/smartcheck/rules/iso19650.test.ts", "src/smartcheck/rules/ifc-rule-run.test.ts"],
-    pending: "Çok kullanıcılı kurumsal CDE iş akışında rol bazlı e-imza / onay kapılarının saha kabulü.",
+    scope: "RG 33331 EK-2 ve ISO 19650 bilgi konteyneri adlandırması, açık whitelist CDE durum motoru, tenant/proje/revizyon kapsamlı kalıcı rol kapıları, immutable scope hash ve append-only karar izi aktiftir. WIP→SHARED→PUBLISHED→ARCHIVED geçişi; suitability/revision eşleşmesi, optimistic lock, idempotency, maker-checker ve yeniden onay kapısı sunucuda uygulanır.",
+    testFiles: ["src/smartcheck/rules/iso19650.test.ts", "src/server/routes/cde.integration.test.ts", "src/hooks/cde-workflow-model.test.ts", "scripts/release-migrations/verify.integration.test.ts"],
+    pending: "ISO 19650 lisanslı metninin yetkili nüshasıyla madde eşlemesi, güvenli elektronik imza, bağımsız BIM koordinatörü kararı ve gerçek çok disiplinli saha kabulü. Hash bağı kanıt kapsamını sabitler; uzman içerik doğrulaması değildir.",
   },
   "kik-adt": {
     scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili), %80 Pareto açıklama istenecek sıralı iş kalemleri ve yambis-classification.ts müteahhitlik yeterlik/kapasite motoru aktif.",

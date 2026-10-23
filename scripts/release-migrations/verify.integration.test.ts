@@ -13,6 +13,7 @@ import { root, releaseDirectory } from './config';
 import { restoreSyntheticBackup } from './backup';
 import { verifyQuotaMigration } from './quota-validation';
 import { pinnedSignature } from './stage-signatures';
+import { injectDataTransitions } from './data-transitions';
 
 test('release migration lifecycle on three owned disposable databases', { timeout: 120_000 }, async (t) => {
   assert.ok(process.env.RELEASE_CONTROL_DATABASE_URL, 'Explicit RELEASE_CONTROL_DATABASE_URL is required');
@@ -38,7 +39,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));
         await restore.query('begin');
         try {
-          for (const statement of await drizzleApi.generateMigration(drizzleApi.generateDrizzleJson({}), snapshot)) await restore.query(statement);
+          for (const statement of injectDataTransitions(migration.tag, await drizzleApi.generateMigration(drizzleApi.generateDrizzleJson({}), snapshot))) await restore.query(statement);
           const signature = (await catalog(restore)).signature;
           assert.equal(signature, pinnedSignature(migration));
           signatures[migration.tag] = signature;
@@ -56,7 +57,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       baselineSignature = state.signature;
       report.baselineSignature = baselineSignature;
     });
-    await check('additive migration reaches 68 tables and matches current Drizzle schema', async () => {
+    await check('additive migration reaches 73 tables and matches current Drizzle schema', async () => {
       assert.deepEqual(await applyMigrations(fresh, migrations, 8), migrations.slice(1, 9).map(m => m.tag));
       const fixture = {
         company: '33333333-3333-4333-8333-333333333333', user: '44444444-4444-4444-8444-444444444444',
@@ -76,22 +77,84 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       await fresh.query(`insert into quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total) values ($1,$2,$3,'LEGACY-1','Legacy quote',now() + interval '1 day',100,0,20,120)`, [fixture.quote, fixture.company, fixture.client]);
       await fresh.query(`insert into quotation_items(id,company_id,quotation_id,description,unit,quantity,unit_price,total,price_snapshot_id) values ($1,$2,$3,'Legacy item','adet',1,100,100,$4)`, [fixture.item, fixture.company, fixture.quote, fixture.matchingSnapshot]);
       await fresh.query(`insert into quotation_item_evidence(id,company_id,quotation_id,quotation_item_id,evidence_type,evidence_key,price_snapshot_id,status,created_by_user_id,created_at) values ($1,$2,$3,$4,'price','matching',$5,'current',$6,'2025-01-01'),($7,$2,$3,$4,'price','newer',$8,'current',$6,'2026-01-01')`, [fixture.matchingEvidence, fixture.company, fixture.quote, fixture.item, fixture.matchingSnapshot, fixture.user, fixture.newerEvidence, fixture.newerSnapshot]);
-      assert.deepEqual(await applyMigrations(fresh, migrations), [migrations[9].tag]);
+      assert.deepEqual(await applyMigrations(fresh, migrations), migrations.slice(9).map(migration => migration.tag));
       const evidenceRows = (await fresh.query(`select id,status from quotation_item_evidence where quotation_item_id=$1 order by id`, [fixture.item])).rows;
       assert.deepEqual(evidenceRows, [
         { id: fixture.matchingEvidence, status: 'current' },
         { id: fixture.newerEvidence, status: 'superseded' },
       ]);
       const state = await catalog(fresh);
-      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 68);
+      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 73);
       // Independently materialize the current structured Drizzle schema, not a dump
       // of the baseline-derived database, then compare complete logical catalogs.
       await restore.query('begin');
       try {
-        const statements = await drizzleApi.generateMigration(drizzleApi.generateDrizzleJson({}), drizzleApi.generateDrizzleJson(schema));
+        const statements = injectDataTransitions(migrations.at(-1)!.tag, await drizzleApi.generateMigration(drizzleApi.generateDrizzleJson({}), drizzleApi.generateDrizzleJson(schema)));
         for (const statement of statements) await restore.query(statement);
         assert.deepEqual((await catalog(restore)).objects, state.objects);
       } finally { await restore.query('rollback'); }
+      await fresh.query('begin');
+      try {
+        const cde = {
+          document: 'd1111111-1111-4111-8111-111111111111', project: 'd2222222-2222-4222-8222-222222222222',
+          container: 'd3333333-3333-4333-8333-333333333333', revision: 'd4444444-4444-4444-8444-444444444444',
+          event: 'd5555555-5555-4555-8555-555555555555', run: 'd6666666-6666-4666-8666-666666666666',
+          artifact: 'd7777777-7777-4777-8777-777777777777', otherContainer: 'd8888888-8888-4888-8888-888888888888',
+          otherRevision: 'd9999999-9999-4999-8999-999999999999',
+          mismatchDocument: 'da111111-1111-4111-8111-111111111111', mismatchRun: 'da222222-2222-4222-8222-222222222222',
+          mismatchArtifact: 'da333333-3333-4333-8333-333333333333', mismatchRevision: 'da444444-4444-4444-8444-444444444444',
+        };
+        await fresh.query(`insert into documents(id,company_id,uploaded_by_user_id,original_file_name,display_name,mime_type,file_size_bytes,storage_key,checksum_sha256)
+          values ($1,$2,$3,'phase4.ifc','Phase 4','application/x-step',1,'phase4/test.ifc',$4)`, [cde.document, fixture.company, fixture.user, 'a'.repeat(64)]);
+        await fresh.query(`insert into cde_projects(id,company_id,document_id,name,created_by_user_id) values ($1,$2,$3,'Phase 4 CDE',$4)`, [cde.project, fixture.company, cde.document, fixture.user]);
+        await fresh.query(`insert into cde_project_members(company_id,project_id,user_id,project_role,discipline,assigned_by_user_id) values ($1,$2,$3,'coordinator','BIM',$3)`, [fixture.company, cde.project, fixture.user]);
+        await fresh.query(`insert into document_processing_runs(id,company_id,document_id,status,current_stage,idempotency_key,pipeline_version,progress_percent) values ($1,$2,$3,'succeeded','completed','phase4-cde-run',4,100)`, [cde.run, fixture.company, cde.document]);
+        await fresh.query(`insert into document_processing_artifacts(id,company_id,document_id,processing_run_id,artifact_type,storage_key,checksum_sha256,content_type,size_bytes,metadata_json) values ($1,$2,$3,$4,'ifc_evidence','phase4/evidence.json',$5,'application/json',1,$6::jsonb)`, [cde.artifact, fixture.company, cde.document, cde.run, 'd'.repeat(64), JSON.stringify({ ruleEvaluations: { test: { version: 1 } } })]);
+        await fresh.query(`insert into cde_containers(id,company_id,project_id,container_code,title,created_by_user_id) values ($1,$2,$3,'PHASE4-CDE','Phase 4',$4)`, [cde.container, fixture.company, cde.project, fixture.user]);
+        await fresh.query(`insert into cde_revisions(id,company_id,project_id,container_id,document_id,processing_run_id,result_artifact_id,revision_code,document_checksum_sha256,source_hash,rule_hash,result_hash,code_hash,scope_hash,created_by_user_id)
+          values ($1,$2,$3,$4,$5,$6,$7,'P01.01',$8,$9,$10,$11,$12,$13,$14)`, [cde.revision, fixture.company, cde.project, cde.container, cde.document, cde.run, cde.artifact, ...['a','b','c','d','e','f'].map(value => value.repeat(64)), fixture.user]);
+        await fresh.query(`update cde_containers set current_revision_id=$1,current_scope_hash=$2 where id=$3`, [cde.revision, 'f'.repeat(64), cde.container]);
+        await fresh.query(`insert into cde_transition_events(id,company_id,project_id,container_id,revision_id,idempotency_key,request_hash,action,decision,from_state,to_state,suitability_code,revision_code,scope_hash,expected_version,resulting_version,actor_user_id,actor_project_role,actor_discipline,reason)
+          values ($1,$2,$3,$4,$5,'phase4-ledger',$6,'scope_created','accepted','WIP','WIP','S0','P01.01',$7,0,1,$8,'coordinator','BIM','scope created')`, [cde.event, fixture.company, cde.project, cde.container, cde.revision, '9'.repeat(64), 'f'.repeat(64), fixture.user]);
+        await fresh.query(`insert into documents(id,company_id,uploaded_by_user_id,original_file_name,display_name,mime_type,file_size_bytes,storage_key,checksum_sha256)
+          values ($1,$2,$3,'mismatch.ifc','Mismatch','application/x-step',1,'phase4/mismatch.ifc',$4)`, [cde.mismatchDocument, fixture.company, fixture.user, '1'.repeat(64)]);
+        await fresh.query(`insert into document_processing_runs(id,company_id,document_id,status,current_stage,idempotency_key,pipeline_version,progress_percent) values ($1,$2,$3,'succeeded','completed','phase4-mismatch-run',4,100)`, [cde.mismatchRun, fixture.company, cde.mismatchDocument]);
+        await fresh.query(`insert into document_processing_artifacts(id,company_id,document_id,processing_run_id,artifact_type,storage_key,checksum_sha256,content_type,size_bytes,metadata_json) values ($1,$2,$3,$4,'ifc_evidence','phase4/mismatch-evidence.json',$5,'application/json',1,$6::jsonb)`, [cde.mismatchArtifact, fixture.company, cde.mismatchDocument, cde.mismatchRun, '2'.repeat(64), JSON.stringify({ ruleEvaluations: { test: { version: 2 } } })]);
+        await fresh.query('savepoint cde_project_document_guard');
+        await assert.rejects(fresh.query('update cde_projects set document_id=$1 where id=$2', [cde.mismatchDocument, cde.project]), /cde_revisions_project_id_company_id_document_id/);
+        await fresh.query('rollback to savepoint cde_project_document_guard');
+        await fresh.query('savepoint cde_cross_document_revision_guard');
+        await assert.rejects(fresh.query(`insert into cde_revisions(id,company_id,project_id,container_id,document_id,processing_run_id,result_artifact_id,revision_code,document_checksum_sha256,source_hash,rule_hash,result_hash,code_hash,scope_hash,created_by_user_id)
+          values ($1,$2,$3,$4,$5,$6,$7,'P09.01',$8,$9,$10,$11,$12,$13,$14)`, [cde.mismatchRevision, fixture.company, cde.project, cde.container, cde.mismatchDocument, cde.mismatchRun, cde.mismatchArtifact, ...['1','2','3','4','5','6'].map(value => value.repeat(64)), fixture.user]), /cde_revisions_project_id_company_id_document_id/);
+        await fresh.query('rollback to savepoint cde_cross_document_revision_guard');
+        await fresh.query('savepoint cde_update_guard');
+        await assert.rejects(fresh.query(`update cde_transition_events set reason='tampered' where id=$1`, [cde.event]), /append-only/);
+        await fresh.query('rollback to savepoint cde_update_guard');
+        await fresh.query('savepoint cde_delete_guard');
+        await assert.rejects(fresh.query('delete from cde_transition_events where id=$1', [cde.event]), /append-only/);
+        await fresh.query('rollback to savepoint cde_delete_guard');
+        await fresh.query('savepoint cde_revision_update_guard');
+        await assert.rejects(fresh.query(`update cde_revisions set revision_code='P99.99' where id=$1`, [cde.revision]), /append-only/);
+        await fresh.query('rollback to savepoint cde_revision_update_guard');
+        await fresh.query('savepoint cde_revision_delete_guard');
+        await assert.rejects(fresh.query('delete from cde_revisions where id=$1', [cde.revision]), /append-only/);
+        await fresh.query('rollback to savepoint cde_revision_delete_guard');
+        for (const [savepoint, statement, params] of [
+          ['cde_artifact_guard', `update document_processing_artifacts set checksum_sha256=$1 where id=$2`, ['0'.repeat(64), cde.artifact]],
+          ['cde_run_guard', `update document_processing_runs set provider='tampered' where id=$1`, [cde.run]],
+          ['cde_document_guard', `update documents set checksum_sha256=$1 where id=$2`, ['0'.repeat(64), cde.document]],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(statement, [...params]), /CDE-bound/);
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query(`insert into cde_containers(id,company_id,project_id,container_code,title,created_by_user_id) values ($1,$2,$3,'PHASE4-OTHER','Other',$4)`, [cde.otherContainer, fixture.company, cde.project, fixture.user]);
+        await fresh.query(`insert into cde_revisions(id,company_id,project_id,container_id,document_id,processing_run_id,result_artifact_id,revision_code,document_checksum_sha256,source_hash,rule_hash,result_hash,code_hash,scope_hash,created_by_user_id)
+          values ($1,$2,$3,$4,$5,$6,$7,'P02.01',$8,$9,$10,$11,$12,$13,$14)`, [cde.otherRevision, fixture.company, cde.project, cde.otherContainer, cde.document, cde.run, cde.artifact, ...['a','b','c','d','e','7'].map(value => value.repeat(64)), fixture.user]);
+        await fresh.query('savepoint cde_cross_container_guard');
+        await assert.rejects(fresh.query('update cde_containers set current_revision_id=$1 where id=$2', [cde.otherRevision, cde.container]), /cde_containers_current_revision_company_fk/);
+        await fresh.query('rollback to savepoint cde_cross_container_guard');
+      } finally { await fresh.query('rollback'); }
       report.headSignature = state.signature;
       report.schemaParity = 'pass';
     });
@@ -115,7 +178,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         for (const row of original) await fresh.query('update teklifpro_release.migrations set catalog_hash=$1 where idx=$2', [row.catalog_hash, row.idx]);
       }
     });
-    await check('head68 cannot be adopted as baseline63 using either candidate or baseline signatures', async () => {
+    await check('head73 cannot be adopted as baseline63 using either candidate or baseline signatures', async () => {
       await fresh.query('alter schema teklifpro_release rename to saved_release_test');
       try {
         const before = (await catalog(fresh)).signature;

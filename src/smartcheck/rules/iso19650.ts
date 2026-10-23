@@ -25,6 +25,7 @@ export type SuitabilityCode =
   | "S2"
   | "S3"
   | "S4"
+  | "S5"
   | "S6"
   | "S7"
   | "A1"
@@ -573,13 +574,12 @@ export function evaluateLoinByMilestone(
  * Faz 2.1 — TS EN ISO 19650-2 §5.6–5.7 CDE Durum Makinesi Geçiş Denetleyicisi
  *
  * Geçerli geçişler:
- * - null -> WIP | SHARED | PUBLISHED | ARCHIVED (ilk kayıt)
+ * - null -> WIP (ilk kayıt)
  * - WIP -> SHARED (kalite kontrol onayıyla paylaşım)
  * - SHARED -> PUBLISHED (müşteri/idare onayıyla sözleşmesel yayın; Cxx / 000 revizyonu ve A1..A7 kodu zorunlu)
  * - SHARED -> WIP (revizyon için geri çekme)
  * - PUBLISHED -> ARCHIVED (yeni sürüm yayımlandığında arşivleme; B kodu)
- * - PUBLISHED -> SHARED (yeni ön revizyon döngüsü)
- * Doğrudan WIP -> PUBLISHED geçişi (SHARED kalite kontrol adımını atladığı için) ISO 19650-2 §5.6 gereği engellenir!
+ * ARCHIVED terminal durumdur; aynı duruma ve listelenmeyen tüm geçişler reddedilir.
  */
 export function validateCdeStateTransition(params: {
   fromState: CdeState | null;
@@ -589,99 +589,102 @@ export function validateCdeStateTransition(params: {
   actor?: string;
   timestampIso?: string;
 }): CdeTransitionRecord {
-  const actor = params.actor?.trim() || "Proje BIM Koordinatörü";
+  const actor = params.actor?.trim() ?? "";
   const timestampIso = params.timestampIso || new Date().toISOString();
   const rev = params.revisionCode.trim();
-
-  if (params.fromState === "WIP" && params.toState === "PUBLISHED") {
-    return {
-      fromState: params.fromState,
-      toState: params.toState,
-      suitabilityCode: params.suitabilityCode,
-      revisionCode: rev,
-      actor,
-      timestampIso,
-      allowed: false,
-      reason:
-        "ISO 19650-2 §5.6–5.7 gereği WIP (Çalışma) durumundaki konteyner SHARED (Paylaşılan / Koordinasyon) onayından geçmeden doğrudan PUBLISHED (Yayımlanan) durumuna geçirilemez.",
-    };
-  }
-
-  if (params.toState === "WIP" && params.suitabilityCode !== "S0") {
-    return {
-      fromState: params.fromState,
-      toState: params.toState,
-      suitabilityCode: params.suitabilityCode,
-      revisionCode: rev,
-      actor,
-      timestampIso,
-      allowed: false,
-      reason: `WIP durumu yalnız 'S0' başlangıç uygunluk kodu ile kullanılabilir (seçilen: '${params.suitabilityCode}').`,
-    };
-  }
-
-  if (params.toState === "SHARED" && !params.suitabilityCode.startsWith("S")) {
-    return {
-      fromState: params.fromState,
-      toState: params.toState,
-      suitabilityCode: params.suitabilityCode,
-      revisionCode: rev,
-      actor,
-      timestampIso,
-      allowed: false,
-      reason: `SHARED durumu S1..S7 uygunluk kodu gerektirir (seçilen: '${params.suitabilityCode}').`,
-    };
-  }
-
-  if (params.toState === "PUBLISHED") {
-    if (!params.suitabilityCode.startsWith("A")) {
-      return {
-        fromState: params.fromState,
-        toState: params.toState,
-        suitabilityCode: params.suitabilityCode,
-        revisionCode: rev,
-        actor,
-        timestampIso,
-        allowed: false,
-        reason: `PUBLISHED durumu A1..A7 yetkilendirme kodu gerektirir (seçilen: '${params.suitabilityCode}').`,
-      };
-    }
-    if (!CONTRACTUAL_REV_REGEX.test(rev)) {
-      return {
-        fromState: params.fromState,
-        toState: params.toState,
-        suitabilityCode: params.suitabilityCode,
-        revisionCode: rev,
-        actor,
-        timestampIso,
-        allowed: false,
-        reason: `PUBLISHED durumunda sözleşmesel revizyon kodu ('C01' veya EK-2 '000') zorunludur (mevcut: '${rev}').`,
-      };
-    }
-  }
-
-  if (params.toState === "ARCHIVED" && params.suitabilityCode !== "B") {
-    return {
-      fromState: params.fromState,
-      toState: params.toState,
-      suitabilityCode: params.suitabilityCode,
-      revisionCode: rev,
-      actor,
-      timestampIso,
-      allowed: false,
-      reason: `ARCHIVED (Arşiv) durumu için uygunluk kodu 'B' olmalıdır (seçilen: '${params.suitabilityCode}').`,
-    };
-  }
-
-  return {
+  const record = (allowed: boolean, reason: string): CdeTransitionRecord => ({
     fromState: params.fromState,
     toState: params.toState,
     suitabilityCode: params.suitabilityCode,
     revisionCode: rev,
     actor,
     timestampIso,
-    allowed: true,
-    reason: `CDE durum geçişi (${params.fromState ?? "BAŞLANGIÇ"} → ${params.toState} · ${params.suitabilityCode} · ${rev}) TS EN ISO 19650-2 §5.6–5.7 kurallarına uygun olarak kaydedildi.`,
-  };
+    allowed,
+    reason,
+  });
+
+  if (!actor) {
+    return record(false, "CDE durum geçişinde işlemi yapan actor/kullanıcı kimliği zorunludur.");
+  }
+  if (Number.isNaN(Date.parse(timestampIso))) {
+    return record(false, "CDE durum geçişi geçerli bir ISO tarih-zaman damgası gerektirir.");
+  }
+
+  const allowedTransitions = new Set<string>([
+    "START→WIP",
+    "WIP→SHARED",
+    "SHARED→WIP",
+    "SHARED→PUBLISHED",
+    "PUBLISHED→ARCHIVED",
+  ]);
+  const transitionKey = `${params.fromState ?? "START"}→${params.toState}`;
+
+  if (!allowedTransitions.has(transitionKey)) {
+    const reason = params.fromState === "ARCHIVED"
+      ? "ARCHIVED terminal durumdur; arşivlenmiş bir konteynerden yeni CDE durumuna geçilemez."
+      : `CDE durum geçişi (${transitionKey}) izin verilen saf durum makinesi tablosunda yer almıyor.`;
+    return record(false, reason);
+  }
+
+  if (params.toState === "WIP") {
+    if (params.suitabilityCode !== "S0") {
+      return record(false, `WIP durumu yalnız 'S0' başlangıç uygunluk kodu ile kullanılabilir (seçilen: '${params.suitabilityCode}').`);
+    }
+    if (!PRELIMINARY_REV_REGEX.test(rev)) {
+      return record(false, `WIP durumunda ön revizyon kodu ('P01.01') zorunludur (mevcut: '${rev}').`);
+    }
+  }
+
+  if (params.toState === "SHARED") {
+    if (!/^S[1-7]$/.test(params.suitabilityCode)) {
+      return record(false, `SHARED durumu S1..S7 uygunluk kodu gerektirir; S0 kabul edilmez (seçilen: '${params.suitabilityCode}').`);
+    }
+    if (!PRELIMINARY_REV_REGEX.test(rev)) {
+      return record(false, `SHARED durumunda ön revizyon kodu ('P01.01') zorunludur (mevcut: '${rev}').`);
+    }
+  }
+
+  if (params.toState === "PUBLISHED") {
+    if (!/^A[1-7]$/.test(params.suitabilityCode)) {
+      return record(false, `PUBLISHED durumu A1..A7 yetkilendirme kodu gerektirir (seçilen: '${params.suitabilityCode}').`);
+    }
+    if (!CONTRACTUAL_REV_REGEX.test(rev)) {
+      return record(false, `PUBLISHED durumunda sözleşmesel revizyon kodu ('C01' veya EK-2 '000') zorunludur (mevcut: '${rev}').`);
+    }
+  }
+
+  if (params.toState === "ARCHIVED") {
+    if (params.suitabilityCode !== "B") {
+      return record(false, `ARCHIVED (Arşiv) durumu için uygunluk kodu 'B' olmalıdır (seçilen: '${params.suitabilityCode}').`);
+    }
+    if (!CONTRACTUAL_REV_REGEX.test(rev)) {
+      return record(false, `ARCHIVED durumunda yayımlanan kayıtla aynı sözleşmesel revizyon formatı ('C01' veya EK-2 '000') zorunludur (mevcut: '${rev}').`);
+    }
+  }
+
+  return record(
+    true,
+    `CDE durum geçişi (${params.fromState ?? "BAŞLANGIÇ"} → ${params.toState} · ${params.suitabilityCode} · ${rev}) TS EN ISO 19650-2 §5.6–5.7 kurallarına uygun olarak kaydedildi.`,
+  );
+}
+
+/** Returns the most recent allowed transition; rejected audit entries are ignored. */
+export function findLatestAcceptedCdeTransition(
+  history: readonly CdeTransitionRecord[],
+): CdeTransitionRecord | null {
+  let latest: CdeTransitionRecord | null = null;
+  let latestTimestamp = Number.NEGATIVE_INFINITY;
+
+  for (const record of history) {
+    if (!record.allowed) continue;
+    const timestamp = Date.parse(record.timestampIso);
+    if (Number.isNaN(timestamp)) throw new Error("CDE_HISTORY_INVALID_TIMESTAMP");
+    if (timestamp === latestTimestamp) throw new Error("CDE_HISTORY_AMBIGUOUS_ORDER");
+    if (timestamp < latestTimestamp) continue;
+    latest = record;
+    latestTimestamp = timestamp;
+  }
+
+  return latest;
 }
 

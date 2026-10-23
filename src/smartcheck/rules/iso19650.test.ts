@@ -3,7 +3,10 @@ import { describe, it } from "node:test";
 import {
   evaluateIso19650Compliance,
   evaluateLoinByMilestone,
+  findLatestAcceptedCdeTransition,
   parseContainerIdentity,
+  type CdeState,
+  type SuitabilityCode,
   validateCdeStateTransition,
 } from "./iso19650";
 
@@ -139,31 +142,129 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
     assert.ok(res.errors.some((e) => e.includes("mükerrer")));
   });
 
-  it("Faz 2.1: enforces ISO 19650-2 §5.6-5.7 CDE state machine transitions (blocks direct WIP -> PUBLISHED jump)", () => {
-    const illegalJump = validateCdeStateTransition({
+  it("Faz 4 T27: enforces the exhaustive CDE from/to transition table", () => {
+    const states: Array<CdeState | null> = [null, "WIP", "SHARED", "PUBLISHED", "ARCHIVED"];
+    const targets: CdeState[] = ["WIP", "SHARED", "PUBLISHED", "ARCHIVED"];
+    const allowed = new Set([
+      "START→WIP",
+      "WIP→SHARED",
+      "SHARED→WIP",
+      "SHARED→PUBLISHED",
+      "PUBLISHED→ARCHIVED",
+    ]);
+    const metadata: Record<CdeState, { suitabilityCode: SuitabilityCode; revisionCode: string }> = {
+      WIP: { suitabilityCode: "S0", revisionCode: "P01.01" },
+      SHARED: { suitabilityCode: "S5", revisionCode: "P02.03" },
+      PUBLISHED: { suitabilityCode: "A4", revisionCode: "C02" },
+      ARCHIVED: { suitabilityCode: "B", revisionCode: "000" },
+    };
+
+    for (const fromState of states) {
+      for (const toState of targets) {
+        const key = `${fromState ?? "START"}→${toState}`;
+        const result = validateCdeStateTransition({
+          fromState,
+          toState,
+          ...metadata[toState],
+          actor: "BIM lead",
+          timestampIso: "2026-10-23T09:00:00.000Z",
+        });
+        assert.equal(result.allowed, allowed.has(key), key);
+      }
+    }
+  });
+
+  it("Faz 4 T27: rejects same-state transitions and keeps ARCHIVED terminal", () => {
+    const archived = validateCdeStateTransition({
+      fromState: "ARCHIVED",
+      toState: "WIP",
+      suitabilityCode: "S0",
+      revisionCode: "P01.01",
+      actor: "BIM lead",
+    });
+    const sameState = validateCdeStateTransition({
+      fromState: "SHARED",
+      toState: "SHARED",
+      suitabilityCode: "S1",
+      revisionCode: "P01.01",
+      actor: "BIM lead",
+    });
+    assert.equal(archived.allowed, false);
+    assert.match(archived.reason, /terminal|nihai|son durum/i);
+    assert.equal(sameState.allowed, false);
+  });
+
+  it("Faz 4 T27: validates exact suitability and revision contracts for every destination", () => {
+    const invalidCases = [
+      { fromState: null, toState: "WIP", suitabilityCode: "S1", revisionCode: "P01.01" },
+      { fromState: null, toState: "WIP", suitabilityCode: "S0", revisionCode: "C01" },
+      { fromState: "WIP", toState: "SHARED", suitabilityCode: "S0", revisionCode: "P01.01" },
+      { fromState: "WIP", toState: "SHARED", suitabilityCode: "S3", revisionCode: "000" },
+      { fromState: "SHARED", toState: "PUBLISHED", suitabilityCode: "S7", revisionCode: "C01" },
+      { fromState: "SHARED", toState: "PUBLISHED", suitabilityCode: "A1", revisionCode: "P01.01" },
+      { fromState: "PUBLISHED", toState: "ARCHIVED", suitabilityCode: "A1", revisionCode: "C01" },
+      { fromState: "PUBLISHED", toState: "ARCHIVED", suitabilityCode: "B", revisionCode: "P01.01" },
+      { fromState: "PUBLISHED", toState: "ARCHIVED", suitabilityCode: "B", revisionCode: "C1" },
+    ] as const;
+
+    for (const invalidCase of invalidCases) {
+      const result = validateCdeStateTransition({
+        ...invalidCase,
+        actor: "BIM lead",
+      });
+      assert.equal(result.allowed, false, JSON.stringify(invalidCase));
+    }
+  });
+
+  it("Faz 4 T27: rejects a transition without an identified actor", () => {
+    for (const actor of [undefined, "", "   "]) {
+      const result = validateCdeStateTransition({
+        fromState: null,
+        toState: "WIP",
+        suitabilityCode: "S0",
+        revisionCode: "P01.01",
+        actor,
+      });
+      assert.equal(result.allowed, false);
+      assert.match(result.reason, /actor|işlemi yapan|kullanıcı/i);
+    }
+  });
+
+  it("Faz 4 T27: returns the newest accepted transition without mutating history", () => {
+    const acceptedOlder = validateCdeStateTransition({
+      fromState: null,
+      toState: "WIP",
+      suitabilityCode: "S0",
+      revisionCode: "P01.01",
+      actor: "BIM lead",
+      timestampIso: "2026-10-23T09:00:00.000Z",
+    });
+    const rejectedNewest = validateCdeStateTransition({
       fromState: "WIP",
       toState: "PUBLISHED",
       suitabilityCode: "A1",
       revisionCode: "C01",
+      actor: "BIM lead",
+      timestampIso: "2026-10-23T12:00:00.000Z",
     });
-    assert.equal(illegalJump.allowed, false);
-    assert.ok(illegalJump.reason.includes("SHARED"));
-
-    const validShare = validateCdeStateTransition({
+    const acceptedLatest = validateCdeStateTransition({
       fromState: "WIP",
       toState: "SHARED",
-      suitabilityCode: "S3",
+      suitabilityCode: "S2",
       revisionCode: "P01.02",
+      actor: "BIM lead",
+      timestampIso: "2026-10-23T10:00:00.000Z",
     });
-    assert.equal(validShare.allowed, true);
+    const history = Object.freeze([acceptedLatest, rejectedNewest, acceptedOlder]);
 
-    const validPublish = validateCdeStateTransition({
-      fromState: "SHARED",
-      toState: "PUBLISHED",
-      suitabilityCode: "A1",
-      revisionCode: "C01",
-    });
-    assert.equal(validPublish.allowed, true);
+    assert.equal(findLatestAcceptedCdeTransition(history), acceptedLatest);
+    assert.equal(findLatestAcceptedCdeTransition([rejectedNewest]), null);
+    assert.deepEqual(history, [acceptedLatest, rejectedNewest, acceptedOlder]);
+
+    const malformed = { ...acceptedOlder, timestampIso: "not-a-date" };
+    assert.throws(() => findLatestAcceptedCdeTransition([malformed]), /INVALID_TIMESTAMP/);
+    assert.throws(() => findLatestAcceptedCdeTransition([acceptedOlder, { ...acceptedLatest, timestampIso: acceptedOlder.timestampIso }]), /AMBIGUOUS_ORDER/);
+    assert.equal(validateCdeStateTransition({ fromState: null, toState: "WIP", suitabilityCode: "S0", revisionCode: "P01.01", actor: "BIM lead", timestampIso: "bad" }).allowed, false);
   });
 
   it("Faz 2.2: evaluates EN 17412-1 (LOIN) completeness against EIR delivery milestones (CONCEPT vs IMPLEMENTATION)", () => {

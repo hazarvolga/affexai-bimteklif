@@ -775,6 +775,7 @@ export function SmartCheckImportWorkspace() {
         <div>
           <CalmIfcWorkspace
             dataset={calmDataset}
+            documentId={documentId}
             showTechnicalToggle={true}
             technicalViewOpen={showTechnicalInspect}
             onToggleTechnicalView={() => setShowTechnicalInspect((prev) => !prev)}

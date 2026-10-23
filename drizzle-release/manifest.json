@@ -71,6 +71,13 @@
       "sha256": "48fab3d1a4fff1bf1306222ab7984f0fec0561e8a68c048245b50e67cbf3fdfa",
       "snapshotSha256": "e7ae6d386dc05d224aea6c9e841bf0a131410289a37c48faeaf793654a58ea5b",
       "statements": 18
+    },
+    {
+      "idx": 10,
+      "tag": "0010_cde_workflow",
+      "sha256": "794fd6893763eb2c403b6fe6a87c048a82ca94840a99c04b64581e9a4422fc5c",
+      "snapshotSha256": "0d44d44fcc18399c28890c715dbde2c27f758d435c6afee4822d012ea75a46b8",
+      "statements": 36
     }
   ]
 }

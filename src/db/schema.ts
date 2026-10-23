@@ -954,6 +954,7 @@ export const documentProcessingArtifacts = pgTable("document_processing_artifact
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   companyArtifactUnique: unique("document_processing_artifacts_id_company_id_key").on(table.id, table.companyId),
+  companyArtifactRunDocumentUnique: unique("document_processing_artifacts_id_company_run_document_key").on(table.id, table.companyId, table.processingRunId, table.documentId),
   runArtifactUnique: unique("document_processing_artifacts_run_type_key").on(table.companyId, table.processingRunId, table.artifactType),
   runFk: foreignKey({
     columns: [table.processingRunId, table.documentId, table.companyId],
@@ -1913,5 +1914,142 @@ export const priceFeedStaging = pgTable("price_feed_staging", {
 }, (table) => ({
   statusCheck: check("price_feed_staging_status_check", sql`${table.status} in ('pending', 'approved', 'rejected')`),
   statusIdx: index("idx_price_feed_staging_status").on(table.status),
+}));
+
+// ============================================================
+// ISO 19650 CDE GOVERNANCE (PHASE 4)
+// ============================================================
+
+export const cdeProjects = pgTable("cde_projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  documentId: uuid("document_id").notNull(),
+  name: text("name").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyProjectUnique: unique("cde_projects_id_company_id_key").on(table.id, table.companyId),
+  companyProjectDocumentUnique: unique("cde_projects_id_company_document_key").on(table.id, table.companyId, table.documentId),
+  documentUnique: unique("cde_projects_company_document_key").on(table.companyId, table.documentId),
+  documentFk: foreignKey({ columns: [table.documentId, table.companyId], foreignColumns: [documents.id, documents.companyId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  idxDocument: index("idx_cde_projects_document").on(table.companyId, table.documentId),
+}));
+
+export const cdeProjectMembers = pgTable("cde_project_members", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  projectId: uuid("project_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  projectRole: text("project_role").notNull(),
+  discipline: text("discipline").notNull(),
+  assignedByUserId: uuid("assigned_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyMemberUnique: unique("cde_project_members_id_company_id_key").on(table.id, table.companyId),
+  projectUserUnique: unique("cde_project_members_project_user_key").on(table.companyId, table.projectId, table.userId),
+  projectFk: foreignKey({ columns: [table.projectId, table.companyId], foreignColumns: [cdeProjects.id, cdeProjects.companyId] }).onDelete("cascade"),
+  memberFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  assignerFk: foreignKey({ columns: [table.assignedByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  roleCheck: check("cde_project_members_role_check", sql`${table.projectRole} in ('coordinator', 'approver', 'contributor', 'viewer')`),
+  disciplineCheck: check("cde_project_members_discipline_check", sql`${table.discipline} in ('ARC', 'STR', 'MEP', 'COST', 'QA', 'BIM')`),
+}));
+
+export const cdeContainers = pgTable("cde_containers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  projectId: uuid("project_id").notNull(),
+  containerCode: text("container_code").notNull(),
+  title: text("title").notNull(),
+  currentState: text("current_state").notNull().default("WIP"),
+  currentRevisionId: uuid("current_revision_id"),
+  currentScopeHash: text("current_scope_hash"),
+  lockVersion: integer("lock_version").notNull().default(0),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyContainerUnique: unique("cde_containers_id_company_id_key").on(table.id, table.companyId),
+  companyContainerProjectUnique: unique("cde_containers_id_company_project_key").on(table.id, table.companyId, table.projectId),
+  projectContainerCodeUnique: unique("cde_containers_project_code_key").on(table.companyId, table.projectId, table.containerCode),
+  projectFk: foreignKey({ columns: [table.projectId, table.companyId], foreignColumns: [cdeProjects.id, cdeProjects.companyId] }).onDelete("cascade"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  stateCheck: check("cde_containers_state_check", sql`${table.currentState} in ('WIP', 'SHARED', 'PUBLISHED', 'ARCHIVED')`),
+  lockVersionCheck: check("cde_containers_lock_version_check", sql`${table.lockVersion} >= 0`),
+  scopeHashCheck: check("cde_containers_scope_hash_check", sql`${table.currentScopeHash} IS NULL OR ${table.currentScopeHash} ~ '^[0-9a-f]{64}$'`),
+  idxProject: index("idx_cde_containers_project").on(table.companyId, table.projectId),
+}));
+
+export const cdeRevisions = pgTable("cde_revisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  projectId: uuid("project_id").notNull(),
+  containerId: uuid("container_id").notNull(),
+  supersedesRevisionId: uuid("supersedes_revision_id"),
+  documentId: uuid("document_id").notNull(),
+  processingRunId: uuid("processing_run_id").notNull(),
+  resultArtifactId: uuid("result_artifact_id").notNull(),
+  revisionCode: text("revision_code").notNull(),
+  documentChecksumSha256: text("document_checksum_sha256").notNull(),
+  sourceHash: text("source_hash").notNull(),
+  ruleHash: text("rule_hash").notNull(),
+  resultHash: text("result_hash").notNull(),
+  codeHash: text("code_hash").notNull(),
+  scopeHash: text("scope_hash").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyRevisionUnique: unique("cde_revisions_id_company_id_key").on(table.id, table.companyId),
+  companyRevisionContainerUnique: unique("cde_revisions_id_company_container_key").on(table.id, table.companyId, table.containerId),
+  scopeUnique: unique("cde_revisions_container_scope_key").on(table.companyId, table.containerId, table.scopeHash),
+  projectFk: foreignKey({ columns: [table.projectId, table.companyId, table.documentId], foreignColumns: [cdeProjects.id, cdeProjects.companyId, cdeProjects.documentId] }).onDelete("cascade"),
+  containerFk: foreignKey({ columns: [table.containerId, table.companyId, table.projectId], foreignColumns: [cdeContainers.id, cdeContainers.companyId, cdeContainers.projectId] }).onDelete("cascade"),
+  supersedesFk: foreignKey({ columns: [table.supersedesRevisionId, table.companyId, table.containerId], foreignColumns: [table.id, table.companyId, table.containerId] }).onDelete("restrict"),
+  runFk: foreignKey({ columns: [table.processingRunId, table.documentId, table.companyId], foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId] }).onDelete("restrict"),
+  artifactFk: foreignKey({ columns: [table.resultArtifactId, table.companyId, table.processingRunId, table.documentId], foreignColumns: [documentProcessingArtifacts.id, documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.documentId] }).onDelete("restrict"),
+  creatorFk: foreignKey({ columns: [table.createdByUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  hashesCheck: check("cde_revisions_hashes_check", sql`${table.documentChecksumSha256} ~ '^[0-9a-f]{64}$' AND ${table.sourceHash} ~ '^[0-9a-f]{64}$' AND ${table.ruleHash} ~ '^[0-9a-f]{64}$' AND ${table.resultHash} ~ '^[0-9a-f]{64}$' AND ${table.codeHash} ~ '^[0-9a-f]{64}$' AND ${table.scopeHash} ~ '^[0-9a-f]{64}$'`),
+  idxContainer: index("idx_cde_revisions_container").on(table.companyId, table.containerId, table.createdAt),
+}));
+
+export const cdeTransitionEvents = pgTable("cde_transition_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").notNull(),
+  projectId: uuid("project_id").notNull(),
+  containerId: uuid("container_id").notNull(),
+  revisionId: uuid("revision_id"),
+  idempotencyKey: text("idempotency_key").notNull(),
+  requestHash: text("request_hash").notNull(),
+  action: text("action").notNull(),
+  decision: text("decision").notNull(),
+  fromState: text("from_state").notNull(),
+  toState: text("to_state"),
+  suitabilityCode: text("suitability_code"),
+  revisionCode: text("revision_code"),
+  scopeHash: text("scope_hash"),
+  expectedVersion: integer("expected_version").notNull(),
+  resultingVersion: integer("resulting_version").notNull(),
+  actorUserId: uuid("actor_user_id").notNull(),
+  actorProjectRole: text("actor_project_role").notNull(),
+  actorDiscipline: text("actor_discipline").notNull(),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyEventUnique: unique("cde_transition_events_id_company_id_key").on(table.id, table.companyId),
+  idempotencyUnique: unique("cde_transition_events_idempotency_key").on(table.companyId, table.containerId, table.idempotencyKey),
+  projectFk: foreignKey({ columns: [table.projectId, table.companyId], foreignColumns: [cdeProjects.id, cdeProjects.companyId] }).onDelete("cascade"),
+  containerFk: foreignKey({ columns: [table.containerId, table.companyId, table.projectId], foreignColumns: [cdeContainers.id, cdeContainers.companyId, cdeContainers.projectId] }).onDelete("cascade"),
+  revisionFk: foreignKey({ columns: [table.revisionId, table.companyId, table.containerId], foreignColumns: [cdeRevisions.id, cdeRevisions.companyId, cdeRevisions.containerId] }).onDelete("restrict"),
+  actorFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
+  actionCheck: check("cde_transition_events_action_check", sql`${table.action} in ('scope_created', 'approve', 'reject', 'withdraw')`),
+  decisionCheck: check("cde_transition_events_decision_check", sql`${table.decision} in ('accepted', 'rejected', 'invalidated')`),
+  disciplineCheck: check("cde_transition_events_discipline_check", sql`${table.actorDiscipline} in ('ARC', 'STR', 'MEP', 'COST', 'QA', 'BIM')`),
+  roleCheck: check("cde_transition_events_role_check", sql`${table.actorProjectRole} in ('coordinator', 'approver', 'contributor', 'viewer')`),
+  statesCheck: check("cde_transition_events_states_check", sql`${table.fromState} in ('WIP', 'SHARED', 'PUBLISHED', 'ARCHIVED') AND (${table.toState} IS NULL OR ${table.toState} in ('WIP', 'SHARED', 'PUBLISHED', 'ARCHIVED'))`),
+  requestHashCheck: check("cde_transition_events_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
+  versionsCheck: check("cde_transition_events_versions_check", sql`${table.expectedVersion} >= 0 AND ${table.resultingVersion} >= ${table.expectedVersion}`),
+  idxHistory: index("idx_cde_transition_events_history").on(table.companyId, table.containerId, table.createdAt),
 }));
 

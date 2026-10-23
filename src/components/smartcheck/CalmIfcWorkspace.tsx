@@ -11,12 +11,11 @@ import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt
 import {
   evaluateIso19650Compliance,
   parseContainerIdentity,
-  validateCdeStateTransition,
   type CdeState,
-  type CdeTransitionRecord,
   type EirDeliveryMilestone,
   type SuitabilityCode,
 } from "@/smartcheck/rules/iso19650";
+import { CdeWorkflowPanel } from "@/components/smartcheck/CdeWorkflowPanel";
 import type { MinhaRuleProfile } from "@/smartcheck/rules/minha";
 import {
   CSB_2026_TUIK_SUB_INDICES,
@@ -28,6 +27,7 @@ import { fetchWithAuth } from "@/lib/api";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
+  documentId?: string | null;
   onTransferToQuote?: (items: Array<{ id: string; title: string; pozCode: string; unit: string; quantity: number; unitPrice: number; priceSnapshotId: string; priceSourceId: string; sourceDocumentHash: string; currency: "TRY"; capturedAt: string | null }>) => void;
   onToggleTechnicalView?: () => void;
   showTechnicalToggle?: boolean;
@@ -62,6 +62,7 @@ function formatTrCurrency(val: number): string {
 
 export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   dataset,
+  documentId,
   onTransferToQuote,
   onToggleTechnicalView,
   showTechnicalToggle = false,
@@ -150,8 +151,6 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [revisionInput, setRevisionInput] = useState<string>("");
   const [deliveryStageInput, setDeliveryStageInput] = useState<"COORDINATION" | "TENDER_OR_PERMIT">("COORDINATION");
   const [eirMilestoneInput, setEirMilestoneInput] = useState<EirDeliveryMilestone>("IMPLEMENTATION");
-  const [cdeTransitionLog, setCdeTransitionLog] = useState<CdeTransitionRecord[]>([]);
-  const [cdeTransitionFeedback, setCdeTransitionFeedback] = useState<string>("");
 
   const [minhaProfile, setMinhaProfile] = useState<MinhaRuleProfile>("CSB_2026");
   const [customMinhaThresholdInput, setCustomMinhaThresholdInput] = useState<string>("");
@@ -283,7 +282,6 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         revisionInput: string;
         deliveryStageInput: "COORDINATION" | "TENDER_OR_PERMIT";
         eirMilestoneInput: EirDeliveryMilestone;
-        cdeTransitionLog: CdeTransitionRecord[];
         minhaProfile: MinhaRuleProfile;
         customMinhaThresholdInput: string;
       }>;
@@ -295,7 +293,6 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       if (typeof parsed.revisionInput === "string") setRevisionInput(parsed.revisionInput);
       if (parsed.deliveryStageInput) setDeliveryStageInput(parsed.deliveryStageInput);
       if (parsed.eirMilestoneInput) setEirMilestoneInput(parsed.eirMilestoneInput);
-      if (Array.isArray(parsed.cdeTransitionLog)) setCdeTransitionLog(parsed.cdeTransitionLog);
       if (parsed.minhaProfile) setMinhaProfile(parsed.minhaProfile);
       if (typeof parsed.customMinhaThresholdInput === "string") {
         setCustomMinhaThresholdInput(parsed.customMinhaThresholdInput);
@@ -318,7 +315,6 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           revisionInput,
           deliveryStageInput,
           eirMilestoneInput,
-          cdeTransitionLog,
           minhaProfile,
           customMinhaThresholdInput,
         }),
@@ -328,7 +324,6 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     }
   }, [
     cdeStateInput,
-    cdeTransitionLog,
     customMinhaThresholdInput,
     deliveryStageInput,
     eirMilestoneInput,
@@ -340,24 +335,6 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     tenderBidsInput,
     tenderYmInput,
   ]);
-
-  const handleRecordCdeTransition = () => {
-    if (!cdeStateInput || !suitabilityInput || !revisionInput.trim()) {
-      setCdeTransitionFeedback(
-        "Geçiş kaydı oluşturmak için CDE Durumu, Uygunluk Kodu ve Revizyon Kodu alanlarını doldurunuz.",
-      );
-      return;
-    }
-    const lastAccepted = [...cdeTransitionLog].reverse().find((r) => r.allowed);
-    const record = validateCdeStateTransition({
-      fromState: lastAccepted?.toState ?? null,
-      toState: cdeStateInput,
-      suitabilityCode: suitabilityInput,
-      revisionCode: revisionInput.trim(),
-    });
-    setCdeTransitionLog((prev) => [record, ...prev].slice(0, 10));
-    setCdeTransitionFeedback(record.reason);
-  };
 
   const [selectedGlobalId, setSelectedGlobalId] = useState<string | null>(null);
 
@@ -1559,8 +1536,16 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     <option value="S2">S2 (Bilgi İçin)</option>
                     <option value="S3">S3 (İnceleme/Yorum)</option>
                     <option value="S4">S4 (Aşama Onayı)</option>
+                    <option value="S5">S5 (Yetkilendirilmiş)</option>
+                    <option value="S6">S6 (PIM Yetkilendirme)</option>
+                    <option value="S7">S7 (AIM Yetkilendirme)</option>
                     <option value="A1">A1 (İhale/İmalata Uygun)</option>
+                    <option value="A2">A2 (İmalata Uygun)</option>
+                    <option value="A3">A3 (İnşaata Uygun)</option>
                     <option value="A4">A4 (As-Built Teslim)</option>
+                    <option value="A5">A5 (Varlık Yönetimi)</option>
+                    <option value="A6">A6 (Arşiv Onayı)</option>
+                    <option value="A7">A7 (Sözleşmesel Onay)</option>
                     <option value="B">B (Arşiv)</option>
                   </select>
                 </label>
@@ -1572,7 +1557,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     aria-label="ISO 19650 Revizyon Kodu"
                     value={revisionInput}
                     onChange={(e) => setRevisionInput(e.target.value)}
-                    placeholder="Örn: P01.01 veya C01"
+                    placeholder="Örn: P01.01 veya C01/001"
                     className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
                   />
                 </label>
@@ -1611,13 +1596,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   Dosya Adı Şablonu:{" "}
                   <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
                 </span>
-                <button
-                  type="button"
-                  onClick={handleRecordCdeTransition}
-                  className="border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                >
-                  CDE Durum Geçişini Doğrula &amp; Kaydet
-                </button>
+                <span className="stamp-badge bg-card text-muted-foreground">Kanonik geçmiş: Sunucu CDE</span>
               </div>
 
               <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground space-y-1.5">
@@ -1634,26 +1613,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     {iso19650Evaluation.errors[0]}
                   </div>
                 )}
-                {cdeTransitionFeedback && (
-                  <div className="pt-1 border-t border-border text-[10px] text-foreground">
-                    {cdeTransitionFeedback}
-                  </div>
-                )}
-                {cdeTransitionLog.length > 0 && (
-                  <div className="pt-1 border-t border-border text-[10px] space-y-0.5">
-                    {cdeTransitionLog.slice(0, 3).map((entry, idx) => (
-                      <div key={idx} className="flex items-center justify-between gap-2">
-                        <span>
-                          {entry.fromState ?? "BAŞLANGIÇ"} → {entry.toState} ({entry.suitabilityCode} · {entry.revisionCode})
-                        </span>
-                        <span className={entry.allowed ? "text-foreground font-bold" : "text-primary font-bold"}>
-                          {entry.allowed ? "ONAYLI GEÇİŞ" : "REDDEDİLDİ"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
+              <CdeWorkflowPanel
+                documentId={documentId}
+                targetState={cdeStateInput}
+                suitabilityCode={suitabilityInput}
+                revisionCode={revisionInput}
+              />
             </div>
 
             {/* 4735 SAYILI KANUN FİYAT FARKI & ÇŞB 2026 – TÜİK 21 ALT ENDEKS MOTORU (FAZ 2.5) */}

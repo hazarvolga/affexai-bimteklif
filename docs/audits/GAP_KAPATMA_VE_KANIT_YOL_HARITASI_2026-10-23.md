@@ -95,9 +95,9 @@ Tek yazma sahibi/modül ilkesi korunur. Ortak şema değişimleri ve migration'l
 
 ### Faz 4 — Gerçek CDE onay akışı
 
-- [ ] **T27 — Geçiş motorunu düzelt.** En yeni kabul edilmiş durumu kullan; açık geçiş tablosu, suitability/revision eşleşmesi ve eksik/bozuk geçmişi kontrol et. **Kabul:** WIP→SHARED→PUBLISHED işler; SHARED/S0 ve yetkisiz atlama reddedilir; tüm izinli/yasak geçişler testlidir.
-- [ ] **T28 — Kalıcı ve çok kullanıcılı CDE.** Tenant/proje/revizyon bazlı DB/API; gerçek kimlik ve disiplin rolü; onay/ret/geri çekme; eşzamanlı karar, idempotency ve değişiklik geçmişi ekle. **Kabul:** başka kullanıcı aynı durumu görür; tarayıcı depolaması silinince kayıt kaybolmaz; yetkisiz/başka tenant kararı sunucuda reddedilir; varsayılan kişi adı onay sayılmaz.
-- [ ] **T29 — Revizyon ve uzman onayının geçersizleşmesi.** Dosya, kaynak, kural veya sonuç değişince eski onayın kapsamını koruyup yeni revizyon için yeniden onay iste. **Kabul:** geçmiş değiştirilemez iz taşır; yeni sonuç eski imzayla onaylı görünmez; L3/L4 kayıtları belge/kod/hash ile bağlıdır.
+- [x] **T27 — Geçiş motorunu düzelt.** En yeni kabul edilmiş durumu kullan; açık geçiş tablosu, suitability/revision eşleşmesi ve eksik/bozuk geçmişi kontrol et. **Kabul:** WIP→SHARED→PUBLISHED işler; SHARED/S0 ve yetkisiz atlama reddedilir; tüm izinli/yasak geçişler testlidir.
+- [x] **T28 — Kalıcı ve çok kullanıcılı CDE.** Tenant/proje/revizyon bazlı DB/API; gerçek kimlik ve disiplin rolü; onay/ret/geri çekme; eşzamanlı karar, idempotency ve değişiklik geçmişi ekle. **Kabul:** başka kullanıcı aynı durumu görür; tarayıcı depolaması silinince kayıt kaybolmaz; yetkisiz/başka tenant kararı sunucuda reddedilir; varsayılan kişi adı onay sayılmaz.
+- [x] **T29 — Revizyon ve uzman onayının geçersizleşmesi.** Dosya, kaynak, kural veya sonuç değişince eski onayın kapsamını koruyup yeni revizyon için yeniden onay iste. **Kabul:** geçmiş değiştirilemez iz taşır; yeni sonuç eski imzayla onaylı görünmez; L3/L4 kayıtları belge/kod/hash ile bağlıdır.
 
 ### Faz 5 — Güvenli çıktı ve inceleme
 
