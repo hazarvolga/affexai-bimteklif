@@ -209,10 +209,10 @@ test("sanitized inspector JSON is deterministic and contains no credentials", ()
 
 test("credential validation rejects weak or reused secrets before any database query", async () => {
   const strong = {
-    bimmetraj_migrator: "A1!migrator-generated-secret-0123456789",
-    bimmetraj_app: "B2@app-generated-secret-012345678901234",
-    bimmetraj_worker: "C3#worker-generated-secret-012345678901",
-    bimmetraj_backup: "D4$backup-generated-secret-012345678901",
+    bimmetraj_migrator: "A1_migrator-generated-secret-0123456789",
+    bimmetraj_app: "B2_app-generated-secret-012345678901234",
+    bimmetraj_worker: "C3_worker-generated-secret-012345678901",
+    bimmetraj_backup: "D4_backup-generated-secret-012345678901",
   } satisfies DatabaseRoleCredentials;
   const target = {
     expectedDatabase: "teklifpro_test",
@@ -221,14 +221,20 @@ test("credential validation rejects weak or reused secrets before any database q
   };
   let queryCount = 0;
   const client = { query: async () => { queryCount += 1; throw new Error("database query must not run"); } } as any;
+  const administratorCredential = "Bootstrap_generated_secret_0123456789";
 
   const cases: DatabaseRoleCredentials[] = [
     { ...strong, bimmetraj_app: "too-short" },
     { ...strong, bimmetraj_worker: "a".repeat(32) },
     { ...strong, bimmetraj_backup: strong.bimmetraj_app },
+    { ...strong, bimmetraj_migrator: "unsafe:password@host-012345678901234" },
   ];
   for (const credentials of cases) {
-    await assert.rejects(() => provisionDatabaseRoles(client, credentials, target), /credential|entropy|distinct/i);
+    await assert.rejects(() => provisionDatabaseRoles(client, credentials, target, administratorCredential), /credential|entropy|distinct/i);
   }
+  await assert.rejects(
+    () => provisionDatabaseRoles(client, strong, target, strong.bimmetraj_app),
+    /bootstrap|distinct/i,
+  );
   assert.equal(queryCount, 0);
 });

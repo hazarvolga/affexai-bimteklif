@@ -10,6 +10,7 @@ export function parseTarget(raw: string, kind: 'control' | 'target' | 'deploymen
   if (kind === 'deployment') {
     if (process.env.RELEASE_ALLOW_PRODUCTION !== 'true'
       || !process.env.RELEASE_EXPECTED_HOST || !process.env.RELEASE_EXPECTED_DATABASE || !process.env.RELEASE_EXPECTED_USER
+      || process.env.RELEASE_EXPECTED_USER !== 'bimmetraj_migrator'
       || !['postgres:', 'postgresql:'].includes(url.protocol) || url.search || url.hash
       || url.hostname !== process.env.RELEASE_EXPECTED_HOST || database !== process.env.RELEASE_EXPECTED_DATABASE
       || decodeURIComponent(url.username) !== process.env.RELEASE_EXPECTED_USER || Number(url.port || 5432) !== 5432
@@ -61,11 +62,14 @@ export async function requireEmpty(client: pg.Client) {
 
 // Only clients created and verified by this module can receive deployment permission.
 const approvedDeployments = new WeakSet<pg.Client>();
+export function isApprovedDeployment(client: pg.Client) {
+  return approvedDeployments.has(client);
+}
 export async function connectDeployment(raw: string) {
   const client = await connect(parseTarget(raw, 'deployment'));
   approvedDeployments.add(client);
   return client;
 }
 export async function requireMigrationTarget(client: pg.Client) {
-  if (!approvedDeployments.has(client)) return requireDisposable(client);
+  if (!isApprovedDeployment(client)) return requireDisposable(client);
 }

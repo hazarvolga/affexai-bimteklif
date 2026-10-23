@@ -48,12 +48,12 @@ and publishes no host ports for any service. Do not assign a public domain to
 PostgreSQL or either worker. DNS/TLS and live domain routing require separate
 verification after provisioning; the Compose file alone does not establish them.
 
-This profile has no `env_file` paths. Coolify generates and retains the two named
-credential values below when it loads the Git application Compose definition;
-reusing each variable passes the same saved value to the relevant services.
-The generated password has no symbols and is safe in the database URL; the JWT
-secret is hexadecimal. See the official [generated stack values documentation](https://next.coolify.io/docs/applications/builds/docker-compose#generated-stack-values).
-Enter the remaining runtime values in Coolify's secret/environment configuration.
+This profile has no `env_file` paths. Coolify generates and retains the bootstrap
+PostgreSQL and JWT values named below. Create four additional, distinct URL-safe
+database-role credentials with at least 32 high-entropy characters and use those
+same values when provisioning the canonical login roles. See the official
+[generated stack values documentation](https://next.coolify.io/docs/applications/builds/docker-compose#generated-stack-values).
+Enter all runtime values in Coolify's secret/environment configuration.
 Required substitutions reject missing values. Standard Docker Compose does not
 generate these variables, so local validation must supply fabricated values.
 No secret values belong in Git, build arguments, logs or this runbook.
@@ -68,7 +68,12 @@ the check; changing the flags alone does not invalidate old image credentials.
 
 | Runtime input | Requirement |
 |---|---|
-| `SERVICE_PASSWORD_64_POSTGRES` | Coolify-generated 64-character password without symbols; supplied as PostgreSQL's `POSTGRES_PASSWORD` and reused in runtime/migration database URLs. |
+| `SERVICE_PASSWORD_64_POSTGRES` | Coolify-generated 64-character password without symbols; supplied only as PostgreSQL's bootstrap `POSTGRES_PASSWORD`. Runtime services must not reuse it. |
+| `BIMMETRAJ_APP_DB_PASSWORD` | Distinct URL-safe credential provisioned for `bimmetraj_app`; interpolated only into app `DATABASE_URL`. |
+| `BIMMETRAJ_WORKER_DB_PASSWORD` | Distinct URL-safe credential provisioned for `bimmetraj_worker`; interpolated only into worker/IFC-worker `DATABASE_URL`. |
+| `BIMMETRAJ_MIGRATOR_DB_PASSWORD` | Distinct URL-safe credential provisioned for `bimmetraj_migrator`; interpolated only into `RELEASE_DATABASE_URL`. |
+| `BIMMETRAJ_BACKUP_DB_PASSWORD` | Distinct URL-safe credential provisioned for `bimmetraj_backup`; supplied only to backup as `PGPASSWORD`. |
+| `RELEASE_WORKERS_DRAINED` | Transient exact `true` acknowledgement set only after both SmartCheck workers are stopped and database counts are zero; remove it immediately after the one-shot migration finishes. |
 | `SERVICE_HEX_64_JWT` | Coolify-generated 64-character hexadecimal value; supplied as the app/worker `JWT_SECRET`. |
 | `SMARTCHECK_S3_BUCKET` | Provisioned production bucket with reviewed retention/access policy. |
 | `SMARTCHECK_S3_REGION` | Provider region; use `auto` only when required by the selected provider. |
@@ -79,13 +84,17 @@ the check; changing the flags alone does not invalidate old image credentials.
 | `SMARTCHECK_PILOT_COMPANY_IDS` | Approved tenant IDs; empty is permitted only while HTTP import is disabled. Production preflight rejects enabled imports with an empty allowlist. |
 | `SOURCE_COMMIT`, `IMAGE_TAG` | Set to the reviewed release source/tag for health reporting and distinguishable image artifacts. |
 
-The database identity is intentionally fixed: host `postgres`, port `5432`, database
-`bimmetraj_production`, user `bimmetraj`. Both runtime URLs and the migration URL
-reuse `SERVICE_PASSWORD_64_POSTGRES`. Preserve its saved value across deployments;
-changing it on an existing PostgreSQL volume requires a coordinated database
-password change. The one-shot migration service gets only its own
-release settings, including `RELEASE_ALLOW_PRODUCTION=true` and the matching
-`RELEASE_EXPECTED_HOST`, `RELEASE_EXPECTED_DATABASE`, `RELEASE_EXPECTED_USER` tuple.
+Database host `postgres`, port `5432` and database `bimmetraj_production` are fixed.
+The identities are separate: app=`bimmetraj_app`, both workers=`bimmetraj_worker`,
+migration=`bimmetraj_migrator`, backup=`bimmetraj_backup`; bootstrap `bimmetraj`
+remains confined to the PostgreSQL service. `bimmetraj_owner` is `NOLOGIN` and has
+no credential. Preserve the saved bootstrap value across deployments; changing it
+on an existing PostgreSQL volume requires a coordinated database password change.
+The one-shot migration service gets only its own release settings, including
+`RELEASE_ALLOW_PRODUCTION=true` and the exact host/database/`bimmetraj_migrator`
+`RELEASE_EXPECTED_USER` tuple. Inside one transaction it uses explicit
+`SET LOCAL ROLE bimmetraj_owner`, verifies session/current identities, then applies
+the target, advisory-lock and worker-drain gates before schema statements.
 It does not receive provider or JWT secrets. App and both workers wait for a healthy
 PostgreSQL service and a successfully completed migration; migration failure must
 stop startup, never be bypassed. Before applying to an existing volume, take the
@@ -100,23 +109,27 @@ capabilities and bounded tmpfs. The `postgres-data` volume is durable storage,
 not a backup. Keep the same Coolify resource/project identity across upgrades so
 a changed Compose project name does not silently point at a new empty volume.
 
-Local configuration validation on 2026-10-11 used only fabricated environment
-values and `docker compose --env-file /dev/null -f compose.coolify.yaml config
---quiet`. Parsed-config assertions verified all five services, migration gates,
-email/IFC mode, shared queue schema and absence of host ports/env files. Removing
-the object-storage secret caused configuration to fail as intended. No service was
-started and no expanded secret-bearing configuration was printed. Production S3
+Local contract validation on 2026-10-24 used only fabricated credentials. Parsed
+Compose assertions verified all six services, exact role-to-service mapping,
+migration gates, raw credential isolation and absence of owner/bootstrap identity
+from runtime services. Removing any of the five database credentials caused render
+failure. No service was started and no expanded secret-bearing configuration was
+printed. Role creation on the production cluster, credential cutover, S3
 provisioning, migration execution, container runtime acceptance and deployment are
 separate pending evidence.
 
 ## Environment Separation (Local Example)
 
-Keep untracked, access-restricted `.env.app`, `.env.worker`, `.env.postgres`
+Keep untracked, access-restricted `.env.app`, `.env.worker`, `.env.migrator`,
+`.env.backup`, `.env.postgres` and the project-level Compose interpolation file
 outside source control. Docker build context excludes env files and private keys.
 Use Coolify runtime secrets or an equivalent secret store, never build args.
 
-- PostgreSQL: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`.
-- Both app and worker: `DATABASE_URL` pointing to the Compose `postgres` service,
+- Compose interpolation: the four `BIMMETRAJ_*_DB_PASSWORD` values and
+  `SERVICE_PASSWORD_64_POSTGRES`; service `env_file` values do not satisfy Compose
+  interpolation. Do not print the expanded Compose configuration.
+- PostgreSQL: `POSTGRES_DB`, bootstrap `POSTGRES_USER`, `POSTGRES_PASSWORD`.
+- App and workers: their role-specific `DATABASE_URL` is fixed by Compose;
   `JWT_SECRET` (non-placeholder, at least 32 characters), `PUBLIC_APP_URL` (HTTPS),
   and valid `TRUST_PROXY_HOPS` (1-3). Shared production preflight is enforced.
 - Email: `AUTH_EMAIL_DELIVERY_MODE=webhook` is the default and requires an HTTPS
@@ -137,7 +150,8 @@ Use Coolify runtime secrets or an equivalent secret store, never build args.
 - App/provider secrets: only the AI providers actually used. No provider keys
   are needed for the bounded storage unit tests.
 - Compose interpolation: `.env` or Coolify environment supplies `IMAGE_TAG`,
-  `APP_PORT`, `SMARTCHECK_WORKER_CONCURRENCY`, `GRAPHILE_WORKER_SCHEMA`.
+  `APP_PORT`, `SMARTCHECK_WORKER_CONCURRENCY`, `GRAPHILE_WORKER_SCHEMA` and the
+  transient `RELEASE_WORKERS_DRAINED=true` acknowledgement.
   These interpolation inputs differ from the per-service `env_file` entries.
 
 ## Startup And Release Gates
@@ -150,9 +164,13 @@ Use Coolify runtime secrets or an equivalent secret store, never build args.
    Reuse the same builder/cache; these targets share a single source build stage.
 3. Validate Compose with real local env-file paths using `docker compose -f
    compose.example.yaml config --quiet`. Do not print expanded secret values.
-4. Apply the reviewed release migration procedure against the intended database
-   before starting the application. This image does not silently seed or migrate
-   the application schema. A fresh empty PostgreSQL volume alone is insufficient.
+4. Stop both SmartCheck workers, verify zero running processing rows and zero locked
+   Graphile jobs, then set `RELEASE_WORKERS_DRAINED=true` only for the one-shot
+   migrate service. Apply the reviewed release migration procedure against the
+   intended database before starting the application. Remove the acknowledgement
+   immediately after migration completes so a later release requires a fresh drain.
+   This image does not silently seed or migrate the application schema. A fresh
+   empty PostgreSQL volume alone is insufficient.
 5. Verify `/api/health`, login, tenant isolation, PDF generation, a small SmartCheck
    upload/worker/result cycle, and graceful worker termination in a disposable
    environment. Health checks prove DB/rate-limit reachability, not email inbox
@@ -160,14 +178,18 @@ Use Coolify runtime secrets or an equivalent secret store, never build args.
 
 Graphile Worker 0.16 owns SIGINT/SIGTERM graceful shutdown. The entrypoint does
 not add competing signal handlers. It honors `GRAPHILE_WORKER_SCHEMA` and caps
-the Graphile connection pool at concurrency + 2. The processor's separate Drizzle pool follows `PG_POOL_MAX` (four in Compose). Worker may run Graphile's own
-schema initialization; the runtime DB role therefore needs the corresponding
-reviewed privileges.
+the Graphile connection pool at concurrency + 2. The processor's separate Drizzle
+pool follows `PG_POOL_MAX` (four in Compose). Runtime workers do not receive
+schema-creation privileges. The reviewed bootstrap or migration procedure must
+establish exact Graphile Worker migration 18 and the canonical queue structure
+before credential cutover; app and workers fail closed when that readiness
+contract is absent or drifted.
 
 Enqueue and worker must use the same validated `GRAPHILE_WORKER_SCHEMA`.
 Compose explicitly configures worker schemas as `teklifpro_queue`; set this same
-value in `.env.app`. Never mix defaults between the app and workers. The app initializes Graphile's schema before its first run
-request, so its DB role also needs the reviewed migration privileges. Run,
+value in `.env.app` and `.env.worker`. Never mix defaults between the app and
+workers. App queue access is limited to the reviewed enqueue/remove wrappers;
+the worker owns runtime queue operations. Run,
 document status, audit and Graphile `add_job` commit in one database transaction.
 Queue or audit failures roll everything back; retrying the HTTP request is safe.
 Tenant/document locks serialize simultaneous process/retry requests. IFC admission
@@ -356,7 +378,7 @@ or a broad account/Coolify credential. Configure runtime-only variables:
 - `BACKUP_S3_SECRET_ACCESS_KEY`
 
 Region is fixed to R2's `auto`; object prefix is fixed to `bimmetraj/postgres/`.
-Database host/user/name/port are pinned to `postgres`/`bimmetraj`/
+Database host/user/name/port are pinned to `postgres`/`bimmetraj_backup`/
 `bimmetraj_production`/5432. Secrets are passed through environment, never command
 arguments or output. Keep all Coolify secret variables unavailable at build time.
 The existing Coolify S3 configuration can identify the R2 provider/backup bucket

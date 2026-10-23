@@ -2,7 +2,7 @@
 
 **Sürüm:** Rev. 47 / `BIM-CALC-2026-10-24.41`
 **Kod baseline:** `eeeaf75f27cd0b65c3f7f44ed6e3668386cceb53`
-**Durum:** **PARTIAL — tooling ve izole PostgreSQL 16 kanıtı hazır; runtime/production cutover yapılmadı**
+**Durum:** **PARTIAL — tooling, izole PostgreSQL 16 ve yerel runtime credential sözleşmesi hazır; production cutover yapılmadı**
 
 ## Rol sözleşmesi
 
@@ -15,6 +15,22 @@
 | `bimmetraj_backup` | Evet | Managed şema, tablo ve sequence salt okuma | Yazma, DDL ve wrapper çalıştırma yok |
 
 Migrator üyeliği yalnız `SET OPTION=true`, `INHERIT=false`, `ADMIN=false` sözleşmesidir. Bütün login rolleri `NOSUPERUSER`, `NOBYPASSRLS`, `NOCREATEDB`, `NOCREATEROLE`, `NOINHERIT`, `NOREPLICATION` taşır.
+
+## Runtime credential topolojisi
+
+| Hizmet | Bağlantı kimliği | Kabul edilen secret | Bootstrap/owner sınırı |
+|---|---|---|---|
+| `app` | `bimmetraj_app` | `BIMMETRAJ_APP_DB_PASSWORD` ile oluşturulan `DATABASE_URL` | Bootstrap ve owner kimliği yok |
+| `worker`, `ifc-worker` | `bimmetraj_worker` | `BIMMETRAJ_WORKER_DB_PASSWORD` ile oluşturulan `DATABASE_URL` | App, bootstrap ve owner kimliği yok |
+| `migrate` | `bimmetraj_migrator` | `BIMMETRAJ_MIGRATOR_DB_PASSWORD` ile oluşturulan `RELEASE_DATABASE_URL` | Owner parolası yok; DDL yalnız transaction-local rol ile |
+| `backup` | `bimmetraj_backup` | `BIMMETRAJ_BACKUP_DB_PASSWORD` → `PGPASSWORD` | Salt-okuma rolü zorunlu; bootstrap ve owner kimliği yok |
+| `postgres` | bootstrap `bimmetraj` | `SERVICE_PASSWORD_64_POSTGRES` → `POSTGRES_PASSWORD` | Yalnız PostgreSQL bootstrap konteyneri |
+
+Dört login parolası ve bootstrap parolası birbirinden farklı, en az 32 karakterli ve URL-safe yüksek entropili değerler olmalıdır. Compose eksik değerleri `:?` sözleşmesiyle render aşamasında reddeder. Coolify bütün uygulama ortamını hizmetlere yayabildiği için ham `BIMMETRAJ_*_DB_PASSWORD` ve `SERVICE_PASSWORD_64_POSTGRES` anahtarları her hizmet ortamında dolaylı boş değerle gölgelenir. Hizmet yalnız çalışması için gereken bağlantı değişkenini alır; secret değerleri Git'e, build argümanlarına veya loglara yazılmaz.
+
+Production migration bağlantısı yalnız `bimmetraj_migrator` kullanıcısını kabul eder. Runner sırası `BEGIN → SET LOCAL ROLE bimmetraj_owner → session/current role doğrulaması → hedef kapısı → advisory lock → drain kapısı → migration → COMMIT` şeklindedir. Her hata `ROLLBACK` üretir; transaction bittiğinde `current_user` yeniden `bimmetraj_migrator` olur. `bimmetraj_app`, `bimmetraj_worker` ve `bimmetraj_backup` owner rolüne geçemez.
+
+`RELEASE_WORKERS_DRAINED=true` kalıcı bir ayar değildir. Yalnız iki worker durdurulup running/locked sayaçları sıfırlandıktan sonra migrate hizmetine verilir ve tek seferlik migration biter bitmez kaldırılır. Production deployment client'ında kod çağırıcısı seçenek vermese bile drain kapısı zorunludur.
 
 ## Güvenlik ve provenance kapıları
 
@@ -33,6 +49,9 @@ Migrator üyeliği yalnız `SET OPTION=true`, `INHERIT=false`, `ADMIN=false` sö
 ```bash
 pnpm exec tsc --noEmit
 pnpm exec tsx --test src/contracts/database-role-contract.test.ts src/smartcheck/import/queue-readiness.test.ts
+pnpm exec tsx --test scripts/database-roles/runtime-compose-contract.test.ts src/smartcheck/import/coolify-env-isolation.test.ts
+pnpm exec tsx --test scripts/release-migrations/runner-role.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/worker-drain-gate.test.ts
+python3 -m unittest deploy.backup.test_backup
 DATABASE_ROLE_TEST_URL='postgresql://<isolated-pg16-admin>@127.0.0.1:<port>/postgres' pnpm run test:database-roles:pg
 ```
 
@@ -43,7 +62,7 @@ Entegrasyon testi yalnız local, marker'lı disposable PostgreSQL 16 cluster kab
 Bu belge production çalıştırma talimatı veya cutover onayı değildir. T40 ancak şu kanıtlar birlikte mevcutsa kapanabilir:
 
 1. Hedef DB fingerprint ve yedek doğrulaması; güncel restore/parity kanıtı.
-2. Secret manager/Coolify içinde dört benzersiz login credential; log, DDL audit ve shell history redaksiyonu.
+2. Secret manager/Coolify içinde dört benzersiz, URL-safe login credential; Compose fail-closed render ve log/image-history redaksiyonu.
 3. Migration job → migrator, app → app, worker/ifc-worker → worker, backup → backup bağlantı ayrımı.
 4. Pre-cutover inspector PASS; canary health, login, SmartCheck enqueue/consume/remove ve backup smoke.
 5. Başarılı forward recovery ve rollback tatbikatı; eski credential'ın kontrollü iptali.

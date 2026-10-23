@@ -52,6 +52,34 @@ async function connect(connectionString: string): Promise<pg.Client> {
   return client;
 }
 
+async function assertRoleCanAuthenticate(connectionString: string, role: LoginRoleName): Promise<void> {
+  const client = await connect(connectionString);
+  try {
+    assert.deepEqual(
+      (await client.query<{ session_role: string; current_role: string }>(
+        "select session_user as session_role,current_user as current_role",
+      )).rows[0],
+      { session_role: role, current_role: role },
+      `${role} must authenticate with its expected non-inherited identity`,
+    );
+  } finally {
+    await client.end();
+  }
+}
+
+async function assertRoleCannotAuthenticate(connectionString: string, role: LoginRoleName): Promise<void> {
+  const client = new pg.Client({ connectionString, connectionTimeoutMillis: 3_000 });
+  try {
+    await assert.rejects(client.connect(), (error: unknown) => {
+      assert.ok(error instanceof pg.DatabaseError, `${role}: PostgreSQL authentication error expected`);
+      assert.equal(error.code, "28P01", `${role}: invalid_password SQLSTATE expected`);
+      return true;
+    });
+  } finally {
+    await client.end().catch(() => undefined);
+  }
+}
+
 async function assertSqlState42501(action: () => Promise<unknown>, label: string): Promise<void> {
   await assert.rejects(action, (error: unknown) => {
     assert.ok(error instanceof pg.DatabaseError, `${label}: PostgreSQL DatabaseError expected`);
@@ -62,6 +90,7 @@ async function assertSqlState42501(action: () => Promise<unknown>, label: string
 
 test("provisions least-privilege database roles on isolated PostgreSQL 16", { timeout: 60_000 }, async () => {
   const controlUrl = requireLocalPostgres16MaintenanceUrl();
+  const administratorCredential = decodeURIComponent(controlUrl.password);
   const suffix = crypto.randomBytes(8).toString("hex");
   const database = `teklifpro_role_contract_${suffix}`;
   const credentials = Object.fromEntries(
@@ -113,12 +142,12 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
     assert.ok(fingerprint);
     provisionAttempted = true;
     const target = { expectedDatabase: database, expectedSystemIdentifier: fingerprint, requiredMarkerRegclass: "teklifpro_release.migrations" };
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, { ...target, expectedDatabase: `${database}_wrong` }), /fingerprint/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, { ...target, expectedDatabase: `${database}_wrong` }, administratorCredential), /fingerprint/i);
     const lockHolder = await connect(databaseUrl(controlUrl, database));
     connected.push(lockHolder);
     await lockHolder.query("begin");
     await lockHolder.query("select pg_advisory_xact_lock(hashtext('bimmetraj.database-roles.v1'))");
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target), /already active/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /already active/i);
     await lockHolder.query("rollback");
     const sabotagedAdmin = { query: async (...args: any[]) => {
       const result = await (admin.query as any)(...args);
@@ -129,7 +158,7 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
       }
       return result;
     } } as pg.Client;
-    await assert.rejects(() => provisionDatabaseRoles(sabotagedAdmin, credentials, target), /boundary violations/i);
+    await assert.rejects(() => provisionDatabaseRoles(sabotagedAdmin, credentials, target, administratorCredential), /boundary violations/i);
     assert.deepEqual((await admin.query("select rolname from pg_roles where rolname=any($1::text[])", [roleNames])).rows, [], "failed in-transaction postcondition must roll back role creation");
     assert.equal((await admin.query<{ owner: string }>("select pg_get_userbyid(relowner) as owner from pg_class where oid='public.role_contract_existing'::regclass")).rows[0]?.owner, administratorRole, "failed postcondition must roll back ownership transfer");
     const observedSql: string[] = [];
@@ -138,18 +167,41 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
       observedSql.push(typeof query === "string" ? query : query.text);
       return (admin.query as any)(...args);
     } } as pg.Client;
-    await provisionDatabaseRoles(instrumentedAdmin, credentials, target);
+    await provisionDatabaseRoles(instrumentedAdmin, credentials, target, administratorCredential);
+    createdRoleOids = new Map((await admin.query<{ name: string; oid: number }>("select rolname as name,oid from pg_roles where rolname=any($1::text[])", [roleNames])).rows.map((row) => [row.name, row.oid]));
     await admin.query(`grant create,temporary on database ${quoteIdentifier(database)} to bimmetraj_app`);
     await admin.query("set role bimmetraj_owner");
     await admin.query("alter default privileges in schema public grant truncate on tables to bimmetraj_backup");
     await admin.query("reset role");
-    await provisionDatabaseRoles(instrumentedAdmin, credentials, target);
+    await provisionDatabaseRoles(instrumentedAdmin, credentials, target, administratorCredential);
     for (const password of Object.values(credentials)) assert.equal(observedSql.some((sql) => sql.includes(password)), false, "credential leaked into SQL text");
-    createdRoleOids = new Map((await admin.query<{ name: string; oid: number }>("select rolname as name,oid from pg_roles where rolname=any($1::text[])", [roleNames])).rows.map((row) => [row.name, row.oid]));
+    assert.deepEqual(
+      new Map((await admin.query<{ name: string; oid: number }>("select rolname as name,oid from pg_roles where rolname=any($1::text[])", [roleNames])).rows.map((row) => [row.name, row.oid])),
+      createdRoleOids,
+      "reconvergence must preserve canonical role identities",
+    );
+
+    const rotatedCredentials = Object.fromEntries(
+      loginRoleNames.map((name) => [name, crypto.randomBytes(32).toString("hex")]),
+    ) as RoleCredentials;
+    await provisionDatabaseRoles(instrumentedAdmin, rotatedCredentials, target, administratorCredential);
+    const rotatedCredentialReport = await inspectRoleBoundaries(admin);
+    assert.doesNotThrow(() => assertRoleBoundaries(rotatedCredentialReport));
+    for (const role of loginRoleNames) {
+      await assertRoleCannotAuthenticate(databaseUrl(controlUrl, database, role, credentials[role]), role);
+      await assertRoleCanAuthenticate(databaseUrl(controlUrl, database, role, rotatedCredentials[role]), role);
+    }
+    await provisionDatabaseRoles(instrumentedAdmin, credentials, target, administratorCredential);
+    const restoredCredentialReport = await inspectRoleBoundaries(admin);
+    assert.doesNotThrow(() => assertRoleBoundaries(restoredCredentialReport));
+    for (const role of loginRoleNames) {
+      await assertRoleCannotAuthenticate(databaseUrl(controlUrl, database, role, rotatedCredentials[role]), role);
+      await assertRoleCanAuthenticate(databaseUrl(controlUrl, database, role, credentials[role]), role);
+    }
 
     await control.query("create role role_contract_unexpected noinherit");
     await control.query("grant role_contract_unexpected to bimmetraj_app");
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target), /unexpected membership/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /unexpected membership/i);
     await control.query("revoke role_contract_unexpected from bimmetraj_app");
     await control.query("drop role role_contract_unexpected");
 
@@ -187,7 +239,7 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
 
     await control.query("create role role_contract_acl_outsider noinherit");
     await admin.query("grant select(note) on public.role_contract_existing to role_contract_acl_outsider");
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target), /ACL grantee/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /ACL grantee/i);
     await admin.query("revoke select(note) on public.role_contract_existing from role_contract_acl_outsider");
     await control.query("drop role role_contract_acl_outsider");
 
@@ -196,22 +248,22 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
     await admin.query("reset role");
     const defaultGrantOptionReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(defaultGrantOptionReport), /default ACL/i);
-    await provisionDatabaseRoles(admin, credentials, target);
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
 
     await control.query("grant connect on database postgres to bimmetraj_app");
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target), /another database/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /another database/i);
     await control.query("revoke connect on database postgres from bimmetraj_app");
 
     await control.query("alter tablespace pg_default owner to bimmetraj_app");
     tablespaceOwnerChanged = true;
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target), /cluster-shared/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /cluster-shared/i);
     await control.query(`alter tablespace pg_default owner to ${quoteIdentifier(defaultTablespaceOwner)}`);
     tablespaceOwnerChanged = false;
 
     await admin.query("comment on role bimmetraj_app is 'unexpected-provenance'");
     const provenanceDriftReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(provenanceDriftReport), /provenance/i);
-    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target), /provenance/i);
+    await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /provenance/i);
     await admin.query(`comment on role bimmetraj_app is 'bimmetraj.database-roles.v1:${fingerprint}'`);
 
     await admin.query("grant insert on public.role_contract_existing to bimmetraj_backup");
@@ -222,7 +274,7 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
     await admin.query("revoke execute on function teklifpro_queue.bimmetraj_enqueue_smartcheck(text,json,text,integer,integer) from bimmetraj_app");
     const missingExecuteReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(missingExecuteReport), /EXECUTE/);
-    await provisionDatabaseRoles(admin, credentials, target);
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
 
     const aclDrifts = [
       "grant execute on function teklifpro_queue.bimmetraj_remove_smartcheck_job(text) to bimmetraj_backup",
@@ -233,13 +285,13 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
       await admin.query(statement);
       const aclDriftReport = await inspectRoleBoundaries(admin);
       assert.throws(() => assertRoleBoundaries(aclDriftReport), /EXECUTE ACL matrix drift/);
-      await provisionDatabaseRoles(admin, credentials, target);
+      await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
     }
     await admin.query("revoke execute on function teklifpro_queue.bimmetraj_enqueue_smartcheck(text,json,text,integer,integer) from bimmetraj_app");
     await admin.query("grant execute on function teklifpro_queue.bimmetraj_enqueue_smartcheck(text,json,text,integer,integer) to public");
     const publicAclReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(publicAclReport), /EXECUTE ACL matrix drift/);
-    await provisionDatabaseRoles(admin, credentials, target);
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
 
     await admin.query("begin");
     try {
@@ -282,18 +334,18 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
     await admin.query("alter table teklifpro_queue._private_jobs disable row level security");
     const disabledRlsReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(disabledRlsReport), /RLS/i);
-    await provisionDatabaseRoles(admin, credentials, target);
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
 
     await admin.query("alter table teklifpro_queue._private_jobs force row level security");
     const forcedRlsReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(forcedRlsReport), /RLS policy matrix drift/);
-    await provisionDatabaseRoles(admin, credentials, target);
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
 
     await admin.query("alter table teklifpro_queue.migrations enable row level security");
     await admin.query("create policy role_contract_unexpected on teklifpro_queue.migrations for select to bimmetraj_app using (true)");
     const migrationsRlsReport = await inspectRoleBoundaries(admin);
     assert.throws(() => assertRoleBoundaries(migrationsRlsReport), /RLS|policy/i);
-    await provisionDatabaseRoles(admin, credentials, target);
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
 
     await admin.query("begin");
     try {
@@ -340,9 +392,29 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
     connected.push(migrator, app, worker, backup);
 
     await assertSqlState42501(() => migrator.query("create table public.role_contract_migrator_inherited (id integer)"), "migrator requires explicit SET ROLE");
-    await migrator.query("set role bimmetraj_owner");
+    for (const [name, client] of [["app", app], ["worker", worker], ["backup", backup]] as const) {
+      await assertSqlState42501(() => client.query("set role bimmetraj_owner"), `${name} cannot SET ROLE owner`);
+    }
+    assert.deepEqual(
+      (await migrator.query<{ session_role: string; current_role: string }>("select session_user as session_role,current_user as current_role")).rows[0],
+      { session_role: "bimmetraj_migrator", current_role: "bimmetraj_migrator" },
+    );
+    await migrator.query("begin");
+    await migrator.query("set local role bimmetraj_owner");
+    assert.deepEqual(
+      (await migrator.query<{ session_role: string; current_role: string }>("select session_user as session_role,current_user as current_role")).rows[0],
+      { session_role: "bimmetraj_migrator", current_role: "bimmetraj_owner" },
+    );
     await migrator.query("create table public.role_contract_new (id integer primary key, note text not null)");
-    await migrator.query("reset role");
+    await migrator.query("commit");
+    await migrator.query("begin");
+    await migrator.query("set local role bimmetraj_owner");
+    await migrator.query("rollback");
+    assert.deepEqual(
+      (await migrator.query<{ session_role: string; current_role: string }>("select session_user as session_role,current_user as current_role")).rows[0],
+      { session_role: "bimmetraj_migrator", current_role: "bimmetraj_migrator" },
+      "rollback must restore the migrator identity",
+    );
 
     await app.query("insert into public.role_contract_existing(id,note) values (2,'app-created')");
     await app.query("update public.role_contract_existing set note='app-updated' where id=2");

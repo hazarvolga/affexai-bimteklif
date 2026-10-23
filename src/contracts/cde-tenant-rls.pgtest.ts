@@ -172,6 +172,7 @@ async function assertCdePolicyCatalog(admin: pg.Client) {
 
 test("CDE tenant RLS isolates app pool reuse and concurrency while preserving explicit role boundaries", { timeout: 120_000 }, async (t) => {
   const controlUrl = requireControlUrl();
+  const administratorCredential = decodeURIComponent(controlUrl.password);
   const control = await connect(controlUrl.toString());
   const credentials = Object.fromEntries(loginRoles.map((role) => [role, crypto.randomBytes(32).toString("hex")])) as Credentials;
   const clients: pg.Client[] = [];
@@ -192,25 +193,27 @@ test("CDE tenant RLS isolates app pool reuse and concurrency while preserving ex
     const admin = await connect(databaseUrl(controlUrl, databaseName));
     clients.push(admin);
     const migrations = await loadMigrations();
-    assert.equal(migrations.at(-1)?.tag, "0013_cde_tenant_rls", "T41 CDE RLS must be the next release migration");
-    await applyMigrations(admin, migrations, migrations.length - 2);
+    const cdeMigrationIndex = migrations.findIndex(({ tag }) => tag === "0013_cde_tenant_rls");
+    assert.ok(cdeMigrationIndex > 0, "T41 CDE RLS migration must exist after an established baseline");
+    await applyMigrations(admin, migrations, cdeMigrationIndex - 1);
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue = await makeWorkerUtils({ connectionString: databaseUrl(controlUrl, databaseName), schema: "teklifpro_queue", logger: new Logger(() => () => {}) });
     await queue.release();
     const fingerprint = (await admin.query<{ id: string }>("select system_identifier::text as id from pg_control_system()")).rows[0]!.id;
-    await provisionDatabaseRoles(admin, credentials, { expectedDatabase: databaseName, expectedSystemIdentifier: fingerprint, requiredMarkerRegclass: "teklifpro_release.migrations" });
+    await provisionDatabaseRoles(admin, credentials, { expectedDatabase: databaseName, expectedSystemIdentifier: fingerprint, requiredMarkerRegclass: "teklifpro_release.migrations" }, administratorCredential);
     rolesProvisioned = true;
     const migrator = await connect(databaseUrl(controlUrl, databaseName, "bimmetraj_migrator", credentials.bimmetraj_migrator));
     clients.push(migrator);
     await migrator.query("set role bimmetraj_owner");
-    assert.deepEqual(await applyMigrations(migrator, migrations), ["0013_cde_tenant_rls"]);
+    assert.deepEqual(await applyMigrations(migrator, migrations, cdeMigrationIndex), ["0013_cde_tenant_rls"]);
+    const cdeMigration = migrations[cdeMigrationIndex]!;
     const ledger = await migrator.query<{ idx: number; tag: string; hash: string; catalog_hash: string }>(
-      "select idx,tag,hash,catalog_hash from teklifpro_release.migrations where idx=$1", [migrations.at(-1)!.idx],
+      "select idx,tag,hash,catalog_hash from teklifpro_release.migrations where idx=$1", [cdeMigration.idx],
     );
     assert.deepEqual(ledger.rows, [{
-      idx: migrations.at(-1)!.idx,
-      tag: migrations.at(-1)!.tag,
-      hash: migrations.at(-1)!.sha256,
+      idx: cdeMigration.idx,
+      tag: cdeMigration.tag,
+      hash: cdeMigration.sha256,
       catalog_hash: "6fcb6ee3901599db5c081bd84b6b68471aac42ff641daee7bec5d2dafe27043f",
     }]);
     await assertCdePolicyCatalog(admin);

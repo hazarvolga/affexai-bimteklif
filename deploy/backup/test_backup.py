@@ -12,7 +12,8 @@ spec.loader.exec_module(backup)
 class BackupTests(unittest.TestCase):
     def env(self):
         return dict(BACKUP_S3_BUCKET='bimmetraj-backups', BACKUP_S3_ENDPOINT='https://account.r2.cloudflarestorage.com',
-                    BACKUP_S3_ACCESS_KEY_ID='SECRET_ACCESS', BACKUP_S3_SECRET_ACCESS_KEY='SECRET_KEY', PGPASSWORD='SECRET_DB')
+                    BACKUP_S3_ACCESS_KEY_ID='SECRET_ACCESS', BACKUP_S3_SECRET_ACCESS_KEY='SECRET_KEY',
+                    PGUSER='bimmetraj_backup', PGPASSWORD='SECRET_DB')
 
     def test_missing_config_fails_before_commands(self):
         with patch.dict(os.environ, {}, clear=True), patch.object(backup, 'run') as run:
@@ -21,7 +22,7 @@ class BackupTests(unittest.TestCase):
             run.assert_not_called()
 
     def test_wrong_target_and_path_rejected(self):
-        for key, value in [('PGDATABASE', 'postgres'), ('PGHOST', 'other'), ('BACKUP_S3_PREFIX', '../other'), ('BACKUP_S3_BUCKET', 'bad/bucket'), ('BACKUP_S3_ENDPOINT', 'http://unsafe')]:
+        for key, value in [('PGDATABASE', 'postgres'), ('PGHOST', 'other'), ('PGUSER', 'bimmetraj'), ('PGUSER', 'bimmetraj_owner'), ('BACKUP_S3_PREFIX', '../other'), ('BACKUP_S3_BUCKET', 'bad/bucket'), ('BACKUP_S3_ENDPOINT', 'http://unsafe')]:
             with patch.dict(os.environ, {**self.env(), key: value}, clear=True):
                 with self.assertRaises(backup.BackupError): backup.configuration()
 

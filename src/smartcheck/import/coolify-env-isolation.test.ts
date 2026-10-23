@@ -10,7 +10,9 @@ test('Coolify shared env_file cannot expose backup credentials to other services
   const services = ['app', 'worker', 'ifc-worker', 'migrate', 'postgres', 'backup'];
   const backupKeys = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ENDPOINT', 'BACKUP_S3_ACCESS_KEY_ID', 'BACKUP_S3_SECRET_ACCESS_KEY'];
   const appSecrets = ['SMARTCHECK_S3_ACCESS_KEY_ID', 'SMARTCHECK_S3_SECRET_ACCESS_KEY', 'JWT_SECRET', 'SERVICE_HEX_64_JWT', 'OPENAI_API_KEY', 'GEMINI_API_KEY'];
-  const fixtures = Object.fromEntries([...backupKeys, ...appSecrets].map(key => [key, `fixture-${key}`]));
+  const databaseSecrets = ['BIMMETRAJ_APP_DB_PASSWORD', 'BIMMETRAJ_WORKER_DB_PASSWORD', 'BIMMETRAJ_MIGRATOR_DB_PASSWORD', 'BIMMETRAJ_BACKUP_DB_PASSWORD', 'SERVICE_PASSWORD_64_POSTGRES'];
+  const fixtures = Object.fromEntries([...backupKeys, ...appSecrets, ...databaseSecrets].map(key => [key, `fixture-${key}`]));
+  fixtures.RELEASE_WORKERS_DRAINED = 'true';
   try {
     const envFile = path.join(directory, 'runtime.env');
     writeFileSync(envFile, Object.entries(fixtures).map(([key, value]) => `${key}=${value}`).join('\n'));
@@ -36,6 +38,10 @@ test('Coolify shared env_file cannot expose backup credentials to other services
       }
     }
     for (const key of appSecrets) assert.equal(rendered.backup.environment[key], '', `backup must not receive ${key}`);
+    for (const service of services) {
+      for (const key of databaseSecrets) assert.equal(rendered[service].environment[key], '', `${service} must not retain raw ${key}`);
+      assert.equal(rendered[service].environment.RELEASE_WORKERS_DRAINED, service === 'migrate' ? 'true' : '', `${service}: release drain acknowledgement scope`);
+    }
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

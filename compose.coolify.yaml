@@ -20,11 +20,19 @@ x-no-backup-environment: &no-backup-environment
   AUTH_EMAIL_FROM: ${BIMMETRAJ_EMPTY_ENV:-}
   AUTH_EMAIL_WEBHOOK_URL: ${BIMMETRAJ_EMPTY_ENV:-}
   AUTH_EMAIL_WEBHOOK_SECRET: ${BIMMETRAJ_EMPTY_ENV:-}
+  # Coolify exposes its application environment to every service. Connection
+  # URLs below are interpolated by Compose; never retain raw role/bootstrap
+  # credentials in a runtime container environment.
+  BIMMETRAJ_APP_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
+  BIMMETRAJ_WORKER_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
+  BIMMETRAJ_MIGRATOR_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
+  BIMMETRAJ_BACKUP_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
+  SERVICE_PASSWORD_64_POSTGRES: ${BIMMETRAJ_EMPTY_ENV:-}
+  RELEASE_WORKERS_DRAINED: ${BIMMETRAJ_EMPTY_ENV:-}
 
 x-app-environment: &app-environment
   <<: *no-backup-environment
   NODE_ENV: production
-  DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:-}@postgres:5432/bimmetraj_production
   PG_POOL_MAX: '4'
   JWT_SECRET: ${SERVICE_HEX_64_JWT:-}
   PUBLIC_APP_URL: https://bimmetraj.com
@@ -77,6 +85,7 @@ services:
         SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
+      DATABASE_URL: postgresql://bimmetraj_app:${BIMMETRAJ_APP_DB_PASSWORD:?BIMMETRAJ_APP_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       AUTH_EMAIL_DELIVERY_MODE: ${AUTH_EMAIL_DELIVERY_MODE:-disabled}
       AUTH_EMAIL_SMTP_HOST: ${AUTH_EMAIL_SMTP_HOST:-}
       AUTH_EMAIL_SMTP_PORT: ${AUTH_EMAIL_SMTP_PORT:-465}
@@ -114,6 +123,7 @@ services:
         SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
+      DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       NODE_OPTIONS: --max-old-space-size=768
       SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-2}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -131,6 +141,7 @@ services:
         SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
+      DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       NODE_OPTIONS: --max-old-space-size=1024
       SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
       SMARTCHECK_IFC_TIMEOUT_SEC: ${SMARTCHECK_IFC_TIMEOUT_SEC:-600}
@@ -152,11 +163,12 @@ services:
       <<: *no-backup-environment
       NODE_ENV: production
       PG_POOL_MAX: '4'
-      RELEASE_DATABASE_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:-}@postgres:5432/bimmetraj_production
+      RELEASE_DATABASE_URL: postgresql://bimmetraj_migrator:${BIMMETRAJ_MIGRATOR_DB_PASSWORD:?BIMMETRAJ_MIGRATOR_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       RELEASE_ALLOW_PRODUCTION: 'true'
       RELEASE_EXPECTED_HOST: postgres
       RELEASE_EXPECTED_DATABASE: bimmetraj_production
-      RELEASE_EXPECTED_USER: bimmetraj
+      RELEASE_EXPECTED_USER: bimmetraj_migrator
+      RELEASE_WORKERS_DRAINED: ${RELEASE_WORKERS_DRAINED:?RELEASE_WORKERS_DRAINED=true is required after workers are stopped}
     restart: 'no'
     depends_on:
       postgres:
@@ -185,8 +197,8 @@ services:
       PGHOST: postgres
       PGPORT: '5432'
       PGDATABASE: bimmetraj_production
-      PGUSER: bimmetraj
-      PGPASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:-}
+      PGUSER: bimmetraj_backup
+      PGPASSWORD: ${BIMMETRAJ_BACKUP_DB_PASSWORD:?BIMMETRAJ_BACKUP_DB_PASSWORD is required}
       BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
       BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
       BACKUP_S3_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID:-}
@@ -207,7 +219,7 @@ services:
       <<: *no-backup-environment
       POSTGRES_DB: bimmetraj_production
       POSTGRES_USER: bimmetraj
-      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:-}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}
     command: [postgres, -c, shared_buffers=128MB, -c, max_connections=40, -c, work_mem=4MB]
     volumes:
       - postgres-data:/var/lib/postgresql/data

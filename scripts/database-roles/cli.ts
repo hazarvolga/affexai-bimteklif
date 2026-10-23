@@ -29,7 +29,7 @@ async function main() {
         expectedDatabase: required("DATABASE_ROLE_EXPECTED_DATABASE"),
         expectedSystemIdentifier: required("DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER"),
         requiredMarkerRegclass: required("DATABASE_ROLE_REQUIRED_MARKER"),
-      });
+      }, decodeURIComponent(new URL(connectionString).password));
     }
     const report = await inspectRoleBoundaries(client);
     assertRoleBoundaries(report);

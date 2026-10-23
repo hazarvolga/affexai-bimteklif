@@ -26,13 +26,13 @@ def configuration():
         or e.get('BACKUP_S3_PREFIX', PREFIX) != PREFIX
         or e.get('PGHOST', 'postgres') != 'postgres'
         or e.get('PGDATABASE', 'bimmetraj_production') != 'bimmetraj_production'
-        or e.get('PGUSER', 'bimmetraj') != 'bimmetraj'
+        or e.get('PGUSER', '') != 'bimmetraj_backup'
         or e.get('PGPORT', '5432') != '5432'
         or not all(e.get(k) for k in ['PGPASSWORD', 'BACKUP_S3_ACCESS_KEY_ID', 'BACKUP_S3_SECRET_ACCESS_KEY'])):
         raise BackupError('invalid or missing backup configuration')
     # Do not inherit PG service/options, AWS profiles or credential providers.
     env = dict(PATH=os.defpath, HOME='/tmp', PGHOST='postgres', PGPORT='5432',
-               PGDATABASE='bimmetraj_production', PGUSER='bimmetraj', PGPASSWORD=e['PGPASSWORD'],
+               PGDATABASE='bimmetraj_production', PGUSER='bimmetraj_backup', PGPASSWORD=e['PGPASSWORD'],
                PGCONNECT_TIMEOUT='10', AWS_ACCESS_KEY_ID=e['BACKUP_S3_ACCESS_KEY_ID'],
                AWS_SECRET_ACCESS_KEY=e['BACKUP_S3_SECRET_ACCESS_KEY'], AWS_DEFAULT_REGION='auto',
                AWS_EC2_METADATA_DISABLED='true', AWS_CONFIG_FILE='/dev/null',

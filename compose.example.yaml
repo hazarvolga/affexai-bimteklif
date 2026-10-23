@@ -29,6 +29,7 @@ services:
     env_file: [./.env.app]
     environment:
       NODE_ENV: production
+      DATABASE_URL: postgresql://bimmetraj_app:${BIMMETRAJ_APP_DB_PASSWORD:?BIMMETRAJ_APP_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       PG_POOL_MAX: '4'
       PORT: '3000'
       NODE_OPTIONS: --max-old-space-size=768
@@ -48,6 +49,7 @@ services:
     env_file: [./.env.worker]
     environment:
       NODE_ENV: production
+      DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       PG_POOL_MAX: '4'
       NODE_OPTIONS: --max-old-space-size=768
       SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-2}
@@ -65,6 +67,7 @@ services:
     env_file: [./.env.worker]
     environment:
       NODE_ENV: production
+      DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       PG_POOL_MAX: '4'
       NODE_OPTIONS: --max-old-space-size=1024
       SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
@@ -84,21 +87,51 @@ services:
     build:
       context: .
       target: migrate
-    env_file: [./.env.app]
+    env_file: [./.env.migrator]
     environment:
       NODE_ENV: production
       PG_POOL_MAX: '4'
-      RELEASE_DATABASE_URL: ${DATABASE_URL}
+      RELEASE_DATABASE_URL: postgresql://bimmetraj_migrator:${BIMMETRAJ_MIGRATOR_DB_PASSWORD:?BIMMETRAJ_MIGRATOR_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
+      RELEASE_WORKERS_DRAINED: ${RELEASE_WORKERS_DRAINED:?RELEASE_WORKERS_DRAINED=true is required after workers are stopped}
     restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
 
+  backup:
+    image: teklifpro-backup:${IMAGE_TAG:-local}
+    build:
+      context: ./deploy/backup
+    env_file: [./.env.backup]
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    environment:
+      PGHOST: postgres
+      PGPORT: '5432'
+      PGDATABASE: bimmetraj_production
+      PGUSER: bimmetraj_backup
+      PGPASSWORD: ${BIMMETRAJ_BACKUP_DB_PASSWORD:?BIMMETRAJ_BACKUP_DB_PASSWORD is required}
+    volumes:
+      - backup-data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 64
 
   postgres:
     image: postgres:16-bookworm
     restart: unless-stopped
     env_file: [./.env.postgres]
+    environment:
+      POSTGRES_DB: bimmetraj_production
+      POSTGRES_USER: bimmetraj
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}
     command: [postgres, -c, shared_buffers=128MB, -c, max_connections=40, -c, work_mem=4MB]
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -112,4 +145,5 @@ services:
     shm_size: 128mb
 
 volumes:
+  backup-data:
   postgres-data:

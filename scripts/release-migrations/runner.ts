@@ -2,8 +2,9 @@ import { readFile } from 'node:fs/promises';
 import type pg from 'pg';
 import { releaseDirectory, ledgerSchema } from './config';
 import { catalog, sha256 } from './catalog';
-import { requireMigrationTarget, requireEmpty } from './safety';
+import { isApprovedDeployment, requireMigrationTarget, requireEmpty } from './safety';
 import { pinnedSignature } from './stage-signatures';
+import { assertSmartCheckWorkersDrained } from './worker-drain-gate';
 
 export interface Migration { idx: number; tag: string; sha256: string; snapshotSha256: string; statements: string[] }
 
@@ -45,14 +46,28 @@ async function history(client: pg.Client, migrations: Migration[]) {
   return rows;
 }
 
-async function transaction<T>(client: pg.Client, action: () => Promise<T>) {
-  await requireMigrationTarget(client);
+export type MigrationTransactionOptions = Readonly<{
+  requireWorkersDrained?: boolean;
+  workerDrainEnv?: Record<string, string | undefined>;
+}>;
+
+export async function runMigrationTransaction<T>(client: pg.Client, action: () => Promise<T>, options: MigrationTransactionOptions = {}) {
+  const deployment = isApprovedDeployment(client);
   await client.query('begin');
   try {
+    if (deployment) {
+      await client.query('set local role bimmetraj_owner');
+      const { rows: [identity] } = await client.query<{ session_role: string; current_role: string }>('select session_user as session_role,current_user as current_role');
+      if (identity?.session_role !== 'bimmetraj_migrator' || identity.current_role !== 'bimmetraj_owner') {
+        throw new Error('Release migration requires bimmetraj_migrator session with transaction-local bimmetraj_owner role');
+      }
+    }
+    await requireMigrationTarget(client);
     await client.query("set local lock_timeout='5s'");
     await client.query("set local statement_timeout='30s'");
     await client.query("set local search_path=public,pg_catalog");
     await client.query("select pg_advisory_xact_lock(707071)");
+    if (deployment || options.requireWorkersDrained) await assertSmartCheckWorkersDrained(client, options.workerDrainEnv);
     const result = await action();
     await client.query('commit');
     return result;
@@ -62,9 +77,14 @@ async function transaction<T>(client: pg.Client, action: () => Promise<T>) {
   }
 }
 
-export async function applyMigrations(client: pg.Client, migrations: Migration[], through = migrations.length - 1) {
+export async function applyMigrations(
+  client: pg.Client,
+  migrations: Migration[],
+  through = migrations.length - 1,
+  options: MigrationTransactionOptions = {},
+) {
   for (const migration of migrations) pinnedSignature(migration);
-  return transaction(client, async () => {
+  return runMigrationTransaction(client, async () => {
     const rows = await history(client, migrations);
     if (!rows) { await requireEmpty(client); await createLedger(client); }
     const applied: string[] = [];
@@ -78,7 +98,7 @@ export async function applyMigrations(client: pg.Client, migrations: Migration[]
       applied.push(migration.tag);
     }
     return applied;
-  });
+  }, options);
 }
 
 // Operator confirmation cannot override the independently verified release pin.
@@ -86,7 +106,7 @@ export async function adoptBaseline(client: pg.Client, migrations: Migration[], 
   if (!/^[a-f0-9]{64}$/.test(expectedSignature)) throw new Error('Explicit verified baseline signature required');
   const baseline = migrations[0];
   if (!baseline || baseline.idx !== 0 || expectedSignature !== pinnedSignature(baseline)) throw new Error('Adoption signature mismatch with pinned release baseline');
-  return transaction(client, async () => {
+  return runMigrationTransaction(client, async () => {
     const { rows: [exists] } = await client.query("select to_regnamespace('teklifpro_release') as name");
     if (exists.name) throw new Error('Adoption refuses existing release metadata');
     if ((await catalog(client)).signature !== expectedSignature) throw new Error('Adoption signature mismatch');

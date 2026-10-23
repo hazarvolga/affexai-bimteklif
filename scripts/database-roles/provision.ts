@@ -14,13 +14,16 @@ const canonicalRoleNames = DATABASE_ROLE_SPECS.map(({ name }) => name);
 const managedSchemas = DATABASE_SCHEMA_SPECS.map(({ name }) => name);
 const identifier = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
-function validateCredentials(credentials: DatabaseRoleCredentials): void {
+function validateCredentials(credentials: DatabaseRoleCredentials, administratorCredential: string): void {
+  if (!administratorCredential) throw new Error("The authenticated bootstrap administrator credential is required for separation validation");
   const seen = new Set<string>();
   for (const spec of DATABASE_ROLE_SPECS) {
     if (!spec.canLogin) continue;
     const credential = credentials[spec.name as keyof DatabaseRoleCredentials];
-    if (typeof credential !== "string" || credential.length < 32 || new Set(credential).size < 12) throw new Error(`${spec.name} requires a high-entropy generated credential of at least 32 characters`);
-    if (seen.has(credential)) throw new Error("Every canonical login role requires a distinct generated credential");
+    if (typeof credential !== "string" || credential.length < 32 || new Set(credential).size < 12 || !/^[A-Za-z0-9_-]+$/.test(credential)) {
+      throw new Error(`${spec.name} requires a URL-safe high-entropy generated credential of at least 32 characters`);
+    }
+    if (seen.has(credential) || credential === administratorCredential) throw new Error("Every canonical login and bootstrap role requires a distinct generated credential");
     seen.add(credential);
   }
 }
@@ -176,8 +179,13 @@ async function convergePrivileges(client: Queryable, database: string): Promise<
   }
 }
 
-export async function provisionDatabaseRoles(client: Queryable, credentials: DatabaseRoleCredentials, target: DatabaseRoleProvisionTarget): Promise<void> {
-  validateCredentials(credentials);
+export async function provisionDatabaseRoles(
+  client: Queryable,
+  credentials: DatabaseRoleCredentials,
+  target: DatabaseRoleProvisionTarget,
+  administratorCredential: string,
+): Promise<void> {
+  validateCredentials(credentials, administratorCredential);
   await client.query("begin");
   try {
     const lock = await client.query<{ acquired: boolean }>("select pg_try_advisory_xact_lock(hashtext('bimmetraj.database-roles.v1')) as acquired");
