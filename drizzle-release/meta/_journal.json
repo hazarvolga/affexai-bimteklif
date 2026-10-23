@@ -106,6 +106,13 @@
       "when": 1791417600014,
       "tag": "0014_smartcheck_worker_lease",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791417600015,
+      "tag": "0015_progress_payment_tenant_rls",
+      "breakpoints": true
     }
   ]
 }

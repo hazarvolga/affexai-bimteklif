@@ -125,11 +125,35 @@ test('CDE tables declare the exact tenant and backup RLS policy surface', () => 
   }
 });
 
+test('progress-payment tables declare the exact tenant, backup, and migration RLS surface', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  const tableNames = [
+    'construction_contracts', 'construction_contract_items', 'progress_payment_periods', 'progress_payment_lines',
+    'progress_measurements', 'progress_measurement_review_events', 'progress_payment_adjustments',
+    'progress_payment_events', 'contract_variations', 'final_accounts',
+  ];
+  for (const tableName of tableNames) {
+    const table = tables[`public.${tableName}`];
+    assert.equal(table.isRLSEnabled, true, `${tableName}: RLS must be enabled`);
+    assert.deepEqual(Object.keys(table.policies).sort(), [`${tableName}_app_tenant`, `${tableName}_backup_read`, `${tableName}_owner_migration`]);
+    const app = table.policies[`${tableName}_app_tenant`];
+    assert.equal(app.for, 'ALL');
+    assert.equal(app.using, `current_user = 'bimmetraj_app' AND "${tableName}"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`);
+    assert.equal(app.withCheck, app.using);
+    const backup = table.policies[`${tableName}_backup_read`];
+    assert.deepEqual({ for: backup.for, using: backup.using, withCheck: backup.withCheck }, { for: 'SELECT', using: "current_user = 'bimmetraj_backup'", withCheck: undefined });
+    const owner = table.policies[`${tableName}_owner_migration`];
+    assert.deepEqual({ for: owner.for, using: owner.using, withCheck: owner.withCheck }, { for: 'ALL', using: "session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'", withCheck: "session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'" });
+  }
+  const forced = injectDataTransitions('0015_progress_payment_tenant_rls', []);
+  assert.deepEqual(forced, tableNames.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
+});
+
 test('release artifacts form an append-only chain matching current schema', async () => {
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 15);
+  assert.equal(migrations.length, 16);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

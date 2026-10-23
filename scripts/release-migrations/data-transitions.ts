@@ -847,5 +847,17 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
       : ordered;
     return [...cumulative, smartCheckWorkerLeaseTransition];
   }
+  if (tag === '0015_progress_payment_tenant_rls') {
+    const ordered = [...schemaStatements];
+    const forced = [
+      'construction_contracts', 'construction_contract_items', 'progress_payment_periods', 'progress_payment_lines',
+      'progress_measurements', 'progress_measurement_review_events', 'progress_payment_adjustments',
+      'progress_payment_events', 'contract_variations', 'final_accounts',
+    ].map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0014_smartcheck_worker_lease', statements)]
+      : statements;
+  }
   return [...schemaStatements];
 }

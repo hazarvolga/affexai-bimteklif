@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DATABASE_ROLE_MEMBERSHIPS, DATABASE_ROLE_SPECS } from "../../scripts/database-roles/contract";
+import { DATABASE_PROGRESS_PAYMENT_RLS_TABLES, DATABASE_ROLE_MEMBERSHIPS, DATABASE_ROLE_SPECS } from "../../scripts/database-roles/contract";
 import {
   assertRoleBoundaries,
   sanitizeRoleReport,
@@ -16,6 +16,14 @@ const canonicalRoleNames = [
   "bimmetraj_worker",
   "bimmetraj_backup",
 ] as const;
+
+test("progress-payment RLS contract covers the complete bounded aggregate", () => {
+  assert.deepEqual(DATABASE_PROGRESS_PAYMENT_RLS_TABLES, [
+    "construction_contracts", "construction_contract_items", "progress_payment_periods", "progress_payment_lines",
+    "progress_measurements", "progress_measurement_review_events", "progress_payment_adjustments",
+    "progress_payment_events", "contract_variations", "final_accounts",
+  ]);
+});
 
 function validReport(): DatabaseRoleBoundaryReport {
   return {

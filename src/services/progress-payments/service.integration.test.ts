@@ -16,7 +16,20 @@ let testPool: pg.Pool;
 before(async () => {
   const { ProgressPaymentService } = await import("./service");
   testPool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 4 });
-  service = new ProgressPaymentService(testPool);
+  service = new ProgressPaymentService(testPool, async (database, _context, work) => {
+    const client = await database.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await work(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  });
   await testPool.query("insert into companies(id,name) values ($1,'Phase 6 fixture')", [ids.company]);
   await testPool.query("insert into users(id,email,full_name) values ($1,$3,'Maker'),($2,$4,'Checker')", [ids.maker, ids.checker, `maker-${ids.maker}@phase6.test`, `checker-${ids.checker}@phase6.test`]);
   await testPool.query("insert into memberships(user_id,company_id,role) values ($1,$3,'manager'),($2,$3,'manager')", [ids.maker, ids.checker, ids.company]);

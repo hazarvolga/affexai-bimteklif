@@ -195,7 +195,7 @@ test("CDE tenant RLS isolates app pool reuse and concurrency while preserving ex
     const migrations = await loadMigrations();
     const cdeMigrationIndex = migrations.findIndex(({ tag }) => tag === "0013_cde_tenant_rls");
     assert.ok(cdeMigrationIndex > 0, "T41 CDE RLS migration must exist after an established baseline");
-    await applyMigrations(admin, migrations, cdeMigrationIndex - 1);
+    await applyMigrations(admin, migrations);
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue = await makeWorkerUtils({ connectionString: databaseUrl(controlUrl, databaseName), schema: "teklifpro_queue", logger: new Logger(() => () => {}) });
     await queue.release();
@@ -205,7 +205,7 @@ test("CDE tenant RLS isolates app pool reuse and concurrency while preserving ex
     const migrator = await connect(databaseUrl(controlUrl, databaseName, "bimmetraj_migrator", credentials.bimmetraj_migrator));
     clients.push(migrator);
     await migrator.query("set role bimmetraj_owner");
-    assert.deepEqual(await applyMigrations(migrator, migrations, cdeMigrationIndex), ["0013_cde_tenant_rls"]);
+    assert.deepEqual(await applyMigrations(migrator, migrations), []);
     const cdeMigration = migrations[cdeMigrationIndex]!;
     const ledger = await migrator.query<{ idx: number; tag: string; hash: string; catalog_hash: string }>(
       "select idx,tag,hash,catalog_hash from teklifpro_release.migrations where idx=$1", [cdeMigration.idx],

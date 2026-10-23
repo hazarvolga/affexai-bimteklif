@@ -1,5 +1,6 @@
 import type pg from "pg";
 import { pool } from "../../db";
+import { withTenantTransaction, type TenantContext } from "../../db/tenant-context";
 import { canonicalProgressRequestHash, type CreateConstructionContractInput, type CreateProgressPeriodInput, type ReviewProgressMeasurementsInput, type SaveProgressDraftInput, type ProgressTransitionInput } from "../../contracts/progress-payment";
 
 type Actor = { companyId: string; userId: string };
@@ -11,6 +12,7 @@ export class ProgressPaymentServiceError extends Error {
 }
 
 type Queryable = Pick<pg.PoolClient, "query">;
+export type ProgressPaymentTenantTransactionRunner = <T>(pool: pg.Pool, context: TenantContext, work: (client: pg.PoolClient) => Promise<T>) => Promise<T>;
 
 function first<T>(result: pg.QueryResult<T>): T | undefined { return result.rows[0]; }
 
@@ -25,23 +27,17 @@ function roundedItemAmount(quantity: string, unitPrice: string): bigint {
 }
 
 export class ProgressPaymentService {
-  constructor(private readonly database: pg.Pool = pool) {}
+  constructor(
+    private readonly database: pg.Pool = pool,
+    private readonly tenantTransaction: ProgressPaymentTenantTransactionRunner = withTenantTransaction,
+  ) {}
 
-  private async transaction<T>(work: (client: pg.PoolClient) => Promise<T>): Promise<T> {
-    const client = await this.database.connect();
-    try {
-      await client.query("BEGIN");
-      const result = await work(client);
-      await client.query("COMMIT");
-      return result;
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally { client.release(); }
+  private transaction<T>(actor: Actor, work: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+    return this.tenantTransaction(this.database, actor, work);
   }
 
   async createContract(actor: Actor, input: CreateConstructionContractInput) {
-    return this.transaction(async (client) => {
+    return this.transaction(actor, async (client) => {
       if (input.sourceQuotationId) {
         const source = await client.query("select 1 from quotations where id = $1 and company_id = $2", [input.sourceQuotationId, actor.companyId]);
         if (!source.rowCount) throw new ProgressPaymentServiceError(404, "SOURCE_QUOTATION_NOT_FOUND", "Kaynak teklif bulunamadı.");
@@ -62,19 +58,23 @@ export class ProgressPaymentService {
         (company_id, contract_id, source_quotation_item_id, item_code, description, unit, contract_quantity, unit_price, source_hash)
         select $1, $2, source_quotation_item_id, item_code, description, unit, contract_quantity::numeric, unit_price::numeric, source_hash
         from jsonb_to_recordset($3::jsonb) as item(source_quotation_item_id uuid,item_code text,description text,unit text,contract_quantity text,unit_price text,source_hash text)`, [actor.companyId, (contract as { id: string }).id, JSON.stringify(input.items.map((item) => ({ source_quotation_item_id: item.sourceQuotationItemId ?? null, item_code: item.itemCode, description: item.description, unit: item.unit, contract_quantity: item.contractQuantity, unit_price: item.unitPrice, source_hash: item.sourceHash })))]);
-      return this.detail(actor, (contract as { id: string }).id, client);
+      return this.detailWith(client, actor, (contract as { id: string }).id);
     });
   }
 
   async list(actor: Actor) {
-    return (await this.database.query(`select c.id,c.contract_number,c.project_name,c.currency,c.regime,c.initial_amount,c.status,c.version,c.created_at,c.updated_at,
+    return this.transaction(actor, async (client) => (await client.query(`select c.id,c.contract_number,c.project_name,c.currency,c.regime,c.initial_amount,c.status,c.version,c.created_at,c.updated_at,
       count(distinct p.id)::int as period_count,
       count(distinct p.id) filter (where p.status = 'approved')::int as approved_period_count
       from construction_contracts c left join progress_payment_periods p on p.contract_id = c.id and p.company_id = c.company_id
-      where c.company_id = $1 group by c.id order by c.created_at desc`, [actor.companyId])).rows;
+      where c.company_id = $1 group by c.id order by c.created_at desc`, [actor.companyId])).rows);
   }
 
-  async detail(actor: Actor, contractId: string, queryable: Queryable = this.database) {
+  async detail(actor: Actor, contractId: string) {
+    return this.transaction(actor, (client) => this.detailWith(client, actor, contractId));
+  }
+
+  private async detailWith(queryable: Queryable, actor: Actor, contractId: string) {
     const contract = first(await queryable.query(`select id,source_quotation_id,contract_number,project_name,currency,regime,
       initial_amount,source_document_hash,status,version,created_at,updated_at
       from construction_contracts where id=$1 and company_id=$2`, [contractId, actor.companyId]));
@@ -89,7 +89,7 @@ export class ProgressPaymentService {
   }
 
   async createPeriod(actor: Actor, contractId: string, input: CreateProgressPeriodInput) {
-    return this.transaction(async (client) => {
+    return this.transaction(actor, async (client) => {
       await this.lockContract(client, actor, contractId);
       const preceding = await client.query<{ payment_number: number; status: string }>("select payment_number,status from progress_payment_periods where company_id=$1 and contract_id=$2 and is_current=true order by payment_number desc limit 1 for update", [actor.companyId, contractId]);
       const latest = preceding.rows[0]?.payment_number ?? 0;
@@ -102,7 +102,7 @@ export class ProgressPaymentService {
   }
 
   async saveDraft(actor: Actor, periodId: string, input: SaveProgressDraftInput) {
-    return this.transaction(async (client) => {
+    return this.transaction(actor, async (client) => {
       const period = await this.lockPeriod(client, actor, periodId);
       if (period.status !== "draft") throw new ProgressPaymentServiceError(409, "PERIOD_NOT_DRAFT", "Yalnız taslak dönemin ölçümleri düzenlenebilir.");
       if (period.version !== input.expectedVersion) throw new ProgressPaymentServiceError(409, "PERIOD_VERSION_CONFLICT", "Hakediş başka bir işlem tarafından güncellendi.");
@@ -151,7 +151,7 @@ export class ProgressPaymentService {
   }
 
   async reviewMeasurements(actor: Actor, periodId: string, idempotencyKey: string, input: ReviewProgressMeasurementsInput) {
-    return this.transaction(async (client) => {
+    return this.transaction(actor, async (client) => {
       const period = await this.lockPeriod(client, actor, periodId);
       const requestHash = canonicalProgressRequestHash(input);
       const existing = await client.query<{ request_hash: string }>("select distinct request_hash from progress_measurement_review_events where company_id=$1 and period_id=$2 and idempotency_key=$3", [actor.companyId, periodId, idempotencyKey]);
@@ -180,7 +180,7 @@ export class ProgressPaymentService {
   }
 
   async transition(actor: Actor, periodId: string, idempotencyKey: string, input: ProgressTransitionInput) {
-    return this.transaction(async (client) => {
+    return this.transaction(actor, async (client) => {
       const period = await this.lockPeriod(client, actor, periodId);
       const requestHash = canonicalProgressRequestHash(input);
       const replay = first(await client.query<{ request_hash: string; resulting_version: number; to_status: string }>("select request_hash, resulting_version, to_status from progress_payment_events where company_id=$1 and period_id=$2 and idempotency_key=$3", [actor.companyId, periodId, idempotencyKey]));
@@ -219,7 +219,7 @@ export class ProgressPaymentService {
   }
 
   async correct(actor: Actor, periodId: string, idempotencyKey: string, expectedVersion: number, reason: string) {
-    return this.transaction(async (client) => {
+    return this.transaction(actor, async (client) => {
       const period = await this.lockPeriod(client, actor, periodId);
       const requestHash = canonicalProgressRequestHash({ action: "correct", expectedVersion, reason });
       const existing = first(await client.query<{ request_hash: string }>("select request_hash from progress_payment_events where company_id=$1 and period_id=$2 and idempotency_key=$3", [actor.companyId, periodId, idempotencyKey]));
@@ -249,21 +249,23 @@ export class ProgressPaymentService {
   }
 
   async periodDetail(actor: Actor, periodId: string) {
-    const period = first(await this.database.query(`select id,contract_id,payment_number,revision_number,parent_period_id,
+    return this.transaction(actor, (client) => this.periodDetailWith(client, actor, periodId));
+  }
+
+  private async periodDetailWith(queryable: Queryable, actor: Actor, periodId: string) {
+    const period = first(await queryable.query(`select id,contract_id,payment_number,revision_number,parent_period_id,
       period_start,period_end,status,is_current,version,scope_hash,correction_reason,submitted_at,approved_at,sealed_at,created_at,updated_at
       from progress_payment_periods where id=$1 and company_id=$2`, [periodId, actor.companyId]));
     if (!period) throw new ProgressPaymentServiceError(404, "PERIOD_NOT_FOUND", "Hakediş dönemi bulunamadı.");
-    const [measurements, lines, adjustments, events] = await Promise.all([
-      this.database.query(`select id,contract_item_id,parent_measurement_id,location,element_key,source_type,quantity,unit,
+    const measurements = await queryable.query(`select id,contract_item_id,parent_measurement_id,location,element_key,source_type,quantity,unit,
         source_document_id,source_processing_run_id,source_quantity_row_id,source_cell_range,source_identity,
         review_status,reviewed_at,review_reason,correction_reason,created_at
-        from progress_measurements where period_id=$1 and company_id=$2 order by created_at,id`, [periodId, actor.companyId]),
-      this.database.query("select * from progress_payment_lines where period_id=$1 and company_id=$2 order by contract_item_id", [periodId, actor.companyId]),
-      this.database.query(`select id,adjustment_type,amount,evidence_hash,review_status,created_at
-        from progress_payment_adjustments where period_id=$1 and company_id=$2 order by created_at,id`, [periodId, actor.companyId]),
-      this.database.query(`select action,from_status,to_status,expected_version,resulting_version,reason,created_at
-        from progress_payment_events where period_id=$1 and company_id=$2 order by created_at,id`, [periodId, actor.companyId]),
-    ]);
+        from progress_measurements where period_id=$1 and company_id=$2 order by created_at,id`, [periodId, actor.companyId]);
+    const lines = await queryable.query("select * from progress_payment_lines where period_id=$1 and company_id=$2 order by contract_item_id", [periodId, actor.companyId]);
+    const adjustments = await queryable.query(`select id,adjustment_type,amount,evidence_hash,review_status,created_at
+      from progress_payment_adjustments where period_id=$1 and company_id=$2 order by created_at,id`, [periodId, actor.companyId]);
+    const events = await queryable.query(`select action,from_status,to_status,expected_version,resulting_version,reason,created_at
+      from progress_payment_events where period_id=$1 and company_id=$2 order by created_at,id`, [periodId, actor.companyId]);
     return { period, measurements: measurements.rows, lines: lines.rows, adjustments: adjustments.rows, events: events.rows, documentLabel: "Yeşil Defter çalışma cetveli — resmî belge değildir" };
   }
 

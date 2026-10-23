@@ -207,6 +207,11 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
 
     const report = await inspectRoleBoundaries(admin);
     assert.doesNotThrow(() => assertRoleBoundaries(report));
+    assert.equal(
+      report.managedSchemaViolations.some((violation) => /CDE|progress-payment|complete RLS table set|migration tag/i.test(violation)),
+      false,
+      "zero protected tables must preserve the pre-schema role-provisioning bootstrap path",
+    );
     for (const role of report.roles) {
       assert.equal(role.attributes.superuser, false, `${role.name} must be NOSUPERUSER`);
       assert.equal(role.attributes.bypassRls, false, `${role.name} must be NOBYPASSRLS`);

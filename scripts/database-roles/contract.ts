@@ -66,6 +66,18 @@ export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
 
 export const DATABASE_QUEUE_RLS_TABLES = Object.freeze(["_private_job_queues", "_private_jobs", "_private_known_crontabs", "_private_tasks"] as const);
 export const DATABASE_CDE_RLS_TABLES = Object.freeze(["cde_projects", "cde_project_members", "cde_containers", "cde_revisions", "cde_transition_events"] as const);
+export const DATABASE_PROGRESS_PAYMENT_RLS_TABLES = Object.freeze([
+  "construction_contracts",
+  "construction_contract_items",
+  "progress_payment_periods",
+  "progress_payment_lines",
+  "progress_measurements",
+  "progress_measurement_review_events",
+  "progress_payment_adjustments",
+  "progress_payment_events",
+  "contract_variations",
+  "final_accounts",
+] as const);
 export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
 

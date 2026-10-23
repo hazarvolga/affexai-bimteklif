@@ -2216,7 +2216,10 @@ export const constructionContracts = pgTable("construction_contracts", {
   statusCheck: check("construction_contracts_status_check", sql`${table.status} in ('draft', 'active', 'closed', 'cancelled')`),
   regimeCheck: check("construction_contracts_regime_check", sql`length(trim(${table.regime})) between 1 and 80`),
   sourceHashCheck: check("construction_contracts_source_hash_check", sql`${table.sourceDocumentHash} ~ '^[0-9a-f]{64}$'`),
-}));
+  appTenantPolicy: appTenantPolicy("construction_contracts", table.companyId),
+  backupReadPolicy: backupReadPolicy("construction_contracts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("construction_contracts"),
+})).enableRLS();
 
 export const constructionContractItems = pgTable("construction_contract_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2239,7 +2242,10 @@ export const constructionContractItems = pgTable("construction_contract_items", 
   quantityCheck: check("construction_contract_items_quantity_check", sql`${table.contractQuantity} >= 0`),
   priceCheck: check("construction_contract_items_price_check", sql`${table.unitPrice} >= 0`),
   sourceHashCheck: check("construction_contract_items_source_hash_check", sql`${table.sourceHash} ~ '^[0-9a-f]{64}$'`),
-}));
+  appTenantPolicy: appTenantPolicy("construction_contract_items", table.companyId),
+  backupReadPolicy: backupReadPolicy("construction_contract_items"),
+  ownerMigrationPolicy: ownerMigrationPolicy("construction_contract_items"),
+})).enableRLS();
 
 export const progressPaymentPeriods = pgTable("progress_payment_periods", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2278,7 +2284,10 @@ export const progressPaymentPeriods = pgTable("progress_payment_periods", {
   datesCheck: check("progress_payment_periods_dates_check", sql`${table.periodEnd} >= ${table.periodStart}`),
   sequenceCheck: check("progress_payment_periods_sequence_check", sql`${table.paymentNumber} > 0 AND ${table.revisionNumber} >= 0 AND ${table.version} >= 0`),
   scopeHashCheck: check("progress_payment_periods_scope_hash_check", sql`(${table.scopeHash} IS NULL OR ${table.scopeHash} ~ '^[0-9a-f]{64}$') AND (${table.status} <> 'approved' OR ${table.scopeHash} ~ '^[0-9a-f]{64}$')`),
-}));
+  appTenantPolicy: appTenantPolicy("progress_payment_periods", table.companyId),
+  backupReadPolicy: backupReadPolicy("progress_payment_periods"),
+  ownerMigrationPolicy: ownerMigrationPolicy("progress_payment_periods"),
+})).enableRLS();
 
 export const progressPaymentLines = pgTable("progress_payment_lines", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2301,7 +2310,10 @@ export const progressPaymentLines = pgTable("progress_payment_lines", {
   itemFk: foreignKey({ columns: [table.contractItemId, table.contractId, table.companyId], foreignColumns: [constructionContractItems.id, constructionContractItems.contractId, constructionContractItems.companyId] }).onDelete("restrict"),
   quantityCheck: check("progress_payment_lines_quantity_check", sql`${table.previousQuantity} >= 0 AND ${table.currentQuantity} >= 0 AND ${table.cumulativeQuantity} = ${table.previousQuantity} + ${table.currentQuantity}`),
   amountCheck: check("progress_payment_lines_amount_check", sql`${table.unitPriceSnapshot} >= 0 AND ${table.currentAmount} >= 0 AND ${table.cumulativeAmount} >= 0 AND ${table.cumulativeAmount} = round(${table.cumulativeQuantity} * ${table.unitPriceSnapshot}, 2) AND ${table.currentAmount} = ${table.cumulativeAmount} - round(${table.previousQuantity} * ${table.unitPriceSnapshot}, 2)`),
-}));
+  appTenantPolicy: appTenantPolicy("progress_payment_lines", table.companyId),
+  backupReadPolicy: backupReadPolicy("progress_payment_lines"),
+  ownerMigrationPolicy: ownerMigrationPolicy("progress_payment_lines"),
+})).enableRLS();
 
 export const progressMeasurements = pgTable("progress_measurements", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2353,7 +2365,10 @@ export const progressMeasurements = pgTable("progress_measurements", {
     OR (${table.reviewStatus} in ('approved','rejected') AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL AND length(trim(${table.reviewReason})) > 0)
     OR ${table.reviewStatus} = 'superseded'`),
   idxPeriodCreated: index("idx_progress_measurements_period_created").on(table.companyId, table.periodId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("progress_measurements", table.companyId),
+  backupReadPolicy: backupReadPolicy("progress_measurements"),
+  ownerMigrationPolicy: ownerMigrationPolicy("progress_measurements"),
+})).enableRLS();
 
 export const progressMeasurementReviewEvents = pgTable("progress_measurement_review_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2379,7 +2394,10 @@ export const progressMeasurementReviewEvents = pgTable("progress_measurement_rev
   versionCheck: check("progress_measurement_review_events_version_check", sql`${table.expectedVersion} >= 0 AND ${table.resultingVersion} = ${table.expectedVersion} + 1`),
   requestHashCheck: check("progress_measurement_review_events_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
   idxPeriodCreated: index("idx_progress_measurement_review_events_period_created").on(table.companyId, table.periodId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("progress_measurement_review_events", table.companyId),
+  backupReadPolicy: backupReadPolicy("progress_measurement_review_events"),
+  ownerMigrationPolicy: ownerMigrationPolicy("progress_measurement_review_events"),
+})).enableRLS();
 
 export const progressPaymentAdjustments = pgTable("progress_payment_adjustments", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2399,7 +2417,10 @@ export const progressPaymentAdjustments = pgTable("progress_payment_adjustments"
   statusCheck: check("progress_payment_adjustments_status_check", sql`${table.reviewStatus} in ('manual_review', 'approved', 'rejected')`),
   evidenceHashCheck: check("progress_payment_adjustments_evidence_hash_check", sql`${table.evidenceHash} ~ '^[0-9a-f]{64}$'`),
   idxPeriodCreated: index("idx_progress_payment_adjustments_period_created").on(table.companyId, table.periodId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("progress_payment_adjustments", table.companyId),
+  backupReadPolicy: backupReadPolicy("progress_payment_adjustments"),
+  ownerMigrationPolicy: ownerMigrationPolicy("progress_payment_adjustments"),
+})).enableRLS();
 
 export const progressPaymentEvents = pgTable("progress_payment_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2431,7 +2452,10 @@ export const progressPaymentEvents = pgTable("progress_payment_events", {
   versionCheck: check("progress_payment_events_version_check", sql`${table.expectedVersion} >= 0 AND ${table.resultingVersion} = ${table.expectedVersion} + 1`),
   requestHashCheck: check("progress_payment_events_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
   idxPeriodCreated: index("idx_progress_payment_events_period_created").on(table.companyId, table.periodId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("progress_payment_events", table.companyId),
+  backupReadPolicy: backupReadPolicy("progress_payment_events"),
+  ownerMigrationPolicy: ownerMigrationPolicy("progress_payment_events"),
+})).enableRLS();
 
 export const contractVariations = pgTable("contract_variations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2452,7 +2476,10 @@ export const contractVariations = pgTable("contract_variations", {
   statusCheck: check("contract_variations_status_check", sql`${table.status} in ('manual_review', 'approved', 'rejected')`),
   decisionHashCheck: check("contract_variations_decision_hash_check", sql`${table.decisionDocumentHash} IS NULL OR ${table.decisionDocumentHash} ~ '^[0-9a-f]{64}$'`),
   approvedEvidenceCheck: check("contract_variations_approved_evidence_check", sql`${table.status} <> 'approved' OR ${table.decisionDocumentHash} ~ '^[0-9a-f]{64}$'`),
-}));
+  appTenantPolicy: appTenantPolicy("contract_variations", table.companyId),
+  backupReadPolicy: backupReadPolicy("contract_variations"),
+  ownerMigrationPolicy: ownerMigrationPolicy("contract_variations"),
+})).enableRLS();
 
 export const finalAccounts = pgTable("final_accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2472,5 +2499,8 @@ export const finalAccounts = pgTable("final_accounts", {
   statusCheck: check("final_accounts_status_check", sql`${table.status} in ('draft', 'manual_review', 'sealed', 'superseded')`),
   hashCheck: check("final_accounts_source_hash_check", sql`${table.sourceAggregateHash} ~ '^[0-9a-f]{64}$'`),
   sealCheck: check("final_accounts_seal_check", sql`(${table.status} = 'sealed' AND ${table.sealedAt} IS NOT NULL) OR (${table.status} <> 'sealed' AND ${table.sealedAt} IS NULL)`),
-}));
+  appTenantPolicy: appTenantPolicy("final_accounts", table.companyId),
+  backupReadPolicy: backupReadPolicy("final_accounts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("final_accounts"),
+})).enableRLS();
 
