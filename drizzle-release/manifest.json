@@ -99,6 +99,13 @@
       "sha256": "79fa395da91c65630729da247ce050441fdb3da69de4fa0b768d04eb684b6e23",
       "snapshotSha256": "a20a292409f16504f8dbbabf4c5dbf6d3620882af5da45390cf09b1fa142839a",
       "statements": 25
+    },
+    {
+      "idx": 14,
+      "tag": "0014_smartcheck_worker_lease",
+      "sha256": "845e294bbf1fe8da365c3f408970e8394883ed6b624729c984c482653295741a",
+      "snapshotSha256": "6abea128175a84087c4786ca46d4f546c0414a2916e1e2bfd4318b38a4876c31",
+      "statements": 3
     }
   ]
 }

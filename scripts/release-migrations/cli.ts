@@ -2,6 +2,7 @@ import { pathToFileURL } from 'node:url';
 import { connect, connectDeployment, parseTarget } from './safety';
 import { adoptBaseline, applyMigrations, loadMigrations } from './runner';
 import { catalog } from './catalog';
+import { assertSmartCheckWorkersDrained } from './worker-drain-gate';
 
 export async function main(args = process.argv.slice(2)) {
   const [mode, ...extra] = args;
@@ -20,7 +21,10 @@ export async function main(args = process.argv.slice(2)) {
     else if (mode === 'adopt-baseline') {
       await adoptBaseline(client, migrations, process.env.RELEASE_VERIFIED_BASELINE_SIGNATURE ?? '');
       console.log('Explicit baseline adoption recorded; no schema SQL executed');
-    } else console.log(JSON.stringify({ applied: await applyMigrations(client, migrations) }));
+    } else {
+      await assertSmartCheckWorkersDrained(client);
+      console.log(JSON.stringify({ applied: await applyMigrations(client, migrations) }));
+    }
   } finally { await client.end(); }
 }
 

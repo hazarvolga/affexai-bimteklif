@@ -6,10 +6,10 @@ import { withDisabledGraphileCron } from "./worker-config";
 import { captureError, initErrorTracking } from "../../server/observability/error-tracking";
 
 export const ifcWorkerTaskList = {
-  process_smartcheck_ifc_document: async (payload: unknown) => {
+  process_smartcheck_ifc_document: async (payload: unknown, helpers: { job: { id: string } }) => {
     const job = payload as { companyId: string; documentId: string; processingRunId: string };
     try {
-      return await processSmartCheckDocument(job);
+      return await processSmartCheckDocument(job, helpers.job.id);
     } catch (error) {
       // Graphile retries the job; the failure still reaches error tracking each time.
       captureError(error, { task: "process_smartcheck_ifc_document", processingRunId: job.processingRunId });

@@ -99,6 +99,13 @@
       "when": 1791417600013,
       "tag": "0013_cde_tenant_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791417600014,
+      "tag": "0014_smartcheck_worker_lease",
+      "breakpoints": true
     }
   ]
 }

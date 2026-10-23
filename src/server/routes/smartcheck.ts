@@ -390,7 +390,24 @@ export function registerSmartCheckRoutes(app: Express) {
   app.get("/api/smartcheck/documents/:id/status", authenticate, featureGate, readRateLimit, async (req, res) => {
     const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [run] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+    const [run] = await db.select({
+      id: documentProcessingRuns.id,
+      documentId: documentProcessingRuns.documentId,
+      status: documentProcessingRuns.status,
+      currentStage: documentProcessingRuns.currentStage,
+      pipelineVersion: documentProcessingRuns.pipelineVersion,
+      provider: documentProcessingRuns.provider,
+      model: documentProcessingRuns.model,
+      progressPercent: documentProcessingRuns.progressPercent,
+      progressMessage: documentProcessingRuns.progressMessage,
+      quotaConsumed: documentProcessingRuns.quotaConsumed,
+      errorCode: documentProcessingRuns.errorCode,
+      errorMessage: documentProcessingRuns.errorMessage,
+      startedAt: documentProcessingRuns.startedAt,
+      completedAt: documentProcessingRuns.completedAt,
+      createdAt: documentProcessingRuns.createdAt,
+      updatedAt: documentProcessingRuns.updatedAt,
+    }).from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
     res.json({ document, run: run ?? null });
   });
 
@@ -536,7 +553,8 @@ export function registerSmartCheckRoutes(app: Express) {
           action,
           impersonatedBy: req.user?.impersonatedBy,
         });
-        res.status(result.status).json(result.run);
+        const { workerJobId: _workerJobId, workerLeaseToken: _workerLeaseToken, ...publicRun } = result.run;
+        res.status(result.status).json(publicRun);
       } catch (error) {
         if (error instanceof ProcessingConflict) {
           const defaultMessage = error.code === 'IFC_QUOTA_EXCEEDED'

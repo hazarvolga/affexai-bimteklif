@@ -952,6 +952,8 @@ export const documentProcessingRuns = pgTable("document_processing_runs", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  workerJobId: text("worker_job_id"),
+  workerLeaseToken: uuid("worker_lease_token"),
 }, (table) => {
   return {
     companyRunUnique: unique("document_processing_runs_id_company_id_key").on(table.id, table.companyId),

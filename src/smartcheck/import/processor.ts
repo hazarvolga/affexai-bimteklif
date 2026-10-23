@@ -77,8 +77,34 @@ export async function buildPdfProcessingArtifacts(
   return artifacts.map((artifact) => ({ ...artifact, content: Buffer.from(JSON.stringify(artifact.metadataJson, null, 2)) }));
 }
 
-async function updateRun(runId: string, companyId: string, values: Partial<typeof documentProcessingRuns.$inferInsert>) {
-  await db.update(documentProcessingRuns).set({ ...values, updatedAt: new Date() }).where(and(eq(documentProcessingRuns.id, runId), eq(documentProcessingRuns.companyId, companyId)));
+export class SmartCheckRunLeaseLostError extends Error {
+  constructor() {
+    super("SMARTCHECK_RUN_LEASE_LOST");
+    this.name = "SmartCheckRunLeaseLostError";
+  }
+}
+
+async function assertRunLease(tx: any, runId: string, companyId: string, leaseToken: string) {
+  const [lease] = await tx.select({ id: documentProcessingRuns.id })
+    .from(documentProcessingRuns)
+    .where(and(
+      eq(documentProcessingRuns.id, runId),
+      eq(documentProcessingRuns.companyId, companyId),
+      eq(documentProcessingRuns.status, "running"),
+      eq(documentProcessingRuns.workerLeaseToken, leaseToken),
+    ))
+    .for("update");
+  if (!lease) throw new SmartCheckRunLeaseLostError();
+}
+
+async function updateRun(runId: string, companyId: string, leaseToken: string, values: Partial<typeof documentProcessingRuns.$inferInsert>) {
+  const updated = await db.update(documentProcessingRuns).set({ ...values, updatedAt: new Date() }).where(and(
+    eq(documentProcessingRuns.id, runId),
+    eq(documentProcessingRuns.companyId, companyId),
+    eq(documentProcessingRuns.status, "running"),
+    eq(documentProcessingRuns.workerLeaseToken, leaseToken),
+  )).returning({ id: documentProcessingRuns.id });
+  if (updated.length === 0) throw new SmartCheckRunLeaseLostError();
 }
 
 async function chunkedInsert<T extends Record<string, any>>(tx: any, table: any, items: T[], chunkSize = 500) {
@@ -96,23 +122,28 @@ async function chunkedInsert<T extends Record<string, any>>(tx: any, table: any,
  */
 async function storeEpysPreflight(input: {
   companyId: string; documentId: string; processingRunId: string; inputPath: string; fileName: string;
+  leaseToken: string;
   storage: ReturnType<typeof createStorageAdapter>;
 }) {
-  const { companyId, documentId, processingRunId, storage } = input;
+  const { companyId, documentId, processingRunId, leaseToken, storage } = input;
   try {
     const report = await runEpysPreflight({ inputPath: input.inputPath, fileName: input.fileName });
     const content = Buffer.from(JSON.stringify(report, null, 2));
-    const storageKey = `${companyId}/${documentId}/${processingRunId}/epys-preflight.json`;
+    const storageKey = `${companyId}/${documentId}/${processingRunId}/${leaseToken}/epys-preflight.json`;
     await storage.put(storageKey, content, "application/json");
     const metadataJson = summarizeEpysPreflight(report);
-    await db.insert(documentProcessingArtifacts).values({
-      companyId, documentId, processingRunId, artifactType: "epys_preflight", storageKey,
-      checksumSha256: sha256(content), contentType: "application/json", sizeBytes: content.length, metadataJson,
-    }).onConflictDoUpdate({
-      target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
-      set: { storageKey, checksumSha256: sha256(content), sizeBytes: content.length, metadataJson },
+    await db.transaction(async (tx) => {
+      await assertRunLease(tx, processingRunId, companyId, leaseToken);
+      await tx.insert(documentProcessingArtifacts).values({
+        companyId, documentId, processingRunId, artifactType: "epys_preflight", storageKey,
+        checksumSha256: sha256(content), contentType: "application/json", sizeBytes: content.length, metadataJson,
+      }).onConflictDoUpdate({
+        target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+        set: { storageKey, checksumSha256: sha256(content), sizeBytes: content.length, metadataJson },
+      });
     });
   } catch (error) {
+    if (error instanceof SmartCheckRunLeaseLostError) throw error;
     console.error("e-PYS pre-check failed; quantity evidence continues", { processingRunId });
     captureError(error, { task: "epys_preflight", processingRunId });
   }
@@ -126,8 +157,9 @@ async function processIfcSmartCheckDocument(payload: {
   checksumSha256: string;
   content?: Buffer;
   filePath?: string;
+  leaseToken: string;
 }) {
-  const { companyId, documentId, processingRunId, originalFileName, checksumSha256, content, filePath } = payload;
+  const { companyId, documentId, processingRunId, originalFileName, checksumSha256, content, filePath, leaseToken } = payload;
   const engine = (process.env.SMARTCHECK_IFC_ENGINE || (process.env.NODE_ENV === "production" ? "ifcopenshell" : "legacy")).toLowerCase();
   if (process.env.NODE_ENV === "production" && engine !== "ifcopenshell") throw new Error("IFC_PRODUCTION_ENGINE_REQUIRED");
   const storage = createStorageAdapter();
@@ -144,7 +176,7 @@ async function processIfcSmartCheckDocument(payload: {
       await fs.writeFile(resolvedPath, content);
     }
     try {
-      await storeEpysPreflight({ companyId, documentId, processingRunId, inputPath: resolvedPath, fileName: originalFileName, storage });
+      await storeEpysPreflight({ companyId, documentId, processingRunId, inputPath: resolvedPath, fileName: originalFileName, leaseToken, storage });
       const pythonResult = await runPythonIfcExtractor({
         inputPath: resolvedPath,
         fileName: originalFileName,
@@ -232,29 +264,33 @@ async function processIfcSmartCheckDocument(payload: {
       };
 
       const shadowContent = Buffer.from(JSON.stringify(shadowReport, null, 2));
-      const shadowKey = `${companyId}/${documentId}/${processingRunId}/ifc-shadow-report.json`;
+      const shadowKey = `${companyId}/${documentId}/${processingRunId}/${leaseToken}/ifc-shadow-report.json`;
       await storage.put(shadowKey, shadowContent, "application/json");
 
-      await db.insert(documentProcessingArtifacts).values({
-        companyId,
-        documentId,
-        processingRunId,
-        artifactType: "ifc_shadow_report",
-        storageKey: shadowKey,
-        checksumSha256: sha256(shadowContent),
-        contentType: "application/json",
-        sizeBytes: shadowContent.length,
-        metadataJson: shadowReport,
-      }).onConflictDoUpdate({
-        target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
-        set: {
+      await db.transaction(async (tx) => {
+        await assertRunLease(tx, processingRunId, companyId, leaseToken);
+        await tx.insert(documentProcessingArtifacts).values({
+          companyId,
+          documentId,
+          processingRunId,
+          artifactType: "ifc_shadow_report",
           storageKey: shadowKey,
           checksumSha256: sha256(shadowContent),
+          contentType: "application/json",
           sizeBytes: shadowContent.length,
           metadataJson: shadowReport,
-        },
+        }).onConflictDoUpdate({
+          target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+          set: {
+            storageKey: shadowKey,
+            checksumSha256: sha256(shadowContent),
+            sizeBytes: shadowContent.length,
+            metadataJson: shadowReport,
+          },
+        });
       });
     } catch (shadowErr) {
+      if (shadowErr instanceof SmartCheckRunLeaseLostError) throw shadowErr;
       console.error("IFC shadow comparison execution failed, continuing with legacy artifact:", shadowErr);
     } finally {
       if (cleanupDir) {
@@ -272,7 +308,7 @@ async function processIfcSmartCheckDocument(payload: {
     });
   }
 
-  await updateRun(processingRunId, companyId, {
+  await updateRun(processingRunId, companyId, leaseToken, {
     currentStage: "normalizing",
     progressPercent: 45,
     progressMessage: "IFC property evidence satırları hazırlanıyor",
@@ -304,16 +340,21 @@ async function processIfcSmartCheckDocument(payload: {
   };
 
   const artifactContent = Buffer.from(JSON.stringify(artifact, null, 2));
-  const artifactKey = `${companyId}/${documentId}/${processingRunId}/ifc-evidence.json`;
+  const artifactKey = `${companyId}/${documentId}/${processingRunId}/${leaseToken}/ifc-evidence.json`;
   await storage.put(artifactKey, artifactContent, "application/json");
 
-  await updateRun(processingRunId, companyId, {
+  await updateRun(processingRunId, companyId, leaseToken, {
     currentStage: "validating",
     progressPercent: 70,
     progressMessage: "IFC evidence admission kontrolleri çalışıyor",
   });
 
+  if (artifact.rows.length === 0) {
+    throw new Error("IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE");
+  }
+
   await db.transaction(async (tx) => {
+    await assertRunLease(tx, processingRunId, companyId, leaseToken);
     await tx.delete(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.processingRunId, processingRunId), eq(normalizedQuantityRows.companyId, companyId)));
     if (artifact.rows.length) {
       const rowsToInsert = artifact.rows.map((row) => ({
@@ -376,13 +417,6 @@ async function processIfcSmartCheckDocument(payload: {
         },
       },
     });
-  });
-
-  if (artifact.rows.length === 0) {
-    throw new Error("IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE");
-  }
-
-  await db.transaction(async (tx) => {
     const now = new Date();
     const updatedRuns = await tx.update(documentProcessingRuns)
       .set({
@@ -398,6 +432,8 @@ async function processIfcSmartCheckDocument(payload: {
         and(
           eq(documentProcessingRuns.id, processingRunId),
           eq(documentProcessingRuns.companyId, companyId),
+          eq(documentProcessingRuns.status, "running"),
+          eq(documentProcessingRuns.workerLeaseToken, leaseToken),
           eq(documentProcessingRuns.quotaConsumed, false),
         )
       )
@@ -406,14 +442,7 @@ async function processIfcSmartCheckDocument(payload: {
     if (updatedRuns.length > 0) {
       await consumeIfcUsage(tx, companyId, now);
     } else {
-      await tx.update(documentProcessingRuns).set({
-        status: "succeeded",
-        currentStage: "awaiting_review",
-        progressPercent: 100,
-        progressMessage: "IFC property evidence insan incelemesi bekliyor",
-        completedAt: now,
-        updatedAt: now,
-      }).where(and(eq(documentProcessingRuns.id, processingRunId), eq(documentProcessingRuns.companyId, companyId)));
+      throw new SmartCheckRunLeaseLostError();
     }
 
     await tx.update(documents).set({
@@ -432,15 +461,97 @@ async function processIfcSmartCheckDocument(payload: {
   });
 }
 
-export async function processSmartCheckDocument(payload: { companyId: string; documentId: string; processingRunId: string }) {
+export async function claimSmartCheckRun(
+  payload: { companyId: string; documentId: string; processingRunId: string },
+  deliveryId = `direct:${crypto.randomUUID()}`,
+) {
+  const now = new Date();
+  const leaseToken = crypto.randomUUID();
+  const [claimed] = await db.update(documentProcessingRuns).set({
+    status: "running",
+    currentStage: "parsing",
+    progressPercent: 10,
+    progressMessage: "Dosya ayrıştırılıyor",
+    startedAt: now,
+    updatedAt: now,
+    completedAt: null,
+    errorCode: null,
+    errorMessage: null,
+    workerJobId: deliveryId,
+    workerLeaseToken: leaseToken,
+  }).where(and(
+    eq(documentProcessingRuns.id, payload.processingRunId),
+    eq(documentProcessingRuns.documentId, payload.documentId),
+    eq(documentProcessingRuns.companyId, payload.companyId),
+    eq(documentProcessingRuns.status, "queued"),
+  )).returning();
+  if (claimed) return claimed;
+
+  const [existing] = await db.select({
+    companyId: documentProcessingRuns.companyId,
+    documentId: documentProcessingRuns.documentId,
+    status: documentProcessingRuns.status,
+    workerJobId: documentProcessingRuns.workerJobId,
+    workerLeaseToken: documentProcessingRuns.workerLeaseToken,
+  }).from(documentProcessingRuns).where(eq(documentProcessingRuns.id, payload.processingRunId));
+  if (!existing || existing.companyId !== payload.companyId || existing.documentId !== payload.documentId) {
+    throw new Error("TENANT_DOCUMENT_RUN_MISMATCH");
+  }
+  if (
+    existing.workerJobId === deliveryId &&
+    existing.workerLeaseToken &&
+    (existing.status === "running" || existing.status === "failed")
+  ) {
+    const [reclaimed] = await db.update(documentProcessingRuns).set({
+      status: "running",
+      currentStage: "parsing",
+      progressPercent: 10,
+      progressMessage: "Dosya yeniden teslim alındı",
+      startedAt: now,
+      updatedAt: now,
+      completedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      workerLeaseToken: leaseToken,
+    }).where(and(
+      eq(documentProcessingRuns.id, payload.processingRunId),
+      eq(documentProcessingRuns.companyId, payload.companyId),
+      eq(documentProcessingRuns.workerJobId, deliveryId),
+      eq(documentProcessingRuns.workerLeaseToken, existing.workerLeaseToken),
+      sql`${documentProcessingRuns.status} IN ('running', 'failed')`,
+    )).returning();
+    if (reclaimed) return reclaimed;
+  }
+  return null;
+}
+
+export async function processSmartCheckDocument(
+  payload: { companyId: string; documentId: string; processingRunId: string },
+  deliveryId = `direct:${crypto.randomUUID()}`,
+  hooks: { afterClaim?: () => Promise<void>; beforeCanonicalWrite?: () => Promise<void>; afterArtifactPut?: () => Promise<void> } = {},
+) {
+  const claimed = await claimSmartCheckRun(payload, deliveryId);
+  if (!claimed) return;
+  if (!claimed.workerLeaseToken) throw new Error("SMARTCHECK_RUN_LEASE_MISSING");
+  await hooks.afterClaim?.();
+  await processClaimedSmartCheckDocument(payload, claimed.workerLeaseToken, hooks);
+}
+
+async function processClaimedSmartCheckDocument(
+  payload: { companyId: string; documentId: string; processingRunId: string },
+  leaseToken: string,
+  hooks: { beforeCanonicalWrite?: () => Promise<void>; afterArtifactPut?: () => Promise<void> },
+) {
   const { companyId, documentId, processingRunId } = payload;
   const [document] = await db.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId)));
   const [run] = await db.select().from(documentProcessingRuns).where(and(eq(documentProcessingRuns.id, processingRunId), eq(documentProcessingRuns.documentId, documentId), eq(documentProcessingRuns.companyId, companyId)));
   if (!document || !run) throw new Error("TENANT_DOCUMENT_RUN_MISMATCH");
-  if (run.status === "succeeded") return;
+  if (run.status !== "running" || run.workerLeaseToken !== leaseToken) throw new SmartCheckRunLeaseLostError();
   try {
-    await updateRun(run.id, companyId, { status: "running", currentStage: "parsing", progressPercent: 10, progressMessage: "Dosya ayrıştırılıyor", startedAt: run.startedAt ?? new Date() });
-    await db.update(documents).set({ status: "processing", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+    await db.transaction(async (tx) => {
+      await assertRunLease(tx, run.id, companyId, leaseToken);
+      await tx.update(documents).set({ status: "processing", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+    });
     const storage = createStorageAdapter();
 
     const isIfc = document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc";
@@ -456,6 +567,7 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
           originalFileName: document.originalFileName,
           checksumSha256: document.checksumSha256,
           filePath: localIfcPath,
+          leaseToken,
         });
         return;
       } finally {
@@ -473,37 +585,49 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
           fileName: document.originalFileName,
           expectedSourceChecksum: document.checksumSha256,
         });
+        const storedArtifacts: Array<{ artifact: PdfProcessingArtifact; artifactKey: string }> = [];
         for (const artifact of pdfArtifacts) {
-          const artifactKey = `${companyId}/${documentId}/${run.id}/${artifact.fileName}`;
+          const artifactKey = `${companyId}/${documentId}/${run.id}/${leaseToken}/${artifact.fileName}`;
           await storage.put(artifactKey, artifact.content, "application/json");
-          await db.insert(documentProcessingArtifacts).values({
-            companyId,
-            documentId,
-            processingRunId: run.id,
-            artifactType: artifact.artifactType,
-            storageKey: artifactKey,
-            checksumSha256: sha256(artifact.content),
-            contentType: "application/json",
-            sizeBytes: artifact.content.length,
-            metadataJson: artifact.metadataJson,
-          }).onConflictDoUpdate({
-            target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
-            set: {
-              storageKey: artifactKey,
-              checksumSha256: sha256(artifact.content),
-              contentType: "application/json",
-              sizeBytes: artifact.content.length,
-              metadataJson: artifact.metadataJson,
-            },
-          });
+          storedArtifacts.push({ artifact, artifactKey });
         }
         const validation = pdfArtifacts.find((artifact) => artifact.artifactType === "verapdf_validation")!.metadataJson;
         const validationStatus = validation.status === "completed"
           ? (validation.validation as { isCompliant: boolean }).isCompliant ? "PDF/A doğrulaması tamamlandı" : "PDF/A doğrulaması: uyumsuz"
           : "PDF yapısal ön kontrolü tamamlandı; PDF/A doğrulayıcı kullanılamıyor";
         const now = new Date();
-        await updateRun(run.id, companyId, { status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: validationStatus, completedAt: now });
-        await db.update(documents).set({ status: "awaiting_review", updatedAt: now }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+        await db.transaction(async (tx) => {
+          await assertRunLease(tx, run.id, companyId, leaseToken);
+          for (const { artifact, artifactKey } of storedArtifacts) {
+            await tx.insert(documentProcessingArtifacts).values({
+              companyId,
+              documentId,
+              processingRunId: run.id,
+              artifactType: artifact.artifactType,
+              storageKey: artifactKey,
+              checksumSha256: sha256(artifact.content),
+              contentType: "application/json",
+              sizeBytes: artifact.content.length,
+              metadataJson: artifact.metadataJson,
+            }).onConflictDoUpdate({
+              target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+              set: {
+                storageKey: artifactKey,
+                checksumSha256: sha256(artifact.content),
+                contentType: "application/json",
+                sizeBytes: artifact.content.length,
+                metadataJson: artifact.metadataJson,
+              },
+            });
+          }
+          await tx.update(documentProcessingRuns).set({ status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: validationStatus, completedAt: now, updatedAt: now }).where(and(
+            eq(documentProcessingRuns.id, run.id),
+            eq(documentProcessingRuns.companyId, companyId),
+            eq(documentProcessingRuns.status, "running"),
+            eq(documentProcessingRuns.workerLeaseToken, leaseToken),
+          ));
+          await tx.update(documents).set({ status: "awaiting_review", updatedAt: now }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+        });
         return;
       } finally {
         await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
@@ -516,11 +640,17 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
     if (kind === "ifc" || kind === "pdf") throw new Error("UNEXPECTED_DOCUMENT_KIND");
 
     const parsed = await parseDocument(content, kind, document.importMappingJson as ColumnMapping);
-    await updateRun(run.id, companyId, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });
+    await updateRun(run.id, companyId, leaseToken, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });
     const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, companyId));
     const results = validateRows(parsed.rows, Number(company?.maxWaste ?? 20));
-    await updateRun(run.id, companyId, { currentStage: "validating", progressPercent: 70, progressMessage: "Deterministik kontroller çalışıyor" });
+    await updateRun(run.id, companyId, leaseToken, { currentStage: "validating", progressPercent: 70, progressMessage: "Deterministik kontroller çalışıyor" });
+    await hooks.beforeCanonicalWrite?.();
+    const artifactContent = Buffer.from(JSON.stringify({ mapping: parsed.mapping, rowCount: results.length, rows: results }, null, 2));
+    const artifactKey = `${companyId}/${documentId}/${run.id}/${leaseToken}/normalized.json`;
+    await storage.put(artifactKey, artifactContent, "application/json");
+    await hooks.afterArtifactPut?.();
     await db.transaction(async (tx) => {
+      await assertRunLease(tx, run.id, companyId, leaseToken);
       await tx.delete(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.processingRunId, run.id), eq(normalizedQuantityRows.companyId, companyId)));
       if (results.length) {
         const rowsToInsert = results.map(({ row, normalized, findings }) => ({
@@ -531,14 +661,16 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
         }));
         await chunkedInsert(tx, normalizedQuantityRows, rowsToInsert, 500);
       }
+      await tx.insert(documentProcessingArtifacts).values({ companyId, documentId, processingRunId: run.id, artifactType: "normalized_table", storageKey: artifactKey, checksumSha256: sha256(artifactContent), contentType: "application/json", sizeBytes: artifactContent.length, metadataJson: { mapping: parsed.mapping, rowCount: results.length } }).onConflictDoUpdate({ target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType], set: { storageKey: artifactKey, checksumSha256: sha256(artifactContent), sizeBytes: artifactContent.length, metadataJson: { mapping: parsed.mapping, rowCount: results.length } } });
+      const now = new Date();
+      await tx.update(documentProcessingRuns).set({ status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: "İnsan incelemesi bekleniyor", completedAt: now, updatedAt: now }).where(and(
+        eq(documentProcessingRuns.id, run.id),
+        eq(documentProcessingRuns.companyId, companyId),
+        eq(documentProcessingRuns.status, "running"),
+        eq(documentProcessingRuns.workerLeaseToken, leaseToken),
+      ));
+      await tx.update(documents).set({ status: "awaiting_review", importMappingJson: parsed.mapping, updatedAt: now }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
     });
-
-    const artifactContent = Buffer.from(JSON.stringify({ mapping: parsed.mapping, rowCount: results.length, rows: results }, null, 2));
-    const artifactKey = `${companyId}/${documentId}/${run.id}/normalized.json`;
-    await storage.put(artifactKey, artifactContent, "application/json");
-    await db.insert(documentProcessingArtifacts).values({ companyId, documentId, processingRunId: run.id, artifactType: "normalized_table", storageKey: artifactKey, checksumSha256: sha256(artifactContent), contentType: "application/json", sizeBytes: artifactContent.length, metadataJson: { mapping: parsed.mapping, rowCount: results.length } }).onConflictDoUpdate({ target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType], set: { storageKey: artifactKey, checksumSha256: sha256(artifactContent), sizeBytes: artifactContent.length, metadataJson: { mapping: parsed.mapping, rowCount: results.length } } });
-    await updateRun(run.id, companyId, { status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: "İnsan incelemesi bekleniyor", completedAt: new Date() });
-    await db.update(documents).set({ status: "awaiting_review", importMappingJson: parsed.mapping, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
   } catch (error) {
     const errorCode = error instanceof IfcWorkerError ? error.code : error instanceof Error ? error.message : "PROCESSING_FAILED";
     const errorMessage = error instanceof IfcWorkerError
@@ -546,8 +678,19 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
       : error instanceof Error
         ? (error.message.includes("/") || error.message.includes("\\") || error.message.includes("Traceback") ? "İşlem sırasında beklenmeyen bir hata oluştu." : error.message)
         : "PROCESSING_FAILED";
-    await updateRun(run.id, companyId, { status: "failed", currentStage: "failed", progressMessage: "İşleme başarısız", errorCode, errorMessage, completedAt: new Date() });
-    await db.update(documents).set({ status: "failed", updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+    if (!(error instanceof SmartCheckRunLeaseLostError)) {
+      await db.transaction(async (tx) => {
+        await assertRunLease(tx, run.id, companyId, leaseToken);
+        const now = new Date();
+        await tx.update(documentProcessingRuns).set({ status: "failed", currentStage: "failed", progressMessage: "İşleme başarısız", errorCode, errorMessage, completedAt: now, updatedAt: now }).where(and(
+          eq(documentProcessingRuns.id, run.id),
+          eq(documentProcessingRuns.companyId, companyId),
+          eq(documentProcessingRuns.status, "running"),
+          eq(documentProcessingRuns.workerLeaseToken, leaseToken),
+        ));
+        await tx.update(documents).set({ status: "failed", updatedAt: now }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
+      });
+    }
     throw error;
   }
 }

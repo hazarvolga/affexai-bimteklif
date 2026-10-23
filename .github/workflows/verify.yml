@@ -71,6 +71,8 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: test -x "$PUPPETEER_EXECUTABLE_PATH"
       - run: pnpm exec tsx scripts/release-migrations/cli.ts apply
+        env:
+          RELEASE_WORKERS_DRAINED: 'true'
       - run: pnpm exec tsc --noEmit -p scripts/release-migrations/tsconfig.json
       - run: pnpm exec tsx --test scripts/release-migrations/artifacts.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/backup-docker.test.ts
       - run: pnpm run verify

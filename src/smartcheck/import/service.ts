@@ -161,7 +161,7 @@ export async function changeProcessingRun(input: {
     const now = new Date();
     let run: typeof documentProcessingRuns.$inferSelect;
     if (action === 'recover') {
-      [run] = await tx.update(documentProcessingRuns).set({ status: 'failed', currentStage: 'failed', errorCode: 'WORKER_STALE', errorMessage: 'Worker heartbeat expired; operator retry required.', progressMessage: 'Worker stale; retry required', completedAt: now, updatedAt: now }).where(eq(documentProcessingRuns.id, latest.id)).returning();
+      [run] = await tx.update(documentProcessingRuns).set({ status: 'failed', currentStage: 'failed', errorCode: 'WORKER_STALE', errorMessage: 'Worker heartbeat expired; operator retry required.', progressMessage: 'Worker stale; retry required', workerJobId: null, workerLeaseToken: null, completedAt: now, updatedAt: now }).where(eq(documentProcessingRuns.id, latest.id)).returning();
     } else {
       const idempotencyKey = action === 'retry' ? `${baseKey}:retry:${crypto.randomUUID()}` : baseKey;
       const progressMessage = isAdmin ? 'Süper admin tarafından yeniden kuyruğa alındı' : 'Kuyruga alindi';

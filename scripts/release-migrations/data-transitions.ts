@@ -729,6 +729,24 @@ export const progressPaymentEventBindingTrigger = `CREATE CONSTRAINT TRIGGER pro
 AFTER UPDATE OF status ON progress_payment_periods
 DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION enforce_progress_payment_event_binding()`;
 
+export const smartCheckWorkerLeaseTransition = `WITH affected AS (
+UPDATE "document_processing_runs"
+SET "status" = 'failed',
+    "current_stage" = 'failed',
+    "error_code" = 'WORKER_LEASE_MIGRATION',
+    "error_message" = 'Worker lease migration requires an explicit retry.',
+    "progress_message" = 'Worker lease migration; retry required',
+    "completed_at" = now(),
+    "updated_at" = now()
+WHERE "status" = 'running'
+RETURNING "document_id", "company_id"
+)
+UPDATE "documents" AS document
+SET "status" = 'failed', "updated_at" = now()
+FROM affected
+WHERE document."id" = affected."document_id"
+  AND document."company_id" = affected."company_id"`;
+
 export function injectDataTransitions(tag: string, schemaStatements: readonly string[]): string[] {
   if (tag === '0009_price_source_authorization') {
     const index = schemaStatements.findIndex((statement) => statement.startsWith(currentPriceEvidenceIndex));
@@ -821,6 +839,13 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0012_progress_payment_evidence', statements)
       : statements;
+  }
+  if (tag === '0014_smartcheck_worker_lease') {
+    const ordered = [...schemaStatements];
+    const cumulative = ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0013_cde_tenant_rls', ordered)
+      : ordered;
+    return [...cumulative, smartCheckWorkerLeaseTransition];
   }
   return [...schemaStatements];
 }

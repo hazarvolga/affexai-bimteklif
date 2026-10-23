@@ -677,6 +677,8 @@ export function registerAdminRoutes(app: Express) {
             currentStage: "failed",
             errorCode: "WORKER_STALE",
             errorMessage: "Süper admin tarafından stale olarak işaretlendi",
+            workerJobId: null,
+            workerLeaseToken: null,
             completedAt: now,
             updatedAt: now,
           })

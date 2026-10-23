@@ -186,6 +186,13 @@ force-unlock crashed workers. Existing old jobs in a different worker schema mus
 be drained/stopped before changing `GRAPHILE_WORKER_SCHEMA`; no automatic schema
 handoff or cross-schema cancellation is provided.
 
+Release migration `0014_smartcheck_worker_lease` also changes the worker ownership
+contract. Stop and drain both SmartCheck worker services before `release-cli apply`,
+verify there are zero `running` processing runs and zero Graphile jobs with a
+non-null `locked_at`, then set `RELEASE_WORKERS_DRAINED=true` for that one migration
+command. The CLI checks all three conditions and refuses the migration otherwise.
+Keep the workers stopped until the app and both worker images use the same new SHA.
+
 ## Chromium Sandbox
 
 Chromium sandbox remains enabled. Neither image nor Compose adds a sandbox
