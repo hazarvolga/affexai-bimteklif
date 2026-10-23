@@ -265,3 +265,9 @@ Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
 test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
 Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BIMMetraj), card-payment provider decision, runtime DB role cutover/canary/rollback, remaining T41 scope and T42–T45 database hardening, DKIM, (httpOnly cookies: done in Rev. 28). Revisit Sentry quota after the trial
 automatically transitions to the free plan; do not enable paid usage.
+
+## 2026-10-24 T42 manual payment transaction slice
+
+- Baseline `30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce` serializes manual Havale/EFT init, submit and review; request/receipt replay, snapshot rewrite, double terminal decision, inactive-plan activation and same-plan period reset are closed with real PG16 coverage.
+- Evidence: `docs/audits/phase-7/PHASE_7_T42_PARTIAL_2026-10-24.md`; roadmap `Rev. 49`; calculation record `BIM-CALC-2026-10-24.43`.
+- T42 remains PARTIAL: Academy webhook entitlement race, SmartCheck worker claim/fencing and artifact/run/document atomic finalization remain. Repo-wide test is not green because five queue/worker fixtures lack isolated worker migration tables; do not deploy from this state.

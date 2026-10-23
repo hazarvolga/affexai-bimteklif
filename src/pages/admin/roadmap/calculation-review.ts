@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.42",
+  version: "BIM-CALC-2026-10-24.43",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "58cf3205fa6a4c7d2244dd27bb9bd83fe895aef0",
-  approvalStatus: "Rev. 48, T41'in ilk güvenli diliminde beş CDE tablosuna FORCE RLS, transaction-local tenant context ve exact runtime app-role kapısı ekler; hesap formüllerini değiştirmez. İzole PostgreSQL 16 üzerinde iki tenant, pool reuse, concurrency, full CDE lifecycle ve rol sınırları doğrulanmıştır. Kalan tenant tabloları, T40 runtime credential cutover, production canary/rollback ve deploy yapılmadığı için T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce",
+  approvalStatus: "Rev. 49, T42'nin ilk güvenli diliminde manuel Havale/EFT sipariş, dekont bildirimi ve admin karar yaşam döngüsünü transaction/idempotency kapılarıyla sertleştirir; hesap formüllerini değiştirmez. İzole PostgreSQL 16 üzerinde init/review yarışı, immutable snapshot, terminal durum, global dekont replay, pasif paket ve dönem uzatma doğrulanmıştır. Academy webhook ile SmartCheck worker claim/fencing ve atomik finalizasyon, banka mutabakatı ve production deploy açık olduğundan T42 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1230,6 +1230,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "CDE proje, üye, konteyner, revizyon ve karar olayı sorguları uygulama filtresine ve RBAC'a dayanıyor; DB katmanı filtre unutulmasına karşı ikinci savunma sunmuyordu.",
         after: "CDE'nin beş tablosu FORCE RLS, app tenant policy, backup read policy ve yalnız migrator session'lı owner policy taşır. CdeService'in bütün girişleri aynı checked-out bağlantıda BEGIN→tenant GUC→iş→COMMIT/ROLLBACK akışını kullanır; owner/superuser/SET ROLE veya yetkili üyelik driftinde callback başlamadan kapanır.",
         basis: "src/db/tenant-context.ts, src/services/cde/service.ts, src/db/schema.ts, drizzle-release/0013_cde_tenant_rls.sql, scripts/database-roles/inspect.ts ve src/contracts/cde-tenant-rls.pgtest.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 49",
+    version: "BIM-CALC-2026-10-24.43",
+    date: "24 Ekim 2026",
+    commit: "30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce",
+    trigger: "GAP kapatma yol haritası Faz 7 / T42 ilk güvenli dilim: manuel Havale/EFT yaşam döngüsünde transaction, idempotency ve replay güvenliği.",
+    beforeSummary: "Ödeme siparişi check-then-insert yarışıyla çoğalabiliyor; submit plan/dönem/tutar snapshotını değiştirebiliyor; approve/reject çift karar yazabiliyor; reddedilmiş talep yeniden açılabiliyor; aynı dekont farklı banka/talepte tekrar kullanılabiliyor ve ikinci gerçek ödeme aktif abonelik süresini resetleyebiliyordu.",
+    afterSummary: "Init, submit ve review transaction advisory lock altında monotonik yaşam döngüsü kullanır. UUID requestId ve canonical dekont zorunludur; plan/dönem/tutar immutable, approve/reject terminal, receipt replay global, pasif paket fail-closed ve aynı-plan yeni ödeme mevcut period end'e eklenir. Beş gerçek PG16 ve sekiz unit testi geçti. Hesap formülleri değişmedi; Academy webhook, SmartCheck worker fencing/finalization, banka mutabakatı ve production deploy açık olduğundan T42 PARTIAL'dır.",
+    affectedModules: ["teklif-satir"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Teklif/havale bedeli doğru hesaplanabilse de ödeme talebinin plan, dönem ve tutar snapshotı eşzamanlı isteklerde değiştirilebilir; aynı dekont ve çift admin kararı abonelik durumunu tutarsızlaştırabilirdi.",
+        after: "Hesaplanan toplam ödeme talebinde immutable kalır; canonical dekont yalnız bir talebe bağlanır; yalnız pending talep tek terminal karara geçer. Aynı aktif plan için ikinci doğrulanmış ödeme mevcut abonelik bitişine seçilen dönem gününü ekler.",
+        basis: "src/services/billing/bank-transfer.ts, src/services/billing/bank-transfer.integration.test.ts; PostgreSQL transaction-level advisory locks ve aynı client transaction sınırı",
       },
     },
   },

@@ -101,6 +101,9 @@ export default function LegislationView() {
           <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
             BIMMetraj çıktıları ön kontroldür. Repo içindeki e-PYS belge kopyası nihai resmî nüshayla kimlik/hash eşleştirmesi tamamlanana kadar “identity_pending”; ISO/TS tam metinleri ise lisanslı erişim gerektirir. Otomatik başarı idare veya uzman uygunluk kararı değildir.
           </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Paket Havale/EFT akışındaki sipariş ve dekont tekilleştirmesi yalnız ticari işlem güvenliğidir; e-PYS, vergi, banka mutabakatı veya mevzuat uygunluğu kanıtı sayılmaz.
+          </p>
           {liveRegulationsCount !== null && liveRegulationsCount > 0 && (
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
               <Database className="w-3.5 h-3.5" />

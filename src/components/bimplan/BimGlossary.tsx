@@ -27,6 +27,16 @@ export default function BimGlossary() {
 
   const glossaryTerms: GlossaryTerm[] = [
     {
+      term: 'Havale/EFT Sipariş Referansı',
+      abbreviation: 'Payment Request ID',
+      turkishName: 'Tekil Ödeme Talebi ve Dekont Bağı',
+      category: 'Mali & Yönetim',
+      definition: 'Seçilen paket, faturalama dönemi ve tutarı değişmez bir ödeme talebine bağlayan sunucu kaynaklı kimliktir. Dekont veya banka işlem referansı zorunludur ve aynı canonical referans ikinci bir talepte kullanılamaz; admin kararı yalnız bekleyen talebi bir kez onaylar veya reddeder.',
+      englishTranslation: 'Immutable Bank Transfer Payment Request',
+      isoRole: 'Ticari işlem izidir; banka mutabakatı, mali müşavir onayı veya mevzuat uygunluğu yerine geçmez.',
+      importance: 'Yüksek'
+    },
+    {
       term: 'EIR',
       abbreviation: 'Exchange Information Requirements',
       turkishName: 'İşveren Bilgi Gereksinimleri',

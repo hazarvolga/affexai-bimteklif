@@ -32,7 +32,7 @@ type LandingPageProps = {
 const LANDING_ROUTE_META: Record<string, { title: string; description: string; canonicalPath: string }> = {
   '/pricing': {
     title: 'Paketler ve Fiyatlandırma | BIMMetraj 5D İhale & IFC Metraj Platformu',
-    description: 'Teknik ofisler için Deneme, Başlangıç, Ekip, Profesyonel ve Kurumsal paket kotalarını; 6 ay (%10), 1 yıl (%20) ve 2 yıl (%30) peşin ödeme avantajlarıyla inceleyin.',
+    description: 'Teknik ofisler için paket kotalarını; 6 ay (%10), 1 yıl (%20) ve 2 yıl (%30) peşin ödeme avantajlarını, tekil sipariş referansı ve dekont kontrollü Havale/EFT akışıyla inceleyin.',
     canonicalPath: '/pricing',
   },
   '/features': {
