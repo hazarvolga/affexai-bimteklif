@@ -10,9 +10,12 @@ CLI_PATH = os.path.join(os.path.dirname(__file__), "ifc_extract.py")
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 
-def run_cli(input_path: str, output_path: str, file_name: str = "test.ifc"):
+def run_cli(input_path: str, output_path: str, file_name: str = "test.ifc", run_id: str = ""):
+    args = [PYTHON_BIN, CLI_PATH, "--input", input_path, "--output", output_path, "--file-name", file_name]
+    if run_id:
+        args.extend(["--run-id", run_id])
     return subprocess.run(
-        [PYTHON_BIN, CLI_PATH, "--input", input_path, "--output", output_path, "--file-name", file_name],
+        args,
         capture_output=True,
         text=True,
     )
@@ -133,6 +136,8 @@ def test_qto_priority_and_property_extraction():
         assert rebar["rebarKg"] == 18.9
         assert rebar["rebarDiameterMm"] == 16
         assert rebar["volumeM3"] > 0
+        assert rebar["quantitySource"] == "estimate"
+        assert rebar["quantitySourcePath"].endswith(":IfcReinforcingBar/DerivedNominalMass")
 
         # 5. Project compliance
         assert summary["trPsetCsb"]["taks"] == 0.4
@@ -371,6 +376,71 @@ def test_rebar_cross_section_uses_independent_area_unit():
     assert mass == 18.9
 
 
+def test_nominal_rebar_mass_remains_derived_estimate_and_direct_weight_wins():
+    """Diameter/length arithmetic must never masquerade as an IFC property measurement."""
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties, extract_rebar_info
+
+    m = ifcopenshell.file(schema="IFC4")
+    bar = m.create_entity(
+        "IfcReinforcingBar",
+        GlobalId="REBAR_DERIVED_NOMINAL01",
+        Name="Q16",
+        NominalDiameter=0.016,
+        BarLength=12.0,
+    )
+    _, derived_kg, _ = extract_rebar_info(bar, 1.0, 1.0)
+    assert derived_kg == 18.9
+
+    qty = m.create_entity("IfcQuantityWeight", Name="Weight", WeightValue=21.5)
+    qto = m.create_entity(
+        "IfcElementQuantity",
+        GlobalId="REBAR_QTO_WEIGHT_000001",
+        Name="Qto_ReinforcingElementBaseQuantities",
+        Quantities=[qty],
+    )
+    m.create_entity(
+        "IfcRelDefinesByProperties",
+        GlobalId="REBAR_QTO_REL_00000001",
+        RelatedObjects=[bar],
+        RelatingPropertyDefinition=qto,
+    )
+
+    extracted = extract_quantities_and_properties(bar, 1.0, 1.0, 1.0, 1.0)
+    assert extracted[4] == 21.5
+    assert extracted[5] == "qto"
+    assert extracted[6].endswith(":Qto_ReinforcingElementBaseQuantities/Weight")
+
+    bar_property = m.create_entity(
+        "IfcReinforcingBar",
+        GlobalId="REBAR_PROPERTY_WEIGHT01",
+        Name="Q12",
+        NominalDiameter=0.012,
+        BarLength=10.0,
+    )
+    weight_property = m.create_entity(
+        "IfcPropertySingleValue",
+        Name="Weight",
+        NominalValue=m.create_entity("IfcMassMeasure", 9.25),
+    )
+    pset = m.create_entity(
+        "IfcPropertySet",
+        GlobalId="REBAR_WEIGHT_PSET_00001",
+        Name="Dimensions",
+        HasProperties=[weight_property],
+    )
+    m.create_entity(
+        "IfcRelDefinesByProperties",
+        GlobalId="REBAR_WEIGHT_REL_000001",
+        RelatedObjects=[bar_property],
+        RelatingPropertyDefinition=pset,
+    )
+    property_extracted = extract_quantities_and_properties(bar_property, 1.0, 1.0, 1.0, 1.0)
+    assert property_extracted[4] == 9.2
+    assert property_extracted[5] == "property"
+    assert property_extracted[6].endswith(":Dimensions/Weight")
+
+
 def test_three_by_three_rule_metadata_extraction():
     import ifcopenshell
     from workers.ifc.ifc_extract import extract_quantities_and_properties
@@ -496,6 +566,79 @@ def test_consistency_check_1_and_2_duplicate_guid_and_orphan_opening():
     assert orphan_findings[0]["ifcClass"] == "IfcOpeningElement"
 
 
+def test_parser_contract_preserves_file_run_step_identity_for_duplicate_guids():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(
+            _fixture_path("duplicate_guid_and_orphan_opening.ifc"),
+            out_json,
+            "duplicate_guid_and_orphan_opening.ifc",
+            "phase-2-run-001",
+        )
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    contract = data["summary"]["parserContract"]
+    assert contract["version"] == "IFC-NORMALIZED-1"
+    assert contract["engine"] == "worker"
+    assert contract["schemaFamily"] == "IFC4"
+    assert contract["runId"] == "phase-2-run-001"
+    assert len(contract["fileSha256"]) == 64
+    assert contract["qualityGate"]["dimensionTotals"]["volumeM3"] == pytest.approx(data["summary"]["totalVolumeM3"])
+
+    duplicates = [f for f in data["summary"]["consistencyReport"]["findings"] if f["code"] == "DUPLICATE_GLOBAL_ID"]
+    assert len(duplicates) == 2
+    assert len({f["sourceIdentity"]["stepId"] for f in duplicates}) == 2
+    assert len({f["sourceIdentity"]["elementKey"] for f in duplicates}) == 2
+    assert all(f["sourceIdentity"]["globalId"] == "DUPLICATE_GUID_0000001" for f in duplicates)
+
+
+def test_standalone_runs_of_same_file_receive_distinct_run_identities():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        run_ids = []
+        for index in range(2):
+            out_json = os.path.join(tmpdir, f"out-{index}.json")
+            res = run_cli(_fixture_path("duplicate_guid_and_orphan_opening.ifc"), out_json)
+            assert res.returncode == 0, res.stderr
+            with open(out_json, encoding="utf-8") as f:
+                run_ids.append(json.load(f)["summary"]["parserContract"]["runId"])
+
+    assert run_ids[0].startswith("standalone:")
+    assert run_ids[1].startswith("standalone:")
+    assert run_ids[0] != run_ids[1]
+
+
+@pytest.mark.parametrize(
+    ("schema", "expected_family"),
+    [("IFC2X3", "IFC2X3"), ("IFC4", "IFC4"), ("IFC4X3_ADD2", "IFC4X3")],
+)
+def test_supported_schema_families_are_reported_in_contract(schema, expected_family):
+    import ifcopenshell
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ifc_path = os.path.join(tmpdir, f"{schema}.ifc")
+        try:
+            model = ifcopenshell.file(schema=schema)
+        except RuntimeError:
+            pytest.skip(f"Installed IfcOpenShell does not provide {schema}")
+        model.create_entity("IfcProject", GlobalId="0000000000000000000001", Name="Project")
+        slab = model.create_entity("IfcSlab", GlobalId="SCHEMA_SLAB_000000001", Name="Slab")
+        quantity = model.create_entity("IfcQuantityVolume", Name="NetVolume", VolumeValue=1.0)
+        quantity_set = model.create_entity("IfcElementQuantity", GlobalId="SCHEMA_QTO_0000000001", Name="Qto_SlabBaseQuantities", Quantities=[quantity])
+        model.create_entity("IfcRelDefinesByProperties", GlobalId="SCHEMA_REL_0000000001", RelatedObjects=[slab], RelatingPropertyDefinition=quantity_set)
+        model.write(ifc_path)
+
+        out_json = os.path.join(tmpdir, "out.json")
+        res = run_cli(ifc_path, out_json, f"{schema}.ifc", f"run-{schema}")
+        assert res.returncode == 0, res.stderr
+        with open(out_json, encoding="utf-8") as f:
+            data = json.load(f)
+
+    assert data["summary"]["parserContract"]["schemaFamily"] == expected_family
+    assert data["summary"]["parserContract"]["qualityGate"]["passed"] is True
+
+
 def test_consistency_check_3_and_4_invalid_quantities_and_unassigned_storey():
     with tempfile.TemporaryDirectory() as tmpdir:
         out_json = os.path.join(tmpdir, "out.json")
@@ -506,6 +649,7 @@ def test_consistency_check_3_and_4_invalid_quantities_and_unassigned_storey():
 
     summary = data["summary"]
     report = summary["consistencyReport"]
+    quality_gate = summary["parserContract"]["qualityGate"]
     by_guid = {el["guid"]: el for el in data["elements"]}
 
     # Total volume only includes the valid slab (12.5 m3); negative/zero/missing never enter sum
@@ -513,6 +657,12 @@ def test_consistency_check_3_and_4_invalid_quantities_and_unassigned_storey():
     assert report["totalElementCount"] == 4
     assert report["measuredElementCount"] == 1
     assert report["unmeasuredElementCount"] == 3
+    assert quality_gate["passed"] is False
+    assert quality_gate["blockingFindingCodes"] == [
+        "MISSING_NET_QUANTITY",
+        "NEGATIVE_NET_QUANTITY",
+        "ZERO_NET_QUANTITY",
+    ]
 
     assert by_guid["SLAB_VALID_00000000001"]["measured"] is True
     assert by_guid["SLAB_VALID_00000000001"]["measurementStatus"] == "ölçüldü"

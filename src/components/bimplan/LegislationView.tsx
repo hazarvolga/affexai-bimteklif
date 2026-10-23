@@ -211,6 +211,10 @@ export default function LegislationView() {
             2B teslimlerde PDF/A (ISO 19005) ve ISO 216 A4 katları pafta boyutu (m.8(1)); 3B teslimlerde TS EN ISO 16739-1 (IFC4X3), Türkiye Ulusal Koordinat Sistemi (m.10(4)) ve EK-9 Model Kalite Kontrol Formu (Mimari için Tablo 9.1 — 21 satır; Statik/Mekanik/Elektrik için Tablo 9.2 — 16 satır) uygulanır.
           </p>
 
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            BIMMetraj hızlı tarayıcı önizlemesini tam metraj saymaz. Sunucu IFC işçisi QTO önceliğini, bağımsız alan/hacim/kütle birimlerini, aggregate parça dışlamalarını ve dosya–işlem–STEP kimlik zincirini raporlar; sonuç yine proje müellifi ve ilgili disiplin uzmanının incelemesini gerektirir.
+          </p>
+
           <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl text-xs text-orange-800 font-bold">
             Önemli (m.6): Kâğıda yazdırılıp taranarak oluşturulan PDF'ler kullanılamaz (m.6(4)) ve tüm teslim dosyaları 5070 sayılı Kanuna uygun güvenli elektronik imza ile imzalanır (m.6(1)-(2)).
           </div>

@@ -531,6 +531,7 @@ export function calculateSummary(
       warnings: [
         "Legacy ayrıştırıcı QTO veya onaylı property bulunamadığında tahmini metraj üretmez.",
         "Metrajı bulunamayan elemanlar için miktar 0 olarak atanmıştır; teknik inceleme gereklidir.",
+        "Browser önizlemesi type inheritance, aggregate suppression, bağımsız boyut birimleri, malzeme katmanları ve geometri fallback kanıtını tamamlamaz; tam metraj için server IFC worker sonucu zorunludur.",
       ],
       unsupportedReasons: [],
       totalElements: elements.length,

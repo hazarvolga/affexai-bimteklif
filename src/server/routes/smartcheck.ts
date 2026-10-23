@@ -983,80 +983,82 @@ export function registerSmartCheckRoutes(app: Express) {
             });
         }
 
-        // Seed official reference price snapshots so the engineer can test price matching immediately
-        const sampleSourceIdentifier = "CSB-2026-YFK-SAMPLE-SEED-V1";
-        const [existingPriceSource] = await tx
-          .select()
-          .from(priceSources)
-          .where(
-            and(
-              eq(priceSources.companyId, req.user.companyId),
-              eq(priceSources.sourceDocumentIdentifier, sampleSourceIdentifier),
-            ),
-          )
-          .limit(1);
+        // Quantity-only sample projects must not manufacture an empty price source.
+        if (SAMPLE_PRICE_CATALOG_SEED.length > 0) {
+          const sampleSourceIdentifier = "CSB-2026-YFK-SAMPLE-SEED-V1";
+          const [existingPriceSource] = await tx
+            .select()
+            .from(priceSources)
+            .where(
+              and(
+                eq(priceSources.companyId, req.user.companyId),
+                eq(priceSources.sourceDocumentIdentifier, sampleSourceIdentifier),
+              ),
+            )
+            .limit(1);
 
-        const sourceDocHash = sha256Payload({ items: SAMPLE_PRICE_CATALOG_SEED });
-        const [priceSource] = existingPriceSource
-          ? [existingPriceSource]
-          : await tx
-              .insert(priceSources)
+          const sourceDocHash = sha256Payload({ items: SAMPLE_PRICE_CATALOG_SEED });
+          const [priceSource] = existingPriceSource
+            ? [existingPriceSource]
+            : await tx
+                .insert(priceSources)
+                .values({
+                  companyId: req.user.companyId,
+                  sourceType: "official_reference",
+                  name: "ÇŞİDB 2026 Yılı İnşaat ve Tesisat Birim Fiyatları (Örnek Referans Katalog)",
+                  authority: "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı — Yüksek Fen Kurulu",
+                  sourceDocumentIdentifier: sampleSourceIdentifier,
+                  sourceDocumentHash: sourceDocHash,
+                  licenseStatus: "unknown",
+                  authorizationStatus: "pending",
+                  authorizationScope: "demo-only; commercial reference use is blocked until evidence is recorded",
+                  jurisdiction: "TR",
+                  region: "TR-Genel",
+                  createdByUserId: req.user.userId,
+                  metadataJson: { seededBy: "smartcheck_sample_project", demoOnly: true, commercialUseBlocked: true },
+                })
+                .returning();
+
+          for (const snap of SAMPLE_PRICE_CATALOG_SEED) {
+            const snapshotKey = sha256Payload({
+              positionCode: snap.positionCode,
+              unit: snap.unit,
+              amount: snap.amount,
+              currency: snap.currency,
+            });
+            await tx
+              .insert(priceSnapshots)
               .values({
                 companyId: req.user.companyId,
-                sourceType: "official_reference",
-                name: "ÇŞİDB 2026 Yılı İnşaat ve Tesisat Birim Fiyatları (Örnek Referans Katalog)",
-                authority: "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı — Yüksek Fen Kurulu",
-                sourceDocumentIdentifier: sampleSourceIdentifier,
-                sourceDocumentHash: sourceDocHash,
-                licenseStatus: "unknown",
-                authorizationStatus: "pending",
-                authorizationScope: "demo-only; commercial reference use is blocked until evidence is recorded",
-                jurisdiction: "TR",
+                priceSourceId: priceSource.id,
+                snapshotKey,
+                externalReference: `ÇŞB 2026 Poz ${snap.positionCode}`,
+                positionCode: snap.positionCode,
+                description: snap.description,
+                unit: snap.unit,
+                amount: String(snap.amount),
+                currency: snap.currency as "TRY" | "USD" | "EUR",
+                vatStatus: "excluded",
+                vatPercent: "20",
+                freightStatus: "included",
                 region: "TR-Genel",
+                validFrom: new Date("2026-01-01T00:00:00Z"),
+                validUntil: new Date("2026-12-31T23:59:59Z"),
+                capturedAt: now,
+                sourceDocumentHash: sourceDocHash,
+                sourceVersion: "2026-1",
+                confidence: "0.95",
+                reviewStatus: "advisory",
+                reviewedByUserId: null,
+                reviewedAt: null,
+                reviewerNotes: "Demo satırı; kaynak kullanım yetkisi ve fiyat doğrulaması tamamlanmadan teklif fiyatı olarak kullanılamaz.",
                 createdByUserId: req.user.userId,
                 metadataJson: { seededBy: "smartcheck_sample_project", demoOnly: true, commercialUseBlocked: true },
               })
-              .returning();
-
-        for (const snap of SAMPLE_PRICE_CATALOG_SEED) {
-          const snapshotKey = sha256Payload({
-            positionCode: snap.positionCode,
-            unit: snap.unit,
-            amount: snap.amount,
-            currency: snap.currency,
-          });
-          await tx
-            .insert(priceSnapshots)
-            .values({
-              companyId: req.user.companyId,
-              priceSourceId: priceSource.id,
-              snapshotKey,
-              externalReference: `ÇŞB 2026 Poz ${snap.positionCode}`,
-              positionCode: snap.positionCode,
-              description: snap.description,
-              unit: snap.unit,
-              amount: String(snap.amount),
-              currency: snap.currency as "TRY" | "USD" | "EUR",
-              vatStatus: "excluded",
-              vatPercent: "20",
-              freightStatus: "included",
-              region: "TR-Genel",
-              validFrom: new Date("2026-01-01T00:00:00Z"),
-              validUntil: new Date("2026-12-31T23:59:59Z"),
-              capturedAt: now,
-              sourceDocumentHash: sourceDocHash,
-              sourceVersion: "2026-1",
-              confidence: "0.95",
-              reviewStatus: "advisory",
-              reviewedByUserId: null,
-              reviewedAt: null,
-              reviewerNotes: "Demo satırı; kaynak kullanım yetkisi ve fiyat doğrulaması tamamlanmadan teklif fiyatı olarak kullanılamaz.",
-              createdByUserId: req.user.userId,
-              metadataJson: { seededBy: "smartcheck_sample_project", demoOnly: true, commercialUseBlocked: true },
-            })
-            .onConflictDoNothing({
-              target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey],
-            });
+              .onConflictDoNothing({
+                target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey],
+              });
+          }
         }
 
         return { doc, run };

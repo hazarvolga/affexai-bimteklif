@@ -64,7 +64,24 @@ test("PDF/A sample project provides PDF/A-2B, single sheet compliance, and embed
   assert.equal(payload.summary.uyari, 0);
 });
 
-test("Sample price catalog seed covers both concrete (15.150.1005) and flooring (15.390.1002) positions", () => {
-  const codes = SAMPLE_PRICE_CATALOG_SEED.map((item) => item.positionCode);
-  assert.deepEqual(codes, ["15.150.1005", "15.390.1002"]);
+test("sample projects do not seed source-less prices", () => {
+  assert.deepEqual(SAMPLE_PRICE_CATALOG_SEED, []);
+});
+
+test("ST demo fixture carries realistic IFC classification metadata and preserves the 4.80 m3 wall quantity", () => {
+  const st = SMARTCHECK_SAMPLE_PROJECTS["st-statik-tablo-9-2"];
+  assert.match(st.label, /Demo/i);
+  assert.match(st.description, /sentetik|demo/i);
+  const wall = st.rows.find((row) => row.sourceRowNumber === 2);
+  assert.ok(wall);
+  assert.equal(wall.normalizedQuantity, "4.80");
+  assert.equal(wall.formulaJson.predefinedType, "SHEAR");
+  assert.deepEqual(JSON.parse(wall.formulaJson.materialLayers), ["Beton_C25/30"]);
+  assert.equal(wall.normalizedPositionCode, "15.150.1005");
+  assert.equal(wall.normalizedPrice, null);
+  for (const row of st.rows) {
+    assert.equal(row.normalizedPrice, null);
+    assert.ok(row.formulaJson.predefinedType);
+    assert.ok(row.formulaJson.materialLayers);
+  }
 });

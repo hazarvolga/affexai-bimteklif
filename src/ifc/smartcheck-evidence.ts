@@ -1,8 +1,9 @@
 import { classifyAuthoringSoftware, type AuthoringSoftwareDetection } from "./authoring-software-diagnostics";
 import type { Finding, ParsedQuantityRow } from "@/smartcheck/import/normalize";
 import { validateRows } from "@/smartcheck/import/normalize";
-import type { IfcConsistencyReport, IfcParseSummary, ParsedIfcElement, ParsedOpening, TrPsetCsbProjectCompliance } from "./types";
+import type { IfcConsistencyReport, IfcParseSummary, IfcParserContract, IfcSourceIdentity, ParsedIfcElement, ParsedOpening, TrPsetCsbProjectCompliance } from "./types";
 import type { IfcRuleEvaluations } from "@/smartcheck/rules/ifc-rule-run";
+import { hasDirectIfcRebarMassEvidence } from "./rebar-evidence";
 
 export interface IfcEvidenceDocumentContext {
   fileName: string;
@@ -33,6 +34,7 @@ export interface IfcSmartCheckEvidenceRow {
   mappingConfidence: string;
   reviewStatus: "pending_review";
   findingsJson: Finding[];
+  sourceIdentity?: IfcSourceIdentity;
 }
 
 export interface IfcBlockedEvidenceElement {
@@ -43,9 +45,11 @@ export interface IfcBlockedEvidenceElement {
     | "IFC_ESTIMATE_QUANTITY_BLOCKED"
     | "IFC_GEOMETRY_FALLBACK_BLOCKED"
     | "IFC_REBAR_EVIDENCE_POLICY_PENDING"
+    | "IFC_QUALITY_GATE_BLOCKED"
     | "IFC_PARSE_FAILED";
   reason: string;
   sourceReference: string;
+  sourceIdentity?: IfcSourceIdentity;
 }
 
 export interface IfcSmartCheckEvidenceArtifact {
@@ -73,6 +77,7 @@ export interface IfcSmartCheckEvidenceArtifact {
     openings?: ParsedOpening[];
     /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
     consistencyReport?: IfcConsistencyReport;
+    parserContract?: IfcParserContract;
   };
   rows: IfcSmartCheckEvidenceRow[];
   blockedElements: IfcBlockedEvidenceElement[];
@@ -82,6 +87,10 @@ export interface IfcSmartCheckEvidenceArtifact {
 
 function formatQuantity(value: number): string {
   return Number.isFinite(value) ? Number(value.toFixed(12)).toString() : "";
+}
+
+function isSourceBackedRebar(element: ParsedIfcElement): boolean {
+  return hasDirectIfcRebarMassEvidence(element);
 }
 
 function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: number): ParsedQuantityRow {
@@ -110,6 +119,9 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
   if (typeof element.lengthM === "number" && Number.isFinite(element.lengthM)) {
     formulaJson.lengthM = formatQuantity(element.lengthM);
   }
+  if (typeof element.rebarDiameterMm === "number" && Number.isFinite(element.rebarDiameterMm)) {
+    formulaJson.rebarDiameterMm = formatQuantity(element.rebarDiameterMm);
+  }
   if (Array.isArray(element.materialLayers) && element.materialLayers.length > 0) {
     formulaJson.materialLayers = JSON.stringify(element.materialLayers);
   }
@@ -131,11 +143,14 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
     typeof element.lengthM === "number" &&
     element.lengthM > 0;
   const isCoveringArea = element.type === "IfcCovering" && typeof element.areaM2 === "number" && element.areaM2 > 0;
+  const isRebarMass = isSourceBackedRebar(element);
   return {
     sheetName: "IFC",
     sourceRowNumber,
     sourceCellRange: `IFC#${element.id}`,
-    rawDescription: isSkirtingLinear
+    rawDescription: isRebarMass
+      ? `${element.type} ${element.name} donatı kütlesi · ${element.storey} · ${evidencePath}`
+      : isSkirtingLinear
       ? `${element.type} ${element.name} süpürgelik metrajı · ${element.storey} · ${evidencePath}`
       : isCoveringArea
         ? `${element.type} ${element.name} kaplama alanı · ${element.storey} · ${evidencePath}`
@@ -144,8 +159,10 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
     // validateRows() bunu MISSING_POSITION_CODE bulgusu olarak işaretler —
     // tip-bazlı bir yer tutucu (örn. "IFC-BEAM-CONCRETE") kullanılmaz.
     rawPositionCode: element.pozNo ?? "",
-    rawUnit: isSkirtingLinear ? "m" : isCoveringArea ? "m2" : "m3",
-    rawQuantity: isSkirtingLinear
+    rawUnit: isRebarMass ? "kg" : isSkirtingLinear ? "m" : isCoveringArea ? "m2" : "m3",
+    rawQuantity: isRebarMass
+      ? formatQuantity(element.rebarKg)
+      : isSkirtingLinear
       ? formatQuantity(element.lengthM!)
       : isCoveringArea
         ? formatQuantity(element.areaM2!)
@@ -190,8 +207,9 @@ function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
       globalId: element.guid,
       elementType: element.type,
       code: "IFC_REBAR_EVIDENCE_POLICY_PENDING",
-      reason: "Rebar quantities are blocked until the IFC pipeline supports explicit bar length/mass evidence, diameter grouping, unit conversion, lap/waste policy, and reviewer-backed BVBS/TS 708 validation.",
+      reason: "Rebar evidence requires a positive direct Weight/Mass value from IfcQuantityWeight or an attributable IFC property path; zero, nominal-derived, estimated, or unattributed quantities remain blocked.",
       sourceReference: element.quantitySourcePath ?? `IFC#${element.id}`,
+      sourceIdentity: element.sourceIdentity,
     };
   }
   if (element.quantitySource === "geometry") {
@@ -202,6 +220,7 @@ function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
       code: "IFC_GEOMETRY_FALLBACK_BLOCKED",
       reason: "Geometry-derived IFC quantities are blocked until deterministic unit handling, opening deductions, net/gross rules, tolerance limits, and reviewer evidence are implemented.",
       sourceReference: element.quantitySourcePath ?? `IFC#${element.id}`,
+      sourceIdentity: element.sourceIdentity,
     };
   }
   return {
@@ -211,6 +230,7 @@ function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
     code: "IFC_ESTIMATE_QUANTITY_BLOCKED",
     reason: "Demo/estimated IFC quantities are not admitted into SmartCheck evidence rows without QTO, approved property, geometry, or reviewer-backed source evidence.",
     sourceReference: `IFC#${element.id}`,
+    sourceIdentity: element.sourceIdentity,
   };
 }
 
@@ -225,7 +245,8 @@ export function buildIfcSmartCheckEvidenceArtifact(
   summary: IfcParseSummary,
   document: IfcEvidenceDocumentContext,
 ): IfcSmartCheckEvidenceArtifact {
-  if (summary.parseStatus !== "succeeded") {
+  const qualityGateBlocked = summary.parserContract?.qualityGate.passed === false;
+  if (summary.parseStatus !== "succeeded" || qualityGateBlocked) {
     return {
       schemaVersion: 1,
       kind: "ifc_smartcheck_quantity_evidence",
@@ -248,21 +269,25 @@ export function buildIfcSmartCheckEvidenceArtifact(
         authoringSoftware: resolveAuthoringSoftware(summary),
         openings: summary.openings,
         consistencyReport: summary.consistencyReport,
+        parserContract: summary.parserContract,
       },
       rows: [],
       blockedElements: elements.map((element) => ({
         ...blockElement(element),
-        code: "IFC_PARSE_FAILED",
-        reason: "IFC parsing failed; no SmartCheck evidence rows can be admitted.",
+        code: qualityGateBlocked ? "IFC_QUALITY_GATE_BLOCKED" : "IFC_PARSE_FAILED",
+        reason: qualityGateBlocked
+          ? `IFC quality gate failed (${summary.parserContract?.qualityGate.blockingFindingCodes.join(", ") || "invalid quantity evidence"}); no SmartCheck evidence rows can be admitted.`
+          : "IFC parsing failed; no SmartCheck evidence rows can be admitted.",
       })),
     };
   }
 
   const evidenceElements = elements.filter(
     (element) =>
-      element.type !== "IfcReinforcingBar" &&
       (element.quantitySource === "qto" || element.quantitySource === "property") &&
-      (element.volumeM3 > 0 || (element.type === "IfcCovering" && (element.areaM2 ?? 0) > 0)),
+      (element.type === "IfcReinforcingBar"
+        ? isSourceBackedRebar(element)
+        : element.volumeM3 > 0 || (element.type === "IfcCovering" && (element.areaM2 ?? 0) > 0)),
   );
   const parsedRows = evidenceElements.map((element, index) => buildParsedQuantityRow(element, index + 1));
   const validatedRows = validateRows(parsedRows);
@@ -281,6 +306,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       mappingConfidence: (element.quantityConfidence ?? 0.8).toFixed(2),
       reviewStatus: "pending_review",
       findingsJson: buildFindings(element, validated.findings),
+      sourceIdentity: element.sourceIdentity,
     };
   });
 
@@ -311,6 +337,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       authoringSoftware: resolveAuthoringSoftware(summary),
       openings: summary.openings,
       consistencyReport: summary.consistencyReport,
+      parserContract: summary.parserContract,
     },
     rows,
     blockedElements,

@@ -61,7 +61,7 @@ export default function BimGlossary() {
       abbreviation: 'Industry Foundation Classes',
       turkishName: 'Endüstri Temel Sınıfları',
       category: 'Teknoloji',
-      definition: 'BuildingSMART tarafından geliştirilen, farklı BIM yazılımlarının (Revit, ArchiCAD, Allplan vb.) birbirleriyle veri kaybı olmadan model paylaşabilmesini sağlayan openBIM evrensel dosya formatıdır.',
+      definition: 'buildingSMART tarafından geliştirilen, farklı BIM yazılımlarının (Revit, Archicad, Allplan vb.) standartlaştırılmış nesne, ilişki ve nicelik verisi alışverişi yapmasını sağlayan openBIM şemasıdır. Uygulamalar arası aktarımın kayıpsız olduğu varsayılmaz; QTO, birim, kimlik ve kapsam kanıtı ayrıca doğrulanır.',
       englishTranslation: 'Industry Foundation Classes',
       isoRole: 'Sözleşmesel teslimatlarda yazılım bağımsızlığı ve uzun ömürlü arşivleme için zorunlu formattır.',
       importance: 'Çok Yüksek'

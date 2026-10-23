@@ -51,5 +51,21 @@ describe("ALLPLAN 2026 e-PYS Kiti v1", () => {
     assert.ok(xml.includes('identifier="EK-7-7.1"'));
     assert.ok(xml.includes("TREpys_ParselOzellikSeti"));
   });
+
+  it("maps concrete material templates to the exact 2026 catalog positions", () => {
+    const materials = buildAllplanEpysKitV1().ek5ElementNamingAndMaterials.approved15CharMaterials;
+    const concretePositions = Object.fromEntries(
+      materials
+        .filter((material) => material.code.startsWith("BETON_C"))
+        .map((material) => [material.code, material.defaultCsbPozNo]),
+    );
+
+    assert.deepEqual(concretePositions, {
+      BETON_C25_30: "15.150.1005",
+      BETON_C30_37: "15.150.1006",
+      BETON_C35_45: "15.150.1007",
+      BETON_C40_50: "15.150.1008",
+    });
+  });
 });
 

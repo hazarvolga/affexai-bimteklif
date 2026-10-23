@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-23.35",
+  version: "BIM-CALC-2026-10-23.36",
   updatedOn: "23 Ekim 2026",
-  implementationBaseline: "50896d50239db18ca01f0459c2de6e07ad94a45d",
-  approvalStatus: "Faz 1 kaynaklı fiyat kapısı teknik olarak test edildi: 18.848 satır yapısal denetimi, fail-closed poz/birim çözümleyici, kanıtlı miktar dönüşüm sözleşmesi, tenant ayrımlı BYOL/ÇŞB seçimi ve immutable fiyat snapshot geçmişi. ÇŞB/YFK ticari kullanım yetki belgesi ile bağımsız maliyet uzmanı kabulü bekliyor; bu kayıt uzman onayı değildir.",
+  implementationBaseline: "0388a2a2dbb6d9064ffce5395eb96842b44dcdbf",
+  approvalStatus: "Faz 2 IFC kapsam ve metraj bütünlüğü geliştirme kapısı test edildi: malzeme ve beton sınıfı fail-closed eşleştirme, browser/worker sınırı, dosya-run-STEP kimliği, duplicate/aggregate kayıtları, boyut bazlı kalite toplamları, kaynaklı kg donatı satırı ve kalıcı Türkçe kota aksiyonları eklendi. Gerçek ve kullanım izinli Allplan/Revit/Archicad dosyalarıyla bağımsız mühendis kabulü bekliyor; bu kayıt uzman onayı veya canlı yayın değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -25,7 +25,7 @@ export interface CalcReviewRevisionEntry {
 }
 
 /**
- * Strictly chronological revision log (Rev. 1 -> Rev. 6) so expert engineers can follow
+ * Strictly chronological revision log (Rev. 1 -> current revision) so expert engineers can follow
  * the exact evolution of calculation and rule methods from initial release to current state.
  */
 export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
@@ -1046,6 +1046,38 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Sabit/demo fiyat veya advisory snapshot teklif aktarımı ve fiyat kilidinde kullanılabiliyordu.",
         after: "Tüm kalemlerde kanıtlı snapshot olmadan Calm aktarımı kapalıdır; teklif kilidi yalnız approved ve authorized kaynağı kabul eder. Manuel fiyat ayrıca kullanıcı, tarih ve not taşır.",
         basis: "Immutable fiyat geçmişi ve denetlenebilir provenance",
+      },
+    },
+  },
+  {
+    revision: "Rev. 42",
+    version: "BIM-CALC-2026-10-23.36",
+    date: "23 Ekim 2026",
+    commit: "phase-2-ifc-integrity",
+    trigger: "GAP kapatma yol haritası Faz 2 (T10–T18): IFC kapsamı, kimlik zinciri ve metraj korunumu.",
+    beforeSummary: "Gazbeton betonarme sayılabiliyor, sınıfsız beton C30 pozuna düşebiliyor, browser önizlemesi worker kapsamı gibi algılanabiliyor, duplicate GlobalId kayıtları STEP kimliğinden bağımsız izlenemiyor ve pozlu donatı matched sayıldığı halde satır üretmeyebiliyordu. Sentetik örnek fiyat kaynağı ve beton poz şablonları da güncel katalogla çelişiyordu.",
+    afterSummary: "Yapısal malzeme ve C25/30–C35/45 beton pozları fail-closed çözümlenir; bitümlü membran XPS'e dönüşmez. Server worker IFC2X3/4/4X3 ailesi, dosya hash'i + processing run + STEP kimliği, aggregate suppression, duplicate GUID bulguları ve volume/area/length/mass/formwork toplamlarını ayrı kalite kapısında raporlar. Browser eksik kapsamı açıkça worker'a yönlendirir. Kaynaklı pozitif donatı kg satırına, sıfır/tahmini donatı açıklamalı kapsam dışına gider. Sentetik örnekler fiyatsızdır; stale ALLPLAN beton pozları gerçek 2026 katalog sırasına çekilmiştir.",
+    affectedModules: ["ifc-metraj", "donati-kutle", "ifc-teklif-aktarim", "satir-dogrulama"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Eleman kimliği GlobalId ağırlıklıydı; boyutlar ve dışlanan aggregate parçaları tek normalleştirilmiş kalite sözleşmesinde görünmüyordu.",
+        after: "IFC-NORMALIZED-1 sözleşmesi fileSha256/runId/STEP elementKey, şema ailesi, capability ve boyut bazlı qualityGate taşır; duplicate GUID ve suppressed parçalar ayrı kayıt olarak korunur.",
+        basis: "buildingSMART IFC4.3 IfcRelAggregates, IfcMaterialLayerSetUsage ve Qto_*BaseQuantities; Faz 0 kanıt sözleşmesi",
+      },
+      "donati-kutle": {
+        before: "Pozlu donatı sıfır veya satırsız halde başarılı eşleşme sayılabiliyor; kg kanıt satırı üretilmiyordu.",
+        after: "Yalnız doğrudan IfcQuantityWeight veya açık Weight/Mass property değerinden gelen pozitif kütle kg satırına alınır; nominal çap/boy hesabı, sıfır değer ve kaynaksız kayıt eşleşmemiş kalır. kg/ton ayrımı açık birim sözleşmesine bağlıdır.",
+        basis: "buildingSMART Qto_ReinforcingElementBaseQuantities.Weight; doğrudan Weight/Mass property provenance kapısı",
+      },
+      "ifc-teklif-aktarim": {
+        before: "Sentetik örnekler kaynaksız fiyat seed'i ve boş pending fiyat kaynağı oluşturabiliyordu.",
+        after: "Örnek projeler açıkça sentetik ve fiyatsızdır; boş seed fiyat kaynağı/snapshot oluşturmaz. Fiyat çözümü Faz 1 kanıt kapısında kalır.",
+        basis: "Kaynak uydurmama ve immutable fiyat provenance ilkesi",
+      },
+      "satir-dogrulama": {
+        before: "IFC kota reddi geçici toast ve ham hata metniyle kalabiliyor, reddedilen dosya yüklenmiş görünebiliyordu.",
+        after: "403 nedenleri kalıcı Türkçe uyarı ve doğru e-posta/paket aksiyonuna dönüşür; reddedilen seçim temizlenir ve aynı dosya yeniden seçilebilir.",
+        basis: "Fail-closed kullanıcı akışı ve kararlı sunucu hata kodu sözleşmesi",
       },
     },
   },

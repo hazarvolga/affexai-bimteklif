@@ -115,9 +115,9 @@ test("buildCalmIfcDatasetFromElements explodes multi-layer IfcCovering, converts
 
   assert.equal(sap?.netQuantity, 25);
   assert.equal(parke?.netQuantity, 25);
-  assert.equal(xps?.netQuantity, 25);
+  assert.equal(xps, undefined);
   assert.match(parke?.pozCode ?? "", /^UNRESOLVED:/);
-  assert.match(xps?.pozCode ?? "", /^UNRESOLVED:/);
+  assert.match(ds.consistencyReport?.findings.find((finding) => finding.globalId === "cov-floor-1")?.message ?? "", /yalıtımı/i);
   assert.equal(fayans?.netQuantity, 35.4);
   assert.equal(fayans?.grossQuantity, 40.68);
   assert.equal(fayans?.deductedOpeningQuantity, 5.28);
@@ -516,7 +516,7 @@ test("yapısal elemanlar ada göre değil malzemeye göre sınıflandırılır; 
   ];
   const ds = buildCalmIfcDatasetFromElements(elements, null, "x.ifc");
   const items = new Map(ds.groups.flatMap((g) => g.items).map((i) => [i.id, i.netQuantity]));
-  assert.equal(items.get("c30-betonarme"), 13);
+  assert.equal(items.get("c30-37-betonarme"), 13);
   assert.equal(items.get("bims-ytong-duvar"), 5);
   const uncovered = new Map(ds.consistencyReport?.uncoveredElements.map((u) => [u.globalId, u.reason]));
   assert.match(uncovered.get("BEAM_WOOD_PINE_000001") ?? "", /Wood - pine/);
@@ -532,16 +532,115 @@ test("malzemesi olmayan yapısal eleman betonarme varsayılmaz ve MISSING_MATERI
   assert.equal(finding?.severity, "medium");
 });
 
-test("C30/37 dışındaki beton sınıfı kalemde kalır ama CONCRETE_CLASS_DIFFERS bulgusuyla işaretlenir", () => {
+test("desteklenen beton sınıfları normalize edilir ve sınıfa ait onaylı poz adayına ayrılır", () => {
   const elements = [
+    structuralFixture("SLAB_BETON_C25_000001", "IfcSlab", "Döşeme", ["Beton_C25"], 4),
+    structuralFixture("SLAB_BETON_C30_000001", "IfcSlab", "Döşeme", ["Beton C30/37"], 5),
     structuralFixture("SLAB_BETON_C35_000001", "IfcSlab", "Döşeme", ["Beton_C35"], 6),
-    structuralFixture("SLAB_PREFAB_C45_00001", "IfcSlab", "Döşeme", ["concrete_prefab_C45_55"], 2),
-    structuralFixture("COL_RC_NOCLASS_000001", "IfcColumn", "Kolon", ["Reinforced concrete - prefab white"], 1),
   ];
   const ds = buildCalmIfcDatasetFromElements(elements, null, "x.ifc");
-  assert.equal(new Map(ds.groups.flatMap((g) => g.items).map((i) => [i.id, i.netQuantity])).get("c30-betonarme"), 9);
-  const differs = ds.consistencyReport?.findings.filter((f) => f.code === "CONCRETE_CLASS_DIFFERS").map((f) => f.globalId).sort();
-  assert.deepEqual(differs, ["SLAB_BETON_C35_000001", "SLAB_PREFAB_C45_00001"]);
+  const items = new Map(ds.groups.flatMap((g) => g.items).map((i) => [i.id, i]));
+  assert.deepEqual(
+    [items.get("c25-30-betonarme"), items.get("c30-37-betonarme"), items.get("c35-45-betonarme")].map((item) =>
+      item && [item.pozCode, item.netQuantity]),
+    [["15.150.1005", 4], ["15.150.1006", 5], ["15.150.1007", 6]],
+  );
+  assert.equal(ds.consistencyReport?.uncoveredElementCount, 0);
+});
+
+test("sınıfsız veya desteklenmeyen beton, grobeton, şap, ahşap-kâgir ve karma katman fail-closed açıkta kalır", () => {
+  const elements = [
+    structuralFixture("COL_RC_NOCLASS_000001", "IfcColumn", "Kolon", ["Reinforced concrete - prefab white"], 1),
+    structuralFixture("SLAB_C45_55_000000001", "IfcSlab", "Döşeme", ["Beton_C45/55"], 2),
+    structuralFixture("SLAB_GROBETON_0000001", "IfcSlab", "Grobeton", ["Grobeton_C16/20"], 3),
+    structuralFixture("SLAB_SAP_000000000001", "IfcSlab", "Şap", ["Şap_C20"], 4),
+    structuralFixture("WALL_TIMBER_MASONRY01", "IfcWall", "Ahşap Kâgir", ["Ahşap", "Tuğla"], 5),
+    structuralFixture("WALL_MIXED_LAYERS_001", "IfcWall", "Karma", ["Beton_C30/37", "Gazbeton_G2"], 6),
+  ];
+  const ds = buildCalmIfcDatasetFromElements(elements, null, "x.ifc");
+  assert.equal(ds.groups.flatMap((group) => group.items).length, 0);
+  assert.deepEqual(
+    ds.consistencyReport?.uncoveredElements.map((item) => item.globalId).sort(),
+    elements.map((item) => item.guid).sort(),
+  );
+});
+
+test("gazbeton, adında beton geçmesine rağmen betonarme sayılmaz ve yalnız duvarda kâgir kalemine girer", () => {
+  const wall = structuralFixture("WALL_GAZBETON_G2_0001", "IfcWall", "Bölme", ["Gazbeton_G2/04"], 4.8);
+  const slab = structuralFixture("SLAB_GAZBETON_0000001", "IfcSlab", "Döşeme", ["Gazbeton_G2/04"], 2);
+  const ds = buildCalmIfcDatasetFromElements([wall, slab], null, "x.ifc");
+  const masonry = ds.groups.flatMap((group) => group.items).find((item) => item.id === "bims-ytong-duvar");
+  assert.equal(masonry?.netQuantity, 4.8);
+  assert.equal(ds.consistencyReport?.uncoveredElements.some((item) => item.globalId === slab.guid), true);
+});
+
+test("yalnız doğrudan Weight kanıtlı pozitif donatı kütlesi icmale girer; sıfır ve nominal türetilmiş kütle matched sayılmaz", () => {
+  const valid = {
+    ...structuralFixture("REBAR_QTO_POSITIVE_0001", "IfcReinforcingBar", "Ø16 Donatı", undefined, 0),
+    rebarKg: 1250,
+    quantitySource: "qto" as const,
+    quantitySourcePath: "#80/Qto_ReinforcingElementBaseQuantities/Weight",
+    pozNo: "15.160.1003",
+    pozNoSourcePath: "#81/TREpys_PozOzellikSeti/PozNo",
+  };
+  const zero = {
+    ...valid,
+    id: "REBAR_ZERO_0000000001",
+    guid: "REBAR_ZERO_0000000001",
+    rebarKg: 0,
+  };
+  const derived = {
+    ...valid,
+    id: "REBAR_DERIVED_00000001",
+    guid: "REBAR_DERIVED_00000001",
+    rebarKg: 18.9,
+    quantitySource: "property" as const,
+    quantitySourcePath: "#82:IfcReinforcingBar/NominalAttributes",
+  };
+  const ds = buildCalmIfcDatasetFromElements([valid, zero, derived], null, "x.ifc");
+  const item = ds.groups.flatMap((group) => group.items).find((entry) => entry.id === "rebar-15-160-1003");
+  assert.deepEqual(item && [item.unit, item.netQuantity, item.pozCode, item.defaultUnitPriceTry], ["kg", 1250, "15.160.1003", 0]);
+  assert.equal(ds.consistencyReport?.pozMatchedElementCount, 1);
+  assert.equal(ds.consistencyReport?.uncoveredElements.some((entry) => entry.globalId === zero.guid), true);
+  assert.equal(ds.consistencyReport?.uncoveredElements.some((entry) => entry.globalId === derived.guid), true);
+});
+
+test("bitümlü membran geniş yalıtım anahtar sözcüğüyle XPS kalemine yanlış atanmaz", () => {
+  const membrane = {
+    ...structuralFixture("COVER_BITUMEN_MEMBRANE1", "IfcCovering", "Temel Su Yalıtımı", ["Bitümlü Su Yalıtım Membranı"], 0),
+    areaM2: 42,
+    coveringPredefinedType: "FLOORING",
+  };
+  const ds = buildCalmIfcDatasetFromElements([membrane], null, "x.ifc");
+  assert.equal(ds.groups.flatMap((group) => group.items).some((item) => item.id === "xps-ses-yalitimi"), false);
+  assert.equal(ds.consistencyReport?.uncoveredElements.some((entry) => entry.globalId === membrane.guid), true);
+});
+
+test("T17 kontrollü kapsam: dayanaklı beton Roof/Footing korunur; yalıtım, açıklık, korkuluk, asma tavan ve kısmi çok-katman eşleşmesi fail-closed kalır", () => {
+  const roof = { ...structuralFixture("ROOF_CONCRETE_C30_0001", "IfcSlab", "Betonarme Çatı", ["Beton_C30/37"], 8), ifcClass: "IfcRoof" };
+  const footing = { ...structuralFixture("FOOTING_CONCRETE_C30_1", "IfcSlab", "Betonarme Temel", ["Beton_C30/37"], 12), ifcClass: "IfcFooting" };
+  const controlledUnsupported: ParsedIfcElement[] = [
+    { ...coveringFixture("COV_HEAT_INSULATION_01", "FLOORING", ["XPS Isı Yalıtımı"], 10), ifcClass: "IfcCovering" },
+    { ...coveringFixture("COV_WATER_INSULATION01", "FLOORING", ["Bitümlü Su Yalıtım Membranı"], 11), ifcClass: "IfcCovering" },
+    { ...coveringFixture("COV_SOUND_INSULATION01", "FLOORING", ["Darbe Ses Yalıtım Şiltesi"], 12), ifcClass: "IfcCovering" },
+    { ...coveringFixture("DOOR_SCOPE_00000000001", "", ["Ahşap Kapı"], 3), ifcClass: "IfcDoor" },
+    { ...coveringFixture("WINDOW_SCOPE_000000001", "", ["Alüminyum Pencere"], 4), ifcClass: "IfcWindow" },
+    { ...coveringFixture("RAILING_SCOPE_00000001", "", ["Paslanmaz Korkuluk"], 5), ifcClass: "IfcRailing" },
+    { ...coveringFixture("SUSP_CEILING_SCOPE_001", "CEILING", ["Asma Tavan Paneli"], 6), ifcClass: "IfcCovering" },
+    { ...coveringFixture("MULTILAYER_PARTIAL_0001", "FLOORING", ["Şap_3CM", "Vendor_Unknown_Layer"], 7), ifcClass: "IfcCovering" },
+  ];
+
+  const ds = buildCalmIfcDatasetFromElements([roof, footing, ...controlledUnsupported], null, "x.ifc");
+  const concrete = ds.groups.flatMap((group) => group.items).find((item) => item.id === "c30-37-betonarme");
+  assert.equal(concrete?.netQuantity, 20);
+  assert.equal(ds.groups.flatMap((group) => group.items).some((item) => item.id === "xps-ses-yalitimi"), false);
+
+  const uncovered = new Map(ds.consistencyReport?.uncoveredElements.map((entry) => [entry.globalId, entry.reason]));
+  for (const element of controlledUnsupported.slice(0, -1)) {
+    assert.match(uncovered.get(element.guid) ?? "", /kontrollü kapsam|desteklenmiyor|dayanak/i, element.guid);
+  }
+  assert.equal(ds.elements?.find((element) => element.guid === "MULTILAYER_PARTIAL_0001")?.matchedPozCode, "15.340.1002");
+  assert.match(ds.consistencyReport?.findings.find((finding) => finding.globalId === "MULTILAYER_PARTIAL_0001")?.message ?? "", /çok katmanlı.*vendor/i);
 });
 
 test("açıkta kalan icmal kayıtları elemanın kendi miktarını fiyatsız olarak taşır", () => {

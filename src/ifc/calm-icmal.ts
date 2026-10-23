@@ -10,7 +10,8 @@ import type {
 import { buildAuthoringAdvisory, classifyAuthoringSoftware, type AuthoringAdvisory } from "./authoring-software-diagnostics";
 import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./smartcheck-evidence";
 import { elementQuantity } from "./uncovered-quantity";
-import { classifyStructuralMaterial, concreteClassDiffers, ICMAL_CONCRETE_CLASS, isStructuralType } from "./structural-material";
+import { classifyStructuralMaterial, isStructuralType, type SupportedConcreteClass } from "./structural-material";
+import { hasDirectIfcRebarMassEvidence } from "./rebar-evidence";
 
 export type CalmIcmalGroupKey =
   | "floor_finish"
@@ -36,7 +37,7 @@ export interface CalmIcmalItem {
   title: string;
   subtitle: string;
   pozCode: string;
-  unit: "m²" | "mtül" | "m³";
+  unit: "m²" | "mtül" | "m³" | "kg";
   netQuantity: number;
   grossQuantity: number;
   deductedOpeningQuantity: number;
@@ -115,19 +116,27 @@ interface ClassifiedLayerSpec {
   title: string;
   subtitle: string;
   pozCode: string;
-  unit: "m²" | "mtül" | "m³";
+  unit: "m²" | "mtül" | "m³" | "kg";
   formulaNote: string;
 }
 
-const CONCRETE_SPEC: ClassifiedLayerSpec = {
-  id: "c30-betonarme",
-  groupKey: "structural",
-  title: "C30/37 Betonarme (Döşeme, Kolon, Perde, Kiriş)",
-  subtitle: "Malzemesi beton olan taşıyıcı elemanların boşluklar düşülmüş net beton hacmi",
-  pozCode: "15.150.1006",
-  unit: "m³",
-  formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
-};
+const CONCRETE_SPECS: Readonly<Record<SupportedConcreteClass, ClassifiedLayerSpec>> = Object.freeze({
+  "C25/30": concreteSpec("c25-30-betonarme", "C25/30", "15.150.1005"),
+  "C30/37": concreteSpec("c30-37-betonarme", "C30/37", "15.150.1006"),
+  "C35/45": concreteSpec("c35-45-betonarme", "C35/45", "15.150.1007"),
+});
+
+function concreteSpec(id: string, concreteClass: SupportedConcreteClass, pozCode: string): ClassifiedLayerSpec {
+  return Object.freeze({
+    id,
+    groupKey: "structural",
+    title: `${concreteClass} Betonarme (Döşeme, Kolon, Perde, Kiriş)`,
+    subtitle: "Doğrulanmış beton sınıfına sahip taşıyıcı elemanların net beton hacmi",
+    pozCode,
+    unit: "m³",
+    formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
+  });
+}
 
 const MASONRY_SPEC: ClassifiedLayerSpec = {
   id: "bims-ytong-duvar",
@@ -210,7 +219,7 @@ function classifyMaterialLayer(
     };
   }
 
-  if (/xps|şilte|silte|yalıtım|yalitim|levha/i.test(lower)) {
+  if (/xps|(?:darbe|ses)[ _-]*(?:yalıtım|yalitim)?[ _-]*(?:şilte|silte)|(?:şap|sap)[ _-]*altı[ _-]*(?:şilte|silte)/i.test(lower)) {
     return {
       id: "xps-ses-yalitimi",
       groupKey: "floor_finish",
@@ -307,6 +316,30 @@ function classifyMaterialLayer(
     };
   }
 
+  return null;
+}
+
+function controlledElementScopeReason(el: ParsedIfcElement): string | null {
+  const rawClass = el.ifcClass || el.type;
+  if (["IfcDoor", "IfcWindow", "IfcRailing"].includes(rawClass)) {
+    return `${rawClass} için boyut, aksesuar, boşluk ve ürün sistemi kuralları vendor/uzman dayanağıyla doğrulanmadı; T17 kontrollü kapsamında otomatik poz eşlemesi desteklenmiyor.`;
+  }
+  if (/asma\s*tavan|suspended\s*ceiling/i.test(`${el.name} ${(el.materialLayers ?? []).join(" ")}`)) {
+    return "Asma tavan için taşıyıcı sistem, panel, askı ve çevre profili ayrıştırma kuralı vendor/uzman dayanağıyla doğrulanmadı; T17 kontrollü kapsamında otomatik poz eşlemesi desteklenmiyor.";
+  }
+  return null;
+}
+
+function controlledLayerScopeReason(layerToken: string): string | null {
+  if (/xps|eps|ısı\s*yalıt|isi\s*yalit|thermal\s*insulation/i.test(layerToken)) {
+    return "Isı yalıtımı katmanında ürün tipi, kalınlık, basınç dayanımı ve uygulama yeri vendor/uzman dayanağıyla doğrulanmadı; otomatik poz eşlemesi desteklenmiyor.";
+  }
+  if (/bitüm|bitum|su\s*yalıt|su\s*yalit|waterproof/i.test(layerToken)) {
+    return "Su yalıtımı katmanında membran sistemi, kat adedi ve uygulama detayı vendor/uzman dayanağıyla doğrulanmadı; otomatik poz eşlemesi desteklenmiyor.";
+  }
+  if (/ses\s*yalıt|ses\s*yalit|akustik|darbe.*(?:şilte|silte)|sound\s*insulation/i.test(layerToken)) {
+    return "Ses yalıtımı katmanında ürün sistemi, kalınlık ve performans sınıfı vendor/uzman dayanağıyla doğrulanmadı; otomatik poz eşlemesi desteklenmiyor.";
+  }
   return null;
 }
 
@@ -594,14 +627,42 @@ export function buildCalmIfcDatasetFromElements(
 
   for (const [elIndex, el] of elements.entries()) {
     if (el.type === "IfcReinforcingBar") {
-      if (el.measured !== false && el.pozNo) {
+      const hasSourceBackedMass = hasDirectIfcRebarMassEvidence(el);
+      if (el.measured !== false && el.pozNo && hasSourceBackedMass) {
+        const rebarSpec: ClassifiedLayerSpec = {
+          id: `rebar-${el.pozNo.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+          groupKey: "structural",
+          title: `Donatı Çeliği (${el.pozNo})`,
+          subtitle: "IFC kaynak yolundan okunan pozitif donatı kütlesi; fiyat kaynağı ayrıca çözülmelidir",
+          pozCode: el.pozNo,
+          unit: "kg",
+          formulaNote: `IFC donatı kütlesi: ${el.quantitySourcePath}`,
+        };
+        const existing = accumMap.get(rebarSpec.id);
+        const entry = existing ?? {
+          spec: rebarSpec,
+          netQuantity: 0,
+          grossQuantity: 0,
+          deductedOpeningQuantity: 0,
+          grossKnown: true,
+          derivedFromAssumption: false,
+          byStorey: new Map<string, number>(),
+          sampleRooms: [],
+        };
+        entry.netQuantity += el.rebarKg;
+        entry.grossQuantity += el.rebarKg;
+        const storeyLabel = normalizeStoreyLabel(el.storey, el.spaceCode);
+        entry.byStorey.set(storeyLabel, (entry.byStorey.get(storeyLabel) ?? 0) + el.rebarKg);
+        if (!existing) accumMap.set(rebarSpec.id, entry);
         placements[elIndex] = { matchedPozCode: el.pozNo, isUncovered: false };
         placedElementCount++;
       } else {
         const reason =
           el.measured === false
             ? "Geçerli net miktar ölçülemediği için icmale alınamadı."
-            : "Donatı elemanı için açık PozNo etiketi bulunamadı ve otomatik icmal grubuna yerleşemedi.";
+            : !el.pozNo
+              ? "Donatı elemanı için açık PozNo etiketi bulunamadı ve otomatik icmal grubuna yerleşemedi."
+              : "Donatı elemanında IFC QTO/property kaynak yolu ile kanıtlanmış pozitif kütle yok; başarılı eşleşme sayılmadı.";
         placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
         unplacedUncoveredElements.push({
           globalId: el.guid,
@@ -642,6 +703,30 @@ export function buildCalmIfcDatasetFromElements(
       continue;
     }
 
+    const controlledScopeReason = controlledElementScopeReason(el);
+    if (controlledScopeReason) {
+      placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: controlledScopeReason };
+      unplacedUncoveredElements.push({
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        name: el.name,
+        storey: el.storey || "Kat atanmamış",
+        reason: controlledScopeReason,
+        scope: "in_takeoff",
+        ...withQuantity(el),
+      });
+      unplacedFindings.push({
+        code: "UNMAPPED_POZ_ELEMENT",
+        severity: "medium",
+        globalId: el.guid,
+        ifcClass: el.ifcClass || el.type,
+        storey: el.storey || "Kat atanmamış",
+        elementName: el.name,
+        message: controlledScopeReason,
+      });
+      continue;
+    }
+
     const structural = isStructuralType(el.type) ? classifyStructuralMaterial(el.type, el.materialLayers) : null;
     if (structural?.kind === "unplaced") {
       placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: structural.reason };
@@ -675,12 +760,23 @@ export function buildCalmIfcDatasetFromElements(
     let elementPlacedInIcmal = false;
     let firstPlacedPozCode: string | null = null;
     let missingRequiredQuantityEvidence = false;
+    const unsupportedLayerReasons: string[] = [];
 
     for (const layerToken of layers) {
+      const controlledLayerReason = el.pozNo ? null : controlledLayerScopeReason(layerToken);
+      if (controlledLayerReason) {
+        unsupportedLayerReasons.push(controlledLayerReason);
+        continue;
+      }
       const spec = structural
-        ? structural.kind === "concrete" ? CONCRETE_SPEC : MASONRY_SPEC
+        ? structural.kind === "concrete" ? CONCRETE_SPECS[structural.concreteClass] : MASONRY_SPEC
         : classifyMaterialLayer(layerToken, predef, el.type, el.name, el.pozNo);
-      if (!spec) continue;
+      if (!spec) {
+        if (layers.length > 1) {
+          unsupportedLayerReasons.push(`Çok katmanlı elemandaki “${layerToken}” katmanı için vendor/uzman dayanaklı poz kuralı yok; bu katman otomatik eşleştirilmedi.`);
+        }
+        continue;
+      }
 
       let netQty = 0;
       let grossQty = 0;
@@ -767,21 +863,23 @@ export function buildCalmIfcDatasetFromElements(
     if (elementPlacedInIcmal && firstPlacedPozCode) {
       placedElementCount++;
       placements[elIndex] = { matchedPozCode: firstPlacedPozCode, isUncovered: false };
-      if (structural?.kind === "concrete" && concreteClassDiffers(structural.concreteClass)) {
+      for (const reason of unsupportedLayerReasons) {
         unplacedFindings.push({
-          code: "CONCRETE_CLASS_DIFFERS",
+          code: "UNMAPPED_POZ_ELEMENT",
           severity: "medium",
           globalId: el.guid,
           ifcClass: el.ifcClass || el.type,
           storey: el.storey || "Kat atanmamış",
           elementName: el.name,
-          message: `Modeldeki beton sınıfı ${structural.concreteClass}; icmal adayı ${ICMAL_CONCRETE_CLASS} profilinden farklıdır. Sınıfa uygun poz ve fiyat ayrıca doğrulanmalı.`,
+          message: `T17 kontrollü kapsam: ${reason}`,
         });
       }
     } else {
       const reason =
         missingRequiredQuantityEvidence
           ? "Doğrulanmış uzunluk/çevre kanıtı yok; alandan mtül miktarı varsayımla türetilmedi."
+          : unsupportedLayerReasons.length > 0
+            ? `T17 kontrollü kapsam: ${unsupportedLayerReasons.join(" ")}`
           : "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
       placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
       unplacedUncoveredElements.push({

@@ -17,11 +17,13 @@ Adheres strictly to TeklifPro QTO priority:
 """
 
 import argparse
+import hashlib
 import json
 import math
 import multiprocessing
 import os
 import sys
+import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
@@ -358,11 +360,13 @@ def extract_quantities_and_properties(
     qto_volume = None
     qto_weight = None
     qto_source_path = None
+    qto_weight_source_path = None
     qto_conf = 0.9
 
     prop_volume = None
     prop_weight = None
     prop_source_path = None
+    prop_weight_source_path = None
     prop_conf = 0.85
 
     poz_no = None
@@ -507,6 +511,7 @@ def extract_quantities_and_properties(
                             has_zero_net_qty = True
                         else:
                             qto_weight = val * quantity_scale(qty, "MASSUNIT", mass_scale)
+                            qto_weight_source_path = source_path_item
 
                 elif qty.is_a("IfcQuantityLength") and qty_name_lower in {"length", "barlength", "pec_length"}:
                     val = safe_float(getattr(qty, "LengthValue", None))
@@ -672,6 +677,7 @@ def extract_quantities_and_properties(
                         if val is not None and val > 0:
                             eff_m_scale = mass_scale if (math.isfinite(mass_scale) and mass_scale > 0) else 1.0
                             prop_weight = val * (unit_scale(prop.Unit, "MASSUNIT") if getattr(prop, "Unit", None) else eff_m_scale)
+                            prop_weight_source_path = source_path_item
 
             if complex_layer_volumes and not target_prop_cands:
                 total_layer_vol = sum(v for _, v in complex_layer_volumes)
@@ -808,6 +814,24 @@ def extract_quantities_and_properties(
         confidence = 0.1
         status = "review"
         note = "QTO veya PropertySet metrajı bulunamadı. Geometrik veya manuel metraj girişi gereklidir."
+
+    # Rebar mass is resolved independently from volume. Only a direct
+    # IfcQuantityWeight / approved Weight property is source-backed evidence.
+    if elem_type == "IfcReinforcingBar" and not has_negative_net_qty:
+        if qto_weight is not None and qto_weight > 0:
+            rebar_kg = round(qto_weight, 1)
+            quantity_source = "qto"
+            source_path = qto_weight_source_path
+            confidence = qto_conf
+            status = "review"
+            note = "Standart IfcQuantityWeight kaynağından doğrudan donatı kütlesi okundu; teknik inceleme önerilir."
+        elif prop_weight is not None and prop_weight > 0:
+            rebar_kg = round(prop_weight, 1)
+            quantity_source = "property"
+            source_path = prop_weight_source_path
+            confidence = prop_conf
+            status = "review"
+            note = "Onaylı IFC PropertySet Weight/Mass alanından doğrudan donatı kütlesi okundu; teknik inceleme önerilir."
 
     covering_area_m2: Optional[float] = None
     if elem_type == "IfcCovering" and not has_negative_net_qty:
@@ -1555,6 +1579,7 @@ def _detect_orphan_openings(model: Any, length_scale: float) -> List[Dict[str, A
                 "ifcClass": "IfcOpeningElement",
                 "storey": op_storey,
                 "elementName": op_name,
+                "_stepId": str(op.id()),
                 "message": "IfcRelVoidsElement ile hiçbir yapı elemanına (RelatingBuildingElement) bağlanmamış sahipsiz boşluk.",
             })
     return orphan_findings
@@ -1577,9 +1602,46 @@ def _has_own_positive_explicit_quantity(
     return (vol_m3 > 0.0) or (rebar_kg > 0.0) or (area_m2 > 0.0)
 
 
-def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
+def _sha256_file(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _schema_family(schema: str) -> Optional[str]:
+    normalized = schema.upper().replace("-", "").replace("_", "")
+    if normalized in {"IFC2X3", "IFC2X3TC1", "IFC2X3TC2"}:
+        return "IFC2X3"
+    if normalized in {"IFC4X3", "IFC4X3ADD1", "IFC4X3ADD2"}:
+        return "IFC4X3"
+    if normalized in {"IFC4", "IFC4ADD1", "IFC4ADD2", "IFC4X1", "IFC4X2"}:
+        return "IFC4"
+    return None
+
+
+def _source_identity(file_sha256: str, run_id: str, step_id: Any, global_id: Any) -> Dict[str, str]:
+    normalized_step_id = str(step_id).lstrip("#")
+    normalized_global_id = str(global_id or f"GUID-{normalized_step_id}")
+    return {
+        "fileSha256": file_sha256,
+        "runId": run_id,
+        "stepId": normalized_step_id,
+        "globalId": normalized_global_id,
+        "elementKey": f"{file_sha256}:{run_id}:#{normalized_step_id}",
+    }
+
+
+def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str = "") -> None:
     if not os.path.exists(input_path):
         sys.stderr.write(f"IFC_PARSE_FAILED: Input file does not exist: {input_path}\n")
+        sys.exit(EXIT_PARSE_FAILED)
+
+    file_sha256 = _sha256_file(input_path)
+    normalized_run_id = run_id.strip() or f"standalone:{uuid.uuid4()}"
+    if len(normalized_run_id) > 200 or any(ord(ch) < 32 for ch in normalized_run_id):
+        sys.stderr.write("IFC_PARSE_FAILED: Invalid run identity.\n")
         sys.exit(EXIT_PARSE_FAILED)
 
     try:
@@ -1589,7 +1651,8 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         sys.exit(EXIT_PARSE_FAILED)
 
     schema = str(model.schema or "").upper()
-    if not (schema.startswith("IFC2X3") or schema.startswith("IFC4")):
+    schema_family = _schema_family(schema)
+    if schema_family is None:
         sys.stderr.write(f"IFC_SCHEMA_UNSUPPORTED: Unsupported IFC schema: {model.schema}\n")
         sys.exit(EXIT_SCHEMA_UNSUPPORTED)
 
@@ -1697,6 +1760,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "parentGlobalId": str(getattr(parent_asm, "GlobalId", f"GUID-{parent_asm.id()}")),
                 "parentIfcClass": parent_asm.is_a(),
                 "storey": ch_storey,
+                "_stepId": str(elem.id()),
             })
         else:
             elements_raw.append(elem)
@@ -1902,17 +1966,16 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             diam, explicit_kg, explicit_vol = extract_rebar_info(elem, length_scale, area_scale, prop_bar_length_m)
             if diam and diam > 0:
                 rebar_diameter_mm = int(round(diam))
-            if explicit_kg > 0:
+            if explicit_kg > 0 and rebar_kg <= 0:
                 rebar_kg = explicit_kg
                 volume_m3 = explicit_vol
-                quantity_source = "property"
-                if not quantity_source_path:
-                    quantity_source_path = f"#{step_id}:IfcReinforcingBar/NominalAttributes"
+                quantity_source = "estimate"
+                quantity_source_path = f"#{step_id}:IfcReinforcingBar/DerivedNominalMass"
+                confidence = 0.1
+                status = "review"
+                note = "Donatı kütlesi nominal çap × uzunluk × adet × 7850 kg/m³ ile türetildi; doğrudan IFC Weight kanıtı değildir."
             elif rebar_kg > 0 and volume_m3 <= 0:
                 volume_m3 = round(rebar_kg / 7850.0, 12)
-                if quantity_source == "estimate":
-                    quantity_source = "property"
-                    quantity_source_path = f"#{step_id}:IfcReinforcingBar/WeightProperty"
             if storey_source != "ifc_spatial":
                 storey = "Genel Donatı"
 
@@ -1931,6 +1994,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "ifcClass": raw_type,
                 "storey": storey,
                 "elementName": name,
+                "_stepId": step_id,
                 "message": f"Elemanın net miktarı negatif ({raw_anomaly_val}) olarak tanımlanmış; toplama dahil edilmedi (ölçülemedi).",
             })
         else:
@@ -1955,6 +2019,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                         "ifcClass": raw_type,
                         "storey": storey,
                         "elementName": name,
+                        "_stepId": step_id,
                         "message": "Elemanın net miktarı 0 olarak tanımlanmış; toplama dahil edilmedi (ölçülemedi).",
                     })
                 else:
@@ -1965,6 +2030,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                         "ifcClass": raw_type,
                         "storey": storey,
                         "elementName": name,
+                        "_stepId": step_id,
                         "message": "Eleman için QTO, PropertySet veya 3B geometriden geçerli bir net miktar okunamadı (ölçülemedi).",
                     })
 
@@ -1977,6 +2043,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "ifcClass": raw_type,
                 "storey": storey,
                 "elementName": name,
+                "_stepId": step_id,
                 "message": "Eleman hiçbir IfcBuildingStorey katına bağlanmamış (Kat atanmamış).",
             })
 
@@ -1997,6 +2064,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "storey": storey,
                 "reason": uncovered_reason or "Metraja alınmayan / açıkta kalan eleman.",
                 "scope": "in_takeoff",
+                "sourceIdentity": _source_identity(file_sha256, normalized_run_id, step_id, guid),
             })
             if raw_type == "IfcBuildingElementProxy":
                 consistency_findings.append({
@@ -2006,6 +2074,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                     "ifcClass": raw_type,
                     "storey": storey,
                     "elementName": name,
+                    "_stepId": step_id,
                     "message": uncovered_reason,
                 })
 
@@ -2068,6 +2137,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
             "measurementStatus": measurement_status,
             "matchedPozCode": explicit_poz_code,
             "isUncovered": is_uncovered,
+            "sourceIdentity": _source_identity(file_sha256, normalized_run_id, step_id, guid),
         }
         if uncovered_reason:
             el_dict["uncoveredReason"] = uncovered_reason
@@ -2128,6 +2198,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                     "storey": nt_storey,
                     "reason": nt_reason,
                     "scope": "out_of_scope",
+                    "sourceIdentity": _source_identity(file_sha256, normalized_run_id, nt_elem.id(), nt_guid),
                 }
                 nt_quantity = _unpriced_model_quantity(nt_elem, vol_scale, area_scale, mass_scale, length_scale)
                 if nt_quantity is not None:
@@ -2140,6 +2211,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                     "ifcClass": nt_cls,
                     "storey": nt_storey,
                     "elementName": nt_name,
+                    "_stepId": str(nt_elem.id()),
                     "message": nt_reason,
                 })
         except RuntimeError:
@@ -2160,11 +2232,35 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
                 "ifcClass": str(el.get("ifcClass") or el.get("type") or ""),
                 "storey": str(el.get("storey") or "Kat atanmamış"),
                 "elementName": str(el.get("name") or ""),
+                "sourceIdentity": el["sourceIdentity"],
                 "message": f"Mükerrer GlobalId ({g}) tespit edildi; aynı kimlik {guid_counts[g]} elemanda kullanılmış.",
             })
 
     # Check 2: Orphan IfcOpeningElement entities
     consistency_findings.extend(_detect_orphan_openings(model, length_scale))
+
+    # Identity is STEP-based, not GlobalId-based. Duplicate GlobalIds therefore remain
+    # separate findings and cannot overwrite one another in audit consumers.
+    identity_by_guid = {
+        str(el.get("guid") or ""): el.get("sourceIdentity")
+        for el in parsed_elements
+        if el.get("sourceIdentity")
+    }
+    for finding in consistency_findings:
+        if "sourceIdentity" not in finding:
+            step_id = finding.pop("_stepId", None)
+            if step_id is not None:
+                finding["sourceIdentity"] = _source_identity(
+                    file_sha256, normalized_run_id, step_id, finding.get("globalId")
+                )
+            else:
+                identity = identity_by_guid.get(str(finding.get("globalId") or ""))
+                if identity:
+                    finding["sourceIdentity"] = identity
+
+    for part in suppressed_assembly_parts:
+        step_id = part.pop("_stepId", "unknown")
+        part["sourceIdentity"] = _source_identity(file_sha256, normalized_run_id, step_id, part.get("globalId"))
 
     total_el_count = len(parsed_elements)
     measured_el_count = sum(1 for el in parsed_elements if el.get("measured") is True)
@@ -2191,6 +2287,53 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "findings": consistency_findings,
         "uncoveredElements": uncovered_elements,
         "suppressedAssemblyParts": suppressed_assembly_parts,
+    }
+
+    dimension_totals = {"volumeM3": 0.0, "areaM2": 0.0, "lengthM": 0.0, "massKg": 0.0, "formworkAreaM2": 0.0}
+    invalid_quantity_keys: List[str] = []
+    for el in parsed_elements:
+        identity = el.get("sourceIdentity") or {}
+        numeric_values = [el.get("volumeM3", 0.0), el.get("areaM2", 0.0), el.get("lengthM", 0.0), el.get("rebarKg", 0.0), el.get("formworkM2", 0.0)]
+        if any(not isinstance(value, (int, float)) or not math.isfinite(float(value)) or float(value) < 0 for value in numeric_values):
+            invalid_quantity_keys.append(str(identity.get("elementKey") or el.get("id") or "unknown"))
+            continue
+        dimension_totals["volumeM3"] += float(el.get("volumeM3") or 0.0)
+        dimension_totals["areaM2"] += float(el.get("areaM2") or 0.0)
+        dimension_totals["lengthM"] += float(el.get("lengthM") or 0.0)
+        dimension_totals["massKg"] += float(el.get("rebarKg") or 0.0)
+        dimension_totals["formworkAreaM2"] += float(el.get("formworkM2") or 0.0)
+    dimension_totals = {key: round(value, 12) for key, value in dimension_totals.items()}
+
+    parser_contract = {
+        "version": "IFC-NORMALIZED-1",
+        "engine": "worker",
+        "schema": schema,
+        "schemaFamily": schema_family,
+        "fileName": file_name,
+        "fileSha256": file_sha256,
+        "runId": normalized_run_id,
+        "capabilities": {
+            "qtoPriority": True,
+            "independentUnits": True,
+            "typeInheritance": True,
+            "aggregateSuppression": True,
+            "materialLayers": True,
+            "geometryFallback": True,
+        },
+        "qualityGate": {
+            "passed": not invalid_quantity_keys and high_sev_count == 0,
+            "invalidQuantityElementKeys": invalid_quantity_keys,
+            "blockingFindingCodes": sorted({
+                str(finding.get("code"))
+                for finding in consistency_findings
+                if finding.get("severity") == "high"
+            }),
+            "measuredElementCount": measured_el_count,
+            "unmeasuredElementCount": unmeasured_el_count,
+            "excludedElementCount": out_of_scope_el_count,
+            "suppressedAssemblyPartCount": len(suppressed_assembly_parts),
+            "dimensionTotals": dimension_totals,
+        },
     }
 
     compliance = extract_project_compliance(model, area_scale)
@@ -2310,6 +2453,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str) -> None:
         "authoringSoftwareRaw": read_authoring_software(model),
         "openings": extract_openings(model),
         "consistencyReport": consistency_report,
+        "parserContract": parser_contract,
     }
 
 
@@ -2333,9 +2477,10 @@ def main():
     parser.add_argument("--input", required=True, help="Input IFC file path")
     parser.add_argument("--output", required=True, help="Output JSON file path")
     parser.add_argument("--file-name", required=False, default="", help="Original file name")
+    parser.add_argument("--run-id", required=False, default="", help="Processing run identity for audit provenance")
 
     args = parser.parse_args()
-    extract_ifc(args.input, args.output, args.file_name)
+    extract_ifc(args.input, args.output, args.file_name, args.run_id)
 
 
 if __name__ == "__main__":

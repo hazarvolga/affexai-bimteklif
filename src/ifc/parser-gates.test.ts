@@ -43,6 +43,7 @@ describe("IFC parser safety gates", () => {
     assert.equal(result.summary.quantitySource, "estimate");
     assert.equal(result.summary.quoteTransferStatus, "needs_review");
     assert.equal(result.summary.totalElements, 1);
+    assert.match(result.summary.warnings.join("\n"), /server IFC worker sonucu zorunludur/);
   });
 
   it("matches the local e-proje_4x3 golden manifest when the sample IFC is present", { skip: !existsSync(samplePath) }, () => {

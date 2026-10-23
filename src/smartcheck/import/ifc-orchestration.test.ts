@@ -3,11 +3,21 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { IfcWorkerError, resolvePythonBin, runPythonIfcExtractor, sanitizeIfcErrorMessage } from "./ifc-python-runner";
+import { IfcExtractorOutputSchema, IfcWorkerError, resolveIfcMaxOutputBytes, resolvePythonBin, runPythonIfcExtractor, sanitizeIfcErrorMessage } from "./ifc-python-runner";
 
 test("resolvePythonBin finds Python executable", () => {
   const bin = resolvePythonBin();
   assert.ok(bin.length > 0);
+});
+
+test("resolveIfcMaxOutputBytes uses a bounded default for invalid or unsafe env values", () => {
+  const safeDefault = resolveIfcMaxOutputBytes({});
+  assert.equal(safeDefault, 128 * 1024 * 1024);
+  assert.equal(resolveIfcMaxOutputBytes({ SMARTCHECK_IFC_MAX_OUTPUT_MB: "invalid" }), safeDefault);
+  assert.equal(resolveIfcMaxOutputBytes({ SMARTCHECK_IFC_MAX_OUTPUT_MB: "1" }), safeDefault);
+  assert.equal(resolveIfcMaxOutputBytes({ SMARTCHECK_IFC_MAX_OUTPUT_MB: "999999" }), safeDefault);
+  assert.equal(resolveIfcMaxOutputBytes({ SMARTCHECK_IFC_MAX_OUTPUT_MB: "8" }), 8 * 1024 * 1024);
+  assert.equal(resolveIfcMaxOutputBytes({ SMARTCHECK_IFC_MAX_OUTPUT_MB: "256" }), 256 * 1024 * 1024);
 });
 
 test("runPythonIfcExtractor successfully parses valid IFC file via IfcOpenShell", async () => {
@@ -41,6 +51,7 @@ test("runPythonIfcExtractor successfully parses valid IFC file via IfcOpenShell"
     const result = await runPythonIfcExtractor({
       inputPath: sampleIfcPath,
       fileName: "sample.ifc",
+      runId: "11111111-1111-4111-8111-111111111111",
     });
 
     assert.equal(result.elements.length, 1);
@@ -50,6 +61,67 @@ test("runPythonIfcExtractor successfully parses valid IFC file via IfcOpenShell"
     assert.equal(result.elements[0].storey, "Kat 1 (3.2 m)");
     assert.equal(result.summary.parseStatus, "succeeded");
     assert.equal(result.summary.totalVolumeM3, 15.4);
+    assert.equal(result.summary.parserContract?.runId, "11111111-1111-4111-8111-111111111111");
+    assert.equal(result.summary.parserContract?.fileSha256.length, 64);
+    assert.equal(result.elements[0].sourceIdentity?.runId, "11111111-1111-4111-8111-111111111111");
+    assert.equal(result.elements[0].sourceIdentity?.stepId, "5");
+    assert.match(result.elements[0].sourceIdentity?.elementKey ?? "", /:11111111-1111-4111-8111-111111111111:#5$/);
+    const tampered = structuredClone({ elements: result.elements, summary: result.summary });
+    tampered.elements[0].sourceIdentity!.elementKey = "tampered";
+    assert.equal(IfcExtractorOutputSchema.safeParse(tampered).success, false);
+
+    const negativeQuantity = structuredClone({ elements: result.elements, summary: result.summary });
+    const negativeElement = negativeQuantity.elements[0];
+    const positiveOffset = structuredClone(negativeElement);
+    negativeElement.volumeM3 = -1;
+    positiveOffset.id = "6";
+    positiveOffset.guid = "3uKl6XxnD728DtNh4imxAY";
+    positiveOffset.volumeM3 = 2;
+    positiveOffset.sourceIdentity!.stepId = "6";
+    positiveOffset.sourceIdentity!.globalId = positiveOffset.guid;
+    positiveOffset.sourceIdentity!.elementKey = `${positiveOffset.sourceIdentity!.fileSha256}:${positiveOffset.sourceIdentity!.runId}:#6`;
+    negativeQuantity.elements.push(positiveOffset);
+    negativeQuantity.summary.parserContract!.qualityGate.measuredElementCount = 2;
+    negativeQuantity.summary.parserContract!.qualityGate.unmeasuredElementCount = 0;
+    negativeQuantity.summary.parserContract!.qualityGate.dimensionTotals.volumeM3 = 1;
+    negativeQuantity.summary.parserContract!.qualityGate.dimensionTotals.formworkAreaM2 = negativeElement.formworkM2 + positiveOffset.formworkM2;
+    negativeQuantity.summary.parserContract!.qualityGate.invalidQuantityElementKeys = [];
+    negativeQuantity.summary.parserContract!.qualityGate.passed = true;
+    assert.equal(IfcExtractorOutputSchema.safeParse(negativeQuantity).success, false, "negative quantities must be derived and rejected even when positive values offset the total");
+
+    const fabricatedInvalidKeys = structuredClone({ elements: result.elements, summary: result.summary });
+    fabricatedInvalidKeys.summary.parserContract!.qualityGate.invalidQuantityElementKeys = ["fabricated-key"];
+    fabricatedInvalidKeys.summary.parserContract!.qualityGate.passed = false;
+    assert.equal(IfcExtractorOutputSchema.safeParse(fabricatedInvalidKeys).success, false, "invalid quantity keys must be derived from the element values");
+
+    const mismatchedFinding = structuredClone({ elements: result.elements, summary: result.summary });
+    mismatchedFinding.summary.consistencyReport!.findings.push({
+      code: "MISSING_MATERIAL",
+      severity: "medium",
+      globalId: "WRONG_GLOBAL_ID",
+      ifcClass: "IfcSlab",
+      storey: "Kat 1 (3.2 m)",
+      message: "Material missing",
+      sourceIdentity: structuredClone(mismatchedFinding.elements[0].sourceIdentity!),
+    });
+    assert.equal(IfcExtractorOutputSchema.safeParse(mismatchedFinding).success, false, "finding GlobalId must match its source identity");
+
+    const fakeStep = structuredClone({ elements: result.elements, summary: result.summary });
+    fakeStep.elements[0].id = "not-a-step";
+    fakeStep.elements[0].sourceIdentity!.stepId = "not-a-step";
+    fakeStep.elements[0].sourceIdentity!.elementKey = `${fakeStep.elements[0].sourceIdentity!.fileSha256}:${fakeStep.elements[0].sourceIdentity!.runId}:#not-a-step`;
+    assert.equal(IfcExtractorOutputSchema.safeParse(fakeStep).success, false, "STEP identities must be positive decimal identifiers");
+
+    const duplicateIdentity = structuredClone({ elements: result.elements, summary: result.summary });
+    duplicateIdentity.elements.push(structuredClone(duplicateIdentity.elements[0]));
+    duplicateIdentity.summary.parserContract!.qualityGate.measuredElementCount = 2;
+    duplicateIdentity.summary.parserContract!.qualityGate.unmeasuredElementCount = 0;
+    duplicateIdentity.summary.parserContract!.qualityGate.dimensionTotals.volumeM3 *= 2;
+    duplicateIdentity.summary.parserContract!.qualityGate.dimensionTotals.areaM2 *= 2;
+    duplicateIdentity.summary.parserContract!.qualityGate.dimensionTotals.lengthM *= 2;
+    duplicateIdentity.summary.parserContract!.qualityGate.dimensionTotals.massKg *= 2;
+    duplicateIdentity.summary.parserContract!.qualityGate.dimensionTotals.formworkAreaM2 *= 2;
+    assert.equal(IfcExtractorOutputSchema.safeParse(duplicateIdentity).success, false, "elementKey must be unique within a worker result");
     assert.equal(result.parserVersion, "ifcopenshell-0.8.4-evidence-v1");
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });
@@ -144,6 +216,42 @@ test("runPythonIfcExtractor enforces timeout with IFC_TIMEOUT error", async () =
       }
     );
   } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test("runPythonIfcExtractor rejects oversized worker output before reading JSON into memory", async () => {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "teklifpro-test-output-limit-"));
+  const dummyPath = path.join(tmpDir, "dummy.ifc");
+  const largeOutputScript = path.join(tmpDir, "large-output.py");
+  await fs.writeFile(dummyPath, "dummy", "utf8");
+  await fs.writeFile(largeOutputScript, [
+    "import argparse",
+    "p = argparse.ArgumentParser()",
+    "p.add_argument('--input')",
+    "p.add_argument('--output')",
+    "p.add_argument('--file-name')",
+    "p.add_argument('--run-id')",
+    "a = p.parse_args()",
+    "with open(a.output, 'wb') as f: f.truncate(9 * 1024 * 1024)",
+  ].join("\n"), "utf8");
+
+  const previousLimit = process.env.SMARTCHECK_IFC_MAX_OUTPUT_MB;
+  process.env.SMARTCHECK_IFC_MAX_OUTPUT_MB = "8";
+  try {
+    await assert.rejects(
+      runPythonIfcExtractor({ inputPath: dummyPath, cliScriptPath: largeOutputScript }),
+      (error: unknown) => {
+        assert.ok(error instanceof IfcWorkerError);
+        assert.equal(error.code, "IFC_OUTPUT_TOO_LARGE");
+        assert.equal(error.sanitizedMessage, "IFC işleme çıktısı güvenli boyut sınırını aştı.");
+        assert.doesNotMatch(error.sanitizedMessage, /output-limit|\.py|\/tmp/i);
+        return true;
+      },
+    );
+  } finally {
+    if (previousLimit === undefined) delete process.env.SMARTCHECK_IFC_MAX_OUTPUT_MB;
+    else process.env.SMARTCHECK_IFC_MAX_OUTPUT_MB = previousLimit;
     await fs.rm(tmpDir, { recursive: true, force: true });
   }
 });

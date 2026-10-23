@@ -652,7 +652,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   4 Adımda BIM Modelinden Kanıtlı ve Onaylı İhale Teklifine
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground">
-                  IFC modelinizi, PDF/A paftalarınızı veya Excel metrajınızı yükleyin; RG 33331 e-PYS ön kontrolü, TS 500 &amp; Minha kesinti hesapları ve disiplin yetkili mühendis onayıyla sıfır veri kaybıyla teklif cetveline dönüştürün.
+                  IFC modelinizi, PDF/A paftalarınızı veya Excel metrajınızı yükleyin; RG 33331 e-PYS ön kontrolü, TS 500 &amp; Minha kesinti hesapları ve disiplin yetkili mühendis incelemesiyle kanıt izini koruyan teklif cetveli hazırlayın.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 shrink-0">
@@ -713,7 +713,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="5D TEKLİF · ESKALASYON · PDF"
                 icon={<ShieldCheck size={20} />}
                 title="5D Teklif, Simülasyon & Çıktı"
-                text="Onaylanan metraj kalemleri tek tıkla 5D İhale Masasına aktarılır. Kâr marjı, genel gider, KDV ve eskalasyon senaryolarını simüle edin; her kalemi IFC GlobalId ve fiyat kanıtıyla resmi PDF/Excel teklifine dönüştürün."
+                text="Onaylanan metraj kalemleri 5D İhale Masasına aktarılır. Sunucu IFC işçisi miktarları hacim, alan, uzunluk ve kütle olarak ayrı tutar; dosya hash'i, işlem çalışması, STEP kimliği ve fiyat kanıtıyla izlenebilir PDF/Excel teklif taslağı üretir."
                 highlights={[
                   'Kârlılık, opsiyon ve eskalasyon simülasyonu',
                   'GlobalId ve fiyat kaynak izli 5D cetvel',

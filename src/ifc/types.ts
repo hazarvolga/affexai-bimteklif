@@ -1,5 +1,47 @@
 import type { AuthoringSoftwareDetection, AuthoringSoftwareRaw } from "./authoring-software-diagnostics";
 
+export interface IfcSourceIdentity {
+  fileSha256: string;
+  runId: string;
+  stepId: string;
+  globalId: string;
+  elementKey: string;
+}
+
+export interface IfcParserContract {
+  version: "IFC-NORMALIZED-1";
+  engine: "worker";
+  schema: string;
+  schemaFamily: "IFC2X3" | "IFC4" | "IFC4X3";
+  fileName: string;
+  fileSha256: string;
+  runId: string;
+  capabilities: {
+    qtoPriority: true;
+    independentUnits: true;
+    typeInheritance: true;
+    aggregateSuppression: true;
+    materialLayers: true;
+    geometryFallback: true;
+  };
+  qualityGate: {
+    passed: boolean;
+    invalidQuantityElementKeys: string[];
+    blockingFindingCodes: string[];
+    measuredElementCount: number;
+    unmeasuredElementCount: number;
+    excludedElementCount: number;
+    suppressedAssemblyPartCount: number;
+    dimensionTotals: {
+      volumeM3: number;
+      areaM2: number;
+      lengthM: number;
+      massKg: number;
+      formworkAreaM2: number;
+    };
+  };
+}
+
 export type IfcConsistencyFindingCode =
   | "DUPLICATE_GLOBAL_ID"
   | "ORPHAN_OPENING_ELEMENT"
@@ -20,6 +62,7 @@ export interface IfcConsistencyFinding {
   storey: string;
   elementName?: string;
   message: string;
+  sourceIdentity?: IfcSourceIdentity;
 }
 
 export interface IfcUncoveredElementRecord {
@@ -32,6 +75,7 @@ export interface IfcUncoveredElementRecord {
   scope?: "in_takeoff" | "out_of_scope";
   /** Modelin bu eleman için verdiği miktar; fiyatlandırılmaz, poz atanmaz. */
   quantity?: UncoveredQuantity;
+  sourceIdentity?: IfcSourceIdentity;
 }
 
 export type UncoveredQuantityUnit = "m³" | "m²" | "mtül";
@@ -48,6 +92,7 @@ export interface IfcSuppressedAssemblyPartRecord {
   parentGlobalId: string;
   parentIfcClass: string;
   storey: string;
+  sourceIdentity?: IfcSourceIdentity;
 }
 
 export interface IfcConsistencyReport {
@@ -112,6 +157,7 @@ export interface ParsedIfcElement {
   isUncovered?: boolean;
   uncoveredReason?: string;
   inheritedFromType?: boolean;
+  sourceIdentity?: IfcSourceIdentity;
 }
 
 export interface ApartmentRoomScheduleItem {
@@ -191,6 +237,7 @@ export interface IfcParseSummary {
   spaceNames?: string[];
   /** IFC başlığından tespit edilen kaynak yazılım (Paket M-2). */
   authoringSoftware?: AuthoringSoftwareDetection;
+  parserContract?: IfcParserContract;
   /** Sunucu (Python) yolundan gelen ham başlık bilgisi; sınıflandırma TS'de yapılır. */
   authoringSoftwareRaw?: AuthoringSoftwareRaw;
   /** Kapı/pencere listesi (sunucu yolu); sözleşmesel minha için. */

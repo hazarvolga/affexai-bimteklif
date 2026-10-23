@@ -143,10 +143,10 @@ const TREPYS_PSET_CATALOG: AllplanTrepysPsetSpec[] = [
 ];
 
 const APPROVED_15_CHAR_MATERIALS: ApprovedMaterialTemplate[] = [
-  { code: "BETON_C25_30", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1004", descriptionTr: "C25/30 hazır beton (santraldan)" },
-  { code: "BETON_C30_37", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1005", descriptionTr: "C30/37 hazır beton (santraldan)" },
-  { code: "BETON_C35_45", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1006", descriptionTr: "C35/45 hazır beton (santraldan)" },
-  { code: "BETON_C40_50", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1007", descriptionTr: "C40/50 hazır beton (santraldan)" },
+  { code: "BETON_C25_30", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1005", descriptionTr: "C25/30 hazır beton (santraldan)" },
+  { code: "BETON_C30_37", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1006", descriptionTr: "C30/37 hazır beton (santraldan)" },
+  { code: "BETON_C35_45", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1007", descriptionTr: "C35/45 hazır beton (santraldan)" },
+  { code: "BETON_C40_50", charCount: 12, category: "Betonarme", defaultCsbPozNo: "15.150.1008", descriptionTr: "C40/50 hazır beton (santraldan)" },
   { code: "CELIK_B420C", charCount: 11, category: "Donatı", defaultCsbPozNo: "15.160.1003", descriptionTr: "B420C nervürlü beton çelik çubuğu" },
   { code: "CELIK_B500C", charCount: 11, category: "Donatı", defaultCsbPozNo: "15.160.1004", descriptionTr: "B500C nervürlü beton çelik çubuğu" },
   { code: "CELIK_S275JR", charCount: 12, category: "Yapısal Çelik", defaultCsbPozNo: "15.165.1001", descriptionTr: "S275JR yapısal çelik profil" },

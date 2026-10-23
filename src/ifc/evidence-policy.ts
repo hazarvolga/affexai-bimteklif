@@ -18,7 +18,9 @@ export interface IfcQuantityEvidenceDisplay {
 }
 
 export function isIfcConcreteQuantityAdmissible(element: ParsedIfcElement): boolean {
-  return element.type !== "IfcReinforcingBar" && (element.quantitySource === "qto" || element.quantitySource === "property");
+  const sourceBacked = element.quantitySource === "qto" || element.quantitySource === "property";
+  if (element.type === "IfcReinforcingBar") return sourceBacked && element.rebarKg > 0 && Boolean(element.quantitySourcePath);
+  return sourceBacked;
 }
 
 export function summarizeIfcEvidencePolicy(elements: ParsedIfcElement[]): IfcEvidencePolicySummary {
@@ -27,7 +29,7 @@ export function summarizeIfcEvidencePolicy(elements: ParsedIfcElement[]): IfcEvi
     acceptedPropertyCount: elements.filter((element) => isIfcConcreteQuantityAdmissible(element) && element.quantitySource === "property").length,
     blockedEstimateCount: elements.filter((element) => element.quantitySource === "estimate" && element.type !== "IfcReinforcingBar").length,
     blockedGeometryCount: elements.filter((element) => element.quantitySource === "geometry").length,
-    blockedRebarCount: elements.filter((element) => element.type === "IfcReinforcingBar").length,
+    blockedRebarCount: elements.filter((element) => element.type === "IfcReinforcingBar" && !isIfcConcreteQuantityAdmissible(element)).length,
     blockedFormworkEstimateCount: elements.filter((element) => element.formworkM2 > 0).length,
     admissibleQuantityCount: elements.filter(isIfcConcreteQuantityAdmissible).length,
   };
@@ -35,6 +37,14 @@ export function summarizeIfcEvidencePolicy(elements: ParsedIfcElement[]): IfcEvi
 
 export function describeIfcQuantityEvidence(element: ParsedIfcElement): IfcQuantityEvidenceDisplay {
   if (element.type === "IfcReinforcingBar") {
+    if (isIfcConcreteQuantityAdmissible(element)) {
+      return {
+        label: "Kabul Edilen Donatı Kütlesi",
+        tone: "emerald",
+        admittedToSmartCheck: true,
+        reason: "IFC QTO veya kaynak yolu kayıtlı property kütlesi kg olarak inceleme satırına aktarılır; ton dönüşümü açık birim sözleşmesiyle yapılır.",
+      };
+    }
     return {
       label: "Donatı Askıda",
       tone: "rose",

@@ -94,6 +94,7 @@ async function processIfcSmartCheckDocument(payload: {
       const pythonResult = await runPythonIfcExtractor({
         inputPath: resolvedPath,
         fileName: originalFileName,
+        runId: processingRunId,
       });
       artifact = buildIfcSmartCheckEvidenceArtifact(pythonResult.elements, pythonResult.summary, {
         fileName: originalFileName,
@@ -129,6 +130,7 @@ async function processIfcSmartCheckDocument(payload: {
       const pythonResult = await runPythonIfcExtractor({
         inputPath: resolvedPath,
         fileName: originalFileName,
+        runId: processingRunId,
       });
 
       const ls = legacyParsed.summary;

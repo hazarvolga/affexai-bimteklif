@@ -169,7 +169,7 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.match(artifact.blockedElements[0].reason, /opening deductions/);
   });
 
-  it("blocks rebar and derived formwork quantities until dedicated evidence policies exist", () => {
+  it("admits source-backed rebar mass as kg and keeps estimated rebar/formwork blocked", () => {
     const elements: ParsedIfcElement[] = [
       {
         id: "700",
@@ -183,7 +183,7 @@ describe("IFC SmartCheck evidence adapter", () => {
         formworkM2: 0,
         rebarKg: 157,
         quantitySource: "qto",
-        quantitySourcePath: "#700/#701/#702:Qto_ReinforcingBarBaseQuantities/NetWeight",
+        quantitySourcePath: "#700/#701/#702:Qto_ReinforcingElementBaseQuantities/Weight",
         quantityConfidence: 0.95,
         smartCheckStatus: "review",
       },
@@ -208,14 +208,43 @@ describe("IFC SmartCheck evidence adapter", () => {
       schemaName: "IFC4X3_ADD2",
     });
 
-    assert.equal(artifact.summary.evidenceRowCount, 0);
-    assert.equal(artifact.summary.rebarBlockedCount, 1);
+    assert.equal(artifact.summary.evidenceRowCount, 1);
+    assert.equal(artifact.rows[0].normalizedUnit, "kg");
+    assert.equal(artifact.rows[0].normalizedQuantity, "157");
+    assert.equal(artifact.rows[0].normalizedDescription, "IfcReinforcingBar Donatı QTO donatı kütlesi · B01 · #700/#701/#702:Qto_ReinforcingElementBaseQuantities/Weight");
+    assert.equal(artifact.summary.rebarBlockedCount, 0);
     assert.equal(artifact.summary.formworkEstimateBlockedCount, 1);
     assert.deepEqual(artifact.blockedElements.map((element) => element.code), [
-      "IFC_REBAR_EVIDENCE_POLICY_PENDING",
       "IFC_ESTIMATE_QUANTITY_BLOCKED",
     ]);
-    assert.match(artifact.blockedElements[0].reason, /diameter grouping/);
+  });
+
+  it("does not report a successful rebar match when source-backed mass is zero", () => {
+    const artifact = buildIfcSmartCheckEvidenceArtifact([{
+      id: "701", guid: "2REBARzero000000000001", type: "IfcReinforcingBar", name: "Pozlu ama ölçüsüz donatı",
+      storey: "B01", storeySource: "ifc_spatial", volumeM3: 0, formworkM2: 0, rebarKg: 0,
+      quantitySource: "qto", quantitySourcePath: "#701/Qto_ReinforcingElementBaseQuantities/Weight",
+      pozNo: "15.160.1001", smartCheckStatus: "review",
+    }], { ...succeededSummary, totalElements: 1 }, { fileName: "zero-rebar.ifc" });
+
+    assert.equal(artifact.summary.evidenceRowCount, 0);
+    assert.equal(artifact.summary.rebarBlockedCount, 1);
+    assert.equal(artifact.blockedElements[0].code, "IFC_REBAR_EVIDENCE_POLICY_PENDING");
+    assert.match(artifact.blockedElements[0].reason, /positive direct weight\/mass/i);
+  });
+
+  it("blocks nominal diameter-length derived rebar mass even when a misleading property source is supplied", () => {
+    const artifact = buildIfcSmartCheckEvidenceArtifact([{
+      id: "702", guid: "2REBARderived0000000001", type: "IfcReinforcingBar", name: "Nominal türetilmiş donatı",
+      storey: "B01", storeySource: "ifc_spatial", volumeM3: 0.0024, formworkM2: 0, rebarKg: 18.9,
+      quantitySource: "property", quantitySourcePath: "#702:IfcReinforcingBar/NominalAttributes",
+      pozNo: "15.160.1001", smartCheckStatus: "review",
+    }], { ...succeededSummary, totalElements: 1 }, { fileName: "derived-rebar.ifc" });
+
+    assert.equal(artifact.summary.evidenceRowCount, 0);
+    assert.equal(artifact.summary.rebarBlockedCount, 1);
+    assert.equal(artifact.blockedElements[0].code, "IFC_REBAR_EVIDENCE_POLICY_PENDING");
+    assert.match(artifact.blockedElements[0].reason, /direct.*weight/i);
   });
 
   it("matches the e-proje_4x3 property-volume evidence count when the sample IFC is present", { skip: !existsSync(samplePath) }, () => {

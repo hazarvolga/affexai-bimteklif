@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
-import { reserveBrowserIfcAnalysis } from "@/ifc/browser-quota";
+import { reserveBrowserIfcAnalysis, type BrowserQuotaDenial } from "@/ifc/browser-quota";
+import { IfcQuotaDenialAlert } from "@/components/bimplan/IfcQuotaDenialAlert";
 import { useAuth } from "@/hooks/useAuth";
 import React, { useState, useMemo } from 'react';
 import { 
@@ -178,13 +179,15 @@ function generateSyntheticIfcDataset(): { elements: ParsedIfcElement[]; summary:
 }
 
 export interface BimIfcParserProps {
+  /** @deprecated Browser preview results cannot be transferred to a quote. */
   onTransferToQuote?: (elements: ParsedIfcElement[], summary: IfcParseSummary) => void;
 }
 
-export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
+export function BimIfcParser(_props: BimIfcParserProps) {
   const navigate = useNavigate();
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, user } = useAuth();
   const [fileName, setFileName] = useState<string | null>(null);
+  const [quotaDenial, setQuotaDenial] = useState<BrowserQuotaDenial | null>(null);
   const [isParsing, setIsParsing] = useState<boolean>(false);
   const [parsedData, setParsedData] = useState<{ elements: ParsedIfcElement[]; summary: IfcParseSummary } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -220,14 +223,22 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
       return;
     }
 
-    setFileName(file.name);
+    setQuotaDenial(null);
     setIsParsing(true);
 
     // Each real file counts against the package's monthly IFC quota; demo datasets do not.
     if (!isDemoMode) {
       const denial = await reserveBrowserIfcAnalysis();
-      if (denial) { setIsParsing(false); toast.error(denial); return; }
+      if (denial) {
+        setIsParsing(false);
+        setFileName(null);
+        setParsedData(null);
+        setQuotaDenial(denial);
+        return;
+      }
     }
+
+    setFileName(file.name);
 
     const reader = new FileReader();
     reader.onerror = () => { setIsParsing(false); toast.error('Dosya okunamadı.'); };
@@ -255,6 +266,7 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
     const demo = DEMO_IFC_DATASETS.find(d => d.id === demoId);
     if (!demo) return;
 
+    setQuotaDenial(null);
     setFileName(`SENTETİK DEMO — ${demo.title}`);
     setIsParsing(true);
 
@@ -350,17 +362,11 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
     toast.success('CSV Metraj Raporu indirildi!');
   };
 
-  // Handle Transfer to TeklifPro Quote
+  // Browser parsing is preview-only. Quote-capable imports must pass through the
+  // server worker so provenance, duplicate and quality gates cannot be bypassed.
   const handleTransfer = () => {
-    if (!parsedData) return;
-    if (parsedData.summary.parseStatus !== 'succeeded') {
-      toast.error('Aktarım kapalı: desteklenen IFC elemanı bulunmadı.');
-      return;
-    }
-    if (onTransferToQuote) {
-      onTransferToQuote(parsedData.elements, parsedData.summary);
-    }
-    toast.warning('IFC ön analiz kalemleri review bekleyen tahmin olarak TeklifPro teklifine aktarıldı.');
+    toast.warning('Tarayıcı önizlemesi teklife aktarılamaz. Kaynak ve kalite denetimi için sunucu SmartCheck worker akışına yönlendiriliyorsunuz.');
+    navigate('/app/smartcheck');
   };
 
   return (
@@ -431,6 +437,8 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                   if (e.target.files && e.target.files[0]) {
                     handleFileUpload(e.target.files[0]);
                   }
+                  // Allow the same file to be selected after verification or package activation.
+                  e.target.value = '';
                 }} 
               />
               <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-orange-600 px-6 text-xs font-bold text-white shadow-lg shadow-orange-950/40 hover:bg-orange-700 transition-all">
@@ -444,6 +452,10 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 <FileCode className="w-4 h-4" />
                 Yüklü Dosya: {fileName}
               </div>
+            )}
+
+            {quotaDenial && (
+              <IfcQuotaDenialAlert denial={quotaDenial} email={user?.email} onDismiss={() => setQuotaDenial(null)} />
             )}
           </div>
           <div className="mt-4">
@@ -786,11 +798,10 @@ export function BimIfcParser({ onTransferToQuote }: BimIfcParserProps) {
                 </Button>
                 <Button 
                   onClick={handleTransfer}
-                  disabled={parsedData.summary.parseStatus !== 'succeeded'}
                   className="flex-1 bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold shadow-lg shadow-orange-950/40"
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  Metrajı İncele ve Teklife Aktar
+                  Sunucu SmartCheck ile İşle
                 </Button>
               </div>
             </div>

@@ -631,10 +631,10 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
   },
   "st-statik-tablo-9-2": {
     id: "st-statik-tablo-9-2",
-    label: "Örnek Statik Betonarme & 3×3 Modeli (ST · EK-9 Tablo 9.2)",
+    label: "Sentetik Demo: Statik Betonarme & 3×3 Modeli (ST · EK-9 Tablo 9.2)",
     shortBadge: "ST · Tablo 9.2 (16 Satır) + 3×3",
     description:
-      "Statik disiplin (ST) IFC4X3_ADD2 modeli: EK-9 Tablo 9.2 (Diğer Disiplinler — 16 satır), m.13(3) malzeme tanımı, beton/kalıp QTO satırları ve dış perde paspayı için örnek 3×3 mühendis inceleme bulgusu.",
+      "Sentetik demo statik disiplin (ST) IFC4X3_ADD2 modeli: EK-9 Tablo 9.2 (Diğer Disiplinler — 16 satır), m.13(3) malzeme tanımı, fiyatsız beton/kalıp QTO satırları ve dış perde paspayı için örnek 3×3 mühendis inceleme bulgusu; gerçek proje veya fiyat kaynağı değildir.",
     fileName: "123456_00_ST_BETO_MD_BIM_000_01_000.ifc",
     mimeType: "model/ifc",
     fileSizeBytes: 14577,
@@ -1072,7 +1072,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         sourceRowNumber: 1,
         sourceCellRange: "#110/3uac13C5DBGxgg$8c7VihU",
         rawPositionCode: "15.150.1005",
-        rawDescription: "IfcSlab · ST-DSM-zemin (Taşıyıcı Betonarme Döşeme — Beton_C25)",
+        rawDescription: "IfcSlab · ST-DSM-zemin (Taşıyıcı Betonarme Döşeme — Beton_C25/30)",
         rawUnit: "m3",
         rawQuantity: "6.40",
         rawPrice: "",
@@ -1080,9 +1080,11 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         formulaJson: {
           qtoPath: "#242/#239/#240:Qto_SlabBaseQuantities/NetVolume",
           pozPath: "#245/#243/#244:TREpys_PozOzellikSeti/PozNo",
+          predefinedType: "FLOOR",
+          materialLayers: "[\"Beton_C25/30\"]",
         },
         normalizedPositionCode: "15.150.1005",
-        normalizedDescription: "IfcSlab · ST-DSM-zemin (Taşıyıcı Betonarme Döşeme — Beton_C25)",
+        normalizedDescription: "IfcSlab · ST-DSM-zemin (Taşıyıcı Betonarme Döşeme — Beton_C25/30)",
         normalizedUnit: "m3",
         normalizedQuantity: "6.40",
         normalizedPrice: null,
@@ -1095,7 +1097,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         sourceRowNumber: 2,
         sourceCellRange: "#87/3jr0a2ceT4TfZ6rAkGozeS",
         rawPositionCode: "15.150.1005",
-        rawDescription: "IfcWall · ST-DVR-perde_20cm (Dış Cephe Taşıyıcı Perde — Paspayı Kontrolü)",
+        rawDescription: "IfcWall · ST-DVR-perde_20cm (Dış Cephe Taşıyıcı Perde — Beton_C25/30 · Paspayı Kontrolü)",
         rawUnit: "m3",
         rawQuantity: "4.80",
         rawPrice: "",
@@ -1103,9 +1105,11 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         formulaJson: {
           qtoPath: "#248/#246/#247:Qto_WallBaseQuantities/NetVolume",
           coverCheck: "Pset_ConcreteElementGeneral.ProtectiveLayerThickness = 20 mm < TS 500 dış cephe min. 25 mm",
+          predefinedType: "SHEAR",
+          materialLayers: "[\"Beton_C25/30\"]",
         },
         normalizedPositionCode: "15.150.1005",
-        normalizedDescription: "IfcWall · ST-DVR-perde_20cm (Dış Cephe Taşıyıcı Perde — Paspayı Kontrolü)",
+        normalizedDescription: "IfcWall · ST-DVR-perde_20cm (Dış Cephe Taşıyıcı Perde — Beton_C25/30 · Paspayı Kontrolü)",
         normalizedUnit: "m3",
         normalizedQuantity: "4.80",
         normalizedPrice: null,
@@ -1134,6 +1138,8 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         formulaJson: {
           qtoPath: "#235/#232/#233:Qto_CoveringBaseQuantities/NetArea",
           pozPath: "#238/#236/#237:TREpys_PozOzellikSeti/PozNo",
+          predefinedType: "FLOORING",
+          materialLayers: "[\"Koruma_Betonu_C16/20\"]",
         },
         normalizedPositionCode: "15.390.1002",
         normalizedDescription: "IfcCovering · ST-KPL-koruma_betonu (Temel/Zemin Koruma Kaplaması)",
@@ -1194,19 +1200,10 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
   },
 };
 
-export const SAMPLE_PRICE_CATALOG_SEED = [
-  {
-    positionCode: "15.150.1005",
-    description: "C 25/30 basınç dayanım sınıfında hazır beton dökülmesi (ÇŞB 2026 Referans)",
-    unit: "m3",
-    amount: 3450,
-    currency: "TRY",
-  },
-  {
-    positionCode: "15.390.1002",
-    description: "Her türlü zeminde seramik kaplama yapılması (ÇŞB 2026 Referans)",
-    unit: "m2",
-    amount: 980,
-    currency: "TRY",
-  },
-];
+export const SAMPLE_PRICE_CATALOG_SEED: Array<{
+  positionCode: string;
+  description: string;
+  unit: string;
+  amount: number;
+  currency: "TRY" | "USD" | "EUR";
+}> = [];

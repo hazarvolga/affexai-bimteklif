@@ -27,12 +27,13 @@ describe("IFC evidence policy display", () => {
       element({ id: "property", quantitySource: "property" }),
       element({ id: "estimate", quantitySource: "estimate", formworkM2: 4 }),
       element({ id: "geometry", quantitySource: "geometry" }),
-      element({ id: "rebar", type: "IfcReinforcingBar", quantitySource: "qto", rebarKg: 50 }),
+      element({ id: "rebar", type: "IfcReinforcingBar", quantitySource: "qto", rebarKg: 50, quantitySourcePath: "#1/Qto_ReinforcingElementBaseQuantities/Weight" }),
+      element({ id: "zero-rebar", type: "IfcReinforcingBar", quantitySource: "qto", rebarKg: 0, quantitySourcePath: "#2/Qto_ReinforcingElementBaseQuantities/Weight" }),
     ]);
 
-    assert.equal(summary.acceptedQtoCount, 1);
+    assert.equal(summary.acceptedQtoCount, 2);
     assert.equal(summary.acceptedPropertyCount, 1);
-    assert.equal(summary.admissibleQuantityCount, 2);
+    assert.equal(summary.admissibleQuantityCount, 3);
     assert.equal(summary.blockedEstimateCount, 1);
     assert.equal(summary.blockedGeometryCount, 1);
     assert.equal(summary.blockedRebarCount, 1);
@@ -44,6 +45,7 @@ describe("IFC evidence policy display", () => {
     assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "property" })).label, "Kabul Edilen Nitelik");
     assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "geometry" })).label, "Geometri Uyumsuz");
     assert.equal(describeIfcQuantityEvidence(element({ quantitySource: "estimate" })).label, "Tahmin Askıda");
-    assert.equal(describeIfcQuantityEvidence(element({ type: "IfcReinforcingBar", quantitySource: "qto" })).label, "Donatı Askıda");
+    assert.equal(describeIfcQuantityEvidence(element({ type: "IfcReinforcingBar", quantitySource: "qto", rebarKg: 50, quantitySourcePath: "#1/Qto_ReinforcingElementBaseQuantities/Weight" })).label, "Kabul Edilen Donatı Kütlesi");
+    assert.equal(describeIfcQuantityEvidence(element({ type: "IfcReinforcingBar", quantitySource: "qto", rebarKg: 0, quantitySourcePath: "#2/Qto_ReinforcingElementBaseQuantities/Weight" })).label, "Donatı Askıda");
   });
 });
