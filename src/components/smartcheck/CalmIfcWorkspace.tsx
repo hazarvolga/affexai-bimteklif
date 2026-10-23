@@ -910,6 +910,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Modeldeki kapı / pencerelere minha ({minhaProfile})
                 </div>
+                <p className="mb-2 text-[10px] text-muted-foreground">
+                  {openingsMinha.profile.version} · {openingsMinha.profile.sourceReference} · Etkinlik: {openingsMinha.profile.effective}
+                </p>
                 {openingsMinha.status === "no_openings" && (
                   <p className="text-muted-foreground">
                     Bu kayıtta kapı/pencere listesi yok (dosya bu bilgiyi taşımıyor veya kayıt eski). Eşik bu nedenle uygulanamadı.
@@ -927,7 +930,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     <div className="flex justify-between"><span>Düşülmeyecek ({openingsMinha.notDeductedCount} adet)</span><span className="font-mono tabular-nums">{formatTrNumber(openingsMinha.notDeductedAreaM2)} m²</span></div>
                     <div className="flex justify-between text-muted-foreground"><span>{openingsMinha.doorCount} kapı · {openingsMinha.windowCount} pencere</span><span>{openingsMinha.unmeasuredCount > 0 ? `${openingsMinha.unmeasuredCount} boşluğun ölçüsü okunamadı` : "tüm ölçüler okundu"}</span></div>
                     <p className="pt-1 text-[11px] text-muted-foreground">
-                      Bu özet modeldeki tüm ölçülebilen kapı/pencereyi kapsar; yukarıdaki kalemin net miktarını değiştirmez, çünkü boşlukların hangi kaplama kalemine ait olduğu kalem düzeyinde eşlenmiyor.
+                      {openingsMinha.applicationNote}
                     </p>
                   </div>
                 )}
@@ -1491,22 +1494,29 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
 
               <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground">
                 <span>
-                  Tebliğ m.45.1.2 Sıralı İş Kalemi (%80):{" "}
+                  Tebliğ m.45.1.2 resmî %80 listesi:{" "}
                   <strong className="text-foreground">
-                    {kikAdtAnalysis.explanationRequiredItems.length} / {allItems.length} Kalem
+                    {kikAdtAnalysis.officialExplanationListStatus === "evaluated"
+                      ? `${kikAdtAnalysis.explanationRequiredItems.length} kalem`
+                      : "Değerlendirilmedi"}
                   </strong>
                 </span>
                 <span className="stamp-badge bg-card text-muted-foreground">
                   EKAP Tutanak İçe Aktarımı: Yol Haritasında · 2026 Q4 (Faz 3)
                 </span>
               </div>
+              {kikAdtAnalysis.officialExplanationListStatus === "not_evaluated" && (
+                <div className="mt-2 border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-amber-700 dark:text-amber-300">
+                  {kikAdtAnalysis.officialExplanationListReason} Teklif satırlarından üretilen {kikAdtAnalysis.advisoryOfferExplanationRequiredItems.length} kalem yalnız danışma karşılaştırmasıdır.
+                </div>
+              )}
             </div>
 
             {/* TS EN ISO 19650-1/2 & RG 33331 EK-2 CDE / LOIN BİLGİ YÖNETİMİ KARTI */}
             <div className="mt-4 border border-border bg-background p-4">
               <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
                 <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  TS EN ISO 19650-1/2 · RG 33331 EK-2 &amp; EN 17412-1 (LOIN) DESTEKLER
+                  ISO 19650 / EN 17412 · LİSANSLI METİN İNCELEMESİ GEREKİR
                 </span>
                 <span className="stamp-badge bg-card text-foreground">
                   LOIN ({iso19650Evaluation.loinMilestone?.targetLod ?? "LOD 350"}): %

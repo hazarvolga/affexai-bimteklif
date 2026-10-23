@@ -109,6 +109,7 @@ export const ParsedIfcElementSchema = z.object({
   reviewNotes: z.array(z.string()).optional(),
   loadBearing: z.boolean().optional(),
   exposure: z.enum(["interior", "exterior"]).optional(),
+  surfaceCondition: z.enum(["interior", "exterior", "soil_contact", "unknown"]).optional(),
   exposureClass: z.string().optional(),
   coverMm: z.number().nonnegative().optional(),
   discipline: z.string().optional(),
@@ -184,6 +185,11 @@ export const ParsedOpeningSchema = z.object({
   name: z.string().nullable().optional(),
   widthM: z.number().nonnegative().nullable(),
   heightM: z.number().nonnegative().nullable(),
+  hostElementId: z.string().nullable().optional(),
+  hostGlobalId: z.string().nullable().optional(),
+  targetLineId: z.string().nullable().optional(),
+  targetFinishLayer: z.string().nullable().optional(),
+  quantityBasis: z.enum(["gross_before_openings", "net_after_openings", "unknown"]).optional(),
 });
 
 export const IfcParseSummarySchema = z.object({

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { evaluateKikAbnormallyLowBid } from './kik-adt';
 
+const VERIFIED_ADMIN_SOURCE = { status: "verified" as const, issuer: "Test İdaresi", documentId: "YM-TEST", sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" };
+
 /**
  * 4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 / m.45.1.1.1 / m.45.1.1.4 / m.45.1.2
  * Altın Örnek (Golden) Doğrulama Test Seti — Faz 1.6
@@ -161,12 +163,14 @@ test('Golden 5 (Tebliğ m.45.1.1.4 Tek Geçerli Teklif & m.45.1.2 %80 Pareto Sı
     workCategory: 'ust_yapi',
     validBidsTry: [16_000_000], // Tek geçerli teklif -> Tort1 = Tort2 = 16M, C = 0,80
     ourBidTry: 16_000_000,
-    lineItems: [
-      { id: '1', code: '15.150.1005', description: 'C30/37 Beton', totalAmount: 6_500_000 },
-      { id: '2', code: '15.160.1003', description: 'B420C Nervürlü Donatı', totalAmount: 5_200_000 },
-      { id: '3', code: '15.180.1002', description: 'Plywood Kalıp', totalAmount: 2_300_000 },
-      { id: '4', code: '15.270.1002', description: 'İç Cephe Sıva', totalAmount: 1_200_000 },
-      { id: '5', code: '15.540.1101', description: 'Su Bazlı Boya', totalAmount: 800_000 },
+    administrationEstimatedCostSourceIdentity: 'İdare yaklaşık maliyet cetveli / Golden 5',
+    administrationEstimatedCostSourceVerification: VERIFIED_ADMIN_SOURCE,
+    administrationEstimatedCostItems: [
+      { id: '1', code: '15.150.1005', description: 'C30/37 Beton', totalAmount: 8_000_000 },
+      { id: '2', code: '15.160.1003', description: 'B420C Nervürlü Donatı', totalAmount: 6_000_000 },
+      { id: '3', code: '15.180.1002', description: 'Plywood Kalıp', totalAmount: 3_000_000 },
+      { id: '4', code: '15.270.1002', description: 'İç Cephe Sıva', totalAmount: 2_000_000 },
+      { id: '5', code: '15.540.1101', description: 'Su Bazlı Boya', totalAmount: 1_000_000 },
     ],
   });
 
@@ -175,8 +179,8 @@ test('Golden 5 (Tebliğ m.45.1.1.4 Tek Geçerli Teklif & m.45.1.2 %80 Pareto Sı
   assert.equal(res.correctedMeanTry, 16_000_000);
   assert.equal(res.boundaryValueTry, 14_660_000);
 
-  // Toplam teklif = 16.000.000 TL; %80 eşiği = 12.800.000 TL
-  // Kalem 1 (6,5M -> %40,63) + Kalem 2 (5,2M -> kümülatif 11,7M = %73,13) + Kalem 3 (2,3M -> kümülatif 14,0M = %87,50)
+  // İdare yaklaşık maliyet kalemleri toplamı = YM = 20.000.000 TL; %80 eşiği = 16.000.000 TL.
+  // Kalem 1 (8M -> %40) + Kalem 2 (6M -> %70) + Kalem 3 (3M -> %85); sınırı geçen kalem dahildir.
   // İlk 3 kalem açıklama istenilecek iş kalemleridir; 4. ve 5. kalem analizden muaftır.
   assert.equal(res.explanationRequiredItems.length, 3);
   assert.deepEqual(

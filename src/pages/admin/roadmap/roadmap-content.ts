@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (23 Ekim 2026 · Rev. 42 geliştirme)",
+    title: "Uygulama durumu (23 Ekim 2026 · Rev. 43 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -250,7 +250,8 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["9 — Kurumsal işlemsel e-posta (Transactional Email) sistemi", "Tamamlandı (15 Ekim 2026 · Rev. 4)", "8 kurumsal HTML/Text şablonu (Hoş Geldiniz, E-Posta Doğrulama, Şifre Sıfırlama, Havale/EFT Talimatı, Ödeme Onayı, Ekip Daveti, Teklif Gönderimi, Teklif Kararı) ve Süper Admin /admin/email-templates canlı önizleme & test gönderim merkezi devreye alındı"],
         ["10 — Süreç öncesi Revit → IFC kontrol listesi, Gerçek Tarayıcı axe-core Kapısı & Üretim Hazırlığı", "Tamamlandı (17–18 Ekim 2026 · Rev. 31–35)", "Müteahhitlik Süreç Masası, SystemQuickTour, ilk 128 KB Revit başlık tespiti + 6 maddelik dışa aktarım kontrol listesi, 8 genel rotada Açık/Koyu mod gerçek Chromium axe-core kapısı (0 ihlal), /bim-sozlugu noscript GEO içeriği, PWA manifest, security.txt, hesap bazlı giriş yavaşlatma ve 105 kB ana paket ayrımı tamamlandı"],
         ["11 — GAP kapatma Faz 2: IFC kapsam ve metraj bütünlüğü", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 42)", "T10–T18: fail-closed malzeme/beton sınıfı, browser/worker sınırı, dosya-run-STEP kimliği, duplicate/aggregate izi, boyut bazlı kalite kapısı, kaynaklı kg donatı ve kota hata akışı tamamlandı. Gerçek ve izinli vendor dosyalarıyla imzalı mühendis kabulü bekleniyor."],
-        ["12 — Faz 2–3 entegrasyonları", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları pilot ihtiyaçlarına göre devreye alınır"],
+        ["12 — GAP kapatma Faz 3: mevzuat ve hesap motorları", "Geliştirme tamamlandı; bağımsız kabul bekliyor (23 Ekim 2026 · Rev. 43)", "T19–T26: YAMBİS, KİK yüzde 80, 4735, kat karşılığı KDV, Pre-BIM, Minha, 3×3, e-PYS ve ISO motorları tarihli kaynak/kanıt bağlamıyla fail-closed çalışır. Lisanslı standart erişimi, nihai e-PYS belge kimliği, mali müşavir ve bağımsız mühendis kabulü bekleniyor."],
+        ["13 — Faz 4 ve sonrası entegrasyonlar", "Planlandı", "BCF/Bimplus, revizyon farkı, PythonParts ve diğer yazılım şablonları onaylı yol haritası sırasıyla ele alınır"],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
@@ -262,17 +263,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 42 · 13–23 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 43 · 13–23 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 42)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 42 · BIM-CALC-2026-10-23.36 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 42 geliştirme kanıtıdır; gerçek ve kullanım izinli vendor IFC dosyalarıyla bağımsız uzman kabulü ile ÇŞB/YFK ticari kullanım izni bekler, canlı yayın iddiası taşımaz.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 43)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj ve mevzuat hesap motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 43 · BIM-CALC-2026-10-23.37 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 43 geliştirme kanıtıdır; lisanslı standart erişimi, nihai e-PYS belge kimliği, mali müşavir ve bağımsız mühendis kabulü bekler, canlı yayın iddiası taşımaz.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 42):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 43):",
       },
       {
         type: "table",
@@ -531,16 +532,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T05–T09 kapsamında 18.848 satır yapısal katalog denetimi, exact poz/birim/semantik çözümleyici, kanıt gerektiren boyutsal dönüşüm sözleşmesi ve tenant ayrımlı fiyat snapshot kapısı kuruldu. Sabit/demo fiyatlar Calm maliyetinden çıkarıldı; BYOL/ÇŞB seçimi gerçek kaynak havuzunu değiştirir; yetki kanıtı, onay ve geçerlilik yoksa fiyat/teklif kilidi oluşmaz. ÇŞB/YFK kullanım izni ve bağımsız maliyet uzmanı kabulü bekliyor; production deploy yapılmadı.",
           ],
           [
-            "Rev. 42 (Güncel geliştirme)",
+            "Rev. 42",
             "23 Ekim 2026 (Faz 2 — IFC Kapsam ve Metraj Bütünlüğü)",
             "BIM-CALC-2026-10-23.36",
             "T10–T18 kapsamında gazbeton/grobeton/şap ve sınıfsız beton yanlış eşlemeleri fail-closed kapatıldı; C25/30, C30/37 ve C35/45 gerçek katalog pozlarına bağlandı. IFC-NORMALIZED-1 worker sözleşmesi dosya hash'i, processing run, STEP kimliği, duplicate GlobalId ve aggregate suppression kayıtlarını taşır; hacim, alan, uzunluk, kütle ve kalıp alanı ayrı kalite toplamlarıdır. Kaynaklı pozitif donatı kg satırına alınır, sıfır/tahmini donatı eşleşmez. Browser kapsam sınırı ve Türkçe kota aksiyonları görünürdür. Sentetik örnekler fiyatsızdır; bağımsız vendor dosyası kabulü ve production deploy yapılmadı.",
+          ],
+          [
+            "Rev. 43 (Güncel geliştirme)",
+            "23 Ekim 2026 (Faz 3 — Mevzuat ve Hesap Motorları)",
+            "BIM-CALC-2026-10-23.37",
+            "T19–T26 kapsamında ortak kaynak manifestosu ve EvaluationEnvelope referans sözleşmesi eklendi; motorlar kendi fail-closed sonuç tiplerini korur. YAMBİS kesin/potansiyel grubu ayırır; KİK yüzde 80 listesi yalnız doğrulanmış idare YM artifact'ından çıkar; 4735 ihale/sözleşme/endeks kronolojisi, KDV pozitif satır matrahı ister. Pre-BIM plan kararı verified artifact'a, Minha uygulaması doğrulanmış sözleşme baskısı ile kaynaklı söve derinliğine bağlandı. 3×3 legacy isValid yanlış yeşil vermez; e-PYS identity_pending, ISO/TS access_required kaldığı için otomatik başarı uzman onayı sayılmaz; production deploy yapılmadı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 42 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 43 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -943,6 +950,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Gazbeton betonarme ve bitümlü membran XPS sayılabiliyor; sınıfsız beton C30 pozuna düşebiliyor; browser/worker kapsamı ayrışmıyor; duplicate GUID ve aggregate parçalar STEP tabanlı izlenemiyor; pozlu donatı satırsız matched olabiliyor; örnek projede kaynaksız fiyat seed'i vardı.",
             "Malzeme ve beton sınıfı fail-closed çözümlenir; browser eksik kapsamı server worker'a yönlendirir. Worker fileSha256/runId/STEP elementKey, şema ailesi, capabilities ve boyut bazlı qualityGate üretir; duplicate GUID ve bastırılan aggregate parçalar ayrı kayıttır. Pozitif kaynaklı donatı kg satırına alınır, sıfır/tahmini donatı açıkta kalır. Sentetik örnekler fiyatsızdır ve boş fiyat kaynağı oluşturulmaz; kota reddi kalıcı Türkçe aksiyon taşır.",
             "workers/ifc/ifc_extract.py, src/ifc/parser/contract.ts, src/smartcheck/import/ifc-python-runner.ts, src/ifc/structural-material.ts, src/ifc/calm-icmal.ts, src/ifc/smartcheck-evidence.ts, src/smartcheck/sample-projects.ts, src/ifc/browser-quota.ts, src/components/bimplan/BimIfcParser.tsx",
+          ],
+          [
+            "Rev. 43 · 23 Ekim 2026 (Faz 3 — Mevzuat ve Hesap Motorları)",
+            "YAMBİS 2026 Bakanlık değişikliği; 4734/4735 ve KİK Genel Tebliği; GİB kat karşılığı KDV; PAIY; TBDY 2018; TS/ISO erişim ve e-PYS kimlik kapıları",
+            "Eksik kriterler bazı motorlarda olumlu sonuca dönüşebiliyor; teklif kalemi idare yüzde 80 listesi gibi kullanılabiliyor; tarih, belge kimliği, lisans erişimi, host/kalem ve yerel plan kanıtı sonuçlarda zorunlu değildi.",
+            "Ortak kaynak manifestosu ile yeniden kullanılabilir EvaluationEnvelope referansı eklendi; Faz 3 motorları kendi sonuç tiplerinde eksik/tarih dışı girdiyi fail-closed kapatır. YAMBİS kesin/potansiyel; KİK doğrulanmış idare YM artifact'ı; 4735 ihale-sözleşme-endeks kronolojisi; KDV tarih/ünite/pozitif matrah/6306; Pre-BIM verified yerel plan; Minha sözleşme baskısı, host+kalem+katman ve kaynaklı söve kanıtı taşır. 3×3 politika/norm ayrımı, e-PYS veri minimizasyonu ve ISO advisory erişim durumu açıkça raporlanır.",
+            "src/lib/regulatory/*, src/lib/yambis-classification.ts, src/lib/kik-adt.ts, src/lib/price-escalation.ts, src/lib/kat-karsiligi.ts, src/lib/pre-bim-feasibility.ts, src/smartcheck/rules/{minha,three-by-three,epys,iso19650}.ts, workers/ifc/epys_preflight.py, hesaplayıcı sayfaları",
           ],
         ],
       },

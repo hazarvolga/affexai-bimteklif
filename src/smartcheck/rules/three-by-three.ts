@@ -49,6 +49,8 @@ export interface ThreeByThreeItem {
   exposure?: "interior" | "exterior";
   exposureClass?: string;
   coverMm?: number;
+  memberType?: "beam" | "column" | "slab" | "wall" | "foundation" | "other";
+  surfaceCondition?: "interior" | "exterior" | "soil_contact" | "unknown";
 }
 
 export interface ThreeByThreeRuleViolation {
@@ -73,10 +75,23 @@ export interface ThreeByThreeValidationResult {
   executedRules: string[];
   isValid: boolean;
   /** not_evaluated: no rule had its inputs; isValid alone would read as a false pass. */
-  status: "passed" | "failed" | "not_evaluated";
+  status: "passed" | "failed" | "not_evaluated" | "manual_review_required";
+  /** Aggregate fail-closed decision for legacy and new consumers. */
+  decision: "passed" | "failed" | "not_evaluated" | "manual_review_required";
+  /** Company-policy violations that may drive the product-level pass/fail. */
   violations: ThreeByThreeRuleViolation[];
+  /** Licensed-standard observations require expert review and never drive legacy pass/fail. */
+  normativeObservations: ThreeByThreeRuleViolation[];
   /** How many elements each rule could evaluate; missing inputs are never counted as passes. */
   coverage: Record<string, RuleCoverage>;
+  governance: {
+    activeStandardSelection: "explicit" | "legacy_default";
+    companyPolicyDecision: "passed" | "failed" | "not_evaluated";
+    normativeDecision: "manual_review_required" | "not_evaluated";
+    accessRequiredSources: string[];
+    unsupportedReasons: string[];
+    unsupportedElementIds: string[];
+  };
   summary: {
     totalChecked: number;
     passed: number;
@@ -86,7 +101,12 @@ export interface ThreeByThreeValidationResult {
 
 type Check = (item: ThreeByThreeItem) => Omit<ThreeByThreeRuleViolation, "ruleId" | "ruleVersion" | "elementId" | "source"> | null | undefined;
 
-const isSlab = (item: ThreeByThreeItem) => item.elementType?.toLowerCase().includes("slab") === true;
+const normalizedElementType = (item: ThreeByThreeItem) => item.elementType?.toLowerCase() ?? "";
+const isSlab = (item: ThreeByThreeItem) => item.memberType === "slab" || normalizedElementType(item).includes("slab");
+const isUnsupportedCoverContext = (item: ThreeByThreeItem) =>
+  item.memberType === "foundation"
+  || item.surfaceCondition === "soil_contact"
+  || /footing|foundation/.test(normalizedElementType(item));
 
 const checks: Record<RuleId, Check> = {
   [RULE_IDS.QTO_TOLERANCE_3PCT]: item => {
@@ -97,6 +117,8 @@ const checks: Record<RuleId, Check> = {
     return { severity: "warning", message: `Metraj sapması %${deviation.toFixed(2)} ile şirket politikasındaki %3.00 sınırını aştı.`, actualValue: deviation, thresholdValue: QTO_TOLERANCE_PERCENT };
   },
   [RULE_IDS.COVER_MIN_TS500]: item => {
+    if (isUnsupportedCoverContext(item)) return undefined;
+    if (item.surfaceCondition !== "interior" && item.surfaceCondition !== "exterior") return undefined;
     if (typeof item.coverMm !== "number" || (!isSlab(item) && !item.exposure)) return undefined;
     const minimum = isSlab(item) ? TS500_MIN_COVER_MM.slab : TS500_MIN_COVER_MM[item.exposure!];
     if (item.coverMm >= minimum) return null;
@@ -132,9 +154,11 @@ export function validateThreeByThreeRules(
   options: { activeStandard?: ActiveStandard } = {},
 ): ThreeByThreeValidationResult {
   const activeStandard = options.activeStandard ?? "TBDY_TS500";
+  const activeStandardSelection = options.activeStandard ? "explicit" : "legacy_default";
   const executedRules = rulesFor(activeStandard);
   const coverage = Object.fromEntries(executedRules.map(ruleId => [ruleId, { evaluated: 0, missingInput: 0 }])) as Record<string, RuleCoverage>;
   const violations: ThreeByThreeRuleViolation[] = [];
+  const normativeObservations: ThreeByThreeRuleViolation[] = [];
   let failed = 0;
 
   for (const item of items) {
@@ -146,19 +170,52 @@ export function validateThreeByThreeRules(
         : { ...tally, evaluated: tally.evaluated + 1 };
       return outcome ? [{ ...outcome, ruleId, ruleVersion: SMARTCHECK_3X3_RULE_PACK_VERSION, elementId: item.elementId, source: SOURCES[ruleId] }] : [];
     });
-    if (itemViolations.length) failed++;
-    violations.push(...itemViolations);
+    const policyViolations = itemViolations.filter(violation => violation.source.kind === "company_policy");
+    const standardObservations = itemViolations.filter(violation => violation.source.kind === "standard");
+    if (policyViolations.length) failed++;
+    violations.push(...policyViolations);
+    normativeObservations.push(...standardObservations);
   }
 
   const evaluated = Object.values(coverage).some(tally => tally.evaluated > 0);
+  const companyRuleIds = [RULE_IDS.QTO_TOLERANCE_3PCT, RULE_IDS.LAYER_PRIORITY];
+  const companyEvaluated = companyRuleIds.some(ruleId => (coverage[ruleId]?.evaluated ?? 0) > 0);
+  const companyFailed = violations.some(violation => violation.source.kind === "company_policy");
+  const normativeRuleIds = executedRules.filter(ruleId => SOURCES[ruleId].kind === "standard");
+  const unsupportedElementIds = items.filter(isUnsupportedCoverContext).map(item => item.elementId);
+  const normativeEvaluated = normativeRuleIds.some(ruleId => (coverage[ruleId]?.evaluated ?? 0) > 0);
+  const normativeReviewable = normativeEvaluated && activeStandardSelection === "explicit";
+  const accessRequiredSources = normativeReviewable
+    ? activeStandard === "TBDY_TS500" ? ["TS500"] : activeStandard === "EUROCODE_2" ? ["EUROCODE_2"] : []
+    : [];
+  const unsupportedReasons = [
+    ...(activeStandard === "ACI_318" ? ["ACI 318 için lisanslı ve sürümü sabitlenmiş paspayı kural paketi yüklü değil."] : []),
+    ...(unsupportedElementIds.length ? [`${unsupportedElementIds.length} temel veya zeminle temas eden eleman için doğrulanmış örtü kuralı bu pakette bulunmuyor.`] : []),
+    ...(activeStandardSelection === "legacy_default" ? ["Aktif standart açıkça seçilmedi; eski varsayılan normatif karar üretmez."] : []),
+  ];
+  const decision: ThreeByThreeValidationResult["decision"] = companyFailed
+    ? "failed"
+    : normativeReviewable
+        ? "manual_review_required"
+        : "not_evaluated";
   return {
     rulePackVersion: SMARTCHECK_3X3_RULE_PACK_VERSION,
     activeStandard,
     executedRules,
-    isValid: violations.length === 0,
-    status: violations.length ? "failed" : evaluated ? "passed" : "not_evaluated",
+    isValid: false,
+    status: decision,
+    decision,
     violations,
+    normativeObservations,
     coverage,
+    governance: {
+      activeStandardSelection,
+      companyPolicyDecision: companyFailed ? "failed" : companyEvaluated ? "passed" : "not_evaluated",
+      normativeDecision: normativeReviewable ? "manual_review_required" : "not_evaluated",
+      accessRequiredSources,
+      unsupportedReasons,
+      unsupportedElementIds,
+    },
     summary: { totalChecked: items.length, passed: items.length - failed, failed },
   };
 }

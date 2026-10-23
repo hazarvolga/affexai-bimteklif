@@ -1,6 +1,77 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { arsaPayiTeslimiKdv, calculateKatKarsiligi, emsalBedel, konutKdv, ORNEK_TAPU_DEVIR_ASAMALARI, tapuDevirPlani, type KatKarsiligiInput } from './kat-karsiligi';
+import { arsaPayiTeslimiKdv, calculateKatKarsiligi, emsalBedel, evaluateKatKarsiligiTax, konutKdv, ORNEK_TAPU_DEVIR_ASAMALARI, tapuDevirPlani, type KatKarsiligiInput } from './kat-karsiligi';
+
+const taxEvidenceInput = {
+  permitDate: '2025-10-01',
+  deliveryDate: '2026-05-15',
+  urbanTransformation6306Evidence: 'not_applicable' as const,
+  landOwnerTaxpayerStatus: 'not_taxpayer' as const,
+  landTradingActivityStatus: 'incidental' as const,
+  units: [
+    { id: 'K-01', type: 'dwelling' as const, netAreaM2: 160, taxBaseTry: 8_000_000 },
+    { id: 'I-01', type: 'workplace' as const, netAreaM2: 50, taxBaseTry: 2_000_000 },
+  ],
+};
+
+test('T22: konut/işyeri karma dizisini satır bazında net alan, matrah ve kuruş yuvarlamasıyla hesaplar', () => {
+  const result = evaluateKatKarsiligiTax(taxEvidenceInput);
+  assert.equal(result.status, 'evaluated');
+  if (result.status !== 'evaluated') return;
+  assert.equal(result.lines.length, 2);
+  assert.equal(result.lines[0].taxTry, 850_000);
+  assert.equal(result.lines[1].taxTry, 400_000);
+  assert.equal(result.totalDeliveryTaxTry, 1_250_000);
+  assert.equal(result.landShareTaxTry, 0);
+  assert.equal(result.roundingPolicy, 'ROUND_EACH_LINE_TO_KURUS_THEN_SUM');
+});
+
+test('T22: doğrulanmış 6306 kanıtı konut satırında indirimli ilk dilimi uygular, işyerini etkilemez', () => {
+  const result = evaluateKatKarsiligiTax({ ...taxEvidenceInput, urbanTransformation6306Evidence: 'confirmed' });
+  assert.equal(result.status, 'evaluated');
+  if (result.status !== 'evaluated') return;
+  assert.equal(result.lines[0].taxTry, 175_000);
+  assert.equal(result.lines[1].taxTry, 400_000);
+});
+
+test('T22: ruhsat/teslim tarihi, 6306 kanıt durumu veya mükellef/faaliyet statüsü eksikse vergi sonucu üretmez', () => {
+  const missing = evaluateKatKarsiligiTax({
+    ...taxEvidenceInput,
+    permitDate: '',
+    deliveryDate: '',
+    urbanTransformation6306Evidence: 'unknown',
+    landOwnerTaxpayerStatus: 'unknown',
+    landTradingActivityStatus: 'unknown',
+  });
+  assert.equal(missing.status, 'not_evaluated');
+  if (missing.status === 'not_evaluated') assert.equal(missing.taxResult, null);
+});
+
+test('T22: 1.4.2022 öncesi ruhsat için eski rejimi uydurmaz ve manuel inceleme ister', () => {
+  const result = evaluateKatKarsiligiTax({ ...taxEvidenceInput, permitDate: '2022-03-31' });
+  assert.equal(result.status, 'manual_review');
+  if (result.status === 'manual_review') assert.equal(result.taxResult, null);
+});
+
+test('T22: arsa sahibinin işletme/sürekli faaliyet kanıtı varsa arsa payı vergisini satır matrahları toplamından hesaplar', () => {
+  const result = evaluateKatKarsiligiTax({
+    ...taxEvidenceInput,
+    landOwnerTaxpayerStatus: 'taxpayer',
+    landTradingActivityStatus: 'continuous',
+  });
+  assert.equal(result.status, 'evaluated');
+  if (result.status === 'evaluated') assert.equal(result.landShareTaxTry, 2_000_000);
+});
+
+test('T22: sıfır matrah kontrollü manuel inceleme üretir ve exception fırlatmaz', () => {
+  const result = evaluateKatKarsiligiTax({
+    ...taxEvidenceInput,
+    landOwnerTaxpayerStatus: 'taxpayer',
+    units: [{ id: 'K-0', type: 'dwelling', netAreaM2: 100, taxBaseTry: 0 }],
+  });
+  assert.equal(result.status, 'manual_review');
+  if (result.status === 'manual_review') assert.match(result.reasons.join(' '), /matrah pozitif/i);
+});
 
 // KDV kademeleri (1/4/2022 sonrası ruhsat): 7346 sayılı CK (RG 7.7.2023): ≤150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1.
 test('KDV: 160 m² konut, genel rejim — bedel 150/160 ve 10/160 oranında bölünür (%10 ve %20)', () => {

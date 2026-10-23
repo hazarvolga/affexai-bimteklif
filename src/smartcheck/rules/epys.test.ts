@@ -63,5 +63,23 @@ describe("e-PYS Validation Rules", () => {
     const result = validateEpysRules({ complianceData: { source: null }, totalElementsCount: 0 });
     assert.ok(result.scope.checked.length > 0);
     assert.ok(result.scope.notChecked.some(item => /EK-9/.test(item)));
+    assert.equal(result.evaluationStatus, "not_evaluated");
+    assert.equal(result.sourceVerificationStatus, "identity_pending");
+  });
+
+  it("requires manual review even when automatic checks pass because official document identity is pending", () => {
+    const result = validateEpysRules({
+      complianceData: { source: "ifc_site", taks: 0.4, kaks: 1.5, cekmeOn: 5, cekmeYan: 3, cekmeArka: 3 },
+      elementsWithPozNoCount: 1,
+      totalElementsCount: 1,
+      materialNames: ["Beton_C30"],
+      spaceNames: ["K00_DAI_001"],
+      elementsData: [],
+    });
+    assert.equal(result.isValid, false);
+    assert.equal(result.decision, "manual_review_required");
+    assert.equal(result.evaluationStatus, "manual_review_required");
+    assert.ok(result.checks.filter(check => check.mode === "automatic").every(check => check.evidenceRefs.length > 0));
+    assert.ok(result.checks.find(check => check.mode === "manual")?.missingInputs.length);
   });
 });

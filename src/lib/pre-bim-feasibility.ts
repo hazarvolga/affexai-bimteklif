@@ -24,6 +24,42 @@ export interface ParcelInput {
   kaks: number | null;
   /** Emsale dahil olmayan inşaat alanı (bodrum, sığınak vb.), kullanıcı girer; boşsa 0 sayılır ve uyarılır. */
   emsalHariciAreaM2?: number | null;
+  /**
+   * Kaynaklı alan cetveli. Satırlar aynı fiziksel alanı temsil etmeyecek şekilde
+   * kararlı ve parsel içinde benzersiz `id` taşır.
+   */
+  areaLines?: ParcelAreaLine[];
+  /** Yerel plan notu / imar durumu kanıtı. Yokluğu aritmetiği engellemez, uygunluk beyanını engeller. */
+  localPlanEvidence?: LocalPlanEvidence | null;
+}
+
+export type ParcelAreaCategory = "included" | "limited_exempt" | "fully_exempt";
+
+export interface ParcelAreaLine {
+  id: string;
+  label: string;
+  category: ParcelAreaCategory;
+  areaM2: number;
+  sourceReference: string;
+}
+
+export interface LocalPlanEvidence {
+  sourceReference: string;
+  /** Kanıtın belge/teyit tarihi; YYYY-MM-DD. */
+  asOf: string;
+  /** Belgedeki parsel-özel sınırlı muaf havuz oranı. Girilmezse resmî uygunluk değerlendirilmez. */
+  limitedExemptCapPercent: number;
+  /** Only independently verified artifacts may drive an official planning decision. */
+  verificationStatus?: "user_asserted" | "verified";
+  issuer?: string;
+  documentId?: string;
+  sha256?: string;
+}
+
+function isValidIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 export type ShareBase = "EMSAL" | "TOTAL";
@@ -59,6 +95,14 @@ export interface ParcelResult {
   footprintM2: number | null;
   emsalAreaM2: number | null;
   emsalHariciAreaM2: number;
+  areaLines: ParcelAreaLine[];
+  /** Kaynaklı alan cetvelindeki emsale dahil toplam; satır yoksa null. */
+  declaredIncludedAreaM2: number | null;
+  limitedExemptAreaM2: number;
+  fullyExemptAreaM2: number;
+  limitedExemptPoolLimitM2: number | null;
+  arithmeticExemptionStatus: "not_evaluated" | "within_limit" | "exceeds_limit";
+  planningComplianceStatus: "not_evaluated" | "within_limit" | "exceeds_limit";
   totalConstructionM2: number | null;
   /** Emsal / taban alanından yaklaşık kat adedi (yukarı yuvarlanır); yalnızca bilgi. */
   approxFloorCount: number | null;
@@ -88,6 +132,8 @@ export interface FeasibilityResult {
   totalFootprintM2: number | null;
   totalEmsalAreaM2: number | null;
   totalEmsalHariciM2: number | null;
+  totalLimitedExemptM2: number | null;
+  totalFullyExemptM2: number | null;
   totalConstructionM2: number | null;
   shareBaseM2: number | null;
   landownerGrossM2: number | null;
@@ -132,6 +178,34 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
     errors.push("Emsal harici alan negatif olamaz.");
   }
 
+  const explicitLines = p.areaLines ?? [];
+  if (explicitLines.length > 0 && isNonNeg(p.emsalHariciAreaM2) && p.emsalHariciAreaM2 > 0) {
+    errors.push("Eski emsalHariciAreaM2 toplamı ile kaynaklı areaLines birlikte verilemez; çift sayım riski.");
+  }
+  const legacyLine: ParcelAreaLine[] = explicitLines.length === 0 && isNonNeg(p.emsalHariciAreaM2) && p.emsalHariciAreaM2 > 0
+    ? [{
+        id: "legacy-emsal-harici",
+        label: "Eski emsal harici alan girdisi",
+        category: "limited_exempt",
+        areaM2: p.emsalHariciAreaM2,
+        sourceReference: "legacy:emsalHariciAreaM2:user_input",
+      }]
+    : [];
+  const areaLines = explicitLines.length > 0 ? explicitLines.map((line) => ({ ...line })) : legacyLine;
+  const seenLineIds = new Set<string>();
+  for (const line of areaLines) {
+    const id = line.id.trim();
+    if (!id) errors.push("Alan satırı kimliği boş olamaz.");
+    else if (seenLineIds.has(id)) errors.push(`Alan satırı kimliği tekrar ediyor: ${id}.`);
+    else seenLineIds.add(id);
+    if (!line.label.trim()) errors.push(`${id || "Alan satırı"}: açıklama boş olamaz.`);
+    if (!line.sourceReference.trim()) errors.push(`${id || "Alan satırı"}: kaynak referansı boş olamaz.`);
+    if (!isNonNeg(line.areaM2)) errors.push(`${id || "Alan satırı"}: alan negatif veya geçersiz olamaz.`);
+    if (!["included", "limited_exempt", "fully_exempt"].includes(line.category)) {
+      errors.push(`${id || "Alan satırı"}: alan kategorisi desteklenmiyor.`);
+    }
+  }
+
   if (errors.length > 0) {
     return {
       name: label,
@@ -140,6 +214,13 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
       footprintM2: null,
       emsalAreaM2: null,
       emsalHariciAreaM2: 0,
+      areaLines,
+      declaredIncludedAreaM2: null,
+      limitedExemptAreaM2: 0,
+      fullyExemptAreaM2: 0,
+      limitedExemptPoolLimitM2: null,
+      arithmeticExemptionStatus: "not_evaluated",
+      planningComplianceStatus: "not_evaluated",
       totalConstructionM2: null,
       approxFloorCount: null,
     };
@@ -148,9 +229,19 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
   const area = p.areaM2 as number;
   const taks = p.taks as number;
   const kaks = p.kaks as number;
-  const harici = isNonNeg(p.emsalHariciAreaM2) ? p.emsalHariciAreaM2 : 0;
-  if (p.emsalHariciAreaM2 == null) {
-    warnings.push(`${label}: emsal harici alan girilmedi; 0 m² kabul edildi (bodrum, sığınak vb. toplam inşaat alanına eklenmedi).`);
+  const limitedExempt = round(areaLines
+    .filter((line) => line.category === "limited_exempt")
+    .reduce((total, line) => total + line.areaM2, 0), 2);
+  const fullyExempt = round(areaLines
+    .filter((line) => line.category === "fully_exempt")
+    .reduce((total, line) => total + line.areaM2, 0), 2);
+  const harici = round(limitedExempt + fullyExempt, 2);
+  const includedLines = areaLines.filter((line) => line.category === "included");
+  const declaredIncluded = includedLines.length > 0
+    ? round(includedLines.reduce((total, line) => total + line.areaM2, 0), 2)
+    : null;
+  if (areaLines.length === 0 && p.emsalHariciAreaM2 == null) {
+    warnings.push(`${label}: emsal harici alan girilmedi; kaynaklı sınırlı/tam muaf alan 0 m² kabul edildi.`);
   }
   if (kaks < taks) {
     warnings.push(`${label}: KAKS (${kaks}) TAKS'tan (${taks}) küçük; tek katlı bile sığmaz, imar değerlerini kontrol edin.`);
@@ -158,10 +249,34 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
 
   const footprint = round(area * taks, 2);
   const emsal = round(area * kaks, 2);
-  if (harici > 0 && emsal > 0 && harici > round(emsal * 0.3, 2)) {
+  const planCapPercent = p.localPlanEvidence?.limitedExemptCapPercent;
+  const validPlanCap = typeof planCapPercent === "number" && Number.isFinite(planCapPercent) && planCapPercent >= 0 && planCapPercent <= 100;
+  const advisoryCapPercent = validPlanCap ? planCapPercent : 30;
+  const limitedPoolLimit = round(emsal * (advisoryCapPercent / 100), 2);
+  const includedExceedsCapacity = declaredIncluded !== null && declaredIncluded > emsal + 0.005;
+  const arithmeticExemptionStatus = limitedExempt > limitedPoolLimit + 0.005 || includedExceedsCapacity
+    ? "exceeds_limit"
+    : "within_limit";
+  const hasLocalPlanEvidence = Boolean(
+    p.localPlanEvidence?.verificationStatus === "verified" &&
+    p.localPlanEvidence.sourceReference.trim() &&
+    p.localPlanEvidence.issuer?.trim() &&
+    p.localPlanEvidence.documentId?.trim() &&
+    /^[a-f0-9]{64}$/i.test(p.localPlanEvidence.sha256?.trim() ?? "") &&
+    isValidIsoDate(p.localPlanEvidence.asOf) &&
+    validPlanCap,
+  );
+  const planningComplianceStatus = hasLocalPlanEvidence ? arithmeticExemptionStatus : "not_evaluated";
+  if (!hasLocalPlanEvidence) {
+    warnings.push(`${label}: doğrulanmış yerel plan/imar artifact kimliği (kurum, belge no, SHA-256 ve geçerli tarih) yok; resmî plan uygunluğu değerlendirilmedi (not_evaluated). Oran karşılaştırması yalnız aritmetik danışmanlıktır.`);
+  }
+  if (limitedExempt > limitedPoolLimit + 0.005) {
     warnings.push(
-      `${label}: emsal harici alan (${harici} m²), emsal alanının (${emsal} m²) %30'unu (${round(emsal * 0.3, 2)} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği Madde 5/8 ve Madde 22 uyarınca emsal harici alan kural olarak emsalin en fazla %30'u kadardır (zorunlu otopark, sığınak, yangın merdiveni ve asansör boşluğu gibi yönetmelikte sayılan tam muafiyetli alanlar hariç; imar durum belgeniz ve belediye plan notlarınızla teyit edin).`,
+      `${label}: sınırlı muaf alan (${limitedExempt} m²), emsal alanının (${emsal} m²) %${advisoryCapPercent}'unu (${limitedPoolLimit} m²) aşıyor. Planlı Alanlar İmar Yönetmeliği için yapılan bu aritmetik kontrolde tam muaf olarak sınıflandırılan ${fullyExempt} m² havuza ikinci kez katılmadı; sınıflandırmayı imar durum belgesi ve belediye plan notuyla teyit edin.`,
     );
+  }
+  if (includedExceedsCapacity) {
+    warnings.push(`${label}: kaynaklı emsale dahil alan (${declaredIncluded} m²), KAKS aritmetik kapasitesini (${emsal} m²) aşıyor; yerel plan/imar belgesiyle inceleyin.`);
   }
   return {
     name: label,
@@ -170,7 +285,14 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
     footprintM2: footprint,
     emsalAreaM2: emsal,
     emsalHariciAreaM2: round(harici, 2),
-    totalConstructionM2: round(emsal + harici, 2),
+    areaLines,
+    declaredIncludedAreaM2: declaredIncluded,
+    limitedExemptAreaM2: limitedExempt,
+    fullyExemptAreaM2: fullyExempt,
+    limitedExemptPoolLimitM2: limitedPoolLimit,
+    arithmeticExemptionStatus,
+    planningComplianceStatus,
+    totalConstructionM2: round((declaredIncluded ?? emsal) + harici, 2),
     approxFloorCount: footprint > 0 ? Math.ceil(emsal / footprint - 1e-9) : null,
   };
 }
@@ -194,10 +316,20 @@ export interface CostBenchmarkItem {
 
 export const VILLA_MARKET_COST_BENCHMARK_2026: {
   readonly source: string;
+  readonly asOf: string;
+  readonly location: string;
+  readonly sample: { readonly projectType: "6-villa"; readonly itemCount: 27 };
+  readonly stale: boolean;
+  readonly staleReason: string;
   readonly sampleTotalCostTry: number;
   readonly items: readonly CostBenchmarkItem[];
 } = {
   source: "6-Villa Projesi Gerçek Piyasa Maliyet Analizi (17 Ekim 2026)",
+  asOf: "2026-10-17",
+  location: "Konum kaynak dökümünde belirtilmemiştir",
+  sample: { projectType: "6-villa", itemCount: 27 },
+  stale: true,
+  staleReason: "Tek projeye ait tarihsel örnektir; güncel piyasa fiyatı veya bölgesel endeks değildir.",
   sampleTotalCostTry: 4135752.77,
   items: [
     { id: "projelendirme", name: "Projelendirme", percent: 7.13, sampleAmountTry: 295000.0, category: "ruhsat_proje" },
@@ -244,6 +376,8 @@ export function computeFeasibility(input: FeasibilityInput): FeasibilityResult {
   const totalFootprint = sum((p) => p.footprintM2 ?? 0);
   const totalEmsal = sum((p) => p.emsalAreaM2 ?? 0);
   const totalHarici = sum((p) => p.emsalHariciAreaM2);
+  const totalLimitedExempt = sum((p) => p.limitedExemptAreaM2);
+  const totalFullyExempt = sum((p) => p.fullyExemptAreaM2);
   const totalConstruction = sum((p) => p.totalConstructionM2 ?? 0);
 
   // Kat karşılığı paylaşımı
@@ -328,6 +462,8 @@ export function computeFeasibility(input: FeasibilityInput): FeasibilityResult {
     totalFootprintM2: totalFootprint,
     totalEmsalAreaM2: totalEmsal,
     totalEmsalHariciM2: totalHarici,
+    totalLimitedExemptM2: totalLimitedExempt,
+    totalFullyExemptM2: totalFullyExempt,
     totalConstructionM2: totalConstruction,
     shareBaseM2,
     landownerGrossM2: landownerGross,
@@ -346,7 +482,13 @@ export function computeFeasibility(input: FeasibilityInput): FeasibilityResult {
 // CSV içe/dışa aktarım (Excel TR ile uyumlu: ; ayracı, UTF-8 BOM)
 // ---------------------------------------------------------------------------
 
-export const PARCEL_CSV_HEADER = ["parsel_adi", "alan_m2", "taks", "kaks", "emsal_harici_m2"] as const;
+export const PARCEL_CSV_HEADER = [
+  "parsel_adi", "alan_m2", "taks", "kaks",
+  "emsale_dahil_m2", "emsale_dahil_kaynak",
+  "sinirli_muaf_m2", "sinirli_muaf_kaynak",
+  "tam_muaf_m2", "tam_muaf_kaynak",
+  "yerel_plan_kaynak", "yerel_plan_tarih", "yerel_plan_sinirli_muaf_orani",
+] as const;
 
 export function buildParcelCsvTemplate(): string {
   // Örnek satır YOK: şablon uydurma imar değeri taşımaz.
@@ -397,7 +539,8 @@ export function parseParcelRows(rows: SheetCell[][], numberDelimiter = ";"): Par
 
   const header = rows[0].map((h) => String(h ?? "").trim().toLowerCase());
   const idx = (name: string) => header.indexOf(name);
-  const missing = PARCEL_CSV_HEADER.filter((h, i) => i < 4 && idx(h) === -1);
+  const requiredHeader = ["parsel_adi", "alan_m2", "taks", "kaks"];
+  const missing = requiredHeader.filter((h) => idx(h) === -1);
   if (missing.length > 0) {
     return { parcels: [], errors: [`Eksik sütun: ${missing.join(", ")}`] };
   }
@@ -410,18 +553,54 @@ export function parseParcelRows(rows: SheetCell[][], numberDelimiter = ";"): Par
     const area = parseNumberTr(get("alan_m2"), numberDelimiter);
     const taks = parseNumberTr(get("taks"), numberDelimiter);
     const kaks = parseNumberTr(get("kaks"), numberDelimiter);
-    const harici = parseNumberTr(get("emsal_harici_m2"), numberDelimiter);
+    const legacyHarici = parseNumberTr(get("emsal_harici_m2"), numberDelimiter);
+    const includedArea = parseNumberTr(get("emsale_dahil_m2"), numberDelimiter);
+    const limitedExempt = parseNumberTr(get("sinirli_muaf_m2"), numberDelimiter);
+    const fullyExempt = parseNumberTr(get("tam_muaf_m2"), numberDelimiter);
     if (area === null || taks === null || kaks === null) {
       errors.push(`Satır ${i + 1}: alan_m2, taks ve kaks sayı olmalı.`);
       continue;
     }
-    parcels.push({
+    const areaLines: ParcelAreaLine[] = [];
+    if (includedArea !== null) {
+      const sourceReference = String(get("emsale_dahil_kaynak") ?? "").trim();
+      if (!sourceReference) {
+        errors.push(`Satır ${i + 1}: emsale dahil alan için kaynak zorunludur.`);
+        continue;
+      }
+      areaLines.push({ id: `row-${i + 1}-included`, label: "Emsale dahil alan", category: "included", areaM2: includedArea, sourceReference });
+    }
+    if (limitedExempt !== null) {
+      const sourceReference = String(get("sinirli_muaf_kaynak") ?? "").trim();
+      if (!sourceReference) {
+        errors.push(`Satır ${i + 1}: sınırlı muaf alan için kaynak zorunludur.`);
+        continue;
+      }
+      areaLines.push({ id: `row-${i + 1}-limited`, label: "Sınırlı muaf alan", category: "limited_exempt", areaM2: limitedExempt, sourceReference });
+    }
+    if (fullyExempt !== null) {
+      const sourceReference = String(get("tam_muaf_kaynak") ?? "").trim();
+      if (!sourceReference) {
+        errors.push(`Satır ${i + 1}: tam muaf alan için kaynak zorunludur.`);
+        continue;
+      }
+      areaLines.push({ id: `row-${i + 1}-fully`, label: "Tam muaf alan", category: "fully_exempt", areaM2: fullyExempt, sourceReference });
+    }
+    const localPlanSource = String(get("yerel_plan_kaynak") ?? "").trim();
+    const localPlanAsOf = String(get("yerel_plan_tarih") ?? "").trim();
+    const parcel: ParcelInput = {
       name: String(get("parsel_adi") ?? "").trim() || `Parsel ${parcels.length + 1}`,
       areaM2: area,
       taks,
       kaks,
-      emsalHariciAreaM2: harici,
-    });
+    };
+    if (areaLines.length > 0) parcel.areaLines = areaLines;
+    else parcel.emsalHariciAreaM2 = legacyHarici;
+    if (localPlanSource && localPlanAsOf) {
+      const cap = parseNumberTr(get("yerel_plan_sinirli_muaf_orani"), numberDelimiter);
+      if (cap !== null) parcel.localPlanEvidence = { sourceReference: localPlanSource, asOf: localPlanAsOf, limitedExemptCapPercent: cap };
+    }
+    parcels.push(parcel);
   }
   return { parcels, errors };
 }
@@ -443,7 +622,7 @@ function fmtCsv(v: number | null): string {
 
 export function exportFeasibilityCsv(result: FeasibilityResult): string {
   const rows: string[][] = [];
-  rows.push(["parsel_adi", "taban_alani_m2", "emsal_alani_m2", "emsal_harici_m2", "toplam_insaat_m2", "yaklasik_kat"]);
+  rows.push(["parsel_adi", "taban_alani_m2", "emsal_alani_m2", "emsal_harici_m2", "toplam_insaat_m2", "yaklasik_kat", "sinirli_muaf_m2", "tam_muaf_m2", "aritmetik_durum", "plan_uygunluk_durumu"]);
   for (const p of result.parcels) {
     rows.push([
       p.name,
@@ -452,7 +631,18 @@ export function exportFeasibilityCsv(result: FeasibilityResult): string {
       p.valid ? fmtCsv(p.emsalHariciAreaM2) : "",
       fmtCsv(p.totalConstructionM2),
       p.approxFloorCount === null ? "" : String(p.approxFloorCount),
+      p.valid ? fmtCsv(p.limitedExemptAreaM2) : "",
+      p.valid ? fmtCsv(p.fullyExemptAreaM2) : "",
+      p.arithmeticExemptionStatus,
+      p.planningComplianceStatus,
     ]);
+  }
+  rows.push([]);
+  rows.push(["alan_satiri_id", "parsel_adi", "kategori", "alan_m2", "kaynak"]);
+  for (const p of result.parcels) {
+    for (const line of p.areaLines) {
+      rows.push([line.id, p.name, line.category, fmtCsv(line.areaM2), line.sourceReference]);
+    }
   }
   rows.push([]);
   rows.push(["ozet", "deger"]);

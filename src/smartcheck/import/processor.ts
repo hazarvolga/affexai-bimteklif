@@ -235,12 +235,17 @@ async function processIfcSmartCheckDocument(payload: {
       activeStandard: artifact.ruleEvaluations!.threeByThree.activeStandard,
       status: artifact.ruleEvaluations!.threeByThree.status,
       violationCount: artifact.ruleEvaluations!.threeByThree.violations.length,
+      normativeObservationCount: artifact.ruleEvaluations!.threeByThree.normativeObservations.length,
       coverage: artifact.ruleEvaluations!.threeByThree.coverage,
+      governance: artifact.ruleEvaluations!.threeByThree.governance,
     },
     epys: {
       rulePackVersion: artifact.ruleEvaluations!.epys.rulePackVersion,
       isValid: artifact.ruleEvaluations!.epys.isValid,
       score: artifact.ruleEvaluations!.epys.score,
+      evaluationStatus: artifact.ruleEvaluations!.epys.evaluationStatus,
+      sourceVerificationStatus: artifact.ruleEvaluations!.epys.sourceVerificationStatus,
+      checks: artifact.ruleEvaluations!.epys.checks,
     },
   };
 

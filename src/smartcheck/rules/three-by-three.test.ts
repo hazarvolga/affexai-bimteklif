@@ -16,9 +16,10 @@ describe("SmartCheck 3x3 Domain Rules", () => {
           expectedQuantity: 100,
           actualQuantity: 102.99,
         },
-      ]);
+      ], { activeStandard: "ACI_318" });
 
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
+      assert.equal(result.decision, "not_evaluated");
       assert.equal(result.violations.length, 0);
       assert.equal(result.summary.passed, 1);
       assert.equal(result.summary.failed, 0);
@@ -32,9 +33,10 @@ describe("SmartCheck 3x3 Domain Rules", () => {
           expectedQuantity: 100,
           actualQuantity: 103.00,
         },
-      ]);
+      ], { activeStandard: "ACI_318" });
 
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
+      assert.equal(result.decision, "not_evaluated");
       assert.equal(result.violations.length, 0);
       assert.equal(result.summary.passed, 1);
     });
@@ -47,7 +49,7 @@ describe("SmartCheck 3x3 Domain Rules", () => {
           expectedQuantity: 100,
           actualQuantity: 103.01,
         },
-      ]);
+      ], { activeStandard: "ACI_318" });
 
       assert.equal(result.isValid, false);
       assert.equal(result.violations.length, 1);
@@ -69,7 +71,8 @@ describe("SmartCheck 3x3 Domain Rules", () => {
         },
       ], ec2);
 
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
+      assert.equal(result.decision, "manual_review_required");
       assert.equal(result.violations.length, 0);
     });
 
@@ -82,7 +85,8 @@ describe("SmartCheck 3x3 Domain Rules", () => {
         },
       ], ec2);
 
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
+      assert.equal(result.decision, "manual_review_required");
       assert.equal(result.violations.length, 0);
     });
 
@@ -95,11 +99,12 @@ describe("SmartCheck 3x3 Domain Rules", () => {
         },
       ], ec2);
 
-      assert.equal(result.isValid, false);
-      assert.equal(result.violations.length, 1);
-      assert.equal(result.violations[0].ruleId, RULE_IDS.XC3_COVER_35MM);
-      assert.equal(result.violations[0].actualValue, 34);
-      assert.equal(result.violations[0].thresholdValue, 35);
+      assert.equal(result.isValid, false, "licensed-standard observations require review and never become a legacy pass");
+      assert.equal(result.decision, "manual_review_required");
+      assert.equal(result.normativeObservations.length, 1);
+      assert.equal(result.normativeObservations[0].ruleId, RULE_IDS.XC3_COVER_35MM);
+      assert.equal(result.normativeObservations[0].actualValue, 34);
+      assert.equal(result.normativeObservations[0].thresholdValue, 35);
     });
 
     it("ignores non-XC3 elements without cover specifications", () => {
@@ -111,7 +116,8 @@ describe("SmartCheck 3x3 Domain Rules", () => {
         },
       ], ec2);
 
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
+      assert.equal(result.decision, "not_evaluated");
     });
   });
 
@@ -123,9 +129,10 @@ describe("SmartCheck 3x3 Domain Rules", () => {
           loadBearing: true,
           discipline: "STR",
         },
-      ]);
+      ], { activeStandard: "ACI_318" });
 
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
+      assert.equal(result.decision, "not_evaluated");
       assert.equal(result.violations.length, 0);
     });
 
@@ -147,25 +154,25 @@ describe("SmartCheck 3x3 Domain Rules", () => {
   describe("TS 500 minimum net cover (default activeStandard = TBDY_TS500)", () => {
     it("checks columns and beams at 20 mm inside, 25 mm outside and slabs at 15 mm", () => {
       const result = validateThreeByThreeRules([
-        { elementId: "COL_IN_OK", elementType: "IfcColumn", exposure: "interior", coverMm: 20 },
-        { elementId: "COL_IN_LOW", elementType: "IfcColumn", exposure: "interior", coverMm: 19 },
-        { elementId: "BEAM_OUT_LOW", elementType: "IfcBeam", exposure: "exterior", coverMm: 24 },
-        { elementId: "SLAB_OK", elementType: "IfcSlab", exposure: "interior", coverMm: 15 },
-        { elementId: "SLAB_LOW", elementType: "IfcSlab", exposure: "interior", coverMm: 14 },
+        { elementId: "COL_IN_OK", elementType: "IfcColumn", exposure: "interior", surfaceCondition: "interior", coverMm: 20 },
+        { elementId: "COL_IN_LOW", elementType: "IfcColumn", exposure: "interior", surfaceCondition: "interior", coverMm: 19 },
+        { elementId: "BEAM_OUT_LOW", elementType: "IfcBeam", exposure: "exterior", surfaceCondition: "exterior", coverMm: 24 },
+        { elementId: "SLAB_OK", elementType: "IfcSlab", exposure: "interior", surfaceCondition: "interior", coverMm: 15 },
+        { elementId: "SLAB_LOW", elementType: "IfcSlab", exposure: "interior", surfaceCondition: "interior", coverMm: 14 },
       ]);
-      assert.deepEqual(result.violations.map(v => [v.elementId, v.thresholdValue]), [["COL_IN_LOW", 20], ["BEAM_OUT_LOW", 25], ["SLAB_LOW", 15]]);
-      assert.ok(result.violations.every(v => v.ruleId === RULE_IDS.COVER_MIN_TS500 && v.source.kind === "standard" && /TS 500/.test(v.source.reference)));
+      assert.deepEqual(result.normativeObservations.map(v => [v.elementId, v.thresholdValue]), [["COL_IN_LOW", 20], ["BEAM_OUT_LOW", 25], ["SLAB_LOW", 15]]);
+      assert.ok(result.normativeObservations.every(v => v.ruleId === RULE_IDS.COVER_MIN_TS500 && v.source.kind === "standard" && /TS 500/.test(v.source.reference)));
     });
 
     it("does not apply the Eurocode XC3 35 mm rule to TS 500 companies", () => {
       const result = validateThreeByThreeRules([{ elementId: "COL", elementType: "IfcColumn", exposure: "interior", exposureClass: "XC3", coverMm: 30 }]);
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
       assert.ok(!result.executedRules.includes(RULE_IDS.XC3_COVER_35MM));
     });
 
     it("skips cover checks it cannot source for ACI 318 instead of inventing a threshold", () => {
       const result = validateThreeByThreeRules([{ elementId: "COL", elementType: "IfcColumn", coverMm: 5 }], { activeStandard: "ACI_318" });
-      assert.equal(result.isValid, true);
+      assert.equal(result.isValid, false);
       assert.deepEqual(result.executedRules, [RULE_IDS.QTO_TOLERANCE_3PCT, RULE_IDS.LAYER_PRIORITY]);
     });
   });
@@ -208,12 +215,49 @@ describe("SmartCheck 3x3 Domain Rules", () => {
   describe("Evaluation status", () => {
     it("reports not_evaluated instead of a pass when no rule had its inputs", () => {
       assert.equal(validateThreeByThreeRules([{ elementId: "A" }]).status, "not_evaluated");
-      assert.equal(validateThreeByThreeRules([{ elementId: "A", expectedQuantity: 10, actualQuantity: 10 }]).status, "passed");
+      assert.equal(validateThreeByThreeRules([{ elementId: "A", expectedQuantity: 10, actualQuantity: 10 }]).status, "not_evaluated");
+      assert.equal(validateThreeByThreeRules([{ elementId: "A", expectedQuantity: 10, actualQuantity: 10 }], { activeStandard: "ACI_318" }).status, "not_evaluated");
       assert.equal(validateThreeByThreeRules([{ elementId: "A", expectedQuantity: 10, actualQuantity: 20 }]).status, "failed");
     });
 
     it("rejects an unknown active standard instead of silently dropping the cover rule", () => {
       assert.throws(() => validateThreeByThreeRules([], { activeStandard: "BS_8110" as never }), /UNKNOWN_ACTIVE_STANDARD/);
+    });
+
+    it("keeps company-policy decisions separate from licensed-standard review", () => {
+      const result = validateThreeByThreeRules([
+        { elementId: "Q", expectedQuantity: 100, actualQuantity: 101 },
+        { elementId: "C", elementType: "IfcColumn", exposure: "interior", surfaceCondition: "interior", coverMm: 20 },
+      ], { activeStandard: "TBDY_TS500" });
+      assert.equal(result.governance.companyPolicyDecision, "passed");
+      assert.equal(result.governance.normativeDecision, "manual_review_required");
+      assert.deepEqual(result.governance.accessRequiredSources, ["TS500"]);
+    });
+
+    it("reports unsupported standard coverage as not evaluated", () => {
+      const result = validateThreeByThreeRules(
+        [{ elementId: "C", elementType: "IfcColumn", coverMm: 5 }],
+        { activeStandard: "ACI_318" },
+      );
+      assert.equal(result.governance.normativeDecision, "not_evaluated");
+      assert.ok(result.governance.unsupportedReasons.some(reason => /ACI 318/.test(reason)));
+    });
+
+    it("does not apply beam/column/slab cover thresholds to foundations or soil-contact surfaces", () => {
+      const result = validateThreeByThreeRules([
+        { elementId: "F", elementType: "IfcFooting", memberType: "foundation", surfaceCondition: "soil_contact", coverMm: 25 },
+      ], { activeStandard: "TBDY_TS500" });
+      assert.equal(result.governance.normativeDecision, "not_evaluated");
+      assert.ok(result.governance.unsupportedReasons.some(reason => /temel|zemin/i.test(reason)));
+      assert.equal(result.violations.length, 0);
+    });
+
+    it("does not treat a legacy default standard as an explicit normative selection", () => {
+      const result = validateThreeByThreeRules([
+        { elementId: "C", elementType: "IfcColumn", exposure: "interior", surfaceCondition: "interior", coverMm: 20 },
+      ]);
+      assert.equal(result.governance.activeStandardSelection, "legacy_default");
+      assert.equal(result.governance.normativeDecision, "not_evaluated");
     });
   });
 });

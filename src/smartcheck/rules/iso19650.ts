@@ -123,6 +123,12 @@ export interface Iso19650ValidationResult {
   loinMilestone?: LoinMilestoneEvaluation | null;
   errors: string[];
   warnings: string[];
+  evaluationStatus: "failed" | "not_evaluated" | "manual_review_required";
+  decision: "failed" | "not_evaluated" | "manual_review_required";
+  advisoryOnly: true;
+  sourceVerificationStatus: "access_required";
+  evidenceRefs: string[];
+  missingInputs: string[];
 }
 
 const EK2_TABLES = ek2Raw as {
@@ -257,9 +263,15 @@ export function evaluateIso19650Compliance(
 
   // 2. CDE Durumu (WIP / SHARED / PUBLISHED / ARCHIVED) ve Uygunluk / Revizyon Kodu Denetimi
   // Yalnızca açık CDE üstverisi sağlandığında değerlendirilir; sabit varsayılan değer uydurulmaz!
-  const hasExplicitCdeMetadata = Boolean(
+  const hasAnyCdeMetadata = Boolean(
     input.cdeState || input.suitabilityCode || (input.revisionCode && input.revisionCode.trim()),
   );
+  const missingInputs = [
+    ...(!input.cdeState ? ["cdeState"] : []),
+    ...(!input.suitabilityCode ? ["suitabilityCode"] : []),
+    ...(!input.revisionCode?.trim() ? ["revisionCode"] : []),
+  ];
+  const hasExplicitCdeMetadata = hasAnyCdeMetadata && missingInputs.length === 0;
 
   const cdeEvaluationStatus: "evaluated" | "not_evaluated" = hasExplicitCdeMetadata
     ? "evaluated"
@@ -269,9 +281,13 @@ export function evaluateIso19650Compliance(
   const revisionCode: string | null = input.revisionCode?.trim() || null;
   const targetStage = input.targetDeliveryStage ?? null;
 
-  if (!hasExplicitCdeMetadata) {
+  if (!hasAnyCdeMetadata) {
     warnings.push(
       "[ISO 19650-2 §5.6–5.7 CDE Durumu] Doküman üstverisinde CDE durumu (WIP/SHARED/PUBLISHED/ARCHIVED), uygunluk kodu veya revizyon kodu belirtilmediğinden CDE durum geçişi değerlendirilmedi.",
+    );
+  } else if (!hasExplicitCdeMetadata) {
+    warnings.push(
+      `[ISO 19650-2 CDE Kanıtı] CDE değerlendirmesi için durum, uygunluk kodu ve revizyon kodu birlikte gereklidir. Eksik: ${missingInputs.join(", ")}.`,
     );
   } else {
     if (cdeState === "WIP" && suitabilityCode && suitabilityCode !== "S0") {
@@ -397,12 +413,15 @@ export function evaluateIso19650Compliance(
   }
 
   const score = Math.max(0, Math.min(100, Math.round(100 - penaltyPoints)));
+  const evaluationStatus: Iso19650ValidationResult["evaluationStatus"] = errors.length > 0
+    ? "failed"
+    : !hasExplicitCdeMetadata ? "not_evaluated" : "manual_review_required";
 
   return {
     rulePackVersion: "iso19650-2026.2",
     sourceCitation:
       "TS EN ISO 19650-1:2018 §11, TS EN ISO 19650-2:2018 §5.1.7 / §5.6–5.7, TS EN 17412-1:2020 (LOIN) & RG 33331 (05.08.2026) EK-2 / EK-6 / EK-8",
-    isValid: errors.length === 0,
+    isValid: false,
     score,
     cdeEvaluationStatus,
     cdeState,
@@ -420,6 +439,12 @@ export function evaluateIso19650Compliance(
     loinMilestone,
     errors,
     warnings,
+    evaluationStatus,
+    decision: evaluationStatus,
+    advisoryOnly: true,
+    sourceVerificationStatus: "access_required",
+    evidenceRefs: ["ISO19650", "EN17412_1", "EPYS_RG33331", "PHASE0_SOURCE_REGISTER"],
+    missingInputs: hasExplicitCdeMetadata ? [] : missingInputs,
   };
 }
 
@@ -497,14 +522,14 @@ export function evaluateLoinByMilestone(
     const hasStorey = Boolean(el.storey && el.storey.trim() && el.storey.trim() !== "Bilinmeyen Kat");
     const hasQuantity = Boolean(el.hasAdmissibleQuantity);
     const hasMaterial = Boolean(el.material && el.material.trim());
-    const hasPozOrMaterial = Boolean((el.pozNo && el.pozNo.trim()) || hasMaterial);
+    const hasPoz = Boolean(el.pozNo && el.pozNo.trim());
 
     const checkMap: Record<string, boolean> = {
       guid: hasGuid,
       storey: hasStorey,
       quantity: hasQuantity,
       material: hasMaterial,
-      pozNo: hasPozOrMaterial,
+      pozNo: hasPoz,
     };
 
     let allPresent = true;

@@ -55,6 +55,9 @@ test("sunucu yolu uçtan uca: kapı/pencere ölçüleri Python'dan Calm veri set
   assert.equal(openings.filter((o) => o.kind === "door").length, 3);
   assert.equal(openings.filter((o) => o.kind === "window").length, 4);
   assert.ok(openings.every((o) => typeof o.widthM === "number" && typeof o.heightM === "number"));
+  assert.ok(openings.every((o) => o.hostElementId && o.hostGlobalId), "Fills/Voids zincirindeki host kimliği korunmalı");
+  assert.ok(openings.every((o) => o.quantityBasis === "unknown"));
+  assert.ok(openings.every((o) => o.targetLineId === null && o.targetFinishLayer === null));
   // Örnek ev: giriş kapısı 1,81 × 2,11 m
   assert.ok(openings.some((o) => o.widthM === 1.81 && o.heightM === 2.11));
 

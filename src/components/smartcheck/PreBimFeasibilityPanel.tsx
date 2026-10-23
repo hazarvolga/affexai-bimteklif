@@ -18,6 +18,14 @@ interface ParcelRow {
   taks: string;
   kaks: string;
   harici: string;
+  includedArea: string;
+  includedSource: string;
+  limitedSource: string;
+  fullyExempt: string;
+  fullySource: string;
+  localPlanSource: string;
+  localPlanAsOf: string;
+  localPlanCapPercent: string;
 }
 
 const num = (raw: string): number | null => {
@@ -66,7 +74,10 @@ function Field(props: { label: string; value: string; onChange: (v: string) => v
 export const PreBimFeasibilityPanel: React.FC = () => {
   const navigate = useNavigate();
   const nextId = useRef(2);
-  const [rows, setRows] = useState<ParcelRow[]>([{ id: 1, name: "", area: "", taks: "", kaks: "", harici: "" }]);
+  const [rows, setRows] = useState<ParcelRow[]>([{
+    id: 1, name: "", area: "", taks: "", kaks: "", harici: "", includedArea: "", includedSource: "", limitedSource: "",
+    fullyExempt: "", fullySource: "", localPlanSource: "", localPlanAsOf: "", localPlanCapPercent: "",
+  }]);
   const [shareBase, setShareBase] = useState<ShareBase | "">("");
   const [sharePct, setSharePct] = useState("");
   const [netGross, setNetGross] = useState("");
@@ -76,13 +87,35 @@ export const PreBimFeasibilityPanel: React.FC = () => {
   const [split, setSplit] = useState({ kaba: "", ince: "", mek: "", elk: "", pey: "" });
   const [csvMessage, setCsvMessage] = useState("");
 
-  const parcels: ParcelInput[] = rows.map((r) => ({
-    name: r.name,
-    areaM2: num(r.area),
-    taks: num(r.taks),
-    kaks: num(r.kaks),
-    emsalHariciAreaM2: r.harici.trim() === "" ? null : num(r.harici),
-  }));
+  const parcels: ParcelInput[] = rows.map((r) => {
+    const limited = num(r.harici);
+    const included = num(r.includedArea);
+    const fully = num(r.fullyExempt);
+    const areaLines = [
+      ...(included !== null ? [{
+        id: `parcel-${r.id}-included`, label: "Emsale dahil alan", category: "included" as const,
+        areaM2: included, sourceReference: r.includedSource.trim(),
+      }] : []),
+      ...(limited !== null ? [{
+        id: `parcel-${r.id}-limited`, label: "Sınırlı muaf alan", category: "limited_exempt" as const,
+        areaM2: limited, sourceReference: r.limitedSource.trim(),
+      }] : []),
+      ...(fully !== null ? [{
+        id: `parcel-${r.id}-fully`, label: "Tam muaf alan", category: "fully_exempt" as const,
+        areaM2: fully, sourceReference: r.fullySource.trim(),
+      }] : []),
+    ];
+    return {
+      name: r.name,
+      areaM2: num(r.area),
+      taks: num(r.taks),
+      kaks: num(r.kaks),
+      areaLines,
+      localPlanEvidence: r.localPlanSource.trim() && r.localPlanAsOf && num(r.localPlanCapPercent) !== null
+        ? { sourceReference: r.localPlanSource.trim(), asOf: r.localPlanAsOf, limitedExemptCapPercent: num(r.localPlanCapPercent) as number }
+        : null,
+    };
+  });
 
   const hasSplit = Object.values(split).some((v) => v.trim() !== "");
 
@@ -132,7 +165,16 @@ export const PreBimFeasibilityPanel: React.FC = () => {
           area: String(p.areaM2 ?? ""),
           taks: String(p.taks ?? ""),
           kaks: String(p.kaks ?? ""),
-          harici: p.emsalHariciAreaM2 == null ? "" : String(p.emsalHariciAreaM2),
+          harici: String(p.areaLines?.find((line) => line.category === "limited_exempt")?.areaM2 ?? p.emsalHariciAreaM2 ?? ""),
+          includedArea: String(p.areaLines?.find((line) => line.category === "included")?.areaM2 ?? ""),
+          includedSource: p.areaLines?.find((line) => line.category === "included")?.sourceReference ?? "",
+          limitedSource: p.areaLines?.find((line) => line.category === "limited_exempt")?.sourceReference
+            ?? (p.emsalHariciAreaM2 == null ? "" : "Excel/CSV kullanıcı girdisi (kaynak belge ayrıca teyit edilmeli)"),
+          fullyExempt: String(p.areaLines?.find((line) => line.category === "fully_exempt")?.areaM2 ?? ""),
+          fullySource: p.areaLines?.find((line) => line.category === "fully_exempt")?.sourceReference ?? "",
+          localPlanSource: p.localPlanEvidence?.sourceReference ?? "",
+          localPlanAsOf: p.localPlanEvidence?.asOf ?? "",
+          localPlanCapPercent: p.localPlanEvidence ? String(p.localPlanEvidence.limitedExemptCapPercent) : "",
         })),
       );
     }
@@ -175,12 +217,12 @@ export const PreBimFeasibilityPanel: React.FC = () => {
             </p>
             <div className="space-y-2">
               {rows.map((r, i) => (
-                <div key={r.id} className="grid grid-cols-12 gap-2 items-end">
+                <div key={r.id} className="grid grid-cols-12 gap-2 items-end border border-border p-2">
                   <div className="col-span-3"><Field label={i === 0 ? "Parsel adı" : "Ad"} value={r.name} onChange={(v) => updateRow(r.id, { name: v })} placeholder="ad" /></div>
                   <div className="col-span-2"><Field label="Alan m²" value={r.area} onChange={(v) => updateRow(r.id, { area: v })} /></div>
                   <div className="col-span-2"><Field label="TAKS" value={r.taks} onChange={(v) => updateRow(r.id, { taks: v })} /></div>
                   <div className="col-span-2"><Field label="KAKS" value={r.kaks} onChange={(v) => updateRow(r.id, { kaks: v })} /></div>
-                  <div className="col-span-2"><Field label="Emsal harici m²" value={r.harici} onChange={(v) => updateRow(r.id, { harici: v })} placeholder="boş" /></div>
+                  <div className="col-span-2"><Field label="Sınırlı muaf m²" value={r.harici} onChange={(v) => updateRow(r.id, { harici: v })} placeholder="boş" /></div>
                   <button
                     type="button"
                     aria-label="Parseli sil"
@@ -190,12 +232,26 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                   >
                     ✕
                   </button>
+                  <div className="col-span-4"><Field label="Sınırlı muaf kaynak" value={r.limitedSource} onChange={(v) => updateRow(r.id, { limitedSource: v })} placeholder="belge/satır" /></div>
+                  <div className="col-span-2"><Field label="Emsale dahil m²" value={r.includedArea} onChange={(v) => updateRow(r.id, { includedArea: v })} placeholder="alan cetveli" /></div>
+                  <div className="col-span-4"><Field label="Emsale dahil kaynak" value={r.includedSource} onChange={(v) => updateRow(r.id, { includedSource: v })} placeholder="belge/satır" /></div>
+                  <div className="col-span-2"><Field label="Tam muaf m²" value={r.fullyExempt} onChange={(v) => updateRow(r.id, { fullyExempt: v })} placeholder="boş" /></div>
+                  <div className="col-span-4"><Field label="Tam muaf kaynak" value={r.fullySource} onChange={(v) => updateRow(r.id, { fullySource: v })} placeholder="plan notu/madde" /></div>
+                  <div className="col-span-4"><Field label="Yerel plan/imar kanıtı" value={r.localPlanSource} onChange={(v) => updateRow(r.id, { localPlanSource: v })} placeholder="belge no/kaynak" /></div>
+                  <label className="block col-span-2">
+                    <span className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Kanıt tarihi</span>
+                    <input type="date" aria-label="Yerel plan kanıt tarihi" value={r.localPlanAsOf} onChange={(e) => updateRow(r.id, { localPlanAsOf: e.target.value })} className={inputCls} />
+                  </label>
+                  <div className="col-span-2"><Field label="Plan sınırlı muaf oranı (%)" value={r.localPlanCapPercent} onChange={(v) => updateRow(r.id, { localPlanCapPercent: v })} placeholder="belgedeki oran" /></div>
                 </div>
               ))}
             </div>
             <button
               type="button"
-              onClick={() => setRows((p) => [...p, { id: nextId.current++, name: "", area: "", taks: "", kaks: "", harici: "" }])}
+              onClick={() => setRows((p) => [...p, {
+                id: nextId.current++, name: "", area: "", taks: "", kaks: "", harici: "", includedArea: "", includedSource: "", limitedSource: "",
+                fullyExempt: "", fullySource: "", localPlanSource: "", localPlanAsOf: "", localPlanCapPercent: "",
+              }])}
               className="mt-2 font-mono text-[10px] uppercase tracking-wider text-primary underline"
             >
               + Parsel ekle
@@ -243,6 +299,9 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                 <span className="font-mono text-foreground">{fmtTry(VILLA_MARKET_COST_BENCHMARK_2026.sampleTotalCostTry)}</span>
                 ). Hesaba gizli varsayılan olarak uygulanmaz; kendi projenizin yüzdelerini yukarıdaki alanlara kendiniz girersiniz.
               </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Tarih: {VILLA_MARKET_COST_BENCHMARK_2026.asOf} · Konum: {VILLA_MARKET_COST_BENCHMARK_2026.location} · Durum: tarihsel/eskimiş referans. {VILLA_MARKET_COST_BENCHMARK_2026.staleReason}
+              </p>
               <div className="mt-2 max-h-48 overflow-y-auto border-t border-border pt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                 {VILLA_MARKET_COST_BENCHMARK_2026.items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-2 text-[11px] border-b border-border/50 py-0.5">
@@ -261,7 +320,9 @@ export const PreBimFeasibilityPanel: React.FC = () => {
             {[
               ["Toplam taban alanı", `${fmt(result.totalFootprintM2)} m²`],
               ["Toplam emsal alanı", `${fmt(result.totalEmsalAreaM2)} m²`],
-              ["Emsal harici", `${fmt(result.totalEmsalHariciM2)} m²`],
+              ["Sınırlı muaf alan", `${fmt(result.totalLimitedExemptM2)} m²`],
+              ["Tam muaf alan", `${fmt(result.totalFullyExemptM2)} m²`],
+              ["Toplam emsal harici", `${fmt(result.totalEmsalHariciM2)} m²`],
               ["Toplam inşaat alanı", `${fmt(result.totalConstructionM2)} m²`],
               ["Arsa sahibi brüt / net", `${fmt(result.landownerGrossM2)} / ${fmt(result.landownerNetM2)} m²`],
               ["Müteahhit brüt", `${fmt(result.contractorGrossM2)} m²`],
@@ -273,6 +334,17 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                 <span className="font-mono font-semibold tabular-nums text-right">{v}</span>
               </div>
             ))}
+          </div>
+
+          <div className="border border-border bg-background p-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Parsel bazlı plan değerlendirmesi</div>
+            {result.parcels.map((parcel, index) => (
+              <div key={`${parcel.name}-${index}`} className="mt-1 flex justify-between gap-3 text-[11px]">
+                <span>{parcel.name}</span>
+                <span className="font-mono">{parcel.planningComplianceStatus}</span>
+              </div>
+            ))}
+            <p className="mt-2 text-[10px] text-muted-foreground">Kurum, belge numarası, geçerli tarih ve SHA-256 ile doğrulanmış yerel plan artifact'ı yoksa sonuç yalnız aritmetik danışmanlıktır ve not_evaluated kalır. Formdaki serbest metin tek başına resmî kanıt değildir.</p>
           </div>
 
           {result.costBreakdown && (

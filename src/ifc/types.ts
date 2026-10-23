@@ -147,6 +147,7 @@ export interface ParsedIfcElement {
   reviewNotes?: string[];
   loadBearing?: boolean;
   exposure?: "interior" | "exterior";
+  surfaceCondition?: "interior" | "exterior" | "soil_contact" | "unknown";
   exposureClass?: string;
   coverMm?: number;
   discipline?: string;
@@ -203,6 +204,13 @@ export interface ParsedOpening {
   name?: string | null;
   widthM: number | null;
   heightM: number | null;
+  /** IfcRelFillsElement -> IfcOpeningElement -> IfcRelVoidsElement ev sahibi. */
+  hostElementId?: string | null;
+  hostGlobalId?: string | null;
+  /** İcmal satırı/bitiş katmanı açıkça eşlenmediyse null; otomatik minha uygulanmaz. */
+  targetLineId?: string | null;
+  targetFinishLayer?: string | null;
+  quantityBasis?: "gross_before_openings" | "net_after_openings" | "unknown";
 }
 
 export interface IfcParseSummary {

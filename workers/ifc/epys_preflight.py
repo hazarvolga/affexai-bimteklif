@@ -22,12 +22,9 @@ from ifc_ruhsat import SURUM, YONETMELIK, ek9, kontrol  # noqa: E402
 
 UPSTREAM_COMMIT = "cd6d3ce"
 DATA_VERIFICATION = (
-    "Upstream visual verification of the scanned RG 33331 annex PDF (2026-09-17, page "
-    "numbers in each table). BIMMetraj full annex verification 2026-10-15 against official "
-    "ministry files #1.pdf, #2.pdf and EKLER.pdf / 20260805-2-1.pdf (SHA-256 "
-    "7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3): EK-1..EK-9 "
-    "including Tablo 6.55, Tablo 6.60, Tablo 7.8–7.9, Tablo 9.1 (21 rows, MM) and "
-    "Tablo 9.2 (16 rows, non-MM disciplines)."
+    "Provisional rule-data review. The repository copy and extracted EK-1..EK-9 tables were "
+    "checked for internal consistency, but the local document identity has not been matched "
+    "to a final authority-issued file. Source status remains identity_pending."
 )
 DISCLAIMER = (
     "Otomatik ön kontroldür; resmî uygunluk kararı değildir. Değerlendirme e-PYS ve "
@@ -93,12 +90,17 @@ def build_report(input_path: str, file_name: str, discipline: str | None = None)
     rows = [
         {"no": r["no"], "kaynakNo": r.get("kaynakNo", r["no"]), "bolum": r["bolum"], "kategori": r["kategori"],
          "baslik": r["baslik"], "soru": r["soru"], "karar": r["karar"], "elleNotu": r["elleNotu"],
-         "bulgu": len(r["bulgular"])}
+         "bulgu": len(r["bulgular"]),
+         "evaluationMode": "manual" if r["karar"] in {"Elle", "Kısmen (elle tamamlanacak)"} else "automatic",
+         "status": "manual_review_required" if r["karar"] in {"Elle", "Kısmen (elle tamamlanacak)"} else ("failed" if r["karar"] == "Hayır" else "passed"),
+         "sourceRefs": [f"EPYS_RG33331:EK-9:{secilen_disiplin}:{r.get('kaynakNo', r['no'])}"],
+         "evidenceRefs": [f"model:{effective_name}:ek9-row:{r['no']}"] + [f"finding:{r['no']}:{idx + 1}" for idx, _ in enumerate(r["bulgular"])],
+         "missingInputs": ["authorityDecision"] if r["karar"] in {"Elle", "Kısmen (elle tamamlanacak)"} else []}
         for r in ek9.satirlar(rapor, secilen_disiplin)
     ]
     tablo_info = ek9.tablo_bilgisi(secilen_disiplin)
     report = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "kind": "epys_preflight",
         "ruleSource": {
             "regulation": YONETMELIK,
@@ -112,6 +114,8 @@ def build_report(input_path: str, file_name: str, discipline: str | None = None)
             "discipline": secilen_disiplin,
         },
         "summary": rapor.ozet(),
+        "evaluationStatus": "failed" if rapor.ozet()["hata"] > 0 else "manual_review_required",
+        "sourceVerificationStatus": "identity_pending",
         "ek9Table": tablo_info,
         "ek9": rows,
         "findings": [b.sozluk() for b in rapor.bulgular],

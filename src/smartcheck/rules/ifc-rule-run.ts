@@ -21,11 +21,22 @@ function threeByThreeItems(artifact: IfcSmartCheckEvidenceArtifact): ThreeByThre
       elementId: f.elementStepId ?? row.sourceCellRange,
       elementType: row.rawDescription.split(" ")[0],
     };
+    const normalizedType = item.elementType?.toLowerCase() ?? "";
+    item.memberType = normalizedType.includes("footing") || normalizedType.includes("foundation")
+      ? "foundation"
+      : normalizedType.includes("beam") ? "beam"
+        : normalizedType.includes("column") ? "column"
+          : normalizedType.includes("slab") ? "slab"
+            : normalizedType.includes("wall") ? "wall" : "other";
     if (Number.isFinite(actualQty) && actualQty > 0) item.actualQuantity = actualQty;
     if (Number.isFinite(expectedQty) && expectedQty > 0) item.expectedQuantity = expectedQty;
     if (f.loadBearing === "true") item.loadBearing = true;
     else if (f.loadBearing === "false") item.loadBearing = false;
-    if (f.exposure === "interior" || f.exposure === "exterior") item.exposure = f.exposure;
+    if (f.exposure === "interior" || f.exposure === "exterior") {
+      item.exposure = f.exposure;
+      item.surfaceCondition = f.exposure;
+    }
+    if (f.surfaceCondition === "soil_contact" || f.surfaceCondition === "unknown") item.surfaceCondition = f.surfaceCondition;
     if (f.exposureClass) item.exposureClass = f.exposureClass;
     if (Number.isFinite(coverMm) && coverMm > 0) item.coverMm = coverMm;
     if (f.discipline) item.discipline = f.discipline;

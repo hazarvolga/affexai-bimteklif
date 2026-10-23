@@ -219,3 +219,145 @@ test("Golden 14: 27 kalemlik 6-villa maliyet referansı tam ve tutarlıdır", ()
   assert.equal(benchmark.sampleTotalCostTry, 4135752.77);
 });
 
+test("T23: alan satırları kararlı kimlik/kategori/kaynak taşır; yalnız sınırlı muaf alan %30 havuzunu tüketir", () => {
+  const r = computeFeasibility(base({
+    parcels: [{
+      name: "A",
+      areaM2: 1000,
+      taks: 0.4,
+      kaks: 0.8,
+      localPlanEvidence: {
+        sourceReference: "Belediye imar durumu belge no 2026/42",
+        asOf: "2026-10-20",
+        limitedExemptCapPercent: 30,
+        verificationStatus: "verified",
+        issuer: "Test Belediyesi",
+        documentId: "2026/42",
+        sha256: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      },
+      areaLines: [
+        { id: "emsal-konut", label: "Konut", category: "included", areaM2: 800, sourceReference: "Mimari alan cetveli A1" },
+        { id: "sinirli-1", label: "Ortak alan", category: "limited_exempt", areaM2: 230, sourceReference: "Mimari alan cetveli A2" },
+        { id: "tam-1", label: "Tam muaf alan", category: "fully_exempt", areaM2: 100, sourceReference: "Yerel plan notu 7" },
+      ],
+    }],
+  }));
+
+  assert.equal(r.parcels[0].limitedExemptAreaM2, 230);
+  assert.equal(r.parcels[0].fullyExemptAreaM2, 100);
+  assert.equal(r.parcels[0].limitedExemptPoolLimitM2, 240);
+  assert.equal(r.parcels[0].arithmeticExemptionStatus, "within_limit");
+  assert.equal(r.parcels[0].planningComplianceStatus, "within_limit");
+  assert.equal(r.parcels[0].totalConstructionM2, 1130);
+});
+
+test("T23: kaynaklı emsale dahil alan KAKS kapasitesinden ayrı izlenir ve toplamda iki kez sayılmaz", () => {
+  const r = computeFeasibility(base({ parcels: [{
+    name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8,
+    areaLines: [
+      { id: "i", label: "Tasarlanan dahil alan", category: "included", areaM2: 700, sourceReference: "Alan cetveli" },
+      { id: "l", label: "Sınırlı muaf", category: "limited_exempt", areaM2: 100, sourceReference: "Alan cetveli" },
+    ],
+  }] }));
+  assert.equal(r.parcels[0].emsalAreaM2, 800, "KAKS kapasitesi korunur");
+  assert.equal(r.parcels[0].declaredIncludedAreaM2, 700);
+  assert.equal(r.parcels[0].totalConstructionM2, 800, "700 dahil + 100 sınırlı muaf");
+});
+
+test("T23: duplicate alan kimliği parseli geçersiz kılar; aynı alan iki kez sayılmaz", () => {
+  const r = computeFeasibility(base({
+    parcels: [{
+      name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8,
+      areaLines: [
+        { id: "x", label: "Bir", category: "limited_exempt", areaM2: 10, sourceReference: "S1" },
+        { id: "x", label: "İki", category: "fully_exempt", areaM2: 20, sourceReference: "S2" },
+      ],
+    }],
+  }));
+  assert.equal(r.parcels[0].valid, false);
+  assert.match(r.parcels[0].errors.join(" "), /tekrar/i);
+  assert.equal(r.totalConstructionM2, null);
+});
+
+test("T23: yerel plan kanıtı yokken yalnız aritmetik danışmanlık verilir, resmî uygunluk üretilmez", () => {
+  const r = computeFeasibility(base({
+    parcels: [{
+      name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8,
+      areaLines: [
+        { id: "l1", label: "Sınırlı", category: "limited_exempt", areaM2: 250, sourceReference: "Alan cetveli" },
+        { id: "f1", label: "Tam", category: "fully_exempt", areaM2: 500, sourceReference: "Kullanıcı beyanı" },
+      ],
+    }],
+  }));
+  assert.equal(r.parcels[0].arithmeticExemptionStatus, "exceeds_limit");
+  assert.equal(r.parcels[0].planningComplianceStatus, "not_evaluated");
+  assert.ok(r.warnings.some((w) => /yerel plan/i.test(w) && /not_evaluated|değerlendirilmedi/i.test(w)));
+});
+
+test("T23: serbest metin, geçersiz takvim tarihi veya kullanıcı beyanı resmî plan kanıtı sayılmaz", () => {
+  const result = computeFeasibility(base({ parcels: [{
+    name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8,
+    localPlanEvidence: {
+      sourceReference: "x", asOf: "2026-99-99", limitedExemptCapPercent: 30,
+      verificationStatus: "user_asserted", issuer: "x", documentId: "x", sha256: "e".repeat(64),
+    },
+    areaLines: [{ id: "l", label: "Sınırlı", category: "limited_exempt", areaM2: 250, sourceReference: "kullanıcı" }],
+  }] }));
+  assert.equal(result.parcels[0].arithmeticExemptionStatus, "exceeds_limit");
+  assert.equal(result.parcels[0].planningComplianceStatus, "not_evaluated");
+});
+
+test("T23: eski emsalHariciAreaM2 girdisi kaynaklı danışmanlık satırına sarılır ve tek kez sayılır", () => {
+  const r = computeFeasibility(base({
+    parcels: [{ name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8, emsalHariciAreaM2: 100 }],
+  }));
+  assert.equal(r.parcels[0].areaLines.length, 1);
+  assert.equal(r.parcels[0].areaLines[0].category, "limited_exempt");
+  assert.equal(r.parcels[0].areaLines[0].sourceReference, "legacy:emsalHariciAreaM2:user_input");
+  assert.equal(r.parcels[0].totalConstructionM2, 900);
+});
+
+test("T23: eski toplam ile yeni alan satırları birlikte verilirse çift sayım riski reddedilir", () => {
+  const r = computeFeasibility(base({ parcels: [{
+    name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8, emsalHariciAreaM2: 100,
+    areaLines: [{ id: "l", label: "Sınırlı", category: "limited_exempt", areaM2: 100, sourceReference: "S" }],
+  }] }));
+  assert.equal(r.parcels[0].valid, false);
+  assert.match(r.parcels[0].errors.join(" "), /birlikte|çift/i);
+});
+
+test("T23: maliyet referansı tarih, konum, kaynak, örnek ve eskilik sinyali taşır", () => {
+  const b = VILLA_MARKET_COST_BENCHMARK_2026;
+  assert.match(b.asOf, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(b.location.length > 0);
+  assert.ok(b.source.length > 0);
+  assert.equal(b.sample.projectType, "6-villa");
+  assert.equal(b.sample.itemCount, 27);
+  assert.equal(b.stale, true);
+  assert.ok(b.staleReason.length > 0);
+});
+
+test("T23 CSV contract: muaf alan kategorileri, kaynakları ve yerel plan kanıtı kayıpsız okunur", () => {
+  const csv = [
+    "parsel_adi;alan_m2;taks;kaks;emsale_dahil_m2;emsale_dahil_kaynak;sinirli_muaf_m2;sinirli_muaf_kaynak;tam_muaf_m2;tam_muaf_kaynak;yerel_plan_kaynak;yerel_plan_tarih;yerel_plan_sinirli_muaf_orani",
+    "A;1000;0,4;0,8;800;Alan cetveli A1;200;Alan cetveli A2;100;Plan notu 7;İmar durum no 42;2026-10-20;30",
+  ].join("\r\n");
+  const parsed = parseParcelCsv(csv);
+  assert.deepEqual(parsed.errors, []);
+  assert.equal(parsed.parcels[0].areaLines?.length, 3);
+  assert.deepEqual(parsed.parcels[0].areaLines?.map((line) => line.category), ["included", "limited_exempt", "fully_exempt"]);
+  assert.equal(parsed.parcels[0].areaLines?.[2].sourceReference, "Plan notu 7");
+  assert.equal(parsed.parcels[0].localPlanEvidence?.asOf, "2026-10-20");
+  assert.equal(parsed.parcels[0].localPlanEvidence?.limitedExemptCapPercent, 30);
+});
+
+test("T23 CSV contract: kategorili alan kaynak olmadan kabul edilmez", () => {
+  const csv = [
+    "parsel_adi;alan_m2;taks;kaks;sinirli_muaf_m2;sinirli_muaf_kaynak",
+    "A;1000;0,4;0,8;200;",
+  ].join("\r\n");
+  const parsed = parseParcelCsv(csv);
+  assert.equal(parsed.parcels.length, 0);
+  assert.match(parsed.errors[0], /kaynak/i);
+});
+

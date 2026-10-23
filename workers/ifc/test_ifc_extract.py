@@ -468,6 +468,72 @@ def test_three_by_three_rule_metadata_extraction():
     assert meta["expectedQuantity"] == 10.0
 
 
+def test_three_by_three_soil_contact_metadata_is_source_backed_and_unknown_fails_closed():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties
+
+    model = ifcopenshell.file(schema="IFC4")
+    footing = model.create_entity("IfcFooting", GlobalId="6666666666666666666666")
+    ground = model.create_entity(
+        "IfcPropertySingleValue",
+        Name="IsGroundContact",
+        NominalValue=model.create_entity("IfcBoolean", True),
+    )
+    pset = model.create_entity(
+        "IfcPropertySet",
+        GlobalId="7777777777777777777777",
+        Name="Pset_FootingCommon",
+        HasProperties=[ground],
+    )
+    model.create_entity(
+        "IfcRelDefinesByProperties",
+        GlobalId="8888888888888888888888",
+        RelatedObjects=[footing],
+        RelatingPropertyDefinition=pset,
+    )
+
+    assert extract_quantities_and_properties(footing, 1.0, 1.0)[12]["surfaceCondition"] == "soil_contact"
+
+    wall = model.create_entity("IfcWall", GlobalId="9999999999999999999999")
+    assert extract_quantities_and_properties(wall, 1.0, 1.0)[12]["surfaceCondition"] == "unknown"
+
+
+def test_three_by_three_explicit_soil_contact_wins_in_both_property_orders():
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties
+
+    for reverse_order in (False, True):
+        model = ifcopenshell.file(schema="IFC4")
+        wall = model.create_entity("IfcWall", GlobalId="AAAAAAAAAAAAAAAAAAAAAA")
+        ground = model.create_entity(
+            "IfcPropertySingleValue",
+            Name="IsGroundContact",
+            NominalValue=model.create_entity("IfcBoolean", True),
+        )
+        external = model.create_entity(
+            "IfcPropertySingleValue",
+            Name="IsExternal",
+            NominalValue=model.create_entity("IfcBoolean", True),
+        )
+        properties = [external, ground] if reverse_order else [ground, external]
+        pset = model.create_entity(
+            "IfcPropertySet",
+            GlobalId="BBBBBBBBBBBBBBBBBBBBBB",
+            Name="Pset_WallCommon",
+            HasProperties=properties,
+        )
+        model.create_entity(
+            "IfcRelDefinesByProperties",
+            GlobalId="CCCCCCCCCCCCCCCCCCCCCC",
+            RelatedObjects=[wall],
+            RelatingPropertyDefinition=pset,
+        )
+
+        metadata = extract_quantities_and_properties(wall, 1.0, 1.0)[12]
+        assert metadata["exposure"] == "exterior"
+        assert metadata["surfaceCondition"] == "soil_contact"
+
+
 def test_trepys_poz_and_emsal_extraction():
     import ifcopenshell
     from workers.ifc.ifc_extract import extract_quantities_and_properties, extract_project_compliance

@@ -46,6 +46,9 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
     assert.equal(res.revisionCode, null);
     assert.equal(res.loin.uniqueGuidRatio, 0);
     assert.equal(res.loin.alphanumericCompletenessRatio, 0);
+    assert.equal(res.evaluationStatus, "not_evaluated");
+    assert.equal(res.advisoryOnly, true);
+    assert.equal(res.sourceVerificationStatus, "access_required");
   });
 
   it("validates PUBLISHED contractual container with C01 revision and full LOIN completeness", () => {
@@ -76,11 +79,30 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
     });
 
     assert.equal(res.cdeEvaluationStatus, "evaluated");
-    assert.equal(res.isValid, true);
+    assert.equal(res.isValid, false);
     assert.equal(res.score, 100);
     assert.equal(res.loin.geometricCompletenessRatio, 1);
     assert.equal(res.loin.alphanumericCompletenessRatio, 1);
     assert.equal(res.loin.duplicateGuidCount, 0);
+    assert.equal(res.evaluationStatus, "manual_review_required");
+    assert.ok(res.evidenceRefs.includes("ISO19650"));
+  });
+
+  it("does not evaluate a partial CDE tuple", () => {
+    const res = evaluateIso19650Compliance({
+      fileName: "PRJ26-STR-B1-00-M3-S-0001.ifc",
+      revisionCode: "C01",
+      elements: [{ id: "1", guid: "g1", type: "IfcWall", storey: "K00", material: "Beton_C30", hasAdmissibleQuantity: true }],
+    });
+    assert.equal(res.cdeEvaluationStatus, "not_evaluated");
+    assert.equal(res.evaluationStatus, "not_evaluated");
+    assert.deepEqual(res.missingInputs.sort(), ["cdeState", "suitabilityCode"]);
+  });
+
+  it("keeps automatic failure precedence when CDE metadata is absent", () => {
+    const res = evaluateIso19650Compliance({ fileName: "bad.ifc", elements: [] });
+    assert.equal(res.cdeEvaluationStatus, "not_evaluated");
+    assert.equal(res.evaluationStatus, "failed");
   });
 
   it("rejects WIP (S0) container or preliminary P01.01 revision on PUBLISHED / TENDER_OR_PERMIT delivery and detects duplicate GUIDs", () => {
@@ -175,6 +197,15 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
     assert.equal(implRes.targetLod, "LOD 350");
     assert.equal(implRes.passesMilestoneThreshold, false);
     assert.equal(implRes.missingElementCount, 2);
+  });
+
+  it("does not count material as PozNo at IMPLEMENTATION milestone", () => {
+    const result = evaluateLoinByMilestone([{
+      id: "1", guid: "g1", type: "IfcWall", storey: "K00", material: "Beton_C30",
+      pozNo: null, hasAdmissibleQuantity: true,
+    }], "IMPLEMENTATION");
+    assert.equal(result.attributeCompleteness.pozNo, 0);
+    assert.equal(result.passesMilestoneThreshold, false);
   });
 });
 

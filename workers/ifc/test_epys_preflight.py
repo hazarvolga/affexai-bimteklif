@@ -27,6 +27,10 @@ def test_report_carries_regulation_provenance_and_all_ek9_rows():
     assert {row["karar"] for row in report["ek9"]} <= {"Evet", "Evet (uyarıyla)", "Hayır", "Elle", "Kısmen (elle tamamlanacak)"}
     assert "resmî uygunluk kararı değildir" in report["disclaimer"]
     assert report["summary"]["hata"] == 0
+    assert report["evaluationStatus"] == "manual_review_required"
+    assert report["sourceVerificationStatus"] == "identity_pending"
+    assert all(row["evaluationMode"] in {"automatic", "manual"} for row in report["ek9"])
+    assert all(row["evidenceRefs"] for row in report["ek9"])
 
     report_st = epys_preflight.build_report(GOOD, "123456_00_ST_BETO_MD_BIM_000_01_000.ifc", "ST")
     assert report_st["model"]["discipline"] == "ST"

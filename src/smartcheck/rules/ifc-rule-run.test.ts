@@ -35,19 +35,20 @@ describe("server-side IFC rule run (E-1, E-6)", () => {
     assert.ok(missing.errors.some(error => error.includes("TREpys_ParselOzellikSeti")));
     assert.ok(missing.warnings.some(warning => warning.includes("CSBPozNo")));
     const complete = evaluateIfcRulePacks(artifact({ trPsetCsb: { source: "ifc_site", taks: 0.3, kaks: 1.2, cekmeOn: 5, cekmeYan: 3, cekmeArka: 3 }, elementsWithPozNoCount: 4, elementsMissingPozNoCount: 0 }), "TBDY_TS500").epys;
-    assert.equal(complete.isValid, true);
-    assert.equal(complete.score, 100);
+    assert.equal(complete.isValid, false);
+    assert.equal(complete.evaluationStatus, "not_evaluated");
+    assert.equal(complete.score, 99);
   });
 
   it("stores rule results in the artifact and 3x3 violations as row findings without mutating the input", () => {
     const input = artifact();
     const evaluations = evaluateIfcRulePacks(input, "TBDY_TS500");
     const withViolation = { ...evaluations, threeByThree: { ...evaluations.threeByThree, violations: [{
-      ruleId: RULE_IDS.COVER_MIN_TS500, ruleVersion: "v", elementId: "#1", severity: "error" as const, message: "low cover",
-      actualValue: 10, thresholdValue: 20, source: { kind: "standard" as const, reference: "TS 500" } }] } };
+      ruleId: RULE_IDS.LAYER_PRIORITY, ruleVersion: "v", elementId: "#1", severity: "warning" as const, message: "wrong discipline",
+      actualValue: "ARC", thresholdValue: "STR", source: { kind: "company_policy" as const, reference: "3x3" } }] } };
     const output = applyIfcRuleEvaluations(input, withViolation);
     assert.equal(input.rows[0].findingsJson.length, 0);
-    assert.deepEqual(output.rows[0].findingsJson.map(finding => [finding.code, finding.severity]), [[RULE_IDS.COVER_MIN_TS500, "high"]]);
+    assert.deepEqual(output.rows[0].findingsJson.map(finding => [finding.code, finding.severity]), [[RULE_IDS.LAYER_PRIORITY, "medium"]]);
     assert.equal(output.rows[1].findingsJson.length, 0);
     assert.equal(output.ruleEvaluations?.threeByThree.rulePackVersion, evaluations.threeByThree.rulePackVersion);
   });
@@ -72,12 +73,24 @@ describe("server-side IFC rule run (E-1, E-6)", () => {
     assert.deepEqual(result.threeByThree.coverage[RULE_IDS.QTO_TOLERANCE_3PCT], { evaluated: 1, missingInput: 1 });
     assert.deepEqual(result.threeByThree.coverage[RULE_IDS.COVER_MIN_TS500], { evaluated: 1, missingInput: 1 });
     assert.deepEqual(result.threeByThree.coverage[RULE_IDS.LAYER_PRIORITY], { evaluated: 1, missingInput: 1 });
-    assert.equal(result.threeByThree.violations.length, 3);
+    assert.equal(result.threeByThree.violations.length, 2);
+    assert.equal(result.threeByThree.normativeObservations.length, 1);
     assert.ok(result.iso19650);
     assert.equal(result.iso19650.cdeEvaluationStatus, "not_evaluated");
     assert.equal(result.iso19650.cdeState, null);
     assert.equal(result.iso19650.loin.uniqueGuidRatio, 0);
     assert.equal(result.iso19650.loin.alphanumericCompletenessRatio, 0);
+  });
+
+  it("does not apply beam/column cover observations to an IfcFooting in the server path", () => {
+    const base = artifact();
+    base.rows = [{
+      ...row("F", "IfcFooting"),
+      formulaJson: { elementStepId: "#F", exposure: "exterior", coverMm: "10" },
+    }];
+    const result = evaluateIfcRulePacks(base, "TBDY_TS500");
+    assert.equal(result.threeByThree.normativeObservations.length, 0);
+    assert.deepEqual(result.threeByThree.governance.unsupportedElementIds, ["#F"]);
   });
 });
 

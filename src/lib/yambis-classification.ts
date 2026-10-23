@@ -13,6 +13,7 @@
  * - m.14(3)    Üstlenilebilecek azami iş (yapı yaklaşık maliyeti) sınırları.
  * - m.11(2)    G ve G1 grubunda ekonomik ve mali yeterlikten YALNIZCA banka referans mektubu beyanı istenir (bilanço oranları ve ciro aranmaz).
  * - m.11(3)    H grubunda ekonomik, mali, mesleki ve teknik yeterlik belgesi istenmez.
+ * - Geçici m.1(2) 31/12/2026 (dahil) tarihine kadar iş gücü yeterliği aranmaz; son altı yıla kadar değerler beyan edilir.
  *
  * Bu motor ön değerlendirmedir; Bakanlığın başvuru incelemesinin (iş deneyiminin güncellenmesi, iş gücü hesabı, ortaklık
  * kuralları, üç yıllık bilanço ortalaması vb.) yerini tutmaz. Kapsam dışı hükümler `OUT_OF_SCOPE_NOTES` içinde belirtilmiştir.
@@ -20,6 +21,12 @@
 
 /** Yapı sınır bedeli çarpanı (m.4(1)(k)). */
 export const YAPI_SINIR_BEDELI_MULTIPLIER = 45_000;
+export const WORKFORCE_EXCEPTION_END_DATE = '2026-12-31';
+
+export const YAMBIS_SOURCE_CITATIONS = [
+  'Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik, RG 02.03.2019/30702; konsolide metin m.4, m.11–14 ve Geçici m.1(2): https://www.mevzuat.gov.tr/File/GeneratePdf?mevzuatNo=31301&mevzuatTur=KurumVeKurulusYonetmeligi&mevzuatTertip=5',
+  'ÇŞİDB Osmaniye İl Müdürlüğü, Müteahhitlik Yeterlilik Sistemi: 31/12/2026 (dahil) tarihine kadar iş gücü yeterliği aranmaz; son altı yıla kadar değerler beyan edilir: https://osmaniye.csb.gov.tr/yeterlilik-sistemi-i-100536',
+] as const;
 
 export type ContractorGroupCode =
   | 'A' | 'B' | 'B1' | 'C' | 'C1' | 'D' | 'D1' | 'E' | 'E1' | 'F' | 'F1' | 'G' | 'G1' | 'H';
@@ -76,6 +83,8 @@ export interface MaliInput {
 }
 
 export interface ContractorInput {
+  /** Başvuru/değerlendirme tarihi; tarihli geçici hükmü seçmek için zorunlu ISO 8601 takvim tarihi (YYYY-MM-DD). */
+  evaluationDate: string;
   /** Bakanlıkça o yıl için belirlenen yapı sınır bedeli (TL). Hesap için `computeYapiSinirBedeli` kullanılabilir. */
   yapiSinirBedeliTry: number;
   isDeneyimTutariTry: number;
@@ -84,11 +93,11 @@ export interface ContractorInput {
   mali: MaliInput;
   /** Bir önceki yıla ait toplam ciro veya bu Yönetmelik kapsamındaki işlere ait ciro (TL). */
   cirosuTry: number;
-  /** Bankalar nezdinde kullanılmamış nakdi/gayrinakdi kredi veya kısıtsız mevduat (TL); girilmezse bu kriter değerlendirilmez. */
+  /** Bankalar nezdinde kullanılmamış nakdi/gayrinakdi kredi veya kısıtsız mevduat (TL); girilmezse olası grup gösterilebilir ancak kesin uygunluk verilmez. */
   bankaKrediVeyaMevduatTry?: number;
 }
 
-export type CriterionStatus = 'ok' | 'fail' | 'not_evaluated';
+export type CriterionStatus = 'ok' | 'fail' | 'not_evaluated' | 'not_required';
 
 export interface CriterionResult {
   id: 'is_deneyimi' | 'usta' | 'teknik_personel' | 'cari_oran' | 'oz_kaynak_orani' | 'banka_borcu_orani' | 'ciro' | 'banka_referans';
@@ -103,11 +112,16 @@ export interface GroupEvaluation {
   minExperienceTry: number | null;
   /** Üstlenilebilecek azami iş (yapı yaklaşık maliyeti) üst sınırı; A için 'unlimited'. */
   maxJobTry: number | 'unlimited';
+  /** Tüm uygulanabilir kriterler kanıtla doğrulanmıştır. `not_evaluated` kesin uygunluk vermez. */
   eligible: boolean;
+  /** Eksik kanıt dışında açık başarısız kriter bulunmayan danışma amaçlı olası sonuç. */
+  potentiallyEligible: boolean;
   criteria: CriterionResult[];
 }
 
 export interface ContractorEvaluation {
+  evaluationDate: string;
+  workforceRule: 'temporarily_not_required' | 'required';
   yapiSinirBedeliTry: number;
   ratios: {
     cariOran: number | null;
@@ -115,8 +129,13 @@ export interface ContractorEvaluation {
     bankaBorcuOzKaynakOrani: number | null;
   };
   groups: GroupEvaluation[];
-  /** Tüm kriterleri sağlayan en üst grup (H her zaman uygundur). */
-  highestEligibleGroup: ContractorGroupCode;
+  /** Kanıtlanmış tüm uygulanabilir kriterleri sağlayan en üst grup. */
+  highestConfirmedGroup: ContractorGroupCode | null;
+  /** Eksik kanıt tamamlanırsa mümkün olabilecek, açık başarısız kriteri olmayan en üst grup. */
+  highestPotentialGroup: ContractorGroupCode | null;
+  /** @deprecated `highestConfirmedGroup` kullanın. Geriye uyum için kesin sonucu döndürür. */
+  highestEligibleGroup: ContractorGroupCode | null;
+  sourceCitations: readonly string[];
   notes: readonly string[];
 }
 
@@ -159,11 +178,25 @@ function assertInput(input: ContractorInput): void {
     input.mali.donenVarliklarTry, input.mali.kisaVadeliBorclarTry, input.mali.ozKaynaklarTry, input.mali.toplamAktifTry, input.mali.kisaVadeliBankaBorclariTry,
   ];
   if (numbers.some(v => typeof v !== 'number' || !Number.isFinite(v) || v < 0)) throw new RangeError('Tüm tutar ve sayılar negatif olmayan sayı olmalıdır.');
+  if (input.bankaKrediVeyaMevduatTry !== undefined && (!Number.isFinite(input.bankaKrediVeyaMevduatTry) || input.bankaKrediVeyaMevduatTry < 0)) {
+    throw new RangeError('Banka referans tutarı negatif olmayan bir sayı olmalıdır.');
+  }
   if (input.yapiSinirBedeliTry <= 0) throw new RangeError('Yapı sınır bedeli pozitif olmalıdır.');
+  if (!isIsoCalendarDate(input.evaluationDate)) {
+    throw new RangeError('Değerlendirme tarihi YYYY-MM-DD biçiminde geçerli bir takvim tarihi olmalıdır.');
+  }
+}
+
+function isIsoCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
 }
 
 export function evaluateContractorGroups(input: ContractorInput): ContractorEvaluation {
   assertInput(input);
+  const workforceTemporarilyNotRequired = input.evaluationDate <= WORKFORCE_EXCEPTION_END_DATE;
   const { mali } = input;
   const cariOran = ratio(mali.donenVarliklarTry, mali.kisaVadeliBorclarTry);
   const ozKaynakOrani = ratio(mali.ozKaynaklarTry, mali.toplamAktifTry);
@@ -188,12 +221,14 @@ export function evaluateContractorGroups(input: ContractorInput): ContractorEval
         actual: `${fmt(input.isDeneyimTutariTry)} TL`,
       });
       criteria.push({
-        id: 'usta', status: input.yillikUstaIsGucu >= def.minUstaIsGucu ? 'ok' : 'fail',
-        required: `≥ ${def.minUstaIsGucu}`, actual: String(input.yillikUstaIsGucu),
+        id: 'usta', status: workforceTemporarilyNotRequired ? 'not_required' : input.yillikUstaIsGucu >= def.minUstaIsGucu ? 'ok' : 'fail',
+        required: workforceTemporarilyNotRequired ? 'Geçici m.1(2): 31/12/2026 dahil aranmaz; beyan sürer' : `≥ ${def.minUstaIsGucu}`,
+        actual: String(input.yillikUstaIsGucu),
       });
       criteria.push({
-        id: 'teknik_personel', status: input.teknikPersonelIsGucu >= def.minTeknikPersonelIsGucu ? 'ok' : 'fail',
-        required: `≥ ${def.minTeknikPersonelIsGucu}`, actual: String(input.teknikPersonelIsGucu),
+        id: 'teknik_personel', status: workforceTemporarilyNotRequired ? 'not_required' : input.teknikPersonelIsGucu >= def.minTeknikPersonelIsGucu ? 'ok' : 'fail',
+        required: workforceTemporarilyNotRequired ? 'Geçici m.1(2): 31/12/2026 dahil aranmaz; beyan sürer' : `≥ ${def.minTeknikPersonelIsGucu}`,
+        actual: String(input.teknikPersonelIsGucu),
       });
       // m.11(2): G ve G1 için bilanço oranları ve ciro aranmaz; yalnız banka referans mektubu beyanı istenir.
       const balanceSheetApplies = code !== 'G' && code !== 'G1';
@@ -221,16 +256,23 @@ export function evaluateContractorGroups(input: ContractorInput): ContractorEval
       }
     }
 
-    const eligible = criteria.every(c => c.status !== 'fail');
-    return { group: code, minExperienceTry: minExperience, maxJobTry: maxJobTry(code, input.yapiSinirBedeliTry), eligible, criteria };
+    const eligible = criteria.every(c => c.status === 'ok' || c.status === 'not_required');
+    const potentiallyEligible = criteria.every(c => c.status !== 'fail');
+    return { group: code, minExperienceTry: minExperience, maxJobTry: maxJobTry(code, input.yapiSinirBedeliTry), eligible, potentiallyEligible, criteria };
   });
 
-  const highest = groups.find(g => g.eligible)?.group ?? 'H';
+  const highestConfirmedGroup = groups.find(g => g.eligible)?.group ?? null;
+  const highestPotentialGroup = groups.find(g => g.potentiallyEligible)?.group ?? null;
   return {
+    evaluationDate: input.evaluationDate,
+    workforceRule: workforceTemporarilyNotRequired ? 'temporarily_not_required' : 'required',
     yapiSinirBedeliTry: input.yapiSinirBedeliTry,
     ratios: { cariOran, ozKaynakOrani, bankaBorcuOzKaynakOrani },
     groups,
-    highestEligibleGroup: highest,
+    highestConfirmedGroup,
+    highestPotentialGroup,
+    highestEligibleGroup: highestConfirmedGroup,
+    sourceCitations: YAMBIS_SOURCE_CITATIONS,
     notes: OUT_OF_SCOPE_NOTES,
   };
 }

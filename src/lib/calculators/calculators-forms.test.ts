@@ -9,6 +9,29 @@ test("KİK formu: zorunlu girdi eksikse hesap yapılmaz", () => {
   assert.equal(r.status === "incomplete" && r.missing.length, 3);
 });
 
+test("KİK formu: idare YM kalemleri kaynak kimliği olmadan resmî yüzde 80 listesi üretmez", () => {
+  const missingSource = evaluateKikForm({
+    ym: "100,00", category: "ust_yapi", bids: "80,00", ourBid: "70,00",
+    items: "A;80,00\nB;20,00", administrationSourceIdentity: "",
+  });
+  assert.equal(missingSource.status, "ok");
+  if (missingSource.status !== "ok") return;
+  assert.equal(missingSource.result.officialExplanationListStatus, "not_evaluated");
+  assert.match(missingSource.result.officialExplanationListReason ?? "", /kaynak kimliği/);
+});
+
+test("KİK formu: Türkçe sayı biçimli idare YM kalemleri ve kaynak kimliği resmî liste üretir", () => {
+  const result = evaluateKikForm({
+    ym: "1.000,50", category: "ust_yapi", bids: "800,40", ourBid: "700,00",
+    items: "A;800,40\nB;200,10", administrationSourceIdentity: "İDARE-YM-TR-1",
+    administrationSourceVerification: { status: "verified", issuer: "Test İdaresi", documentId: "YM-TR-1", sha256: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+  });
+  assert.equal(result.status, "ok");
+  if (result.status !== "ok") return;
+  assert.equal(result.result.officialExplanationListStatus, "evaluated");
+  assert.equal(result.result.administrationEstimatedCostItemsTotalTry, 1000.5);
+});
+
 test("KİK formu: Türkçe biçimli girdilerle motor sonucu üretilir; kendi teklif boşsa hüküm gösterilmez", () => {
   const r = evaluateKikForm({
     ym: "100.000.000",
@@ -91,6 +114,17 @@ test("4735 formu: ağırlık toplamı 1 değilse motor hatası kullanıcıya ile
   });
   assert.equal(r.status, "error");
   if (r.status === "error") assert.ok(r.errors[0].includes("1,00"));
+});
+
+test("T21 formu: hukuki ve kaynak bağlamı eksikse not_evaluated döner", () => {
+  const r = evaluateEscalationForm({
+    progressPayment: "1000", bFactor: "0,9", constantWeight: "", rows: [
+      { indexCode: "TUIK-TUFE-GENEL", weight: "1", baseIndex: "100", currentIndex: "110", seriesId: "", basePeriod: "", currentPeriod: "", sourceUrl: "", sourcePublicationDate: "" },
+    ],
+    tenderDate: "", contractReference: "", bFactorSource: "", weightsSource: "", workSchedulePeriod: "", applicationPeriod: "",
+    delayResponsibility: "unknown", delayLegalBasis: "", advancePayment: "", advanceDeduction: "", advanceDeductionSource: "",
+  });
+  assert.equal(r.status, "not_evaluated");
 });
 
 test("KİK formu: idarenin N değeri uygulanır; 1,00–1,20 dışı reddedilir", () => {

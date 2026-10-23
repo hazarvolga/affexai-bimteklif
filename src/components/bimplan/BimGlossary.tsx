@@ -101,7 +101,7 @@ export default function BimGlossary() {
       abbreviation: 'Elektronik Proje Yönetim Sistemi (RG 33331)',
       turkishName: 'Bakanlık Elektronik Proje Teslim ve İnceleme Sistemi',
       category: 'Süreç',
-      definition: '5 Ağustos 2026 tarihli ve 33331 sayılı Resmî Gazete yönetmelikleri kapsamında, mimarlık ve mühendislik projelerinin güvenli e-imza ile PDF/A ve IFC4X3 formatında teslim edildiği, incelendiği ve onaylandığı resmî Bakanlık platformudur.',
+      definition: '5 Ağustos 2026 tarihli ve 33331 sayılı Resmî Gazete yönetmelikleri kapsamında, mimarlık ve mühendislik projelerinin güvenli e-imza ile PDF/A ve IFC4X3 formatında teslimi, incelenmesi ve onayı için tanımlanan Bakanlık sistemidir. BIMMetraj yalnız ön kontrol üretir; idare onayı yerine geçmez.',
       englishTranslation: 'Electronic Project Management & Permitting System',
       isoRole: '1 Eylül 2028 itibarıyla ruhsat ve proje onay süreçlerinde Türkiye genelinde kullanılan tek resmî elektronik teslim ortamıdır (Teslim Yön. m.7(7)).',
       importance: 'Çok Yüksek'
@@ -113,7 +113,7 @@ export default function BimGlossary() {
       category: 'Süreç',
       definition: 'Dijital Hazırlama Yönetmeliği EK-9 kapsamında IFC modellerinin teslim öncesi denetlendiği resmî kontrol listesidir. Mimari projeler için Tablo 9.1 (21 madde), diğer disiplinler (Statik, Mekanik, Elektrik) için Tablo 9.2 (16 madde) uygulanır.',
       englishTranslation: 'BIM Model Quality Control Checklist (Annex-9)',
-      isoRole: 'Dosya adlandırma (EK-2), koordinat sistemi (EK-7), zorunlu sınıflar (EK-5), özellik setleri (EK-6) ve asgari LOD 300 (EK-8) uygunluğunu kayıt altına alır.',
+      isoRole: 'Dosya adlandırma (EK-2), koordinat sistemi (EK-7), zorunlu sınıflar (EK-5), özellik setleri (EK-6) ve LOD 300 (EK-8) incelemesini kayıt altına alır; otomatik satırlar ve yetkili incelemesi gereken manuel satırlar ayrıdır.',
       importance: 'Çok Yüksek'
     },
     {

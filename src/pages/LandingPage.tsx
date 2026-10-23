@@ -539,13 +539,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 · ISO 19650 & PDF/A</span>
-                <p className="mt-1 text-sm font-medium text-foreground">RG 33331 e-PYS & ISO 19650 Desteği</p>
-                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-9 ön kontrolü ile TS EN ISO 19650-2 CDE durum geçiş (WIP/SHARED/PUBLISHED/ARCHIVED) ve EN 17412-1 (LOIN) EIR teslim aşaması kurallarını destekler.</p>
+                <p className="mt-1 text-sm font-medium text-foreground">e-PYS & ISO 19650 Kanıtlı Ön Kontrol</p>
+                <p className="mt-1 text-xs text-muted-foreground">EK-1..EK-9 ve CDE/LOIN kontrolleri kanıt durumunu raporlar. e-PYS belge kimliği veya lisanslı ISO metni doğrulanmadıysa sonuç uzman incelemesinde kalır.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">SmartCheck 3×3 & Minha</span>
                 <p className="mt-1 text-sm font-medium text-foreground">ÇŞB 0,50 m² · DIN 18350 2,50 m² · Özel Eşik</p>
-                <p className="mt-1 text-xs text-muted-foreground">≤%3 QTO toleransı, TS 500 paspayı (mm), kiriş–döşeme kesişim ve seçilebilir Minha profillerini (0,50 m² / 2,50 m² / kullanıcı tanımlı özel şartname) doğrulayın.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Şirket politikası olan ≤%3 QTO/STR kontrollerini standart incelemesinden ayırın; Minha'yı host, hedef kalem ve brüt/net ölçü esasıyla tek kez uygulayın.</p>
               </div>
             </div>
           </div>
@@ -600,7 +600,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">RG 33331 e-PYS, ISO 19650 & PDF/A</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    EK-1..EK-9 ön kontrolü, PDF/A ISO 216 pafta & e-imza (<code className="font-mono text-[11px]">/Sig</code>) denetimi; TS EN ISO 19650-2 CDE durum geçiş ve EN 17412-1 LOIN EIR teslim kurallarını destekler.
+                    EK-1..EK-9 ön kontrolü, PDF/A ISO 216 pafta & e-imza (<code className="font-mono text-[11px]">/Sig</code>) denetimi ve CDE/LOIN kontrolü. Belge kimliği veya lisanslı standart erişimi eksikse otomatik uygunluk vermez.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-sky-400 font-mono">
@@ -615,7 +615,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">4734 KİK m.38 ADT & SmartCheck 3×3</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Kullanıcı girdili Genel Tebliğ m.45.1.1 Sınır Değer (SD) ve %80 Pareto analizi; ≤%3 QTO sapması, TS 500 paspayı (mm) ve disiplin yetkili (<code className="font-mono text-[11px]">STR/ARC/MEP</code>) mühendis onayı.
+                    Kullanıcı girdili Genel Tebliğ m.45.1.1 Sınır Değer (SD); kaynak kimlikli idare YM cetvelinden %80 listesi; şirket politikası olan ≤%3 QTO/STR kontrolü ve ayrı lisanslı standart incelemesi.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-primary font-mono">
@@ -689,9 +689,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="RG 33331 EK-9 · TS 500 · MİNHA"
                 icon={<SlidersHorizontal size={20} />}
                 title="e-PYS & SmartCheck 3×3 Denetimi"
-                text="Modeliniz RG 33331 e-PYS kurallarına (EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 / Tablo 9.2) göre ön kontrolden geçer. TS 500 Sihirbazı kiriş–döşeme kesişimlerini, CSB_2026_V1 motoru ise kapı/pencere Minha düşümlerini hesaplar."
+                text="Modeliniz e-PYS kural kopyalarıyla ön kontrolden geçer; her EK-9 satırı otomatik/manuel mod ve kanıt referansı taşır. 3×3 şirket politikası standart kararından ayrılır; Minha motoru host, hedef kalem ve brüt/net ölçü esasına göre tek düşüm yapar."
                 highlights={[
-                  '≤%3 QTO sapma & TS 500 paspayı (mm) kontrolü',
+                  '≤%3 QTO şirket politikası & lisanslı standart inceleme ayrımı',
                   'EK-9 Tablo 9.1 (Mimari 21) & Tablo 9.2 (Diğer 16)',
                   'PDF/A ISO 216 pafta boyutu, tek pafta & e-imza',
                 ]}

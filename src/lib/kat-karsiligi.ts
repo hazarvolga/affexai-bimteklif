@@ -45,6 +45,127 @@ export const KONUT_KDV_2022_SONRASI: Readonly<Record<KdvRejimi, KdvKademesi>> = 
 /** Genel KDV oranı (%): 7346 sayılı CK ile 10.7.2023'ten itibaren %20 (öncesi %18). Arsa payı teslimi gibi konut dışı teslimlerde kullanılır. */
 export const GENEL_KDV_ORANI_YUZDE = 20;
 
+export type KdvEvidenceStatus = 'confirmed' | 'not_applicable' | 'unknown';
+export type LandOwnerTaxpayerStatus = 'taxpayer' | 'not_taxpayer' | 'unknown';
+export type LandTradingActivityStatus = 'continuous' | 'incidental' | 'unknown';
+export type KatKarsiligiUnitType = 'dwelling' | 'workplace';
+
+export interface KatKarsiligiTaxUnitInput {
+  id: string;
+  type: KatKarsiligiUnitType;
+  /** Bağımsız bölümün resmî net alanı; konut dilimi satır bazında uygulanır. */
+  netAreaM2: number;
+  /** Bu teslim satırına ait KDV hariç matrah. */
+  taxBaseTry: number;
+}
+
+export interface EvidenceBackedKatKarsiligiTaxInput {
+  permitDate?: string;
+  deliveryDate?: string;
+  urbanTransformation6306Evidence?: KdvEvidenceStatus;
+  landOwnerTaxpayerStatus?: LandOwnerTaxpayerStatus;
+  landTradingActivityStatus?: LandTradingActivityStatus;
+  units?: KatKarsiligiTaxUnitInput[];
+}
+
+export interface KatKarsiligiTaxLineResult {
+  id: string;
+  type: KatKarsiligiUnitType;
+  netAreaM2: number;
+  taxBaseTry: number;
+  taxTry: number;
+  appliedRatesPct: number[];
+}
+
+export type EvidenceBackedKatKarsiligiTaxOutcome =
+  | { status: 'not_evaluated'; missing: string[]; taxResult: null }
+  | { status: 'manual_review'; reasons: string[]; taxResult: null }
+  | {
+      status: 'evaluated';
+      lines: KatKarsiligiTaxLineResult[];
+      totalDeliveryTaxTry: number;
+      landShareTaxTry: number;
+      roundingPolicy: 'ROUND_EACH_LINE_TO_KURUS_THEN_SUM';
+      reviewStatus: 'CALCULATED_TAX_ADVISER_REVIEW_REQUIRED';
+    };
+
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidIsoDate(value: string | undefined): value is string {
+  if (!value || !ISO_DATE_PATTERN.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
+}
+
+/**
+ * Kanıtlı kat karşılığı KDV değerlendirmesi. Vergi sonucu, tarih ve statüler
+ * açıkça verilmeden üretilmez; 1.4.2022 öncesi/geçersiz dönemler tahmin edilmez.
+ */
+export function evaluateKatKarsiligiTax(
+  input: EvidenceBackedKatKarsiligiTaxInput,
+): EvidenceBackedKatKarsiligiTaxOutcome {
+  const missing: string[] = [];
+  if (!isValidIsoDate(input.permitDate)) missing.push('Yapı ruhsat tarihi (YYYY-MM-DD)');
+  if (!isValidIsoDate(input.deliveryDate)) missing.push('Teslim tarihi (YYYY-MM-DD)');
+  if (!input.urbanTransformation6306Evidence || input.urbanTransformation6306Evidence === 'unknown') missing.push('6306 kapsamı kanıt statüsü');
+  if (!input.landOwnerTaxpayerStatus || input.landOwnerTaxpayerStatus === 'unknown') missing.push('Arsa sahibi mükellef statüsü');
+  if (!input.landTradingActivityStatus || input.landTradingActivityStatus === 'unknown') missing.push('Arsa alım-satım faaliyet statüsü');
+  if (!Array.isArray(input.units) || input.units.length === 0) missing.push('En az bir bağımsız bölüm satırı');
+  if (missing.length > 0) return { status: 'not_evaluated', missing, taxResult: null };
+
+  const complete = input as Required<EvidenceBackedKatKarsiligiTaxInput>;
+  const reasons: string[] = [];
+  if (complete.permitDate < '2022-04-01') reasons.push('1.4.2022 öncesi yapı ruhsatının KDV rejimi bu motor tarafından modellenmez.');
+  if (complete.deliveryDate < complete.permitDate) reasons.push('Teslim tarihi yapı ruhsatı tarihinden önce olamaz.');
+  if (complete.deliveryDate < '2023-07-10') reasons.push('10.7.2023 öncesi teslimlerdeki tarihsel genel oran bu motor tarafından uygulanmaz.');
+  const ids = new Set<string>();
+  complete.units.forEach((unit, index) => {
+    if (!unit.id.trim()) reasons.push(`Satır ${index + 1}: bağımsız bölüm kimliği zorunludur.`);
+    if (ids.has(unit.id)) reasons.push(`Satır ${index + 1}: bağımsız bölüm kimliği tekrarlanamaz (${unit.id}).`);
+    ids.add(unit.id);
+    if (unit.type !== 'dwelling' && unit.type !== 'workplace') reasons.push(`Satır ${index + 1}: teslim türü konut veya işyeri olmalıdır.`);
+    if (!Number.isFinite(unit.netAreaM2) || unit.netAreaM2 <= 0) reasons.push(`Satır ${index + 1}: net alan pozitif olmalıdır.`);
+    if (!Number.isFinite(unit.taxBaseTry) || unit.taxBaseTry <= 0) reasons.push(`Satır ${index + 1}: matrah pozitif olmalıdır.`);
+  });
+  if (reasons.length > 0) return { status: 'manual_review', reasons, taxResult: null };
+
+  const regime: KdvRejimi = complete.urbanTransformation6306Evidence === 'confirmed'
+    ? 'kentsel_donusum_6306'
+    : 'genel';
+  const lines = complete.units.map<KatKarsiligiTaxLineResult>((unit) => {
+    if (unit.type === 'workplace') {
+      return {
+        ...unit,
+        netAreaM2: round2(unit.netAreaM2),
+        taxBaseTry: round2(unit.taxBaseTry),
+        taxTry: round2(unit.taxBaseTry * (GENEL_KDV_ORANI_YUZDE / 100)),
+        appliedRatesPct: [GENEL_KDV_ORANI_YUZDE],
+      };
+    }
+    const calculation = konutKdv({ netAlanM2: unit.netAreaM2, matrahTry: unit.taxBaseTry, rejim: regime, ruhsat2022Sonrasi: true });
+    return {
+      ...unit,
+      netAreaM2: round2(unit.netAreaM2),
+      taxBaseTry: round2(unit.taxBaseTry),
+      taxTry: round2(calculation.kdvTutariTry),
+      appliedRatesPct: calculation.fazlaKisimM2 > 0
+        ? [calculation.ilkKisimOraniYuzde, calculation.fazlaKisimOraniYuzde]
+        : [calculation.ilkKisimOraniYuzde],
+    };
+  });
+  const totalBaseTry = round2(lines.reduce((sum, line) => sum + line.taxBaseTry, 0));
+  const landShareIsTaxable = complete.landOwnerTaxpayerStatus === 'taxpayer'
+    || complete.landTradingActivityStatus === 'continuous';
+  return {
+    status: 'evaluated',
+    lines,
+    totalDeliveryTaxTry: round2(lines.reduce((sum, line) => sum + line.taxTry, 0)),
+    landShareTaxTry: landShareIsTaxable ? arsaPayiTeslimiKdv(totalBaseTry) : 0,
+    roundingPolicy: 'ROUND_EACH_LINE_TO_KURUS_THEN_SUM',
+    reviewStatus: 'CALCULATED_TAX_ADVISER_REVIEW_REQUIRED',
+  };
+}
+
 export type EmsalSatisTuru = 'toptan' | 'perakende';
 /** VUK m.267/2 ikinci sıra: maliyet bedeline toptan satışlarda %5, perakendede %10 eklenir (KDV Genel Uygulama Tebliği I/B-8.2). */
 export const EMSAL_ILAVE_ORANI: Readonly<Record<EmsalSatisTuru, number>> = { toptan: 0.05, perakende: 0.1 };

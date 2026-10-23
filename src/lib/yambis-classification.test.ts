@@ -13,6 +13,7 @@ const LIMIT_2026 = 1_238_250_000;
 
 const baseMali = { donenVarliklarTry: 800, kisaVadeliBorclarTry: 1_000, ozKaynaklarTry: 200, toplamAktifTry: 1_000, kisaVadeliBankaBorclariTry: 100 };
 const input = (overrides: Partial<ContractorInput> = {}): ContractorInput => ({
+  evaluationDate: '2026-10-23',
   yapiSinirBedeliTry: LIMIT_2026,
   isDeneyimTutariTry: 0,
   yillikUstaIsGucu: 0,
@@ -107,7 +108,7 @@ test('tam yeterli bir firma en üst uygun grubu alır; ciro eşiği %15 üst gru
 });
 
 test('mali oranlar: cari oran 0,75 ve öz kaynak 0,15 dahil sağlar; banka borcu / öz kaynak 0,75\'ten KÜÇÜK olmalı', () => {
-  const experienceForE = { isDeneyimTutariTry: 500_000_000, yillikUstaIsGucu: 6, teknikPersonelIsGucu: 2, cirosuTry: 100_000_000 };
+  const experienceForE = { isDeneyimTutariTry: 500_000_000, yillikUstaIsGucu: 6, teknikPersonelIsGucu: 2, cirosuTry: 100_000_000, bankaKrediVeyaMevduatTry: 25_000_000 };
   const passes = evaluateContractorGroups(input({ ...experienceForE, mali: { ...baseMali, donenVarliklarTry: 750, kisaVadeliBorclarTry: 1_000, ozKaynaklarTry: 150, kisaVadeliBankaBorclariTry: 112 } }));
   assert.equal(passes.groups.find(g => g.group === 'E')?.eligible, true);
   const bankEqual = evaluateContractorGroups(input({ ...experienceForE, mali: { ...baseMali, ozKaynaklarTry: 200, kisaVadeliBankaBorclariTry: 150 } }));
@@ -131,18 +132,62 @@ test('G ve G1: bilanço oranları ve ciro aranmaz, yalnız banka referans beyan�
   assert.deepEqual(none.groups.find(x => x.group === 'H')?.criteria, []);
 });
 
-test('banka referans: girilmezse değerlendirilmedi sayılır (grubu engellemez), girilip yetersizse engeller (asgari tutarın %5\'i)', () => {
+test('banka referans: girilmezse kesin grubu engeller ve yalnız olası grupta kalır; yetersizse açık başarısızdır', () => {
   const eligible = { isDeneyimTutariTry: 90_000_000, yillikUstaIsGucu: 1, teknikPersonelIsGucu: 1 };
   const missing = evaluateContractorGroups(input(eligible));
   assert.equal(missing.groups.find(x => x.group === 'G')?.criteria.find(c => c.id === 'banka_referans')?.status, 'not_evaluated');
-  assert.equal(missing.highestEligibleGroup, 'G');
+  assert.equal(missing.highestConfirmedGroup, 'H');
+  assert.equal(missing.highestPotentialGroup, 'G');
+  assert.equal(missing.groups.find(x => x.group === 'G')?.eligible, false);
+  assert.equal(missing.groups.find(x => x.group === 'G')?.potentiallyEligible, true);
   const short = evaluateContractorGroups(input({ ...eligible, bankaKrediVeyaMevduatTry: 4_333_874 })); // 86.677.500 × 0,05 = 4.333.875
   assert.equal(short.groups.find(x => x.group === 'G')?.criteria.find(c => c.id === 'banka_referans')?.status, 'fail');
   assert.equal(short.highestEligibleGroup, 'G1');
 });
 
+test('eksik banka verisi kesin uygunluk üretmez; teyitli ve potansiyel grup ayrı raporlanır', () => {
+  const result = evaluateContractorGroups(input({
+    isDeneyimTutariTry: 90_000_000,
+    yillikUstaIsGucu: 0,
+    teknikPersonelIsGucu: 0,
+  }));
+  assert.equal(result.highestConfirmedGroup, 'H');
+  assert.equal(result.highestPotentialGroup, 'G');
+  assert.equal(result.highestEligibleGroup, 'H', 'geriye uyumlu alan kesin sonucu göstermeli');
+});
+
+test('Geçici Madde 1/2 iş gücü istisnası 31/12/2026 dahil uygulanır, ertesi gün fail-closed sona erer', () => {
+  const common: Partial<ContractorInput> = {
+    isDeneyimTutariTry: 90_000_000,
+    yillikUstaIsGucu: 0,
+    teknikPersonelIsGucu: 0,
+    bankaKrediVeyaMevduatTry: 4_333_875,
+  };
+  for (const evaluationDate of ['2026-12-30', '2026-12-31']) {
+    const during = evaluateContractorGroups(input({ ...common, evaluationDate }));
+    assert.equal(during.highestConfirmedGroup, 'G');
+    assert.equal(during.workforceRule, 'temporarily_not_required');
+    assert.deepEqual(
+      during.groups.find(group => group.group === 'G')?.criteria
+        .filter(criterion => criterion.id === 'usta' || criterion.id === 'teknik_personel')
+        .map(criterion => criterion.status),
+      ['not_required', 'not_required'],
+    );
+  }
+
+  const after = evaluateContractorGroups(input({ ...common, evaluationDate: '2027-01-01' }));
+  assert.equal(after.workforceRule, 'required');
+  assert.equal(after.highestConfirmedGroup, 'H');
+});
+
+test('değerlendirme tarihi eksik veya geçersizse güncel rejim tahmin edilmez', () => {
+  assert.throws(() => evaluateContractorGroups(input({ evaluationDate: '' })), /değerlendirme tarihi/i);
+  assert.throws(() => evaluateContractorGroups(input({ evaluationDate: '2026-02-30' })), /değerlendirme tarihi/i);
+  assert.throws(() => evaluateContractorGroups(input({ evaluationDate: '31.12.2026' })), /değerlendirme tarihi/i);
+});
+
 test('iş gücü yetersizse üst grup alınamaz', () => {
-  const result = evaluateContractorGroups(input({ isDeneyimTutariTry: 3_000_000_000, yillikUstaIsGucu: 49, teknikPersonelIsGucu: 8, cirosuTry: 1_000_000_000 }));
+  const result = evaluateContractorGroups(input({ evaluationDate: '2027-01-01', isDeneyimTutariTry: 3_000_000_000, yillikUstaIsGucu: 49, teknikPersonelIsGucu: 8, cirosuTry: 1_000_000_000 }));
   assert.equal(result.groups.find(g => g.group === 'A')?.criteria.find(c => c.id === 'usta')?.status, 'fail');
   assert.notEqual(result.highestEligibleGroup, 'A');
 });
@@ -151,10 +196,13 @@ test('geçersiz girdi reddedilir', () => {
   assert.throws(() => evaluateContractorGroups(input({ yapiSinirBedeliTry: 0 })), RangeError);
   assert.throws(() => evaluateContractorGroups(input({ isDeneyimTutariTry: -1 })), RangeError);
   assert.throws(() => evaluateContractorGroups(input({ cirosuTry: Number.NaN })), RangeError);
+  assert.throws(() => evaluateContractorGroups(input({ bankaKrediVeyaMevduatTry: Number.NaN })), RangeError);
 });
 
 test('kapsam dışı hükümler sonuçta açıkça belirtilir', () => {
   const result = evaluateContractorGroups(input());
   assert.ok(result.notes.length >= 3);
   assert.ok(result.notes.some(note => note.includes('üç yılın')));
+  assert.ok(result.sourceCitations.some(source => source.includes('Geçici m.1(2)')));
+  assert.ok(result.sourceCitations.every(source => source.includes('https://')));
 });

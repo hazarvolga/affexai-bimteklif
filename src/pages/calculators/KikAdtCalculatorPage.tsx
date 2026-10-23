@@ -3,7 +3,7 @@ import { evaluateKikForm, type KikFormState } from "@/lib/calculators/kik-form";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 export const KikAdtCalculatorPage: React.FC = () => {
-  const [form, setForm] = useState<KikFormState>({ ym: "", category: "", bids: "", ourBid: "", items: "", nOverride: "" });
+  const [form, setForm] = useState<KikFormState>({ ym: "", category: "", bids: "", ourBid: "", items: "", nOverride: "", administrationSourceIdentity: "" });
   const set = <K extends keyof KikFormState>(k: K, v: KikFormState[K]) => setForm((f) => ({ ...f, [k]: v }));
   const outcome = useMemo(() => evaluateKikForm(form), [form]);
 
@@ -16,7 +16,7 @@ export const KikAdtCalculatorPage: React.FC = () => {
       intro="4734 sayılı Kanun m.38 ve Kamu İhale Genel Tebliği m.45.1.1 uyarınca yapım işlerinde sınır değeri (SD) hesaplar. Yaklaşık maliyeti ve ilk oturumdaki geçerli teklifleri siz girersiniz; hiçbir değer varsayılmaz."
       sources={[
         { label: "4734 sayılı Kamu İhale Kanunu, madde 38 (aşırı düşük teklifler)" },
-        { label: "Kamu İhale Genel Tebliği, madde 45.1.1, 45.1.1.1, 45.1.1.4 ve 45.1.2 (yapım işleri sınır değer ve iş kalemi açıklaması)" },
+        { label: "Kamu İhale Genel Tebliği m.45.1.1, 45.1.1.1, 45.1.1.4, 45.1.2 ve 45.2 örneği; RG 29.12.2010/27800 6. Mükerrer: https://www.resmigazete.gov.tr/eskiler/2010/12/20101229M6-13.htm" },
         { label: "Formül uygulaması: src/lib/kik-adt.ts, golden testleri src/lib/kik-adt.golden.test.ts" },
       ]}
     >
@@ -53,9 +53,18 @@ export const KikAdtCalculatorPage: React.FC = () => {
           <CalcField label="Sizin teklifiniz (₺, isteğe bağlı)" hint="Girerseniz sınır değerin altında kalıp kalmadığı da gösterilir.">
             <input className={calcInputClass} inputMode="decimal" aria-label="Sizin teklifiniz" value={form.ourBid} onChange={(e) => set("ourBid", e.target.value)} />
           </CalcField>
-          <CalcField label="İş kalemleri (isteğe bağlı)" hint="Her satır: açıklama;tutar. Girerseniz açıklama istenecek kalemler (%80) listelenir.">
+          <CalcField label="İdare yaklaşık maliyet cetveli kaynak kimliği" hint="Bu alan kullanıcı beyanıdır. Resmî %80 listesi için ayrıca kurum, belge kimliği ve SHA-256 ile doğrulanmış artifact gerekir; bu kanıt olmadan sonuç danışma düzeyinde kalır.">
+            <input
+              className={calcInputClass}
+              aria-label="İdare yaklaşık maliyet cetveli kaynak kimliği"
+              value={form.administrationSourceIdentity ?? ""}
+              onChange={(e) => set("administrationSourceIdentity", e.target.value)}
+              placeholder="örn. 2026/123456 · YM-CETVELİ v2"
+            />
+          </CalcField>
+          <CalcField label="İdare yaklaşık maliyet iş kalemleri (isteğe bağlı)" hint="Her satır: açıklama;tutar. Toplam YM ile kuruş düzeyinde eşleşse bile doğrulanmış artifact olmadan m.45.1.2 listesi resmî olarak değerlendirilmez.">
             <textarea
-              aria-label="İş kalemleri"
+              aria-label="İdare yaklaşık maliyet iş kalemleri"
               value={form.items}
               onChange={(e) => set("items", e.target.value)}
               rows={4}
@@ -110,6 +119,15 @@ export const KikAdtCalculatorPage: React.FC = () => {
               {outcome.warnings.map((w) => (
                 <p key={w} className="text-xs text-muted-foreground">{w}</p>
               ))}
+              <div className={`border p-3 text-xs ${outcome.result.officialExplanationListStatus === "evaluated" ? "border-primary/40 bg-primary/5" : "border-amber-500/40 bg-amber-500/5"}`}>
+                <strong>{outcome.result.officialExplanationListStatus === "evaluated" ? "Resmî %80 listesi değerlendirildi" : "Resmî %80 listesi değerlendirilmedi"}</strong>
+                {outcome.result.administrationEstimatedCostSourceIdentity && (
+                  <span className="mt-1 block font-mono">Kaynak: {outcome.result.administrationEstimatedCostSourceIdentity}</span>
+                )}
+                {outcome.result.officialExplanationListReason && (
+                  <span className="mt-1 block text-muted-foreground">{outcome.result.officialExplanationListReason}</span>
+                )}
+              </div>
               {outcome.result.explanationRequiredItems.length > 0 && (
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground pb-1 border-b border-border">

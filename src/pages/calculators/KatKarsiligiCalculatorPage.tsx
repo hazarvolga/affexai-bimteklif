@@ -1,5 +1,14 @@
 import React, { useMemo, useState } from "react";
-import { calculateKatKarsiligi, type EmsalSatisTuru, type KatKarsiligiInput, type KdvRejimi } from "@/lib/kat-karsiligi";
+import {
+  calculateKatKarsiligi,
+  evaluateKatKarsiligiTax,
+  type EmsalSatisTuru,
+  type KatKarsiligiInput,
+  type KatKarsiligiUnitType,
+  type KdvEvidenceStatus,
+  type LandOwnerTaxpayerStatus,
+  type LandTradingActivityStatus,
+} from "@/lib/kat-karsiligi";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 /**
@@ -22,6 +31,7 @@ const FIELDS: { key: FormKey; label: string; hint?: string; aria: string }[] = [
 ];
 
 const EMPTY: Record<FormKey, string> = { arsaAlani: "", kaks: "", brutCarpani: "", netOrani: "", maliyet: "", satis: "", karCarpani: "", konutNet: "", emsalBedel: "" };
+type TaxUnitForm = { id: string; type: KatKarsiligiUnitType; netAreaM2: string; taxBaseTry: string };
 
 const parse = (value: string): number | null => {
   const text = value.trim();
@@ -32,23 +42,46 @@ const parse = (value: string): number | null => {
 
 export const KatKarsiligiCalculatorPage: React.FC = () => {
   const [form, setForm] = useState<Record<FormKey, string>>(EMPTY);
-  const [rejim, setRejim] = useState<KdvRejimi | "">("");
-  const [ruhsat2022, setRuhsat2022] = useState(false);
   const [satisTuru, setSatisTuru] = useState<EmsalSatisTuru | "">("");
-  const [arsaMukellef, setArsaMukellef] = useState(false);
+  const [permitDate, setPermitDate] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [evidence6306, setEvidence6306] = useState<KdvEvidenceStatus>("unknown");
+  const [taxpayerStatus, setTaxpayerStatus] = useState<LandOwnerTaxpayerStatus>("unknown");
+  const [activityStatus, setActivityStatus] = useState<LandTradingActivityStatus>("unknown");
+  const [taxUnits, setTaxUnits] = useState<TaxUnitForm[]>([{ id: "", type: "dwelling", netAreaM2: "", taxBaseTry: "" }]);
 
   const outcome = useMemo(() => {
     const missing = (Object.keys(EMPTY) as FormKey[]).filter(key => parse(form[key]) === null);
-    if (missing.length || !rejim || !satisTuru) return { error: "Tüm alanları doldurun; KDV rejimini ve emsal satış türünü seçin. Hiçbir değer varsayılmaz." as string };
+    if (missing.length || !satisTuru) return { error: "Paylaşım ön hesabı için tüm alanları ve emsal satış türünü doldurun. Hiçbir değer varsayılmaz." as string };
     const n = (key: FormKey) => parse(form[key]) as number;
     const input: KatKarsiligiInput = {
       arsaAlaniM2: n("arsaAlani"), kaksEmsal: n("kaks"), brutInsaatCarpani: n("brutCarpani"), satilabilirNetAlanOrani: n("netOrani"),
       birimInsaatMaliyetiTry: n("maliyet"), satisFiyatiTry: n("satis"), hedeflenenKarCarpani: n("karCarpani"),
-      ortalamaKonutNetM2: n("konutNet"), maliyetBedeliBirimTry: n("emsalBedel"), emsalSatisTuru: satisTuru, arsaSahibiKdvMukellefi: arsaMukellef, kdvRejimi: rejim, ruhsat2022Sonrasi: ruhsat2022,
+      ortalamaKonutNetM2: n("konutNet"), maliyetBedeliBirimTry: n("emsalBedel"), emsalSatisTuru: satisTuru,
+      arsaSahibiKdvMukellefi: taxpayerStatus === "taxpayer" || activityStatus === "continuous",
+      kdvRejimi: evidence6306 === "confirmed" ? "kentsel_donusum_6306" : "genel",
+      ruhsat2022Sonrasi: permitDate >= "2022-04-01",
     };
     try { return { result: calculateKatKarsiligi(input) }; }
     catch (error) { return { error: error instanceof Error ? error.message : "Hesaplanamadı." }; }
-  }, [form, rejim, ruhsat2022, satisTuru, arsaMukellef]);
+  }, [form, satisTuru, taxpayerStatus, activityStatus, evidence6306, permitDate]);
+
+  const taxOutcome = useMemo(() => evaluateKatKarsiligiTax({
+    permitDate,
+    deliveryDate,
+    urbanTransformation6306Evidence: evidence6306,
+    landOwnerTaxpayerStatus: taxpayerStatus,
+    landTradingActivityStatus: activityStatus,
+    units: taxUnits.map((unit) => ({
+      id: unit.id,
+      type: unit.type,
+      netAreaM2: parse(unit.netAreaM2) ?? Number.NaN,
+      taxBaseTry: parse(unit.taxBaseTry) ?? Number.NaN,
+    })),
+  }), [permitDate, deliveryDate, evidence6306, taxpayerStatus, activityStatus, taxUnits]);
+
+  const updateTaxUnit = (index: number, patch: Partial<TaxUnitForm>) =>
+    setTaxUnits((units) => units.map((unit, unitIndex) => unitIndex === index ? { ...unit, ...patch } : unit));
 
   return (
     <CalculatorShell
@@ -72,13 +105,6 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
                 onChange={event => setForm(prev => ({ ...prev, [field.key]: event.target.value }))} />
             </CalcField>
           ))}
-          <CalcField label="KDV rejimi">
-            <select className={calcInputClass} aria-label="KDV rejimi" value={rejim} onChange={event => setRejim(event.target.value as KdvRejimi | "")}>
-              <option value="">Seçiniz</option>
-              <option value="genel">Genel (ilk 150 m² %10, fazlası %20)</option>
-              <option value="kentsel_donusum_6306">6306 kapsamı (ilk 150 m² %1, fazlası %20)</option>
-            </select>
-          </CalcField>
           <CalcField label="Emsal bedel türü" hint="Maliyet bedeline toptan %5, perakende %10 eklenir (Tebliğ I/B-8.2)">
             <select className={calcInputClass} aria-label="Emsal bedel türü" value={satisTuru} onChange={event => setSatisTuru(event.target.value as EmsalSatisTuru | "")}>
               <option value="">Seçiniz</option>
@@ -86,14 +112,43 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
               <option value="perakende">Perakende (+%10)</option>
             </select>
           </CalcField>
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" checked={arsaMukellef} onChange={event => setArsaMukellef(event.target.checked)} />
-            <span>Arsa sahibi KDV mükellefi (arsa işletmeye dahil veya arsa alım satımı mutat faaliyet)</span>
-          </label>
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" checked={ruhsat2022} onChange={event => setRuhsat2022(event.target.checked)} />
-            <span>Yapı ruhsatı 1/4/2022 veya sonrasında alındı</span>
-          </label>
+          <h2 className="pt-3 font-mono text-xs font-semibold uppercase tracking-wider text-primary">KDV kanıt bağlamı</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <CalcField label="Yapı ruhsat tarihi"><input className={calcInputClass} type="date" aria-label="Yapı ruhsat tarihi" value={permitDate} onChange={(e) => setPermitDate(e.target.value)} /></CalcField>
+            <CalcField label="Teslim tarihi"><input className={calcInputClass} type="date" aria-label="Teslim tarihi" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} /></CalcField>
+          </div>
+          <CalcField label="6306 kapsamı belge statüsü">
+            <select className={calcInputClass} aria-label="6306 kanıt statüsü" value={evidence6306} onChange={(e) => setEvidence6306(e.target.value as KdvEvidenceStatus)}>
+              <option value="unknown">Belirlenmedi</option><option value="confirmed">Belgeyle doğrulandı</option><option value="not_applicable">Kapsam dışı</option>
+            </select>
+          </CalcField>
+          <CalcField label="Arsa sahibi mükellef statüsü">
+            <select className={calcInputClass} aria-label="Arsa sahibi mükellef statüsü" value={taxpayerStatus} onChange={(e) => setTaxpayerStatus(e.target.value as LandOwnerTaxpayerStatus)}>
+              <option value="unknown">Belirlenmedi</option><option value="taxpayer">Mükellef / işletmeye dahil</option><option value="not_taxpayer">Mükellef değil</option>
+            </select>
+          </CalcField>
+          <CalcField label="Arsa ticareti faaliyet statüsü">
+            <select className={calcInputClass} aria-label="Arsa ticareti faaliyet statüsü" value={activityStatus} onChange={(e) => setActivityStatus(e.target.value as LandTradingActivityStatus)}>
+              <option value="unknown">Belirlenmedi</option><option value="continuous">Mutat / sürekli faaliyet</option><option value="incidental">Arızi işlem</option>
+            </select>
+          </CalcField>
+          <div className="space-y-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Bağımsız bölüm teslim satırları</div>
+            {taxUnits.map((unit, index) => (
+              <div key={index} className="space-y-2 border border-border bg-card p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <input className={calcInputClass} aria-label={`Bölüm kimliği ${index + 1}`} placeholder="K-01" value={unit.id} onChange={(e) => updateTaxUnit(index, { id: e.target.value })} />
+                  <select className={calcInputClass} aria-label={`Bölüm türü ${index + 1}`} value={unit.type} onChange={(e) => updateTaxUnit(index, { type: e.target.value as KatKarsiligiUnitType })}>
+                    <option value="dwelling">Konut</option><option value="workplace">İşyeri</option>
+                  </select>
+                  <input className={calcInputClass} inputMode="decimal" aria-label={`Net alan ${index + 1}`} placeholder="Net m²" value={unit.netAreaM2} onChange={(e) => updateTaxUnit(index, { netAreaM2: e.target.value })} />
+                  <input className={calcInputClass} inputMode="decimal" aria-label={`Matrah ${index + 1}`} placeholder="Matrah ₺" value={unit.taxBaseTry} onChange={(e) => updateTaxUnit(index, { taxBaseTry: e.target.value })} />
+                </div>
+                {taxUnits.length > 1 && <button type="button" className="text-[10px] underline" onClick={() => setTaxUnits((units) => units.filter((_, i) => i !== index))}>Satırı sil</button>}
+              </div>
+            ))}
+            <button type="button" className="font-mono text-[10px] uppercase text-primary underline" onClick={() => setTaxUnits((units) => [...units, { id: "", type: "dwelling", netAreaM2: "", taxBaseTry: "" }])}>+ Bağımsız bölüm ekle</button>
+          </div>
         </div>
 
         <div className="space-y-4 border border-border bg-card p-5 lg:col-span-7" aria-live="polite">
@@ -107,15 +162,22 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
                 <dt>Arsa sahibi payı</dt><dd className="text-right font-mono">%{fmtNum(outcome.result.arsaSahibiPayiYuzde, 2)}</dd>
                 <dt>Toplam inşaat maliyeti</dt><dd className="text-right font-mono">{fmtTry(outcome.result.toplamInsaatMaliyetiTry)}</dd>
                 <dt>Müteahhit net kârı</dt><dd className="text-right font-mono">{fmtTry(outcome.result.muteahhitNetKariTry)}</dd>
-                <dt>Arsa sahibine teslim KDV (emsal bedelden)</dt><dd className="text-right font-mono">{fmtTry(outcome.result.arsaSahibineTeslim.toplamKdvTry)}</dd>
-                <dt>Arsa payı teslimi KDV (arsa sahibi mükellefse)</dt><dd className="text-right font-mono">{fmtTry(outcome.result.arsaPayiTeslimiKdvTry)}</dd>
-                <dt>Müteahhit satışı KDV</dt><dd className="text-right font-mono">{fmtTry(outcome.result.muteahhitSatisi.toplamKdvTry)}</dd>
               </dl>
               <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
                 {outcome.result.uyarilar.map(warning => <li key={warning}>{warning}</li>)}
               </ul>
             </>
           )}
+          <div className="border-t border-border pt-4" data-testid="kat-karsiligi-tax-review">
+            <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-primary">Satır bazlı KDV değerlendirmesi</h3>
+            {taxOutcome.status === "not_evaluated" && <div className="mt-2 text-sm"><strong>Değerlendirilmedi</strong><ul className="list-disc pl-5 text-muted-foreground">{taxOutcome.missing.map((item) => <li key={item}>{item}</li>)}</ul></div>}
+            {taxOutcome.status === "manual_review" && <div className="mt-2 text-sm"><strong>Manuel mali/hukuki inceleme gerekli</strong><ul className="list-disc pl-5 text-muted-foreground">{taxOutcome.reasons.map((item) => <li key={item}>{item}</li>)}</ul></div>}
+            {taxOutcome.status === "evaluated" && <div className="mt-3 space-y-3 text-sm">
+              <p className="border border-amber-500/50 bg-amber-500/10 p-3 text-xs">Hesaplandı; mali müşavir incelemesi gerekir. Her satır kuruşa yuvarlandıktan sonra toplam alınmıştır.</p>
+              <dl className="grid grid-cols-2 gap-x-4"><dt>Teslim KDV toplamı</dt><dd className="text-right font-mono">{fmtTry(taxOutcome.totalDeliveryTaxTry)}</dd><dt>Arsa payı teslimi KDV</dt><dd className="text-right font-mono">{fmtTry(taxOutcome.landShareTaxTry)}</dd></dl>
+              <ul className="space-y-1 text-xs text-muted-foreground">{taxOutcome.lines.map((line) => <li key={line.id}>{line.id} · {line.type === "dwelling" ? "Konut" : "İşyeri"} · {fmtNum(line.netAreaM2, 2)} m² · Matrah {fmtTry(line.taxBaseTry)} · KDV {fmtTry(line.taxTry)}</li>)}</ul>
+            </div>}
+          </div>
         </div>
       </section>
     </CalculatorShell>

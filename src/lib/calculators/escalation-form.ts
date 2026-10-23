@@ -5,6 +5,8 @@
  */
 import {
   computeContractPriceEscalation4735,
+  evaluateContractPriceEscalation4735,
+  type EscalationDelayResponsibility,
   type ContractEscalation4735Result,
   type TuikSubIndexCode,
 } from "../price-escalation";
@@ -15,6 +17,11 @@ export interface EscalationRowState {
   weight: string;
   baseIndex: string;
   currentIndex: string;
+  seriesId?: string;
+  basePeriod?: string;
+  currentPeriod?: string;
+  sourceUrl?: string;
+  sourcePublicationDate?: string;
 }
 
 export interface EscalationFormState {
@@ -22,14 +29,68 @@ export interface EscalationFormState {
   bFactor: string;
   constantWeight: string;
   rows: EscalationRowState[];
+  tenderDate?: string;
+  contractDate?: string;
+  contractReference?: string;
+  bFactorSource?: string;
+  weightsSource?: string;
+  workSchedulePeriod?: string;
+  applicationPeriod?: string;
+  delayResponsibility?: EscalationDelayResponsibility;
+  delayLegalBasis?: string;
+  advancePayment?: string;
+  advanceDeduction?: string;
+  advanceDeductionSource?: string;
 }
 
 export type EscalationFormOutcome =
   | { status: "incomplete"; missing: string[] }
+  | { status: "not_evaluated"; missing: string[] }
+  | { status: "manual_review"; reasons: string[] }
   | { status: "error"; errors: string[] }
-  | { status: "ok"; result: ContractEscalation4735Result };
+  | { status: "ok"; result: ContractEscalation4735Result; reviewStatus?: "CALCULATED_REVIEW_REQUIRED" };
 
 export function evaluateEscalationForm(f: EscalationFormState): EscalationFormOutcome {
+  const usesEvidenceContract = [
+    f.tenderDate, f.contractDate, f.contractReference, f.bFactorSource, f.weightsSource, f.workSchedulePeriod,
+    f.applicationPeriod, f.delayResponsibility, f.delayLegalBasis, f.advancePayment,
+    f.advanceDeduction, f.advanceDeductionSource,
+  ].some((value) => value !== undefined);
+
+  if (usesEvidenceContract) {
+    const result = evaluateContractPriceEscalation4735({
+      tenderDate: f.tenderDate,
+      contractDate: f.contractDate,
+      contractReference: f.contractReference,
+      progressPaymentAmountTl: parseTrNumber(f.progressPayment) ?? undefined,
+      bFactor: parseTrNumber(f.bFactor) ?? undefined,
+      bFactorSource: f.bFactorSource,
+      constantWeight: f.constantWeight.trim() === "" ? 0 : parseTrNumber(f.constantWeight) ?? undefined,
+      weightsSource: f.weightsSource,
+      workSchedulePeriod: f.workSchedulePeriod,
+      applicationPeriod: f.applicationPeriod,
+      delayResponsibility: f.delayResponsibility,
+      delayLegalBasis: f.delayLegalBasis,
+      advancePaymentAmountTl: parseTrNumber(f.advancePayment ?? "") ?? undefined,
+      advanceDeductionAmountTl: parseTrNumber(f.advanceDeduction ?? "") ?? undefined,
+      advanceDeductionSource: f.advanceDeductionSource,
+      components: f.rows.map((row) => ({
+        indexCode: row.indexCode as TuikSubIndexCode,
+        weight: parseTrNumber(row.weight) ?? Number.NaN,
+        baseIndex: parseTrNumber(row.baseIndex) ?? Number.NaN,
+        currentIndex: parseTrNumber(row.currentIndex) ?? Number.NaN,
+        seriesId: row.seriesId,
+        basePeriod: row.basePeriod,
+        currentPeriod: row.currentPeriod,
+        sourceUrl: row.sourceUrl,
+        sourcePublicationDate: row.sourcePublicationDate,
+      })),
+    });
+    if (result.status === "not_evaluated") return { status: "not_evaluated", missing: result.missing };
+    if (result.status === "manual_review") return { status: "manual_review", reasons: result.reasons };
+    return { status: "ok", result: result.calculation, reviewStatus: result.assurance };
+  }
+
   const missing: string[] = [];
   const an = parseTrNumber(f.progressPayment);
   if (an === null || an < 0) missing.push("Hakediş tutarı (A_n)");

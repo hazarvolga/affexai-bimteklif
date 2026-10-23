@@ -374,6 +374,7 @@ def extract_quantities_and_properties(
 
     load_bearing: Optional[bool] = None
     exposure: Optional[str] = None
+    surface_condition: Optional[str] = None
     exposure_class: Optional[str] = None
     cover_mm: Optional[float] = None
     discipline: Optional[str] = None
@@ -574,6 +575,24 @@ def extract_quantities_and_properties(
                             exposure = "interior"
                             if is_from_type:
                                 inherited_from_type = True
+                elif p_name_lower in {"surfacecondition", "surface_condition", "zemintemasi", "zemin_temasi", "groundcontact", "isgroundcontact"} and wrapped_val is not None:
+                    if isinstance(wrapped_val, bool):
+                        if wrapped_val:
+                            surface_condition = "soil_contact"
+                    else:
+                        s_val = str(wrapped_val).strip().lower()
+                        if s_val in {"true", ".t.", "1", "evet", "yes", "soil_contact", "ground_contact", "soil", "ground", "zemin", "zemin_temasi"}:
+                            surface_condition = "soil_contact"
+                        elif s_val in {"interior", "ic", "iç"}:
+                            surface_condition = "interior"
+                            exposure = "interior"
+                        elif s_val in {"exterior", "dis", "dış"}:
+                            surface_condition = "exterior"
+                            exposure = "exterior"
+                        else:
+                            surface_condition = "unknown"
+                    if is_from_type:
+                        inherited_from_type = True
                 elif p_name_lower in {"exposureclass", "maruziyetsinifi", "cevreselmaruziyet"} and wrapped_val:
                     exposure_class = str(wrapped_val).strip().upper()
                     if is_from_type:
@@ -920,6 +939,7 @@ def extract_quantities_and_properties(
         rule_metadata["loadBearing"] = load_bearing
     if exposure is not None:
         rule_metadata["exposure"] = exposure
+    rule_metadata["surfaceCondition"] = surface_condition or exposure or "unknown"
     if exposure_class is not None:
         rule_metadata["exposureClass"] = exposure_class
     if cover_mm is not None:
@@ -1495,12 +1515,39 @@ def extract_openings(model: Any) -> List[Dict[str, Any]]:
                 isinstance(width, (int, float)) and isinstance(height, (int, float))
                 and width > 0 and height > 0 and math.isfinite(length_scale) and length_scale > 0
             )
+            host = None
+            try:
+                # Door/window -> IfcRelFillsElement -> IfcOpeningElement ->
+                # IfcRelVoidsElement -> host wall/slab. Ambiguous/missing chains
+                # remain unresolved and are never guessed.
+                hosts = []
+                for fill_rel in getattr(e, "FillsVoids", []) or []:
+                    opening = getattr(fill_rel, "RelatingOpeningElement", None)
+                    for void_rel in getattr(opening, "VoidsElements", []) or []:
+                        candidate = getattr(void_rel, "RelatingBuildingElement", None)
+                        if candidate is not None and candidate not in hosts:
+                            hosts.append(candidate)
+                if len(hosts) == 1:
+                    host = hosts[0]
+            except Exception:
+                host = None
             out.append({
                 "id": str(e.id()),
                 "kind": kind,
                 "name": (str(getattr(e, "Name", "") or "").strip() or None),
                 "widthM": round(float(width) * length_scale, 4) if ok else None,
                 "heightM": round(float(height) * length_scale, 4) if ok else None,
+                "hostElementId": str(host.id()) if host is not None else None,
+                "hostGlobalId": (
+                    str(getattr(host, "GlobalId", "") or "").strip() or None
+                    if host is not None else None
+                ),
+                # A host relation alone does not identify the payable finish line
+                # or whether its QTO is gross/net. That contract is completed in
+                # the TS line-level minha engine or routed to review.
+                "targetLineId": None,
+                "targetFinishLayer": None,
+                "quantityBasis": "unknown",
             })
     return out
 

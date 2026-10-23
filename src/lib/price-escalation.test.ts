@@ -3,9 +3,117 @@ import test from 'node:test';
 import {
   CSB_2026_TUIK_SUB_INDICES,
   computeContractPriceEscalation4735,
+  evaluateContractPriceEscalation4735,
   indexOutOfPeriodUnitPrice,
   resolveTuikSubIndexForPoz,
 } from './price-escalation';
+
+const evidenceInput = {
+  tenderDate: '2025-09-15',
+  contractDate: '2025-10-01',
+  contractReference: 'Sözleşme md. 14 / EK-2',
+  progressPaymentAmountTl: 1_000_000,
+  bFactor: 0.9,
+  bFactorSource: 'Sözleşme md. 14.2',
+  constantWeight: 0,
+  weightsSource: 'Sözleşme EK-2 fiyat farkı tablosu',
+  workSchedulePeriod: '2026-01',
+  applicationPeriod: '2026-01',
+  delayResponsibility: 'none' as const,
+  delayLegalBasis: 'Onaylı iş programına uygun imalat',
+  advancePaymentAmountTl: 200_000,
+  advanceDeductionAmountTl: 100_000,
+  advanceDeductionSource: 'Hakediş no 4 avans mahsup satırı',
+  components: [{
+    indexCode: 'TUIK-TUFE-GENEL' as const,
+    weight: 1,
+    baseIndex: 100,
+    currentIndex: 120,
+    seriesId: 'TÜFE 2023=100 / Genel',
+    basePeriod: '2025-09',
+    currentPeriod: '2026-01',
+    sourceUrl: 'https://data.tuik.gov.tr/',
+    sourcePublicationDate: '2026-02-03',
+  }],
+};
+
+test('T21: 1.9.2025 sonrası normal uygulama ayında sözleşme ve endeks kanıtıyla değerlendirir; mahsup A_n bazından düşülür', () => {
+  const result = evaluateContractPriceEscalation4735(evidenceInput);
+  assert.equal(result.status, 'evaluated');
+  if (result.status !== 'evaluated') return;
+  assert.equal(result.regime, 'RG_32971_EFFECTIVE_2025_09_01');
+  assert.equal(result.eligibleProgressPaymentAmountTl, 900_000);
+  assert.equal(result.calculation.priceDifferenceTl, 162_000);
+  assert.equal(result.assurance, 'CALCULATED_REVIEW_REQUIRED');
+  assert.equal(result.isOfficialDetermination, false);
+  assert.deepEqual(result.evidence.components, evidenceInput.components);
+  assert.notEqual(result.evidence.components, evidenceInput.components);
+  assert.ok(Object.isFrozen(result.evidence.components));
+  assert.ok(Object.isFrozen(result.evidence.components[0]));
+});
+
+test('T21: gecikmeli uygulama ayında sorumluluk ve hukuki neden yoksa manuel inceleme ister', () => {
+  const result = evaluateContractPriceEscalation4735({
+    ...evidenceInput,
+    applicationPeriod: '2026-02',
+    delayResponsibility: 'contractor',
+    delayLegalBasis: 'İdare gecikme tutanağı 2026/2',
+  });
+  assert.equal(result.status, 'manual_review');
+  if (result.status === 'manual_review') assert.match(result.reasons.join(' '), /gecikme|hukuki/i);
+});
+
+test('T21: eski rejimi uydurmaz; 1.9.2025 öncesi ihale için manuel inceleme verir', () => {
+  const result = evaluateContractPriceEscalation4735({ ...evidenceInput, tenderDate: '2025-08-31' });
+  assert.equal(result.status, 'manual_review');
+  if (result.status === 'manual_review') assert.match(result.reasons.join(' '), /önceki.*rejim/i);
+});
+
+test('T21: avans/mahsup, sözleşme B-ağırlık kaynağı veya endeks seri/dönem/kaynağı eksikse hesaplamaz', () => {
+  const noEvidence = evaluateContractPriceEscalation4735({
+    ...evidenceInput,
+    bFactorSource: '',
+    advanceDeductionAmountTl: undefined,
+    components: [{ ...evidenceInput.components[0], sourceUrl: '', currentIndex: Number.NaN }],
+  });
+  assert.equal(noEvidence.status, 'not_evaluated');
+  if (noEvidence.status === 'not_evaluated') {
+    assert.match(noEvidence.missing.join(' '), /B katsayısı.*kaynağı/i);
+    assert.match(noEvidence.missing.join(' '), /mahsup/i);
+    assert.match(noEvidence.missing.join(' '), /endeks/i);
+  }
+});
+
+test('T21: negatif fiyat farkını korur ve keyfi katsayıyı resmî sonuç olarak işaretlemez', () => {
+  const result = evaluateContractPriceEscalation4735({
+    ...evidenceInput,
+    bFactor: 1,
+    bFactorSource: 'Sözleşme özel şartname 9.1',
+    advanceDeductionAmountTl: 0,
+    components: [{ ...evidenceInput.components[0], currentIndex: 90 }],
+  });
+  assert.equal(result.status, 'evaluated');
+  if (result.status !== 'evaluated') return;
+  assert.equal(result.calculation.priceDifferenceTl, -100_000);
+  assert.equal(result.isOfficialDetermination, false);
+});
+
+test('T21: sözleşme ve endeks kronolojisi tersse veya kaynak TÜİK değilse fail-closed kalır', () => {
+  const reversedContract = evaluateContractPriceEscalation4735({ ...evidenceInput, contractDate: '2025-09-01' });
+  assert.equal(reversedContract.status, 'manual_review');
+
+  const reversedPeriod = evaluateContractPriceEscalation4735({
+    ...evidenceInput,
+    components: [{ ...evidenceInput.components[0], basePeriod: '2026-02', currentPeriod: '2026-01' }],
+  });
+  assert.equal(reversedPeriod.status, 'manual_review');
+
+  const untrustedUrl = evaluateContractPriceEscalation4735({
+    ...evidenceInput,
+    components: [{ ...evidenceInput.components[0], sourceUrl: 'https://example.com/index' }],
+  });
+  assert.equal(untrustedUrl.status, 'not_evaluated');
+});
 
 test('Faz 2.5 Golden 1: CSB_2026_TUIK_SUB_INDICES contains all 21 official ÇŞB 2026 – TÜİK sub-indices', () => {
   assert.equal(CSB_2026_TUIK_SUB_INDICES.length, 21);

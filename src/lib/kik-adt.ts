@@ -19,11 +19,15 @@
  * 6. Sınır Değer (SD) = (K * T_ort2) / (C * N).
  *    Tebliğ m.45.1.1.4 uyarınca %40-%120 aralığında geçerli teklif bulunmaması veya hesaplanan SD'nin
  *    0,40 * YM'nin altında çıkması halinde SD = 0,40 * YM olarak belirlenir.
- * 7. Kamu İhale Genel Tebliği m.45.1.2 uyarınca teklif kalemleri tutarlarına göre büyükten küçüğe sıralanır;
- *    toplam teklif tutarının %80'ine ulaşılana kadar olan kalemler "Açıklama İstenecek Sıralı İş Kalemleri"dir.
+ * 7. Kamu İhale Genel Tebliği m.45.1.2 uyarınca idarenin yaklaşık maliyet cetvelindeki iş kalemleri büyükten küçüğe
+ *    sıralanır; yaklaşık maliyetin %80'ine ulaşılana kadar olan kalemler açıklama istenecek sıralı iş kalemleridir.
+ *    İsteklinin teklif kalemleri bu resmî listenin kaynağı değildir; yalnız ayrı bir danışma analizi üretir.
  */
 
 export type KikWorkCategory = "ust_yapi" | "alt_yapi";
+
+export const KIK_ADT_SOURCE_CITATION =
+  "4734 Sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1.1–45.1.2; RG 29.12.2010/27800 6. Mükerrer değişiklik metni ve m.45.2 örneği: https://www.resmigazete.gov.tr/eskiler/2010/12/20101229M6-13.htm ; m.45.1.2 idare yaklaşık maliyet dağılımı için KİK kararı: https://ekap.kik.gov.tr/EKAP/Vatandas/KurulKararGoster.aspx?KararId=26178bd78b9730925abbf20cecee0c1b9668cd30333cd4f9b4e9dde116a58a53";
 
 export interface KikLineItemInput {
   id: string;
@@ -33,13 +37,25 @@ export interface KikLineItemInput {
 }
 
 export interface KikAdtInput {
-  /** İdare Yaklaşık Maliyeti (YM - TL). Girilmediyse (<= 0 veya null/undefined) sınır değer hesaplanmaz, yalnız Pareto çalışır. */
+  /** İdare Yaklaşık Maliyeti (YM - TL). Girilmediyse sınır değer ve resmî %80 listesi hesaplanmaz. */
   estimatedCostTry?: number | null;
   /** İhale ilk oturumundaki geçerli teklifler (TL). */
   validBidsTry?: number[];
   ourBidTry: number;
   workCategory?: KikWorkCategory;
   nCoefficientOverride?: number;
+  /** İdarenin yaklaşık maliyet cetvelindeki iş kalemleri. Resmî m.45.1.2 listesi yalnız bu veriyle hesaplanır. */
+  administrationEstimatedCostItems?: KikLineItemInput[];
+  /** İdare cetvelini tekil olarak tanımlayan ihale/doküman/sürüm kimliği. */
+  administrationEstimatedCostSourceIdentity?: string;
+  /** Verified identity of the administration artifact. User-entered labels remain advisory. */
+  administrationEstimatedCostSourceVerification?: {
+    status: "user_asserted" | "verified";
+    issuer: string;
+    documentId: string;
+    sha256: string;
+  };
+  /** @deprecated İsteklinin teklif kalemleri; yalnız danışma analizi üretir, resmî m.45.1.2 listesine girmez. */
   lineItems?: KikLineItemInput[];
 }
 
@@ -50,7 +66,7 @@ export interface KikRankedLineItem extends KikLineItemInput {
 }
 
 export interface KikAdtResult {
-  ruleVersion: "kik-4734-m38-2026.3";
+  ruleVersion: "kik-4734-m38-2026.4";
   sourceCitation: string;
   /** True only when real YM (> 0) and at least 1 valid bid were provided by the user. */
   hasTenderSessionInputs: boolean;
@@ -73,8 +89,15 @@ export interface KikAdtResult {
   ourBidTry: number;
   isAbnormallyLow: boolean;
   marginToBoundaryPercent: number;
+  officialExplanationListStatus: "evaluated" | "not_evaluated";
+  officialExplanationListReason: string | null;
+  administrationEstimatedCostSourceIdentity: string | null;
+  administrationEstimatedCostItemsTotalTry: number;
   explanationRequiredItems: KikRankedLineItem[];
   exemptMinorItems: KikRankedLineItem[];
+  /** Teklif kalemleriyle yapılan ve hukuki m.45.1.2 listesi sayılmayan ayrı danışma analizi. */
+  advisoryOfferExplanationRequiredItems: KikRankedLineItem[];
+  advisoryOfferExemptMinorItems: KikRankedLineItem[];
 }
 
 function round2(n: number): number {
@@ -104,6 +127,49 @@ export function computeKikKFactor(c: number): number {
   return round3(computeKikKFactorExact(c));
 }
 
+interface RankedPartition {
+  explanationRequiredItems: KikRankedLineItem[];
+  exemptMinorItems: KikRankedLineItem[];
+}
+
+function compareText(a: string, b: string): number {
+  return a === b ? 0 : a < b ? -1 : 1;
+}
+
+function deterministicItemOrder(a: KikLineItemInput, b: KikLineItemInput): number {
+  if (a.totalAmount !== b.totalAmount) return b.totalAmount - a.totalAmount;
+  return compareText(a.code ?? "", b.code ?? "")
+    || compareText(a.description, b.description)
+    || compareText(a.id, b.id);
+}
+
+function partitionAt80Percent(items: readonly KikLineItemInput[], denominatorTry: number): RankedPartition {
+  const sortedItems = [...items].sort(deterministicItemOrder);
+  const explanationRequiredItems: KikRankedLineItem[] = [];
+  const exemptMinorItems: KikRankedLineItem[] = [];
+  let cumulativeSum = 0;
+
+  for (const item of sortedItems) {
+    const prevCumulativeRatio = denominatorTry > 0 ? cumulativeSum / denominatorTry : 0;
+    cumulativeSum += item.totalAmount;
+    const ranked: KikRankedLineItem = {
+      ...item,
+      shareRatio: denominatorTry > 0 ? round6(item.totalAmount / denominatorTry) : 0,
+      cumulativeRatio: denominatorTry > 0 ? round6(cumulativeSum / denominatorTry) : 0,
+      requiresExplanation: prevCumulativeRatio < 0.8,
+    };
+    if (ranked.requiresExplanation) explanationRequiredItems.push(ranked);
+    else exemptMinorItems.push(ranked);
+  }
+  return { explanationRequiredItems, exemptMinorItems };
+}
+
+function isValidLineItem(item: KikLineItemInput): boolean {
+  return typeof item.id === "string" && item.id.trim() !== ""
+    && typeof item.description === "string" && item.description.trim() !== ""
+    && Number.isFinite(item.totalAmount) && item.totalAmount > 0;
+}
+
 export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
   const rawYm = Number(input.estimatedCostTry);
   const ourBid = Math.max(0, Number(input.ourBidTry) || 0);
@@ -127,54 +193,68 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     .map((b) => Number(b))
     .filter((b) => Number.isFinite(b) && b > 0);
 
-  const hasTenderSessionInputs = Number.isFinite(rawYm) && rawYm > 0 && rawBids.length > 0;
+  const hasValidEstimatedCost = Number.isFinite(rawYm) && rawYm > 0;
+  const hasTenderSessionInputs = hasValidEstimatedCost && rawBids.length > 0;
   const ym = hasTenderSessionInputs ? rawYm : 0;
 
-  // Kamu İhale Genel Tebliği m.45.1.2 — Sıralı İş Kalemleri (%80 Pareto Analizi)
-  const sortedItems = [...(input.lineItems ?? [])]
-    .filter((item) => Number(item.totalAmount) > 0)
-    .sort((a, b) => b.totalAmount - a.totalAmount);
+  // Kamu İhale Genel Tebliği m.45.1.2: resmî liste idarenin YM cetvelinden gelir.
+  const administrationItems = input.administrationEstimatedCostItems ?? [];
+  const administrationSourceIdentity = input.administrationEstimatedCostSourceIdentity?.trim() || null;
+  const sourceVerification = input.administrationEstimatedCostSourceVerification;
+  const sourceVerified = sourceVerification?.status === "verified"
+    && Boolean(sourceVerification.issuer.trim())
+    && Boolean(sourceVerification.documentId.trim())
+    && /^[a-f0-9]{64}$/i.test(sourceVerification.sha256.trim());
+  const administrationItemsValid = administrationItems.length > 0 && administrationItems.every(isValidLineItem);
+  const administrationTotalCents = administrationItemsValid
+    ? administrationItems.reduce((sum, item) => sum + Math.round(item.totalAmount * 100), 0)
+    : 0;
+  const ymCents = hasValidEstimatedCost ? Math.round(rawYm * 100) : 0;
+  const administrationEstimatedCostItemsTotalTry = round2(administrationTotalCents / 100);
 
-  const totalLineItemsSum = sortedItems.reduce((sum, item) => sum + item.totalAmount, 0);
-  const explanationRequiredItems: KikRankedLineItem[] = [];
-  const exemptMinorItems: KikRankedLineItem[] = [];
+  let officialExplanationListStatus: KikAdtResult["officialExplanationListStatus"] = "not_evaluated";
+  let officialExplanationListReason: string | null = null;
+  let officialPartition: RankedPartition = { explanationRequiredItems: [], exemptMinorItems: [] };
 
-  let cumulativeSum = 0;
-  let reached80Percent = false;
-
-  for (const item of sortedItems) {
-    const prevCumulativeRatio = totalLineItemsSum > 0 ? cumulativeSum / totalLineItemsSum : 0;
-    cumulativeSum += item.totalAmount;
-    const shareRatio = totalLineItemsSum > 0 ? round6(item.totalAmount / totalLineItemsSum) : 0;
-    const cumulativeRatio = totalLineItemsSum > 0 ? round6(cumulativeSum / totalLineItemsSum) : 0;
-
-    // Tebliğ m.45.1.2: %80 oranına ulaşılana kadar olan kalemler sıralı iş kalemidir (80%'i geçiren kalem dahildir).
-    const requiresExplanation = !reached80Percent && prevCumulativeRatio < 0.8;
-    if (cumulativeRatio >= 0.8) {
-      reached80Percent = true;
-    }
-
-    const ranked: KikRankedLineItem = {
-      ...item,
-      shareRatio,
-      cumulativeRatio,
-      requiresExplanation,
-    };
-
-    if (requiresExplanation) {
-      explanationRequiredItems.push(ranked);
-    } else {
-      exemptMinorItems.push(ranked);
-    }
+  if (!hasValidEstimatedCost) {
+    officialExplanationListReason = "Geçerli yaklaşık maliyet bulunmadığı için resmî liste değerlendirilmedi.";
+  } else if (administrationItems.length === 0) {
+    officialExplanationListReason = "İdarenin yaklaşık maliyet iş kalemleri girilmediği için resmî liste değerlendirilmedi.";
+  } else if (!administrationSourceIdentity) {
+    officialExplanationListReason = "İdare yaklaşık maliyet cetvelinin kaynak kimliği girilmediği için resmî liste değerlendirilmedi.";
+  } else if (!sourceVerified) {
+    officialExplanationListReason = "İdare yaklaşık maliyet cetveli yalnız kullanıcı beyanı; kurum, belge kimliği ve SHA-256 ile doğrulanmış artifact bulunmadığı için resmî liste değerlendirilmedi.";
+  } else if (!administrationItemsValid) {
+    officialExplanationListReason = "İdare yaklaşık maliyet cetvelinde kimliği, açıklaması veya pozitif tutarı geçersiz kalem bulunduğu için resmî liste değerlendirilmedi.";
+  } else if (administrationTotalCents !== ymCents) {
+    officialExplanationListReason = `İdare kalemleri toplamı ${administrationEstimatedCostItemsTotalTry.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL, yaklaşık maliyet ${round2(rawYm).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL ile kuruş düzeyinde eşleşmediği için resmî liste değerlendirilmedi.`;
+  } else {
+    officialExplanationListStatus = "evaluated";
+    officialPartition = partitionAt80Percent(administrationItems, rawYm);
   }
+
+  const validAdvisoryItems = (input.lineItems ?? []).filter(isValidLineItem);
+  const advisoryTotal = validAdvisoryItems.reduce((sum, item) => sum + item.totalAmount, 0);
+  const advisoryPartition = advisoryTotal > 0
+    ? partitionAt80Percent(validAdvisoryItems, advisoryTotal)
+    : { explanationRequiredItems: [], exemptMinorItems: [] };
+  const paretoResultFields = {
+    officialExplanationListStatus,
+    officialExplanationListReason,
+    administrationEstimatedCostSourceIdentity: administrationSourceIdentity,
+    administrationEstimatedCostItemsTotalTry,
+    explanationRequiredItems: officialPartition.explanationRequiredItems,
+    exemptMinorItems: officialPartition.exemptMinorItems,
+    advisoryOfferExplanationRequiredItems: advisoryPartition.explanationRequiredItems,
+    advisoryOfferExemptMinorItems: advisoryPartition.exemptMinorItems,
+  };
 
   if (!hasTenderSessionInputs) {
     return {
-      ruleVersion: "kik-4734-m38-2026.3",
-      sourceCitation:
-        "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+      ruleVersion: "kik-4734-m38-2026.4",
+      sourceCitation: KIK_ADT_SOURCE_CITATION,
       hasTenderSessionInputs: false,
-      estimatedCostTry: 0,
+      estimatedCostTry: hasValidEstimatedCost ? round2(rawYm) : 0,
       workCategory,
       nCoefficient,
       admittedBidsTry: [],
@@ -192,8 +272,7 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
       ourBidTry: round2(ourBid),
       isAbnormallyLow: false,
       marginToBoundaryPercent: 0,
-      explanationRequiredItems,
-      exemptMinorItems,
+      ...paretoResultFields,
     };
   }
 
@@ -216,9 +295,8 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
       floorBoundary > 0 ? round2(((ourBid - floorBoundary) / floorBoundary) * 100) : 0;
 
     return {
-      ruleVersion: "kik-4734-m38-2026.3",
-      sourceCitation:
-        "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+      ruleVersion: "kik-4734-m38-2026.4",
+      sourceCitation: KIK_ADT_SOURCE_CITATION,
       hasTenderSessionInputs: true,
       estimatedCostTry: round2(ym),
       workCategory,
@@ -238,8 +316,7 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
       ourBidTry: round2(ourBid),
       isAbnormallyLow,
       marginToBoundaryPercent,
-      explanationRequiredItems,
-      exemptMinorItems,
+      ...paretoResultFields,
     };
   }
 
@@ -282,9 +359,8 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     boundaryValueTry > 0 ? round2(((ourBid - boundaryValueTry) / boundaryValueTry) * 100) : 0;
 
   return {
-    ruleVersion: "kik-4734-m38-2026.3",
-    sourceCitation:
-      "4734 Sayılı Kamu İhale Kanunu m.38 & Kamu İhale Genel Tebliği m.45.1.1–45.1.2 (Yapım İşleri Sınır Değer ve %80 Sıralı İş Kalemleri)",
+    ruleVersion: "kik-4734-m38-2026.4",
+    sourceCitation: KIK_ADT_SOURCE_CITATION,
     hasTenderSessionInputs: true,
     estimatedCostTry: round2(ym),
     workCategory,
@@ -304,8 +380,7 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
     ourBidTry: round2(ourBid),
     isAbnormallyLow,
     marginToBoundaryPercent,
-    explanationRequiredItems,
-    exemptMinorItems,
+    ...paretoResultFields,
   };
 }
 

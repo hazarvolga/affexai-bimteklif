@@ -21,8 +21,76 @@ export interface OpeningInput {
   count?: number;
   /** Reveal / wall return depth in meters (default: wallThicknessM or 0.15 m). */
   revealDepthM?: number;
+  /** Source path/measurement record for the reveal depth used in a line adjustment. */
+  revealDepthSourceReference?: string;
   /** True if all 4 sides have plaster/paint reveal; false if 3 sides (e.g. door without bottom threshold plaster). */
   fourSidedReveal?: boolean;
+  /** IFC/ölçüm kaynağındaki ev sahibi yapı elemanının kararlı kimliği. */
+  hostElementId?: string;
+  /** Düşümün uygulanacağı icmal satırı. Özet hesabında boş bırakılabilir. */
+  targetLineId?: string;
+  /** Satır içindeki bitiş katmanı; host ve satır kimliğiyle birlikte eşleşir. */
+  targetFinishLayer?: string;
+}
+
+export type MinhaQuantityBasis = "gross_before_openings" | "net_after_openings" | "unknown";
+
+export interface MinhaProfileMetadata {
+  version: "minha-2026.3";
+  sourceReference: string;
+  effective: string;
+}
+
+export interface MinhaTargetLine {
+  id: string;
+  hostElementId: string;
+  finishLayer: string;
+  quantityBasis: MinhaQuantityBasis;
+  quantityM2: number;
+}
+
+export interface MinhaLineAdjustment {
+  lineId: string;
+  status: "applied" | "already_net" | "unchanged" | "review_required";
+  originalQuantityM2: number;
+  adjustmentM2: number;
+  deductedOpeningAreaM2?: number;
+  addedRevealAreaM2?: number;
+  resultQuantityM2: number;
+  openingIds: string[];
+}
+
+export interface MinhaApplicationReviewItem {
+  openingId: string;
+  reason: string;
+}
+
+export interface ApplyMinhaToTargetLinesInput {
+  standard: MeasurementStandard;
+  customThresholdM2?: number;
+  openings: OpeningInput[];
+  lines: MinhaTargetLine[];
+  profileEvidence?: {
+    status: "user_asserted" | "verified";
+    sourceReference: string;
+    edition: string;
+    effectiveDate: string;
+    sha256: string;
+  };
+}
+
+export interface ApplyMinhaToTargetLinesResult {
+  profile: MinhaProfileMetadata;
+  profileEvidence?: Readonly<{
+    status: "verified";
+    sourceReference: string;
+    edition: string;
+    effectiveDate: string;
+    sha256: string;
+  }>;
+  lines: MinhaLineAdjustment[];
+  reviewItems: MinhaApplicationReviewItem[];
+  appliedOpeningCount: number;
 }
 
 export interface OpeningEvaluationItem {
@@ -48,7 +116,8 @@ export interface PlasterPaintMinhaInput {
 }
 
 export interface PlasterPaintMinhaResult {
-  ruleVersion: "minha-2026.2";
+  ruleVersion: "minha-2026.3";
+  profile: MinhaProfileMetadata;
   standard: MeasurementStandard;
   thresholdM2: number;
   grossAreaM2: number;
@@ -93,6 +162,34 @@ const DEFAULT_REBAR_KG_M3: Record<StructuralIntersectionInput["elementType"], nu
 
 function round4(n: number): number {
   return Math.round((n + Number.EPSILON) * 10_000) / 10_000;
+}
+
+function isValidIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export function resolveMinhaProfileMetadata(standard: MeasurementStandard): MinhaProfileMetadata {
+  if (standard === "CSB_2026") {
+    return {
+      version: "minha-2026.3",
+      sourceReference: "ÇŞİDB Genel Teknik Şartnamesi, proje/sözleşme baskısı teyit edilmeli",
+      effective: "Proje sözleşmesinde atıf yapılan yürürlükteki baskı",
+    };
+  }
+  if (standard === "DIN_18350") {
+    return {
+      version: "minha-2026.3",
+      sourceReference: "VOB/C DIN 18350, lisanslı proje/sözleşme baskısı teyit edilmeli",
+      effective: "Proje sözleşmesinde atıf yapılan lisanslı baskı",
+    };
+  }
+  return {
+    version: "minha-2026.3",
+    sourceReference: "Kullanıcının proje özel şartnamesi",
+    effective: "İlgili sözleşme/revizyon süresi",
+  };
 }
 
 export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): PlasterPaintMinhaResult {
@@ -179,7 +276,8 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
   );
 
   return {
-    ruleVersion: "minha-2026.2",
+    ruleVersion: "minha-2026.3",
+    profile: resolveMinhaProfileMetadata(standard),
     standard,
     thresholdM2,
     grossAreaM2: round4(grossAreaM2),
@@ -189,6 +287,155 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
     addedRevealAreaM2,
     netPayableAreaM2,
     items,
+  };
+}
+
+/**
+ * Minha sonucunu özetten icmal satırına taşır. Bir boşluk yalnız benzersiz host +
+ * satır + bitiş katmanı eşleşmesinde uygulanır. Net QTO ikinci kez düşülmez.
+ */
+export function applyMinhaToTargetLines(input: ApplyMinhaToTargetLinesInput): ApplyMinhaToTargetLinesResult {
+  const profile = resolveMinhaProfileMetadata(input.standard);
+  const reviewItems: MinhaApplicationReviewItem[] = [];
+  const duplicateIds = new Set<string>();
+  const seenIds = new Set<string>();
+  for (const opening of input.openings) {
+    const normalizedId = opening.id?.trim() ?? "";
+    if (seenIds.has(normalizedId)) duplicateIds.add(normalizedId);
+    seenIds.add(normalizedId);
+  }
+
+  const lineKey = (line: Pick<MinhaTargetLine, "id" | "hostElementId" | "finishLayer">) =>
+    `${line.hostElementId.trim()}\u0000${line.id.trim()}\u0000${line.finishLayer.trim()}`;
+  const duplicateLineKeys = new Set<string>();
+  const seenLineKeys = new Set<string>();
+  for (const line of input.lines) {
+    const key = lineKey(line);
+    if (seenLineKeys.has(key)) duplicateLineKeys.add(key);
+    seenLineKeys.add(key);
+  }
+
+  const profileVerified = input.profileEvidence?.status === "verified"
+    && Boolean(input.profileEvidence.sourceReference.trim())
+    && Boolean(input.profileEvidence.edition.trim())
+    && isValidIsoDate(input.profileEvidence.effectiveDate)
+    && /^[a-f0-9]{64}$/i.test(input.profileEvidence.sha256.trim());
+  const verifiedProfileEvidence = profileVerified && input.profileEvidence
+    ? Object.freeze({
+      status: "verified" as const,
+      sourceReference: input.profileEvidence.sourceReference.trim(),
+      edition: input.profileEvidence.edition.trim(),
+      effectiveDate: input.profileEvidence.effectiveDate,
+      sha256: input.profileEvidence.sha256.trim().toLowerCase(),
+    })
+    : undefined;
+  const deductionsByLine = new Map<string, { deductedAreaM2: number; addedRevealAreaM2: number; ids: string[] }>();
+  const alreadyNetByLine = new Map<string, string[]>();
+  for (const opening of input.openings) {
+    const openingId = opening.id?.trim() || "(kimliksiz-boşluk)";
+    if (!profileVerified) {
+      reviewItems.push({ openingId, reason: "Sözleşmesel ölçüm profili baskı/sürüm/artifact kimliği doğrulanmadı; otomatik uygulanmadı." });
+      continue;
+    }
+    if (!opening.id?.trim() || duplicateIds.has(openingId)) {
+      reviewItems.push({ openingId, reason: "Opening id boş veya duplicate; çift düşümü önlemek için uygulanmadı." });
+      continue;
+    }
+    if (!opening.hostElementId?.trim() || !opening.targetLineId?.trim() || !opening.targetFinishLayer?.trim()) {
+      reviewItems.push({ openingId, reason: "Host, hedef satır veya bitiş katmanı kimliği eksik; inceleme gerekli." });
+      continue;
+    }
+    if (!Number.isFinite(opening.widthM) || !Number.isFinite(opening.heightM) || opening.widthM <= 0 || opening.heightM <= 0) {
+      reviewItems.push({ openingId, reason: "Boşluk ölçüleri pozitif ve sonlu değil; inceleme gerekli." });
+      continue;
+    }
+    const matches = input.lines.filter((line) =>
+      line.id === opening.targetLineId &&
+      line.hostElementId === opening.hostElementId &&
+      line.finishLayer === opening.targetFinishLayer,
+    );
+    if (matches.length !== 1) {
+      reviewItems.push({ openingId, reason: "Host/satır/bitiş katmanı eşleşmesi benzersiz değil; inceleme gerekli." });
+      continue;
+    }
+    const line = matches[0];
+    const targetKey = lineKey(line);
+    if (duplicateLineKeys.has(targetKey)) {
+      reviewItems.push({ openingId, reason: "Host/satır/bitiş katmanı kompozit kimliği duplicate; inceleme gerekli." });
+      continue;
+    }
+    if (line.quantityBasis === "unknown") {
+      reviewItems.push({ openingId, reason: "Hedef satırın net/brüt miktar esası bilinmiyor; inceleme gerekli." });
+      continue;
+    }
+    const evaluated = evaluatePlasterPaintMinha({
+      grossAreaM2: 0,
+      standard: input.standard,
+      customThresholdM2: input.customThresholdM2,
+      includeRevealOnDeducted: input.standard === "CSB_2026",
+      openings: [opening],
+    }).items[0];
+    if (line.quantityBasis === "net_after_openings") {
+      alreadyNetByLine.set(targetKey, [...(alreadyNetByLine.get(targetKey) ?? []), openingId]);
+      continue;
+    }
+    if (!evaluated.deducted) continue;
+    if (input.standard === "CSB_2026" && (!Number.isFinite(opening.revealDepthM) || Number(opening.revealDepthM) < 0 || !opening.revealDepthSourceReference?.trim())) {
+      reviewItems.push({ openingId, reason: "CSB minha için söve/yan yüzey derinliği ve ölçüm kaynağı doğrulanmadı; otomatik uygulanmadı." });
+      continue;
+    }
+    const current = deductionsByLine.get(targetKey) ?? { deductedAreaM2: 0, addedRevealAreaM2: 0, ids: [] };
+    deductionsByLine.set(targetKey, {
+      deductedAreaM2: round4(current.deductedAreaM2 + evaluated.deductedAreaM2),
+      addedRevealAreaM2: round4(current.addedRevealAreaM2 + evaluated.addedRevealAreaM2),
+      ids: [...current.ids, openingId],
+    });
+  }
+
+  const lines = input.lines.map((line): MinhaLineAdjustment => {
+    const targetKey = lineKey(line);
+    const original = round4(Math.max(0, Number(line.quantityM2) || 0));
+    if (!Number.isFinite(line.quantityM2) || line.quantityM2 < 0) {
+      return { lineId: line.id, status: "review_required", originalQuantityM2: original, adjustmentM2: 0, resultQuantityM2: original, openingIds: [] };
+    }
+    if (line.quantityBasis === "unknown") {
+      return { lineId: line.id, status: "review_required", originalQuantityM2: original, adjustmentM2: 0, resultQuantityM2: original, openingIds: [] };
+    }
+    if (line.quantityBasis === "net_after_openings") {
+      return { lineId: line.id, status: "already_net", originalQuantityM2: original, adjustmentM2: 0, resultQuantityM2: original, openingIds: alreadyNetByLine.get(targetKey) ?? [] };
+    }
+    const deduction = deductionsByLine.get(targetKey);
+    if (!deduction) {
+      const hasReview = duplicateLineKeys.has(targetKey) || reviewItems.some((item) => input.openings.some((opening) =>
+        opening.id?.trim() === item.openingId
+        && opening.targetLineId === line.id
+        && opening.hostElementId === line.hostElementId
+        && opening.targetFinishLayer === line.finishLayer));
+      return { lineId: line.id, status: hasReview ? "review_required" : "unchanged", originalQuantityM2: original, adjustmentM2: 0, resultQuantityM2: original, openingIds: [] };
+    }
+    if (deduction.deductedAreaM2 > original + 0.0001) {
+      reviewItems.push({ openingId: deduction.ids.join(","), reason: `Toplam minha (${deduction.deductedAreaM2} m²) brüt satır miktarını (${original} m²) aşıyor; uygulanmadı.` });
+      return { lineId: line.id, status: "review_required", originalQuantityM2: original, adjustmentM2: 0, resultQuantityM2: original, openingIds: [] };
+    }
+    const adjustment = round4(-deduction.deductedAreaM2 + deduction.addedRevealAreaM2);
+    return {
+      lineId: line.id,
+      status: "applied",
+      originalQuantityM2: original,
+      adjustmentM2: adjustment,
+      deductedOpeningAreaM2: deduction.deductedAreaM2,
+      addedRevealAreaM2: deduction.addedRevealAreaM2,
+      resultQuantityM2: round4(original + adjustment),
+      openingIds: deduction.ids,
+    };
+  });
+
+  return {
+    profile,
+    profileEvidence: verifiedProfileEvidence,
+    lines,
+    reviewItems,
+    appliedOpeningCount: lines.reduce((total, line) => total + (line.status === "applied" ? line.openingIds.length : 0), 0),
   };
 }
 

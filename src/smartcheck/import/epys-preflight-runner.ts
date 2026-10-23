@@ -6,12 +6,12 @@ import { z } from "zod";
 import { resolvePythonBin } from "./ifc-python-runner";
 
 const FindingSchema = z.object({
-  kod: z.string(),
+  kod: z.string().max(128),
   seviye: z.enum(["hata", "uyari", "bilgi", "elle"]),
-  mesaj: z.string(),
-  madde: z.string(),
+  mesaj: z.string().max(4096),
+  madde: z.string().max(256),
   ek9: z.number().nullable(),
-  varliklar: z.array(z.string()),
+  varliklar: z.array(z.string().max(256)).max(10_000),
   sayi: z.number().nullable(),
 });
 
@@ -25,6 +25,11 @@ const Ek9RowSchema = z.object({
   karar: z.string(),
   elleNotu: z.string(),
   bulgu: z.number(),
+  evaluationMode: z.enum(["automatic", "manual", "not_applicable"]).default("manual"),
+  status: z.enum(["passed", "failed", "not_evaluated", "manual_review_required", "not_applicable"]).default("not_evaluated"),
+  sourceRefs: z.array(z.string().max(256)).max(100).default([]),
+  evidenceRefs: z.array(z.string().max(256)).max(10_000).default([]),
+  missingInputs: z.array(z.string().max(256)).max(100).default(["schema-v2-evidence"]),
 });
 
 const Ek9TableSchema = z.object({
@@ -36,7 +41,7 @@ const Ek9TableSchema = z.object({
 });
 
 export const EpysPreflightReportSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
   kind: z.literal("epys_preflight"),
   ruleSource: z.object({
     regulation: z.record(z.string(), z.string()),
@@ -45,6 +50,8 @@ export const EpysPreflightReportSchema = z.object({
   }),
   model: z.object({ fileName: z.string(), schema: z.string(), sizeBytes: z.number(), discipline: z.string().optional() }),
   summary: z.object({ hata: z.number(), uyari: z.number(), bilgi: z.number(), elle: z.number() }),
+  evaluationStatus: z.enum(["failed", "not_evaluated", "manual_review_required"]).default("not_evaluated"),
+  sourceVerificationStatus: z.literal("identity_pending").default("identity_pending"),
   ek9Table: Ek9TableSchema.optional(),
   ek9: z.array(Ek9RowSchema),
   findings: z.array(FindingSchema),
@@ -113,6 +120,8 @@ export function summarizeEpysPreflight(report: EpysPreflightReport, maxFindings 
     ruleSource: report.ruleSource,
     model: report.model,
     summary: report.summary,
+    evaluationStatus: report.evaluationStatus,
+    sourceVerificationStatus: report.sourceVerificationStatus,
     ek9Table: report.ek9Table,
     ek9: report.ek9,
     findings: report.findings.filter(finding => finding.seviye !== "bilgi").slice(0, maxFindings),

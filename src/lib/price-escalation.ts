@@ -10,7 +10,7 @@
  *      P_n = a × (İ_n / İ_0) + b_1 × (Ç_n / Ç_0) + b_2 × (D_n / D_0) + ... + c × (M_n / M_0)
  *    Burada:
  *      - A_n : Uygulama ayında gerçekleşen imalat/hakediş tutarı (TL)
- *      - B   : Sözleşme katsayısı (resmî standart değer: 0,90)
+ *      - B   : İhale dokümanı/sözleşmede tanımlanan katsayı; resmî veya evrensel bir varsayılan değildir
  *      - P_n : Fiyat farkı katsayısı (ağırlıklar toplamı Σw_i = 1,00)
  *      - E_0 : İhalenin yapıldığı aya ait temel endeks
  *      - E_n : Hakedişin/uygulamanın yapıldığı aya ait güncel endeks
@@ -219,10 +219,90 @@ export interface EscalationComponentInput {
   currentIndex: number;
 }
 
+export interface EscalationEvidenceComponentInput extends EscalationComponentInput {
+  /** TÜİK veri setindeki seri kimliği/adı; poz metninden türetilmez. */
+  seriesId?: string;
+  /** YYYY-MM biçiminde sözleşmesel temel endeks dönemi. */
+  basePeriod?: string;
+  /** YYYY-MM biçiminde hesapta kullanılan karşılaştırma dönemi. */
+  currentPeriod?: string;
+  /** Endeks değerinin yayımlandığı resmî kaynak bağlantısı. */
+  sourceUrl?: string;
+  /** YYYY-MM-DD biçiminde kaynak yayın tarihi. */
+  sourcePublicationDate?: string;
+}
+
+export type EscalationDelayResponsibility =
+  | 'none'
+  | 'contractor'
+  | 'administration'
+  | 'force_majeure'
+  | 'unknown';
+
+/**
+ * Kanıtlı değerlendirme sözleşmesi. Alanlar bilinçli olarak optional tutulur:
+ * eksik kanıt throw etmek yerine `not_evaluated` üretir ve UI eksikleri gösterebilir.
+ */
+export interface EvidenceBackedEscalationInput {
+  tenderDate?: string;
+  contractDate?: string;
+  contractReference?: string;
+  progressPaymentAmountTl?: number;
+  bFactor?: number;
+  bFactorSource?: string;
+  constantWeight?: number;
+  weightsSource?: string;
+  workSchedulePeriod?: string;
+  applicationPeriod?: string;
+  delayResponsibility?: EscalationDelayResponsibility;
+  delayLegalBasis?: string;
+  advancePaymentAmountTl?: number;
+  advanceDeductionAmountTl?: number;
+  advanceDeductionSource?: string;
+  components?: EscalationEvidenceComponentInput[];
+}
+
+export type EvidenceBackedEscalationOutcome =
+  | {
+      status: 'not_evaluated';
+      missing: string[];
+      calculation: null;
+      isOfficialDetermination: false;
+    }
+  | {
+      status: 'manual_review';
+      reasons: string[];
+      calculation: null;
+      isOfficialDetermination: false;
+    }
+  | {
+      status: 'evaluated';
+      regime: 'RG_32971_EFFECTIVE_2025_09_01';
+      eligibleProgressPaymentAmountTl: number;
+      calculation: ContractEscalation4735Result;
+      assurance: 'CALCULATED_REVIEW_REQUIRED';
+      isOfficialDetermination: false;
+      evidence: {
+        tenderDate: string;
+        contractDate: string;
+        contractReference: string;
+        bFactorSource: string;
+        weightsSource: string;
+        workSchedulePeriod: string;
+        applicationPeriod: string;
+        delayResponsibility: EscalationDelayResponsibility;
+        delayLegalBasis: string;
+        advancePaymentAmountTl: number;
+        advanceDeductionAmountTl: number;
+        advanceDeductionSource: string;
+        components: ReadonlyArray<Readonly<Required<EscalationEvidenceComponentInput>>>;
+      };
+    };
+
 export interface ContractEscalation4735Input {
   /** Uygulama ayında gerçekleşen hakediş tutarı (A_n, TL) */
   progressPaymentAmountTl: number;
-  /** Sözleşme B katsayısı (standart: 0,90) */
+  /** Sözleşme B katsayısı. Yeni akışlarda açıkça ve kaynak referansıyla verilmelidir. */
   bFactor?: number;
   /** Ağırlıklı TÜİK alt endeks bileşenleri (Σw_i + sabit katsayı = 1,00) */
   components: EscalationComponentInput[];
@@ -337,6 +417,7 @@ export function computeContractPriceEscalation4735(
   input: ContractEscalation4735Input,
 ): ContractEscalation4735Result {
   const { progressPaymentAmountTl, components } = input;
+  // Geriye uyumluluk: eski çağrılar için korunan 0,90 varsayımı kanıtlı evaluator'da kullanılmaz.
   const bFactor = input.bFactor ?? 0.9;
   const constantWeight = input.constantWeight ?? 0;
   if (!Number.isFinite(constantWeight) || constantWeight < 0 || constantWeight > 1) {
@@ -347,7 +428,7 @@ export function computeContractPriceEscalation4735(
     throw new Error('Hakediş tutarı (A_n) sıfır veya pozitif bir sayı olmalıdır.');
   }
   if (!Number.isFinite(bFactor) || bFactor <= 0 || bFactor > 1.5) {
-    throw new Error('B katsayısı geçerli bir pozitif katsayı olmalıdır (standart: 0,90).');
+    throw new Error('B katsayısı sözleşmeye göre belirlenmiş geçerli bir pozitif katsayı olmalıdır.');
   }
   if (!Array.isArray(components) || components.length === 0) {
     throw new Error('En az bir TÜİK alt endeks bileşeni tanımlanmalıdır.');
@@ -414,6 +495,157 @@ export function computeContractPriceEscalation4735(
     components: breakdowns,
     formulaSummary: `F = ${round2(progressPaymentAmountTl).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} × ${bFactor.toFixed(2)} × (${round6(pnExact).toFixed(6)} - 1) = ${priceDifferenceTl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`,
   };
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_MONTH = /^\d{4}-\d{2}$/;
+export const PRICE_ESCALATION_RG_32971_PUBLICATION_DATE = '2025-07-30';
+export const PRICE_ESCALATION_RG_32971_EFFECTIVE_DATE = '2025-09-01';
+
+function hasText(value: string | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isIsoDate(value: string | undefined): value is string {
+  if (!hasText(value) || !ISO_DATE.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+function isIsoMonth(value: string | undefined): value is string {
+  if (!hasText(value) || !ISO_MONTH.test(value)) return false;
+  const month = Number(value.slice(5, 7));
+  return month >= 1 && month <= 12;
+}
+
+function isOfficialIndexUrl(value: string | undefined): boolean {
+  if (!hasText(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && (url.hostname === 'tuik.gov.tr' || url.hostname.endsWith('.tuik.gov.tr'));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 30.07.2025 tarihli RG 32971 bağlamını kanıt zinciriyle değerlendirir.
+ * Bu fonksiyon önceki rejimi veya gecikmeli işte kullanılacak endeks ayını türetmez.
+ * Sonuç bir idare/hukukçu onayı değil, sözleşme verilerine dayalı inceleme çıktısıdır.
+ */
+export function evaluateContractPriceEscalation4735(
+  input: EvidenceBackedEscalationInput,
+): EvidenceBackedEscalationOutcome {
+  const missing: string[] = [];
+  if (!isIsoDate(input.tenderDate)) missing.push('İhale tarihi (YYYY-MM-DD)');
+  if (!isIsoDate(input.contractDate)) missing.push('Sözleşme tarihi (YYYY-MM-DD)');
+  if (!hasText(input.contractReference)) missing.push('Sözleşme referansı');
+  if (!Number.isFinite(input.progressPaymentAmountTl)) missing.push('Hakediş tutarı (A_n)');
+  if (!Number.isFinite(input.bFactor)) missing.push('B katsayısı');
+  if (!hasText(input.bFactorSource)) missing.push('B katsayısı sözleşme kaynağı');
+  if (!hasText(input.weightsSource)) missing.push('Ağırlık katsayıları sözleşme kaynağı');
+  if (!isIsoMonth(input.workSchedulePeriod)) missing.push('Onaylı iş programı dönemi (YYYY-MM)');
+  if (!isIsoMonth(input.applicationPeriod)) missing.push('Uygulama/hakediş dönemi (YYYY-MM)');
+  if (!input.delayResponsibility || input.delayResponsibility === 'unknown') missing.push('Gecikme sorumluluğu statüsü');
+  if (!hasText(input.delayLegalBasis)) missing.push('Gecikme/iş programı hukuki dayanağı');
+  if (!Number.isFinite(input.advancePaymentAmountTl)) missing.push('Avans tutarı (yoksa 0)');
+  if (!Number.isFinite(input.advanceDeductionAmountTl)) missing.push('Avans mahsup tutarı (yoksa 0)');
+  if (!hasText(input.advanceDeductionSource)) missing.push('Avans/mahsup kaynağı');
+  if (!Array.isArray(input.components) || input.components.length === 0) {
+    missing.push('En az bir sözleşme endeks bileşeni');
+  } else {
+    input.components.forEach((component, index) => {
+      const prefix = `Endeks ${index + 1}`;
+      if (!Number.isFinite(component.baseIndex) || !Number.isFinite(component.currentIndex)) missing.push(`${prefix} değerleri`);
+      if (!hasText(component.seriesId)) missing.push(`${prefix} seri kimliği`);
+      if (!isIsoMonth(component.basePeriod)) missing.push(`${prefix} temel dönemi`);
+      if (!isIsoMonth(component.currentPeriod)) missing.push(`${prefix} uygulama dönemi`);
+      if (!isOfficialIndexUrl(component.sourceUrl)) missing.push(`${prefix} resmî TÜİK HTTPS kaynak bağlantısı`);
+      if (!isIsoDate(component.sourcePublicationDate)) missing.push(`${prefix} kaynak yayın tarihi`);
+    });
+  }
+  if (missing.length > 0) return { status: 'not_evaluated', missing, calculation: null, isOfficialDetermination: false };
+
+  const complete = input as Required<EvidenceBackedEscalationInput>;
+  const reasons: string[] = [];
+  if (complete.tenderDate < PRICE_ESCALATION_RG_32971_EFFECTIVE_DATE) {
+    reasons.push('İhale tarihi 01.09.2025 öncesindedir; önceki/geçiş rejimi bu motor tarafından uydurulmaz. Sözleşme ve geçiş hükümleri hukuk/idare incelemesi gerektirir.');
+  }
+  if (complete.contractDate < complete.tenderDate) {
+    reasons.push('Sözleşme tarihi ihale tarihinden önce olamaz.');
+  }
+  if (complete.applicationPeriod < complete.contractDate.slice(0, 7)) {
+    reasons.push('Uygulama/hakediş dönemi sözleşme tarihinden önce olamaz.');
+  }
+  if (complete.workSchedulePeriod !== complete.applicationPeriod) {
+    reasons.push('Uygulama ayı onaylı iş programı ayından farklıdır; gecikme sorumluluğu ve uygulanacak endeks dönemi sözleşme/hukuk incelemesiyle belirlenmelidir.');
+  }
+  if (complete.advancePaymentAmountTl < 0 || complete.advanceDeductionAmountTl < 0) {
+    reasons.push('Avans ve mahsup tutarları negatif olamaz.');
+  }
+  if (complete.advanceDeductionAmountTl > complete.progressPaymentAmountTl) {
+    reasons.push('Avans mahsubu hakediş tutarını aşmaktadır.');
+  }
+  if (complete.components.some((component) => component.currentPeriod !== complete.applicationPeriod)) {
+    reasons.push('En az bir endeksin güncel dönemi uygulama/hakediş dönemiyle uyuşmuyor.');
+  }
+  if (complete.components.some((component) => component.basePeriod > component.currentPeriod)) {
+    reasons.push('En az bir endeksin temel dönemi güncel döneminden sonradır.');
+  }
+  if (complete.components.some((component) => component.sourcePublicationDate < `${component.currentPeriod}-01`)) {
+    reasons.push('En az bir endeksin kaynak yayın tarihi, temsil ettiği güncel dönemden öncedir.');
+  }
+  if (reasons.length > 0) return { status: 'manual_review', reasons, calculation: null, isOfficialDetermination: false };
+
+  const eligibleProgressPaymentAmountTl = round2(complete.progressPaymentAmountTl - complete.advanceDeductionAmountTl);
+  try {
+    const calculation = computeContractPriceEscalation4735({
+      progressPaymentAmountTl: eligibleProgressPaymentAmountTl,
+      bFactor: complete.bFactor,
+      constantWeight: complete.constantWeight,
+      components: complete.components,
+    });
+    return {
+      status: 'evaluated',
+      regime: 'RG_32971_EFFECTIVE_2025_09_01',
+      eligibleProgressPaymentAmountTl,
+      calculation,
+      assurance: 'CALCULATED_REVIEW_REQUIRED',
+      isOfficialDetermination: false,
+      evidence: {
+        tenderDate: complete.tenderDate,
+        contractDate: complete.contractDate,
+        contractReference: complete.contractReference,
+        bFactorSource: complete.bFactorSource,
+        weightsSource: complete.weightsSource,
+        workSchedulePeriod: complete.workSchedulePeriod,
+        applicationPeriod: complete.applicationPeriod,
+        delayResponsibility: complete.delayResponsibility,
+        delayLegalBasis: complete.delayLegalBasis,
+        advancePaymentAmountTl: complete.advancePaymentAmountTl,
+        advanceDeductionAmountTl: complete.advanceDeductionAmountTl,
+        advanceDeductionSource: complete.advanceDeductionSource,
+        components: Object.freeze(complete.components.map((component) => Object.freeze({
+          indexCode: component.indexCode,
+          weight: component.weight,
+          baseIndex: component.baseIndex,
+          currentIndex: component.currentIndex,
+          seriesId: component.seriesId.trim(),
+          basePeriod: component.basePeriod,
+          currentPeriod: component.currentPeriod,
+          sourceUrl: component.sourceUrl.trim(),
+          sourcePublicationDate: component.sourcePublicationDate,
+        }))),
+      },
+    };
+  } catch (error) {
+    return {
+      status: 'manual_review',
+      reasons: [error instanceof Error ? error.message : 'Fiyat farkı hesabı doğrulanamadı.'],
+      calculation: null,
+      isOfficialDetermination: false,
+    };
+  }
 }
 
 export interface OutOfPeriodUnitPriceInput {

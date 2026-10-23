@@ -22,6 +22,10 @@ test("ÇŞB 0,50 m²: yalnız 0,48 m² düşülmez; diğer üçü düşülür; �
   assert.equal(r.notDeductedAreaM2, 0.48);
   assert.equal(r.deductedCount, 3);
   assert.equal(r.deductedAreaM2, 7.49);
+  assert.equal(r.applicationStatus, "summary_only");
+  assert.match(r.applicationNote, /kalem/i);
+  assert.equal(r.profile.version, "minha-2026.3");
+  assert.ok(r.profile.sourceReference.length > 0);
 });
 
 test("DIN 18350 2,50 m²: 0,48, 1,20 ve 1,89 düşülmez; yalnız 4,40 düşülür", () => {

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { computeKikKFactor, evaluateKikAbnormallyLowBid } from "./kik-adt";
 
+const VERIFIED_ADMIN_SOURCE = { status: "verified" as const, issuer: "Test İdaresi", documentId: "YM-TEST", sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" };
+
 describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT) Motoru", () => {
   it("filters bids outside [0.40 * YM, 1.20 * YM], keeps bids in (1.00 * YM, 1.20 * YM], and computes K and SD per Tebliğ m.45.1.1", () => {
     // YM = 100,000,000 TL
@@ -96,10 +98,109 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
 
     assert.equal(res.hasTenderSessionInputs, false);
     assert.equal(res.boundaryValueTry, 0);
-    assert.equal(res.explanationRequiredItems.length, 2);
-    assert.equal(res.exemptMinorItems.length, 2);
-    assert.equal(res.explanationRequiredItems[0].code, "15.150.1005");
-    assert.equal(res.explanationRequiredItems[1].code, "15.160.1003");
+    assert.equal(res.explanationRequiredItems.length, 0);
+    assert.equal(res.exemptMinorItems.length, 0);
+    assert.equal(res.advisoryOfferExplanationRequiredItems.length, 2);
+    assert.equal(res.advisoryOfferExplanationRequiredItems[0].code, "15.150.1005");
+    assert.equal(res.advisoryOfferExplanationRequiredItems[1].code, "15.160.1003");
+    assert.equal(res.officialExplanationListStatus, "not_evaluated");
+  });
+
+  it("does not publish an official 80% list without administration estimated-cost items and source identity", () => {
+    const missing = evaluateKikAbnormallyLowBid({
+      estimatedCostTry: 100,
+      validBidsTry: [80],
+      ourBidTry: 70,
+      lineItems: [{ id: "offer", description: "Teklif kalemi", totalAmount: 100 }],
+    });
+    assert.equal(missing.officialExplanationListStatus, "not_evaluated");
+    assert.deepEqual(missing.explanationRequiredItems, []);
+    assert.equal(missing.advisoryOfferExplanationRequiredItems.length, 1);
+
+    const noSource = evaluateKikAbnormallyLowBid({
+      estimatedCostTry: 100,
+      validBidsTry: [80],
+      ourBidTry: 70,
+      administrationEstimatedCostItems: [{ id: "admin", description: "İdare kalemi", totalAmount: 100 }],
+    });
+    assert.equal(noSource.officialExplanationListStatus, "not_evaluated");
+    assert.match(noSource.officialExplanationListReason ?? "", /kaynak kimliği/i);
+
+    const userAsserted = evaluateKikAbnormallyLowBid({
+      estimatedCostTry: 100, validBidsTry: [80], ourBidTry: 70,
+      administrationEstimatedCostSourceIdentity: "YM-USER",
+      administrationEstimatedCostSourceVerification: { ...VERIFIED_ADMIN_SOURCE, status: "user_asserted" },
+      administrationEstimatedCostItems: [{ id: "admin", description: "İdare kalemi", totalAmount: 100 }],
+    });
+    assert.equal(userAsserted.officialExplanationListStatus, "not_evaluated");
+    assert.match(userAsserted.officialExplanationListReason ?? "", /kullanıcı beyanı|doğrulanmış/i);
+  });
+
+  it("fails closed when administration items do not reconcile to YM, including one-kurus boundary", () => {
+    const base = {
+      estimatedCostTry: 100,
+      validBidsTry: [80],
+      ourBidTry: 70,
+      administrationEstimatedCostSourceIdentity: "YM-CETVEL-1",
+      administrationEstimatedCostSourceVerification: VERIFIED_ADMIN_SOURCE,
+    };
+    const exact = evaluateKikAbnormallyLowBid({
+      ...base,
+      administrationEstimatedCostItems: [
+        { id: "a", description: "A", totalAmount: 80 },
+        { id: "b", description: "B", totalAmount: 20 },
+      ],
+    });
+    assert.equal(exact.officialExplanationListStatus, "evaluated");
+
+    const mismatch = evaluateKikAbnormallyLowBid({
+      ...base,
+      administrationEstimatedCostItems: [
+        { id: "a", description: "A", totalAmount: 80 },
+        { id: "b", description: "B", totalAmount: 19.99 },
+      ],
+    });
+    assert.equal(mismatch.officialExplanationListStatus, "not_evaluated");
+    assert.match(mismatch.officialExplanationListReason ?? "", /100,00 TL/);
+  });
+
+  it("builds official 80% list deterministically from administration data; our bid never changes it", () => {
+    const adminItems = [
+      { id: "z", code: "B", description: "Eşit B", totalAmount: 40 },
+      { id: "a", code: "A", description: "Eşit A", totalAmount: 40 },
+      { id: "c", code: "C", description: "Sınırı geçen", totalAmount: 20 },
+    ];
+    const evaluate = (ourBidTry: number) => evaluateKikAbnormallyLowBid({
+      estimatedCostTry: 100,
+      validBidsTry: [70, 80, 90],
+      ourBidTry,
+      administrationEstimatedCostSourceIdentity: "YM-CETVEL-2",
+      administrationEstimatedCostSourceVerification: VERIFIED_ADMIN_SOURCE,
+      administrationEstimatedCostItems: adminItems,
+    });
+    const low = evaluate(50);
+    const high = evaluate(95);
+    assert.deepEqual(low.explanationRequiredItems.map(item => item.code), ["A", "B"]);
+    assert.deepEqual(high.explanationRequiredItems, low.explanationRequiredItems);
+    assert.equal(low.explanationRequiredItems.at(-1)?.cumulativeRatio, 0.8);
+  });
+
+  it("evaluates the administration 80% list independently from tender bids", () => {
+    const result = evaluateKikAbnormallyLowBid({
+      estimatedCostTry: 100,
+      validBidsTry: [],
+      ourBidTry: 0,
+      administrationEstimatedCostSourceIdentity: "YM-CETVEL-3",
+      administrationEstimatedCostSourceVerification: VERIFIED_ADMIN_SOURCE,
+      administrationEstimatedCostItems: [
+        { id: "a", description: "A", totalAmount: 80 },
+        { id: "b", description: "B", totalAmount: 20 },
+      ],
+    });
+    assert.equal(result.hasTenderSessionInputs, false);
+    assert.equal(result.boundaryValueTry, 0);
+    assert.equal(result.officialExplanationListStatus, "evaluated");
+    assert.deepEqual(result.explanationRequiredItems.map(item => item.id), ["a"]);
   });
 });
 

@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  applyMinhaToTargetLines,
   computeBeamSlabIntersectionDeduction,
   evaluatePlasterPaintMinha,
   evaluateStructuralIntersectionTakeoff,
 } from "./minha";
+
+const VERIFIED_PROFILE = { status: "verified" as const, sourceReference: "Sözleşme EK-Metraj", edition: "2026.1", effectiveDate: "2026-01-01", sha256: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" };
 
 describe("Contractual Opening Deduction (Minha) & Structural Intersection Engine", () => {
   it("applies CSB_2026 0.50 m2 threshold and adds reveal surfaces on deducted openings", () => {
@@ -118,6 +121,133 @@ describe("Contractual Opening Deduction (Minha) & Structural Intersection Engine
     assert.equal(geom.columnSeatFormworkDeductionM2, 1.08);
     // Slab soffit strip deduction = 0.30 * 5.0 * 4 = 6.0 m2
     assert.equal(geom.slabSoffitStripDeductionM2, 6);
+  });
+});
+
+describe("T24 line-level minha application", () => {
+  it("deducts a matched opening exactly once from a gross line and records profile provenance", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [{ id: "op-1", widthM: 1, heightM: 1, hostElementId: "wall-1", targetLineId: "siva-1", targetFinishLayer: "Sıva", revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness" }],
+      lines: [{ id: "siva-1", hostElementId: "wall-1", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 20 }],
+    });
+    assert.deepEqual(result.profileEvidence, VERIFIED_PROFILE);
+    assert.notEqual(result.profileEvidence, VERIFIED_PROFILE);
+    assert.ok(Object.isFrozen(result.profileEvidence));
+    assert.equal(result.profile.sourceReference.length > 0, true);
+    assert.equal(result.profile.version, "minha-2026.3");
+    assert.equal(result.lines[0].status, "applied");
+    assert.equal(result.lines[0].deductedOpeningAreaM2, 1);
+    assert.equal(result.lines[0].addedRevealAreaM2, 0.6);
+    assert.equal(result.lines[0].adjustmentM2, -0.4);
+    assert.equal(result.lines[0].resultQuantityM2, 19.6);
+  });
+
+  it("adds sourced CSB reveal surfaces to the line adjustment", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [{ id: "op-reveal", widthM: 2, heightM: 1, revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness", fourSidedReveal: true, hostElementId: "wall", targetLineId: "plaster", targetFinishLayer: "Sıva" }],
+      lines: [{ id: "plaster", hostElementId: "wall", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 10 }],
+    });
+    assert.equal(result.lines[0].deductedOpeningAreaM2, 2);
+    assert.equal(result.lines[0].addedRevealAreaM2, 1.2);
+    assert.equal(result.lines[0].resultQuantityM2, 9.2);
+  });
+
+  it("fails closed without verified contract edition or sourced reveal depth", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      openings: [{ id: "op", widthM: 2, heightM: 1, hostElementId: "wall", targetLineId: "plaster", targetFinishLayer: "Sıva" }],
+      lines: [{ id: "plaster", hostElementId: "wall", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 10 }],
+    });
+    assert.equal(result.lines[0].status, "review_required");
+    assert.equal(result.appliedOpeningCount, 0);
+  });
+
+  it("does not deduct from net QTO and labels the line already_net", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [{ id: "op-1", widthM: 1, heightM: 1, hostElementId: "wall-1", targetLineId: "paint-1", targetFinishLayer: "Boya", revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness" }],
+      lines: [{ id: "paint-1", hostElementId: "wall-1", finishLayer: "Boya", quantityBasis: "net_after_openings", quantityM2: 19 }],
+    });
+    assert.equal(result.lines[0].status, "already_net");
+    assert.equal(result.lines[0].adjustmentM2, 0);
+    assert.equal(result.lines[0].resultQuantityM2, 19);
+    assert.deepEqual(result.lines[0].openingIds, ["op-1"]);
+    assert.equal(result.appliedOpeningCount, 0);
+  });
+
+  it("routes missing/mismatched host-line identity and unknown quantity basis to review", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "DIN_18350",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [
+        { id: "op-missing", widthM: 2, heightM: 2 },
+        { id: "op-other", widthM: 2, heightM: 2, hostElementId: "wall-X", targetLineId: "line-1", targetFinishLayer: "Sıva", revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness" },
+      ],
+      lines: [{ id: "line-1", hostElementId: "wall-1", finishLayer: "Sıva", quantityBasis: "unknown", quantityM2: 25 }],
+    });
+    assert.equal(result.appliedOpeningCount, 0);
+    assert.equal(result.lines[0].status, "review_required");
+    assert.equal(result.reviewItems.length, 2);
+  });
+
+  it("rejects duplicate opening ids so a gross line cannot be deducted twice", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [
+        { id: "same", widthM: 1, heightM: 1, hostElementId: "wall-1", targetLineId: "line-1", targetFinishLayer: "Sıva", revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness" },
+        { id: "same", widthM: 1, heightM: 1, hostElementId: "wall-1", targetLineId: "line-1", targetFinishLayer: "Sıva", revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness" },
+      ],
+      lines: [{ id: "line-1", hostElementId: "wall-1", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 20 }],
+    });
+    assert.equal(result.lines[0].adjustmentM2, 0);
+    assert.equal(result.lines[0].status, "review_required");
+    assert.match(result.reviewItems[0].reason, /duplicate/i);
+  });
+
+  it("normalizes opening ids and isolates deductions by host-line-layer composite key", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "DIN_18350",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [
+        { id: "A", widthM: 2, heightM: 2, hostElementId: "wall-1", targetLineId: "same", targetFinishLayer: "Sıva" },
+        { id: "B", widthM: 2, heightM: 2, hostElementId: "wall-2", targetLineId: "same", targetFinishLayer: "Sıva" },
+      ],
+      lines: [
+        { id: "same", hostElementId: "wall-1", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 10 },
+        { id: "same", hostElementId: "wall-2", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 20 },
+      ],
+    });
+    assert.deepEqual(result.lines.map(line => line.resultQuantityM2), [6, 16]);
+
+    const duplicate = applyMinhaToTargetLines({
+      standard: "DIN_18350", profileEvidence: VERIFIED_PROFILE,
+      openings: [
+        { id: "X", widthM: 2, heightM: 2, hostElementId: "wall", targetLineId: "l", targetFinishLayer: "Sıva" },
+        { id: " X ", widthM: 2, heightM: 2, hostElementId: "wall", targetLineId: "l", targetFinishLayer: "Sıva" },
+      ],
+      lines: [{ id: "l", hostElementId: "wall", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 20 }],
+    });
+    assert.equal(duplicate.lines[0].status, "review_required");
+    assert.equal(duplicate.appliedOpeningCount, 0);
+  });
+
+  it("routes an opening deduction larger than the gross line to review instead of clamping it", () => {
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [{ id: "op", widthM: 2, heightM: 2, hostElementId: "wall", targetLineId: "line", targetFinishLayer: "Sıva", revealDepthM: 0.2, revealDepthSourceReference: "IFC wall thickness" }],
+      lines: [{ id: "line", hostElementId: "wall", finishLayer: "Sıva", quantityBasis: "gross_before_openings", quantityM2: 3 }],
+    });
+    assert.equal(result.lines[0].status, "review_required");
+    assert.equal(result.lines[0].adjustmentM2, 0);
+    assert.equal(result.appliedOpeningCount, 0);
+    assert.match(result.reviewItems.at(-1)?.reason ?? "", /aşıyor/i);
   });
 });
 

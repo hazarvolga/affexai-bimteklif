@@ -11,6 +11,14 @@ export interface KikFormState {
   bids: string;
   ourBid: string;
   items: string;
+  /** İdarenin yaklaşık maliyet cetvelinin ihale/doküman/sürüm kimliği. */
+  administrationSourceIdentity?: string;
+  administrationSourceVerification?: {
+    status: "user_asserted" | "verified";
+    issuer: string;
+    documentId: string;
+    sha256: string;
+  };
   /** İdare ilanda farklı bir N belirlediyse (1,00–1,20); boşsa iş grubunun N değeri. */
   nOverride?: string;
 }
@@ -65,7 +73,9 @@ export function evaluateKikForm(f: KikFormState): KikFormOutcome {
     ourBidTry: ourBid ?? (ym as number),
     workCategory: f.category as KikWorkCategory,
     ...(nOverride !== null ? { nCoefficientOverride: nOverride } : {}),
-    lineItems: items.items,
+    administrationEstimatedCostItems: items.items,
+    administrationEstimatedCostSourceIdentity: f.administrationSourceIdentity,
+    administrationEstimatedCostSourceVerification: f.administrationSourceVerification,
   });
   const warnings: string[] = [];
   if (result.admittedBidsTry.length === 0) {

@@ -8,16 +8,17 @@ import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./Ca
  * tamamlanana kadar yayında değildir (rota, sitemap ve llms.txt dışında).
  */
 type FormKey =
-  | "yapiSinirBedeli" | "isDeneyimi" | "usta" | "teknik" | "ciro" | "bankaReferans"
+  | "evaluationDate" | "yapiSinirBedeli" | "isDeneyimi" | "usta" | "teknik" | "ciro" | "bankaReferans"
   | "donen" | "kisaBorc" | "ozkaynak" | "aktif" | "bankaBorcu";
 
 const FIELDS: { key: FormKey; label: string; hint?: string; aria: string }[] = [
+  { key: "evaluationDate", label: "Başvuru / değerlendirme tarihi", hint: "Geçici iş gücü hükmünün hangi tarih rejiminde olduğunu belirler; varsayılmaz.", aria: "Başvuru veya değerlendirme tarihi" },
   { key: "yapiSinirBedeli", label: "Yapı sınır bedeli (₺)", hint: "Bakanlıkça her yıl yayımlanan III. ve IV. sınıf yapı birim maliyetleri ortalamasının 45.000 katı", aria: "Yapı sınır bedeli" },
   { key: "isDeneyimi", label: "İş deneyim tutarı (₺)", hint: "Yönetmelik m.13 esaslarına göre belirlenmiş tutar", aria: "İş deneyim tutarı" },
   { key: "usta", label: "Yıllık usta iş gücü (kişi)", aria: "Yıllık usta iş gücü" },
   { key: "teknik", label: "Teknik personel iş gücü (kişi)", aria: "Teknik personel iş gücü" },
   { key: "ciro", label: "Önceki yıl cirosu (₺)", hint: "Toplam ciro veya Yönetmelik kapsamındaki işlere ait ciro", aria: "Önceki yıl cirosu" },
-  { key: "bankaReferans", label: "Kullanılmamış kredi / kısıtsız mevduat (₺)", hint: "Boş bırakılırsa bu kriter değerlendirilmez", aria: "Kullanılmamış kredi veya mevduat" },
+  { key: "bankaReferans", label: "Kullanılmamış kredi / kısıtsız mevduat (₺)", hint: "Boş bırakılırsa G/G1 dahil kesin grup üretilmez; olası grup ayrıca gösterilir.", aria: "Kullanılmamış kredi veya mevduat" },
   { key: "donen", label: "Dönen varlıklar (₺)", aria: "Dönen varlıklar" },
   { key: "kisaBorc", label: "Kısa vadeli borçlar (₺)", aria: "Kısa vadeli borçlar" },
   { key: "ozkaynak", label: "Öz kaynaklar (₺)", aria: "Öz kaynaklar" },
@@ -26,7 +27,7 @@ const FIELDS: { key: FormKey; label: string; hint?: string; aria: string }[] = [
 ];
 
 const EMPTY: Record<FormKey, string> = {
-  yapiSinirBedeli: "", isDeneyimi: "", usta: "", teknik: "", ciro: "", bankaReferans: "",
+  evaluationDate: "", yapiSinirBedeli: "", isDeneyimi: "", usta: "", teknik: "", ciro: "", bankaReferans: "",
   donen: "", kisaBorc: "", ozkaynak: "", aktif: "", bankaBorcu: "",
 };
 
@@ -37,17 +38,21 @@ const parse = (value: string): number | null => {
   return Number.isFinite(n) && n >= 0 ? n : null;
 };
 
-const STATUS_LABEL = { ok: "Sağlanıyor", fail: "Sağlanmıyor", not_evaluated: "Değerlendirilmedi" } as const;
+const STATUS_LABEL = { ok: "Sağlanıyor", fail: "Sağlanmıyor", not_evaluated: "Değerlendirilmedi", not_required: "Geçici hükümle aranmıyor" } as const;
 
 export const YambisCalculatorPage: React.FC = () => {
   const [form, setForm] = useState<Record<FormKey, string>>(EMPTY);
 
   const outcome = useMemo(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(form.evaluationDate)) {
+      return { error: "Başvuru / değerlendirme tarihini YYYY-AA-GG biçiminde girin. Tarih rejimi varsayılmaz." as string };
+    }
     const required: FormKey[] = ["yapiSinirBedeli", "isDeneyimi", "usta", "teknik", "ciro", "donen", "kisaBorc", "ozkaynak", "aktif", "bankaBorcu"];
     const missing = required.filter(key => parse(form[key]) === null);
     if (missing.length) return { error: "Hesap için zorunlu alanları doldurun (banka referansı hariç). Hiçbir değer varsayılmaz." as string };
     const n = (key: FormKey) => parse(form[key]) as number;
     const input: ContractorInput = {
+      evaluationDate: form.evaluationDate,
       yapiSinirBedeliTry: n("yapiSinirBedeli"), isDeneyimTutariTry: n("isDeneyimi"),
       yillikUstaIsGucu: n("usta"), teknikPersonelIsGucu: n("teknik"), cirosuTry: n("ciro"),
       bankaKrediVeyaMevduatTry: parse(form.bankaReferans) ?? undefined,
@@ -66,6 +71,7 @@ export const YambisCalculatorPage: React.FC = () => {
       intro="Değerleri yönetmelik tanımlarına göre siz girersiniz; hiçbir değer varsayılmaz. Sonuç Bakanlığın başvuru incelemesinin yerini tutmaz."
       sources={[
         { label: "Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik (konsolide; m.4, m.11, m.12, m.13, m.14)" },
+        { label: "Geçici m.1(2) iş gücü hükmü ve 31/12/2026 dahil sınırı: https://osmaniye.csb.gov.tr/yeterlilik-sistemi-i-100536" },
         { label: "Bakanlık 2026 Yapı Yaklaşık Birim Maliyetleri Tebliği (III. ve IV. sınıf; yapı sınır bedeli hesabı)" },
       ]}
     >
@@ -76,7 +82,8 @@ export const YambisCalculatorPage: React.FC = () => {
             <CalcField key={field.key} label={field.label} hint={field.hint}>
               <input
                 className={calcInputClass}
-                inputMode="decimal"
+                inputMode={field.key === "evaluationDate" ? undefined : "decimal"}
+                type={field.key === "evaluationDate" ? "date" : "text"}
                 aria-label={field.aria}
                 value={form[field.key]}
                 onChange={event => setForm(prev => ({ ...prev, [field.key]: event.target.value }))}
@@ -92,7 +99,17 @@ export const YambisCalculatorPage: React.FC = () => {
           ) : (
             <>
               <p className="text-sm text-foreground">
-                Tüm kriterleri sağlayan en üst grup: <strong className="font-mono">{outcome.result.highestEligibleGroup}</strong>
+                Kesin doğrulanan en üst grup: <strong className="font-mono">{outcome.result.highestConfirmedGroup ?? "Belirlenemedi"}</strong>
+              </p>
+              {outcome.result.highestPotentialGroup !== outcome.result.highestConfirmedGroup && (
+                <p className="border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
+                  Eksik kanıt tamamlanırsa olası en üst grup: <strong className="font-mono">{outcome.result.highestPotentialGroup ?? "—"}</strong>. Bu değer kesin uygunluk değildir.
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                İş gücü rejimi: {outcome.result.workforceRule === "temporarily_not_required"
+                  ? "Geçici m.1(2) uyarınca 31/12/2026 dahil aranmaz; son altı yıla kadar değerlerin beyanı sürer."
+                  : "İş gücü yeterliği uygulanır."}
               </p>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <dt>Cari oran</dt><dd className="text-right font-mono">{outcome.result.ratios.cariOran === null ? "—" : fmtNum(outcome.result.ratios.cariOran, 2)}</dd>
@@ -109,12 +126,17 @@ export const YambisCalculatorPage: React.FC = () => {
                 <tbody>
                   {outcome.result.groups.map(group => {
                     const failed = group.criteria.filter(c => c.status === "fail").map(c => c.id).join(", ");
+                    const missing = group.criteria.filter(c => c.status === "not_evaluated").map(c => c.id).join(", ");
                     return (
                       <tr key={group.group} className="border-b border-border/60 align-top">
                         <td className="py-1 pr-2 font-mono">{group.group}</td>
                         <td className="py-1 pr-2 text-right font-mono">{group.minExperienceTry === null ? "—" : fmtTry(group.minExperienceTry)}</td>
                         <td className="py-1 pr-2 text-right font-mono">{group.maxJobTry === "unlimited" ? "Sınırsız" : fmtTry(group.maxJobTry)}</td>
-                        <td className="py-1">{group.eligible ? STATUS_LABEL.ok : `${STATUS_LABEL.fail}: ${failed}`}</td>
+                        <td className="py-1">{group.eligible
+                          ? STATUS_LABEL.ok
+                          : group.potentiallyEligible
+                            ? `${STATUS_LABEL.not_evaluated}: ${missing}`
+                            : `${STATUS_LABEL.fail}: ${failed}`}</td>
                       </tr>
                     );
                   })}

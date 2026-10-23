@@ -98,6 +98,9 @@ export default function LegislationView() {
           <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">
             33331 sayılı Resmî Gazete'de yayımlanan Dijital Hazırlama ve Elektronik Teslim Yönetmelikleri çerçevesinde yürütülen PDF/A ve IFC4X3 (openBIM) süreçlerini, EK-1..EK-9 teknik eklerini, e-PYS onay mekanizmalarını ve 5D birim fiyat entegrasyonunu keşfedin.
           </p>
+          <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+            BIMMetraj çıktıları ön kontroldür. Repo içindeki e-PYS belge kopyası nihai resmî nüshayla kimlik/hash eşleştirmesi tamamlanana kadar “identity_pending”; ISO/TS tam metinleri ise lisanslı erişim gerektirir. Otomatik başarı idare veya uzman uygunluk kararı değildir.
+          </p>
           {liveRegulationsCount !== null && liveRegulationsCount > 0 && (
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
               <Database className="w-3.5 h-3.5" />
@@ -213,6 +216,10 @@ export default function LegislationView() {
 
           <p className="text-xs text-muted-foreground leading-relaxed">
             BIMMetraj hızlı tarayıcı önizlemesini tam metraj saymaz. Sunucu IFC işçisi QTO önceliğini, bağımsız alan/hacim/kütle birimlerini, aggregate parça dışlamalarını ve dosya–işlem–STEP kimlik zincirini raporlar; sonuç yine proje müellifi ve ilgili disiplin uzmanının incelemesini gerektirir.
+          </p>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            EK-9 ön kontrol satırları otomatik veya manuel olarak işaretlenir ve kanıt referansı taşır. Belge kimliği doğrulanmadığı sürece hatasız rapor dahi <code>manual_review_required</code> durumunda kalır.
           </p>
 
           <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl text-xs text-orange-800 font-bold">

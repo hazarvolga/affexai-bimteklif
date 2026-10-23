@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-23.36",
+  version: "BIM-CALC-2026-10-23.37",
   updatedOn: "23 Ekim 2026",
-  implementationBaseline: "0388a2a2dbb6d9064ffce5395eb96842b44dcdbf",
-  approvalStatus: "Faz 2 IFC kapsam ve metraj bütünlüğü geliştirme kapısı test edildi: malzeme ve beton sınıfı fail-closed eşleştirme, browser/worker sınırı, dosya-run-STEP kimliği, duplicate/aggregate kayıtları, boyut bazlı kalite toplamları, kaynaklı kg donatı satırı ve kalıcı Türkçe kota aksiyonları eklendi. Gerçek ve kullanım izinli Allplan/Revit/Archicad dosyalarıyla bağımsız mühendis kabulü bekliyor; bu kayıt uzman onayı veya canlı yayın değildir.",
+  implementationBaseline: "a836b6ed384e84afd377d3f7cead434a37a4210b",
+  approvalStatus: "Faz 3 mevzuat ve hesap motorları geliştirme kapısı test ediliyor: YAMBİS, KİK ADT, 4735 fiyat farkı, kat karşılığı KDV, Pre-BIM, Minha, 3×3, e-PYS ve ISO kontrolleri tarihli kaynak bağlamı ile fail-closed çalışır. TS 500/TS 708/ISO lisanslı metin erişimi, e-PYS nihai belge kimliği, mali müşavir ve bağımsız mühendis kabulü açık kapıdır; bu kayıt uzman onayı veya canlı yayın değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1079,6 +1079,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         after: "403 nedenleri kalıcı Türkçe uyarı ve doğru e-posta/paket aksiyonuna dönüşür; reddedilen seçim temizlenir ve aynı dosya yeniden seçilebilir.",
         basis: "Fail-closed kullanıcı akışı ve kararlı sunucu hata kodu sözleşmesi",
       },
+    },
+  },
+  {
+    revision: "Rev. 43",
+    version: "BIM-CALC-2026-10-23.37",
+    date: "23 Ekim 2026",
+    commit: "phase-3-regulatory-engines",
+    trigger: "GAP kapatma yol haritası Faz 3 (T19–T26): mevzuat, vergi, ihale ve mühendislik ön kontrol motorlarını kanıt bağlamına alma.",
+    beforeSummary: "Eksik YAMBİS banka verisi kesin gruba dönüşebiliyor; KİK yüzde 80 listesi teklif kalemlerinden türeyebiliyor; fiyat farkı, KDV, Pre-BIM ve Minha hesapları tarih/kaynak/kalem bağını tam taşımıyordu. 3×3, e-PYS ve ISO sonuçları lisans ve belge kimliği açıklarını sonuç tipine yansıtmıyordu.",
+    afterSummary: "Ortak kaynak manifestosu ve yeniden kullanılabilir EvaluationEnvelope referans sözleşmesi tarih, sürüm, yargı alanı, kaynak, birim ve yuvarlama politikasını tanımlar; Faz 3 motorları kendi sonuç tiplerinde aynı fail-closed ilkeleri uygular. YAMBİS kesin/potansiyel grubu ayırır; KİK yüzde 80 listesi yalnız doğrulanmış idare yaklaşık maliyet artifact'ından kurulur; 4735 ve KDV motorları tarihli rejim ve kanıt ister; Pre-BIM ve Minha doğrulanmış belge, profil, host ve kalem bağını zorunlu tutar. Şirket politikası 3×3 kurallarından lisanslı standart incelemesi ayrılır; e-PYS belge kimliği ve ISO erişimi nedeniyle otomatik geçiş yerine manuel inceleme gerektirir.",
+    affectedModules: ["kik-adt", "eskalasyon", "kdv-tevkifat", "on-teklif-fizibilite", "minha", "uc-x-uc", "yapisal-sihirbaz", "iso19650", "epys-on-kontrol", "epys-hizli"],
+    moduleDetails: {
+      "kik-adt": { before: "YAMBİS eksik kriteri kesin grubu engellemiyor; yüzde 80 listesi teklif satırlarından veya kullanıcı kaynak etiketiyle çıkabiliyordu.", after: "Kesin ve potansiyel YAMBİS grupları ayrıdır; 31.12.2026 iş gücü geçişi değerlendirme tarihine bağlıdır. Yüzde 80 listesi kurum, belge kimliği ve SHA-256 ile doğrulanmış idare YM artifact'ı ve kuruş düzeyinde YM mutabakatıyla kurulur.", basis: "YAMBİS 2026 Bakanlık değişikliği; 4734/KİK Genel Tebliğ m.45.1" },
+      eskalasyon: { before: "Formül sözleşme tarihi, endeks serisi/dönemi, gecikme ve avans kanıtı olmadan çalışabiliyordu.", after: "01.09.2025 rejimi ihale/sözleşme kronolojisi, sözleşme katsayı kaynağı, resmî TÜİK HTTPS endeks provenance ve dönem kronolojisi, iş programı, gecikme sorumluluğu ve avans mahsubu eksiksizse hesaplanır; eski/belirsiz rejim manuel incelemeye gider.", basis: "4735 ve RG 32971; KİK fiyat farkı esasları" },
+      "kdv-tevkifat": { before: "Tek ortalama konut alanı ve basit 6306 seçimi karma teslimleri temsil etmiyordu.", after: "Ruhsat/teslim tarihi, konut-işyeri satırları, net alan, matrah, 6306 kanıtı ve arsa sahibinin mükellef/faaliyet durumu ayrı girdidir; satır kuruşuna yuvarlanır.", basis: "3065 sayılı Kanun ve GİB kat karşılığı teslim açıklamaları; mali müşavir kabulü bekler" },
+      "on-teklif-fizibilite": { before: "Emsal dışı alanlar tek toplamda toplanıyor ve serbest metin yerel plan kanıtı uygunluk çağrışımı oluşturabiliyordu.", after: "Alanlar dahil, sınırlı muaf ve tam muaf kimlikleriyle ayrılır; mükerrer kimlik engellenir, yüzde 30 havuzu yalnız sınırlı muaflara uygulanır. Plan kararı yalnız kurum, belge no, geçerli tarih ve SHA-256 taşıyan verified artifact ile üretilir; kullanıcı beyanı danışma niteliğinde kalır.", basis: "Planlı Alanlar İmar Yönetmeliği; yerel plan notu/belediye kararı kapısı" },
+      minha: { before: "Boşluk düşümü global özette kalıyor; host, hedef kalem, söve ekleri ve sözleşme baskısı belirgin değildi.", after: "Her açıklık host+hedef kalem+bitiş katmanı kompozit anahtarıyla bağlanır; normalize kimlik çift düşümü engeller. Otomatik uygulama doğrulanmış sözleşme baskısı ister; CSB söve/yan yüzey alanı kaynaklı derinlikle düşüme geri eklenir, net miktar ikinci kez düşülmez.", basis: "Sözleşmesel ölçü esası ve tekil açıklık provenance" },
+      "uc-x-uc": { before: "Şirket yüzde 3/STR politikası ile standart eşikleri tek geçer/kalır sonucunda okunabiliyordu.", after: "Şirket politikası kararı normatif karardan ayrıdır; aktif standart açık seçilmediyse, lisanslı metin yoksa veya temel/zemin teması kapsam dışıysa normatif geçiş verilmez.", basis: "Şirket politikası; TS 500 ve Eurocode erişim/uzman kapısı" },
+      "yapisal-sihirbaz": { before: "TS 500/TS 708 başlığı kod içi eşikleri otomatik normatif doğrulama gibi gösterebiliyordu.", after: "TS 500 ve TS 708 kaynakları access_required olarak işaretlenir; doğrulanmamış temel/temas kombinasyonuna eşik uydurulmaz ve uzman incelemesi zorunludur.", basis: "TSE lisanslı standart erişim gereği; TBDY 2018 kamu kaynağı" },
+      iso19650: { before: "Teknik ön kontroller geçse dahi lisanslı ISO metnine erişim açığı sonuçta görünmüyordu.", after: "Sonuç advisoryOnly ve access_required taşır; CDE kanıtı yoksa not_evaluated, teknik kontrol geçse bile manuel inceleme gerekir.", basis: "ISO 19650 / EN 17412 lisanslı metin kapısı" },
+      "epys-on-kontrol": { before: "EK-9 satırlarının otomatik/manuel niteliği ve kanıt referansı raporda zorunlu değildi.", after: "Her EK-9 satırı evaluationMode ve evidenceRefs taşır; hata yoksa dahi belge kimliği beklediği için manual_review_required döner.", basis: "RG 33331 kimliği Phase 0 source register içinde identity_pending" },
+      "epys-hizli": { before: "Sınırlı tarayıcı kontrollerinde isValid=true resmî uygunluk gibi okunabiliyor ve ham malzeme/mahal adları metadata'ya taşınabiliyordu.", after: "Eksik otomatik kanıt not_evaluated, tamamı geçse dahi belge kimliği manual_review_required üretir; legacy isValid yanlış yeşil vermez. Kalıcı evidenceRefs ham proje adları yerine artifact içi kararlı indeksleri taşır ve rapor dizileri sınırlandırılır.", basis: "e-PYS hızlı kontrol kapsam sınırı, veri minimizasyonu ve kanıt uydurmama ilkesi" },
     },
   },
 ];

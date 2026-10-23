@@ -6,7 +6,12 @@
  * duvar/kaplama kalemine ait olduğu IFC'den kalem düzeyinde eşlenmiyor. Ölçüsü okunamayan boşluklar
  * ayrıca sayılır; uydurma ölçü verilmez.
  */
-import { evaluatePlasterPaintMinha, type MeasurementStandard } from "@/smartcheck/rules/minha";
+import {
+  evaluatePlasterPaintMinha,
+  resolveMinhaProfileMetadata,
+  type MeasurementStandard,
+  type MinhaProfileMetadata,
+} from "@/smartcheck/rules/minha";
 import type { ParsedOpening } from "./types";
 
 export type OpeningsMinhaStatus = "ok" | "threshold_required" | "no_openings";
@@ -24,6 +29,10 @@ export interface OpeningsMinhaSummary {
   deductedAreaM2: number;
   notDeductedCount: number;
   notDeductedAreaM2: number;
+  /** Bu fonksiyon yalnız özetler; kalem miktarına uygulanmış hesap kanıtı değildir. */
+  applicationStatus: "summary_only";
+  applicationNote: string;
+  profile: MinhaProfileMetadata;
 }
 
 function round2(v: number): number {
@@ -59,6 +68,9 @@ export function summarizeOpeningsMinha(
     deductedAreaM2: 0,
     notDeductedCount: 0,
     notDeductedAreaM2: 0,
+    applicationStatus: "summary_only",
+    applicationNote: "Özet yalnız tekil eşik karşılaştırmasıdır; host ve kalem bağlantısı olmadan minha kaleme uygulanmış sayılmaz.",
+    profile: resolveMinhaProfileMetadata(standard),
   };
   if (list.length === 0) return { ...base, status: "no_openings" };
   if (standard === "CUSTOM_CONTRACT" && customThresholdM2 === null) {

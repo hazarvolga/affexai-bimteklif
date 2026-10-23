@@ -12,6 +12,18 @@ export interface EpysValidationResult {
   sourceCitation: string;
   /** What this quick check covers; the full EK-9 pre-check runs server-side in the IFC worker. */
   scope: { checked: string[]; notChecked: string[] };
+  evaluationStatus: "failed" | "not_evaluated" | "manual_review_required";
+  decision: "failed" | "not_evaluated" | "manual_review_required";
+  sourceVerificationStatus: "identity_pending";
+  checks: Array<{
+    id: string;
+    mode: "automatic" | "manual" | "not_applicable";
+    status: "passed" | "failed" | "not_evaluated" | "manual_review_required" | "not_applicable";
+    sourceRefs: string[];
+    evidenceRefs: string[];
+    missingInputs: string[];
+    reason: string;
+  }>;
 }
 
 const SCOPE = {
@@ -127,16 +139,40 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
     }
   }
 
-  const score = Math.max(0, 100 - Math.round(penaltyPoints));
+  const automaticEvidenceComplete = input.materialNames !== undefined
+    && input.spaceNames !== undefined
+    && input.elementsData !== undefined;
+  const automaticScore = Math.max(0, 100 - Math.round(penaltyPoints));
+  const hasCoreEvidence = Boolean(compliance.source);
+  const parcelFailed = errors.some(error => /m\.12 \/ EK-6 Tablo 6\.55/.test(error));
+  const materialFailed = errors.some(error => /Malzeme|CAD Şablon/.test(error));
+  const spaceFailed = warnings.some(warning => /EK-3 Uyarısı/.test(warning));
+  const elementFailed = errors.some(error => /EK-6 İhlali/.test(error));
+  const checks: EpysValidationResult["checks"] = [
+    { id: "parcel-properties", mode: "automatic", status: !hasCoreEvidence ? "not_evaluated" : parcelFailed ? "failed" : "passed", sourceRefs: ["EPYS_RG33331:m.12", "EPYS_RG33331:EK-6-6.55"], evidenceRefs: hasCoreEvidence ? [`ifc:${compliance.source}`] : [], missingInputs: hasCoreEvidence ? [] : ["TREpys_ParselOzellikSeti"], reason: hasCoreEvidence ? "IfcSite property set was inspected." : "Parcel property-set evidence is missing." },
+    { id: "poz-bridge", mode: input.totalElementsCount > 0 ? "automatic" : "not_applicable", status: input.totalElementsCount === 0 ? "not_applicable" : elementsWithPozNo > 0 ? "passed" : "failed", sourceRefs: ["BIMMETRAJ_5D_POLICY"], evidenceRefs: input.totalElementsCount > 0 ? [`ifc:elements:${input.totalElementsCount}`, `ifc:poz:${elementsWithPozNo}`] : [], missingInputs: [], reason: "Poz coverage is a 5D company-policy signal, not a permit rule." },
+    { id: "material-naming", mode: input.materialNames === undefined ? "manual" : input.materialNames.length === 0 ? "not_applicable" : "automatic", status: input.materialNames === undefined ? "not_evaluated" : input.materialNames.length === 0 ? "not_applicable" : materialFailed ? "failed" : "passed", sourceRefs: ["EPYS_RG33331:EK-6"], evidenceRefs: input.materialNames?.map((_, index) => `ifc:material:index:${index}`) ?? [], missingInputs: input.materialNames === undefined ? ["materialNames"] : [], reason: "Material names are inspected only when extracted from the IFC artifact." },
+    { id: "space-naming", mode: input.spaceNames === undefined ? "manual" : input.spaceNames.length === 0 ? "not_applicable" : "automatic", status: input.spaceNames === undefined ? "not_evaluated" : input.spaceNames.length === 0 ? "not_applicable" : spaceFailed ? "failed" : "passed", sourceRefs: ["EPYS_RG33331:m.10", "EPYS_RG33331:EK-3-3.1"], evidenceRefs: input.spaceNames?.map((_, index) => `ifc:space:index:${index}`) ?? [], missingInputs: input.spaceNames === undefined ? ["spaceNames"] : [], reason: "Space naming is inspected only when IfcSpace evidence is available." },
+    { id: "element-properties", mode: input.elementsData === undefined ? "manual" : input.elementsData.length === 0 ? "not_applicable" : "automatic", status: input.elementsData === undefined ? "not_evaluated" : input.elementsData.length === 0 ? "not_applicable" : elementFailed ? "failed" : "passed", sourceRefs: ["EPYS_RG33331:m.12", "EPYS_RG33331:EK-6"], evidenceRefs: input.elementsData?.map((_, index) => `ifc:element:index:${index}`) ?? [], missingInputs: input.elementsData === undefined ? ["elementsData"] : [], reason: "Required properties are checked per extracted IFC element." },
+    { id: "full-ek9-authority-review", mode: "manual", status: "manual_review_required", sourceRefs: ["EPYS_RG33331:EK-9", "PHASE0_SOURCE_REGISTER:identity_pending"], evidenceRefs: [], missingInputs: ["officialDocumentIdentity", "authorityDecision"], reason: "The official document identity and authority decision are outside automatic validation." },
+  ];
 
+  const evaluationStatus: EpysValidationResult["evaluationStatus"] = !hasCoreEvidence
+    ? "not_evaluated"
+    : errors.length > 0 ? "failed"
+      : !automaticEvidenceComplete ? "not_evaluated" : "manual_review_required";
   return {
-    isValid: errors.length === 0,
+    isValid: false,
     errors,
     warnings,
-    score,
+    score: evaluationStatus === "not_evaluated" ? Math.min(99, automaticScore) : automaticScore,
     label: "Hızlı e-PYS ön kontrolü (sınırlı kapsam)",
     rulePackVersion: "epys-quick-2026-10-v2",
-    sourceCitation: "Mimarlık ve Mühendislik Projelerinin Dijital Olarak Hazırlanması Hakkında Yönetmelik, RG 5.8.2026/33331, m.10–15 ve EK-6 Tablo 6.55; resmî uygunluk kararı değildir",
+    sourceCitation: "Geçici kaynak atfı: RG 5.8.2026/33331 olarak kaydedilen metin, m.10–15 ve EK-6 Tablo 6.55; belge kimliği doğrulanana kadar resmî uygunluk dayanağı değildir",
     scope: SCOPE,
+    evaluationStatus,
+    decision: evaluationStatus,
+    sourceVerificationStatus: "identity_pending",
+    checks,
   };
 }

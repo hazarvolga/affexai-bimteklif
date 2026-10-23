@@ -104,6 +104,7 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
   };
   if (typeof element.loadBearing === "boolean") formulaJson.loadBearing = String(element.loadBearing);
   if (element.exposure) formulaJson.exposure = element.exposure;
+  if (element.surfaceCondition) formulaJson.surfaceCondition = element.surfaceCondition;
   if (element.exposureClass) formulaJson.exposureClass = element.exposureClass;
   if (typeof element.coverMm === "number" && Number.isFinite(element.coverMm)) formulaJson.coverMm = String(element.coverMm);
   if (element.discipline) formulaJson.discipline = element.discipline;
