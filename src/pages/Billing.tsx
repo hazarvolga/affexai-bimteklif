@@ -275,6 +275,10 @@ export function Billing() {
       toast.error('Lütfen önce geçiş yapmak istediğiniz paketi seçin.');
       return;
     }
+    if (!activeOrder?.requestId) {
+      toast.error('Lütfen önce paket için sipariş referansı oluşturun.');
+      return;
+    }
     if (!senderName.trim()) {
       toast.error('Lütfen havale/EFT göndericisinin ad soyad veya firma ünvanını girin.');
       return;
@@ -285,7 +289,7 @@ export function Billing() {
       const res = await fetchWithAuth('/api/billing/payment-requests', {
         method: 'POST',
         body: JSON.stringify({
-          requestId: activeOrder?.requestId,
+          requestId: activeOrder.requestId,
           planId: targetPlanId,
           billingCycle,
           bankAccountId: selectedBankId || null,
@@ -779,11 +783,12 @@ export function Billing() {
 
                     <div>
                       <label htmlFor="billing-transfer-reference" className="block text-xs font-medium text-foreground dark:text-muted-foreground mb-1">
-                        Dekont / İşlem Referans No
+                        Dekont / İşlem Referans No *
                       </label>
                       <input
                         id="billing-transfer-reference"
                         type="text"
+                        required
                         value={transferReference}
                         onChange={(e) => setTransferReference(e.target.value)}
                         placeholder="Banka dekont / sorgu numarası"

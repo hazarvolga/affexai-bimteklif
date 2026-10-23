@@ -1646,6 +1646,12 @@ export function registerAdminRoutes(app: Express) {
       if (error instanceof Error && error.message === "PAYMENT_REQUEST_NOT_FOUND") {
         return res.status(404).json({ error: "Ödeme bildirimi bulunamadı." });
       }
+      if (error instanceof Error && error.message === "PAYMENT_REQUEST_ALREADY_REVIEWED") {
+        return res.status(409).json({ error: "Ödeme bildirimi daha önce sonuçlandırılmış." });
+      }
+      if (error instanceof Error && error.message === "PAYMENT_REQUEST_PLAN_UNAVAILABLE") {
+        return res.status(409).json({ error: "Ödeme talebindeki paket artık aktif değil; talep onaylanmadı." });
+      }
       console.error("Admin review payment request error:", error);
       return res.status(500).json({ error: "Ödeme bildirimi işlenemedi." });
     }

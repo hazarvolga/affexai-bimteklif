@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
 import { adminAuditLogs, companies, plans, subscriptions, users } from "../../db/schema";
@@ -89,6 +89,12 @@ export function formatIban(raw: string): string {
   return clean.replace(/(.{4})/g, "$1 ").trim();
 }
 
+export function normalizePaymentReceipt(raw: string): string {
+  return raw.normalize("NFKC").trim().replace(/\s+/g, "").toLocaleUpperCase("en-US");
+}
+
+const paymentReceiptPattern = /^[A-Z0-9][A-Z0-9._/-]{2,119}$/;
+
 const singleBankAccountSchema = z
   .object({
     id: z.string().trim().min(1).max(80).optional(),
@@ -165,7 +171,7 @@ export function generatePaymentReferenceCode(
 
 export const submitBankTransferInputSchema = z
   .object({
-    requestId: z.string().trim().min(3).max(80).optional(),
+    requestId: z.string().uuid(),
     planId: z.string().uuid(),
     billingCycle: z.enum(BILLING_CYCLE_IDS).default("monthly"),
     bankAccountId: z.string().trim().max(80).nullable().optional(),
@@ -175,6 +181,10 @@ export const submitBankTransferInputSchema = z
     taxOffice: z.string().trim().max(120).nullable().optional(),
     taxNumber: z.string().trim().max(32).nullable().optional(),
     notes: z.string().trim().max(500).nullable().optional(),
+  })
+  .refine((val) => paymentReceiptPattern.test(normalizePaymentReceipt(val.receiptNumber || val.transferReference || "")), {
+    message: "Dekont veya banka işlem referansı yalnız harf, rakam ve ._/- işaretlerini içermelidir.",
+    path: ["receiptNumber"],
   })
   .transform((val) => ({
     ...val,
@@ -262,7 +272,10 @@ export function reconstructPaymentRequests(events: readonly AuditLogPaymentEvent
         taxOffice: typeof d.taxOffice === "string" ? d.taxOffice : existing?.taxOffice ?? null,
         taxNumber: typeof d.taxNumber === "string" ? d.taxNumber : existing?.taxNumber ?? null,
         notes: typeof d.notes === "string" ? d.notes : existing?.notes ?? null,
-        status: existing?.status === "approved" ? "approved" : nextStatus,
+        status: existing && (
+          ["approved", "rejected"].includes(existing.status)
+          || (existing.status === "pending_approval" && nextStatus === "awaiting_transfer")
+        ) ? existing.status : nextStatus,
         createdAt: existing?.createdAt ?? timestampIso,
         updatedAt: timestampIso,
         reviewedAt: existing?.reviewedAt ?? null,
@@ -289,9 +302,11 @@ export function reconstructPaymentRequests(events: readonly AuditLogPaymentEvent
   );
 }
 
-export async function getAllBankAccountsForAdmin(): Promise<BankAccount[]> {
+export async function getAllBankAccountsForAdmin(
+  runner: typeof db | BillingTransaction = db,
+): Promise<BankAccount[]> {
   try {
-    const [latest] = await db
+    const [latest] = await runner
       .select({ details: adminAuditLogs.details })
       .from(adminAuditLogs)
       .where(eq(adminAuditLogs.action, "billing.bank_accounts.updated"))
@@ -310,8 +325,10 @@ export async function getAllBankAccountsForAdmin(): Promise<BankAccount[]> {
   return parseEnvBankAccounts();
 }
 
-export async function getActiveBankAccounts(): Promise<BankAccount[]> {
-  const all = await getAllBankAccountsForAdmin();
+export async function getActiveBankAccounts(
+  runner: typeof db | BillingTransaction = db,
+): Promise<BankAccount[]> {
+  const all = await getAllBankAccountsForAdmin(runner);
   return all.filter((account) => account.isActive);
 }
 
@@ -324,8 +341,13 @@ export async function saveBankAccountsByAdmin(adminId: string, accounts: BankAcc
   return accounts;
 }
 
-export async function getCompanyPaymentRequests(companyId: string): Promise<PaymentRequestRecord[]> {
-  const rows = await db
+type BillingTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export async function getCompanyPaymentRequests(
+  companyId: string,
+  runner: typeof db | BillingTransaction = db,
+): Promise<PaymentRequestRecord[]> {
+  const rows = await runner
     .select({
       id: adminAuditLogs.id,
       adminId: adminAuditLogs.adminId,
@@ -346,8 +368,10 @@ export async function getCompanyPaymentRequests(companyId: string): Promise<Paym
   return reconstructPaymentRequests(rows);
 }
 
-export async function getAllPaymentRequestsForAdmin(): Promise<PaymentRequestRecord[]> {
-  const rows = await db
+export async function getAllPaymentRequestsForAdmin(
+  runner: typeof db | BillingTransaction = db,
+): Promise<PaymentRequestRecord[]> {
+  const rows = await runner
     .select({
       id: adminAuditLogs.id,
       adminId: adminAuditLogs.adminId,
@@ -364,15 +388,20 @@ export async function getAllPaymentRequestsForAdmin(): Promise<PaymentRequestRec
 }
 
 export async function createInitialPaymentOrder(input: {
-  tx?: any;
+  tx?: BillingTransaction;
   companyId: string;
   companyName: string;
   userId: string;
   userEmail: string;
   planId: string;
   billingCycle?: BillingCycleId;
-}): Promise<PaymentRequestRecord | null> {
+}): Promise<(PaymentRequestRecord & { createdNow: boolean }) | null> {
+  if (!input.tx) {
+    return db.transaction((tx) => createInitialPaymentOrder({ ...input, tx }));
+  }
   const runner = input.tx ?? db;
+  const cycle = normalizeBillingCycle(input.billingCycle);
+  await runner.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`billing-payment-init:${input.companyId}:${input.planId}:${cycle}`}, 0))`);
   const [selectedPlan] = await runner
     .select({
       id: plans.id,
@@ -389,7 +418,13 @@ export async function createInitialPaymentOrder(input: {
     return null;
   }
 
-  const cycle = normalizeBillingCycle(input.billingCycle);
+  const existing = (await getCompanyPaymentRequests(input.companyId, runner)).find(
+    (request) => request.planId === selectedPlan.id
+      && request.billingCycle === cycle
+      && request.status === "awaiting_transfer",
+  );
+  if (existing) return { ...existing, createdNow: false };
+
   const pricing = calculateBillingPeriodPricing(selectedPlan.monthlyPrice, cycle);
   const requestId = crypto.randomUUID();
   const referenceCode = generatePaymentReferenceCode(input.companyName);
@@ -430,15 +465,34 @@ export async function createInitialPaymentOrder(input: {
     reviewedAt: null,
     reviewedByAdminId: null,
     adminDecisionNote: null,
+    createdNow: true,
   };
 }
 
 export async function submitBankTransferNotification(input: {
+  tx?: BillingTransaction;
   companyId: string;
   userId: string;
   payload: z.infer<typeof submitBankTransferInputSchema>;
 }): Promise<PaymentRequestRecord> {
-  const [company] = await db
+  if (!input.tx) {
+    return db.transaction((tx) => submitBankTransferNotification({ ...input, tx }));
+  }
+  const runner = input.tx;
+  const cycle = normalizeBillingCycle(input.payload.billingCycle);
+  const requestId = input.payload.requestId;
+  await runner.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`billing-payment-review:${requestId}`}, 0))`);
+  const existing = (await getCompanyPaymentRequests(input.companyId, runner)).find((request) => request.requestId === requestId);
+  if (!existing) throw new Error("PAYMENT_REQUEST_NOT_FOUND");
+
+  if (existing?.status !== undefined && existing.status !== "awaiting_transfer") {
+    throw new Error("PAYMENT_REQUEST_ALREADY_SUBMITTED");
+  }
+  if (existing && (existing.planId !== input.payload.planId || existing.billingCycle !== cycle)) {
+    throw new Error("PAYMENT_REQUEST_SNAPSHOT_MISMATCH");
+  }
+
+  const [company] = await runner
     .select({ id: companies.id, name: companies.name })
     .from(companies)
     .where(eq(companies.id, input.companyId))
@@ -447,13 +501,13 @@ export async function submitBankTransferNotification(input: {
     throw new Error("COMPANY_NOT_FOUND");
   }
 
-  const [user] = await db
+  const [user] = await runner
     .select({ id: users.id, email: users.email })
     .from(users)
     .where(eq(users.id, input.userId))
     .limit(1);
 
-  const [selectedPlan] = await db
+  const [selectedPlan] = await runner
     .select({
       id: plans.id,
       name: plans.name,
@@ -468,23 +522,24 @@ export async function submitBankTransferNotification(input: {
     throw new Error("PAID_PLAN_REQUIRED");
   }
 
-  const accounts = await getActiveBankAccounts();
+  const accounts = await getActiveBankAccounts(runner);
   const chosenBank =
     accounts.find((a) => a.id === input.payload.bankAccountId) ?? accounts[0] ?? null;
-
-  const existingRequests = await getCompanyPaymentRequests(input.companyId);
-  const matchingExisting = existingRequests.find(
-    (r) =>
-      (input.payload.requestId && r.requestId === input.payload.requestId) ||
-      (r.planId === selectedPlan.id && r.status === "awaiting_transfer"),
+  const receiptNumber = normalizePaymentReceipt(input.payload.receiptNumber ?? "");
+  if (!paymentReceiptPattern.test(receiptNumber)) throw new Error("PAYMENT_RECEIPT_INVALID");
+  await runner.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`billing-payment-receipt:${receiptNumber}`}, 0))`);
+  const duplicateReceipt = (await getAllPaymentRequestsForAdmin(runner)).find(
+    (request) => request.requestId !== requestId
+      && request.receiptNumber !== null
+      && normalizePaymentReceipt(request.receiptNumber) === receiptNumber,
   );
+  if (duplicateReceipt) throw new Error("PAYMENT_RECEIPT_ALREADY_USED");
 
-  const requestId = matchingExisting?.requestId ?? crypto.randomUUID();
   const referenceCode =
-    matchingExisting?.referenceCode ?? generatePaymentReferenceCode(company.name);
+    existing?.referenceCode ?? generatePaymentReferenceCode(company.name);
 
   if (input.payload.taxOffice || input.payload.taxNumber) {
-    await db
+    await runner
       .update(companies)
       .set({
         ...(input.payload.taxOffice ? { taxOffice: input.payload.taxOffice } : {}),
@@ -497,7 +552,7 @@ export async function submitBankTransferNotification(input: {
     selectedPlan.monthlyPrice,
     input.payload.billingCycle,
   );
-  const amountTry = pricing.totalPayableTry;
+  const amountTry = existing?.amountTry ?? pricing.totalPayableTry;
 
   const details = {
     requestId,
@@ -507,28 +562,28 @@ export async function submitBankTransferNotification(input: {
     userId: input.userId,
     userEmail: user?.email ?? "",
     planId: selectedPlan.id,
-    planName: selectedPlan.name,
+    planName: existing?.planName ?? selectedPlan.name,
     amountTry,
-    billingCycle: pricing.cycle,
+    billingCycle: existing?.billingCycle ?? pricing.cycle,
     bankAccountId: chosenBank?.id ?? null,
     bankName: chosenBank?.bankName ?? null,
     iban: chosenBank?.iban ?? null,
     senderName: input.payload.senderName,
-    receiptNumber: input.payload.receiptNumber,
+    receiptNumber,
     taxOffice: input.payload.taxOffice ?? null,
     taxNumber: input.payload.taxNumber ?? null,
     notes: input.payload.notes ?? null,
     status: "pending_approval" as const,
   };
 
-  await db.insert(adminAuditLogs).values({
+  await runner.insert(adminAuditLogs).values({
     adminId: input.userId,
     targetCompanyId: company.id,
     action: "billing.payment_request.submitted",
     details,
   });
 
-  const updatedList = await getCompanyPaymentRequests(company.id);
+  const updatedList = await getCompanyPaymentRequests(company.id, runner);
   return updatedList.find((r) => r.requestId === requestId) ?? {
     ...details,
     createdAt: new Date().toISOString(),
@@ -545,44 +600,69 @@ export async function reviewBankTransferByAdmin(input: {
   decision: "approved" | "rejected";
   adminDecisionNote?: string | null;
 }): Promise<PaymentRequestRecord> {
-  const allRequests = await getAllPaymentRequestsForAdmin();
-  const target = allRequests.find((r) => r.requestId === input.requestId);
-  if (!target) {
-    throw new Error("PAYMENT_REQUEST_NOT_FOUND");
-  }
+  const target = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`billing-payment-review:${input.requestId}`}, 0))`);
+    const allRequests = await getAllPaymentRequestsForAdmin(tx);
+    const lockedTarget = allRequests.find((request) => request.requestId === input.requestId);
+    if (!lockedTarget) {
+      throw new Error("PAYMENT_REQUEST_NOT_FOUND");
+    }
+    if (lockedTarget.status !== "pending_approval") {
+      throw new Error("PAYMENT_REQUEST_ALREADY_REVIEWED");
+    }
 
-  await db.transaction(async (tx) => {
     if (input.decision === "approved") {
       const now = new Date();
-      const durationDays = getBillingPeriodOption(target.billingCycle).durationDays;
-      const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      const durationDays = getBillingPeriodOption(lockedTarget.billingCycle).durationDays;
+
+      const [company] = await tx
+        .select({ id: companies.id })
+        .from(companies)
+        .where(eq(companies.id, lockedTarget.companyId))
+        .for("update");
+      if (!company) throw new Error("PAYMENT_REQUEST_COMPANY_NOT_FOUND");
+
+      const [selectedPlan] = await tx
+        .select({ id: plans.id, isActive: plans.isActive })
+        .from(plans)
+        .where(eq(plans.id, lockedTarget.planId))
+        .for("share");
+      if (!selectedPlan?.isActive) throw new Error("PAYMENT_REQUEST_PLAN_UNAVAILABLE");
 
       const [existingSub] = await tx
         .select()
         .from(subscriptions)
-        .where(eq(subscriptions.companyId, target.companyId))
+        .where(eq(subscriptions.companyId, lockedTarget.companyId))
         .for("update");
 
       if (existingSub) {
+        const extendsCurrentPeriod = existingSub.status === "active"
+          && existingSub.planId === lockedTarget.planId
+          && existingSub.currentPeriodEnd !== null
+          && existingSub.currentPeriodEnd > now;
+        const periodStart = extendsCurrentPeriod ? existingSub.currentPeriodStart : now;
+        const periodEndBase = extendsCurrentPeriod ? existingSub.currentPeriodEnd! : now;
+        const periodEnd = new Date(periodEndBase.getTime() + durationDays * 24 * 60 * 60 * 1000);
         await tx
           .update(subscriptions)
           .set({
-            planId: target.planId,
+            planId: lockedTarget.planId,
             plan: "pro",
             status: "active",
-            billingCycle: target.billingCycle,
-            currentPeriodStart: now,
+            billingCycle: lockedTarget.billingCycle,
+            currentPeriodStart: periodStart,
             currentPeriodEnd: periodEnd,
             updatedAt: now,
           })
           .where(eq(subscriptions.id, existingSub.id));
       } else {
+        const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
         await tx.insert(subscriptions).values({
-          companyId: target.companyId,
-          planId: target.planId,
+          companyId: lockedTarget.companyId,
+          planId: lockedTarget.planId,
           plan: "pro",
           status: "active",
-          billingCycle: target.billingCycle,
+          billingCycle: lockedTarget.billingCycle,
           currentPeriodStart: now,
           currentPeriodEnd: periodEnd,
         });
@@ -591,28 +671,30 @@ export async function reviewBankTransferByAdmin(input: {
       await tx
         .update(companies)
         .set({ isSmartcheckEnabled: true })
-        .where(eq(companies.id, target.companyId));
+        .where(eq(companies.id, lockedTarget.companyId));
     }
 
     await tx.insert(adminAuditLogs).values({
       adminId: input.adminId,
-      targetCompanyId: target.companyId,
+      targetCompanyId: lockedTarget.companyId,
       action:
         input.decision === "approved"
           ? "billing.payment_request.approved"
           : "billing.payment_request.rejected",
       details: {
-        requestId: target.requestId,
-        referenceCode: target.referenceCode,
-        planId: target.planId,
-        planName: target.planName,
-        amountTry: target.amountTry,
-        billingCycle: target.billingCycle,
+        requestId: lockedTarget.requestId,
+        referenceCode: lockedTarget.referenceCode,
+        planId: lockedTarget.planId,
+        planName: lockedTarget.planName,
+        amountTry: lockedTarget.amountTry,
+        billingCycle: lockedTarget.billingCycle,
         reviewedByAdminId: input.adminId,
         adminDecisionNote: input.adminDecisionNote ?? null,
         status: input.decision,
       },
     });
+
+    return lockedTarget;
   });
 
   const refreshed = await getAllPaymentRequestsForAdmin();

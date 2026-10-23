@@ -206,6 +206,9 @@ export function registerAuthRoutes(app: Express) {
       }
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
       setSessionCookies(res, token);
+      const pendingPaymentOrder = result.pendingPaymentOrder
+        ? (({ createdNow: _createdNow, ...order }) => order)(result.pendingPaymentOrder)
+        : null;
       res.status(201).json({
         token: bodyToken(req, token),
         user: publicRegisteredUser(result.user),
@@ -214,7 +217,7 @@ export function registerAuthRoutes(app: Express) {
         accountType: intent === 'academy' ? 'academy_learner' : 'workspace',
         academyEnrolled: result.academyEnrolled,
         emailVerificationRequired: true,
-        pendingPaymentOrder: result.pendingPaymentOrder,
+        pendingPaymentOrder,
       });
     } catch (error) {
       if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });

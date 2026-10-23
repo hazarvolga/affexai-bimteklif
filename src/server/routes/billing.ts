@@ -104,18 +104,13 @@ export function registerBillingRoutes(app: Express) {
         const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
         const billingCycle = normalizeBillingCycle(req.body?.billingCycle);
         if (!planId) return res.status(400).json({ error: "Paket seçimi zorunludur." });
-        const existing = await getCompanyPaymentRequests(req.user.companyId);
-        const awaiting = existing.find((r) => r.planId === planId && r.status === "awaiting_transfer");
-        if (awaiting) {
-          return res.json(awaiting);
-        }
         const [company] = await db
           .select({ id: companies.id, name: companies.name })
           .from(companies)
           .where(eq(companies.id, req.user.companyId))
           .limit(1);
         if (!company) return res.status(404).json({ error: "Şirket bulunamadı." });
-        const created = await createInitialPaymentOrder({
+        const result = await createInitialPaymentOrder({
           companyId: company.id,
           companyName: company.name,
           userId: req.user.userId,
@@ -123,10 +118,11 @@ export function registerBillingRoutes(app: Express) {
           planId,
           billingCycle,
         });
-        if (!created) {
+        if (!result) {
           return res.status(400).json({ error: "Seçilen paket için havale siparişi oluşturulamadı." });
         }
-        if (req.user.email && req.user.email.includes("@")) {
+        const { createdNow, ...created } = result as typeof result & { createdNow?: boolean };
+        if (createdNow !== false && req.user.email && req.user.email.includes("@")) {
           const publicBaseUrl = (process.env.PUBLIC_APP_URL || "https://bimmetraj.com").replace(/\/$/, "");
           const billingUrl = `${publicBaseUrl}/app/billing`;
           if (billingUrl.startsWith("https://")) {
@@ -152,7 +148,7 @@ export function registerBillingRoutes(app: Express) {
             });
           }
         }
-        return res.status(201).json(created);
+        return res.status(createdNow === false ? 200 : 201).json(created);
       } catch (error) {
         console.error("Payment order init error:", error);
         return res.status(500).json({ error: "Sipariş referans kodu oluşturulamadı." });
@@ -174,6 +170,21 @@ export function registerBillingRoutes(app: Express) {
       } catch (error) {
         if (error instanceof Error && error.message === "PAID_PLAN_REQUIRED") {
           return res.status(400).json({ error: "Yalnızca ücretli paketler için havale bildirimi yapılabilir." });
+        }
+        if (error instanceof Error && error.message === "PAYMENT_REQUEST_NOT_FOUND") {
+          return res.status(404).json({ error: "Sipariş referansı bulunamadı." });
+        }
+        if (error instanceof Error && error.message === "PAYMENT_REQUEST_SNAPSHOT_MISMATCH") {
+          return res.status(409).json({ error: "Sipariş paketi veya faturalama dönemi sonradan değiştirilemez." });
+        }
+        if (error instanceof Error && error.message === "PAYMENT_REQUEST_ALREADY_SUBMITTED") {
+          return res.status(409).json({ error: "Ödeme bildirimi daha önce gönderilmiş veya sonuçlandırılmış." });
+        }
+        if (error instanceof Error && error.message === "PAYMENT_RECEIPT_INVALID") {
+          return res.status(400).json({ error: "Geçerli bir dekont veya banka işlem referans numarası zorunludur." });
+        }
+        if (error instanceof Error && error.message === "PAYMENT_RECEIPT_ALREADY_USED") {
+          return res.status(409).json({ error: "Bu dekont veya işlem referansı daha önce kullanılmış." });
         }
         console.error("Bank transfer notification error:", error);
         return res.status(500).json({ error: "Ödeme bildirimi kaydedilemedi." });

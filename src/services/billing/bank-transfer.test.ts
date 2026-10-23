@@ -7,6 +7,8 @@ import {
   parseBankAccountsInput,
   parseEnvBankAccounts,
   reconstructPaymentRequests,
+  normalizePaymentReceipt,
+  submitBankTransferInputSchema,
 } from "./bank-transfer";
 import {
   calculateBillingPeriodPricing,
@@ -92,6 +94,22 @@ test("parseBankAccountsInput validates multi-bank payload and rejects malformed 
 test("generatePaymentReferenceCode produces deterministic prefix with year and suffix", () => {
   const code = generatePaymentReferenceCode("Drone Mühendislik", new Date("2026-10-15T10:00:00Z"), "9F2A");
   assert.equal(code, "BM-2026-DRN-9F2A");
+});
+
+test("bank transfer submission requires a receipt or bank transaction reference", () => {
+  const base = {
+    requestId: "123e4567-e89b-12d3-a456-426614174000",
+    planId: "2b507e20-83d1-4b21-9fc1-000000000004",
+    billingCycle: "monthly",
+    senderName: "Drone Mühendislik",
+  };
+  assert.equal(submitBankTransferInputSchema.safeParse(base).success, false);
+  const parsed = submitBankTransferInputSchema.safeParse({ ...base, transferReference: "  bank-ref-1  " });
+  assert.equal(parsed.success, true);
+  if (parsed.success) assert.equal(parsed.data.receiptNumber, "bank-ref-1");
+  assert.equal(normalizePaymentReceipt(" ＲＡＣＥ－１ "), "RACE-1");
+  assert.equal(submitBankTransferInputSchema.safeParse({ ...base, transferReference: "RACE\u200B-1" }).success, false);
+  assert.equal(submitBankTransferInputSchema.safeParse({ ...base, requestId: undefined, transferReference: "RACE-1" }).success, false);
 });
 
 test("calculateBillingPeriodPricing computes 0%, 10%, 20%, and 30% discounts accurately", () => {
@@ -200,5 +218,31 @@ test("reconstructPaymentRequests merges lifecycle events from awaiting_transfer 
   assert.equal(list[0].senderName, "Drone Mühendislik Ltd. Şti.");
   assert.equal(list[0].reviewedByAdminId, "admin-99");
   assert.equal(list[0].adminDecisionNote, "Dekont Garanti BBVA hesabında doğrulandı.");
+});
+
+test("payment lifecycle reduction never moves pending or terminal states backwards", () => {
+  const base = {
+    requestId: "req-monotonic",
+    referenceCode: "BM-2026-MONOTONIC",
+    companyId: "company",
+    companyName: "Company",
+    userId: "user",
+    userEmail: "owner@example.test",
+    planId: "plan",
+    planName: "Plan",
+    amountTry: 1000,
+    billingCycle: "monthly",
+  };
+  const events = [
+    { id: "submitted", adminId: "user", targetCompanyId: "company", action: "billing.payment_request.submitted", createdAt: new Date("2026-10-24T10:00:00Z"), details: base },
+    { id: "created", adminId: "user", targetCompanyId: "company", action: "billing.payment_request.created", createdAt: new Date("2026-10-24T10:00:01Z"), details: base },
+  ];
+  assert.equal(reconstructPaymentRequests(events)[0].status, "pending_approval");
+  const rejected = reconstructPaymentRequests([
+    ...events,
+    { id: "rejected", adminId: "admin", targetCompanyId: "company", action: "billing.payment_request.rejected", createdAt: new Date("2026-10-24T10:00:02Z"), details: { requestId: base.requestId } },
+    { id: "late-submit", adminId: "user", targetCompanyId: "company", action: "billing.payment_request.submitted", createdAt: new Date("2026-10-24T10:00:03Z"), details: base },
+  ]);
+  assert.equal(rejected[0].status, "rejected");
 });
 
