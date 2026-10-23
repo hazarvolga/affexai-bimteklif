@@ -2,13 +2,13 @@ import { createStorageAdapter } from './storage';
 import { detectAndValidateFile } from './file-security';
 import crypto from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { makeWorkerUtils } from 'graphile-worker';
 import { db } from '../../db';
 import { adminAuditLogs, documents, documentProcessingRuns, plans, smartcheckAuditLogs, subscriptions, usageRecords } from '../../db/schema';
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
 import { fetchTenantIfcLimits, graphileWorkerSchema } from './config';
+import { assertGraphileWorkerSchemaRevision } from './queue-readiness';
 const graphileSchema = () => graphileWorkerSchema();
 
 export class ProcessingConflict extends Error {
@@ -20,14 +20,12 @@ export class ProcessingConflict extends Error {
 let readiness: { key: string; promise: Promise<void> } | undefined;
 export async function ensureQueueSchema() {
   const schema = graphileSchema();
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) throw new Error('DATABASE_URL is required');
-  const key = `${connectionString}:${schema}`;
+  const key = schema;
   if (readiness?.key !== key) {
     const promise = (async () => {
-      // WorkerUtils initializes/migrates its schema before returning. Never enqueue outside the application transaction.
-      const utils = await makeWorkerUtils({ connectionString, schema });
-      await utils.release();
+      const queueSchema = sql.identifier(schema);
+      const result = await db.execute<{ latest: number | null }>(sql`select max(id)::int as latest from ${queueSchema}.migrations`);
+      assertGraphileWorkerSchemaRevision(result.rows[0]?.latest);
     })();
     readiness = { key, promise };
     promise.catch(() => { if (readiness?.promise === promise) readiness = undefined; });
@@ -39,13 +37,13 @@ type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export async function removePendingJob(tx: Transaction, runId: string) {
   const schema = sql.identifier(graphileSchema());
   // remove_job locks/mutates atomically. Roll back even its key clearing if a worker owns the job.
-  const result = await tx.execute<{ locked_at: Date | null }>(sql`select locked_at from ${schema}.remove_job(${`smartcheck:${runId}`})`);
+  const result = await tx.execute<{ locked_at: Date | null }>(sql`select locked_at from ${schema}.bimmetraj_remove_smartcheck_job(${`smartcheck:${runId}`})`);
   if (result.rows[0]?.locked_at) throw new ProcessingConflict('PROCESSING_JOB_ACTIVE');
 }
 
 export async function enqueueSmartCheckProcessing(tx: Transaction, kind: 'ifc' | 'xlsx' | 'csv' | 'pdf', payload: any, runId: string) {
   const taskName = kind === 'ifc' || kind === 'pdf' ? 'process_smartcheck_ifc_document' : 'process_smartcheck_document';
-  await tx.execute(sql`select ${sql.identifier(graphileSchema())}.add_job(${taskName}, ${JSON.stringify(payload)}::json, job_key := ${`smartcheck:${runId}`}, max_attempts := 3, priority := ${kind === 'pdf' ? 10 : 0})`);
+  await tx.execute(sql`select ${sql.identifier(graphileSchema())}.bimmetraj_enqueue_smartcheck(${taskName}, ${JSON.stringify(payload)}::json, ${`smartcheck:${runId}`}, 3, ${kind === 'pdf' ? 10 : 0})`);
 }
 
 export async function changeProcessingRun(input: {
