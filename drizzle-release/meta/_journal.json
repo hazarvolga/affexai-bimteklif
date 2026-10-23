@@ -64,6 +64,13 @@
       "when": 1791417600008,
       "tag": "0008_pilot_exception_rows",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791417600009,
+      "tag": "0009_price_source_authorization",
+      "breakpoints": true
     }
   ]
 }

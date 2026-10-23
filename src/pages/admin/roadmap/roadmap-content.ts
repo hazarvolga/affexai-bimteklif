@@ -261,17 +261,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 40 · 13–22 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 41 · 13–23 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 40)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) bugünkü canlı sürüme (22 Ekim 2026 Rev. 40 · BIM-CALC-2026-10-22.34) kadar geçirdiği tüm aşamaları katı kronolojik sırayla kayıt altına alır. Her adımda önceki durumun ne olduğu, hangi resmi belge veya mühendislik bulgusuyla nasıl değiştirildiği ve hangi kod dosyalarının etkilendiği açıkça gösterilmiştir.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 41)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3 ve 5D metraj motorlarının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 23 Ekim 2026 Rev. 41 · BIM-CALC-2026-10-23.35 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 41 geliştirme kanıtıdır; bağımsız uzman kabulü ve ÇŞB/YFK ticari kullanım izni bekler, canlı yayın iddiası taşımaz.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 40):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 41):",
       },
       {
         type: "table",
@@ -518,16 +518,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) Hızlı Tur ve Yönetici Turu, başlatıldıkları sayfanın adımından açılır (örn. SmartCheck → 07/14, IFC Ön Analiz → 08/14; /app/quotes/:id gibi alt sayfalar üst sayfanın adımına bağlanır); tur artık önce Panel'e gidip geri dönmez. 2) Açık modda saydamlık ekli pastel metin sınıfları (örn. text-amber-300/90) koyu pafta mürekkebine çevrilir; Firmalar sayfasındaki soluk 'IFC: 0 / 35' satırı ve görünmeyen kota çubuğu düzeltildi; hover:/dark: varyantları ve koyu mod etkilenmez. 3) Panel'deki Evre kartlarından sabit '325 kg/m³ çimento ve %10 fire', '%1 KDV marjı', '2 cm sıva düşümü / +0,40 m² söve' ifadeleri kaldırıldı; kartlar dozaj, fire, kalınlık ve toleransın kullanıcı girdisi, sonuçların ön hesap olduğunu söyler. Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 40 (Güncel)",
+            "Rev. 40",
             "22 Ekim 2026 (Node.js v24.22.1 Güvenlik Yaması & Üretim Sunucusu Sertleştirmesi)",
             "BIM-CALC-2026-10-22.34",
             "1) Node.js güvenlik bülteni (CVE-2026-111497 Brotli çözücü sınır dışı bellek yazma ve CVE-2026-105483 TLS sertifika doğrulama atlama) kapsamında Dockerfile içindeki üç aşama (dependencies, runtime, ifc-runtime) ve CI iş akışı (.github/workflows/verify.yml) node:24.18.0-bookworm-slim sürümünden node:24.22.1-bookworm-slim sürümüne yükseltildi. 2) Üretim sunucusunda (affexai-prod) Coolify .env ve uygulama ortam dosyaları chmod 600 ile kilitlendi, SSH daemon (X11Forwarding no, AllowAgentForwarding no, MaxAuthTries 4) sertleştirildi, sistem güvenlik paketleri (apparmor, libapparmor1, snapd, open-vm-tools) yükseltildi ve gece yarısı habersiz kesintileri önlemek üzere Coolify otomatik güncelleme (is_auto_update_enabled=false) manuel onaylı moda alındı. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 41 (Güncel geliştirme)",
+            "23 Ekim 2026 (Faz 1 — Poz, Birim ve Fiyat Kaynağı)",
+            "BIM-CALC-2026-10-23.35",
+            "T05–T09 kapsamında 18.848 satır yapısal katalog denetimi, exact poz/birim/semantik çözümleyici, kanıt gerektiren boyutsal dönüşüm sözleşmesi ve tenant ayrımlı fiyat snapshot kapısı kuruldu. Sabit/demo fiyatlar Calm maliyetinden çıkarıldı; BYOL/ÇŞB seçimi gerçek kaynak havuzunu değiştirir; yetki kanıtı, onay ve geçerlilik yoksa fiyat/teklif kilidi oluşmaz. ÇŞB/YFK kullanım izni ve bağımsız maliyet uzmanı kabulü bekliyor; production deploy yapılmadı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 40 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 41 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -916,6 +922,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) Dockerfile ve CI (.github/workflows/verify.yml) çalışma zamanı imajları node:24.18.0-bookworm-slim sürümünde sabitlenmişti. 2) Coolify 4.4.7 otomatik gece güncellemesi sırasında /data/coolify/source/.env içindeki tırnaksız boşluk (ROOT_USERNAME) nedeniyle yönetim paneli HTTP 500 döndürüyor ve .env dosya izinleri 644'e düşüyordu; ayrıca SSH daemon'da X11Forwarding açık ve otomatik gece güncellemeleri aktifti.",
             "1) Dockerfile (dependencies, runtime, ifc-runtime) ve verify.yml içindeki Node.js sürümü v24.22.1 (node:24.22.1-bookworm-slim) güvenlik sürümüne yükseltildi. 2) Sunucu üzerinde Coolify .env ve uygulama ortam dosyaları chmod 600 ile kilitlendi, ROOT_USERNAME tırnak içine alındı, SSHD (X11Forwarding no, AllowAgentForwarding no, MaxAuthTries 4) ve AppArmor/Snapd güvenlik yamaları uygulandı, Coolify gece yarısı otomatik güncellemesi kapatılarak manuel onaylı moda alındı.",
             "Dockerfile, .github/workflows/verify.yml, docs/audits/GENEL_DURUM_GAP_BUG_SEO_GEO_RAKIP_RAPORU_2026-10-21.md, docs/agent-memory/HANDOFF_2026-10-21_ARA.md",
+          ],
+          [
+            "Rev. 41 · 23 Ekim 2026 (Faz 1 — Kaynaklı ve Birim Güvenli Fiyat Çözümü)",
+            "Faz 0 kanıt sözleşmesi; boyutsal analiz; tenant izolasyonu; immutable fiyat provenance",
+            "IFC sınıflandırıcısı pozla birlikte 14 sabit TL fiyat üretiyor, BYOL/ÇŞB seçimi hesabı değiştirmiyor, alan÷0,06 ile mtül türetilebiliyor ve yetkisiz/advisory fiyat teklif kilidine girebiliyordu.",
+            "Sabit fiyatlar kaldırıldı; bilinen dört yanlış poz çözülmemiş olarak işaretlendi. Üretim fiyat önerisi exact kod, birim, semantik, güncellik ve TRY kapısında fail-closed çalışır. m²↔m³/m dönüşümü için doğrulanmış boyut isteyen sözleşme ve testler eklendi; kalan eski metraj entegrasyonu açıkça izlenir. Kaynak authorization durumu/kapsamı/gerçek payload hash'i/karar vereni/tarihi saklanır; teklif kilidi satır eşdeğerliğini transaction içinde yeniden doğrular. Eksik kanıt UI'da görünür ve aktarımı durdurur.",
+            "src/services/pricing/catalog-audit.ts, src/ifc/pricing/*, src/domain/quantity/quantity-contract.ts, src/smartcheck/pricing/authorization.ts, src/server/routes/pricing.ts, src/db/schema.ts, drizzle-release/0009_price_source_authorization.sql, src/components/smartcheck/CalmIfcWorkspace.tsx",
           ],
         ],
       },

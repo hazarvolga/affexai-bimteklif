@@ -57,7 +57,31 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       report.baselineSignature = baselineSignature;
     });
     await check('additive migration reaches 68 tables and matches current Drizzle schema', async () => {
-      assert.deepEqual(await applyMigrations(fresh, migrations), migrations.slice(1).map(m => m.tag));
+      assert.deepEqual(await applyMigrations(fresh, migrations, 8), migrations.slice(1, 9).map(m => m.tag));
+      const fixture = {
+        company: '33333333-3333-4333-8333-333333333333', user: '44444444-4444-4444-8444-444444444444',
+        client: '55555555-5555-4555-8555-555555555555', source: '66666666-6666-4666-8666-666666666666',
+        matchingSnapshot: '77777777-7777-4777-8777-777777777777', newerSnapshot: '88888888-8888-4888-8888-888888888888',
+        quote: '99999999-9999-4999-8999-999999999999', item: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        matchingEvidence: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', newerEvidence: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      };
+      await fresh.query(`insert into companies(id,name) values ($1,'Legacy evidence fixture')`, [fixture.company]);
+      await fresh.query(`insert into users(id,email,full_name) values ($1,'legacy-evidence@example.test','Legacy Reviewer')`, [fixture.user]);
+      await fresh.query(`insert into memberships(user_id,company_id,role) values ($1,$2,'owner')`, [fixture.user, fixture.company]);
+      await fresh.query(`insert into clients(id,company_id,name,type) values ($1,$2,'Legacy Client','company')`, [fixture.client, fixture.company]);
+      await fresh.query(`insert into price_sources(id,company_id,source_type,name,source_document_hash,created_by_user_id) values ($1,$2,'supplier_quote','Legacy source',$3,$4)`, [fixture.source, fixture.company, 'a'.repeat(64), fixture.user]);
+      for (const [id, key] of [[fixture.matchingSnapshot, 'matching'], [fixture.newerSnapshot, 'newer']]) {
+        await fresh.query(`insert into price_snapshots(id,company_id,price_source_id,snapshot_key,description,unit,amount,source_document_hash) values ($1,$2,$3,$4,'Legacy price','adet',100,$5)`, [id, fixture.company, fixture.source, key, 'a'.repeat(64)]);
+      }
+      await fresh.query(`insert into quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total) values ($1,$2,$3,'LEGACY-1','Legacy quote',now() + interval '1 day',100,0,20,120)`, [fixture.quote, fixture.company, fixture.client]);
+      await fresh.query(`insert into quotation_items(id,company_id,quotation_id,description,unit,quantity,unit_price,total,price_snapshot_id) values ($1,$2,$3,'Legacy item','adet',1,100,100,$4)`, [fixture.item, fixture.company, fixture.quote, fixture.matchingSnapshot]);
+      await fresh.query(`insert into quotation_item_evidence(id,company_id,quotation_id,quotation_item_id,evidence_type,evidence_key,price_snapshot_id,status,created_by_user_id,created_at) values ($1,$2,$3,$4,'price','matching',$5,'current',$6,'2025-01-01'),($7,$2,$3,$4,'price','newer',$8,'current',$6,'2026-01-01')`, [fixture.matchingEvidence, fixture.company, fixture.quote, fixture.item, fixture.matchingSnapshot, fixture.user, fixture.newerEvidence, fixture.newerSnapshot]);
+      assert.deepEqual(await applyMigrations(fresh, migrations), [migrations[9].tag]);
+      const evidenceRows = (await fresh.query(`select id,status from quotation_item_evidence where quotation_item_id=$1 order by id`, [fixture.item])).rows;
+      assert.deepEqual(evidenceRows, [
+        { id: fixture.matchingEvidence, status: 'current' },
+        { id: fixture.newerEvidence, status: 'superseded' },
+      ]);
       const state = await catalog(fresh);
       assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 68);
       // Independently materialize the current structured Drizzle schema, not a dump

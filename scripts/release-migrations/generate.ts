@@ -4,6 +4,7 @@ import * as schema from '../../src/db/schema';
 import { releaseDirectory } from './config';
 import { loadMigrations } from './runner';
 import { sha256 } from './catalog';
+import { injectDataTransitions } from './data-transitions';
 
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 const [argument, ...extra] = process.argv.slice(2);
@@ -16,9 +17,9 @@ const journal = JSON.parse(await readFile(`${releaseDirectory}/meta/_journal.jso
 const idx = existing.length;
 const previous = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(idx - 1).padStart(4, '0')}_snapshot.json`, 'utf8'));
 const current = drizzleApi.generateDrizzleJson(schema, previous.id);
-const statements = await drizzleApi.generateMigration(previous, current);
-if (!statements.length) throw new Error('No schema changes to append');
 const tag = `${String(idx).padStart(4, '0')}_${name}`;
+const statements = injectDataTransitions(tag, await drizzleApi.generateMigration(previous, current));
+if (!statements.length) throw new Error('No schema changes to append');
 const sql = `${statements.join('\n--> statement-breakpoint\n')}\n`;
 const snapshot = json(current);
 await writeFile(`${releaseDirectory}/${tag}.sql`, sql, { flag: 'wx' });

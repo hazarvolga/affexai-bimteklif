@@ -27,7 +27,7 @@ test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout
   await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
   const [client] = await db.insert(schema.clients).values({ companyId: companyA.id, name: "Pricing Integration Client", type: "company" }).returning();
   const [quote] = await db.insert(schema.quotations).values({ companyId: companyA.id, clientId: client.id, quoteNumber: `PRICE-${suffix}`, projectName: "MEP Pricing Pilot", expiryDate: new Date(Date.now() + 86400000), subtotal: "1000", discountTotal: "0", vatTotal: "200", grandTotal: "1200" }).returning();
-  const [item] = await db.insert(schema.quotationItems).values({ companyId: companyA.id, quotationId: quote.id, description: "VRF dış ünite", unit: "adet", quantity: "2", unitPrice: "500", total: "1000" }).returning();
+  const [item] = await db.insert(schema.quotationItems).values({ companyId: companyA.id, quotationId: quote.id, description: "VRF dış ünite", unit: "adet", quantity: "2", unitPrice: "525", total: "1050", sourceReference: "M-001" }).returning();
   const tokenA = AuthService.generateToken({ userId: userA.id, companyId: companyA.id, role: "owner" });
   const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
   const app = createApiApp();
@@ -36,28 +36,31 @@ test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout
   const address = server.address();
   const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
   const request = (path: string, init: RequestInit = {}, token = tokenA) => fetch(`${base}${path}`, { ...init, headers: { Authorization: `Bearer ${token}`, ...(init.headers ?? {}) } });
-  const sourcePayload = { sourceType: "supplier_quote", name: "Pilot supplier snapshot", authority: "Pilot supplier", sourceDocumentIdentifier: `supplier-${suffix}`, sourceDocumentPayload: { version: "2026-07-23", supplier: "Pilot supplier", lines: 1 }, licenseStatus: "verified", jurisdiction: "TR", region: "İstanbul" };
+  const sourcePayload = { sourceType: "supplier_quote", sourceName: "Pilot supplier snapshot", authority: "Pilot supplier", sourceDocumentIdentifier: `supplier-${suffix}`, licenseStatus: "verified", jurisdiction: "TR", region: "İstanbul", validUntil: "2026-12-31T23:59:59.000Z", rows: [{ description: "VRF dış ünite", unit: "adet", amount: 525, currency: "TRY", positionCode: "M-001", confidence: 0.92 }] };
   let sourceId = "";
   let snapshotId = "";
   try {
-    const sourceResponse = await request("/api/pricing/sources", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(sourcePayload) });
+    const sourceResponse = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(sourcePayload) });
     assert.equal(sourceResponse.status, 201);
-    const source = await sourceResponse.json() as { id: string; sourceDocumentHash: string };
+    const imported = await sourceResponse.json() as { source: { id: string; sourceDocumentHash: string }; snapshots: Array<{ id: string }> };
+    const source = imported.source;
     sourceId = source.id;
+    snapshotId = imported.snapshots[0].id;
     assert.match(source.sourceDocumentHash, /^[a-f0-9]{64}$/);
     assert.equal((await request("/api/pricing/sources")).status, 200);
-    assert.equal((await request(`/api/pricing/sources/${sourceId}/snapshots`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ description: "VRF dış ünite", unit: "adet", amount: 525, currency: "TRY", positionCode: "M-001", sourceDocumentHash: source.sourceDocumentHash, validUntil: "2026-12-31T23:59:59.000Z", confidence: 0.92 }) })).status, 201);
     const snapshotResponse = await request(`/api/pricing/snapshots?positionCode=M-001`);
     assert.equal(snapshotResponse.status, 200);
     const snapshots = await snapshotResponse.json() as Array<{ id: string; stale: boolean }>;
     assert.equal(snapshots.length, 1);
     assert.equal(snapshots[0].stale, false);
-    snapshotId = snapshots[0].id;
+    assert.equal(snapshots[0].id, snapshotId);
     assert.equal((await request(`/api/pricing/snapshots?positionCode=M-001`, {}, tokenB)).status, 200);
     assert.equal((await request(`/api/pricing/sources/${sourceId}/snapshots`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ description: "cross tenant", unit: "adet", amount: 1, sourceDocumentHash: source.sourceDocumentHash }) }, tokenB)).status, 404);
     const preview = await request(`/api/quotations/${quote.id}/pricing-snapshot`);
     assert.equal(preview.status, 200);
     assert.equal((await preview.json() as { warnings: unknown[] }).warnings.length, 1);
+    const review = await request(`/api/pricing/snapshots/${snapshotId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Tedarikçi belgesi ve birim teyit edildi." }) });
+    assert.equal(review.status, 200);
     const lock = await request(`/api/quotations/${quote.id}/pricing-snapshot/lock`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ items: [{ quotationItemId: item.id, priceSnapshotId: snapshotId }] }) });
     assert.equal(lock.status, 200);
     const lockBody = await lock.json() as { lockStatus: string; lockHash: string };
@@ -139,6 +142,10 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
     assert.deepEqual(importBody.snapshots.map((snapshot) => snapshot.reviewStatus), ["advisory", "advisory"]);
     assert.equal(Number(importBody.snapshots[0].amount), 12500.5);
     assert.equal(importBody.snapshots[0].stale, false);
+    for (const snapshot of importBody.snapshots) {
+      const reviewResponse = await request(`/api/pricing/snapshots/${snapshot.id}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Tenant tarafından sağlanan katalog satırı incelendi." }) });
+      assert.equal(reviewResponse.status, 200);
+    }
     const tenantASnapshots = await request("/api/pricing/snapshots?positionCode=M-CSV-001");
     assert.equal(tenantASnapshots.status, 200);
     assert.equal((await tenantASnapshots.json() as unknown[]).length, 1);
@@ -159,10 +166,17 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
     const fuzzySuggestion = suggestionBody.suggestions.find((suggestion) => suggestion.rowId === "fuzzy-row")!;
     assert.equal(fuzzySuggestion.bestSuggestion?.snapshot.positionCode, "M-CSV-002");
     assert.match(fuzzySuggestion.bestSuggestion?.matchType ?? "", /^description_unit_/);
+    assert.equal(fuzzySuggestion.decision, "review_required");
     const unitWarningSuggestion = suggestionBody.suggestions.find((suggestion) => suggestion.rowId === "unit-warning-row")!;
     assert.equal(unitWarningSuggestion.decision, "review_required");
     assert.equal(unitWarningSuggestion.bestSuggestion?.matchType, "position_only_unit_mismatch");
     assert.ok(unitWarningSuggestion.bestSuggestion?.warnings.includes("UNIT_MISMATCH"));
+    const csbModeResponse = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode: "CSB_2026_REFERENCE", rows: [{ rowId: "csb-mode-row", positionCode: "M-CSV-001", description: "VRF dış ünite", unit: "adet" }] }) });
+    assert.equal(csbModeResponse.status, 200);
+    const csbModeBody = await csbModeResponse.json() as { mode: string; suggestions: Array<{ decision: string; bestSuggestion: unknown | null }> };
+    assert.equal(csbModeBody.mode, "CSB_2026_REFERENCE");
+    assert.equal(csbModeBody.suggestions[0].decision, "no_match");
+    assert.equal(csbModeBody.suggestions[0].bestSuggestion, null);
     const tenantBSuggestionResponse = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rows: [{ rowId: "tenant-b-row", positionCode: "M-CSV-001", description: "VRF dış ünite", unit: "adet" }] }) }, tokenB);
     assert.equal(tenantBSuggestionResponse.status, 200);
     const tenantBSuggestionBody = await tenantBSuggestionResponse.json() as { suggestions: Array<{ decision: string; bestSuggestion: unknown | null }> };

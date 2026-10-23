@@ -91,9 +91,9 @@ export default function BimGlossary() {
       abbreviation: 'ÇŞİDB Birim Fiyat Poz Kütüphanesi',
       turkishName: 'Resmi Birim Fiyat Poz Numaraları',
       category: 'Mali & Yönetim',
-      definition: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (Yüksek Fen Kurulu) tarafından her yıl yayınlanan, inşaat imalatlarının (beton, donatı, kalıp, ince işler) resmi poz numaraları, ölçü esasları (minha) ve birim fiyat tarifleridir.',
+      definition: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (Yüksek Fen Kurulu) tarafından yayımlanan imalat pozları, ölçü esasları ve dönemsel birim fiyat tarifleridir. Bir kaydın katalogda bulunması, ticari yazılımda kullanım yetkisi veya güncel/onaylı teklif fiyatı olduğu anlamına gelmez; belge sürümü, birim, geçerlilik ve kullanım hakkı ayrıca doğrulanır.',
       englishTranslation: 'Official Ministry Unit Price Cost Codes',
-      isoRole: '5D BIM metrajlarında IFC model nesnelerine TREpys_PozOzellikSeti.PozNo (veya Pset_ElementCost.CostCode) olarak atanarak otomatik maliyet hesabı sağlar.',
+      isoRole: '5D BIM metrajlarında TREpys_PozOzellikSeti.PozNo ile kaynak eşleştirmesine yardım eder; fiyat hesabı yalnız yetkilendirilmiş ve onaylı snapshot kaydıyla yapılır.',
       importance: 'Çok Yüksek'
     },
     {

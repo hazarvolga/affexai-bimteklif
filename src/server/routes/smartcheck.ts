@@ -19,7 +19,9 @@ import { summarizeEpysPreflight } from "../../smartcheck/import/epys-preflight-r
 import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../smartcheck/import/normalize";
 import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
-import { sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { evaluatePriceSourceAuthorization, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
+import { priceSnapshotMatchesQuotationItem } from "../../smartcheck/pricing/integrity";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota";
 import { recordUsage } from "../../services/billing/usage-audit";
@@ -511,8 +513,14 @@ export function registerSmartCheckRoutes(app: Express) {
     const overrides = parsedRequest.data.overrides ?? {};
     const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
     const snapshots = requestedSnapshotIds.length ? await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
-    if (snapshots.length !== new Set(requestedSnapshotIds).size || snapshots.some((snapshot) => snapshot.reviewStatus === "rejected")) return res.status(409).json({ error: "Geçersiz veya reddedilmiş fiyat snapshot seçildi.", code: "INVALID_PRICE_SNAPSHOT" });
-    const snapshotById = new Map(snapshots.map((snapshot) => [snapshot.id, snapshot]));
+    const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
+    const pricingSources = pricingSourceIds.length ? await db.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
+    const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
+    const invalidSnapshot = snapshots.find((snapshot) => {
+      const source = pricingSourceById.get(snapshot.priceSourceId);
+      return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+    });
+    if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
     const sourceDocuments = await db.select({ id: documents.id, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
     const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
     const transferResult = await db.transaction(async (tx) => {
@@ -520,6 +528,16 @@ export function registerSmartCheckRoutes(app: Express) {
       await tx.select({ id: quotations.id }).from(quotations).where(and(eq(quotations.id, quotation.parentId ?? quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
       const [currentQuote] = await tx.select().from(quotations).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
       if (!currentQuote?.isLatest || currentQuote.status !== "draft" || currentQuote.pricingSnapshotLockStatus === "locked") throw new Error("TRANSFER_QUOTE_CHANGED");
+      const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).for("update") : [];
+      const lockedSourceIds = [...new Set(lockedSnapshots.map((snapshot) => snapshot.priceSourceId))];
+      const lockedSources = lockedSourceIds.length ? await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, lockedSourceIds))).for("update") : [];
+      const lockedSourceById = new Map(lockedSources.map((source) => [source.id, source]));
+      const invalidLockedSnapshot = lockedSnapshots.find((snapshot) => {
+        const source = lockedSourceById.get(snapshot.priceSourceId);
+        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+      });
+      if (lockedSnapshots.length !== new Set(requestedSnapshotIds).size || lockedSources.length !== lockedSourceIds.length || invalidLockedSnapshot) throw new Error("INVALID_PRICE_SNAPSHOT");
+      const snapshotById = new Map(lockedSnapshots.map((snapshot) => [snapshot.id, snapshot]));
       const selected = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, rowIds))).for("share");
       if (selected.length !== new Set(rowIds).size || selected.some(row => !["approved", "accepted_exception"].includes(row.reviewStatus))) throw new Error("TRANSFER_REVIEW_CHANGED");
       const inserts = selected.map((row) => {
@@ -532,13 +550,17 @@ export function registerSmartCheckRoutes(app: Express) {
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
         if (![quantity, unitPrice, costUnitPrice, wastePercent, vatPercent].every(Number.isFinite) || quantity <= 0 || unitPrice < 0 || costUnitPrice < 0 || wastePercent < 0 || vatPercent < 0 || vatPercent > 100) throw new Error("INVALID_TRANSFER_VALUES");
+        if (priceSnapshot) {
+          const match = priceSnapshotMatchesQuotationItem({ description: row.normalizedDescription ?? row.rawDescription ?? "", unit: row.normalizedUnit ?? row.rawUnit ?? "", unitPrice, sourceReference: row.normalizedPositionCode ?? row.rawPositionCode }, priceSnapshot, quotation.currency);
+          if ("reason" in match) throw new Error(match.reason);
+        }
         const idempotencyKey = crypto.createHash("sha256").update(`${req.user.companyId}:${quotation.id}:${row.id}`).digest("hex");
         const item = { quantity, unitPrice, discountPercent: 0, vatPercent };
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
           wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
-          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
+          sourceReference: row.normalizedPositionCode ?? row.rawPositionCode, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
           priceSnapshotId: priceSnapshot?.id ?? null, priceSnapshotStatus: priceSnapshot ? "attached" : "missing",
@@ -575,7 +597,7 @@ export function registerSmartCheckRoutes(app: Express) {
     await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
     res.json({ quotationId: quotation.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
     } catch (error) {
-      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı veya taslak değişti; yeniden inceleyin.", code: error.message });
+      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı, fiyat kanıtı veya taslak değişti; yeniden inceleyin.", code: error.message });
       next(error);
     }
   });
@@ -594,14 +616,30 @@ export function registerSmartCheckRoutes(app: Express) {
 
       const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
       const snapshots = requestedSnapshotIds.length ? await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
-      if (snapshots.length !== new Set(requestedSnapshotIds).size || snapshots.some((snapshot) => snapshot.reviewStatus === "rejected")) return res.status(409).json({ error: "Geçersiz veya reddedilmiş fiyat snapshot seçildi.", code: "INVALID_PRICE_SNAPSHOT" });
-      const snapshotById = new Map(snapshots.map((snapshot) => [snapshot.id, snapshot]));
+      const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
+      const pricingSources = pricingSourceIds.length ? await db.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
+      const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
+      const invalidSnapshot = snapshots.find((snapshot) => {
+        const source = pricingSourceById.get(snapshot.priceSourceId);
+        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+      });
+      if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
       const sourceDocuments = await db.select({ id: documents.id, checksumSha256: documents.checksumSha256, originalFileName: documents.originalFileName }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
       const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
       const sourceFileName = sourceDocuments[0]?.originalFileName ?? "SmartCheck dosyası";
 
     const transferResult = await db.transaction(async (tx) => {
       await consumeQuotationQuota(tx, req.user.companyId);
+      const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).for("update") : [];
+      const lockedSourceIds = [...new Set(lockedSnapshots.map((snapshot) => snapshot.priceSourceId))];
+      const lockedSources = lockedSourceIds.length ? await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, lockedSourceIds))).for("update") : [];
+      const lockedSourceById = new Map(lockedSources.map((source) => [source.id, source]));
+      const invalidLockedSnapshot = lockedSnapshots.find((snapshot) => {
+        const source = lockedSourceById.get(snapshot.priceSourceId);
+        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+      });
+      if (lockedSnapshots.length !== new Set(requestedSnapshotIds).size || lockedSources.length !== lockedSourceIds.length || invalidLockedSnapshot) throw new Error("INVALID_PRICE_SNAPSHOT");
+      const snapshotById = new Map(lockedSnapshots.map((snapshot) => [snapshot.id, snapshot]));
       const selected = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, rowIds))).for("share");
       if (selected.length !== new Set(rowIds).size || selected.some(row => !["approved", "accepted_exception"].includes(row.reviewStatus))) throw new Error("TRANSFER_REVIEW_CHANGED");
       const client = parsedRequest.data.clientId
@@ -644,13 +682,17 @@ export function registerSmartCheckRoutes(app: Express) {
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
         if (![quantity, unitPrice, costUnitPrice, wastePercent, vatPercent].every(Number.isFinite) || quantity <= 0 || unitPrice < 0 || costUnitPrice < 0 || wastePercent < 0 || vatPercent < 0 || vatPercent > 100) throw new Error("INVALID_TRANSFER_VALUES");
+        if (priceSnapshot) {
+          const match = priceSnapshotMatchesQuotationItem({ description: row.normalizedDescription ?? row.rawDescription ?? "", unit: row.normalizedUnit ?? row.rawUnit ?? "", unitPrice, sourceReference: row.normalizedPositionCode ?? row.rawPositionCode }, priceSnapshot, parsedRequest.data.currency ?? "TRY");
+          if ("reason" in match) throw new Error(match.reason);
+        }
         const idempotencyKey = crypto.createHash("sha256").update(`${req.user.companyId}:${quotation.id}:${row.id}`).digest("hex");
         const item = { quantity, unitPrice, discountPercent: 0, vatPercent };
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
           wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
-          sourceReference: `${row.sheetName}!${row.sourceCellRange}`, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
+          sourceReference: row.normalizedPositionCode ?? row.rawPositionCode, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
           priceSnapshotId: priceSnapshot?.id ?? null, priceSnapshotStatus: priceSnapshot ? "attached" : "missing",
@@ -695,7 +737,7 @@ export function registerSmartCheckRoutes(app: Express) {
       if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       if (error instanceof Error && error.message === "TRANSFER_REVIEW_CHANGED") return res.status(409).json({ error: "İnceleme kararı değişti; yeniden yükleyin.", code: error.message });
       if (error instanceof Error && error.message === "SMARTCHECK_CLIENT_NOT_FOUND") return res.status(404).json({ error: "Seçili müşteri bulunamadı." });
-      if (error instanceof Error && error.message === "INVALID_TRANSFER_VALUES") return res.status(409).json({ error: "Aktarım miktar/fiyat değerleri geçersiz veya eksik.", code: "INVALID_TRANSFER_VALUES" });
+      if (error instanceof Error && ["INVALID_TRANSFER_VALUES", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım miktar/fiyat kanıtı değerleri geçersiz veya uyumsuz.", code: error.message });
       console.error("SmartCheck new quotation transfer failed", error);
       return res.status(500).json({ error: "Yeni taslak teklif oluşturulamadı.", code: "SMARTCHECK_NEW_QUOTATION_TRANSFER_FAILED" });
     }
@@ -966,11 +1008,13 @@ export function registerSmartCheckRoutes(app: Express) {
                 authority: "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı — Yüksek Fen Kurulu",
                 sourceDocumentIdentifier: sampleSourceIdentifier,
                 sourceDocumentHash: sourceDocHash,
-                licenseStatus: "verified",
+                licenseStatus: "unknown",
+                authorizationStatus: "pending",
+                authorizationScope: "demo-only; commercial reference use is blocked until evidence is recorded",
                 jurisdiction: "TR",
                 region: "TR-Genel",
                 createdByUserId: req.user.userId,
-                metadataJson: { seededBy: "smartcheck_sample_project" },
+                metadataJson: { seededBy: "smartcheck_sample_project", demoOnly: true, commercialUseBlocked: true },
               })
               .returning();
 
@@ -1003,11 +1047,12 @@ export function registerSmartCheckRoutes(app: Express) {
               sourceDocumentHash: sourceDocHash,
               sourceVersion: "2026-1",
               confidence: "0.95",
-              reviewStatus: "approved",
-              reviewedByUserId: req.user.userId,
-              reviewedAt: now,
-              reviewerNotes: "Örnek proje denemesi için hazır referans birim fiyat kaydı.",
-              metadataJson: { seededBy: "smartcheck_sample_project" },
+              reviewStatus: "advisory",
+              reviewedByUserId: null,
+              reviewedAt: null,
+              reviewerNotes: "Demo satırı; kaynak kullanım yetkisi ve fiyat doğrulaması tamamlanmadan teklif fiyatı olarak kullanılamaz.",
+              createdByUserId: req.user.userId,
+              metadataJson: { seededBy: "smartcheck_sample_project", demoOnly: true, commercialUseBlocked: true },
             })
             .onConflictDoNothing({
               target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey],

@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-22.34",
-  updatedOn: "22 Ekim 2026",
-  implementationBaseline: "bfb96eaa64bf06b30dddae473e32ead6ad589761",
-  approvalStatus: "33 çok yazılımlı IFC modeli, 4 Allplan Excel raporu çapraz doğrulaması, Yetenek Kaydı & Kanıt Kapısı (BIM-CAP-2026-10-17.11), Kamu İhale Genel Tebliği m.45.1.1 kuruş hassasiyetli Golden Test seti, 6 resmi ÇŞB 2026 kitabında 18.848/18.848 tam satır alımı, 4735 Sayılı Kanun Fiyat Farkı & ÇŞB-TÜİK 21 Alt Endeks motoru, ISO 19650 CDE durum geçiş doğrulayıcısı, şantiye hakediş saha geri bildirimleri, 6 maddelik Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, gerçek Chromium (puppeteer + axe-core) Açık/Koyu mod WCAG 2.2 AA 0-ihlal kapısı, 7 maddelik IFC Kapsam & Veri Tutarlılığı Kapısı (IfcConsistencyReport / IfcCoverageCard) ve Node.js v24.22.1 konteyner/sunucu güvenlik sertleştirmesi tamamlandı · bağımsız uzman imzasına hazır",
+  version: "BIM-CALC-2026-10-23.35",
+  updatedOn: "23 Ekim 2026",
+  implementationBaseline: "50896d50239db18ca01f0459c2de6e07ad94a45d",
+  approvalStatus: "Faz 1 kaynaklı fiyat kapısı teknik olarak test edildi: 18.848 satır yapısal denetimi, fail-closed poz/birim çözümleyici, kanıtlı miktar dönüşüm sözleşmesi, tenant ayrımlı BYOL/ÇŞB seçimi ve immutable fiyat snapshot geçmişi. ÇŞB/YFK ticari kullanım yetki belgesi ile bağımsız maliyet uzmanı kabulü bekliyor; bu kayıt uzman onayı değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1022,6 +1022,33 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 41",
+    version: "BIM-CALC-2026-10-23.35",
+    date: "23 Ekim 2026",
+    commit: "phase-1-price-source-gate",
+    trigger: "GAP kapatma yol haritası Faz 1 (T05–T09): poz, birim ve fiyat kaynağını kanıt zincirine bağlama.",
+    beforeSummary: "Calm IFC sınıflandırıcısı 14 sabit poz ve TL fiyatı birlikte üretiyor; BYOL/ÇŞB seçicisi yalnız UI durumunu değiştiriyor; alan÷0,06 ile mtül sessiz türetilebiliyor ve yetki kanıtı olmayan resmî referans teklif kilidine girebiliyordu.",
+    afterSummary: "Sınıflandırıcı fiyat üretmeyi bıraktı; dört bilinen yanlış poz üretim çıktısında çözülmemiş olarak işaretleniyor. Poz çözümü exact kod, birim, semantik ve koşul uyuşmazlığında fail-closed çalışıyor. m²↔m³ ve m²↔m dönüşümleri için kanıt zorunluluğunu tanımlayan sözleşme ve testler eklendi; tüm eski metraj akışlarına entegrasyonu ayrı iş olarak izleniyor. Fiyat kaynakları pending/authorized/restricted durumu, kapsam, gerçek payload hash'i, karar veren kullanıcı ve tarih taşır; yalnız tenant kapsamındaki yetkili, onaylı, güncel, para birimi ve teklif satırıyla eşdeğer snapshot kilitlenir. Demo/sabit fiyatlar ticari sonuçtan çıkarıldı.",
+    affectedModules: ["fiyat-eslestirme", "ifc-metraj", "ifc-teklif-aktarim"],
+    moduleDetails: {
+      "fiyat-eslestirme": {
+        before: "BYOL ve ÇŞB modu aynı yerel sabit fiyatları kullanıyor; lisans/yetki kanıtı veri seçiminde etkili değildi.",
+        after: "Mod seçimi tenant snapshot havuzunu gerçekten filtreler; yalnız authorized + evidence hash + approved + current + unit-compatible kayıt seçilir. ÇŞB yetkisi yoksa fiyat çözümü boş kalır.",
+        basis: "Faz 0 kanıt sözleşmesi; kaynak kullanım yetkisi ve tenant izolasyonu",
+      },
+      "ifc-metraj": {
+        before: "Süpürgelik uzunluğu yoksa alan 0,06 m sabit yüksekliğe bölünerek mtül türetiliyordu.",
+        after: "Doğrulanmış doğrudan uzunluk/çevre veya boyut kanıtı yoksa dönüşüm yapılmaz; eleman inceleme gerekçesiyle açıkta kalır.",
+        basis: "Boyutsal analiz ve ölçülebilir kanıt ilkesi",
+      },
+      "ifc-teklif-aktarim": {
+        before: "Sabit/demo fiyat veya advisory snapshot teklif aktarımı ve fiyat kilidinde kullanılabiliyordu.",
+        after: "Tüm kalemlerde kanıtlı snapshot olmadan Calm aktarımı kapalıdır; teklif kilidi yalnız approved ve authorized kaynağı kabul eder. Manuel fiyat ayrıca kullanıcı, tarih ve not taşır.",
+        basis: "Immutable fiyat geçmişi ve denetlenebilir provenance",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -1083,9 +1110,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "İş türüne göre fire sınırlarının gerçek saha verileriyle kalibrasyonu.",
   },
   "fiyat-eslestirme": {
-    scope: "6 resmi ÇŞB 2026 kitabında 18.848 satır tam kapsam, BYOL kurum içi lisanslı katalog modu ve TÜİK 21 alt endeksiyle dönem dışı güncelleme önerisi aktif.",
-    testFiles: ["src/smartcheck/pricing/snapshots.test.ts", "src/server/crawler/csb-pdf-parser.test.ts", "src/lib/price-escalation.test.ts"],
-    pending: "Gerçek katalogda poz/birim eşleşmesi, lisans, tarih ve öneri kalitesinin doğrulanması.",
+    scope: "18.848 satır kaynak/audit raporu; exact poz-birim-semantik resolver; tenant BYOL ve yetki kanıtlı ÇŞB kaynak ayrımı; onaylı immutable snapshot ve geçmiş teklif kilidi.",
+    testFiles: ["src/services/pricing/catalog-audit.test.ts", "src/ifc/pricing/poz-resolver.test.ts", "src/domain/quantity/quantity-contract.test.ts", "src/smartcheck/pricing/authorization.test.ts", "src/server/routes/pricing.integration.test.ts"],
+    pending: "Bağımsız maliyet uzmanının doğru imalat→poz kabulü ile ÇŞB/YFK ticari kullanım yetki belgesi; bunlar olmadan resmî referans fiyat kapalı kalır.",
   },
   "aykiri-fiyat": {
     scope: "Geçmiş örneklerle istatistiksel işaretleme; piyasa rayici veya kesin hata kararı değildir.",

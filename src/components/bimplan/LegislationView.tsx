@@ -250,7 +250,7 @@ export default function LegislationView() {
             T.C. Bakanlık Birim Fiyat (Poz) Eşleştirici
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            OpenBIM standardındaki IFC sınıflarını arayarak, Çevre, Şehircilik ve İklim Değişikliği Bakanlığı'nın resmi birim fiyat poz numaralarıyla olan ilişkisini ve birimlerini anında görüntüleyin.
+            IFC sınıfları için örnek poz adaylarını ve birimlerini inceleyin. Bu eğitim tablosu güncel katalog, imalat koşulu, ticari kullanım yetkisi veya teklif fiyatı onayı değildir; gerçek seçim yetkilendirilmiş tenant kaynağında ayrıca doğrulanır.
           </p>
         </div>
 
@@ -303,7 +303,7 @@ export default function LegislationView() {
           <div className="flex items-start gap-3 bg-orange-50/50 border border-orange-100 p-4 rounded-xl">
             <Info className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-relaxed font-semibold">
-              <strong>Önemli 5D Eşleştirme Kuralı:</strong> Modellerinizde 5D metraj ve teklif köprüsü kurarken, IFC yapı elemanlarına <code>TREpys_PozOzellikSeti.PozNo</code> (veya geriye dönük uyumluluk için <code>Tr_Pset_CSB.PozNo</code>) parametresi ekleyerek yukarıdaki ÇŞB poz kodlarını tanımlamanız gerekir. BIMMetraj SmartCheck motoru bu parametreyi doğrudan okuyarak kanıtlı metraj ve yaklaşık maliyet satırlarına aktarır.
+              <strong>Önemli 5D Eşleştirme Kuralı:</strong> Modellerinizde 5D metraj ve teklif köprüsü kurarken IFC yapı elemanlarına <code>TREpys_PozOzellikSeti.PozNo</code> (veya geriye dönük uyumluluk için <code>Tr_Pset_CSB.PozNo</code>) eklenebilir. SmartCheck bu kodu aday olarak okur; birim, semantik, geçerlilik ve kaynak kullanım yetkisi doğrulanmadan fiyat üretmez veya teklifi kilitlemez.
             </p>
           </div>
         </div>

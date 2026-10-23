@@ -15,7 +15,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
  await db.insert(s.subscriptions).values({companyId:company.id,plan:'starter',status:'active'});
  const [client]=await db.insert(s.clients).values({name:'Buyer',type:'company',companyId:company.id}).returning();
  const [reviewer]=await db.insert(s.users).values({email:'benchmark@example.test',fullName:'Reviewer'}).returning();
- const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000)}).returning();
+ const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000),authorizationStatus:'authorized',authorizationScope:'test fixture: tenant-approved benchmark lifecycle',authorizationEvidenceHash:'a'.repeat(64),authorizedAt:new Date()}).returning();
  const [row]=await db.insert(s.priceFeedStaging).values({sourceId:source.id,itemCode:'A',itemName:'Test',unit:'m3',crawledPrice:'100',status:'pending',reviewedAt:new Date(),reviewedByUserId:reviewer.id}).returning();
  const input=(fields={})=>manualQuotationInput.parse({clientId:client.id,quoteNumber:'T',projectName:'Test',date:'2026-01-01',expiryDate:'2026-12-31',items:[{description:'A - Test',unit:'m3',quantity:1,unitPrice:100,benchmarkStagingId:row.id,...fields}]});
  for(const status of ['pending','rejected']) await t.test(`refuses ${status} at save`,async()=>{

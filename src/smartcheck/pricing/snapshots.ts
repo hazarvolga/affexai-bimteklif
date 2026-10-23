@@ -6,6 +6,7 @@ export type PriceSnapshotLike = {
   currency: string;
   unit: string;
   sourceDocumentHash: string;
+  validFrom?: Date | string | null;
   validUntil: Date | string | null;
   reviewStatus: string;
 };
@@ -17,6 +18,16 @@ export type PricingLockItem = {
   amount: string | number | null;
   currency: string | null;
   unit: string | null;
+  sourceDocumentHash?: string | null;
+  authorizationEvidenceHash?: string | null;
+  authorizationScope?: string | null;
+  authorizedAt?: Date | string | null;
+  authorizedByUserId?: string | null;
+  snapshotCreatedByUserId?: string | null;
+  reviewedByUserId?: string | null;
+  reviewedAt?: Date | string | null;
+  validFrom?: Date | string | null;
+  validUntil?: Date | string | null;
 };
 
 export function stableJson(value: unknown): string {
@@ -51,8 +62,11 @@ export function buildPriceSnapshotKey(input: {
   });
 }
 
-export function isPriceSnapshotStale(snapshot: Pick<PriceSnapshotLike, "validUntil">, now = new Date()): boolean {
-  return snapshot.validUntil !== null && new Date(snapshot.validUntil).getTime() < now.getTime();
+export function isPriceSnapshotStale(snapshot: Pick<PriceSnapshotLike, "validFrom" | "validUntil">, now = new Date()): boolean {
+  const nowTime = now.getTime();
+  const startsInFuture = snapshot.validFrom != null && new Date(snapshot.validFrom).getTime() > nowTime;
+  const alreadyExpired = snapshot.validUntil != null && new Date(snapshot.validUntil).getTime() < nowTime;
+  return startsInFuture || alreadyExpired;
 }
 
 export function computePricingLockHash(items: PricingLockItem[]): string {
@@ -64,6 +78,16 @@ export function computePricingLockHash(items: PricingLockItem[]): string {
       amount: item.amount === null ? null : String(item.amount),
       currency: item.currency,
       unit: item.unit,
+      sourceDocumentHash: item.sourceDocumentHash ?? null,
+      authorizationEvidenceHash: item.authorizationEvidenceHash ?? null,
+      authorizationScope: item.authorizationScope ?? null,
+      authorizedAt: item.authorizedAt ? new Date(item.authorizedAt).toISOString() : null,
+      authorizedByUserId: item.authorizedByUserId ?? null,
+      snapshotCreatedByUserId: item.snapshotCreatedByUserId ?? null,
+      reviewedByUserId: item.reviewedByUserId ?? null,
+      reviewedAt: item.reviewedAt ? new Date(item.reviewedAt).toISOString() : null,
+      validFrom: item.validFrom ? new Date(item.validFrom).toISOString() : null,
+      validUntil: item.validUntil ? new Date(item.validUntil).toISOString() : null,
     }))
     .sort((a, b) => a.quotationItemId.localeCompare(b.quotationItemId)));
 }

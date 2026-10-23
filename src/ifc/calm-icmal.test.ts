@@ -116,12 +116,15 @@ test("buildCalmIfcDatasetFromElements explodes multi-layer IfcCovering, converts
   assert.equal(sap?.netQuantity, 25);
   assert.equal(parke?.netQuantity, 25);
   assert.equal(xps?.netQuantity, 25);
+  assert.match(parke?.pozCode ?? "", /^UNRESOLVED:/);
+  assert.match(xps?.pozCode ?? "", /^UNRESOLVED:/);
   assert.equal(fayans?.netQuantity, 35.4);
   assert.equal(fayans?.grossQuantity, 40.68);
   assert.equal(fayans?.deductedOpeningQuantity, 5.28);
   assert.equal(siva2cm?.netQuantity, 35.4);
   assert.equal(supurgelik?.netQuantity, 19.4);
   assert.equal(supurgelik?.unit, "mtül");
+  assert.match(supurgelik?.pozCode ?? "", /^UNRESOLVED:/);
 
   // Dynamic apartment schedule from D01 FLOORING element
   assert.equal(ds.apartments.length, 1);
@@ -239,7 +242,7 @@ test("brüt/boşluk yalnızca modelden gelir: model verisi olan kalem grossAvail
   assert.equal(supurgelik.grossAvailable, false);
 });
 
-test("süpürgelik uzunluğu modelde yoksa alan ÷ 0,06 varsayımı formül notunda açıkça belirtilir", () => {
+test("süpürgelik uzunluğu modelde yoksa alan ÷ 0,06 varsayımı yapılmaz ve eleman incelemeye bırakılır", () => {
   const el: ParsedIfcElement = {
     id: "9",
     guid: "g9",
@@ -256,9 +259,10 @@ test("süpürgelik uzunluğu modelde yoksa alan ÷ 0,06 varsayımı formül notu
     quantitySource: "qto",
     smartCheckStatus: "pass",
   };
-  const item = buildCalmIfcDatasetFromElements([el], null, "x.ifc").groups.flatMap((g) => g.items)[0];
-  assert.equal(item.netQuantity, 20);
-  assert.ok(item.formulaNote.includes("varsayımıyla türetildi"));
+  const dataset = buildCalmIfcDatasetFromElements([el], null, "x.ifc");
+  assert.equal(dataset.groups.flatMap((group) => group.items).length, 0);
+  assert.equal(dataset.consistencyReport?.uncoveredElementCount, 1);
+  assert.match(dataset.consistencyReport?.uncoveredElements[0]?.reason ?? "", /uzunluk\/çevre kanıtı yok/i);
 });
 
 test("daire brüt alanı: IFC'den gelmez, sabit çarpanla üretilmez (null)", () => {

@@ -37,7 +37,7 @@ const LANDING_ROUTE_META: Record<string, { title: string; description: string; c
   },
   '/features': {
     title: 'Özellikler — IFC QTO, TS 500 Sihirbazı, SmartCheck & RG 33331 e-PYS | BIMMetraj',
-    description: 'openBIM IFC 2x3/4/4X3 metraj çıkarma, TS 500 kiriş-döşeme kesişim ve CSB_2026_V1 Minha düşümü, ÇŞB 2026 570+ onaylı poz/rayiç kataloğu ve RG 33331 EK-9 ön kontrolü.',
+    description: 'openBIM IFC 2x3/4/4X3 metraj çıkarma, TS 500 kiriş-döşeme kesişim ve CSB_2026_V1 Minha düşümü, kaynak denetimli fiyat snapshot akışı ve RG 33331 EK-9 ön kontrolü.',
     canonicalPath: '/features',
   },
   '/about': {
@@ -425,12 +425,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 <div className="flex items-center gap-4">
                   <span className="text-muted-foreground">PROJE: <strong className="text-foreground">Kadıköy Konutları Kaba Yapı</strong></span>
                   <span className="hidden sm:inline text-muted-foreground">REV: <strong className="text-primary font-bold">02</strong></span>
-                  <span className="hidden md:inline text-muted-foreground">HAZIRLAYAN: <strong className="text-foreground">Ahmet Y. (İnş. Müh.)</strong></span>
+                  <span className="hidden md:inline text-muted-foreground">VERİ TÜRÜ: <strong className="text-foreground">Sentetik ürün demosu</strong></span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="stamp-badge border-primary/40 text-primary bg-primary/10">
                     <BadgeCheck size={13} className="shrink-0" />
-                    Teknik Onaylı
+                    Sentetik Demo · Uzman Onayı Değil
                   </span>
                   <span className="text-muted-foreground">ÖRNEK PAFTA: <strong className="text-foreground tabular-nums">REV-02</strong></span>
                 </div>
@@ -477,8 +477,8 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 {/* Right: Dense Metraj Cetveli Table */}
                 <div className="lg:col-span-7 overflow-x-auto" tabIndex={0} role="region" aria-label="Metraj Cetveli ve Fiyat Dağılımı">
                   <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between font-mono text-xs">
-                    <span className="font-semibold text-foreground">Metraj Cetveli & Fiyat Dağılımı</span>
-                    <span className="text-muted-foreground tabular-nums">Toplam: <strong className="text-foreground">2.888.250,00 ₺</strong></span>
+                    <span className="font-semibold text-foreground">Örnek Metraj Cetveli & Demo Fiyat Dağılımı</span>
+                    <span className="text-muted-foreground tabular-nums">Sentetik toplam: <strong className="text-foreground">2.888.250,00 ₺</strong></span>
                   </div>
                   <table className="w-full text-left text-xs font-mono">
                     <thead className="bg-muted/50 border-b border-border text-muted-foreground">
@@ -534,8 +534,8 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">ÇŞB 2026 & Fiyat Kataloğu</span>
-                <p className="mt-1 text-sm font-medium text-foreground">18.848 Onaylı Poz & Rayiç (6 Kitap)</p>
-                <p className="mt-1 text-xs text-muted-foreground">SHA-256 mühürlü 6 resmi ÇŞB 2026 PDF kitabı (İnşaat/Mekanik/Elektrik BF, Rayiç, Yaklaşık Maliyet, TÜİK Endeks) ve firma fiyat kataloğunuz (BYOL) kaynak iziyle cetvele bağlanır.</p>
+                <p className="mt-1 text-sm font-medium text-foreground">18.848 Kaynak Satırı · Kullanım Yetkisi Ayrı Kapı</p>
+                <p className="mt-1 text-xs text-muted-foreground">6 ÇŞB 2026 PDF kitabından ayrıştırılan satırlar ile firma BYOL kataloğu ayrı tutulur. Yalnız kullanım yetkisi kanıtlı, tenant'a ait, incelenmiş ve geçerli fiyat snapshot'ı cetvele bağlanır.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 · ISO 19650 & PDF/A</span>
@@ -585,11 +585,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">ÇŞB 2026 6 Resmi Kitap & BYOL</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    SHA-256 mühürlü 18.848 onaylı ÇŞB 2026 imalat pozu ve rayiç kaydı (İnşaat/Mekanik/Elektrik); kurum içi BYOL fiyat yükleme ve <code className="font-mono text-[11px]">TREpys_PozOzellikSeti.PozNo</code> birim uyum kontrolü.
+                    18.848 ayrıştırılmış ÇŞB 2026 kaynak satırı (İnşaat/Mekanik/Elektrik) yapısal denetime tabidir; ticari kullanım yetkisi ayrıca kaydedilir. Kurum içi BYOL yükleme ve <code className="font-mono text-[11px]">TREpys_PozOzellikSeti.PozNo</code> birim uyum kontrolü.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-emerald-400 font-mono">
-                  18.848 Resmi Satır · SHA-256 & BYOL
+                  18.848 Kaynak Satırı · Yetki Kanıtı & BYOL
                 </div>
               </div>
 
@@ -701,9 +701,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="ÇŞB 2026 · STR / ARC / MEP"
                 icon={<ClipboardCheck size={20} />}
                 title="Poz Eşleştirme & Uzman Onayı"
-                text="Kalemleriniz TREpys_PozOzellikSeti.PozNo veya akıllı arama ile SHA-256 mühürlü ÇŞB 2026 (570+ onaylı poz & rayiç) kataloğuyla eşleşir. Disiplin yetkili mühendis (STR/ARC/MEP) bulguları onaylar veya gerekçeli istisna (override) kaydeder."
+                text="Kalemleriniz TREpys_PozOzellikSeti.PozNo veya denetimli arama ile tenant kapsamındaki yetkilendirilmiş fiyat snapshot kayıtlarıyla eşleşir. Birim, geçerlilik veya kullanım yetkisi kanıtı eksikse fiyat otomatik seçilmez; reviewer kaydı gerekir."
                 highlights={[
-                  'SHA-256 mühürlü ÇŞB 2026 poz & rayiç kataloğu',
+                  'SHA-256 kaynak izi + kullanım yetkisi kanıtı',
                   'Birim uyuşmazlığı (m² ↔ m³ ↔ ton) kilidi',
                   'Disiplin bazlı (STR/ARC/MEP) uzman onay izi',
                 ]}
@@ -742,7 +742,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   Motor: <strong className="text-foreground">CSB_2026_V1</strong>
                 </span>
                 <span className="rounded-xs border border-border bg-background px-2.5 py-1 text-muted-foreground">
-                  Katalog: <strong className="text-emerald-400">570+ Onaylı Poz</strong>
+                  Fiyat kapısı: <strong className="text-emerald-400">Yetki + Onay + Geçerlilik</strong>
                 </span>
                 <span className="rounded-xs border border-border bg-background px-2.5 py-1 text-muted-foreground">
                   Mevzuat: <strong className="text-sky-400">RG 33331 EK-9</strong>

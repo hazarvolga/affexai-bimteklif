@@ -28,7 +28,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 1761.33,
       deductedOpeningQuantity: 0,
       grossAvailable: true,
-      defaultUnitPriceTry: 320,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #2: Şap_3CM) · 138 mahal net döşeme alanı toplamı",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Ortak Hol & Teknik)", quantity: 36.73 },
@@ -56,7 +56,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 921.11,
       deductedOpeningQuantity: 0,
       grossAvailable: true,
-      defaultUnitPriceTry: 640,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #3: Laminat_Parke) · 64 kuru hacim net alanı",
       storeyBreakdown: [
         { storeyLabel: "Zemin Kat (K00 — D01..D04 Salon & Odalar)", quantity: 230.27 },
@@ -82,7 +82,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 840.22,
       deductedOpeningQuantity: 0,
       grossAvailable: true,
-      defaultUnitPriceTry: 780,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #3: Seramik / Mermer) · Islak hacim, balkon ve sahanlıklar",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Sahanlık & Hol)", quantity: 36.73 },
@@ -110,7 +110,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 1599.13,
       deductedOpeningQuantity: 0,
       grossAvailable: true,
-      defaultUnitPriceTry: 240,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #1: XPS_5CM + Yalıtım_Levhası)",
       storeyBreakdown: [
         { storeyLabel: "Zemin Kat (K00 — Bodrum Üstü XPS 5 cm + Şilte)", quantity: 387.92 },
@@ -134,7 +134,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 363.26,
       deductedOpeningQuantity: 0,
       grossAvailable: true,
-      defaultUnitPriceTry: 560,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Çok Katmanlı Döşeme (Katman #2: Epoksi_Kaplama) · Bodrum kat 6 teknik mahal",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Sığınak, Su Deposu, Teknik Odalar)", quantity: 363.26 },
@@ -155,7 +155,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 1318.4,
       deductedOpeningQuantity: 143.25,
       grossAvailable: true,
-      defaultUnitPriceTry: 790,
+      defaultUnitPriceTry: 0,
       formulaNote: "Brüt Duvar Yüzeyi (1.318,40 m²) − Kapı/Pencere Boşluğu (143,25 m²) = 1.175,15 m² Net",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Sığınak WC & Lavabo)", quantity: 40.91 },
@@ -182,7 +182,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 1318.4,
       deductedOpeningQuantity: 143.25,
       grossAvailable: true,
-      defaultUnitPriceTry: 290,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Çok Katmanlı Duvar (Katman #1: Sıva_2CM) · Minha düşülmüş net yüzey",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Sığınak WC & Lavabo)", quantity: 40.91 },
@@ -207,7 +207,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 5290.42,
       deductedOpeningQuantity: 514.8,
       grossAvailable: true,
-      defaultUnitPriceTry: 270,
+      defaultUnitPriceTry: 0,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #1: Kaba_Sıva) · Brüt 5.290,42 − Boşluk 514,80 m²",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Tavan + Duvar)", quantity: 912.34 },
@@ -233,7 +233,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 5290.42,
       deductedOpeningQuantity: 514.8,
       grossAvailable: true,
-      defaultUnitPriceTry: 210,
+      defaultUnitPriceTry: 0,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #2: Saten_Alçı) · Minha düşülmüş net yüzey",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Tavan + Duvar)", quantity: 912.34 },
@@ -259,7 +259,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 5290.42,
       deductedOpeningQuantity: 514.8,
       grossAvailable: true,
-      defaultUnitPriceTry: 165,
+      defaultUnitPriceTry: 0,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #3: Plastik_Boya) · Minha düşülmüş net yüzey",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Tavan + Duvar)", quantity: 912.34 },
@@ -285,7 +285,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 965.14,
       deductedOpeningQuantity: 71.6,
       grossAvailable: true,
-      defaultUnitPriceTry: 145,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Hesaplama Modu: m · 53,61 m² yüzey / 0,06 m yükseklik = 893,54 mtül",
       storeyBreakdown: [
         { storeyLabel: "Zemin Kat (K00 — D01..D04 Salon & Odalar)", quantity: 223.38 },
@@ -311,7 +311,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 832.4,
       deductedOpeningQuantity: 78.48,
       grossAvailable: true,
-      defaultUnitPriceTry: 185,
+      defaultUnitPriceTry: 0,
       formulaNote: "Allplan Hesaplama Modu: m · Seramik (673,83 mtül) + Granit (80,09 mtül) = 753,92 mtül",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Sığınak & Ortak Hol Granit/Seramik)", quantity: 171.68 },
@@ -337,7 +337,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 868.4,
       deductedOpeningQuantity: 25.41,
       grossAvailable: true,
-      defaultUnitPriceTry: 3450,
+      defaultUnitPriceTry: 0,
       formulaNote: "Qto_SlabBaseQuantities + Qto_WallBaseQuantities + Qto_ColumnBaseQuantities + Qto_BeamBaseQuantities",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Çevre Perdeleri, Kolonlar, Döşeme)", quantity: 214.65 },
@@ -364,7 +364,7 @@ export function buildCalibrated202645Dataset(projectTitleOverride?: string): Cal
       grossQuantity: 432.85,
       deductedOpeningQuantity: 76.74,
       grossAvailable: true,
-      defaultUnitPriceTry: 2950,
+      defaultUnitPriceTry: 0,
       formulaNote: "Brüt Duvar Hacmi (432,85 m³) − Kapı/Pencere Boşluğu (76,74 m³) = 356,11 m³ Net",
       storeyBreakdown: [
         { storeyLabel: "Bodrum Kat (KB1 — Sığınak ve Teknik Bölme Duvarları)", quantity: 42.19 },

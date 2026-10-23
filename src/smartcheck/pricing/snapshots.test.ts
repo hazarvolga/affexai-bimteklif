@@ -15,6 +15,8 @@ test("price snapshot keys are stable and source-bound", () => {
 test("stale prices and lock hashes are deterministic", () => {
   assert.equal(isPriceSnapshotStale({ validUntil: "2026-07-22T23:59:59.000Z" }, new Date("2026-07-23T00:00:00.000Z")), true);
   assert.equal(isPriceSnapshotStale({ validUntil: "2026-07-24T00:00:00.000Z" }, new Date("2026-07-23T00:00:00.000Z")), false);
+  assert.equal(isPriceSnapshotStale({ validFrom: "2026-07-24T00:00:00.000Z", validUntil: null }, new Date("2026-07-23T00:00:00.000Z")), true);
+  assert.equal(isPriceSnapshotStale({ validFrom: "2026-07-22T00:00:00.000Z", validUntil: null }, new Date("2026-07-23T00:00:00.000Z")), false);
   const items = [{ quotationItemId: "b", priceSnapshotId: "s2", priceSnapshotStatus: "locked", amount: "20", currency: "TRY", unit: "m" }, { quotationItemId: "a", priceSnapshotId: "s1", priceSnapshotStatus: "locked", amount: "10", currency: "TRY", unit: "adet" }];
   assert.equal(computePricingLockHash(items), computePricingLockHash([...items].reverse()));
 });

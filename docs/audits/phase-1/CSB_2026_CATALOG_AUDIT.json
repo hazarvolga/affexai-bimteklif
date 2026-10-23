@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-10-23",
+  "task": "T05",
+  "commercialUseAuthorization": {
+    "record": {
+      "status": "pending",
+      "recordId": null,
+      "evidenceSha256": null,
+      "scope": null,
+      "authorizedAt": null
+    },
+    "verified": false,
+    "reasons": [
+      "status is not authorized",
+      "recordId is missing",
+      "evidenceArtifact.path is missing",
+      "evidenceArtifact.sha256 is missing or invalid",
+      "scope is missing",
+      "authorizedAt is missing or invalid"
+    ]
+  },
+  "commercialUseAuthorizationStatus": "pending",
+  "releaseSelectionGate": {
+    "evaluated": true,
+    "status": "closed",
+    "selectableCount": 0,
+    "reasons": [
+      "status is not authorized",
+      "recordId is missing",
+      "evidenceArtifact.path is missing",
+      "evidenceArtifact.sha256 is missing or invalid",
+      "scope is missing",
+      "authorizedAt is missing or invalid",
+      "row approval, tenant source resolution and validity selection belong to T08-T09"
+    ]
+  },
+  "structuralAudit": {
+    "catalogCount": 6,
+    "totalRowCount": 18848,
+    "uniqueCodeCount": 18848,
+    "directPriceRowCount": 18809,
+    "approximateCostClassRowCount": 18,
+    "indexMappingRowCount": 21,
+    "structurallyUsableCount": 18848,
+    "structurallySelectableDirectPriceCount": 18809,
+    "duplicateCodeCount": 0,
+    "conflictingCodeCount": 0,
+    "missingFieldRowCount": 0,
+    "nonPositivePriceRowCount": 0,
+    "invalidPriceRowCount": 0,
+    "invalidCodeFormatRowCount": 0,
+    "nonCanonicalUnitRowCount": 0,
+    "allowedNormalizedUnits": [
+      "100 m²",
+      "1000 adet",
+      "adet",
+      "endeks",
+      "kg",
+      "lt",
+      "m",
+      "m²",
+      "m³",
+      "saat",
+      "takım",
+      "ton"
+    ],
+    "books": [
+      {
+        "catalogId": "csb_2026_mart_insaat_bf",
+        "kind": "direct_unit_price",
+        "rowCount": 1861,
+        "sourceMatchedRowCount": 1861,
+        "structurallyUsableCount": 1861,
+        "observedUnitCounts": {
+          "100 m²": 2,
+          "1000 adet": 1,
+          "adet": 50,
+          "kg": 36,
+          "m": 162,
+          "m²": 1264,
+          "m³": 189,
+          "saat": 125,
+          "ton": 32
+        }
+      },
+      {
+        "catalogId": "csb_2026_mart_insaat_rayic",
+        "kind": "direct_market_rate",
+        "rowCount": 5360,
+        "sourceMatchedRowCount": 5360,
+        "structurallyUsableCount": 5360,
+        "observedUnitCounts": {
+          "adet": 931,
+          "kg": 437,
+          "lt": 69,
+          "m": 1599,
+          "m²": 1943,
+          "m³": 193,
+          "saat": 113,
+          "takım": 4,
+          "ton": 71
+        }
+      },
+      {
+        "catalogId": "csb_2026_mart_mekanik_bf",
+        "kind": "direct_unit_price",
+        "rowCount": 5678,
+        "sourceMatchedRowCount": 5678,
+        "structurallyUsableCount": 5678,
+        "observedUnitCounts": {
+          "1000 adet": 11,
+          "adet": 3974,
+          "kg": 9,
+          "m": 1254,
+          "m²": 282,
+          "m³": 1,
+          "takım": 147
+        }
+      },
+      {
+        "catalogId": "csb_2026_mart_elektrik_bf",
+        "kind": "direct_unit_price",
+        "rowCount": 5910,
+        "sourceMatchedRowCount": 5910,
+        "structurallyUsableCount": 5910,
+        "observedUnitCounts": {
+          "adet": 4083,
+          "kg": 6,
+          "m": 1819,
+          "m²": 2
+        }
+      },
+      {
+        "catalogId": "csb_2026_yapi_yaklasik_maliyet",
+        "kind": "approximate_cost_class",
+        "rowCount": 18,
+        "sourceMatchedRowCount": 18,
+        "structurallyUsableCount": 18,
+        "observedUnitCounts": {
+          "m²": 18
+        }
+      },
+      {
+        "catalogId": "csb_2026_tuik_endeks_eslestirme",
+        "kind": "index_mapping",
+        "rowCount": 21,
+        "sourceMatchedRowCount": 21,
+        "structurallyUsableCount": 21,
+        "observedUnitCounts": {
+          "endeks": 21
+        }
+      }
+    ]
+  },
+  "sourceDocuments": [
+    {
+      "catalogId": "csb_2026_mart_insaat_bf",
+      "localPath": "docs/fiyatlandirma-kaynaklari/2026-Mart-n-aat-B-F-20260303131312.pdf",
+      "expectedSha256": "dcf153503f5b487dcaa741228666f6b83a6ed04a28249cbe43f010e41bffe69c",
+      "actualSha256": "dcf153503f5b487dcaa741228666f6b83a6ed04a28249cbe43f010e41bffe69c",
+      "hashMatches": true,
+      "byteLength": 10791898,
+      "accessOrLicense": "Repo-contained copy; ownership/commercial reuse authorization not independently established."
+    },
+    {
+      "catalogId": "csb_2026_mart_insaat_rayic",
+      "localPath": "docs/fiyatlandirma-kaynaklari/2026-mart-in-aat-rayi-20260303131227.pdf",
+      "expectedSha256": "0b6c74ce7db06de3f0bf5f7039f8da015e6eba80a39afb5cba0d4c22c211303d",
+      "actualSha256": "0b6c74ce7db06de3f0bf5f7039f8da015e6eba80a39afb5cba0d4c22c211303d",
+      "hashMatches": true,
+      "byteLength": 31443598,
+      "accessOrLicense": "Repo-contained copy; ownership/commercial reuse authorization not independently established."
+    },
+    {
+      "catalogId": "csb_2026_mart_mekanik_bf",
+      "localPath": "docs/fiyatlandirma-kaynaklari/2026-MART-MEKAN-K-TES-SAT-F-YAT-L-STES-20260303131328.pdf",
+      "expectedSha256": "d001ef5b268530f0a73157278db623fa0ce5ceb38b2a5ed7f5767f54ea6ba338",
+      "actualSha256": "d001ef5b268530f0a73157278db623fa0ce5ceb38b2a5ed7f5767f54ea6ba338",
+      "hashMatches": true,
+      "byteLength": 1866823,
+      "accessOrLicense": "Repo-contained copy; ownership/commercial reuse authorization not independently established."
+    },
+    {
+      "catalogId": "csb_2026_mart_elektrik_bf",
+      "localPath": "docs/fiyatlandirma-kaynaklari/elektrik-birim-fiyatlar-2026-mart-20260303131345.pdf",
+      "expectedSha256": "f7a0e31ed57f8feb46a38e4e3e183b6f9f277a5bae519e0d1a434f0917be1934",
+      "actualSha256": "f7a0e31ed57f8feb46a38e4e3e183b6f9f277a5bae519e0d1a434f0917be1934",
+      "hashMatches": true,
+      "byteLength": 4764662,
+      "accessOrLicense": "Repo-contained copy; ownership/commercial reuse authorization not independently established."
+    },
+    {
+      "catalogId": "csb_2026_yapi_yaklasik_maliyet",
+      "localPath": "docs/fiyatlandirma-kaynaklari/M-MARLIK-M-HEND-SL-K-TEBL-2026-20260204101544.pdf",
+      "expectedSha256": "5669ad594d6b980ca66bdd35a1721fb4ed159fc942905b7247e7ffce866f650a",
+      "actualSha256": "5669ad594d6b980ca66bdd35a1721fb4ed159fc942905b7247e7ffce866f650a",
+      "hashMatches": true,
+      "byteLength": 196900,
+      "accessOrLicense": "Repo-contained copy; ownership/commercial reuse authorization not independently established."
+    },
+    {
+      "catalogId": "csb_2026_tuik_endeks_eslestirme",
+      "localPath": "docs/fiyatlandirma-kaynaklari/n-aat-rayi-ve-endeksler-T-fe-2023-100-10-04-26-1-20260410114608.pdf",
+      "expectedSha256": "3519e5a631d6043b72e7637e1521456f1da00e7a794f39655cc5c628ae76d93e",
+      "actualSha256": "3519e5a631d6043b72e7637e1521456f1da00e7a794f39655cc5c628ae76d93e",
+      "hashMatches": true,
+      "byteLength": 4946121,
+      "accessOrLicense": "Repo-contained copy; ownership/commercial reuse authorization not independently established."
+    }
+  ],
+  "sameImplementationReparse": {
+    "independent": false,
+    "extractor": {
+      "name": "pypdf",
+      "version": "6.19.0",
+      "pythonExecutable": "workers/ifc/.venv/bin/python",
+      "requirementsPath": "workers/ifc/requirements.txt"
+    },
+    "method": "pypdf page text extraction + parseCsbPdfText; sealed-catalog shortcut bypassed",
+    "limitation": "The same application parser is used; this is reproducibility evidence, not an independently implemented parser or expert source-row verification.",
+    "exactMatchCount": 18827,
+    "exactCoveragePercent": 99.89,
+    "books": [
+      {
+        "catalogId": "csb_2026_mart_insaat_bf",
+        "extractedTextCharacters": 306196,
+        "embeddedRowCount": 1861,
+        "reparsedRowCount": 1861,
+        "exactMatchCount": 1861,
+        "conflictingMatchCount": 0,
+        "missingFromReparseCount": 0,
+        "extraInReparseCount": 0,
+        "exactCoveragePercent": 100
+      },
+      {
+        "catalogId": "csb_2026_mart_insaat_rayic",
+        "extractedTextCharacters": 442910,
+        "embeddedRowCount": 5360,
+        "reparsedRowCount": 5360,
+        "exactMatchCount": 5360,
+        "conflictingMatchCount": 0,
+        "missingFromReparseCount": 0,
+        "extraInReparseCount": 0,
+        "exactCoveragePercent": 100
+      },
+      {
+        "catalogId": "csb_2026_mart_mekanik_bf",
+        "extractedTextCharacters": 585313,
+        "embeddedRowCount": 5678,
+        "reparsedRowCount": 5678,
+        "exactMatchCount": 5678,
+        "conflictingMatchCount": 0,
+        "missingFromReparseCount": 0,
+        "extraInReparseCount": 0,
+        "exactCoveragePercent": 100
+      },
+      {
+        "catalogId": "csb_2026_mart_elektrik_bf",
+        "extractedTextCharacters": 468424,
+        "embeddedRowCount": 5910,
+        "reparsedRowCount": 5910,
+        "exactMatchCount": 5910,
+        "conflictingMatchCount": 0,
+        "missingFromReparseCount": 0,
+        "extraInReparseCount": 0,
+        "exactCoveragePercent": 100
+      },
+      {
+        "catalogId": "csb_2026_yapi_yaklasik_maliyet",
+        "extractedTextCharacters": 12143,
+        "embeddedRowCount": 18,
+        "reparsedRowCount": 18,
+        "exactMatchCount": 18,
+        "conflictingMatchCount": 0,
+        "missingFromReparseCount": 0,
+        "extraInReparseCount": 0,
+        "exactCoveragePercent": 100
+      },
+      {
+        "catalogId": "csb_2026_tuik_endeks_eslestirme",
+        "extractedTextCharacters": 545482,
+        "embeddedRowCount": 21,
+        "reparsedRowCount": 20,
+        "exactMatchCount": 0,
+        "conflictingMatchCount": 0,
+        "missingFromReparseCount": 21,
+        "extraInReparseCount": 20,
+        "exactCoveragePercent": 0
+      }
+    ]
+  },
+  "conclusions": {
+    "embeddedCountProven": true,
+    "hashesMatch": true,
+    "structuralScanPassed": true,
+    "independentSourceParityProven": false,
+    "releaseSelectableDirectPriceCount": 0,
+    "auditStatus": "pass_with_explicit_authorization_and_source_parity_gates"
+  }
+}

@@ -45,7 +45,8 @@ export interface CalmIcmalItem {
    * grossQuantity = netQuantity ve deductedOpeningQuantity = 0 gösterilir, hiçbir değer uydurulmaz.
    */
   grossAvailable: boolean;
-  defaultUnitPriceTry: number;
+  /** Fiyat kaynağı çözülmediyse sıfırdır; sınıflandırıcı ticari fiyat üretmez. */
+  defaultUnitPriceTry: 0;
   formulaNote: string;
   storeyBreakdown: CalmStoreyBreakdownRow[];
   sampleRooms: CalmRoomSampleRow[];
@@ -115,7 +116,6 @@ interface ClassifiedLayerSpec {
   subtitle: string;
   pozCode: string;
   unit: "m²" | "mtül" | "m³";
-  defaultUnitPriceTry: number;
   formulaNote: string;
 }
 
@@ -126,7 +126,6 @@ const CONCRETE_SPEC: ClassifiedLayerSpec = {
   subtitle: "Malzemesi beton olan taşıyıcı elemanların boşluklar düşülmüş net beton hacmi",
   pozCode: "15.150.1006",
   unit: "m³",
-  defaultUnitPriceTry: 3450,
   formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
 };
 
@@ -135,9 +134,8 @@ const MASONRY_SPEC: ClassifiedLayerSpec = {
   groupKey: "structural",
   title: "Ytong / Bims Blok Duvar Örülmesi (10 - 15 - 20 cm)",
   subtitle: "Malzemesi gazbeton/bims olan duvarlarda kapı ve pencere boşlukları (minha) düşülmüş net hacim",
-  pozCode: "15.225.1004",
+  pozCode: "UNRESOLVED:gazbeton-bims",
   unit: "m³",
-  defaultUnitPriceTry: 2950,
   formulaNote: "Brüt Duvar Hacmi − Kapı/Pencere Boşluğu = Net Duvar Hacmi",
 };
 
@@ -160,10 +158,9 @@ function classifyMaterialLayer(
         groupKey: "skirting",
         title: "Parke Süpürgeliği (h: 6 cm)",
         subtitle: "Salon ve odalar (16 Daire) · Kapı eşikleri düşülmüş net tül",
-        pozCode: "15.365.1102",
+        pozCode: "UNRESOLVED:parke-supurgelik",
         unit: "mtül",
-        defaultUnitPriceTry: 145,
-        formulaNote: "Allplan Hesaplama Modu: m (Net Çevre Uzunluğu = Alan / 0,06 m)",
+        formulaNote: "IFC doğrudan Net Çevre / Uzunluk kanıtı (varsayılan yükseklikle alan dönüşümü yapılmaz)",
       };
     }
     return {
@@ -171,10 +168,9 @@ function classifyMaterialLayer(
       groupKey: "skirting",
       title: "Seramik ve Granit Süpürgelik (h: 6–10 cm)",
       subtitle: "Antre, mutfak, balkon, sahanlık ve merdiven kovası net tül",
-      pozCode: "15.390.1012",
+      pozCode: "UNRESOLVED:seramik-granit-supurgelik",
       unit: "mtül",
-      defaultUnitPriceTry: 185,
-      formulaNote: "Allplan Hesaplama Modu: m (Net Çevre Uzunluğu = Alan / h)",
+      formulaNote: "IFC doğrudan Net Çevre / Uzunluk kanıtı (yükseklik bilinmiyorsa alan dönüşümü yapılmaz)",
     };
   }
 
@@ -186,7 +182,6 @@ function classifyMaterialLayer(
       subtitle: "Parke, seramik ve mermer altı tüm katlar (Daire içleri + ortak alan + bodrum)",
       pozCode: "15.340.1002",
       unit: "m²",
-      defaultUnitPriceTry: 320,
       formulaNote: "Çok Katmanlı Döşeme (Katman #2: Şap_3CM) · Tüm mahallerin net döşeme alanı",
     };
   }
@@ -197,9 +192,8 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "Laminat Parke Kaplaması (Derzli, AC4 8 mm)",
       subtitle: "Salon, yatak odaları, ebeveyn ve çocuk odaları (16 Daire)",
-      pozCode: "15.365.1001",
+      pozCode: "UNRESOLVED:laminat-parke",
       unit: "m²",
-      defaultUnitPriceTry: 640,
       formulaNote: "Çok Katmanlı Döşeme (Katman #3: Laminat_Parke) · 16 Daire kuru hacim net alanı",
     };
   }
@@ -212,7 +206,6 @@ function classifyMaterialLayer(
       subtitle: "Antre, hol, mutfak, banyo, balkon ve kat sahanlıkları",
       pozCode: "15.390.1005",
       unit: "m²",
-      defaultUnitPriceTry: 780,
       formulaNote: "Çok Katmanlı Döşeme (Katman #3: Seramik / Mermer) · Islak hacim ve ortak hol net alanı",
     };
   }
@@ -223,9 +216,8 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "XPS Isı Yalıtımı (5 cm) & Şap Altı Ses Yalıtım Şiltesi",
       subtitle: "Daire döşemeleri ve katlar arası darbe/ısı yalıtım katmanı",
-      pozCode: "15.315.1004",
+      pozCode: "UNRESOLVED:xps-ses-yalitimi",
       unit: "m²",
-      defaultUnitPriceTry: 240,
       formulaNote: "Çok Katmanlı Döşeme (Katman #1: XPS_5CM / Yalıtım_Levhası)",
     };
   }
@@ -238,7 +230,6 @@ function classifyMaterialLayer(
       subtitle: "Bodrum kat sığınak, enerji odası ve su deposu zeminleri",
       pozCode: "15.410.1101",
       unit: "m²",
-      defaultUnitPriceTry: 560,
       formulaNote: "Çok Katmanlı Döşeme (Katman #2: Epoksi_Kaplama) · Bodrum kat net alanı",
     };
   }
@@ -251,7 +242,6 @@ function classifyMaterialLayer(
       subtitle: "Sıva üstü seramik/fayans · Kapı ve pencere boşlukları (minha) düşülmüş net alan",
       pozCode: "15.385.1003",
       unit: "m²",
-      defaultUnitPriceTry: 790,
       formulaNote: "Brüt Duvar Yüzeyi − Kapı/Pencere Boşluğu (Minha) = Net Fayans Alanı",
     };
   }
@@ -264,7 +254,6 @@ function classifyMaterialLayer(
       subtitle: "Islak hacim fayans altı ve daire içi duvarlar · Pencere/kapı boşlukları düşülmüş",
       pozCode: "15.275.1002",
       unit: "m²",
-      defaultUnitPriceTry: 290,
       formulaNote: "Çok Katmanlı Duvar Kaplaması (Katman #1: Sıva_2CM) · Minha düşülmüş net duvar yüzeyi",
     };
   }
@@ -277,7 +266,6 @@ function classifyMaterialLayer(
       subtitle: "Saten alçı ve boya altı tüm tavan + iç duvar yüzeyleri toplamı",
       pozCode: "15.275.1001",
       unit: "m²",
-      defaultUnitPriceTry: 270,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #1: Kaba_Sıva) · Pencere/kapı boşlukları düşülmüş",
     };
   }
@@ -290,7 +278,6 @@ function classifyMaterialLayer(
       subtitle: "Tavan ve kuru hacim duvarlarında kaba sıva üstü yoklama ve perdah alçısı",
       pozCode: "15.280.1003",
       unit: "m²",
-      defaultUnitPriceTry: 210,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #2: Saten_Alçı) · Net uygulama yüzeyi",
     };
   }
@@ -303,7 +290,6 @@ function classifyMaterialLayer(
       subtitle: "Saten alçı üstü tüm daire tavanları, kuru hacim duvarları ve ortak holler",
       pozCode: "15.540.1002",
       unit: "m²",
-      defaultUnitPriceTry: 165,
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #3: Plastik_Boya) · Net boya yüzeyi",
     };
   }
@@ -317,7 +303,6 @@ function classifyMaterialLayer(
       subtitle: "IFC modelindeki açık PozNo etiketi ile eşleşen net yüzey metrajı",
       pozCode: cleanExplicitPoz,
       unit: "m²",
-      defaultUnitPriceTry: 450,
       formulaNote: "IFC Qto_CoveringBaseQuantities NetArea",
     };
   }
@@ -689,6 +674,7 @@ export function buildCalmIfcDatasetFromElements(
 
     let elementPlacedInIcmal = false;
     let firstPlacedPozCode: string | null = null;
+    let missingRequiredQuantityEvidence = false;
 
     for (const layerToken of layers) {
       const spec = structural
@@ -706,10 +692,10 @@ export function buildCalmIfcDatasetFromElements(
       if (spec.unit === "mtül") {
         if (typeof el.lengthM === "number" && el.lengthM > 0) {
           netQty = el.lengthM;
-        } else if (typeof el.areaM2 === "number" && el.areaM2 > 0) {
-          // Uzunluk modelde yok: alan ÷ süpürgelik yüksekliği (6 cm) varsayımı. Açıkça işaretlenir.
-          netQty = el.areaM2 / 0.06;
-          derivedFromAssumption = true;
+        } else {
+          // Alanı varsayılan bir yüksekliğe bölmek boyut değiştirir. Doğrulanmış yükseklik veya
+          // doğrudan çevre/uzunluk kanıtı yoksa miktar üretme.
+          missingRequiredQuantityEvidence = true;
         }
         grossQty = netQty;
         openingQty = 0;
@@ -789,12 +775,14 @@ export function buildCalmIfcDatasetFromElements(
           ifcClass: el.ifcClass || el.type,
           storey: el.storey || "Kat atanmamış",
           elementName: el.name,
-          message: `Modeldeki beton sınıfı ${structural.concreteClass}; icmal bu hacmi ${ICMAL_CONCRETE_CLASS} pozu ve birim fiyatıyla gösterir. Sınıfa uygun poz ve fiyat ayrıca doğrulanmalı.`,
+          message: `Modeldeki beton sınıfı ${structural.concreteClass}; icmal adayı ${ICMAL_CONCRETE_CLASS} profilinden farklıdır. Sınıfa uygun poz ve fiyat ayrıca doğrulanmalı.`,
         });
       }
     } else {
       const reason =
-        "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
+        missingRequiredQuantityEvidence
+          ? "Doğrulanmış uzunluk/çevre kanıtı yok; alandan mtül miktarı varsayımla türetilmedi."
+          : "Kaplama alt tipi (PredefinedType) veya malzeme katmanı hiçbir icmal grubuna/poza yerleşemedi (açıkta kalan eleman).";
       placements[elIndex] = { matchedPozCode: null, isUncovered: true, uncoveredReason: reason };
       unplacedUncoveredElements.push({
         globalId: el.guid,
@@ -887,7 +875,7 @@ export function buildCalmIfcDatasetFromElements(
       grossQuantity: entry.grossKnown ? Number(entry.grossQuantity.toFixed(2)) : Number(entry.netQuantity.toFixed(2)),
       deductedOpeningQuantity: entry.grossKnown ? Number(entry.deductedOpeningQuantity.toFixed(2)) : 0,
       grossAvailable: entry.grossKnown,
-      defaultUnitPriceTry: entry.spec.defaultUnitPriceTry,
+      defaultUnitPriceTry: 0,
       formulaNote: entry.derivedFromAssumption
         ? `${entry.spec.formulaNote} · Uzunluk modelde yok; alan ÷ 0,06 m süpürgelik yüksekliği varsayımıyla türetildi`
         : entry.spec.formulaNote,

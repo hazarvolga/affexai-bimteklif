@@ -542,54 +542,36 @@ export function SmartCheckImportWorkspace() {
     if (!Number.isFinite(amount) || amount <= 0) return toast.error("Geçerli bir manuel birim fiyat girin.");
     const sourceName = manualSnapshotDraft.sourceName.trim() || "SmartCheck manuel fiyat girişi";
     const capturedAt = new Date().toISOString();
-    const sourceResponse = await fetchWithAuth("/api/pricing/sources", {
+    const importResponse = await fetchWithAuth("/api/pricing/catalog/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         sourceType: "manual_override",
-        name: sourceName,
+        sourceName,
         authority: "Kullanıcı manuel fiyat girişi",
         sourceDocumentIdentifier: `smartcheck:${documentId}:${row.id}:${Date.now()}`,
-        sourceDocumentPayload: {
-          kind: "smartcheck_manual_price",
-          documentId,
-          rowId: row.id,
+        capturedAt,
+        validUntil: manualSnapshotDraft.validUntil ? new Date(manualSnapshotDraft.validUntil).toISOString() : null,
+        rows: [{
           positionCode: row.normalizedPositionCode ?? row.rawPositionCode,
-          description: row.normalizedDescription ?? row.rawDescription,
-          unit: row.normalizedUnit ?? row.rawUnit,
+          description: row.normalizedDescription ?? row.rawDescription ?? "SmartCheck metraj kalemi",
+          unit: row.normalizedUnit ?? row.rawUnit ?? "adet",
           amount,
           currency: manualSnapshotDraft.currency,
-          capturedAt,
-        },
+          confidence: 0.55,
+          metadataJson: { smartcheckDocumentId: documentId, smartcheckRowId: row.id, source: "smartcheck_manual_price" },
+        }],
         licenseStatus: "not_applicable",
         metadataJson: { smartcheckDocumentId: documentId, smartcheckRowId: row.id },
       }),
     });
-    const source = await readJsonBody<{ id?: string; sourceDocumentHash?: string; error?: string }>(sourceResponse);
-    if (!sourceResponse.ok || !source.id || !source.sourceDocumentHash) return toast.error(source.error ?? "Fiyat kaynağı oluşturulamadı.");
-    const snapshotResponse = await fetchWithAuth(`/api/pricing/sources/${source.id}/snapshots`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        positionCode: row.normalizedPositionCode ?? row.rawPositionCode,
-        description: row.normalizedDescription ?? row.rawDescription ?? "SmartCheck metraj kalemi",
-        unit: row.normalizedUnit ?? row.rawUnit ?? "adet",
-        amount,
-        currency: manualSnapshotDraft.currency,
-        sourceDocumentHash: source.sourceDocumentHash,
-        confidence: 0.55,
-        reviewStatus: "advisory",
-        capturedAt,
-        validUntil: manualSnapshotDraft.validUntil ? new Date(manualSnapshotDraft.validUntil).toISOString() : null,
-        metadataJson: { smartcheckDocumentId: documentId, smartcheckRowId: row.id, source: "smartcheck_manual_price" },
-      }),
-    });
-    const snapshot = await readJsonBody<PriceSnapshotOption & { error?: string }>(snapshotResponse);
-    if (!snapshotResponse.ok || !snapshot.id) return toast.error(snapshot.error ?? "Fiyat snapshot oluşturulamadı.");
+    const imported = await readJsonBody<{ snapshots?: PriceSnapshotOption[]; error?: string }>(importResponse);
+    const snapshot = imported.snapshots?.[0];
+    if (!importResponse.ok || !snapshot?.id) return toast.error(imported.error ?? "Fiyat snapshot oluşturulamadı.");
     setPriceSnapshots((current) => [snapshot, ...current.filter((candidate) => candidate.id !== snapshot.id)]);
     setSnapshotByRow((current) => ({ ...current, [row.id]: snapshot.id }));
     setManualSnapshotDraft((current) => ({ ...current, rowId: row.id, amount: "", sourceName }));
-    toast.success("Manuel fiyat snapshot oluşturuldu ve satıra bağlandı.");
+    toast.success("Manuel fiyat kaydedildi. Teklifte kullanmak için farklı bir yetkili tarafından onaylanmalıdır.");
   };
 
   const readPriceCatalogCsv = async (selectedFile: File | null) => {

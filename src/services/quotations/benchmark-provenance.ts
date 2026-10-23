@@ -13,7 +13,7 @@ export async function resolveBenchmarkProvenance(tx: Transaction, items: ManualQ
   if (!item.benchmarkStagingId) continue;
   const [row] = await tx.select().from(priceFeedStaging).where(eq(priceFeedStaging.id, item.benchmarkStagingId)).for('share');
   const [source] = row ? await tx.select().from(pricingDataSources).where(eq(pricingDataSources.id,row.sourceId)).for('share') : [];
-  if (!row || !source || !benchmarkEligible({...row,sourceStatus:source.status,validityStart:source.validityStart,validityEnd:source.validityEnd})
+  if (!row || !source || !benchmarkEligible({...row,sourceStatus:source.status,authorizationStatus:source.authorizationStatus,authorizationEvidenceHash:source.authorizationEvidenceHash,authorizedAt:source.authorizedAt,validityStart:source.validityStart,validityEnd:source.validityEnd})
     || source.currency !== 'TRY' || currency !== 'TRY' || item.unit !== row.unit || item.unitPrice !== Number(row.crawledPrice)) {
    throw new QuotationIntegrityError(409,'Rayiç onayı, geçerliliği, birimi veya fiyatı değişti. Onaylı rayiçleri yeniden yükleyin.');
   }
@@ -22,6 +22,7 @@ export async function resolveBenchmarkProvenance(tx: Transaction, items: ManualQ
    itemCode:row.itemCode,itemName:row.itemName,unit:row.unit,price:row.crawledPrice,currency:'TRY',sourceUrl:row.sourceUrl ?? source.sourceUrl,
    reviewedAt:row.reviewedAt,reviewedByUserId:row.reviewedByUserId,crawledAt:row.crawledAt,
    validityStart:source.validityStart,validityEnd:source.validityEnd,sourceVersion:source.versionTag,
+   authorizationStatus:source.authorizationStatus,authorizationEvidenceHash:source.authorizationEvidenceHash,
   }) });
  }
  return items.map(({benchmarkStagingId,...item}) => ({...item,
