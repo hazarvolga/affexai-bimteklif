@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.40",
+  version: "BIM-CALC-2026-10-24.41",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "ff057c420641e864e89fa56ced6a1460fc31919b",
-  approvalStatus: "Faz 6 kısmi pilot/L2 geliştirme kapısıdır ve varsayılan olarak kapalıdır. T35 dönemsel/kümülatif hakediş çekirdeği kod ve test kapsamında tamamlandı. T36 kaynak bağlı ölçüm, maker-checker inceleme ve immutable olay çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü dış kanıt bekler. T37 deterministik icmal, düzeltme, iş artışı/eksilişi, fiyat farkı snapshot'ı ve kesin hesap çekirdeğine sahiptir; bağımsız teknik ofis fikstürü yoktur. T38 yalnız candidate/internal_roundtrip üretir; lisanslı OSKA/AMP dosyasıyla native import kabulü yoktur. T39 yalnız kaynak/provenance ve manifest yardımcı katmanıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL'dır; canlıya alınmamış ve L3 değildir.",
+  implementationBaseline: "eeeaf75f27cd0b65c3f7f44ed6e3668386cceb53",
+  approvalStatus: "Rev. 47, T40 PostgreSQL görev ayrımı için tooling ve izole PostgreSQL 16 adversarial kanıtını ekler; hesap formüllerini değiştirmez. Owner/migrator/app/worker/backup sınırları, exact ACL/RLS ve vendor provenance kapıları kod/test kapsamında hazırdır. Compose/runtime credential cutover, production canary/rollback ve deploy yapılmadığı için T40 ve Faz 7 PARTIAL kalır. Faz 6 mühendislik/vendor/ihale dış kabul kapıları da aynen açıktır; bu kayıt uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1196,6 +1196,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "İhale savunma paketi için her girdi belgesini kimlik ve checksum ile bağlayan manifest ve OCR/provenance/duplicate fail-closed sınırı yoktu.",
         after: "Tender-defense yardımcısı her girdi belgesini documentId + checksum ile manifestte bağlar; eksik provenance, OCR belirsizliği ve mükerrer belgeyi reddeder. automaticOfficialSubmission=false sabittir; adlı ihale uzmanı imzası olmadan resmî EKAP kabulü iddia edilmez.",
         basis: "src/domain/tender-defense/*; 4734/4735 ve proje kanıt uydurmama ilkesi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 47",
+    version: "BIM-CALC-2026-10-24.41",
+    date: "24 Ekim 2026",
+    commit: "eeeaf75f27cd0b65c3f7f44ed6e3668386cceb53",
+    trigger: "GAP kapatma yol haritası Faz 7 / T40: PostgreSQL owner, migrator, app, worker ve backup görev ayrımı için fail-closed tooling ve izole PG16 kanıtı.",
+    beforeSummary: "IFC/SmartCheck queue erişimi ile migration/ownership yetkileri gerçek bir rol sözleşmesiyle ayrılmıyor; runtime Graphile şemasını otomatik migrate edebiliyor ve önceki roadmap kaydı compose/runtime tarafından doğrulanmıyordu.",
+    afterSummary: "Canonical beş rol, SET-only migrator üyeliği, exact ACL/RLS/function grant matrisi, SECURITY DEFINER wrapper sınırı, Graphile Worker 0.16.0 migration-18 ve SHA-256 yapı/vendor provenance kapıları eklendi. Gerçek PostgreSQL 16 adversarial testi geçti. Hesap yöntemi ve mühendislik sonucu değişmedi; compose/runtime credential cutover, canary, rollback ve production deploy yapılmadığı için T40 PARTIAL'dır.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "IFC/SmartCheck hesap kuyruğu uygulama isteği sırasında Graphile şemasını migrate edebiliyor ve app/worker/migrator/backup yetkileri exact, bağımsız bir PostgreSQL sözleşmesiyle denetlenmiyordu.",
+        after: "Runtime yalnız migration-18 hazırsa devam eder; app sadece doğrulanmış SmartCheck wrapper'larını çağırır, worker queue DML yürütür, backup salt okunur, migrator explicit SET ROLE ile DDL yapar. Bu altyapı miktar formülünü değiştirmez ve production cutover kanıtı değildir.",
+        basis: "scripts/database-roles/*, src/smartcheck/import/queue-readiness.ts, src/contracts/database-role-provision.pgtest.ts ve PostgreSQL 16 least-privilege davranış kanıtı",
       },
     },
   },

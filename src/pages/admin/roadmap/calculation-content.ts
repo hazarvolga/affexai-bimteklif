@@ -8,6 +8,7 @@ import type { CalcModule, DocBlock } from "./doc-types";
 export const CALC_INTRO: DocBlock[] = [
   { type: "p", text: "Bu sayfa BIMMetraj'daki tüm hesaplama ve kontrol modüllerinin nasıl çalıştığını, hangi formülü ve eşiği kullandığını ve hangi kaynağa dayandığını açıklar. Amaç, yetkili mimar ve mühendislerin her modülü bağımsız olarak yeniden hesaplayıp onaylaması veya düzeltme istemesidir." },
   { type: "callout", tone: "info", title: "İnceleme durumu", text: "Dayanak etiketi yöntemin referans türünü gösterir; uzman onayı veya tam standart uygunluğu anlamına gelmez. Otomatik test, gerçek proje kabulü ve bağımsız uzman kararı ayrı kanıtlardır. Bu belge henüz imzalı uzman kabulü içermez." },
+  { type: "callout", tone: "info", title: "Rev. 47 altyapı kanıtı", text: "T40 PostgreSQL rol ayrımı tooling ve izole PG16 adversarial test düzeyindedir; bu revizyon hesap formüllerini değiştirmez. Compose/runtime credential cutover ve production deploy yapılmadığından canlı görev ayrımı veya uzman kabulü iddia edilmez." },
   { type: "list", ordered: true, items: [
     "Her modülün 'Örnek' bölümündeki girdilerle hesabı elle veya kendi aracınızla tekrarlayın; sonuçlar uygulamanın kendi fonksiyonlarıyla üretilmiş veya onlarla karşılaştırılmıştır.",
     "'Dayanak' etiketine dikkat edin: 'Şirket politikası' ve 'Sezgisel / iş kuralı' olarak işaretli eşikler normatif değildir; uygunluğunu mesleki deneyiminize göre değerlendirin.",
