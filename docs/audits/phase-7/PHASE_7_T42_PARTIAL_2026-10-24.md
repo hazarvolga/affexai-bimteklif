@@ -34,8 +34,8 @@ Repo geneli tek-thread koşuda 1.311 testten 1.300'ü geçti. Beş mevcut SmartC
 ## Açık sınırlar
 
 - Academy webhook aynı enrollment üzerindeki farklı purchase/refund eventlerini entitlement ledger/fencing olmadan işliyor; ayrı T42 dilimidir.
-- SmartCheck worker aynı run için atomik claim/attempt fencing taşımıyor; geç hata başarılı sonucu bozabilir.
-- PDF/spreadsheet artifact, run ve document finalizasyonu tek atomik CAS transactionında değildir.
+- SmartCheck worker claim/lease fencing ve CSV/PDF/IFC canonical publish, Rev. 50 / `c185518` ile kapatıldı; ayrıntı `PHASE_7_T42_WORKER_LEASE_2026-10-24.md` dosyasındadır.
+- Uzun işlem heartbeat/orphan object bakımı ve production rollout doğrulaması açık kalır.
 - `admin_audit_logs` olay akışı canonical ödeme tablosu ve DB `UNIQUE` constraint'i yerine cooperative transaction kilitleri kullanır. Bu dilim uygulama yolunu korur; ele geçirilmiş DB credential ile doğrudan SQL'e karşı kalıcı finansal ledger değildir.
 - Banka API'si/mutabakatı, gerçek dekont doğrulaması, production deploy, canary ve rollback yapılmadı.
 

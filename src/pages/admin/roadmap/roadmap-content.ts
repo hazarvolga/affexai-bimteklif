@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 49 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 50 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -201,6 +201,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Manuel Havale/EFT Yaşam Döngüsü Yarış ve Replay Kapısı (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 49)", "Sipariş init tekilleştirilir; requestId zorunludur; plan/dönem/tutar snapshotı değişmez; dekont NFKC+dar ASCII ile global tekilleşir; submit/review ortak request kilidi kullanır; approve/reject terminaldir; pasif paket onayı kapanır ve ikinci gerçek ödeme aktif aynı-plan dönemini resetlemek yerine uzatır. Production deploy veya banka mutabakat entegrasyonu yapılmadı."],
+        ["SmartCheck Worker Claim, Lease Fencing ve Atomik Publish (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 50)", "Her teslimat UUID lease tokenı alır; stale owner run/document/kota/artifact/normalized row yazamaz. CSV, PDF ve IFC canonical çıktıları owner kontrollü transactionlarda yayımlanır; artifact anahtarı tokenı içerir. Release apply worker drain, sıfır running run ve sıfır locked job ister. Production rollout ve gerçek dosya kabulü yapılmadı."],
         ["Kişisel veri maskeleme ve PDF/A + Pafta + e-İmza ön kontrolü", "Kurum içi pilotta canlı", "TC/VKN/e-posta/telefon maskelenir; 2B PDF teslim dosyalarında PDF/A kimliği, şifreleme, taranmış sayfa (m.6(4)), ISO 216 A4 katları pafta boyutu (m.8(1)), çizim paftalarında tek pafta düzeni (m.8(2)), gömülü e-imza (/Sig, m.6(1)-(2)) ve EK-2 dosya adı denetlenir"],
         ["Kotadan Düşmeyen Canlı Örnek Projeler (/app/smartcheck) & Mühendislik Kabul Kanıt Paketi", "Hazır (BIM-CALC-2026-10-15.3)", "IfcOpenShell 0.8.5 ve pypdf 6.10.2 ile üretilen MM (Tablo 9.1 · 21 satır), ST (Tablo 9.2 · 16 satır + 3×3) ve PDF/A-2B (ISO 216 A3 + e-imza) referans koşuları SHA-256 özetleriyle mühürlendi ve /app/smartcheck ekranında tek tıkla kotadan düşmeden denenebilir hale getirildi"],
         ["Gerçek Tarayıcı (Chromium) axe-core Açık/Koyu Mod Erişilebilirlik, SEO/GEO & Üretim Sertleştirmesi", "Hazır (Rev. 35 · BIM-CALC-2026-10-18.29)", "8 genel rotada hem Açık Pafta hem Gece Paftası (html.dark) modunda gerçek Chromium + axe-core denetimi (scripts/e2e-a11y-smoke.ts) 0 ihlal ile CI'a bağlandı; /bim-sozlugu noscript terimleri, PWA manifest, /.well-known/security.txt, /api/* Cache-Control: no-store, hesap bazlı giriş yavaşlatma, VILLA_MARKET_COST_BENCHMARK_2026 arayüz çekmecesi ve 105 kB ana paket ayrımı tamamlandı"],
@@ -258,7 +259,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
         ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Kısmi / tooling ve izole PG16 kanıtı hazır (24 Ekim 2026 · Rev. 47)", "Beş canonical rol, SET-only migrator→owner üyeliği, exact object/default/function ACL, queue RLS, SECURITY DEFINER wrapper, Graphile 0.16.0 migration-18 ve SHA-256 yapı/provenance kapıları eklendi. Gerçek PG16 testinde PUBLIC/fazla grant, grant option, body/trigger/UNLOGGED/RLS/migration drift ve NULL/range saldırıları reddedildi. Compose ve production credential cutover yapılmadı; T40 PARTIAL'dır."],
         ["17 — GAP kapatma Faz 7: CDE tenant RLS (T41 ilk dilim)", "Kısmi / beş CDE tablosu PG16 kanıtlı (24 Ekim 2026 · Rev. 48)", "cde_projects, cde_project_members, cde_containers, cde_revisions ve cde_transition_events FORCE RLS ile korunur. App erişimi transaction-local tenant context ve exact restricted session role ister; worker deny, backup read-only ve migrator-owner policy matrisi inspector/CI ile doğrulanır. Kalan tenant tabloları, T40 runtime cutover, production canary/rollback ve deploy açık olduğundan T41 kapanmamıştır."],
-        ["18 — GAP kapatma Faz 7: Ödeme/abonelik transaction ve idempotency (T42 ilk dilim)", "Kısmi / manuel havale yolu PG16 kanıtlı (24 Ekim 2026 · Rev. 49)", "Sipariş oluşturma, dekont bildirimi ve admin kararı transaction advisory lock ve monotonik durum makinesiyle serileştirildi. Global canonical dekont replay, snapshot değiştirme, çift karar, pasif paket ve süre reseti kapatıldı. Academy webhook entitlement yarışı ile SmartCheck worker claim/fencing ve atomik finalizasyon T42 kapsamında açık; production deploy yapılmadı."],
+        ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale ve SmartCheck worker dilimleri PG16 kanıtlı (24 Ekim 2026 · Rev. 50)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını tamamladı. Academy webhook entitlement yarışı, banka mutabakatı, uzun işlem heartbeat/orphan bakım politikası ve production rollout açık olduğundan T42 PARTIAL'dır."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "list", items: [
@@ -270,17 +271,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 49 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 50 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 49)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay, güvenli inceleme, dönemsel hakediş ve tahsilat akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 24 Ekim 2026 Rev. 49 · BIM-CALC-2026-10-24.43 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 49 T42'nin manuel havale yaşam döngüsünü transaction, idempotency, immutable snapshot ve global dekont replay kapılarıyla sertleştirir; production deploy kanıtı değildir. Rev. 48 T41'in beş CDE tablosunu kapsayan FORCE-RLS dilimidir ve PARTIAL kalır. Production'a dağıtım veya L3/L4 iddiası yoktur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 50)",
+        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay, güvenli inceleme, dönemsel hakediş ve tahsilat akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 24 Ekim 2026 Rev. 50 · BIM-CALC-2026-10-24.44 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 50 SmartCheck worker sahipliğini claim, per-delivery lease, stale-owner fencing ve atomik canonical publish ile sertleştirir; production deploy kanıtı değildir. Rev. 49 manuel havale yaşam döngüsünü transaction/idempotency kapılarıyla korur. T42 ve Faz 7 PARTIAL kalır; production'a dağıtım veya L3/L4 iddiası yoktur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 49):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 50):",
       },
       {
         type: "table",
@@ -581,16 +582,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Beş CDE tablosuna FORCE RLS, transaction-local company/user context, exact restricted app session kapısı, worker default-deny, backup read-only ve migrator-owner policy eklendi. Full CDE lifecycle, rollback, pool reuse, concurrent A/B tenant ve policy drift izole PG16/CI testinde geçti. Kalan tenant tabloları ve production credential cutover açık olduğundan T41 ve Faz 7 PARTIAL'dır.",
           ],
           [
-            "Rev. 49 (Güncel geliştirme)",
+            "Rev. 49",
             "24 Ekim 2026 (Faz 7 — Manuel Havale Transaction ve Idempotency T42 İlk Dilim, Kısmi)",
             "BIM-CALC-2026-10-24.43 (30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce)",
             "Manuel havale siparişi init/submit/review sınırları transaction içinde serileştirildi. requestId ve dekont referansı zorunlu; plan/dönem/tutar immutable; canonical global receipt replay ve approve/reject yarışı kapalı; pasif paket fail-closed; aynı aktif planın ikinci gerçek ödemesi mevcut dönem sonunu uzatır. 5 gerçek PG16 + 8 unit senaryosu geçti. Academy webhook ve SmartCheck worker yarışları, production deploy ve banka doğrulama/mutabakatı açık olduğundan T42 ve Faz 7 PARTIAL'dır.",
+          ],
+          [
+            "Rev. 50 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — SmartCheck Worker Claim ve Lease Fencing T42 İkinci Dilim, Kısmi)",
+            "BIM-CALC-2026-10-24.44 (c185518834d5c82c468907ad00e3571c5f73587a)",
+            "Graphile job kimliği ve her teslimata özgü lease tokenı queued→running claim'i çitler. CSV/PDF/IFC canonical DB publish owner doğrulamalı transactionlarda tamamlanır; tokenlı immutable artifact anahtarı stale blob overwrite yarışını kapatır. Recovery eski tokenı geçersiz kılar. Onaylı release CLI worker drain onayı, sıfır running run ve sıfır locked job olmadan başlamaz; direct apply CTE'si residual run için ek savunmadır. Academy webhook, production rollout ve bağımsız gerçek dosya kabulü açık olduğundan T42/Faz 7 PARTIAL'dır.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 49 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 50 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1042,6 +1049,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Sipariş init check-then-insert yarışına, submit plan/dönem değişimine ve admin approve/reject çift kararına açıktı. Reddedilmiş talep geç submit ile yeniden açılabiliyor, aynı dekont farklı talepte kullanılabiliyor ve ikinci gerçek ödeme aktif abonelik süresini resetleyebiliyordu.",
             "Init company+plan+cycle kilidi altında tek created event üretir ve replay ikinci e-posta oluşturmaz. Submit zorunlu UUID requestId, immutable plan/dönem/tutar, NFKC+ASCII canonical global receipt lock/dedup ve yalnız awaiting→pending geçişi ister. Review aynı request kilidinde yalnız pending talebi terminal approve/reject'e taşır; planı SHARE lock ile aktif doğrular, company→plan→subscription sırasını izler ve aynı-plan ödemesini mevcut dönem sonuna ekler. PG16 yarış/replay testleri ve bağımsız code/security/TDD gate GO'dur. Academy webhook, SmartCheck worker fencing/finalization, banka mutabakatı ve production deploy açık kaldığından T42 PARTIAL'dır.",
             "src/services/billing/bank-transfer.ts, src/services/billing/bank-transfer.integration.test.ts, src/server/routes/billing.ts, src/server/routes/admin.ts, src/server/routes/auth.ts, src/pages/Billing.tsx",
+          ],
+          [
+            "Rev. 50 · 24 Ekim 2026 (Faz 7 — SmartCheck Worker Claim ve Lease Fencing T42 İkinci Dilim, Kısmi)",
+            "Graphile Worker redelivery kimliği; PostgreSQL CAS ve row lock; per-delivery UUID lease; atomik canonical publish; immutable object key; fail-closed release worker drain kapısı",
+            "Aynı run farklı veya yeniden teslim edilen workerlarca eşzamanlı işlenebiliyor; recovery sonrasında eski worker run, document, kota ve artifact durumunu değiştirebiliyor; ortak object key yeni sahibin blobunu ezebiliyordu. Migration çalışan worker varken başlayabiliyordu.",
+            "queued→running claim jobId+leaseToken ile atomiktir. Aynı job redelivery yeni tokenla sahipliği devralabilir; farklı job no-op olur. Her canonical yazma token ve running durumu ile korunur; CSV/PDF/IFC publish aynı transaction sınırındadır. Artifact key token taşır; overlap testinde DB checksum'ı kazanan blobla eşleşir. Onaylı CLI önce worker drain ve sıfır aktif iş ister; migration CTE'si yalnız bypass/direct apply sırasında residual running run ile bağlı documentı birlikte failed yapan ek savunmadır. Production rollout yapılmamıştır.",
+            "src/smartcheck/import/processor.ts, src/smartcheck/import/{worker,ifc-worker,service}.ts, src/server/routes/{smartcheck,admin}.ts, src/db/schema.ts, drizzle-release/0014_smartcheck_worker_lease.sql, scripts/release-migrations/worker-drain-gate.ts, .github/workflows/verify.yml",
           ],
         ],
       },

@@ -270,4 +270,11 @@ automatically transitions to the free plan; do not enable paid usage.
 
 - Baseline `30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce` serializes manual Havale/EFT init, submit and review; request/receipt replay, snapshot rewrite, double terminal decision, inactive-plan activation and same-plan period reset are closed with real PG16 coverage.
 - Evidence: `docs/audits/phase-7/PHASE_7_T42_PARTIAL_2026-10-24.md`; roadmap `Rev. 49`; calculation record `BIM-CALC-2026-10-24.43`.
-- T42 remains PARTIAL: Academy webhook entitlement race, SmartCheck worker claim/fencing and artifact/run/document atomic finalization remain. Repo-wide test is not green because five queue/worker fixtures lack isolated worker migration tables; do not deploy from this state.
+- At baseline `30bb9ee`, T42 remained PARTIAL because Academy webhook entitlement and SmartCheck worker ownership/finalization were open. Repo-wide test was not green because five queue/worker fixtures lacked isolated worker migration tables; deployment stayed closed.
+
+## 2026-10-24 T42 SmartCheck worker ownership slice
+
+- Baseline `c185518834d5c82c468907ad00e3571c5f73587a` adds atomic queued→running claim, stable Graphile job ownership, per-delivery UUID lease fencing, owner-checked CSV/PDF/IFC canonical transactions and lease-specific immutable object keys.
+- Recovery clears ownership; stale workers cannot publish DB state. Approved release CLI requires explicit worker-drain acknowledgement, zero running runs and zero locked Graphile jobs before `0014`. The migration CTE is defense-in-depth for a bypass/direct apply and moves any residual running run plus matching document to explicit failed/retry state.
+- Evidence: `docs/audits/phase-7/PHASE_7_T42_WORKER_LEASE_2026-10-24.md`; roadmap `Rev. 50`; calculation record `BIM-CALC-2026-10-24.44`.
+- T42 remains PARTIAL: Academy webhook entitlement fencing, long-running heartbeat/orphan-object operations, production cutover/canary/rollback, bank reconciliation and independent permitted-file acceptance remain. Five legacy worker fixtures still miss isolated worker migration tables, so repo-wide CI is not green and deployment remains closed.

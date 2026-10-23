@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.43",
+  version: "BIM-CALC-2026-10-24.44",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce",
-  approvalStatus: "Rev. 49, T42'nin ilk güvenli diliminde manuel Havale/EFT sipariş, dekont bildirimi ve admin karar yaşam döngüsünü transaction/idempotency kapılarıyla sertleştirir; hesap formüllerini değiştirmez. İzole PostgreSQL 16 üzerinde init/review yarışı, immutable snapshot, terminal durum, global dekont replay, pasif paket ve dönem uzatma doğrulanmıştır. Academy webhook ile SmartCheck worker claim/fencing ve atomik finalizasyon, banka mutabakatı ve production deploy açık olduğundan T42 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "c185518834d5c82c468907ad00e3571c5f73587a",
+  approvalStatus: "Rev. 50, T42'nin SmartCheck worker diliminde queued→running claim, teslim denemesi lease tokenı, stale-owner fencing, atomik canonical publish ve immutable artifact anahtarlarını doğrular; hesap formüllerini değiştirmez. Aynı ve farklı job redelivery, recovery ve gerçek overlap senaryoları izole PostgreSQL 16 üzerinde sınanmıştır. Academy webhook entitlement yarışı, dış object-store orphan temizliği/uzun iş heartbeat politikası, banka mutabakatı ve production deploy açık olduğundan T42 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1247,6 +1247,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Teklif/havale bedeli doğru hesaplanabilse de ödeme talebinin plan, dönem ve tutar snapshotı eşzamanlı isteklerde değiştirilebilir; aynı dekont ve çift admin kararı abonelik durumunu tutarsızlaştırabilirdi.",
         after: "Hesaplanan toplam ödeme talebinde immutable kalır; canonical dekont yalnız bir talebe bağlanır; yalnız pending talep tek terminal karara geçer. Aynı aktif plan için ikinci doğrulanmış ödeme mevcut abonelik bitişine seçilen dönem gününü ekler.",
         basis: "src/services/billing/bank-transfer.ts, src/services/billing/bank-transfer.integration.test.ts; PostgreSQL transaction-level advisory locks ve aynı client transaction sınırı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 50",
+    version: "BIM-CALC-2026-10-24.44",
+    date: "24 Ekim 2026",
+    commit: "c185518834d5c82c468907ad00e3571c5f73587a",
+    trigger: "GAP kapatma yol haritası Faz 7 / T42 ikinci güvenli dilim: SmartCheck worker claim, teslim denemesi fencing ve atomik canonical publish.",
+    beforeSummary: "Aynı run birden fazla worker tesliminde eşzamanlı işlenebiliyor; eski worker recovery sonrasında run/document/artifact/kota durumunu değiştirebiliyor ve ortak object key üzerinde yeni sahibin blobunu ezebiliyordu. Release migrationı çalışan job varken uygulanabiliyordu.",
+    afterSummary: "Graphile job kimliği ve her teslimata özgü UUID lease tokenı queued→running claim'i ve bütün canonical yazmaları çitler. CSV, PDF ve IFC çıktıları owner doğrulamalı transactionlarda yayımlanır; artifact anahtarları lease tokenıyla değişmezdir. Recovery eski tokenı geçersiz kılar. Onaylı release CLI, worker drain onayı, sıfır running run ve sıfır locked job olmadan başlamaz; migration CTE'si CLI dışı/direct apply için residual running run ve bağlı documentı birlikte failed yapan ek savunmadır. Hesap formülleri değişmedi; T42 production ve Academy webhook kapsamı nedeniyle PARTIAL'dır.",
+    affectedModules: ["ifc-metraj", "pdfa"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "IFC worker aynı run için ikinci teslimat veya recovery ile yarıştığında satır, artifact, kota ve document finalizasyonunda tek sahip kanıtı taşımıyordu.",
+        after: "IFC normalized rows, artifact, run, quota ve document finalizasyonu aynı lease-fenced transaction içinde yayımlanır; stale worker sıfır canonical DB çıktısı üretir ve object key teslimat tokenını taşır.",
+        basis: "src/smartcheck/import/processor.ts, src/smartcheck/import/ifc-worker.ts, drizzle-release/0014_smartcheck_worker_lease.sql ve processor-concurrency.integration.test.ts",
+      },
+      pdfa: {
+        before: "PDF doğrulama artifactları ile run/document final durumu recovery veya redelivery sırasında farklı workerlar tarafından karıştırılabiliyordu.",
+        after: "PDF artifact listesi, run sonucu ve document durumu aynı owner-token kontrollü transactionda yayımlanır; recovery tokenı temizler ve eski teslimat finalizasyonu reddedilir.",
+        basis: "src/smartcheck/import/processor.ts, src/smartcheck/import/service.ts, src/server/routes/smartcheck.ts ve worker overlap PostgreSQL testi",
       },
     },
   },
