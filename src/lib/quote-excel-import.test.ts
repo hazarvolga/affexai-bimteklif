@@ -46,6 +46,22 @@ test("parseQuoteCsv parses English headers and comma delimiter", () => {
   assert.equal(res.items[0]?.unitPrice, 45000);
 });
 
+test("T30: parseQuoteCsv preserves quoted delimiters, quotes and CR/LF in a description", () => {
+  const csv = 'Poz No;İş Kalemi Açıklaması;Birim;Miktar;Birim Fiyat\r\n01;"Salon; ""özel""\r\nikinci satır 🏗️";m2;12,5;100\r\n';
+  const result = parseQuoteCsv(csv, "guvenli.csv");
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.items.length, 1);
+  assert.equal(result.items[0]?.description, '[01] Salon; "özel"\r\nikinci satır 🏗️');
+  assert.equal(result.items[0]?.quantity, 12.5);
+});
+
+test("T30: parseQuoteCsv fails closed for an unterminated quoted cell", () => {
+  const result = parseQuoteCsv('Açıklama;Miktar\r\n"kapanmayan;1', "bozuk.csv");
+  assert.deepEqual(result.errors, ["CSV tırnak veya satır yapısı geçersiz."]);
+  assert.equal(result.items.length, 0);
+});
+
 test("parseQuoteRows skips non-numeric quantities and subtotal rows", () => {
   const rows = [
     ["İş Kalemi", "Birim", "Miktar", "Birim Fiyat"],

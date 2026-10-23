@@ -6,6 +6,7 @@ import { AlertTriangle, Building2, RefreshCw, Search, Sparkles, X } from 'lucide
 import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
+import { serializeCsv } from '../../lib/tabular-data';
 
 export function TenantsList() {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -85,31 +86,20 @@ export function TenantsList() {
     }
   };
 
-  function escapeCsvCell(value: unknown): string {
-    if (value === null || value === undefined) return '""';
-    let str = String(value);
-    if (/^[=+\-@\t\r]/.test(str)) {
-      str = "'" + str;
-    }
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-
   const handleCsvExport = () => {
-    const csvHeader = 'Firma Adi,Email,Paket,Durum,Kota,Kullanilan,Bonus\n';
-    const csvContent = tenants
-      .map((t) =>
-        [
-          escapeCsvCell(t.name),
-          escapeCsvCell(t.owner_email || ''),
-          escapeCsvCell(t.plan_name || ''),
-          escapeCsvCell(t.subscription_status),
-          escapeCsvCell(t.plan_quota || 0),
-          escapeCsvCell(t.usage_count || 0),
-          escapeCsvCell(t.bonus_quota || 0),
-        ].join(','),
-      )
-      .join('\n');
-    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = serializeCsv([
+      ['Firma Adi', 'Email', 'Paket', 'Durum', 'Kota', 'Kullanilan', 'Bonus'],
+      ...tenants.map((t) => [
+        t.name,
+        t.owner_email || '',
+        t.plan_name || '',
+        t.subscription_status,
+        Number(t.plan_quota || 0),
+        Number(t.usage_count || 0),
+        Number(t.bonus_quota || 0),
+      ]),
+    ], { delimiter: ',', bom: true });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
@@ -118,6 +108,7 @@ export function TenantsList() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const openManageModal = (tenant: any) => {

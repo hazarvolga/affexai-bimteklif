@@ -996,6 +996,7 @@ export const normalizedQuantityRows = pgTable("normalized_quantity_rows", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   companyRowUnique: unique("normalized_quantity_rows_id_company_id_key").on(table.id, table.companyId),
+  transferScopeUnique: unique("normalized_quantity_rows_transfer_scope_key").on(table.id, table.companyId, table.documentId, table.processingRunId),
   sourceRowUnique: unique("normalized_quantity_rows_source_key").on(table.companyId, table.processingRunId, table.sheetName, table.sourceRowNumber),
   runFk: foreignKey({
     columns: [table.processingRunId, table.documentId, table.companyId],
@@ -1007,6 +1008,95 @@ export const normalizedQuantityRows = pgTable("normalized_quantity_rows", {
   }).onDelete("restrict"),
   reviewStatusCheck: check("normalized_quantity_rows_review_status_check", sql`${table.reviewStatus} in ('pending_review', 'approved', 'accepted_exception', 'rejected')`),
   confidenceCheck: check("normalized_quantity_rows_confidence_check", sql`${table.mappingConfidence} >= 0 AND ${table.mappingConfidence} <= 1`),
+}));
+
+// ============================================================
+// SMARTCHECK PHASE 5 — IMMUTABLE CALM → QUOTATION TRANSFER
+// ============================================================
+
+export const quotationTransferLedgers = pgTable("quotation_transfer_ledgers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  actorUserId: uuid("actor_user_id").notNull(),
+  sourceDocumentId: uuid("source_document_id").notNull(),
+  sourceProcessingRunId: uuid("source_processing_run_id").notNull(),
+  sourceArtifactId: uuid("source_artifact_id").notNull(),
+  sourceQuotationId: uuid("source_quotation_id").notNull(),
+  targetQuotationId: uuid("target_quotation_id").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  requestPayloadHash: text("request_payload_hash").notNull(),
+  requestHash: text("request_hash").notNull(),
+  scopeSnapshotJson: jsonb("scope_snapshot_json").$type<Record<string, unknown>>().notNull(),
+  sourceRuleVersion: text("source_rule_version").notNull(),
+  resultSummaryJson: jsonb("result_summary_json").$type<Record<string, unknown>>().default({}).notNull(),
+  sealedAt: timestamp("sealed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  companyLedgerUnique: unique("quotation_transfer_ledgers_id_company_id_key").on(table.id, table.companyId),
+  scopeUnique: unique("quotation_transfer_ledgers_scope_key").on(table.id, table.companyId, table.sourceDocumentId, table.sourceProcessingRunId, table.targetQuotationId),
+  actorIdempotencyUnique: unique("quotation_transfer_ledgers_actor_idempotency_key").on(table.companyId, table.actorUserId, table.idempotencyKey),
+  actorFk: foreignKey({
+    columns: [table.actorUserId, table.companyId],
+    foreignColumns: [memberships.userId, memberships.companyId],
+  }).onDelete("restrict"),
+  documentFk: foreignKey({
+    columns: [table.sourceDocumentId, table.companyId],
+    foreignColumns: [documents.id, documents.companyId],
+  }).onDelete("restrict"),
+  runFk: foreignKey({
+    columns: [table.sourceProcessingRunId, table.sourceDocumentId, table.companyId],
+    foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId],
+  }).onDelete("restrict"),
+  artifactFk: foreignKey({
+    columns: [table.sourceArtifactId, table.companyId, table.sourceProcessingRunId, table.sourceDocumentId],
+    foreignColumns: [documentProcessingArtifacts.id, documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.documentId],
+  }).onDelete("restrict"),
+  sourceQuotationFk: foreignKey({
+    columns: [table.sourceQuotationId, table.companyId],
+    foreignColumns: [quotations.id, quotations.companyId],
+  }).onDelete("restrict"),
+  targetQuotationFk: foreignKey({
+    columns: [table.targetQuotationId, table.companyId],
+    foreignColumns: [quotations.id, quotations.companyId],
+  }).onDelete("restrict"),
+  requestHashCheck: check("quotation_transfer_ledgers_request_hash_check", sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
+  requestPayloadHashCheck: check("quotation_transfer_ledgers_request_payload_hash_check", sql`${table.requestPayloadHash} ~ '^[0-9a-f]{64}$'`),
+  idempotencyKeyCheck: check("quotation_transfer_ledgers_idempotency_key_check", sql`length(trim(${table.idempotencyKey})) between 1 and 160`),
+  distinctRevisionCheck: check("quotation_transfer_ledgers_distinct_revision_check", sql`${table.sourceQuotationId} <> ${table.targetQuotationId}`),
+  lookupIdx: index("idx_quotation_transfer_ledgers_lookup").on(table.companyId, table.sourceQuotationId, table.createdAt),
+}));
+
+export const quotationTransferSourceRows = pgTable("quotation_transfer_source_rows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  transferLedgerId: uuid("transfer_ledger_id").notNull(),
+  sourceQuantityRowId: uuid("source_quantity_row_id").notNull(),
+  sourceDocumentId: uuid("source_document_id").notNull(),
+  sourceProcessingRunId: uuid("source_processing_run_id").notNull(),
+  targetQuotationId: uuid("target_quotation_id").notNull(),
+  targetQuotationItemId: uuid("target_quotation_item_id").notNull(),
+  contributedQuantity: numeric("contributed_quantity", { precision: 20, scale: 4 }).notNull(),
+  sourceCellRange: text("source_cell_range").notNull(),
+  sourceRuleVersion: text("source_rule_version").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  ledgerRowItemUnique: unique("quotation_transfer_source_rows_ledger_row_item_key").on(table.transferLedgerId, table.sourceQuantityRowId, table.targetQuotationItemId),
+  ledgerFk: foreignKey({
+    name: "quotation_transfer_source_rows_ledger_scope_fk",
+    columns: [table.transferLedgerId, table.companyId, table.sourceDocumentId, table.sourceProcessingRunId, table.targetQuotationId],
+    foreignColumns: [quotationTransferLedgers.id, quotationTransferLedgers.companyId, quotationTransferLedgers.sourceDocumentId, quotationTransferLedgers.sourceProcessingRunId, quotationTransferLedgers.targetQuotationId],
+  }).onDelete("restrict"),
+  sourceRowFk: foreignKey({
+    name: "quotation_transfer_source_rows_source_scope_fk",
+    columns: [table.sourceQuantityRowId, table.companyId, table.sourceDocumentId, table.sourceProcessingRunId],
+    foreignColumns: [normalizedQuantityRows.id, normalizedQuantityRows.companyId, normalizedQuantityRows.documentId, normalizedQuantityRows.processingRunId],
+  }).onDelete("restrict"),
+  targetItemFk: foreignKey({
+    columns: [table.targetQuotationItemId, table.targetQuotationId, table.companyId],
+    foreignColumns: [quotationItems.id, quotationItems.quotationId, quotationItems.companyId],
+  }).onDelete("restrict"),
+  quantityCheck: check("quotation_transfer_source_rows_quantity_check", sql`${table.contributedQuantity} > 0`),
+  lookupIdx: index("idx_quotation_transfer_source_rows_lookup").on(table.companyId, table.targetQuotationId, table.targetQuotationItemId),
 }));
 
 export const smartcheckAuditLogs = pgTable("smartcheck_audit_logs", {

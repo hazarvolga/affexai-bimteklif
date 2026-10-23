@@ -78,6 +78,13 @@
       "sha256": "794fd6893763eb2c403b6fe6a87c048a82ca94840a99c04b64581e9a4422fc5c",
       "snapshotSha256": "0d44d44fcc18399c28890c715dbde2c27f758d435c6afee4822d012ea75a46b8",
       "statements": 36
+    },
+    {
+      "idx": 11,
+      "tag": "0011_quotation_transfer_ledger",
+      "sha256": "a02470df34579c4197410218bd83cf4e3e93b02e1eb86bf0332d5f95ea02e2ce",
+      "snapshotSha256": "436ebbbc04128a4a499049337972edcced33668ba5c550b0f7f21c2a1ba86478",
+      "statements": 36
     }
   ]
 }

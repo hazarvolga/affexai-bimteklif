@@ -5,6 +5,7 @@ import { fetchWithAuth } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { serializeCsv } from '@/lib/tabular-data';
 
 type PilotApplication = {
   id: string;
@@ -85,7 +86,6 @@ export function PilotApplications() {
       return;
     }
     const headers = ['Kayit Tarihi', 'E-Posta', 'Ad Soyad', 'Firma / Ofis', 'Uzmanlik / Ekip', 'Kaynak', 'Durum', 'Not'];
-    const escapeCsv = (val: unknown) => `"${String(val ?? '').replace(/"/g, '""')}"`;
     const rows = filteredApplications.map((a) => [
       new Date(a.createdAt).toLocaleString('tr-TR'),
       a.email,
@@ -96,7 +96,7 @@ export function PilotApplications() {
       statuses.find((s) => s.value === a.status)?.label || a.status,
       a.currentWorkflow || '',
     ]);
-    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(';'), ...rows.map((r) => r.map(escapeCsv).join(';'))].join('\r\n');
+    const csvContent = serializeCsv([headers, ...rows], { delimiter: ';', bom: true });
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

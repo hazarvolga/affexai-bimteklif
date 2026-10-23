@@ -48,6 +48,10 @@ _ISO_A_SIZES_MM = (
 )
 _SIZE_TOLERANCE_MM = 6.0
 
+_SIGNATURE_MAX_DEPTH = 32
+_SIGNATURE_MAX_OBJECTS = 10_000
+_SIGNATURE_MAX_PAGES = 500
+
 
 def _finding(kod: str, seviye: str, mesaj: str, madde: str, sayfalar: Optional[List[int]] = None) -> Dict[str, Any]:
     finding: Dict[str, Any] = {"kod": kod, "seviye": seviye, "mesaj": mesaj, "madde": madde}
@@ -98,28 +102,165 @@ def _is_a4_or_multiple_mm(short_mm: float, long_mm: float) -> bool:
     return False
 
 
-def _has_esignature(reader: PdfReader) -> bool:
+def _signature_verification(field_status: str) -> Dict[str, Dict[str, str]]:
+    has_structural_value = field_status == "signed"
+    state = "not_checked" if has_structural_value else "indeterminate"
+    reason = (
+        "Yapısal imza değeri bulundu; kriptografik doğrulama bu ön kontrolde çalıştırılmadı."
+        if has_structural_value
+        else "Doğrulanabilir bir imza değeri bulunmadığından sonuç belirlenemedi."
+    )
+    return {
+        "cryptographic": {"status": state, "note": reason},
+        "trust": {"status": state, "note": "Sertifika güven zinciri kontrol edilmedi." if has_structural_value else reason},
+        "revocation": {"status": state, "note": "OCSP/CRL iptal durumu kontrol edilmedi." if has_structural_value else reason},
+        "timestamp": {"status": state, "note": "Nitelikli zaman damgası kontrol edilmedi." if has_structural_value else reason},
+    }
+
+
+def _signature_object_key(reference: Any, value: Any) -> tuple[Any, ...]:
+    indirect = getattr(reference, "indirect_reference", None) or getattr(value, "indirect_reference", None)
+    if indirect is None and hasattr(reference, "idnum"):
+        indirect = reference
+    if indirect is not None and hasattr(indirect, "idnum"):
+        return ("indirect", int(indirect.idnum), int(getattr(indirect, "generation", 0)))
+    return ("direct", id(value))
+
+
+def _scan_esignatures(reader: PdfReader) -> Dict[str, Any]:
+    """Bounded structural scan. It deliberately performs no crypto validation."""
+    state: Dict[str, Any] = {
+        "signedValueCount": 0,
+        "emptyFieldCount": 0,
+        "malformedFieldCount": 0,
+        "objectsScanned": 0,
+        "scanComplete": True,
+    }
+    seen: set[tuple[Any, ...]] = set()
+    active: set[tuple[Any, ...]] = set()
+
+    def mark_malformed() -> None:
+        state["malformedFieldCount"] += 1
+
+    def visit(reference: Any, inherited_type: Optional[str] = None, depth: int = 0) -> None:
+        if depth > _SIGNATURE_MAX_DEPTH or state["objectsScanned"] >= _SIGNATURE_MAX_OBJECTS:
+            state["scanComplete"] = False
+            return
+        try:
+            value = reference.get_object() if hasattr(reference, "get_object") else reference
+        except Exception:  # noqa: BLE001
+            state["scanComplete"] = False
+            if inherited_type == "/Sig":
+                mark_malformed()
+            return
+        if not hasattr(value, "get"):
+            if inherited_type == "/Sig":
+                mark_malformed()
+            return
+        explicit_type = value.get("/FT")
+        field_type = str(explicit_type) if explicit_type is not None else inherited_type
+        key = _signature_object_key(reference, value)
+        if key in seen:
+            if key in active:
+                state["scanComplete"] = False
+                if field_type == "/Sig":
+                    mark_malformed()
+            return
+        seen.add(key)
+        active.add(key)
+        state["objectsScanned"] += 1
+
+        is_signature = field_type == "/Sig"
+        # An inherited widget without /V is part of its parent's field, not a second empty field.
+        should_classify = is_signature and (explicit_type is not None or "/V" in value)
+        if should_classify:
+            raw_signature_value = value.get("/V") if "/V" in value else None
+            if raw_signature_value is None or raw_signature_value.__class__.__name__ == "NullObject":
+                state["emptyFieldCount"] += 1
+            else:
+                try:
+                    signature_value = raw_signature_value
+                    signature_value = signature_value.get_object() if hasattr(signature_value, "get_object") else signature_value
+                    byte_range = signature_value.get("/ByteRange") if hasattr(signature_value, "get") else None
+                    contents = signature_value.get("/Contents") if hasattr(signature_value, "get") else None
+                    if (
+                        hasattr(signature_value, "get")
+                        and str(signature_value.get("/Type", "/Sig")) == "/Sig"
+                        and byte_range is not None
+                        and len(byte_range) >= 4
+                        and contents is not None
+                        and len(contents) > 0
+                    ):
+                        state["signedValueCount"] += 1
+                    else:
+                        mark_malformed()
+                except Exception:  # noqa: BLE001
+                    mark_malformed()
+
+        try:
+            kids = value.get("/Kids") or []
+            kids = kids.get_object() if hasattr(kids, "get_object") else kids
+            for kid in kids:
+                visit(kid, field_type, depth + 1)
+        except Exception:  # noqa: BLE001
+            state["scanComplete"] = False
+            if is_signature:
+                mark_malformed()
+        finally:
+            active.discard(key)
+
     try:
         root = reader.trailer["/Root"].get_object()
         acro = root.get("/AcroForm")
         if acro:
             acro_obj = acro.get_object()
             fields = acro_obj.get("/Fields") or []
-            for f_ref in fields:
-                f_obj = f_ref.get_object()
-                if f_obj.get("/FT") == "/Sig" or f_obj.get("/V") is not None and f_obj.get("/FT") == "/Sig":
-                    return True
-        for page in reader.pages[:20]:
-            annots = page.get("/Annots")
-            if not annots:
-                continue
-            for a_ref in annots.get_object():
-                a_obj = a_ref.get_object()
-                if a_obj.get("/FT") == "/Sig":
-                    return True
+            fields = fields.get_object() if hasattr(fields, "get_object") else fields
+            for field in fields:
+                visit(field)
     except Exception:  # noqa: BLE001
-        return False
-    return False
+        state["scanComplete"] = False
+
+    pages_total = len(reader.pages)
+    pages_to_scan = min(pages_total, _SIGNATURE_MAX_PAGES)
+    pages_scanned = 0
+    for index in range(pages_to_scan):
+        try:
+            page = reader.pages[index]
+            annots = page.get("/Annots") or []
+            annots = annots.get_object() if hasattr(annots, "get_object") else annots
+            for annotation in annots:
+                visit(annotation)
+            pages_scanned += 1
+        except Exception:  # noqa: BLE001
+            state["scanComplete"] = False
+    if pages_scanned != pages_total:
+        state["scanComplete"] = False
+
+    if state["malformedFieldCount"]:
+        field_status = "malformed"
+    elif state["signedValueCount"]:
+        field_status = "signed"
+    elif state["emptyFieldCount"]:
+        field_status = "empty"
+    elif state["scanComplete"]:
+        field_status = "absent"
+    else:
+        field_status = "indeterminate"
+    present = bool(state["signedValueCount"] or state["emptyFieldCount"] or state["malformedFieldCount"])
+    state.update({
+        "signatureFieldPresent": present,
+        "fieldStatus": field_status,
+        "pagesScanned": pages_scanned,
+        "pagesTotal": pages_total,
+        "verification": _signature_verification(field_status),
+        "note": (
+            "İmza alanı ve yapısal /V değeri tespit edildi; bu, imzanın kriptografik olarak geçerli veya güvenilir olduğunu kanıtlamaz."
+            if field_status == "signed"
+            else "İmza alanı taraması yapısal bir ön kontroldür; geçerlilik, güven zinciri, iptal ve zaman damgası doğrulaması değildir."
+        ),
+    })
+    return state
 
 
 def _page_has_images(page: Any) -> bool:
@@ -144,7 +285,13 @@ def build_report(path: str, file_name: Optional[str] = None) -> Dict[str, Any]:
     findings: List[Dict[str, Any]] = []
     claim: Optional[Dict[str, str]] = None
     page_count = 0
-    has_esig = False
+    esignature: Dict[str, Any] = {
+        "signatureFieldPresent": False, "fieldStatus": "indeterminate", "signedValueCount": 0,
+        "emptyFieldCount": 0, "malformedFieldCount": 0, "scanComplete": False,
+        "pagesScanned": 0, "pagesTotal": 0, "objectsScanned": 0,
+        "verification": _signature_verification("indeterminate"),
+        "note": "PDF okunamadığı için e-imza alanı taraması tamamlanamadı.",
+    }
 
     stem_match = DOSYA_ADI.match(Path(file_name).stem)
     if not stem_match:
@@ -159,7 +306,11 @@ def build_report(path: str, file_name: Optional[str] = None) -> Dict[str, Any]:
         else:
             page_count = len(reader.pages)
             claim = _pdfa_claim(reader)
-            has_esig = _has_esignature(reader)
+            esignature = _scan_esignatures(reader)
+            if esignature["fieldStatus"] == "malformed":
+                findings.append(_finding("EIMZA_YAPISI_BOZUK", "uyari", "En az bir e-imza alanının /V yapısı eksik veya bozuk; imzalı kabul edilemez.", "Elektronik Teslim Yönetmeliği m.6(1)-(2)"))
+            if not esignature["scanComplete"]:
+                findings.append(_finding("EIMZA_TARAMA_EKSIK", "uyari", "E-imza alanı taraması güvenlik sınırları içinde tamamlanamadı; sonuç belirsizdir.", "PDF/A ön kontrol işlem sınırı"))
             if claim is None:
                 findings.append(_finding("PDFA_KIMLIGI_YOK", "hata", "XMP meta verisinde PDF/A kimliği (pdfaid:part) yok; dosya PDF/A olarak üretilmemiş görünüyor.", "Elektronik Teslim Yönetmeliği m.3(e), m.6"))
             if page_count > 500:
@@ -212,18 +363,11 @@ def build_report(path: str, file_name: Optional[str] = None) -> Dict[str, Any]:
     findings.append(_finding("PDFA_TAM_DOGRULAMA", "elle", PDFA_NOTE, "PDF/A (ISO 19005)"))
     summary = {level: sum(1 for f in findings if f["seviye"] == level) for level in ("hata", "uyari", "elle")}
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "kind": "pdf_preflight",
         "file": {"fileName": file_name, "pageCount": page_count},
         "pdfa": {"claimed": claim, "note": PDFA_NOTE},
-        "eSignature": {
-            "present": has_esig,
-            "note": (
-                "PDF içinde elektronik imza alanı (/Sig) tespit edildi."
-                if has_esig
-                else "PDF içinde gömülü elektronik imza (/Sig) tespit edilmedi; e-imza kullanılmayan durumlarda idareye ıslak imzalı çıktı teslimi gerekir (Elektronik Teslim Yön. m.6/2)."
-            ),
-        },
+        "eSignature": esignature,
         "summary": summary,
         "findings": findings,
         "disclaimer": DISCLAIMER,

@@ -78,6 +78,13 @@
       "when": 1791417600010,
       "tag": "0010_cde_workflow",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791417600011,
+      "tag": "0011_quotation_transfer_ledger",
+      "breakpoints": true
     }
   ]
 }

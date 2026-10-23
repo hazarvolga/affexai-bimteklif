@@ -6,6 +6,7 @@ export function copyRevisionItems(
   items: (typeof quotationItems.$inferSelect)[],
   evidence: (typeof quotationItemEvidence.$inferSelect)[],
   quotationId: string,
+  aggregateProvenanceItemIds: ReadonlySet<string> = new Set(),
 ) {
   const itemsById = new Map(items.map(item => [item.id, item]));
   const evidencedItems = new Set(evidence.filter(record => {
@@ -20,7 +21,7 @@ export function copyRevisionItems(
   const itemIds = new Map(items.map(item => [item.id, randomUUID()]));
   const clonedItems = items.map(item => ({
     ...item, id: itemIds.get(item.id)!, quotationId,
-    verificationStatus: item.verificationStatus === "verified" && !evidencedItems.has(item.id) ? "unverified" : item.verificationStatus,
+    verificationStatus: item.verificationStatus === "verified" && !evidencedItems.has(item.id) && !aggregateProvenanceItemIds.has(item.id) ? "unverified" : item.verificationStatus,
     priceSnapshotLockedAt: null,
     priceSnapshotStatus: item.priceSnapshotStatus === "locked" ? (item.priceSnapshotId ? "attached" : "none") : item.priceSnapshotStatus,
   }));

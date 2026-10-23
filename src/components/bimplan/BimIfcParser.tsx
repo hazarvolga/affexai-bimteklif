@@ -31,6 +31,7 @@ import { validateEpysRules } from "@/smartcheck/rules/epys";
 import { CalmIfcWorkspace } from "@/components/smartcheck/CalmIfcWorkspace";
 import { RevitPreUploadChecklistPanel } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { buildCalmIfcDatasetFromElements } from "@/ifc/calm-icmal";
+import { serializeCsv } from "@/lib/tabular-data";
 
 import type { IfcParseSummary, ParsedIfcElement } from '@/ifc/types';
 
@@ -341,24 +342,26 @@ export function BimIfcParser(_props: BimIfcParserProps) {
       e.id,
       e.guid,
       e.type,
-      `"${e.name}"`,
-      `"${e.storey}"`,
-      e.storeySourcePath ? `"${e.storeySourcePath}"` : e.storeySource,
+      e.name,
+      e.storey,
+      e.storeySourcePath || e.storeySource,
       e.volumeM3,
       e.formworkM2,
       e.rebarKg,
-      e.quantitySourcePath ? `"${e.quantitySourcePath}"` : e.quantitySource,
+      e.quantitySourcePath || e.quantitySource,
       e.smartCheckStatus
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = serializeCsv([headers, ...rows], { delimiter: ',', bom: true });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `TeklifPro_5D_IFC_Metraj_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     toast.success('CSV Metraj Raporu indirildi!');
   };
 

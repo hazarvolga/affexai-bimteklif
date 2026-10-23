@@ -13,6 +13,9 @@ import { elementQuantity } from "./uncovered-quantity";
 import { classifyStructuralMaterial, isStructuralType, type SupportedConcreteClass } from "./structural-material";
 import { hasDirectIfcRebarMassEvidence } from "./rebar-evidence";
 
+/** Bump only when the persisted Calm grouping/quantity projection semantics change. */
+export const CALM_ICMAL_RULE_VERSION = "calm-icmal.v1" as const;
+
 export type CalmIcmalGroupKey =
   | "floor_finish"
   | "wall_finish"
@@ -51,6 +54,8 @@ export interface CalmIcmalItem {
   formulaNote: string;
   storeyBreakdown: CalmStoreyBreakdownRow[];
   sampleRooms: CalmRoomSampleRow[];
+  /** Present for datasets projected from persisted SmartCheck rows; calibrated/demo datasets intentionally have none. */
+  sourceQuantityRowIds?: string[];
 }
 
 export interface CalmIcmalGroup {
@@ -509,6 +514,7 @@ export function buildApartmentScheduleFromElements(
  */
 export function parseSmartCheckRowToPseudoElement(
   row: {
+    id?: string;
     rawDescription?: string | null;
     normalizedDescription?: string | null;
     rawUnit?: string | null;
@@ -557,6 +563,15 @@ export function parseSmartCheckRowToPseudoElement(
 
   const isVolume = unitRaw === "m3" || unitRaw === "m³";
   const isLength = unitRaw === "m" || unitRaw === "mt" || unitRaw === "mtül";
+  const sourceIdentity = row.formulaJson?.elementKey && row.formulaJson.sourceFileSha256 && row.formulaJson.sourceRunId && row.formulaJson.sourceStepId && row.formulaJson.sourceGlobalId
+    ? {
+        elementKey: row.formulaJson.elementKey,
+        fileSha256: row.formulaJson.sourceFileSha256,
+        runId: row.formulaJson.sourceRunId,
+        stepId: row.formulaJson.sourceStepId,
+        globalId: row.formulaJson.sourceGlobalId,
+      }
+    : undefined;
 
   return {
     id: row.formulaJson?.elementStepId?.replace(/^#/, "") || String(idx + 1),
@@ -581,6 +596,8 @@ export function parseSmartCheckRowToPseudoElement(
     quantitySource: row.quantitySource === "ifc_qto" ? "qto" : "property",
     smartCheckStatus: "pass",
     pozNo: row.normalizedPositionCode ?? row.rawPositionCode ?? undefined,
+    sourceIdentity,
+    sourceQuantityRowId: row.id,
   };
 }
 
@@ -617,6 +634,7 @@ export function buildCalmIfcDatasetFromElements(
       derivedFromAssumption: boolean;
       byStorey: Map<string, number>;
       sampleRooms: CalmRoomSampleRow[];
+      sourceQuantityRowIds: Set<string>;
     }
   >();
 
@@ -648,7 +666,9 @@ export function buildCalmIfcDatasetFromElements(
           derivedFromAssumption: false,
           byStorey: new Map<string, number>(),
           sampleRooms: [],
+          sourceQuantityRowIds: new Set<string>(),
         };
+        if (el.sourceQuantityRowId) entry.sourceQuantityRowIds.add(el.sourceQuantityRowId);
         entry.netQuantity += el.rebarKg;
         entry.grossQuantity += el.rebarKg;
         const storeyLabel = normalizeStoreyLabel(el.storey, el.spaceCode);
@@ -835,11 +855,13 @@ export function buildCalmIfcDatasetFromElements(
           derivedFromAssumption: false,
           byStorey: new Map<string, number>(),
           sampleRooms: [],
+          sourceQuantityRowIds: new Set<string>(),
         };
         accumMap.set(spec.id, entry);
       }
 
       entry.netQuantity += netQty;
+      if (el.sourceQuantityRowId) entry.sourceQuantityRowIds.add(el.sourceQuantityRowId);
       entry.grossQuantity += grossQty;
       entry.deductedOpeningQuantity += openingQty;
       if (!grossKnown) entry.grossKnown = false;
@@ -979,6 +1001,7 @@ export function buildCalmIfcDatasetFromElements(
         : entry.spec.formulaNote,
       storeyBreakdown,
       sampleRooms: entry.sampleRooms,
+      sourceQuantityRowIds: [...entry.sourceQuantityRowIds].sort(),
     };
   });
 

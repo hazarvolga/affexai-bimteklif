@@ -156,6 +156,17 @@ test("parseSmartCheckRowToPseudoElement accurately converts sample project rows 
   assert.equal(ds.apartments.length, 0);
 });
 
+test("SmartCheck source row ids survive pseudo elements and Calm aggregation", () => {
+  const rows = [
+    { id: "11111111-1111-4111-8111-111111111111", rawDescription: "IfcSlab · Beton_C30", rawUnit: "m3", rawQuantity: "2", rawPositionCode: "15.150.1006", formulaJson: {} },
+    { id: "22222222-2222-4222-8222-222222222222", rawDescription: "IfcSlab · Beton_C30", rawUnit: "m3", rawQuantity: "3", rawPositionCode: "15.150.1006", formulaJson: {} },
+  ];
+  const elements = rows.map((row, index) => parseSmartCheckRowToPseudoElement(row, index));
+  assert.equal(elements[0].sourceQuantityRowId, rows[0].id);
+  const item = buildCalmIfcDatasetFromElements(elements, null, "source.ifc").groups.flatMap((group) => group.items)[0];
+  assert.deepEqual(item.sourceQuantityRowIds, rows.map((row) => row.id));
+});
+
 test("customer IFC files containing 2026_45 in filename compute strictly from actual elements and never leak calibrated reference data", () => {
   const sampleRows = [
     {

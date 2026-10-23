@@ -15,13 +15,67 @@ import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
 import { consumeIfcUsage } from "../../services/billing/quota";
 import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
 import { runEpysPreflight, summarizeEpysPreflight } from "./epys-preflight-runner";
-import { runPdfPreflight } from "./pdf-preflight-runner";
+import { PdfPreflightReportSchema, runPdfPreflight } from "./pdf-preflight-runner";
+import { runVeraPdfValidation } from "../pdf/verapdf-runner";
+import { VeraPdfValidationReportSchema } from "../pdf/verapdf-report";
 import { captureError } from "../../server/observability/error-tracking";
 import { isActiveStandard } from "../rules/three-by-three";
 
 export { inspectDocument } from "./spreadsheet-runner";
 export type { DocumentPreview, PreviewSheet } from "./spreadsheet-parser";
 import { parseDocument } from "./spreadsheet-runner";
+
+type PdfArtifactType = "pdf_preflight" | "verapdf_validation";
+
+export interface PdfProcessingArtifact {
+  artifactType: PdfArtifactType;
+  fileName: "pdf-preflight.json" | "verapdf-validation.json";
+  content: Buffer;
+  metadataJson: Record<string, unknown>;
+}
+
+interface PdfProcessingDependencies {
+  runStructuralPreflight: (inputPath: string, fileName: string) => Promise<unknown>;
+  runPdfaValidation: (inputPath: string, fileName: string) => Promise<unknown>;
+}
+
+/**
+ * Builds independent structural-preflight and standards-validation evidence.
+ * The original PDF is checksum-verified before and after each external tool.
+ */
+export async function buildPdfProcessingArtifacts(
+  input: { inputPath: string; fileName: string; expectedSourceChecksum: string },
+  dependencies: PdfProcessingDependencies = {
+    runStructuralPreflight: runPdfPreflight,
+    runPdfaValidation: runVeraPdfValidation,
+  },
+): Promise<PdfProcessingArtifact[]> {
+  const assertOriginalPreserved = async () => {
+    const source = await fs.readFile(input.inputPath);
+    if (sha256(source) !== input.expectedSourceChecksum) throw new Error("PDF_SOURCE_CHANGED");
+  };
+  const lineage = {
+    relation: "validated_from_original",
+    sourceFileName: input.fileName,
+    sourceChecksumSha256: input.expectedSourceChecksum,
+    originalPreserved: true,
+  } as const;
+
+  await assertOriginalPreserved();
+  const preflight = PdfPreflightReportSchema.parse(await dependencies.runStructuralPreflight(input.inputPath, input.fileName));
+  await assertOriginalPreserved();
+  const validation = VeraPdfValidationReportSchema.parse(await dependencies.runPdfaValidation(input.inputPath, input.fileName));
+  await assertOriginalPreserved();
+  if (validation.source.checksumSha256 !== input.expectedSourceChecksum || !validation.source.preserved) {
+    throw new Error("VERAPDF_SOURCE_LINEAGE_MISMATCH");
+  }
+
+  const artifacts: Array<Omit<PdfProcessingArtifact, "content">> = [
+    { artifactType: "pdf_preflight", fileName: "pdf-preflight.json", metadataJson: { ...preflight, lineage } },
+    { artifactType: "verapdf_validation", fileName: "verapdf-validation.json", metadataJson: { ...validation, lineage } },
+  ];
+  return artifacts.map((artifact) => ({ ...artifact, content: Buffer.from(JSON.stringify(artifact.metadataJson, null, 2)) }));
+}
 
 async function updateRun(runId: string, companyId: string, values: Partial<typeof documentProcessingRuns.$inferInsert>) {
   await db.update(documentProcessingRuns).set({ ...values, updatedAt: new Date() }).where(and(eq(documentProcessingRuns.id, runId), eq(documentProcessingRuns.companyId, companyId)));
@@ -414,20 +468,41 @@ export async function processSmartCheckDocument(payload: { companyId: string; do
       const localPath = path.join(tmpDir, "document.pdf");
       try {
         await storage.downloadToFile(document.storageKey, localPath, document.checksumSha256);
-        const report = await runPdfPreflight(localPath, document.originalFileName);
-        const artifactContent = Buffer.from(JSON.stringify(report));
-        const artifactKey = `${companyId}/${documentId}/${run.id}/pdf-preflight.json`;
-        await storage.put(artifactKey, artifactContent, "application/json");
-        await db.insert(documentProcessingArtifacts).values({
-          companyId, documentId, processingRunId: run.id, artifactType: "pdf_preflight",
-          storageKey: artifactKey, checksumSha256: sha256(artifactContent), contentType: "application/json",
-          sizeBytes: artifactContent.length, metadataJson: report,
-        }).onConflictDoUpdate({
-          target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
-          set: { storageKey: artifactKey, checksumSha256: sha256(artifactContent), sizeBytes: artifactContent.length, metadataJson: report },
+        const pdfArtifacts = await buildPdfProcessingArtifacts({
+          inputPath: localPath,
+          fileName: document.originalFileName,
+          expectedSourceChecksum: document.checksumSha256,
         });
+        for (const artifact of pdfArtifacts) {
+          const artifactKey = `${companyId}/${documentId}/${run.id}/${artifact.fileName}`;
+          await storage.put(artifactKey, artifact.content, "application/json");
+          await db.insert(documentProcessingArtifacts).values({
+            companyId,
+            documentId,
+            processingRunId: run.id,
+            artifactType: artifact.artifactType,
+            storageKey: artifactKey,
+            checksumSha256: sha256(artifact.content),
+            contentType: "application/json",
+            sizeBytes: artifact.content.length,
+            metadataJson: artifact.metadataJson,
+          }).onConflictDoUpdate({
+            target: [documentProcessingArtifacts.companyId, documentProcessingArtifacts.processingRunId, documentProcessingArtifacts.artifactType],
+            set: {
+              storageKey: artifactKey,
+              checksumSha256: sha256(artifact.content),
+              contentType: "application/json",
+              sizeBytes: artifact.content.length,
+              metadataJson: artifact.metadataJson,
+            },
+          });
+        }
+        const validation = pdfArtifacts.find((artifact) => artifact.artifactType === "verapdf_validation")!.metadataJson;
+        const validationStatus = validation.status === "completed"
+          ? (validation.validation as { isCompliant: boolean }).isCompliant ? "PDF/A doğrulaması tamamlandı" : "PDF/A doğrulaması: uyumsuz"
+          : "PDF yapısal ön kontrolü tamamlandı; PDF/A doğrulayıcı kullanılamıyor";
         const now = new Date();
-        await updateRun(run.id, companyId, { status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: "PDF/A ön kontrolü tamamlandı", completedAt: now });
+        await updateRun(run.id, companyId, { status: "succeeded", currentStage: "awaiting_review", progressPercent: 100, progressMessage: validationStatus, completedAt: now });
         await db.update(documents).set({ status: "awaiting_review", updatedAt: now }).where(and(eq(documents.id, document.id), eq(documents.companyId, companyId)));
         return;
       } finally {

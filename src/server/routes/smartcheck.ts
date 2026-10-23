@@ -30,6 +30,7 @@ import { buildAllplanEpysKitV1, buildEpysIdsXml } from "../../smartcheck/epys-al
 import { SAMPLE_PRICE_CATALOG_SEED, SMARTCHECK_SAMPLE_PROJECTS, type SampleProjectId } from "../../smartcheck/sample-projects";
 import {
   smartcheckBulkReviewRequestSchema,
+  smartcheckCalmTransferRequestSchema,
   smartcheckCompleteRequestSchema,
   smartcheckMappingRequestSchema,
   smartcheckRowReviewRequestSchema,
@@ -37,6 +38,11 @@ import {
   smartcheckTransferToNewQuotationRequestSchema,
   smartcheckUploadRequestSchema,
 } from "../../contracts/smartcheck";
+import { CalmTransferError, transferCalmRowsToQuotationRevision } from "../../services/quotations/calm-transfer";
+import { IFC_VIEWER_MAX_EVIDENCE_BYTES, IFC_VIEWER_MAX_FILE_BYTES, IFC_VIEWER_MAX_IDENTITIES, canonicalElementKey, parseViewerContext } from "../../ifc/viewer/model";
+import type { IfcSourceIdentity } from "../../ifc/types";
+import { createVerifiedIfcStream } from "../../ifc/viewer/verified-stream";
+import { acquireViewerContent, acquireViewerContext, createViewerAdmissionMiddleware, createViewerRateLimit } from "../../ifc/viewer/access-control";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
 const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/csv", "application/octet-stream", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip", "model/ifc", "application/ifc", "application/pdf"], limit: SMARTCHECK_MAX_FILE_BYTES });
@@ -72,6 +78,10 @@ const readRateLimit: RequestHandler = async (req, res, next) => {
   if (!result.allowed) return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "SmartCheck okuma limiti aşıldı." });
   next();
 };
+const viewerContextRateLimit = createViewerRateLimit("context");
+const viewerContentRateLimit = createViewerRateLimit("content");
+const viewerContextAdmission = createViewerAdmissionMiddleware(acquireViewerContext);
+const viewerContentAdmission = createViewerAdmissionMiddleware(acquireViewerContent);
 
 async function audit(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {
   const mergedMetadata = {
@@ -81,6 +91,14 @@ async function audit(req: Request, action: string, entityType: string, entityId?
   await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson: mergedMetadata });
 }
 
+async function auditBestEffort(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {
+  try {
+    await audit(req, action, entityType, entityId, metadataJson);
+  } catch (error) {
+    console.error("[smartcheck.audit] best-effort audit failed", { action, entityType, entityId, error });
+  }
+}
+
 function smartcheckQuoteNumber() {
   const stamp = new Date().toISOString().slice(0, 10).replaceAll("-", "");
   return `SC-${stamp}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
@@ -88,6 +106,74 @@ function smartcheckQuoteNumber() {
 
 export function registerSmartCheckRoutes(app: Express) {
   const protectedStack = [authenticate, requireVerifiedEmail, featureGate, rateLimit, canReview];
+
+  app.post("/api/smartcheck/documents/:id/transfer-calm-to-quotation", ...protectedStack, async (req, res) => {
+    const idempotencyKey = req.get("Idempotency-Key")?.trim() ?? "";
+    if (!idempotencyKey) {
+      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_IDEMPOTENCY_KEY_REQUIRED" });
+      return res.status(400).json({ error: "Idempotency-Key başlığı zorunludur.", code: "CALM_TRANSFER_IDEMPOTENCY_KEY_REQUIRED" });
+    }
+    if (idempotencyKey.length > 160) {
+      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID" });
+      return res.status(400).json({ error: "Idempotency-Key en fazla 160 karakter olabilir.", code: "CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID" });
+    }
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(req.params.id)) {
+      await auditBestEffort(req, "calm_transfer_rejected", "document", undefined, { code: "CALM_TRANSFER_DOCUMENT_ID_INVALID" });
+      return res.status(400).json({ error: "Doküman kimliği geçersiz.", code: "CALM_TRANSFER_DOCUMENT_ID_INVALID" });
+    }
+    const parsed = smartcheckCalmTransferRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_REQUEST_INVALID" });
+      return res.status(400).json({ error: "Calm aktarım isteği geçersiz.", code: "CALM_TRANSFER_REQUEST_INVALID" });
+    }
+    try {
+      const result = await transferCalmRowsToQuotationRevision(
+        { companyId: req.user.companyId, userId: req.user.userId },
+        idempotencyKey,
+        {
+          sourceDocumentId: req.params.id,
+          targetQuotationId: parsed.data.quotationId,
+          priceSnapshotIdsByCalmLineId: parsed.data.priceSnapshotIdsByCalmLineId,
+        },
+      );
+      const summary = result.ledger.resultSummaryJson as Record<string, unknown>;
+      await auditBestEffort(req, "calm_rows_transferred", "quotation", result.quotation.id, {
+        sourceDocumentId: req.params.id,
+        sourceQuotationId: result.ledger.sourceQuotationId,
+        transferLedgerId: result.ledger.id,
+        sourceRowCount: summary.sourceRowCount ?? null,
+        replayed: result.replayed,
+      });
+      return res.status(result.replayed ? 200 : 201).json({
+        quotationId: result.quotation.id,
+        sourceQuotationId: result.ledger.sourceQuotationId,
+        revisionVersion: result.quotation.revisionVersion,
+        transferredCount: summary.sourceRowCount ?? null,
+        createdItemCount: summary.createdItemCount ?? null,
+        replayed: result.replayed,
+      });
+    } catch (error) {
+      if (error instanceof CalmTransferError) {
+        await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: error.code, targetQuotationId: parsed.data.quotationId });
+        const messages: Record<string, string> = {
+          CALM_TRANSFER_DOCUMENT_NOT_FOUND: "SmartCheck dokümanı bulunamadı.",
+          CALM_TRANSFER_QUOTATION_NOT_FOUND: "Seçilen güncel teklif bulunamadı.",
+          CALM_TRANSFER_QUOTATION_CHANGED: "Teklif revizyonu değişti; güncel teklifi yeniden seçin.",
+          CALM_TRANSFER_ROW_NOT_APPROVED: "Yalnız mühendis tarafından onaylanmış satırlar aktarılabilir.",
+          CALM_TRANSFER_PRICE_SELECTION_REQUIRED: "Her canonical Calm satırı için onaylı fiyat snapshot seçilmelidir.",
+          CALM_TRANSFER_PRICE_SELECTION_INVALID: "İstek sunucunun ürettiği canonical Calm satırlarıyla eşleşmiyor.",
+          CALM_TRANSFER_PRICE_SNAPSHOT_INVALID: "Yalnız yetkili, onaylı, güncel ve kalemle uyumlu fiyat snapshot kullanılabilir.",
+          CALM_TRANSFER_IFC_EVIDENCE_REQUIRED: "Tamamlanmış IFC kanıt artefaktı bulunamadı.",
+          CALM_TRANSFER_RUN_NOT_SUCCEEDED: "Dokümanın başarılı ve güncel işleme koşusu bulunamadı.",
+          CALM_TRANSFER_IDEMPOTENCY_CONFLICT: "Bu aktarım anahtarı farklı bir istek için daha önce kullanılmış.",
+          CALM_TRANSFER_SOURCE_ROWS_ALREADY_TRANSFERRED: "Bu kaynak satırlar teklif serisine daha önce aktarılmış.",
+        };
+        return res.status(error.status).json({ error: messages[error.code] ?? "Calm teklif aktarımı güvenlik veya doğrulama kapısında durdu.", code: error.code });
+      }
+      console.error("[smartcheck.calmTransfer] failed:", error);
+      return res.status(500).json({ error: "Calm teklif aktarımı tamamlanamadı.", code: "CALM_TRANSFER_FAILED" });
+    }
+  });
 
   app.post("/api/smartcheck/documents/uploads", ...protectedStack, async (req, res) => {
     const parsedRequest = smartcheckUploadRequestSchema.safeParse(req.body);
@@ -308,6 +394,120 @@ export function registerSmartCheckRoutes(app: Express) {
     res.json({ document, run: run ?? null });
   });
 
+  app.get("/api/smartcheck/documents/:id/viewer-context", authenticate, featureGate, readRateLimit, canReview, viewerContextRateLimit, viewerContextAdmission, async (req, res) => {
+    const [document] = await db.select().from(documents).where(and(
+      eq(documents.id, req.params.id),
+      eq(documents.companyId, req.user.companyId),
+    ));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    if (!document.originalFileName.toLowerCase().endsWith(".ifc") && document.mimeType !== "application/ifc" && document.mimeType !== "model/ifc") {
+      return res.status(415).json({ error: "3B inceleme yalnız IFC kaynaklarında kullanılabilir.", code: "IFC_VIEWER_REQUIRES_IFC" });
+    }
+    if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) {
+      return res.status(413).json({ error: "IFC 3B inceleme sınırı 50 MiB'dir.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
+    }
+    const [latestRun] = await db.select({ id: documentProcessingRuns.id }).from(documentProcessingRuns).where(and(
+      eq(documentProcessingRuns.companyId, req.user.companyId),
+      eq(documentProcessingRuns.documentId, document.id),
+      eq(documentProcessingRuns.status, "succeeded"),
+    )).orderBy(desc(documentProcessingRuns.completedAt), desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun) return res.status(409).json({ error: "Başarılı IFC işleme kanıtı bulunamadı.", code: "IFC_VIEWER_SUCCESSFUL_RUN_REQUIRED" });
+    const [artifact] = await db.select().from(documentProcessingArtifacts).where(and(
+      eq(documentProcessingArtifacts.companyId, req.user.companyId),
+      eq(documentProcessingArtifacts.documentId, document.id),
+      eq(documentProcessingArtifacts.processingRunId, latestRun.id),
+      eq(documentProcessingArtifacts.artifactType, "ifc_evidence"),
+    )).limit(1);
+    if (!artifact) return res.status(409).json({ error: "IFC kimlik kanıtı bulunamadı.", code: "IFC_VIEWER_EVIDENCE_REQUIRED" });
+    const controller = new AbortController();
+    const abortRead = () => controller.abort(new Error("IFC_VIEWER_CLIENT_ABORTED"));
+    req.once("aborted", abortRead);
+    res.once("close", abortRead);
+    try {
+      const artifactBuffer = await createStorageAdapter().get(artifact.storageKey, { maxBytes: IFC_VIEWER_MAX_EVIDENCE_BYTES, timeoutMs: 30_000, signal: controller.signal });
+      if (sha256(artifactBuffer) !== artifact.checksumSha256) throw new Error("IFC_VIEWER_EVIDENCE_HASH_MISMATCH");
+      const evidence = JSON.parse(artifactBuffer.toString("utf8")) as { rows?: Array<{ sourceIdentity?: IfcSourceIdentity }>; blockedElements?: Array<{ sourceIdentity?: IfcSourceIdentity }> };
+      const identities = new Map<string, IfcSourceIdentity>();
+      for (const record of evidence.rows ?? []) {
+        const identity = record.sourceIdentity;
+        if (!identity || identity.elementKey !== canonicalElementKey(identity)) continue;
+        identities.set(identity.elementKey, identity);
+        if (identities.size > IFC_VIEWER_MAX_IDENTITIES) throw new Error("IFC_VIEWER_IDENTITY_LIMIT_EXCEEDED");
+      }
+      for (const record of evidence.blockedElements ?? []) {
+        const identity = record.sourceIdentity;
+        if (!identity || identity.elementKey !== canonicalElementKey(identity)) continue;
+        identities.set(identity.elementKey, identity);
+        if (identities.size > IFC_VIEWER_MAX_IDENTITIES) throw new Error("IFC_VIEWER_IDENTITY_LIMIT_EXCEEDED");
+      }
+      if (identities.size === 0) throw new Error("IFC_VIEWER_IDENTITY_EVIDENCE_MISSING");
+      const context = parseViewerContext({
+        schemaVersion: 1,
+        documentId: document.id,
+        processingRunId: latestRun.id,
+        fileName: document.originalFileName,
+        fileSizeBytes: document.fileSizeBytes,
+        fileSha256: document.checksumSha256,
+        contentUrl: `/api/smartcheck/documents/${document.id}/viewer-content`,
+        identities: [...identities.values()],
+      });
+      res.setHeader("Cache-Control", "private, no-store");
+      return res.json(context);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      console.error("[smartcheck.viewer-context] Evidence validation failed", { documentId: document.id, error });
+      return res.status(422).json({ error: "IFC 3B kimlik kanıtı doğrulanamadı.", code: "IFC_VIEWER_EVIDENCE_INVALID" });
+    } finally {
+      req.off("aborted", abortRead);
+      res.off("close", abortRead);
+    }
+  });
+
+  app.get("/api/smartcheck/documents/:id/viewer-content", authenticate, featureGate, readRateLimit, canReview, viewerContentRateLimit, viewerContentAdmission, async (req, res) => {
+    const [document] = await db.select().from(documents).where(and(
+      eq(documents.id, req.params.id),
+      eq(documents.companyId, req.user.companyId),
+    ));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    if ((!document.originalFileName.toLowerCase().endsWith(".ifc") && document.mimeType !== "application/ifc" && document.mimeType !== "model/ifc") || document.checksumSha256 === "pending") {
+      return res.status(409).json({ error: "Doğrulanmış IFC kaynağı bulunamadı.", code: "IFC_VIEWER_SOURCE_INVALID" });
+    }
+    if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) return res.status(413).json({ error: "IFC 3B inceleme sınırı 50 MiB'dir.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
+    const [latestRun] = await db.select({ id: documentProcessingRuns.id }).from(documentProcessingRuns).where(and(
+      eq(documentProcessingRuns.companyId, req.user.companyId),
+      eq(documentProcessingRuns.documentId, document.id),
+      eq(documentProcessingRuns.status, "succeeded"),
+    )).orderBy(desc(documentProcessingRuns.completedAt), desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun) return res.status(409).json({ error: "Başarılı IFC işleme kanıtı bulunamadı.", code: "IFC_VIEWER_SUCCESSFUL_RUN_REQUIRED" });
+    const storage = createStorageAdapter();
+    if (!storage.getStream) return res.status(503).json({ error: "IFC akış servisi kullanılamıyor.", code: "IFC_VIEWER_STREAM_UNAVAILABLE" });
+    res.setHeader("Content-Type", "model/ifc");
+    res.setHeader("Content-Length", String(document.fileSizeBytes));
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-IFC-SHA256", document.checksumSha256);
+    res.setHeader("Cache-Control", "private, no-store");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(new Error("IFC_VIEWER_STREAM_TIMEOUT")), 120_000);
+    timeout.unref?.();
+    const abortOnDisconnect = () => {
+      if (!res.writableEnded) controller.abort(new Error("IFC_VIEWER_CLIENT_ABORTED"));
+    };
+    req.once("aborted", abortOnDisconnect);
+    res.once("close", abortOnDisconnect);
+    try {
+      const stream = await storage.getStream(document.storageKey, controller.signal);
+      const verifier = createVerifiedIfcStream(document.fileSizeBytes, document.checksumSha256);
+      await pipeline(stream, verifier, res, { signal: controller.signal });
+    } catch (error) {
+      if (!res.headersSent) res.status(502).json({ error: "IFC akışı tamamlanamadı.", code: "IFC_VIEWER_STREAM_FAILED" });
+      else res.destroy(error instanceof Error ? error : undefined);
+    } finally {
+      clearTimeout(timeout);
+      req.off("aborted", abortOnDisconnect);
+      res.off("close", abortOnDisconnect);
+    }
+  });
+
   app.patch("/api/smartcheck/documents/:id/mapping", ...protectedStack, async (req, res) => {
     const parsedRequest = smartcheckMappingRequestSchema.safeParse(req.body ?? {});
     if (!parsedRequest.success) return res.status(400).json({ error: "Geçersiz eşleme gövdesi." });
@@ -404,6 +604,21 @@ export function registerSmartCheckRoutes(app: Express) {
       .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "pdf_preflight")))
       .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
     if (!artifact) return res.status(404).json({ error: "Bu doküman için PDF/A ön kontrolü bulunmuyor.", code: "PDF_PREFLIGHT_NOT_FOUND" });
+    res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
+  });
+
+  app.get("/api/smartcheck/documents/:id/pdfa-validation", authenticate, featureGate, readRateLimit, async (req, res) => {
+    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
+      .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
+      .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+    if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PDFA_VALIDATION_RUN_NOT_SUCCEEDED" });
+    const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
+      .from(documentProcessingArtifacts)
+      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "verapdf_validation")))
+      .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
+    if (!artifact) return res.status(404).json({ error: "Bu doküman için PDF/A standart doğrulaması bulunmuyor.", code: "PDFA_VALIDATION_NOT_FOUND" });
     res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
   });
 

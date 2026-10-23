@@ -44,6 +44,11 @@ export default defineConfig(({mode}) => {
             if (pkg.startsWith('lucide-react/')) {
               return 'icons';
             }
+            if (pkg.startsWith('three/') || pkg.startsWith('web-ifc/')) {
+              // Loaded only by the lazy IFC review surface. Keep the renderer,
+              // parser and self-hosted WASM out of the application entry chunk.
+              return 'ifc-viewer';
+            }
             if (
               pkg.startsWith('react/') ||
               pkg.startsWith('react-dom/') ||

@@ -35,7 +35,7 @@ import { consumeRateLimit } from "../auth/security";
 import { isProcessingRunStale, processingRunningStaleMinutes, processingQueuedStaleMinutes } from "../../smartcheck/import/run-health";
 import { changeProcessingRun, enqueueSmartCheckProcessing, ProcessingConflict, removePendingJob } from "../../smartcheck/import/service";
 import { IfcNotAvailableError, IfcLimitsUnavailableError } from "../../smartcheck/import/config";
-import { sanitizeSpreadsheetText } from "../../smartcheck/import/file-security";
+import { serializeCsv } from "../../lib/tabular-data";
 import { canApproveCrawlerPrice } from "../crawler/provenance";
 import { inferCrawledItemUnit } from "../crawler/price-parser";
 import { priceCrawlerService } from "../crawler/priceCrawlerService";
@@ -815,29 +815,25 @@ export function registerAdminRoutes(app: Express) {
         "Kayıt Tarihi",
       ];
 
-      const csvRows = [headers.join(",")];
-      for (const t of tenants as any[]) {
-        const row = [
-          sanitizeSpreadsheetText(t.name),
-          sanitizeSpreadsheetText(t.owner_email || "-"),
-          sanitizeSpreadsheetText(t.plan_name || "-"),
-          sanitizeSpreadsheetText(t.subscription_status || "-"),
-          String(t.current_usage),
-          t.quota_limit != null ? String(t.quota_limit) : "Sınırsız",
-          String(t.current_ifc_usage || 0),
-          t.ifc_limit != null ? String(t.ifc_limit) : "Sınırsız",
+      const csvRows = [headers, ...(tenants as any[]).map((t) => [
+          t.name,
+          t.owner_email || "-",
+          t.plan_name || "-",
+          t.subscription_status || "-",
+          Number(t.current_usage),
+          t.quota_limit != null ? Number(t.quota_limit) : "Sınırsız",
+          Number(t.current_ifc_usage || 0),
+          t.ifc_limit != null ? Number(t.ifc_limit) : "Sınırsız",
           t.is_smartcheck_enabled ? "Evet" : "Hayır",
           t.created_at ? new Date(t.created_at).toISOString().slice(0, 10) : "-",
-        ];
-        csvRows.push(row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","));
-      }
+        ])];
 
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="teklifpro_tenants_${new Date().toISOString().slice(0, 10)}.csv"`
       );
-      return res.send("\uFEFF" + csvRows.join("\r\n"));
+      return res.send(serializeCsv(csvRows, { delimiter: ",", bom: true }));
     } catch (error) {
       console.error("CSV export error:", error);
       return res.status(500).json({ error: "CSV dışa aktarım başarısız" });

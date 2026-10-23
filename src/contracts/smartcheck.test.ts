@@ -4,6 +4,7 @@ import {
   SMARTCHECK_CONTRACT_VERSION,
   smartcheckBulkReviewRequestSchema,
   smartcheckCompleteRequestSchema,
+  smartcheckCalmTransferRequestSchema,
   smartcheckMappingRequestSchema,
   smartcheckRowReviewRequestSchema,
   smartcheckTransferRequestSchema,
@@ -20,6 +21,10 @@ test("SmartCheck transport contracts are versioned and bounded", () => {
   assert.equal(smartcheckBulkReviewRequestSchema.safeParse({ status: "approved", rowIds: ["row-1", "row-2"], notes: "Bulgusuz satırlar" }).success, true);
   assert.equal(smartcheckTransferRequestSchema.safeParse({ quotationId: "quote-1", rowIds: ["row-1"], overrides: { "row-1": { unitPrice: "100" } } }).success, true);
   assert.equal(smartcheckTransferToNewQuotationRequestSchema.safeParse({ clientName: "Pilot müşteri", projectName: "IFC aktarımı", rowIds: ["row-1"], overrides: { "row-1": { unitPrice: "100" } } }).success, true);
+  assert.equal(smartcheckCalmTransferRequestSchema.safeParse({
+    quotationId: "00000000-0000-4000-8000-000000000001",
+    priceSnapshotIdsByCalmLineId: { "duvar-fayans": "00000000-0000-4000-8000-000000000003" },
+  }).success, true);
 });
 
 test("SmartCheck transport contracts reject malformed or oversized boundary values", () => {
@@ -33,4 +38,11 @@ test("SmartCheck transport contracts reject malformed or oversized boundary valu
   assert.equal(smartcheckTransferRequestSchema.safeParse({ quotationId: "quote-1", rowIds: [] }).success, false);
   assert.equal(smartcheckTransferToNewQuotationRequestSchema.safeParse({ projectName: "IFC aktarımı", rowIds: ["row-1"] }).success, false);
   assert.equal(smartcheckTransferToNewQuotationRequestSchema.safeParse({ clientName: "Pilot müşteri", rowIds: [] }).success, false);
+  const calmBase = {
+    quotationId: "00000000-0000-4000-8000-000000000001",
+    priceSnapshotIdsByCalmLineId: { "duvar-fayans": "00000000-0000-4000-8000-000000000003" },
+  };
+  assert.equal(smartcheckCalmTransferRequestSchema.safeParse({ ...calmBase, priceSnapshotIdsByCalmLineId: {} }).success, false);
+  assert.equal(smartcheckCalmTransferRequestSchema.safeParse({ ...calmBase, priceSnapshotIdsByCalmLineId: { ["x".repeat(161)]: "00000000-0000-4000-8000-000000000003" } }).success, false);
+  assert.equal(smartcheckCalmTransferRequestSchema.safeParse({ ...calmBase, unknown: true }).success, false);
 });

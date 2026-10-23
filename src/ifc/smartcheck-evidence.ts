@@ -102,6 +102,16 @@ function buildParsedQuantityRow(element: ParsedIfcElement, sourceRowNumber: numb
     storeySourcePath: element.storeySourcePath ?? "",
     pozNoSourcePath: element.pozNoSourcePath ?? "",
   };
+  if (element.sourceIdentity) {
+    // This JSON is persisted on normalized_quantity_rows. Keep the canonical
+    // worker identity beside the reviewed quantity row so duplicate GlobalIds
+    // remain unambiguous after the object-storage artifact is archived.
+    formulaJson.elementKey = element.sourceIdentity.elementKey;
+    formulaJson.sourceFileSha256 = element.sourceIdentity.fileSha256;
+    formulaJson.sourceRunId = element.sourceIdentity.runId;
+    formulaJson.sourceStepId = element.sourceIdentity.stepId;
+    formulaJson.sourceGlobalId = element.sourceIdentity.globalId;
+  }
   if (typeof element.loadBearing === "boolean") formulaJson.loadBearing = String(element.loadBearing);
   if (element.exposure) formulaJson.exposure = element.exposure;
   if (element.surfaceCondition) formulaJson.surfaceCondition = element.surfaceCondition;

@@ -10,14 +10,52 @@ const Finding = z.object({
   sayfalar: z.array(z.number()).optional(),
 });
 
-export const PdfPreflightReportSchema = z.object({
-  schemaVersion: z.literal(1), kind: z.literal("pdf_preflight"),
+const ReportBase = {
+  kind: z.literal("pdf_preflight"),
   file: z.object({ fileName: z.string(), pageCount: z.number() }),
   pdfa: z.object({ claimed: z.object({ part: z.string(), conformance: z.string() }).nullable(), note: z.string() }),
-  eSignature: z.object({ present: z.boolean(), note: z.string() }).optional(),
   summary: z.object({ hata: z.number(), uyari: z.number(), elle: z.number() }),
   findings: z.array(Finding), disclaimer: z.string(),
+};
+
+const VerificationResult = z.object({
+  status: z.enum(["not_checked", "indeterminate"]),
+  note: z.string(),
 });
+
+const LegacyPdfPreflightReportSchema = z.object({
+  schemaVersion: z.literal(1),
+  ...ReportBase,
+  eSignature: z.object({ present: z.boolean(), note: z.string() }).optional(),
+});
+
+const PdfPreflightReportV2Schema = z.object({
+  schemaVersion: z.literal(2),
+  ...ReportBase,
+  eSignature: z.object({
+    signatureFieldPresent: z.boolean(),
+    fieldStatus: z.enum(["absent", "empty", "signed", "malformed", "indeterminate"]),
+    signedValueCount: z.number().int().nonnegative(),
+    emptyFieldCount: z.number().int().nonnegative(),
+    malformedFieldCount: z.number().int().nonnegative(),
+    scanComplete: z.boolean(),
+    pagesScanned: z.number().int().nonnegative(),
+    pagesTotal: z.number().int().nonnegative(),
+    objectsScanned: z.number().int().nonnegative(),
+    verification: z.object({
+      cryptographic: VerificationResult,
+      trust: VerificationResult,
+      revocation: VerificationResult,
+      timestamp: VerificationResult,
+    }),
+    note: z.string(),
+  }),
+});
+
+export const PdfPreflightReportSchema = z.discriminatedUnion("schemaVersion", [
+  LegacyPdfPreflightReportSchema,
+  PdfPreflightReportV2Schema,
+]);
 export type PdfPreflightReport = z.infer<typeof PdfPreflightReportSchema>;
 
 export async function runPdfPreflight(inputPath: string, fileName: string, options: { timeoutMs?: number; pythonBin?: string; scriptPath?: string } = {}): Promise<PdfPreflightReport> {

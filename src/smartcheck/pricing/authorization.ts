@@ -1,5 +1,26 @@
 export type PriceAuthorizationStatus = "pending" | "authorized" | "restricted";
 
+export const COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE = JSON.stringify({
+  version: 1,
+  capabilities: ["commercial_quotation"],
+  tenantScope: "own",
+});
+
+export function hasCommercialQuotationCapability(value: string | null | undefined): boolean {
+  if (!value) return false;
+  try {
+    const parsed = JSON.parse(value) as { version?: unknown; capabilities?: unknown };
+    return parsed.version === 1 && Array.isArray(parsed.capabilities) && parsed.capabilities.includes("commercial_quotation");
+  } catch {
+    return false;
+  }
+}
+
+export function licensePermitsCommercialQuotation(sourceType: string, licenseStatus: string): boolean {
+  if (sourceType === "company_actual" || sourceType === "manual_override") return licenseStatus === "not_applicable";
+  return licenseStatus === "verified";
+}
+
 export type PriceAuthorizationReason =
   | "authorization_pending"
   | "authorization_restricted"

@@ -9,6 +9,7 @@ import {
   VILLA_MARKET_COST_BENCHMARK_2026,
   type FeasibilityInput,
 } from "./pre-bim-feasibility";
+import { parseCsv } from "./tabular-data";
 
 const base = (over: Partial<FeasibilityInput> = {}): FeasibilityInput => ({
   parcels: [{ name: "A", areaM2: 1000, taks: 0.4, kaks: 0.8, emsalHariciAreaM2: 0 }],
@@ -174,7 +175,17 @@ test("Golden 11: eksik sütunlu CSV reddedilir; dışa aktarım BOM ve ; ayracı
   assert.ok(parseParcelCsv("a;b\r\n1;2").errors[0].includes("Eksik sütun"));
   const out = exportFeasibilityCsv(computeFeasibility(base()));
   assert.ok(out.startsWith("\uFEFF"));
-  assert.ok(out.includes("A;400;800;0;800;2"));
+  assert.ok(out.includes('"A";"400";"800";"0";"800";"2"'));
+});
+
+test("T30: fizibilite CSV çıktısı formül, ayraç, tırnak ve satır sonunu güvenli taşır", () => {
+  const result = computeFeasibility(base({
+    parcels: [{ name: '=1+1; "Parsel"\r\nİkinci satır 🏗️', areaM2: 1000, taks: 0.4, kaks: 0.8, emsalHariciAreaM2: 0 }],
+  }));
+  const rows = parseCsv(exportFeasibilityCsv(result), { delimiter: ";" });
+
+  assert.equal(rows[1]?.length, 10);
+  assert.equal(rows[1]?.[0], '\'=1+1; "Parsel"\r\nİkinci satır 🏗️');
 });
 
 test("Golden 12: parseParcelRows sayı hücrelerini ve metin sayıları (Türkçe) aynı şekilde okur", () => {

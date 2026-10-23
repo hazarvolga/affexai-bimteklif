@@ -85,6 +85,12 @@ export const smartcheckTransferToNewQuotationRequestSchema = z.object({
   path: ["clientName"],
 });
 
+export const smartcheckCalmTransferRequestSchema = z.object({
+  quotationId: z.string().trim().uuid(),
+  priceSnapshotIdsByCalmLineId: z.record(z.string().trim().min(1).max(160), z.string().trim().uuid())
+    .refine((value) => Object.keys(value).length >= 1 && Object.keys(value).length <= 1000, "1-1000 Calm satırı seçilmelidir."),
+}).strict();
+
 export type SmartCheckUploadRequest = z.infer<typeof smartcheckUploadRequestSchema>;
 export type SmartCheckCompleteRequest = z.infer<typeof smartcheckCompleteRequestSchema>;
 export type SmartCheckMappingRequest = z.infer<typeof smartcheckMappingRequestSchema>;
@@ -92,3 +98,4 @@ export type SmartCheckRowReviewRequest = z.infer<typeof smartcheckRowReviewReque
 export type SmartCheckBulkReviewRequest = z.infer<typeof smartcheckBulkReviewRequestSchema>;
 export type SmartCheckTransferRequest = z.infer<typeof smartcheckTransferRequestSchema>;
 export type SmartCheckTransferToNewQuotationRequest = z.infer<typeof smartcheckTransferToNewQuotationRequestSchema>;
+export type SmartCheckCalmTransferRequest = z.infer<typeof smartcheckCalmTransferRequestSchema>;

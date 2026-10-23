@@ -16,6 +16,8 @@ import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } fr
 import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "@/ifc/authoring-software-diagnostics";
 import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
+import { buildCalmTransferSelection, getOrCreateCalmTransferAttempt, type CalmTransferUiItem } from "./calm-transfer-ui";
+import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
 
 type Finding = { code: string; message: string; ruleVersion: string; suggestion: string };
 
@@ -70,7 +72,7 @@ type QueueItem = {
 };
 
 type PriceSnapshotOption = { id: string; positionCode: string | null; description: string; unit: string; amount: string; currency: string; stale: boolean; reviewStatus: string };
-type PriceCatalogImportRow = { positionCode?: string; description: string; unit: string; amount: number; currency?: string; validUntil?: string; externalReference?: string };
+type PriceCatalogImportRow = TenantPriceCatalogRow;
 type PriceSnapshotSuggestion = { snapshot: PriceSnapshotOption; source: { name: string; sourceType: string }; score: number; matchType: string; warnings: string[]; explanation: string };
 type PriceSuggestionResult = { rowId: string; decision: "safe_candidate" | "review_required" | "no_match"; bestSuggestion: PriceSnapshotSuggestion | null; suggestions: PriceSnapshotSuggestion[] };
 type ReviewDraft = { row: Row; status: "approved" | "rejected" | "accepted_exception"; notes: string; quantity: string };
@@ -242,6 +244,7 @@ export function SmartCheckImportWorkspace() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [quotationId, setQuotationId] = useState("");
   const [transferredQuotationId, setTransferredQuotationId] = useState<string | null>(null);
+  const [calmTransferBusy, setCalmTransferBusy] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [commercial, setCommercial] = useState({ costUnitPrice: "", wastePercent: "0", vatPercent: "20" });
   const [newQuotationDraft, setNewQuotationDraft] = useState({ clientName: "", projectName: "" });
@@ -250,6 +253,7 @@ export function SmartCheckImportWorkspace() {
   const [snapshotByRow, setSnapshotByRow] = useState<Record<string, string>>({});
   const [manualSnapshotDraft, setManualSnapshotDraft] = useState({ rowId: "", amount: "", currency: "TRY", sourceName: "", validUntil: "" });
   const [catalogImportDraft, setCatalogImportDraft] = useState({ sourceName: "", region: "", validUntil: "", fileName: "" });
+  const [catalogOwnershipConfirmed, setCatalogOwnershipConfirmed] = useState(false);
   const [catalogImportText, setCatalogImportText] = useState("");
   const [catalogImportRows, setCatalogImportRows] = useState<PriceCatalogImportRow[]>([]);
   const [catalogImportBusy, setCatalogImportBusy] = useState(false);
@@ -311,6 +315,20 @@ export function SmartCheckImportWorkspace() {
     loadPriceSnapshots().catch(() => undefined);
     return () => { if (polling.current) window.clearInterval(polling.current); };
   }, []);
+
+  useEffect(() => {
+    if (!documentId) return;
+    try {
+      const raw = window.localStorage.getItem(`bimmetraj:calm-transfer-result:v1:${documentId}`);
+      if (!raw) return;
+      const record = JSON.parse(raw) as { resultQuotationId?: string };
+      if (record.resultQuotationId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(record.resultQuotationId)) {
+        setTransferredQuotationId(record.resultQuotationId);
+      }
+    } catch {
+      // Invalid browser state is ignored; the server ledger remains authoritative.
+    }
+  }, [documentId]);
 
   const loadRows = async (id: string) => {
     const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/rows`);
@@ -576,6 +594,7 @@ export function SmartCheckImportWorkspace() {
 
   const readPriceCatalogCsv = async (selectedFile: File | null) => {
     if (!selectedFile) return;
+    setCatalogOwnershipConfirmed(false);
     try {
       const parsedRows = parsePriceCatalogCsv(await selectedFile.text());
       setCatalogImportRows(parsedRows);
@@ -592,6 +611,7 @@ export function SmartCheckImportWorkspace() {
   };
 
   const readPriceCatalogText = () => {
+    setCatalogOwnershipConfirmed(false);
     try {
       const parsedRows = parsePriceCatalogCsv(catalogImportText);
       setCatalogImportRows(parsedRows);
@@ -605,27 +625,22 @@ export function SmartCheckImportWorkspace() {
 
   const importPriceCatalog = async () => {
     if (!catalogImportRows.length) return toast.error("Önce CSV fiyat kataloğu seçin.");
+    if (!catalogOwnershipConfirmed) return toast.error("Bu fiyatların firmanıza ait gerçekleşen veriler olduğunu onaylayın.");
     setCatalogImportBusy(true);
     const sourceName = catalogImportDraft.sourceName.trim() || catalogImportDraft.fileName || "SmartCheck CSV fiyat kataloğu";
     try {
       const response = await fetchWithAuth("/api/pricing/catalog/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(buildTenantPriceCatalogImportPayload({
           sourceName,
-          sourceType: "supplier_quote",
-          sourceDocumentIdentifier: catalogImportDraft.fileName || undefined,
-          sourceDocumentPayload: {
-            kind: "smartcheck_price_catalog_csv",
-            fileName: catalogImportDraft.fileName || null,
-            rows: catalogImportRows,
-          },
-          licenseStatus: "not_applicable",
+          fileName: catalogImportDraft.fileName,
+          documentId,
           region: catalogImportDraft.region.trim() || undefined,
           validUntil: catalogImportDraft.validUntil ? new Date(catalogImportDraft.validUntil).toISOString() : undefined,
-          rows: catalogImportRows.map((row) => ({ ...row, validUntil: row.validUntil || (catalogImportDraft.validUntil ? new Date(catalogImportDraft.validUntil).toISOString() : undefined) })),
-          metadataJson: { source: "smartcheck_price_catalog_csv", documentId, fileName: catalogImportDraft.fileName || null },
-        }),
+          rows: catalogImportRows,
+          ownershipConfirmed: catalogOwnershipConfirmed,
+        })),
       });
       const body = await readJsonBody<{ error?: string; insertedCount?: number; reusedCount?: number; snapshots?: PriceSnapshotOption[] }>(response);
       if (!response.ok || !body.snapshots) return toast.error(body.error ?? "CSV fiyat kataloğu içe aktarılamadı.");
@@ -634,6 +649,7 @@ export function SmartCheckImportWorkspace() {
         ...current.filter((candidate) => !body.snapshots!.some((snapshot) => snapshot.id === candidate.id)),
       ]);
       setPriceSuggestionsByRow({});
+      setCatalogOwnershipConfirmed(false);
       toast.success(`${(body.insertedCount ?? 0) + (body.reusedCount ?? 0)} fiyat snapshot kataloğa eklendi.`);
     } catch {
       toast.error("CSV fiyat kataloğu içe aktarılamadı.");
@@ -694,6 +710,62 @@ export function SmartCheckImportWorkspace() {
     toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
   };
 
+  const transferCalmToQuotation = async (items: CalmTransferUiItem[]) => {
+    if (!documentId) { toast.error("Calm kaynak dokümanı bulunamadı."); return; }
+    if (!quotationId) { toast.error("Önce mevcut güncel bir teklif seçin."); return; }
+    const approvedRowIds = new Set(rows.filter((row) => row.reviewStatus === "approved").map((row) => row.id));
+    let selection;
+    try {
+      selection = buildCalmTransferSelection(items);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      toast.error(code === "CALM_TRANSFER_PRICE_CONFLICT"
+        ? "Aynı canonical Calm satırı birden fazla fiyat snapshot'ına eşleşti. Kalemleri gözden geçirin."
+        : "Calm kalemlerinin kaynak satır kanıtı eksik; kalıcı aktarım durduruldu.");
+      return;
+    }
+    const sourceRowIds = [...new Set(items.flatMap((item) => item.sourceQuantityRowIds))];
+    if (sourceRowIds.some((rowId) => !approvedRowIds.has(rowId))) {
+      toast.error("Calm aktarımı için katkı veren tüm kaynak satırlar doğrudan mühendis onaylı olmalıdır.");
+      return;
+    }
+    setCalmTransferBusy(true);
+    try {
+      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, quotationId, selection, () => crypto.randomUUID());
+      const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-calm-to-quotation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": attempt.record.idempotencyKey },
+        body: JSON.stringify({ quotationId, ...selection }),
+      });
+      const body = await readJsonBody<{ error?: string; quotationId?: string; revisionVersion?: number; transferredCount?: number; replayed?: boolean }>(response);
+      if (!response.ok || !body.quotationId) { toast.error(body.error ?? "Calm teklif aktarımı tamamlanamadı."); return; }
+      window.localStorage.setItem(attempt.storageKey, JSON.stringify({
+        ...attempt.record,
+        resultQuotationId: body.quotationId,
+        revisionVersion: body.revisionVersion,
+      }));
+      window.localStorage.setItem(`bimmetraj:calm-transfer-result:v1:${documentId}`, JSON.stringify({
+        sourceQuotationId: quotationId,
+        resultQuotationId: body.quotationId,
+        revisionVersion: body.revisionVersion,
+      }));
+      setTransferredQuotationId(body.quotationId);
+      const quotesResponse = await fetchWithAuth("/api/quotations");
+      if (quotesResponse.ok) {
+        const latestQuotes = await quotesResponse.json() as Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
+        setQuotes(latestQuotes);
+        if (latestQuotes.some((quote) => quote.id === body.quotationId)) setQuotationId(body.quotationId);
+      }
+      toast.success(body.replayed
+        ? `Daha önce oluşturulan Rev. ${body.revisionVersion ?? "?"} tekrar açıldı.`
+        : `${body.transferredCount ?? sourceRowIds.length} kaynak satırdan Rev. ${body.revisionVersion ?? "?"} oluşturuldu.`);
+    } catch {
+      toast.error("Calm teklif aktarımı sırasında bağlantı hatası oluştu.");
+    } finally {
+      setCalmTransferBusy(false);
+    }
+  };
+
   const createQuotationAndTransfer = async () => {
     if (!documentId || !newQuotationDraft.clientName.trim()) return;
     const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
@@ -722,22 +794,26 @@ export function SmartCheckImportWorkspace() {
   const catalogImportCard = (
     <div className="mt-4 rounded-2xl border border-border bg-background p-4">
       <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-        <div><p className="text-xs font-bold text-sky-100">CSV fiyat listesi içe aktarma</p><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">Başlık örneği: Poz No;Açıklama;Birim;Birim Fiyat;Para Birimi. İçe aktarılan fiyatlar öneri niteliğindedir; onay veya satıra bağlama kararı mühendiste kalır.</p></div>
+        <div><p className="text-xs font-bold text-sky-100">CSV fiyat listesi içe aktarma</p><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">Başlık örneği: Poz No;Açıklama;Birim;Birim Fiyat;Para Birimi. Bu genel akış yalnız firmanızın kendi gerçekleşen fiyat hafızası içindir; tedarikçi teklifleri ayrı lisans ve yetkilendirme incelemesine tabidir. İçe aktarılan fiyatlar öneri niteliğindedir; onay veya satıra bağlama kararı mühendiste kalır.</p></div>
         {catalogImportRows.length > 0 && <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{catalogImportRows.length} satır hazır</Badge>}
       </div>
       <div className="grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]">
-        <Input aria-label="CSV fiyat katalog kaynak adı" placeholder="Kaynak adı / tedarikçi" value={catalogImportDraft.sourceName} onChange={(event) => setCatalogImportDraft((value) => ({ ...value, sourceName: event.target.value }))} className="border-border bg-background" />
-        <Input aria-label="CSV fiyat katalog bölgesi" placeholder="Bölge (opsiyonel)" value={catalogImportDraft.region} onChange={(event) => setCatalogImportDraft((value) => ({ ...value, region: event.target.value }))} className="border-border bg-background" />
-        <Input aria-label="CSV fiyat katalog geçerlilik tarihi" type="date" value={catalogImportDraft.validUntil} onChange={(event) => setCatalogImportDraft((value) => ({ ...value, validUntil: event.target.value }))} className="border-border bg-background" />
-        <Button disabled={!catalogImportRows.length || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "CSV kataloğu aktar"}</Button>
+        <Input aria-label="CSV fiyat katalog kaynak adı" placeholder="Kaynak adı / firma fiyat hafızası" value={catalogImportDraft.sourceName} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, sourceName: event.target.value })); }} className="border-border bg-background" />
+        <Input aria-label="CSV fiyat katalog bölgesi" placeholder="Bölge (opsiyonel)" value={catalogImportDraft.region} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, region: event.target.value })); }} className="border-border bg-background" />
+        <Input aria-label="CSV fiyat katalog geçerlilik tarihi" type="date" value={catalogImportDraft.validUntil} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, validUntil: event.target.value })); }} className="border-border bg-background" />
+        <Button disabled={!catalogImportRows.length || !catalogOwnershipConfirmed || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "CSV kataloğu aktar"}</Button>
       </div>
+      <label className="mt-3 flex items-start gap-2 text-[10px] leading-relaxed text-muted-foreground">
+        <input aria-label="Firma gerçekleşen fiyat sahiplik beyanı" type="checkbox" checked={catalogOwnershipConfirmed} onChange={(event) => setCatalogOwnershipConfirmed(event.target.checked)} className="mt-0.5" />
+        <span>Bu CSV'nin firmamıza ait gerçekleşen fiyat verisi olduğunu ve tedarikçi teklifi olmadığını beyan ediyorum.</span>
+      </label>
       <label className="mt-3 flex cursor-pointer flex-col gap-2 rounded-xl border border-dashed border-border p-4 text-[11px] text-muted-foreground hover:border-sky-500/50">
         <span className="font-bold text-foreground dark:text-muted-foreground">{catalogImportDraft.fileName || "CSV fiyat katalog dosyası seçin"}</span>
         <span>Desteklenen format CSV; poz, açıklama, birim ve birim fiyat kolonlarını içerir.</span>
         <input aria-label="CSV fiyat katalog dosyası" className="sr-only" type="file" accept=".csv,text/csv" onChange={(event) => void readPriceCatalogCsv(event.target.files?.[0] ?? null)} />
       </label>
       <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
-        <textarea aria-label="CSV fiyat katalog metni" placeholder="Excel/CSV satırlarını buraya yapıştırın" value={catalogImportText} onChange={(event) => setCatalogImportText(event.target.value)} className="min-h-24 rounded-xl border border-border bg-background p-3 text-[11px] text-foreground outline-none focus:border-sky-500/60" />
+        <textarea aria-label="CSV fiyat katalog metni" placeholder="Excel/CSV satırlarını buraya yapıştırın" value={catalogImportText} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportText(event.target.value); }} className="min-h-24 rounded-xl border border-border bg-background p-3 text-[11px] text-foreground outline-none focus:border-sky-500/60" />
         <Button disabled={!catalogImportText.trim()} onClick={readPriceCatalogText} variant="outline" className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10">CSV metnini oku</Button>
       </div>
       {catalogImportRows[0] && <div className="mt-3 rounded-xl border border-border bg-background p-3 text-[10px] text-muted-foreground">
@@ -764,6 +840,8 @@ export function SmartCheckImportWorkspace() {
     setPilotCaseId(null);
     setPreview(null);
     setRows([]);
+    setCatalogOwnershipConfirmed(false);
+    setTransferredQuotationId(null);
     setShowTechnicalInspect(false);
     setStage("Dosya bekleniyor");
   };
@@ -776,6 +854,15 @@ export function SmartCheckImportWorkspace() {
           <CalmIfcWorkspace
             dataset={calmDataset}
             documentId={documentId}
+            quotations={quotes}
+            selectedQuotationId={quotationId}
+            onSelectedQuotationIdChange={(nextQuotationId) => {
+              setQuotationId(nextQuotationId);
+              setTransferredQuotationId(null);
+            }}
+            onTransferToQuote={transferCalmToQuotation}
+            transferBusy={calmTransferBusy}
+            transferredQuotationId={transferredQuotationId}
             showTechnicalToggle={true}
             technicalViewOpen={showTechnicalInspect}
             onToggleTechnicalView={() => setShowTechnicalInspect((prev) => !prev)}

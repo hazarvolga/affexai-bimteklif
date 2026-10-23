@@ -24,11 +24,20 @@ import {
   type TuikSubIndexCode,
 } from "@/lib/price-escalation";
 import { fetchWithAuth } from "@/lib/api";
+import { serializeCsv, type TabularCell } from "@/lib/tabular-data";
+import { IfcReviewViewer } from "@/components/smartcheck/viewer/IfcReviewViewer";
+import type { CalmTransferUiItem } from "./calm-transfer-ui";
+import { Link } from "react-router-dom";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
   documentId?: string | null;
-  onTransferToQuote?: (items: Array<{ id: string; title: string; pozCode: string; unit: string; quantity: number; unitPrice: number; priceSnapshotId: string; priceSourceId: string; sourceDocumentHash: string; currency: "TRY"; capturedAt: string | null }>) => void;
+  quotations?: Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
+  selectedQuotationId?: string;
+  onSelectedQuotationIdChange?: (quotationId: string) => void;
+  onTransferToQuote?: (items: CalmTransferUiItem[]) => Promise<void> | void;
+  transferBusy?: boolean;
+  transferredQuotationId?: string | null;
   onToggleTechnicalView?: () => void;
   showTechnicalToggle?: boolean;
   technicalViewOpen?: boolean;
@@ -63,7 +72,12 @@ function formatTrCurrency(val: number): string {
 export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   dataset,
   documentId,
+  quotations = [],
+  selectedQuotationId = "",
+  onSelectedQuotationIdChange,
   onTransferToQuote,
+  transferBusy = false,
+  transferredQuotationId,
   onToggleTechnicalView,
   showTechnicalToggle = false,
   technicalViewOpen = false,
@@ -337,12 +351,19 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   ]);
 
   const [selectedGlobalId, setSelectedGlobalId] = useState<string | null>(null);
+  const [selectedElementKey, setSelectedElementKey] = useState<string | null>(null);
 
   const selectedGlobalElementInfo = useMemo(() => {
     if (!selectedGlobalId) return null;
-    const el = dataset.elements?.find((e) => e.guid === selectedGlobalId);
-    const uncov = dataset.consistencyReport?.uncoveredElements?.find((u) => u.globalId === selectedGlobalId);
-    const finding = dataset.consistencyReport?.findings?.find((f) => f.globalId === selectedGlobalId);
+    const el = dataset.elements?.find((e) => selectedElementKey
+      ? e.sourceIdentity?.elementKey === selectedElementKey
+      : e.guid === selectedGlobalId);
+    const uncov = dataset.consistencyReport?.uncoveredElements?.find((u) => selectedElementKey
+      ? u.sourceIdentity?.elementKey === selectedElementKey
+      : u.globalId === selectedGlobalId);
+    const finding = dataset.consistencyReport?.findings?.find((f) => selectedElementKey
+      ? f.sourceIdentity?.elementKey === selectedElementKey
+      : f.globalId === selectedGlobalId);
     return {
       ifcClass: el?.ifcClass || el?.type || uncov?.ifcClass || finding?.ifcClass || "IfcElement",
       name: el?.name || uncov?.name || finding?.elementName || selectedGlobalId,
@@ -350,7 +371,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       matchedPozCode: el?.matchedPozCode || el?.pozNo || null,
       reason: uncov?.reason || finding?.message || el?.uncoveredReason || null,
     };
-  }, [dataset.consistencyReport, dataset.elements, selectedGlobalId]);
+  }, [dataset.consistencyReport, dataset.elements, selectedElementKey, selectedGlobalId]);
 
   const displayedGroups = useMemo(() => {
     if (!selectedGlobalId) return dataset.groups;
@@ -427,13 +448,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   }, [allItems, costSummary.grandTotal, kikWorkCategory, tenderBidsInput, tenderYmInput, unitPrices]);
 
   const handleDownloadCsv = () => {
-    const lines: string[] = [];
-    lines.push("BOLUM;GRUP_VEYA_DAIRE;POZ_KODU;IMALAT_VEYA_ODA_ADI;BRUT_MIKTAR;MINHA_BOSLUK;NET_MIKTAR;BIRIM;BIRIM_FIYAT_TL;TOPLAM_TUTAR_TL;FIYAT_SNAPSHOT_ID;FIYAT_KAYNAK_ID;KAYNAK_HASH;PARA_BIRIMI;YAKALAMA_TARIHI");
+    const rows: TabularCell[][] = [["BOLUM", "GRUP_VEYA_DAIRE", "POZ_KODU", "IMALAT_VEYA_ODA_ADI", "BRUT_MIKTAR", "MINHA_BOSLUK", "NET_MIKTAR", "BIRIM", "BIRIM_FIYAT_TL", "TOPLAM_TUTAR_TL", "FIYAT_SNAPSHOT_ID", "FIYAT_KAYNAK_ID", "KAYNAK_HASH", "PARA_BIRIMI", "YAKALAMA_TARIHI"]];
     for (const grp of dataset.groups) {
       for (const item of grp.items) {
         const price = unitPrices[item.id];
         const total = price === undefined ? null : Math.round(item.netQuantity * price);
-        lines.push(
+        rows.push(
           [
             "1_MALZEME_ICMALI",
             grp.title,
@@ -450,12 +470,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             priceEvidence[item.id]?.sourceDocumentHash ?? "",
             priceEvidence[item.id]?.currency ?? "",
             priceEvidence[item.id]?.capturedAt ?? "",
-          ].join(";"),
+          ],
         );
       }
     }
     for (const apt of dataset.apartments) {
-      lines.push(
+      rows.push(
         [
           "2_DAIRE_ICMAL",
           apt.storey,
@@ -472,10 +492,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           "",
           "",
           "",
-        ].join(";"),
+        ],
       );
       for (const rm of apt.rooms) {
-        lines.push(
+        rows.push(
           [
             "2_DAIRE_ODA_DETAY",
             apt.unitLabel,
@@ -492,11 +512,11 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             "",
             "",
             "",
-          ].join(";"),
+          ],
         );
       }
     }
-    const csvContent = "\uFEFF" + lines.join("\n");
+    const csvContent = serializeCsv(rows, { delimiter: ";", bom: true });
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -513,25 +533,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       setActiveStep("maliyet");
       return;
     }
-    if (!allPricesResolved) return;
-    if (onTransferToQuote) {
-      onTransferToQuote(
-        allItems.map((it) => ({
-          ...(() => {
-            const evidence = priceEvidence[it.id]!;
-            return { priceSnapshotId: evidence.snapshotId, priceSourceId: evidence.sourceId, sourceDocumentHash: evidence.sourceDocumentHash, currency: evidence.currency, capturedAt: evidence.capturedAt };
-          })(),
-          id: it.id,
-          title: it.title,
-          pozCode: publicPozCode(it.pozCode),
-          unit: it.unit,
-          quantity: it.netQuantity,
-          unitPrice: unitPrices[it.id] ?? 0,
-        })),
-      );
-    } else {
-      handleDownloadCsv();
-    }
+    if (!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || transferredQuotationId) return;
+    void onTransferToQuote(allItems.map((item) => ({
+      lineId: item.id,
+      sourceQuantityRowIds: item.sourceQuantityRowIds ?? [],
+      priceSnapshotId: priceEvidence[item.id]!.snapshotId,
+    })));
   };
 
   return (
@@ -588,13 +595,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           <button
             type="button"
             onClick={handleTransferClick}
-            disabled={activeStep === "maliyet" && !allPricesResolved}
+            disabled={activeStep === "maliyet" && (!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId))}
             className="pafta-button !min-h-9 !py-2 !px-4"
           >
             {activeStep === "maliyet" ? (
               <>
                 <Download className="w-3.5 h-3.5" />
-                <span>{onTransferToQuote ? "Teklif Sihirbazına Aktar" : "Teklif İcmalini İndir"}</span>
+                <span>{transferredQuotationId ? "Ardıl Revizyon Oluşturuldu" : transferBusy ? "Aktarılıyor…" : "Seçili Teklife Yeni Revizyon Aktar"}</span>
               </>
             ) : (
               <>
@@ -686,12 +693,25 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       <IfcCoverageCard
         report={dataset.consistencyReport}
         elements={dataset.elements}
-        selectedGlobalId={selectedGlobalId}
-        onSelectGlobalId={(gid) => {
-          setSelectedGlobalId(gid);
-          if (gid) setActiveStep("icmal");
+        selectedElementKey={selectedElementKey}
+        onSelectElement={(selection) => {
+          setSelectedGlobalId(selection?.globalId ?? null);
+          setSelectedElementKey(selection?.elementKey ?? null);
+          if (selection) setActiveStep("icmal");
         }}
       />
+
+      {documentId && dataset.elements?.some((element) => element.sourceIdentity) && (
+        <IfcReviewViewer
+          documentId={documentId}
+          selectedElementKey={selectedElementKey}
+          onSelectIdentity={(identity) => {
+            setSelectedElementKey(identity?.elementKey ?? null);
+            setSelectedGlobalId(identity?.globalId ?? null);
+            if (identity) setActiveStep("icmal");
+          }}
+        />
+      )}
 
       {/* ADIM 01: MALZEME İCMAL LİSTESİ (SOL PAFTA CETVELİ + SAĞ HESAP KANITI KARTI) */}
       {activeStep === "icmal" && (
@@ -731,7 +751,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedGlobalId(null)}
+                  onClick={() => { setSelectedGlobalId(null); setSelectedElementKey(null); }}
                   className="border border-border bg-card px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-background"
                 >
                   Filtreyi Temizle
@@ -1362,18 +1382,41 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </div>
 
             <div className="mt-4">
+              <div className="mb-3 border border-border bg-card p-3">
+                <label className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="calm-target-quotation">
+                  Mevcut güncel teklif
+                </label>
+                <select
+                  id="calm-target-quotation"
+                  value={selectedQuotationId}
+                  onChange={(event) => onSelectedQuotationIdChange?.(event.target.value)}
+                  className="mt-2 w-full border border-border bg-background px-3 py-2 text-xs text-foreground"
+                >
+                  <option value="">Güncel teklif seçin</option>
+                  {quotations.map((quotation) => (
+                    <option key={quotation.id} value={quotation.id}>{quotation.quoteNumber} · {quotation.projectName}</option>
+                  ))}
+                </select>
+                <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                  Calm aktarımı seçilen güncel teklifi değiştirmez; yeni ve değiştirilemez bir ardıl revizyon oluşturur.
+                </p>
+                {!quotations.length && <p className="mt-1 text-[10px] font-semibold text-amber-400">Aktarım için önce mevcut bir teklif oluşturulmalıdır.</p>}
+                {transferredQuotationId && (
+                  <Link className="mt-2 inline-block text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>
+                    Oluşturulan ardıl teklifi aç
+                  </Link>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={handleTransferClick}
-                disabled={!allPricesResolved}
-                title={allPricesResolved ? undefined : "Tüm kalemler için onaylı ve yetkilendirilmiş fiyat snapshot'ı gerekir."}
+                disabled={!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId)}
+                title={!selectedQuotationId ? "Aktarım için mevcut güncel teklif seçin." : allPricesResolved ? undefined : "Tüm kalemler için onaylı ve yetkilendirilmiş fiyat snapshot'ı gerekir."}
                 className="pafta-button w-full !justify-center disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
                 <span>
-                  {onTransferToQuote
-                    ? "Fiyatlandırılmış Kalemleri Teklif Sihirbazına Aktar"
-                    : "Fiyatlandırılmış İcmal Tablosunu İndir (.csv)"}
+                  {transferredQuotationId ? "Ardıl Revizyon Oluşturuldu" : transferBusy ? "Calm İcmali Aktarılıyor…" : "Calm İcmalinden Ardıl Teklif Revizyonu Oluştur"}
                 </span>
               </button>
             </div>

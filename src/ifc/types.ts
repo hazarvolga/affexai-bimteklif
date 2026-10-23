@@ -159,6 +159,8 @@ export interface ParsedIfcElement {
   uncoveredReason?: string;
   inheritedFromType?: boolean;
   sourceIdentity?: IfcSourceIdentity;
+  /** Persisted SmartCheck row identity used only for audited server-side quotation projection. */
+  sourceQuantityRowId?: string;
 }
 
 export interface ApartmentRoomScheduleItem {

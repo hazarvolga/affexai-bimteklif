@@ -14,12 +14,13 @@ import {
 } from "../../db/schema";
 import { buildPriceSnapshotKey, computePricingLockHash, isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { suggestPriceSnapshotsForRow, type PriceMatchRowInput } from "../../smartcheck/pricing/matching";
-import { evaluateManualSnapshotApproval, evaluatePriceSourceAuthorization, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
+import { COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE, evaluateManualSnapshotApproval, evaluatePriceSourceAuthorization, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
 import { priceSnapshotMatchesQuotationItem, verifiedPayloadHash } from "../../smartcheck/pricing/integrity";
 import { defineManufacturingProfile } from "../../ifc/pricing/manufacturing-profile";
 import { resolvePoz } from "../../ifc/pricing/poz-resolver";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
 import { consumeRateLimit } from "../auth/security";
+import { isTenantCompanyActualDeclaration } from "../../smartcheck/pricing/catalog-import";
 
 const sourceTypes = new Set(["official_reference", "supplier_quote", "company_actual", "index_adjusted", "manual_override"]);
 const licenseStatuses = new Set(["unknown", "verified", "restricted", "not_applicable"]);
@@ -82,16 +83,28 @@ function parseConfidence(value: unknown, fallback = 0.6): number {
   return confidence;
 }
 
-function resolveAuthorizationInput(input: {
+export function parseCatalogVatPercent(value: unknown): { ok: true; value: string | null } | { ok: false; value: null } {
+  if (value === undefined || value === null || value === "") return { ok: true, value: null };
+  if (typeof value !== "string" && typeof value !== "number") return { ok: false, value: null };
+  const raw = typeof value === "string" ? value.trim() : String(value);
+  if (!/^(?:0|[1-9]\d{0,2})(?:\.\d{1,2})?$/.test(raw)) return { ok: false, value: null };
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) return { ok: false, value: null };
+  return { ok: true, value: String(parsed) };
+}
+
+export function resolveAuthorizationInput(input: {
   sourceType: string;
   sourceDocumentHash: string;
   actorUserId: string;
   allowTenantAuthorization: boolean;
 }) {
-  const selfOwned = new Set(["supplier_quote", "company_actual", "manual_override"]);
+  // Vendor quotes require a separate permission/contract approval flow. Only
+  // tenant-owned actuals and attributable manual overrides may self-authorize.
+  const selfOwned = new Set(["company_actual", "manual_override"]);
   const tenantAuthorized = input.allowTenantAuthorization && selfOwned.has(input.sourceType);
   const authorizationStatus: PriceAuthorizationStatus = tenantAuthorized ? "authorized" : "pending";
-  const authorizationScope = tenantAuthorized ? "tenant-provided catalog rows for tenant-scoped quotation use" : null;
+  const authorizationScope = tenantAuthorized ? COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE : null;
   const authorizationEvidenceHash = tenantAuthorized ? input.sourceDocumentHash : null;
   const authorizedAt = authorizationStatus === "authorized" ? new Date() : null;
   const authorizedByUserId = authorizationStatus === "authorized" ? input.actorUserId : null;
@@ -335,6 +348,17 @@ export function registerPricingRoutes(app: Express) {
     if (!sourceName || !catalogImportSourceTypes.has(sourceType) || !licenseStatuses.has(licenseStatus) || rows.length === 0 || rows.length > 500) {
       return res.status(400).json({ error: "Kaynak adı, izinli kaynak tipi ve 1-500 fiyat satırı zorunludur." });
     }
+    if ((sourceType === "supplier_quote" && licenseStatus !== "verified") || (sourceType !== "supplier_quote" && licenseStatus !== "not_applicable")) {
+      return res.status(400).json({ error: "Kaynak tipi ile lisans durumu uyumsuz.", code: "PRICE_SOURCE_LICENSE_SCOPE_INVALID" });
+    }
+    const ownershipDeclaration = req.body?.ownershipDeclaration;
+    if (sourceType === "company_actual" && !isTenantCompanyActualDeclaration(ownershipDeclaration)) {
+      return res.status(400).json({ error: "Firma gerçekleşen fiyatları için açık sahiplik beyanı zorunludur.", code: "TENANT_PRICE_OWNERSHIP_CONFIRMATION_REQUIRED" });
+    }
+    const vatPercent = parseCatalogVatPercent(req.body?.vatPercent);
+    if (!vatPercent.ok) {
+      return res.status(400).json({ error: "KDV oranı 0-100 aralığında ve en fazla iki ondalık basamaklı olmalıdır.", code: "CATALOG_VAT_PERCENT_INVALID" });
+    }
     const sourceDocumentPayload = {
       kind: "pricing_catalog_import",
       sourceName,
@@ -344,9 +368,10 @@ export function registerPricingRoutes(app: Express) {
       validFrom: req.body?.validFrom ?? null,
       validUntil: req.body?.validUntil ?? null,
       vatStatus: req.body?.vatStatus ?? "unknown",
-      vatPercent: req.body?.vatPercent ?? null,
+      vatPercent: vatPercent.value,
       freightStatus: req.body?.freightStatus ?? "unknown",
       region: req.body?.region ?? null,
+      ownershipDeclaration: sourceType === "company_actual" ? ownershipDeclaration : null,
       rows,
     };
     let sourceDocumentHash = "";
@@ -419,7 +444,16 @@ export function registerPricingRoutes(app: Express) {
           jurisdiction: optionalText(req.body?.jurisdiction, 120),
           region: optionalText(req.body?.region, 120),
           createdByUserId: req.user.userId,
-          metadataJson: req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {},
+          metadataJson: {
+            ...(req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {}),
+            ...(sourceType === "company_actual" ? {
+              ownershipDeclaration: {
+                ...ownershipDeclaration,
+                acceptedByUserId: req.user.userId,
+                acceptedAt: authorization.authorizedAt?.toISOString() ?? new Date().toISOString(),
+              },
+            } : {}),
+          },
         }).returning();
 
         for (const row of parsedRows) {
@@ -445,7 +479,7 @@ export function registerPricingRoutes(app: Express) {
             amount: String(row.amount),
             currency: row.currency,
             vatStatus: req.body?.vatStatus === "included" || req.body?.vatStatus === "excluded" ? req.body.vatStatus : "unknown",
-            vatPercent: req.body?.vatPercent === undefined || req.body.vatPercent === null || req.body.vatPercent === "" ? null : String(Number(req.body.vatPercent)),
+            vatPercent: vatPercent.value,
             freightStatus: req.body?.freightStatus === "included" || req.body?.freightStatus === "excluded" ? req.body.freightStatus : "unknown",
             region: row.region,
             validFrom: row.validFrom,

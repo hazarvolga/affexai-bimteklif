@@ -57,7 +57,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       baselineSignature = state.signature;
       report.baselineSignature = baselineSignature;
     });
-    await check('additive migration reaches 73 tables and matches current Drizzle schema', async () => {
+    await check('additive migration reaches 75 tables and matches current Drizzle schema', async () => {
       assert.deepEqual(await applyMigrations(fresh, migrations, 8), migrations.slice(1, 9).map(m => m.tag));
       const fixture = {
         company: '33333333-3333-4333-8333-333333333333', user: '44444444-4444-4444-8444-444444444444',
@@ -84,7 +84,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         { id: fixture.newerEvidence, status: 'superseded' },
       ]);
       const state = await catalog(fresh);
-      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 73);
+      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 75);
       // Independently materialize the current structured Drizzle schema, not a dump
       // of the baseline-derived database, then compare complete logical catalogs.
       await restore.query('begin');
@@ -154,7 +154,109 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         await fresh.query('savepoint cde_cross_container_guard');
         await assert.rejects(fresh.query('update cde_containers set current_revision_id=$1 where id=$2', [cde.otherRevision, cde.container]), /cde_containers_current_revision_company_fk/);
         await fresh.query('rollback to savepoint cde_cross_container_guard');
-      } finally { await fresh.query('rollback'); }
+
+        const transfer = {
+          targetQuote: 'e1111111-1111-4111-8111-111111111111', item: 'e2222222-2222-4222-8222-222222222222',
+          row: 'e3333333-3333-4333-8333-333333333333', ledger: 'e4444444-4444-4444-8444-444444444444',
+          junction: 'e5555555-5555-4555-8555-555555555555', missingActor: 'e6666666-6666-4666-8666-666666666666',
+          mismatchedRow: 'e7777777-7777-4777-8777-777777777777', unrelatedQuote: 'e8888888-8888-4888-8888-888888888888',
+          unrelatedItem: 'e9999999-9999-4999-8999-999999999999', targetProbeRow: 'ea111111-1111-4111-8111-111111111111',
+          layeredItem: 'ea222222-2222-4222-8222-222222222222', layeredJunction: 'ea333333-3333-4333-8333-333333333333',
+          targetEvidence: 'ea444444-4444-4444-8444-444444444444', lateEvidence: 'ea555555-5555-4555-8555-555555555555',
+          clonedItem: 'ea666666-6666-4666-8666-666666666666',
+        };
+        await fresh.query(`insert into quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total,parent_id,revision_version)
+          values ($1,$2,$3,'LEGACY-2','Calm successor',now() + interval '1 day',100,0,20,120,$4,2)`, [transfer.targetQuote, fixture.company, fixture.client, fixture.quote]);
+        await fresh.query(`insert into quotation_items(id,company_id,quotation_id,description,unit,quantity,unit_price,total,source_rule_version)
+          values ($1,$2,$3,'Calm aggregate','m³',1,100,120,'calm-icmal.v1')`, [transfer.item, fixture.company, transfer.targetQuote]);
+        await fresh.query(`insert into quotation_items(id,company_id,quotation_id,description,unit,quantity,unit_price,total,source_rule_version)
+          values ($1,$2,$3,'Calm layered aggregate','m²',1,50,60,'calm-icmal.v1')`, [transfer.layeredItem, fixture.company, transfer.targetQuote]);
+        await fresh.query(`insert into quotation_items(id,company_id,quotation_id,description,unit,quantity,unit_price,total)
+          values ($1,$2,$3,'Cloned baseline item','adet',1,25,30)`, [transfer.clonedItem, fixture.company, transfer.targetQuote]);
+        await fresh.query(`insert into quotation_item_evidence(id,company_id,quotation_id,quotation_item_id,evidence_type,evidence_key,captured_value_json,status,created_by_user_id)
+          values ($1,$2,$3,$4,'quantity','phase5-target-evidence',$5::jsonb,'current',$6)`, [transfer.targetEvidence, fixture.company, transfer.targetQuote, transfer.item, JSON.stringify({ quantity: 1 }), fixture.user]);
+        await fresh.query(`insert into normalized_quantity_rows(id,company_id,document_id,processing_run_id,sheet_name,source_row_number,source_cell_range,normalized_description,normalized_position_code,normalized_unit,normalized_quantity,review_status,reviewer_user_id,reviewed_at)
+          values ($1,$2,$3,$4,'IFC',1,'IfcWall#1','Calm aggregate','15.150.1006','m³',1,'approved',$5,now())`, [transfer.row, fixture.company, cde.document, cde.run, fixture.user]);
+        await fresh.query(`insert into normalized_quantity_rows(id,company_id,document_id,processing_run_id,sheet_name,source_row_number,source_cell_range,normalized_description,normalized_position_code,normalized_unit,normalized_quantity,review_status,reviewer_user_id,reviewed_at)
+          values ($1,$2,$3,$4,'IFC',1,'IfcWall#other','Other run row','15.150.1006','m³',1,'approved',$5,now())`, [transfer.mismatchedRow, fixture.company, cde.mismatchDocument, cde.mismatchRun, fixture.user]);
+        await fresh.query(`insert into normalized_quantity_rows(id,company_id,document_id,processing_run_id,sheet_name,source_row_number,source_cell_range,normalized_description,normalized_position_code,normalized_unit,normalized_quantity,review_status,reviewer_user_id,reviewed_at)
+          values ($1,$2,$3,$4,'IFC',2,'IfcWall#2','Target probe row','15.150.1006','m³',1,'approved',$5,now())`, [transfer.targetProbeRow, fixture.company, cde.document, cde.run, fixture.user]);
+        await fresh.query(`insert into quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total,revision_version)
+          values ($1,$2,$3,'UNRELATED-1','Unrelated quotation',now() + interval '1 day',100,0,20,120,1)`, [transfer.unrelatedQuote, fixture.company, fixture.client]);
+        await fresh.query(`insert into quotation_items(id,company_id,quotation_id,description,unit,quantity,unit_price,total,source_rule_version)
+          values ($1,$2,$3,'Unrelated item','m³',1,100,120,'calm-icmal.v1')`, [transfer.unrelatedItem, fixture.company, transfer.unrelatedQuote]);
+        await fresh.query(`insert into quotation_transfer_ledgers(id,company_id,actor_user_id,source_document_id,source_processing_run_id,source_artifact_id,source_quotation_id,target_quotation_id,idempotency_key,request_payload_hash,request_hash,scope_snapshot_json,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,$8,'phase5-transfer',$9,$10,'{"test":true}'::jsonb,'calm-icmal.v1')`, [transfer.ledger, fixture.company, fixture.user, cde.document, cde.run, cde.artifact, fixture.quote, transfer.targetQuote, '8'.repeat(64), '9'.repeat(64)]);
+        await fresh.query(`insert into quotation_transfer_source_rows(id,company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,$8,1,'IfcWall#1','calm-icmal.v1')`, [transfer.junction, fixture.company, transfer.ledger, transfer.row, cde.document, cde.run, transfer.targetQuote, transfer.item]);
+        await fresh.query(`insert into quotation_transfer_source_rows(id,company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,$8,1,'IfcWall#1','calm-icmal.v1')`, [transfer.layeredJunction, fixture.company, transfer.ledger, transfer.row, cde.document, cde.run, transfer.targetQuote, transfer.layeredItem]);
+        assert.equal((await fresh.query(`select count(*)::int AS count from quotation_transfer_source_rows where transfer_ledger_id=$1 and source_quantity_row_id=$2`, [transfer.ledger, transfer.row])).rows[0].count, 2);
+        for (const [savepoint, statement, params] of [
+          ['transfer_ledger_update_guard', `update quotation_transfer_ledgers set request_hash=$1 where id=$2`, ['0'.repeat(64), transfer.ledger]],
+          ['transfer_ledger_delete_guard', `delete from quotation_transfer_ledgers where id=$1`, [transfer.ledger]],
+          ['transfer_row_update_guard', `update quotation_transfer_source_rows set contributed_quantity=2 where id=$1`, [transfer.junction]],
+          ['transfer_row_delete_guard', `delete from quotation_transfer_source_rows where id=$1`, [transfer.junction]],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(statement, [...params]), /append-only/);
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query('savepoint transfer_actor_fk_guard');
+        await assert.rejects(fresh.query(`insert into quotation_transfer_ledgers(company_id,actor_user_id,source_document_id,source_processing_run_id,source_artifact_id,source_quotation_id,target_quotation_id,idempotency_key,request_payload_hash,request_hash,scope_snapshot_json,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,'missing-actor',$8,$9,'{"test":true}'::jsonb,'calm-icmal.v1')`, [fixture.company, transfer.missingActor, cde.document, cde.run, cde.artifact, fixture.quote, transfer.targetQuote, '8'.repeat(64), '9'.repeat(64)]), /quotation_transfer_ledgers_actor_user_id_company_id_memberships/);
+        await fresh.query('rollback to savepoint transfer_actor_fk_guard');
+        await fresh.query('savepoint transfer_run_fk_guard');
+        await assert.rejects(fresh.query(`insert into quotation_transfer_ledgers(company_id,actor_user_id,source_document_id,source_processing_run_id,source_artifact_id,source_quotation_id,target_quotation_id,idempotency_key,request_payload_hash,request_hash,scope_snapshot_json,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,'mismatched-run',$8,$9,'{"test":true}'::jsonb,'calm-icmal.v1')`, [fixture.company, fixture.user, cde.document, cde.mismatchRun, cde.mismatchArtifact, fixture.quote, transfer.targetQuote, '8'.repeat(64), '9'.repeat(64)]), /quotation_transfer_ledgers_source_processing_run_id_source_docu/);
+        await fresh.query('rollback to savepoint transfer_run_fk_guard');
+        for (const [savepoint, sourceRow, sourceDocument, sourceRun, targetQuote, targetItem, constraint] of [
+          ['transfer_cross_document_guard', transfer.mismatchedRow, cde.mismatchDocument, cde.mismatchRun, transfer.targetQuote, transfer.item, 'quotation_transfer_source_rows_ledger_scope_fk'],
+          ['transfer_cross_run_guard', transfer.mismatchedRow, cde.document, cde.run, transfer.targetQuote, transfer.item, 'quotation_transfer_source_rows_source_scope_fk'],
+          ['transfer_cross_target_guard', transfer.targetProbeRow, cde.document, cde.run, transfer.unrelatedQuote, transfer.unrelatedItem, 'quotation_transfer_source_rows_ledger_scope_fk'],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(`insert into quotation_transfer_source_rows(company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version)
+            values ($1,$2,$3,$4,$5,$6,$7,1,'forged','calm-icmal.v1')`, [fixture.company, transfer.ledger, sourceRow, sourceDocument, sourceRun, targetQuote, targetItem]), new RegExp(constraint));
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query('savepoint transfer_cross_item_guard');
+        await assert.rejects(fresh.query(`insert into quotation_transfer_source_rows(company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,1,'forged-item','calm-icmal.v1')`, [fixture.company, transfer.ledger, transfer.targetProbeRow, cde.document, cde.run, transfer.targetQuote, transfer.unrelatedItem]), /quotation_transfer_source_rows_target_quotation_item_id_target_/);
+        await fresh.query('rollback to savepoint transfer_cross_item_guard');
+        await fresh.query('savepoint transfer_unrelated_successor_guard');
+        await assert.rejects(fresh.query(`insert into quotation_transfer_ledgers(company_id,actor_user_id,source_document_id,source_processing_run_id,source_artifact_id,source_quotation_id,target_quotation_id,idempotency_key,request_payload_hash,request_hash,scope_snapshot_json,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,'unrelated-successor',$8,$9,'{"test":true}'::jsonb,'calm-icmal.v1')`, [fixture.company, fixture.user, cde.document, cde.run, cde.artifact, fixture.quote, transfer.unrelatedQuote, '8'.repeat(64), '9'.repeat(64)]), /target quotation must be the immediate successor/);
+        await fresh.query('rollback to savepoint transfer_unrelated_successor_guard');
+        await fresh.query('savepoint transfer_target_identity_guard');
+        await assert.rejects(fresh.query(`update quotations set revision_version=9 where id=$1`, [transfer.targetQuote]), /transfer-bound quotation revision identity is immutable/);
+        await fresh.query('rollback to savepoint transfer_target_identity_guard');
+        for (const [savepoint, statement, params] of [
+          ['transfer_source_row_guard', `update normalized_quantity_rows set normalized_quantity=99 where id=$1`, [transfer.row]],
+          ['transfer_source_raw_row_guard', `update normalized_quantity_rows set raw_quantity='99' where id=$1`, [transfer.row]],
+          ['transfer_source_artifact_guard', `update document_processing_artifacts set checksum_sha256=$1 where id=$2`, ['0'.repeat(64), cde.artifact]],
+          ['transfer_source_run_guard', `update document_processing_runs set provider='tampered' where id=$1`, [cde.run]],
+          ['transfer_source_document_guard', `update documents set checksum_sha256=$1 where id=$2`, ['0'.repeat(64), cde.document]],
+        ] as const) {
+          await fresh.query(`savepoint ${savepoint}`);
+          await assert.rejects(fresh.query(statement, [...params]), /bound .*immutable/);
+          await fresh.query(`rollback to savepoint ${savepoint}`);
+        }
+        await fresh.query(`update quotation_transfer_ledgers set sealed_at=now() where id=$1`, [transfer.ledger]);
+        await fresh.query('commit');
+        await assert.rejects(fresh.query(`insert into quotation_transfer_source_rows(company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version)
+          values ($1,$2,$3,$4,$5,$6,$7,1,'late-lineage','calm-icmal.v1')`, [fixture.company, transfer.ledger, transfer.targetProbeRow, cde.document, cde.run, transfer.targetQuote, transfer.item]), /quotation transfer junction is sealed/);
+        await assert.rejects(fresh.query(`update quotation_items set quantity=99 where id=$1`, [transfer.item]), /transfer-bound target quotation items are immutable/);
+        await assert.rejects(fresh.query(`insert into quotation_items(company_id,quotation_id,description,unit,quantity,unit_price,total) values ($1,$2,'late item','adet',1,1,1)`, [fixture.company, transfer.targetQuote]), /transfer-bound target quotation items are immutable/);
+        await assert.rejects(fresh.query(`update quotation_items set quotation_id=$1 where id=$2`, [transfer.unrelatedQuote, transfer.clonedItem]), /transfer-bound target quotation items are immutable/);
+        await assert.rejects(fresh.query(`update quotation_item_evidence set captured_value_json=$1::jsonb where id=$2`, [JSON.stringify({ quantity: 99 }), transfer.targetEvidence]), /transfer-bound target quotation evidence is immutable/);
+        await assert.rejects(fresh.query(`delete from quotation_item_evidence where id=$1`, [transfer.targetEvidence]), /transfer-bound target quotation evidence is immutable/);
+        await assert.rejects(fresh.query(`insert into quotation_item_evidence(id,company_id,quotation_id,quotation_item_id,evidence_type,evidence_key,status,created_by_user_id) values ($1,$2,$3,$4,'quantity','late-evidence','current',$5)`, [transfer.lateEvidence, fixture.company, transfer.targetQuote, transfer.item, fixture.user]), /transfer-bound target quotation evidence is immutable/);
+        await assert.rejects(fresh.query(`update quotation_item_evidence set quotation_id=$1, quotation_item_id=$2 where id=$3`, [transfer.unrelatedQuote, transfer.unrelatedItem, transfer.targetEvidence]), /transfer-bound target quotation evidence is immutable/);
+      } catch (error) {
+        await fresh.query('rollback');
+        throw error;
+      }
       report.headSignature = state.signature;
       report.schemaParity = 'pass';
     });

@@ -2,11 +2,27 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE,
   evaluateManualSnapshotApproval,
   evaluatePriceSourceAuthorization,
+  hasCommercialQuotationCapability,
+  licensePermitsCommercialQuotation,
   selectPriceCandidate,
   type PriceCandidate,
 } from "./authorization";
+
+test("commercial quotation capability requires structured versioned scope", () => {
+  assert.equal(hasCommercialQuotationCapability(COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE), true);
+  assert.equal(hasCommercialQuotationCapability("Calm quotation transfer"), false);
+  assert.equal(hasCommercialQuotationCapability(JSON.stringify({ version: 1, capabilities: ["analysis_only"] })), false);
+});
+
+test("commercial quotation license status is constrained by source ownership", () => {
+  assert.equal(licensePermitsCommercialQuotation("supplier_quote", "verified"), true);
+  assert.equal(licensePermitsCommercialQuotation("supplier_quote", "not_applicable"), false);
+  assert.equal(licensePermitsCommercialQuotation("company_actual", "not_applicable"), true);
+  assert.equal(licensePermitsCommercialQuotation("company_actual", "verified"), false);
+});
 
 test("manual snapshot approval requires a distinct attributable reviewer", () => {
   assert.deepEqual(evaluateManualSnapshotApproval({

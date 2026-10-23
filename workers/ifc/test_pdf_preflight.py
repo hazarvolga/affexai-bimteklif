@@ -5,11 +5,14 @@ import sys
 from pypdf import PdfWriter
 from pypdf.generic import (
     ArrayObject,
+    ByteStringObject,
     DecodedStreamObject,
     DictionaryObject,
     FloatObject,
     NameObject,
+    NullObject,
     NumberObject,
+    TextStringObject,
 )
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -72,6 +75,52 @@ def write(tmp_path, name: str, data: bytes) -> str:
     with open(path, "wb") as handle:
         handle.write(data)
     return path
+
+
+def signature_pdf(
+    *,
+    page_number: int = 1,
+    nested: bool = False,
+    value: str = "empty",
+    include_acroform: bool = True,
+) -> bytes:
+    """Build a structural signature-field fixture; it contains no valid crypto."""
+    writer = PdfWriter()
+    pages = [writer.add_blank_page(width=595, height=842) for _ in range(max(1, page_number))]
+    widget = DictionaryObject({
+        NameObject("/Type"): NameObject("/Annot"),
+        NameObject("/Subtype"): NameObject("/Widget"),
+        NameObject("/FT"): NameObject("/Sig"),
+        NameObject("/T"): TextStringObject("EngineerSignature"),
+    })
+    if value == "signed":
+        widget[NameObject("/V")] = writer._add_object(DictionaryObject({
+            NameObject("/Type"): NameObject("/Sig"),
+            NameObject("/ByteRange"): ArrayObject([NumberObject(0), NumberObject(1), NumberObject(2), NumberObject(3)]),
+            NameObject("/Contents"): ByteStringObject(b"not-a-real-signature"),
+        }))
+    elif value == "malformed":
+        widget[NameObject("/V")] = TextStringObject("broken-signature-value")
+    elif value == "null":
+        widget[NameObject("/V")] = NullObject()
+    widget_ref = writer._add_object(widget)
+    pages[page_number - 1][NameObject("/Annots")] = ArrayObject([widget_ref])
+
+    if nested:
+        del widget[NameObject("/FT")]
+        parent = DictionaryObject({
+            NameObject("/FT"): NameObject("/Sig"),
+            NameObject("/T"): TextStringObject("ParentSignature"),
+            NameObject("/Kids"): ArrayObject([widget_ref]),
+        })
+        fields = ArrayObject([writer._add_object(parent)])
+    else:
+        fields = ArrayObject([widget_ref])
+    if include_acroform:
+        writer._root_object[NameObject("/AcroForm")] = writer._add_object(DictionaryObject({NameObject("/Fields"): fields}))
+    out = io.BytesIO()
+    writer.write(out)
+    return out.getvalue()
 
 
 def codes(report):
@@ -145,9 +194,63 @@ def test_non_iso216_page_size_and_multi_sheet_drawing_warnings(tmp_path):
     report = pdf_preflight.build_report(path)
     assert "PAFTA_BOYUTU_ISO216" in codes(report)
     assert "COKLU_PAFTA_DUZENI" in codes(report)
-    assert report["eSignature"]["present"] is False
+    assert report["eSignature"]["signatureFieldPresent"] is False
+    assert report["eSignature"]["fieldStatus"] == "absent"
 
     # Same 2-page PDF as a Report (RP_SHR) should NOT trigger COKLU_PAFTA_DUZENI
     report_rp = pdf_preflight.build_report(path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf")
     assert "COKLU_PAFTA_DUZENI" not in codes(report_rp)
+
+
+def test_signature_scan_reaches_page_21_and_reports_complete_counts(tmp_path):
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", signature_pdf(page_number=21, value="signed", include_acroform=False))
+    report = pdf_preflight.build_report(path)
+    signature = report["eSignature"]
+    assert report["schemaVersion"] == 2
+    assert signature["fieldStatus"] == "signed"
+    assert signature["signatureFieldPresent"] is True
+    assert signature["scanComplete"] is True
+    assert signature["pagesScanned"] == 21
+    assert signature["pagesTotal"] == 21
+    assert signature["verification"]["cryptographic"]["status"] == "not_checked"
+    assert signature["verification"]["trust"]["status"] == "not_checked"
+    assert signature["verification"]["revocation"]["status"] == "not_checked"
+    assert signature["verification"]["timestamp"]["status"] == "not_checked"
+
+
+def test_nested_empty_signature_field_is_not_reported_as_signed(tmp_path):
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", signature_pdf(nested=True, value="empty"))
+    signature = pdf_preflight.build_report(path)["eSignature"]
+    assert signature["fieldStatus"] == "empty"
+    assert signature["signatureFieldPresent"] is True
+    assert signature["signedValueCount"] == 0
+    assert signature["emptyFieldCount"] >= 1
+    assert signature["verification"]["cryptographic"]["status"] == "indeterminate"
+
+
+def test_malformed_signature_value_is_explicit_and_never_claimed_valid(tmp_path):
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", signature_pdf(value="malformed"))
+    signature = pdf_preflight.build_report(path)["eSignature"]
+    assert signature["fieldStatus"] == "malformed"
+    assert signature["malformedFieldCount"] >= 1
+    assert signature["signedValueCount"] == 0
+    assert all(item["status"] == "indeterminate" for item in signature["verification"].values())
+
+
+def test_cyclic_signature_kids_are_bounded_and_mark_scan_incomplete(tmp_path):
+    writer = PdfWriter()
+    writer.add_blank_page(width=595, height=842)
+    field = DictionaryObject({NameObject("/FT"): NameObject("/Sig")})
+    field_ref = writer._add_object(field)
+    field[NameObject("/Kids")] = ArrayObject([field_ref])
+    writer._root_object[NameObject("/AcroForm")] = writer._add_object(
+        DictionaryObject({NameObject("/Fields"): ArrayObject([field_ref])})
+    )
+    out = io.BytesIO()
+    writer.write(out)
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", out.getvalue())
+    signature = pdf_preflight.build_report(path)["eSignature"]
+    assert signature["scanComplete"] is False
+    assert signature["fieldStatus"] == "malformed"
+    assert signature["objectsScanned"] <= pdf_preflight._SIGNATURE_MAX_OBJECTS
 

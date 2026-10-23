@@ -23,12 +23,12 @@ function UncoveredTotals({ items }: { items: readonly IfcUncoveredElementRecord[
 
 export function UncoveredItemsView({
   items,
-  selectedGlobalId,
+  selectedElementKey,
   onRowClick,
 }: {
   items: readonly IfcUncoveredElementRecord[];
-  selectedGlobalId: string | null;
-  onRowClick: (globalId: string) => void;
+  selectedElementKey: string | null;
+  onRowClick: (item: IfcUncoveredElementRecord) => void;
 }) {
   if (items.length === 0) {
     return (
@@ -46,9 +46,9 @@ export function UncoveredItemsView({
           <button
             key={`${item.globalId}-${idx}`}
             type="button"
-            onClick={() => onRowClick(item.globalId)}
+            onClick={() => onRowClick(item)}
             className={`w-full text-left py-2 px-2 flex flex-wrap items-center justify-between gap-2 transition-colors ${
-              selectedGlobalId === item.globalId ? "bg-primary/10" : "hover:bg-card"
+              selectedElementKey && selectedElementKey === item.sourceIdentity?.elementKey ? "bg-primary/10" : "hover:bg-card"
             }`}
           >
             <div className="min-w-0">

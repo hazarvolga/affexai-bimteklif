@@ -10,6 +10,7 @@
  */
 import type { QuoteItem } from "@/types";
 import { calculateLineItemTotal } from "./calculations";
+import { parseCsv, serializeCsv } from "./tabular-data";
 
 export const MAX_QUOTE_IMPORT_BYTES = 5 * 1024 * 1024;
 
@@ -240,36 +241,16 @@ export function parseQuoteRows(
 
 /** CSV metnini satır ve hücrelere ayırır (noktalı virgül veya virgül destekli). */
 export function parseQuoteCsv(text: string, fileName = "teklif.csv"): QuoteImportResult {
-  const trimmed = text.replace(/^\uFEFF/, "").trim(); // BOM temizle
+  const trimmed = text.replace(/^\uFEFF/, "").trim();
   if (!trimmed) {
     return { items: [], totalImported: 0, skippedRowCount: 0, warnings: [], errors: ["CSV dosyası boş."] };
   }
 
-  const lines = trimmed.split(/\r?\n/).filter((l) => l.trim() !== "");
-  const firstLine = lines[0] ?? "";
-  const delimiter = firstLine.split(";").length >= firstLine.split(",").length ? ";" : ",";
-
-  const rows: SheetCell[][] = lines.map((line) => {
-    // Basit tırnak içi ayırıcı koruma
-    const cells: string[] = [];
-    let cur = "";
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        inQuotes = !inQuotes;
-      } else if (ch === delimiter && !inQuotes) {
-        cells.push(cur.trim());
-        cur = "";
-      } else {
-        cur += ch;
-      }
-    }
-    cells.push(cur.trim());
-    return cells;
-  });
-
-  return parseQuoteRows(rows, fileName);
+  try {
+    return parseQuoteRows(parseCsv(trimmed), fileName);
+  } catch {
+    return { items: [], totalImported: 0, skippedRowCount: 0, warnings: [], errors: ["CSV tırnak veya satır yapısı geçersiz."] };
+  }
 }
 
 function cellToValue(value: unknown): SheetCell {
@@ -323,11 +304,11 @@ export async function parseQuoteXlsx(data: ArrayBuffer | Uint8Array, fileName = 
 
 /** Teklif hazırlama için standart CSV şablonu üretir. */
 export function buildQuoteCsvTemplate(): string {
-  return [
-    "Poz No;İş Kalemi Açıklaması;Birim;Miktar;Birim Fiyat (TL);KDV (%);İskonto (%)",
-    "15.120.1001;C25/30 Hazır Beton Dökülmesi;m3;1250;3450;20;0",
-    "15.140.1002;Nervürlü Donatı Çeliği Temini ve İşçiliği;ton;95;42000;20;0",
-    "15.150.1005;Plywood Kalıp Yapılması;m2;4800;650;20;0",
-    "27.501.1001;İç Cephe Alçı Sıva Yapılması;m2;3200;185;20;0",
-  ].join("\r\n");
+  return serializeCsv([
+    ["Poz No", "İş Kalemi Açıklaması", "Birim", "Miktar", "Birim Fiyat (TL)", "KDV (%)", "İskonto (%)"],
+    ["15.120.1001", "C25/30 Hazır Beton Dökülmesi", "m3", 1250, 3450, 20, 0],
+    ["15.140.1002", "Nervürlü Donatı Çeliği Temini ve İşçiliği", "ton", 95, 42000, 20, 0],
+    ["15.150.1005", "Plywood Kalıp Yapılması", "m2", 4800, 650, 20, 0],
+    ["27.501.1001", "İç Cephe Alçı Sıva Yapılması", "m2", 3200, 185, 20, 0],
+  ], { delimiter: ";" });
 }

@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { runPdfPreflight } from "./pdf-preflight-runner";
+import { PdfPreflightReportSchema, runPdfPreflight } from "./pdf-preflight-runner";
 
 test("PDF preflight runner passes the upload name and validates the worker report", async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "pdf-runner-test-"));
@@ -29,4 +29,52 @@ test("PDF preflight runner rejects malformed worker output", async () => {
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
+});
+
+test("PDF preflight schema accepts v2 signature evidence without inferring cryptographic validity", () => {
+  const parsed = PdfPreflightReportSchema.parse({
+    schemaVersion: 2,
+    kind: "pdf_preflight",
+    file: { fileName: "plan.pdf", pageCount: 21 },
+    pdfa: { claimed: null, note: "Manual check" },
+    eSignature: {
+      signatureFieldPresent: true,
+      fieldStatus: "signed",
+      signedValueCount: 1,
+      emptyFieldCount: 0,
+      malformedFieldCount: 0,
+      scanComplete: true,
+      pagesScanned: 21,
+      pagesTotal: 21,
+      objectsScanned: 2,
+      verification: {
+        cryptographic: { status: "not_checked", note: "No cryptographic validation performed." },
+        trust: { status: "not_checked", note: "No trust-chain validation performed." },
+        revocation: { status: "not_checked", note: "No revocation validation performed." },
+        timestamp: { status: "not_checked", note: "No timestamp validation performed." },
+      },
+      note: "Structural signature value only.",
+    },
+    summary: { hata: 0, uyari: 0, elle: 1 },
+    findings: [],
+    disclaimer: "Preflight only",
+  });
+  assert.equal(parsed.schemaVersion, 2);
+  assert.equal(parsed.eSignature.fieldStatus, "signed");
+  assert.equal(parsed.eSignature.verification.cryptographic.status, "not_checked");
+});
+
+test("PDF preflight schema keeps legacy v1 reports safe and explicitly indeterminate", () => {
+  const parsed = PdfPreflightReportSchema.parse({
+    schemaVersion: 1,
+    kind: "pdf_preflight",
+    file: { fileName: "legacy.pdf", pageCount: 1 },
+    pdfa: { claimed: null, note: "Legacy report" },
+    eSignature: { present: true, note: "Legacy /Sig detection" },
+    summary: { hata: 0, uyari: 0, elle: 1 },
+    findings: [],
+    disclaimer: "Preflight only",
+  });
+  assert.equal(parsed.schemaVersion, 1);
+  assert.equal(parsed.eSignature.present, true);
 });

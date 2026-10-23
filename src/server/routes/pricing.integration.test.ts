@@ -36,7 +36,7 @@ test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout
   const address = server.address();
   const base = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
   const request = (path: string, init: RequestInit = {}, token = tokenA) => fetch(`${base}${path}`, { ...init, headers: { Authorization: `Bearer ${token}`, ...(init.headers ?? {}) } });
-  const sourcePayload = { sourceType: "supplier_quote", sourceName: "Pilot supplier snapshot", authority: "Pilot supplier", sourceDocumentIdentifier: `supplier-${suffix}`, licenseStatus: "verified", jurisdiction: "TR", region: "İstanbul", validUntil: "2026-12-31T23:59:59.000Z", rows: [{ description: "VRF dış ünite", unit: "adet", amount: 525, currency: "TRY", positionCode: "M-001", confidence: 0.92 }] };
+  const sourcePayload = { sourceType: "company_actual", sourceName: "Pilot tenant actual snapshot", authority: "Tenant accounting", sourceDocumentIdentifier: `actual-${suffix}`, licenseStatus: "not_applicable", ownershipDeclaration: { kind: "tenant_company_actual", version: 1, accepted: true }, jurisdiction: "TR", region: "İstanbul", validUntil: "2026-12-31T23:59:59.000Z", rows: [{ description: "VRF dış ünite", unit: "adet", amount: 525, currency: "TRY", positionCode: "M-001", confidence: 0.92 }] };
   let sourceId = "";
   let snapshotId = "";
   try {
@@ -121,9 +121,11 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
   try {
     const importPayload = {
       sourceName: "Pilot CSV katalog",
-      sourceType: "supplier_quote",
+      sourceType: "company_actual",
       sourceDocumentIdentifier: `catalog-${suffix}.csv`,
       licenseStatus: "not_applicable",
+      ownershipDeclaration: { kind: "tenant_company_actual", version: 1, accepted: true },
+      vatPercent: "20.25",
       region: "İstanbul",
       validUntil: "2026-12-31",
       rows: [
@@ -131,16 +133,35 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
         { positionCode: "M-CSV-002", description: "Bakır boru", unit: "m", amount: 245, currency: "TRY", externalReference: "L2" },
       ],
     };
+    const missingDeclarationResponse = await request("/api/pricing/catalog/import", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...importPayload, ownershipDeclaration: undefined }),
+    });
+    assert.equal(missingDeclarationResponse.status, 400);
+    assert.equal((await missingDeclarationResponse.json() as { code?: string }).code, "TENANT_PRICE_OWNERSHIP_CONFIRMATION_REQUIRED");
+    for (const invalidVatPercent of ["NaN", -1, 100.01, "20.001"]) {
+      const invalidVatResponse = await request("/api/pricing/catalog/import", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...importPayload, vatPercent: invalidVatPercent }),
+      });
+      assert.equal(invalidVatResponse.status, 400);
+      assert.equal((await invalidVatResponse.json() as { code?: string }).code, "CATALOG_VAT_PERCENT_INVALID");
+    }
     const importResponse = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(importPayload) });
     assert.equal(importResponse.status, 201);
-    const importBody = await importResponse.json() as { source: { id: string; sourceDocumentHash: string }; insertedCount: number; reusedCount: number; snapshots: Array<{ id: string; reviewStatus: string; positionCode: string; amount: string; stale: boolean }> };
+    const importBody = await importResponse.json() as { source: { id: string; sourceDocumentHash: string; metadataJson: { ownershipDeclaration?: { acceptedByUserId?: string; acceptedAt?: string } } }; insertedCount: number; reusedCount: number; snapshots: Array<{ id: string; reviewStatus: string; positionCode: string; amount: string; vatPercent: string | null; stale: boolean }> };
     importedSourceIds.push(importBody.source.id);
     importedSnapshotIds.push(...importBody.snapshots.map((snapshot) => snapshot.id));
     assert.equal(importBody.insertedCount, 2);
     assert.equal(importBody.reusedCount, 0);
     assert.match(importBody.source.sourceDocumentHash, /^[a-f0-9]{64}$/);
+    assert.equal(importBody.source.metadataJson.ownershipDeclaration?.acceptedByUserId, userA.id);
+    assert.ok(importBody.source.metadataJson.ownershipDeclaration?.acceptedAt);
     assert.deepEqual(importBody.snapshots.map((snapshot) => snapshot.reviewStatus), ["advisory", "advisory"]);
     assert.equal(Number(importBody.snapshots[0].amount), 12500.5);
+    assert.equal(importBody.snapshots[0].vatPercent, "20.25");
     assert.equal(importBody.snapshots[0].stale, false);
     for (const snapshot of importBody.snapshots) {
       const reviewResponse = await request(`/api/pricing/snapshots/${snapshot.id}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Tenant tarafından sağlanan katalog satırı incelendi." }) });

@@ -1,3 +1,5 @@
+import { detectCsvDelimiter, parseCsv, serializeCsv, type TabularCell } from "./tabular-data";
+
 /**
  * IFC öncesi ön teklif / kat karşılığı fizibilite motoru (Paket M-3)
  *
@@ -492,26 +494,12 @@ export const PARCEL_CSV_HEADER = [
 
 export function buildParcelCsvTemplate(): string {
   // Örnek satır YOK: şablon uydurma imar değeri taşımaz.
-  return "\uFEFF" + PARCEL_CSV_HEADER.join(";") + "\r\n";
+  return serializeCsv([PARCEL_CSV_HEADER], { delimiter: ";", bom: true });
 }
 
 export interface ParcelCsvParseResult {
   parcels: ParcelInput[];
   errors: string[];
-}
-
-function detectDelimiter(headerLine: string): string {
-  const candidates = [";", "\t", ","];
-  let best = ";";
-  let bestCount = -1;
-  for (const c of candidates) {
-    const count = headerLine.split(c).length - 1;
-    if (count > bestCount) {
-      best = c;
-      bestCount = count;
-    }
-  }
-  return best;
 }
 
 export type SheetCell = string | number | null | undefined;
@@ -607,13 +595,13 @@ export function parseParcelRows(rows: SheetCell[][], numberDelimiter = ";"): Par
 
 export function parseParcelCsv(text: string): ParcelCsvParseResult {
   const clean = text.replace(/^\uFEFF/, "");
-  const lines = clean.split(/\r?\n/).filter((l) => l.trim() !== "");
-  if (lines.length === 0) return { parcels: [], errors: ["Dosya boş."] };
-  const delimiter = detectDelimiter(lines[0]);
-  return parseParcelRows(
-    lines.map((l) => l.split(delimiter)),
-    delimiter,
-  );
+  if (!clean.trim()) return { parcels: [], errors: ["Dosya boş."] };
+  const delimiter = detectCsvDelimiter(clean);
+  try {
+    return parseParcelRows(parseCsv(clean, { delimiter }), delimiter);
+  } catch {
+    return { parcels: [], errors: ["CSV tırnak veya satır yapısı geçersiz."] };
+  }
 }
 
 function fmtCsv(v: number | null): string {
@@ -621,7 +609,7 @@ function fmtCsv(v: number | null): string {
 }
 
 export function exportFeasibilityCsv(result: FeasibilityResult): string {
-  const rows: string[][] = [];
+  const rows: TabularCell[][] = [];
   rows.push(["parsel_adi", "taban_alani_m2", "emsal_alani_m2", "emsal_harici_m2", "toplam_insaat_m2", "yaklasik_kat", "sinirli_muaf_m2", "tam_muaf_m2", "aritmetik_durum", "plan_uygunluk_durumu"]);
   for (const p of result.parcels) {
     rows.push([
@@ -656,5 +644,5 @@ export function exportFeasibilityCsv(result: FeasibilityResult): string {
   rows.push(["vaat_durumu", result.promise.status]);
   rows.push(["vaat_asan_m2", fmtCsv(result.promise.excessTotalM2)]);
   rows.push(["vaat_asan_maliyet_tl", fmtCsv(result.promise.excessCostTry)]);
-  return "\uFEFF" + rows.map((r) => r.join(";")).join("\r\n") + "\r\n";
+  return serializeCsv(rows, { delimiter: ";", bom: true });
 }

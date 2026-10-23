@@ -8,14 +8,15 @@ import type {
   ParsedIfcElement,
 } from "@/ifc/types";
 import { UncoveredItemsView } from "./IfcUncoveredItemsView";
+import { resolveCoverageSelection, type IfcCoverageSelection } from "@/ifc/viewer/selection";
 
 export type CoverageFilterMode = "none" | "uncovered" | "high" | "medium" | "unmeasured" | "suppressed";
 
 export interface IfcCoverageCardProps {
   report: IfcConsistencyReport | null | undefined;
   elements?: readonly ParsedIfcElement[];
-  selectedGlobalId?: string | null;
-  onSelectGlobalId?: (globalId: string | null) => void;
+  selectedElementKey?: string | null;
+  onSelectElement?: (selection: IfcCoverageSelection | null) => void;
 }
 
 const FINDING_CODE_LABELS: Record<IfcConsistencyFindingCode, string> = {
@@ -97,12 +98,12 @@ function SuppressedPartsView({ parts }: { parts: readonly IfcSuppressedAssemblyP
 
 function FindingsListView({
   findings,
-  selectedGlobalId,
+  selectedElementKey,
   onRowClick,
 }: {
   findings: readonly IfcConsistencyFinding[];
-  selectedGlobalId: string | null;
-  onRowClick: (globalId: string) => void;
+  selectedElementKey: string | null;
+  onRowClick: (finding: IfcConsistencyFinding) => void;
 }) {
   if (findings.length === 0) {
     return (
@@ -118,9 +119,9 @@ function FindingsListView({
         <button
           key={`${finding.code}-${finding.globalId}-${idx}`}
           type="button"
-          onClick={() => onRowClick(finding.globalId)}
+          onClick={() => onRowClick(finding)}
           className={`w-full text-left py-2 px-2 flex flex-wrap items-center justify-between gap-2 transition-colors ${
-            selectedGlobalId === finding.globalId ? "bg-primary/10" : "hover:bg-card"
+            selectedElementKey && selectedElementKey === finding.sourceIdentity?.elementKey ? "bg-primary/10" : "hover:bg-card"
           }`}
         >
           <div className="min-w-0">
@@ -264,8 +265,9 @@ function CoverageMetricsGrid({
 
 export const IfcCoverageCard: React.FC<IfcCoverageCardProps> = ({
   report,
-  selectedGlobalId = null,
-  onSelectGlobalId,
+  elements = [],
+  selectedElementKey = null,
+  onSelectElement,
 }) => {
   const [activeFilter, setActiveFilter] = useState<CoverageFilterMode>("none");
   const hasReport = Boolean(report);
@@ -275,7 +277,10 @@ export const IfcCoverageCard: React.FC<IfcCoverageCardProps> = ({
   const filteredFindings = useMemo(() => filterFindingsByMode(findings, activeFilter), [findings, activeFilter]);
 
   const handleToggleFilter = (next: CoverageFilterMode) => setActiveFilter((prev) => (prev === next ? "none" : next));
-  const handleRowClick = (globalId: string) => onSelectGlobalId?.(selectedGlobalId === globalId ? null : globalId);
+  const handleRowClick = (record: { globalId: string; sourceIdentity?: IfcCoverageSelection["sourceIdentity"] }) => {
+    const selection = resolveCoverageSelection(elements, { ...record, sourceIdentity: record.sourceIdentity ?? undefined });
+    onSelectElement?.(selection.elementKey && selectedElementKey === selection.elementKey ? null : selection);
+  };
 
   return (
     <section
@@ -340,11 +345,11 @@ export const IfcCoverageCard: React.FC<IfcCoverageCardProps> = ({
           </div>
 
           {activeFilter === "uncovered" ? (
-            <UncoveredItemsView items={uncoveredList} selectedGlobalId={selectedGlobalId} onRowClick={handleRowClick} />
+            <UncoveredItemsView items={uncoveredList} selectedElementKey={selectedElementKey} onRowClick={handleRowClick} />
           ) : activeFilter === "suppressed" ? (
             <SuppressedPartsView parts={suppressedParts} />
           ) : (
-            <FindingsListView findings={filteredFindings} selectedGlobalId={selectedGlobalId} onRowClick={handleRowClick} />
+            <FindingsListView findings={filteredFindings} selectedElementKey={selectedElementKey} onRowClick={handleRowClick} />
           )}
         </div>
       )}
