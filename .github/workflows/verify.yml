@@ -96,9 +96,9 @@ jobs:
           END
           $$;
           GRANT bimmetraj_owner TO bimmetraj_migrator;
-          -- CI-only fixture roles inherit disposable ownership so tests can
-          -- exercise DDL without widening any production runtime role.
-          GRANT bimmetraj_owner TO bimmetraj_app, bimmetraj_control, bimmetraj_worker;
+          -- Keep restricted runtime roles free of memberships. Test isolation
+          -- assigns disposable fixture ownership directly to the runtime role
+          -- so tenant guards still observe the production role contract.
           SQL
           {
             echo 'DATABASE_URL=postgresql://bimmetraj_app@127.0.0.1:5432/teklifpro_bootstrap_test'

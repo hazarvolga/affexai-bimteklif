@@ -56,16 +56,22 @@ async function cloneTables(client: pg.Client, schema: string) {
   for (const { tablename } of tables.rows) {
     await client.query(`CREATE TABLE ${quote(schema)}.${quote(tablename)} (LIKE public.${quote(tablename)} INCLUDING ALL)`);
   }
-  // Disposable CI roles need to exercise fixture DDL (constraint/trigger
-  // failure tests) while production runtime roles remain non-owner. Transfer
-  // ownership only when the CI-only owner role exists.
-  const owner = await client.query<{ exists: boolean }>(
-    "SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_owner')"
+  // Disposable CI app fixtures need to exercise trigger/function DDL. Keep
+  // the restricted runtime role free of memberships (the production role
+  // contract rejects memberships) and assign ownership directly to it only
+  // inside the disposable schema. Local runs still use the CI owner fallback.
+  const owners = await client.query<{ rolname: string }>(
+    "SELECT rolname FROM pg_roles WHERE rolname IN ('bimmetraj_app', 'bimmetraj_owner')"
   );
-  if (owner.rows[0]?.exists) {
-    await client.query(`ALTER SCHEMA ${quote(schema)} OWNER TO bimmetraj_owner`);
+  const fixtureOwner = owners.rows.some(({ rolname }) => rolname === "bimmetraj_app")
+    ? "bimmetraj_app"
+    : owners.rows.some(({ rolname }) => rolname === "bimmetraj_owner")
+      ? "bimmetraj_owner"
+      : undefined;
+  if (fixtureOwner) {
+    await client.query(`ALTER SCHEMA ${quote(schema)} OWNER TO ${quote(fixtureOwner)}`);
     for (const { tablename } of tables.rows) {
-      await client.query(`ALTER TABLE ${quote(schema)}.${quote(tablename)} OWNER TO bimmetraj_owner`);
+      await client.query(`ALTER TABLE ${quote(schema)}.${quote(tablename)} OWNER TO ${quote(fixtureOwner)}`);
     }
   }
   // LIKE preserves columns/defaults/indexes, but foreign keys must point into our schema.
