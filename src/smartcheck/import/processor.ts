@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db";
-import { companies, documentProcessingArtifacts, documentProcessingRuns, documents, normalizedQuantityRows } from "../../db/schema";
+import { documentProcessingArtifacts, documentProcessingRuns, documents, normalizedQuantityRows } from "../../db/schema";
 import { createStorageAdapter } from "./storage";
 import { detectAndValidateFile, sanitizeSpreadsheetText, sha256, validateXlsxArchive } from "./file-security";
 import { type ColumnMapping, type ParsedQuantityRow, suggestMapping, validateRows } from "./normalize";
@@ -20,6 +20,7 @@ import { runVeraPdfValidation } from "../pdf/verapdf-runner";
 import { VeraPdfValidationReportSchema } from "../pdf/verapdf-report";
 import { captureError } from "../../server/observability/error-tracking";
 import { isActiveStandard } from "../rules/three-by-three";
+import { fetchWorkerCompanyContext } from "./worker-company-context";
 
 export { inspectDocument } from "./spreadsheet-runner";
 export type { DocumentPreview, PreviewSheet } from "./spreadsheet-parser";
@@ -315,10 +316,10 @@ async function processIfcSmartCheckDocument(payload: {
   });
 
   // 3x3 and e-PYS run on the server for every IFC run; results are stored as run evidence (E-1, E-6).
-  const [company] = await db.select({ activeStandard: companies.activeStandard }).from(companies).where(eq(companies.id, companyId));
-  if (!company) throw new Error("TENANT_COMPANY_MISSING");
-  if (!isActiveStandard(company.activeStandard)) throw new Error("UNKNOWN_ACTIVE_STANDARD");
-  artifact = applyIfcRuleEvaluations(artifact, evaluateIfcRulePacks(artifact, company.activeStandard));
+  const companyContext = await fetchWorkerCompanyContext(companyId);
+  if (!companyContext.companyExists || !companyContext.activeStandard) throw new Error("TENANT_COMPANY_MISSING");
+  if (!isActiveStandard(companyContext.activeStandard)) throw new Error("UNKNOWN_ACTIVE_STANDARD");
+  artifact = applyIfcRuleEvaluations(artifact, evaluateIfcRulePacks(artifact, companyContext.activeStandard));
   const ruleSummary = {
     threeByThree: {
       rulePackVersion: artifact.ruleEvaluations!.threeByThree.rulePackVersion,
@@ -641,8 +642,9 @@ async function processClaimedSmartCheckDocument(
 
     const parsed = await parseDocument(content, kind, document.importMappingJson as ColumnMapping);
     await updateRun(run.id, companyId, leaseToken, { currentStage: "normalizing", progressPercent: 45, progressMessage: "Satırlar normalize ediliyor" });
-    const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, companyId));
-    const results = validateRows(parsed.rows, Number(company?.maxWaste ?? 20));
+    const companyContext = await fetchWorkerCompanyContext(companyId);
+    if (!companyContext.companyExists) throw new Error("TENANT_COMPANY_MISSING");
+    const results = validateRows(parsed.rows, Number(companyContext.maxWaste ?? 20));
     await updateRun(run.id, companyId, leaseToken, { currentStage: "validating", progressPercent: 70, progressMessage: "Deterministik kontroller çalışıyor" });
     await hooks.beforeCanonicalWrite?.();
     const artifactContent = Buffer.from(JSON.stringify({ mapping: parsed.mapping, rowCount: results.length, rows: results }, null, 2));

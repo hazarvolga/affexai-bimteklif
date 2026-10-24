@@ -148,6 +148,13 @@
       "sha256": "f3450a119b28300f1ccef583b3fe17ba1f054e4496abf156b791f059c2e051ce",
       "snapshotSha256": "5f6b2b28867139ad1c0299e9961f8aeaec9baf91c5ee800b3f95e40f26b1b016",
       "statements": 4
+    },
+    {
+      "idx": 21,
+      "tag": "0021_worker_company_context_capability",
+      "sha256": "6c19a3c1c45aae5eb944af3e75143b99bc8a4881fe6f75a55d3fa7a8fb4f3edc",
+      "snapshotSha256": "2cae587be6efeed722926ffc1109abeeb6a0ac2d55446690b4d599594965ab5f",
+      "statements": 4
     }
   ]
 }

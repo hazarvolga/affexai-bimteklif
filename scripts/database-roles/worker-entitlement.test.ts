@@ -18,3 +18,19 @@ test("worker entitlement capability is a narrow security-definer function", asyn
   assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.bimmetraj_worker_get_entitlement\(uuid\) TO bimmetraj_worker/);
   assert.doesNotMatch(migration, /GRANT .* ON TABLE (companies|subscriptions|plans) .*bimmetraj_worker/i);
 });
+
+test("worker company context capability is narrow and table access remains denied", async () => {
+  const spec = DATABASE_FUNCTION_EXECUTE_SPECS.find((entry) => entry.name === "bimmetraj_worker_get_company_context");
+  assert.ok(spec);
+  assert.equal(spec.schema, "public");
+  assert.equal(spec.securityDefiner, true);
+  assert.deepEqual(spec.roles, ["bimmetraj_worker"]);
+  assert.match(spec.result, /active_standard text/);
+  assert.match(spec.result, /smartcheck_max_waste_percent numeric/);
+  assert.equal(DATABASE_SECURITY_DEFINER_WRAPPERS.bimmetraj_worker_get_company_context.includes("session_user"), true);
+
+  const migration = await readFile(new URL("../../drizzle-release/0021_worker_company_context_capability.sql", import.meta.url), "utf8");
+  assert.match(migration, /REVOKE ALL PRIVILEGES ON FUNCTION public\.bimmetraj_worker_get_company_context/);
+  assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.bimmetraj_worker_get_company_context\(uuid\) TO bimmetraj_worker/);
+  assert.doesNotMatch(migration, /GRANT .* ON TABLE companies .*bimmetraj_worker/i);
+});

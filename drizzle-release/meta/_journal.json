@@ -148,6 +148,13 @@
       "when": 1791417600020,
       "tag": "0020_worker_entitlement_capability",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791417600021,
+      "tag": "0021_worker_company_context_capability",
+      "breakpoints": true
     }
   ]
 }
