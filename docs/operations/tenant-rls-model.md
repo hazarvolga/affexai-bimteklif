@@ -1,8 +1,8 @@
-# CDE, hakediş ve SmartCheck pilot kanıtı tenant RLS modeli
+# CDE, hakediş, SmartCheck pilot kanıtı ve şirket sektör ayarı tenant RLS modeli
 
-**Sürüm:** Rev. 53 / `BIM-CALC-2026-10-24.47`
-**Kod baseline:** `5e1113524b3a3f4c253bae61066e0779c5391b1f`
-**Durum:** **PARTIAL — CDE, hakediş ve SmartCheck pilot kanıtı dilimleri; production cutover yok**
+**Sürüm:** Rev. 54 / `BIM-CALC-2026-10-24.48`
+**Kod baseline:** `63c5c6080b37fc135288335c9a76ffaba5625926`
+**Durum:** **PARTIAL — 18 tenant tablosu ile pilot audit/global katalog yüzeyleri; production cutover yok**
 
 ## Korunan tablolar
 
@@ -25,6 +25,12 @@ Rev. 53 ayrıca şu iki SmartCheck pilot tablosunu korur:
 - `smartcheck_pilot_measurements`: app tenant SELECT ve INSERT ayrı olmak üzere backup SELECT ve migrator-owner ALL ile asimetrik exact dört policy. App için UPDATE/DELETE policy yoktur; tablo ayrıca trigger ile append-only'dir.
 
 `smartcheck_audit_logs` da FORCE RLS kullanır. Altı-policy matrisi non-pilot app/worker davranışını korurken pilot audit okumalarını tenant'a bağlar; app/worker pilot audit satırı yazamaz veya değiştiremez. Pilot admission, measurement ve review audit satırları case/measurement triggerları tarafından aynı DB transactionında üretilir ve append-only trigger ile korunur.
+
+Rev. 54 şu sektör ayarı yüzeylerini korur:
+
+- `company_industry_settings`: app tenant SELECT/INSERT/UPDATE, backup SELECT ve migrator-owner ALL olmak üzere exact beş policy. App DELETE policy yoktur; worker default-deny kalır.
+- Global `industries`: app SELECT, backup SELECT ve migrator-owner ALL olmak üzere exact üç policy. App/worker katalog mutasyonu yoktur.
+- `residential`, `electrical`, `mechanical` ve `renovation` `INITIAL_PLUGINS` satırları release migrationında `ON CONFLICT (id) DO NOTHING` ile yalnız eksikse eklenir; mevcut operatör satırları güncellenmez veya silinmez.
 
 ### CDE ve hakediş tablolarının ortak policy matrisi
 
@@ -51,7 +57,7 @@ Her CDE servis çağrısı, `ProgressPaymentService` veritabanı giriş noktası
 5. Bounded context işini aynı client üzerinde yürütür; başarıda commit, hatada rollback yapar.
 6. Rollback başarısızsa bağlantıyı hata ile release ederek pool'dan attırır.
 
-Uygulama katmanındaki `company_id` filtreleri ve proje üyeliği/RBAC kontrolleri korunur. RLS bunlara ikinci bir veritabanı savunması ekler. Rev. 52, `ProgressPaymentService` içindeki bütün DB girişlerini ortak tenant transaction yardımcısından geçirir. Rev. 53, pilot route'larındaki DB sorgularını `PilotEvidenceService` altında aynı tenant transactionına taşır; doğrudan pool yolu bırakmaz.
+Uygulama katmanındaki `company_id` filtreleri ve proje üyeliği/RBAC kontrolleri korunur. RLS bunlara ikinci bir veritabanı savunması ekler. Rev. 52, `ProgressPaymentService` içindeki bütün DB girişlerini ortak tenant transaction yardımcısından geçirir. Rev. 53, pilot route'larındaki DB sorgularını `PilotEvidenceService` altında aynı tenant transactionına taşır. Rev. 54, sektör ayarı GET/POST DB yollarını `CompanyIndustrySettingsService` üzerinden tek tenant transactionına alır; exact input şekli, `industryId` patterni ve boolean tipi route sınırında doğrulanır. UI persistence hatasını başarı gibi göstermez.
 
 Pilot ölçüm kabulü vaka satırını kilitler. Normalleştirilmiş istek SHA-256 `requestHash` ile bağlanır ve her vaka için `caseRevision` monotonik artar. Aynı `measurementKey` yalnız mevcut ölçümün `measurementId` + `requestHash` audit kanıtı eşleşirse stabil replay olur; farklı hash conflict, hash/audit kanıtı olmayan legacy kayıt ise unverified olarak reddedilir. Review latest doğrulanmış ölçümü ister, ölçümü yapan kişiyle reviewer'ın farklı olmasını ve reviewer'ın işlem anında aynı şirkette owner/admin/manager üyeliğini korumasını doğrular. Vaka güncellemeleri izinli alan/geçiş matrisiyle sınırlandırılır.
 
@@ -59,15 +65,16 @@ Pilot ölçüm kabulü vaka satırını kilitler. Normalleştirilmiş istek SHA-
 
 ## Operasyonel kapı
 
-`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls` ve `0016_smartcheck_pilot_evidence_tenant_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
+`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls` ve `0017_company_industry_settings_tenant_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
 
 - İlgili migrationın kapsadığı bütün tablolar ve owner=`bimmetraj_owner`.
 - `ENABLE` ve `FORCE` RLS.
 - CDE ve hakediş tablolarında yalnız app tenant, backup read ve owner migration policy'leri.
 - SmartCheck pilot vaka/ölçüm tablolarında exact 3/4 matrisi; `smartcheck_audit_logs` üzerinde non-pilot app/worker davranışını koruyan ve pilot audit mutasyonunu reddeden exact altı-policy matrisi.
+- `company_industry_settings` üzerinde exact beş-policy app S/I/U, backup SELECT ve migrator-owner matrisi; `industries` üzerinde exact üç-policy app/backup SELECT ve migrator-owner matrisi.
 - Policy komutu, PUBLIC OID hedefi, permissive modu, `USING` ve `WITH CHECK` ifadeleri.
 
-Korunan tablolardan biri mevcutken ilgili ledger tag'i eksikse veya tag uygulanmış kabul edilirken tek bir tablo/policy bile eksikse inspector/provisioner fail-closed kapanır; pre-schema bootstrap sırasında tag ve tabloların birlikte bulunmaması geçerli başlangıç durumudur. Rev. 53 inspector'ı `0016` için pilot vaka/ölçüm exact 3/4 policy matrisini, audit tablosundaki exact altı-policy FORCE RLS matrisini ve trigger/function owner, security mode, sabit search_path, PUBLIC execute reddi ile kaynak gövdesi provenance'ını karşılaştırır. Release manifest/stage imzaları `0016` artifact'ını sabitler ve migration postcondition'ı bu kurulumu doğrular. Focused integration/contract testleri, izole PostgreSQL 16 sözleşme/regresyon testleri ve root/release TypeScript kontrolleri geçmiştir; code/security review GO vermiştir.
+Korunan tablolardan biri mevcutken ilgili ledger tag'i eksikse veya tag uygulanmış kabul edilirken tek bir tablo/policy bile eksikse inspector/provisioner fail-closed kapanır; pre-schema bootstrap sırasında tag ve tabloların birlikte bulunmaması geçerli başlangıç durumudur. Rev. 53 inspector'ı `0016` pilot trigger/function provenance'ını, Rev. 54 inspector'ı `0017` için iki tablo ve exact 5/3 FORCE RLS policy matrisini karşılaştırır. Release manifest/stage imzaları ilgili artifact'ları sabitler ve migration postcondition'ları kurulumu doğrular. Focused integration/contract testleri, izole PostgreSQL 16 sözleşme/regresyon testleri ve root/release TypeScript kontrolleri geçmiştir; code/security review GO vermiştir.
 
 Her production migration/cutover öncesinde hem release migration doğrulaması hem rol inspector'ı geçmelidir. Bu model compose secret rotasyonu veya deployment yetkisi vermez. Production cutover, canary, restore/parity, rollback ve deploy gerçekleştirilmemiştir.
 
@@ -75,4 +82,4 @@ Her production migration/cutover öncesinde hem release migration doğrulaması 
 
 Custom tenant GUC, uygulamanın yanlış/eksik tenant filtresine ve pool reuse sızıntısına karşı koruma sağlar. App credential ele geçirilip keyfi SQL çalıştırılırsa saldırgan custom GUC değerini değiştirebilir. Bu nedenle SQL injection önleme, input validation, app credential koruması, T40 runtime cutover ve production monitoring zorunlu kalır.
 
-T41 genel durumu **PARTIAL** kalır: bu belge yalnız CDE, hakediş ve SmartCheck pilot kanıtı dilimlerini kapsar; diğer tenant tabloları henüz aynı RLS sözleşmesine alınmamıştır. `PROGRESS_PAYMENTS_ENABLED` varsayılan olarak kapalıdır. Rev. 53 pilot metrik formüllerini veya hesap sonuçlarını değiştirmez; production cutover/deploy/canary/restore/rollback ve izinli gerçek dosyalarla bağımsız uzman kabulü ayrıca gereklidir. Public sayfalar değişmemiştir.
+T41 genel durumu **PARTIAL** kalır: bu belge 18 tenant tablosu ile pilot audit/global sektör katalog yüzeylerini kapsar; diğer tenant tabloları henüz aynı RLS sözleşmesine alınmamıştır. `PROGRESS_PAYMENTS_ENABLED` varsayılan olarak kapalıdır. Rev. 54 hesap yöntemlerini, formülleri veya sonuçları değiştirmez; production cutover/deploy/canary/restore/rollback ve izinli gerçek dosyalarla bağımsız uzman kabulü ayrıca gereklidir. Public pazarlama sayfaları değişmemiştir.

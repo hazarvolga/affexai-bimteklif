@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.47",
+  version: "BIM-CALC-2026-10-24.48",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "5e1113524b3a3f4c253bae61066e0779c5391b1f",
-  approvalStatus: "Rev. 53, T41'in üçüncü diliminde SmartCheck pilot vaka ve ölçüm tablolarını asimetrik 3/4 FORCE RLS matrisiyle; pilot kapsamlı audit satırlarını altı-policy FORCE RLS matrisiyle korur. Ölçüm ve audit kanıtı append-only'dir; audit satırı DB tarafından aynı transactionda üretilir. requestHash immutable, caseRevision monotoniktir; measurementId + hash replay doğrulaması legacy kanıt eksikliğinde fail-closed kapanır. Reviewer kararı canlı üyelik ve maker-checker ayrımı ister. retention_until asgari saklama sınırıdır; purge veya legal-hold değildir. Hesap yöntemleri, formüller ve sonuçlar değişmemiştir. Diğer tenant tabloları, production cutover/deploy ve bağımsız uzman kabulü açık olduğundan T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "63c5c6080b37fc135288335c9a76ffaba5625926",
+  approvalStatus: "Rev. 54, T41'in dördüncü diliminde company_industry_settings için app SELECT/INSERT/UPDATE, backup SELECT ve migrator-owner ALL exact beş-policy FORCE RLS; global industries kataloğu için app/backup SELECT ve migrator-owner ALL exact üç-policy FORCE RLS uygular. App DELETE ile worker mutasyonu default-deny kalır. Dört INITIAL_PLUGINS kaydı ON CONFLICT DO NOTHING ile deterministik tamamlanır ve mevcut operatör satırları korunur. Bütün DB yolları tek tenant transactionındadır; katı input ve UI hata davranışı uygulanmıştır. Hesap yöntemleri, formüller ve sonuçlar değişmemiştir. Diğer tenant tabloları, production cutover/deploy ve bağımsız uzman kabulü açık olduğundan T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1320,6 +1320,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Pilot metrikleri hesaplanabiliyordu; ancak vaka, ölçüm ve audit kanıt zinciri tenant FORCE RLS, immutable istek özeti, monotonik revizyon ve DB kaynaklı atomik provenance ile korunmuyordu.",
         after: "Pilot metrik formülü aynı kalır. Vaka ve ölçüm erişimi tenant transactionıyla sınırlandırılır; her yeni ölçüm immutable requestHash ve artan caseRevision taşır. Aynı measurement key yalnız measurementId + hash kanıtı eşleşirse replay olur; review latest doğrulanmış ölçümü, canlı yetkili üyeyi ve ölçümü yapan kişiden farklı reviewerı zorunlu tutar. Pilot audit satırları DB tarafından atomik üretilir ve değiştirilemez.",
         basis: "drizzle-release/0016_smartcheck_pilot_evidence_tenant_rls.sql, src/services/pilot-evidence/service.ts, src/server/routes/pilot-evidence.ts, scripts/database-roles/{contract,inspect}.ts, scripts/release-migrations/{data-transitions,stage-signatures}.ts, src/contracts/smartcheck-pilot-tenant-rls.pgtest.ts ve src/server/routes/pilot-evidence.integration.test.ts; izole PostgreSQL 16 ve code/security review GO kanıtı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 54",
+    version: "BIM-CALC-2026-10-24.48",
+    date: "24 Ekim 2026",
+    commit: "63c5c6080b37fc135288335c9a76ffaba5625926",
+    trigger: "GAP kapatma yol haritası Faz 7 / T41 dördüncü dilim: şirket sektör ayarı ve global sektör kataloğu için tenant/rol izolasyonu.",
+    beforeSummary: "company_industry_settings tenant filtresi route sorgularına bağlıydı; tabloda FORCE RLS yoktu ve GET/POST yolları ortak tenant transaction sınırından geçmiyordu. Global industries kataloğunda exact salt-okunur app/backup policy matrisi ile eksik başlangıç kayıtlarını operatör satırlarını ezmeden tamamlayan release bootstrap sözleşmesi bulunmuyordu.",
+    afterSummary: "company_industry_settings exact beş-policy FORCE RLS ile app SELECT/INSERT/UPDATE, backup SELECT ve migrator-owner ALL yollarını açar; app DELETE ve worker erişimi default-deny kalır. industries exact üç policy ile app/backup SELECT ve migrator-owner ALL uygular. Dört INITIAL_PLUGINS kaydı ON CONFLICT DO NOTHING ile deterministik tamamlanır. Route DB yolları tek CompanyIndustrySettingsService tenant transactionına taşınır; katı input ve UI hata davranışı uygulanır. Inspector eksik tag/tablo/policy driftinde fail-closed kapanır. Hesap formülü ve sonuç değişmedi; T41/Faz 7 PARTIAL'dır.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Şirket sektör seçimi uygulama filtresine dayanıyor, global sektör kataloğu ile tenant ayarı veritabanında FORCE RLS ve tek transaction sınırıyla korunmuyordu.",
+        after: "Sektör seçimi tek tenant transactionı ve exact FORCE RLS matrisleriyle korunur; dört başlangıç sektörü yalnız eksikse eklenir. IFC metraj hesap yöntemi, formülü ve sonucu değişmez.",
+        basis: "drizzle-release/0017_company_industry_settings_tenant_rls.sql, src/services/company-industry-settings/service.ts, src/server/routes/company.ts, src/pages/settings-industry-client.ts, scripts/database-roles/{contract,inspect}.ts, scripts/release-migrations/{data-transitions,stage-signatures}.ts ve src/contracts/company-industry-tenant-rls.pgtest.ts; focused testler, izole PostgreSQL 16 ve code/security review GO kanıtı",
       },
     },
   },
