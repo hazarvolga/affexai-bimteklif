@@ -273,17 +273,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 66 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 67 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 66)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 66 · BIM-CALC-2026-10-24.60 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 66 harici IFC fixture parity çıktısını browser desteklenen kesişim ve worker-authoritative metrikler olarak ayırır; formül veya hesap sonucu değişikliği değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43/T44, worker canary ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 67)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 67 · BIM-CALC-2026-10-24.61 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43/T44, worker canary ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 66):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 67):",
       },
       {
         type: "table",
@@ -692,11 +692,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-24.60 (compare-ifc-parsers)",
             "Harici iki IFC fixture üzerinde browser/worker desteklenen kesişim metrikleri eşleşti; toplam eleman, geometry fallback hacimleri ve kalıp alanı worker-authoritative olarak ayrıldı. Fixture README'si lisans/dağıtım izni vermediğinden uzman/vendor kabulü değildir; T45 kapanmadı.",
           ],
+          [
+            "Rev. 67 (Güncel geliştirme)",
+            "24 Ekim 2026 (Uzman deneme hazırlığı, T43–T45 kabul kapıları)",
+            "BIM-CALC-2026-10-24.61 (expert-review)",
+            "`/admin/roadmap/expert-review` korunan admin rotası; kaynak kabulü, üçlü senaryo, gerçek UI/VPS performans ölçümü, retry/alert gözlemi ve imzalı karar sırasını tek yerde sunar. Sayfa uzman onayı vermez; T43/T44/T45 ve production cutover açık kalır.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 66 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 67 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1267,6 +1273,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "compare-ifc-parsers tüm Legacy/IfcOpenShell farklarını tek ham parity divergence sayısında gösteriyor; worker-only geometri fallback farkının nedeni görünür değildi.",
             "Desteklenen browser/worker kesişimi ile worker-authoritative metrikler ayrıldı. İki harici IFC'de tip/Poz/E-PYS kesişimi eşleşti; toplam eleman, hacim ve kalıp worker otoritesinde raporlandı. Fixture lisansı doğrulanmadığından uzman/vendor kabulü iddia edilmedi.",
             "scripts/compare-ifc-parsers.ts, src/ifc/parser/contract.ts, src/ifc/parser/legacy-parser.ts",
+          ],
+          [
+            "Rev. 67 · 24 Ekim 2026 (Uzman deneme hazırlığı, Kısmi)",
+            "T43–T45 kabul kriterleri; Faz 0 uzman inceleme dosyası; ölçüm ve imza kökeni sözleşmesi",
+            "Uzman denemesi için dosya kökeni, performans ölçümü, hata/geri kazanım ve imza adımları dokümanlarda ayrı duruyor; admin içinde tek bir çalışma sırası yoktu.",
+            "Korunan `/admin/roadmap/expert-review` rotası disiplin kapsamlarını, zorunlu beş kabul kapısını, gerçek UI/VPS ölçümünü ve imzalı karar sırasını bağlar. Bu bir uzman kabulü değildir; gerçek dosya, hedef VPS ve bağımsız imza bekler.",
+            "src/pages/admin/ExpertReview.tsx, src/App.tsx, src/pages/admin/DeveloperRoadmap.tsx, docs/audits/phase-0/EXPERT_REVIEW_DOSSIER_2026-10-23.md",
           ],
         ],
       },

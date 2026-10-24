@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.60",
+  version: "BIM-CALC-2026-10-24.61",
   updatedOn: "24 Ekim 2026",
   implementationBaseline: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
-  approvalStatus: "Rev. 66, harici kaynaklardaki iki yerel IFC ile compare-ifc-parsers aracı browser/worker sözleşme kesişimini ayrı, geometry fallback ve toplam eleman/hacim/kalıp metriklerini worker-authoritative olarak raporlar. 100 MB sentetik parser ön ölçümü korunur; harici örneklerin README'si lisans/dağıtım izni vermediğinden gerçek vendor/müşteri kabulü değildir. Hesap yöntemleri ve sonuçları değişmemiştir. T45 gerçek dosya/p95/VPS kanıtı, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1542,6 +1542,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "e-proje_4x3.ifc ve 2026_45_MM...ifc karşılaştırmasında ham 7 farkın nedeni raporlanmıyordu.",
         after: "Her iki dosyada desteklenen kesişim eşleşmesi ve worker fallback farkı ayrı raporlanır; fixture README'si yalnız test kullanımını söyler, lisans/dağıtım izni kanıtlamaz.",
         basis: "harici-kaynaklar/klasorler-ve-ornekler/IfcSampleFiles-main/README.md; yerel compare-ifc-parsers koşuları",
+      },
+    },
+  },
+  {
+    revision: "Rev. 67",
+    version: "BIM-CALC-2026-10-24.61",
+    date: "24 Ekim 2026",
+    commit: "pending",
+    trigger: "Bağımsız uzman denemesi için kabul kapıları, disiplin kapsamı ve ölçüm sırasının admin yüzeyinde yayınlanması.",
+    beforeSummary: "Uzman dosyası ve roadmap kayıtları bulunuyordu; uzmanların hangi ekranları hangi sırayla ve hangi kanıt alanlarıyla çalıştıracağı tek bir uygulama yüzeyinde toplanmamıştı.",
+    afterSummary: "Korunan admin rotasında kaynak kabulü, normal/sınır/eksik senaryoları, gerçek UI/VPS performans ölçümü, retry/alert gözlemi ve imzalı karar sırası açıkça listelenir. Bu bir onay kaydı değildir.",
+    affectedModules: ["expert-acceptance", "performance-budget"],
+    moduleDetails: {
+      "expert-acceptance": {
+        before: "Uzman kapsamı yalnızca faz dokümanlarında dağınık olarak açıklanıyordu.",
+        after: "`/admin/roadmap/expert-review` uzman çalışma ekranı disiplin, kapı ve kanıt sırasını tek yerde sunar.",
+        basis: "docs/audits/phase-0/EXPERT_REVIEW_DOSSIER_2026-10-23.md; T43–T45 kabul kriterleri",
+      },
+      "performance-budget": {
+        before: "T45 gerçek dosya, hedef VPS, concurrency ve observability kanıtı açık kalıyordu; uzman çalışma sırası görünür değildi.",
+        after: "Sayfa bu kanıtların ölçüm formunda kaydedilmesini zorunlu kapı olarak gösterir; yerel sentetik ölçüm uzman/VPS kabulü sayılmaz.",
+        basis: "docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md T45",
       },
     },
   },

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Calculator, Download, History, Map as MapIcon, Printer } from "lucide-react";
+import { Calculator, ClipboardCheck, Download, History, Map as MapIcon, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Button } from "../../components/ui/button";
@@ -45,6 +45,9 @@ export function DeveloperRoadmap() {
           <Button type="button" onClick={handleDownloadAllplanKit} className="bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"><Download size={15} className="mr-2" />ALLPLAN 2026 e-PYS Kiti v1</Button>
           <Link to="/admin/roadmap/calculations">
             <Button type="button" className="bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"><Calculator size={15} className="mr-2" />Hesaplama Yöntemleri (uzman doğrulaması)</Button>
+          </Link>
+          <Link to="/admin/roadmap/expert-review">
+            <Button type="button" className="bg-amber-600 text-xs font-bold text-white hover:bg-amber-700"><ClipboardCheck size={15} className="mr-2" />Uzman Deneme Rehberi</Button>
           </Link>
           <Button type="button" variant="outline" onClick={() => window.print()} className="border-border bg-card text-xs text-foreground"><Printer size={15} className="mr-2" />Yazdır / PDF</Button>
         </div>

@@ -46,6 +46,7 @@ const PricingSources = page(() => import('@/pages/admin/PricingSources'), 'Prici
 const AdminReports = page(() => import('@/pages/admin/AdminReports'), 'AdminReports');
 const DeveloperRoadmap = page(() => import('@/pages/admin/DeveloperRoadmap'), 'DeveloperRoadmap');
 const CalculationMethods = page(() => import('@/pages/admin/CalculationMethods'), 'CalculationMethods');
+const ExpertReview = page(() => import('@/pages/admin/ExpertReview'), 'ExpertReview');
 const AdminLogs = page(() => import('@/pages/admin/AdminLogs'), 'AdminLogs');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
@@ -144,6 +145,7 @@ function AppRoutes() {
           <Route path="reports" element={<AdminReports />} />
           <Route path="roadmap" element={<DeveloperRoadmap />} />
           <Route path="roadmap/calculations" element={<CalculationMethods />} />
+          <Route path="roadmap/expert-review" element={<ExpertReview />} />
           <Route path="logs" element={<AdminLogs />} />
         </Route>
 
