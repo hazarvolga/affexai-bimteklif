@@ -120,6 +120,13 @@
       "sha256": "c0e6152b8147e1eca0acfe959548fd4ea995ad413f6fa3cde144e88fee6da1d0",
       "snapshotSha256": "9004b1da77b49a0b2d480b1b9efb72a73e55e30d19edf5f9fd995e19252b42ce",
       "statements": 48
+    },
+    {
+      "idx": 17,
+      "tag": "0017_company_industry_settings_tenant_rls",
+      "sha256": "e0640ba1fcbc8808b7ad275e3e6b4304c79ee3854cc922ab43caf12607906fe3",
+      "snapshotSha256": "c099fded95af2e5f844f92540cf9543d434369715dede37e5b21f782912a9e23",
+      "statements": 13
     }
   ]
 }

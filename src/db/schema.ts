@@ -66,6 +66,22 @@ const appTenantInsertPolicy = (name: string, companyId: AnyPgColumn) => {
   });
 };
 
+const appTenantUpdatePolicy = (name: string, companyId: AnyPgColumn) => {
+  const tenantMatch = sql`${companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
+  return pgPolicy(`${name}_app_tenant_update`, {
+    for: "update",
+    to: "public",
+    using: sql`current_user = 'bimmetraj_app' AND ${tenantMatch}`,
+    withCheck: sql`current_user = 'bimmetraj_app' AND ${tenantMatch}`,
+  });
+};
+
+const appCatalogReadPolicy = (name: string) => pgPolicy(`${name}_app_read`, {
+  for: "select",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_app'`,
+});
+
 // ─── GLOBAL ENUMS ───
 export const currencyEnum = pgEnum("currency", ["TRY", "USD", "EUR"]);
 export const quoteStatusEnum = pgEnum("quote_status", ["draft", "sent", "negotiation", "won", "lost", "archived"]);
@@ -852,7 +868,11 @@ export const industries = pgTable("industries", {
   description: text("description"),
   configJson: text("config_json").notNull(),
   enabled: boolean("enabled").default(true).notNull(),
-});
+}, () => ({
+  appReadPolicy: appCatalogReadPolicy("industries"),
+  backupReadPolicy: backupReadPolicy("industries"),
+  ownerMigrationPolicy: ownerMigrationPolicy("industries"),
+})).enableRLS();
 
 export const companyIndustrySettings = pgTable("company_industry_settings", {
   companyId: uuid("company_id").references(() => companies.id).notNull(),
@@ -863,8 +883,13 @@ export const companyIndustrySettings = pgTable("company_industry_settings", {
 }, (table) => {
   return {
     pk: primaryKey({ columns: [table.companyId, table.industryId] }),
+    appTenantReadPolicy: appTenantReadPolicy("company_industry_settings", table.companyId),
+    appTenantInsertPolicy: appTenantInsertPolicy("company_industry_settings", table.companyId),
+    appTenantUpdatePolicy: appTenantUpdatePolicy("company_industry_settings", table.companyId),
+    backupReadPolicy: backupReadPolicy("company_industry_settings"),
+    ownerMigrationPolicy: ownerMigrationPolicy("company_industry_settings"),
   };
-});
+}).enableRLS();
 
 export const deals = pgTable("deals", {
   id: uuid("id").primaryKey().defaultRandom(),

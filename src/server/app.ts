@@ -62,6 +62,7 @@ import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes, type PilotEvidenceRateLimiter } from "./routes/pilot-evidence";
 import type { PilotEvidenceService } from "../services/pilot-evidence/service";
+import type { CompanyIndustrySettingsService } from "../services/company-industry-settings/service";
 import { registerCdeRoutes } from "./routes/cde";
 import type { CdeService } from "../services/cde/service";
 import { registerProgressPaymentRoutes } from "./routes/progress-payments";
@@ -76,7 +77,7 @@ dotenv.config();
 
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
-export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService; pilotEvidenceService?: PilotEvidenceService; pilotEvidenceRateLimiter?: PilotEvidenceRateLimiter }) {
+export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService; pilotEvidenceService?: PilotEvidenceService; pilotEvidenceRateLimiter?: PilotEvidenceRateLimiter; companyIndustrySettingsService?: CompanyIndustrySettingsService }) {
   const productionConfig = assertProductionEnvironment();
   const app = express();
   app.disable('x-powered-by');
@@ -172,7 +173,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
 
   registerAuthRoutes(app);
   registerBillingRoutes(app);
-  registerCompanyRoutes(app);
+  registerCompanyRoutes(app, options?.companyIndustrySettingsService);
   registerCrmRoutes(app, crmService, canMutate);
   registerRegulationRoutes(app, regulatoryService, canMutate);
   registerProfitRoutes(app, profitService, canMutate);

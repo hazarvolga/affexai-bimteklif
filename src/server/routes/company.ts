@@ -2,12 +2,15 @@ import { requireAuthEmailDelivery } from "../auth/email-policy";
 import type { Express } from "express";
 import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
-import { companies, companyIndustrySettings, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
+import { companies, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 import { bodyToken, readSessionToken, setSessionCookies } from "../auth/session-cookie";
 import { acceptInvitation, invitationErrorResponse, invitationRateLimit, issueInvitation, previewInvitation, publicInvitation } from '../auth/invitations';
+import { CompanyIndustrySettingsService, CompanyIndustrySettingsServiceError } from "../../services/company-industry-settings/service";
 
-export function registerCompanyRoutes(app: Express) {
+const industryIdPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+
+export function registerCompanyRoutes(app: Express, industrySettingsService: CompanyIndustrySettingsService = new CompanyIndustrySettingsService()) {
   app.get("/api/company/risk-calibration", authenticate, async (req, res) => {
     const [quotes, pricedItems, financialReports, pilots] = await Promise.all([
       db.select({ count: count() }).from(quotations).where(eq(quotations.companyId, req.user.companyId)),
@@ -100,33 +103,32 @@ export function registerCompanyRoutes(app: Express) {
     res.json(members);
   });
 
-  app.get("/api/company/industry-settings", authenticate, async (req, res) => {
+  app.get("/api/company/industry-settings", authenticate, async (req, res, next) => {
     try {
-      const companyId = req.user.companyId;
-      const settings = await db.select().from(companyIndustrySettings)
-        .where(eq(companyIndustrySettings.companyId, companyId));
-
-      res.json(settings);
+      if (!req.user.companyId) return res.status(403).json({ error: "Şirket üyeliği gereklidir.", code: "COMPANY_MEMBERSHIP_REQUIRED" });
+      res.json(await industrySettingsService.list(req.user));
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch industry settings" });
+      next(error);
     }
   });
 
-  app.post("/api/company/industry-settings", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+  app.post("/api/company/industry-settings", authenticate, checkRole(["owner", "admin"]), async (req, res, next) => {
     try {
-      const { industryId, isEnabled } = req.body;
-      const companyId = req.user.companyId;
-
-      await db.insert(companyIndustrySettings)
-        .values({ companyId, industryId, isEnabled })
-        .onConflictDoUpdate({
-          target: [companyIndustrySettings.companyId, companyIndustrySettings.industryId],
-          set: { isEnabled }
-        });
-
-      res.json({ success: true });
+      if (!req.user.companyId) return res.status(403).json({ error: "Şirket üyeliği gereklidir.", code: "COMPANY_MEMBERSHIP_REQUIRED" });
+      const body = req.body;
+      if (!body || typeof body !== "object" || Array.isArray(body)
+        || Object.keys(body).some((key) => key !== "industryId" && key !== "isEnabled")
+        || typeof body.industryId !== "string" || !industryIdPattern.test(body.industryId)
+        || typeof body.isEnabled !== "boolean") {
+        return res.status(400).json({ error: "Geçersiz sektör ayarı.", code: "INDUSTRY_SETTING_INPUT_INVALID" });
+      }
+      const setting = await industrySettingsService.setEnabled(req.user, { industryId: body.industryId, isEnabled: body.isEnabled });
+      res.json({ success: true, setting });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update industry settings" });
+      if (error instanceof CompanyIndustrySettingsServiceError) {
+        return res.status(error.status).json({ error: error.message, code: error.code });
+      }
+      next(error);
     }
   });
 

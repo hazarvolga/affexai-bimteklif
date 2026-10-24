@@ -38,6 +38,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
 import { fetchWithAuth } from "@/lib/api";
+import { persistIndustryEnabled } from "./settings-industry-client";
 
 interface CompanyProfileState {
   name: string;
@@ -271,11 +272,12 @@ export function Settings() {
     const newStatus = !currentlyEnabled;
 
     try {
-      await fetchWithAuth("/api/company/industry-settings", {
-        method: "POST",
-        body: JSON.stringify({ industryId: id, isEnabled: newStatus })
-      });
-      fetchData();
+      const result = await persistIndustryEnabled(fetchWithAuth, id, newStatus);
+      if ("message" in result) {
+        toast.error(result.message);
+        return;
+      }
+      await fetchData();
       toast.success(`${id} başarıyla ${newStatus ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`);
     } catch (e) {
       toast.error("Ayarlar güncellenemedi.");

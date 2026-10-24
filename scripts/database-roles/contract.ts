@@ -82,6 +82,10 @@ export const DATABASE_SMARTCHECK_PILOT_RLS_TABLES = Object.freeze([
   "smartcheck_pilot_cases",
   "smartcheck_pilot_measurements",
 ] as const);
+export const DATABASE_COMPANY_INDUSTRY_RLS_TABLES = Object.freeze([
+  "industries",
+  "company_industry_settings",
+] as const);
 export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
 

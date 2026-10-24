@@ -1061,5 +1061,20 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
       ? [...injectDataTransitions('0015_progress_payment_tenant_rls', statements)]
       : statements;
   }
+  if (tag === '0017_company_industry_settings_tenant_rls') {
+    const ordered = [...schemaStatements];
+    const canonicalIndustryBootstrap = `INSERT INTO industries (id,name,description,config_json,enabled) VALUES
+      ('residential','Konut İnşaatı','Villa, apartman ve müstakil ev projeleri için kaba ve ince inşaat çözümleri.','{"source":"INITIAL_PLUGINS","calculationModel":"material_heavy","pdfTemplateId":"default_construction"}',true),
+      ('electrical','Elektrik Taahhüt','Bina içi tesisat, altyapı, pano ve aydınlatma işleri.','{"source":"INITIAL_PLUGINS","calculationModel":"balanced","pdfTemplateId":"modern_minimal"}',true),
+      ('mechanical','Mekanik & HVAC','Isıtma, soğutma, havalandırma ve sıhhi tesisat sistemleri.','{"source":"INITIAL_PLUGINS","calculationModel":"system_based","pdfTemplateId":"modern_minimal"}',true),
+      ('renovation','Tadilat & Dekorasyon','Daire, ofis ve iş yeri yenileme, ince işçilik ve dekorasyon.','{"source":"INITIAL_PLUGINS","calculationModel":"labor_heavy","pdfTemplateId":"luxury_villa"}',true)
+      ON CONFLICT (id) DO NOTHING`;
+    const forced = ['industries', 'company_industry_settings']
+      .map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, canonicalIndustryBootstrap, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0016_smartcheck_pilot_evidence_tenant_rls', statements)]
+      : statements;
+  }
   return [...schemaStatements];
 }

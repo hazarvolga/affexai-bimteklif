@@ -4,6 +4,7 @@ import {
   DATABASE_ROLE_CONTRACT,
   DATABASE_FUNCTION_EXECUTE_SPECS,
   DATABASE_CDE_RLS_TABLES,
+  DATABASE_COMPANY_INDUSTRY_RLS_TABLES,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
@@ -270,6 +271,59 @@ export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Pr
   return violations;
 }
 
+export async function inspectCompanyIndustryRlsViolations(client: Queryable): Promise<string[]> {
+  const tables = DATABASE_COMPANY_INDUSTRY_RLS_TABLES;
+  const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname table_name,c.relrowsecurity enabled,c.relforcerowsecurity forced
+    from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p') order by c.relname`, [tables]);
+  const releaseState = await client.query<{ ledger: string | null; has_tag: boolean }>(`select to_regclass('teklifpro_release.migrations')::text ledger,
+    exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') has_tag`);
+  const ledger = releaseState.rows[0];
+  const applied = ledger?.ledger && ledger.has_tag
+    ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0017_company_industry_settings_tenant_rls') applied")).rows[0]?.applied === true
+    : false;
+  if (states.rowCount === 0 && !applied) return [];
+  const violations: string[] = [];
+  if (states.rowCount !== tables.length) violations.push("public company-industry: complete RLS table set is required");
+  if (!ledger?.ledger || !ledger.has_tag || !applied) violations.push("public company-industry: applied migration tag 0017_company_industry_settings_tenant_rls is required");
+  if (states.rowCount === 0) return violations;
+
+  const policies = await client.query<{ table_name: string; policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select c.relname table_name,p.polname policy_name,p.polcmd command,p.polroles::oid[] role_oids,p.polpermissive permissive,
+      pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression
+    from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) order by c.relname,p.polname`, [tables]);
+  const tenant = "((CURRENT_USER = 'bimmetraj_app'::name) AND (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))";
+  const appRead = "(CURRENT_USER = 'bimmetraj_app'::name)";
+  const backup = "(CURRENT_USER = 'bimmetraj_backup'::name)";
+  const owner = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  const expected = {
+    company_industry_settings: [
+      ["company_industry_settings_app_tenant_insert", "a", null, tenant],
+      ["company_industry_settings_app_tenant_read", "r", tenant, null],
+      ["company_industry_settings_app_tenant_update", "w", tenant, tenant],
+      ["company_industry_settings_backup_read", "r", backup, null],
+      ["company_industry_settings_owner_migration", "*", owner, owner],
+    ],
+    industries: [
+      ["industries_app_read", "r", appRead, null],
+      ["industries_backup_read", "r", backup, null],
+      ["industries_owner_migration", "*", owner, owner],
+    ],
+  } as const;
+  const isPublic = (policy: typeof policies.rows[number] | undefined) => policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]);
+  for (const table of tables) {
+    const state = states.rows.find((row) => row.table_name === table);
+    const actual = policies.rows.filter((row) => row.table_name === table);
+    const matrix = expected[table];
+    const matches = state?.enabled && state.forced && actual.length === matrix.length && matrix.every(([name, command, using, check]) => {
+      const policy = actual.find((row) => row.policy_name === name);
+      return isPublic(policy) && policy?.command === command && policy.using_expression === using && policy.check_expression === check;
+    });
+    if (!matches) violations.push(`public.${table}: company-industry FORCE-RLS policy matrix drift`);
+  }
+  return violations;
+}
+
 async function inspectQueueStructureViolations(client: Queryable): Promise<string[]> {
   const present = await client.query<{ present: boolean }>("select exists(select 1 from pg_namespace where nspname='teklifpro_queue') as present");
   if (!present.rows[0]?.present) return [];
@@ -318,6 +372,7 @@ async function inspectManagedSchemaViolations(client: Queryable): Promise<string
   violations.push(...await inspectCdeRlsViolations(client));
   violations.push(...await inspectProgressPaymentRlsViolations(client));
   violations.push(...await inspectSmartcheckPilotRlsViolations(client));
+  violations.push(...await inspectCompanyIndustryRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
   const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;

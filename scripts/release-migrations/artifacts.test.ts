@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { loadMigrations } from './runner';
 import { baselineSource, releaseDirectory } from './config';
 import * as schema from '../../src/db/schema';
+import { INITIAL_PLUGINS } from '../../src/lib/plugins/definitions';
 import { pinnedSignature } from './stage-signatures';
 import { injectDataTransitions } from './data-transitions';
 
@@ -149,6 +150,40 @@ test('progress-payment tables declare the exact tenant, backup, and migration RL
   assert.deepEqual(forced, tableNames.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
 });
 
+test('company industry settings and catalog declare exact FORCE-RLS policy inputs', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  const settings = tables['public.company_industry_settings'];
+  const industries = tables['public.industries'];
+  assert.equal(settings.isRLSEnabled, true);
+  assert.deepEqual(Object.keys(settings.policies).sort(), [
+    'company_industry_settings_app_tenant_insert',
+    'company_industry_settings_app_tenant_read',
+    'company_industry_settings_app_tenant_update',
+    'company_industry_settings_backup_read',
+    'company_industry_settings_owner_migration',
+  ]);
+  const tenant = "current_user = 'bimmetraj_app' AND \"company_industry_settings\".\"company_id\" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid";
+  assert.equal(settings.policies.company_industry_settings_app_tenant_read.using, tenant);
+  assert.equal(settings.policies.company_industry_settings_app_tenant_read.withCheck, undefined);
+  assert.equal(settings.policies.company_industry_settings_app_tenant_insert.using, undefined);
+  assert.equal(settings.policies.company_industry_settings_app_tenant_insert.withCheck, tenant);
+  assert.equal(settings.policies.company_industry_settings_app_tenant_update.using, tenant);
+  assert.equal(settings.policies.company_industry_settings_app_tenant_update.withCheck, tenant);
+  assert.equal(industries.isRLSEnabled, true);
+  assert.deepEqual(Object.keys(industries.policies).sort(), ['industries_app_read', 'industries_backup_read', 'industries_owner_migration']);
+  assert.deepEqual({ for: industries.policies.industries_app_read.for, to: industries.policies.industries_app_read.to, using: industries.policies.industries_app_read.using }, {
+    for: 'SELECT', to: ['public'], using: "current_user = 'bimmetraj_app'",
+  });
+  const statements = injectDataTransitions('0017_company_industry_settings_tenant_rls', []);
+  const bootstrap = statements.find((statement) => statement.startsWith('INSERT INTO industries'));
+  assert.ok(bootstrap?.includes('ON CONFLICT (id) DO NOTHING'));
+  for (const plugin of INITIAL_PLUGINS) {
+    const metadata = JSON.stringify({ source: 'INITIAL_PLUGINS', calculationModel: plugin.quotationRules.calculationModel, pdfTemplateId: plugin.pdfTemplateId });
+    assert.ok(bootstrap?.includes(`('${plugin.id}','${plugin.name}','${plugin.description}','${metadata}',${plugin.enabled})`), plugin.id);
+  }
+  assert.deepEqual(statements.slice(-2), ['ALTER TABLE "industries" FORCE ROW LEVEL SECURITY;', 'ALTER TABLE "company_industry_settings" FORCE ROW LEVEL SECURITY;']);
+});
+
 test('SmartCheck pilot evidence declares asymmetric tenant RLS and hardened append-only measurements', () => {
   const { tables } = drizzleApi.generateDrizzleJson(schema);
   const cases = tables['public.smartcheck_pilot_cases'];
@@ -192,7 +227,7 @@ test('release artifacts form an append-only chain matching current schema', asyn
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 17);
+  assert.equal(migrations.length, 18);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));
