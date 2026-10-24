@@ -23,7 +23,7 @@
     "allplan:structural-audit": "tsx scripts/allplan-structural-audit.mjs",
     "allplan:review-validate": "tsx scripts/validate-allplan-content-review.mjs",
     "allplan:import": "node scripts/import-allplan-source.mjs",
-    "test": "tsx --test \"src/**/*.test.ts\"",
+    "test": "tsx --test --test-concurrency=1 \"src/**/*.test.ts\"",
     "test:database-roles:pg": "tsx --test src/contracts/database-role-provision.pgtest.ts",
     "test:tenant-rls:pg": "tsx --test src/contracts/cde-tenant-rls.pgtest.ts",
     "database-roles:inspect": "tsx scripts/database-roles/cli.ts inspect",
