@@ -7,6 +7,11 @@ import { parseRatioInput, resolveApartmentGross, sumResidentialGross, type Gross
 import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/ApartmentSubcontractorShieldCard";
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { IfcCoverageCard } from "@/components/smartcheck/IfcCoverageCard";
+import { CalculationTraceSection } from "@/components/smartcheck/CalculationTraceSection";
+import { ExpertLineVerification } from "@/components/smartcheck/ExpertLineVerification";
+import { ExpertVerificationBar } from "@/components/smartcheck/ExpertVerificationBar";
+import { VERIFICATION_STATUS_LABEL } from "@/ifc/expert-verification";
+import { useExpertVerification } from "@/hooks/useExpertVerification";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
 import {
   evaluateIso19650Compliance,
@@ -98,6 +103,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   );
 
   const [activeStep, setActiveStep] = useState<CalmStep>("icmal");
+  const [expertMode, setExpertMode] = useState(false);
+  const verificationKey = useMemo(
+    () => [dataset.projectTitle, allItems.length, allItems.reduce((sum, item) => sum + item.netQuantity, 0).toFixed(3)].join("|"),
+    [dataset.projectTitle, allItems],
+  );
+  const verification = useExpertVerification(verificationKey);
   const [selectedItemId, setSelectedItemId] = useState<string>(() => {
     const fayans = allItems.find((i) => i.id === "duvar-fayans");
     return fayans?.id || allItems[0]?.id || "";
@@ -716,6 +727,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       {/* ADIM 01: MALZEME İCMAL LİSTESİ (SOL PAFTA CETVELİ + SAĞ HESAP KANITI KARTI) */}
       {activeStep === "icmal" && (
         <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {expertMode && (
+            <ExpertVerificationBar
+              items={allItems}
+              records={verification.records}
+              reviewer={verification.reviewer}
+              onReviewerChange={verification.setReviewer}
+              fileName={dataset.projectTitle}
+            />
+          )}
           {/* SOL: KAĞIT İCMAL CETVELİ */}
           <div className="lg:col-span-7 border border-border bg-background">
             <div className="px-6 py-4 border-b border-border bg-card flex items-center justify-between gap-2">
@@ -728,9 +748,21 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   Kapı ve pencere boşlukları (minha) düşülmüş, çoklu katmanları ayrıştırılmış net metrajlar
                 </p>
               </div>
-              <span className="stamp-badge bg-background text-muted-foreground">
-                Detay için satıra tıklayın →
-              </span>
+              <div className="flex flex-col items-end gap-2">
+                <button
+                  type="button"
+                  aria-pressed={expertMode}
+                  onClick={() => setExpertMode((on) => !on)}
+                  className={`h-8 border px-3 font-mono text-[11px] font-semibold uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                    expertMode ? "border-primary bg-primary text-primary-foreground" : "border-primary text-primary hover:bg-primary/10"
+                  }`}
+                >
+                  {expertMode ? "Uzman doğrulama: açık" : "Uzman doğrulama modu"}
+                </button>
+                <span className="stamp-badge bg-background text-muted-foreground">
+                  Detay için satıra tıklayın →
+                </span>
+              </div>
             </div>
 
             {selectedGlobalId && (
@@ -804,6 +836,11 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                             {item.title}
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">{item.subtitle}</div>
+                          {expertMode && (
+                            <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-primary">
+                              {verification.records[item.id] ? VERIFICATION_STATUS_LABEL[verification.records[item.id].status] : "İncelenmedi"}
+                            </div>
+                          )}
                         </div>
                         <div
                           className={`col-span-3 text-right font-mono text-base font-semibold tabular-nums ${
@@ -837,6 +874,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 {selectedItem.title}
               </h4>
               <p className="text-xs text-muted-foreground mt-1">{selectedItem.formulaNote}</p>
+
+              {expertMode && (
+                <ExpertLineVerification
+                  item={selectedItem}
+                  record={verification.records[selectedItem.id]}
+                  onSave={verification.saveRecord}
+                />
+              )}
+              <CalculationTraceSection item={selectedItem} fileName={dataset.projectTitle} />
 
               {/* MİNHA FORMÜL KUTUSU & SÖZLEŞMESEL MİNHA PROFİLİ (KARAR #4) */}
               <div className="mt-5 border border-border bg-background p-4">
