@@ -1,6 +1,9 @@
 import type pg from "pg";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import * as schema from "./schema";
 
 export type TenantContext = Readonly<{ companyId: string; userId: string }>;
+export type TenantDatabase = NodePgDatabase<typeof schema>;
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -44,4 +47,17 @@ export async function withTenantTransaction<T>(
   } finally {
     client.release(releaseError);
   }
+}
+
+/**
+ * Runs a short tenant-scoped transaction and exposes the same checked-out
+ * connection through Drizzle. The transaction-local GUCs are established
+ * before any ORM query and are cleared by PostgreSQL on COMMIT/ROLLBACK.
+ */
+export function withTenantDrizzleTransaction<T>(
+  pool: pg.Pool,
+  context: TenantContext,
+  work: (database: TenantDatabase) => Promise<T>,
+): Promise<T> {
+  return withTenantTransaction(pool, context, (client) => work(drizzle(client, { schema })));
 }

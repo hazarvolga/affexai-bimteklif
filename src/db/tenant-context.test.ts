@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type pg from "pg";
 
-import { withTenantTransaction } from "./tenant-context";
+import { withTenantDrizzleTransaction, withTenantTransaction } from "./tenant-context";
 
 const COMPANY_ID = "11111111-1111-4111-8111-111111111111";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
@@ -145,4 +145,22 @@ test("rollback failure discards the pooled connection while preserving the origi
   );
   assert.equal(fixture.releaseCount, 1);
   assert.match(fixture.releasedWith?.message ?? "", /rollback rejected/);
+});
+
+test("Drizzle tenant helper uses the same checked-out client after transaction-local context binding", async () => {
+  const fixture = fakePool();
+  let callbackCalled = false;
+
+  const result = await withTenantDrizzleTransaction(fixture.pool, { companyId: COMPANY_ID, userId: USER_ID }, async (database) => {
+    callbackCalled = Boolean(database);
+    return "drizzle-scoped-result";
+  });
+
+  assert.equal(result, "drizzle-scoped-result");
+  assert.equal(callbackCalled, true);
+  assert.equal(fixture.connectCount, 1);
+  assert.equal(fixture.releaseCount, 1);
+  assert.match(fixture.queries[0]?.text ?? "", /^\s*begin\s*$/i);
+  assert.equal(fixture.queries.filter(({ text }) => /set_config/i.test(text)).length, 1);
+  assert.match(fixture.queries.at(-1)?.text ?? "", /^\s*commit\s*$/i);
 });
