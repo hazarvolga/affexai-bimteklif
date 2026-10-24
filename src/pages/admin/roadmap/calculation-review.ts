@@ -1527,7 +1527,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 66",
     version: "BIM-CALC-2026-10-24.60",
     date: "24 Ekim 2026",
-    commit: "TBD (bu değişikliğin commit'i)",
+    commit: "409244f",
     trigger: "Harici IFC fixture parity ölçümünün capability kapsamına göre sınıflandırılması.",
     beforeSummary: "compare-ifc-parsers tüm Legacy/IfcOpenShell farklarını tek bir parity divergence sayısında topluyor, browser önizlemesinin worker-only geometri metriklerini yanlışlıkla genel eşleşme gibi gösteriyordu.",
     afterSummary: "Karşılaştırma satırları browser/worker desteklenen sözleşme kesişimi ve worker-authoritative metrikler olarak ayrılır. İki yerel IFC'de kiriş/kolon/döşeme/perde/donatı/poz/E-PYS kesişimi eşleşir; toplam eleman, geometri fallback hacimleri ve kalıp alanı worker otoritesinde raporlanır. Harici fixture lisans durumu doğrulanmadığı için uzman/vendor kabulü iddia edilmez.",
