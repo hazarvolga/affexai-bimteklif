@@ -659,3 +659,26 @@ test("açıkta kalan icmal kayıtları elemanın kendi miktarını fiyatsız ola
   const record = ds.consistencyReport?.uncoveredElements.find((u) => u.globalId === "BEAM_WOOD_QTY_0000001");
   assert.deepEqual(record?.quantity, { value: 2.4, unit: "m³" });
 });
+
+test("aynı GlobalId'yi paylaşan iki ayrı açıkta kalan eleman raporda ayrı ayrı kalır", () => {
+  const first = structuralFixture("DUP_GUID_BEAM_0000001", "IfcBeam", "Kiriş A", ["Wood - pine"], 2);
+  const second = { ...structuralFixture("DUP_GUID_BEAM_0000001", "IfcBeam", "Kiriş B", ["Wood - oak"], 3), id: "dup-2", storey: "1. Kat" };
+  const report = buildCalmIfcDatasetFromElements([first, second], null, "x.ifc").consistencyReport;
+  const duplicates = report?.uncoveredElements.filter((u) => u.globalId === "DUP_GUID_BEAM_0000001") ?? [];
+  assert.deepEqual(duplicates.map((u) => u.name).sort(), ["Kiriş A", "Kiriş B"]);
+  assert.equal(report?.uncoveredElementCount, 2);
+  assert.equal(report?.findings.filter((f) => f.globalId === "DUP_GUID_BEAM_0000001").length, 2);
+});
+
+test("worker raporunda zaten bulunan açıkta kalan eleman icmal tarafından ikinci kez eklenmez", () => {
+  const beam = structuralFixture("WORKER_LISTED_BEAM001", "IfcBeam", "Kiriş", ["Wood - pine"], 2);
+  const consistencyReport = {
+    totalElementCount: 1, measuredElementCount: 1, unmeasuredElementCount: 0, pozMatchedElementCount: 0, pozMatchedRatio: 0,
+    uncoveredElementCount: 1, outOfScopeElementCount: 0, typeInheritedElementCount: 0, suppressedAssemblyPartCount: 0,
+    highSeverityCount: 0, mediumSeverityCount: 0, findings: [], suppressedAssemblyParts: [],
+    uncoveredElements: [{ globalId: "WORKER_LISTED_BEAM001", ifcClass: "IfcBeam", name: "Kiriş", storey: "Zemin Kat", reason: "worker", scope: "in_takeoff" as const }],
+  };
+  const report = buildCalmIfcDatasetFromElements([beam], { consistencyReport }, "x.ifc").consistencyReport;
+  assert.equal(report?.uncoveredElements.filter((u) => u.globalId === "WORKER_LISTED_BEAM001").length, 1);
+  assert.equal(report?.uncoveredElementCount, 1);
+});

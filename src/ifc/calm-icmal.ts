@@ -614,6 +614,28 @@ function withQuantity(el: ParsedIfcElement): { quantity?: UncoveredQuantity } {
 
 type ElementPlacement = Pick<ParsedIfcElement, "matchedPozCode" | "isUncovered" | "uncoveredReason">;
 
+/**
+ * Worker raporundaki kayıtlarla icmalin ürettiği kayıtları birleştirir. Worker'da zaten bulunan bir
+ * kayıt ikinci kez eklenmez; ancak aynı GlobalId'yi paylaşan farklı elemanlar (mükerrer GUID'li
+ * modeller) ayrı kayıt olarak kalır. Eşleşme sayımla yapılır: worker'da bir kez geçen kimlik,
+ * icmalde iki kez geçiyorsa yalnız biri atlanır.
+ */
+function mergeReportEntries<T>(base: readonly T[], extra: readonly T[], identityOf: (entry: T) => string): T[] {
+  const remainingInBase = new Map<string, number>();
+  for (const entry of base) {
+    const key = identityOf(entry);
+    remainingInBase.set(key, (remainingInBase.get(key) ?? 0) + 1);
+  }
+  const added = extra.filter((entry) => {
+    const key = identityOf(entry);
+    const remaining = remainingInBase.get(key) ?? 0;
+    if (remaining === 0) return true;
+    remainingInBase.set(key, remaining - 1);
+    return false;
+  });
+  return [...base, ...added];
+}
+
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
   summary?: Partial<IfcParseSummary> | null,
@@ -943,24 +965,16 @@ export function buildCalmIfcDatasetFromElements(
       suppressedAssemblyParts: [],
     };
 
-    const seenUncoveredGuids = new Set(baseReport.uncoveredElements.map((u) => u.globalId));
-    const mergedUncovered = [...baseReport.uncoveredElements];
-    for (const u of unplacedUncoveredElements) {
-      if (!seenUncoveredGuids.has(u.globalId)) {
-        seenUncoveredGuids.add(u.globalId);
-        mergedUncovered.push(u);
-      }
-    }
-
-    const seenFindingKeys = new Set(baseReport.findings.map((f) => `${f.code}:${f.globalId}`));
-    const mergedFindings = [...baseReport.findings];
-    for (const f of unplacedFindings) {
-      const key = `${f.code}:${f.globalId}`;
-      if (!seenFindingKeys.has(key)) {
-        seenFindingKeys.add(key);
-        mergedFindings.push(f);
-      }
-    }
+    const mergedUncovered = mergeReportEntries(
+      baseReport.uncoveredElements,
+      unplacedUncoveredElements,
+      (u) => [u.globalId, u.ifcClass, u.name, u.storey].join("\u0000"),
+    );
+    const mergedFindings = mergeReportEntries(
+      baseReport.findings,
+      unplacedFindings,
+      (f) => [f.code, f.globalId, f.elementName ?? "", f.storey ?? ""].join("\u0000"),
+    );
 
     const totalCount = baseReport.totalElementCount || elements.length;
     resolvedConsistencyReport = {
