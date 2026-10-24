@@ -1,0 +1,53 @@
+# Faz 7 / T41 — Worker entitlement sınırı hazırlık kanıtı
+
+**Tarih:** 24 Ekim 2026  
+**Durum:** PREPARATION / production NO-GO  
+**Kapsam:** Worker'ın plan ve abonelik bilgisini geniş tablo yetkisi olmadan okuyabilmesi
+
+## Mevcut kod bulgusu
+
+Worker runtime `DATABASE_URL` ile `bimmetraj_worker` olarak çalışır. Kod tabanında aşağıdaki worker yolları doğrudan authority tablolarına erişiyor:
+
+- `src/smartcheck/import/config.ts`: `subscriptions` ve `plans` üzerinden IFC limitleri.
+- `src/services/billing/quota.ts`: `companies`, `subscriptions`, `plans` ve `usage_records` üzerinden IFC kota tüketimi.
+- `src/smartcheck/import/processor.ts`: başarılı IFC işlemi sonunda worker transactionı içinde kota tüketimi.
+
+Bu nedenle `companies`, `subscriptions` ve `plans` için worker ACL'sini hemen kaldırmak eski worker konteynerlerini kırar. Bu revizyon ACL revoke veya production cutover yapmaz.
+
+## Hedef capability sözleşmesi
+
+Expand aşamasında owner/migrator tarafından şu dar, `SECURITY DEFINER`, `STABLE` olmayan ve `VOLATILE` varsayılanlı function oluşturulmalıdır:
+
+`public.bimmetraj_worker_get_entitlement(uuid)`
+
+Function yalnızca şu alanları döndürmelidir:
+
+- `company_exists`
+- `subscription_status`
+- `current_period_end`
+- `plan_id`
+- `plan_is_active`
+- `monthly_ifc_limit`
+- `ifc_max_file_mb`
+- `ifc_max_concurrent`
+
+Function gövdesi `current_user = 'bimmetraj_worker'` kontrolünü fail-closed yapmalı, `search_path` değerini `pg_catalog,public` olarak sabitlemeli, sahibi `bimmetraj_owner` olmalı ve yalnız `bimmetraj_worker` için `EXECUTE` vermelidir. `PUBLIC` ve diğer runtime rollerinde `EXECUTE` bulunmamalıdır. Function plan/abonelik tablosuna doğrudan tablo yetkisi vermemelidir.
+
+## Uygulama sırası
+
+1. **Expand:** Function ve provenance hash'i release migration ile ekle; role inspector ve PG16 negatif testine ekle.
+2. **Code deploy:** Worker entitlement ve IFC kota yollarını function sonucunu kullanan adapter'a taşı; function sonucu yoksa veya alanlar geçersizse fail-closed `IFC_LIMITS_UNAVAILABLE` üret.
+3. **Canary:** Eski ve yeni worker sürümünü aynı tenant fixture'ında çalıştır; aktif/pasif/sona ermiş/planı olmayan ve limit taşması senaryolarını doğrula.
+4. **Contract:** Eski worker'ın artık doğrudan ihtiyaç duymadığı `companies`, `subscriptions`, `plans` table grant'lerini revoke et; `usage_records`, işlem lease tabloları ve queue ACL'leri ayrı tutulur.
+5. **Rollback:** Function migration geri alınmaz; kod rollback'i capability function ile uyumlu kalır. ACL revoke yalnız canary ve eski image drain kanıtından sonra yapılabilir.
+
+## Kabul kanıtı
+
+- Worker role doğrudan `SELECT` ile `companies`, `subscriptions`, `plans` tablolarında reddedilir.
+- Worker role capability function ile yalnız izin verilen entitlement alanlarını okuyabilir.
+- App/control role function execute edemez; kendi tenant/control yolları bozulmaz.
+- Function `company_id` olmayan, geçersiz veya birden çok abonelikli durumda fail-closed davranır.
+- Kota tüketimi aynı transaction ve lease fencing ile devam eder; başka tenant verisi görünmez.
+- Eski worker image drain edilmeden ACL revoke edilmez.
+
+Bu belge 8B'nin hazırlık kapısıdır; capability function, migration, canary ve ACL revoke tamamlanmadan T41 veya Faz 7 kapanmış sayılmaz.

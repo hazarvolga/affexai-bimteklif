@@ -48,6 +48,8 @@ Bu bölüm, Codex oturumu veya kullanım limiti kesilse bile güvenli devam nokt
 
 **Rev. 57 sonucu ve sıradaki zorunlu T41 işi:** Rev.55'in açtığı yazma uyumsuzluğu ve Rev.56 final inceleme P1'leri yerelde kapandı. Audit app INSERT nedeniyle credential compromise altında forge edilebilir ve authenticity kanıtı değildir. Sıradaki dilim, tenant context kurulmadan yapılan app okumalarını aynı checked-out bağlantı/transaction sınırına almak ve worker'a geniş authority-table grant'i vermeden plan/abonelik entitlement okuması sağlamaktır. Ardından kalan tenant tabloları ve production secret cutover/canary/restore gelir. Bunlar tamamlanmadan production role cutover/deploy NO-GO ve T41 PARTIAL'dır.
 
+**8B hazırlık sonucu:** Worker'ın `companies`, `subscriptions` ve `plans` tablolarını doğrudan okuduğu tüm yollar çıkarıldı. Eski worker image'ını kırmamak için ACL revoke yapılmadı. Önce SECURITY DEFINER entitlement capability function, release provenance, adapter kodu, canary ve worker drain kanıtı; sonra ACL revoke uygulanacak. Ayrıntılı sözleşme `docs/audits/phase-7/PHASE_7_T41_WORKER_ENTITLEMENT_2026-10-24.md` içindedir.
+
 **Çalışma ağacı koruması:** `graphify-out/*` dosyaları `graphify update .` nedeniyle değişmiş durumdadır ve ürün commit'lerine eklenmemelidir. Kullanıcıya ait `docs/agent-memory/gelecekteki-global-konumlandırma.md` ile kökteki `proje_analiz_gap_bug_seo_geo_rakip_raporu.md` stage edilmemeli/değiştirilmemelidir.
 
 ## 2. Çalışma ve onay sınırları

@@ -343,6 +343,12 @@ automatically transitions to the free plan; do not enable paid usage.
 - Roadmap `Rev. 58`; calculation record `BIM-CALC-2026-10-24.52`. Next order is 8A auth authority resolver, 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate; it is not an approval record.
 - Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.
 
+## 2026-10-24 T41 8B worker entitlement preparation gate
+
+- Worker still reads `companies`, `subscriptions` and `plans` directly in IFC limits and quota paths. Immediate ACL revoke would break the current worker image, so no revoke was performed.
+- The required expand → capability function → adapter code → canary/drain → ACL revoke sequence is documented in `docs/audits/phase-7/PHASE_7_T41_WORKER_ENTITLEMENT_2026-10-24.md` and surfaced on the admin roadmap.
+- T41 remains PARTIAL and production remains NO-GO. No calculation formula/result changed; expert guide/PDF remains deferred until T01–T49 technical closure.
+
 ## 2026-10-24 T41 auth authority tenant-bound ninth slice
 
 - Baseline `cc70ca261981b0602afc3d8b0ac4c536aad6a7bc` moves authenticated membership and subscription authority reads onto `withTenantDrizzleTransaction`; the same checked-out PoolClient and transaction-local company/user context are required before the query runs. User profile lookup remains a control-plane read.
