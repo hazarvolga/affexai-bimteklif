@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 58 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 59 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -272,17 +272,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 58 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 59 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 58)",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 59)",
         text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 58 · BIM-CALC-2026-10-24.52 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 58 aynı checked-out PoolClient üzerinde tenant GUC'leri sonrası typed Drizzle transaction altyapısını ekler; formül veya hesap sonucu değişikliği değildir. Auth resolver, worker entitlement erişimi ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 58):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 59):",
       },
       {
         type: "table",
@@ -637,6 +637,12 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "withTenantDrizzleTransaction aynı checked-out PoolClient üzerinde transaction-local tenant GUC'leri sonrasında typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement capability, ACL contract migration ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur; uzman rehberi/PDF T01–T49 teknik kapanışından sonra ayrı kabul paketi olarak hazırlanacaktır.",
           ],
           [
+            "Rev. 59 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 8A Auth Authority Tenant Bağlamı, Kısmi)",
+            "BIM-CALC-2026-10-24.53 (cc70ca2)",
+            "Auth üyelik ve abonelik authority okumaları aynı checked-out PoolClient üzerindeki transaction-local tenant bağlamına taşındı; auth tenant testleri 8/8 ve TypeScript geçti. Kullanıcı profili kontrol-plane okuması olarak kalır. Worker entitlement, kalan tenant okumaları, production cutover ve uzman kabulü açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+          ],
+          [
             "Rev. 57",
             "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
             "BIM-CALC-2026-10-24.51 (a55841e)",
@@ -646,7 +652,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 58 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 59 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1154,6 +1160,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Tenant RLS bounded context servisleri raw helper callback'inde `drizzle(client, { schema })` kuruyordu; ortak typed transaction yardımcı sözleşmesi yoktu. Auth ve worker global okumaları tenant sınırına alınmamıştı.",
             "`withTenantDrizzleTransaction` mevcut restricted role ve GUC bağlama akışını koruyarak aynı PoolClient üzerinde typed Drizzle çalıştırır. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement, ACL contract migration ve production cutover açık kalır.",
             "src/db/tenant-context.ts, src/db/tenant-context.test.ts",
+          ],
+          [
+            "Rev. 59 · 24 Ekim 2026 (Faz 7 — T41 8A Auth Authority Tenant Bağlamı, Kısmi)",
+            "Tenant transaction-local GUC; restricted app role; auth authority read boundary; membership/subscription fail-closed lookup",
+            "Auth middleware üyelik ve abonelik authority sorgularını global app pool'unda yürütüyor, tenant RLS sınırı sorgu bağlantısında garanti edilmiyordu.",
+            "findMembership ve findSubscription aynı checked-out PoolClient üzerinde withTenantDrizzleTransaction kullanır; company/user GUC ve restricted role kontrolü sorgudan önce yapılır. Auth tenant testleri 8/8, ilgili route/session testleri ve TypeScript geçti. Worker entitlement, kalan tenant okumaları ve production cutover açık kalır.",
+            "src/server/middleware/auth.ts, src/server/middleware/auth.tenant.test.ts, src/db/tenant-context.ts",
           ],
           [
             "Rev. 57 · 24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",

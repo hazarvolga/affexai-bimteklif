@@ -2,11 +2,11 @@
 
 **Tarih:** 24 Ekim 2026
 
-**Yol haritası:** Rev. 58
+**Yol haritası:** Rev. 59
 
-**Hesap kaydı:** `BIM-CALC-2026-10-24.52`
+**Hesap kaydı:** `BIM-CALC-2026-10-24.53`
 
-**Kod baseline:** `0a4d76a7cbf15b1bab80ebee2e41f260662bca0a`
+**Kod baseline:** `cc70ca261981b0602afc3d8b0ac4c536aad6a7bc`
 
 **Karar:** **PARTIAL / production NO-GO**
 

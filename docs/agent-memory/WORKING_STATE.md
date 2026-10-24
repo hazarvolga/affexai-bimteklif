@@ -342,3 +342,10 @@ automatically transitions to the free plan; do not enable paid usage.
 - `src/db/tenant-context.test.ts` passes 7/7; TypeScript and diff-check pass. No auth route, worker entitlement function, ACL revoke, migration or calculation formula changed.
 - Roadmap `Rev. 58`; calculation record `BIM-CALC-2026-10-24.52`. Next order is 8A auth authority resolver, 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate; it is not an approval record.
 - Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.
+
+## 2026-10-24 T41 auth authority tenant-bound ninth slice
+
+- Baseline `cc70ca261981b0602afc3d8b0ac4c536aad6a7bc` moves authenticated membership and subscription authority reads onto `withTenantDrizzleTransaction`; the same checked-out PoolClient and transaction-local company/user context are required before the query runs. User profile lookup remains a control-plane read.
+- Auth tenant tests pass 8/8; related session/route tests and TypeScript pass. No calculation formula/result changed.
+- Roadmap `Rev. 59`; calculation record `BIM-CALC-2026-10-24.53`. Next order is 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate.
+- Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.

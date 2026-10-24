@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.52",
+  version: "BIM-CALC-2026-10-24.53",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "0a4d76a7cbf15b1bab80ebee2e41f260662bca0a",
-  approvalStatus: "Rev. 58, tenant transaction altyapısına aynı checked-out PoolClient üzerinde Drizzle yürütücüsü ekler. Hesap yöntemleri ve sonuçları değişmemiştir. Auth resolver, worker entitlement sınırı, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "cc70ca261981b0602afc3d8b0ac4c536aad6a7bc",
+  approvalStatus: "Rev. 59, auth middleware üyelik ve abonelik authority okumalarını tenant transaction bağlamına taşır. Hesap yöntemleri ve sonuçları değişmemiştir. Worker entitlement sınırı, kalan tenant okumaları, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1383,6 +1383,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     afterSummary: "withTenantDrizzleTransaction, transaction-local company/user GUC'leri ve restricted app-role doğrulamasından sonra aynı checked-out PoolClient'e bağlı typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement ve production cutover henüz uygulanmadı; formül/hesap sonucu değişmedi.",
     affectedModules: [],
     moduleDetails: {},
+  },
+  {
+    revision: "Rev. 59",
+    version: "BIM-CALC-2026-10-24.53",
+    date: "24 Ekim 2026",
+    commit: "cc70ca261981b0602afc3d8b0ac4c536aad6a7bc",
+    trigger: "T41 8A auth authority sınırı: tenant üyeliği ve abonelik guard okumalarının transaction-local tenant bağlamına alınması.",
+    beforeSummary: "Auth middleware üyelik ve abonelik authority okumalarını global app Drizzle pool'undan yapıyordu; RLS savunması uygulama filtresine ve bağlantı kimliğine bağlı kalıyordu.",
+    afterSummary: "findMembership ve findSubscription aynı checked-out PoolClient üzerinde withTenantDrizzleTransaction kullanır; company/user GUC'leri ve restricted bimmetraj_app rolü doğrulanmadan sorgu başlamaz. Auth testleri 8/8, ilgili oturum/route testleri ve TypeScript geçti. Kullanıcı profili kontrol-plane okuması olarak kalır; worker entitlement, kalan tenant okumaları ve production cutover açık kalır. Formül/hesap sonucu değişmedi.",
+    affectedModules: ["auth"],
+    moduleDetails: {
+      auth: {
+        before: "Üyelik ve abonelik authority sorguları global app Drizzle pool'unda çalışıyordu.",
+        after: "Tenant-bound authority sorguları transaction-local GUC ve aynı checked-out PoolClient üzerinden typed Drizzle ile çalışıyor.",
+        basis: "src/server/middleware/auth.ts; src/server/middleware/auth.tenant.test.ts; tenant-context transaction contract",
+      },
+    },
   },
 ];
 

@@ -1,7 +1,7 @@
 # BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası
 
 **Tarih:** 23 Ekim 2026
-**Son durum güncellemesi:** 24 Ekim 2026 · Rev. 58 · `BIM-CALC-2026-10-24.52`
+**Son durum güncellemesi:** 24 Ekim 2026 · Rev. 59 · `BIM-CALC-2026-10-24.53`
 **Durum:** KULLANICI ONAYLI / UYGULANIYOR — Faz 0–4 geliştirme ve otomatik kanıt kapıları tamamlandı. Faz 5 kod akışı tamamlandı ancak T32 gerçek veraPDF runtime/lisanslı PDF/A dönüşüm sağlayıcısı nedeniyle açık. Faz 6 kod düzeyinde Pilot/L2 ve varsayılan kapalıdır; izinli resmî dosya, vendor ve uzman kabulü bekler. Faz 7'de T40 yerel rol topolojisi ve T41'in yedi yerel güvenlik dilimi kanıtlandı; Rev.57 control-plane least-privilege review açıklarını kapattı. Tenant bağlamsız/hassas global app okumaları, worker entitlement sınırı, production cutover ve kalan tenant tabloları açıktır. T42'nin manuel ödeme ve worker lease dilimleri kısmen tamamlandı. Üretim dağıtımı Faz 0–11 tamamlanmadan yasak.
 **Plan baseline:** `e748481684b296cc6a1cd5de0365136b47384d2b`
 **Kaynak:** [23 Ekim bağımsız kod doğrulama raporu](/Users/hazarvolgaekiz/dev/products/bimplanacademy/TeklifPro-repo/docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md).
@@ -44,7 +44,7 @@ Bu bölüm, Codex oturumu veya kullanım limiti kesilse bile güvenli devam nokt
 | Faz 7 / T43–T45 | **Başlanmadı / açık** | Kısmi test kanıtları var; genel kapanış yok | Tam coverage/E2E, restore/recovery ve hedef VPS performans bütçesi |
 | Faz 8–11 | **Açık** | Yol haritası tanımlı | Ürün metni/SEO, bağımsız kabul, rakip araştırması, release ve nihai kapanış |
 
-**Son başarılı kod commit'i:** `0a4d76a` — T41 tenant Drizzle transaction altyapısı. `withTenantDrizzleTransaction` aynı checked-out PoolClient üzerinde transaction-local tenant context sonrasında typed Drizzle çalıştırıyor. 7/7 tenant-context testi, TypeScript ve diff-check geçti; Rev.57 least-privilege kanıtı korunuyor. Tam `pnpm test`, güvenli test DB URL'si bulunmadığı için tamamlanmadı; auth resolver, worker entitlement, ücretli kayıt + teslimat hatası + resend route-level integration kanıtı ve production cutover P2/açık kapılar olarak duruyor.
+**Son başarılı kod commit'i:** `cc70ca2` — T41 auth authority tenant bağlamı. `findMembership` ve `findSubscription` aynı checked-out PoolClient üzerinde transaction-local tenant context sonrasında typed Drizzle çalıştırıyor. Auth tenant testleri 8/8, ilgili session/route testleri ve TypeScript geçti; Rev.58 tenant transaction kanıtı korunuyor. Tam `pnpm test`, güvenli test DB URL'si bulunmadığı için tamamlanmadı; worker entitlement, kalan tenant reads, ücretli kayıt + teslimat hatası + resend route-level integration kanıtı ve production cutover açık kapılar olarak duruyor.
 
 **Rev. 57 sonucu ve sıradaki zorunlu T41 işi:** Rev.55'in açtığı yazma uyumsuzluğu ve Rev.56 final inceleme P1'leri yerelde kapandı. Audit app INSERT nedeniyle credential compromise altında forge edilebilir ve authenticity kanıtı değildir. Sıradaki dilim, tenant context kurulmadan yapılan app okumalarını aynı checked-out bağlantı/transaction sınırına almak ve worker'a geniş authority-table grant'i vermeden plan/abonelik entitlement okuması sağlamaktır. Ardından kalan tenant tabloları ve production secret cutover/canary/restore gelir. Bunlar tamamlanmadan production role cutover/deploy NO-GO ve T41 PARTIAL'dır.
 
