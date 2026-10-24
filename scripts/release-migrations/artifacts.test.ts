@@ -149,11 +149,50 @@ test('progress-payment tables declare the exact tenant, backup, and migration RL
   assert.deepEqual(forced, tableNames.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
 });
 
+test('SmartCheck pilot evidence declares asymmetric tenant RLS and hardened append-only measurements', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  const cases = tables['public.smartcheck_pilot_cases'];
+  const measurements = tables['public.smartcheck_pilot_measurements'];
+  const audits = tables['public.smartcheck_audit_logs'];
+  assert.equal(cases.isRLSEnabled, true);
+  assert.deepEqual(Object.keys(cases.policies).sort(), [
+    'smartcheck_pilot_cases_app_tenant', 'smartcheck_pilot_cases_backup_read', 'smartcheck_pilot_cases_owner_migration',
+  ]);
+  assert.equal(measurements.isRLSEnabled, true);
+  assert.deepEqual(Object.keys(measurements.policies).sort(), [
+    'smartcheck_pilot_measurements_app_tenant_insert', 'smartcheck_pilot_measurements_app_tenant_read',
+    'smartcheck_pilot_measurements_backup_read', 'smartcheck_pilot_measurements_owner_migration',
+  ]);
+  assert.equal(measurements.policies.smartcheck_pilot_measurements_app_tenant_read.for, 'SELECT');
+  assert.equal(measurements.policies.smartcheck_pilot_measurements_app_tenant_insert.for, 'INSERT');
+  assert.equal(measurements.policies.smartcheck_pilot_measurements_app_tenant_insert.using, undefined);
+  assert.equal(measurements.columns.request_hash.notNull, false);
+  assert.equal(measurements.columns.case_revision.notNull, false);
+  assert.ok(measurements.checkConstraints.smartcheck_pilot_measurements_request_hash_check);
+  assert.ok(measurements.checkConstraints.smartcheck_pilot_measurements_case_revision_check);
+  assert.deepEqual(measurements.uniqueConstraints.smartcheck_pilot_measurements_case_revision_key.columns, ['company_id', 'pilot_case_id', 'case_revision']);
+  assert.equal(audits.isRLSEnabled, true);
+  assert.deepEqual(Object.keys(audits.policies).sort(), [
+    'smartcheck_audit_logs_app_insert', 'smartcheck_audit_logs_app_non_pilot_mutation', 'smartcheck_audit_logs_app_read',
+    'smartcheck_audit_logs_backup_read', 'smartcheck_audit_logs_owner_migration', 'smartcheck_audit_logs_worker_non_pilot',
+  ]);
+  const statements = injectDataTransitions('0016_smartcheck_pilot_evidence_tenant_rls', []);
+  assert.ok(statements.includes('ALTER TABLE "smartcheck_pilot_cases" FORCE ROW LEVEL SECURITY;'));
+  assert.ok(statements.includes('ALTER TABLE "smartcheck_pilot_measurements" FORCE ROW LEVEL SECURITY;'));
+  assert.ok(statements.includes('ALTER TABLE "smartcheck_audit_logs" FORCE ROW LEVEL SECURITY;'));
+  assert.ok(statements.some((statement) => statement.includes('SECURITY INVOKER') && statement.includes('SET search_path = pg_catalog, public')));
+  assert.ok(statements.includes('ALTER FUNCTION prevent_smartcheck_pilot_measurement_mutation() OWNER TO CURRENT_USER'));
+  assert.ok(statements.includes('REVOKE ALL ON FUNCTION prevent_smartcheck_pilot_measurement_mutation() FROM PUBLIC'));
+  assert.ok(statements.some((statement) => statement.includes('BEFORE UPDATE OR DELETE ON smartcheck_pilot_measurements')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER smartcheck_pilot_cases_mutation_guard')));
+  assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER smartcheck_pilot_audit_append_only')));
+});
+
 test('release artifacts form an append-only chain matching current schema', async () => {
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 16);
+  assert.equal(migrations.length, 17);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

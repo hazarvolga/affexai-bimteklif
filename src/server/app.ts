@@ -60,7 +60,8 @@ import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
 import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
-import { registerPilotEvidenceRoutes } from "./routes/pilot-evidence";
+import { registerPilotEvidenceRoutes, type PilotEvidenceRateLimiter } from "./routes/pilot-evidence";
+import type { PilotEvidenceService } from "../services/pilot-evidence/service";
 import { registerCdeRoutes } from "./routes/cde";
 import type { CdeService } from "../services/cde/service";
 import { registerProgressPaymentRoutes } from "./routes/progress-payments";
@@ -75,7 +76,7 @@ dotenv.config();
 
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
-export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService }) {
+export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService; pilotEvidenceService?: PilotEvidenceService; pilotEvidenceRateLimiter?: PilotEvidenceRateLimiter }) {
   const productionConfig = assertProductionEnvironment();
   const app = express();
   app.disable('x-powered-by');
@@ -189,7 +190,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerPricingFileImportRoutes(app);
   registerSourceIntelligenceRoutes(app);
   registerMarketIntelligenceRoutes(app);
-  registerPilotEvidenceRoutes(app);
+  registerPilotEvidenceRoutes(app, options?.pilotEvidenceService, options?.pilotEvidenceRateLimiter);
   registerCdeRoutes(app, options?.cdeService);
   registerProgressPaymentRoutes(app);
 

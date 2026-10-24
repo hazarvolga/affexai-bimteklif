@@ -66,6 +66,10 @@ const stages = [
     sql: '349014ef8ffa609b00e8fccef313e097c20de47d6ff3f4ee871fa8349f8f23e9',
     snapshot: '9203b69803bb0e83ae70d68dfad347b3a2af5b115537b1c597649b1b0a8c090e',
     catalog: 'f7234e7448d8d2cac4886cb2c6460bd2d437977c795dad4b3b0879db68e49200' },
+  { tag: '0016_smartcheck_pilot_evidence_tenant_rls',
+    sql: 'c0e6152b8147e1eca0acfe959548fd4ea995ad413f6fa3cde144e88fee6da1d0',
+    snapshot: '9004b1da77b49a0b2d480b1b9efb72a73e55e30d19edf5f9fd995e19252b42ce',
+    catalog: 'd2c46754e5690107fe1eba496ebdbd72aaf3fff1d4737b528124638c2c5f9d60' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

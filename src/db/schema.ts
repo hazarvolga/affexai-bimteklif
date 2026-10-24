@@ -48,6 +48,24 @@ const ownerMigrationPolicy = (name: string) => {
   });
 };
 
+const appTenantReadPolicy = (name: string, companyId: AnyPgColumn) => {
+  const tenantMatch = sql`${companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
+  return pgPolicy(`${name}_app_tenant_read`, {
+    for: "select",
+    to: "public",
+    using: sql`current_user = 'bimmetraj_app' AND ${tenantMatch}`,
+  });
+};
+
+const appTenantInsertPolicy = (name: string, companyId: AnyPgColumn) => {
+  const tenantMatch = sql`${companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
+  return pgPolicy(`${name}_app_tenant_insert`, {
+    for: "insert",
+    to: "public",
+    withCheck: sql`current_user = 'bimmetraj_app' AND ${tenantMatch}`,
+  });
+};
+
 // ─── GLOBAL ENUMS ───
 export const currencyEnum = pgEnum("currency", ["TRY", "USD", "EUR"]);
 export const quoteStatusEnum = pgEnum("quote_status", ["draft", "sent", "negotiation", "won", "lost", "archived"]);
@@ -1144,7 +1162,13 @@ export const smartcheckAuditLogs = pgTable("smartcheck_audit_logs", {
     foreignColumns: [memberships.userId, memberships.companyId],
   }).onDelete("restrict"),
   idxAuditLookup: index("idx_smartcheck_audit_lookup").on(table.companyId, table.createdAt),
-}));
+  appReadPolicy: pgPolicy("smartcheck_audit_logs_app_read", { for: "select", to: "public", using: sql`current_user = 'bimmetraj_app' AND (${table.entityType} <> 'smartcheck_pilot_case' OR ${table.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid)` }),
+  appInsertPolicy: pgPolicy("smartcheck_audit_logs_app_insert", { for: "insert", to: "public", withCheck: sql`current_user = 'bimmetraj_app' AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
+  appNonPilotMutationPolicy: pgPolicy("smartcheck_audit_logs_app_non_pilot_mutation", { for: "all", to: "public", using: sql`current_user = 'bimmetraj_app' AND ${table.entityType} <> 'smartcheck_pilot_case'`, withCheck: sql`current_user = 'bimmetraj_app' AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
+  workerNonPilotPolicy: pgPolicy("smartcheck_audit_logs_worker_non_pilot", { for: "all", to: "public", using: sql`current_user = 'bimmetraj_worker' AND ${table.entityType} <> 'smartcheck_pilot_case'`, withCheck: sql`current_user = 'bimmetraj_worker' AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
+  backupReadPolicy: backupReadPolicy("smartcheck_audit_logs"),
+  ownerMigrationPolicy: pgPolicy("smartcheck_audit_logs_owner_migration", { for: "all", to: "public", using: sql`current_user = 'bimmetraj_owner'`, withCheck: sql`current_user = 'bimmetraj_owner'` }),
+})).enableRLS();
 
 // ============================================================
 // SMARTCHECK PILOT EVIDENCE CONTROL
@@ -1193,7 +1217,10 @@ export const smartcheckPilotCases = pgTable("smartcheck_pilot_cases", {
   retentionCheck: check("smartcheck_pilot_cases_retention_check", sql`${table.retentionUntil} >= ${table.permissionGrantedAt}`),
   reviewerDecisionCheck: check("smartcheck_pilot_cases_reviewer_decision_check", sql`${table.reviewerDecision} IS NULL OR ${table.reviewerDecision} in ('approved', 'rejected', 'accepted_exception')`),
   idxLookup: index("idx_smartcheck_pilot_cases_lookup").on(table.companyId, table.status, table.retentionUntil),
-}));
+  appTenantPolicy: appTenantPolicy("smartcheck_pilot_cases", table.companyId),
+  backupReadPolicy: backupReadPolicy("smartcheck_pilot_cases"),
+  ownerMigrationPolicy: ownerMigrationPolicy("smartcheck_pilot_cases"),
+})).enableRLS();
 
 export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurements", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1202,6 +1229,8 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
   processingRunId: uuid("processing_run_id"),
   measuredByUserId: uuid("measured_by_user_id").notNull(),
   measurementKey: text("measurement_key").notNull(),
+  requestHash: text("request_hash"),
+  caseRevision: integer("case_revision"),
   measuredAt: timestamp("measured_at", { withTimezone: true }).defaultNow().notNull(),
   totalRows: integer("total_rows").default(0).notNull(),
   parsedRows: integer("parsed_rows").default(0).notNull(),
@@ -1221,6 +1250,7 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
 }, (table) => ({
   companyMeasurementUnique: unique("smartcheck_pilot_measurements_id_company_id_key").on(table.id, table.companyId),
   measurementIdempotencyUnique: unique("smartcheck_pilot_measurements_case_key").on(table.companyId, table.pilotCaseId, table.measurementKey),
+  caseRevisionUnique: unique("smartcheck_pilot_measurements_case_revision_key").on(table.companyId, table.pilotCaseId, table.caseRevision),
   caseFk: foreignKey({
     columns: [table.pilotCaseId, table.companyId],
     foreignColumns: [smartcheckPilotCases.id, smartcheckPilotCases.companyId],
@@ -1237,8 +1267,14 @@ export const smartcheckPilotMeasurements = pgTable("smartcheck_pilot_measurement
   rateCheck: check("smartcheck_pilot_measurements_rate_check", sql`(${table.parseRate} IS NULL OR (${table.parseRate} >= 0 AND ${table.parseRate} <= 1)) AND (${table.manualReentryFreeRate} IS NULL OR (${table.manualReentryFreeRate} >= 0 AND ${table.manualReentryFreeRate} <= 1)) AND (${table.provenanceCoverage} IS NULL OR (${table.provenanceCoverage} >= 0 AND ${table.provenanceCoverage} <= 1))`),
   exceptionRowsCheck: check("smartcheck_pilot_measurements_exception_rows_check", sql`${table.exceptionRows} >= 0`),
   durationCheck: check("smartcheck_pilot_measurements_duration_check", sql`(${table.processingDurationSeconds} IS NULL OR ${table.processingDurationSeconds} >= 0) AND (${table.workflowDurationSeconds} IS NULL OR ${table.workflowDurationSeconds} >= 0)`),
+  requestHashCheck: check("smartcheck_pilot_measurements_request_hash_check", sql`${table.requestHash} IS NULL OR ${table.requestHash} ~ '^[0-9a-f]{64}$'`),
+  caseRevisionCheck: check("smartcheck_pilot_measurements_case_revision_check", sql`${table.caseRevision} IS NULL OR ${table.caseRevision} > 0`),
   idxLookup: index("idx_smartcheck_pilot_measurements_lookup").on(table.companyId, table.pilotCaseId, table.measuredAt),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("smartcheck_pilot_measurements", table.companyId),
+  appTenantInsertPolicy: appTenantInsertPolicy("smartcheck_pilot_measurements", table.companyId),
+  backupReadPolicy: backupReadPolicy("smartcheck_pilot_measurements"),
+  ownerMigrationPolicy: ownerMigrationPolicy("smartcheck_pilot_measurements"),
+})).enableRLS();
 
 // ============================================================
 // SMARTCHECK PHASE 6 — SUPPLIER QUOTE MARKET INTELLIGENCE

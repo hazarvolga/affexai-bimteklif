@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DATABASE_PROGRESS_PAYMENT_RLS_TABLES, DATABASE_ROLE_MEMBERSHIPS, DATABASE_ROLE_SPECS } from "../../scripts/database-roles/contract";
+import { DATABASE_PROGRESS_PAYMENT_RLS_TABLES, DATABASE_ROLE_MEMBERSHIPS, DATABASE_ROLE_SPECS, DATABASE_SMARTCHECK_PILOT_RLS_TABLES } from "../../scripts/database-roles/contract";
 import {
   assertRoleBoundaries,
   sanitizeRoleReport,
@@ -23,6 +23,10 @@ test("progress-payment RLS contract covers the complete bounded aggregate", () =
     "progress_measurements", "progress_measurement_review_events", "progress_payment_adjustments",
     "progress_payment_events", "contract_variations", "final_accounts",
   ]);
+});
+
+test("SmartCheck pilot RLS contract covers case state and append-only measurements", () => {
+  assert.deepEqual(DATABASE_SMARTCHECK_PILOT_RLS_TABLES, ["smartcheck_pilot_cases", "smartcheck_pilot_measurements"]);
 });
 
 function validReport(): DatabaseRoleBoundaryReport {

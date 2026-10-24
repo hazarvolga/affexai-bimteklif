@@ -5,6 +5,7 @@ import {
   DATABASE_FUNCTION_EXECUTE_SPECS,
   DATABASE_CDE_RLS_TABLES,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
+  DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
   DATABASE_QUEUE_RLS_TABLES,
   DATABASE_QUEUE_STRUCTURE_FINGERPRINT,
@@ -15,8 +16,17 @@ import {
   DATABASE_VENDOR_FUNCTION_PROVENANCE,
   type DatabaseRoleName,
 } from "./contract";
+import {
+  smartcheckPilotAuditMutationFunction,
+  smartcheckPilotCaseEvidenceFunction,
+  smartcheckPilotCaseMutationFunction,
+  smartcheckPilotMeasurementAppendOnlyFunction,
+  smartcheckPilotMeasurementEvidenceFunction,
+  smartcheckPilotMeasurementInsertFunction,
+} from "../release-migrations/data-transitions";
 
 type Queryable = Pick<pg.Client, "query">;
+const functionSource = (definition: string) => definition.match(/AS \$\$\n([\s\S]*?)\n\$\$/)?.[1]?.trim() ?? "";
 
 export type InspectedDatabaseRole = {
   name: DatabaseRoleName;
@@ -134,6 +144,132 @@ const inspectProgressPaymentRlsViolations = (client: Queryable) => inspectProtec
   client, DATABASE_PROGRESS_PAYMENT_RLS_TABLES, "0015_progress_payment_tenant_rls", "progress-payment",
 );
 
+export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Promise<string[]> {
+  const tables = DATABASE_SMARTCHECK_PILOT_RLS_TABLES;
+  const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname table_name,c.relrowsecurity enabled,c.relforcerowsecurity forced
+    from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p') order by c.relname`, [tables]);
+  const releaseState = await client.query<{ ledger: string | null; has_tag: boolean }>(`select to_regclass('teklifpro_release.migrations')::text ledger,
+    exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') has_tag`);
+  const ledger = releaseState.rows[0];
+  const applied = ledger?.ledger && ledger.has_tag
+    ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0016_smartcheck_pilot_evidence_tenant_rls') applied")).rows[0]?.applied === true
+    : false;
+  if (states.rowCount === 0 && !applied) return [];
+  const violations: string[] = [];
+  if (states.rowCount !== tables.length) violations.push("public smartcheck-pilot: complete RLS table set is required");
+  if (!ledger?.ledger || !ledger.has_tag || !applied) violations.push("public smartcheck-pilot: applied migration tag 0016_smartcheck_pilot_evidence_tenant_rls is required");
+  if (states.rowCount === 0) return violations;
+  const policies = await client.query<{ table_name: string; policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select c.relname table_name,p.polname policy_name,p.polcmd command,p.polroles::oid[] role_oids,p.polpermissive permissive,
+      pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression
+    from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) order by c.relname,p.polname`, [tables]);
+  const tenant = "((CURRENT_USER = 'bimmetraj_app'::name) AND (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))";
+  const backup = "(CURRENT_USER = 'bimmetraj_backup'::name)";
+  const owner = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  const isPublic = (policy: typeof policies.rows[number] | undefined) => policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]);
+  const expected = {
+    smartcheck_pilot_cases: [
+      ["smartcheck_pilot_cases_app_tenant", "*", tenant, tenant],
+      ["smartcheck_pilot_cases_backup_read", "r", backup, null],
+      ["smartcheck_pilot_cases_owner_migration", "*", owner, owner],
+    ],
+    smartcheck_pilot_measurements: [
+      ["smartcheck_pilot_measurements_app_tenant_read", "r", tenant, null],
+      ["smartcheck_pilot_measurements_app_tenant_insert", "a", null, tenant],
+      ["smartcheck_pilot_measurements_backup_read", "r", backup, null],
+      ["smartcheck_pilot_measurements_owner_migration", "*", owner, owner],
+    ],
+  } as const;
+  for (const table of tables) {
+    const state = states.rows.find((row) => row.table_name === table);
+    const actual = policies.rows.filter((row) => row.table_name === table);
+    const matrix = expected[table];
+    const matches = state?.enabled && state.forced && actual.length === matrix.length && matrix.every(([name, command, using, check]) => {
+      const policy = actual.find((row) => row.policy_name === name);
+      return isPublic(policy) && policy?.command === command && policy.using_expression === using && policy.check_expression === check;
+    });
+    if (!matches) violations.push(`public.${table}: smartcheck-pilot FORCE-RLS policy matrix drift`);
+  }
+  const auditState = await client.query<{ enabled: boolean; forced: boolean }>(`select c.relrowsecurity enabled,c.relforcerowsecurity forced from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='smartcheck_audit_logs' and c.relkind='r'`);
+  const auditPolicies = await client.query<{ name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select polname name,polcmd command,p.polroles::oid[] role_oids,p.polpermissive permissive,
+    pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression
+    from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='smartcheck_audit_logs' order by polname`);
+  const appNonPilot = "((CURRENT_USER = 'bimmetraj_app'::name) AND (entity_type <> 'smartcheck_pilot_case'::text))";
+  const workerNonPilot = "((CURRENT_USER = 'bimmetraj_worker'::name) AND (entity_type <> 'smartcheck_pilot_case'::text))";
+  const appAuditRead = "((CURRENT_USER = 'bimmetraj_app'::name) AND ((entity_type <> 'smartcheck_pilot_case'::text) OR (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid)))";
+  const auditOwner = "(CURRENT_USER = 'bimmetraj_owner'::name)";
+  const expectedAuditPolicies = [
+    ["smartcheck_audit_logs_app_insert", "a", null, appNonPilot],
+    ["smartcheck_audit_logs_app_non_pilot_mutation", "*", appNonPilot, appNonPilot],
+    ["smartcheck_audit_logs_app_read", "r", appAuditRead, null],
+    ["smartcheck_audit_logs_backup_read", "r", backup, null],
+    ["smartcheck_audit_logs_owner_migration", "*", auditOwner, auditOwner],
+    ["smartcheck_audit_logs_worker_non_pilot", "*", workerNonPilot, workerNonPilot],
+  ] as const;
+  const auditMatches = auditPolicies.rowCount === expectedAuditPolicies.length && expectedAuditPolicies.every(([name, command, using, check]) => {
+    const policy = auditPolicies.rows.find((row) => row.name === name);
+    return policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]) && policy.command === command
+      && policy.using_expression === using && policy.check_expression === check;
+  });
+  if (auditState.rowCount !== 1 || !auditState.rows[0]?.enabled || !auditState.rows[0]?.forced
+    || !auditMatches) {
+    violations.push("public.smartcheck_audit_logs: smartcheck-pilot scoped RLS policy matrix drift");
+  }
+  const functionState = await client.query<{ owner: string; security_definer: boolean; config: string[] | null; public_execute: boolean; definition: string; source: string }>(`select pg_get_userbyid(p.proowner) owner,p.prosecdef security_definer,p.proconfig config,pg_get_functiondef(p.oid) definition,p.prosrc source,
+      exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl where acl.grantee=0 and acl.privilege_type='EXECUTE') public_execute
+    from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='prevent_smartcheck_pilot_measurement_mutation' and pg_get_function_identity_arguments(p.oid)=''`);
+  const triggerState = await client.query<{ count: number; exact_shape: boolean }>(`select count(*)::int count,
+      coalesce(bool_and(t.tgenabled='O' and (t.tgtype & 2)=2 and (t.tgtype & 1)=1 and (t.tgtype & 16)=16 and (t.tgtype & 8)=8
+        and p.proname='prevent_smartcheck_pilot_measurement_mutation' and pn.nspname='public'),false) exact_shape
+    from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace
+    join pg_proc p on p.oid=t.tgfoid join pg_namespace pn on pn.oid=p.pronamespace
+    where n.nspname='public' and c.relname='smartcheck_pilot_measurements' and t.tgname='smartcheck_pilot_measurements_append_only' and not t.tgisinternal`);
+  const fn = functionState.rows[0];
+  if (functionState.rowCount !== 1 || fn?.owner !== "bimmetraj_owner" || fn.security_definer || JSON.stringify(fn.config) !== JSON.stringify(["search_path=pg_catalog, public"]) || fn.public_execute
+    || fn.source.trim() !== functionSource(smartcheckPilotMeasurementAppendOnlyFunction)) {
+    violations.push("public.prevent_smartcheck_pilot_measurement_mutation: append-only function provenance drift");
+  }
+  const trigger = triggerState.rows[0];
+  if (trigger?.count !== 1 || !trigger.exact_shape) {
+    violations.push("public.smartcheck_pilot_measurements: append-only trigger provenance drift");
+  }
+  const guardFunctions = await client.query<{ name: string; owner: string; security_definer: boolean; config: string[] | null; public_execute: boolean; definition: string; source: string }>(`select p.proname name,pg_get_userbyid(p.proowner) owner,p.prosecdef security_definer,p.proconfig config,pg_get_functiondef(p.oid) definition,p.prosrc source,
+      exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl where acl.grantee=0 and acl.privilege_type='EXECUTE') public_execute
+    from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'
+      and p.proname=any($1::text[]) and pg_get_function_identity_arguments(p.oid)='' order by p.proname`, [["enforce_smartcheck_pilot_case_mutation", "prevent_smartcheck_pilot_audit_mutation", "record_smartcheck_pilot_case_evidence", "record_smartcheck_pilot_measurement_evidence", "validate_smartcheck_pilot_measurement_insert"]]);
+  const requiredSource = new Map([
+    ["enforce_smartcheck_pilot_case_mutation", functionSource(smartcheckPilotCaseMutationFunction)],
+    ["prevent_smartcheck_pilot_audit_mutation", functionSource(smartcheckPilotAuditMutationFunction)],
+    ["record_smartcheck_pilot_case_evidence", functionSource(smartcheckPilotCaseEvidenceFunction)],
+    ["record_smartcheck_pilot_measurement_evidence", functionSource(smartcheckPilotMeasurementEvidenceFunction)],
+    ["validate_smartcheck_pilot_measurement_insert", functionSource(smartcheckPilotMeasurementInsertFunction)],
+  ]);
+  const securityDefinerFunctions = new Set(["record_smartcheck_pilot_case_evidence", "record_smartcheck_pilot_measurement_evidence"]);
+  if (guardFunctions.rowCount !== 5 || guardFunctions.rows.some((row) => row.owner !== "bimmetraj_owner" || row.security_definer !== securityDefinerFunctions.has(row.name)
+    || JSON.stringify(row.config) !== JSON.stringify(["search_path=pg_catalog, public"]) || row.public_execute || row.source.trim() !== requiredSource.get(row.name))) {
+    violations.push("public smartcheck-pilot: case/audit guard function provenance drift");
+  }
+  const guardTriggers = await client.query<{ name: string; enabled: string; function_name: string; table_name: string; trigger_type: number }>(`select t.tgname name,t.tgenabled enabled,p.proname function_name,c.relname table_name,t.tgtype::int trigger_type
+    from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace join pg_proc p on p.oid=t.tgfoid
+    where n.nspname='public' and t.tgname=any($1::text[]) and not t.tgisinternal order by t.tgname`, [["smartcheck_pilot_audit_append_only", "smartcheck_pilot_cases_mutation_guard", "smartcheck_pilot_cases_record_evidence", "smartcheck_pilot_measurements_insert_guard", "smartcheck_pilot_measurements_record_evidence"]]);
+  const expectedGuards = new Map([
+    ["smartcheck_pilot_audit_append_only", ["prevent_smartcheck_pilot_audit_mutation", "smartcheck_audit_logs", 31]],
+    ["smartcheck_pilot_cases_mutation_guard", ["enforce_smartcheck_pilot_case_mutation", "smartcheck_pilot_cases", 27]],
+    ["smartcheck_pilot_cases_record_evidence", ["record_smartcheck_pilot_case_evidence", "smartcheck_pilot_cases", 21]],
+    ["smartcheck_pilot_measurements_insert_guard", ["validate_smartcheck_pilot_measurement_insert", "smartcheck_pilot_measurements", 7]],
+    ["smartcheck_pilot_measurements_record_evidence", ["record_smartcheck_pilot_measurement_evidence", "smartcheck_pilot_measurements", 5]],
+  ]);
+  if (guardTriggers.rowCount !== 5 || guardTriggers.rows.some((row) => {
+    const expected = expectedGuards.get(row.name);
+    return row.enabled !== "O" || !expected || expected[0] !== row.function_name || expected[1] !== row.table_name || expected[2] !== row.trigger_type;
+  })) {
+    violations.push("public smartcheck-pilot: case/audit guard trigger provenance drift");
+  }
+  return violations;
+}
+
 async function inspectQueueStructureViolations(client: Queryable): Promise<string[]> {
   const present = await client.query<{ present: boolean }>("select exists(select 1 from pg_namespace where nspname='teklifpro_queue') as present");
   if (!present.rows[0]?.present) return [];
@@ -181,6 +317,7 @@ async function inspectManagedSchemaViolations(client: Queryable): Promise<string
   const violations: string[] = [];
   violations.push(...await inspectCdeRlsViolations(client));
   violations.push(...await inspectProgressPaymentRlsViolations(client));
+  violations.push(...await inspectSmartcheckPilotRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
   const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;

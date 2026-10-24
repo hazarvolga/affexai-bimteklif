@@ -113,6 +113,13 @@
       "sha256": "349014ef8ffa609b00e8fccef313e097c20de47d6ff3f4ee871fa8349f8f23e9",
       "snapshotSha256": "9203b69803bb0e83ae70d68dfad347b3a2af5b115537b1c597649b1b0a8c090e",
       "statements": 50
+    },
+    {
+      "idx": 16,
+      "tag": "0016_smartcheck_pilot_evidence_tenant_rls",
+      "sha256": "c0e6152b8147e1eca0acfe959548fd4ea995ad413f6fa3cde144e88fee6da1d0",
+      "snapshotSha256": "9004b1da77b49a0b2d480b1b9efb72a73e55e30d19edf5f9fd995e19252b42ce",
+      "statements": 48
     }
   ]
 }
