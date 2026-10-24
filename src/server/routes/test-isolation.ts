@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { before, after } from "node:test";
 import pg from "pg";
 import { isDeepStrictEqual } from "node:util";
+import { Logger, makeWorkerUtils } from "graphile-worker";
 
 const quote = (name: string) => `"${name.replaceAll('"', '""')}"`;
 
@@ -75,8 +76,13 @@ export async function createTestIsolation(sourceUrl: string) {
   const schema = `teklifpro_test_${crypto.randomUUID().replaceAll("-", "")}`;
   const workerSchema = `${schema}_worker`;
   const databaseUrl = isolatedDatabaseUrl(sourceUrl, schema);
+  const controlUrl = process.env.CONTROL_DATABASE_URL ?? sourceUrl;
+  const controlDatabaseUrl = isolatedDatabaseUrl(controlUrl, schema);
+  if (new URL(sourceUrl).pathname !== new URL(controlUrl).pathname) {
+    throw new Error("Integration isolation control and runtime URLs must target the same database");
+  }
   const storageDir = await mkdtemp(join(tmpdir(), "teklifpro-test-"));
-  const client = new pg.Client({ connectionString: sourceUrl, connectionTimeoutMillis: 2_000 });
+  const client = new pg.Client({ connectionString: controlUrl, connectionTimeoutMillis: 2_000 });
   let created = false;
   let workerCreated = false;
   let closed = false;
@@ -103,6 +109,72 @@ export async function createTestIsolation(sourceUrl: string) {
     await cloneTables(client, schema);
     await client.query(`CREATE SCHEMA ${quote(workerSchema)}`);
     workerCreated = true;
+    // Queue integration tests use the same Graphile Worker schema contract as
+    // production. Install the vendor migrations inside the isolated schema so
+    // readiness checks do not accidentally inspect a shared queue or skip the
+    // queue boundary altogether.
+    const workerAdminUrl = new URL(controlDatabaseUrl);
+    workerAdminUrl.searchParams.set("options", `-csearch_path=${workerSchema}`);
+    const workerUtils = await makeWorkerUtils({
+      connectionString: workerAdminUrl.toString(),
+      schema: workerSchema,
+      logger: new Logger(() => () => {}),
+    });
+    await workerUtils.release();
+    const roles = await client.query<{ rolname: string }>("select rolname from pg_roles where rolname in ('bimmetraj_app','bimmetraj_worker')");
+    const roleNames = new Set(roles.rows.map((row) => row.rolname));
+    if (roleNames.has("bimmetraj_app")) {
+      await client.query(`GRANT USAGE ON SCHEMA ${quote(schema)},${quote(workerSchema)} TO bimmetraj_app`);
+      await client.query(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA ${quote(schema)} TO bimmetraj_app`);
+      await client.query(`GRANT USAGE,SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA ${quote(schema)} TO bimmetraj_app`);
+    }
+    if (roleNames.has("bimmetraj_worker")) {
+      await client.query(`GRANT USAGE ON SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
+      await client.query(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
+      await client.query(`GRANT USAGE,SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
+    }
+    if (roleNames.has("bimmetraj_app")) {
+      await client.query(`GRANT SELECT ON TABLE ${quote(workerSchema)}.migrations TO bimmetraj_app`);
+    }
+    // The application uses two bounded SECURITY DEFINER queue wrappers rather
+    // than calling vendor functions directly. Recreate those wrappers in the
+    // isolated schema too; otherwise integration tests exercise a function
+    // boundary that only exists in the shared production schema.
+    const workerQualified = quote(workerSchema);
+    await client.query(`
+      CREATE FUNCTION ${workerQualified}.bimmetraj_enqueue_smartcheck(p_identifier text,p_payload json,p_job_key text,p_max_attempts integer,p_priority integer)
+      RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog,${workerQualified}
+      AS $function$
+      BEGIN
+        IF p_identifier IS NULL OR p_identifier NOT IN ('process_smartcheck_document','process_smartcheck_ifc_document') THEN
+          RAISE EXCEPTION 'Unsupported SmartCheck task identifier' USING ERRCODE='22023';
+        END IF;
+        IF p_job_key IS NULL OR p_job_key !~ '^smartcheck:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+          RAISE EXCEPTION 'Invalid SmartCheck job key' USING ERRCODE='22023';
+        END IF;
+        IF p_payload IS NULL OR octet_length(p_payload::text)>65536 OR p_max_attempts IS NULL OR p_max_attempts NOT BETWEEN 1 AND 5 OR p_priority IS NULL OR p_priority NOT BETWEEN 0 AND 10 THEN
+          RAISE EXCEPTION 'SmartCheck job boundary rejected' USING ERRCODE='22023';
+        END IF;
+        PERFORM ${workerQualified}.add_job(p_identifier,p_payload,job_key=>p_job_key,max_attempts=>p_max_attempts,priority=>p_priority);
+      END;
+      $function$`);
+    if (roleNames.has("bimmetraj_app")) {
+      await client.query(`GRANT EXECUTE ON FUNCTION ${workerQualified}.bimmetraj_enqueue_smartcheck(text,json,text,integer,integer) TO bimmetraj_app`);
+    }
+    await client.query(`
+      CREATE FUNCTION ${workerQualified}.bimmetraj_remove_smartcheck_job(p_job_key text)
+      RETURNS TABLE(locked_at timestamptz) LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog,${workerQualified}
+      AS $function$
+      BEGIN
+        IF p_job_key IS NULL OR p_job_key !~ '^smartcheck:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+          RAISE EXCEPTION 'Invalid SmartCheck job key' USING ERRCODE='22023';
+        END IF;
+        RETURN QUERY SELECT removed.locked_at FROM ${workerQualified}.remove_job(p_job_key) removed;
+      END;
+      $function$`);
+    if (roleNames.has("bimmetraj_app")) {
+      await client.query(`GRANT EXECUTE ON FUNCTION ${workerQualified}.bimmetraj_remove_smartcheck_job(text) TO bimmetraj_app`);
+    }
     return { schema, workerSchema, databaseUrl, storageDir, cleanup };
   } catch (error) {
     await cleanup();
