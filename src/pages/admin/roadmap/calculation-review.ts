@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.58",
+  version: "BIM-CALC-2026-10-24.59",
   updatedOn: "24 Ekim 2026",
   implementationBaseline: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
-  approvalStatus: "Rev. 64, izole Graphile Worker tablolarında production queue RLS modeli worker role policy'leriyle mirror edilir; restricted app/worker credential koşusunda SmartCheck HTTP + IFC worker 2/2 geçti. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  approvalStatus: "Rev. 65, T45 için sentetik 100 MB IFC parser bellek ölçümü üç process koşusunda 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB verdi; mevcut 2 GiB RSS / 1 GiB heap tavanlarının altında olsa da gerçek büyük dosya, ExcelJS, PDF/3D, eşzamanlı tenant, p95 ve hedef VPS kanıtı değildir. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1498,6 +1498,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Restricted worker run RLS nedeniyle _private_tasks insert/read kapısında duruyordu.",
         after: "Restricted worker credential ile IFC HTTP queue tüketimi ve evidence persistence 2/2 geçti.",
         basis: "src/server/routes/smartcheck.integration.test.ts; graphile-worker migration 18",
+      },
+    },
+  },
+  {
+    revision: "Rev. 65",
+    version: "BIM-CALC-2026-10-24.59",
+    date: "24 Ekim 2026",
+    commit: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
+    trigger: "T45 sentetik 100 MB IFC parser bellek ve süre ölçümü.",
+    beforeSummary: "T45 için compose kaynak tavanları dokümante edilmişti; parserın 100 MB sentetik IFC koşusuna ait tekrarlanmış yerel ölçüm kaydı yoktu.",
+    afterSummary: "Üç ayrı process koşusunda 100 MB sentetik IFC parser süresi 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB ölçüldü; mevcut 2 GiB RSS ve 1 GiB heap tavanları aşılmadı. Bu yalnız ön ölçümdür; T45 kabul bütçesi, gerçek büyük dosya ve hedef VPS kanıtı bekler.",
+    affectedModules: ["ifc-parser", "performance-budget"],
+    moduleDetails: {
+      "ifc-parser": {
+        before: "100 MB sentetik IFC için tekrarlanmış süre/RSS/heap ölçümü yol haritasında kayıtlı değildi.",
+        after: "scripts/compare-ifc-parsers.ts --synthetic-100mb ile 3 koşu kaydedildi; 354.567 eleman parse edildi, tüm koşular mevcut tavanlar altında kaldı.",
+        basis: "scripts/compare-ifc-parsers.ts; docs/deploy/container-app-worker.md kaynak tavanları; yerel Node 24 çalışma koşusu",
+      },
+      "performance-budget": {
+        before: "Compose tavanları ölçülmemiş kapasite vaadi olarak ayrıca belirtilmişti.",
+        after: "Sentetik parser ölçümü ön kanıt olarak eklendi; onaylı p95/süre/RAM bütçesi, gerçek dosya matrisi, eşzamanlı tenant ve hedef VPS ölçümü açık bırakıldı.",
+        basis: "T45 kabul kriteri; docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md",
       },
     },
   },

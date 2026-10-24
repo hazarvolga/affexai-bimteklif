@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 64 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 65 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -273,17 +273,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 64 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 65 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 64)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 62 · BIM-CALC-2026-10-24.56 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 62 disposable test isolation control/runtime ayrımını ve Graphile Worker vendor bootstrap kanıtını ekler; formül veya hesap sonucu değişikliği değildir. Worker credential harness, kalan tenant okumaları ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 65)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 65 · BIM-CALC-2026-10-24.59 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 65 sentetik 100 MB IFC parser bellek/süre ön ölçümünü ekler; formül veya hesap sonucu değişikliği değildir. T45 için gerçek dosya, p95 bütçesi, eşzamanlı tenant ve hedef VPS kanıtı; T43/T44, worker canary ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 64):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 65):",
       },
       {
         type: "table",
@@ -667,11 +667,29 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-24.56 (131042d)",
             "CONTROL_DATABASE_URL ile disposable schema clone ve Graphile Worker migration işlemleri yönetici bağlantısına ayrıldı; DATABASE_URL restricted bimmetraj_app runtime'ı olarak korunur. İzole worker şemasında migration 18, bounded queue wrapper'ları ve rol grant'leri kurulur. Queue 14/14, HTTP tenant akışı ve IFC quota 6/6 geçti; worker credential ayrımı gerektiren IFC HTTP koşusu ayrı harness kapısıdır. Production cutover ve uzman kabulü açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
+          [
+            "Rev. 63",
+            "24 Ekim 2026 (Faz 7 — T41 Explicit Worker Credential Harness, Kısmi)",
+            "BIM-CALC-2026-10-24.57 (c9e025e)",
+            "WORKER_DATABASE_URL ile restricted worker runtime aynı disposable hedefte ayrıştırıldı; Graphile run/runOnce worker credential'ını kullanır, app runtime restricted bimmetraj_app olarak kalır. Production cutover ve uzman kabulü açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+          ],
+          [
+            "Rev. 64",
+            "24 Ekim 2026 (Faz 7 — T41 Worker Queue RLS Mirror, Kısmi)",
+            "BIM-CALC-2026-10-24.58 (f13c2e2)",
+            "Graphile migrations RLS davranışı ve dört private queue tablosunun worker policy'leri izole testte production role provisioning sözleşmesiyle eşlendi. Restricted app + worker SmartCheck HTTP/IFC kanıtı 2/2 geçti; production cutover ve uzman kabulü açık kaldı.",
+          ],
+          [
+            "Rev. 65 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T45 Sentetik IFC Performans Ön Ölçümü, Kısmi)",
+            "BIM-CALC-2026-10-24.59 (f13c2e2)",
+            "100 MB sentetik IFC parser üç ayrı process koşusunda 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB verdi; compose 2 GiB/1 GiB tavanları aşılmadı. Gerçek dosya, p95 bütçesi, eşzamanlı tenant ve hedef VPS kabulü açık kaldığından T45 kapanmadı.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 64 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 65 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1228,6 +1246,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "İzole queue tabloları RLS açık ancak worker policy'sizdi; gerçek worker credential IFC HTTP işini tüketemiyordu.",
             "Migrations RLS'i kapatıldı, dört private queue tablosuna yalnız bimmetraj_worker policy'si eklendi. Restricted app + worker koşusunda SmartCheck HTTP ve IFC evidence worker 2/2 geçti; production cutover ve uzman kabulü açık kaldı.",
             "src/server/routes/test-isolation.ts, scripts/database-roles/provision.ts, src/server/routes/smartcheck.integration.test.ts",
+          ],
+          [
+            "Rev. 65 · 24 Ekim 2026 (Faz 7 — T45 Sentetik IFC Performans Ön Ölçümü, Kısmi)",
+            "scripts/compare-ifc-parsers.ts; compose 2 GiB RSS / 1 GiB heap kaynak tavanları; T45 performans kabul kriteri",
+            "100 MB sentetik IFC parser için tekrarlanmış süre, RSS ve heap ölçümü yol haritasında kayıtlı değildi.",
+            "Üç ayrı process koşusunda 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB ölçüldü; mevcut compose tavanları aşılmadı. Gerçek büyük dosya, ExcelJS/PDF/3D, eşzamanlı tenant, p95 bütçesi ve hedef VPS kabulü açık kaldı.",
+            "scripts/compare-ifc-parsers.ts, docs/deploy/container-app-worker.md, docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md",
           ],
         ],
       },

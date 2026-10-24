@@ -1,6 +1,12 @@
 # Working State: BIMMetraj
 
 Last updated: 2026-10-24. Keep this file to one page: current truth only.
+
+## Current local handoff — Rev. 65 / T45 partial
+
+- Rev. 65 records a local, repeatable preliminary performance measurement. `pnpm exec tsx scripts/compare-ifc-parsers.ts --synthetic-100mb` ran in three separate processes against a generated 100 MB IFC: 354,567 elements, 3.590–3.623 s parse time, peak RSS 1,190.48–1,237.61 MB, peak heap 778.86–826.59 MB. The result stayed below the documented 2 GiB RSS / 1 GiB heap ceilings.
+- This is not T45 closure. Approved p95/time/RAM/quota budgets, real permitted large IFC/Excel/PDF/3D fixtures, ExcelJS chunk measurement, concurrent tenant/queue latency, target VPS/Coolify evidence, and limit-error/recovery plus Sentry/log/alert correlation remain open.
+- Roadmap/calculation pages and `docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md` now carry Rev. 65 / `BIM-CALC-2026-10-24.59`; no production claim or deploy follows from this local measurement.
 > **Brand Note:** Project brand is officially **BIMMetraj** (formerly TeklifPro; domain `https://bimmetraj.com`).
 
 History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
