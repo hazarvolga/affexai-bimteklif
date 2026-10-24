@@ -1,7 +1,7 @@
 # CDE, hakediş, SmartCheck pilot, şirket sektör ayarı ve CRM/kota tenant RLS modeli
 
-**Sürüm:** Rev. 57 / `BIM-CALC-2026-10-24.51`
-**Kod baseline:** `a55841e56c0829f61802bc0db63e7baa1d317370`
+**Sürüm:** Rev. 58 / `BIM-CALC-2026-10-24.52`
+**Kod baseline:** `0a4d76a7cbf15b1bab80ebee2e41f260662bca0a`
 **Durum:** **PARTIAL — 22 tenant tablosu ile pilot audit/global katalog yüzeyleri ve ayrı control-plane kimliği yerelde kanıtlı; production cutover yok**
 
 ## Korunan tablolar
@@ -46,6 +46,8 @@ Rev. 55 ayrıca CRM/kota güven sınırını korur:
 Rev. 56, meşru authority-table yazmalarını ayrı `bimmetraj_control` credential/pool'una taşır. `0019_control_plane_rls`, `companies` ve `subscriptions` üzerinde control ALL; `usage_logs` üzerinde ayrı SELECT/INSERT/DELETE policy'leri kurar. Exact ACL matrisi `plans` için control DELETE'i, `usage_logs` için control UPDATE'i ve `leads` için bütün control erişimini reddeder. Kayıt/compensation, pilot tenant, şirket ayarı, banka transferi/abonelik, admin plan ve quota release/audit yolları control pool kullanır. Bu ayrım app kimliğinin genişletilmesi anlamına gelmez.
 
 Rev.57 final review düzeltmesi, app'in user/membership/token ve Academy authority/support tablolarındaki broad mutasyon grant'lerini exact SELECT/append-only matrise indirir; auth, davet ve Academy mutasyonlarını control pool ile hizalar. Audit DELETE reddedilir. Effective bağlantı URL query override'ları ve TLS downgrade başlangıçta kapanır; production iki URL olmadan başlamaz. App `admin_audit_logs` INSERT sahibi olduğundan audit append-only fakat credential compromise altında forge edilebilir; bağımsız authenticity kanıtı sayılmaz.
+
+Rev.58, sonraki tenant okuma taşımaları için `withTenantDrizzleTransaction` yardımcı sözleşmesini ekler. Yardımcı, `withTenantTransaction` içindeki aynı checked-out `PoolClient` üzerinde typed Drizzle database oluşturur; GUC bağlama, restricted app-role doğrulaması, commit/rollback ve pool release tek akışta kalır. Bu yalnız altyapı hazırlığıdır; auth middleware, worker entitlement capability ve global hassas app okumalarının tamamı henüz taşınmamıştır.
 
 ### CDE ve hakediş tablolarının ortak policy matrisi
 

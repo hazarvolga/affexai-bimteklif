@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.51",
+  version: "BIM-CALC-2026-10-24.52",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "a55841e56c0829f61802bc0db63e7baa1d317370",
-  approvalStatus: "Rev. 57, Rev.56 control-plane ayrımının güvenlik incelemesinde bulunan yetki açıklarını kapatır: authority/support tablolarında app exact salt-okunur/append-only ACL, audit DELETE reddi, effective URL override ve TLS downgrade kapısı, production CONTROL_DATABASE_URL preflight ve dar control ACL uygulanır. Kayıt sonrası e-posta teslim hatası append-only audit zincirini silmeye çalışmaz; hesap korunur ve yeniden gönderim durumu bildirilir. Hesap yöntemleri ve sonuçları değişmemiştir. Hassas global app okumaları, worker entitlement erişimi, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T40, T41 ve Faz 7 PARTIAL kalır. Audit append-only olsa da app INSERT nedeniyle credential compromise altında forge edilebilir; bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "0a4d76a7cbf15b1bab80ebee2e41f260662bca0a",
+  approvalStatus: "Rev. 58, tenant transaction altyapısına aynı checked-out PoolClient üzerinde Drizzle yürütücüsü ekler. Hesap yöntemleri ve sonuçları değişmemiştir. Auth resolver, worker entitlement sınırı, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1370,6 +1370,17 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     trigger: "Rev.56 final code/security review: control-plane DB ayrımındaki broad app grants, effective URL override, audit silme, startup preflight ve compensation açıklarını kapatma.",
     beforeSummary: "Kod yolları control pool'a taşınmıştı; ancak app rolü bazı authority/support tablolarda geniş mutasyon yetkisini koruyor, DATABASE_URL query override'ları effective kimliği değiştirebiliyor, audit DELETE açıktı ve production preflight control URL'yi zorunlu tutmuyordu. Ücretli kayıt sonrası e-posta hatasında append-only audit FK'leri hesap silme telafisini bozuyordu.",
     afterSummary: "App/control/worker exact ACL matrisi authority/support tablolarda converge eder; app doğrudan user/membership/token mutasyonu ve audit DELETE yapamaz. Auth, davet ve Academy control mutasyonları control pool'dadır. İki DB URL'si query allowlist, duplicate reddi, exact rol/hedef ve TLS strength ile doğrulanır; production preflight ikisini zorunlu tutar. Control broad sequence/pre-schema grants kaldırıldı. E-posta teslimi aksarsa hesap ve ödeme audit'i korunur, yeniden gönderim durumu döner. PG16, focused, build ve code/security re-review LOCAL GO'dur. Formül/sonuç değişmedi; global app reads, worker entitlement, route-level paid-registration failure testi ve production cutover açık olduğundan T41 PARTIAL/production NO-GO'dur.",
+    affectedModules: [],
+    moduleDetails: {},
+  },
+  {
+    revision: "Rev. 58",
+    version: "BIM-CALC-2026-10-24.52",
+    date: "24 Ekim 2026",
+    commit: "0a4d76a7cbf15b1bab80ebee2e41f260662bca0a",
+    trigger: "T41 sekizinci dilim hazırlığı: tenant bağlamlı servislerin aynı checked-out bağlantıda Drizzle sorguları çalıştırabilmesi.",
+    beforeSummary: "Tenant RLS servisleri aynı PoolClient üzerinde elle drizzle(client, { schema }) kuruyordu; ortak yardımcı sözleşmesi yoktu. Auth middleware ve worker entitlement okumaları hâlâ ayrı global app/worker sorguları kullanıyor.",
+    afterSummary: "withTenantDrizzleTransaction, transaction-local company/user GUC'leri ve restricted app-role doğrulamasından sonra aynı checked-out PoolClient'e bağlı typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement ve production cutover henüz uygulanmadı; formül/hesap sonucu değişmedi.",
     affectedModules: [],
     moduleDetails: {},
   },

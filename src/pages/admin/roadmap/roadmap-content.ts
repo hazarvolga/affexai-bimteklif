@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 57 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 58 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -197,7 +197,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve m.13(3) + 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
         ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
-        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB güvenliği kısmi (Rev. 57)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Yerel compose app veri düzlemi, app control-plane, worker/ifc-worker, migrator ve backup için ayrı credential kullanır. Beş CDE, on hakediş, iki SmartCheck pilot, company_industry_settings ile CRM leads/companies/subscriptions/usage_logs olmak üzere 22 tenant tablosu korunur; pilot audit, global industries ve salt-okunur plans katalog yüzeyleri ayrıca exact sınırlara alınmıştır. Diğer tenant tabloları, tenant-context app okumaları, worker entitlement sınırı ve production cutover/canary/restore/deploy açık olduğundan genel/canlı tenant izolasyonu iddia edilmez."],
+        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB güvenliği kısmi (Rev. 58)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Yerel compose app veri düzlemi, app control-plane, worker/ifc-worker, migrator ve backup için ayrı credential kullanır. Beş CDE, on hakediş, iki SmartCheck pilot, company_industry_settings ile CRM leads/companies/subscriptions/usage_logs olmak üzere 22 tenant tablosu korunur; pilot audit, global industries ve salt-okunur plans katalog yüzeyleri ayrıca exact sınırlara alınmıştır. withTenantDrizzleTransaction aynı checked-out bağlantıda tenant GUC'leri sonrası typed Drizzle sorgularını mümkün kılar. Diğer tenant tabloları, auth resolver, worker entitlement sınırı ve production cutover/canary/restore/deploy açık olduğundan genel/canlı tenant izolasyonu iddia edilmez."],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Manuel Havale/EFT Yaşam Döngüsü Yarış ve Replay Kapısı (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 49)", "Sipariş init tekilleştirilir; requestId zorunludur; plan/dönem/tutar snapshotı değişmez; dekont NFKC+dar ASCII ile global tekilleşir; submit/review ortak request kilidi kullanır; approve/reject terminaldir; pasif paket onayı kapanır ve ikinci gerçek ödeme aktif aynı-plan dönemini resetlemek yerine uzatır. Production deploy veya banka mutabakat entegrasyonu yapılmadı."],
@@ -262,6 +262,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale ve SmartCheck worker dilimleri PG16 kanıtlı (24 Ekim 2026 · Rev. 50)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını tamamladı. Academy webhook entitlement yarışı, banka mutabakatı, uzun işlem heartbeat/orphan bakım politikası ve production rollout açık olduğundan T42 PARTIAL'dır."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
+      { type: "callout", tone: "warn", title: "Uzman inceleme paketi hazırlık kapısı (T50 önkoşulu)", text: "T01–T49 arasındaki uzman onayı dışındaki teknik ve operasyon işleri tamamlandıktan veya dış lisans/vendor/gerçek dosya bağımlılığı olarak açıkça sınıflandırıldıktan sonra /admin/roadmap/expert-review oluşturulacaktır. Rehber; her T50–T51 kontrolünü disiplin, kaynak/kod/fixture hash'i, yeniden üretim adımı, beklenen sonuç, tolerans, negatif senaryo, ürün deep-link'i ve zorunlu ek ile eşleyecek; aynı baseline'dan üretilen PDF'nin SHA-256 kaydını gösterecektir. Rehber veya PDF kendi başına uzman onayı değildir; baseline, kaynak veya fixture değişirse inceleme yeniden açılır." },
       { type: "list", items: [
         "Dış girdiler: temsilî müşteri dosyaları ve kullanım izni, yetkili uzman değerlendirmesi, Aluplan iş birliği kapsamı ve Bakanlık görüşmesi bu geliştirmelerle paralel yürütülür.",
         "2–3 pilot ofise genişleme, kurum içi pilot bulguları değerlendirilip tenant başına yetki ve kota doğrulandıktan sonra ele alınır.",
@@ -271,17 +272,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 57 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 58 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 57)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 57 · BIM-CALC-2026-10-24.51 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 57 control-plane ayrımını exact app/control ACL, URL override/TLS kapısı, production preflight ve append-only audit sınırıyla sertleştirir; formül veya hesap sonucu değişikliği değildir. Kalan tenant-context app okumaları, worker entitlement erişimi ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 58)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 58 · BIM-CALC-2026-10-24.52 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 58 aynı checked-out PoolClient üzerinde tenant GUC'leri sonrası typed Drizzle transaction altyapısını ekler; formül veya hesap sonucu değişikliği değildir. Auth resolver, worker entitlement erişimi ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 57):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 58):",
       },
       {
         type: "table",
@@ -630,7 +631,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Ayrı bimmetraj_control login rolü, app-only CONTROL_DATABASE_URL, exact authority/support table allowlist'i ve 0019 control RLS politikaları eklendi. Kayıt/compensation, pilot tenant, şirket ayarı, banka transferi/abonelik, admin plan ve quota release/audit mutasyonları control pool'a taşındı. Control rolü leads, queue ve allowlist dışı tablo erişiminde reddedilir; compose secret izolasyonu, migration zinciri, build ve PG16 regresyonları geçti. Tenant-context kurulmadan yapılan kalan app okumaları, worker entitlement erişimi ve production secret cutover/canary/restore açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
           [
-            "Rev. 57 (Güncel geliştirme)",
+            "Rev. 58 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 Tenant Drizzle Transaction Altyapısı, Kısmi)",
+            "BIM-CALC-2026-10-24.52 (0a4d76a)",
+            "withTenantDrizzleTransaction aynı checked-out PoolClient üzerinde transaction-local tenant GUC'leri sonrasında typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement capability, ACL contract migration ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur; uzman rehberi/PDF T01–T49 teknik kapanışından sonra ayrı kabul paketi olarak hazırlanacaktır.",
+          ],
+          [
+            "Rev. 57",
             "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
             "BIM-CALC-2026-10-24.51 (a55841e)",
             "Rev.56 final incelemesindeki broad app authority grants, effective URL override/TLS downgrade, audit DELETE, eksik production preflight ve bozuk kayıt compensation açıkları kapatıldı. App/control/worker exact ACL, auth/davet/Academy control mutation ayrımı ve PG16 negatif kanıtı geçti; code/security review LOCAL GO verdi. Audit app INSERT nedeniyle forge edilebilir; tenant-context app okumaları, worker entitlement, route-level paid-registration failure testi ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
@@ -639,7 +646,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 57 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 58 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1140,6 +1147,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Rev. 55 güvenli app ACL'si meşru kayıt, şirket, ödeme, abonelik, admin plan ve kullanım telafisi yazmalarını da reddediyordu; bu yollar production cutover öncesi ayrı bir yetki sınırına taşınmamıştı.",
             "bimmetraj_control yalnız açık authority/support tablo allowlist'ine erişir; leads ve queue erişimi yoktur. 0019 policy'leri companies/subscriptions ALL ile usage_logs SELECT/INSERT/DELETE yollarını exact current_user koşuluna bağlar. Control URL yalnız app hizmetine verilir ve aynı PostgreSQL hedefi ile exact username doğrulanır. Meşru mutation servisleri control pool'a taşınır. PG16 negatif erişim ve drift kanıtı geçmiştir. Kalan tenant-context app okumaları ve worker entitlement erişimi nedeniyle production NO-GO/T41 PARTIAL korunur.",
             "drizzle-release/0019_control_plane_rls.sql, drizzle-release/meta/0019_snapshot.json, src/db/control-plane.ts, src/db/schema.ts, scripts/database-roles/{contract,inspect,provision,cli}.ts, compose.coolify.yaml, compose.example.yaml, src/server/{routes/auth.ts,routes/company.ts,admin/changes.ts}, src/services/{billing/bank-transfer.ts,billing/feature-quota.ts,billing/usage-audit.ts,pilot/PilotService.ts}, src/contracts/crm-lead-tenant-rls.pgtest.ts",
+          ],
+          [
+            "Rev. 58 · 24 Ekim 2026 (Faz 7 — T41 Tenant Drizzle Transaction Altyapısı, Kısmi)",
+            "PostgreSQL transaction-local tenant GUC; aynı checked-out PoolClient; typed Drizzle adapter; rollback/pool release sözleşmesi",
+            "Tenant RLS bounded context servisleri raw helper callback'inde `drizzle(client, { schema })` kuruyordu; ortak typed transaction yardımcı sözleşmesi yoktu. Auth ve worker global okumaları tenant sınırına alınmamıştı.",
+            "`withTenantDrizzleTransaction` mevcut restricted role ve GUC bağlama akışını koruyarak aynı PoolClient üzerinde typed Drizzle çalıştırır. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement, ACL contract migration ve production cutover açık kalır.",
+            "src/db/tenant-context.ts, src/db/tenant-context.test.ts",
           ],
           [
             "Rev. 57 · 24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",

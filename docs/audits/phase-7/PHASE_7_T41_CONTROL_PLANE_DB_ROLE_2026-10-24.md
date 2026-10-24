@@ -2,17 +2,21 @@
 
 **Tarih:** 24 Ekim 2026
 
-**Yol haritası:** Rev. 57
+**Yol haritası:** Rev. 58
 
-**Hesap kaydı:** `BIM-CALC-2026-10-24.51`
+**Hesap kaydı:** `BIM-CALC-2026-10-24.52`
 
-**Kod baseline:** `a55841e56c0829f61802bc0db63e7baa1d317370`
+**Kod baseline:** `0a4d76a7cbf15b1bab80ebee2e41f260662bca0a`
 
 **Karar:** **PARTIAL / production NO-GO**
 
 ## Sonuç
 
 Rev.55 ile daraltılan `bimmetraj_app` ACL'sinin artık gerçekleştiremediği meşru kayıt, şirket, ödeme/abonelik, admin plan ve kota telafi mutasyonları `1dcc0bc` ile ayrı `bimmetraj_control` kimliğine taşındı. Rev.56 final code/security review bulguları `a55841e` ile kapatıldı: app/control/worker authority ve support tablo ACL'leri exact matrise indirildi; auth, davet ve Academy mutasyonları control pool ile hizalandı; effective URL override, TLS downgrade, audit DELETE ve eksik production preflight reddedildi.
+
+Rev.58, sonraki tenant okuma taşımaları için aynı checked-out bağlantıya bağlı typed Drizzle transaction yardımcısını ekledi. Bu yardımcı, auth veya worker erişim sınırını henüz kapatmaz.
+
+`withTenantDrizzleTransaction` için 7/7 tenant-context testi, TypeScript ve diff-check geçti. Bu Rev.58 hazırlık kanıtı auth middleware'in global okumalarını, worker entitlement capability function'ını veya hassas app kolonlarının ACL sözleşmesini kapatmış sayılmaz.
 
 Bu yerel dilim control-plane yazma ayrımını ve incelemede bulunan P1 açıklarını kapatır; tenant bağlamsız app okumalarını, worker entitlement okuma sınırını veya production cutover'ı kapatmaz.
 

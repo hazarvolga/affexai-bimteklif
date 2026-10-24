@@ -1,7 +1,7 @@
 # BIMMetraj PostgreSQL görev ayrımı modeli
 
-**Sürüm:** Rev. 57 / `BIM-CALC-2026-10-24.51`
-**Kod baseline:** `a55841e56c0829f61802bc0db63e7baa1d317370`
+**Sürüm:** Rev. 58 / `BIM-CALC-2026-10-24.52`
+**Kod baseline:** `0a4d76a7cbf15b1bab80ebee2e41f260662bca0a`
 **Durum:** **PARTIAL — altı canonical rol, izole PostgreSQL 16 ve yerel runtime credential sözleşmesi hazır; production cutover yapılmadı**
 
 ## Rol sözleşmesi

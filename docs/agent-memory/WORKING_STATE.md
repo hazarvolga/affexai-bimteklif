@@ -335,3 +335,10 @@ automatically transitions to the free plan; do not enable paid usage.
 - Registration no longer attempts to erase append-only payment audit/account state after email delivery failure; it preserves the account and returns `emailVerificationDeliveryPending` for resend. Route-level paid-plan failure/retry integration evidence remains P2.
 - Focused checks, TypeScript, build and CRM/control PostgreSQL 16 passed; final code and security reviews returned LOCAL GO. Audit remains append-only but app-forgeable because app INSERT is retained; it is not compliance authenticity proof.
 - Roadmap `Rev. 57`; calculation record `BIM-CALC-2026-10-24.51`. Production remains NO-GO; sensitive global app reads, worker entitlement/broad remaining surfaces, production cutover/canary/restore and independent acceptance remain open.
+
+## 2026-10-24 T41 tenant Drizzle transaction foundation eighth slice
+
+- Baseline `0a4d76a7cbf15b1bab80ebee2e41f260662bca0a` adds `withTenantDrizzleTransaction` beside the existing raw-client helper. It binds typed Drizzle to the same checked-out `PoolClient` only after transaction-local company/user context and restricted app-role validation succeed.
+- `src/db/tenant-context.test.ts` passes 7/7; TypeScript and diff-check pass. No auth route, worker entitlement function, ACL revoke, migration or calculation formula changed.
+- Roadmap `Rev. 58`; calculation record `BIM-CALC-2026-10-24.52`. Next order is 8A auth authority resolver, 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate; it is not an approval record.
+- Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.
