@@ -13,7 +13,8 @@ RUN pnpm run build \
     && pnpm exec esbuild src/smartcheck/import/ifc-worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/ifc-worker.mjs \
     && pnpm exec esbuild scripts/bootstrap-plan-catalog.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/bootstrap-plan-catalog.mjs \
     && pnpm exec esbuild scripts/bootstrap-pricing-source-catalog.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/bootstrap-pricing-source-catalog.mjs \
-    && pnpm exec esbuild scripts/release-migrations/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/release-cli.mjs
+    && pnpm exec esbuild scripts/release-migrations/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/release-cli.mjs \
+    && pnpm exec esbuild scripts/database-roles/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/database-roles-cli.mjs
 # Coolify passes the deployed commit; it is stamped into the image so /api/health cannot drift (P0-4).
 # Declared after the build so a new commit only re-runs this layer, not the whole build.
 ARG SOURCE_COMMIT=""

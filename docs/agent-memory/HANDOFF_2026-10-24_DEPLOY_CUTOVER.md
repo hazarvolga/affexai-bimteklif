@@ -3,8 +3,8 @@
 ## Bu noktadaki durum
 
 - Üretim uygulaması `https://bimmetraj.com/api/health` hâlâ `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e` revision'ını bildiriyor. Coolify deploy yapılmadı.
-- `main` üzerinde son push `495644599c5bbdb4ab02d9f72a5b0b12fee9bf2f` (`fix: restore restricted database CI verification`). GitHub Verify `40088426684`, RLS/rol/full verify/Prisma/browser aşamalarını geçip production dependency audit aşamasında `body-parser@1.20.8` nedeniyle `GHSA-27r3-jxmh-p828` bulgusuyla başarısız oldu.
-- Yerel, henüz commit/push edilmemiş `pnpm-workspace.yaml` ve `pnpm-lock.yaml` override'ları Express 4 hattını `body-parser@1.20.9`, Express 5 hattını `2.4.0` sürümüne sabitliyor. `node scripts/dependency-audit-policy.mjs` sonucu `{"blocked":[]}`. Bu yamadan sonraki yerel `pnpm run verify` tamamlandı; Vite/server/spreadsheet-worker build başarılı. Büyük IFC viewer chunk uyarısı mevcut, build hatası değil.
+- En son push `cd819811683f1fff46225dae07b994d7087722b5` (`fix: unblock legacy database role cutover`). GitHub Verify `40089915624` bu SHA için yeşil tamamlandı (17m18s): RLS, rol/migrasyon, full verify, Prisma, browser smoke, dependency audit, image build ve network-isolated artifact smoke geçti. Önceki `495644599c5bbdb4ab02d9f72a5b0b12fee9bf2f` runı `body-parser@1.20.8` (`GHSA-27r3-jxmh-p828`) nedeniyle audit aşamasında başarısız olmuştu.
+- `pnpm-workspace.yaml` ve `pnpm-lock.yaml` override'ları Express 4 hattını `body-parser@1.20.9`, Express 5 hattını `2.4.0` sürümüne sabitliyor. `node scripts/dependency-audit-policy.mjs` sonucu `{"blocked":[]}`. Bunlar `cd81981` CI runında doğrulandı. Daha sonra bulunan operator-image/Compose wiring değişiklikleri henüz commit/push edilmedi; yeni SHA için CI yeniden çalışmalı.
 - Kullanıcının beyanı: canlıda gerçek müşteri verisi yok. Yine de üretim DB'sinde incelenen yedekte 68 public tablo, 5 user ve 5 company vardı; bunları cutover sırasında silme/yeniden oluşturma varsayımı yapılmamalı. Yedek geri yükleme provası bu verileri korudu.
 
 ## Cutover kök nedeni ve kapatılan kanıt
@@ -24,8 +24,8 @@ Bu, eski şema → iki aşamalı rol cutover → güncel şema/ACL inspector zin
 
 ## Kod, test ve çalışma ağacı
 
-- Pending intended changes: `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `scripts/database-roles/cli.ts`, `scripts/database-roles/provision.ts`, `scripts/database-roles/bootstrap-legacy.test.ts`, `docs/agent-memory/WORKING_STATE.md` and this handoff.
-- `bootstrap-legacy` olumsuz sınır testleri: 4/4 geçti (ledger drift, kısmi rol seti, cluster fingerprint farkı, provenance drift).
+- Pending intended changes: `Dockerfile`, `compose.coolify.yaml`, `compose.example.yaml`, `scripts/database-roles/runtime-compose-contract.test.ts` plus this handoff and `WORKING_STATE.md`. Dependency/bootstrap implementation itself was committed and pushed in `cd81981`.
+- `bootstrap-legacy` olumsuz sınır testleri: 4/4 geçti (ledger drift, kısmi rol seti, cluster fingerprint farkı, provenance drift). Role-admin runtime Compose sözleşmesi lokal testleri 4/4 geçti; role CLI bundle local `dist/database-roles-cli.mjs` olarak üretildi. Yeni değişikliklerden sonra çalıştırılan yerel `pnpm run verify`, TypeScript aşamasını geçti ancak DB entegrasyon testlerinde gerekli `DATABASE_URL`/izole PostgreSQL bulunmadığı ve `127.0.0.1:5432` bağlantısı reddedildiği için durdu. Bu, Compose/Dockerfile değişikliği için yeşil doğrulama sayılmaz; yeni commit'in GitHub Verify'ı beklenmeli.
 - Body-parser dependency audit policy: `blocked: []`.
 - Son `pnpm run verify`: başarılı (1355 test; 1349 geçti, 6 skip, 0 fail) ve production build başarılı. Bu yerel kanıttır; yeni commit için GitHub Verify henüz çalıştırılmadı.
 - Önceki reviewer durumu: security review GO; code review bootstrap için izole gerçek PostgreSQL başarı zincirinin kanıtlanmasını ve aşama 1 sonrası hata kurtarma yolunun belgelenmesini istedi. Bu handoff'taki PG16 prova ilk açığı kapatır; cutover runbook'taki ileri kurtarma/restore adımı ikinci riski yönetir.
@@ -34,16 +34,17 @@ Bu, eski şema → iki aşamalı rol cutover → güncel şema/ACL inspector zin
 ## Kalan sıra
 
 1. `graphify update .` çalıştır ve sonuçları kontrol et.
-2. İlgili diff'i gözden geçir; yalnızca intended code/dependency/docs değişikliklerini stage et. `git status --short` ile user-owned untracked ve graphify dosyalarını dışarıda bırak.
-3. `pnpm run verify`, `pnpm exec tsx --test scripts/database-roles/bootstrap-legacy.test.ts`, `node scripts/dependency-audit-policy.mjs`, `pnpm why body-parser` ve diff-check'i son kez çalıştır.
-4. Conventional commit oluşturup `main`'e push et. Yeni GitHub Verify run ID'sini al; `scripts/require-green-ci.sh <SHA>` başarılı olana kadar Coolify deploy etme.
-5. Deploy öncesi Coolify env'lerinde app/control/worker URL ayrımı ile migrator/admin ve beş rol parolasının hazır olduğunu doğrula; değerleri loga veya bu belgeye yazma. Üretim DB bağlantı bilgilerini ve beklenen cluster/database marker'larını ikinci kez doğrula.
-6. Pencere öncesi taze backup al ve checksum/restore kanıtını kaydet. App/worker trafiğini drain et; eski idx8 `bootstrap-legacy` işlemini bir kez çalıştır; release migration runner'ı çalıştır; tam `provision`, ardından `inspect`/`assert` çalıştır. Aşama sonrası hata olursa rol bootstrap'ini tekrar körlemesine çalıştırma; ledger/owner/rol durumunu inceleyip ileri kurtarma veya doğrulanmış restore uygula.
-7. Yalnızca migration + inspector yeşil olduktan sonra Coolify deploy et. `/api/health` revision'ını beklenen SHA ile ve login/tenant akışını doğrula; worker queue, Sentry/log ve rollback kanıtını kaydet. Deploy/doğrulama başarısızsa rollback planını uygula.
+2. Role-admin servisi normal Compose startup dışında, yalnızca `operator` profile'ında kalmalı; `.env.app` veya `.env.postgres` dosyalarını almamalı. Mevcut testler bu sözleşmeyi doğruluyor. `inspect` şimdilik admin URL'si kullanır; operator container'ı kısa ömürlü olmalı ve açık bırakılmamalı. Salt-okunur ayrı inspect kimliği sonraki iyileştirmedir.
+3. Yeni `cd81981` üstü Dockerfile/Compose/test/doc değişikliklerini incele. Yalnızca intended dosyaları stage et; `graphify-out/` ve kullanıcıya ait raporları dışarıda bırak. Yerelde lint/build, odaklı role testleri, dependency audit ve diff-check'i çalıştır; tam `pnpm run verify` DB erişimi olmadığı için entegrasyon aşamasında durdu. Tam kapsam için commit sonrası GitHub Verify'ı bekle.
+4. PostgreSQL system identifier'ını üretim DB'sinde salt-okunur `select system_identifier::text from pg_control_system();` ile al ve deployment kaydıyla eşleştir. Değeri `DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER` olarak Coolify değişkenlerine yaz; parola/URL değerlerini loglama. Boş fingerprint ile `bootstrap-legacy` ve `provision` hata vererek durur.
+5. Conventional commit ve push yap; bu yeni SHA için GitHub Verify tamamlanıp `scripts/require-green-ci.sh <SHA>` yeşil dönmeden deploy etme.
+6. Coolify'da beş ayrı rol parolasının (`BIMMETRAJ_APP_DB_PASSWORD`, `BIMMETRAJ_CONTROL_DB_PASSWORD`, `BIMMETRAJ_WORKER_DB_PASSWORD`, `BIMMETRAJ_MIGRATOR_DB_PASSWORD`, `BIMMETRAJ_BACKUP_DB_PASSWORD`) ve `DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER` değişkeninin hazır olduğunu doğrula. Admin URL, Compose tarafından mevcut `SERVICE_PASSWORD_64_POSTGRES` değerinden operator service'e türetilir; marker/database hedefleri sabittir.
+7. Pencere öncesi yeni checksum doğrulamalı backup al. App/worker/IFC worker trafiğini durdur ve Graphile kilitli/çalışan iş sayısının sıfır olduğunu doğrula. Coolify Compose checkout/SSH operatör terminalinde sırayla çalıştır: `docker compose --profile operator run --rm role-admin node dist/database-roles-cli.mjs bootstrap-legacy`; sonra `docker compose run --rm migrate`; sonra `docker compose --profile operator run --rm role-admin node dist/database-roles-cli.mjs provision`; son olarak `docker compose --profile operator run --rm role-admin node dist/database-roles-cli.mjs inspect`. Operator çağrılarında `node ...` argümanı zorunludur: Docker image `tini` entrypoint kullanır, dolayısıyla yalnızca `bootstrap-legacy` argümanı verilirse executable bulunamaz. Her adım başarılı olmadan sonrakine geçme. Aşama sonrası hata olursa bootstrap'i körlemesine tekrar etme; ledger/owner/rol durumunu inceleyip ileri kurtarma veya doğrulanmış restore uygula.
+8. Yalnızca migration + inspector yeşil olduktan sonra Coolify deploy et. `/api/health` revision'ını beklenen SHA ile ve login/tenant akışını doğrula; worker queue, Sentry/log ve rollback kanıtını kaydet. Deploy/doğrulama başarısızsa rollback planını uygula.
 
 ## Açık kapılar
 
-- Yeni GitHub Verify ve zorunlu yeşil CI kapısı.
+- Son yeşil CI yalnızca `cd81981` için geçerli; sonraki Compose/Dockerfile operator-path değişikliği yeni SHA ve yeni yeşil CI gerektiriyor. Yerel lint, 8 odaklı role/Compose testi, dependency audit ve build geçti; tam yerel `verify` DB bağlantısı olmadığı için entegrasyon testlerinde durdu. Güvenlik reviewer handoff komutundaki `tini` kaynaklı hatayı yakaladı; komutlar yukarıda açık `node dist/database-roles-cli.mjs ...` biçiminde düzeltildi.
 - Coolify secret/env hazırlığı ve üretim drain/cutover/deploy.
 - Canlı health revision, login/tenant smoke, worker queue ve log/alert kanıtı.
 - T41/Phase 7'nin diğer tenant tabloları ve bağımsız uzman kabulü. Bu deploy handoff'u uzman onayı yerine geçmez.

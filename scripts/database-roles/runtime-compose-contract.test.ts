@@ -21,7 +21,7 @@ const expected = Object.freeze({
   migrate: ["RELEASE_DATABASE_URL", "bimmetraj_migrator"],
 } as const);
 
-type RenderedService = { environment?: Record<string, string> };
+type RenderedService = { environment?: Record<string, string>; profiles?: string[]; command?: string[] };
 
 function renderCompose(source: string): Record<string, RenderedService> {
   const directory = mkdtempSync(path.join(tmpdir(), "bimmetraj-db-runtime-compose-"));
@@ -29,13 +29,13 @@ function renderCompose(source: string): Record<string, RenderedService> {
     const compose = path.join(directory, "compose.yaml");
     copyFileSync(path.resolve(source), compose);
     for (const file of [".env.app", ".env.worker", ".env.migrator", ".env.backup", ".env.postgres"]) {
-      writeFileSync(path.join(directory, file), "RUNTIME_FIXTURE=not-a-secret\n", { mode: 0o600 });
+      writeFileSync(path.join(directory, file), "RUNTIME_FIXTURE=not-a-secret\nAPP_PROVIDER_SENTINEL=must-not-leak\n", { mode: 0o600 });
     }
     mkdirSync(path.join(directory, "deploy", "backup"), { recursive: true });
-    const output = execFileSync("docker", ["compose", "-f", compose, "config", "--format", "json"], {
+    const output = execFileSync("docker", ["compose", "--profile", "operator", "-f", compose, "config", "--format", "json"], {
       encoding: "utf8",
       timeout: 15_000,
-      env: { ...process.env, ...credentials, BIMMETRAJ_EMPTY_ENV: "" },
+      env: { ...process.env, ...credentials, DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER: "1234567890123456789", BIMMETRAJ_EMPTY_ENV: "" },
     });
     return JSON.parse(output).services;
   } finally {
@@ -49,7 +49,7 @@ function renderWithout(source: string, missing: keyof typeof credentials) {
     const compose = path.join(directory, "compose.yaml");
     copyFileSync(path.resolve(source), compose);
     for (const file of [".env.app", ".env.worker", ".env.migrator", ".env.backup", ".env.postgres"]) {
-      writeFileSync(path.join(directory, file), "RUNTIME_FIXTURE=not-a-secret\n", { mode: 0o600 });
+      writeFileSync(path.join(directory, file), "RUNTIME_FIXTURE=not-a-secret\nAPP_PROVIDER_SENTINEL=must-not-leak\n", { mode: 0o600 });
     }
     mkdirSync(path.join(directory, "deploy", "backup"), { recursive: true });
     const environment = { ...process.env, ...credentials };
@@ -67,7 +67,6 @@ function renderWithout(source: string, missing: keyof typeof credentials) {
 for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
   test(`${compose} assigns a distinct least-privilege database identity to every runtime`, () => {
     const source = readFileSync(path.resolve(compose), "utf8");
-    assert.doesNotMatch(source, /postgresql:\/\/bimmetraj:/, "bootstrap identity must not be a runtime URL");
     assert.doesNotMatch(source, /postgresql:\/\/bimmetraj_owner:/, "NOLOGIN owner must never be a connection identity");
 
     const services = renderCompose(compose);
@@ -87,6 +86,32 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
       assert.equal(services[service]?.environment?.CONTROL_DATABASE_URL, undefined, `${service} cannot receive the control-plane database identity`);
     }
 
+    const roleAdmin = services["role-admin"];
+    assert.ok(roleAdmin, "one-shot operator role administration service is required");
+    assert.ok(roleAdmin.profiles?.includes("operator"), "role administration must be opt-in");
+    assert.deepEqual(roleAdmin.command, ["node", "dist/database-roles-cli.mjs", "inspect"]);
+    const roleEnvironment = roleAdmin.environment ?? {};
+    assert.equal(roleEnvironment.RUNTIME_FIXTURE, undefined, "operator service must not inherit env files");
+    assert.equal(roleEnvironment.APP_PROVIDER_SENTINEL, undefined, "operator service must not inherit app secrets");
+    assert.equal(roleEnvironment.POSTGRES_PASSWORD, undefined, "operator service must not inherit postgres env file secrets");
+    assert.match(source, /profiles:\s*\[operator\]/, "role-admin must be outside normal startup");
+    const adminUrl = roleEnvironment.DATABASE_ROLE_ADMIN_URL;
+    assert.ok(adminUrl, "role-admin must receive the isolated bootstrap database URL");
+    assert.equal(new URL(adminUrl).username, "bimmetraj");
+    assert.equal(new URL(adminUrl).hostname, "postgres");
+    assert.equal(new URL(adminUrl).pathname, "/bimmetraj_production");
+    assert.equal(roleEnvironment.DATABASE_ROLE_INSPECT_URL, adminUrl);
+    assert.equal(roleEnvironment.DATABASE_ROLE_ALLOW_PROVISION, "true");
+    assert.equal(roleEnvironment.DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER, "1234567890123456789");
+    assert.equal(roleEnvironment.DATABASE_ROLE_EXPECTED_DATABASE, "bimmetraj_production");
+    assert.equal(roleEnvironment.DATABASE_ROLE_REQUIRED_MARKER, "teklifpro_release.migrations");
+    for (const key of ["BIMMETRAJ_APP_DB_PASSWORD", "BIMMETRAJ_CONTROL_DB_PASSWORD", "BIMMETRAJ_WORKER_DB_PASSWORD", "BIMMETRAJ_MIGRATOR_DB_PASSWORD", "BIMMETRAJ_BACKUP_DB_PASSWORD"]) {
+      assert.equal(roleEnvironment[key], credentials[key as keyof typeof credentials]);
+    }
+    const dockerfile = readFileSync(path.resolve("Dockerfile"), "utf8");
+    assert.match(dockerfile, /scripts\/database-roles\/cli\.ts/);
+    assert.match(dockerfile, /outfile=dist\/database-roles-cli\.mjs/);
+
     const backup = services.backup?.environment ?? {};
     assert.equal(backup.PGUSER, "bimmetraj_backup");
     assert.equal(backup.PGPASSWORD, credentials.BIMMETRAJ_BACKUP_DB_PASSWORD);
@@ -102,6 +127,7 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
       const environment = service.environment ?? {};
       assert.equal(environment.POSTGRES_PASSWORD, undefined, `${serviceName} cannot receive bootstrap password`);
       for (const key of Object.keys(credentials).filter((key) => key.endsWith("_DB_PASSWORD") || key === "SERVICE_PASSWORD_64_POSTGRES")) {
+        if (serviceName === "role-admin") continue;
         assert.ok(environment[key] === undefined || environment[key] === "", `${serviceName} cannot expose raw ${key}`);
       }
     }

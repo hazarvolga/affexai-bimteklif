@@ -176,6 +176,41 @@ services:
       postgres:
         condition: service_healthy
 
+
+  # Manual production role provisioning only: compose --profile operator run --rm role-admin <inspect|bootstrap-legacy|provision>.
+  # This service is not part of the normal startup graph and carries DB admin credentials only for one-shot operator actions.
+  role-admin:
+    profiles: [operator]
+    image: bimmetraj-migrate:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: migrate
+    command: [node, dist/database-roles-cli.mjs, inspect]
+    restart: 'no'
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    environment:
+      <<: *no-backup-environment
+      NODE_ENV: production
+      DATABASE_ROLE_ADMIN_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}@postgres:5432/bimmetraj_production
+      DATABASE_ROLE_INSPECT_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}@postgres:5432/bimmetraj_production
+      DATABASE_ROLE_ALLOW_PROVISION: 'true'
+      DATABASE_ROLE_EXPECTED_DATABASE: bimmetraj_production
+      DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER: ${DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER:-}
+      DATABASE_ROLE_REQUIRED_MARKER: teklifpro_release.migrations
+      BIMMETRAJ_APP_DB_PASSWORD: ${BIMMETRAJ_APP_DB_PASSWORD:?BIMMETRAJ_APP_DB_PASSWORD is required}
+      BIMMETRAJ_CONTROL_DB_PASSWORD: ${BIMMETRAJ_CONTROL_DB_PASSWORD:?BIMMETRAJ_CONTROL_DB_PASSWORD is required}
+      BIMMETRAJ_WORKER_DB_PASSWORD: ${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}
+      BIMMETRAJ_MIGRATOR_DB_PASSWORD: ${BIMMETRAJ_MIGRATOR_DB_PASSWORD:?BIMMETRAJ_MIGRATOR_DB_PASSWORD is required}
+      BIMMETRAJ_BACKUP_DB_PASSWORD: ${BIMMETRAJ_BACKUP_DB_PASSWORD:?BIMMETRAJ_BACKUP_DB_PASSWORD is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
   # Coolify Scheduled Task: container=backup, command=/usr/local/bin/bimmetraj-backup.
   # Idle until scheduled; empty backup credentials fail closed only when invoked.
   backup:
