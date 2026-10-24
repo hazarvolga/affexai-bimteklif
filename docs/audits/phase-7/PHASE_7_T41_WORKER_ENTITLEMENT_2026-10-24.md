@@ -12,7 +12,7 @@ Worker runtime `DATABASE_URL` ile `bimmetraj_worker` olarak çalışır. Kod tab
 - `src/services/billing/quota.ts`: `companies`, `subscriptions`, `plans` ve `usage_records` üzerinden IFC kota tüketimi.
 - `src/smartcheck/import/processor.ts`: başarılı IFC işlemi sonunda worker transactionı içinde kota tüketimi.
 
-Bu nedenle `companies`, `subscriptions` ve `plans` için worker ACL'sini hemen kaldırmak eski worker konteynerlerini kırar. Bu revizyon ACL revoke veya production cutover yapmaz.
+Bu nedenle `companies`, `subscriptions` ve `plans` için worker ACL'sini hemen kaldırmak eski worker konteynerlerini kırar. 8B/8C production adapterları yeni capability function'ları kullanır; bu revizyonlar yine de ACL revoke veya production cutover yapmaz.
 
 Rev. 60 ile `0020_worker_entitlement_capability` release migrationı, role contract ve production IFC quota adapter'ı eklendi. Capability function yalnız `bimmetraj_worker` için `EXECUTE` verir; release artifact ve negatif role testleri geçti. Direct table grant revoke için canary/drain kanıtı henüz yoktur.
 
