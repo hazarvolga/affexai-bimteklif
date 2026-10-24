@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.61",
+  version: "BIM-CALC-2026-10-24.62",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "f0a9e357a16a709290519ff1f1e09bb6aeded6fe",
+  implementationBaseline: "7fbedb3675c55655c6c8a075a4fb49c6cd9b18c7",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1564,6 +1564,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "T45 gerçek dosya, hedef VPS, concurrency ve observability kanıtı açık kalıyordu; uzman çalışma sırası görünür değildi.",
         after: "Sayfa bu kanıtların ölçüm formunda kaydedilmesini zorunlu kapı olarak gösterir; yerel sentetik ölçüm uzman/VPS kabulü sayılmaz.",
         basis: "docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md T45",
+      },
+    },
+  },
+  {
+    revision: "Rev. 68",
+    version: "BIM-CALC-2026-10-24.62",
+    date: "24 Ekim 2026",
+    commit: "7fbedb3675c55655c6c8a075a4fb49c6cd9b18c7",
+    trigger: "Uzman denemesi öncesi: mükerrer GUID'li modellerde açıkta kalan elemanların kaybolması ve tarayıcı ön analizinin yetkili sonuç gibi görünmesi.",
+    beforeSummary: "İcmal, açıkta kalan kayıtları worker raporuyla yalnız GlobalId üzerinden birleştiriyordu; aynı GUID'i paylaşan ikinci eleman rapordan ve açıkta kalan sayacından düşüyordu. Tarayıcı ön analizinde yapısal elemanların neden açıkta kaldığı ekranda açıklanmıyordu.",
+    afterSummary: "Kayıtlar GUID + sınıf + ad + kat kimliğiyle sayımlı birleştirilir: worker'da bulunan kayıt bir kez kalır, farklı elemanlar ayrı kalır. Tarayıcı sonucu 'yetkili sonuç değildir' notuyla gösterilir. Metraj ve poz hesapları değişmedi.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Mükerrer GUID'li iki açıkta kalan elemandan yalnız ilki raporlanıyordu.",
+        after: "Her iki eleman da raporda ve sayaçta yer alır; worker kaydı çift sayılmaz.",
+        basis: "src/ifc/calm-icmal.test.ts (aynı GlobalId ve worker kaydı testleri)",
       },
     },
   },

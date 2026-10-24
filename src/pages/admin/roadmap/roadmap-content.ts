@@ -693,16 +693,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Harici iki IFC fixture üzerinde browser/worker desteklenen kesişim metrikleri eşleşti; toplam eleman, geometry fallback hacimleri ve kalıp alanı worker-authoritative olarak ayrıldı. Fixture README'si lisans/dağıtım izni vermediğinden uzman/vendor kabulü değildir; T45 kapanmadı.",
           ],
           [
-            "Rev. 67 (Güncel geliştirme)",
+            "Rev. 67",
             "24 Ekim 2026 (Uzman deneme hazırlığı, T43–T45 kabul kapıları)",
             "BIM-CALC-2026-10-24.61 (expert-review)",
             "`/admin/roadmap/expert-review` korunan admin rotası; kaynak kabulü, üçlü senaryo, gerçek UI/VPS performans ölçümü, retry/alert gözlemi ve imzalı karar sırasını tek yerde sunar. Sayfa uzman onayı vermez; T43/T44/T45 ve production cutover açık kalır.",
+          ],
+          [
+            "Rev. 68 (Güncel geliştirme)",
+            "24 Ekim 2026 (Uzman denemesi öncesi temizlik: mükerrer GUID raporu, tarayıcı ön analizi uyarısı, iddiasız ürün metni)",
+            "BIM-CALC-2026-10-24.62",
+            "1) Aynı GlobalId'yi paylaşan farklı açıkta kalan elemanlar artık raporda ayrı ayrı kalır; worker raporunda zaten bulunan kayıt ikinci kez eklenmez (GUID + sınıf + ad + kat, sayımlı eşleşme). 2) Tarayıcı IFC ön analizinin üstünde 'yetkili sonuç değildir' notu: tarayıcı ayrıştırıcısı malzeme katmanı okumadığı için yapısal elemanların açıkta görünmesi açıklanır, SmartCheck sunucu analizine bağlantı verilir. 3) Ürün metninden doğrulanmamış iddialar çıkarıldı: 'ÇŞB UYUMLU' → 'ÇŞB POZ ESASLI', 'Mevzuat Uyumluluk Tamam' → 'ön kontrolde bulgu yok', akademide 'yüzde yüz hassasiyet / dünyada 1 numara / 0 sapma' ve kaynaksız Revit ±%10-15 ifadeleri kaldırıldı. Pazarlama söylemleri bağımsız uzman görüşünden sonra belirlenecek. 4) Sunucu açılış ve fiyat zamanlayıcı logları yapılandırılmış logger'a taşındı. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 67 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 68 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1280,6 +1286,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Uzman denemesi için dosya kökeni, performans ölçümü, hata/geri kazanım ve imza adımları dokümanlarda ayrı duruyor; admin içinde tek bir çalışma sırası yoktu.",
             "Korunan `/admin/roadmap/expert-review` rotası disiplin kapsamlarını, zorunlu beş kabul kapısını, gerçek UI/VPS ölçümünü ve imzalı karar sırasını bağlar. Bu bir uzman kabulü değildir; gerçek dosya, hedef VPS ve bağımsız imza bekler.",
             "src/pages/admin/ExpertReview.tsx, src/App.tsx, src/pages/admin/DeveloperRoadmap.tsx, docs/audits/phase-0/EXPERT_REVIEW_DOSSIER_2026-10-23.md",
+          ],
+          [
+            "Rev. 68 · 24 Ekim 2026 (Uzman denemesi öncesi ürün temizliği)",
+            "Uzman denemesinde yanlış okumayı önleme; şirket ilkesi: ürün metinleri yalnız doğrulanmış davranışı anlatır",
+            "1) calm-icmal açıkta kalan kayıtları worker raporuyla yalnız GlobalId üzerinden tekilleştiriyordu; mükerrer GUID'li modelde ikinci eleman rapordan ve sayaçtan düşüyordu. 2) Tarayıcı ön analizi malzeme katmanı taşımadığı için betonarme/kâgir elemanlar 'malzeme tanımı yok' olarak açıkta görünüyor, ekranda bunun nedeni yazmıyordu. 3) Başlık, altbilgi, giriş, teklif detayı ve akademi metinlerinde 'ÇŞB UYUMLU', 'tam uyumlu', 'yüzde yüz hassasiyet', '0 sapma' gibi doğrulanmamış iddialar vardı.",
+            "1) mergeReportEntries: kimlik GUID + sınıf + ad + kat, sayımlı birleştirme. 2) BrowserPreviewNotice bileşeni (role=note) tarayıcı sonucunun üstünde gösterilir. 3) Metinler davranışı anlatacak şekilde yeniden yazıldı; standartları öğreten eğitim metinleri değişmedi.",
+            "src/ifc/calm-icmal.ts, src/ifc/calm-icmal.test.ts, src/components/bimplan/BrowserPreviewNotice.tsx, src/components/bimplan/BimIfcParser.tsx, src/components/layout/Shell.tsx, src/components/bimplan/Footer.tsx, src/pages/Login.tsx, src/pages/QuoteDetail.tsx, src/pages/DosyadanTeklifDemo.tsx, src/pages/Academy.tsx, src/pages/PublicAcademy.tsx, src/server/app.ts, src/server/crawler/priceSchedulerService.ts",
           ],
         ],
       },
