@@ -70,6 +70,33 @@ jobs:
           python -m pytest workers/ifc -q
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: test -x "$PUPPETEER_EXECUTABLE_PATH"
+      - name: Bootstrap disposable release roles
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_owner') THEN
+              CREATE ROLE bimmetraj_owner NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_migrator') THEN
+              CREATE ROLE bimmetraj_migrator LOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_app') THEN
+              CREATE ROLE bimmetraj_app LOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_control') THEN
+              CREATE ROLE bimmetraj_control LOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_worker') THEN
+              CREATE ROLE bimmetraj_worker LOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_backup') THEN
+              CREATE ROLE bimmetraj_backup LOGIN;
+            END IF;
+          END
+          $$;
+          GRANT bimmetraj_owner TO bimmetraj_migrator;
+          SQL
       - run: pnpm exec tsx scripts/release-migrations/cli.ts apply
         env:
           RELEASE_WORKERS_DRAINED: 'true'
