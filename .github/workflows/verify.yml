@@ -101,6 +101,12 @@ jobs:
             echo 'DATABASE_URL=postgresql://bimmetraj_app@127.0.0.1:5432/teklifpro_bootstrap_test'
             echo 'CONTROL_DATABASE_URL=postgresql://bimmetraj_control@127.0.0.1:5432/teklifpro_bootstrap_test'
             echo 'WORKER_DATABASE_URL=postgresql://bimmetraj_worker@127.0.0.1:5432/teklifpro_bootstrap_test'
+            echo 'TEST_ISOLATION_SOURCE_DATABASE_URL=postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test'
+            echo 'TEST_ISOLATION_SOURCE_CONTROL_DATABASE_URL=postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test'
+            echo 'TEST_ISOLATION_SOURCE_WORKER_DATABASE_URL=postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test'
+            echo 'TEST_ISOLATION_RUNTIME_DATABASE_URL=postgresql://bimmetraj_app@127.0.0.1:5432/teklifpro_bootstrap_test'
+            echo 'TEST_ISOLATION_RUNTIME_CONTROL_DATABASE_URL=postgresql://bimmetraj_control@127.0.0.1:5432/teklifpro_bootstrap_test'
+            echo 'TEST_ISOLATION_RUNTIME_WORKER_DATABASE_URL=postgresql://bimmetraj_worker@127.0.0.1:5432/teklifpro_bootstrap_test'
           } >> "$GITHUB_ENV"
       - run: pnpm exec tsx scripts/release-migrations/cli.ts apply
         env:

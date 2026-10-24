@@ -75,19 +75,26 @@ async function cloneTables(client: pg.Client, schema: string) {
 export async function createTestIsolation(sourceUrl: string) {
   const schema = `teklifpro_test_${crypto.randomUUID().replaceAll("-", "")}`;
   const workerSchema = `${schema}_worker`;
-  const databaseUrl = isolatedDatabaseUrl(sourceUrl, schema);
-  const controlUrl = process.env.CONTROL_DATABASE_URL ?? sourceUrl;
-  const controlDatabaseUrl = isolatedDatabaseUrl(controlUrl, schema);
-  const workerSourceUrl = process.env.WORKER_DATABASE_URL;
-  const workerDatabaseUrl = workerSourceUrl ? isolatedDatabaseUrl(workerSourceUrl, schema) : undefined;
-  if (new URL(sourceUrl).pathname !== new URL(controlUrl).pathname) {
+  // Schema creation uses the disposable database owner, while application
+  // assertions must run through the restricted runtime roles. CI supplies
+  // TEST_ISOLATION_*_RUNTIME_DATABASE_URL for that split; local callers keep
+  // the historical single-URL behavior.
+  const controlSourceUrl = process.env.TEST_ISOLATION_SOURCE_CONTROL_DATABASE_URL ?? process.env.CONTROL_DATABASE_URL ?? sourceUrl;
+  const workerSourceUrl = process.env.TEST_ISOLATION_SOURCE_WORKER_DATABASE_URL ?? process.env.WORKER_DATABASE_URL;
+  const runtimeUrl = process.env.TEST_ISOLATION_RUNTIME_DATABASE_URL ?? sourceUrl;
+  const runtimeControlUrl = process.env.TEST_ISOLATION_RUNTIME_CONTROL_DATABASE_URL ?? process.env.CONTROL_DATABASE_URL ?? runtimeUrl;
+  const runtimeWorkerUrl = process.env.TEST_ISOLATION_RUNTIME_WORKER_DATABASE_URL ?? process.env.WORKER_DATABASE_URL;
+  const databaseUrl = isolatedDatabaseUrl(runtimeUrl, schema);
+  const controlDatabaseUrl = isolatedDatabaseUrl(runtimeControlUrl, schema);
+  const workerDatabaseUrl = runtimeWorkerUrl ? isolatedDatabaseUrl(runtimeWorkerUrl, schema) : undefined;
+  if (new URL(sourceUrl).pathname !== new URL(controlSourceUrl).pathname) {
     throw new Error("Integration isolation control and runtime URLs must target the same database");
   }
   if (workerSourceUrl && new URL(sourceUrl).pathname !== new URL(workerSourceUrl).pathname) {
     throw new Error("Integration isolation worker and runtime URLs must target the same database");
   }
   const storageDir = await mkdtemp(join(tmpdir(), "teklifpro-test-"));
-  const client = new pg.Client({ connectionString: controlUrl, connectionTimeoutMillis: 2_000 });
+  const client = new pg.Client({ connectionString: controlSourceUrl, connectionTimeoutMillis: 2_000 });
   let created = false;
   let workerCreated = false;
   let closed = false;
@@ -184,7 +191,7 @@ export async function createTestIsolation(sourceUrl: string) {
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT EXECUTE ON FUNCTION ${workerQualified}.bimmetraj_remove_smartcheck_job(text) TO bimmetraj_app`);
     }
-    return { schema, workerSchema, databaseUrl, workerDatabaseUrl, storageDir, cleanup };
+    return { schema, workerSchema, databaseUrl, controlDatabaseUrl, workerDatabaseUrl, storageDir, cleanup };
   } catch (error) {
     await cleanup();
     throw error;
@@ -197,12 +204,13 @@ export function useTestIsolation() {
   before(async () => {
     if (!process.env.DATABASE_URL) throw new Error("Test isolation unavailable: DATABASE_URL is required");
     try {
-      isolation = await createTestIsolation(process.env.DATABASE_URL);
+      isolation = await createTestIsolation(process.env.TEST_ISOLATION_SOURCE_DATABASE_URL ?? process.env.DATABASE_URL);
     } catch {
       throw new Error("Test isolation unavailable: refusing to run against the shared database");
     }
     const overrides = {
       DATABASE_URL: isolation.databaseUrl,
+      CONTROL_DATABASE_URL: isolation.controlDatabaseUrl,
       ...(isolation.workerDatabaseUrl ? { WORKER_DATABASE_URL: isolation.workerDatabaseUrl } : {}),
       GRAPHILE_WORKER_SCHEMA: isolation.workerSchema,
       SMARTCHECK_LOCAL_STORAGE_DIR: isolation.storageDir,
