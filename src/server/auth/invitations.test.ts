@@ -139,12 +139,12 @@ test('issue stores only hash, expires prior tenant/email invitations and reports
     insert: () => ({ values: (value: any) => ({ returning: async () => { assert.equal(expired, true); stored = { id: 'id', createdAt: new Date(), acceptedAt: null, ...value }; return [stored]; } }) }),
   };
   t.mock.method(db, 'transaction', (async (fn: any) => fn(tx)) as any);
-  const result = await issueInvitation('tenant', 'inviter', { email: 'A@b.test', role: 'viewer' });
+  const result = await issueInvitation('tenant', 'inviter', { email: 'A@b.test', role: 'viewer' }, db);
   assert.equal(result.delivery.status, 'development');
   const raw = result.delivery.devInvitationUrl!.split('/').at(-1)!;
   assert.equal(stored.token, invitationTokenHash(raw));
   assert.equal('token' in result.invitation, false);
-  await assert.rejects(issueInvitation('tenant', 'inviter', { email: 'bad' }), /INVALID_INVITATION_INPUT/);
+  await assert.rejects(issueInvitation('tenant', 'inviter', { email: 'bad' }, db), /INVALID_INVITATION_INPUT/);
 });
 
 test('preview accepts only hashed lookup, redacts secrets and announces existing-account sign-in', async (t) => {

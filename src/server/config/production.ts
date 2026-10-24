@@ -1,6 +1,7 @@
 import { validateAuthEmailEnvironment } from "../auth/email-policy";
 import { uploadQuotaLimits } from "../../smartcheck/import/upload-quota";
 import { readIfcEnvironmentLimits } from './ifc-limits';
+import { validateControlDatabaseUrls } from '../../db/control-plane';
 type Env = Record<string, string | undefined>;
 
 const placeholderSecret = (value: string) => /^(change-me|super-secret|secret|password)/i.test(value.trim());
@@ -26,6 +27,11 @@ export function validateProductionEnvironment(env: Env = process.env) {
   catch (error) { errors.push(error instanceof Error ? error.message : 'INVALID_IFC_LIMIT'); }
   try { uploadQuotaLimits(env); } catch { errors.push('UPLOAD_QUOTA_CONFIG_INVALID'); }
   if (!env.DATABASE_URL) errors.push('DATABASE_URL is required.');
+  if (!env.CONTROL_DATABASE_URL) errors.push('CONTROL_DATABASE_URL is required.');
+  if (env.DATABASE_URL && env.CONTROL_DATABASE_URL) {
+    try { validateControlDatabaseUrls(env.DATABASE_URL, env.CONTROL_DATABASE_URL); }
+    catch (error) { errors.push(error instanceof Error ? error.message : 'CONTROL_DATABASE_URL_INVALID'); }
+  }
   if (!env.JWT_SECRET || env.JWT_SECRET.length < 32 || placeholderSecret(env.JWT_SECRET)) errors.push('JWT_SECRET must be a non-placeholder secret of at least 32 characters.');
   if (!env.PUBLIC_APP_URL || !validHttpsUrl(env.PUBLIC_APP_URL)) errors.push('PUBLIC_APP_URL must be an absolute HTTPS URL.');
   errors.push(...validateAuthEmailEnvironment(env));

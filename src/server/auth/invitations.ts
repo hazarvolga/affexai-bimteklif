@@ -4,6 +4,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { RequestHandler, Response } from 'express';
 import { db } from '../../db';
+import { getControlDatabase } from '../../db/control-plane';
 import { academyLearnerProfiles, companies, invitations, memberships, users } from '../../db/schema';
 import { AuthService } from '../../services/auth/authService';
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from './security';
@@ -74,13 +75,13 @@ export async function deliverInvitation(email: string, url: string, env = proces
   }
 }
 
-export async function issueInvitation(companyId: string, invitedBy: string, value: unknown) {
+export async function issueInvitation(companyId: string, invitedBy: string, value: unknown, database = getControlDatabase().db) {
   assertAuthEmailAvailable();
   const input = invitationInput.safeParse(value);
   if (!input.success) throw new InvitationError('INVALID_INVITATION_INPUT');
   const { email, role } = input.data;
   const created = createActionToken();
-  const invite = await db.transaction(async tx => {
+  const invite = await database.transaction(async tx => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`invite:${companyId}:${email}`}))`);
     const now = new Date();
     // Reissue explicitly expires all older links, including legacy plaintext rows.
@@ -91,7 +92,7 @@ export async function issueInvitation(companyId: string, invitedBy: string, valu
   const base = (process.env.PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
   const delivery = await deliverInvitation(email, `${base}/accept-invite/${created.token}`);
   if (delivery.status === 'failed') {
-    const [expired] = await db.update(invitations).set({ expiresAt: new Date() }).where(eq(invitations.id, invite.id)).returning();
+    const [expired] = await database.update(invitations).set({ expiresAt: new Date() }).where(eq(invitations.id, invite.id)).returning();
     return { invitation: publicInvitation(expired), delivery };
   }
   return { invitation: publicInvitation(invite), delivery };
@@ -109,7 +110,7 @@ function assertUsableInvitation(invite: typeof invitations.$inferSelect | undefi
   if (!invitationRole.safeParse(invite.role).success) throw new InvitationError('INVITATION_REISSUE_REQUIRED');
 }
 
-export async function acceptInvitation(token: string, value: unknown, actor?: { userId: string }, database = db) {
+export async function acceptInvitation(token: string, value: unknown, actor?: { userId: string }, database = getControlDatabase().db) {
   const tokenHash = invitationTokenHash(token);
   const accepted = await database.transaction(async tx => {
     const [invite] = await tx.select().from(invitations).where(eq(invitations.token, tokenHash)).for('update');

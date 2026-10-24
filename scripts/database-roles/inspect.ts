@@ -6,6 +6,7 @@ import {
   DATABASE_CDE_RLS_TABLES,
   DATABASE_COMPANY_INDUSTRY_RLS_TABLES,
   DATABASE_CRM_LEAD_RLS_TABLES,
+  DATABASE_CONTROL_APP_TABLE_ACL,
   DATABASE_CONTROL_TABLE_ACL,
   DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
@@ -600,9 +601,13 @@ async function inspectExactAclViolations(client: Queryable): Promise<string[]> {
         const controlAccess = row.schema === "public"
           ? DATABASE_CONTROL_TABLE_ACL[row.object_name as keyof typeof DATABASE_CONTROL_TABLE_ACL]
           : undefined;
+        const appControlAccess = row.schema === "public"
+          ? DATABASE_CONTROL_APP_TABLE_ACL[row.object_name as keyof typeof DATABASE_CONTROL_APP_TABLE_ACL]
+          : undefined;
         allowed = restricted && (row.grantee === "bimmetraj_app" || row.grantee === "bimmetraj_control" || row.grantee === "bimmetraj_worker")
           ? restricted[row.grantee]
           : controlAccess && row.grantee === "bimmetraj_control" ? controlAccess
+          : appControlAccess && row.grantee === "bimmetraj_app" ? appControlAccess
           : row.grantee === "bimmetraj_control" ? []
           : row.schema === "teklifpro_queue" && row.object_name === "migrations" && row.grantee === "bimmetraj_app"
             ? ["SELECT"] : mode === "write" ? ["DELETE", "INSERT", "SELECT", "UPDATE"] : mode === "read" ? ["SELECT"] : [];

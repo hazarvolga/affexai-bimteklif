@@ -83,6 +83,18 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
     await denied(() => controlPlane.query("insert into leads(company_id,name) values($1,'control-forged')", [ids.companyA]));
     await denied(() => controlPlane.query("select * from teklifpro_queue.migrations"));
     await denied(() => controlPlane.query("set role bimmetraj_owner"));
+    for (const mutation of [
+      "insert into users(email,full_name) values('app-forged@example.test','forged')",
+      `update users set full_name='forged' where id='${ids.userA}'`,
+      `delete from users where id='${ids.userA}'`,
+      `insert into memberships(user_id,company_id,role) values('${ids.userA}','${ids.companyB}','owner')`,
+      `update memberships set role='owner' where user_id='${ids.userA}'`,
+      `delete from memberships where user_id='${ids.userA}'`,
+      `insert into auth_action_tokens(user_id,type,token_hash,expires_at) values('${ids.userA}','verify_email','forged',now()+interval '1 hour')`,
+    ]) await denied(() => app.query(mutation));
+    await admin.query("insert into admin_audit_logs(admin_id,target_company_id,action) values($1,$2,'seed')", [ids.userA, ids.companyA]);
+    await denied(() => app.query("delete from admin_audit_logs"));
+    await denied(() => controlPlane.query("delete from admin_audit_logs"));
     const actorA = { companyId: ids.companyA, userId: ids.userA };
     const quotaDependencyView = await withTenantTransaction(app, actorA, async client => ({
       companies: (await client.query("select id::text id from companies order by id")).rows.map(row => row.id),

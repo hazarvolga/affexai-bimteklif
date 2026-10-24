@@ -3,24 +3,28 @@ import { describe, it } from 'node:test';
 import { validateProductionEnvironment, validateSmartcheckStorageEnvironment } from './production';
 
 describe('production environment preflight', () => {
+  const database = {
+    DATABASE_URL: 'postgresql://bimmetraj_app:app@postgres:5432/bimmetraj_production',
+    CONTROL_DATABASE_URL: 'postgresql://bimmetraj_control:control@postgres:5432/bimmetraj_production',
+  };
   it('does not block local development', () => {
     assert.deepEqual(validateProductionEnvironment({ NODE_ENV: 'development' }), { valid: true, errors: [], trustProxyHops: 0 });
   });
 
   it('rejects missing, placeholder and insecure production settings', () => {
-    const result = validateProductionEnvironment({ NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'change-me', PUBLIC_APP_URL: 'http://example.com', AUTH_EMAIL_WEBHOOK_URL: 'http://example.com/hook', AUTH_EMAIL_WEBHOOK_SECRET: 'secret', TRUST_PROXY_HOPS: '9' });
+    const result = validateProductionEnvironment({ NODE_ENV: 'production', ...database, JWT_SECRET: 'change-me', PUBLIC_APP_URL: 'http://example.com', AUTH_EMAIL_WEBHOOK_URL: 'http://example.com/hook', AUTH_EMAIL_WEBHOOK_SECRET: 'secret', TRUST_PROXY_HOPS: '9' });
     assert.equal(result.valid, false);
     assert.equal(result.errors.length, 5);
   });
 
   it('accepts a complete Coolify-style production environment', () => {
-    const result = validateProductionEnvironment({ NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://academy.example.com', AUTH_EMAIL_WEBHOOK_URL: 'https://n8n.example.com/webhook/auth', AUTH_EMAIL_WEBHOOK_SECRET: 'w'.repeat(48), TRUST_PROXY_HOPS: '1' });
+    const result = validateProductionEnvironment({ NODE_ENV: 'production', ...database, JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://academy.example.com', AUTH_EMAIL_WEBHOOK_URL: 'https://n8n.example.com/webhook/auth', AUTH_EMAIL_WEBHOOK_SECRET: 'w'.repeat(48), TRUST_PROXY_HOPS: '1' });
     assert.equal(result.valid, true);
     assert.equal(result.trustProxyHops, 1);
   });
 
   it('accepts complete authenticated SMTP and rejects partial SMTP configuration', () => {
-    const base = { NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://bimmetraj.com', TRUST_PROXY_HOPS: '1', AUTH_EMAIL_DELIVERY_MODE: 'smtp', AUTH_EMAIL_SMTP_HOST: 'mail.affexai.tr', AUTH_EMAIL_SMTP_PORT: '465', AUTH_EMAIL_SMTP_USER: 'info@bimmetraj.com', AUTH_EMAIL_SMTP_PASSWORD: 's'.repeat(48), AUTH_EMAIL_FROM: 'info@bimmetraj.com' };
+    const base = { NODE_ENV: 'production', ...database, JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://bimmetraj.com', TRUST_PROXY_HOPS: '1', AUTH_EMAIL_DELIVERY_MODE: 'smtp', AUTH_EMAIL_SMTP_HOST: 'mail.affexai.tr', AUTH_EMAIL_SMTP_PORT: '465', AUTH_EMAIL_SMTP_USER: 'info@bimmetraj.com', AUTH_EMAIL_SMTP_PASSWORD: 's'.repeat(48), AUTH_EMAIL_FROM: 'info@bimmetraj.com' };
     assert.equal(validateProductionEnvironment(base).valid, true);
     assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_SMTP_PASSWORD: '' }).valid, false);
     assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_SMTP_PORT: '25' }).valid, false);
@@ -37,7 +41,7 @@ describe('production environment preflight', () => {
     assert.equal(validateSmartcheckStorageEnvironment(base).valid, false);
     assert.equal(validateSmartcheckStorageEnvironment({ ...base, SMARTCHECK_S3_ACCESS_KEY_ID: '', SMARTCHECK_S3_SECRET_ACCESS_KEY: '' }).valid, false);
     assert.equal(validateSmartcheckStorageEnvironment({ ...base, SMARTCHECK_S3_ACCESS_KEY_ID: 'access', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret' }).valid, true);
-    const production = { ...base, NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://app.example.test', AUTH_EMAIL_DELIVERY_MODE: 'disabled' };
+    const production = { ...base, NODE_ENV: 'production', ...database, JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://app.example.test', AUTH_EMAIL_DELIVERY_MODE: 'disabled' };
     assert.equal(validateProductionEnvironment(production).valid, false, 'static credential deployment must fail even before import enablement');
     assert.equal(validateProductionEnvironment({ ...production, SMARTCHECK_S3_ACCESS_KEY_ID: 'access', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret' }).valid, true);
     assert.equal(validateProductionEnvironment({ ...production, SMARTCHECK_S3_ACCESS_KEY_ID: 'access', SMARTCHECK_S3_SECRET_ACCESS_KEY: 'secret', JWT_SECRET: '' }).valid, false);
@@ -45,7 +49,7 @@ describe('production environment preflight', () => {
 });
 
 it('explicit disabled email permits production startup while default webhook remains fail closed', () => {
-  const base = { NODE_ENV: 'production', DATABASE_URL: 'postgres://db', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://app.example.test' };
+  const base = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://bimmetraj_app:app@postgres:5432/bimmetraj_production', CONTROL_DATABASE_URL: 'postgresql://bimmetraj_control:control@postgres:5432/bimmetraj_production', JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://app.example.test' };
   assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_DELIVERY_MODE: 'disabled' }).valid, true);
   assert.equal(validateProductionEnvironment(base).valid, false);
   assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_DELIVERY_MODE: 'typo' }).valid, false);

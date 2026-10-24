@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { db, pool } from "../db";
+import { getControlDatabase } from "../db/control-plane";
 import { companies, memberships, rateLimitBuckets, users } from "../db/schema";
 import { sql } from "drizzle-orm";
 import Layer from "express/lib/router/layer";
@@ -323,19 +324,20 @@ export async function startServer() {
       const existingCompany = await db.query.companies.findFirst();
       if (!existingCompany) {
         console.log("Seeding initial company and admin...");
-        const [company] = await db.insert(companies).values({
+        const controlDb = getControlDatabase().db;
+        const [company] = await controlDb.insert(companies).values({
           name: "TeklifPro Demo Şirketi",
           defaultCurrency: "TRY",
         }).returning();
         
         const passwordHash = await AuthService.hashPassword("admin123");
-        const [user] = await db.insert(users).values({
+        const [user] = await controlDb.insert(users).values({
           email: "admin@teklifpro.ai",
           fullName: "Admin Kullanıcı",
           passwordHash
         }).returning();
 
-        await db.insert(memberships).values({
+        await controlDb.insert(memberships).values({
           userId: user.id,
           companyId: company.id,
           role: "owner",

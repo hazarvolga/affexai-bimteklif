@@ -1,5 +1,5 @@
 import type pg from "pg";
-import { DATABASE_CONTROL_TABLE_ACL, DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_PUBLIC_RESTRICTED_TABLE_ACL, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
+import { DATABASE_CONTROL_APP_TABLE_ACL, DATABASE_CONTROL_TABLE_ACL, DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_PUBLIC_RESTRICTED_TABLE_ACL, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
 import { assertRoleBoundaries, inspectRoleBoundaries, inspectRoleProvenanceViolations } from "./inspect";
 
 export type DatabaseRoleCredentials = Record<Exclude<DatabaseRoleName, "bimmetraj_owner">, string>;
@@ -142,8 +142,6 @@ async function convergePrivileges(client: Queryable, database: string, allowMiss
     if (schema === "public") {
       await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
       await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
-      await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_control`);
-      if (allowMissingRestrictedTables) await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_control`);
       for (const [table, access] of Object.entries(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL)) {
         const present = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [`public.${table}`]);
         if (!present.rows[0]?.present) {
@@ -161,7 +159,9 @@ async function convergePrivileges(client: Queryable, database: string, allowMiss
           if (allowMissingRestrictedTables) continue;
           throw new Error(`Required control-plane table is missing: ${table}`);
         }
-        await client.query(`revoke all privileges on table ${qualified}.${identifier(table)} from bimmetraj_control`);
+        await client.query(`revoke all privileges on table ${qualified}.${identifier(table)} from bimmetraj_app,bimmetraj_control,bimmetraj_worker`);
+        const appAccess = DATABASE_CONTROL_APP_TABLE_ACL[table as keyof typeof DATABASE_CONTROL_APP_TABLE_ACL] ?? [];
+        if (appAccess.length) await client.query(`grant ${appAccess.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_app`);
         await client.query(`grant ${access.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_control`);
       }
       for (const table of ["companies", "subscriptions", "usage_logs"] as const) {

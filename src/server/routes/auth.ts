@@ -39,18 +39,18 @@ export async function issueAuthAction(userId: string, type: 'verify_email' | 're
 async function stageAuthAction(userId: string, type: 'verify_email' | 'reset_password', lifetimeMs: number) {
   assertAuthEmailAvailable();
   const created = createActionToken();
-  const [record] = await db.insert(authActionTokens).values({ userId, type, tokenHash: created.tokenHash, expiresAt: new Date(Date.now() + lifetimeMs) }).returning({ id: authActionTokens.id });
+  const [record] = await getControlDatabase().db.insert(authActionTokens).values({ userId, type, tokenHash: created.tokenHash, expiresAt: new Date(Date.now() + lifetimeMs) }).returning({ id: authActionTokens.id });
   return { id: record.id, raw: created.token };
 }
 
 async function finalizeAuthAction(userId: string, type: 'verify_email' | 'reset_password', id: string) {
-  await db.update(authActionTokens).set({ expiresAt: new Date() }).where(and(
+  await getControlDatabase().db.update(authActionTokens).set({ expiresAt: new Date() }).where(and(
     eq(authActionTokens.userId, userId), eq(authActionTokens.type, type), isNull(authActionTokens.consumedAt), sql`${authActionTokens.id} <> ${id}`,
   ));
 }
 
 async function discardAuthAction(id: string) {
-  await db.delete(authActionTokens).where(eq(authActionTokens.id, id));
+  await getControlDatabase().db.delete(authActionTokens).where(eq(authActionTokens.id, id));
 }
 
 export async function issueAndDeliverAuthAction(input: {
@@ -78,18 +78,6 @@ export async function issueAndDeliverAuthAction(input: {
   return { raw, developmentUrl };
 }
 
-async function rollbackFailedRegistration(userId: string, companyId: string) {
-  await getControlDatabase().db.transaction(async tx => {
-    await tx.delete(authActionTokens).where(eq(authActionTokens.userId, userId));
-    await tx.delete(adminAuditLogs).where(eq(adminAuditLogs.targetCompanyId, companyId));
-    await tx.delete(academyEnrollmentAuditLogs).where(and(eq(academyEnrollmentAuditLogs.companyId, companyId), eq(academyEnrollmentAuditLogs.actorUserId, userId)));
-    await tx.delete(memberships).where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
-    await tx.delete(subscriptions).where(eq(subscriptions.companyId, companyId));
-    await tx.delete(companies).where(eq(companies.id, companyId));
-    await tx.delete(users).where(eq(users.id, userId));
-  });
-}
-
 async function guardedRateLimit(res: Response, key: string, limit: number, windowMs: number) {
   try {
     return await consumeRateLimit(key, limit, windowMs);
@@ -108,7 +96,7 @@ export function registerAuthRoutes(app: Express) {
     const rate = await guardedRateLimit(res, `acquisition:${clientAddress(req)}`, 20, 60 * 60 * 1000);
     if (!rate) return;
     if (!rate.allowed) return res.status(202).json({ accepted: true });
-    await db.insert(academyAcquisitionEvents).values({ acquisitionId, landingPath }).onConflictDoNothing();
+    await getControlDatabase().db.insert(academyAcquisitionEvents).values({ acquisitionId, landingPath }).onConflictDoNothing();
     return res.status(202).json({ accepted: true });
   });
 
@@ -166,6 +154,7 @@ export function registerAuthRoutes(app: Express) {
         return { company, user, academyEnrolled: Boolean(edition), pendingPaymentOrder };
       });
 
+      let emailVerificationDeliveryPending = false;
       try {
         const order = result.pendingPaymentOrder;
         await issueAndDeliverAuthAction({
@@ -201,9 +190,8 @@ export function registerAuthRoutes(app: Express) {
           },
         });
       } catch (error) {
-        try { await rollbackFailedRegistration(result.user.id, result.company.id); }
-        catch (rollbackError) { console.error('Registration compensation failed:', rollbackError); }
-        throw error;
+        emailVerificationDeliveryPending = true;
+        console.error('Registration persisted; verification delivery must be retried:', error instanceof Error ? error.name : 'UnknownError');
       }
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
       setSessionCookies(res, token);
@@ -218,6 +206,7 @@ export function registerAuthRoutes(app: Express) {
         accountType: intent === 'academy' ? 'academy_learner' : 'workspace',
         academyEnrolled: result.academyEnrolled,
         emailVerificationRequired: true,
+        emailVerificationDeliveryPending,
         pendingPaymentOrder,
       });
     } catch (error) {
@@ -231,7 +220,7 @@ export function registerAuthRoutes(app: Express) {
 
   app.get('/api/auth/verify-email/:token', async (req, res) => {
     const tokenHash = hashActionToken(req.params.token || '');
-    const verified = await db.transaction(async tx => {
+    const verified = await getControlDatabase().db.transaction(async tx => {
       const now = new Date();
       const [claimed] = await tx.update(authActionTokens).set({ consumedAt: now })
         .where(and(eq(authActionTokens.tokenHash, tokenHash), eq(authActionTokens.type, 'verify_email'),
@@ -315,7 +304,7 @@ export function registerAuthRoutes(app: Express) {
     const [record] = await db.select().from(authActionTokens).where(and(eq(authActionTokens.tokenHash, tokenHash), eq(authActionTokens.type, 'reset_password'), isNull(authActionTokens.consumedAt), gt(authActionTokens.expiresAt, new Date())));
     if (!record) return res.status(400).json({ error: 'Parola yenileme bağlantısı geçersiz veya süresi dolmuş.' });
     const passwordHash = await AuthService.hashPassword(password);
-    const consumed = await db.transaction(async tx => {
+    const consumed = await getControlDatabase().db.transaction(async tx => {
       const now = new Date();
       const [claimed] = await tx.update(authActionTokens).set({ consumedAt: now })
         .where(and(eq(authActionTokens.id, record.id), eq(authActionTokens.type, 'reset_password'),
