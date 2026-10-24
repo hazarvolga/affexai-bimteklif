@@ -56,6 +56,18 @@ async function cloneTables(client: pg.Client, schema: string) {
   for (const { tablename } of tables.rows) {
     await client.query(`CREATE TABLE ${quote(schema)}.${quote(tablename)} (LIKE public.${quote(tablename)} INCLUDING ALL)`);
   }
+  // Disposable CI roles need to exercise fixture DDL (constraint/trigger
+  // failure tests) while production runtime roles remain non-owner. Transfer
+  // ownership only when the CI-only owner role exists.
+  const owner = await client.query<{ exists: boolean }>(
+    "SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_owner')"
+  );
+  if (owner.rows[0]?.exists) {
+    await client.query(`ALTER SCHEMA ${quote(schema)} OWNER TO bimmetraj_owner`);
+    for (const { tablename } of tables.rows) {
+      await client.query(`ALTER TABLE ${quote(schema)}.${quote(tablename)} OWNER TO bimmetraj_owner`);
+    }
+  }
   // LIKE preserves columns/defaults/indexes, but foreign keys must point into our schema.
   const actions: Record<string, string> = { a: "NO ACTION", r: "RESTRICT", c: "CASCADE", n: "SET NULL", d: "SET DEFAULT" };
   for (const key of keys) {
@@ -133,8 +145,18 @@ export async function createTestIsolation(sourceUrl: string) {
       logger: new Logger(() => () => {}),
     });
     await workerUtils.release();
-    const roles = await client.query<{ rolname: string }>("select rolname from pg_roles where rolname in ('bimmetraj_app','bimmetraj_worker')");
+    const roles = await client.query<{ rolname: string }>("select rolname from pg_roles where rolname in ('bimmetraj_owner','bimmetraj_app','bimmetraj_worker')");
     const roleNames = new Set(roles.rows.map((row) => row.rolname));
+    if (roleNames.has("bimmetraj_owner")) {
+      await client.query(`ALTER SCHEMA ${quote(workerSchema)} OWNER TO bimmetraj_owner`);
+      const workerTables = await client.query<{ tablename: string }>(
+        "select tablename from pg_tables where schemaname = $1",
+        [workerSchema]
+      );
+      for (const { tablename } of workerTables.rows) {
+        await client.query(`ALTER TABLE ${quote(workerSchema)}.${quote(tablename)} OWNER TO bimmetraj_owner`);
+      }
+    }
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT USAGE ON SCHEMA ${quote(schema)},${quote(workerSchema)} TO bimmetraj_app`);
       await client.query(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA ${quote(schema)} TO bimmetraj_app`);
