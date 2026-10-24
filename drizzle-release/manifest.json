@@ -141,6 +141,13 @@
       "sha256": "24f0f17e52c89a76b270a0aab563e2b61c8917bb4162f04bb0dc1215c520d05a",
       "snapshotSha256": "c8e074143cb2b3c8c57646a39310fa3cf662f171f3d479de7c2a4fa89e2b90c3",
       "statements": 5
+    },
+    {
+      "idx": 20,
+      "tag": "0020_worker_entitlement_capability",
+      "sha256": "f3450a119b28300f1ccef583b3fe17ba1f054e4496abf156b791f059c2e051ce",
+      "snapshotSha256": "5f6b2b28867139ad1c0299e9961f8aeaec9baf91c5ee800b3f95e40f26b1b016",
+      "statements": 4
     }
   ]
 }

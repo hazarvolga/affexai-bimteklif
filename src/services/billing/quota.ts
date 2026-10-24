@@ -58,11 +58,27 @@ export async function consumeQuotationQuota(tx: Transaction, companyId: string, 
 
 async function lockedIfcUsage(tx: Transaction, companyId: string, at?: Date) {
   // Same order as admin subscription changes: company -> plan -> subscription.
-  const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for("update");
-  if (!company) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
+  if (process.env.NODE_ENV === "production") {
+    const entitlement = await tx.execute<{
+      company_exists: boolean;
+      subscription_status: string | null;
+      current_period_end: Date | null;
+      plan_id: string | null;
+      plan_is_active: boolean | null;
+      monthly_ifc_limit: number | null;
+      ifc_max_file_mb: number | null;
+      ifc_max_concurrent: number | null;
+    }>(sql`select * from public.bimmetraj_worker_get_entitlement(${companyId}::uuid)`);
+    if (!entitlement.rows[0]?.company_exists) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
+  } else {
+    const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for("update");
+    if (!company) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
+  }
 
-  const [pointer] = await tx.select({ planId: subscriptions.planId }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
-  if (pointer?.planId) {
+  const [pointer] = process.env.NODE_ENV === "production"
+    ? [undefined]
+    : await tx.select({ planId: subscriptions.planId }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
+  if (process.env.NODE_ENV !== "production" && pointer?.planId) {
     await tx.select().from(plans).where(eq(plans.id, pointer.planId)).for("share");
     const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId)).for("update");
     if (subscription?.planId !== pointer?.planId) throw quotaUnavailable();

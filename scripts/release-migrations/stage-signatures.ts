@@ -82,6 +82,10 @@ const stages = [
     sql: '24f0f17e52c89a76b270a0aab563e2b61c8917bb4162f04bb0dc1215c520d05a',
     snapshot: 'c8e074143cb2b3c8c57646a39310fa3cf662f171f3d479de7c2a4fa89e2b90c3',
     catalog: 'a6c7cc11909be0c010eba97c5a3a21e247225f67bb40fb6b08fa12ef3a5cec0b' },
+  { tag: '0020_worker_entitlement_capability',
+    sql: 'f3450a119b28300f1ccef583b3fe17ba1f054e4496abf156b791f059c2e051ce',
+    snapshot: '5f6b2b28867139ad1c0299e9961f8aeaec9baf91c5ee800b3f95e40f26b1b016',
+    catalog: 'aa8b12ecc45010d6e64ac0fc7c6b3ff22afbf777373dec0e41ac5f660aba8b57' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

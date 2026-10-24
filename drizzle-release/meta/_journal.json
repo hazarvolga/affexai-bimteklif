@@ -141,6 +141,13 @@
       "when": 1791417600019,
       "tag": "0019_control_plane_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791417600020,
+      "tag": "0020_worker_entitlement_capability",
+      "breakpoints": true
     }
   ]
 }

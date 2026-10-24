@@ -63,6 +63,7 @@ export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
   Object.freeze({ schema: "teklifpro_queue", name: "remove_job", arguments: "text", fullArguments: "job_key text", roles: Object.freeze([] as const), securityDefiner: false, strict: true, result: "teklifpro_queue._private_jobs" }),
   Object.freeze({ schema: "teklifpro_queue", name: "bimmetraj_enqueue_smartcheck", arguments: "text, json, text, integer, integer", fullArguments: "p_identifier text, p_payload json, p_job_key text, p_max_attempts integer, p_priority integer", roles: Object.freeze(["bimmetraj_app"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "teklifpro_queue", name: "bimmetraj_remove_smartcheck_job", arguments: "text", fullArguments: "p_job_key text", roles: Object.freeze(["bimmetraj_app"] as const), securityDefiner: true, strict: false, result: "TABLE(locked_at timestamp with time zone)" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_worker_get_entitlement", arguments: "uuid", fullArguments: "p_company_id uuid", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "TABLE(company_exists boolean, subscription_status text, current_period_end timestamp with time zone, plan_id uuid, plan_is_active boolean, monthly_ifc_limit integer, ifc_max_file_mb integer, ifc_max_concurrent integer)" }),
 ]);
 
 export const DATABASE_QUEUE_RLS_TABLES = Object.freeze(["_private_job_queues", "_private_jobs", "_private_known_crontabs", "_private_tasks"] as const);
@@ -141,6 +142,22 @@ export const DATABASE_SECURITY_DEFINER_WRAPPERS = Object.freeze({
       begin
         if p_job_key is null or p_job_key !~ '^smartcheck:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then raise exception 'Invalid SmartCheck job key' using errcode='22023'; end if;
         return query select removed.locked_at from teklifpro_queue.remove_job(p_job_key) removed;
+      end `,
+  bimmetraj_worker_get_entitlement: `
+      begin
+        if session_user <> 'bimmetraj_worker' then raise exception 'Worker entitlement function requires the worker session role' using errcode='42501'; end if;
+        return query
+          select exists(select 1 from public.companies c where c.id = p_company_id),
+            subscription.status::text,
+            subscription.current_period_end,
+            subscription.plan_id,
+            plan.is_active,
+            plan.monthly_ifc_limit,
+            plan.ifc_max_file_mb,
+            plan.ifc_max_concurrent
+          from (select 1) anchor
+          left join public.subscriptions subscription on subscription.company_id = p_company_id
+          left join public.plans plan on plan.id = subscription.plan_id;
       end `,
 } as const);
 
