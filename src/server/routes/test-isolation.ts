@@ -125,7 +125,7 @@ export async function createTestIsolation(sourceUrl: string) {
     // production. Install the vendor migrations inside the isolated schema so
     // readiness checks do not accidentally inspect a shared queue or skip the
     // queue boundary altogether.
-    const workerAdminUrl = new URL(controlDatabaseUrl);
+    const workerAdminUrl = new URL(isolatedDatabaseUrl(controlSourceUrl, schema));
     workerAdminUrl.searchParams.set("options", `-csearch_path=${workerSchema}`);
     const workerUtils = await makeWorkerUtils({
       connectionString: workerAdminUrl.toString(),
