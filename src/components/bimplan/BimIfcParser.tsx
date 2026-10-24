@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
 import { reserveBrowserIfcAnalysis, type BrowserQuotaDenial } from "@/ifc/browser-quota";
 import { IfcQuotaDenialAlert } from "@/components/bimplan/IfcQuotaDenialAlert";
+import { BrowserPreviewNotice } from "@/components/bimplan/BrowserPreviewNotice";
 import { useAuth } from "@/hooks/useAuth";
 import React, { useState, useMemo } from 'react';
 import { 
@@ -512,6 +513,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
       {/* PARSED RESULTS & DASHBOARD */}
       {parsedData && !isParsing && (
         <div className="space-y-8">
+          <BrowserPreviewNotice />
           <CalmIfcWorkspace
             dataset={buildCalmIfcDatasetFromElements(
               parsedData.elements,
