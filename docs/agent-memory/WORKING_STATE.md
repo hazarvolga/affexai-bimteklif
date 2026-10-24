@@ -385,3 +385,8 @@ automatically transitions to the free plan; do not enable paid usage.
 
 - Commit `c9e025e6f2b3a700cf18a192757dfeb5f21b10c4` adds optional `WORKER_DATABASE_URL` isolation for the restricted worker runtime. Queue/IFC `run` and `runOnce` tests can now use worker credentials while HTTP application tests continue using restricted `bimmetraj_app`.
 - This closes the code-side worker credential separation gate; a fresh disposable PG run with real app and worker passwords is still required before calling the full worker HTTP path green. Production cutover, canary/drain, restore/parity and expert acceptance remain open.
+
+## 2026-10-24 Rev. 64 worker queue RLS mirror
+
+- Commit `f13c2e2b4de5ecf8eedf009baab40723a57dee88` mirrors the production Graphile Worker RLS provisioning inside isolated worker schemas: migrations RLS is disabled and four private queue tables receive worker-only policies.
+- Fresh three-credential disposable PostgreSQL run passed restricted app SmartCheck HTTP plus restricted worker IFC HTTP/evidence flow `2/2`. Queue `14/14` remains green with admin harness; quota `6/6` remains green. Full-suite concurrency/role harness and production gates remain open.

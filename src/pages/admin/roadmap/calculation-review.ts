@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.57",
+  version: "BIM-CALC-2026-10-24.58",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "c9e025e6f2b3a700cf18a192757dfeb5f21b10c4",
-  approvalStatus: "Rev. 63, disposable test izolasyonu explicit WORKER_DATABASE_URL ile restricted worker runtime'ını da ayırabilir; queue ve IFC HTTP worker yolları aynı testte app/worker credential sınırında çalıştırılabilir. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
+  approvalStatus: "Rev. 64, izole Graphile Worker tablolarında production queue RLS modeli worker role policy'leriyle mirror edilir; restricted app/worker credential koşusunda SmartCheck HTTP + IFC worker 2/2 geçti. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1476,6 +1476,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Graphile run/runOnce app credential ile yürütülüyordu.",
         after: "Worker integration tests explicit worker runtime URL kullanabilir; ürün uygulama pool'u app credential olarak kalır.",
         basis: "src/smartcheck/import/queue.integration.test.ts; src/server/routes/smartcheck.integration.test.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 64",
+    version: "BIM-CALC-2026-10-24.58",
+    date: "24 Ekim 2026",
+    commit: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
+    trigger: "T41 worker queue RLS mirror ve restricted app/worker HTTP kanıtı.",
+    beforeSummary: "İzole Graphile Worker tabloları RLS açık fakat worker policy'siz oluşturuluyordu; gerçek worker credential ile queue tüketimi RLS tarafından engelleniyordu.",
+    afterSummary: "İzolasyon hook'u migrations RLS'ini kapatır ve dört Graphile private tabloya yalnız bimmetraj_worker için production modeliyle uyumlu USING/WITH CHECK policy kurar. Restricted app + worker koşusunda SmartCheck HTTP ve IFC evidence worker testi 2/2 geçti.",
+    affectedModules: ["test-isolation", "worker-queue"],
+    moduleDetails: {
+      "test-isolation": {
+        before: "Worker schema clone vendor RLS tablolarını policy'siz bırakıyordu.",
+        after: "Worker role policy'leri ve migrations erişim davranışı üretim role provisioning sözleşmesiyle eşlendi.",
+        basis: "src/server/routes/test-isolation.ts; scripts/database-roles/provision.ts",
+      },
+      "worker-queue": {
+        before: "Restricted worker run RLS nedeniyle _private_tasks insert/read kapısında duruyordu.",
+        after: "Restricted worker credential ile IFC HTTP queue tüketimi ve evidence persistence 2/2 geçti.",
+        basis: "src/server/routes/smartcheck.integration.test.ts; graphile-worker migration 18",
       },
     },
   },
