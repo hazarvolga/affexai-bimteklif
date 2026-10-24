@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { before, after } from "node:test";
 import pg from "pg";
 import { isDeepStrictEqual } from "node:util";
-import { Logger, makeWorkerUtils } from "graphile-worker";
+import { Logger, runMigrations } from "graphile-worker";
 
 const quote = (name: string) => `"${name.replaceAll('"', '""')}"`;
 
@@ -145,12 +145,11 @@ export async function createTestIsolation(sourceUrl: string) {
     // queue boundary altogether.
     const workerAdminUrl = new URL(isolatedDatabaseUrl(controlSourceUrl, schema));
     workerAdminUrl.searchParams.set("options", `-csearch_path=${workerSchema}`);
-    const workerUtils = await makeWorkerUtils({
+    await runMigrations({
       connectionString: workerAdminUrl.toString(),
       schema: workerSchema,
       logger: new Logger(() => () => {}),
     });
-    await workerUtils.release();
     const roles = await client.query<{ rolname: string }>("select rolname from pg_roles where rolname in ('bimmetraj_owner','bimmetraj_app','bimmetraj_worker')");
     const roleNames = new Set(roles.rows.map((row) => row.rolname));
     if (roleNames.has("bimmetraj_owner")) {
