@@ -48,6 +48,31 @@ const ownerMigrationPolicy = (name: string) => {
   });
 };
 
+const controlAccessPolicy = (name: string) => pgPolicy(`${name}_control_access`, {
+  for: "all",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_control'`,
+  withCheck: sql`current_user = 'bimmetraj_control'`,
+});
+
+const controlReadPolicy = (name: string) => pgPolicy(`${name}_control_access`, {
+  for: "select",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_control'`,
+});
+
+const controlInsertPolicy = (name: string) => pgPolicy(`${name}_control_insert`, {
+  for: "insert",
+  to: "public",
+  withCheck: sql`current_user = 'bimmetraj_control'`,
+});
+
+const controlDeletePolicy = (name: string) => pgPolicy(`${name}_control_delete`, {
+  for: "delete",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_control'`,
+});
+
 const appTenantReadPolicy = (name: string, companyId: AnyPgColumn) => {
   const tenantMatch = sql`${companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
   return pgPolicy(`${name}_app_tenant_read`, {
@@ -250,6 +275,7 @@ export const companies = pgTable("companies", {
   activeStandardCheck: check("companies_active_standard_check", sql`${table.activeStandard} in ('TBDY_TS500', 'EUROCODE_2', 'ACI_318')`),
   classificationSystemCheck: check("companies_classification_system_check", sql`${table.classificationSystem} in ('CSB_TR', 'DIN_276', 'CSI_MASTERFORMAT', 'NRM2_UK')`),
   appTenantReadPolicy: appTenantReadPolicy("companies", table.id),
+  controlAccessPolicy: controlAccessPolicy("companies"),
   backupReadPolicy: backupReadPolicy("companies"),
   ownerMigrationPolicy: ownerMigrationPolicy("companies"),
 })).enableRLS();
@@ -314,6 +340,7 @@ export const subscriptions = pgTable("subscriptions", {
 }, (table) => ({
   bonusQuoteLimitNonnegative: check("subscriptions_bonus_quote_limit_nonnegative", sql`${table.bonusQuoteLimit} >= 0`),
   appTenantReadPolicy: appTenantReadPolicy("subscriptions", table.companyId),
+  controlAccessPolicy: controlAccessPolicy("subscriptions"),
   backupReadPolicy: backupReadPolicy("subscriptions"),
   ownerMigrationPolicy: ownerMigrationPolicy("subscriptions"),
 })).enableRLS();
@@ -340,6 +367,9 @@ export const usageLogs = pgTable("usage_logs", {
     countNonnegative: check("usage_logs_count_nonnegative", sql`${table.count} >= 0`),
     appTenantReadPolicy: appTenantReadPolicy("usage_logs", table.companyId),
     appTenantInsertPolicy: appTenantInsertPolicy("usage_logs", table.companyId),
+    controlReadPolicy: controlReadPolicy("usage_logs"),
+    controlInsertPolicy: controlInsertPolicy("usage_logs"),
+    controlDeletePolicy: controlDeletePolicy("usage_logs"),
     backupReadPolicy: backupReadPolicy("usage_logs"),
     ownerMigrationPolicy: ownerMigrationPolicy("usage_logs"),
   };

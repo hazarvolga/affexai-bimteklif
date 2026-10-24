@@ -12,7 +12,7 @@ import { CrmLeadService } from "../services/crm/lead-service";
 import { QuotaError } from "../services/billing/quota-policy";
 
 const databaseName = "teklifpro_upgrade_test";
-const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;
+const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
 type Credentials = Record<typeof roles[number], string>;
 const ids = {
   companyA: "11111111-1111-4111-8111-111111111111", companyB: "22222222-2222-4222-8222-222222222222",
@@ -72,10 +72,17 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
     await admin.query("insert into leads(company_id,name) values($1,'seed-a'),($2,'seed-b')", [ids.companyA, ids.companyB]);
 
     const app = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_app", credentials.bimmetraj_app), max: 6 });
+    const controlPlane = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_control", credentials.bimmetraj_control), max: 2 });
     const singleApp = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_app", credentials.bimmetraj_app), max: 1 });
     const worker = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_worker", credentials.bimmetraj_worker), max: 1 });
     const backup = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_backup", credentials.bimmetraj_backup), max: 1 });
-    pools.push(app, singleApp, worker, backup);
+    pools.push(app, controlPlane, singleApp, worker, backup);
+    assert.equal((await controlPlane.query("select count(*)::int count from companies")).rows[0].count, 2);
+    await controlPlane.query("update companies set name='A control' where id=$1", [ids.companyA]);
+    await controlPlane.query("update subscriptions set status='active' where company_id=$1", [ids.companyA]);
+    await denied(() => controlPlane.query("insert into leads(company_id,name) values($1,'control-forged')", [ids.companyA]));
+    await denied(() => controlPlane.query("select * from teklifpro_queue.migrations"));
+    await denied(() => controlPlane.query("set role bimmetraj_owner"));
     const actorA = { companyId: ids.companyA, userId: ids.userA };
     const quotaDependencyView = await withTenantTransaction(app, actorA, async client => ({
       companies: (await client.query("select id::text id from companies order by id")).rows.map(row => row.id),
@@ -89,6 +96,8 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
       usage: [{ company_id: ids.companyA, feature: "SEED_A" }],
       plans: [ids.planA, ids.planB],
     }, "app reads tenant quota dependencies only; plans remain a global read-only catalog");
+    const released = await controlPlane.query("delete from usage_logs where company_id=$1 and feature='SEED_A' returning id", [ids.companyA]);
+    assert.equal(released.rowCount, 1);
     assert.equal((await app.query("select count(*)::int count from companies")).rows[0].count, 0, "tenantless company reads fail closed");
     assert.equal((await app.query("select count(*)::int count from subscriptions")).rows[0].count, 0, "tenantless subscription reads fail closed");
     assert.equal((await app.query("select count(*)::int count from usage_logs")).rows[0].count, 0, "tenantless usage reads fail closed");
@@ -153,7 +162,7 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
     await assert.rejects(withTenantTransaction(singleApp, actorA, async () => { throw new Error("rollback sentinel"); }), /rollback sentinel/);
     assert.equal((await singleApp.query("select count(*)::int count from leads")).rows[0].count, 0);
 
-    for (const mutation of ["alter table leads no force row level security", "drop policy leads_app_tenant_insert on leads", "delete from teklifpro_release.migrations where tag='0018_crm_leads_tenant_rls'"]) {
+    for (const mutation of ["alter table leads no force row level security", "drop policy leads_app_tenant_insert on leads", "delete from teklifpro_release.migrations where tag='0019_control_plane_rls'"]) {
       await admin.query("begin"); try { await admin.query(mutation); assert.ok((await inspectCrmLeadRlsViolations(admin)).length > 0); const drift = await inspectRoleBoundaries(admin); assert.throws(() => assertRoleBoundaries(drift), /CRM lead|boundary violations/i); } finally { await admin.query("rollback"); }
     }
     await admin.query("begin");
@@ -167,6 +176,12 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
     await admin.query("alter policy leads_app_tenant_read on leads rename to leads_app_tenant_read_missing");
     try { await assert.rejects(() => provisionDatabaseRoles(admin, credentials, target, administratorCredential), /CRM lead FORCE-RLS policy matrix drift|boundary violations/i); }
     finally { await admin.query("alter policy leads_app_tenant_read_missing on leads rename to leads_app_tenant_read"); }
+    await admin.query("begin");
+    try {
+      await admin.query("grant select on quotations to bimmetraj_control");
+      const unexpectedControlGrant = await inspectRoleBoundaries(admin);
+      assert.throws(() => assertRoleBoundaries(unexpectedControlGrant), /quotations\/bimmetraj_control|boundary violations/i);
+    } finally { await admin.query("rollback"); }
   } finally {
     const cleanup: unknown[] = [];
     for (const result of await Promise.allSettled(pools.map(pool => pool.end()))) if (result.status === "rejected") cleanup.push(result.reason);

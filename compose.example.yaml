@@ -30,6 +30,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://bimmetraj_app:${BIMMETRAJ_APP_DB_PASSWORD:?BIMMETRAJ_APP_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
+      CONTROL_DATABASE_URL: postgresql://bimmetraj_control:${BIMMETRAJ_CONTROL_DB_PASSWORD:?BIMMETRAJ_CONTROL_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       PG_POOL_MAX: '4'
       PORT: '3000'
       NODE_OPTIONS: --max-old-space-size=768

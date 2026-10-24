@@ -4,6 +4,7 @@ export type DatabaseRoleName =
   | "bimmetraj_owner"
   | "bimmetraj_migrator"
   | "bimmetraj_app"
+  | "bimmetraj_control"
   | "bimmetraj_worker"
   | "bimmetraj_backup";
 
@@ -47,9 +48,9 @@ export const DATABASE_ROLE_MEMBERSHIPS = Object.freeze([
 
 export type DatabaseAccessMode = "none" | "read" | "write" | "execute";
 export const DATABASE_SCHEMA_SPECS = Object.freeze([
-  Object.freeze({ name: "public", required: true, access: Object.freeze({ bimmetraj_migrator: "none", bimmetraj_app: "write", bimmetraj_worker: "write", bimmetraj_backup: "read" }) }),
-  Object.freeze({ name: "teklifpro_release", required: true, access: Object.freeze({ bimmetraj_migrator: "none", bimmetraj_app: "none", bimmetraj_worker: "none", bimmetraj_backup: "read" }) }),
-  Object.freeze({ name: "teklifpro_queue", required: false, access: Object.freeze({ bimmetraj_migrator: "none", bimmetraj_app: "execute", bimmetraj_worker: "write", bimmetraj_backup: "read" }) }),
+  Object.freeze({ name: "public", required: true, access: Object.freeze({ bimmetraj_migrator: "none", bimmetraj_app: "write", bimmetraj_control: "write", bimmetraj_worker: "write", bimmetraj_backup: "read" }) }),
+  Object.freeze({ name: "teklifpro_release", required: true, access: Object.freeze({ bimmetraj_migrator: "none", bimmetraj_app: "none", bimmetraj_control: "none", bimmetraj_worker: "none", bimmetraj_backup: "read" }) }),
+  Object.freeze({ name: "teklifpro_queue", required: false, access: Object.freeze({ bimmetraj_migrator: "none", bimmetraj_app: "execute", bimmetraj_control: "none", bimmetraj_worker: "write", bimmetraj_backup: "read" }) }),
 ] as const satisfies readonly Readonly<{
   name: string;
   required: boolean;
@@ -88,11 +89,25 @@ export const DATABASE_COMPANY_INDUSTRY_RLS_TABLES = Object.freeze([
 ] as const);
 export const DATABASE_CRM_LEAD_RLS_TABLES = Object.freeze(["companies", "leads", "subscriptions", "usage_logs"] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
-  companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
-  subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
-  plans: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
-  usage_logs: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_worker: Object.freeze([]) }),
-  leads: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+  companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
+  subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
+  plans: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
+  usage_logs: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+  leads: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
+} as const);
+
+export const DATABASE_CONTROL_TABLE_ACL = Object.freeze({
+  users: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]),
+  memberships: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]),
+  auth_action_tokens: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]),
+  admin_audit_logs: Object.freeze(["DELETE", "INSERT", "SELECT"]),
+  academy_enrollment_audit_logs: Object.freeze(["DELETE", "INSERT", "SELECT"]),
+  academy_enrollments: Object.freeze(["DELETE", "INSERT", "SELECT"]),
+  academy_learner_profiles: Object.freeze(["DELETE", "INSERT", "SELECT"]),
+  academy_activation_events: Object.freeze(["DELETE", "INSERT", "SELECT"]),
+  academy_acquisition_events: Object.freeze(["SELECT", "UPDATE"]),
+  academy_products: Object.freeze(["SELECT"]),
+  academy_editions: Object.freeze(["SELECT"]),
 } as const);
 export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
@@ -143,6 +158,17 @@ export const DATABASE_ROLE_SPECS: readonly DatabaseRoleSpec[] = Object.freeze([
   },
   {
     name: "bimmetraj_app",
+    canLogin: true,
+    ownsSchema: false,
+    canMigrate: false,
+    canRead: true,
+    canWrite: true,
+    canCreateSchema: false,
+    canCreateTable: false,
+    attributes: restrictedAttributes,
+  },
+  {
+    name: "bimmetraj_control",
     canLogin: true,
     ownsSchema: false,
     canMigrate: false,

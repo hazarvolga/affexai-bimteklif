@@ -7,6 +7,7 @@ import test from "node:test";
 
 const credentials = Object.freeze({
   BIMMETRAJ_APP_DB_PASSWORD: "app-role-password-0123456789abcdef",
+  BIMMETRAJ_CONTROL_DB_PASSWORD: "control-role-password-0123456789abc",
   BIMMETRAJ_WORKER_DB_PASSWORD: "worker-role-password-0123456789abc",
   BIMMETRAJ_MIGRATOR_DB_PASSWORD: "migrator-role-password-0123456789a",
   BIMMETRAJ_BACKUP_DB_PASSWORD: "backup-role-password-0123456789abcd",
@@ -78,6 +79,12 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
       assert.equal(url.hostname, "postgres", `${serviceName}.${key} host`);
       assert.equal(url.port, "5432", `${serviceName}.${key} port`);
       assert.equal(url.pathname, "/bimmetraj_production", `${serviceName}.${key} database`);
+    }
+    const controlUrl = services.app?.environment?.CONTROL_DATABASE_URL;
+    assert.ok(controlUrl, "app.CONTROL_DATABASE_URL is required");
+    assert.equal(new URL(controlUrl).username, "bimmetraj_control");
+    for (const service of ["worker", "ifc-worker", "migrate", "backup", "postgres"]) {
+      assert.equal(services[service]?.environment?.CONTROL_DATABASE_URL, undefined, `${service} cannot receive the control-plane database identity`);
     }
 
     const backup = services.backup?.environment ?? {};

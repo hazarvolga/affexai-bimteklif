@@ -1,5 +1,5 @@
 import type pg from "pg";
-import { DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_PUBLIC_RESTRICTED_TABLE_ACL, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
+import { DATABASE_CONTROL_TABLE_ACL, DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_PUBLIC_RESTRICTED_TABLE_ACL, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
 import { assertRoleBoundaries, inspectRoleBoundaries, inspectRoleProvenanceViolations } from "./inspect";
 
 export type DatabaseRoleCredentials = Record<Exclude<DatabaseRoleName, "bimmetraj_owner">, string>;
@@ -12,6 +12,8 @@ export type DatabaseRoleProvisionTarget = Readonly<{
 
 type Queryable = Pick<pg.Client, "query">;
 const canonicalRoleNames = DATABASE_ROLE_SPECS.map(({ name }) => name);
+const runtimeRoleNames = DATABASE_ROLE_SPECS.filter(({ canLogin }) => canLogin).map(({ name }) => name);
+const runtimeRoleList = runtimeRoleNames.join(",");
 const managedSchemas = DATABASE_SCHEMA_SPECS.map(({ name }) => name);
 const identifier = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
@@ -113,42 +115,67 @@ async function transferManagedObjects(client: Queryable): Promise<void> {
 
 async function convergePrivileges(client: Queryable, database: string, allowMissingRestrictedTables = false): Promise<void> {
   await client.query(`revoke all privileges on database ${identifier(database)} from public`);
-  await client.query(`revoke all privileges on database ${identifier(database)} from bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
-  await client.query(`grant connect on database ${identifier(database)} to bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+  await client.query(`revoke all privileges on database ${identifier(database)} from ${runtimeRoleList}`);
+  await client.query(`grant connect on database ${identifier(database)} to ${runtimeRoleList}`);
   for (const schema of managedSchemas) {
     const exists = await client.query<{ present: boolean }>("select exists(select 1 from pg_namespace where nspname=$1) as present", [schema]);
     if (!exists.rows[0]?.present) continue;
     const qualified = identifier(schema);
     const schemaSpec = DATABASE_SCHEMA_SPECS.find((candidate) => candidate.name === schema)!;
     const usageRoles = Object.entries(schemaSpec.access).filter(([, mode]) => mode !== "none").map(([role]) => role);
-    await client.query(`revoke all privileges on schema ${qualified} from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`revoke all privileges on schema ${qualified} from public,${runtimeRoleList}`);
     if (usageRoles.length) await client.query(`grant usage on schema ${qualified} to ${usageRoles.join(",")}`);
-    await client.query(`revoke all privileges on all tables in schema ${qualified} from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`revoke all privileges on all tables in schema ${qualified} from public,${runtimeRoleList}`);
     const columns = await client.query<{ relation: string; column: string }>(`select c.relname as relation,a.attname as column from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace
       where n.nspname=$1 and c.relkind in ('r','p','v','m','f') and a.attnum>0 and not a.attisdropped order by c.relname,a.attnum`, [schema]);
-    for (const column of columns.rows) await client.query(`revoke select (${identifier(column.column)}),insert (${identifier(column.column)}),update (${identifier(column.column)}),references (${identifier(column.column)}) on ${qualified}.${identifier(column.relation)} from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    for (const column of columns.rows) await client.query(`revoke select (${identifier(column.column)}),insert (${identifier(column.column)}),update (${identifier(column.column)}),references (${identifier(column.column)}) on ${qualified}.${identifier(column.relation)} from public,${runtimeRoleList}`);
     await client.query(`grant select on all tables in schema ${qualified} to bimmetraj_backup`);
-    await client.query(`revoke all privileges on all sequences in schema ${qualified} from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`revoke all privileges on all sequences in schema ${qualified} from public,${runtimeRoleList}`);
     await client.query(`grant select on all sequences in schema ${qualified} to bimmetraj_backup`);
-    await client.query(`revoke all privileges on all functions in schema ${qualified} from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`revoke all privileges on all functions in schema ${qualified} from public,${runtimeRoleList}`);
     const types = await client.query<{ name: string }>(`select t.typname as name from pg_type t join pg_namespace n on n.oid=t.typnamespace
       where n.nspname=$1 and (t.typtype in ('e','d','r','m') or exists(select 1 from pg_class c where c.oid=t.typrelid and c.relkind='c'))`, [schema]);
     for (const type of types.rows) {
-      await client.query(`revoke all privileges on type ${qualified}.${identifier(type.name)} from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+      await client.query(`revoke all privileges on type ${qualified}.${identifier(type.name)} from public,${runtimeRoleList}`);
       if (usageRoles.length) await client.query(`grant usage on type ${qualified}.${identifier(type.name)} to ${usageRoles.join(",")}`);
     }
     if (schema === "public") {
       await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
       await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
+      await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_control`);
+      if (allowMissingRestrictedTables) await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_control`);
       for (const [table, access] of Object.entries(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL)) {
         const present = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [`public.${table}`]);
         if (!present.rows[0]?.present) {
           if (allowMissingRestrictedTables) continue;
           throw new Error(`Required CRM leads or quota dependency table is missing: ${table}`);
         }
-        await client.query(`revoke all privileges on table ${qualified}.${identifier(table)} from bimmetraj_app,bimmetraj_worker`);
+        await client.query(`revoke all privileges on table ${qualified}.${identifier(table)} from bimmetraj_app,bimmetraj_control,bimmetraj_worker`);
         if (access.bimmetraj_app.length) await client.query(`grant ${access.bimmetraj_app.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_app`);
+        if (access.bimmetraj_control.length) await client.query(`grant ${access.bimmetraj_control.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_control`);
         if (access.bimmetraj_worker.length) await client.query(`grant ${access.bimmetraj_worker.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_worker`);
+      }
+      for (const [table, access] of Object.entries(DATABASE_CONTROL_TABLE_ACL)) {
+        const present = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [`public.${table}`]);
+        if (!present.rows[0]?.present) {
+          if (allowMissingRestrictedTables) continue;
+          throw new Error(`Required control-plane table is missing: ${table}`);
+        }
+        await client.query(`revoke all privileges on table ${qualified}.${identifier(table)} from bimmetraj_control`);
+        await client.query(`grant ${access.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_control`);
+      }
+      for (const table of ["companies", "subscriptions", "usage_logs"] as const) {
+        const present = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [`public.${table}`]);
+        if (!present.rows[0]?.present && allowMissingRestrictedTables) continue;
+        const command = table === "usage_logs" ? "for select using (current_user='bimmetraj_control')" : "for all using (current_user='bimmetraj_control') with check (current_user='bimmetraj_control')";
+        await client.query(`drop policy if exists ${identifier(`${table}_control_access`)} on ${qualified}.${identifier(table)}`);
+        await client.query(`create policy ${identifier(`${table}_control_access`)} on ${qualified}.${identifier(table)} ${command}`);
+        if (table === "usage_logs") {
+          await client.query(`drop policy if exists ${identifier(`${table}_control_insert`)} on ${qualified}.${identifier(table)}`);
+          await client.query(`drop policy if exists ${identifier(`${table}_control_delete`)} on ${qualified}.${identifier(table)}`);
+          await client.query(`create policy ${identifier(`${table}_control_insert`)} on ${qualified}.${identifier(table)} for insert with check (current_user='bimmetraj_control')`);
+          await client.query(`create policy ${identifier(`${table}_control_delete`)} on ${qualified}.${identifier(table)} for delete using (current_user='bimmetraj_control')`);
+        }
       }
     } else if (schema === "teklifpro_queue") {
       await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_worker`);
@@ -167,12 +194,12 @@ async function convergePrivileges(client: Queryable, database: string, allowMiss
         await client.query(`create policy bimmetraj_backup_read on ${qualified}.${identifier(table)} for select to bimmetraj_backup using (true)`);
       }
     }
-    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on tables from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on tables from public,${runtimeRoleList}`);
     await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant select on tables to bimmetraj_backup`);
-    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on sequences from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on sequences from public,${runtimeRoleList}`);
     await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant select on sequences to bimmetraj_backup`);
-    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke execute on functions from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
-    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on types from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke execute on functions from public,${runtimeRoleList}`);
+    await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on types from public,${runtimeRoleList}`);
     if (usageRoles.length) await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant usage on types to ${usageRoles.join(",")}`);
     if (schema === "teklifpro_queue") {
       await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant select,insert,update,delete on tables to bimmetraj_worker`);
@@ -194,7 +221,7 @@ async function convergePrivileges(client: Queryable, database: string, allowMiss
     await client.query(`alter function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) ${functionSpec.securityDefiner ? "security definer" : "security invoker"} set search_path to pg_catalog,${identifier(functionSpec.schema)}`);
     await client.query(`alter function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) ${functionSpec.strict ? "strict" : "called on null input"}`);
     await client.query(`alter function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) not leakproof parallel unsafe`);
-    await client.query(`revoke all privileges on function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
+    await client.query(`revoke all privileges on function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) from public,${runtimeRoleList}`);
     if (functionSpec.roles.length) await client.query(`grant execute on function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) to ${functionSpec.roles.join(",")}`);
   }
 }

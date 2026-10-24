@@ -2,6 +2,7 @@ import { requireAuthEmailDelivery } from "../auth/email-policy";
 import type { Express } from "express";
 import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
+import { getControlDatabase } from "../../db/control-plane";
 import { companies, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 import { bodyToken, readSessionToken, setSessionCookies } from "../auth/session-cookie";
@@ -77,7 +78,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
 
   app.post("/api/company/risk-settings", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     const parsePercent = (value: unknown) => Math.max(0, Math.min(100, Number.isFinite(Number(value)) ? Number(value) : 0));
-    const [updated] = await db.update(companies).set({
+    const [updated] = await getControlDatabase().db.update(companies).set({
       defaultEscalationVolatilityPercent: String(parsePercent(req.body.escalationVolatilityPercent)),
       defaultCarbonRiskPremiumPercent: String(parsePercent(req.body.carbonRiskPremiumPercent)),
       defaultInformationDeliveryCostPercent: String(parsePercent(req.body.informationDeliveryCostPercent)),
@@ -241,7 +242,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
         return res.status(400).json({ error: "No valid fields provided for update" });
       }
 
-      const [updated] = await db.update(companies)
+      const [updated] = await getControlDatabase().db.update(companies)
         .set(updateData)
         .where(eq(companies.id, req.user.companyId))
         .returning();

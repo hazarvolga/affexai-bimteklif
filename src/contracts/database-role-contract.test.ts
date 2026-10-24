@@ -13,6 +13,7 @@ const canonicalRoleNames = [
   "bimmetraj_owner",
   "bimmetraj_migrator",
   "bimmetraj_app",
+  "bimmetraj_control",
   "bimmetraj_worker",
   "bimmetraj_backup",
 ] as const;
@@ -62,7 +63,7 @@ function validReport(): DatabaseRoleBoundaryReport {
   };
 }
 
-test("database role contract defines the five canonical roles exactly once", () => {
+test("database role contract defines the six canonical roles exactly once", () => {
   assert.deepEqual(
     DATABASE_ROLE_SPECS.map((role) => role.name),
     canonicalRoleNames,
@@ -70,8 +71,8 @@ test("database role contract defines the five canonical roles exactly once", () 
   assert.equal(new Set(DATABASE_ROLE_SPECS.map((role) => role.name)).size, canonicalRoleNames.length);
 });
 
-test("app and worker are login roles without PostgreSQL authority escalation or DDL", () => {
-  for (const name of ["bimmetraj_app", "bimmetraj_worker"] as const) {
+test("runtime roles are login roles without PostgreSQL authority escalation or DDL", () => {
+  for (const name of ["bimmetraj_app", "bimmetraj_control", "bimmetraj_worker"] as const) {
     const role = DATABASE_ROLE_SPECS.find((candidate) => candidate.name === name);
     assert.ok(role, `${name} must exist`);
     assert.equal(role.canLogin, true);
@@ -146,13 +147,13 @@ test("role boundary assertion rejects authority, owner, write, and DDL drift", (
 
   const cases: Array<[string, (report: DatabaseRoleBoundaryReport) => void]> = [
     ["app superuser", (report) => { report.roles[2].attributes.superuser = true; }],
-    ["worker BYPASSRLS", (report) => { report.roles[3].attributes.bypassRls = true; }],
+    ["control BYPASSRLS", (report) => { report.roles[3].attributes.bypassRls = true; }],
     ["app CREATEDB", (report) => { report.roles[2].attributes.createDb = true; }],
-    ["worker CREATEROLE", (report) => { report.roles[3].attributes.createRole = true; }],
+    ["worker CREATEROLE", (report) => { report.roles[4].attributes.createRole = true; }],
     ["app DDL", (report) => { report.roles[2].privileges.createTable = true; }],
-    ["worker schema DDL", (report) => { report.roles[3].privileges.createSchema = true; }],
-    ["backup write", (report) => { report.roles[4].privileges.anyWrite = true; }],
-    ["backup DDL", (report) => { report.roles[4].privileges.createTable = true; }],
+    ["worker schema DDL", (report) => { report.roles[4].privileges.createSchema = true; }],
+    ["backup write", (report) => { report.roles[5].privileges.anyWrite = true; }],
+    ["backup DDL", (report) => { report.roles[5].privileges.createTable = true; }],
     ["wrong database owner", (report) => { report.roles[0].ownsDatabase = false; }],
     ["runtime schema owner", (report) => { report.roles[2].ownsPublicSchema = true; }],
   ];
@@ -167,7 +168,7 @@ test("role boundary assertion rejects authority, owner, write, and DDL drift", (
 test("role boundary assertion reports every violation without echoing inspected values", () => {
   const report = structuredClone(validReport());
   report.roles[2].attributes.superuser = true;
-  report.roles[4].privileges.anyWrite = true;
+  report.roles[5].privileges.anyWrite = true;
   (report.roles[2] as typeof report.roles[number] & { diagnosticSecret?: string }).diagnosticSecret = "do-not-leak";
 
   assert.throws(
@@ -223,6 +224,7 @@ test("credential validation rejects weak or reused secrets before any database q
   const strong = {
     bimmetraj_migrator: "A1_migrator-generated-secret-0123456789",
     bimmetraj_app: "B2_app-generated-secret-012345678901234",
+    bimmetraj_control: "E5_control-generated-secret-0123456789",
     bimmetraj_worker: "C3_worker-generated-secret-012345678901",
     bimmetraj_backup: "D4_backup-generated-secret-012345678901",
   } satisfies DatabaseRoleCredentials;

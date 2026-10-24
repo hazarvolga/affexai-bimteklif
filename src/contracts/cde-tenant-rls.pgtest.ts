@@ -11,7 +11,7 @@ import { withTenantTransaction } from "../db/tenant-context";
 
 const databaseName = "teklifpro_upgrade_test";
 const cdeTables = ["cde_projects", "cde_project_members", "cde_containers", "cde_revisions", "cde_transition_events"] as const;
-const loginRoles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;
+const loginRoles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
 const allRoles = DATABASE_ROLE_SPECS.map(({ name }) => name);
 type LoginRole = typeof loginRoles[number];
 type Credentials = Record<LoginRole, string>;

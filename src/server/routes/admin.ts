@@ -1,6 +1,7 @@
 import { Router, type Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
+import { getControlDatabase } from "../../db/control-plane";
 import {
   adminAuditLogs,
   companies,
@@ -334,7 +335,7 @@ export function registerAdminRoutes(app: Express) {
   // 6b. Sync Canonical Plan Catalog (Prices & Server-Safe Quotas)
   router.post("/plans/sync-catalog", async (req, res) => {
     try {
-      await db.transaction(async (tx) => {
+      await getControlDatabase().db.transaction(async (tx) => {
         for (const item of canonicalPlans) {
           await tx
             .insert(plans)

@@ -11,7 +11,7 @@ import { withTenantTransaction } from "../db/tenant-context";
 import { CompanyIndustrySettingsService, CompanyIndustrySettingsServiceError } from "../services/company-industry-settings/service";
 
 const databaseName = "teklifpro_upgrade_test";
-const loginRoles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;
+const loginRoles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
 type Credentials = Record<typeof loginRoles[number], string>;
 const ids = {
   companyA: "11111111-1111-4111-8111-111111111111",

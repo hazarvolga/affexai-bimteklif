@@ -134,6 +134,8 @@ export function useTestIsolation() {
     if (!isolation) return;
     try {
       const { db } = await import("../../db");
+      const { closeControlDatabase } = await import("../../db/control-plane");
+      await closeControlDatabase();
       await db.$client.end();
     } finally {
       try {

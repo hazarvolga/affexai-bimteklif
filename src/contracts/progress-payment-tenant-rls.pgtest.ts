@@ -11,7 +11,7 @@ import { withTenantTransaction } from "../db/tenant-context";
 import { ProgressPaymentService } from "../services/progress-payments/service";
 
 const databaseName = "teklifpro_upgrade_test";
-const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;
+const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
 type Credentials = Record<typeof roles[number], string>;
 const ids = {
   companyA: "11111111-1111-4111-8111-111111111111", companyB: "22222222-2222-4222-8222-222222222222",

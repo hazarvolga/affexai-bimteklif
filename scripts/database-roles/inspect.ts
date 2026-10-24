@@ -6,6 +6,7 @@ import {
   DATABASE_CDE_RLS_TABLES,
   DATABASE_COMPANY_INDUSTRY_RLS_TABLES,
   DATABASE_CRM_LEAD_RLS_TABLES,
+  DATABASE_CONTROL_TABLE_ACL,
   DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
@@ -341,12 +342,12 @@ export async function inspectCrmLeadRlsViolations(
     exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') has_tag`);
   const ledger = releaseState.rows[0];
   const applied = ledger?.ledger && ledger.has_tag
-    ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0018_crm_leads_tenant_rls') applied")).rows[0]?.applied === true
+    ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0019_control_plane_rls') applied")).rows[0]?.applied === true
     : false;
   if (states.rowCount === 0 && !ledger?.has_tag && options.allowPreSchemaRoleContract === true) return [];
   const violations: string[] = [];
   if (states.rowCount !== DATABASE_CRM_LEAD_RLS_TABLES.length) violations.push("public CRM leads and quota dependencies: complete RLS table set is required");
-  if (!ledger?.ledger || !ledger.has_tag || !applied) violations.push("public CRM leads: applied migration tag 0018_crm_leads_tenant_rls is required");
+  if (!ledger?.ledger || !ledger.has_tag || !applied) violations.push("public CRM leads/control plane: applied migration tag 0019_control_plane_rls is required");
   if (states.rowCount !== DATABASE_CRM_LEAD_RLS_TABLES.length) return violations;
   const policies = await client.query<{ policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select p.polname policy_name,p.polcmd command,p.polroles::oid[] role_oids,p.polpermissive permissive,
       pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression
@@ -355,13 +356,15 @@ export async function inspectCrmLeadRlsViolations(
   const tenant = (column: "id" | "company_id") => `((CURRENT_USER = 'bimmetraj_app'::name) AND (${column} = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))`;
   const backup = "(CURRENT_USER = 'bimmetraj_backup'::name)";
   const owner = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  const control = "(CURRENT_USER = 'bimmetraj_control'::name)";
   const expected = [
-    ["companies_app_tenant_read", "r", tenant("id"), null], ["companies_backup_read", "r", backup, null], ["companies_owner_migration", "*", owner, owner],
+    ["companies_app_tenant_read", "r", tenant("id"), null], ["companies_backup_read", "r", backup, null], ["companies_control_access", "*", control, control], ["companies_owner_migration", "*", owner, owner],
     ["leads_app_tenant_insert", "a", null, tenant("company_id")], ["leads_app_tenant_read", "r", tenant("company_id"), null],
     ["leads_backup_read", "r", backup, null], ["leads_owner_migration", "*", owner, owner],
-    ["subscriptions_app_tenant_read", "r", tenant("company_id"), null], ["subscriptions_backup_read", "r", backup, null], ["subscriptions_owner_migration", "*", owner, owner],
+    ["subscriptions_app_tenant_read", "r", tenant("company_id"), null], ["subscriptions_backup_read", "r", backup, null], ["subscriptions_control_access", "*", control, control], ["subscriptions_owner_migration", "*", owner, owner],
     ["usage_logs_app_tenant_insert", "a", null, tenant("company_id")], ["usage_logs_app_tenant_read", "r", tenant("company_id"), null],
-    ["usage_logs_backup_read", "r", backup, null], ["usage_logs_owner_migration", "*", owner, owner],
+    ["usage_logs_backup_read", "r", backup, null], ["usage_logs_control_access", "r", control, null],
+    ["usage_logs_control_delete", "d", control, null], ["usage_logs_control_insert", "a", null, control], ["usage_logs_owner_migration", "*", owner, owner],
   ] as const;
   const matches = states.rows.every((state) => state.enabled && state.forced)
     && policies.rowCount === expected.length && expected.every(([name, command, using, check]) => {
@@ -376,10 +379,10 @@ export async function inspectCrmLeadRlsViolations(
     violations.push("public.usage_logs: nonnegative count constraint drift");
   }
   const aclTables = Object.keys(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL);
-  const acl = await client.query<{ table_name: string; role_name: "bimmetraj_app" | "bimmetraj_worker" | "bimmetraj_backup"; privileges: string[] }>(`select table_name,role_name,
+  const acl = await client.query<{ table_name: string; role_name: "bimmetraj_app" | "bimmetraj_control" | "bimmetraj_worker" | "bimmetraj_backup"; privileges: string[] }>(`select table_name,role_name,
       array(select privilege from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) privilege
         where has_table_privilege(role_name,format('public.%I',table_name),privilege) order by privilege)::text[] privileges
-    from unnest($1::text[]) table_name cross join unnest(array['bimmetraj_app','bimmetraj_worker','bimmetraj_backup']) role_name
+    from unnest($1::text[]) table_name cross join unnest(array['bimmetraj_app','bimmetraj_control','bimmetraj_worker','bimmetraj_backup']) role_name
     order by table_name,role_name`, [aclTables]);
   for (const row of acl.rows) {
     const restricted = DATABASE_PUBLIC_RESTRICTED_TABLE_ACL[row.table_name as keyof typeof DATABASE_PUBLIC_RESTRICTED_TABLE_ACL];
@@ -447,7 +450,7 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectCrmLeadRlsViolations(client, options));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
-  const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;
+  const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
   for (const schema of present) {
     const owner = await client.query<{ owner: string }>("select pg_get_userbyid(nspowner) as owner from pg_namespace where nspname=$1", [schema]);
     if (owner.rows[0]?.owner !== "bimmetraj_owner") violations.push(`${schema}: schema owner must be bimmetraj_owner`);
@@ -594,8 +597,13 @@ async function inspectExactAclViolations(client: Queryable): Promise<string[]> {
         const restricted = row.schema === "public"
           ? DATABASE_PUBLIC_RESTRICTED_TABLE_ACL[row.object_name as keyof typeof DATABASE_PUBLIC_RESTRICTED_TABLE_ACL]
           : undefined;
-        allowed = restricted && (row.grantee === "bimmetraj_app" || row.grantee === "bimmetraj_worker")
+        const controlAccess = row.schema === "public"
+          ? DATABASE_CONTROL_TABLE_ACL[row.object_name as keyof typeof DATABASE_CONTROL_TABLE_ACL]
+          : undefined;
+        allowed = restricted && (row.grantee === "bimmetraj_app" || row.grantee === "bimmetraj_control" || row.grantee === "bimmetraj_worker")
           ? restricted[row.grantee]
+          : controlAccess && row.grantee === "bimmetraj_control" ? controlAccess
+          : row.grantee === "bimmetraj_control" ? []
           : row.schema === "teklifpro_queue" && row.object_name === "migrations" && row.grantee === "bimmetraj_app"
             ? ["SELECT"] : mode === "write" ? ["DELETE", "INSERT", "SELECT", "UPDATE"] : mode === "read" ? ["SELECT"] : [];
       }
@@ -612,7 +620,7 @@ async function inspectExactAclViolations(client: Queryable): Promise<string[]> {
 }
 
 function canonicalLoginRole(value: string): value is Exclude<DatabaseRoleName, "bimmetraj_owner"> {
-  return value === "bimmetraj_migrator" || value === "bimmetraj_app" || value === "bimmetraj_worker" || value === "bimmetraj_backup";
+  return value === "bimmetraj_migrator" || value === "bimmetraj_app" || value === "bimmetraj_control" || value === "bimmetraj_worker" || value === "bimmetraj_backup";
 }
 
 export function sanitizeRoleReport<T>(value: T): T {

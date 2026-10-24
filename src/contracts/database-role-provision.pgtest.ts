@@ -11,6 +11,7 @@ const roleNames = DATABASE_ROLE_SPECS.map(({ name }) => name);
 const loginRoleNames = [
   "bimmetraj_migrator",
   "bimmetraj_app",
+  "bimmetraj_control",
   "bimmetraj_worker",
   "bimmetraj_backup",
 ] as const;
@@ -546,7 +547,7 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
         const appRole = await control.query("select 1 from pg_roles where rolname='bimmetraj_app'");
         if (appRole.rowCount) await control.query("revoke connect on database postgres from bimmetraj_app");
       });
-      for (const name of ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup", "bimmetraj_owner"] as const) {
+      for (const name of ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup", "bimmetraj_owner"] as const) {
         await attempt(async () => {
           const current = await control.query<{ oid: number }>("select oid from pg_roles where rolname=$1", [name]);
           if (current.rowCount && current.rows[0]?.oid !== createdRoleOids.get(name)) throw new Error(`Refusing to drop role ${name}: provenance changed`);

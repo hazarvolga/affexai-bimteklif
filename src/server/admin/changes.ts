@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import type { z } from 'zod';
-import { db } from '../../db';
+import { getControlDatabase } from '../../db/control-plane';
 import { adminAuditLogs, companies, plans, subscriptions } from '../../db/schema';
 import type { createPlanInput, updateCompanyAdminInput, updatePlanInput, updateSubscriptionInput } from './input';
 
@@ -9,7 +9,7 @@ export class AdminChangeError extends Error {
 }
 
 export async function createPlan(adminId: string, input: z.infer<typeof createPlanInput>) {
-  return db.transaction(async tx => {
+  return getControlDatabase().db.transaction(async tx => {
     const [after] = await tx.insert(plans).values({
       name: input.name,
       monthlyQuoteLimit: input.monthlyQuoteLimit,
@@ -38,7 +38,7 @@ export async function createPlan(adminId: string, input: z.infer<typeof createPl
 }
 
 export async function updatePlan(adminId: string, id: string, input: z.infer<typeof updatePlanInput>) {
-  return db.transaction(async tx => {
+  return getControlDatabase().db.transaction(async tx => {
     const [before] = await tx.select().from(plans).where(eq(plans.id, id)).for('update');
     if (!before) throw new AdminChangeError(404, 'Plan not found');
 
@@ -119,7 +119,7 @@ export async function updatePlan(adminId: string, id: string, input: z.infer<typ
 }
 
 export async function updateSubscription(adminId: string, companyId: string, input: z.infer<typeof updateSubscriptionInput>) {
-  return db.transaction(async tx => {
+  return getControlDatabase().db.transaction(async tx => {
     const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for('update');
     if (!company) throw new AdminChangeError(404, 'Company not found');
     // The company lock stabilizes this pointer without reversing plan/subscription lock order.
@@ -139,7 +139,7 @@ export async function updateSubscription(adminId: string, companyId: string, inp
 }
 
 export async function updateCompanyAdmin(adminId: string, companyId: string, input: z.infer<typeof updateCompanyAdminInput>) {
-  return db.transaction(async tx => {
+  return getControlDatabase().db.transaction(async tx => {
     const [before] = await tx.select().from(companies).where(eq(companies.id, companyId)).for('update');
     if (!before) throw new AdminChangeError(404, 'Company not found');
     const [after] = await tx.update(companies).set(input).where(eq(companies.id, companyId)).returning();

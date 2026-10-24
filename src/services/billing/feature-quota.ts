@@ -1,5 +1,6 @@
 import { and, eq, gte, lt, sql } from 'drizzle-orm';
 import { db } from '../../db';
+import { getControlDatabase } from '../../db/control-plane';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type * as schema from '../../db/schema';
 import { companies, plans, subscriptions, usageLogs } from '../../db/schema';
@@ -53,5 +54,5 @@ export async function reserveFeatureUsage(companyId: string, userId: string, fea
 
 /** Give back a reservation whose work was rejected before it happened (validation, not found, failure). */
 export async function releaseFeatureUsage(companyId: string, reservationId: string): Promise<void> {
-  await db.delete(usageLogs).where(and(eq(usageLogs.id, reservationId), eq(usageLogs.companyId, companyId)));
+  await getControlDatabase().db.delete(usageLogs).where(and(eq(usageLogs.id, reservationId), eq(usageLogs.companyId, companyId)));
 }

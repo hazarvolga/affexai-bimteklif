@@ -24,6 +24,7 @@ x-no-backup-environment: &no-backup-environment
   # URLs below are interpolated by Compose; never retain raw role/bootstrap
   # credentials in a runtime container environment.
   BIMMETRAJ_APP_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
+  BIMMETRAJ_CONTROL_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
   BIMMETRAJ_WORKER_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
   BIMMETRAJ_MIGRATOR_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
   BIMMETRAJ_BACKUP_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
@@ -86,6 +87,7 @@ services:
     environment:
       <<: *app-environment
       DATABASE_URL: postgresql://bimmetraj_app:${BIMMETRAJ_APP_DB_PASSWORD:?BIMMETRAJ_APP_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
+      CONTROL_DATABASE_URL: postgresql://bimmetraj_control:${BIMMETRAJ_CONTROL_DB_PASSWORD:?BIMMETRAJ_CONTROL_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       AUTH_EMAIL_DELIVERY_MODE: ${AUTH_EMAIL_DELIVERY_MODE:-disabled}
       AUTH_EMAIL_SMTP_HOST: ${AUTH_EMAIL_SMTP_HOST:-}
       AUTH_EMAIL_SMTP_PORT: ${AUTH_EMAIL_SMTP_PORT:-465}

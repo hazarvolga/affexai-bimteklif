@@ -78,6 +78,10 @@ const stages = [
     sql: 'a7c3c12281ec565830291eabf6dfe936790407cb40e9ec873c8fa700d7ad1183',
     snapshot: '93d434eb903f102e7f45907f6ce64fe9b723111b008aeec51cb634e1fc88cedf',
     catalog: '4dc5aa9dfc313518389f13ac9ef5d5ca8e3d8c83229804fd5554c6a9dcf8ce31' },
+  { tag: '0019_control_plane_rls',
+    sql: '24f0f17e52c89a76b270a0aab563e2b61c8917bb4162f04bb0dc1215c520d05a',
+    snapshot: 'c8e074143cb2b3c8c57646a39310fa3cf662f171f3d479de7c2a4fa89e2b90c3',
+    catalog: 'a6c7cc11909be0c010eba97c5a3a21e247225f67bb40fb6b08fa12ef3a5cec0b' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

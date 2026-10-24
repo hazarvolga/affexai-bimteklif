@@ -5,6 +5,7 @@ import { stageAndDeliverAuthAction } from '../auth/action-email';
 import type { Express, Response } from "express";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db";
+import { getControlDatabase } from "../../db/control-plane";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyProducts, adminAuditLogs, authActionTokens, companies, memberships, subscriptions, users } from "../../db/schema";
 import { ALLPLAN_PROGRAM_VERSION } from "../../academy/allplan/certification";
 import { AuthService } from "../../services/auth/authService";
@@ -78,7 +79,7 @@ export async function issueAndDeliverAuthAction(input: {
 }
 
 async function rollbackFailedRegistration(userId: string, companyId: string) {
-  await db.transaction(async tx => {
+  await getControlDatabase().db.transaction(async tx => {
     await tx.delete(authActionTokens).where(eq(authActionTokens.userId, userId));
     await tx.delete(adminAuditLogs).where(eq(adminAuditLogs.targetCompanyId, companyId));
     await tx.delete(academyEnrollmentAuditLogs).where(and(eq(academyEnrollmentAuditLogs.companyId, companyId), eq(academyEnrollmentAuditLogs.actorUserId, userId)));
@@ -124,7 +125,7 @@ export function registerAuthRoutes(app: Express) {
       const [existing] = await db.select().from(users).where(eq(users.email, email));
       if (existing) return res.status(409).json({ error: "Bu e-posta adresiyle bir hesap zaten mevcut." });
       const passwordHash = await AuthService.hashPassword(password);
-      const result = await db.transaction(async tx => {
+      const result = await getControlDatabase().db.transaction(async tx => {
         const [edition] = intent === "academy" ? await tx.select({ id: academyEditions.id }).from(academyEditions)
           .innerJoin(academyProducts, eq(academyProducts.id, academyEditions.productId))
           .where(and(eq(academyProducts.code, "allplan-pro"), eq(academyProducts.isActive, true), eq(academyEditions.version, ALLPLAN_PROGRAM_VERSION), eq(academyEditions.accessMode, "free_pilot"), eq(academyEditions.isActive, true)))

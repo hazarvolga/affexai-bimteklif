@@ -10,7 +10,7 @@ test('Coolify shared env_file cannot expose backup credentials to other services
   const services = ['app', 'worker', 'ifc-worker', 'migrate', 'postgres', 'backup'];
   const backupKeys = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ENDPOINT', 'BACKUP_S3_ACCESS_KEY_ID', 'BACKUP_S3_SECRET_ACCESS_KEY'];
   const appSecrets = ['SMARTCHECK_S3_ACCESS_KEY_ID', 'SMARTCHECK_S3_SECRET_ACCESS_KEY', 'JWT_SECRET', 'SERVICE_HEX_64_JWT', 'OPENAI_API_KEY', 'GEMINI_API_KEY'];
-  const databaseSecrets = ['BIMMETRAJ_APP_DB_PASSWORD', 'BIMMETRAJ_WORKER_DB_PASSWORD', 'BIMMETRAJ_MIGRATOR_DB_PASSWORD', 'BIMMETRAJ_BACKUP_DB_PASSWORD', 'SERVICE_PASSWORD_64_POSTGRES'];
+  const databaseSecrets = ['BIMMETRAJ_APP_DB_PASSWORD', 'BIMMETRAJ_CONTROL_DB_PASSWORD', 'BIMMETRAJ_WORKER_DB_PASSWORD', 'BIMMETRAJ_MIGRATOR_DB_PASSWORD', 'BIMMETRAJ_BACKUP_DB_PASSWORD', 'SERVICE_PASSWORD_64_POSTGRES'];
   const fixtures = Object.fromEntries([...backupKeys, ...appSecrets, ...databaseSecrets].map(key => [key, `fixture-${key}`]));
   fixtures.RELEASE_WORKERS_DRAINED = 'true';
   try {

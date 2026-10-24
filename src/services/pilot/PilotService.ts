@@ -1,4 +1,5 @@
 import { db } from "../../db";
+import { getControlDatabase } from "../../db/control-plane";
 import { authActionTokens, users, companies, memberships, subscriptions } from "../../db/schema";
 import { pilotRepository } from "./PilotRepository";
 import { eq } from "drizzle-orm";
@@ -49,7 +50,7 @@ export class PilotService {
     if (existingUser) throw new ApiError(409, "Bu e-postayla zaten bir hesap var.");
 
     try {
-      const result = await db.transaction(async (tx) => {
+      const result = await getControlDatabase().db.transaction(async (tx) => {
         const [company] = await tx.insert(companies).values({ name: application.companyName, phone: application.phone ?? undefined }).returning();
         const [user] = await tx.insert(users).values({ email: application.email, fullName: application.fullName, passwordHash: null, emailVerified: new Date() }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
@@ -68,7 +69,7 @@ export class PilotService {
         }));
       } catch (error) {
         try {
-          await db.transaction(async tx => {
+          await getControlDatabase().db.transaction(async tx => {
             await tx.delete(authActionTokens).where(eq(authActionTokens.userId, result.user.id));
             await tx.delete(memberships).where(eq(memberships.userId, result.user.id));
             await tx.delete(subscriptions).where(eq(subscriptions.companyId, result.company.id));

@@ -193,13 +193,14 @@ test('CRM leads and quota dependencies declare bounded tenant policy matrices', 
   ]);
   assert.ok(lead.indexes.idx_leads_tenant_created_id);
   assert.deepEqual(Object.keys(tables['public.companies'].policies).sort(), [
-    'companies_app_tenant_read', 'companies_backup_read', 'companies_owner_migration',
+    'companies_app_tenant_read', 'companies_backup_read', 'companies_control_access', 'companies_owner_migration',
   ]);
   assert.deepEqual(Object.keys(tables['public.subscriptions'].policies).sort(), [
-    'subscriptions_app_tenant_read', 'subscriptions_backup_read', 'subscriptions_owner_migration',
+    'subscriptions_app_tenant_read', 'subscriptions_backup_read', 'subscriptions_control_access', 'subscriptions_owner_migration',
   ]);
   assert.deepEqual(Object.keys(tables['public.usage_logs'].policies).sort(), [
-    'usage_logs_app_tenant_insert', 'usage_logs_app_tenant_read', 'usage_logs_backup_read', 'usage_logs_owner_migration',
+    'usage_logs_app_tenant_insert', 'usage_logs_app_tenant_read', 'usage_logs_backup_read', 'usage_logs_control_access',
+    'usage_logs_control_delete', 'usage_logs_control_insert', 'usage_logs_owner_migration',
   ]);
   assert.ok(tables['public.usage_logs'].checkConstraints.usage_logs_count_nonnegative);
   const statements = injectDataTransitions('0018_crm_leads_tenant_rls', []);
@@ -254,7 +255,7 @@ test('release artifacts form an append-only chain matching current schema', asyn
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 19);
+  assert.equal(migrations.length, 20);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

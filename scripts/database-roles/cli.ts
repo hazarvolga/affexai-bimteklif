@@ -22,6 +22,7 @@ async function main() {
       const credentials: DatabaseRoleCredentials = {
         bimmetraj_migrator: required("BIMMETRAJ_MIGRATOR_DB_PASSWORD"),
         bimmetraj_app: required("BIMMETRAJ_APP_DB_PASSWORD"),
+        bimmetraj_control: required("BIMMETRAJ_CONTROL_DB_PASSWORD"),
         bimmetraj_worker: required("BIMMETRAJ_WORKER_DB_PASSWORD"),
         bimmetraj_backup: required("BIMMETRAJ_BACKUP_DB_PASSWORD"),
       };

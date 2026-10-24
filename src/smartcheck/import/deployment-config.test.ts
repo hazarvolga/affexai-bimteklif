@@ -12,10 +12,19 @@ test('Coolify resolves the reviewed seccomp profile from its deployment checkout
 
 test('Coolify app service has an explicit readiness healthcheck', () => {
   const composePath = path.resolve(new URL('../../../compose.coolify.yaml', import.meta.url).pathname);
+  const credentials = {
+    BIMMETRAJ_APP_DB_PASSWORD: 'fixture-app-password',
+    BIMMETRAJ_CONTROL_DB_PASSWORD: 'fixture-control-password',
+    BIMMETRAJ_WORKER_DB_PASSWORD: 'fixture-worker-password',
+    BIMMETRAJ_MIGRATOR_DB_PASSWORD: 'fixture-migrator-password',
+    BIMMETRAJ_BACKUP_DB_PASSWORD: 'fixture-backup-password',
+    SERVICE_PASSWORD_64_POSTGRES: 'fixture-bootstrap-password',
+    RELEASE_WORKERS_DRAINED: 'true',
+  };
   const config = JSON.parse(execFileSync(
     'docker',
     ['compose', '--env-file', '/dev/null', '-f', composePath, 'config', '--format', 'json'],
-    { encoding: 'utf8', timeout: 15_000 },
+    { encoding: 'utf8', timeout: 15_000, env: { ...process.env, ...credentials } },
   ));
   const healthcheck = config.services.app.healthcheck;
 

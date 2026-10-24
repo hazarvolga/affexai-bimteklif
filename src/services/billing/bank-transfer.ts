@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
+import { getControlDatabase } from "../../db/control-plane";
 import { adminAuditLogs, companies, plans, subscriptions, users } from "../../db/schema";
 import {
   BILLING_CYCLE_IDS,
@@ -476,7 +477,7 @@ export async function submitBankTransferNotification(input: {
   payload: z.infer<typeof submitBankTransferInputSchema>;
 }): Promise<PaymentRequestRecord> {
   if (!input.tx) {
-    return db.transaction((tx) => submitBankTransferNotification({ ...input, tx }));
+    return getControlDatabase().db.transaction((tx) => submitBankTransferNotification({ ...input, tx }));
   }
   const runner = input.tx;
   const cycle = normalizeBillingCycle(input.payload.billingCycle);
@@ -600,7 +601,7 @@ export async function reviewBankTransferByAdmin(input: {
   decision: "approved" | "rejected";
   adminDecisionNote?: string | null;
 }): Promise<PaymentRequestRecord> {
-  const target = await db.transaction(async (tx) => {
+  const target = await getControlDatabase().db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`billing-payment-review:${input.requestId}`}, 0))`);
     const allRequests = await getAllPaymentRequestsForAdmin(tx);
     const lockedTarget = allRequests.find((request) => request.requestId === input.requestId);

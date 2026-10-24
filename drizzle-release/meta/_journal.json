@@ -134,6 +134,13 @@
       "when": 1791417600018,
       "tag": "0018_crm_leads_tenant_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791417600019,
+      "tag": "0019_control_plane_rls",
+      "breakpoints": true
     }
   ]
 }
