@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.53",
+  version: "BIM-CALC-2026-10-24.54",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "cc70ca261981b0602afc3d8b0ac4c536aad6a7bc",
-  approvalStatus: "Rev. 59, auth middleware üyelik ve abonelik authority okumalarını tenant transaction bağlamına taşır. Hesap yöntemleri ve sonuçları değişmemiştir. Worker entitlement sınırı, kalan tenant okumaları, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "9a47b51f71cb533f8f9202d438a4b0dbed05a4d4",
+  approvalStatus: "Rev. 60, worker plan/abonelik entitlement okumaları dar SECURITY DEFINER capability function'a alınır ve production branch bunu kullanır. Hesap yöntemleri ve sonuçları değişmemiştir. Canary/drain sonrası ACL revoke, kalan tenant okumaları, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1398,6 +1398,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Üyelik ve abonelik authority sorguları global app Drizzle pool'unda çalışıyordu.",
         after: "Tenant-bound authority sorguları transaction-local GUC ve aynı checked-out PoolClient üzerinden typed Drizzle ile çalışıyor.",
         basis: "src/server/middleware/auth.ts; src/server/middleware/auth.tenant.test.ts; tenant-context transaction contract",
+      },
+    },
+  },
+  {
+    revision: "Rev. 60",
+    version: "BIM-CALC-2026-10-24.54",
+    date: "24 Ekim 2026",
+    commit: "9a47b51f71cb533f8f9202d438a4b0dbed05a4d4",
+    trigger: "T41 8B worker entitlement sınırı: worker'ın plan/abonelik authority tablolarına doğrudan okumasını capability function'a indirme.",
+    beforeSummary: "Worker IFC kota yolu production'da companies, subscriptions ve plans tablolarını doğrudan okuyordu; ACL revoke eski worker image'ını kıracak durumdaydı.",
+    afterSummary: "0020 migration ile yalnız bimmetraj_worker'e EXECUTE verilen, owner/search_path/session-role kapılı worker entitlement function eklendi. Production IFC kota yolu şirket varlığını function üzerinden doğrular; local test ve legacy path korunur. Release artifact zinciri 15/15, capability negatif testi ve TypeScript geçti. Canary/drain sonrası ACL revoke ve kalan worker reads açık kalır; formül/hesap sonucu değişmedi.",
+    affectedModules: ["worker-entitlement"],
+    moduleDetails: {
+      "worker-entitlement": {
+        before: "Worker authority tablolarını doğrudan okuyordu.",
+        after: "Worker production kota yolu dar SECURITY DEFINER entitlement function kullanıyor; function execute ACL'si yalnız worker rolüne ait.",
+        basis: "drizzle-release/0020_worker_entitlement_capability.sql; scripts/database-roles/contract.ts; src/services/billing/quota.ts",
       },
     },
   },

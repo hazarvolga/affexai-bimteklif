@@ -349,6 +349,13 @@ automatically transitions to the free plan; do not enable paid usage.
 - The required expand → capability function → adapter code → canary/drain → ACL revoke sequence is documented in `docs/audits/phase-7/PHASE_7_T41_WORKER_ENTITLEMENT_2026-10-24.md` and surfaced on the admin roadmap.
 - T41 remains PARTIAL and production remains NO-GO. No calculation formula/result changed; expert guide/PDF remains deferred until T01–T49 technical closure.
 
+## 2026-10-24 T41 8B worker entitlement capability ninth slice
+
+- Baseline `9a47b51f71cb533f8f9202d438a4b0dbed05a4d4` adds release migration `0020_worker_entitlement_capability` and a narrow `SECURITY DEFINER` function with worker-only EXECUTE ACL, fixed search path and session-role guard.
+- Production IFC quota path validates company existence through the capability function; local/test path remains compatible until canary. Release artifact chain 15/15 and worker capability negative test pass; TypeScript passes.
+- Roadmap `Rev. 60`; calculation record `BIM-CALC-2026-10-24.54`. Remaining 8B work is canary/drain and ACL revoke for direct authority reads, then 8C remaining tenant reads.
+- Production remains NO-GO; expert guide/PDF remains deferred until T01–T49 technical closure.
+
 ## 2026-10-24 T41 auth authority tenant-bound ninth slice
 
 - Baseline `cc70ca261981b0602afc3d8b0ac4c536aad6a7bc` moves authenticated membership and subscription authority reads onto `withTenantDrizzleTransaction`; the same checked-out PoolClient and transaction-local company/user context are required before the query runs. User profile lookup remains a control-plane read.

@@ -50,6 +50,8 @@ Bu bölüm, Codex oturumu veya kullanım limiti kesilse bile güvenli devam nokt
 
 **8B hazırlık sonucu:** Worker'ın `companies`, `subscriptions` ve `plans` tablolarını doğrudan okuduğu tüm yollar çıkarıldı. Eski worker image'ını kırmamak için ACL revoke yapılmadı. Önce SECURITY DEFINER entitlement capability function, release provenance, adapter kodu, canary ve worker drain kanıtı; sonra ACL revoke uygulanacak. Ayrıntılı sözleşme `docs/audits/phase-7/PHASE_7_T41_WORKER_ENTITLEMENT_2026-10-24.md` içindedir.
 
+**8B yerel kod sonucu / Rev. 60:** `0020_worker_entitlement_capability` migration, role contract ve production IFC quota adapter tamamlandı. Function yalnız `bimmetraj_worker` EXECUTE alıyor; release artifact zinciri 15/15 ve worker capability negatif testi geçti. Canary/drain sonrası doğrudan authority-table ACL revoke, kalan worker reads ve production cutover hâlâ açık.
+
 **Çalışma ağacı koruması:** `graphify-out/*` dosyaları `graphify update .` nedeniyle değişmiş durumdadır ve ürün commit'lerine eklenmemelidir. Kullanıcıya ait `docs/agent-memory/gelecekteki-global-konumlandırma.md` ile kökteki `proje_analiz_gap_bug_seo_geo_rakip_raporu.md` stage edilmemeli/değiştirilmemelidir.
 
 ## 2. Çalışma ve onay sınırları

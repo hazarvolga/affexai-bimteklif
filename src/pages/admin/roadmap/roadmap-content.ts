@@ -283,7 +283,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 59):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 60):",
       },
       {
         type: "table",
@@ -644,6 +644,12 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Auth üyelik ve abonelik authority okumaları aynı checked-out PoolClient üzerindeki transaction-local tenant bağlamına taşındı; auth tenant testleri 8/8 ve TypeScript geçti. Kullanıcı profili kontrol-plane okuması olarak kalır. Worker entitlement, kalan tenant okumaları, production cutover ve uzman kabulü açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
           [
+            "Rev. 60 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 8B Worker Entitlement Capability, Kısmi)",
+            "BIM-CALC-2026-10-24.54 (9a47b51)",
+            "0020 release migration dar SECURITY DEFINER entitlement function ekler; yalnız bimmetraj_worker EXECUTE alır, owner/search_path/session-role kapıları vardır. Production IFC kota yolu şirket varlığını capability üzerinden doğrular. Artifact/role negatif testleri geçti; worker canary/drain sonrası ACL revoke, kalan tenant reads ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+          ],
+          [
             "Rev. 57",
             "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
             "BIM-CALC-2026-10-24.51 (a55841e)",
@@ -653,7 +659,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 59 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 60 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1168,6 +1174,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Auth middleware üyelik ve abonelik authority sorgularını global app pool'unda yürütüyor, tenant RLS sınırı sorgu bağlantısında garanti edilmiyordu.",
             "findMembership ve findSubscription aynı checked-out PoolClient üzerinde withTenantDrizzleTransaction kullanır; company/user GUC ve restricted role kontrolü sorgudan önce yapılır. Auth tenant testleri 8/8, ilgili route/session testleri ve TypeScript geçti. Worker entitlement, kalan tenant okumaları ve production cutover açık kalır.",
             "src/server/middleware/auth.ts, src/server/middleware/auth.tenant.test.ts, src/db/tenant-context.ts",
+          ],
+          [
+            "Rev. 60 · 24 Ekim 2026 (Faz 7 — T41 8B Worker Entitlement Capability, Kısmi)",
+            "SECURITY DEFINER capability function; worker-only EXECUTE ACL; release provenance; production quota adapter",
+            "Worker IFC quota path doğrudan companies/subscriptions/plans authority tablolarını okuyordu; ACL revoke eski worker image'ını bozacak durumdaydı.",
+            "0020 migration ve role contract ile yalnız worker EXECUTE yetkili capability function eklendi. Production kota yolu şirket varlığını function üzerinden doğrular; local test path korunur. 15/15 release artifact, capability negatif testi ve TypeScript geçti. Canary/drain sonrası ACL revoke ve kalan worker reads açık kalır.",
+            "drizzle-release/0020_worker_entitlement_capability.sql, scripts/database-roles/contract.ts, src/services/billing/quota.ts",
           ],
           [
             "Rev. 57 · 24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
