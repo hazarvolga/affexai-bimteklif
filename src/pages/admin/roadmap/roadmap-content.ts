@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 62 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 63 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -273,17 +273,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 62 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 63 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 62)",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 63)",
         text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 62 · BIM-CALC-2026-10-24.56 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 62 disposable test isolation control/runtime ayrımını ve Graphile Worker vendor bootstrap kanıtını ekler; formül veya hesap sonucu değişikliği değildir. Worker credential harness, kalan tenant okumaları ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 62):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 63):",
       },
       {
         type: "table",
@@ -671,7 +671,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 62 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 63 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1214,6 +1214,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "İzole test hook'u tek DATABASE_URL ile schema clone, vendor migration ve uygulama runtime'ını aynı role bağlıyordu; restricted tenant transaction ve queue vendor tabloları aynı koşuda ayrıştırılamıyordu.",
             "Control ve runtime bağlantıları aynı hedef DB için ayrıldı; worker schema migration 18, bounded SmartCheck wrapper'ları, app execute ve worker access kuruldu. Queue 14/14, SmartCheck HTTP tenant ve IFC quota 6/6 geçti; worker credential ayrımı gerektiren IFC HTTP koşusu ayrı harness kapısı olarak kaldı.",
             "src/server/routes/test-isolation.ts, src/server/routes/test-isolation.test.ts, src/smartcheck/import/queue.integration.test.ts",
+          ],
+          [
+            "Rev. 63 · 24 Ekim 2026 (Faz 7 — T41 Explicit Worker Credential Harness, Kısmi)",
+            "CONTROL_DATABASE_URL + restricted bimmetraj_app + optional restricted bimmetraj_worker runtime; Graphile Worker integration boundary",
+            "İzolasyon testleri app ve worker işlemlerini tek DATABASE_URL ile çalıştırıyor, gerçek worker credential sınırı aynı koşuda görünmüyordu.",
+            "WORKER_DATABASE_URL verilirse aynı disposable veritabanına izole edilir; Graphile run/runOnce worker bağlantısını kullanır, uygulama pool'u app credential olarak kalır. Production ve uzman kabulü açık olduğundan T41 PARTIAL kalır.",
+            "src/server/routes/test-isolation.ts, src/smartcheck/import/queue.integration.test.ts, src/server/routes/smartcheck.integration.test.ts",
           ],
         ],
       },

@@ -380,3 +380,8 @@ automatically transitions to the free plan; do not enable paid usage.
 
 - Commit `131042dd6675341b73733881ad433f87f5e9dd2e` adds `CONTROL_DATABASE_URL` support to the disposable integration harness. Schema cloning and Graphile Worker migration bootstrap use the control connection; `DATABASE_URL` remains the restricted `bimmetraj_app` runtime for the same target database. Isolated worker wrappers and bounded role grants are provisioned without changing production ACLs.
 - Queue integration passes 14/14 with an admin disposable runtime; restricted app SmartCheck HTTP tenant flow passes and IFC quota passes 6/6. IFC HTTP worker execution still requires a separate worker credential harness. Full-suite green and production readiness remain unclaimed.
+
+## 2026-10-24 Rev. 63 explicit worker credential harness
+
+- Commit `c9e025e6f2b3a700cf18a192757dfeb5f21b10c4` adds optional `WORKER_DATABASE_URL` isolation for the restricted worker runtime. Queue/IFC `run` and `runOnce` tests can now use worker credentials while HTTP application tests continue using restricted `bimmetraj_app`.
+- This closes the code-side worker credential separation gate; a fresh disposable PG run with real app and worker passwords is still required before calling the full worker HTTP path green. Production cutover, canary/drain, restore/parity and expert acceptance remain open.

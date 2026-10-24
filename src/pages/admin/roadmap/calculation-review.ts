@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.56",
+  version: "BIM-CALC-2026-10-24.57",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "131042dd6675341b73733881ad433f87f5e9dd2e",
-  approvalStatus: "Rev. 62, disposable test izolasyonu CONTROL_DATABASE_URL ile yönetici clone ve DATABASE_URL ile restricted app runtime ayrımını destekler; Graphile Worker vendor migration'ları, worker wrapper'ları ve restricted role grants izole şemada kurulur. Kuyruk 14/14 ve SmartCheck HTTP tenant akışı app runtime ile geçti; tam worker IFC HTTP koşusu worker credential ayrımı nedeniyle ayrı harness ister. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "c9e025e6f2b3a700cf18a192757dfeb5f21b10c4",
+  approvalStatus: "Rev. 63, disposable test izolasyonu explicit WORKER_DATABASE_URL ile restricted worker runtime'ını da ayırabilir; queue ve IFC HTTP worker yolları aynı testte app/worker credential sınırında çalıştırılabilir. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1454,6 +1454,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "İzole şemada vendor migrations ve production queue wrapper sınırı yoktu.",
         after: "Graphile Worker migration 18 ve iki SECURITY DEFINER SmartCheck wrapper'ı izole worker şemasında kurulur; app yalnız wrapper execute, worker yalnız queue tablo erişimi alır.",
         basis: "graphile-worker vendor migration; scripts/database-roles/contract.ts; queue.integration.test.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 63",
+    version: "BIM-CALC-2026-10-24.57",
+    date: "24 Ekim 2026",
+    commit: "c9e025e6f2b3a700cf18a192757dfeb5f21b10c4",
+    trigger: "T41 worker credential harness ayrımı.",
+    beforeSummary: "İzolasyon hook'u app ve worker işlemlerini tek DATABASE_URL ile çalıştırıyordu; gerçek restricted worker runtime aynı test koşusunda verilemiyordu.",
+    afterSummary: "İsteğe bağlı WORKER_DATABASE_URL aynı disposable veritabanına izole edilir ve worker run/runOnce testleri bu bağlantıyı kullanır; app runtime ve worker runtime credential sınırı korunur.",
+    affectedModules: ["test-isolation", "worker-queue"],
+    moduleDetails: {
+      "test-isolation": {
+        before: "Yalnız DATABASE_URL override ediliyordu.",
+        after: "WORKER_DATABASE_URL verilirse schema/search_path ile aynı disposable DB'ye izole edilerek test hook'una aktarılır.",
+        basis: "src/server/routes/test-isolation.ts; explicit worker credential contract",
+      },
+      "worker-queue": {
+        before: "Graphile run/runOnce app credential ile yürütülüyordu.",
+        after: "Worker integration tests explicit worker runtime URL kullanabilir; ürün uygulama pool'u app credential olarak kalır.",
+        basis: "src/smartcheck/import/queue.integration.test.ts; src/server/routes/smartcheck.integration.test.ts",
       },
     },
   },
