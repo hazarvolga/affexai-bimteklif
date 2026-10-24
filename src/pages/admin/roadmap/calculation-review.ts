@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.49",
+  version: "BIM-CALC-2026-10-24.51",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "82207c293f7ff527b3962e8f3e8ceabf58b9fe80",
-  approvalStatus: "Rev. 55, T41'in beşinci diliminde leads, companies, subscriptions ve usage_logs FORCE RLS ile korunur; plans app için global salt-okunur katalogdur. Lead create kota rezervasyonu ile aynı tenant transactionında atomiktir; worker kritik beş tabloya erişemez, yeni public tablolar app/worker için varsayılan reddedilir ve merkezi hata raporlama SQL/PII ayrıntılarını atar. Hesap yöntemleri ve sonuçları değişmemiştir. Kayıt, şirket, ödeme ve admin plan yazma yolları ayrı control-plane DB rolü/pool'una taşınmadığından production cutover NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "a55841e56c0829f61802bc0db63e7baa1d317370",
+  approvalStatus: "Rev. 57, Rev.56 control-plane ayrımının güvenlik incelemesinde bulunan yetki açıklarını kapatır: authority/support tablolarında app exact salt-okunur/append-only ACL, audit DELETE reddi, effective URL override ve TLS downgrade kapısı, production CONTROL_DATABASE_URL preflight ve dar control ACL uygulanır. Kayıt sonrası e-posta teslim hatası append-only audit zincirini silmeye çalışmaz; hesap korunur ve yeniden gönderim durumu bildirilir. Hesap yöntemleri ve sonuçları değişmemiştir. Hassas global app okumaları, worker entitlement erişimi, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T40, T41 ve Faz 7 PARTIAL kalır. Audit append-only olsa da app INSERT nedeniyle credential compromise altında forge edilebilir; bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1348,6 +1348,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     trigger: "GAP kapatma yol haritası Faz 7 / T41 beşinci dilim: CRM lead ve kota bağımlılıklarında tenant izolasyonu ile exact ACL sınırı.",
     beforeSummary: "Lead erişimi route filtrelerine dayanıyor; companies, subscriptions ve usage_logs FORCE RLS taşımıyordu. App/worker public şemasında geniş CRUD yetkisiyle plan, abonelik ve kullanım kayıtlarını değiştirerek CRM kotasını etkisizleştirebiliyordu; beklenmeyen DB hataları telemetry'ye SQL/PII ayrıntısı taşıyabiliyordu.",
     afterSummary: "leads app tenant SELECT/INSERT; companies/subscriptions app tenant SELECT; usage_logs app tenant SELECT/INSERT exact FORCE RLS matrisleriyle korunur. plans app için global SELECT-only, worker kritik beş tabloda default-deny, backup SELECT-only ve migrator-owner bakım yoludur. Lead insert ile kota rezervasyonu aynı transactionda ve company advisory lock altında çalışır; negatif kullanım kaydı constraint ile reddedilir. Inspector exact RLS/ACL/default-ACL/tag driftinde kapanır; hata raporlama yalnız güvenli name/code ile hashli korelasyon etiketleri taşır. PG16 ve focused kontroller geçti. Meşru control-plane yazmaları henüz ayrı role taşınmadığından deploy NO-GO ve T41 PARTIAL'dır.",
+    affectedModules: [],
+    moduleDetails: {},
+  },
+  {
+    revision: "Rev. 56",
+    version: "BIM-CALC-2026-10-24.50",
+    date: "24 Ekim 2026",
+    commit: "1dcc0bc373098b41a7bbad4c4832b3a4b5c44777",
+    trigger: "GAP kapatma yol haritası Faz 7 / T41 altıncı dilim: authority-table mutasyonlarını ayrı control-plane DB kimliğine taşıma.",
+    beforeSummary: "Rev. 55 exact ACL sınırı app credential'ının şirket, abonelik, plan ve kullanım telafisi yazmalarını güvenle reddediyor; meşru kayıt, şirket, ödeme ve admin akışları aynı app pool'u kullandığı için production cutover işlevsel değildi.",
+    afterSummary: "bimmetraj_control ayrı LOGIN/NOINHERIT/NOBYPASSRLS rolü, exact tablo allowlist'i ve yalnız app konteynerine verilen CONTROL_DATABASE_URL ile tanımlandı. 0019 migration companies/subscriptions için control ALL, usage_logs için SELECT/INSERT/DELETE FORCE-RLS politikalarını sabitler. Kayıt/compensation, pilot dönüşüm, şirket ayarı, banka transferi/abonelik, admin plan ve quota release/audit mutasyonları control pool'a taşındı. Control rolü leads, queue ve allowlist dışı tablolarda reddedilir; compose secret izolasyonu ve PG16 negatif testleri geçti. Formül/sonuç değişmedi. Tenant-bound app okumaları ve worker entitlement erişimi henüz tamamlanmadığından production NO-GO ve T41 PARTIAL'dır.",
+    affectedModules: [],
+    moduleDetails: {},
+  },
+  {
+    revision: "Rev. 57",
+    version: "BIM-CALC-2026-10-24.51",
+    date: "24 Ekim 2026",
+    commit: "a55841e56c0829f61802bc0db63e7baa1d317370",
+    trigger: "Rev.56 final code/security review: control-plane DB ayrımındaki broad app grants, effective URL override, audit silme, startup preflight ve compensation açıklarını kapatma.",
+    beforeSummary: "Kod yolları control pool'a taşınmıştı; ancak app rolü bazı authority/support tablolarda geniş mutasyon yetkisini koruyor, DATABASE_URL query override'ları effective kimliği değiştirebiliyor, audit DELETE açıktı ve production preflight control URL'yi zorunlu tutmuyordu. Ücretli kayıt sonrası e-posta hatasında append-only audit FK'leri hesap silme telafisini bozuyordu.",
+    afterSummary: "App/control/worker exact ACL matrisi authority/support tablolarda converge eder; app doğrudan user/membership/token mutasyonu ve audit DELETE yapamaz. Auth, davet ve Academy control mutasyonları control pool'dadır. İki DB URL'si query allowlist, duplicate reddi, exact rol/hedef ve TLS strength ile doğrulanır; production preflight ikisini zorunlu tutar. Control broad sequence/pre-schema grants kaldırıldı. E-posta teslimi aksarsa hesap ve ödeme audit'i korunur, yeniden gönderim durumu döner. PG16, focused, build ve code/security re-review LOCAL GO'dur. Formül/sonuç değişmedi; global app reads, worker entitlement, route-level paid-registration failure testi ve production cutover açık olduğundan T41 PARTIAL/production NO-GO'dur.",
     affectedModules: [],
     moduleDetails: {},
   },

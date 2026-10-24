@@ -1,8 +1,8 @@
 # CDE, hakediş, SmartCheck pilot, şirket sektör ayarı ve CRM/kota tenant RLS modeli
 
-**Sürüm:** Rev. 55 / `BIM-CALC-2026-10-24.49`
-**Kod baseline:** `82207c293f7ff527b3962e8f3e8ceabf58b9fe80`
-**Durum:** **PARTIAL — 22 tenant tablosu ile pilot audit/global katalog yüzeyleri; control-plane ve production cutover yok**
+**Sürüm:** Rev. 57 / `BIM-CALC-2026-10-24.51`
+**Kod baseline:** `a55841e56c0829f61802bc0db63e7baa1d317370`
+**Durum:** **PARTIAL — 22 tenant tablosu ile pilot audit/global katalog yüzeyleri ve ayrı control-plane kimliği yerelde kanıtlı; production cutover yok**
 
 ## Korunan tablolar
 
@@ -43,6 +43,10 @@ Rev. 55 ayrıca CRM/kota güven sınırını korur:
 
 `CrmLeadService`, kota rezervasyonu ile lead insertini aynı tenant transactionında çalıştırır. Şirket UUID'sinden türetilen transaction advisory lock eşzamanlı kotayı serileştirir; lead insert başarısızsa usage kaydı rollback olur. Merkezi API hata raporlama SQL metni, parametre, satır detayı ve nested cause taşımaz.
 
+Rev. 56, meşru authority-table yazmalarını ayrı `bimmetraj_control` credential/pool'una taşır. `0019_control_plane_rls`, `companies` ve `subscriptions` üzerinde control ALL; `usage_logs` üzerinde ayrı SELECT/INSERT/DELETE policy'leri kurar. Exact ACL matrisi `plans` için control DELETE'i, `usage_logs` için control UPDATE'i ve `leads` için bütün control erişimini reddeder. Kayıt/compensation, pilot tenant, şirket ayarı, banka transferi/abonelik, admin plan ve quota release/audit yolları control pool kullanır. Bu ayrım app kimliğinin genişletilmesi anlamına gelmez.
+
+Rev.57 final review düzeltmesi, app'in user/membership/token ve Academy authority/support tablolarındaki broad mutasyon grant'lerini exact SELECT/append-only matrise indirir; auth, davet ve Academy mutasyonlarını control pool ile hizalar. Audit DELETE reddedilir. Effective bağlantı URL query override'ları ve TLS downgrade başlangıçta kapanır; production iki URL olmadan başlamaz. App `admin_audit_logs` INSERT sahibi olduğundan audit append-only fakat credential compromise altında forge edilebilir; bağımsız authenticity kanıtı sayılmaz.
+
 ### CDE ve hakediş tablolarının ortak policy matrisi
 
 Bu tablo yalnız CDE ve hakediş bounded context'leri için geçerlidir. SmartCheck pilot vaka/ölçüm ve audit yüzeyi, yukarıda açıklanan ayrı 3/4/6 policy matrislerini kullanır.
@@ -76,7 +80,7 @@ Pilot ölçüm kabulü vaka satırını kilitler. Normalleştirilmiş istek SHA-
 
 ## Operasyonel kapı
 
-`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls`, `0017_company_industry_settings_tenant_rls` ve `0018_crm_leads_tenant_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
+`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls`, `0017_company_industry_settings_tenant_rls`, `0018_crm_leads_tenant_rls` ve `0019_control_plane_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
 
 - İlgili migrationın kapsadığı bütün tablolar ve owner=`bimmetraj_owner`.
 - `ENABLE` ve `FORCE` RLS.
@@ -84,8 +88,9 @@ Pilot ölçüm kabulü vaka satırını kilitler. Normalleştirilmiş istek SHA-
 - SmartCheck pilot vaka/ölçüm tablolarında exact 3/4 matrisi; `smartcheck_audit_logs` üzerinde non-pilot app/worker davranışını koruyan ve pilot audit mutasyonunu reddeden exact altı-policy matrisi.
 - `company_industry_settings` üzerinde exact beş-policy app S/I/U, backup SELECT ve migrator-owner matrisi; `industries` üzerinde exact üç-policy app/backup SELECT ve migrator-owner matrisi.
 - Policy komutu, PUBLIC OID hedefi, permissive modu, `USING` ve `WITH CHECK` ifadeleri.
+- Control rolünün authority/support table exact ACL allowlist'i ile `companies`, `subscriptions` ve `usage_logs` control policy matrisi; `leads`, queue ve allowlist dışı erişimin yokluğu.
 
-Korunan tablolardan biri mevcutken ilgili ledger tag'i eksikse veya tag uygulanmış kabul edilirken tek bir tablo/policy bile eksikse inspector/provisioner fail-closed kapanır; pre-schema bootstrap sırasında tag ve tabloların birlikte bulunmaması geçerli başlangıç durumudur. Rev. 53 inspector'ı `0016` pilot trigger/function provenance'ını, Rev. 54 inspector'ı `0017` için iki tablo ve exact 5/3 FORCE RLS policy matrisini karşılaştırır. Release manifest/stage imzaları ilgili artifact'ları sabitler ve migration postcondition'ları kurulumu doğrular. Focused integration/contract testleri, izole PostgreSQL 16 sözleşme/regresyon testleri ve root/release TypeScript kontrolleri geçmiştir. Rev. 54 incelemeleri GO vermiştir; Rev. 55 için istenen fresh final code/security reviewer ajanları hesap kullanım limitine takıldığından bu belge production onayı vermez.
+Korunan tablolardan biri mevcutken ilgili ledger tag'i eksikse veya tag uygulanmış kabul edilirken tek bir tablo/policy bile eksikse inspector/provisioner fail-closed kapanır; pre-schema bootstrap sırasında tag ve tabloların birlikte bulunmaması geçerli başlangıç durumudur. Release manifest/stage imzaları ilgili artifact'ları sabitler ve migration postcondition'ları kurulumu doğrular. Rev.56 focused testleri, izole PostgreSQL 16 rol/CDE/hakediş/SmartCheck/sektör/CRM regresyonları, TypeScript ve build kontrolleri geçmiştir. Tam `pnpm test`, güvenli test `DATABASE_URL` bulunmadığı için DB integration testlerinde tamamlanmamıştır; fresh final code/security reviewer ajanları hesap kullanım limitine takılmıştır. Bu belge production onayı vermez.
 
 Her production migration/cutover öncesinde hem release migration doğrulaması hem rol inspector'ı geçmelidir. Bu model compose secret rotasyonu veya deployment yetkisi vermez. Production cutover, canary, restore/parity, rollback ve deploy gerçekleştirilmemiştir.
 
@@ -93,4 +98,4 @@ Her production migration/cutover öncesinde hem release migration doğrulaması 
 
 Custom tenant GUC, uygulamanın yanlış/eksik tenant filtresine ve pool reuse sızıntısına karşı koruma sağlar. App credential ele geçirilip keyfi SQL çalıştırılırsa saldırgan custom GUC değerini değiştirebilir. Bu nedenle SQL injection önleme, input validation, app credential koruması, T40 runtime cutover ve production monitoring zorunlu kalır.
 
-T41 genel durumu **PARTIAL** kalır: bu belge 22 tenant tablosu ile pilot audit/global katalog yüzeylerini kapsar. Kayıt, şirket ayarı, banka transferi/abonelik ve admin plan mutasyonları ayrı control-plane DB rolü/pool'una taşınmadan production rol cutover'ı yapılamaz; diğer tenant tabloları da henüz aynı RLS sözleşmesine alınmamıştır. `PROGRESS_PAYMENTS_ENABLED` varsayılan olarak kapalıdır. Rev. 55 hesap yöntemlerini, formülleri veya sonuçları değiştirmez; production cutover/deploy/canary/restore/rollback ve izinli gerçek dosyalarla bağımsız uzman kabulü ayrıca gereklidir. Public pazarlama sayfaları değişmemiştir.
+T41 genel durumu **PARTIAL** kalır: yazma/control-plane ayrımı yerelde tamamlanmıştır; ancak tenant context kurulmadan yapılan kalan app okumaları Rev.55 ACL/RLS altında fail edebilir ve worker'ın plan/abonelik entitlement okuması için dar, salt-okunur bir sınır henüz yoktur. Diğer tenant tabloları da aynı RLS sözleşmesine alınmamıştır. `PROGRESS_PAYMENTS_ENABLED` varsayılan olarak kapalıdır. Rev.56 hesap yöntemlerini, formülleri veya sonuçları değiştirmez; production secret cutover/deploy/canary/restore/rollback, canlı negatif tenant kanıtı ve izinli gerçek dosyalarla bağımsız uzman kabulü ayrıca gereklidir. Public pazarlama sayfaları değişmemiştir.
