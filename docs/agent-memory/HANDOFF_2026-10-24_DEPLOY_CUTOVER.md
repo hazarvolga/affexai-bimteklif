@@ -3,7 +3,7 @@
 ## Bu noktadaki durum
 
 - Üretim uygulaması `https://bimmetraj.com/api/health` hâlâ `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e` revision'ını bildiriyor. Coolify deploy yapılmadı.
-- En son push `cd819811683f1fff46225dae07b994d7087722b5` (`fix: unblock legacy database role cutover`). GitHub Verify `40089915624` bu SHA için yeşil tamamlandı (17m18s): RLS, rol/migrasyon, full verify, Prisma, browser smoke, dependency audit, image build ve network-isolated artifact smoke geçti. Önceki `495644599c5bbdb4ab02d9f72a5b0b12fee9bf2f` runı `body-parser@1.20.8` (`GHSA-27r3-jxmh-p828`) nedeniyle audit aşamasında başarısız olmuştu.
+- Son deploy-path kod push'u `cdcc7dcaa18618bc77f38c2ea7064c1aeb2c9df3` (`fix: add guarded production role operator`). GitHub Verify `40091648042` yaklaşık 10 dakika içinde yeşil tamamlandı ve `scripts/require-green-ci.sh cdcc7dcaa18618bc77f38c2ea7064c1aeb2c9df3` deploy gate'ini geçti. Beş RLS contract, role bootstrap, runtime Compose contract, tam `pnpm run verify`, Prisma shadow, browser smoke, dependency audit, app/IFC Docker image build ve network-isolated artifact smoke geçti. Önceki `cd819811683f1fff46225dae07b994d7087722b5` için Verify `40089915624` de yeşildi. Daha eski `495644599c5bbdb4ab02d9f72a5b0b12fee9bf2f` runı `body-parser@1.20.8` (`GHSA-27r3-jxmh-p828`) nedeniyle audit aşamasında başarısız olmuştu.
 - `pnpm-workspace.yaml` ve `pnpm-lock.yaml` override'ları Express 4 hattını `body-parser@1.20.9`, Express 5 hattını `2.4.0` sürümüne sabitliyor. `node scripts/dependency-audit-policy.mjs` sonucu `{"blocked":[]}`. Bunlar `cd81981` CI runında doğrulandı. Daha sonra bulunan operator-image/Compose wiring değişiklikleri henüz commit/push edilmedi; yeni SHA için CI yeniden çalışmalı.
 - Kullanıcının beyanı: canlıda gerçek müşteri verisi yok. Yine de üretim DB'sinde incelenen yedekte 68 public tablo, 5 user ve 5 company vardı; bunları cutover sırasında silme/yeniden oluşturma varsayımı yapılmamalı. Yedek geri yükleme provası bu verileri korudu.
 
@@ -24,8 +24,8 @@ Bu, eski şema → iki aşamalı rol cutover → güncel şema/ACL inspector zin
 
 ## Kod, test ve çalışma ağacı
 
-- Pending intended changes: `Dockerfile`, `compose.coolify.yaml`, `compose.example.yaml`, `scripts/database-roles/runtime-compose-contract.test.ts` plus this handoff and `WORKING_STATE.md`. Dependency/bootstrap implementation itself was committed and pushed in `cd81981`.
-- `bootstrap-legacy` olumsuz sınır testleri: 4/4 geçti (ledger drift, kısmi rol seti, cluster fingerprint farkı, provenance drift). Role-admin runtime Compose sözleşmesi lokal testleri 4/4 geçti; role CLI bundle local `dist/database-roles-cli.mjs` olarak üretildi. Yeni değişikliklerden sonra çalıştırılan yerel `pnpm run verify`, TypeScript aşamasını geçti ancak DB entegrasyon testlerinde gerekli `DATABASE_URL`/izole PostgreSQL bulunmadığı ve `127.0.0.1:5432` bağlantısı reddedildiği için durdu. Bu, Compose/Dockerfile değişikliği için yeşil doğrulama sayılmaz; yeni commit'in GitHub Verify'ı beklenmeli.
+- Role-admin deploy-path kodu `cdcc7dc` ile commit/push edildi. Yeni `40091648042` Verify ve `require-green-ci` kapısı yeşil; production cutover hazırlığı ve deploy henüz yapılmadı.
+- `bootstrap-legacy` olumsuz sınır testleri: 4/4; role-admin runtime Compose sözleşmesi 4/4 geçti. Lokal lint/build, 8 odaklı role/Compose testi, dependency audit ve `git diff --check` başarılı. Lokal tam `pnpm run verify`, TypeScript sonrasında DB integration testlerinde `DATABASE_URL`/izole PostgreSQL bulunmadığından ve `127.0.0.1:5432` bağlantısı reddedildiğinden tamamlanamadı. Bu makineye DB başlatılmadı; aynı tam doğrulama GitHub Verify `40091648042` içindeki izole PostgreSQL ortamında başarıyla geçti.
 - Body-parser dependency audit policy: `blocked: []`.
 - Son `pnpm run verify`: başarılı (1355 test; 1349 geçti, 6 skip, 0 fail) ve production build başarılı. Bu yerel kanıttır; yeni commit için GitHub Verify henüz çalıştırılmadı.
 - Önceki reviewer durumu: security review GO; code review bootstrap için izole gerçek PostgreSQL başarı zincirinin kanıtlanmasını ve aşama 1 sonrası hata kurtarma yolunun belgelenmesini istedi. Bu handoff'taki PG16 prova ilk açığı kapatır; cutover runbook'taki ileri kurtarma/restore adımı ikinci riski yönetir.
@@ -44,7 +44,7 @@ Bu, eski şema → iki aşamalı rol cutover → güncel şema/ACL inspector zin
 
 ## Açık kapılar
 
-- Son yeşil CI yalnızca `cd81981` için geçerli; sonraki Compose/Dockerfile operator-path değişikliği yeni SHA ve yeni yeşil CI gerektiriyor. Yerel lint, 8 odaklı role/Compose testi, dependency audit ve build geçti; tam yerel `verify` DB bağlantısı olmadığı için entegrasyon testlerinde durdu. Güvenlik reviewer handoff komutundaki `tini` kaynaklı hatayı yakaladı; komutlar yukarıda açık `node dist/database-roles-cli.mjs ...` biçiminde düzeltildi.
+- `cdcc7dc` deploy-path kodu için yeşil CI ve deploy gate mevcut. Yerel tam verify DB bağlantısı olmadığı için integration aşamasında tamamlanamadı; GitHub Verify izole PostgreSQL ile başarıya ulaştı. Güvenlik reviewer handoff komutundaki `tini` kaynaklı hatayı yakaladı; komutlar açık `node dist/database-roles-cli.mjs ...` biçiminde düzeltildi.
 - Coolify secret/env hazırlığı ve üretim drain/cutover/deploy.
 - Canlı health revision, login/tenant smoke, worker queue ve log/alert kanıtı.
 - T41/Phase 7'nin diğer tenant tabloları ve bağımsız uzman kabulü. Bu deploy handoff'u uzman onayı yerine geçmez.
