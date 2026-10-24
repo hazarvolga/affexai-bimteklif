@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type pg from "pg";
+import { sql } from "drizzle-orm";
 
 import { withTenantDrizzleTransaction, withTenantTransaction } from "./tenant-context";
 
@@ -152,6 +153,7 @@ test("Drizzle tenant helper uses the same checked-out client after transaction-l
   let callbackCalled = false;
 
   const result = await withTenantDrizzleTransaction(fixture.pool, { companyId: COMPANY_ID, userId: USER_ID }, async (database) => {
+    await database.execute(sql`select 1`);
     callbackCalled = Boolean(database);
     return "drizzle-scoped-result";
   });
