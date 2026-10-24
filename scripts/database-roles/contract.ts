@@ -145,28 +145,37 @@ export const DATABASE_SECURITY_DEFINER_WRAPPERS = Object.freeze({
         return query select removed.locked_at from teklifpro_queue.remove_job(p_job_key) removed;
       end `,
   bimmetraj_worker_get_entitlement: `
-      begin
-        if session_user <> 'bimmetraj_worker' then raise exception 'Worker entitlement function requires the worker session role' using errcode='42501'; end if;
-        return query
-          select exists(select 1 from public.companies c where c.id = p_company_id),
-            subscription.status::text,
-            subscription.current_period_end,
-            subscription.plan_id,
-            plan.is_active,
-            plan.monthly_ifc_limit,
-            plan.ifc_max_file_mb,
-            plan.ifc_max_concurrent
-          from (select 1) anchor
-          left join public.subscriptions subscription on subscription.company_id = p_company_id
-          left join public.plans plan on plan.id = subscription.plan_id;
-      end `,
+BEGIN
+  IF session_user <> 'bimmetraj_worker' THEN
+    RAISE EXCEPTION 'Worker entitlement function requires the worker session role' USING ERRCODE = '42501';
+  END IF;
+  RETURN QUERY
+    SELECT EXISTS (SELECT 1 FROM public.companies company WHERE company.id = p_company_id),
+      subscription.status::text,
+      subscription.current_period_end,
+      subscription.plan_id,
+      plan.is_active,
+      plan.monthly_ifc_limit,
+      plan.ifc_max_file_mb,
+      plan.ifc_max_concurrent
+    FROM (SELECT 1) anchor
+    LEFT JOIN public.subscriptions subscription ON subscription.company_id = p_company_id
+    LEFT JOIN public.plans plan ON plan.id = subscription.plan_id;
+END;
+`,
   bimmetraj_worker_get_company_context: `
-      begin
-        if session_user <> 'bimmetraj_worker' then raise exception 'Worker company context function requires the worker session role' using errcode='42501'; end if;
-        return query
-          select exists(select 1 from public.companies c where c.id = p_company_id), c.active_standard, c.smartcheck_max_waste_percent
-          from public.companies c where c.id = p_company_id;
-      end `,
+BEGIN
+  IF session_user <> 'bimmetraj_worker' THEN
+    RAISE EXCEPTION 'Worker company context function requires the worker session role' USING ERRCODE = '42501';
+  END IF;
+  RETURN QUERY
+    SELECT EXISTS (SELECT 1 FROM public.companies company WHERE company.id = p_company_id),
+      company.active_standard,
+      company.smartcheck_max_waste_percent
+    FROM public.companies company
+    WHERE company.id = p_company_id;
+END;
+`,
 } as const);
 
 export const DATABASE_VENDOR_FUNCTION_PROVENANCE = Object.freeze({

@@ -144,6 +144,13 @@ test("manual and import quotation transactions share serialized quota", { timeou
       if (table === schema.smartcheckAuditLogs || table === schema.usageLogs) throw new Error("private audit failure");
       return insert(table);
     }) as typeof db.insert);
+    const { getControlDatabase } = await import("../../db/control-plane");
+    const controlDb = getControlDatabase().db;
+    const controlInsert = controlDb.insert.bind(controlDb);
+    t.mock.method(controlDb, "insert", ((table: any) => {
+      if (table === schema.usageLogs) throw new Error("private usage audit failure");
+      return controlInsert(table);
+    }) as typeof controlDb.insert);
     const errors = t.mock.method(console, "error", () => {});
     assert.equal((await f.createImport()).statusCode, 201);
     await new Promise(resolve => setImmediate(resolve));

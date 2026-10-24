@@ -1,3 +1,4 @@
+import { bootstrapDisposableRoles } from "../../scripts/ci/disposable-database-roles";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
@@ -59,7 +60,7 @@ test("SmartCheck pilot evidence enforces exact RLS, append-only history, atomic 
   const administratorCredential = decodeURIComponent(control.password);
   const root = await connect(control.toString());
   const credentials = Object.fromEntries(loginRoles.map((role) => [role, crypto.randomBytes(32).toString("hex")])) as Credentials;
-  const clients: pg.Client[] = []; const pools: pg.Pool[] = []; let created = false;
+  const clients: pg.Client[] = []; const pools: pg.Pool[] = []; let created = false; let createdRoles: string[] = [];
   try {
     assert.equal((await root.query<{ major: number }>("select current_setting('server_version_num')::int/10000 major")).rows[0]?.major, 16);
     assert.equal((await root.query("select 1 from pg_database where datname=$1", [databaseName])).rowCount, 0);
@@ -67,7 +68,8 @@ test("SmartCheck pilot evidence enforces exact RLS, append-only history, atomic 
     await root.query("select pg_advisory_lock(hashtext('bimmetraj.database-role-integration-test'))");
     await root.query(`create database ${quote(databaseName)} template template0`); created = true;
     const admin = await connect(urlFor(control, databaseName)); clients.push(admin);
-    const migrations = await loadMigrations(); await applyMigrations(admin, migrations);
+    const migrations = await loadMigrations(); createdRoles = await bootstrapDisposableRoles(admin);
+    await applyMigrations(admin, migrations);
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue = await makeWorkerUtils({ connectionString: urlFor(control, databaseName), schema: "teklifpro_queue", logger: new Logger(() => () => {}) }); await queue.release();
     const system = (await admin.query<{ id: string }>("select system_identifier::text id from pg_control_system()")).rows[0]!.id;
@@ -178,7 +180,7 @@ test("SmartCheck pilot evidence enforces exact RLS, append-only history, atomic 
     for (const client of clients.reverse()) await client.end().catch(() => undefined);
     if (created) { await root.query("select pg_terminate_backend(pid) from pg_stat_activity where datname=$1 and pid<>pg_backend_pid()", [databaseName]); await root.query(`drop database if exists ${quote(databaseName)}`); }
     await root.query("select pg_advisory_unlock(hashtext('bimmetraj.database-role-integration-test'))").catch(() => undefined);
-    for (const role of [...DATABASE_ROLE_SPECS].reverse()) await root.query(`drop role if exists ${quote(role.name)}`).catch(() => undefined);
+    for (const role of [...createdRoles].reverse()) await root.query(`drop role if exists ${quote(role)}`);
     await root.end();
   }
 });

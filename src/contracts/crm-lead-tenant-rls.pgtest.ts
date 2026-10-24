@@ -1,3 +1,4 @@
+import { bootstrapDisposableRoles } from "../../scripts/ci/disposable-database-roles";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
@@ -39,7 +40,7 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
   const control = controlUrl(); const root = await connect(control.toString());
   const administratorCredential = decodeURIComponent(control.password);
   const credentials = Object.fromEntries(roles.map(role => [role, crypto.randomBytes(32).toString("hex")])) as Credentials;
-  const clients: pg.Client[] = []; const pools: pg.Pool[] = []; let created = false; let provisioned = false;
+  const clients: pg.Client[] = []; const pools: pg.Pool[] = []; let created = false; let createdRoles: string[] = [];
   try {
     assert.equal((await root.query<{ major: number }>("select current_setting('server_version_num')::int/10000 major")).rows[0]?.major, 16);
     await root.query("select pg_advisory_lock(hashtext('bimmetraj.database-role-integration-test'))");
@@ -47,12 +48,13 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
     assert.equal((await root.query("select 1 from pg_roles where rolname=any($1::text[])", [DATABASE_ROLE_SPECS.map(role => role.name)])).rowCount, 0);
     await root.query(`create database ${quote(databaseName)} template template0`); created = true;
     const admin = await connect(urlFor(control, databaseName)); clients.push(admin);
-    const migrations = await loadMigrations(); await applyMigrations(admin, migrations);
+    const migrations = await loadMigrations(); createdRoles = await bootstrapDisposableRoles(admin);
+    await applyMigrations(admin, migrations);
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue = await makeWorkerUtils({ connectionString: urlFor(control, databaseName), schema: "teklifpro_queue", logger: new Logger(() => () => {}) }); await queue.release();
     const system = (await admin.query<{ id: string }>("select system_identifier::text id from pg_control_system()")).rows[0]!.id;
     const target = { expectedDatabase: databaseName, expectedSystemIdentifier: system, requiredMarkerRegclass: "teklifpro_release.migrations" };
-    await provisionDatabaseRoles(admin, credentials, target, administratorCredential); provisioned = true;
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
     assert.deepEqual(await inspectCrmLeadRlsViolations(admin), []); assertRoleBoundaries(await inspectRoleBoundaries(admin));
     assert.deepEqual((await admin.query(`select c.relname, c.relrowsecurity rls, c.relforcerowsecurity force_rls
       from pg_class c join pg_namespace n on n.oid=c.relnamespace
@@ -199,7 +201,7 @@ test("CRM leads enforce INSERT/SELECT-only tenant RLS and atomic lead quota rese
     for (const result of await Promise.allSettled(pools.map(pool => pool.end()))) if (result.status === "rejected") cleanup.push(result.reason);
     for (const result of await Promise.allSettled(clients.reverse().map(client => client.end()))) if (result.status === "rejected") cleanup.push(result.reason);
     if (created) try { await root.query(`drop database if exists ${quote(databaseName)} with (force)`); } catch (error) { cleanup.push(error); }
-    if (provisioned) for (const role of [...DATABASE_ROLE_SPECS].reverse()) try { await root.query(`drop role if exists ${quote(role.name)}`); } catch (error) { cleanup.push(error); }
+    for (const role of [...createdRoles].reverse()) try { await root.query(`drop role if exists ${quote(role)}`); } catch (error) { cleanup.push(error); }
     await root.query("select pg_advisory_unlock(hashtext('bimmetraj.database-role-integration-test'))").catch(error => cleanup.push(error)); await root.end().catch(error => cleanup.push(error));
     if (cleanup.length) throw new AggregateError(cleanup, "CRM lead RLS cleanup failed");
   }

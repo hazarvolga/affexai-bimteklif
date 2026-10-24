@@ -1,3 +1,4 @@
+import { bootstrapDisposableRoles } from "../../scripts/ci/disposable-database-roles";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
@@ -79,17 +80,18 @@ test("progress-payment bounded context enforces tenant RLS and runtime role boun
   const controlUrl = requireControlUrl(); const adminPassword = decodeURIComponent(controlUrl.password);
   const control = await connect(controlUrl.toString()); const clients: pg.Client[] = [control]; const pools: pg.Pool[] = [];
   const credentials = Object.fromEntries(roles.map((role) => [role, crypto.randomBytes(24).toString("hex")])) as Credentials;
-  let created=false, provisioned=false;
+  let created=false; let createdRoles: string[] = [];
   try {
     assert.equal((await control.query<{ major:number }>("select current_setting('server_version_num')::int/10000 major")).rows[0]?.major,16);
     await control.query("select pg_advisory_lock(hashtext('bimmetraj.database-role-integration-test'))");
     await control.query(`create database ${quote(databaseName)} template template0`); created=true;
     const admin=await connect(dbUrl(controlUrl,databaseName)); clients.push(admin);
+    createdRoles = await bootstrapDisposableRoles(admin);
     await applyMigrations(admin, await loadMigrations());
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue=await makeWorkerUtils({connectionString:dbUrl(controlUrl,databaseName),schema:"teklifpro_queue",logger:new Logger(()=>()=>{})}); await queue.release();
     const system=(await admin.query<{id:string}>("select system_identifier::text id from pg_control_system()")).rows[0]!.id;
-    await provisionDatabaseRoles(admin,credentials,{expectedDatabase:databaseName,expectedSystemIdentifier:system,requiredMarkerRegclass:"teklifpro_release.migrations"},adminPassword); provisioned=true;
+    await provisionDatabaseRoles(admin,credentials,{expectedDatabase:databaseName,expectedSystemIdentifier:system,requiredMarkerRegclass:"teklifpro_release.migrations"},adminPassword);
     await assertPolicyCatalog(admin); assertRoleBoundaries(await inspectRoleBoundaries(admin)); await seed(admin);
     const app=new pg.Pool({connectionString:dbUrl(controlUrl,databaseName,"bimmetraj_app",credentials.bimmetraj_app),max:2});
     const singleApp=new pg.Pool({connectionString:dbUrl(controlUrl,databaseName,"bimmetraj_app",credentials.bimmetraj_app),max:1});
@@ -176,7 +178,7 @@ test("progress-payment bounded context enforces tenant RLS and runtime role boun
     for (const result of await Promise.allSettled(pools.map(pool=>pool.end()))) if (result.status === "rejected") cleanupErrors.push(result.reason);
     for (const result of await Promise.allSettled(clients.slice(1).reverse().map(client=>client.end()))) if (result.status === "rejected") cleanupErrors.push(result.reason);
     if (created) try { await control.query(`drop database if exists ${quote(databaseName)} with (force)`); } catch (error) { cleanupErrors.push(error); }
-    if (provisioned) for (const role of [...DATABASE_ROLE_SPECS].reverse()) try { await control.query(`drop role if exists ${quote(role.name)}`); } catch (error) { cleanupErrors.push(error); }
+    for (const role of [...createdRoles].reverse()) try { await control.query(`drop role if exists ${quote(role)}`); } catch (error) { cleanupErrors.push(error); }
     try { await control.query("select pg_advisory_unlock(hashtext('bimmetraj.database-role-integration-test'))"); } catch (error) { cleanupErrors.push(error); }
     try { await control.end(); } catch (error) { cleanupErrors.push(error); }
     if (cleanupErrors.length) throw new AggregateError(cleanupErrors, "Progress-payment tenant RLS test cleanup failed");

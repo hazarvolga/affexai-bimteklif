@@ -77,3 +77,9 @@ Bu belge production çalıştırma talimatı veya cutover onayı değildir. T40 
 6. Production deploy SHA, çalışan image/source ve dış HTTP/browser kanıtının ayrı kaydı.
 
 `pgaudit` veya DDL/audit logging kullanılırsa parola taşıyan nested DDL/GUC içerikleri loglanmamalı; hedef ortam logging davranışı redakte edilerek ayrıca doğrulanmalıdır.
+
+## Disposable CI cluster and functional fixture boundary (2026-10-24)
+
+`Verify` creates canonical `NOINHERIT` roles in its disposable PostgreSQL 16 service. The bootstrap requires `NODE_ENV=test`, `CI_DISPOSABLE_DATABASE=true`, a loopback URL naming only an approved disposable database, a PostgreSQL 16 administrator and matching role provenance. PostgreSQL roles are **cluster-wide**; local execution must use a dedicated disposable cluster, not a shared PostgreSQL installation with a similarly named database. `scripts/ci/disposable-database-roles.ts check` fails before integration tests if attributes or membership drift.
+
+Functional integration suites clone application tables into random schemas and run app/control/worker through separate restricted logins. A fixture-admin connection is available only inside the isolation harness for seeding, failure injection and worker queue cleanup. App login cannot mutate Graphile private queue tables directly; only bounded queue wrappers are available. These cloned schemas do not copy production RLS, so passing them is not tenant-isolation acceptance. The dedicated `src/contracts/*.pgtest.ts` tests on fresh disposable databases remain mandatory for FORCE RLS, grants and role provenance.

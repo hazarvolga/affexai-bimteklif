@@ -3,12 +3,12 @@ import { createServer } from 'node:http';
 import test from 'node:test';
 import crypto from 'node:crypto';
 import dotenv from 'dotenv';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useTestIsolation } from './test-isolation';
 
 dotenv.config({ path: '.env.local', quiet: true });
 dotenv.config({ quiet: true });
-useTestIsolation();
+const isolation = useTestIsolation();
 
 const sha256 = (buf: Buffer) => crypto.createHash('sha256').update(buf).digest('hex');
 
@@ -23,7 +23,8 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
   ]);
 
   await ensureQueueSchema();
-  const workerSchema = process.env.GRAPHILE_WORKER_SCHEMA!;
+  const fixture = await isolation.fixtureClient();
+  const workerSchema = `"${process.env.GRAPHILE_WORKER_SCHEMA!.replace(/"/g, '""')}"`;
 
   const [admin] = await db.insert(schema.users).values({
     email: 'queue-admin@example.test',
@@ -211,28 +212,27 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
       updatedAt: new Date(0),
     }).returning();
 
-    // Insert a locked job in Graphile Worker schema via add_job
-    await db.execute(sql`
-      select ${sql.identifier(workerSchema)}.add_job('process_smartcheck_ifc_document', '{}'::json, job_key := ${'smartcheck:' + staleRun.id})
-    `);
-    await db.execute(sql`
-      update ${sql.identifier(workerSchema)}._private_jobs
-      set locked_at = now(), locked_by = 'test-worker-node'
-      where key = ${'smartcheck:' + staleRun.id}
-    `);
-
+    // Fixture-only vendor calls use the admin connection; HTTP still uses runtime roles.
+    const jobKey = 'smartcheck:' + staleRun.id;
+    await fixture.query(
+      `select ${workerSchema}.add_job($1, $2::json, job_key := $3)`,
+      ['process_smartcheck_ifc_document', '{}', jobKey],
+    );
     try {
+      await fixture.query(
+        `update ${workerSchema}._private_jobs set locked_at = now(), locked_by = $1 where key = $2`,
+        ['test-worker-node', jobKey],
+      );
       const res = await postRecover(staleRun.id);
       assert.equal(res.status, 409, 'locked job must return 409, not 500');
       const body = await res.json() as { error: string; code?: string };
       assert.equal(body.code, 'PROCESSING_JOB_ACTIVE');
     } finally {
-      await db.execute(sql`
-        update ${sql.identifier(workerSchema)}._private_jobs
-        set locked_at = null, locked_by = null
-        where key = ${'smartcheck:' + staleRun.id}
-      `);
-      await db.execute(sql`select ${sql.identifier(workerSchema)}.remove_job(${'smartcheck:' + staleRun.id})`);
+      await fixture.query(
+        `update ${workerSchema}._private_jobs set locked_at = null, locked_by = null where key = $1`,
+        [jobKey],
+      );
+      await fixture.query(`select ${workerSchema}.remove_job($1)`, [jobKey]);
     }
   });
 

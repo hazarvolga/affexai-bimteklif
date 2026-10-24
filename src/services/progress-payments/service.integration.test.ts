@@ -4,7 +4,7 @@ import { after, before, describe, it } from "node:test";
 import pg from "pg";
 import { useTestIsolation } from "../../server/routes/test-isolation";
 
-useTestIsolation();
+const isolation = useTestIsolation();
 
 const ids = {
   company: randomUUID(), maker: randomUUID(), checker: randomUUID(),
@@ -13,7 +13,22 @@ const ids = {
 let service: import("./service").ProgressPaymentService;
 let testPool: pg.Pool;
 
+describe("revisioned progress payment service", { concurrency: 1 }, () => {
 before(async () => {
+  // The outer isolation hook must finish before opening pools. Root hooks run concurrently.
+  const { readFile } = await import("node:fs/promises");
+  const migration = await readFile(new URL("../../../drizzle-release/0012_progress_payment_evidence.sql", import.meta.url), "utf8");
+  // LIKE does not copy triggers. Install the canonical evidence guards in this
+  // isolated search_path so these assertions exercise actual DB enforcement.
+  for (const statement of migration.split("--> statement-breakpoint")) {
+    if (/^CREATE (?:FUNCTION|(?:CONSTRAINT )?TRIGGER)\b/.test(statement.trim())) {
+      await isolation.fixtureClient().query(statement);
+    }
+  }
+  const triggerCount = await isolation.fixtureClient().query<{ count: number }>(
+    "select count(*)::int as count from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname=current_schema() and not t.tgisinternal"
+  );
+  assert.equal(triggerCount.rows[0]?.count, 18, "the complete migration 0012 trigger contract must be active in the isolated schema");
   const { ProgressPaymentService } = await import("./service");
   testPool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 4 });
   service = new ProgressPaymentService(testPool, async (database, _context, work) => {
@@ -37,7 +52,6 @@ before(async () => {
 
 after(async () => { await testPool.end(); });
 
-describe("revisioned progress payment service", { concurrency: 1 }, () => {
   it("materializes cumulative quantities under maker-checker and preserves approved history", async () => {
     const maker = { companyId: ids.company, userId: ids.maker };
     const checker = { companyId: ids.company, userId: ids.checker };

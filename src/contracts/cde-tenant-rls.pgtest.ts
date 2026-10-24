@@ -1,3 +1,4 @@
+import { bootstrapDisposableRoles } from "../../scripts/ci/disposable-database-roles";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
@@ -178,7 +179,7 @@ test("CDE tenant RLS isolates app pool reuse and concurrency while preserving ex
   const clients: pg.Client[] = [];
   const pools: pg.Pool[] = [];
   let databaseCreated = false;
-  let rolesProvisioned = false;
+  let createdRoles: string[] = [];
   try {
     assert.equal((await control.query<{ major: number }>("select current_setting('server_version_num')::int/10000 as major")).rows[0]?.major, 16);
     const expectedClusterName = process.env.DATABASE_ROLE_TEST_CLUSTER_NAME === "<empty>"
@@ -195,13 +196,14 @@ test("CDE tenant RLS isolates app pool reuse and concurrency while preserving ex
     const migrations = await loadMigrations();
     const cdeMigrationIndex = migrations.findIndex(({ tag }) => tag === "0013_cde_tenant_rls");
     assert.ok(cdeMigrationIndex > 0, "T41 CDE RLS migration must exist after an established baseline");
+    createdRoles = await bootstrapDisposableRoles(admin);
     await applyMigrations(admin, migrations);
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue = await makeWorkerUtils({ connectionString: databaseUrl(controlUrl, databaseName), schema: "teklifpro_queue", logger: new Logger(() => () => {}) });
     await queue.release();
     const fingerprint = (await admin.query<{ id: string }>("select system_identifier::text as id from pg_control_system()")).rows[0]!.id;
     await provisionDatabaseRoles(admin, credentials, { expectedDatabase: databaseName, expectedSystemIdentifier: fingerprint, requiredMarkerRegclass: "teklifpro_release.migrations" }, administratorCredential);
-    rolesProvisioned = true;
+
     const migrator = await connect(databaseUrl(controlUrl, databaseName, "bimmetraj_migrator", credentials.bimmetraj_migrator));
     clients.push(migrator);
     await migrator.query("set role bimmetraj_owner");
@@ -389,8 +391,8 @@ test("CDE tenant RLS isolates app pool reuse and concurrency while preserving ex
       try { await control.query("select pg_terminate_backend(pid) from pg_stat_activity where datname=$1 and pid<>pg_backend_pid()", [databaseName]); } catch (error) { cleanupErrors.push(error); }
       try { await control.query(`drop database if exists ${quoteIdentifier(databaseName)}`); } catch (error) { cleanupErrors.push(error); }
     }
-    if (rolesProvisioned) {
-      for (const role of [...loginRoles, "bimmetraj_owner"] as const) {
+    if (createdRoles.length) {
+      for (const role of [...createdRoles].reverse()) {
         try { await control.query(`drop role if exists ${quoteIdentifier(role)}`); } catch (error) { cleanupErrors.push(error); }
       }
     }

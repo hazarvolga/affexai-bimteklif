@@ -70,36 +70,39 @@ jobs:
           python -m pytest workers/ifc -q
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: test -x "$PUPPETEER_EXECUTABLE_PATH"
+      - name: PostgreSQL 16 CDE tenant RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm run test:tenant-rls:pg
+      - name: PostgreSQL 16 progress-payment tenant RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm run test:progress-payment-tenant-rls:pg
+      - name: PostgreSQL 16 SmartCheck pilot evidence tenant RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm run test:smartcheck-pilot-tenant-rls:pg
+      - name: PostgreSQL 16 company industry settings tenant RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm run test:company-industry-tenant-rls:pg
+      - name: PostgreSQL 16 CRM lead tenant RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm run test:crm-lead-tenant-rls:pg
       - name: Bootstrap disposable release roles
         run: |
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_owner') THEN
-              CREATE ROLE bimmetraj_owner NOLOGIN;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_migrator') THEN
-              CREATE ROLE bimmetraj_migrator LOGIN;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_app') THEN
-              CREATE ROLE bimmetraj_app LOGIN;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_control') THEN
-              CREATE ROLE bimmetraj_control LOGIN;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_worker') THEN
-              CREATE ROLE bimmetraj_worker LOGIN;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bimmetraj_backup') THEN
-              CREATE ROLE bimmetraj_backup LOGIN;
-            END IF;
-          END
-          $$;
-          GRANT bimmetraj_owner TO bimmetraj_migrator;
-          -- Keep restricted runtime roles free of memberships. Test isolation
-          -- assigns disposable fixture ownership directly to the runtime role
-          -- so tenant guards still observe the production role contract.
-          SQL
+          CI_DISPOSABLE_DATABASE=true pnpm exec tsx scripts/ci/disposable-database-roles.ts bootstrap
           {
             echo 'DATABASE_URL=postgresql://bimmetraj_app@127.0.0.1:5432/teklifpro_bootstrap_test'
             echo 'CONTROL_DATABASE_URL=postgresql://bimmetraj_control@127.0.0.1:5432/teklifpro_bootstrap_test'
@@ -114,42 +117,15 @@ jobs:
       - run: pnpm exec tsx scripts/release-migrations/cli.ts apply
         env:
           RELEASE_WORKERS_DRAINED: 'true'
-      - name: Grant disposable runtime table access
-        run: |
-          psql "$RELEASE_DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
-          GRANT USAGE ON SCHEMA public TO bimmetraj_app, bimmetraj_control, bimmetraj_worker;
-          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO bimmetraj_app, bimmetraj_control, bimmetraj_worker;
-          GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO bimmetraj_app, bimmetraj_control, bimmetraj_worker;
-          SQL
       - run: pnpm exec tsc --noEmit -p scripts/release-migrations/tsconfig.json
       - run: pnpm exec tsx --test scripts/release-migrations/artifacts.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/runner-role.test.ts scripts/release-migrations/worker-drain-gate.test.ts scripts/release-migrations/backup-docker.test.ts scripts/database-roles/runtime-compose-contract.test.ts
       - run: python3 -m unittest deploy.backup.test_backup
+      - name: Check disposable role contract before integration tests
+        run: CI_DISPOSABLE_DATABASE=true pnpm exec tsx scripts/ci/disposable-database-roles.ts check
+      - run: pnpm exec tsx --test scripts/ci/disposable-database-roles.test.ts
+      - name: Verify isolated runtime connections and queue boundary
+        run: pnpm exec tsx --test src/server/routes/test-isolation.test.ts
       - run: pnpm run verify
-      - name: PostgreSQL 16 CDE tenant RLS contract
-        env:
-          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
-          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
-        run: pnpm run test:tenant-rls:pg
-      - name: PostgreSQL 16 progress-payment tenant RLS contract
-        env:
-          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
-          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
-        run: pnpm run test:progress-payment-tenant-rls:pg
-      - name: PostgreSQL 16 SmartCheck pilot evidence tenant RLS contract
-        env:
-          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
-          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
-        run: pnpm run test:smartcheck-pilot-tenant-rls:pg
-      - name: PostgreSQL 16 company industry settings tenant RLS contract
-        env:
-          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
-          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
-        run: pnpm run test:company-industry-tenant-rls:pg
-      - name: PostgreSQL 16 CRM lead tenant RLS contract
-        env:
-          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
-          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
-        run: pnpm run test:crm-lead-tenant-rls:pg
       - run: pnpm run prisma:validate:shadow
       - run: pnpm run prisma:shadow-contract
       - run: pnpm exec tsx scripts/gap-invitation-ui-smoke.ts

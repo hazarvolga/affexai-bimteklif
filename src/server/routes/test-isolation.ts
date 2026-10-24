@@ -102,17 +102,26 @@ export async function createTestIsolation(sourceUrl: string) {
   const runtimeUrl = process.env.TEST_ISOLATION_RUNTIME_DATABASE_URL ?? sourceUrl;
   const runtimeControlUrl = process.env.TEST_ISOLATION_RUNTIME_CONTROL_DATABASE_URL ?? process.env.CONTROL_DATABASE_URL ?? runtimeUrl;
   const runtimeWorkerUrl = process.env.TEST_ISOLATION_RUNTIME_WORKER_DATABASE_URL ?? process.env.WORKER_DATABASE_URL;
+  // Validate every configured connection before any filesystem/DB mutation.
+  // Keep loopback addresses distinct: localhost and ::1 can resolve to a
+  // different cluster from 127.0.0.1 even when their port numbers match.
+  const target = (value: string) => {
+    const url = new URL(isolatedDatabaseUrl(value, schema));
+    return `${url.hostname}:${url.port || "5432"}${url.pathname}`;
+  };
+  const sourceTarget = target(sourceUrl);
+  for (const url of [controlSourceUrl, workerSourceUrl, runtimeUrl, runtimeControlUrl, runtimeWorkerUrl,
+    process.env.CONTROL_DATABASE_URL, process.env.WORKER_DATABASE_URL]) {
+    if (url && target(url) !== sourceTarget) {
+      throw new Error("Integration isolation URLs must target the same host, port and database");
+    }
+  }
   const databaseUrl = isolatedDatabaseUrl(runtimeUrl, schema);
   const controlDatabaseUrl = isolatedDatabaseUrl(runtimeControlUrl, schema);
   const workerDatabaseUrl = runtimeWorkerUrl ? isolatedDatabaseUrl(runtimeWorkerUrl, schema) : undefined;
-  if (new URL(sourceUrl).pathname !== new URL(controlSourceUrl).pathname) {
-    throw new Error("Integration isolation control and runtime URLs must target the same database");
-  }
-  if (workerSourceUrl && new URL(sourceUrl).pathname !== new URL(workerSourceUrl).pathname) {
-    throw new Error("Integration isolation worker and runtime URLs must target the same database");
-  }
   const storageDir = await mkdtemp(join(tmpdir(), "teklifpro-test-"));
-  const client = new pg.Client({ connectionString: controlSourceUrl, connectionTimeoutMillis: 2_000 });
+  const fixtureUrl = isolatedDatabaseUrl(controlSourceUrl, schema);
+  const client = new pg.Client({ connectionString: fixtureUrl, connectionTimeoutMillis: 2_000 });
   let created = false;
   let workerCreated = false;
   let closed = false;
@@ -150,7 +159,7 @@ export async function createTestIsolation(sourceUrl: string) {
       schema: workerSchema,
       logger: new Logger(() => () => {}),
     });
-    const roles = await client.query<{ rolname: string }>("select rolname from pg_roles where rolname in ('bimmetraj_owner','bimmetraj_app','bimmetraj_worker')");
+    const roles = await client.query<{ rolname: string }>("select rolname from pg_roles where rolname in ('bimmetraj_owner','bimmetraj_app','bimmetraj_control','bimmetraj_worker')");
     const roleNames = new Set(roles.rows.map((row) => row.rolname));
     if (roleNames.has("bimmetraj_owner")) {
       await client.query(`ALTER SCHEMA ${quote(workerSchema)} OWNER TO bimmetraj_owner`);
@@ -167,6 +176,14 @@ export async function createTestIsolation(sourceUrl: string) {
       await client.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${quote(schema)} TO bimmetraj_app`);
       await client.query(`GRANT USAGE,SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA ${quote(schema)} TO bimmetraj_app`);
     }
+    // Functional integration fixtures clone tables without production RLS.
+    // Production grants/policies are tested separately by the PG contracts.
+    for (const role of ["bimmetraj_control", "bimmetraj_worker"]) {
+      if (!roleNames.has(role)) continue;
+      await client.query(`GRANT USAGE ON SCHEMA ${quote(schema)} TO ${quote(role)}`);
+      await client.query(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA ${quote(schema)} TO ${quote(role)}`);
+      await client.query(`GRANT USAGE,SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA ${quote(schema)} TO ${quote(role)}`);
+    }
     if (roleNames.has("bimmetraj_worker")) {
       await client.query(`GRANT USAGE ON SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
       await client.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
@@ -178,7 +195,6 @@ export async function createTestIsolation(sourceUrl: string) {
     }
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT SELECT ON TABLE ${quote(workerSchema)}.migrations TO bimmetraj_app`);
-      await client.query(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA ${quote(workerSchema)} TO bimmetraj_app`);
     }
     // The application uses two bounded SECURITY DEFINER queue wrappers rather
     // than calling vendor functions directly. Recreate those wrappers in the
@@ -202,6 +218,7 @@ export async function createTestIsolation(sourceUrl: string) {
         PERFORM ${workerQualified}.add_job(p_identifier,p_payload,job_key=>p_job_key,max_attempts=>p_max_attempts,priority=>p_priority);
       END;
       $function$`);
+    await client.query(`REVOKE ALL ON FUNCTION ${workerQualified}.bimmetraj_enqueue_smartcheck(text,json,text,integer,integer) FROM PUBLIC`);
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT EXECUTE ON FUNCTION ${workerQualified}.bimmetraj_enqueue_smartcheck(text,json,text,integer,integer) TO bimmetraj_app`);
     }
@@ -216,10 +233,17 @@ export async function createTestIsolation(sourceUrl: string) {
         RETURN QUERY SELECT removed.locked_at FROM ${workerQualified}.remove_job(p_job_key) removed;
       END;
       $function$`);
+    await client.query(`REVOKE ALL ON FUNCTION ${workerQualified}.bimmetraj_remove_smartcheck_job(text) FROM PUBLIC`);
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT EXECUTE ON FUNCTION ${workerQualified}.bimmetraj_remove_smartcheck_job(text) TO bimmetraj_app`);
     }
-    return { schema, workerSchema, databaseUrl, controlDatabaseUrl, workerDatabaseUrl, storageDir, cleanup };
+    // The admin connection is only for fixture setup/failure injection. The
+    // harness owns its lifetime; application assertions use runtime pools.
+    const fixtureClient = () => {
+      if (closed) throw new Error("Test isolation fixture client is closed");
+      return client;
+    };
+    return { schema, workerSchema, databaseUrl, controlDatabaseUrl, workerDatabaseUrl, storageDir, fixtureClient, cleanup };
   } catch (error) {
     await cleanup();
     throw error;
@@ -233,8 +257,8 @@ export function useTestIsolation() {
     if (!process.env.DATABASE_URL) throw new Error("Test isolation unavailable: DATABASE_URL is required");
     try {
       isolation = await createTestIsolation(process.env.TEST_ISOLATION_SOURCE_DATABASE_URL ?? process.env.DATABASE_URL);
-    } catch {
-      throw new Error("Test isolation unavailable: refusing to run against the shared database");
+    } catch (cause) {
+      throw new Error("Test isolation unavailable: refusing to run against the shared database", { cause });
     }
     const overrides = {
       DATABASE_URL: isolation.databaseUrl,
@@ -266,4 +290,10 @@ export function useTestIsolation() {
       }
     }
   });
+  return {
+    fixtureClient: () => {
+      if (!isolation) throw new Error("Test isolation fixture client is not ready");
+      return isolation.fixtureClient();
+    },
+  };
 }

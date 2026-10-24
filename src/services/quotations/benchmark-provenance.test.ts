@@ -12,7 +12,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
   import('../../db'),import('../../db/schema'),import('./input'),import('./integrity'),import('./edit'),
  ]);
  const [company]=await db.insert(s.companies).values({name:'Benchmark test'}).returning();
- await db.insert(s.subscriptions).values({companyId:company.id,plan:'starter',status:'active'});
+ await db.insert(s.subscriptions).values({companyId:company.id,plan:'starter',status:'active',currentPeriodStart:new Date('2020-01-01T00:00:00Z')});
  const [client]=await db.insert(s.clients).values({name:'Buyer',type:'company',companyId:company.id}).returning();
  const [reviewer]=await db.insert(s.users).values({email:'benchmark@example.test',fullName:'Reviewer'}).returning();
  const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000),authorizationStatus:'authorized',authorizationScope:'test fixture: tenant-approved benchmark lifecycle',authorizationEvidenceHash:'a'.repeat(64),authorizedAt:new Date()}).returning();

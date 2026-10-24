@@ -1,3 +1,4 @@
+import { bootstrapDisposableRoles } from "../../scripts/ci/disposable-database-roles";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
@@ -53,7 +54,7 @@ test("company industry settings and global catalog enforce exact role and tenant
   const clients: pg.Client[] = [];
   const pools: pg.Pool[] = [];
   let created = false;
-  let provisioned = false;
+  let createdRoles: string[] = [];
   try {
     assert.equal((await root.query<{ major: number }>("select current_setting('server_version_num')::int/10000 major")).rows[0]?.major, 16);
     await root.query("select pg_advisory_lock(hashtext('bimmetraj.database-role-integration-test'))");
@@ -62,6 +63,7 @@ test("company industry settings and global catalog enforce exact role and tenant
     await root.query(`create database ${quote(databaseName)} template template0`); created = true;
     const admin = await connect(urlFor(control, databaseName)); clients.push(admin);
     const migrations = await loadMigrations();
+    createdRoles = await bootstrapDisposableRoles(admin);
     await applyMigrations(admin, migrations, 16);
     await admin.query(`insert into industries(id,name,description,config_json,enabled) values
       ('residential','Operator Residential','operator-owned','{"operator":true}',true),
@@ -78,7 +80,7 @@ test("company industry settings and global catalog enforce exact role and tenant
     await queue.release();
     const system = (await admin.query<{ id: string }>("select system_identifier::text id from pg_control_system()")).rows[0]!.id;
     const target = { expectedDatabase: databaseName, expectedSystemIdentifier: system, requiredMarkerRegclass: "teklifpro_release.migrations" };
-    await provisionDatabaseRoles(admin, credentials, target, administratorCredential); provisioned = true;
+    await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
     assert.deepEqual(await inspectCompanyIndustryRlsViolations(admin), []);
     assertRoleBoundaries(await inspectRoleBoundaries(admin));
 
@@ -199,7 +201,7 @@ test("company industry settings and global catalog enforce exact role and tenant
     for (const result of await Promise.allSettled(pools.map((pool) => pool.end()))) if (result.status === "rejected") cleanup.push(result.reason);
     for (const result of await Promise.allSettled(clients.reverse().map((client) => client.end()))) if (result.status === "rejected") cleanup.push(result.reason);
     if (created) try { await root.query(`drop database if exists ${quote(databaseName)} with (force)`); } catch (error) { cleanup.push(error); }
-    if (provisioned) for (const role of [...DATABASE_ROLE_SPECS].reverse()) try { await root.query(`drop role if exists ${quote(role.name)}`); } catch (error) { cleanup.push(error); }
+    for (const role of [...createdRoles].reverse()) try { await root.query(`drop role if exists ${quote(role)}`); } catch (error) { cleanup.push(error); }
     await root.query("select pg_advisory_unlock(hashtext('bimmetraj.database-role-integration-test'))").catch((error) => cleanup.push(error));
     await root.end().catch((error) => cleanup.push(error));
     if (cleanup.length) throw new AggregateError(cleanup, "Company industry RLS cleanup failed");

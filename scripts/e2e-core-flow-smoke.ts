@@ -16,9 +16,11 @@ import { createServer as createViteServer } from 'vite';
 import { createTestIsolation } from '../src/server/routes/test-isolation';
 
 dotenv.config({ path: '.env.local', quiet: true });
-const isolation = await createTestIsolation(process.env.DATABASE_URL!);
+const isolation = await createTestIsolation(process.env.TEST_ISOLATION_SOURCE_DATABASE_URL ?? process.env.DATABASE_URL!);
 Object.assign(process.env, {
   DATABASE_URL: isolation.databaseUrl,
+  CONTROL_DATABASE_URL: isolation.controlDatabaseUrl,
+  ...(isolation.workerDatabaseUrl ? { WORKER_DATABASE_URL: isolation.workerDatabaseUrl } : {}),
   GRAPHILE_WORKER_SCHEMA: isolation.workerSchema,
   SMARTCHECK_LOCAL_STORAGE_DIR: isolation.storageDir,
   AUTH_EMAIL_WEBHOOK_URL: '',
@@ -135,7 +137,10 @@ try {
       if (server) await new Promise<void>(resolve => { server!.close(() => resolve()); server!.closeAllConnections(); });
       await vite?.close();
     } finally {
-      try { await database?.$client.end(); } finally { await isolation.cleanup(); }
+      try {
+        await import('../src/db/control-plane').then(({ closeControlDatabase }) => closeControlDatabase());
+        await database?.$client.end();
+      } finally { await isolation.cleanup(); }
     }
   }
 }

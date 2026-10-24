@@ -5,15 +5,16 @@ import { useTestIsolation } from '../../server/routes/test-isolation';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
-useTestIsolation();
+const isolation = useTestIsolation();
 
 test('atomic enqueue, retry and recovery in isolated application and worker schemas', async (t) => {
   const { db } = await import('../../db');
   const { companies, users, memberships, documents, documentProcessingRuns, smartcheckAuditLogs, plans, subscriptions } = await import('../../db/schema');
-  const { eq, sql } = await import('drizzle-orm');
+  const { eq } = await import('drizzle-orm');
   const { changeProcessingRun, ensureQueueSchema } = await import('./service');
   await ensureQueueSchema();
-  const worker = sql.identifier(process.env.GRAPHILE_WORKER_SCHEMA!);
+  const fixture = await isolation.fixtureClient();
+  const worker = `"${process.env.GRAPHILE_WORKER_SCHEMA!.replace(/"/g, '""')}"`;
   const [company] = await db.insert(companies).values({ name: 'Queue test' }).returning();
   const [plan] = await db.insert(plans).values({
     name: 'Queue Test Plan',
@@ -35,16 +36,19 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
   const adapter = await import("./storage").then(m => m.createStorageAdapter());
   await adapter.put('test.csv', Buffer.from("a,b,c\n1,2,3"), 'text/csv');
   const input = { companyId: company.id, userId: user.id, documentId: document.id };
-  const jobs = () => db.execute(sql`select * from ${worker}.jobs`);
+  const jobs = () => fixture.query(`select * from ${worker}.jobs`);
 
   await t.test('provider enqueue failure rolls back run, document and audit; retry succeeds', async () => {
-    await db.execute(sql`create function fail_queue() returns trigger language plpgsql as $$ begin raise exception 'injected queue failure'; end $$`);
-    await db.execute(sql`create trigger fail_queue before insert on ${worker}._private_jobs for each row execute function fail_queue()`);
-    await assert.rejects(changeProcessingRun({ ...input, action: 'process' }));
-    assert.equal((await db.select().from(documentProcessingRuns)).length, 0);
-    assert.equal((await db.select().from(smartcheckAuditLogs)).length, 0);
-    assert.equal((await db.select().from(documents))[0].status, document.status);
-    await db.execute(sql`drop trigger fail_queue on ${worker}._private_jobs`);
+    await fixture.query(`create function fail_queue() returns trigger language plpgsql as $$ begin raise exception 'injected queue failure'; end $$`);
+    await fixture.query(`create trigger fail_queue before insert on ${worker}._private_jobs for each row execute function fail_queue()`);
+    try {
+      await assert.rejects(changeProcessingRun({ ...input, action: 'process' }));
+      assert.equal((await db.select().from(documentProcessingRuns)).length, 0);
+      assert.equal((await db.select().from(smartcheckAuditLogs)).length, 0);
+      assert.equal((await db.select().from(documents))[0].status, document.status);
+    } finally {
+      await fixture.query(`drop trigger if exists fail_queue on ${worker}._private_jobs`);
+    }
   });
   await t.test('concurrent process requests create one run and one job in configured schema', async () => {
     const results = await Promise.all([changeProcessingRun({ ...input, action: 'process' }), changeProcessingRun({ ...input, action: 'process' })]);
@@ -54,11 +58,14 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
   });
   await t.test('locked stale job refuses recovery and rolls back Graphile remove_job mutation', async () => {
     await db.update(documentProcessingRuns).set({ status: 'running', updatedAt: new Date(0), createdAt: new Date(0) });
-    await db.execute(sql`update ${worker}._private_jobs set locked_at = now(), locked_by = 'test-worker'`);
-    await assert.rejects(changeProcessingRun({ ...input, action: 'recover' }), /PROCESSING_JOB_ACTIVE/);
-    assert.ok((await jobs()).rows[0].key);
-    assert.equal((await db.select().from(documentProcessingRuns))[0].status, 'running');
-    await db.execute(sql`update ${worker}._private_jobs set locked_at = null, locked_by = null`);
+    await fixture.query(`update ${worker}._private_jobs set locked_at = now(), locked_by = $1`, ['test-worker']);
+    try {
+      await assert.rejects(changeProcessingRun({ ...input, action: 'recover' }), /PROCESSING_JOB_ACTIVE/);
+      assert.ok((await jobs()).rows[0].key);
+      assert.equal((await db.select().from(documentProcessingRuns))[0].status, 'running');
+    } finally {
+      await fixture.query(`update ${worker}._private_jobs set locked_at = null, locked_by = null`);
+    }
   });
   await t.test('recovery removes old pending job; concurrent retries create only one successor', async () => {
     assert.equal((await changeProcessingRun({ ...input, action: 'recover' })).status, 200);
@@ -71,11 +78,14 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
   await t.test('audit failure rolls back job removal, successor enqueue and run writes', async () => {
     await db.update(documentProcessingRuns).set({ status: 'failed' });
     const before = (await jobs()).rows[0].key;
-    await db.execute(sql`create trigger fail_audit before insert on smartcheck_audit_logs for each row execute function fail_queue()`);
-    await assert.rejects(changeProcessingRun({ ...input, action: 'retry' }));
-    assert.equal((await jobs()).rows[0].key, before);
-    assert.equal((await db.select().from(documentProcessingRuns)).length, 2);
-    await db.execute(sql`drop trigger fail_audit on smartcheck_audit_logs`);
+    await fixture.query(`create trigger fail_audit before insert on smartcheck_audit_logs for each row execute function fail_queue()`);
+    try {
+      await assert.rejects(changeProcessingRun({ ...input, action: 'retry' }));
+      assert.equal((await jobs()).rows[0].key, before);
+      assert.equal((await db.select().from(documentProcessingRuns)).length, 2);
+    } finally {
+      await fixture.query(`drop trigger if exists fail_audit on smartcheck_audit_logs`);
+    }
     assert.equal((await changeProcessingRun({ ...input, action: 'retry' })).status, 202);
     assert.equal((await jobs()).rows.length, 1);
   });
@@ -85,7 +95,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
     assert.equal((await db.select().from(documents).where(eq(documents.id, document.id)))[0].companyId, company.id);
   });
   await t.test('legacy jobless queued run can be recovered then reissued', async () => {
-    await db.execute(sql`delete from ${worker}._private_jobs`);
+    await fixture.query(`delete from ${worker}._private_jobs`);
     await db.update(documentProcessingRuns).set({ updatedAt: new Date(0) });
     assert.equal((await changeProcessingRun({ ...input, action: 'recover' })).status, 200);
     assert.equal((await changeProcessingRun({ ...input, action: 'retry' })).status, 202);
@@ -126,7 +136,8 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
     await adapter.put("model.ifc", ifcContent, "application/ifc");
 
     await changeProcessingRun({ companyId: company.id, userId: user.id, documentId: ifcDoc.id, action: "process" });
-    const ifcJobRows = (await db.execute(sql`select task_identifier from ${worker}.jobs where key = ${"smartcheck:" + (await db.select().from(documentProcessingRuns).where(eq(documentProcessingRuns.documentId, ifcDoc.id)))[0].id}`)).rows;
+    const ifcRun = (await db.select().from(documentProcessingRuns).where(eq(documentProcessingRuns.documentId, ifcDoc.id)))[0];
+    const ifcJobRows = (await fixture.query(`select task_identifier from ${worker}.jobs where key = $1`, ['smartcheck:' + ifcRun.id])).rows;
     assert.equal(ifcJobRows[0]?.task_identifier, "process_smartcheck_ifc_document");
 
     // 2. CSV document routes to process_smartcheck_document
@@ -136,7 +147,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
     }).returning();
     await adapter.put("data.csv", Buffer.from("a,b,c\n1,2,3"), "text/csv");
     const csvRun = await changeProcessingRun({ companyId: company.id, userId: user.id, documentId: csvDoc.id, action: "process" });
-    const csvJobRows = (await db.execute(sql`select task_identifier from ${worker}.jobs where key = ${"smartcheck:" + csvRun.run.id}`)).rows;
+    const csvJobRows = (await fixture.query(`select task_identifier from ${worker}.jobs where key = $1`, ['smartcheck:' + csvRun.run.id])).rows;
     assert.equal(csvJobRows[0]?.task_identifier, "process_smartcheck_document");
   });
 

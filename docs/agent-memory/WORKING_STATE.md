@@ -2,6 +2,13 @@
 
 Last updated: 2026-10-24. Keep this file to one page: current truth only.
 
+## 2026-10-24 deployment gate repair in progress
+
+- Latest pushed `main` is `781e208`; its GitHub Verify run `40085882300` failed at 65 tests. This is CI/test-infrastructure evidence, not a production deployment. Production still reports `d9d80df` (Rev. 40); do not conflate them.
+- Root causes reproduced on a dedicated local PostgreSQL 16 cluster: CI roles defaulted to `INHERIT` while the application requires `NOINHERIT`; isolated control/worker roles lacked cloned application schema access; queue fixtures ran privileged DDL/DML through the app login; hakediş fixtures opened pools before the isolation hook and cloned tables without their evidence triggers. The two worker capability functions had a contract source text different from their migration bodies.
+- Local repair validates disposable role provenance and exact attributes before integration tests, separates fixture-admin and restricted runtime connections, checks private queue denial, and runs dedicated PostgreSQL RLS contracts before the functional harness. The local five-suite RLS contract run passed 11/11. Focused auth, queue, hakediş, invitation and core-browser tests passed. Full `pnpm run verify`, GitHub Verify, image smoke and Coolify deploy remain gates until separately confirmed.
+- OpenAI Developers troubleshooting skill covers OpenAI API errors; this incident is PostgreSQL/CI and has no OpenAI API failure evidence.
+
 ## Current local handoff — Rev. 67 / expert trial preparation; T45 partial
 
 - Rev. 65 records a local, repeatable preliminary performance measurement. `pnpm exec tsx scripts/compare-ifc-parsers.ts --synthetic-100mb` ran in three separate processes against a generated 100 MB IFC: 354,567 elements, 3.590–3.623 s parse time, peak RSS 1,190.48–1,237.61 MB, peak heap 778.86–826.59 MB. The result stayed below the documented 2 GiB RSS / 1 GiB heap ceilings.
@@ -398,3 +405,10 @@ automatically transitions to the free plan; do not enable paid usage.
 
 - Commit `f13c2e2b4de5ecf8eedf009baab40723a57dee88` mirrors the production Graphile Worker RLS provisioning inside isolated worker schemas: migrations RLS is disabled and four private queue tables receive worker-only policies.
 - Fresh three-credential disposable PostgreSQL run passed restricted app SmartCheck HTTP plus restricted worker IFC HTTP/evidence flow `2/2`. Queue `14/14` remains green with admin harness; quota `6/6` remains green. Full-suite concurrency/role harness and production gates remain open.
+
+## 2026-10-24 restricted-role CI and test isolation repair (pending release)
+
+- The Verify workflow now exercises five PostgreSQL RLS contracts against a fresh disposable PostgreSQL 16 cluster before canonical role bootstrap, then runs release migrations and the full suite with separate restricted app/control/worker identities. Bootstrap fails closed on role provenance or membership drift; no broad PUBLIC grants are used.
+- The isolated integration harness keeps fixture DDL/DML on its dedicated admin connection and verifies all three runtime URLs target the same disposable database before mutation. Queue and progress-payment fixtures, control audit mocking, browser smokes and a time-dependent quotation fixture were aligned with that contract. The two worker capability source checks match the shipped migrations exactly.
+- Local evidence: fresh-cluster RLS contracts `11/11`; `pnpm run verify` 1355 tests (1349 passed, 6 skipped, 0 failed) and build passed; invitation and core-flow browser smokes passed; focused role/progress tests and lint passed. Code review found no critical/high finding. These are local results, not GitHub CI or production evidence.
+- Production remains on its earlier revision until GitHub Verify passes for the pushed commit and T40 credential, backup, restore, canary and rollback gates are established. Independent engineering acceptance remains open.
