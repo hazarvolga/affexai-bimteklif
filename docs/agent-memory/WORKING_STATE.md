@@ -368,3 +368,10 @@ automatically transitions to the free plan; do not enable paid usage.
 - Baseline `4afe32b70e458d5a114dca47bd913ae8df2fb1a7` adds release migration `0021_worker_company_context_capability` and `fetchWorkerCompanyContext`. Production IFC rule evaluation and spreadsheet normalization no longer read `companies` directly; they use a worker-only `SECURITY DEFINER` capability. Local/test table path remains until canary/drain.
 - Release artifacts are pinned at `22/22`; worker capability tests are 2/2; the focused 32-test set, TypeScript and diff-check pass. Full `pnpm test` remains non-green because isolated DB URLs are unavailable and veraPDF runtime is not installed.
 - Roadmap `Rev. 61`; calculation record `BIM-CALC-2026-10-24.55`. Remaining local worker work is a direct-read inventory and production-safe ACL/drain proof; production cutover, canary, restore/parity, rollback and independent expert acceptance remain open. No calculation formula/result changed.
+
+## 2026-10-24 local full-suite environment audit
+
+- `pnpm run build` passes after Rev. 61 (Vite + server + spreadsheet worker bundles).
+- Focused release/role/roadmap/auth/tenant set passes `32/32`; roadmap-only/artifact/role subset passes `17/17`; TypeScript and diff-check pass.
+- A full `pnpm test` run was attempted against a disposable local PostgreSQL 16 database. It reached real isolated integration tests but remained non-green: the disposable base lacked Graphile worker `migrations` bootstrap and restricted `bimmetraj_app` runtime identity, and concurrent schema cloning hit PostgreSQL `max_locks_per_transaction`. These are test-environment gates to fix before claiming full-suite green; they are not silently reclassified as product passes.
+- The disposable database/container was removed after the run. No production or user database was touched.
