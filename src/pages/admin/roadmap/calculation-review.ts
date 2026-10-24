@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.63",
+  version: "BIM-CALC-2026-10-24.64",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "de96def679a18b825bd250bef301b35b07cd3360",
+  implementationBaseline: "ec56937e4bc85a06b7bf9d45839d35c34509a8e8",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1593,6 +1593,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     beforeSummary: "Modül açıklamaları, formüller ve örnek hesaplar yalnız süper adminin görebildiği /admin/roadmap/calculations sayfasındaydı.",
     afterSummary: "Aynı içerik /app/nasil-calisir sayfasında tüm çalışma alanı rollerine gösterilir; hesap yöntemleri ve örnek sonuçlar değişmedi.",
     affectedModules: ["expert-acceptance"],
+  },
+  {
+    revision: "Rev. 70",
+    version: "BIM-CALC-2026-10-24.64",
+    date: "24 Ekim 2026",
+    commit: "ec56937e4bc85a06b7bf9d45839d35c34509a8e8",
+    trigger: "Uzman mühendisin hesapların nasıl yapıldığını ekrandan izleyip satır satır doğrulayabilmesi.",
+    beforeSummary: "İcmal satırı yalnız toplamı ve kat dağılımını gösteriyordu; satırı oluşturan elemanlar ve uzman kararı kaydedilemiyordu.",
+    afterSummary: "Her satır eleman bazlı metraj cetveliyle açıklanır ve CSV olarak indirilir; uzman satır kararını, kendi değerini ve notunu girer, sapma ±%3 şirket toleransıyla karşılaştırılır. Miktar ve poz hesapları değişmedi.",
+    affectedModules: ["ifc-metraj", "expert-acceptance"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Kalem toplamı izlenebilir eleman listesi olmadan gösteriliyordu.",
+        after: "Kalem başına katkı listesi; katkıların toplamı net miktara eşittir (calm-icmal.test.ts).",
+        basis: "Saha geri bildirimi (17 Ekim 2026): uzman hesap yöntemini sordu",
+      },
+    },
   },
 ];
 

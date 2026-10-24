@@ -705,16 +705,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) Aynı GlobalId'yi paylaşan farklı açıkta kalan elemanlar artık raporda ayrı ayrı kalır; worker raporunda zaten bulunan kayıt ikinci kez eklenmez (GUID + sınıf + ad + kat, sayımlı eşleşme). 2) Tarayıcı IFC ön analizinin üstünde 'yetkili sonuç değildir' notu: tarayıcı ayrıştırıcısı malzeme katmanı okumadığı için yapısal elemanların açıkta görünmesi açıklanır, SmartCheck sunucu analizine bağlantı verilir. 3) Ürün metninden doğrulanmamış iddialar çıkarıldı: 'ÇŞB UYUMLU' → 'ÇŞB POZ ESASLI', 'Mevzuat Uyumluluk Tamam' → 'ön kontrolde bulgu yok', akademide 'yüzde yüz hassasiyet / dünyada 1 numara / 0 sapma' ve kaynaksız Revit ±%10-15 ifadeleri kaldırıldı. Pazarlama söylemleri bağımsız uzman görüşünden sonra belirlenecek. 4) Sunucu açılış ve fiyat zamanlayıcı logları yapılandırılmış logger'a taşındı. 5) Uzman deneme rehberi (/admin/roadmap/expert-review) STR/ARC/MEP disiplinlerini tarayıcı ön analizi yerine SmartCheck sunucu analizine, COST disiplinini demo sayfası yerine teklif oluşturma akışına yönlendirir. Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 69 (Güncel geliştirme)",
+            "Rev. 69",
             "24 Ekim 2026 (Kullanıcılar ve uzmanlar için 'Nasıl Çalışır' sayfası)",
             "BIM-CALC-2026-10-24.63",
             "Uzmanlar ürünü normal kullanıcı paketleriyle deneyecek; yönetim sayfalarını göremezler. /app/nasil-calisir sayfası (menüde Araçlar altında, tüm çalışma alanı rollerine açık) iş akışını ve 24 hesap/kontrol modülünü hesap yöntemleri sayfasıyla aynı içerikten gösterir: amaç, dayanak etiketi, formüller, kurallar, örnek hesap, kaynaklar, varsayımlar ve görüş sorulan konular. Her modülde 'Uygulamada dene' bağlantısı gerçek ekrana (SmartCheck, teklif oluşturma, kârlılık, piyasa, KİK hesaplayıcısı; demo sayfası değil) ve hazır konu satırlı geri bildirim e-postası bulunur. Kod yolları, inceleme kimlikleri, revizyon notları ve imza tablosu yalnız yönetimde kalır. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 70 (Güncel geliştirme, taslak)",
+            "24 Ekim 2026 (Hesap izi, metraj cetveli ve uzman doğrulama modu)",
+            "BIM-CALC-2026-10-24.64",
+            "Saha görüşmesinde uzman mühendis hesapların nasıl yapıldığını sordu; icmal yalnız sonucu gösteriyordu. Artık her icmal satırı kendisini oluşturan elemanları taşır ve sağ panelde 'Bu sayı nasıl oluştu?' adımları sade Türkçeyle verilir (kaç eleman, kaç kat, miktarın Qto/geometri/özellikten geldiği, brüt − boşluk = net). 'Metraj cetvelini aç' tüm elemanları kat, mahal, katman, brüt, boşluk, net ve miktar kaynağıyla listeler; Türkçe Excel'in açtığı CSV olarak indirilir. 'Uzman doğrulama modu' ile mühendis her satırı Doğru / Düzeltme gerekli / Emin değilim olarak işaretler, kendi değerini ve notunu yazar; sapma ±%3 şirket toleransıyla karşılaştırılır ve ad, unvan, oda sicil numarası ve imza alanı olan rapor indirilir. Ön sürümde kayıtlar uzmanın tarayıcısında tutulur. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 69 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 70 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1306,6 +1312,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Hesap yöntemleri ve uzman rehberi yalnız /admin altındaydı; normal paketle giriş yapan uzman, modüllerin formülünü, dayanağını ve örnek hesabını uygulama içinde göremiyor, ilgili ekrana kolay ulaşamıyordu.",
             "/app/nasil-calisir sayfası CALC_MODULES içeriğini okuyucuya uygun biçimde (kod yolları çıkarılarak) gösterir; her modüle gerçek ekran bağlantısı ve geri bildirim e-postası ekler. Testler: tüm 'Dene' rotalarının var olduğu, demo/tarayıcı önizlemesine gitmediği, iç bilgilerin sayfada görünmediği.",
             "src/pages/HowItWorks.tsx, src/pages/how-it-works/how-it-works-data.ts, src/pages/HowItWorks.test.ts, src/pages/how-it-works/how-it-works-data.test.ts, src/App.tsx, src/constants/navigation.tsx, src/config/client-features.ts",
+          ],
+          [
+            "Rev. 70 · 24 Ekim 2026 (Hesap izi ve uzman doğrulama, taslak)",
+            "Saha geri bildirimi: uzman mühendis hesapların nasıl yapıldığını ekrandan izleyemiyordu",
+            "İcmal satırı yalnız toplamı, kat dağılımını ve en fazla 6 örnek mahali gösteriyordu; satırı oluşturan elemanlar, miktar kaynağı ve uzmanın satır satır onay/itiraz kaydı yoktu.",
+            "calm-icmal kalem başına katkı listesi (CalmQuantityContribution) üretir; calculation-trace.ts sade anlatım ve metraj cetveli CSV'si, expert-verification.ts karar/sapma/rapor modeli sağlar. CalculationTraceSection, MetrajCetveliSheet, ExpertLineVerification ve ExpertVerificationBar bileşenleri CalmIfcWorkspace'e bağlandı.",
+            "src/ifc/calm-icmal.ts, src/ifc/calculation-trace.ts, src/ifc/expert-verification.ts, src/hooks/useExpertVerification.ts, src/components/smartcheck/CalculationTraceSection.tsx, src/components/smartcheck/MetrajCetveliSheet.tsx, src/components/smartcheck/ExpertLineVerification.tsx, src/components/smartcheck/ExpertVerificationBar.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx",
           ],
         ],
       },

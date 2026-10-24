@@ -24,7 +24,12 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 69** (`BIM-CALC-2026-10-24.63`): `/app/nasil-calisir`
+- Latest roadmap revision: **Rev. 70** (`BIM-CALC-2026-10-24.64`, draft): icmal lines carry
+  their element list; "Bu sayı nasıl oluştu?", metraj cetveli CSV and an expert
+  verification mode (records in the reviewer's browser for now). Local review
+  server: `.claude/launch.json` → `teklifpro-review` (port 3001, docker
+  `teklifpro-review-pg`, secrets in git-ignored `.env.review.local`).
+  Rev. 69 (`BIM-CALC-2026-10-24.63`): `/app/nasil-calisir`
   shows the workflow and calculation modules to every workspace role, so expert
   reviewers on normal packages can read methods and jump to the real screens.
   Rev. 68 keeps
