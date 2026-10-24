@@ -1,18 +1,33 @@
 import { describe, it, after, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { createApiApp } from '../app';
-import { AuthService } from '../../services/auth/authService';
-import { db } from '../../db';
-import { adminAuditLogs, clients, companies, memberships, plans, quotationItems, quotations, smartcheckAuditLogs, subscriptions, usageLogs, usageRecords, users } from '../../db/schema';
-import { and, eq } from 'drizzle-orm';
+import { useTestIsolation } from './test-isolation';
+
+useTestIsolation();
+
+let createApiApp: typeof import('../app').createApiApp;
+let AuthService: typeof import('../../services/auth/authService').AuthService;
+let db: (typeof import('../../db'))['db'];
+let schema: typeof import('../../db/schema');
+let and: typeof import('drizzle-orm').and;
+let eq: typeof import('drizzle-orm').eq;
+let adminAuditLogs: typeof import('../../db/schema').adminAuditLogs;
+let clients: typeof import('../../db/schema').clients;
+let companies: typeof import('../../db/schema').companies;
+let memberships: typeof import('../../db/schema').memberships;
+let plans: typeof import('../../db/schema').plans;
+let quotationItems: typeof import('../../db/schema').quotationItems;
+let quotations: typeof import('../../db/schema').quotations;
+let smartcheckAuditLogs: typeof import('../../db/schema').smartcheckAuditLogs;
+let subscriptions: typeof import('../../db/schema').subscriptions;
+let usageLogs: typeof import('../../db/schema').usageLogs;
+let usageRecords: typeof import('../../db/schema').usageRecords;
+let users: typeof import('../../db/schema').users;
 import fs from 'node:fs';
 import path from 'node:path';
 
 describe('Impersonation Audit & Exit Integration (P2-1)', () => {
-  const app = createApiApp();
-  const server = app.listen(0);
-  const address = server.address() as { port: number };
-  const baseUrl = `http://127.0.0.1:${address.port}`;
+  let server: any;
+  let baseUrl = '';
 
   const superAdminUserId = '99999999-9999-4999-a999-999999999999';
   const superAdminCompanyId = '88888888-8888-4888-a888-888888888888';
@@ -22,6 +37,23 @@ describe('Impersonation Audit & Exit Integration (P2-1)', () => {
   const clientId = '44444444-4444-4444-a444-444444444444';
 
   before(async () => {
+    [
+      { createApiApp },
+      { AuthService },
+      { db },
+      schema,
+      { and, eq },
+    ] = await Promise.all([
+      import('../app'),
+      import('../../services/auth/authService'),
+      import('../../db'),
+      import('../../db/schema'),
+      import('drizzle-orm'),
+    ]);
+    ({ adminAuditLogs, clients, companies, memberships, plans, quotationItems, quotations, smartcheckAuditLogs, subscriptions, usageLogs, usageRecords, users } = schema);
+    server = createApiApp().listen(0);
+    const address = server.address() as { port: number };
+    baseUrl = `http://127.0.0.1:${address.port}`;
     // Seed test users & companies in DB
     await db.insert(companies).values({ id: superAdminCompanyId, name: 'SuperAdmin Corp' }).onConflictDoNothing();
     await db.insert(companies).values({ id: tenantCompanyId, name: 'Tenant Corp' }).onConflictDoNothing();
