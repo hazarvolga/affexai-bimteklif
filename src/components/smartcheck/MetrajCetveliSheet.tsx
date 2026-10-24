@@ -27,7 +27,7 @@ export function MetrajCetveliSheet({ item, fileName, open, onOpenChange }: Metra
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full gap-0 overflow-y-auto border-border bg-card p-0 text-foreground sm:max-w-5xl">
+      <SheetContent side="right" className="gap-0 overflow-y-auto border-border bg-card p-0 text-foreground data-[side=right]:w-full data-[side=right]:sm:max-w-5xl">
         <SheetHeader className="border-b border-border p-5 pr-12">
           <p className="section-index">METRAJ CETVELİ</p>
           <SheetTitle className="font-display-serif text-2xl text-foreground">{item.title}</SheetTitle>

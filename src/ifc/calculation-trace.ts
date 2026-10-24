@@ -67,7 +67,7 @@ export function explainIcmalItem(item: CalmIcmalItem): string[] {
     );
   }
 
-  steps.push(`Elemanlar bu kaleme şu kuralla yerleşti: ${item.formulaNote}`);
+  steps.push(`Kalemin hesap notu: ${item.formulaNote}`);
   return steps;
 }
 
