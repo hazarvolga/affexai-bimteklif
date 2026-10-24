@@ -1,6 +1,7 @@
 import { AuthService } from "../../services/auth/authService";
-import { db } from "../../db";
+import { db, pool } from "../../db";
 import { adminAuditLogs, memberships, subscriptions, users } from "../../db/schema";
+import { withTenantDrizzleTransaction } from "../../db/tenant-context";
 import { and, eq, sql } from "drizzle-orm";
 import { hashActionToken } from "../auth/security";
 import { isSameOriginMutation, readSessionToken } from "../auth/session-cookie";
@@ -30,7 +31,7 @@ type AuthDependencies = {
   findUser(userId: string): Promise<AuthUser | undefined>;
   findMembership(userId: string, companyId: string): Promise<AuthMembership | undefined>;
   isImpersonationRevoked?(tokenHash: string): Promise<boolean>;
-  findSubscription?(companyId: string): Promise<{ status: string } | undefined>;
+  findSubscription?(companyId: string, userId: string): Promise<{ status: string } | undefined>;
 };
 
 const sessionClaims = z.object({
@@ -59,14 +60,18 @@ export const authDependencies: AuthDependencies = {
     return user;
   },
   async findMembership(userId, companyId) {
-    const [membership] = await db.select({ role: memberships.role }).from(memberships)
-      .where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
-    return membership;
+    return withTenantDrizzleTransaction(pool, { userId, companyId }, async (tenantDb) => {
+      const [membership] = await tenantDb.select({ role: memberships.role }).from(memberships)
+        .where(and(eq(memberships.userId, userId), eq(memberships.companyId, companyId)));
+      return membership;
+    });
   },
-  async findSubscription(companyId) {
-    const [sub] = await db.select({ status: subscriptions.status }).from(subscriptions)
-      .where(eq(subscriptions.companyId, companyId));
-    return sub;
+  async findSubscription(companyId, userId) {
+    return withTenantDrizzleTransaction(pool, { userId, companyId }, async (tenantDb) => {
+      const [sub] = await tenantDb.select({ status: subscriptions.status }).from(subscriptions)
+        .where(eq(subscriptions.companyId, companyId));
+      return sub;
+    });
   },
 };
 
@@ -119,7 +124,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
 
     // Suspended tenant guard: block mutating methods for non-active subscription
     if (!req.user.isSuperAdmin && !req.user.impersonatedBy && companyId && !isReadMethod && dependencies.findSubscription) {
-      const sub = await dependencies.findSubscription(companyId);
+      const sub = await dependencies.findSubscription(companyId, userId);
       if (sub && sub.status !== "active") {
         return res.status(403).json({
           error: "Aboneliğiniz askıya alınmıştır veya ödeme beklenmektedir. Lütfen aboneliğinizi yenileyiniz.",

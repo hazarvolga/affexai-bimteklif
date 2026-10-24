@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import jwt from 'jsonwebtoken';
 import { AuthService } from '../../services/auth/authService';
-import { createAuthenticate, checkRole, checkSuperAdmin, requireVerifiedEmail } from './auth';
+import { authDependencies, createAuthenticate, checkRole, checkSuperAdmin, requireVerifiedEmail } from './auth';
 import { db } from '../../db';
 import { memberships, users } from '../../db/schema';
 import { PgDialect } from 'drizzle-orm/pg-core';
@@ -96,7 +96,7 @@ test('database errors reach Express error handling without authorizing or leakin
   }
 });
 
-test('DB adapter scopes both membership keys and refreshes membership on every request', async (t) => {
+test('membership authority scopes both keys and refreshes membership on every request', async (t) => {
   let role: 'owner' | 'viewer' | null = 'owner';
   let membershipReads = 0;
   t.mock.method(db, 'select', (() => ({ from(table: unknown) {
@@ -110,7 +110,15 @@ test('DB adapter scopes both membership keys and refreshes membership on every r
       return role ? [{ role }] : [];
     } };
   } })) as any);
-  const authenticate = createAuthenticate();
+  const authenticate = createAuthenticate({
+    findUser: authDependencies.findUser,
+    findMembership: async (candidateUserId, candidateCompanyId) => {
+      assert.equal(candidateUserId, userId);
+      assert.equal(candidateCompanyId, companyId);
+      membershipReads++;
+      return role ? { role } : undefined;
+    },
+  });
   const authorization = `Bearer ${token()}`;
   for (const nextRole of ['owner', 'viewer', null] as const) {
     role = nextRole;
