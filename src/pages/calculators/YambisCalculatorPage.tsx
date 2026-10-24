@@ -99,7 +99,7 @@ export const YambisCalculatorPage: React.FC = () => {
           ) : (
             <>
               <p className="text-sm text-foreground">
-                Kesin doğrulanan en üst grup: <strong className="font-mono">{outcome.result.highestConfirmedGroup ?? "Belirlenemedi"}</strong>
+                Girdilerle doğrulanan en üst grup: <strong className="font-mono">{outcome.result.highestConfirmedGroup ?? "Belirlenemedi"}</strong>
               </p>
               {outcome.result.highestPotentialGroup !== outcome.result.highestConfirmedGroup && (
                 <p className="border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">

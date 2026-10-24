@@ -731,7 +731,7 @@ export function QuoteDetail() {
               ) : (
                 <div className="flex flex-col items-center py-4">
                   <CheckCircle2 size={24} className="text-emerald-500/20 mb-2" />
-                  <p className="text-[10px] text-muted-foreground">Mevzuat Uyumluluk Tamam</p>
+                  <p className="text-[10px] text-muted-foreground">Mevzuat ön kontrolünde bulgu yok</p>
                 </div>
               )}
             </CardContent>

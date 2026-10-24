@@ -864,7 +864,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
                     <tr>
                       <th className="p-3">Nesne Tipi</th>
                       <th className="p-3">Toplam</th>
-                      <th className="p-3">Uyumlu</th>
+                      <th className="p-3">Ön Kontrol</th>
                       <th className="p-3">Uyarı</th>
                       <th className="p-3">İncele</th>
                       <th className="p-3">SmartCheck'e Alınabilir</th>
@@ -983,7 +983,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
                           }`}>
                             {el.smartCheckStatus === 'pass' && <CheckCircle2 className="w-3 h-3" />}
                             {el.smartCheckStatus === 'warning' && <AlertTriangle className="w-3 h-3" />}
-                            {el.smartCheckStatus === 'pass' ? 'Uyumlu' : 'İncele'}
+                            {el.smartCheckStatus === 'pass' ? 'Geçti' : 'İncele'}
                           </span>
                         </td>
                       </tr>

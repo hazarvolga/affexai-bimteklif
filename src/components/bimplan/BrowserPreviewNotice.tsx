@@ -8,7 +8,7 @@ const actionClass =
 /**
  * Tarayıcıda okunan IFC sonucunun üstünde durur. Tarayıcı ayrıştırıcısı eleman başına malzeme
  * katmanı taşımaz; icmal yapısal elemanları malzemeye göre sınıflandırdığı için bu görünümde
- * betonarme ve kâgir elemanlar açıkta kalır. Kesin sonuç sunucu (worker) analizidir.
+ * betonarme ve kâgir elemanlar açıkta kalır. Yetkili ön sonuç sunucu (worker) analizidir; o da teknik inceleme ister.
  */
 export function BrowserPreviewNotice() {
   return (
@@ -22,7 +22,7 @@ export function BrowserPreviewNotice() {
           <p className="text-xs leading-relaxed text-foreground">
             Bu görünüm dosyayı tarayıcınızda hızlıca okur. Tarayıcı ayrıştırıcısı elemanların malzeme katmanlarını okumaz;
             icmal betonarme ve kâgir kalemlerini malzemeye göre ayırdığı için bu elemanlar burada "malzeme tanımı yok"
-            gerekçesiyle açıkta görünür. Kesin metraj, icmal ve teklife aktarım için dosyayı SmartCheck sunucu analizine yükleyin.
+            gerekçesiyle açıkta görünür. Malzemeye göre icmal, kanıt kaydı ve teklife aktarım için dosyayı SmartCheck sunucu analizine yükleyin; o sonuç da teknik inceleme gerektirir.
           </p>
           <Link to="/app/smartcheck" className={actionClass}>
             SmartCheck'e yükle

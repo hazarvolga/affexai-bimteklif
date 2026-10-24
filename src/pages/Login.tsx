@@ -137,7 +137,7 @@ export function Login() {
       </div>
 
       <div className="text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span>openBIM &amp; ÇŞB 2026 UYUMLU METRAJ PLATFORMU</span>
+        <span>openBIM &amp; ÇŞB 2026 POZ ESASLI METRAJ PLATFORMU</span>
       </div>
     </main>
   );

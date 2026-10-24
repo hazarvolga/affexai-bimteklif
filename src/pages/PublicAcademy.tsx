@@ -63,8 +63,8 @@ const tracks: AcademyTrack[] = [
   {
     slug: 'allplan',
     title: 'Allplan Pro Track & openBIM Brutal Truth',
-    summary: 'Allplan 0-sapma donatı hassasiyetini, Revit 2025 IFC sapmalarını ve Archicad 28 mimari IFC köprüsünü dürüstçe karşılaştırır.',
-    topics: ['Allplan 2026: %100 Matematiksel Donatı & Metraj (0 Sapma)', 'Revit 2025: Donatı Çakışması & ±%10-%15 Manuel Kontrol', 'Archicad 28: Mimari Konsept & Statik IFC Köprüsü', 'openBIM IFC 4.0 Ortak Veri Standardı'],
+    summary: 'Allplan 2026, Revit 2025 ve Archicad 28 ile donatı, metraj ve IFC aktarımı iş akışlarını örnek modeller üzerinden karşılaştırır.',
+    topics: ['Allplan 2026: Model Tabanlı Donatı & Metraj Cetvelleri', 'Revit 2025: Donatı Modelleme & IFC Aktarım Kontrolü', 'Archicad 28: Mimari Konsept & Statik IFC Köprüsü', 'openBIM IFC 4.0 Ortak Veri Standardı'],
     label: 'Kayıtlı kullanıcı alanı',
     tone: 'orange',
   },
