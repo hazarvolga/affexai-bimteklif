@@ -362,3 +362,9 @@ automatically transitions to the free plan; do not enable paid usage.
 - Auth tenant tests pass 8/8; related session/route tests and TypeScript pass. No calculation formula/result changed.
 - Roadmap `Rev. 59`; calculation record `BIM-CALC-2026-10-24.53`. Next order is 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate.
 - Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.
+
+## 2026-10-24 T41 8C worker company context capability
+
+- Baseline `4afe32b70e458d5a114dca47bd913ae8df2fb1a7` adds release migration `0021_worker_company_context_capability` and `fetchWorkerCompanyContext`. Production IFC rule evaluation and spreadsheet normalization no longer read `companies` directly; they use a worker-only `SECURITY DEFINER` capability. Local/test table path remains until canary/drain.
+- Release artifacts are pinned at `22/22`; worker capability tests are 2/2; the focused 32-test set, TypeScript and diff-check pass. Full `pnpm test` remains non-green because isolated DB URLs are unavailable and veraPDF runtime is not installed.
+- Roadmap `Rev. 61`; calculation record `BIM-CALC-2026-10-24.55`. Remaining local worker work is a direct-read inventory and production-safe ACL/drain proof; production cutover, canary, restore/parity, rollback and independent expert acceptance remain open. No calculation formula/result changed.

@@ -53,3 +53,11 @@ Function gövdesi `current_user = 'bimmetraj_worker'` kontrolünü fail-closed y
 - Eski worker image drain edilmeden ACL revoke edilmez.
 
 Bu belge 8B'nin hazırlık kapısıdır; capability function, migration, canary ve ACL revoke tamamlanmadan T41 veya Faz 7 kapanmış sayılmaz.
+
+## 8C — Worker company context capability (yerel kod kapanışı, production gate açık)
+
+`0021_worker_company_context_capability` migrationı ile IFC worker'ın `companies.active_standard` ve normalize edilmiş SmartCheck worker'ın `companies.smartcheck_max_waste_percent` okumaları dar bir `SECURITY DEFINER` capability function'a taşındı. Function yalnız `bimmetraj_worker` için `EXECUTE` verir; `search_path`, `session_user`, owner ve revoke/grant sınırları 8B ile aynı sözleşme modelini izler.
+
+`src/smartcheck/import/worker-company-context.ts` production branch'i function'ı kullanır. Local/test fixture branch'i mevcut doğrudan Drizzle yolunu korur; bu, canary öncesi geriye dönük test uyumluluğudur ve production ACL kanıtı değildir. IFC rule evaluation ve normalize edilmiş satır doğrulamasının formülleri/sonuçları değişmemiştir.
+
+Yerel kanıt: release artifact zinciri `22/22`, worker capability negatif testleri `2/2`, targeted roadmap/auth/tenant testleri toplam `32/32`, `tsc --noEmit` ve `git diff --check` geçti. Canary, worker drain, production image doğrulaması ve doğrudan `companies` ACL revoke henüz yapılmadı; bu nedenle T41/Faz 7 ve production hâlâ PARTIAL/NO-GO'dur.

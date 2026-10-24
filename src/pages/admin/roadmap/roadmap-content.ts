@@ -283,7 +283,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 60):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 61):",
       },
       {
         type: "table",
@@ -650,6 +650,12 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "0020 release migration dar SECURITY DEFINER entitlement function ekler; yalnız bimmetraj_worker EXECUTE alır, owner/search_path/session-role kapıları vardır. Production IFC kota yolu şirket varlığını capability üzerinden doğrular. Artifact/role negatif testleri geçti; worker canary/drain sonrası ACL revoke, kalan tenant reads ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
           [
+            "Rev. 61 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 8C Worker Company Context Capability, Kısmi)",
+            "BIM-CALC-2026-10-24.55 (4afe32b)",
+            "0021 release migration ile IFC rule standardı ve normalize edilmiş SmartCheck fire toleransı için dar SECURITY DEFINER company context function eklendi; yalnız bimmetraj_worker EXECUTE alır. Production worker branch companies tablosuna doğrudan okumadan capability üzerinden bağlam alır; 22/22 artifact zinciri, negatif role testi ve TypeScript geçti. Canary/drain sonrası doğrudan companies ACL revoke, kalan worker reads ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+          ],
+          [
             "Rev. 57",
             "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
             "BIM-CALC-2026-10-24.51 (a55841e)",
@@ -659,7 +665,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 60 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 61 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1181,6 +1187,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Worker IFC quota path doğrudan companies/subscriptions/plans authority tablolarını okuyordu; ACL revoke eski worker image'ını bozacak durumdaydı.",
             "0020 migration ve role contract ile yalnız worker EXECUTE yetkili capability function eklendi. Production kota yolu şirket varlığını function üzerinden doğrular; local test path korunur. 15/15 release artifact, capability negatif testi ve TypeScript geçti. Canary/drain sonrası ACL revoke ve kalan worker reads açık kalır.",
             "drizzle-release/0020_worker_entitlement_capability.sql, scripts/database-roles/contract.ts, src/services/billing/quota.ts",
+          ],
+          [
+            "Rev. 61 · 24 Ekim 2026 (Faz 7 — T41 8C Worker Company Context Capability, Kısmi)",
+            "SECURITY DEFINER company context capability; worker-only EXECUTE ACL; release provenance; IFC rule and normalize adapter",
+            "IFC worker active_standard ve spreadsheet worker smartcheck_max_waste_percent için companies tablosunu doğrudan okuyordu; worker ACL revoke bu yolları kıracaktı.",
+            "0021 migration ve role contract ile yalnız worker EXECUTE yetkili company context function eklendi. Production IFC rule evaluation ve normalize edilmiş satır doğrulaması capability üzerinden çalışır; local/test fixture path korunur. 22/22 release artifact, capability negatif testi ve TypeScript geçti. Canary/drain sonrası ACL revoke ve kalan worker reads açık kalır.",
+            "drizzle-release/0021_worker_company_context_capability.sql, scripts/database-roles/contract.ts, src/smartcheck/import/worker-company-context.ts, src/smartcheck/import/processor.ts",
           ],
           [
             "Rev. 57 · 24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",

@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.54",
+  version: "BIM-CALC-2026-10-24.55",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "9a47b51f71cb533f8f9202d438a4b0dbed05a4d4",
-  approvalStatus: "Rev. 60, worker plan/abonelik entitlement okumaları dar SECURITY DEFINER capability function'a alınır ve production branch bunu kullanır. Hesap yöntemleri ve sonuçları değişmemiştir. Canary/drain sonrası ACL revoke, kalan tenant okumaları, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "4afe32b70e458d5a114dca47bd913ae8df2fb1a7",
+  approvalStatus: "Rev. 61, worker IFC ve normalize edilmiş SmartCheck şirket bağlamı dar SECURITY DEFINER capability function'a alınır ve production worker branch bunu kullanır. Hesap yöntemleri ve sonuçları değişmemiştir. Canary/drain sonrası ACL revoke, kalan tenant okumaları, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1415,6 +1415,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Worker authority tablolarını doğrudan okuyordu.",
         after: "Worker production kota yolu dar SECURITY DEFINER entitlement function kullanıyor; function execute ACL'si yalnız worker rolüne ait.",
         basis: "drizzle-release/0020_worker_entitlement_capability.sql; scripts/database-roles/contract.ts; src/services/billing/quota.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 61",
+    version: "BIM-CALC-2026-10-24.55",
+    date: "24 Ekim 2026",
+    commit: "4afe32b70e458d5a114dca47bd913ae8df2fb1a7",
+    trigger: "T41 8C worker company context sınırı: IFC rule standardı ve normalize edilmiş dosya doğrulama ayarlarının worker authority tablosu okumalarından ayrılması.",
+    beforeSummary: "IFC worker companies.active_standard ve spreadsheet worker companies.smartcheck_max_waste_percent alanlarını doğrudan okuyordu; worker ACL revoke sonrası bu yollar kırılacaktı.",
+    afterSummary: "0021 migration ile yalnız bimmetraj_worker EXECUTE yetkili, session-role/search_path kapılı company context capability function eklendi. IFC rule evaluation ve normalize edilmiş satır doğrulaması production'da bu capability üzerinden çalışır; local/test fixture yolu korunur. Release artifact zinciri 22/22, capability negatif testi ve TypeScript geçti. Canary/drain sonrası doğrudan companies ACL revoke ve kalan worker reads açık kalır; formül/hesap sonucu değişmedi.",
+    affectedModules: ["worker-company-context"],
+    moduleDetails: {
+      "worker-company-context": {
+        before: "Worker IFC standardı ve SmartCheck fire toleransı için companies tablosunu doğrudan okuyordu.",
+        after: "Production worker company context dar SECURITY DEFINER capability function ile okunuyor; function execute ACL'si yalnız worker rolüne ait.",
+        basis: "drizzle-release/0021_worker_company_context_capability.sql; scripts/database-roles/contract.ts; src/smartcheck/import/worker-company-context.ts; src/smartcheck/import/processor.ts",
       },
     },
   },
