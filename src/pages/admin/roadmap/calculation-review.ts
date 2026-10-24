@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.48",
+  version: "BIM-CALC-2026-10-24.49",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "63c5c6080b37fc135288335c9a76ffaba5625926",
-  approvalStatus: "Rev. 54, T41'in dördüncü diliminde company_industry_settings için app SELECT/INSERT/UPDATE, backup SELECT ve migrator-owner ALL exact beş-policy FORCE RLS; global industries kataloğu için app/backup SELECT ve migrator-owner ALL exact üç-policy FORCE RLS uygular. App DELETE ile worker mutasyonu default-deny kalır. Dört INITIAL_PLUGINS kaydı ON CONFLICT DO NOTHING ile deterministik tamamlanır ve mevcut operatör satırları korunur. Bütün DB yolları tek tenant transactionındadır; katı input ve UI hata davranışı uygulanmıştır. Hesap yöntemleri, formüller ve sonuçlar değişmemiştir. Diğer tenant tabloları, production cutover/deploy ve bağımsız uzman kabulü açık olduğundan T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "82207c293f7ff527b3962e8f3e8ceabf58b9fe80",
+  approvalStatus: "Rev. 55, T41'in beşinci diliminde leads, companies, subscriptions ve usage_logs FORCE RLS ile korunur; plans app için global salt-okunur katalogdur. Lead create kota rezervasyonu ile aynı tenant transactionında atomiktir; worker kritik beş tabloya erişemez, yeni public tablolar app/worker için varsayılan reddedilir ve merkezi hata raporlama SQL/PII ayrıntılarını atar. Hesap yöntemleri ve sonuçları değişmemiştir. Kayıt, şirket, ödeme ve admin plan yazma yolları ayrı control-plane DB rolü/pool'una taşınmadığından production cutover NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1339,6 +1339,17 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         basis: "drizzle-release/0017_company_industry_settings_tenant_rls.sql, src/services/company-industry-settings/service.ts, src/server/routes/company.ts, src/pages/settings-industry-client.ts, scripts/database-roles/{contract,inspect}.ts, scripts/release-migrations/{data-transitions,stage-signatures}.ts ve src/contracts/company-industry-tenant-rls.pgtest.ts; focused testler, izole PostgreSQL 16 ve code/security review GO kanıtı",
       },
     },
+  },
+  {
+    revision: "Rev. 55",
+    version: "BIM-CALC-2026-10-24.49",
+    date: "24 Ekim 2026",
+    commit: "82207c293f7ff527b3962e8f3e8ceabf58b9fe80",
+    trigger: "GAP kapatma yol haritası Faz 7 / T41 beşinci dilim: CRM lead ve kota bağımlılıklarında tenant izolasyonu ile exact ACL sınırı.",
+    beforeSummary: "Lead erişimi route filtrelerine dayanıyor; companies, subscriptions ve usage_logs FORCE RLS taşımıyordu. App/worker public şemasında geniş CRUD yetkisiyle plan, abonelik ve kullanım kayıtlarını değiştirerek CRM kotasını etkisizleştirebiliyordu; beklenmeyen DB hataları telemetry'ye SQL/PII ayrıntısı taşıyabiliyordu.",
+    afterSummary: "leads app tenant SELECT/INSERT; companies/subscriptions app tenant SELECT; usage_logs app tenant SELECT/INSERT exact FORCE RLS matrisleriyle korunur. plans app için global SELECT-only, worker kritik beş tabloda default-deny, backup SELECT-only ve migrator-owner bakım yoludur. Lead insert ile kota rezervasyonu aynı transactionda ve company advisory lock altında çalışır; negatif kullanım kaydı constraint ile reddedilir. Inspector exact RLS/ACL/default-ACL/tag driftinde kapanır; hata raporlama yalnız güvenli name/code ile hashli korelasyon etiketleri taşır. PG16 ve focused kontroller geçti. Meşru control-plane yazmaları henüz ayrı role taşınmadığından deploy NO-GO ve T41 PARTIAL'dır.",
+    affectedModules: [],
+    moduleDetails: {},
   },
 ];
 

@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 54 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 55 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -197,7 +197,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve m.13(3) + 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
         ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
-        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB güvenliği kısmi (Rev. 54)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Yerel compose app, worker/ifc-worker, migrator ve backup için ayrı credential kullanır. Beş CDE, on hakediş, iki SmartCheck pilot ve company_industry_settings olmak üzere 18 tenant tablosu korunur; pilot audit ve global industries katalog yüzeyleri ayrıca exact FORCE RLS matrislerine alınmıştır. Diğer tenant tabloları ile production cutover/canary/restore/deploy açık olduğundan genel/canlı tenant izolasyonu iddia edilmez."],
+        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB güvenliği kısmi (Rev. 55)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Yerel compose app, worker/ifc-worker, migrator ve backup için ayrı credential kullanır. Beş CDE, on hakediş, iki SmartCheck pilot, company_industry_settings ile CRM leads/companies/subscriptions/usage_logs olmak üzere 22 tenant tablosu korunur; pilot audit, global industries ve salt-okunur plans katalog yüzeyleri ayrıca exact sınırlara alınmıştır. Diğer tenant tabloları ile production cutover/canary/restore/deploy açık olduğundan genel/canlı tenant izolasyonu iddia edilmez."],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Manuel Havale/EFT Yaşam Döngüsü Yarış ve Replay Kapısı (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 49)", "Sipariş init tekilleştirilir; requestId zorunludur; plan/dönem/tutar snapshotı değişmez; dekont NFKC+dar ASCII ile global tekilleşir; submit/review ortak request kilidi kullanır; approve/reject terminaldir; pasif paket onayı kapanır ve ikinci gerçek ödeme aktif aynı-plan dönemini resetlemek yerine uzatır. Production deploy veya banka mutabakat entegrasyonu yapılmadı."],
@@ -258,7 +258,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / kapanmadı (23 Ekim 2026 · Rev. 45)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32 NO-GO'dur: gerçek veraPDF CLI runtime ve lisanslı PDF/A dönüşüm sağlayıcısı ile izinli dosya matrisi tamamlanmadan Faz 5 kapanmaz. Kriptografik imza güveni ve büyük IFC ana iş parçacığı performansı da bağımsız kabul bekler."],
         ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
         ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Kısmi / yerel runtime topolojisi ve rollback PG16 kanıtlı (24 Ekim 2026 · Rev. 51)", "Rev. 47 canonical rol/ACL/RLS/provenance sözleşmesini kurdu. Rev. 51 app, worker/ifc-worker, migrate ve backup bağlantılarını ayrı login credentiallarına ayırdı; migrationı SET LOCAL ROLE owner ve worker-drain sırasıyla sınırladı. İzole parola doğrulamalı PG16 üzerinde A→B→A credential rollback'i ve eski parola reddi doğrulandı. Production credential cutover, canary, restore/parity ve deploy yapılmadığından T40 PARTIAL'dır."],
-        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 18 tenant tablosu + pilot audit/global katalog yüzeyleri PG16 kanıtlı (24 Ekim 2026 · Rev. 54)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot ve Rev. 54 company_industry_settings tablosunu FORCE RLS ile korur. industries global kataloğu app/backup salt-okunur ve migrator-owner bakım yoluyla ayrıca korunur; dört INITIAL_PLUGINS satırı operatör kayıtlarını ezmeden deterministik tamamlanır. Diğer tenant tabloları, T40 production credential cutover, production canary/rollback ve deploy açık olduğundan T41 kapanmamıştır."],
+        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 22 tenant tablosu + pilot audit/global katalog yüzeyleri PG16 kanıtlı (24 Ekim 2026 · Rev. 55)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings ve Rev. 55 CRM leads ile üç kota bağımlılığını FORCE RLS ile korur. industries ve plans global katalogları salt-okunurdur. Control-plane yazma yolları ayrı DB rolüne taşınmadan production cutover NO-GO olduğundan T41 kapanmamıştır."],
         ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale ve SmartCheck worker dilimleri PG16 kanıtlı (24 Ekim 2026 · Rev. 50)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını tamamladı. Academy webhook entitlement yarışı, banka mutabakatı, uzun işlem heartbeat/orphan bakım politikası ve production rollout açık olduğundan T42 PARTIAL'dır."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
@@ -271,17 +271,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 54 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 55 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 54)",
-        text: "Bu bölüm, BIMMetraj'ın e-PYS, 3×3, 5D metraj, mevzuat hesapları, CDE onay, güvenli inceleme, dönemsel hakediş ve tahsilat akışının ilk günden (Rev. 0 taslak dönemi ve 13 Ekim 2026 Rev. 1) 24 Ekim 2026 Rev. 54 · BIM-CALC-2026-10-24.48 sürümüne kadar geçirdiği aşamaları katı kronolojik sırayla kayıt altına alır. Rev. 54 şirket sektör ayarı ile global sektör kataloğuna FORCE RLS, tek tenant transaction, deterministik ve çakışmasız başlangıç kataloğu ile katı input/UI hata kapıları ekler; formül veya hesap sonucu değişikliği değildir. T40, T41, T42 ve Faz 7 PARTIAL kalır; production'a dağıtım veya L3/L4 iddiası yoktur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 55)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 55 · BIM-CALC-2026-10-24.49 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 55 CRM lead ve kota bağımlılıklarında FORCE RLS, exact ACL/default-deny, atomik tenant transaction ve PII-güvenli hata raporlama ekler; formül veya hesap sonucu değişikliği değildir. Control-plane DB rolü/pool cutover'ı açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 54):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 55):",
       },
       {
         type: "table",
@@ -612,16 +612,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "SmartCheck pilot vaka/ölçüm tabloları asimetrik 3/4 FORCE RLS policy matrisi kullanır; pilot audit kayıtları altı-policy scoped FORCE RLS altında DB tarafından aynı transactionda üretilir ve append-only korunur. requestHash immutable, caseRevision monotoniktir; measurementId + hash replay kanıtı legacy eksikliğinde reddedilir. Review latest doğrulanmış ölçüm, canlı üyelik ve maker-checker ayrımı ister. Inspector exact policy/trigger/function provenance driftinde fail-closed kapanır. retention_until yalnız asgari saklamadır; purge/legal-hold değildir. Focused testler, izole PG16 sözleşme testleri ve root/release derlemeleri geçti; code/security review GO verdi. Formül ve sonuç değişmedi; T41/Faz 7 PARTIAL'dır ve production/uzman kabulü yoktur.",
           ],
           [
-            "Rev. 54 (Güncel geliştirme)",
+            "Rev. 54",
             "24 Ekim 2026 (Faz 7 — T41 Şirket Sektör Ayarı Tenant RLS Dördüncü Dilim, Kısmi)",
             "BIM-CALC-2026-10-24.48 (63c5c6080b37fc135288335c9a76ffaba5625926)",
             "company_industry_settings exact beş policy ile app SELECT/INSERT/UPDATE, backup SELECT ve migrator-owner ALL uygular; app DELETE ve worker erişimi default-deny kalır. industries global kataloğu app/backup SELECT ve migrator-owner ALL exact üç policy kullanır. Dört INITIAL_PLUGINS satırı ON CONFLICT DO NOTHING ile yalnız eksikse eklenir ve operatör kayıtları korunur. Route DB yolları tek tenant transaction servisine taşınmış, katı input ve UI hata davranışı uygulanmıştır. Inspector eksik tag/tablo/policy driftinde fail-closed kapanır. Focused testler, izole PG16 ve root/release derlemeleri geçti; code/security review GO verdi. Formül ve sonuç değişmedi; T41/Faz 7 PARTIAL'dır ve production/uzman kabulü yoktur.",
+          ],
+          [
+            "Rev. 55 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 CRM Lead ve Kota Güven Sınırı Beşinci Dilim, Kısmi)",
+            "BIM-CALC-2026-10-24.49 (82207c293f7ff527b3962e8f3e8ceabf58b9fe80)",
+            "leads, companies, subscriptions ve usage_logs exact FORCE RLS; plans app için global SELECT-only; kritik beş tabloda exact ACL; worker default-deny; app/worker için yeni public tablolar default-deny; lead+kota tek transaction; advisory lock; PII-güvenli telemetry. PG16 CRM 1/1, RLS regresyonları 10/10, rol provisioning 1/1, focused 40/40 ve iki tsc geçti. Meşru kayıt/şirket/ödeme/admin mutasyonları ayrı control-plane DB rolü/pool'una taşınmadığından production cutover NO-GO ve T41 PARTIAL'dır.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 54 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 55 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1108,6 +1114,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "company_industry_settings erişimi route tenant filtresine dayanıyor ve DB seviyesinde FORCE RLS taşımıyordu. industries global kataloğunda exact rol matrisi yoktu; eksik başlangıç sektörlerini operatör satırlarını ezmeden tamamlayan release bootstrap ve bu yüzeyleri doğrulayan inspector sözleşmesi bulunmuyordu.",
             "company_industry_settings exact beş policy ile app SELECT/INSERT/UPDATE, backup SELECT ve migrator-owner ALL uygular; app DELETE ve worker erişimi yoktur. industries exact üç policy ile app/backup SELECT ve migrator-owner ALL uygular; worker/default mutasyon reddedilir. Dört INITIAL_PLUGINS kaydı ON CONFLICT DO NOTHING ile tamamlanır. Tüm endpoint DB işleri tek tenant transaction servisinden geçer; input alanları/patternleri katı doğrulanır ve UI başarısız yazımı başarı gibi göstermez. Inspector eksik tag, tablo veya exact policy driftinde kapanır. Test ve code/security review GO'dur. Formül/sonuç değişmemiş, production ve uzman kabulü yapılmamıştır.",
             "drizzle-release/0017_company_industry_settings_tenant_rls.sql, src/services/company-industry-settings/service.ts, src/server/routes/company.ts, src/pages/Settings.tsx, src/pages/settings-industry-client.ts, src/db/schema.ts, scripts/database-roles/{contract,inspect}.ts, scripts/release-migrations/{data-transitions,stage-signatures}.ts, src/contracts/company-industry-tenant-rls.pgtest.ts, src/server/routes/company.industry-settings.test.ts, .github/workflows/verify.yml",
+          ],
+          [
+            "Rev. 55 · 24 Ekim 2026 (Faz 7 — T41 CRM Lead ve Kota Güven Sınırı Beşinci Dilim, Kısmi)",
+            "PostgreSQL 16 FORCE RLS; exact relation ACL; fail-closed default ACL; transaction-local tenant context; advisory quota lock; atomik lead+kota rollback; PII-güvenli telemetry",
+            "Lead ve kota otorite tabloları route filtreleri ile geniş app/worker CRUD yetkisine dayanıyordu; DB credential kötüye kullanımında plan/abonelik/kullanım verisi değiştirilerek kota etkisizleştirilebilirdi.",
+            "Dört tenant tablosu exact FORCE RLS'ye, plans salt-okunur kataloğa ve kritik beş tablo exact ACL'ye alınır. Lead create ile CRM kota rezervasyonu aynı transactionda çalışır. Yeni public tablolar app/worker için default-deny'dır; inspector migration/policy/ACL/constraint driftini reddeder. Telemetry yalnız güvenli hata sınıfı/kodunu taşır. Production control-plane yazma cutover'ı açık olduğundan deploy NO-GO ve T41 PARTIAL'dır.",
+            "drizzle-release/0018_crm_leads_tenant_rls.sql, src/services/crm/lead-service.ts, src/services/billing/feature-quota.ts, src/server/routes/crm.ts, src/server/observability/error-tracking.ts, scripts/database-roles/{contract,inspect,provision}.ts, src/contracts/crm-lead-tenant-rls.pgtest.ts",
           ],
         ],
       },
