@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.46",
+  version: "BIM-CALC-2026-10-24.47",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "cd4b640d77cf3662b7f2f0270c1460f56fd0f56e",
-  approvalStatus: "Rev. 52, T41'in ikinci diliminde on hakediş tablosu için FORCE RLS, exact app tenant, backup SELECT, migrator-owner ve worker default-deny policy matrisini; ProgressPaymentService'in bütün DB girişlerinin tek tenant transactionına alınmasını; migration 0015 ile kurulum sonrası driftte fail-closed inspector/provisioner sınırını kaydeder. Tag ve tabloların birlikte bulunmadığı pre-schema bootstrap geçerlidir. Hesap yöntemleri, formüller ve sonuçlar değişmemiştir. Diğer tenant tabloları, production cutover, canary, restore/parity ve deploy ile bağımsız izinli Yeşil Defter kabulü açık olduğundan T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "5e1113524b3a3f4c253bae61066e0779c5391b1f",
+  approvalStatus: "Rev. 53, T41'in üçüncü diliminde SmartCheck pilot vaka ve ölçüm tablolarını asimetrik 3/4 FORCE RLS matrisiyle; pilot kapsamlı audit satırlarını altı-policy FORCE RLS matrisiyle korur. Ölçüm ve audit kanıtı append-only'dir; audit satırı DB tarafından aynı transactionda üretilir. requestHash immutable, caseRevision monotoniktir; measurementId + hash replay doğrulaması legacy kanıt eksikliğinde fail-closed kapanır. Reviewer kararı canlı üyelik ve maker-checker ayrımı ister. retention_until asgari saklama sınırıdır; purge veya legal-hold değildir. Hesap yöntemleri, formüller ve sonuçlar değişmemiştir. Diğer tenant tabloları, production cutover/deploy ve bağımsız uzman kabulü açık olduğundan T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1306,6 +1306,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
       },
     },
   },
+  {
+    revision: "Rev. 53",
+    version: "BIM-CALC-2026-10-24.47",
+    date: "24 Ekim 2026",
+    commit: "5e1113524b3a3f4c253bae61066e0779c5391b1f",
+    trigger: "GAP kapatma yol haritası Faz 7 / T41 üçüncü dilim: SmartCheck pilot vaka, ölçüm ve audit kanıt zinciri için tenant izolasyonu ve değişmez provenance.",
+    beforeSummary: "Pilot vaka ve ölçüm tablolarında FORCE RLS yoktu; route katmanı doğrudan sorgular yürütüyor, measurement key replay'i immutable istek özeti ve monotonik vaka revizyonuyla bağlı değildi. Pilot audit satırlarının aynı transactionda DB tarafından üretilmesi, append-only korunması, live reviewer üyeliği ve maker-checker ayrımı veritabanı provenance kapısıyla zorunlu değildi.",
+    afterSummary: "smartcheck_pilot_cases üç, smartcheck_pilot_measurements dört exact policy ile FORCE RLS kullanır; worker default-deny, backup SELECT ve migrator-owner sınırları korunur. smartcheck_audit_logs pilot kapsamlı altı-policy FORCE RLS matrisine alınır. Ölçüm ve pilot audit kanıtı append-only'dir; case/measurement triggerları audit satırını aynı transactionda DB tarafında üretir. requestHash immutable, caseRevision monotoniktir; replay measurementId + hash ile doğrulanır, hash'i eksik legacy kayıt reddedilir. Reviewer kararı latest doğrulanmış ölçüm, canlı üyelik ve maker-checker ayrımı ister. Inspector exact policy, trigger, function owner/security/search_path/execute/source provenance driftinde fail-closed kapanır. Hesap formülü ve sonuç değişmedi; T41/Faz 7 PARTIAL'dır.",
+    affectedModules: ["pilot-metrik"],
+    moduleDetails: {
+      "pilot-metrik": {
+        before: "Pilot metrikleri hesaplanabiliyordu; ancak vaka, ölçüm ve audit kanıt zinciri tenant FORCE RLS, immutable istek özeti, monotonik revizyon ve DB kaynaklı atomik provenance ile korunmuyordu.",
+        after: "Pilot metrik formülü aynı kalır. Vaka ve ölçüm erişimi tenant transactionıyla sınırlandırılır; her yeni ölçüm immutable requestHash ve artan caseRevision taşır. Aynı measurement key yalnız measurementId + hash kanıtı eşleşirse replay olur; review latest doğrulanmış ölçümü, canlı yetkili üyeyi ve ölçümü yapan kişiden farklı reviewerı zorunlu tutar. Pilot audit satırları DB tarafından atomik üretilir ve değiştirilemez.",
+        basis: "drizzle-release/0016_smartcheck_pilot_evidence_tenant_rls.sql, src/services/pilot-evidence/service.ts, src/server/routes/pilot-evidence.ts, scripts/database-roles/{contract,inspect}.ts, scripts/release-migrations/{data-transitions,stage-signatures}.ts, src/contracts/smartcheck-pilot-tenant-rls.pgtest.ts ve src/server/routes/pilot-evidence.integration.test.ts; izole PostgreSQL 16 ve code/security review GO kanıtı",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -1447,8 +1464,8 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Canlı iyzico/PayTR mağaza anahtarlarının tanımlanması ve paket vaatlerinin gerçek dosya hacmiyle ürün kabulü.",
   },
   "pilot-metrik": {
-    scope: "Onay ile gerekçeli istisnayı ayrı sayan pilot ölçüm hesabı.",
-    testFiles: ["src/server/smartcheck/pilot/metrics.test.ts"],
+    scope: "Onay ile gerekçeli istisnayı ayrı sayan pilot ölçüm hesabı; tenant-bound vaka/ölçüm, immutable requestHash, monotonik caseRevision, DB kaynaklı append-only audit ve live-membership maker-checker kanıt zinciri.",
+    testFiles: ["src/server/smartcheck/pilot/metrics.test.ts", "src/server/routes/pilot-evidence.integration.test.ts", "src/contracts/smartcheck-pilot-tenant-rls.pgtest.ts"],
     pending: "İzinli gerçek dosyalar ve bağımsız reviewer kararlarıyla pilot hedeflerinin ölçülmesi.",
   },
 };
