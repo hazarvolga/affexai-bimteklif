@@ -54,7 +54,7 @@ function renderWithout(source: string, missing: keyof typeof credentials) {
     mkdirSync(path.join(directory, "deploy", "backup"), { recursive: true });
     const environment = { ...process.env, ...credentials };
     delete environment[missing];
-    return spawnSync("docker", ["compose", "-f", compose, "config", "--quiet"], {
+    return spawnSync("docker", ["compose", "--profile", "operator", "-f", compose, "config", "--format", "json"], {
       encoding: "utf8",
       timeout: 15_000,
       env: environment,
@@ -133,11 +133,32 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
     }
   });
 
-  test(`${compose} fails closed when any database credential or release acknowledgement is absent`, () => {
+  test(`${compose} handles absent build-time credentials without weakening release gating`, () => {
     for (const key of Object.keys(credentials) as (keyof typeof credentials)[]) {
       const result = renderWithout(compose, key);
-      assert.notEqual(result.status, 0, `${compose} unexpectedly accepted missing ${key}`);
-      assert.match(result.stderr, new RegExp(key));
+      if (key === "RELEASE_WORKERS_DRAINED") {
+        assert.notEqual(result.status, 0, `${compose} unexpectedly accepted missing release acknowledgement`);
+        assert.match(result.stderr, new RegExp(key));
+        continue;
+      }
+
+      if (compose === "compose.example.yaml") {
+        assert.notEqual(result.status, 0, `${compose} unexpectedly accepted missing ${key}`);
+        assert.match(result.stderr, new RegExp(key));
+        continue;
+      }
+
+      assert.equal(result.status, 0, `${compose} must render during image build when runtime-only ${key} is absent: ${result.stderr}`);
+      const services = JSON.parse(result.stdout).services as Record<string, RenderedService>;
+      if (key === "BIMMETRAJ_APP_DB_PASSWORD") assert.equal(new URL(services.app?.environment?.DATABASE_URL ?? "").password, "");
+      if (key === "BIMMETRAJ_CONTROL_DB_PASSWORD") assert.equal(new URL(services.app?.environment?.CONTROL_DATABASE_URL ?? "").password, "");
+      if (key === "BIMMETRAJ_WORKER_DB_PASSWORD") assert.equal(new URL(services.worker?.environment?.DATABASE_URL ?? "").password, "");
+      if (key === "BIMMETRAJ_MIGRATOR_DB_PASSWORD") assert.equal(new URL(services.migrate?.environment?.RELEASE_DATABASE_URL ?? "").password, "");
+      if (key === "BIMMETRAJ_BACKUP_DB_PASSWORD") assert.equal(services.backup?.environment?.PGPASSWORD, "");
+      if (key === "SERVICE_PASSWORD_64_POSTGRES") {
+        assert.equal(new URL(services["role-admin"]?.environment?.DATABASE_ROLE_ADMIN_URL ?? "").password, "");
+        assert.equal(services.postgres?.environment?.POSTGRES_PASSWORD, "");
+      }
     }
   });
 }
