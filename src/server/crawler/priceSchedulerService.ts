@@ -7,6 +7,7 @@ import { inferCrawledItemUnit } from "./price-parser";
 import { canApproveCrawlerPrice } from "./provenance";
 import { CRAWLER_TIMEZONE, crawlerDayStart, crawlerScheduleDue, nextCrawlerRun } from "./scheduler-time";
 import { isAutomaticPricingSource } from './source-eligibility';
+import { logger } from "../logger";
 
 export interface BatchRunSummary {
   startedAt: string;
@@ -62,7 +63,7 @@ export class PriceSchedulerService {
   start(): void {
     if (this.timer) return;
 
-    console.log(
+    logger.info(
       `[PriceScheduler] Gece otomatik tarayıcı zamanlayıcısı başlatıldı. Bir sonraki tarama: ${this.getNextScheduledRun().toLocaleString("tr-TR", { timeZone: CRAWLER_TIMEZONE })}`
     );
 
@@ -81,7 +82,7 @@ export class PriceSchedulerService {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
-      console.log("[PriceScheduler] Gece tarayıcı zamanlayıcısı durduruldu.");
+      logger.info("[PriceScheduler] Gece tarayıcı zamanlayıcısı durduruldu.");
     }
   }
 
@@ -89,7 +90,7 @@ export class PriceSchedulerService {
     const now = new Date();
     // Window: between 03:00 and 03:20 AM
     if (crawlerScheduleDue(now)) {
-      console.log("[PriceScheduler] 03:00 Gece otomatik sıralı tarama başlatılıyor...");
+      logger.info("[PriceScheduler] 03:00 Gece otomatik sıralı tarama başlatılıyor...");
       await this.runSequentialBatch("system_nightly_cron");
     }
   }
@@ -155,7 +156,7 @@ export class PriceSchedulerService {
 
       summary.totalSources = sources.length;
 
-      console.log(
+      logger.info(
         `[PriceScheduler] Toplu tarama başlatıldı. Toplam kaynak: ${sources.length} (${triggeredBy})`
       );
 
@@ -176,7 +177,7 @@ export class PriceSchedulerService {
             source.code.startsWith("tuik_");
 
           if (isFileBackedOrOfficial) {
-            console.log(
+            logger.info(
               `[PriceScheduler] [${i + 1}/${sources.length}] Dosya/Resmi katalog kaynağı korundu (HTML tarama atlandı): ${source.name} (${source.code})`
             );
             summary.successfulSources++;
@@ -190,7 +191,7 @@ export class PriceSchedulerService {
             continue;
           }
 
-          console.log(
+          logger.info(
             `[PriceScheduler] [${i + 1}/${sources.length}] Taranıyor: ${source.name} (${source.code})`
           );
 
@@ -385,7 +386,7 @@ export class PriceSchedulerService {
 
       await this.recordBatchAudit(actorAdminId, 'nightly_batch_crawl_completed', triggeredBy, summary);
 
-      console.log(
+      logger.info(
         `[PriceScheduler] Toplu tarama başarıyla tamamlandı (${totalDuration}ms). ` +
           `${summary.successfulSources}/${summary.totalSources} kaynak tarandı, ${summary.totalItemsStaged} kalem havuza eklendi.`
       );
