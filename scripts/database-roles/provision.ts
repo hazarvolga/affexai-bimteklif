@@ -1,6 +1,9 @@
 import type pg from "pg";
 import { DATABASE_CONTROL_APP_TABLE_ACL, DATABASE_CONTROL_TABLE_ACL, DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_PUBLIC_RESTRICTED_TABLE_ACL, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
 import { assertRoleBoundaries, inspectRoleBoundaries, inspectRoleProvenanceViolations } from "./inspect";
+import { catalog } from "../release-migrations/catalog";
+import { loadMigrations } from "../release-migrations/runner";
+import { pinnedSignature } from "../release-migrations/stage-signatures";
 
 export type DatabaseRoleCredentials = Record<Exclude<DatabaseRoleName, "bimmetraj_owner">, string>;
 export type DatabaseRoleProvisionTarget = Readonly<{
@@ -89,6 +92,98 @@ async function setRolePassword(client: Queryable, role: Exclude<DatabaseRoleName
   await client.query("select set_config('bimmetraj.provision_role_password',$1,true)", [password]);
   await client.query(`do $password$ begin execute format('alter role ${identifier(role)} password %L', current_setting('bimmetraj.provision_role_password')); end $password$`);
   await client.query("select set_config('bimmetraj.provision_role_password','',true)");
+}
+
+async function createCanonicalRoles(client: Queryable, credentials: DatabaseRoleCredentials, systemIdentifier: string): Promise<void> {
+  for (const spec of DATABASE_ROLE_SPECS) {
+    await client.query(`do $$ begin if not exists (select 1 from pg_roles where rolname='${spec.name}') then create role ${identifier(spec.name)}; end if; end $$`);
+    await client.query(`alter role ${identifier(spec.name)} with ${spec.canLogin ? "login" : "nologin"} noinherit nosuperuser nobypassrls nocreatedb nocreaterole noreplication`);
+    await client.query(`comment on role ${identifier(spec.name)} is 'bimmetraj.database-roles.v1:${systemIdentifier}'`);
+    if (spec.canLogin) await setRolePassword(client, spec.name as Exclude<DatabaseRoleName, "bimmetraj_owner">, credentials[spec.name as keyof DatabaseRoleCredentials]);
+  }
+  await client.query("grant bimmetraj_owner to bimmetraj_migrator with admin false, inherit false, set true");
+}
+
+async function assertLegacyIdx8Catalog(client: Queryable): Promise<void> {
+  const migrations = await loadMigrations();
+  const baseline = migrations[8];
+  if (!baseline || baseline.idx !== 8 || baseline.tag !== "0008_pilot_exception_rows") {
+    throw new Error("Legacy bootstrap requires the pinned idx8 release artifact");
+  }
+  const ledger = await client.query<{ idx: number; tag: string; hash: string; catalog_hash: string }>(
+    "select idx,tag,hash,catalog_hash from teklifpro_release.migrations order by idx",
+  );
+  if (ledger.rows.length !== 9 || ledger.rows.some((row, index) =>
+    row.idx !== index || row.tag !== migrations[index]?.tag || row.hash !== migrations[index]?.sha256
+    || row.catalog_hash !== pinnedSignature(migrations[index]))) {
+    throw new Error("Legacy bootstrap requires the exact pinned idx8 release ledger");
+  }
+  if ((await catalog(client as pg.Client)).signature !== pinnedSignature(baseline)) {
+    throw new Error("Legacy bootstrap catalog differs from the pinned idx8 signature");
+  }
+}
+
+async function assertExistingLegacyRoleAttributes(client: Queryable): Promise<void> {
+  const roles = await client.query<{
+    name: string; login: boolean; inherit: boolean; superuser: boolean; bypassrls: boolean;
+    createdb: boolean; createrole: boolean; replication: boolean;
+  }>(`select rolname as name,rolcanlogin as login,rolinherit as inherit,rolsuper as superuser,
+      rolbypassrls as bypassrls,rolcreatedb as createdb,rolcreaterole as createrole,rolreplication as replication
+    from pg_roles where rolname=any($1::text[])`, [canonicalRoleNames]);
+  if (roles.rows.length !== 0 && roles.rows.length !== DATABASE_ROLE_SPECS.length) {
+    throw new Error("Legacy bootstrap refuses a partial canonical role set");
+  }
+  for (const role of roles.rows) {
+    const spec = DATABASE_ROLE_SPECS.find(({ name }) => name === role.name);
+    if (!spec || role.login !== spec.canLogin || role.inherit || role.superuser || role.bypassrls
+      || role.createdb || role.createrole || role.replication) {
+      throw new Error("Legacy bootstrap refuses canonical role attribute drift");
+    }
+  }
+  if (roles.rows.length === DATABASE_ROLE_SPECS.length) {
+    const membership = await client.query<{ complete: boolean }>(`select exists(
+      select 1 from pg_auth_members edge
+      join pg_roles parent on parent.oid=edge.roleid join pg_roles child on child.oid=edge.member
+      where parent.rolname='bimmetraj_owner' and child.rolname='bimmetraj_migrator'
+        and not edge.admin_option and not edge.inherit_option and edge.set_option
+    ) as complete`);
+    if (!membership.rows[0]?.complete) throw new Error("Legacy bootstrap refuses missing canonical SET membership");
+  }
+}
+
+/** Stage one of the legacy idx8 cutover. Full ACL/RLS convergence still requires provisionDatabaseRoles after migrations. */
+export async function bootstrapLegacyDatabaseRoles(
+  client: Queryable,
+  credentials: DatabaseRoleCredentials,
+  target: DatabaseRoleProvisionTarget,
+  administratorCredential: string,
+): Promise<void> {
+  validateCredentials(credentials, administratorCredential);
+  if (target.inspectionMode !== undefined && target.inspectionMode !== "canonical") {
+    throw new Error("Legacy bootstrap requires the canonical production inspection mode");
+  }
+  if (target.requiredMarkerRegclass !== "teklifpro_release.migrations") {
+    throw new Error("Legacy bootstrap requires the exact release ledger marker");
+  }
+  await client.query("begin");
+  try {
+    const lock = await client.query<{ acquired: boolean }>("select pg_try_advisory_xact_lock(hashtext('bimmetraj.database-roles.v1')) as acquired");
+    if (!lock.rows[0]?.acquired) throw new Error("Another database role provisioning operation is already active");
+    await assertProvisionTarget(client, target);
+    const provenanceViolations = await inspectRoleProvenanceViolations(client, target.expectedSystemIdentifier);
+    if (provenanceViolations.length) throw new Error(provenanceViolations.join("; "));
+    await assertNoUnexpectedAclGrantees(client);
+    await assertExistingMembershipGraph(client);
+    await assertExistingLegacyRoleAttributes(client);
+    await assertLegacyIdx8Catalog(client);
+    await createCanonicalRoles(client, credentials, target.expectedSystemIdentifier);
+    await client.query(`alter database ${identifier(target.expectedDatabase)} owner to bimmetraj_owner`);
+    await transferManagedObjects(client);
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  }
 }
 
 async function transferManagedObjects(client: Queryable): Promise<void> {
@@ -242,13 +337,7 @@ export async function provisionDatabaseRoles(
     if (provenanceViolations.length) throw new Error(provenanceViolations.join("; "));
     await assertNoUnexpectedAclGrantees(client);
     await assertExistingMembershipGraph(client);
-    for (const spec of DATABASE_ROLE_SPECS) {
-      await client.query(`do $$ begin if not exists (select 1 from pg_roles where rolname='${spec.name}') then create role ${identifier(spec.name)}; end if; end $$`);
-      await client.query(`alter role ${identifier(spec.name)} with ${spec.canLogin ? "login" : "nologin"} noinherit nosuperuser nobypassrls nocreatedb nocreaterole noreplication`);
-      await client.query(`comment on role ${identifier(spec.name)} is 'bimmetraj.database-roles.v1:${target.expectedSystemIdentifier}'`);
-      if (spec.canLogin) await setRolePassword(client, spec.name as Exclude<DatabaseRoleName, "bimmetraj_owner">, credentials[spec.name as keyof DatabaseRoleCredentials]);
-    }
-    await client.query("grant bimmetraj_owner to bimmetraj_migrator with admin false, inherit false, set true");
+    await createCanonicalRoles(client, credentials, target.expectedSystemIdentifier);
     await client.query(`alter database ${identifier(target.expectedDatabase)} owner to bimmetraj_owner`);
     await transferManagedObjects(client);
     await convergePrivileges(client, target.expectedDatabase, target.inspectionMode === "pre_schema_role_contract");
