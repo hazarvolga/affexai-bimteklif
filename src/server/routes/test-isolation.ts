@@ -137,6 +137,10 @@ export async function createTestIsolation(sourceUrl: string) {
       await client.query(`GRANT USAGE ON SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
       await client.query(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
       await client.query(`GRANT USAGE,SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA ${quote(workerSchema)} TO bimmetraj_worker`);
+      await client.query(`ALTER TABLE ${quote(workerSchema)}.migrations DISABLE ROW LEVEL SECURITY`);
+      for (const table of ["_private_job_queues", "_private_jobs", "_private_known_crontabs", "_private_tasks"]) {
+        await client.query(`CREATE POLICY bimmetraj_worker_access ON ${quote(workerSchema)}.${quote(table)} FOR ALL TO bimmetraj_worker USING (true) WITH CHECK (true)`);
+      }
     }
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT SELECT ON TABLE ${quote(workerSchema)}.migrations TO bimmetraj_app`);
