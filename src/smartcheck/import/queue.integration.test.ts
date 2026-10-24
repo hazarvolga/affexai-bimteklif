@@ -99,7 +99,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
       if (message?.channel === 'worker:migrate') message.payload = '{}';
     });
     let attempts = 0;
-    const runner = await run({ connectionString: process.env.DATABASE_URL, schema: process.env.GRAPHILE_WORKER_SCHEMA,
+    const runner = await run({ connectionString: process.env.WORKER_DATABASE_URL ?? process.env.DATABASE_URL, schema: process.env.GRAPHILE_WORKER_SCHEMA,
       concurrency: 1, pollInterval: 100, noHandleSignals: true, events: events as never, logger: new Logger(() => () => {}),
       taskList: { process_smartcheck_document: async (payload) => {
         const { processingRunId } = payload as { processingRunId: string };
@@ -177,7 +177,7 @@ test('atomic enqueue, retry and recovery in isolated application and worker sche
 
     let executed = false;
     await runOnce({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: process.env.WORKER_DATABASE_URL ?? process.env.DATABASE_URL,
       schema: process.env.GRAPHILE_WORKER_SCHEMA,
       concurrency: 1,
       noHandleSignals: true,

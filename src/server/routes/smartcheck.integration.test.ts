@@ -202,7 +202,7 @@ test("SmartCheck IFC HTTP upload queues worker and persists evidence rows", { ti
     const { runOnce, Logger } = await import('graphile-worker');
     const { ifcWorkerTaskList } = await import('../../smartcheck/import/ifc-worker');
     await runOnce({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: process.env.WORKER_DATABASE_URL ?? process.env.DATABASE_URL,
       schema: process.env.GRAPHILE_WORKER_SCHEMA,
       concurrency: 1,
       noHandleSignals: true,

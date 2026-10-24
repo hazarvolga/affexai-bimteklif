@@ -78,8 +78,13 @@ export async function createTestIsolation(sourceUrl: string) {
   const databaseUrl = isolatedDatabaseUrl(sourceUrl, schema);
   const controlUrl = process.env.CONTROL_DATABASE_URL ?? sourceUrl;
   const controlDatabaseUrl = isolatedDatabaseUrl(controlUrl, schema);
+  const workerSourceUrl = process.env.WORKER_DATABASE_URL;
+  const workerDatabaseUrl = workerSourceUrl ? isolatedDatabaseUrl(workerSourceUrl, schema) : undefined;
   if (new URL(sourceUrl).pathname !== new URL(controlUrl).pathname) {
     throw new Error("Integration isolation control and runtime URLs must target the same database");
+  }
+  if (workerSourceUrl && new URL(sourceUrl).pathname !== new URL(workerSourceUrl).pathname) {
+    throw new Error("Integration isolation worker and runtime URLs must target the same database");
   }
   const storageDir = await mkdtemp(join(tmpdir(), "teklifpro-test-"));
   const client = new pg.Client({ connectionString: controlUrl, connectionTimeoutMillis: 2_000 });
@@ -175,7 +180,7 @@ export async function createTestIsolation(sourceUrl: string) {
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT EXECUTE ON FUNCTION ${workerQualified}.bimmetraj_remove_smartcheck_job(text) TO bimmetraj_app`);
     }
-    return { schema, workerSchema, databaseUrl, storageDir, cleanup };
+    return { schema, workerSchema, databaseUrl, workerDatabaseUrl, storageDir, cleanup };
   } catch (error) {
     await cleanup();
     throw error;
@@ -194,6 +199,7 @@ export function useTestIsolation() {
     }
     const overrides = {
       DATABASE_URL: isolation.databaseUrl,
+      ...(isolation.workerDatabaseUrl ? { WORKER_DATABASE_URL: isolation.workerDatabaseUrl } : {}),
       GRAPHILE_WORKER_SCHEMA: isolation.workerSchema,
       SMARTCHECK_LOCAL_STORAGE_DIR: isolation.storageDir,
       AUTH_EMAIL_WEBHOOK_URL: "",
