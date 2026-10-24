@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 65 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 66 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -273,17 +273,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 65 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 66 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 65)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 65 · BIM-CALC-2026-10-24.59 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 65 sentetik 100 MB IFC parser bellek/süre ön ölçümünü ekler; formül veya hesap sonucu değişikliği değildir. T45 için gerçek dosya, p95 bütçesi, eşzamanlı tenant ve hedef VPS kanıtı; T43/T44, worker canary ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 66)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 66 · BIM-CALC-2026-10-24.60 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 66 harici IFC fixture parity çıktısını browser desteklenen kesişim ve worker-authoritative metrikler olarak ayırır; formül veya hesap sonucu değişikliği değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43/T44, worker canary ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 65):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 66):",
       },
       {
         type: "table",
@@ -632,16 +632,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Ayrı bimmetraj_control login rolü, app-only CONTROL_DATABASE_URL, exact authority/support table allowlist'i ve 0019 control RLS politikaları eklendi. Kayıt/compensation, pilot tenant, şirket ayarı, banka transferi/abonelik, admin plan ve quota release/audit mutasyonları control pool'a taşındı. Control rolü leads, queue ve allowlist dışı tablo erişiminde reddedilir; compose secret izolasyonu, migration zinciri, build ve PG16 regresyonları geçti. Tenant-context kurulmadan yapılan kalan app okumaları, worker entitlement erişimi ve production secret cutover/canary/restore açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
           [
-            "Rev. 58 (Güncel geliştirme)",
-            "24 Ekim 2026 (Faz 7 — T41 Tenant Drizzle Transaction Altyapısı, Kısmi)",
-            "BIM-CALC-2026-10-24.52 (0a4d76a)",
-            "withTenantDrizzleTransaction aynı checked-out PoolClient üzerinde transaction-local tenant GUC'leri sonrasında typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement capability, ACL contract migration ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur; uzman rehberi/PDF T01–T49 teknik kapanışından sonra ayrı kabul paketi olarak hazırlanacaktır.",
-          ],
-          [
             "Rev. 57",
             "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
             "BIM-CALC-2026-10-24.51 (a55841e)",
             "Rev.56 final incelemesindeki broad app authority grants, effective URL override/TLS downgrade, audit DELETE, eksik production preflight ve bozuk kayıt compensation açıkları kapatıldı. App/control/worker exact ACL, auth/davet/Academy control mutation ayrımı ve PG16 negatif kanıtı geçti; code/security review LOCAL GO verdi. Audit app INSERT nedeniyle forge edilebilir; tenant-context app okumaları, worker entitlement, route-level paid-registration failure testi ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+          ],
+
+          [
+            "Rev. 58 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 Tenant Drizzle Transaction Altyapısı, Kısmi)",
+            "BIM-CALC-2026-10-24.52 (0a4d76a)",
+            "withTenantDrizzleTransaction aynı checked-out PoolClient üzerinde transaction-local tenant GUC'leri sonrasında typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement capability, ACL contract migration ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur; uzman rehberi/PDF T01–T49 teknik kapanışından sonra ayrı kabul paketi olarak hazırlanacaktır.",
           ],
           [
             "Rev. 59 (Güncel geliştirme)",
@@ -685,11 +686,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-24.59 (f13c2e2)",
             "100 MB sentetik IFC parser üç ayrı process koşusunda 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB verdi; compose 2 GiB/1 GiB tavanları aşılmadı. Gerçek dosya, p95 bütçesi, eşzamanlı tenant ve hedef VPS kabulü açık kaldığından T45 kapanmadı.",
           ],
+          [
+            "Rev. 66 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 2/7 — IFC Parity Kapsam Sınıflandırması, Kısmi)",
+            "BIM-CALC-2026-10-24.60 (compare-ifc-parsers)",
+            "Harici iki IFC fixture üzerinde browser/worker desteklenen kesişim metrikleri eşleşti; toplam eleman, geometry fallback hacimleri ve kalıp alanı worker-authoritative olarak ayrıldı. Fixture README'si lisans/dağıtım izni vermediğinden uzman/vendor kabulü değildir; T45 kapanmadı.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 65 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 66 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1253,6 +1260,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "100 MB sentetik IFC parser için tekrarlanmış süre, RSS ve heap ölçümü yol haritasında kayıtlı değildi.",
             "Üç ayrı process koşusunda 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB ölçüldü; mevcut compose tavanları aşılmadı. Gerçek büyük dosya, ExcelJS/PDF/3D, eşzamanlı tenant, p95 bütçesi ve hedef VPS kabulü açık kaldı.",
             "scripts/compare-ifc-parsers.ts, docs/deploy/container-app-worker.md, docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md",
+          ],
+          [
+            "Rev. 66 · 24 Ekim 2026 (Faz 2/7 — IFC Parity Kapsam Sınıflandırması, Kısmi)",
+            "src/ifc/parser/contract.ts capability seti; browser geometryFallback=false; worker geometryFallback=true; harici IFC fixture README",
+            "compare-ifc-parsers tüm Legacy/IfcOpenShell farklarını tek ham parity divergence sayısında gösteriyor; worker-only geometri fallback farkının nedeni görünür değildi.",
+            "Desteklenen browser/worker kesişimi ile worker-authoritative metrikler ayrıldı. İki harici IFC'de tip/Poz/E-PYS kesişimi eşleşti; toplam eleman, hacim ve kalıp worker otoritesinde raporlandı. Fixture lisansı doğrulanmadığından uzman/vendor kabulü iddia edilmedi.",
+            "scripts/compare-ifc-parsers.ts, src/ifc/parser/contract.ts, src/ifc/parser/legacy-parser.ts",
           ],
         ],
       },

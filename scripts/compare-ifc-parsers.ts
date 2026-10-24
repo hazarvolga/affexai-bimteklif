@@ -186,22 +186,22 @@ export async function compareIfcParsers(filePath: string) {
   const ps = pythonResult.summary;
 
   const rows = [
-    { category: "Genel", metric: "Toplam Eleman", legacy: ls.totalElements, python: ps.totalElements, unit: "adet" },
-    { category: "Eleman Sayısı", metric: "Kiriş (IfcBeam)", legacy: ls.beamCount, python: ps.beamCount, unit: "adet" },
-    { category: "Eleman Sayısı", metric: "Kolon (IfcColumn)", legacy: ls.columnCount, python: ps.columnCount, unit: "adet" },
-    { category: "Eleman Sayısı", metric: "Döşeme (IfcSlab)", legacy: ls.slabCount, python: ps.slabCount, unit: "adet" },
-    { category: "Eleman Sayısı", metric: "Perde / Duvar (IfcWall)", legacy: ls.wallCount, python: ps.wallCount, unit: "adet" },
-    { category: "Eleman Sayısı", metric: "Donatı (IfcReinforcingBar)", legacy: ls.rebarCount, python: ps.rebarCount, unit: "adet" },
-    { category: "Hacim Dağılımı", metric: "Kiriş Hacmi", legacy: ls.beamVolumeM3.toFixed(2), python: ps.beamVolumeM3.toFixed(2), unit: "m³" },
-    { category: "Hacim Dağılımı", metric: "Kolon Hacmi", legacy: ls.columnVolumeM3.toFixed(2), python: ps.columnVolumeM3.toFixed(2), unit: "m³" },
-    { category: "Hacim Dağılımı", metric: "Döşeme Hacmi", legacy: ls.slabVolumeM3.toFixed(2), python: ps.slabVolumeM3.toFixed(2), unit: "m³" },
-    { category: "Hacim Dağılımı", metric: "Duvar Hacmi", legacy: ls.wallVolumeM3.toFixed(2), python: ps.wallVolumeM3.toFixed(2), unit: "m³" },
-    { category: "Toplam Hacim", metric: "Toplam Beton Hacmi", legacy: ls.totalVolumeM3.toFixed(2), python: ps.totalVolumeM3.toFixed(2), unit: "m³" },
-    { category: "Kalıp Alanı", metric: "Toplam Kalıp Alanı (Ön Metraj)", legacy: ls.totalFormworkM2.toFixed(2), python: ps.totalFormworkM2.toFixed(2), unit: "m²" },
-    { category: "Donatı Ağırlığı", metric: "Toplam Donatı Ağırlığı", legacy: ls.totalRebarKg.toFixed(2), python: ps.totalRebarKg.toFixed(2), unit: "kg" },
-    { category: "Poz Bilgisi", metric: "Poz No Olan Elemanlar", legacy: ls.elementsWithPozNoCount, python: ps.elementsWithPozNoCount, unit: "adet" },
-    { category: "e-PYS Uyum", metric: "TR Pset TAKS", legacy: ls.trPsetCsb?.taks ?? "-", python: ps.trPsetCsb?.taks ?? "-", unit: "" },
-    { category: "e-PYS Uyum", metric: "TR Pset KAKS", legacy: ls.trPsetCsb?.kaks ?? "-", python: ps.trPsetCsb?.kaks ?? "-", unit: "" },
+    { scope: "worker-authoritative", category: "Genel", metric: "Toplam Eleman", legacy: ls.totalElements, python: ps.totalElements, unit: "adet" },
+    { scope: "contract", category: "Eleman Sayısı", metric: "Kiriş (IfcBeam)", legacy: ls.beamCount, python: ps.beamCount, unit: "adet" },
+    { scope: "contract", category: "Eleman Sayısı", metric: "Kolon (IfcColumn)", legacy: ls.columnCount, python: ps.columnCount, unit: "adet" },
+    { scope: "contract", category: "Eleman Sayısı", metric: "Döşeme (IfcSlab)", legacy: ls.slabCount, python: ps.slabCount, unit: "adet" },
+    { scope: "contract", category: "Eleman Sayısı", metric: "Perde / Duvar (IfcWall)", legacy: ls.wallCount, python: ps.wallCount, unit: "adet" },
+    { scope: "contract", category: "Eleman Sayısı", metric: "Donatı (IfcReinforcingBar)", legacy: ls.rebarCount, python: ps.rebarCount, unit: "adet" },
+    { scope: "worker-authoritative", category: "Hacim Dağılımı", metric: "Kiriş Hacmi", legacy: ls.beamVolumeM3.toFixed(2), python: ps.beamVolumeM3.toFixed(2), unit: "m³" },
+    { scope: "worker-authoritative", category: "Hacim Dağılımı", metric: "Kolon Hacmi", legacy: ls.columnVolumeM3.toFixed(2), python: ps.columnVolumeM3.toFixed(2), unit: "m³" },
+    { scope: "worker-authoritative", category: "Hacim Dağılımı", metric: "Döşeme Hacmi", legacy: ls.slabVolumeM3.toFixed(2), python: ps.slabVolumeM3.toFixed(2), unit: "m³" },
+    { scope: "worker-authoritative", category: "Hacim Dağılımı", metric: "Duvar Hacmi", legacy: ls.wallVolumeM3.toFixed(2), python: ps.wallVolumeM3.toFixed(2), unit: "m³" },
+    { scope: "worker-authoritative", category: "Toplam Hacim", metric: "Toplam Beton Hacmi", legacy: ls.totalVolumeM3.toFixed(2), python: ps.totalVolumeM3.toFixed(2), unit: "m³" },
+    { scope: "worker-authoritative", category: "Kalıp Alanı", metric: "Toplam Kalıp Alanı (Ön Metraj)", legacy: ls.totalFormworkM2.toFixed(2), python: ps.totalFormworkM2.toFixed(2), unit: "m²" },
+    { scope: "worker-authoritative", category: "Donatı Ağırlığı", metric: "Toplam Donatı Ağırlığı", legacy: ls.totalRebarKg.toFixed(2), python: ps.totalRebarKg.toFixed(2), unit: "kg" },
+    { scope: "contract", category: "Poz Bilgisi", metric: "Poz No Olan Elemanlar", legacy: ls.elementsWithPozNoCount, python: ps.elementsWithPozNoCount, unit: "adet" },
+    { scope: "contract", category: "e-PYS Uyum", metric: "TR Pset TAKS", legacy: ls.trPsetCsb?.taks ?? "-", python: ps.trPsetCsb?.taks ?? "-", unit: "" },
+    { scope: "contract", category: "e-PYS Uyum", metric: "TR Pset KAKS", legacy: ls.trPsetCsb?.kaks ?? "-", python: ps.trPsetCsb?.kaks ?? "-", unit: "" },
   ];
 
   console.log(`| Kategori | Metrik | Legacy Parser | IfcOpenShell | Birim | Durum |`);
@@ -210,7 +210,7 @@ export async function compareIfcParsers(filePath: string) {
   for (const r of rows) {
     const match = String(r.legacy) === String(r.python);
     if (!match) totalDivergences++;
-    const status = match ? "✅ Eşit" : "⚠️ Farklı";
+    const status = match ? "✅ Eşit" : r.scope === "worker-authoritative" ? "ℹ️ Worker otoriter" : "⚠️ Farklı";
     console.log(`| ${r.category} | ${r.metric} | ${r.legacy} | ${r.python} | ${r.unit} | ${status} |`);
   }
 
@@ -218,7 +218,10 @@ export async function compareIfcParsers(filePath: string) {
   console.log(`- Legacy Parser Çalışma Süresi: ${legacyDuration}ms`);
   console.log(`- IfcOpenShell Çalışma Süresi: ${pythonDuration}ms`);
   console.log(`- IfcOpenShell Sürümü: ${pythonResult.parserVersion}`);
-  console.log(`- Genel Parite Durumu: ${totalDivergences === 0 ? "✅ TAM EŞLEŞME (MATCH)" : `⚠️ ${totalDivergences} METRİKTE FARK (DIVERGENCE)`}\n`);
+  const contractDivergences = rows.filter((row) => row.scope === "contract" && String(row.legacy) !== String(row.python)).length;
+  console.log(`- Browser/worker sözleşme durumu: ${contractDivergences === 0 ? "✅ Desteklenen kesişim eşleşti" : `⚠️ ${contractDivergences} desteklenen metrikte fark`}`);
+  console.log(`- Worker otoriter metrikler: ${rows.filter((row) => row.scope === "worker-authoritative" && String(row.legacy) !== String(row.python)).length} fark beklenir; browser capability seti geometryFallback=false olduğu için bu değerler worker'a yönlendirilir.`);
+  console.log(`- Ham metrik farkı: ${totalDivergences}; bu sayı tek başına bug veya kabul sonucu değildir.\n`);
 }
 
 async function main() {

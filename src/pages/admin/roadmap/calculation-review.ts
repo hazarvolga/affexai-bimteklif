@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.59",
+  version: "BIM-CALC-2026-10-24.60",
   updatedOn: "24 Ekim 2026",
   implementationBaseline: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
-  approvalStatus: "Rev. 65, T45 için sentetik 100 MB IFC parser bellek ölçümü üç process koşusunda 3.590–3.623 ms, peak RSS 1.190,48–1.237,61 MB ve peak heap 778,86–826,59 MB verdi; mevcut 2 GiB RSS / 1 GiB heap tavanlarının altında olsa da gerçek büyük dosya, ExcelJS, PDF/3D, eşzamanlı tenant, p95 ve hedef VPS kanıtı değildir. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  approvalStatus: "Rev. 66, harici kaynaklardaki iki yerel IFC ile compare-ifc-parsers aracı browser/worker sözleşme kesişimini ayrı, geometry fallback ve toplam eleman/hacim/kalıp metriklerini worker-authoritative olarak raporlar. 100 MB sentetik parser ön ölçümü korunur; harici örneklerin README'si lisans/dağıtım izni vermediğinden gerçek vendor/müşteri kabulü değildir. Hesap yöntemleri ve sonuçları değişmemiştir. T45 gerçek dosya/p95/VPS kanıtı, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1520,6 +1520,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Compose tavanları ölçülmemiş kapasite vaadi olarak ayrıca belirtilmişti.",
         after: "Sentetik parser ölçümü ön kanıt olarak eklendi; onaylı p95/süre/RAM bütçesi, gerçek dosya matrisi, eşzamanlı tenant ve hedef VPS ölçümü açık bırakıldı.",
         basis: "T45 kabul kriteri; docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md",
+      },
+    },
+  },
+  {
+    revision: "Rev. 66",
+    version: "BIM-CALC-2026-10-24.60",
+    date: "24 Ekim 2026",
+    commit: "TBD (bu değişikliğin commit'i)",
+    trigger: "Harici IFC fixture parity ölçümünün capability kapsamına göre sınıflandırılması.",
+    beforeSummary: "compare-ifc-parsers tüm Legacy/IfcOpenShell farklarını tek bir parity divergence sayısında topluyor, browser önizlemesinin worker-only geometri metriklerini yanlışlıkla genel eşleşme gibi gösteriyordu.",
+    afterSummary: "Karşılaştırma satırları browser/worker desteklenen sözleşme kesişimi ve worker-authoritative metrikler olarak ayrılır. İki yerel IFC'de kiriş/kolon/döşeme/perde/donatı/poz/E-PYS kesişimi eşleşir; toplam eleman, geometri fallback hacimleri ve kalıp alanı worker otoritesinde raporlanır. Harici fixture lisans durumu doğrulanmadığı için uzman/vendor kabulü iddia edilmez.",
+    affectedModules: ["ifc-parser", "parity-benchmark"],
+    moduleDetails: {
+      "ifc-parser": {
+        before: "Browser capability seti geometryFallback=false olmasına rağmen ham toplam hacim/kalıp farkı genel parity sonucu olarak görünüyordu.",
+        after: "Worker-authoritative metrikler ayrı açıklanır; browser preview çıktısı server worker metrajı olarak sunulmaz.",
+        basis: "src/ifc/parser/contract.ts; src/ifc/parser/legacy-parser.ts; scripts/compare-ifc-parsers.ts",
+      },
+      "parity-benchmark": {
+        before: "e-proje_4x3.ifc ve 2026_45_MM...ifc karşılaştırmasında ham 7 farkın nedeni raporlanmıyordu.",
+        after: "Her iki dosyada desteklenen kesişim eşleşmesi ve worker fallback farkı ayrı raporlanır; fixture README'si yalnız test kullanımını söyler, lisans/dağıtım izni kanıtlamaz.",
+        basis: "harici-kaynaklar/klasorler-ve-ornekler/IfcSampleFiles-main/README.md; yerel compare-ifc-parsers koşuları",
       },
     },
   },
