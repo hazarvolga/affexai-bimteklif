@@ -375,3 +375,8 @@ automatically transitions to the free plan; do not enable paid usage.
 - Focused release/role/roadmap/auth/tenant set passes `32/32`; roadmap-only/artifact/role subset passes `17/17`; TypeScript and diff-check pass.
 - A full `pnpm test` run was attempted against a disposable local PostgreSQL 16 database. It reached real isolated integration tests but remained non-green: the disposable base lacked Graphile worker `migrations` bootstrap and restricted `bimmetraj_app` runtime identity, and concurrent schema cloning hit PostgreSQL `max_locks_per_transaction`. These are test-environment gates to fix before claiming full-suite green; they are not silently reclassified as product passes.
 - The disposable database/container was removed after the run. No production or user database was touched.
+
+## 2026-10-24 Rev. 62 test isolation control/app split
+
+- Commit `131042dd6675341b73733881ad433f87f5e9dd2e` adds `CONTROL_DATABASE_URL` support to the disposable integration harness. Schema cloning and Graphile Worker migration bootstrap use the control connection; `DATABASE_URL` remains the restricted `bimmetraj_app` runtime for the same target database. Isolated worker wrappers and bounded role grants are provisioned without changing production ACLs.
+- Queue integration passes 14/14 with an admin disposable runtime; restricted app SmartCheck HTTP tenant flow passes and IFC quota passes 6/6. IFC HTTP worker execution still requires a separate worker credential harness. Full-suite green and production readiness remain unclaimed.

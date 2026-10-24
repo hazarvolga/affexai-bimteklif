@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (24 Ekim 2026 · Rev. 59 geliştirme)",
+    title: "Uygulama durumu (24 Ekim 2026 · Rev. 62 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -273,17 +273,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 59 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 62 · 13–24 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 59)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 58 · BIM-CALC-2026-10-24.52 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 58 aynı checked-out PoolClient üzerinde tenant GUC'leri sonrası typed Drizzle transaction altyapısını ekler; formül veya hesap sonucu değişikliği değildir. Auth resolver, worker entitlement erişimi ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 62)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 62 · BIM-CALC-2026-10-24.56 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 62 disposable test isolation control/runtime ayrımını ve Graphile Worker vendor bootstrap kanıtını ekler; formül veya hesap sonucu değişikliği değildir. Worker credential harness, kalan tenant okumaları ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 61):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 62):",
       },
       {
         type: "table",
@@ -638,6 +638,12 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "withTenantDrizzleTransaction aynı checked-out PoolClient üzerinde transaction-local tenant GUC'leri sonrasında typed Drizzle database verir. 7/7 tenant-context testi, TypeScript ve diff-check geçti. Auth resolver, worker entitlement capability, ACL contract migration ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur; uzman rehberi/PDF T01–T49 teknik kapanışından sonra ayrı kabul paketi olarak hazırlanacaktır.",
           ],
           [
+            "Rev. 57",
+            "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
+            "BIM-CALC-2026-10-24.51 (a55841e)",
+            "Rev.56 final incelemesindeki broad app authority grants, effective URL override/TLS downgrade, audit DELETE, eksik production preflight ve bozuk kayıt compensation açıkları kapatıldı. App/control/worker exact ACL, auth/davet/Academy control mutation ayrımı ve PG16 negatif kanıtı geçti; code/security review LOCAL GO verdi. Audit app INSERT nedeniyle forge edilebilir; tenant-context app okumaları, worker entitlement, route-level paid-registration failure testi ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+          ],
+          [
             "Rev. 59 (Güncel geliştirme)",
             "24 Ekim 2026 (Faz 7 — T41 8A Auth Authority Tenant Bağlamı, Kısmi)",
             "BIM-CALC-2026-10-24.53 (cc70ca2)",
@@ -656,16 +662,16 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "0021 release migration ile IFC rule standardı ve normalize edilmiş SmartCheck fire toleransı için dar SECURITY DEFINER company context function eklendi; yalnız bimmetraj_worker EXECUTE alır. Production worker branch companies tablosuna doğrudan okumadan capability üzerinden bağlam alır; 22/22 artifact zinciri, negatif role testi ve TypeScript geçti. Canary/drain sonrası doğrudan companies ACL revoke, kalan worker reads ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
           [
-            "Rev. 57",
-            "24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
-            "BIM-CALC-2026-10-24.51 (a55841e)",
-            "Rev.56 final incelemesindeki broad app authority grants, effective URL override/TLS downgrade, audit DELETE, eksik production preflight ve bozuk kayıt compensation açıkları kapatıldı. App/control/worker exact ACL, auth/davet/Academy control mutation ayrımı ve PG16 negatif kanıtı geçti; code/security review LOCAL GO verdi. Audit app INSERT nedeniyle forge edilebilir; tenant-context app okumaları, worker entitlement, route-level paid-registration failure testi ve production cutover açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
+            "Rev. 62 (Güncel geliştirme)",
+            "24 Ekim 2026 (Faz 7 — T41 Test Isolation Control/App Split, Kısmi)",
+            "BIM-CALC-2026-10-24.56 (131042d)",
+            "CONTROL_DATABASE_URL ile disposable schema clone ve Graphile Worker migration işlemleri yönetici bağlantısına ayrıldı; DATABASE_URL restricted bimmetraj_app runtime'ı olarak korunur. İzole worker şemasında migration 18, bounded queue wrapper'ları ve rol grant'leri kurulur. Queue 14/14, HTTP tenant akışı ve IFC quota 6/6 geçti; worker credential ayrımı gerektiren IFC HTTP koşusu ayrı harness kapısıdır. Production cutover ve uzman kabulü açık olduğundan T41/Faz 7 PARTIAL ve production NO-GO'dur.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 61 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 62 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1175,6 +1181,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "src/db/tenant-context.ts, src/db/tenant-context.test.ts",
           ],
           [
+            "Rev. 57 · 24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
+            "PostgreSQL least privilege; exact ACL convergence; effective connection URL validation; TLS downgrade prevention; append-only audit; fail-fast production preflight; durable registration state",
+            "Rev.56 kod yollarını control pool'a taşımıştı; app bazı authority/support tablolarda geniş mutasyon grant'lerini koruyor, URL query override'ları gerçek bağlantı kimliğini değiştirebiliyor, audit DELETE açıktı ve production control URL olmadan başlayabiliyordu. Ücretli kayıt e-posta hatasında append-only audit FK'leri silme telafisini bozuyordu.",
+            "Authority/support tablolarında app/control/worker exact revoke+grant matrisi uygulanır; user/membership/token doğrudan app mutasyonu ve audit DELETE reddedilir. Auth/davet/Academy mutasyonları control pool kullanır. İki URL için query allowlist, duplicate reddi, exact rol/hedef ve TLS strength; production preflight zorunludur. Broad control sequence/pre-schema grant'leri kaldırılmıştır. Teslim hatasında hesap ve ödeme audit'i korunur, resend durumu bildirilir. Security/code review LOCAL GO'dur; kalan P2 ve production kapıları açıkça kaydedilir.",
+            "scripts/database-roles/{contract,inspect,provision}.ts, src/db/control-plane.ts, src/server/config/production.ts, src/server/routes/{auth,academy}.ts, src/server/auth/invitations.ts, src/contracts/crm-lead-tenant-rls.pgtest.ts",
+          ],
+          [
             "Rev. 59 · 24 Ekim 2026 (Faz 7 — T41 8A Auth Authority Tenant Bağlamı, Kısmi)",
             "Tenant transaction-local GUC; restricted app role; auth authority read boundary; membership/subscription fail-closed lookup",
             "Auth middleware üyelik ve abonelik authority sorgularını global app pool'unda yürütüyor, tenant RLS sınırı sorgu bağlantısında garanti edilmiyordu.",
@@ -1196,11 +1209,11 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "drizzle-release/0021_worker_company_context_capability.sql, scripts/database-roles/contract.ts, src/smartcheck/import/worker-company-context.ts, src/smartcheck/import/processor.ts",
           ],
           [
-            "Rev. 57 · 24 Ekim 2026 (Faz 7 — T41 Control-Plane Least-Privilege Düzeltmesi, Kısmi)",
-            "PostgreSQL least privilege; exact ACL convergence; effective connection URL validation; TLS downgrade prevention; append-only audit; fail-fast production preflight; durable registration state",
-            "Rev.56 kod yollarını control pool'a taşımıştı; app bazı authority/support tablolarda geniş mutasyon grant'lerini koruyor, URL query override'ları gerçek bağlantı kimliğini değiştirebiliyor, audit DELETE açıktı ve production control URL olmadan başlayabiliyordu. Ücretli kayıt e-posta hatasında append-only audit FK'leri silme telafisini bozuyordu.",
-            "Authority/support tablolarında app/control/worker exact revoke+grant matrisi uygulanır; user/membership/token doğrudan app mutasyonu ve audit DELETE reddedilir. Auth/davet/Academy mutasyonları control pool kullanır. İki URL için query allowlist, duplicate reddi, exact rol/hedef ve TLS strength; production preflight zorunludur. Broad control sequence/pre-schema grant'leri kaldırılmıştır. Teslim hatasında hesap ve ödeme audit'i korunur, resend durumu bildirilir. Security/code review LOCAL GO'dur; kalan P2 ve production kapıları açıkça kaydedilir.",
-            "scripts/database-roles/{contract,inspect,provision}.ts, src/db/control-plane.ts, src/server/config/production.ts, src/server/routes/{auth,academy}.ts, src/server/auth/invitations.ts, src/contracts/crm-lead-tenant-rls.pgtest.ts",
+            "Rev. 62 · 24 Ekim 2026 (Faz 7 — T41 Test Isolation Control/App Split, Kısmi)",
+            "Disposable PostgreSQL isolation; CONTROL_DATABASE_URL yönetici clone; restricted bimmetraj_app runtime; Graphile Worker migration 18",
+            "İzole test hook'u tek DATABASE_URL ile schema clone, vendor migration ve uygulama runtime'ını aynı role bağlıyordu; restricted tenant transaction ve queue vendor tabloları aynı koşuda ayrıştırılamıyordu.",
+            "Control ve runtime bağlantıları aynı hedef DB için ayrıldı; worker schema migration 18, bounded SmartCheck wrapper'ları, app execute ve worker access kuruldu. Queue 14/14, SmartCheck HTTP tenant ve IFC quota 6/6 geçti; worker credential ayrımı gerektiren IFC HTTP koşusu ayrı harness kapısı olarak kaldı.",
+            "src/server/routes/test-isolation.ts, src/server/routes/test-isolation.test.ts, src/smartcheck/import/queue.integration.test.ts",
           ],
         ],
       },

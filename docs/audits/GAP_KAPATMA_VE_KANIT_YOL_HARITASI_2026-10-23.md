@@ -1,7 +1,7 @@
 # BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası
 
 **Tarih:** 23 Ekim 2026
-**Son durum güncellemesi:** 24 Ekim 2026 · Rev. 61 · `BIM-CALC-2026-10-24.55`
+**Son durum güncellemesi:** 24 Ekim 2026 · Rev. 62 · `BIM-CALC-2026-10-24.56`
 **Durum:** KULLANICI ONAYLI / UYGULANIYOR — Faz 0–4 geliştirme ve otomatik kanıt kapıları tamamlandı. Faz 5 kod akışı tamamlandı ancak T32 gerçek veraPDF runtime/lisanslı PDF/A dönüşüm sağlayıcısı nedeniyle açık. Faz 6 kod düzeyinde Pilot/L2 ve varsayılan kapalıdır; izinli resmî dosya, vendor ve uzman kabulü bekler. Faz 7'de T40 yerel rol topolojisi ve T41'in 8C dahil yerel güvenlik dilimleri kanıtlandı; Rev.57 control-plane least-privilege review açıklarını kapattı. Tenant bağlamsız/hassas global app okumaları, production worker canary/drain + ACL revoke, production cutover ve kalan tenant tabloları açıktır. T42'nin manuel ödeme ve worker lease dilimleri kısmen tamamlandı. Üretim dağıtımı Faz 0–11 tamamlanmadan yasak.
 **Plan baseline:** `e748481684b296cc6a1cd5de0365136b47384d2b`
 **Kaynak:** [23 Ekim bağımsız kod doğrulama raporu](/Users/hazarvolgaekiz/dev/products/bimplanacademy/TeklifPro-repo/docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md).
@@ -236,7 +236,13 @@ Uzman onayları alınmadan roadmap “onaylandı” yazmaz. Revizyon numarası �
 
 Kullanıcı planın tamamını veya belirli fazlarını onaylayabilir. Kısmi onay verildiğinde kalan fazlar açık/bekliyor kalır; tüm açıkların kapandığı söylenmez. Dış uzman, lisans, ücretli araç ve canlı yayın gerektiren adımlar kendi somut kabul/izin koşullarına bağlıdır.
 
-**Şu an:** plan 23 Ekim 2026 tarihinde kullanıcı tarafından onaylandı. 24 Ekim 2026 / Rev. 61 itibarıyla Faz 0–4 geliştirme ve otomatik kanıt kapıları tamamlandı; Faz 5, T32 dış runtime/vendor bağımlılığı nedeniyle kısmi; Faz 6 Pilot/L2 ve varsayılan kapalı; Faz 7 uygulanıyor. T40 yerel credential/rotation kanıtına, T41 sekiz hazırlık/güvenlik dilimine, T42 ise manuel ödeme ve worker lease/fencing dilimlerine ulaştı. Son kod baseline'ı `4afe32b`, son hesap kaydı `BIM-CALC-2026-10-24.55` ve yol haritası Rev. 61'dir. Typed tenant Drizzle ve worker capability foundation hazır; sıradaki yerel işler kalan tenant read inventory, T43–T45 kanıtları ve route-level integration coverage'dır. T40–T42 genel kapanışı, T43–T56, izinli vendor/müşteri dosyaları, isimli uzman imzaları, production cutover/deploy/canary/restore ve uzman inceleme rehberi/PDF kabul paketi açık kalır. Hiçbir yerel test veya doküman kaydı canlı/production kanıtı sayılmaz; tüm 12 faz kapanmadan deploy yapılmaz.
+**Şu an:** plan 23 Ekim 2026 tarihinde kullanıcı tarafından onaylandı. 24 Ekim 2026 / Rev. 62 itibarıyla Faz 0–4 geliştirme ve otomatik kanıt kapıları tamamlandı; Faz 5, T32 dış runtime/vendor bağımlılığı nedeniyle kısmi; Faz 6 Pilot/L2 ve varsayılan kapalı; Faz 7 uygulanıyor. T40 yerel credential/rotation kanıtına, T41 capability ve test-isolation dilimlerine, T42 ise manuel ödeme ve worker lease/fencing dilimlerine ulaştı. Son kod baseline'ı `131042dd6675341b73733881ad433f87f5e9dd2e`, son hesap kaydı `BIM-CALC-2026-10-24.56` ve yol haritası Rev. 62'dir. `CONTROL_DATABASE_URL` ile disposable schema clone/vendor migration, `DATABASE_URL` ile restricted app runtime ayrıldı; queue 14/14, SmartCheck HTTP tenant akışı ve IFC quota 6/6 geçti. Worker credential ayrımı gerektiren IFC HTTP worker koşusu ve tam suite concurrency/role harness'ı açık kaldı. T40–T42 genel kapanışı, T43–T56, izinli vendor/müşteri dosyaları, isimli uzman imzaları, production cutover/deploy/canary/restore ve uzman inceleme rehberi/PDF kabul paketi açık kalır. Hiçbir yerel test veya doküman kaydı canlı/production kanıtı sayılmaz; tüm 12 faz kapanmadan deploy yapılmaz.
+
+### Rev. 62 / T41 test izolasyonu (24 Ekim 2026)
+
+`src/server/routes/test-isolation.ts` artık control ve runtime bağlantılarını ayırır: `CONTROL_DATABASE_URL` aynı disposable veritabanında schema clone ile Graphile Worker migration 18 bootstrap'ını yapar; `DATABASE_URL` restricted `bimmetraj_app` runtime olarak kalır. İzole worker şemasında bounded SmartCheck enqueue/remove wrapper'ları kurulur ve yalnız ilgili execute/table grant'leri verilir. Aynı database hedefi zorunludur; farklı control/runtime veritabanına sessizce clone yapılmaz.
+
+Yerel kanıt: `queue.integration.test.ts` admin disposable runtime ile 14/14 geçti; restricted app runtime ile SmartCheck HTTP tenant akışı ve `ifc-quota.integration.test.ts` 6/6 geçti. IFC HTTP worker testi, uygulama ve worker kimliklerinin aynı test sürecinde ayrıştırılması gerektiği için hâlâ harness kapısıdır; bu sonuç ürün fonksiyonunun production kabulü değildir.
 
 ### Rev. 61 / 8C — Worker company context capability (24 Ekim 2026)
 

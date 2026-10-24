@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.55",
+  version: "BIM-CALC-2026-10-24.56",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "4afe32b70e458d5a114dca47bd913ae8df2fb1a7",
-  approvalStatus: "Rev. 61, worker IFC ve normalize edilmiş SmartCheck şirket bağlamı dar SECURITY DEFINER capability function'a alınır ve production worker branch bunu kullanır. Hesap yöntemleri ve sonuçları değişmemiştir. Canary/drain sonrası ACL revoke, kalan tenant okumaları, production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "131042dd6675341b73733881ad433f87f5e9dd2e",
+  approvalStatus: "Rev. 62, disposable test izolasyonu CONTROL_DATABASE_URL ile yönetici clone ve DATABASE_URL ile restricted app runtime ayrımını destekler; Graphile Worker vendor migration'ları, worker wrapper'ları ve restricted role grants izole şemada kurulur. Kuyruk 14/14 ve SmartCheck HTTP tenant akışı app runtime ile geçti; tam worker IFC HTTP koşusu worker credential ayrımı nedeniyle ayrı harness ister. Hesap yöntemleri ve sonuçları değişmemiştir. Production cutover/canary/restore ve bağımsız uzman kabulü açık olduğundan production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1432,6 +1432,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Worker IFC standardı ve SmartCheck fire toleransı için companies tablosunu doğrudan okuyordu.",
         after: "Production worker company context dar SECURITY DEFINER capability function ile okunuyor; function execute ACL'si yalnız worker rolüne ait.",
         basis: "drizzle-release/0021_worker_company_context_capability.sql; scripts/database-roles/contract.ts; src/smartcheck/import/worker-company-context.ts; src/smartcheck/import/processor.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 62",
+    version: "BIM-CALC-2026-10-24.56",
+    date: "24 Ekim 2026",
+    commit: "131042dd6675341b73733881ad433f87f5e9dd2e",
+    trigger: "T41 test-harness runtime sınırı: disposable izolasyonda control clone, restricted app runtime ve Graphile Worker vendor şeması ayrımı.",
+    beforeSummary: "İzole test hook'u tek DATABASE_URL ile hem schema clone/migration hem uygulama runtime'ını çalıştırıyor; queue vendor migrations ve restricted bimmetraj_app tenant transaction'ı aynı koşuda kanıtlanamıyordu.",
+    afterSummary: "CONTROL_DATABASE_URL varsa clone ve vendor migration işlemleri control bağlantısına, uygulama DATABASE_URL'si restricted runtime'a ayrılır. İzole worker şemasında Graphile migration 18, bounded SmartCheck queue wrapper'ları, app execute ve worker tablo erişimleri kurulur; aynı veritabanı hedefi zorunlu tutulur. Queue 14/14, HTTP tenant akışı ve IFC quota 6/6 geçti; worker credential ayrımı gerektiren IFC HTTP koşusu ayrı harness kapısı olarak kaldı.",
+    affectedModules: ["test-isolation", "worker-queue"],
+    moduleDetails: {
+      "test-isolation": {
+        before: "Schema clone, Graphile migration bootstrap ve uygulama runtime'ı tek bağlantı rolüyle yürütülüyordu.",
+        after: "CONTROL_DATABASE_URL yönetici clone/migration için, DATABASE_URL restricted app runtime için kullanılır; URL'lerin aynı disposable veritabanını hedeflediği doğrulanır.",
+        basis: "src/server/routes/test-isolation.ts; src/server/routes/test-isolation.test.ts; restricted bimmetraj_app tenant contract",
+      },
+      "worker-queue": {
+        before: "İzole şemada vendor migrations ve production queue wrapper sınırı yoktu.",
+        after: "Graphile Worker migration 18 ve iki SECURITY DEFINER SmartCheck wrapper'ı izole worker şemasında kurulur; app yalnız wrapper execute, worker yalnız queue tablo erişimi alır.",
+        basis: "graphile-worker vendor migration; scripts/database-roles/contract.ts; queue.integration.test.ts",
       },
     },
   },
