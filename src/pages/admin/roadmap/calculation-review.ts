@@ -2,7 +2,7 @@
 export const CALC_REVIEW_META = {
   version: "BIM-CALC-2026-10-24.61",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "f13c2e2b4de5ecf8eedf009baab40723a57dee88",
+  implementationBaseline: "f0a9e357a16a709290519ff1f1e09bb6aeded6fe",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1549,7 +1549,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 67",
     version: "BIM-CALC-2026-10-24.61",
     date: "24 Ekim 2026",
-    commit: "pending",
+    commit: "f0a9e357a16a709290519ff1e09bb6aeded6fe",
     trigger: "Bağımsız uzman denemesi için kabul kapıları, disiplin kapsamı ve ölçüm sırasının admin yüzeyinde yayınlanması.",
     beforeSummary: "Uzman dosyası ve roadmap kayıtları bulunuyordu; uzmanların hangi ekranları hangi sırayla ve hangi kanıt alanlarıyla çalıştıracağı tek bir uygulama yüzeyinde toplanmamıştı.",
     afterSummary: "Korunan admin rotasında kaynak kabulü, normal/sınır/eksik senaryoları, gerçek UI/VPS performans ölçümü, retry/alert gözlemi ve imzalı karar sırası açıkça listelenir. Bu bir onay kaydı değildir.",
