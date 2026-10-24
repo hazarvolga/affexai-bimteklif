@@ -682,3 +682,26 @@ test("worker raporunda zaten bulunan açıkta kalan eleman icmal tarafından iki
   assert.equal(report?.uncoveredElements.filter((u) => u.globalId === "WORKER_LISTED_BEAM001").length, 1);
   assert.equal(report?.uncoveredElementCount, 1);
 });
+
+test("her icmal kalemi kendisini oluşturan elemanları taşır; katkıların toplamı net miktara eşittir", () => {
+  const elements = [
+    structuralFixture("TRACE_SLAB_000000001", "IfcSlab", "Döşeme Z01", ["Beton_C30"], 10.25),
+    { ...structuralFixture("TRACE_SLAB_000000002", "IfcSlab", "Döşeme 101", ["Beton_C30"], 4.5), storey: "1. Kat", quantitySource: "geometry" as const },
+  ];
+  const item = buildCalmIfcDatasetFromElements(elements, null, "x.ifc").groups.flatMap((g) => g.items).find((i) => i.id === "c30-37-betonarme");
+  assert.ok(item?.contributions);
+  assert.deepEqual(item.contributions.map((c) => [c.globalId, c.name, c.netQuantity, c.quantitySource]), [
+    ["TRACE_SLAB_000000001", "Döşeme Z01", 10.25, "qto"],
+    ["TRACE_SLAB_000000002", "Döşeme 101", 4.5, "geometry"],
+  ]);
+  const sum = item.contributions.reduce((total, c) => total + c.netQuantity, 0);
+  assert.equal(Number(sum.toFixed(2)), item.netQuantity);
+});
+
+test("çok katmanlı kaplamada katkı hangi katmandan geldiğini söyler", () => {
+  const covering = coveringFixture("TRACE_COVERING_00001", "FLOORING", ["Seramik_Kaplama", "Sap_5cm"], 12);
+  const items = buildCalmIfcDatasetFromElements([covering], null, "x.ifc").groups.flatMap((g) => g.items);
+  const layers = items.flatMap((i) => (i.contributions ?? []).map((c) => c.layer));
+  assert.ok(layers.length > 0);
+  for (const layer of layers) assert.ok(layer === "Seramik_Kaplama" || layer === "Sap_5cm", String(layer));
+});
