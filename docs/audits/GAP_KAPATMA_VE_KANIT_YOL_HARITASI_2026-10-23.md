@@ -241,3 +241,7 @@ Kullanıcı planın tamamını veya belirli fazlarını onaylayabilir. Kısmi on
 ### Rev. 61 / 8C — Worker company context capability (24 Ekim 2026)
 
 `0021_worker_company_context_capability` ve `fetchWorkerCompanyContext` ile production IFC rule standardı ve spreadsheet normalize fire toleransı okumaları dar worker-only capability function'a taşındı. `companies` doğrudan worker okuması bu iki iş akışında kaldırıldı; local/test fallback yalnız canary öncesi fixture uyumluluğu için kaldı. Release zinciri `22/22`, worker capability negatifleri `2/2`, targeted doğrulama `32/32`, TypeScript ve diff-check geçti. Worker drain/canary, canlı image SHA doğrulaması ve ACL revoke hâlâ yapılmadı; diğer worker/table inventory, production cutover ve canlı negatif kanıt açık olduğundan T41/Faz 7 PARTIAL, production NO-GO'dur.
+
+### Yerel doğrulama notu — 24 Ekim 2026
+
+`pnpm run build` Rev. 61 sonrası geçti. Focused release/role/roadmap/auth/tenant set `32/32`, artifact/role/roadmap subset `17/17`, `tsc --noEmit` ve `git diff --check` geçti. Tam `pnpm test`, disposable PostgreSQL ile gerçek izolasyon denemesine rağmen tam yeşil değil: test tabanında Graphile Worker `migrations` bootstrap'ı ve restricted `bimmetraj_app` runtime kimliği yoktu; paralel schema clone PostgreSQL `max_locks_per_transaction` sınırına çarptı. Bu test-environment kapısı ayrıca kapanmadan full-suite green veya production readiness iddiası yapılmayacaktır. Disposable DB/container kaldırılmıştır; canlı/veri sahibi veritabanına dokunulmamıştır.
