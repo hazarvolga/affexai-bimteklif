@@ -97,6 +97,11 @@ jobs:
           DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
           DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
         run: pnpm run test:company-industry-tenant-rls:pg
+      - name: PostgreSQL 16 CRM lead tenant RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+        run: pnpm run test:crm-lead-tenant-rls:pg
       - run: pnpm run prisma:validate:shadow
       - run: pnpm run prisma:shadow-contract
       - run: pnpm exec tsx scripts/gap-invitation-ui-smoke.ts

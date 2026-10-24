@@ -1,5 +1,5 @@
 import type pg from "pg";
-import { DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
+import { DATABASE_FUNCTION_EXECUTE_SPECS, DATABASE_PUBLIC_RESTRICTED_TABLE_ACL, DATABASE_QUEUE_RLS_TABLES, DATABASE_ROLE_SPECS, DATABASE_SCHEMA_SPECS, DATABASE_SECURITY_DEFINER_WRAPPERS, type DatabaseRoleName } from "./contract";
 import { assertRoleBoundaries, inspectRoleBoundaries, inspectRoleProvenanceViolations } from "./inspect";
 
 export type DatabaseRoleCredentials = Record<Exclude<DatabaseRoleName, "bimmetraj_owner">, string>;
@@ -7,6 +7,7 @@ export type DatabaseRoleProvisionTarget = Readonly<{
   expectedDatabase: string;
   expectedSystemIdentifier: string;
   requiredMarkerRegclass: string;
+  inspectionMode?: "canonical" | "pre_schema_role_contract";
 }>;
 
 type Queryable = Pick<pg.Client, "query">;
@@ -44,6 +45,18 @@ async function assertProvisionTarget(client: Queryable, target: DatabaseRoleProv
     || actual.marker !== target.requiredMarkerRegclass || actual.version_major !== 16 || !actual.superuser || !actual.create_role
     || ["postgres", "template0", "template1"].includes(actual.database)) {
     throw new Error("Database role provisioning target fingerprint or administrator authority mismatch");
+  }
+  if (target.inspectionMode === "pre_schema_role_contract") {
+    const fixture = await client.query<{ exact_columns: boolean; empty: boolean; leads_absent: boolean }>(`select
+      coalesce((select array_agg(column_name::text order by ordinal_position)=array['idx']::text[]
+        from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations'),false) exact_columns,
+      not exists(select 1 from teklifpro_release.migrations) empty,
+      to_regclass('public.leads') is null leads_absent`);
+    if (!fixture.rows[0]?.exact_columns || !fixture.rows[0]?.empty || !fixture.rows[0]?.leads_absent) {
+      throw new Error("Pre-schema role-contract inspection mode requires the exact empty idx-only test marker and no public.leads table");
+    }
+  } else if (target.inspectionMode !== undefined && target.inspectionMode !== "canonical") {
+    throw new Error("Unknown database role inspection mode");
   }
 }
 
@@ -98,7 +111,7 @@ async function transferManagedObjects(client: Queryable): Promise<void> {
   for (const type of types.rows) await client.query(`alter ${type.kind === "d" ? "DOMAIN" : "TYPE"} ${identifier(type.schema)}.${identifier(type.name)} owner to bimmetraj_owner`);
 }
 
-async function convergePrivileges(client: Queryable, database: string): Promise<void> {
+async function convergePrivileges(client: Queryable, database: string, allowMissingRestrictedTables = false): Promise<void> {
   await client.query(`revoke all privileges on database ${identifier(database)} from public`);
   await client.query(`revoke all privileges on database ${identifier(database)} from bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
   await client.query(`grant connect on database ${identifier(database)} to bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
@@ -127,6 +140,16 @@ async function convergePrivileges(client: Queryable, database: string): Promise<
     if (schema === "public") {
       await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
       await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
+      for (const [table, access] of Object.entries(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL)) {
+        const present = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [`public.${table}`]);
+        if (!present.rows[0]?.present) {
+          if (allowMissingRestrictedTables) continue;
+          throw new Error(`Required CRM leads or quota dependency table is missing: ${table}`);
+        }
+        await client.query(`revoke all privileges on table ${qualified}.${identifier(table)} from bimmetraj_app,bimmetraj_worker`);
+        if (access.bimmetraj_app.length) await client.query(`grant ${access.bimmetraj_app.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_app`);
+        if (access.bimmetraj_worker.length) await client.query(`grant ${access.bimmetraj_worker.join(",")} on table ${qualified}.${identifier(table)} to bimmetraj_worker`);
+      }
     } else if (schema === "teklifpro_queue") {
       await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_worker`);
       await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_worker`);
@@ -151,10 +174,7 @@ async function convergePrivileges(client: Queryable, database: string): Promise<
     await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke execute on functions from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
     await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} revoke all on types from public,bimmetraj_migrator,bimmetraj_app,bimmetraj_worker,bimmetraj_backup`);
     if (usageRoles.length) await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant usage on types to ${usageRoles.join(",")}`);
-    if (schema === "public") {
-      await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant select,insert,update,delete on tables to bimmetraj_app,bimmetraj_worker`);
-      await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant usage,select,update on sequences to bimmetraj_app,bimmetraj_worker`);
-    } else if (schema === "teklifpro_queue") {
+    if (schema === "teklifpro_queue") {
       await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant select,insert,update,delete on tables to bimmetraj_worker`);
       await client.query(`alter default privileges for role bimmetraj_owner in schema ${qualified} grant usage,select,update on sequences to bimmetraj_worker`);
     }
@@ -204,8 +224,10 @@ export async function provisionDatabaseRoles(
     await client.query("grant bimmetraj_owner to bimmetraj_migrator with admin false, inherit false, set true");
     await client.query(`alter database ${identifier(target.expectedDatabase)} owner to bimmetraj_owner`);
     await transferManagedObjects(client);
-    await convergePrivileges(client, target.expectedDatabase);
-    assertRoleBoundaries(await inspectRoleBoundaries(client));
+    await convergePrivileges(client, target.expectedDatabase, target.inspectionMode === "pre_schema_role_contract");
+    assertRoleBoundaries(await inspectRoleBoundaries(client, undefined, {
+      allowPreSchemaRoleContract: target.inspectionMode === "pre_schema_role_contract",
+    }));
     await client.query("commit");
   } catch (error) {
     await client.query("rollback");

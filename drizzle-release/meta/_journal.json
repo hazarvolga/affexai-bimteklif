@@ -127,6 +127,13 @@
       "when": 1791417600017,
       "tag": "0017_company_industry_settings_tenant_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791417600018,
+      "tag": "0018_crm_leads_tenant_rls",
+      "breakpoints": true
     }
   ]
 }

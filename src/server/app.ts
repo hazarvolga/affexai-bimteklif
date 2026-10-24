@@ -35,6 +35,7 @@ import { createTextProvider } from "../services/ai/providers/text-provider";
 import { RegulatoryIntelligenceService } from "../services/regulations/regulatoryService";
 import { ProfitService } from "../services/financials/profitService";
 import { CRMIntelligenceService } from "../services/crm/crmService";
+import { CrmLeadService } from "../services/crm/lead-service";
 import { AuthService } from "../services/auth/authService";
 import { checkRole } from "./middleware/auth";
 import { registerAuthRoutes } from "./routes/auth";
@@ -51,7 +52,7 @@ import { registerPilotRoutes } from "./routes/pilot";
 import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
-import { captureError, readBuildRevision } from "./observability/error-tracking";
+import { captureError, hashReportingIdentifier, readBuildRevision, sanitizeErrorForReporting } from "./observability/error-tracking";
 import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
 import { injectRouteMeta } from "./security/route-meta";
 import { capabilitySummaryLines } from "./security/web-hardening";
@@ -77,7 +78,7 @@ dotenv.config();
 
 const canMutate = checkRole(["owner", "admin", "manager"]);
 
-export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService; pilotEvidenceService?: PilotEvidenceService; pilotEvidenceRateLimiter?: PilotEvidenceRateLimiter; companyIndustrySettingsService?: CompanyIndustrySettingsService }) {
+export function createApiApp(options?: { configureRoutes?: (app: express.Express) => void; cdeService?: CdeService; pilotEvidenceService?: PilotEvidenceService; pilotEvidenceRateLimiter?: PilotEvidenceRateLimiter; companyIndustrySettingsService?: CompanyIndustrySettingsService; crmLeadService?: CrmLeadService }) {
   const productionConfig = assertProductionEnvironment();
   const app = express();
   app.disable('x-powered-by');
@@ -174,7 +175,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerAuthRoutes(app);
   registerBillingRoutes(app);
   registerCompanyRoutes(app, options?.companyIndustrySettingsService);
-  registerCrmRoutes(app, crmService, canMutate);
+  registerCrmRoutes(app, crmService, canMutate, options?.crmLeadService);
   registerRegulationRoutes(app, regulatoryService, canMutate);
   registerProfitRoutes(app, profitService, canMutate);
   registerAiRoutes(app, aiService, canMutate);
@@ -206,8 +207,15 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
 
   // Central API error handler
   app.use((error: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error("Unhandled API error:", error);
-    captureError(error, { route: req.route?.path ?? req.path, method: req.method });
+    const safeError = sanitizeErrorForReporting(error);
+    console.error("Unhandled API error:", safeError);
+    captureError(safeError, {
+      route: req.route?.path ?? "unmatched-api-route",
+      method: req.method,
+      correlation: hashReportingIdentifier((req as express.Request & { id?: unknown }).id),
+      tenant: hashReportingIdentifier(req.user?.companyId),
+      actor: hashReportingIdentifier(req.user?.userId),
+    });
     if (res.headersSent) return next(error);
     return res.status(500).json({ error: "Beklenmeyen bir sunucu hatası oluştu." });
   });

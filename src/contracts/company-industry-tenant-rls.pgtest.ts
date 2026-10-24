@@ -72,6 +72,7 @@ test("company industry settings and global catalog enforce exact role and tenant
       { id: "residential", name: "Operator Residential", description: "operator-owned", config_json: '{"operator":true}', enabled: true },
     ], "bootstrap must preserve operator-owned and unknown rows");
     assert.deepEqual((await admin.query("select id from industries where id=any($1::text[]) order by id", [["residential", "electrical", "mechanical", "renovation"]])).rows.map(({ id }) => id), ["electrical", "mechanical", "renovation", "residential"]);
+    await applyMigrations(admin, migrations);
     const { makeWorkerUtils, Logger } = await import("graphile-worker");
     const queue = await makeWorkerUtils({ connectionString: urlFor(control, databaseName), schema: "teklifpro_queue", logger: new Logger(() => () => {}) });
     await queue.release();

@@ -86,6 +86,14 @@ export const DATABASE_COMPANY_INDUSTRY_RLS_TABLES = Object.freeze([
   "industries",
   "company_industry_settings",
 ] as const);
+export const DATABASE_CRM_LEAD_RLS_TABLES = Object.freeze(["companies", "leads", "subscriptions", "usage_logs"] as const);
+export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
+  companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+  subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+  plans: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+  usage_logs: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+  leads: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_worker: Object.freeze([]) }),
+} as const);
 export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
 

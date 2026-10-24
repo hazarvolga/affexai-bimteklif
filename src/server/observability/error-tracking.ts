@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import * as Sentry from '@sentry/node';
 import type { ErrorEvent } from '@sentry/node';
@@ -7,6 +8,26 @@ export type ServiceName = 'app' | 'worker' | 'ifc-worker';
 
 const SAFE_HEADERS = new Set(['user-agent', 'x-request-id', 'content-type', 'content-length']);
 let enabled = false;
+
+const SAFE_ERROR_CODE = /^[A-Z0-9_]{2,64}$/i;
+
+/** Keep SQL text, bound values, row details and nested causes out of reporting sinks. */
+export function sanitizeErrorForReporting(error: unknown): Readonly<{ name: string; code?: string }> {
+  const candidate = error && typeof error === 'object' ? error as Record<string, unknown> : undefined;
+  const name = typeof candidate?.name === 'string' && candidate.name.length <= 64
+    ? candidate.name
+    : 'Error';
+  const code = typeof candidate?.code === 'string' && SAFE_ERROR_CODE.test(candidate.code)
+    ? candidate.code
+    : undefined;
+  return code ? Object.freeze({ name, code }) : Object.freeze({ name });
+}
+
+/** Hash request/actor correlation values before they become telemetry tags. */
+export function hashReportingIdentifier(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined;
+  return crypto.createHash('sha256').update(value).digest('hex').slice(0, 16);
+}
 
 /** The image's build stamp beats a runtime env value that can go stale between deploys (P0-4). */
 export function readBuildRevision(env: Record<string, string | undefined> = process.env, file = path.resolve('dist/build-info.json')) {
@@ -54,7 +75,7 @@ export function captureError(error: unknown, context: Record<string, string | nu
   if (!enabled) return;
   Sentry.withScope(scope => {
     for (const [key, value] of Object.entries(context)) if (value !== undefined) scope.setTag(key, String(value));
-    Sentry.captureException(error);
+    Sentry.captureException(sanitizeErrorForReporting(error));
   });
 }
 

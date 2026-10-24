@@ -11,13 +11,31 @@ export const dealInput = z.object({
 export const activityInput = z.object({ dealId: id, description: z.string().trim().min(1).max(4000) });
 export const stageInput = z.object({ dealId: id, stage: z.enum(crmStages) });
 export const dealIdInput = z.object({ dealId: id });
-export const leadInput = z.object({
-  name: z.string().trim().min(1, 'Lead adı zorunludur.').max(255),
-  email: z.string().trim().max(255).nullable().optional(),
-  phone: z.string().trim().max(50).nullable().optional(),
-  source: z.string().trim().max(100).nullable().optional(),
-  status: z.string().trim().max(50).default('new'),
-  notes: z.string().trim().max(5000).nullable().optional(),
+const printable = (maximum: number, minimum = 0) => z.string()
+  .refine(value => !/[\u0000-\u001f\u007f]/u.test(value), 'Kontrol karakterleri kabul edilmez.')
+  .transform(value => value.trim()).pipe(z.string().min(minimum).max(maximum));
+const optionalText = (maximum: number) => printable(maximum).transform(value => value || null).nullable().optional();
+const optionalEmail = z.union([
+  z.string().refine(value => !/[\u0000-\u001f\u007f]/u.test(value), 'Kontrol karakterleri kabul edilmez.')
+    .transform(value => value.trim()).pipe(z.union([z.string().email().max(255), z.literal('')])),
+  z.null(),
+]).optional().transform(value => value || null);
+export const leadInput = z.strictObject({
+  name: printable(255, 1),
+  email: optionalEmail,
+  phone: optionalText(50),
+  source: optionalText(100),
+  notes: optionalText(5000),
+});
+
+const integerQuery = (minimum: number, maximum: number, fallback: number) => z.union([
+  z.undefined().transform(() => fallback),
+  z.string().regex(/^(0|[1-9]\d*)$/).transform(Number).pipe(z.number().int().min(minimum).max(maximum)),
+]);
+export const leadPaginationInput = z.strictObject({
+  limit: integerQuery(1, 200, 100),
+  // Bound OFFSET scan work until this endpoint moves to a cursor contract.
+  offset: integerQuery(0, 1_000, 0),
 });
 export const dealIntelligenceInput = z.object({
   probability: z.number().finite().min(0).max(1), riskLevel: z.enum(['low', 'medium', 'high']),

@@ -1,15 +1,16 @@
 import type { Express } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { activities, clients, deals, leads, quotationFinancials, quotationItems, quotations } from "../../db/schema";
+import { activities, clients, deals, quotationFinancials, quotationItems, quotations } from "../../db/schema";
 import { CRMIntelligenceService } from "../../services/crm/crmService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
-import { activityInput, dealIdInput, dealInput, leadInput, stageInput } from '../../services/crm/input';
+import { activityInput, dealIdInput, dealInput, leadInput, leadPaginationInput, stageInput } from '../../services/crm/input';
+import { CrmLeadService } from '../../services/crm/lead-service';
 import { reserveAiUsage } from '../../services/billing/ai-quota';
 import { QuotaError } from '../../services/billing/quota-policy';
 
-export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceService, canMutate: any) {
+export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceService, canMutate: any, leadService: CrmLeadService = new CrmLeadService()) {
   app.get('/api/crm/deals/:id', authenticate, async (req, res) => {
     const parsed = dealIdInput.safeParse({ dealId: req.params.id });
     if (!parsed.success) return res.status(400).json({ error: 'Invalid deal ID' });
@@ -58,42 +59,29 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
     }
   });
 
-  app.post("/api/crm/leads", authenticate, canMutate, usageTracker("CRM_ACTION_EXECUTED"), async (req, res) => {
+  app.post("/api/crm/leads", authenticate, canMutate, async (req, res, next) => {
     try {
+      if (!req.user.companyId) return res.status(403).json({ error: "Company is required", code: "COMPANY_REQUIRED" });
       const parsed = leadInput.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Invalid lead input' });
       }
-      const data = {
-        name: parsed.data.name,
-        email: parsed.data.email || null,
-        phone: parsed.data.phone || null,
-        source: parsed.data.source || null,
-        status: parsed.data.status,
-        notes: parsed.data.notes || null,
-        companyId: req.user.companyId,
-      };
-      const [newLead] = await db.insert(leads).values(data).returning();
-      res.json(newLead);
+      const newLead = await leadService.create(req.user, { ...parsed.data, name: parsed.data.name! });
+      res.status(201).json(newLead);
     } catch (error) {
-      res.status(500).json({ error: "Failed to create lead" });
+      if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
+      next(error);
     }
   });
 
-  app.get("/api/crm/leads", authenticate, async (req, res) => {
+  app.get("/api/crm/leads", authenticate, async (req, res, next) => {
     try {
-      const companyId = req.user.companyId;
-      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
-      const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-      const allLeads = await db.select()
-        .from(leads)
-        .where(eq(leads.companyId, companyId))
-        .orderBy(desc(leads.createdAt))
-        .limit(limit)
-        .offset(offset);
-      res.json(allLeads);
+      if (!req.user.companyId) return res.status(403).json({ error: "Company is required", code: "COMPANY_REQUIRED" });
+      const parsed = leadPaginationInput.safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid lead pagination", code: "LEAD_PAGINATION_INVALID" });
+      res.json(await leadService.list(req.user, { limit: parsed.data.limit ?? 100, offset: parsed.data.offset ?? 0 }));
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch leads" });
+      next(error);
     }
   });
 

@@ -184,6 +184,33 @@ test('company industry settings and catalog declare exact FORCE-RLS policy input
   assert.deepEqual(statements.slice(-2), ['ALTER TABLE "industries" FORCE ROW LEVEL SECURITY;', 'ALTER TABLE "company_industry_settings" FORCE ROW LEVEL SECURITY;']);
 });
 
+test('CRM leads and quota dependencies declare bounded tenant policy matrices', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  const lead = tables['public.leads'];
+  assert.equal(lead.isRLSEnabled, true);
+  assert.deepEqual(Object.keys(lead.policies).sort(), [
+    'leads_app_tenant_insert', 'leads_app_tenant_read', 'leads_backup_read', 'leads_owner_migration',
+  ]);
+  assert.ok(lead.indexes.idx_leads_tenant_created_id);
+  assert.deepEqual(Object.keys(tables['public.companies'].policies).sort(), [
+    'companies_app_tenant_read', 'companies_backup_read', 'companies_owner_migration',
+  ]);
+  assert.deepEqual(Object.keys(tables['public.subscriptions'].policies).sort(), [
+    'subscriptions_app_tenant_read', 'subscriptions_backup_read', 'subscriptions_owner_migration',
+  ]);
+  assert.deepEqual(Object.keys(tables['public.usage_logs'].policies).sort(), [
+    'usage_logs_app_tenant_insert', 'usage_logs_app_tenant_read', 'usage_logs_backup_read', 'usage_logs_owner_migration',
+  ]);
+  assert.ok(tables['public.usage_logs'].checkConstraints.usage_logs_count_nonnegative);
+  const statements = injectDataTransitions('0018_crm_leads_tenant_rls', []);
+  assert.deepEqual(statements, [
+    'ALTER TABLE "companies" FORCE ROW LEVEL SECURITY;',
+    'ALTER TABLE "subscriptions" FORCE ROW LEVEL SECURITY;',
+    'ALTER TABLE "usage_logs" FORCE ROW LEVEL SECURITY;',
+    'ALTER TABLE "leads" FORCE ROW LEVEL SECURITY;',
+  ]);
+});
+
 test('SmartCheck pilot evidence declares asymmetric tenant RLS and hardened append-only measurements', () => {
   const { tables } = drizzleApi.generateDrizzleJson(schema);
   const cases = tables['public.smartcheck_pilot_cases'];
@@ -227,7 +254,7 @@ test('release artifacts form an append-only chain matching current schema', asyn
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 18);
+  assert.equal(migrations.length, 19);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

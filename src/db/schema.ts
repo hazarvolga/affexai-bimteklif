@@ -249,7 +249,10 @@ export const companies = pgTable("companies", {
   measurementSystemCheck: check("companies_measurement_system_check", sql`${table.measurementSystem} in ('metric', 'imperial')`),
   activeStandardCheck: check("companies_active_standard_check", sql`${table.activeStandard} in ('TBDY_TS500', 'EUROCODE_2', 'ACI_318')`),
   classificationSystemCheck: check("companies_classification_system_check", sql`${table.classificationSystem} in ('CSB_TR', 'DIN_276', 'CSI_MASTERFORMAT', 'NRM2_UK')`),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("companies", table.id),
+  backupReadPolicy: backupReadPolicy("companies"),
+  ownerMigrationPolicy: ownerMigrationPolicy("companies"),
+})).enableRLS();
 
 export const memberships = pgTable("memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -310,7 +313,10 @@ export const subscriptions = pgTable("subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   bonusQuoteLimitNonnegative: check("subscriptions_bonus_quote_limit_nonnegative", sql`${table.bonusQuoteLimit} >= 0`),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("subscriptions", table.companyId),
+  backupReadPolicy: backupReadPolicy("subscriptions"),
+  ownerMigrationPolicy: ownerMigrationPolicy("subscriptions"),
+})).enableRLS();
 
 
 // 12. usage_logs (Kept in original order, lazy evaluation for FK to avoid TDZ & Drizzle TTY Prompt)
@@ -331,8 +337,13 @@ export const usageLogs = pgTable("usage_logs", {
       foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.companyId],
     }).onDelete("no action"),
     companyRunIdx: index("idx_usage_logs_processing_run").on(table.companyId, table.documentProcessingRunId),
+    countNonnegative: check("usage_logs_count_nonnegative", sql`${table.count} >= 0`),
+    appTenantReadPolicy: appTenantReadPolicy("usage_logs", table.companyId),
+    appTenantInsertPolicy: appTenantInsertPolicy("usage_logs", table.companyId),
+    backupReadPolicy: backupReadPolicy("usage_logs"),
+    ownerMigrationPolicy: ownerMigrationPolicy("usage_logs"),
   };
-});
+}).enableRLS();
 
 export const usageAlerts = pgTable("usage_alerts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -366,7 +377,13 @@ export const leads = pgTable("leads", {
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  tenantCreatedIdIdx: index("idx_leads_tenant_created_id").on(table.companyId, table.createdAt.desc(), table.id.desc()),
+  appTenantReadPolicy: appTenantReadPolicy("leads", table.companyId),
+  appTenantInsertPolicy: appTenantInsertPolicy("leads", table.companyId),
+  backupReadPolicy: backupReadPolicy("leads"),
+  ownerMigrationPolicy: ownerMigrationPolicy("leads"),
+})).enableRLS();
 
 export const pilotApplications = pgTable("pilot_applications", {
   id: uuid("id").primaryKey().defaultRandom(),

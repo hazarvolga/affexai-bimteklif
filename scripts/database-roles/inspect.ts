@@ -5,6 +5,8 @@ import {
   DATABASE_FUNCTION_EXECUTE_SPECS,
   DATABASE_CDE_RLS_TABLES,
   DATABASE_COMPANY_INDUSTRY_RLS_TABLES,
+  DATABASE_CRM_LEAD_RLS_TABLES,
+  DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
@@ -324,6 +326,72 @@ export async function inspectCompanyIndustryRlsViolations(client: Queryable): Pr
   return violations;
 }
 
+export type DatabaseRoleInspectionOptions = Readonly<{
+  allowPreSchemaRoleContract?: boolean;
+}>;
+
+export async function inspectCrmLeadRlsViolations(
+  client: Queryable,
+  options: DatabaseRoleInspectionOptions = {},
+): Promise<string[]> {
+  const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname table_name,c.relrowsecurity enabled,c.relforcerowsecurity forced
+    from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p') order by c.relname`, [DATABASE_CRM_LEAD_RLS_TABLES]);
+  const releaseState = await client.query<{ ledger: string | null; has_tag: boolean }>(`select to_regclass('teklifpro_release.migrations')::text ledger,
+    exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') has_tag`);
+  const ledger = releaseState.rows[0];
+  const applied = ledger?.ledger && ledger.has_tag
+    ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0018_crm_leads_tenant_rls') applied")).rows[0]?.applied === true
+    : false;
+  if (states.rowCount === 0 && !ledger?.has_tag && options.allowPreSchemaRoleContract === true) return [];
+  const violations: string[] = [];
+  if (states.rowCount !== DATABASE_CRM_LEAD_RLS_TABLES.length) violations.push("public CRM leads and quota dependencies: complete RLS table set is required");
+  if (!ledger?.ledger || !ledger.has_tag || !applied) violations.push("public CRM leads: applied migration tag 0018_crm_leads_tenant_rls is required");
+  if (states.rowCount !== DATABASE_CRM_LEAD_RLS_TABLES.length) return violations;
+  const policies = await client.query<{ policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select p.polname policy_name,p.polcmd command,p.polroles::oid[] role_oids,p.polpermissive permissive,
+      pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression
+    from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) order by c.relname,p.polname`, [DATABASE_CRM_LEAD_RLS_TABLES]);
+  const tenant = (column: "id" | "company_id") => `((CURRENT_USER = 'bimmetraj_app'::name) AND (${column} = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))`;
+  const backup = "(CURRENT_USER = 'bimmetraj_backup'::name)";
+  const owner = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  const expected = [
+    ["companies_app_tenant_read", "r", tenant("id"), null], ["companies_backup_read", "r", backup, null], ["companies_owner_migration", "*", owner, owner],
+    ["leads_app_tenant_insert", "a", null, tenant("company_id")], ["leads_app_tenant_read", "r", tenant("company_id"), null],
+    ["leads_backup_read", "r", backup, null], ["leads_owner_migration", "*", owner, owner],
+    ["subscriptions_app_tenant_read", "r", tenant("company_id"), null], ["subscriptions_backup_read", "r", backup, null], ["subscriptions_owner_migration", "*", owner, owner],
+    ["usage_logs_app_tenant_insert", "a", null, tenant("company_id")], ["usage_logs_app_tenant_read", "r", tenant("company_id"), null],
+    ["usage_logs_backup_read", "r", backup, null], ["usage_logs_owner_migration", "*", owner, owner],
+  ] as const;
+  const matches = states.rows.every((state) => state.enabled && state.forced)
+    && policies.rowCount === expected.length && expected.every(([name, command, using, check]) => {
+    const policy = policies.rows.find(row => row.policy_name === name);
+    return policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]) && policy.command === command
+      && policy.using_expression === using && policy.check_expression === check;
+  });
+  if (!matches) violations.push("public CRM leads and quota dependencies: FORCE-RLS policy matrix drift");
+  const constraint = await client.query<{ valid: boolean; definition: string }>(`select convalidated valid,pg_get_constraintdef(oid) definition
+    from pg_constraint where conrelid='public.usage_logs'::regclass and conname='usage_logs_count_nonnegative' and contype='c'`);
+  if (constraint.rowCount !== 1 || !constraint.rows[0]?.valid || constraint.rows[0].definition !== 'CHECK ((count >= 0))') {
+    violations.push("public.usage_logs: nonnegative count constraint drift");
+  }
+  const aclTables = Object.keys(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL);
+  const acl = await client.query<{ table_name: string; role_name: "bimmetraj_app" | "bimmetraj_worker" | "bimmetraj_backup"; privileges: string[] }>(`select table_name,role_name,
+      array(select privilege from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) privilege
+        where has_table_privilege(role_name,format('public.%I',table_name),privilege) order by privilege)::text[] privileges
+    from unnest($1::text[]) table_name cross join unnest(array['bimmetraj_app','bimmetraj_worker','bimmetraj_backup']) role_name
+    order by table_name,role_name`, [aclTables]);
+  for (const row of acl.rows) {
+    const restricted = DATABASE_PUBLIC_RESTRICTED_TABLE_ACL[row.table_name as keyof typeof DATABASE_PUBLIC_RESTRICTED_TABLE_ACL];
+    const expectedPrivileges = row.role_name === "bimmetraj_backup" ? ["SELECT"]
+      : [...restricted[row.role_name]].sort();
+    if (JSON.stringify(row.privileges) !== JSON.stringify(expectedPrivileges)) {
+      violations.push(`public.${row.table_name}/${row.role_name}: restricted table ACL matrix drift`);
+    }
+  }
+  return violations;
+}
+
 async function inspectQueueStructureViolations(client: Queryable): Promise<string[]> {
   const present = await client.query<{ present: boolean }>("select exists(select 1 from pg_namespace where nspname='teklifpro_queue') as present");
   if (!present.rows[0]?.present) return [];
@@ -367,12 +435,16 @@ export async function inspectRoleProvenanceViolations(client: Queryable, expecte
   return violations.sort();
 }
 
-async function inspectManagedSchemaViolations(client: Queryable): Promise<string[]> {
+async function inspectManagedSchemaViolations(
+  client: Queryable,
+  options: DatabaseRoleInspectionOptions = {},
+): Promise<string[]> {
   const violations: string[] = [];
   violations.push(...await inspectCdeRlsViolations(client));
   violations.push(...await inspectProgressPaymentRlsViolations(client));
   violations.push(...await inspectSmartcheckPilotRlsViolations(client));
   violations.push(...await inspectCompanyIndustryRlsViolations(client));
+  violations.push(...await inspectCrmLeadRlsViolations(client, options));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
   const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_worker", "bimmetraj_backup"] as const;
@@ -407,7 +479,7 @@ async function inspectManagedSchemaViolations(client: Queryable): Promise<string
       const mode = schemaSpec.access[role];
       const needsUsage = mode !== "none";
       if (value.create_schema || value.usage !== needsUsage) violations.push(`${schema}/${role}: schema privilege drift`);
-      if (value.table_count && ((mode === "write" && (!value.read_all || !value.write_all || value.forbidden))
+      if (value.table_count && ((mode === "write" && (!value.any_read || !value.any_write || value.forbidden))
         || (mode === "read" && (!value.read_all || value.any_write || value.forbidden))
         || (mode === "execute" && (!value.execute_table_exact || value.forbidden))
         || (mode === "none" && (value.any_read || value.any_write || value.forbidden)))) violations.push(`${schema}/${role}: table privilege drift`);
@@ -487,12 +559,7 @@ async function inspectDefaultAclViolations(client: Queryable): Promise<string[]>
   for (const schema of presentSchemas) {
     add(schema, "r", "bimmetraj_backup", ["SELECT"]);
     add(schema, "S", "bimmetraj_backup", ["SELECT"]);
-    if (schema === "public") {
-      for (const role of ["bimmetraj_app", "bimmetraj_worker"]) {
-        add(schema, "r", role, ["DELETE", "INSERT", "SELECT", "UPDATE"]);
-        add(schema, "S", role, ["SELECT", "UPDATE", "USAGE"]);
-      }
-    } else if (schema === "teklifpro_queue") {
+    if (schema === "teklifpro_queue") {
       add(schema, "r", "bimmetraj_worker", ["DELETE", "INSERT", "SELECT", "UPDATE"]);
       add(schema, "S", "bimmetraj_worker", ["SELECT", "UPDATE", "USAGE"]);
     }
@@ -523,8 +590,15 @@ async function inspectExactAclViolations(client: Queryable): Promise<string[]> {
       const schemaSpec = DATABASE_SCHEMA_SPECS.find(({ name }) => name === row.schema);
       const mode = schemaSpec && canonicalLoginRole(row.grantee) ? schemaSpec.access[row.grantee] : "none";
       if (row.scope === "schema") allowed = mode !== "none" ? ["USAGE"] : [];
-      else if (row.object_type === "r") allowed = row.schema === "teklifpro_queue" && row.object_name === "migrations" && row.grantee === "bimmetraj_app"
-        ? ["SELECT"] : mode === "write" ? ["DELETE", "INSERT", "SELECT", "UPDATE"] : mode === "read" ? ["SELECT"] : [];
+      else if (row.object_type === "r") {
+        const restricted = row.schema === "public"
+          ? DATABASE_PUBLIC_RESTRICTED_TABLE_ACL[row.object_name as keyof typeof DATABASE_PUBLIC_RESTRICTED_TABLE_ACL]
+          : undefined;
+        allowed = restricted && (row.grantee === "bimmetraj_app" || row.grantee === "bimmetraj_worker")
+          ? restricted[row.grantee]
+          : row.schema === "teklifpro_queue" && row.object_name === "migrations" && row.grantee === "bimmetraj_app"
+            ? ["SELECT"] : mode === "write" ? ["DELETE", "INSERT", "SELECT", "UPDATE"] : mode === "read" ? ["SELECT"] : [];
+      }
       else if (row.object_type === "S") allowed = mode === "write" ? ["SELECT", "UPDATE", "USAGE"] : mode === "read" ? ["SELECT"] : [];
       else if (row.object_type === "T") allowed = mode !== "none" ? ["USAGE"] : [];
       else if (row.object_type === "f") {
@@ -560,6 +634,7 @@ export function sanitizeRoleReport<T>(value: T): T {
 export async function inspectRoleBoundaries(
   client: Queryable,
   roleNames: readonly DatabaseRoleName[] = DATABASE_ROLE_SPECS.map(({ name }) => name),
+  options: DatabaseRoleInspectionOptions = {},
 ): Promise<DatabaseRoleBoundaryReport> {
   const databaseResult = await client.query<{ database: string }>("select current_database() as database");
   const database = databaseResult.rows[0]?.database;
@@ -600,7 +675,7 @@ export async function inspectRoleBoundaries(
       has_database_privilege(r.rolname, current_database(), 'CREATE') as create_schema,
       has_schema_privilege(r.rolname, 'public', 'CREATE') as create_table,
       has_database_privilege(r.rolname, current_database(), 'TEMPORARY') as temporary,
-      coalesce((select bool_and(has_table_privilege(r.rolname, c.oid, 'SELECT'))
+      coalesce((select bool_or(has_table_privilege(r.rolname, c.oid, 'SELECT'))
         from pg_class c join pg_namespace cn on cn.oid=c.relnamespace
         where cn.nspname='public' and c.relkind in ('r','p')), false) as read,
       coalesce((select bool_and(has_table_privilege(r.rolname, c.oid, 'INSERT')
@@ -642,7 +717,7 @@ export async function inspectRoleBoundaries(
       exists(select 1 from aclexplode(coalesce(n.nspacl, acldefault('n'::"char",n.nspowner))) a where a.grantee=0 and a.privilege_type='CREATE') as "schemaCreate"
     from pg_database d cross join pg_namespace n
     where d.datname=current_database() and n.nspname='public'`);
-  const managedSchemaViolations = await inspectManagedSchemaViolations(client);
+  const managedSchemaViolations = await inspectManagedSchemaViolations(client, options);
   const defaultAclViolations = await inspectDefaultAclViolations(client);
   const exactAclViolations = await inspectExactAclViolations(client);
   const provenanceViolations = await inspectRoleProvenanceViolations(client);
@@ -712,7 +787,7 @@ export function assertRoleBoundaries(report: DatabaseRoleBoundaryReport): void {
     if (role.privileges.createTable !== spec.canCreateTable) violations.push(`${spec.name}: createTable=${spec.canCreateTable} required`);
     if (spec.name !== "bimmetraj_owner" && role.privileges.temporary) violations.push(`${spec.name}: TEMPORARY=false required`);
     if (role.privileges.read !== spec.canRead) violations.push(`${spec.name}: read=${spec.canRead} required`);
-    if (spec.canWrite && !role.privileges.write) violations.push(`${spec.name}: write=true on every public table required`);
+    if (spec.canWrite && !role.privileges.anyWrite) violations.push(`${spec.name}: at least one intended public write capability required`);
     if (!spec.canWrite && role.privileges.anyWrite) violations.push(`${spec.name}: read-only boundary requires write=false`);
     if (spec.name !== "bimmetraj_owner" && (role.privileges.truncate || role.privileges.references || role.privileges.trigger)) violations.push(`${spec.name}: TRUNCATE/REFERENCES/TRIGGER must remain false`);
   }
