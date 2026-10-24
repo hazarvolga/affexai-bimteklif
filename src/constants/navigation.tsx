@@ -8,7 +8,8 @@ import {
   TrendingUp,
   CreditCard,
   Briefcase,
-  FileCheck2
+  FileCheck2,
+  Calculator
 } from 'lucide-react';
 import { ACADEMY_ENABLED } from '@/config/features';
 import { PROGRESS_PAYMENTS_ENABLED } from '@/config/client-features';
@@ -74,6 +75,13 @@ export const navigationConfig: NavItem[] = [
     icon: Users,
     roles: ["owner", "admin", "manager", "viewer"],
     group: "Ana Menü",
+  },
+  {
+    label: "Nasıl Çalışır",
+    path: "/app/nasil-calisir",
+    icon: Calculator,
+    roles: ["owner", "admin", "manager", "viewer"],
+    group: "Araçlar",
   },
   {
     label: "Tedarikçi & Piyasa",
