@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.62",
+  version: "BIM-CALC-2026-10-24.63",
   updatedOn: "24 Ekim 2026",
-  implementationBaseline: "7fbedb3675c55655c6c8a075a4fb49c6cd9b18c7",
+  implementationBaseline: "de96def679a18b825bd250bef301b35b07cd3360",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1583,6 +1583,16 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         basis: "src/ifc/calm-icmal.test.ts (aynı GlobalId ve worker kaydı testleri)",
       },
     },
+  },
+  {
+    revision: "Rev. 69",
+    version: "BIM-CALC-2026-10-24.63",
+    date: "24 Ekim 2026",
+    commit: "de96def679a18b825bd250bef301b35b07cd3360",
+    trigger: "Uzmanların normal kullanıcı paketiyle hesap yöntemlerini uygulama içinde görebilmesi.",
+    beforeSummary: "Modül açıklamaları, formüller ve örnek hesaplar yalnız süper adminin görebildiği /admin/roadmap/calculations sayfasındaydı.",
+    afterSummary: "Aynı içerik /app/nasil-calisir sayfasında tüm çalışma alanı rollerine gösterilir; hesap yöntemleri ve örnek sonuçlar değişmedi.",
+    affectedModules: ["expert-acceptance"],
   },
 ];
 

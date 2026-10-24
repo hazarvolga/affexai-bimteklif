@@ -699,16 +699,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "`/admin/roadmap/expert-review` korunan admin rotası; kaynak kabulü, üçlü senaryo, gerçek UI/VPS performans ölçümü, retry/alert gözlemi ve imzalı karar sırasını tek yerde sunar. Sayfa uzman onayı vermez; T43/T44/T45 ve production cutover açık kalır.",
           ],
           [
-            "Rev. 68 (Güncel geliştirme)",
+            "Rev. 68",
             "24 Ekim 2026 (Uzman denemesi öncesi temizlik: mükerrer GUID raporu, tarayıcı ön analizi uyarısı, iddiasız ürün metni)",
             "BIM-CALC-2026-10-24.62",
             "1) Aynı GlobalId'yi paylaşan farklı açıkta kalan elemanlar artık raporda ayrı ayrı kalır; worker raporunda zaten bulunan kayıt ikinci kez eklenmez (GUID + sınıf + ad + kat, sayımlı eşleşme). 2) Tarayıcı IFC ön analizinin üstünde 'yetkili sonuç değildir' notu: tarayıcı ayrıştırıcısı malzeme katmanı okumadığı için yapısal elemanların açıkta görünmesi açıklanır, SmartCheck sunucu analizine bağlantı verilir. 3) Ürün metninden doğrulanmamış iddialar çıkarıldı: 'ÇŞB UYUMLU' → 'ÇŞB POZ ESASLI', 'Mevzuat Uyumluluk Tamam' → 'ön kontrolde bulgu yok', akademide 'yüzde yüz hassasiyet / dünyada 1 numara / 0 sapma' ve kaynaksız Revit ±%10-15 ifadeleri kaldırıldı. Pazarlama söylemleri bağımsız uzman görüşünden sonra belirlenecek. 4) Sunucu açılış ve fiyat zamanlayıcı logları yapılandırılmış logger'a taşındı. 5) Uzman deneme rehberi (/admin/roadmap/expert-review) STR/ARC/MEP disiplinlerini tarayıcı ön analizi yerine SmartCheck sunucu analizine, COST disiplinini demo sayfası yerine teklif oluşturma akışına yönlendirir. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 69 (Güncel geliştirme)",
+            "24 Ekim 2026 (Kullanıcılar ve uzmanlar için 'Nasıl Çalışır' sayfası)",
+            "BIM-CALC-2026-10-24.63",
+            "Uzmanlar ürünü normal kullanıcı paketleriyle deneyecek; yönetim sayfalarını göremezler. /app/nasil-calisir sayfası (menüde Araçlar altında, tüm çalışma alanı rollerine açık) iş akışını ve 24 hesap/kontrol modülünü hesap yöntemleri sayfasıyla aynı içerikten gösterir: amaç, dayanak etiketi, formüller, kurallar, örnek hesap, kaynaklar, varsayımlar ve görüş sorulan konular. Her modülde 'Uygulamada dene' bağlantısı gerçek ekrana (SmartCheck, teklif oluşturma, kârlılık, piyasa, KİK hesaplayıcısı; demo sayfası değil) ve hazır konu satırlı geri bildirim e-postası bulunur. Kod yolları, inceleme kimlikleri, revizyon notları ve imza tablosu yalnız yönetimde kalır. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 68 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 69 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1293,6 +1299,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) calm-icmal açıkta kalan kayıtları worker raporuyla yalnız GlobalId üzerinden tekilleştiriyordu; mükerrer GUID'li modelde ikinci eleman rapordan ve sayaçtan düşüyordu. 2) Tarayıcı ön analizi malzeme katmanı taşımadığı için betonarme/kâgir elemanlar 'malzeme tanımı yok' olarak açıkta görünüyor, ekranda bunun nedeni yazmıyordu. 3) Başlık, altbilgi, giriş, teklif detayı ve akademi metinlerinde 'ÇŞB UYUMLU', 'tam uyumlu', 'yüzde yüz hassasiyet', '0 sapma' gibi doğrulanmamış iddialar vardı.",
             "1) mergeReportEntries: kimlik GUID + sınıf + ad + kat, sayımlı birleştirme. 2) BrowserPreviewNotice bileşeni (role=note) tarayıcı sonucunun üstünde gösterilir. 3) Metinler davranışı anlatacak şekilde yeniden yazıldı; standartları öğreten eğitim metinleri değişmedi.",
             "src/ifc/calm-icmal.ts, src/ifc/calm-icmal.test.ts, src/components/bimplan/BrowserPreviewNotice.tsx, src/components/bimplan/BimIfcParser.tsx, src/components/layout/Shell.tsx, src/components/bimplan/Footer.tsx, src/pages/Login.tsx, src/pages/QuoteDetail.tsx, src/pages/DosyadanTeklifDemo.tsx, src/pages/Academy.tsx, src/pages/PublicAcademy.tsx, src/server/app.ts, src/server/crawler/priceSchedulerService.ts",
+          ],
+          [
+            "Rev. 69 · 24 Ekim 2026 (Nasıl Çalışır sayfası)",
+            "Uzman denemesi: normal kullanıcı paketiyle hesap yöntemlerine erişim",
+            "Hesap yöntemleri ve uzman rehberi yalnız /admin altındaydı; normal paketle giriş yapan uzman, modüllerin formülünü, dayanağını ve örnek hesabını uygulama içinde göremiyor, ilgili ekrana kolay ulaşamıyordu.",
+            "/app/nasil-calisir sayfası CALC_MODULES içeriğini okuyucuya uygun biçimde (kod yolları çıkarılarak) gösterir; her modüle gerçek ekran bağlantısı ve geri bildirim e-postası ekler. Testler: tüm 'Dene' rotalarının var olduğu, demo/tarayıcı önizlemesine gitmediği, iç bilgilerin sayfada görünmediği.",
+            "src/pages/HowItWorks.tsx, src/pages/how-it-works/how-it-works-data.ts, src/pages/HowItWorks.test.ts, src/pages/how-it-works/how-it-works-data.test.ts, src/App.tsx, src/constants/navigation.tsx, src/config/client-features.ts",
           ],
         ],
       },

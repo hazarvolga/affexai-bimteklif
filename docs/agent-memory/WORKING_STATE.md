@@ -24,7 +24,10 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 68** (`BIM-CALC-2026-10-24.62`). Rev. 68 keeps
+- Latest roadmap revision: **Rev. 69** (`BIM-CALC-2026-10-24.63`): `/app/nasil-calisir`
+  shows the workflow and calculation modules to every workspace role, so expert
+  reviewers on normal packages can read methods and jump to the real screens.
+  Rev. 68 keeps
   duplicate-GlobalId uncovered elements, marks the browser IFC pre-analysis as
   non-authoritative and removes unverified compliance/accuracy claims from
   product copy. Marketing claims ("Türkiye'de tek", "mevzuata uyumlu") are
