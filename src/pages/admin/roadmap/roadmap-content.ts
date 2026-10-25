@@ -729,16 +729,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Rol parolaları yalnız Coolify'da durduğu için rol adımları artık deploy grafiğinde tek seferlik servislerdir: db-bootstrap (boş veritabanında kanonik rolleri oluşturur, kurulu veritabanında hiçbir şey yapmaz) → migrate (bimmetraj_migrator) → db-provision (kuyruk şeması, yetki/RLS yakınsaması, inceleme) → app/worker. Rol CLI'sı paketlendiğinde inspect.ts'in kendi inceleme betiğini paralel çalıştırması hatası giderildi (her modda geçiş öncesi sahte hata üretiyordu). compose.coolify.yaml ile boş volume üzerinde üç geçişli prova: 1) bilinmeyen cluster parmak izinde değişiklik yapmadan durur, 2) kurulum tamamlanır, 3) yeniden çalıştırma etkisizdir. Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 73 (Güncel geliştirme)",
+            "Rev. 73",
             "25 Ekim 2026 (Faz 8 SEO/GEO kod işleri: sitemap, robots, JSON-LD)",
             "BIM-CALC-2026-10-25.67",
             "GAP planı T47 ve T49'un kodla kapanan kısmı. Sitemap artık sayfalara sabit lastmod tarihi vermiyor; sayfa başına gerçek değişiklik tarihi tutulmadığı için tarih iddia edilmez. Production'da PUBLIC_APP_URL olmadan sunucu açılmaz; alan adı tahmini eklenmedi ve bu iki davranış testle sabitlendi. /hesaplayicilar, iki hesaplayıcı ve /bim-sozlugu sayfaya özgü JSON-LD alır: BreadcrumbList, ücretsiz WebApplication ve sözlük için noscript metniyle aynı listeden üretilen DefinedTermSet; puan, yorum veya fiyat alanı yazılmaz. robots.txt yapay zekâ arama tarayıcılarını (OAI-SearchBot, Claude-SearchBot, PerplexityBot vb.) ve eğitim tarayıcılarını (GPTBot, ClaudeBot, Google-Extended vb.) açık gruplarla listeler; varsayılan davranış öncekiyle aynıdır, eğitim izni ROBOTS_AI_TRAINING=disallow ile kapatılabilir. index.html llms.txt ve llms-full.txt'ye bağlanır. Hesap yöntemleri değişmedi; T48 (ön-render) ve GEO-03 açık.",
+          ],
+          [
+            "Rev. 74 (Güncel geliştirme)",
+            "25 Ekim 2026 (Tek kaynaklı ürün metni ve semantik ön-render)",
+            "BIM-CALC-2026-10-25.68",
+            "T46 ilk dilimi: llms.txt'deki elle yazılmış yetenek bloğu yetenek kaydından ayrışmıştı (CDE ve PDF/A için 'Faz 2', KİK dosyası için 'Faz 3 yol haritasında' diyordu); kaldırıldı, yetenekler yalnız kayıttan listelenir. llms.txt ve /pricing sunucu metnindeki paket fiyatları ve taahhüt iskontoları plan kataloğundan üretilir; değerler değişmedi. T48: sunucu sayfa metni <noscript> yerine #root içinde ön-render olarak yazılır; metin çıkarıcılar artık okur, React açılışta kökü temizler, JS ile açılışta görsel kayma yoktur (Chromium ölçümü CLS 0) ve JS kapalı tarayıcıda metin görünür. Hesap yöntemleri değişmedi; T46'nın landing/JSON-LD ve yönetim metni hizalaması açık.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 73 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 74 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1358,6 +1364,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Sitemap tüm sayfalara sabit 2026-10-18 lastmod veriyordu. robots.txt yalnız * grubunu içeriyordu ve eğitim/arama tarayıcıları için tercih kaydedilemiyordu. Hesaplayıcı ve sözlük sayfalarında sayfaya özgü JSON-LD yoktu. index.html llms.txt'ye bağlanmıyordu.",
             "sitemapXml lastmod yazmaz; robotsTxt(origin, trainingPolicy) AI_SEARCH_CRAWLERS ve AI_TRAINING_CRAWLERS gruplarını üretir, aiTrainingPolicyFromEnv ROBOTS_AI_TRAINING'i okur; route-jsonld.ts BreadcrumbList/WebApplication/DefinedTermSet üretir ve injectRouteMeta bunu head'e bir kez ekler; public-glossary.ts sözlük noscript metni ile DefinedTermSet'in ortak kaynağıdır; PUBLIC_APP_URL fail-fast ve yerel 404 davranışı testlendi.",
             "src/server/security/web-hardening.ts, src/server/security/route-meta.ts, src/server/security/route-jsonld.ts, src/server/security/public-glossary.ts, src/server/app.ts, index.html, src/server/security/web-hardening.test.ts, src/server/security/route-meta.test.ts, src/server/production-frontend.test.ts, src/server/config/production.test.ts",
+          ],
+          [
+            "Rev. 74 · 25 Ekim 2026 (Tek kaynaklı metin ve ön-render)",
+            "GAP planı T46 ilk dilimi ve T48",
+            "llms.txt yetenek kaydıyla çelişen elle yazılmış bir blok ve elle yazılmış paket fiyatları taşıyordu; /pricing sunucu metni de fiyatları elle yazıyordu. Sunucu sayfa metni <noscript> içindeydi ve metin çıkarıcılar tarafından siliniyordu.",
+            "web-hardening.ts planCatalogLines() ve kayıttan yetenek listesi; route-meta.ts pricingBody() canonicalPlans/BILLING_PERIOD_OPTIONS'tan üretir; renderPrerender() #root içine <main id=\"prerender\"> yazar, PRERENDER_STYLE JS açılışında bloğu ekran dışında tutar ve <noscript> stiliyle JS kapalıyken gösterir.",
+            "src/server/security/web-hardening.ts, src/server/security/route-meta.ts, src/server/security/public-glossary.ts, src/server/security/web-hardening.test.ts, src/server/security/route-meta.test.ts",
           ],
         ],
       },
