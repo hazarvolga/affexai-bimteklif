@@ -6,6 +6,7 @@ import {
   getRoadmapCapabilities,
 } from '../../capabilities/registry';
 import { ACADEMY_ENABLED } from '../../config/features';
+import { PLAN_CATALOG_VERSION, canonicalPlans } from '../../services/billing/plan-catalog';
 
 /** Firebase (Academy profile/certificates) is the only third-party runtime the SPA talks to. */
 const FIREBASE_ORIGINS = [
@@ -161,6 +162,16 @@ export function securityTxt(publicAppUrl: string): string {
   ].join('\n');
 }
 
+const tl = (value: number) => value.toLocaleString('tr-TR');
+
+/** T46: paket satırları elle yazılmaz; plan kataloğundan (ilk kurulum değerleri) üretilir. */
+export function planCatalogLines(): string[] {
+  return canonicalPlans
+    .filter(plan => plan.isActive && plan.isPublished)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map(plan => `- **${plan.name}**: ${tl(plan.monthlyPrice)} ₺/ay (${plan.monthlyQuoteLimit} Teklif, ${plan.monthlyIfcLimit ?? 0} IFC / ${plan.ifcMaxFileMb} MB, ${plan.monthlyPdfLimit ?? 0} PDF ön kontrol)`);
+}
+
 export function llmsTxt(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
   const liveLines = getLiveCapabilities().map(
@@ -178,25 +189,13 @@ export function llmsTxt(publicAppUrl: string): string {
     '',
     '> BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3 / IFC4 / IFC4.3 model tabanlı metraj (QTO) çıkarma, çok katmanlı IfcCovering imalat ayrıştırma, ÇŞB 2026 poz birim fiyat eşleştirme, 4734 KİK m.38 kullanıcı girdili sınır değer & %80 sıralı iş kalemleri analizi, TS EN ISO 19650-2 / EN 17412-1 (LOIN) dosya adı ve eleman üstveri desteği, SmartCheck 3x3 & Minha kalite denetimi ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-9 dijital ruhsat ön-kontrol platformudur.',
     '',
-    '## Temel Mühendislik Yetenekleri (pilot aşaması; bağımsız mühendis/uzman doğrulaması henüz yoktur — sonuçlar ön kontrol niteliğindedir)',
-    '- **openBIM IFC Metraj (QTO) Motoru**: IfcBeam, IfcColumn, IfcSlab, IfcWall ve çok katmanlı IfcCovering elemanlarından BaseQuantities, IfcComplexProperty ve 3B geometri tabanlı net metraj (m³, m², süpürgelik mtül) ve bağımsız bölüm (IfcZone/IfcSpace) daire cetveli çıkarımı. Kalıp ve IfcReinforcingBar donatı miktarları model tahmini (model_estimate) olarak raporlanır ve mühendis onayı gerektirir.',
-    '- **SmartCheck 3x3 & Minha Denetimi**: Şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm), TS 500 kiriş–döşeme kesişim düşümü ve ÇŞB 2026 (0,50 m²) / DIN 18350 (2,50 m²) / Kullanıcı Tanımlı Özel Şartname boşluk minha kuralları ile kanıta dayalı metraj kontrolü.',
-    '- **TS EN ISO 19650-2 & EN 17412-1 (LOIN) Desteği**: RG 33331 EK-2 (9 alanlı) ve ISO 19650-2 (7 alanlı) bilgi konteyneri dosya adlandırma şeması ile LOIN geometrik/alfa-sayısal eleman bütünlük kontrolü (`src/smartcheck/rules/iso19650.ts`). Doküman üstverisinde CDE durumu girilmediğinde uydurma varsayılan üretilmez ("değerlendirilmedi" döner); tam CDE durum makinesi Faz 2 yol haritasındadır.',
-    '- **4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT) Motoru**: Teklif kalemlerinden %80 Pareto sıralı iş kalemleri analizi ve kullanıcı tarafından YM + geçerli teklifler girildiğinde Tebliğ m.45.1.1 formülü (%40–%120 YM bandı, Tort1, standart sapma, Tort2, C, K, N=1,00 Üstyapı / N=1,20 Diğer Yapım, SD = K × Tort2 / (C × N)) ile Sınır Değer hesabı (`src/lib/kik-adt.ts`). Tam KİK açıklama dosyası üretimi Faz 3 yol haritasındadır.',
-    '- **RG 33331 e-PYS & PDF/A Ön Kontrol**: 5 Ağustos 2026 tarihli Resmi Gazete Yönetmeliği EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) / Tablo 9.2 (Diğer Disiplinler 16 satır) kurallarına göre IFC ön kontrolü; 2B PDF paftalarda PDF/A üstveri beyanı, ISO 216 A4 katları pafta boyutu, tek pafta düzeni ve 5070 sayılı Kanun gömülü e-imza (/Sig) ön kontrolü (Ghostscript/veraPDF ile tam PDF/A-2b arşiv üretimi Faz 2 yol haritasındadır).',
-    '- **ÇŞB 2026 Poz & 5D Teklif Cetveli**: SHA-256 mühürlü ÇŞB 2026 poz/rayiç kataloğu, firma fiyat hafızası, eskalasyon, kârlılık simülasyonu ve kurumsal PDF/Excel teklif çıktısı.',
-    '',
     `## Yetenek Kaydı ve Kanıt Kapısı (${CAPABILITY_REGISTRY_VERSION}) — seviye L3 ve üzeri yalnız gerçek, imzalı uzman onayıyla verilir; şu an hiçbir yetenek L3 değildir`,
     ...liveLines,
     ...pilotLines,
     ...roadmapLines,
     '',
-    '## Paketler (Katalog v6 — 5 Paket)',
-    '- **14 Günlük Ücretsiz Deneme**: 0 ₺/ay (3 Teklif, 1 IFC / 25 MB, 3 PDF ön kontrol)',
-    '- **e-PYS & BIM Standart Denetçi**: 1.250 ₺/ay (5 Teklif, 5 IFC / 35 MB, 8 PDF ön kontrol)',
-    '- **Teklif & Şantiye**: 2.950 ₺/ay (25 Teklif, 5 IFC / 40 MB, 15 PDF ön kontrol)',
-    '- **5D BIM & SmartCheck**: 5.450 ₺/ay (75 Teklif, 15 IFC / 60 MB, 35 PDF ön kontrol)',
-    '- **Kurumsal Taahhüt & e-PYS**: 8.900 ₺/ay (200 Teklif, 35 IFC / 85 MB, 75 PDF ön kontrol)',
+    `## Paketler (${PLAN_CATALOG_VERSION})`,
+    ...planCatalogLines(),
     '',
     '## Genel Sayfalar ve Bilgi Kaynakları',
     `- [Ana Sayfa](${origin}/): BIMMetraj 5D ihale ve metraj platformu genel bakış.`,
