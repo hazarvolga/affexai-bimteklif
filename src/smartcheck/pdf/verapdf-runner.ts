@@ -188,25 +188,36 @@ function unavailableReport(source: Awaited<ReturnType<typeof sourceEvidence>>, p
   });
 }
 
+export interface VeraPdfValidationRun {
+  report: VeraPdfValidationReport;
+  /** veraPDF's own machine-readable XML report; null when the validator did not run. */
+  rawReportXml: string | null;
+}
+
 export async function runVeraPdfValidation(inputPath: string, fileName: string, options: VeraPdfRunnerOptions = {}): Promise<VeraPdfValidationReport> {
+  return (await runVeraPdfValidationWithRawReport(inputPath, fileName, options)).report;
+}
+
+export async function runVeraPdfValidationWithRawReport(inputPath: string, fileName: string, options: VeraPdfRunnerOptions = {}): Promise<VeraPdfValidationRun> {
   const timeoutMs = resolveLimit(options.timeoutMs, DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS, "VERAPDF_INVALID_TIMEOUT");
   const maxOutputBytes = resolveLimit(options.maxOutputBytes, DEFAULT_MAX_OUTPUT_BYTES, MAX_OUTPUT_BYTES, "VERAPDF_INVALID_OUTPUT_LIMIT");
   const profile = options.profile ?? "2b";
   if (!(profile in PROFILE_NAMES)) throw new VeraPdfRunnerError("VERAPDF_INVALID_PROFILE");
   const source = await sourceEvidence(inputPath, fileName);
   const executablePath = options.executablePath ?? process.env.VERAPDF_CLI_PATH;
-  if (!executablePath) return unavailableReport(source, profile, "not_configured");
+  const unavailable = (reason: Parameters<typeof unavailableReport>[2]): VeraPdfValidationRun => ({ report: unavailableReport(source, profile, reason), rawReportXml: null });
+  if (!executablePath) return unavailable("not_configured");
   if (!path.isAbsolute(executablePath)) throw new VeraPdfRunnerError("VERAPDF_INVALID_CONFIGURATION", "VERAPDF_CLI_PATH must be absolute.");
 
   let versionResult: ProcessResult;
   try {
     versionResult = await runBoundedProcess(executablePath, ["--version"], Math.min(timeoutMs, 10_000), maxOutputBytes);
   } catch (error) {
-    if (error instanceof VeraPdfRunnerError && error.code === "VERAPDF_EXECUTABLE_UNAVAILABLE") return unavailableReport(source, profile, "executable_unavailable");
+    if (error instanceof VeraPdfRunnerError && error.code === "VERAPDF_EXECUTABLE_UNAVAILABLE") return unavailable("executable_unavailable");
     throw error;
   }
   const version = `${versionResult.stdout}\n${versionResult.stderr}`.match(/\b\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?\b/)?.[0] ?? null;
-  if (versionResult.exitCode !== 0 || version === null) return unavailableReport(source, profile, "version_unavailable");
+  if (versionResult.exitCode !== 0 || version === null) return unavailable("version_unavailable");
 
   const result = await runBoundedProcess(executablePath, [
     "--format", "xml", "--flavour", profile, "--loglevel", "0", "--maxfailuresdisplayed", "100", inputPath,
@@ -222,7 +233,7 @@ export async function runVeraPdfValidation(inputPath: string, fileName: string, 
     throw new VeraPdfRunnerError("VERAPDF_SOURCE_CHANGED");
   }
 
-  return VeraPdfValidationReportSchema.parse({
+  const report = VeraPdfValidationReportSchema.parse({
     schemaVersion: 1, kind: "verapdf_validation", status: "completed",
     tool: { name: "veraPDF", version, status: "available" },
     profile: { code: profile, name: parsed.profileName }, source,
@@ -235,4 +246,13 @@ export async function runVeraPdfValidation(inputPath: string, fileName: string, 
     conversion: { status: "disabled_requires_licensed_provider", outputCreated: false, sourceOverwritten: false },
     unavailableReason: null,
   });
+  return { report, rawReportXml: result.stdout };
+}
+
+/** Failed rule identifiers ("<clause>-<testNumber>") from a veraPDF XML report, sorted and unique. */
+export function listFailedVeraPdfRules(xml: string): string[] {
+  const rules = (xml.match(/<rule\b[^>]*>/gi) ?? [])
+    .filter(tag => xmlAttribute(tag, "status") === "failed")
+    .map(tag => `${xmlAttribute(tag, "clause") ?? "?"}-${xmlAttribute(tag, "testNumber") ?? "?"}`);
+  return [...new Set(rules)].sort();
 }

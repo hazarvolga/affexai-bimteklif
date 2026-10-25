@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "task": "T32",
+  "profile": "2b",
+  "validator": { "name": "veraPDF", "version": "1.30.3" },
+  "generator": "scripts/fixtures/pdfa-matrix/generate.sh",
+  "derivedFrom": "fixtures/phase-0/open-source/verapdf (veraPDF corpus 6-3-3-t01, CC-BY-4.0)",
+  "cases": [
+    {
+      "id": "valid-pdfa2b",
+      "path": "phase-0/open-source/verapdf/pdfa2b-pass.pdf",
+      "sha256": "93ac7ed7dfcd86d81e7a4865220fc77eb2284297370aca5a87c10e2d3e75d10b",
+      "purpose": "Upstream-declared PASS PDF/A-2b file.",
+      "expected": { "isCompliant": true, "failedRules": [], "structuralClaim": "2B", "signedValueCount": 0 }
+    },
+    {
+      "id": "plain",
+      "path": "phase-5/pdfa-matrix/plain.pdf",
+      "sha256": "e0e51bb9c4cf4fbf8ebc09c0f0f75c5b55fc3271071f5c3cdbf27e9d37237109",
+      "purpose": "Ordinary PDF: no XMP, no OutputIntent, non-embedded Helvetica.",
+      "expected": { "isCompliant": false, "failedRules": ["6.2.11.4.1-1", "6.2.4.3-4", "6.6.2.1-1"], "structuralClaim": null, "signedValueCount": 0 }
+    },
+    {
+      "id": "xmp-label-only",
+      "path": "phase-5/pdfa-matrix/xmp-label-only.pdf",
+      "sha256": "afbf32f82c9061756d11d44f2c9938f904cd1286e4509e7422e138475726e3f7",
+      "purpose": "Declares pdfaid part 2 / conformance B in XMP but is otherwise a plain PDF. The structural claim must not turn into a PASS.",
+      "expected": { "isCompliant": false, "failedRules": ["6.2.11.4.1-1", "6.2.4.3-4"], "structuralClaim": "2B", "signedValueCount": 0 }
+    },
+    {
+      "id": "multipage-pdfa2b",
+      "path": "phase-5/pdfa-matrix/multipage-pdfa2b.pdf",
+      "sha256": "3f87f7b76494c55dbaac4b7cfa19e5483e3700ddd28fd1dfa446605f6b73ac25",
+      "purpose": "Three compliant pages built from the PASS file.",
+      "expected": { "isCompliant": true, "failedRules": [], "structuralClaim": "2B", "signedValueCount": 0 }
+    },
+    {
+      "id": "multipage-last-page-invalid",
+      "path": "phase-5/pdfa-matrix/multipage-last-page-invalid.pdf",
+      "sha256": "5f8abdf1032c9bb6d31b2e7efe37b561a1b981595734487bd17ff8778636c8ac",
+      "purpose": "Pages 1-2 compliant; page 3 carries the FAIL file's annotation without an appearance stream. Proves every page is scanned.",
+      "expected": { "isCompliant": false, "failedRules": ["6.3.3-1"], "structuralClaim": "2B", "signedValueCount": 0 }
+    },
+    {
+      "id": "missing-font",
+      "path": "phase-5/pdfa-matrix/missing-font.pdf",
+      "sha256": "662030cf186c4f1a22835c8294e29ea0deb0319f135efcc2b63cfca792f6a4a3",
+      "purpose": "PASS file plus one text run in a non-embedded Type1 font; everything else unchanged.",
+      "expected": { "isCompliant": false, "failedRules": ["6.2.11.4.1-1"], "structuralClaim": "2B", "signedValueCount": 0 }
+    },
+    {
+      "id": "signed-pdfa2b",
+      "path": "phase-5/pdfa-matrix/signed-pdfa2b.pdf",
+      "sha256": "789f292576c26a2cde8933da9293d8f0d0b7480ec4eba87e8300bdb8308247ad",
+      "purpose": "PASS file with an incremental PAdES signature from a throwaway self-signed test key. PDF/A validity says nothing about signature trust.",
+      "expected": { "isCompliant": true, "failedRules": [], "structuralClaim": "2B", "signedValueCount": 1 }
+    }
+  ]
+}

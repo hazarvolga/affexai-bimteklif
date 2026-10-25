@@ -14,7 +14,8 @@ RUN pnpm run build \
     && pnpm exec esbuild scripts/bootstrap-plan-catalog.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/bootstrap-plan-catalog.mjs \
     && pnpm exec esbuild scripts/bootstrap-pricing-source-catalog.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/bootstrap-pricing-source-catalog.mjs \
     && pnpm exec esbuild scripts/release-migrations/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/release-cli.mjs \
-    && pnpm exec esbuild scripts/database-roles/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/database-roles-cli.mjs
+    && pnpm exec esbuild scripts/database-roles/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/database-roles-cli.mjs \
+    && pnpm exec esbuild scripts/pdfa-matrix/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/pdfa-matrix.mjs
 # Coolify passes the deployed commit; it is stamped into the image so /api/health cannot drift (P0-4).
 # Declared after the build so a new commit only re-runs this layer, not the whole build.
 ARG SOURCE_COMMIT=""
@@ -47,12 +48,28 @@ CMD ["node", "dist/worker.mjs"]
 FROM runtime AS migrate
 CMD ["node", "dist/release-cli.mjs", "apply"]
 
+# veraPDF (GPLv3+ / MPLv2+) validates PDF/A only; it never converts or rewrites the source.
+# Pinned release and SHA-256 from https://software.verapdf.org/releases/1.30/ (T32).
+FROM node:24.22.1-bookworm-slim AS verapdf-install
+ADD --checksum=sha256:b512bf24945503a33fc10738ecffc1f2dccaaf8593a448e94ee9ac86a9559a59 \
+    https://software.verapdf.org/releases/1.30/verapdf-greenfield-1.30.3-installer.zip /tmp/verapdf-installer.zip
+COPY deploy/verapdf/auto-install.xml /tmp/verapdf-auto-install.xml
+RUN mkdir -p /usr/share/man/man1 \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y openjdk-17-jre-headless unzip \
+    && unzip -q /tmp/verapdf-installer.zip -d /tmp \
+    && java -jar /tmp/verapdf-greenfield-1.30.3/verapdf-izpack-installer-1.30.3.jar /tmp/verapdf-auto-install.xml \
+    && test -x /opt/verapdf/verapdf \
+    && rm -rf /var/lib/apt/lists/*
+
 FROM node:24.22.1-bookworm-slim AS ifc-runtime
 ENV NODE_ENV=production \
     PYTHON_BIN=/opt/venv/bin/python3 \
-    PATH="/opt/venv/bin:$PATH"
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y python3 python3-venv python3-pip ca-certificates tini \
+    PATH="/opt/venv/bin:$PATH" \
+    VERAPDF_CLI_PATH=/opt/verapdf/verapdf
+RUN mkdir -p /usr/share/man/man1 \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y python3 python3-venv python3-pip ca-certificates tini openjdk-17-jre-headless \
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir ifcopenshell==0.8.4.post1 ifctester==0.8.4 pypdf==6.19.0 pytest \
     && rm -rf /var/lib/apt/lists/*
@@ -62,6 +79,8 @@ COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=build --chown=node:node /app/drizzle-release ./drizzle-release
 COPY --from=build --chown=node:node /app/package.json ./package.json
 COPY --chown=node:node workers/ifc ./workers/ifc
+COPY --from=verapdf-install /opt/verapdf /opt/verapdf
+RUN /opt/verapdf/verapdf --version
 USER node
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["node", "dist/ifc-worker.mjs"]
