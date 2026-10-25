@@ -255,11 +255,20 @@ export function CreateQuote() {
             return setting ? setting.isEnabled : true;
           });
           setIndustries(filtered);
+          if (!id) {
+            setSelectedIndustry(current => filtered.some((ind: any) => ind.id === current) ? current : (filtered[0]?.id ?? ''));
+          }
         } else {
           setIndustries(allIndustries);
+          if (!id) {
+            setSelectedIndustry(current => allIndustries.some((ind: any) => ind.id === current) ? current : (allIndustries[0]?.id ?? ''));
+          }
         }
       })
-      .catch(() => setIndustries([]));
+      .catch(() => {
+        setIndustries([]);
+        if (!id) setSelectedIndustry('');
+      });
   }, []);
 
   useEffect(() => {

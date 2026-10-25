@@ -3,7 +3,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "../../db";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantContext } from "../../db/tenant-context";
-import { clients, quotationItemEvidence, quotationItems, quotations } from "../../db/schema";
+import { clients, industries, quotationItemEvidence, quotationItems, quotations } from "../../db/schema";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import type { ManualQuotationInput } from "./input";
 import { copyRevisionItems } from "./revision-copy";
@@ -15,6 +15,21 @@ export class QuotationIntegrityError extends Error {
   }
 }
 
+export async function resolveQuotationIndustryId(
+  industryId: string | null | undefined,
+  loadIndustries: () => Promise<Array<{ id: string; enabled: boolean }>>,
+): Promise<string | null> {
+  const normalized = typeof industryId === "string" ? industryId.trim() : "";
+  if (!normalized) return null;
+  const catalogRows = await loadIndustries();
+  if (catalogRows.length === 0) return null;
+  const matched = catalogRows.find(row => row.id === normalized && row.enabled);
+  if (!matched) {
+    throw new QuotationIntegrityError(400, "Seçilen sektör kataloğunda aktif bir kayıt bulunamadı.");
+  }
+  return matched.id;
+}
+
 export async function createManualQuotation(actor: TenantContext, input: ManualQuotationInput) {
   const { companyId } = actor;
   return withAppTenantTransaction(actor, async tx => {
@@ -23,12 +38,17 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for("share");
     if (!client) throw new QuotationIntegrityError(400, "Client not available in this company");
     const { items, ...fields } = input;
+    const resolvedIndustryId = await resolveQuotationIndustryId(
+      fields.industryId,
+      () => tx.select({ id: industries.id, enabled: industries.enabled }).from(industries),
+    );
     const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
     })));
     const [quote] = await tx.insert(quotations).values({
       ...fields,
+      industryId: resolvedIndustryId,
       companyId,
       clientId: fields.clientId, quoteNumber: fields.quoteNumber, projectName: fields.projectName, expiryDate: fields.expiryDate,
       escalationVolatilityPercent: String(fields.escalationVolatilityPercent),

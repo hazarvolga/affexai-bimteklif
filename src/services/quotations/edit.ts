@@ -2,10 +2,10 @@ import { resolveBenchmarkProvenance } from './benchmark-provenance';
 import { and, desc, eq, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
-import { clients, quotationFinancials, quotationItemEvidence, quotationItems, quotations } from '../../db/schema';
+import { clients, industries, quotationFinancials, quotationItemEvidence, quotationItems, quotations } from '../../db/schema';
 import { calculateLineItemTotal, calculateQuotationTotals } from '../../lib/calculations';
 import { manualQuotationInput } from './input';
-import { QuotationIntegrityError } from './integrity';
+import { QuotationIntegrityError, resolveQuotationIndustryId } from './integrity';
 
 export const editQuotationInput = manualQuotationInput.extend({
   updatedAt: z.string().datetime({ offset: true }),
@@ -59,13 +59,17 @@ export async function editManualQuotation(companyId: string, id: string, input: 
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for('share');
     if (!client) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
     const { items, updatedAt: _version, ...fields } = input;
+    const resolvedIndustryId = await resolveQuotationIndustryId(
+      fields.industryId,
+      () => tx.select({ id: industries.id, enabled: industries.enabled }).from(industries),
+    );
     const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
     })));
     const updatedAt = new Date(Math.max(Date.now(), quote.updatedAt.getTime() + 1));
     const [saved] = await tx.update(quotations).set({
-      ...fields, updatedAt,
+      ...fields, industryId: resolvedIndustryId, updatedAt,
       escalationVolatilityPercent: String(fields.escalationVolatilityPercent),
       carbonRiskPremiumPercent: String(fields.carbonRiskPremiumPercent),
       informationDeliveryCostPercent: String(fields.informationDeliveryCostPercent),

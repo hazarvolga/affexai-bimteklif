@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.71",
+  version: "BIM-CALC-2026-10-25.72",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "405d2bc69be1780e1f8d38e83559560515269964",
-  approvalStatus: "Rev. 77, T46 tek kaynaklı ürün doğruluğu kapısını mevzuat, sözlük ve admin yüzeylerinde tamamlar; T41 0022 (36 tablo FORCE RLS), T32 veraPDF 1.30.3 runtime + 7/7 PDF/A-2b matrisi ve T43 c8 kapsam kapısı + Playwright E2E main üzerindedir. Bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "a32b997eae615fab3ded08a2c4f1340e306c8475",
+  approvalStatus: "Rev. 78, T42 yetki/kaynak sınırı regresyonunu, §8.4 sektör varsayılanı kusurunu, Academy kapalı-bayrak korumasını ve SmartCheck orphan lease devralma akışını tamamlar; Rev. 77 T46 tek kaynaklı ürün doğruluğunu kapatmıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41/T42 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1692,8 +1692,25 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     commit: "405d2bc69be1780e1f8d38e83559560515269964",
     trigger: "GAP planı T46 üçüncü dilimi ve tam kapanışı: mevzuat, sözlük ve admin yüzeylerinin CAPABILITY_REGISTRY tek kaynağına hizalanması.",
     beforeSummary: "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında sabit 'Rev. 5' ifadesi, AdminDashboard.tsx'te 'TeklifPro' adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler vardı.",
-    afterSummary: "LegislationView.tsx doğrudan CAPABILITY_REGISTRY'den canlı/pilot/yol haritası sayılarını ve 18.848 resmi katalog satır sınırını üretir; DeveloperRoadmap.tsx ve CalculationMethods.tsx son revizyonu CALC_REVIEW_CHANGELOG'dan dinamik okur; public-copy.test.ts mevzuat, sözlük ve admin yüzeylerini de kapsar. Hesap yöntemleri değişmedi.",
+    afterSummary: "LegislationView.tsx doğrudan CAPABILITY_REGISTRY'den canlı/pilot/yol haritası sayılarını ve 18.848 resmi katalog satır sınırını üretir; DeveloperRoadmap.tsx ve CalculationMethods.tsx son revizyonu CALC_REVIEW_CHANGELOG'dan dinamik okur; public-copy.test.ts mevzuat, sözlük ve admin yüzeylerini de kapsar; hazarvolga@gmail.com süper admin bootstrap koruması eklendi. Hesap yöntemleri değişmedi.",
     affectedModules: [],
+  },
+  {
+    revision: "Rev. 78",
+    version: "BIM-CALC-2026-10-25.72",
+    date: "25 Ekim 2026",
+    commit: "a32b997eae615fab3ded08a2c4f1340e306c8475",
+    trigger: "GAP planı T42 yetki/kaynak sınırı regresyonu, §8.4 sektör varsayılanı kusuru, Academy kapalı-bayrak koruması ve SmartCheck orphan lease devralma akışı.",
+    beforeSummary: "CreateQuote varsayılan 'residential' gönderdiğinde industries kataloğu boşsa 500 FK hatası oluşuyordu; ACADEMY_ENABLED=false iken requireAllplanEntitlement doğrudan DB sorgusuna gidiyordu; claimSmartCheckRun süresi dolan farklı deliveryId'li yetim running işleri devralamıyordu.",
+    afterSummary: "resolveQuotationIndustryId boş katalogda null'a düşer ve dolu katalogda geçersiz/pasif sektörü 400 ile reddeder; createRequireAllplanEntitlement ACADEMY_ENABLED=false iken 403 ACADEMY_FEATURE_DISABLED döner; isSmartCheckLeaseExpired ile 15 dk'yı aşan yetim running işler yeni workerLeaseToken ile güvenli devralınır. Hesap yöntemleri değişmedi.",
+    affectedModules: ["kota"],
+    moduleDetails: {
+      kota: {
+        before: "Askıdaki abonelik, salt-okunur impersonation, kapalı Academy bayrağı ve boş sektör kataloğu regresyonları tek bir T42 kapı testinde birleştirilmemişti.",
+        after: "t42-regression.test.ts (4/4) ile SUBSCRIPTION_SUSPENDED, IMPERSONATION_READ_ONLY, ACADEMY_FEATURE_DISABLED, resolveQuotationIndustryId ve orphan lease devralma sınırları doğrulandı.",
+        basis: "Faz 7 T42 yetki ve kaynak sınırı regresyon sözleşmesi",
+      },
+    },
   },
 ];
 
@@ -1832,7 +1849,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
   },
   kota: {
     scope: "Paket kataloğu v6 (sunucu kapasite korumalı IFC/PDF/AI limitleri), 4 dönemli Havale/EFT taahhüt iskontosu (%0/%10/%20/%30), Türkiye Kartları & Taksit (iyzico / PayTR 1–12 taksit) kanal seçicisi ve atomik rezervasyon kontrolü.",
-    testFiles: ["src/services/billing/bank-transfer.test.ts", "src/services/billing/catalog-bootstrap.test.ts", "src/services/billing/feature-limits.test.ts", "src/services/billing/feature-quota.integration.test.ts", "src/services/billing/quota.integration.test.ts"],
+    testFiles: ["src/services/billing/bank-transfer.test.ts", "src/services/billing/catalog-bootstrap.test.ts", "src/services/billing/feature-limits.test.ts", "src/services/billing/feature-quota.integration.test.ts", "src/services/billing/quota.integration.test.ts", "src/server/routes/t42-regression.test.ts"],
     pending: "Canlı iyzico/PayTR mağaza anahtarlarının tanımlanması ve paket vaatlerinin gerçek dosya hacmiyle ürün kabulü.",
   },
   "pilot-metrik": {

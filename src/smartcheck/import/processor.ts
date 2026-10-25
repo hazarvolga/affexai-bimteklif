@@ -409,11 +409,26 @@ async function processIfcSmartCheckDocument(payload: {
   });
 }
 
+export const DEFAULT_SMARTCHECK_LEASE_TIMEOUT_MS = 15 * 60 * 1000;
+
+export function isSmartCheckLeaseExpired(
+  run: { status: string; updatedAt?: Date | null; startedAt?: Date | null },
+  now = new Date(),
+  leaseTimeoutMs = DEFAULT_SMARTCHECK_LEASE_TIMEOUT_MS,
+): boolean {
+  if (run.status !== "running") return false;
+  const reference = run.updatedAt ?? run.startedAt;
+  if (!reference) return false;
+  return now.getTime() - reference.getTime() >= leaseTimeoutMs;
+}
+
 export async function claimSmartCheckRun(
   payload: { companyId: string; documentId: string; processingRunId: string },
   deliveryId = `direct:${crypto.randomUUID()}`,
+  options: { now?: Date; leaseTimeoutMs?: number } = {},
 ) {
-  const now = new Date();
+  const now = options.now ?? new Date();
+  const leaseTimeoutMs = options.leaseTimeoutMs ?? DEFAULT_SMARTCHECK_LEASE_TIMEOUT_MS;
   const leaseToken = crypto.randomUUID();
   const [claimed] = await db.update(documentProcessingRuns).set({
     status: "running",
@@ -441,30 +456,33 @@ export async function claimSmartCheckRun(
     status: documentProcessingRuns.status,
     workerJobId: documentProcessingRuns.workerJobId,
     workerLeaseToken: documentProcessingRuns.workerLeaseToken,
+    updatedAt: documentProcessingRuns.updatedAt,
+    startedAt: documentProcessingRuns.startedAt,
   }).from(documentProcessingRuns).where(eq(documentProcessingRuns.id, payload.processingRunId));
   if (!existing || existing.companyId !== payload.companyId || existing.documentId !== payload.documentId) {
     throw new Error("TENANT_DOCUMENT_RUN_MISMATCH");
   }
+  const sameDeliveryRetry = existing.workerJobId === deliveryId && (existing.status === "running" || existing.status === "failed");
+  const orphanLeaseExpired = isSmartCheckLeaseExpired(existing, now, leaseTimeoutMs);
   if (
-    existing.workerJobId === deliveryId &&
     existing.workerLeaseToken &&
-    (existing.status === "running" || existing.status === "failed")
+    (sameDeliveryRetry || orphanLeaseExpired)
   ) {
     const [reclaimed] = await db.update(documentProcessingRuns).set({
       status: "running",
       currentStage: "parsing",
       progressPercent: 10,
-      progressMessage: "Dosya yeniden teslim alındı",
+      progressMessage: orphanLeaseExpired ? "Süresi dolan işçi kilidi devralındı" : "Dosya yeniden teslim alındı",
       startedAt: now,
       updatedAt: now,
       completedAt: null,
       errorCode: null,
       errorMessage: null,
+      workerJobId: deliveryId,
       workerLeaseToken: leaseToken,
     }).where(and(
       eq(documentProcessingRuns.id, payload.processingRunId),
       eq(documentProcessingRuns.companyId, payload.companyId),
-      eq(documentProcessingRuns.workerJobId, deliveryId),
       eq(documentProcessingRuns.workerLeaseToken, existing.workerLeaseToken),
       sql`${documentProcessingRuns.status} IN ('running', 'failed')`,
     )).returning();
