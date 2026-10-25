@@ -155,6 +155,13 @@
       "sha256": "6c19a3c1c45aae5eb944af3e75143b99bc8a4881fe6f75a55d3fa7a8fb4f3edc",
       "snapshotSha256": "2cae587be6efeed722926ffc1109abeeb6a0ac2d55446690b4d599594965ab5f",
       "statements": 4
+    },
+    {
+      "idx": 22,
+      "tag": "0022_tenant_business_rls",
+      "sha256": "8633a01e1d0d11e7ed9865556d471282d29689561d2d0f9130f2bf3e8ca025d4",
+      "snapshotSha256": "d962e72bcf075c7a8679647998a3de486b6a29c5489a83ef4d930d3803143d91",
+      "statements": 70
     }
   ]
 }

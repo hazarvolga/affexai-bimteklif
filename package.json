@@ -48,7 +48,8 @@
     "test:progress-payment-tenant-rls:pg": "tsx --test src/contracts/progress-payment-tenant-rls.pgtest.ts",
     "test:smartcheck-pilot-tenant-rls:pg": "tsx --test src/contracts/smartcheck-pilot-tenant-rls.pgtest.ts",
     "test:company-industry-tenant-rls:pg": "tsx --test src/contracts/company-industry-tenant-rls.pgtest.ts",
-    "test:crm-lead-tenant-rls:pg": "tsx --test src/contracts/crm-lead-tenant-rls.pgtest.ts"
+    "test:crm-lead-tenant-rls:pg": "tsx --test src/contracts/crm-lead-tenant-rls.pgtest.ts",
+    "test:tenant-business-rls:pg": "tsx --test src/contracts/tenant-business-rls.pgtest.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1092.0",

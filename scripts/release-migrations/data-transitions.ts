@@ -1085,6 +1085,13 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
       ? [...injectDataTransitions('0017_company_industry_settings_tenant_rls', statements)]
       : statements;
   }
+  if (tag === '0022_tenant_business_rls') {
+    const forced = ['usage_alerts', 'deals', 'activities', 'supplier_quote_submissions', 'supplier_quote_entries',
+      'rule_candidates', 'rule_registry', 'rule_versions', 'review_sessions', 'review_findings', 'competency_signals',
+      'competency_signal_evidence', 'assistance_resources', 'rule_assistance_resources']
+      .map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    return [...schemaStatements, ...forced];
+  }
   if (tag === '0020_worker_entitlement_capability') {
     return [
       `CREATE OR REPLACE FUNCTION public.bimmetraj_worker_get_entitlement(p_company_id uuid)

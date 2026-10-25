@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "../../db";
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import { activities, clients, deals, quotationFinancials, quotationItems, quotations } from "../../db/schema";
 import { CRMIntelligenceService } from "../../services/crm/crmService";
 import { authenticate } from "../middleware/auth";
@@ -10,12 +10,22 @@ import { CrmLeadService } from '../../services/crm/lead-service';
 import { reserveAiUsage } from '../../services/billing/ai-quota';
 import { QuotaError } from '../../services/billing/quota-policy';
 
-export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceService, canMutate: any, leadService: CrmLeadService = new CrmLeadService()) {
+/** Tenant transaction runners for CRM deal/activity paths (FORCE RLS since 0022); injectable for route tests. */
+export type CrmTenantAccess = Readonly<{ read: typeof withAppTenant; transaction: typeof withAppTenantTransaction }>;
+const defaultTenantAccess: CrmTenantAccess = { read: withAppTenant, transaction: withAppTenantTransaction };
+
+export function registerCrmRoutes(
+  app: Express,
+  crmService: CRMIntelligenceService,
+  canMutate: any,
+  leadService: CrmLeadService = new CrmLeadService(),
+  tenant: CrmTenantAccess = defaultTenantAccess,
+) {
   app.get('/api/crm/deals/:id', authenticate, async (req, res) => {
     const parsed = dealIdInput.safeParse({ dealId: req.params.id });
     if (!parsed.success) return res.status(400).json({ error: 'Invalid deal ID' });
     try {
-      const deal = await db.query.deals.findFirst({ where: and(eq(deals.id, parsed.data.dealId), eq(deals.companyId, req.user.companyId)) });
+      const deal = await tenant.read(tenantOf(req.user), (tenantDb) => tenantDb.query.deals.findFirst({ where: and(eq(deals.id, parsed.data.dealId), eq(deals.companyId, req.user.companyId)) }));
       if (!deal) return res.status(404).json({ error: 'Deal not found' });
       return res.json(deal);
     } catch {
@@ -27,12 +37,12 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
       const companyId = req.user.companyId;
       const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
       const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-      const allDeals = await db.select()
+      const allDeals = await tenant.read(tenantOf(req.user), (tenantDb) => tenantDb.select()
         .from(deals)
         .where(eq(deals.companyId, companyId))
         .orderBy(desc(deals.createdAt))
         .limit(limit)
-        .offset(offset);
+        .offset(offset));
       res.json(allDeals);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch pipeline" });
@@ -43,7 +53,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
     try {
       const parsed = dealInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: 'Invalid deal input' });
-      const newDeal = await db.transaction(async tx => {
+      const newDeal = await tenant.transaction(tenantOf(req.user), async tx => {
         const [client] = await tx.select({ id: clients.id }).from(clients)
           .where(and(eq(clients.id, parsed.data.clientId), eq(clients.companyId, req.user.companyId))).for('share');
         if (!client) return null;
@@ -89,7 +99,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
     try {
       const parsed = activityInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: 'Invalid activity input' });
-      const activity = await db.transaction(async tx => {
+      const activity = await tenant.transaction(tenantOf(req.user), async tx => {
         const [deal] = await tx.select({ id: deals.id }).from(deals)
           .where(and(eq(deals.id, parsed.data.dealId), eq(deals.companyId, req.user.companyId))).for('share');
         if (!deal) return null;
@@ -109,12 +119,12 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
       const { id } = req.params;
       const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
       const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-      const dealActivities = await db.select()
+      const dealActivities = await tenant.read(tenantOf(req.user), (tenantDb) => tenantDb.select()
         .from(activities)
         .where(and(eq(activities.dealId, id), eq(activities.companyId, req.user.companyId)))
         .orderBy(desc(activities.createdAt))
         .limit(limit)
-        .offset(offset);
+        .offset(offset));
       res.json(dealActivities);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch activities" });
@@ -126,7 +136,7 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
       const parsed = stageInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: 'Invalid stage input' });
       const { dealId, stage } = parsed.data;
-      const updatedDeal = await db.transaction(async tx => {
+      const updatedDeal = await tenant.transaction(tenantOf(req.user), async tx => {
         const where = and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId));
         const [deal] = await tx.select().from(deals).where(where).for('update');
         if (!deal) return null;
@@ -148,31 +158,36 @@ export function registerCrmRoutes(app: Express, crmService: CRMIntelligenceServi
       const parsed = dealIdInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: 'Invalid deal ID' });
       const { dealId } = parsed.data;
-      const deal = await db.query.deals.findFirst({
-        where: and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId))
-      });
-      if (!deal || !deal.quotationId) return res.status(404).json({ error: "Deal or Quotation not found" });
-
-      const quote = await db.query.quotations.findFirst({
-        where: and(eq(quotations.id, deal.quotationId), eq(quotations.companyId, req.user.companyId)),
-      });
-      if (!quote) return res.status(404).json({ error: 'Quotation not found' });
-      const qItems = await db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, deal.quotationId), eq(quotationItems.companyId, req.user.companyId)));
-      const financials = await db.query.quotationFinancials.findFirst({
-        where: eq(quotationFinancials.quotationId, deal.quotationId)
-      });
+      const actor = tenantOf(req.user);
+      const context = await tenant.read(actor, async (tenantDb) => {
+        const deal = await tenantDb.query.deals.findFirst({
+          where: and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId))
+        });
+        if (!deal || !deal.quotationId) return { missing: "Deal or Quotation not found" } as const;
+        const quote = await tenantDb.query.quotations.findFirst({
+          where: and(eq(quotations.id, deal.quotationId), eq(quotations.companyId, req.user.companyId)),
+        });
+        if (!quote) return { missing: "Quotation not found" } as const;
+        const qItems = await tenantDb.select().from(quotationItems).where(and(eq(quotationItems.quotationId, deal.quotationId), eq(quotationItems.companyId, req.user.companyId)));
+        const financials = await tenantDb.query.quotationFinancials.findFirst({
+          where: eq(quotationFinancials.quotationId, deal.quotationId)
+        });
+        return { deal, quote, qItems, financials } as const;
+      }, { readOnly: true });
+      if ("missing" in context) return res.status(404).json({ error: context.missing });
+      const { deal, quote, qItems, financials } = context;
 
       await reserveAiUsage(req.user.companyId, req.user.userId);
       const analysis = await crmService.analyzeDeal(deal, { ...quote, items: qItems }, financials);
 
-      await db.update(deals)
+      await tenant.read(actor, (tenantDb) => tenantDb.update(deals)
         .set({
           probability: analysis.probability.toString(),
           riskLevel: analysis.riskLevel,
           aiInsights: analysis.insights,
           updatedAt: new Date()
         })
-        .where(and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId)));
+        .where(and(eq(deals.id, dealId), eq(deals.companyId, req.user.companyId))));
 
       res.json(analysis);
     } catch (error) {

@@ -382,7 +382,11 @@ export const usageAlerts = pgTable("usage_alerts", {
   message: text("message").notNull(),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  appTenantPolicy: appTenantPolicy("usage_alerts", table.companyId),
+  backupReadPolicy: backupReadPolicy("usage_alerts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("usage_alerts"),
+})).enableRLS();
 
 export const invitations = pgTable("invitations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -952,7 +956,11 @@ export const deals = pgTable("deals", {
   aiInsights: text("ai_insights"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  appTenantPolicy: appTenantPolicy("deals", table.companyId),
+  backupReadPolicy: backupReadPolicy("deals"),
+  ownerMigrationPolicy: ownerMigrationPolicy("deals"),
+})).enableRLS();
 
 export const activities = pgTable("activities", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -962,7 +970,11 @@ export const activities = pgTable("activities", {
   type: activityTypeEnum("type").notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  appTenantPolicy: appTenantPolicy("activities", table.companyId),
+  backupReadPolicy: backupReadPolicy("activities"),
+  ownerMigrationPolicy: ownerMigrationPolicy("activities"),
+})).enableRLS();
 
 export const costComponents = pgTable("cost_components", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1400,7 +1412,10 @@ export const supplierQuoteSubmissions = pgTable("supplier_quote_submissions", {
   hashCheck: check("supplier_quote_submissions_source_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
   validityCheck: check("supplier_quote_submissions_validity_check", sql`${table.validUntil} IS NULL OR ${table.quoteDate} IS NULL OR ${table.validUntil} >= ${table.quoteDate}`),
   idxLookup: index("idx_supplier_quote_submissions_lookup").on(table.companyId, table.status, table.validUntil),
-}));
+  appTenantPolicy: appTenantPolicy("supplier_quote_submissions", table.companyId),
+  backupReadPolicy: backupReadPolicy("supplier_quote_submissions"),
+  ownerMigrationPolicy: ownerMigrationPolicy("supplier_quote_submissions"),
+})).enableRLS();
 
 export const supplierQuoteEntries = pgTable("supplier_quote_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1466,7 +1481,10 @@ export const supplierQuoteEntries = pgTable("supplier_quote_entries", {
   confidenceCheck: check("supplier_quote_entries_confidence_check", sql`${table.confidence} >= 0 AND ${table.confidence} <= 1`),
   validityCheck: check("supplier_quote_entries_validity_check", sql`${table.validUntil} IS NULL OR ${table.validFrom} IS NULL OR ${table.validUntil} >= ${table.validFrom}`),
   idxLookup: index("idx_supplier_quote_entries_lookup").on(table.companyId, table.submissionId, table.reviewStatus, table.outlierStatus),
-}));
+  appTenantPolicy: appTenantPolicy("supplier_quote_entries", table.companyId),
+  backupReadPolicy: backupReadPolicy("supplier_quote_entries"),
+  ownerMigrationPolicy: ownerMigrationPolicy("supplier_quote_entries"),
+})).enableRLS();
 
 export const ruleCandidates = pgTable("rule_candidates", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1514,8 +1532,11 @@ export const ruleCandidates = pgTable("rule_candidates", {
     }).onDelete("restrict"),
     idxCandidatesLookup: index("idx_rule_candidates_lookup").on(table.companyId, table.documentId, table.status),
     confidenceCheck: check("rule_candidates_confidence_check", sql`${table.confidenceScore} >= 0.00 AND ${table.confidenceScore} <= 1.00`),
+    appTenantPolicy: appTenantPolicy("rule_candidates", table.companyId),
+    backupReadPolicy: backupReadPolicy("rule_candidates"),
+    ownerMigrationPolicy: ownerMigrationPolicy("rule_candidates"),
   };
-});
+}).enableRLS();
 
 export const ruleRegistry = pgTable("rule_registry", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1553,8 +1574,11 @@ export const ruleRegistry = pgTable("rule_registry", {
       "rule_registry_scope_consistency_check",
       sql`(${table.scope} = 'quotation' AND ${table.quotationId} IS NOT NULL) OR (${table.scope} = 'company' AND ${table.quotationId} IS NULL)`
     ),
+    appTenantPolicy: appTenantPolicy("rule_registry", table.companyId),
+    backupReadPolicy: backupReadPolicy("rule_registry"),
+    ownerMigrationPolicy: ownerMigrationPolicy("rule_registry"),
   };
-});
+}).enableRLS();
 
 export const ruleVersions = pgTable("rule_versions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1614,8 +1638,11 @@ export const ruleVersions = pgTable("rule_versions", {
       .where(sql`${table.sourceCandidateId} IS NOT NULL`),
     versionCheck: check("rule_versions_version_check", sql`${table.version} > 0`),
     governanceStatusCheck: check("rule_versions_governance_status_check", sql`${table.governanceStatus} in ('draft', 'advisory', 'approved')`),
+    appTenantPolicy: appTenantPolicy("rule_versions", table.companyId),
+    backupReadPolicy: backupReadPolicy("rule_versions"),
+    ownerMigrationPolicy: ownerMigrationPolicy("rule_versions"),
   };
-});
+}).enableRLS();
 
 export const reviewSessions = pgTable("review_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1650,8 +1677,11 @@ export const reviewSessions = pgTable("review_sessions", {
     idxReviewSessionsAssignee: index("idx_review_sessions_assignee").on(table.companyId, table.assignedToUserId, table.status),
     totalFindingsCheck: check("review_sessions_total_findings_check", sql`${table.totalFindingsCount} >= 0`),
     openFindingsCheck: check("review_sessions_open_findings_check", sql`${table.openFindingsCount} >= 0`),
+    appTenantPolicy: appTenantPolicy("review_sessions", table.companyId),
+    backupReadPolicy: backupReadPolicy("review_sessions"),
+    ownerMigrationPolicy: ownerMigrationPolicy("review_sessions"),
   };
-});
+}).enableRLS();
 
 export const reviewFindings = pgTable("review_findings", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1695,8 +1725,11 @@ export const reviewFindings = pgTable("review_findings", {
       foreignColumns: [memberships.userId, memberships.companyId],
     }).onDelete("restrict"),
     idxFindingsLookup: index("idx_review_findings_lookup").on(table.companyId, table.reviewSessionId),
+    appTenantPolicy: appTenantPolicy("review_findings", table.companyId),
+    backupReadPolicy: backupReadPolicy("review_findings"),
+    ownerMigrationPolicy: ownerMigrationPolicy("review_findings"),
   };
-});
+}).enableRLS();
 
 export const competencySignals = pgTable("competency_signals", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1737,8 +1770,11 @@ export const competencySignals = pgTable("competency_signals", {
     evidenceCountCheck: check("competency_signals_evidence_count_check", sql`${table.evidenceCount} >= 0`),
     distinctQuotationCheck: check("competency_signals_distinct_quotation_count_check", sql`${table.distinctQuotationCount} >= 0`),
     distinctReviewRoundCheck: check("competency_signals_distinct_review_round_count_check", sql`${table.distinctReviewRoundCount} >= 0`),
+    appTenantPolicy: appTenantPolicy("competency_signals", table.companyId),
+    backupReadPolicy: backupReadPolicy("competency_signals"),
+    ownerMigrationPolicy: ownerMigrationPolicy("competency_signals"),
   };
-});
+}).enableRLS();
 
 export const competencySignalEvidence = pgTable("competency_signal_evidence", {
   companyId: uuid("company_id").notNull(),
@@ -1757,8 +1793,11 @@ export const competencySignalEvidence = pgTable("competency_signal_evidence", {
       columns: [table.reviewFindingId, table.companyId],
       foreignColumns: [reviewFindings.id, reviewFindings.companyId],
     }).onDelete("restrict"),
+    appTenantPolicy: appTenantPolicy("competency_signal_evidence", table.companyId),
+    backupReadPolicy: backupReadPolicy("competency_signal_evidence"),
+    ownerMigrationPolicy: ownerMigrationPolicy("competency_signal_evidence"),
   };
-});
+}).enableRLS();
 
 export const assistanceResources = pgTable("assistance_resources", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1784,8 +1823,11 @@ export const assistanceResources = pgTable("assistance_resources", {
     idxResourcesActive: index("idx_assistance_resources_active").on(table.companyId, table.isActive),
     durationCheck: check("assistance_resources_estimated_duration_seconds_check", sql`${table.estimatedDurationSeconds} >= 0`),
     contentOrUrlCheck: check("assistance_resources_content_or_url_check", sql`${table.contentBody} IS NOT NULL OR ${table.externalUrl} IS NOT NULL`),
+    appTenantPolicy: appTenantPolicy("assistance_resources", table.companyId),
+    backupReadPolicy: backupReadPolicy("assistance_resources"),
+    ownerMigrationPolicy: ownerMigrationPolicy("assistance_resources"),
   };
-});
+}).enableRLS();
 
 export const ruleAssistanceResources = pgTable("rule_assistance_resources", {
   ruleId: uuid("rule_id").notNull(),
@@ -1802,8 +1844,11 @@ export const ruleAssistanceResources = pgTable("rule_assistance_resources", {
       columns: [table.assistanceResourceId, table.companyId],
       foreignColumns: [assistanceResources.id, assistanceResources.companyId],
     }).onDelete("cascade"),
+    appTenantPolicy: appTenantPolicy("rule_assistance_resources", table.companyId),
+    backupReadPolicy: backupReadPolicy("rule_assistance_resources"),
+    ownerMigrationPolicy: ownerMigrationPolicy("rule_assistance_resources"),
   };
-});
+}).enableRLS();
 
 export const allplanLessonProgress = pgTable("allplan_lesson_progress", {
   id: uuid("id").primaryKey().defaultRandom(),

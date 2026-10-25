@@ -75,6 +75,8 @@ async function workspaceChecks() {
   await session.login(required("ROLE_SMOKE_EMAIL"), required("ROLE_SMOKE_PASSWORD"));
   let companyId = "";
   let quoteId = "";
+  let clientId = "";
+  let dealId = "";
   await runChecks([
     { name: "GET /api/auth/me returns the company", run: async () => {
       const me = await session.request<{ company?: { id: string } }>("/api/auth/me");
@@ -106,6 +108,7 @@ async function workspaceChecks() {
     { name: "POST /api/quotations consumes quota inside tenant context", run: async () => {
       const client = await session.request<{ id: string }>("/api/clients", { method: "POST", body: { name: `Rol Smoke ${Date.now()}`, type: "company" } });
       assert.equal(client.status, 200, `client ${client.status} ${JSON.stringify(client.body)}`);
+      clientId = client.body.id;
       const quote = await session.request<{ id: string }>("/api/quotations", {
         method: "POST",
         body: {
@@ -125,6 +128,45 @@ async function workspaceChecks() {
     { name: "GET /api/smartcheck/sample-projects passes the company feature gate", run: async () => {
       const samples = await session.request("/api/smartcheck/sample-projects");
       assert.equal(samples.status, 200, `status ${samples.status} ${JSON.stringify(samples.body)}`);
+    } },
+    // 0022 tenant business tables: usage_alerts, deals, activities, supplier quotes.
+    { name: "GET /api/billing/alerts reads usage_alerts in tenant context", run: async () => {
+      const alerts = await session.request("/api/billing/alerts");
+      assert.equal(alerts.status, 200, `status ${alerts.status} ${JSON.stringify(alerts.body)}`);
+      assert.ok(Array.isArray(alerts.body), "alerts must be a list");
+    } },
+    { name: "POST /api/crm/deals writes deal and activity in tenant context", run: async () => {
+      assert.ok(clientId, "no client from the quotation check");
+      const deal = await session.request<{ id: string }>("/api/crm/deals", { method: "POST", body: { name: `Rol smoke fırsat ${Date.now()}`, clientId, value: 1000 } });
+      assert.equal(deal.status, 201, `status ${deal.status} ${JSON.stringify(deal.body)}`);
+      dealId = deal.body.id;
+    } },
+    { name: "CRM deal detail, pipeline, activity and stage change", run: async () => {
+      assert.ok(dealId, "no deal from previous check");
+      const detail = await session.request(`/api/crm/deals/${dealId}`);
+      assert.equal(detail.status, 200, `detail ${detail.status} ${JSON.stringify(detail.body)}`);
+      const pipeline = await session.request<{ id: string }[]>("/api/crm/pipeline");
+      assert.equal(pipeline.status, 200, `pipeline ${pipeline.status} ${JSON.stringify(pipeline.body)}`);
+      assert.ok(pipeline.body.some((deal) => deal.id === dealId), "new deal missing from pipeline");
+      const activity = await session.request("/api/crm/activities", { method: "POST", body: { dealId, description: "Rol smoke notu" } });
+      assert.equal(activity.status, 201, `activity ${activity.status} ${JSON.stringify(activity.body)}`);
+      const stage = await session.request("/api/crm/deals/update-stage", { method: "POST", body: { dealId, stage: "contacted" } });
+      assert.equal(stage.status, 200, `stage ${stage.status} ${JSON.stringify(stage.body)}`);
+      const activities = await session.request<unknown[]>(`/api/crm/deals/${dealId}/activities`);
+      assert.equal(activities.status, 200, `activities ${activities.status} ${JSON.stringify(activities.body)}`);
+      assert.ok(activities.body.length >= 3, `expected creation, note and stage activities, got ${activities.body.length}`);
+    } },
+    { name: "Supplier quote create, list and detail in tenant context", run: async () => {
+      const created = await session.request<{ id: string }>("/api/market-intelligence/supplier-quotes", {
+        method: "POST",
+        body: { supplierName: "Rol Smoke Tedarik", sourceDocumentIdentifier: `ROL-${Date.now()}`, sourceDocumentHash: "0123456789abcdef0123456789abcdef", currency: "TRY" },
+      });
+      assert.equal(created.status, 201, `create ${created.status} ${JSON.stringify(created.body)}`);
+      const list = await session.request<{ id: string }[]>("/api/market-intelligence/supplier-quotes");
+      assert.equal(list.status, 200, `list ${list.status} ${JSON.stringify(list.body)}`);
+      assert.ok(list.body.some((row) => row.id === created.body.id), "new supplier quote missing from list");
+      const detail = await session.request(`/api/market-intelligence/supplier-quotes/${created.body.id}`);
+      assert.equal(detail.status, 200, `detail ${detail.status} ${JSON.stringify(detail.body)}`);
     } },
   ]);
 }

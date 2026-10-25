@@ -90,6 +90,23 @@ export const DATABASE_COMPANY_INDUSTRY_RLS_TABLES = Object.freeze([
   "company_industry_settings",
 ] as const);
 export const DATABASE_CRM_LEAD_RLS_TABLES = Object.freeze(["companies", "leads", "subscriptions", "usage_logs"] as const);
+/** Tenant business tables without worker or control-plane access, migrated in 0022 with the CDE policy matrix. */
+export const DATABASE_TENANT_BUSINESS_RLS_TABLES = Object.freeze([
+  "usage_alerts",
+  "deals",
+  "activities",
+  "supplier_quote_submissions",
+  "supplier_quote_entries",
+  "rule_candidates",
+  "rule_registry",
+  "rule_versions",
+  "review_sessions",
+  "review_findings",
+  "competency_signals",
+  "competency_signal_evidence",
+  "assistance_resources",
+  "rule_assistance_resources",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),

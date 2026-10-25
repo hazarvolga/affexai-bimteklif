@@ -49,6 +49,8 @@ Rev.57 final review düzeltmesi, app'in user/membership/token ve Academy authori
 
 Rev.58, sonraki tenant okuma taşımaları için `withTenantDrizzleTransaction` yardımcı sözleşmesini ekler. Yardımcı, `withTenantTransaction` içindeki aynı checked-out `PoolClient` üzerinde typed Drizzle database oluşturur; GUC bağlama, restricted app-role doğrulaması, commit/rollback ve pool release tek akışta kalır. Bu yalnız altyapı hazırlığıdır; auth middleware, worker entitlement capability ve global hassas app okumalarının tamamı henüz taşınmamıştır.
 
+`0022_tenant_business_rls`, worker ve control erişimi olmayan şu 14 tenant iş tablosunu CDE matrisiyle (app tenant ALL, backup SELECT, migrator-owner ALL; worker/control default-deny) korur: `usage_alerts`, `deals`, `activities`, `supplier_quote_submissions`, `supplier_quote_entries`, `rule_candidates`, `rule_registry`, `rule_versions`, `review_sessions`, `review_findings`, `competency_signals`, `competency_signal_evidence`, `assistance_resources`, `rule_assistance_resources`. CRM deal/aktivite, usage alert ve tedarikçi teklif route'ları bu tablolara yalnız `withAppTenant` / `withAppTenantTransaction` ile erişir. `company_id` taşıyan kalan 36 tablo ve dilim planı `docs/audits/phase-7/PHASE_7_T41_REMAINING_TABLES_2026-10-25.md` içindedir.
+
 ### CDE ve hakediş tablolarının ortak policy matrisi
 
 Bu tablo yalnız CDE ve hakediş bounded context'leri için geçerlidir. SmartCheck pilot vaka/ölçüm ve audit yüzeyi, yukarıda açıklanan ayrı 3/4/6 policy matrislerini kullanır.
@@ -82,7 +84,7 @@ Pilot ölçüm kabulü vaka satırını kilitler. Normalleştirilmiş istek SHA-
 
 ## Operasyonel kapı
 
-`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls`, `0017_company_industry_settings_tenant_rls`, `0018_crm_leads_tenant_rls` ve `0019_control_plane_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
+`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls`, `0017_company_industry_settings_tenant_rls`, `0018_crm_leads_tenant_rls`, `0019_control_plane_rls` ve `0022_tenant_business_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
 
 - İlgili migrationın kapsadığı bütün tablolar ve owner=`bimmetraj_owner`.
 - `ENABLE` ve `FORCE` RLS.

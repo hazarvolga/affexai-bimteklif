@@ -100,6 +100,12 @@ jobs:
           DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
           CI_DISPOSABLE_DATABASE: 'true'
         run: pnpm run test:crm-lead-tenant-rls:pg
+      - name: PostgreSQL 16 tenant business tables RLS contract
+        env:
+          DATABASE_ROLE_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/postgres
+          DATABASE_ROLE_TEST_CLUSTER_NAME: '<empty>'
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm run test:tenant-business-rls:pg
       - name: Bootstrap disposable release roles
         run: |
           CI_DISPOSABLE_DATABASE=true pnpm exec tsx scripts/ci/disposable-database-roles.ts bootstrap

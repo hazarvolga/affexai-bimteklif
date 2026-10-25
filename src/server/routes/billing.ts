@@ -89,8 +89,13 @@ export function registerBillingRoutes(app: Express) {
   });
 
   app.get("/api/billing/alerts", authenticate, async (req, res) => {
-    const alerts = await db.select().from(usageAlerts).where(eq(usageAlerts.companyId, req.user.companyId)).orderBy(desc(usageAlerts.createdAt)).limit(10);
-    res.json(alerts);
+    try {
+      const alerts = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select().from(usageAlerts)
+        .where(eq(usageAlerts.companyId, req.user.companyId)).orderBy(desc(usageAlerts.createdAt)).limit(10));
+      res.json(alerts);
+    } catch {
+      res.status(503).json({ error: "Failed to fetch usage alerts", code: "BILLING_ALERTS_UNAVAILABLE" });
+    }
   });
 
   app.get("/api/billing/payment-requests", authenticate, async (req, res) => {
