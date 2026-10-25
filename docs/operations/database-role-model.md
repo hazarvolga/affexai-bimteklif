@@ -65,6 +65,17 @@ Entegrasyon testi yalnız local, marker'lı disposable PostgreSQL 16 cluster kab
 
 Parola doğrulamalı yerel PG16 kabulü beş login credentialını A→B döndürür; A credentiallarının tamamının reddedildiğini ve B kimliklerinin exact session/current role ile bağlandığını doğrular. Ardından B→A rollback yapar, B credentiallarını reddeder ve A erişimini yeniden doğrular. Rev.56 PG16 sözleşmesi control rolünün allowlist içi meşru mutasyonlarını ve `leads`/queue/owner/allowlist dışı negatif erişimini de doğrular. Bu tatbikat production credential rotation veya production rollback kanıtı değildir.
 
+## İlk kurulum ve her deploy: Coolify içinde rol adımları (2026-10-25)
+
+Rol parolaları yalnız Coolify'da durur; bu yüzden rol adımları Compose deploy grafiğinde tek seferlik servisler olarak çalışır ve operatör hiçbir parolayı görmez:
+
+1. `db-bootstrap` (`database-roles-cli bootstrap-fresh`): veritabanında `teklifpro_release.migrations` varsa hiçbir şey yapmaz. Boş PostgreSQL 16 veritabanında (parmak izi, tablo ve yönetilen şema yokluğu doğrulanır) kanonik rolleri oluşturur ve veritabanını `bimmetraj_owner`'a devreder. Migration tamamlanmadan duran bir deploy sonrası aynı cluster'ın rolleriyle güvenle yeniden çalışır; eksik veya başka cluster'a ait rol seti reddedilir.
+2. `migrate`: release runner `bimmetraj_migrator` ile.
+3. `db-provision` (`deploy-provision`): kuyruk şemasını owner olarak kurar/yükseltir, sonra `provision` ve `inspect`.
+4. `app`, `worker`, `ifc-worker` yalnız `db-provision` başarıyla bittikten sonra başlar.
+
+**Temiz kurulum sırası:** eski veritabanı yedeklenir → proje container'ları durdurulur, `postgres-data` volume'u arşivlenip boşaltılır → `RELEASE_WORKERS_DRAINED=true` → Deploy. İlk deploy yeni cluster'ın system identifier'ı bilinmediği için `db-bootstrap`'ta değişiklik yapmadan durur. `select system_identifier::text from pg_control_system();` ile okunan değer `DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER` olarak Coolify'a yazılır ve yeniden deploy edilir. Doğrulama: `/api/health` revision ve `scripts/role-model-smoke.ts`.
+
 ## Cutover kapısı
 
 Bu belge production çalıştırma talimatı veya cutover onayı değildir. T40 ancak şu kanıtlar birlikte mevcutsa kapanabilir:

@@ -717,16 +717,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Saha görüşmesinde uzman mühendis hesapların nasıl yapıldığını sordu; icmal yalnız sonucu gösteriyordu. Artık her icmal satırı kendisini oluşturan elemanları taşır ve sağ panelde 'Bu sayı nasıl oluştu?' adımları sade Türkçeyle verilir (kaç eleman, kaç kat, miktarın Qto/geometri/özellikten geldiği, brüt − boşluk = net). 'Metraj cetvelini aç' tüm elemanları kat, mahal, katman, brüt, boşluk, net ve miktar kaynağıyla listeler; Türkçe Excel'in açtığı CSV olarak indirilir. 'Uzman doğrulama modu' ile mühendis her satırı Doğru / Düzeltme gerekli / Emin değilim olarak işaretler, kendi değerini ve notunu yazar; sapma ±%3 şirket toleransıyla karşılaştırılır ve ad, unvan, oda sicil numarası ve imza alanı olan rapor indirilir. Ön sürümde kayıtlar uzmanın tarayıcısında tutulur. Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 71 (Güncel geliştirme)",
+            "Rev. 71",
             "25 Ekim 2026 (Üretim rol modelinde istek yolları tenant bağlamında; rol cutover blokajı kapandı)",
             "BIM-CALC-2026-10-25.65",
             "Gerçek rol yapısıyla (bimmetraj_app + FORCE RLS) kurulan yerel inceleme veritabanında giriş sonrası /api/auth/me 'Company unavailable', şirket ayarları, abonelik, teklif oluşturma (kota) ve teklif PDF'i başarısızdı; canlı rol geçişi bu haliyle yapılsaydı hiçbir kullanıcı çalışamazdı. CI bu hatayı görmüyordu çünkü test düzeneği tabloları politikasız kopyalıyordu. Düzeltme: bu yollar şirket/abonelik/kullanım tablolarını çağıranın tenant işleminde okur; uygulama rolü bu tabloları kilitleyemediği için kota kilidi şirket başına advisory kilide taşındı ve yönetim plan/abonelik değişiklikleri ile ödeme onayı aynı kilidi alır; tarayıcı IFC kotası üretimde worker'a özel fonksiyonu çağırmaz; süper admin okumaları control-plane rolüyle yapılır. scripts/role-model-smoke.ts gerçek rol modeliyle 13/13 geçer (düzeltmeden önce 2/9). Hesap yöntemleri değişmedi; worker'ın kalan kota okumaları (T41 8B) açık.",
+          ],
+          [
+            "Rev. 72 (Güncel geliştirme)",
+            "25 Ekim 2026 (Coolify deploy'u içinde rol kurulumu; temiz kurulum yolu)",
+            "BIM-CALC-2026-10-25.66",
+            "Rol parolaları yalnız Coolify'da durduğu için rol adımları artık deploy grafiğinde tek seferlik servislerdir: db-bootstrap (boş veritabanında kanonik rolleri oluşturur, kurulu veritabanında hiçbir şey yapmaz) → migrate (bimmetraj_migrator) → db-provision (kuyruk şeması, yetki/RLS yakınsaması, inceleme) → app/worker. Rol CLI'sı paketlendiğinde inspect.ts'in kendi inceleme betiğini paralel çalıştırması hatası giderildi (her modda geçiş öncesi sahte hata üretiyordu). compose.coolify.yaml ile boş volume üzerinde üç geçişli prova: 1) bilinmeyen cluster parmak izinde değişiklik yapmadan durur, 2) kurulum tamamlanır, 3) yeniden çalıştırma etkisizdir. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 71 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 72 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1332,6 +1338,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "İstek yolları companies, subscriptions ve usage_logs tablolarını tenant bağlamı olmadan uygulama havuzundan okuyordu; FORCE RLS altında satırlar görünmüyordu. Kota kodu bu satırları FOR UPDATE ile kilitliyordu; uygulama rolünün UPDATE yetkisi olmadığı için kilit reddediliyordu. Tarayıcı IFC kotası üretimde yalnız worker'ın çalıştırabildiği fonksiyonu çağırıyordu.",
             "src/db/app-tenant.ts (withAppTenant, withAppTenantTransaction, tenantOf); withTenantTransaction izinli izolasyon seviyesi alır; src/services/billing/company-quota-lock.ts şirket başına advisory kilit; company-reads.ts; admin okumaları control-plane; scripts/role-model-smoke.ts.",
             "src/db/app-tenant.ts, src/db/tenant-context.ts, src/services/billing/company-quota-lock.ts, src/services/billing/quota.ts, src/services/billing/feature-quota.ts, src/services/billing/usage-report.ts, src/services/company/company-reads.ts, src/server/routes/auth.ts, src/server/routes/company.ts, src/server/routes/billing.ts, src/server/routes/quotations.ts, src/server/routes/smartcheck.ts, src/server/admin/stats.ts, src/server/admin/changes.ts, scripts/role-model-smoke.ts",
+          ],
+          [
+            "Rev. 72 · 25 Ekim 2026 (Deploy içinde rol kurulumu)",
+            "Canlı rol geçişi: parolalar yalnız Coolify'da, operatör erişimi parolasız olmalı",
+            "Boş veritabanında migrate servisi henüz var olmayan bimmetraj_migrator ile bağlanıyordu; rol CLI'sı elle çalıştırılmak zorundaydı ve parolalar Coolify dışında yoktu. Paketli CLI her modda paralel bir inceleme de çalıştırıyordu.",
+            "provision.ts bootstrapFreshDatabaseRoles; cli.ts bootstrap-fresh ve deploy-provision modları; queue-schema.ts; compose.coolify.yaml/compose.example.yaml db-bootstrap ve db-provision servisleri; inspect.ts giriş dosyası koruması; sözleşme testleri güncellendi.",
+            "scripts/database-roles/provision.ts, scripts/database-roles/cli.ts, scripts/database-roles/queue-schema.ts, scripts/database-roles/inspect.ts, scripts/database-roles/bootstrap-fresh.test.ts, scripts/database-roles/inspect-entry.test.ts, scripts/database-roles/runtime-compose-contract.test.ts, compose.coolify.yaml, compose.example.yaml, docs/operations/database-role-model.md",
           ],
         ],
       },

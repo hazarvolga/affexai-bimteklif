@@ -24,7 +24,10 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 71** (`BIM-CALC-2026-10-25.65`): request paths read
+- Latest roadmap revision: **Rev. 72** (`BIM-CALC-2026-10-25.66`): role setup runs inside the
+  Coolify deploy (db-bootstrap -> migrate -> db-provision); clean-install steps in
+  `docs/operations/database-role-model.md`.
+  Rev. 71 (`BIM-CALC-2026-10-25.65`): request paths read
   companies/subscriptions/usage_logs in tenant context (`src/db/app-tenant.ts`), quota
   locking is a per-company advisory lock, admin RLS reads use the control plane.
   Verify with `scripts/role-model-smoke.ts` against a provisioned database (13/13).
