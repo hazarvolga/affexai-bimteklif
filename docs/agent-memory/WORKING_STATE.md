@@ -25,7 +25,12 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 72** (`BIM-CALC-2026-10-25.66`): role setup runs inside the
+- Latest roadmap revision: **Rev. 73** (`BIM-CALC-2026-10-25.67`): Faz 8 SEO/GEO code items
+  (T47/T49): no fixed sitemap lastmod, PUBLIC_APP_URL fail-fast pinned by tests, route JSON-LD
+  for calculators and the glossary, explicit AI crawler groups in robots.txt
+  (`ROBOTS_AI_TRAINING=disallow` closes training crawlers; default allows), llms links in
+  `index.html`. Not deployed yet.
+  Rev. 72 (`BIM-CALC-2026-10-25.66`): role setup runs inside the
   Coolify deploy (db-bootstrap -> migrate -> db-provision); clean-install steps in
   `docs/operations/database-role-model.md`.
   Rev. 71 (`BIM-CALC-2026-10-25.65`): request paths read

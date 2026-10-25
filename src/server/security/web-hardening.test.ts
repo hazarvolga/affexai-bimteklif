@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import express from 'express';
 import http from 'node:http';
-import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, securityTxt, sitemapXml } from './web-hardening';
+import { AI_SEARCH_CRAWLERS, AI_TRAINING_CRAWLERS, aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, securityTxt, sitemapXml } from './web-hardening';
 
 test('CSP locks scripts to self (+ Cloudflare Insights beacon) and only opens the origins the app really uses', () => {
   const policy = contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com' });
@@ -43,7 +43,7 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   const xml = sitemapXml('https://bimmetraj.com');
   assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/);
   for (const page of ['https://bimmetraj.com/', 'https://bimmetraj.com/pricing', 'https://bimmetraj.com/smartcheck', 'https://bimmetraj.com/bim-sozlugu']) assert.ok(xml.includes(`<loc>${page}</loc>`), page);
-  assert.ok(xml.includes('<lastmod>2026-10-18</lastmod>'));
+  assert.equal(xml.includes('<lastmod>'), false, 'SEO-03: sayfa başına gerçek tarih yokken lastmod yazılmaz');
   assert.ok(!xml.includes('/app'));
   assert.ok(!xml.includes('/login'));
   assert.ok(!xml.includes('/academy'), 'Academy is out of scope while ACADEMY_ENABLED is false');
@@ -84,3 +84,44 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   assert.equal(llms.includes('L3 CANLI'), false);
 });
 
+
+/** robots.txt'yi tarayıcı grubu → kurallar eşlemesine çevirir (ardışık User-agent satırları tek gruptur). */
+function robotsGroups(robots: string): Map<string, string[]> {
+  const groups = new Map<string, string[]>();
+  let agents: string[] = [];
+  let collectingAgents = false;
+  for (const line of robots.split('\n')) {
+    const [field, ...rest] = line.split(':');
+    const value = rest.join(':').trim();
+    if (field === 'User-agent') {
+      if (!collectingAgents) agents = [];
+      agents.push(value);
+      groups.set(value, []);
+      collectingAgents = true;
+    } else if (field === 'Disallow' || field === 'Allow') {
+      for (const agent of agents) groups.get(agent)!.push(`${field}: ${value}`);
+      collectingAgents = false;
+    }
+  }
+  return groups;
+}
+
+test('GEO-01: robots.txt names AI search and training crawlers and keeps private routes closed for each', () => {
+  const groups = robotsGroups(robotsTxt('https://bimmetraj.com'));
+  const privateRules = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/'];
+  for (const agent of ['*', ...AI_SEARCH_CRAWLERS, ...AI_TRAINING_CRAWLERS]) {
+    assert.deepEqual(groups.get(agent), privateRules, agent);
+  }
+  assert.ok(AI_SEARCH_CRAWLERS.includes('OAI-SearchBot') && AI_TRAINING_CRAWLERS.includes('GPTBot'));
+});
+
+test('GEO-01: ROBOTS_AI_TRAINING=disallow closes the site only for training crawlers', () => {
+  assert.equal(aiTrainingPolicyFromEnv(undefined), 'allow');
+  assert.equal(aiTrainingPolicyFromEnv('yes'), 'allow');
+  assert.equal(aiTrainingPolicyFromEnv(' Disallow '), 'disallow');
+  const robots = robotsTxt('https://bimmetraj.com', 'disallow');
+  const groups = robotsGroups(robots);
+  for (const agent of AI_TRAINING_CRAWLERS) assert.deepEqual(groups.get(agent), ['Disallow: /'], agent);
+  for (const agent of ['*', ...AI_SEARCH_CRAWLERS]) assert.equal(groups.get(agent)?.includes('Disallow: /'), false, agent);
+  assert.match(robots, /Sitemap: https:\/\/bimmetraj\.com\/sitemap\.xml/);
+});

@@ -114,3 +114,24 @@ test('production frontend injects per-route head tags, noindex for unknown paths
   assert.equal(full.status, 200);
   assert.match(await full.text(), /Yetenek Ayrıntıları/);
 });
+
+test('SEO-04: PUBLIC_APP_URL yokken (yalnız yerel/test) SEO dosyaları bir host uydurmaz, 404 döner', async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'bimmetraj-no-url-'));
+  await writeFile(path.join(root, 'index.html'), '<html>shell</html>');
+  const previous = process.env.PUBLIC_APP_URL;
+  delete process.env.PUBLIC_APP_URL;
+  const app = express();
+  registerProductionFrontend(app, root);
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise<void>(resolve => server.once('listening', resolve));
+  t.after(async () => {
+    if (previous !== undefined) process.env.PUBLIC_APP_URL = previous;
+    server.closeAllConnections();
+    await new Promise<void>(resolve => server.close(() => resolve()));
+    await rm(root, { recursive: true, force: true });
+  });
+  const base = `http://127.0.0.1:${(server.address() as any).port}`;
+  for (const file of ['/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt', '/.well-known/security.txt']) {
+    assert.equal((await fetch(base + file)).status, 404, file);
+  }
+});

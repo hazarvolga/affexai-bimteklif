@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getRouteMeta, injectRouteMeta } from './route-meta';
+import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
 import { llmsFullTxt } from './web-hardening';
 
 const SHELL = [
@@ -105,3 +106,45 @@ test('P1-4 ve P2 SEO: /bim-sozlugu noscript terimleri taşır, ana sayfa başlı
   assert.match(loginHtml, /<meta name="robots" content="noindex, follow" \/>/);
 });
 
+
+function routeJsonLdOf(html: string): any {
+  const match = html.match(/<script id="route-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  return match ? JSON.parse(match[1]) : null;
+}
+
+test('SEO-05: hesaplayıcı sayfası BreadcrumbList ve ücretsiz WebApplication alır; puan veya fiyat uydurulmaz', () => {
+  const html = injectRouteMeta(SHELL, { pathname: '/hesaplayicilar/fiyat-farki-4735', origin: 'https://bimmetraj.com' });
+  const data = routeJsonLdOf(html);
+  const [crumbs, app] = data['@graph'];
+  assert.equal(crumbs['@type'], 'BreadcrumbList');
+  assert.deepEqual(crumbs.itemListElement.map((item: any) => item.item), [
+    'https://bimmetraj.com/', 'https://bimmetraj.com/hesaplayicilar', 'https://bimmetraj.com/hesaplayicilar/fiyat-farki-4735',
+  ]);
+  assert.equal(app['@type'], 'WebApplication');
+  assert.equal(app.isAccessibleForFree, true);
+  const json = JSON.stringify(data);
+  for (const forbidden of ['aggregateRating', 'review', 'offers', 'price']) assert.equal(json.includes(forbidden), false, forbidden);
+});
+
+test('SEO-05: sözlük DefinedTermSet ile noscript metni aynı terim listesinden üretilir', () => {
+  const html = injectRouteMeta(SHELL, { pathname: '/bim-sozlugu', origin: 'https://bimmetraj.com' });
+  const set = routeJsonLdOf(html)['@graph'].find((node: any) => node['@type'] === 'DefinedTermSet');
+  assert.equal(set.hasDefinedTerm.length, PUBLIC_GLOSSARY_TERMS.length);
+  for (const term of PUBLIC_GLOSSARY_TERMS) {
+    assert.ok(set.hasDefinedTerm.some((t: any) => t.name === term.name && t.description === term.description), term.name);
+    const visible = `${term.name}: ${term.description}`.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    assert.ok(html.includes(`<p>${visible}</p>`), `noscript: ${term.name}`);
+  }
+});
+
+test('SEO-05: rota JSON-LD yalnız uygun genel sayfalarda, bir kez ve kaçışlanmış olarak eklenir', () => {
+  for (const pathname of ['/pricing', '/login']) {
+    assert.equal(injectRouteMeta(SHELL, { pathname, origin: 'https://bimmetraj.com' }).includes('route-jsonld'), false, pathname);
+  }
+  assert.equal(injectRouteMeta(SHELL, { pathname: '/olmayan', origin: 'https://bimmetraj.com', notFound: true }).includes('route-jsonld'), false);
+  const once = injectRouteMeta(SHELL, { pathname: '/hesaplayicilar', origin: 'https://bimmetraj.com' });
+  const twice = injectRouteMeta(once, { pathname: '/hesaplayicilar', origin: 'https://bimmetraj.com' });
+  assert.equal((twice.match(/id="route-jsonld"/g) ?? []).length, 1);
+  const script = once.match(/<script id="route-jsonld"[^>]*>([\s\S]*?)<\/script>/)![1];
+  assert.equal(/[<>]/.test(script), false);
+});
