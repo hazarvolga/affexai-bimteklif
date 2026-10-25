@@ -1,6 +1,7 @@
 import pg from "pg";
 import { assertRoleBoundaries, inspectRoleBoundaries, sanitizeRoleReport } from "./inspect";
-import { bootstrapLegacyDatabaseRoles, provisionDatabaseRoles, type DatabaseRoleCredentials } from "./provision";
+import { bootstrapFreshDatabaseRoles, bootstrapLegacyDatabaseRoles, provisionDatabaseRoles, type DatabaseRoleCredentials } from "./provision";
+import { installQueueSchemaAsOwner } from "./queue-schema";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -10,7 +11,10 @@ function required(name: string): string {
 
 async function main() {
   const mode = process.argv[2];
-  if (mode !== "inspect" && mode !== "provision" && mode !== "bootstrap-legacy") throw new Error("Usage: cli.ts inspect|bootstrap-legacy|provision");
+  // bootstrap-fresh and deploy-provision run as one-shot Compose services in the deploy graph
+  // (db-bootstrap -> migrate -> db-provision); the others are operator-only.
+  const modes = ["inspect", "provision", "bootstrap-legacy", "bootstrap-fresh", "deploy-provision"];
+  if (!modes.includes(mode)) throw new Error(`Usage: cli.ts ${modes.join("|")}`);
   const connectionString = required(mode === "inspect" ? "DATABASE_ROLE_INSPECT_URL" : "DATABASE_ROLE_ADMIN_URL");
   if (mode !== "inspect" && process.env.DATABASE_ROLE_ALLOW_PROVISION !== "true") {
     throw new Error("DATABASE_ROLE_ALLOW_PROVISION=true is required");
@@ -18,7 +22,7 @@ async function main() {
   const client = new pg.Client({ connectionString, application_name: `bimmetraj-role-${mode}` });
   try {
     await client.connect();
-    if (mode === "provision" || mode === "bootstrap-legacy") {
+    if (mode !== "inspect") {
       const credentials: DatabaseRoleCredentials = {
         bimmetraj_migrator: required("BIMMETRAJ_MIGRATOR_DB_PASSWORD"),
         bimmetraj_app: required("BIMMETRAJ_APP_DB_PASSWORD"),
@@ -32,6 +36,14 @@ async function main() {
         requiredMarkerRegclass: required("DATABASE_ROLE_REQUIRED_MARKER"),
       };
       const administratorCredential = decodeURIComponent(new URL(connectionString).password);
+      if (mode === "bootstrap-fresh") {
+        const result = await bootstrapFreshDatabaseRoles(client, credentials, target, administratorCredential);
+        process.stdout.write(result === "bootstrapped"
+          ? "Fresh database: canonical roles created; release migrations may run as bimmetraj_migrator.\n"
+          : "Database already carries the release ledger; fresh bootstrap skipped.\n");
+        return;
+      }
+      if (mode === "deploy-provision") await installQueueSchemaAsOwner(connectionString);
       if (mode === "bootstrap-legacy") {
         await bootstrapLegacyDatabaseRoles(client, credentials, target, administratorCredential);
         process.stdout.write("Legacy idx8 role bootstrap committed; apply release migrations and then run full provision/inspect.\n");

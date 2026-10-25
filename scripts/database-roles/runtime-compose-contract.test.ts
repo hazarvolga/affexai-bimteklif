@@ -21,7 +21,16 @@ const expected = Object.freeze({
   migrate: ["RELEASE_DATABASE_URL", "bimmetraj_migrator"],
 } as const);
 
-type RenderedService = { environment?: Record<string, string>; profiles?: string[]; command?: string[] };
+type RenderedService = {
+  environment?: Record<string, string>;
+  profiles?: string[];
+  command?: string[];
+  restart?: string;
+  depends_on?: Record<string, { condition?: string }>;
+};
+
+/** The only services that may carry the bootstrap administrator and role credentials. All exit. */
+const DATABASE_ADMIN_SERVICES = ["role-admin", "db-bootstrap", "db-provision"] as const;
 
 function renderCompose(source: string): Record<string, RenderedService> {
   const directory = mkdtempSync(path.join(tmpdir(), "bimmetraj-db-runtime-compose-"));
@@ -108,6 +117,20 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
     for (const key of ["BIMMETRAJ_APP_DB_PASSWORD", "BIMMETRAJ_CONTROL_DB_PASSWORD", "BIMMETRAJ_WORKER_DB_PASSWORD", "BIMMETRAJ_MIGRATOR_DB_PASSWORD", "BIMMETRAJ_BACKUP_DB_PASSWORD"]) {
       assert.equal(roleEnvironment[key], credentials[key as keyof typeof credentials]);
     }
+    for (const [serviceName, mode] of [["db-bootstrap", "bootstrap-fresh"], ["db-provision", "deploy-provision"]] as const) {
+      const service = services[serviceName];
+      assert.ok(service, `${serviceName} deploy step is required`);
+      assert.equal(service.profiles, undefined, `${serviceName} runs in every deploy, not only for operators`);
+      assert.deepEqual(service.command, ["node", "dist/database-roles-cli.mjs", mode]);
+      assert.equal(service.restart, "no", `${serviceName} must be one-shot`);
+      assert.deepEqual(service.environment, roleEnvironment, `${serviceName} uses exactly the operator role environment`);
+    }
+    assert.equal(services.migrate?.depends_on?.["db-bootstrap"]?.condition, "service_completed_successfully", "migrations wait for fresh role bootstrap");
+    assert.equal(services["db-provision"]?.depends_on?.migrate?.condition, "service_completed_successfully", "provisioning follows migrations");
+    for (const runtime of ["app", "worker", "ifc-worker"]) {
+      assert.equal(services[runtime]?.depends_on?.["db-provision"]?.condition, "service_completed_successfully", `${runtime} starts only after grants converge`);
+      assert.equal(services[runtime]?.restart, "unless-stopped");
+    }
     const dockerfile = readFileSync(path.resolve("Dockerfile"), "utf8");
     assert.match(dockerfile, /scripts\/database-roles\/cli\.ts/);
     assert.match(dockerfile, /outfile=dist\/database-roles-cli\.mjs/);
@@ -127,7 +150,7 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
       const environment = service.environment ?? {};
       assert.equal(environment.POSTGRES_PASSWORD, undefined, `${serviceName} cannot receive bootstrap password`);
       for (const key of Object.keys(credentials).filter((key) => key.endsWith("_DB_PASSWORD") || key === "SERVICE_PASSWORD_64_POSTGRES")) {
-        if (serviceName === "role-admin") continue;
+        if ((DATABASE_ADMIN_SERVICES as readonly string[]).includes(serviceName)) continue;
         assert.ok(environment[key] === undefined || environment[key] === "", `${serviceName} cannot expose raw ${key}`);
       }
     }

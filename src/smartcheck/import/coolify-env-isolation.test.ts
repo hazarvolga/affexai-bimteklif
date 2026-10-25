@@ -7,7 +7,9 @@ import test from 'node:test';
 
 test('Coolify shared env_file cannot expose backup credentials to other services', () => {
   const directory = mkdtempSync(path.join(tmpdir(), 'bimmetraj-compose-env-'));
-  const services = ['app', 'worker', 'ifc-worker', 'migrate', 'postgres', 'backup'];
+  const services = ['app', 'worker', 'ifc-worker', 'migrate', 'postgres', 'backup', 'db-bootstrap', 'db-provision'];
+  // One-shot deploy steps that create roles and converge grants; they alone receive role passwords.
+  const databaseAdminSteps = new Set(['db-bootstrap', 'db-provision']);
   const backupKeys = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ENDPOINT', 'BACKUP_S3_ACCESS_KEY_ID', 'BACKUP_S3_SECRET_ACCESS_KEY'];
   const appSecrets = ['SMARTCHECK_S3_ACCESS_KEY_ID', 'SMARTCHECK_S3_SECRET_ACCESS_KEY', 'JWT_SECRET', 'SERVICE_HEX_64_JWT', 'OPENAI_API_KEY', 'GEMINI_API_KEY'];
   const databaseSecrets = ['BIMMETRAJ_APP_DB_PASSWORD', 'BIMMETRAJ_CONTROL_DB_PASSWORD', 'BIMMETRAJ_WORKER_DB_PASSWORD', 'BIMMETRAJ_MIGRATOR_DB_PASSWORD', 'BIMMETRAJ_BACKUP_DB_PASSWORD', 'SERVICE_PASSWORD_64_POSTGRES'];
@@ -39,7 +41,10 @@ test('Coolify shared env_file cannot expose backup credentials to other services
     }
     for (const key of appSecrets) assert.equal(rendered.backup.environment[key], '', `backup must not receive ${key}`);
     for (const service of services) {
-      for (const key of databaseSecrets) assert.equal(rendered[service].environment[key], '', `${service} must not retain raw ${key}`);
+      for (const key of databaseSecrets) {
+        const expected = databaseAdminSteps.has(service) && key !== 'SERVICE_PASSWORD_64_POSTGRES' ? fixtures[key] : '';
+        assert.equal(rendered[service].environment[key], expected, `${service}: raw ${key} scope`);
+      }
       assert.equal(rendered[service].environment.RELEASE_WORKERS_DRAINED, service === 'migrate' ? 'true' : '', `${service}: release drain acknowledgement scope`);
     }
   } finally {
