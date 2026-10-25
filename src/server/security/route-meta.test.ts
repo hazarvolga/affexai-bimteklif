@@ -59,14 +59,18 @@ test('llms-full.txt yetenekleri kayıttan üretir ve imzasız yeteneği "uzman o
   assert.equal(text.includes('/hesaplayicilar/yambis-muteahhitlik-grubu'), false);
 });
 
-test('JS çalıştırmayan tarayıcılar için rota başına <noscript> içeriği eklenir ve bir kez eklenir', () => {
+test('T48: rota içeriği #root içinde ön-render olarak, noscript dışında ve bir kez eklenir', () => {
   const once = injectRouteMeta(SHELL, { pathname: '/hesaplayicilar/kik-asiri-dusuk-teklif', origin: 'https://bimmetraj.com' });
-  assert.match(once, /<noscript><main><h1>Aşırı Düşük Teklif Sınır Değeri Hesaplama/);
+  assert.match(once, /<div id="root"><main id="prerender" data-prerender="route"><h1>Aşırı Düşük Teklif Sınır Değeri Hesaplama/);
+  assert.equal(/<noscript>(?:(?!<\/noscript>)[^])*<h1>/.test(once), false, 'içerik noscript içinde olmamalı (Readability/Trafilatura siler)');
+  assert.match(once, /<style id="prerender-style">#prerender\{position:absolute/);
+  assert.match(once, /<noscript><style>#prerender\{position:static/);
   assert.match(once, /52\.281,00 TL/); // resmî Tebliğ 45.2 örneği
   assert.match(once, /K = \(3,2C − C² − 0,6\) \/ \(C \+ 1\)/);
   assert.match(once, /<a href="https:\/\/bimmetraj\.com\/pricing">Paketler<\/a>/);
   const twice = injectRouteMeta(once, { pathname: '/hesaplayicilar/kik-asiri-dusuk-teklif', origin: 'https://bimmetraj.com' });
-  assert.equal((twice.match(/<noscript><main>/g) ?? []).length, 1);
+  assert.equal((twice.match(/id="prerender"/g) ?? []).length, 1);
+  assert.equal((twice.match(/id="prerender-style"/g) ?? []).length, 1);
 });
 
 test('4735 sayfası B = 0,90 ve ağırlık toplamı 1,00 bilgisini taşır; ana sayfa yetenek durumunu dürüstçe listeler', () => {
@@ -78,15 +82,16 @@ test('4735 sayfası B = 0,90 ve ağırlık toplamı 1,00 bilgisini taşır; ana 
   assert.match(home, /bağımsız uzman onayı yok/);
 });
 
-test('bilinmeyen rota ve noscript: 404 sayfasına içerik eklenmez; kullanıcı girdisi kaçışlanır', () => {
+test('bilinmeyen rota ve ön-render: 404 sayfasına içerik eklenmez; kullanıcı girdisi kaçışlanır', () => {
   const notFound = injectRouteMeta(SHELL, { pathname: '/yok', origin: 'https://bimmetraj.com', notFound: true });
-  assert.equal(notFound.includes('<noscript><main>'), false);
+  assert.equal(notFound.includes('id="prerender"'), false);
+  assert.match(notFound, /<div id="root"><\/div>/);
   const evil = injectRouteMeta(SHELL, { pathname: '/', origin: 'https://bimmetraj.com', capabilityLines: ['<script>alert(1)</script>'] });
   assert.equal(evil.includes('<script>alert(1)</script>'), false);
   assert.match(evil, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 });
 
-test('P1-4 ve P2 SEO: /bim-sozlugu noscript terimleri taşır, ana sayfa başlığı <=60 karakterdir, /login ve /register noindex alır ve FAQPage yalnız ana sayfada kalır', () => {
+test('P1-4 ve P2 SEO: /bim-sozlugu ön-render terimleri taşır, ana sayfa başlığı <=60 karakterdir, /login ve /register noindex alır ve FAQPage yalnız ana sayfada kalır', () => {
   const shellWithFaq = SHELL.replace('</head>', '<script id="faq-jsonld" type="application/ld+json">{"@type":"FAQPage"}</script></head>');
   const home = injectRouteMeta(shellWithFaq, { pathname: '/', origin: 'https://bimmetraj.com' });
   const homeMeta = getRouteMeta('/')!;
@@ -126,14 +131,14 @@ test('SEO-05: hesaplayıcı sayfası BreadcrumbList ve ücretsiz WebApplication 
   for (const forbidden of ['aggregateRating', 'review', 'offers', 'price']) assert.equal(json.includes(forbidden), false, forbidden);
 });
 
-test('SEO-05: sözlük DefinedTermSet ile noscript metni aynı terim listesinden üretilir', () => {
+test('SEO-05: sözlük DefinedTermSet ile ön-render metni aynı terim listesinden üretilir', () => {
   const html = injectRouteMeta(SHELL, { pathname: '/bim-sozlugu', origin: 'https://bimmetraj.com' });
   const set = routeJsonLdOf(html)['@graph'].find((node: any) => node['@type'] === 'DefinedTermSet');
   assert.equal(set.hasDefinedTerm.length, PUBLIC_GLOSSARY_TERMS.length);
   for (const term of PUBLIC_GLOSSARY_TERMS) {
     assert.ok(set.hasDefinedTerm.some((t: any) => t.name === term.name && t.description === term.description), term.name);
     const visible = `${term.name}: ${term.description}`.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    assert.ok(html.includes(`<p>${visible}</p>`), `noscript: ${term.name}`);
+    assert.ok(html.includes(`<p>${visible}</p>`), `prerender: ${term.name}`);
   }
 });
 
@@ -157,4 +162,10 @@ test('T46: /pricing sunucu metni plan kataloğu ve fatura dönemleriyle aynı fi
     assert.ok(html.includes(`(${plan.monthlyPrice.toLocaleString('tr-TR')} TL/ay)`), plan.name);
   }
   for (const option of BILLING_PERIOD_OPTIONS.filter(o => o.discountPercent > 0)) assert.ok(html.includes(`%${option.discountPercent}`), option.id);
+});
+
+test('T48: noindex rotaları (/login) ön-render içeriği ve stil almaz', () => {
+  const login = injectRouteMeta(SHELL, { pathname: '/login', origin: 'https://bimmetraj.com' });
+  assert.equal(login.includes('id="prerender"'), false);
+  assert.equal(login.includes('prerender-style'), false);
 });
