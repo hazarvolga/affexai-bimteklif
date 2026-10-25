@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { parseVeraPdfXml, runVeraPdfValidation } from "./verapdf-runner";
+import { parseVeraPdfXml, runVeraPdfValidation, runVeraPdfValidationWithRawReport } from "./verapdf-runner";
 
 const fixtures = path.resolve("fixtures/phase-0/open-source/verapdf");
 
@@ -215,4 +215,19 @@ test("veraPDF XML parser rejects DTD/entity input and incomplete scans", () => {
 
   const contradictory = parseVeraPdfXml(`<?xml version="1.0"?><report><jobs><validationReport profileName="PDF/A-2b validation profile" isCompliant="true"><details passedRules="1" failedRules="1" passedChecks="1" failedChecks="1"/></validationReport></jobs><batchSummary totalJobs="1" failedToParse="0" encrypted="0" outOfMemory="0" veraExceptions="0"><validationReports compliant="1" nonCompliant="0" failedJobs="0">1</validationReports></batchSummary></report>`);
   assert.equal(contradictory.scanComplete, false);
+});
+
+test("veraPDF runner returns the raw XML report only when the validator ran", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "verapdf-runner-raw-"));
+  try {
+    const executablePath = await fakeVeraPdf(directory);
+    const ran = await runVeraPdfValidationWithRawReport(path.join(fixtures, "pdfa2b-fail.pdf"), "pdfa2b-fail.pdf", { executablePath });
+    assert.equal(ran.report.status, "completed");
+    assert.match(ran.rawReportXml ?? "", /<validationReport profileName="PDF\/A-2b validation profile"/);
+    const skipped = await runVeraPdfValidationWithRawReport(path.join(fixtures, "pdfa2b-fail.pdf"), "pdfa2b-fail.pdf", { executablePath: path.join(directory, "missing-verapdf") });
+    assert.equal(skipped.report.status, "unavailable");
+    assert.equal(skipped.rawReportXml, null);
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
 });

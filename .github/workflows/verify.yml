@@ -53,7 +53,7 @@ jobs:
             echo 'needed=true' >> "$GITHUB_OUTPUT"
           else
             git diff --name-only "$BASE_SHA" HEAD > "$RUNNER_TEMP/teklifpro-changed-files"
-            if grep -Eq '^(Dockerfile|\.dockerignore|compose\.(example|coolify)\.yaml|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|server\.ts|tsconfig\.json|vite\.config\.|src/|components/|public/|index\.html|workers/ifc/|scripts/release-migrations/|drizzle-release/|\.github/workflows/verify\.yml)' "$RUNNER_TEMP/teklifpro-changed-files"; then
+            if grep -Eq '^(Dockerfile|\.dockerignore|compose\.(example|coolify)\.yaml|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|server\.ts|tsconfig\.json|vite\.config\.|src/|components/|public/|index\.html|workers/ifc/|scripts/release-migrations/|scripts/pdfa-matrix/|deploy/verapdf/|fixtures/phase-5/pdfa-matrix/|drizzle-release/|\.github/workflows/verify\.yml)' "$RUNNER_TEMP/teklifpro-changed-files"; then
               echo 'needed=true' >> "$GITHUB_OUTPUT"
             else
               echo 'needed=false' >> "$GITHUB_OUTPUT"
@@ -158,3 +158,10 @@ jobs:
           assert os.path.isfile("workers/ifc/ifc_extract.py")
           '
           docker run --rm --network none --read-only --entrypoint /opt/venv/bin/python3 teklifpro-ifc-worker:ci workers/ifc/ifc_extract.py --help
+      - name: T32 veraPDF fixture matrix in the IFC/PDF worker image
+        if: steps.container_changes.outputs.needed == 'true'
+        run: |
+          docker run --rm --network none --read-only --memory 2048m --cpus 1.5 --pids-limit 128 \
+            --tmpfs /tmp:size=536870912,mode=1777 --tmpfs /home/node/.cache:uid=1000,gid=1000 \
+            --cap-drop ALL --security-opt no-new-privileges:true \
+            -v "$PWD/fixtures:/fixtures:ro" --entrypoint node teklifpro-ifc-worker:ci dist/pdfa-matrix.mjs /fixtures
