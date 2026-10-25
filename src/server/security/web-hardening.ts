@@ -107,16 +107,47 @@ export function isKnownSpaRoute(pathname: string): boolean {
   );
 }
 
+/**
+ * SEO-03 / T47: sayfa başına gerçek bir içerik değişiklik tarihi tutulmadığı için `lastmod` yazılmaz.
+ * Tüm sayfalara aynı (derleme veya sabit) tarihi vermek, arama motorlarına yanlış güncelleme sinyali olurdu.
+ */
 export function sitemapXml(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
-  const lastmod = '2026-10-18';
-  const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n');
+  const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc></url>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
-export function robotsTxt(publicAppUrl: string): string {
+/** Arama/alıntı amaçlı yapay zekâ tarayıcıları (kullanıcı sorusuna yanıt verirken sayfayı okur). */
+export const AI_SEARCH_CRAWLERS = ['OAI-SearchBot', 'ChatGPT-User', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot', 'Perplexity-User'] as const;
+/** Model eğitimi için içerik toplayan tarayıcılar ve eğitim kullanım belirteçleri. */
+export const AI_TRAINING_CRAWLERS = ['GPTBot', 'ClaudeBot', 'Google-Extended', 'Applebot-Extended', 'CCBot'] as const;
+
+export type AiTrainingPolicy = 'allow' | 'disallow';
+
+const PRIVATE_DISALLOWS = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/'];
+
+/** `ROBOTS_AI_TRAINING=disallow` eğitim tarayıcılarını kapatır; tanımsız veya başka değer varsayılanı (izin) korur. */
+export function aiTrainingPolicyFromEnv(value: string | undefined): AiTrainingPolicy {
+  return value?.trim().toLowerCase() === 'disallow' ? 'disallow' : 'allow';
+}
+
+/**
+ * GEO-01 / T49: yapay zekâ tarayıcıları için açık gruplar. Bir tarayıcı kendi adını taşıyan grubu bulunca `*`
+ * grubunu okumaz; bu yüzden özel rotaların yasağı her grupta tekrarlanır. Varsayılan davranış önceki `*`
+ * kuralıyla aynıdır (genel sayfalar açık); eğitim izni site sahibinin tercihidir.
+ */
+export function robotsTxt(publicAppUrl: string, trainingPolicy: AiTrainingPolicy = 'allow'): string {
   const origin = new URL(publicAppUrl).origin;
-  return ['User-agent: *', 'Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', '', `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
+  const group = (agents: readonly string[], rules: readonly string[]) => [...agents.map(agent => `User-agent: ${agent}`), ...rules, ''];
+  return [
+    ...group(['*'], PRIVATE_DISALLOWS),
+    '# Yapay zekâ arama ve alıntı tarayıcıları: genel sayfalar açık.',
+    ...group(AI_SEARCH_CRAWLERS, PRIVATE_DISALLOWS),
+    `# Model eğitimi tarayıcıları: ${trainingPolicy === 'allow' ? 'genel sayfalar açık' : 'site kapalı'} (ROBOTS_AI_TRAINING).`,
+    ...group(AI_TRAINING_CRAWLERS, trainingPolicy === 'allow' ? PRIVATE_DISALLOWS : ['Disallow: /']),
+    `Sitemap: ${origin}/sitemap.xml`,
+    '',
+  ].join('\n');
 }
 
 export function securityTxt(publicAppUrl: string): string {

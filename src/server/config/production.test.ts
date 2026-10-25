@@ -17,6 +17,15 @@ describe('production environment preflight', () => {
     assert.equal(result.errors.length, 5);
   });
 
+  it('SEO-04: fails fast when PUBLIC_APP_URL is missing instead of falling back to a guessed domain', () => {
+    const complete = { NODE_ENV: 'production', ...database, JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://bimmetraj.com', AUTH_EMAIL_WEBHOOK_URL: 'https://n8n.example.com/webhook/auth', AUTH_EMAIL_WEBHOOK_SECRET: 'w'.repeat(48), TRUST_PROXY_HOPS: '1' };
+    assert.equal(validateProductionEnvironment(complete).valid, true);
+    const { PUBLIC_APP_URL: _omitted, ...withoutUrl } = complete;
+    const result = validateProductionEnvironment(withoutUrl);
+    assert.equal(result.valid, false);
+    assert.deepEqual(result.errors, ['PUBLIC_APP_URL must be an absolute HTTPS URL.']);
+  });
+
   it('accepts a complete Coolify-style production environment', () => {
     const result = validateProductionEnvironment({ NODE_ENV: 'production', ...database, JWT_SECRET: 'j'.repeat(48), PUBLIC_APP_URL: 'https://academy.example.com', AUTH_EMAIL_WEBHOOK_URL: 'https://n8n.example.com/webhook/auth', AUTH_EMAIL_WEBHOOK_SECRET: 'w'.repeat(48), TRUST_PROXY_HOPS: '1' });
     assert.equal(result.valid, true);

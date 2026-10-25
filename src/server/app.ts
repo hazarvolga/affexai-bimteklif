@@ -54,7 +54,7 @@ import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, hashReportingIdentifier, readBuildRevision, sanitizeErrorForReporting } from "./observability/error-tracking";
-import { canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
+import { aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
 import { injectRouteMeta } from "./security/route-meta";
 import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
@@ -258,13 +258,15 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
     if (!hasOgImage) return res.status(404).end();
     res.set('Cache-Control', 'public, max-age=86400').sendFile(ogImageFile);
   });
+  // SEO-04 / T47: production'da PUBLIC_APP_URL yoksa sunucu açılmaz (assertProductionEnvironment).
+  // Bu 404'ler yalnız yerel/test ortamı içindir; bilinmeyen bir host adına sitemap veya canonical üretilmez.
   app.get('/sitemap.xml', (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
     res.type('application/xml').set('Cache-Control', 'public, max-age=3600').send(sitemapXml(process.env.PUBLIC_APP_URL));
   });
   app.get('/robots.txt', (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
-    res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(robotsTxt(process.env.PUBLIC_APP_URL));
+    res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(robotsTxt(process.env.PUBLIC_APP_URL, aiTrainingPolicyFromEnv(process.env.ROBOTS_AI_TRAINING)));
   });
   app.get('/llms.txt', (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
