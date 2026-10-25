@@ -22,6 +22,10 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   model; worker canary/drain followed by the authority-table ACL revoke (T41).
   Do not open Developer View again.
 - Merging never deploys. Run `scripts/require-green-ci.sh <sha>` before Deploy.
+  Before pressing Deploy, run `scripts/release-preflight.sh` (read-only): it lists
+  unmerged/unpushed local branches, dirty worktrees, open PRs, checks CI on
+  `origin/main` and prints how many commits live is behind main. It exits 1 when
+  work is pending; `--allow-pending` only warns.
 
 ## Code (main / working branch)
 
