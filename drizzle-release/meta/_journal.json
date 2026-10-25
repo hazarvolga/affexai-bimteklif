@@ -162,6 +162,13 @@
       "when": 1791417600022,
       "tag": "0022_tenant_business_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791417600023,
+      "tag": "0023_quotation_core_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import type { Express, RequestHandler, Response } from 'express';
 import { z } from 'zod';
+import { tenantOf } from '../../db/app-tenant';
 import { authenticate } from '../middleware/auth';
 import { editManualQuotation, editQuotationInput, loadEditableQuotation } from '../../services/quotations/edit';
 import { QuotationIntegrityError } from '../../services/quotations/integrity';
@@ -13,7 +14,7 @@ export function registerQuotationEditRoutes(app: Express, canMutate: RequestHand
   app.get('/api/quotations/:id/edit', authenticate, canMutate, async (req, res) => {
     if (!z.string().uuid().safeParse(req.params.id).success) return res.status(400).json({ error: 'Geçersiz teklif.' });
     try {
-      res.json(await loadEditableQuotation(req.user.companyId, req.params.id));
+      res.json(await loadEditableQuotation(tenantOf(req.user), req.params.id));
     } catch (error) { editError(error, res); }
   });
   app.patch('/api/quotations/:id/edit', authenticate, canMutate, async (req, res) => {
@@ -22,7 +23,7 @@ export function registerQuotationEditRoutes(app: Express, canMutate: RequestHand
       return res.status(400).json({ error: 'Teklif alanlarını kontrol edin.' });
     }
     try {
-      res.json(await editManualQuotation(req.user.companyId, req.params.id, parsed.data));
+      res.json(await editManualQuotation(tenantOf(req.user), req.params.id, parsed.data));
     } catch (error) { editError(error, res); }
   });
 }

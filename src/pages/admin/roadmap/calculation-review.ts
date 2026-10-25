@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.73",
+  version: "BIM-CALC-2026-10-25.74",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "11333fda14ebb32be5503fa81d6111387e5086e8",
-  approvalStatus: "Rev. 79, T43 kapsamında server-path.e2e.test.ts içindeki Python çözümlemesini resolvePythonBin() + hasPythonIfcRuntime() ile birleştirerek CI sistem Python'unda atlanan IFC parity/consistency testlerini devreye alır; Rev. 78 T42 yetki/kaynak sınırı regresyonunu ve §8.4 sektör varsayılanı kusurunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "a7d7eca5a60afcddde6b55ae0d671732250489ba",
+  approvalStatus: "Rev. 80, T41 S1 (0023_quotation_core_rls) kapsamında 6 teklif çekirdeği tablosunu (clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers, quotation_transfer_source_rows) ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alır (42/72 company_id tablosu FORCE RLS altında) ve database-role-provision.pgtest.ts pre-schema rol sözleşmesini 1/1 PASS durumuna getirir; Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S2–S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1726,6 +1726,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "server-path.e2e.test.ts yalnızca yerel workers/ifc/.venv/bin/python varlığında çalışıyordu.",
         after: "resolvePythonBin() + ifcopenshell runtime kontrolü ile CI sistem Python'unda da consistencyReport ve browser/worker parity testleri çalışır.",
         basis: "Faz 7 T43 doğrulama hattı — zorunlu senaryonun CI'da atlanmaması",
+      },
+    },
+  },
+  {
+    revision: "Rev. 80",
+    version: "BIM-CALC-2026-10-25.74",
+    date: "25 Ekim 2026",
+    commit: "a7d7eca5a60afcddde6b55ae0d671732250489ba",
+    trigger: "GAP planı T41 S1 dilimi (0023_quotation_core_rls — 6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts pre-schema rol sözleşmesi düzeltmesi.",
+    beforeSummary: "clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers ve quotation_transfer_source_rows tabloları yalnızca uygulama katmanında company_id filtresiyle korunuyordu; database-role-provision.pgtest.ts pre-schema modunda henüz oluşmamış worker fonksiyonlarında hata veriyordu.",
+    afterSummary: "0023_quotation_core_rls.sql ile 6 teklif çekirdeği tablosu ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alındı (42/72 company_id tablosu FORCE RLS altında); ilgili tüm route/servis yolları withAppTenant/withAppTenantTransaction sınırına taşındı; 11/11 PG16 kontrat testi ve 14/14 release-migration lifecycle testi yeşil yapıldı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["teklif-satir"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Müşteri, teklif, kalem, kanıt ve Calm transfer tablolarında veritabanı düzeyinde FORCE RLS yoktu; sorgular paylaşılan app havuzundan doğrudan çalışabiliyordu.",
+        after: "0023_quotation_core_rls ile 6 teklif çekirdeği tablosu FORCE RLS altına alındı ve tüm teklif/revizyon/düzenleme/aktarım/PDF sorguları withAppTenant / withAppTenantTransaction içine taşındı.",
+        basis: "Faz 7 T41 S1 — teklif çekirdeği çok-kiracılı veritabanı izolasyonu",
       },
     },
   },

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
-import { db } from "../../db";
+import { withAppTenantTransaction } from "../../db/app-tenant";
 import {
   documentProcessingRuns,
   documentProcessingArtifacts,
@@ -260,7 +260,7 @@ export type CalmTransferRequest = {
   priceSnapshotIdsByCalmLineId: Readonly<Record<string, string>>;
 };
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Transaction = Parameters<Parameters<typeof withAppTenantTransaction>[1]>[0];
 
 function transferError(code: string, status = 409): never {
   throw new CalmTransferError(code, status);
@@ -676,5 +676,5 @@ export async function transferCalmRowsToQuotationRevision(
     actorUserId: actor.userId,
     ...input,
   });
-  return db.transaction((tx) => performCalmTransfer(tx, actor, cleanIdempotencyKey, input, requestPayloadHash, at));
+  return withAppTenantTransaction(actor, (tx) => performCalmTransfer(tx, actor, cleanIdempotencyKey, input, requestPayloadHash, at));
 }

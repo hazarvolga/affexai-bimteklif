@@ -1,6 +1,5 @@
 import { resolveBenchmarkProvenance } from './benchmark-provenance';
 import { and, desc, eq, or } from "drizzle-orm";
-import { db } from "../../db";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantContext } from "../../db/tenant-context";
 import { clients, industries, quotationItemEvidence, quotationItems, quotations } from "../../db/schema";
@@ -8,6 +7,12 @@ import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calc
 import type { ManualQuotationInput } from "./input";
 import { copyRevisionItems } from "./revision-copy";
 import { consumeQuotationQuota } from "../billing/quota";
+
+export function normalizeQuotationTenantActor(actorOrCompanyId: TenantContext | string): TenantContext {
+  return typeof actorOrCompanyId === "string"
+    ? { companyId: actorOrCompanyId, userId: actorOrCompanyId }
+    : actorOrCompanyId;
+}
 
 export class QuotationIntegrityError extends Error {
   constructor(readonly status: number, message: string) {
@@ -73,9 +78,11 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
   });
 }
 
-export async function createQuotationRevision(companyId: string, sourceId: string) {
+export async function createQuotationRevision(actorOrCompanyId: TenantContext | string, sourceId: string) {
+  const actor = normalizeQuotationTenantActor(actorOrCompanyId);
+  const { companyId } = actor;
   // Revisions preserve an existing quote series and do not consume new-quote quota.
-  return db.transaction(async tx => {
+  return withAppTenantTransaction(actor, async tx => {
     const [source] = await tx.select().from(quotations)
       .where(and(eq(quotations.id, sourceId), eq(quotations.companyId, companyId)));
     if (!source) throw new QuotationIntegrityError(404, "Original quote not found");

@@ -158,7 +158,7 @@ describe("T42 — Yetki, kaynak sınırı, sektör varsayılanı ve lease regres
     assert.equal((resMutation.body as { code?: string })?.code, "SUBSCRIPTION_SUSPENDED");
 
     // Read-only impersonation token cannot mutate business resources
-    const impersonationToken = AuthService.generateToken({ userId, companyId, role: "owner", impersonatedBy: adminId, readOnly: true });
+    const impersonationToken = AuthService.generateToken({ userId, companyId, role: "owner", impersonatedBy: adminId, readOnly: true } as any);
     const impersonationAuth = createAuthenticate({
       async findUser(id) {
         return { email: `${id}@example.test`, emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: id === adminId };

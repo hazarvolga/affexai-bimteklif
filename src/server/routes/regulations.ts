@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db";
+import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { quotationItems, quotations, regulationAlerts, regulationVersions } from "../../db/schema";
 import { RegulatoryIntelligenceService } from "../../services/regulations/regulatoryService";
 import { findRegulationQuotationImpact } from "../regulations/impact";
@@ -37,18 +38,23 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
 
   app.get("/api/regulations/versions/:id/affected-quotations", authenticate, async (req, res) => {
     try {
-      const [version] = await db.select().from(regulationVersions)
-        .where(and(eq(regulationVersions.id, req.params.id), eq(regulationVersions.companyId, req.user.companyId)));
-      if (!version) return res.status(404).json({ error: "Regulation version not found" });
+      const data = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const [version] = await tenantDb.select().from(regulationVersions)
+          .where(and(eq(regulationVersions.id, req.params.id), eq(regulationVersions.companyId, req.user.companyId)));
+        if (!version) return null;
+        const quoteRows = await tenantDb.select().from(quotations)
+          .where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.isLatest, true)))
+          .orderBy(desc(quotations.updatedAt)).limit(500);
+        const quoteIds = quoteRows.map((quote) => quote.id);
+        const items = quoteIds.length
+          ? await tenantDb.select().from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), inArray(quotationItems.quotationId, quoteIds)))
+          : [];
+        return { version, quoteRows, items };
+      });
+      if (!data) return res.status(404).json({ error: "Regulation version not found" });
+      const { version, quoteRows, items } = data;
       const asOfValue = typeof req.query.asOf === "string" ? new Date(req.query.asOf) : new Date();
       const asOf = Number.isNaN(asOfValue.getTime()) ? new Date() : asOfValue;
-      const quoteRows = await db.select().from(quotations)
-        .where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.isLatest, true)))
-        .orderBy(desc(quotations.updatedAt)).limit(500);
-      const quoteIds = quoteRows.map((quote) => quote.id);
-      const items = quoteIds.length
-        ? await db.select().from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), inArray(quotationItems.quotationId, quoteIds)))
-        : [];
       const impactVersion = { ...version, category: version.category as "tax" | "labor" | "material" | "procurement" | "legal" };
       const affectedQuotations = quoteRows.map((quote) => findRegulationQuotationImpact(impactVersion, quote, items, asOf)).filter((impact): impact is NonNullable<typeof impact> => Boolean(impact));
       res.json({ version, asOf, count: affectedQuotations.length, affectedQuotations });
@@ -84,11 +90,14 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
     try {
       const { quotationId, alertId } = req.body;
 
-      const quote = await db.query.quotations.findFirst({
-        where: and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId)),
-      });
-      const alert = await db.query.regulationAlerts.findFirst({
-        where: and(eq(regulationAlerts.id, alertId), eq(regulationAlerts.companyId, req.user.companyId)),
+      const { quote, alert } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const fetchedQuote = await tenantDb.query.quotations.findFirst({
+          where: and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId)),
+        });
+        const fetchedAlert = await tenantDb.query.regulationAlerts.findFirst({
+          where: and(eq(regulationAlerts.id, alertId), eq(regulationAlerts.companyId, req.user.companyId)),
+        });
+        return { quote: fetchedQuote, alert: fetchedAlert };
       });
 
       if (!quote || !alert) return res.status(404).json({ error: "Quote or Alert not found" });

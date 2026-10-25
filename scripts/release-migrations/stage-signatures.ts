@@ -94,6 +94,10 @@ const stages = [
     sql: '8633a01e1d0d11e7ed9865556d471282d29689561d2d0f9130f2bf3e8ca025d4',
     snapshot: 'd962e72bcf075c7a8679647998a3de486b6a29c5489a83ef4d930d3803143d91',
     catalog: 'a5450819acdcb6349c4c62287169615306ba43100256b39e0816970612f6cc97' },
+  { tag: '0023_quotation_core_rls',
+    sql: 'e4947f32633e9843dea7f6f8d0b97f7908ecd6ad4b901016b4a130c52d23cdd4',
+    snapshot: 'e353dd6a9e88c0bf8f9a8ce23d17f2ca8a140e1b251f61872cf165be3f794b10',
+    catalog: '4fe5176333f02c3ef566212c42e65bcbb60bf648170db919392a9dc7c1c2f022' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

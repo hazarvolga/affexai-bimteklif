@@ -3,7 +3,7 @@ import type { Express } from "express";
 import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
 import { getControlDatabase } from "../../db/control-plane";
-import { tenantOf } from "../../db/app-tenant";
+import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { companyReads } from "../../services/company/company-reads";
 import { companies, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
@@ -15,15 +15,18 @@ const industryIdPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 
 export function registerCompanyRoutes(app: Express, industrySettingsService: CompanyIndustrySettingsService = new CompanyIndustrySettingsService()) {
   app.get("/api/company/risk-calibration", authenticate, async (req, res) => {
-    const [quotes, pricedItems, financialReports, pilots] = await Promise.all([
-      db.select({ count: count() }).from(quotations).where(eq(quotations.companyId, req.user.companyId)),
-      db.select({ count: count() }).from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), isNotNull(quotationItems.costUnitPrice))),
-      db.select({ count: count() }).from(quotationFinancials).innerJoin(quotations, eq(quotationFinancials.quotationId, quotations.id)).where(eq(quotations.companyId, req.user.companyId)),
-      db.select({ count: count() }).from(pilotApplications),
-    ]);
+    const { quotes, pricedItems, financialReports, pilots, observedQuotes } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [q, pi, fr, p, oq] = await Promise.all([
+        tenantDb.select({ count: count() }).from(quotations).where(eq(quotations.companyId, req.user.companyId)),
+        tenantDb.select({ count: count() }).from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), isNotNull(quotationItems.costUnitPrice))),
+        tenantDb.select({ count: count() }).from(quotationFinancials).innerJoin(quotations, eq(quotationFinancials.quotationId, quotations.id)).where(eq(quotations.companyId, req.user.companyId)),
+        tenantDb.select({ count: count() }).from(pilotApplications),
+        tenantDb.select({ count: count() }).from(quotations).where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected"))),
+      ]);
+      return { quotes: q, pricedItems: pi, financialReports: fr, pilots: p, observedQuotes: oq };
+    });
     const quoteCount = Number(quotes[0]?.count || 0);
     const pricedItemCount = Number(pricedItems[0]?.count || 0);
-    const observedQuotes = await db.select({ count: count() }).from(quotations).where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected")));
     res.json({
       quoteCount,
       pricedItemCount,
@@ -48,14 +51,14 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
   });
 
   app.get("/api/company/risk-calibration/report", authenticate, async (req, res) => {
-    const rows = await db.select({
+    const rows = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select({
       plannedCost: quotationFinancials.totalCost,
       plannedDuration: quotations.projectDurationMonths,
       actualCost: quotations.observedActualCost,
       actualDuration: quotations.observedActualDurationMonths,
     }).from(quotations)
       .innerJoin(quotationFinancials, eq(quotationFinancials.quotationId, quotations.id))
-      .where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected"), isNotNull(quotations.observedActualCost)));
+      .where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected"), isNotNull(quotations.observedActualCost))));
     const observations = rows.map((row) => ({
       plannedCost: Number(row.plannedCost),
       actualCost: Number(row.actualCost),

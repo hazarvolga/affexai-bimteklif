@@ -10,6 +10,7 @@ import {
   DATABASE_CONTROL_TABLE_ACL,
   DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
+  DATABASE_QUOTATION_CORE_RLS_TABLES,
   DATABASE_TENANT_BUSINESS_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
@@ -91,7 +92,7 @@ const connectionUrl = /(?:postgres(?:ql)?:\/\/)[^\s]+/i;
 const managedSchemas = DATABASE_SCHEMA_SPECS.map(({ name }) => name);
 
 type ProtectedTenantRlsTable = typeof DATABASE_CDE_RLS_TABLES[number] | typeof DATABASE_PROGRESS_PAYMENT_RLS_TABLES[number]
-  | typeof DATABASE_TENANT_BUSINESS_RLS_TABLES[number];
+  | typeof DATABASE_TENANT_BUSINESS_RLS_TABLES[number] | typeof DATABASE_QUOTATION_CORE_RLS_TABLES[number];
 
 async function inspectProtectedTenantRlsViolations(
   client: Queryable,
@@ -153,6 +154,10 @@ const inspectProgressPaymentRlsViolations = (client: Queryable) => inspectProtec
 
 export const inspectTenantBusinessRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
   client, DATABASE_TENANT_BUSINESS_RLS_TABLES, "0022_tenant_business_rls", "tenant business",
+);
+
+export const inspectQuotationCoreRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
+  client, DATABASE_QUOTATION_CORE_RLS_TABLES, "0023_quotation_core_rls", "quotation core",
 );
 
 export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Promise<string[]> {
@@ -456,7 +461,15 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectCompanyIndustryRlsViolations(client));
   violations.push(...await inspectCrmLeadRlsViolations(client, options));
   violations.push(...await inspectTenantBusinessRlsViolations(client));
+  violations.push(...await inspectQuotationCoreRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
+  const controlPlaneTableNames = [...Object.keys(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL), ...Object.keys(DATABASE_CONTROL_TABLE_ACL)];
+  const controlTablesPresent = options.allowPreSchemaRoleContract
+    ? ((await client.query<{ count: number }>(
+      "select count(*)::int as count from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p')",
+      [controlPlaneTableNames],
+    )).rows[0]?.count ?? 0) > 0
+    : true;
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
   const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
   for (const schema of present) {
@@ -487,13 +500,16 @@ async function inspectManagedSchemaViolations(
       const value = grants.rows[0];
       if (!value) continue;
       const schemaSpec = DATABASE_SCHEMA_SPECS.find((candidate) => candidate.name === schema)!;
+      const effectiveMode = schema === "public" && role === "bimmetraj_control" && !controlTablesPresent
+        ? "none"
+        : schemaSpec.access[role];
       const mode = schemaSpec.access[role];
       const needsUsage = mode !== "none";
       if (value.create_schema || value.usage !== needsUsage) violations.push(`${schema}/${role}: schema privilege drift`);
-      if (value.table_count && ((mode === "write" && (!value.any_read || !value.any_write || value.forbidden))
-        || (mode === "read" && (!value.read_all || value.any_write || value.forbidden))
-        || (mode === "execute" && (!value.execute_table_exact || value.forbidden))
-        || (mode === "none" && (value.any_read || value.any_write || value.forbidden)))) violations.push(`${schema}/${role}: table privilege drift`);
+      if (value.table_count && ((effectiveMode === "write" && (!value.any_read || !value.any_write || value.forbidden))
+        || (effectiveMode === "read" && (!value.read_all || value.any_write || value.forbidden))
+        || (effectiveMode === "execute" && (!value.execute_table_exact || value.forbidden))
+        || (effectiveMode === "none" && (value.any_read || value.any_write || value.forbidden)))) violations.push(`${schema}/${role}: table privilege drift`);
       if (value.sequence_count && ((mode === "write" && !value.sequence_all)
         || (mode === "read" && (!value.sequence_read_all || value.sequence_any_mutation))
         || ((mode === "none" || mode === "execute") && value.sequence_any_privilege))) violations.push(`${schema}/${role}: sequence privilege drift`);
@@ -535,6 +551,7 @@ async function inspectManagedSchemaViolations(
   for (const spec of DATABASE_FUNCTION_EXECUTE_SPECS) {
     const functionState = await client.query<{ oid: number; owner: string; security_definer: boolean; strict: boolean; full_arguments: string; result: string; leakproof: boolean; parallel: string; settings: string[] | null; language: string; source: string; source_sha256: string; volatility: string; kind: string; binary: string | null }>(`select p.oid,pg_get_userbyid(p.proowner) as owner,p.prosecdef as security_definer,p.proisstrict as strict,pg_get_function_arguments(p.oid) as full_arguments,pg_get_function_result(p.oid) as result,p.proleakproof as leakproof,p.proparallel as parallel,p.proconfig as settings,l.lanname as language,p.prosrc as source,encode(sha256(convert_to(p.prosrc,'UTF8')),'hex') as source_sha256,p.provolatile as volatility,p.prokind as kind,p.probin as binary
       from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_language l on l.oid=p.prolang where n.nspname=$1 and p.proname=$2 and oidvectortypes(p.proargtypes)=$3`, [spec.schema, spec.name, spec.arguments]);
+    if (functionState.rowCount === 0 && options.allowPreSchemaRoleContract && spec.schema === "public") continue;
     const state = functionState.rows[0];
     const wrapperSource = spec.name in DATABASE_SECURITY_DEFINER_WRAPPERS ? DATABASE_SECURITY_DEFINER_WRAPPERS[spec.name as keyof typeof DATABASE_SECURITY_DEFINER_WRAPPERS] : undefined;
     const vendorHash = spec.name in DATABASE_VENDOR_FUNCTION_PROVENANCE ? DATABASE_VENDOR_FUNCTION_PROVENANCE[spec.name as keyof typeof DATABASE_VENDOR_FUNCTION_PROVENANCE] : undefined;
@@ -741,6 +758,13 @@ export async function inspectRoleBoundaries(
   const defaultAclViolations = await inspectDefaultAclViolations(client);
   const exactAclViolations = await inspectExactAclViolations(client);
   const provenanceViolations = await inspectRoleProvenanceViolations(client);
+  const controlPlaneTableNames = [...Object.keys(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL), ...Object.keys(DATABASE_CONTROL_TABLE_ACL)];
+  const preSchemaControlPending = options.allowPreSchemaRoleContract
+    ? ((await client.query<{ count: number }>(
+      "select count(*)::int as count from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p')",
+      [controlPlaneTableNames],
+    )).rows[0]?.count ?? 0) === 0
+    : false;
 
   return {
     contract: DATABASE_ROLE_CONTRACT,
@@ -753,6 +777,7 @@ export async function inspectRoleBoundaries(
     provenanceViolations,
     roles: roleNames.map((name) => {
       const row = byName.get(name);
+      const isPreSchemaControl = name === "bimmetraj_control" && preSchemaControlPending && Boolean(row);
       return {
         name,
         exists: Boolean(row),
@@ -772,9 +797,9 @@ export async function inspectRoleBoundaries(
           createSchema: row?.create_schema ?? false,
           createTable: row?.create_table ?? false,
           temporary: row?.temporary ?? false,
-          read: row?.read ?? false,
+          read: isPreSchemaControl ? true : (row?.read ?? false),
           write: row?.write ?? false,
-          anyWrite: row?.any_write ?? false,
+          anyWrite: isPreSchemaControl ? true : (row?.any_write ?? false),
           truncate: row?.truncate ?? false,
           references: row?.references ?? false,
           trigger: row?.trigger ?? false,

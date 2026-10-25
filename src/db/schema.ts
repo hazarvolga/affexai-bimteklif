@@ -458,7 +458,11 @@ export const clients = pgTable("clients", {
   notes: text("notes"),
   pipelineStage: pipelineStageEnum("pipeline_stage").default("lead").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  appTenantPolicy: appTenantPolicy("clients", table.companyId),
+  backupReadPolicy: backupReadPolicy("clients"),
+  ownerMigrationPolicy: ownerMigrationPolicy("clients"),
+})).enableRLS();
 
 export const quotations = pgTable("quotations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -503,8 +507,11 @@ export const quotations = pgTable("quotations", {
       foreignColumns: [memberships.userId, memberships.companyId],
     }).onDelete("restrict"),
     pricingSnapshotLockStatusCheck: check("quotations_pricing_snapshot_lock_status_check", sql`${table.pricingSnapshotLockStatus} in ('unlocked', 'locked', 'stale')`),
+    appTenantPolicy: appTenantPolicy("quotations", table.companyId),
+    backupReadPolicy: backupReadPolicy("quotations"),
+    ownerMigrationPolicy: ownerMigrationPolicy("quotations"),
   };
-});
+}).enableRLS();
 
 // ============================================================
 // SMARTCHECK PHASE 3 — PRICE SOURCES AND IMMUTABLE SNAPSHOTS
@@ -840,9 +847,12 @@ export const quotationItems = pgTable("quotation_items", {
       foreignColumns: [priceSnapshots.id, priceSnapshots.companyId],
     }).onDelete("restrict"),
     transferIdempotencyUnique: uniqueIndex("quotation_items_transfer_idempotency_idx").on(table.companyId, table.quotationId, table.transferIdempotencyKey).where(sql`${table.transferIdempotencyKey} IS NOT NULL`),
-  priceSnapshotStatusCheck: check("quotation_items_price_snapshot_status_check", sql`${table.priceSnapshotStatus} in ('none', 'attached', 'locked', 'stale', 'missing')`),
+    priceSnapshotStatusCheck: check("quotation_items_price_snapshot_status_check", sql`${table.priceSnapshotStatus} in ('none', 'attached', 'locked', 'stale', 'missing')`),
+    appTenantPolicy: appTenantPolicy("quotation_items", table.companyId),
+    backupReadPolicy: backupReadPolicy("quotation_items"),
+    ownerMigrationPolicy: ownerMigrationPolicy("quotation_items"),
   };
-});
+}).enableRLS();
 
 export const quotationItemEvidence = pgTable("quotation_item_evidence", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -897,7 +907,10 @@ export const quotationItemEvidence = pgTable("quotation_item_evidence", {
   statusCheck: check("quotation_item_evidence_status_check", sql`${table.status} in ('current', 'stale', 'superseded')`),
   sourceHashCheck: check("quotation_item_evidence_source_hash_check", sql`${table.sourceDocumentHash} IS NULL OR length(${table.sourceDocumentHash}) >= 16`),
   evidenceLookupIdx: index("idx_quotation_item_evidence_lookup").on(table.companyId, table.quotationId, table.quotationItemId),
-}));
+  appTenantPolicy: appTenantPolicy("quotation_item_evidence", table.companyId),
+  backupReadPolicy: backupReadPolicy("quotation_item_evidence"),
+  ownerMigrationPolicy: ownerMigrationPolicy("quotation_item_evidence"),
+})).enableRLS();
 
 export const regulationAlerts = pgTable("regulation_alerts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1196,7 +1209,10 @@ export const quotationTransferLedgers = pgTable("quotation_transfer_ledgers", {
   idempotencyKeyCheck: check("quotation_transfer_ledgers_idempotency_key_check", sql`length(trim(${table.idempotencyKey})) between 1 and 160`),
   distinctRevisionCheck: check("quotation_transfer_ledgers_distinct_revision_check", sql`${table.sourceQuotationId} <> ${table.targetQuotationId}`),
   lookupIdx: index("idx_quotation_transfer_ledgers_lookup").on(table.companyId, table.sourceQuotationId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("quotation_transfer_ledgers", table.companyId),
+  backupReadPolicy: backupReadPolicy("quotation_transfer_ledgers"),
+  ownerMigrationPolicy: ownerMigrationPolicy("quotation_transfer_ledgers"),
+})).enableRLS();
 
 export const quotationTransferSourceRows = pgTable("quotation_transfer_source_rows", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1229,7 +1245,10 @@ export const quotationTransferSourceRows = pgTable("quotation_transfer_source_ro
   }).onDelete("restrict"),
   quantityCheck: check("quotation_transfer_source_rows_quantity_check", sql`${table.contributedQuantity} > 0`),
   lookupIdx: index("idx_quotation_transfer_source_rows_lookup").on(table.companyId, table.targetQuotationId, table.targetQuotationItemId),
-}));
+  appTenantPolicy: appTenantPolicy("quotation_transfer_source_rows", table.companyId),
+  backupReadPolicy: backupReadPolicy("quotation_transfer_source_rows"),
+  ownerMigrationPolicy: ownerMigrationPolicy("quotation_transfer_source_rows"),
+})).enableRLS();
 
 export const smartcheckAuditLogs = pgTable("smartcheck_audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),

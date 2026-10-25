@@ -2,6 +2,7 @@ import { benchmarkEligible } from '../../services/pricing/benchmark-policy';
 import type { Express, RequestHandler } from "express";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db";
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import {
   priceFeedStaging,
   priceSnapshots,
@@ -592,13 +593,18 @@ export function registerPricingRoutes(app: Express) {
   });
 
   app.get("/api/quotations/:id/pricing-snapshot", authenticate, rateLimit, async (req, res) => {
-    const [quote] = await db.select().from(quotations).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId)));
-    if (!quote) return res.status(404).json({ error: "Teklif bulunamadı." });
-    const items = await db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quote.id), eq(quotationItems.companyId, req.user.companyId)));
-    const snapshotIds = items.flatMap((item) => item.priceSnapshotId ? [item.priceSnapshotId] : []);
-    const snapshots = snapshotIds.length ? await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, snapshotIds))) : [];
-    const sourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
-    const sources = sourceIds.length ? await db.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, sourceIds))) : [];
+    const data = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [quote] = await tenantDb.select().from(quotations).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId)));
+      if (!quote) return null;
+      const items = await tenantDb.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quote.id), eq(quotationItems.companyId, req.user.companyId)));
+      const snapshotIds = items.flatMap((item) => item.priceSnapshotId ? [item.priceSnapshotId] : []);
+      const snapshots = snapshotIds.length ? await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, snapshotIds))) : [];
+      const sourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
+      const sources = sourceIds.length ? await tenantDb.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, sourceIds))) : [];
+      return { quote, items, snapshots, sources };
+    });
+    if (!data) return res.status(404).json({ error: "Teklif bulunamadı." });
+    const { quote, items, snapshots, sources } = data;
     const sourceById = new Map(sources.map((source) => [source.id, source]));
     const snapshotById = new Map(snapshots.map((snapshot) => [snapshot.id, snapshot]));
     const now = new Date();
@@ -616,7 +622,7 @@ export function registerPricingRoutes(app: Express) {
     const assignments = new Map<string, string>();
     if (Array.isArray(req.body?.items)) for (const assignment of req.body.items) if (assignment && typeof assignment.quotationItemId === "string" && typeof assignment.priceSnapshotId === "string") assignments.set(assignment.quotationItemId, assignment.priceSnapshotId);
     try {
-      const result = await db.transaction(async (tx) => {
+      const result = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
         const [quote] = await tx.select().from(quotations).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).for("update");
         if (!quote || quote.status !== "draft") throw new Error("QUOTE_NOT_DRAFT");
         const items = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quote.id), eq(quotationItems.companyId, req.user.companyId))).for("update");

@@ -258,8 +258,8 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / veraPDF 1.30.3 imajda hazır (25 Ekim 2026 · Rev. 76)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32'de ifc-worker imajına sabitlenmiş veraPDF 1.30.3 (SHA-256 b512bf24…9a59, GPLv3+/MPLv2+ çift lisans) gömüldü, ham XML rapor verapdf_report_xml artifact'ı olarak saklanıyor ve 7 vakalık PDF/A-2b fixture matrisi imaj içinde doğrulandı; izinli gerçek dosya matrisi ve dönüşüm sağlayıcısı kararı açık."],
         ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
         ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Canlı rol geçişi tamamlandı; kabul kanıtı açık (25 Ekim 2026 · Rev. 72)", "Rev. 47 canonical rol/ACL/RLS/provenance sözleşmesini kurdu. Rev. 51 yerel runtime credentiallarını ayırdı; Rev. 72 rol kurulumunu Coolify deploy'una (db-bootstrap → migrate → db-provision) taşıdı ve Hazar 25 Ekim 2026'da DB parolalarını döndürdü. Production role-model-smoke, canary, restore/parity ve rollback kanıtı açık."],
-        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 36 tenant tablosu + control-plane ayrımı + pilot audit/global katalog yüzeyleri PG16 kanıtlı (25 Ekim 2026 · Rev. 76)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs ve Rev. 76 (0022_tenant_business_rls) 14 iş tablosu daha olmak üzere toplam 36 tenant tablosunu FORCE RLS ile korur. Kalan 36 tablo (S1–S5 dilimleri), worker canary/drain ve canlı negatif kanıt açık olduğundan T41 PARTIAL'dır."],
-        ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale ve SmartCheck worker dilimleri PG16 kanıtlı (24 Ekim 2026 · Rev. 50)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını tamamladı. Academy webhook entitlement yarışı, banka mutabakatı, uzun işlem heartbeat/orphan bakım politikası ve production rollout açık olduğundan T42 PARTIAL'dır."],
+        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 42 tenant tablosu + control-plane ayrımı + pilot audit/global katalog yüzeyleri PG16 kanıtlı (25 Ekim 2026 · Rev. 80)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs, Rev. 76 (0022_tenant_business_rls) 14 iş tablosu ve Rev. 80 (0023_quotation_core_rls — S1 teklif çekirdeği: clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers, quotation_transfer_source_rows) olmak üzere toplam 42 tenant tablosunu FORCE RLS ile korur; database-role-provision.pgtest.ts pre-schema modu da 1/1 PASS durumundadır. Kalan 30 tablo (S2–S5 dilimleri), worker canary/drain ve canlı negatif kanıt açık olduğundan T41 PARTIAL'dır."],
+        ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale, SmartCheck worker, Academy yetki ve orphan lease dilimleri PG16/test kanıtlı (25 Ekim 2026 · Rev. 78)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını; Rev. 78 Academy entitlement özellik bayrağı/rol sınırını, 15 dk orphan lease devralmayı ve boş sektör kataloğunda teklif kaydı güvenliğini tamamladı. Canlı banka ekstresi mutabakatı ve production rollout açık olduğundan T42 PARTIAL'dır."],
         ["19 — GAP kapatma Faz 7: Kapsam kapısı ve gerçek tarayıcı E2E (T43)", "Kısmi / c8 kapsam ratchet + Playwright E2E CI'da (25 Ekim 2026 · Rev. 76)", "c8 tüm-dosya kapsam raporu, 7 kritik kapsam tabanı, REQUIRE_TEST_DATABASE=true ve 6 gerçek tarayıcı Playwright E2E senaryosu (giriş, teklif+PDF, SmartCheck IFC, admin roadmap) CI hattına bağlandı. Proje satır kapsamı %46,80 ölçüldü; %80 eşiğine R+1..R+4 ratchet planıyla çıkılacaktır."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
@@ -274,17 +274,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 77 · 13–25 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 80 · 13–25 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 77)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 77 · BIM-CALC-2026-10-25.71 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimleri açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 80)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 80 · BIM-CALC-2026-10-25.74 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimleri açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 77):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 80):",
       },
       {
         type: "table",
@@ -766,16 +766,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T42 kod ve regresyon dilimi tamamlandı: 1) §8.4 kusuru giderildi: resolveQuotationIndustryId ile sektör kataloğu boşken varsayılan 'residential' 500 FK hatası yerine güvenli null'a düşer, katalog doluyken tanımsız/pasif sektör 400 QuotationIntegrityError döner; CreateQuote.tsx aktif katalogla hizalandı. 2) Academy entitlement: ACADEMY_ENABLED=false iken /api/academy/allplan/* rotaları DB'ye gitmeden 403 ACADEMY_FEATURE_DISABLED döner; açıkken kayıtsız kullanıcı ve viewer sertifika iptali 403 ile reddedilir. 3) Uzun iş heartbeat / orphan lease: DEFAULT_SMARTCHECK_LEASE_TIMEOUT_MS (15 dk) ve isSmartCheckLeaseExpired ile süresi dolan running işler yeni workerLeaseToken ile güvenli devralınır; eski işçi fencing ile durdurulur. 4) Askıdaki abonelik (SUBSCRIPTION_SUSPENDED) ve salt-okunur impersonation (IMPERSONATION_READ_ONLY) negatifleri t42-regression.test.ts ile sabitlendi.",
           ],
           [
-            "Rev. 79 (Güncel geliştirme)",
+            "Rev. 79",
             "25 Ekim 2026 (T43 CI Sistem Python Çözümlemesi: server-path.e2e.test.ts Atlanan Testlerin Kaldırılması)",
-            "BIM-CALC-2026-10-25.73",
+            "BIM-CALC-2026-10-25.73 (a7d7eca)",
             "src/ifc/server-path.e2e.test.ts sabit workers/ifc/.venv/bin/python yolunu aradığı için CI'da actions/setup-python ile kurulan sistem Python'unu görmüyor ve consistencyReport + browser/worker parity testlerini atlıyordu. resolvePythonBin() ve hasPythonIfcRuntime() ile hem yerel .venv hem CI sistem Python'u desteklenir hale getirildi (yerelde 4/4, CI'da repo içi fixture testleri 2/2 atlanmadan çalışır).",
+          ],
+          [
+            "Rev. 80 (Güncel geliştirme)",
+            "25 Ekim 2026 (T41 S1 Teklif Çekirdeği 0023_quotation_core_rls FORCE RLS + database-role-provision.pgtest.ts Düzeltmesi)",
+            "BIM-CALC-2026-10-25.74",
+            "T41 S1 dilimi (0023_quotation_core_rls) tamamlandı: 1) clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers ve quotation_transfer_source_rows (6 tablo) ENABLE + FORCE RLS ve exact CDE 3-policy matrisine (app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny) alındı; böylece company_id taşıyan 72 tablonun 42'si FORCE RLS altındadır. 2) Müşteri (/api/clients), teklif (/api/quotations), manuel düzenleme/revizyon (quotation-edit, integrity, edit), Calm transfer (calm-transfer, smartcheck), kârlılık (profit), risk kalibrasyonu (company), mevzuat etkisi (regulations), fiyat kilitleme (pricing) ve PDF üretimi (pdf/generate) yolları withAppTenant / withAppTenantTransaction içine taşındı. 3) database-role-provision.pgtest.ts içindeki pre-schema role contract fonksiyon/sequence ACL uyumsuzluğu ve data-transitions.ts içindeki 0019–0023 tam katalog zinciri düzeltilerek 11/11 PG16 kontrat testi ve 14/14 release-migration lifecycle testi yeşil yapıldı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 79 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 80 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1437,6 +1443,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "src/ifc/server-path.e2e.test.ts doğrudan workers/ifc/.venv/bin/python yolunu kontrol ettiği için CI ortamında (actions/setup-python) ifcopenshell kurulu olmasına rağmen consistencyReport ve browser/worker parity testlerini skip ediyordu.",
             "resolvePythonBin() ve hasPythonIfcRuntime() kullanılarak hem yerel .venv hem CI sistem Python'u desteklendi; repo içi fixture kullanan iki E2E testi CI'da atlanmadan çalışır.",
             "src/ifc/server-path.e2e.test.ts, docs/audits/phase-7/PHASE_7_T43_COVERAGE_E2E_2026-10-25.md",
+          ],
+          [
+            "Rev. 80 · 25 Ekim 2026 (T41 S1 0023_quotation_core_rls ve database-role-provision düzeltmesi)",
+            "GAP planı T41 S1 dilimi (6 teklif çekirdeği tablosu FORCE RLS) ve PG16 pre-schema rol sözleşmesi",
+            "1) clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers ve quotation_transfer_source_rows tabloları yalnızca uygulama katmanında company_id filtresiyle korunuyordu. 2) database-role-provision.pgtest.ts pre-schema modunda henüz oluşturulmamış worker capability fonksiyonlarında ve control sequence ACL'inde hata veriyordu; data-transitions.ts 0019–0022 tam katalog zinciri eksikti.",
+            "1) 0023_quotation_core_rls.sql ile 6 teklif çekirdeği tablosuna ENABLE+FORCE RLS ve exact CDE 3-policy matrisi eklendi (42/72 company_id tablosu FORCE RLS altında); clients, quotations, quotation-edit, smartcheck, profit, company, regulations, pricing, pdf/generate, integrity, edit ve calm-transfer yolları withAppTenant/withAppTenantTransaction sınırına taşındı. 2) provision.ts, inspect.ts ve data-transitions.ts düzeltilerek 11/11 PG16 kontrat testi ve 14/14 release-migration lifecycle testi yeşil yapıldı.",
+            "drizzle-release/0023_quotation_core_rls.sql, src/db/schema.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/database-roles/provision.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/contracts/database-role-provision.pgtest.ts, src/server/routes/clients.ts, src/server/routes/quotations.ts, src/server/routes/quotation-edit.ts, src/server/routes/smartcheck.ts, src/server/routes/profit.ts, src/server/routes/company.ts, src/server/routes/regulations.ts, src/server/routes/pricing.ts, src/services/pdf/generate.ts, src/services/quotations/integrity.ts, src/services/quotations/edit.ts, src/services/quotations/calm-transfer.ts",
           ],
         ],
       },

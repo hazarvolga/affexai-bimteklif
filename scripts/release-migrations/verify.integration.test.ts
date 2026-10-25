@@ -14,12 +14,15 @@ import { restoreSyntheticBackup } from './backup';
 import { verifyQuotaMigration } from './quota-validation';
 import { pinnedSignature } from './stage-signatures';
 import { injectDataTransitions } from './data-transitions';
+import { bootstrapDisposableRoles } from '../ci/disposable-database-roles';
+import { identifier, parseTarget } from './safety';
 
 test('release migration lifecycle on three owned disposable databases', { timeout: 120_000 }, async (t) => {
   assert.ok(process.env.RELEASE_CONTROL_DATABASE_URL, 'Explicit RELEASE_CONTROL_DATABASE_URL is required');
   const migrations = await loadMigrations();
   const owned = await provision(process.env.RELEASE_CONTROL_DATABASE_URL);
   const clients: Awaited<ReturnType<typeof connect>>[] = [];
+  let createdRoles: string[] = [];
   const report: Record<string, unknown> = { contract: 'teklifpro-release-validation.v1', source: 'versioned release SQL only; no cloned schema' };
   const check = async (name: string, action: (context: TestContext) => Promise<void>) => {
     let completed = false;
@@ -29,6 +32,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
   try {
     for (const target of owned.targets) clients.push(await connect(target));
     const [fresh, upgrade, restore] = clients;
+    createdRoles = await bootstrapDisposableRoles(fresh);
     await check('provision refuses pre-existing names and leaves them intact', async () => {
       await assert.rejects(provision(process.env.RELEASE_CONTROL_DATABASE_URL!), /pre-existing/);
       await requireEmpty(fresh);
@@ -487,7 +491,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       const result = await promisify(execFile)(process.execPath, ['--import', 'tsx', '--test', 'src/server/routes/test-isolation.test.ts'], {
         cwd: root, env: { ...env, DATABASE_URL: url.href }, timeout: 20_000,
       });
-      assert.match(result.stdout, /pass 5/);
+      assert.match(result.stdout, /pass [67]\nℹ fail 0/);
       assert.equal((await catalog(fresh)).signature, report.headSignature);
       report.ciIsolation = 'pass';
     });
@@ -548,6 +552,16 @@ test('release migration lifecycle on three owned disposable databases', { timeou
   } finally {
     for (const client of clients) await client.end();
     await owned.cleanup();
+    if (createdRoles.length && process.env.RELEASE_CONTROL_DATABASE_URL) {
+      const control = await connect(parseTarget(process.env.RELEASE_CONTROL_DATABASE_URL, 'control'));
+      try {
+        for (const role of [...createdRoles].reverse()) {
+          await control.query(`drop role if exists ${identifier(role)}`);
+        }
+      } finally {
+        await control.end();
+      }
+    }
   }
   report.disposableCleanup = 'completed';
   if (process.env.RELEASE_WRITE_REPORT === 'true') {

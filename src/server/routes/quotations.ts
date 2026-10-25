@@ -6,7 +6,7 @@ import { manualQuotationInput, quotationStatusInput } from "../../services/quota
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
-import { tenantOf } from "../../db/app-tenant";
+import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { PdfRenderError } from "../../services/pdf/renderer";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
@@ -48,12 +48,12 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
     try {
       const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 100);
       const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-      const allQuotes = await db.select()
+      const allQuotes = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select()
         .from(quotations)
         .where(and(eq(quotations.isLatest, true), eq(quotations.companyId, req.user.companyId)))
         .orderBy(desc(quotations.createdAt))
         .limit(limit)
-        .offset(offset);
+        .offset(offset));
       res.json(allQuotes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch quotations" });
@@ -63,10 +63,14 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
   app.get("/api/quotations/:id/smartcheck", authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const quote = await db.query.quotations.findFirst({ where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)) });
-      if (!quote) return res.status(404).json({ error: "Quote not found" });
-      const items = await db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
-      const issues = auditQuotationItems(items);
+      const result = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const quote = await tenantDb.query.quotations.findFirst({ where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)) });
+        if (!quote) return null;
+        const items = await tenantDb.select().from(quotationItems).where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
+        return { quote, items };
+      });
+      if (!result) return res.status(404).json({ error: "Quote not found" });
+      const issues = auditQuotationItems(result.items);
       res.json({ status: issues.some((issue) => issue.severity === 'warning') ? 'needs_review' : 'ready_for_review', authorityStatus: 'traceability_only', issues });
     } catch (error) {
       res.status(500).json({ error: "Quotation audit failed" });
@@ -76,27 +80,32 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
   app.get("/api/quotations/:id", authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const quote = await db.query.quotations.findFirst({
-        where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)),
+      const detail = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const quote = await tenantDb.query.quotations.findFirst({
+          where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)),
+        });
+
+        if (!quote) return null;
+
+        const items = await tenantDb.select()
+          .from(quotationItems)
+          .where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
+
+        const revisions = await tenantDb.select()
+          .from(quotations)
+          .where(
+            and(
+              eq(quotations.parentId, quote.parentId || quote.id),
+              eq(quotations.companyId, quote.companyId)
+            )
+          )
+          .orderBy(desc(quotations.revisionVersion));
+
+        return { ...quote, items, revisions };
       });
 
-      if (!quote) return res.status(404).json({ error: "Quote not found" });
-
-      const items = await db.select()
-        .from(quotationItems)
-        .where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
-
-      const revisions = await db.select()
-        .from(quotations)
-        .where(
-          and(
-            eq(quotations.parentId, quote.parentId || quote.id),
-            eq(quotations.companyId, quote.companyId)
-          )
-        )
-        .orderBy(desc(quotations.revisionVersion));
-
-      res.json({ ...quote, items, revisions });
+      if (!detail) return res.status(404).json({ error: "Quote not found" });
+      res.json(detail);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch quotation details" });
     }
@@ -119,7 +128,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
 
   app.post("/api/quotations/:id/revision", authenticate, canMutate, async (req, res) => {
     try {
-      const newQuote = await createQuotationRevision(req.user.companyId, req.params.id);
+      const newQuote = await createQuotationRevision(tenantOf(req.user), req.params.id);
       await auditQuotation(req, "quotation.revision_created", newQuote.id, { parentId: req.params.id });
       res.json(newQuote);
     } catch (error) {
@@ -136,10 +145,10 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       if (!parsed.success) return res.status(400).json({ error: "Invalid quotation status" });
       const status = parsed.data;
 
-      const [updated] = await db.update(quotations)
+      const [updated] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.update(quotations)
         .set({ status, updatedAt: new Date() })
         .where(and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)))
-        .returning();
+        .returning());
 
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
       await auditQuotation(req, "quotation.status_updated", updated.id, { status });
@@ -155,13 +164,13 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       const actualDurationMonths = req.body.actualDurationMonths == null || req.body.actualDurationMonths === "" ? null : Number(req.body.actualDurationMonths);
       if (actualCost !== null && (!Number.isFinite(actualCost) || actualCost < 0)) return res.status(400).json({ error: "Gerçekleşen maliyet geçersiz." });
       if (actualDurationMonths !== null && (!Number.isInteger(actualDurationMonths) || actualDurationMonths < 1)) return res.status(400).json({ error: "Gerçekleşen süre geçersiz." });
-      const [updated] = await db.update(quotations).set({
+      const [updated] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.update(quotations).set({
         observedActualCost: actualCost === null ? null : String(actualCost),
         observedActualDurationMonths: actualDurationMonths,
         calibrationStatus: actualCost !== null || actualDurationMonths !== null ? "collected" : "not_collected",
         calibrationNote: typeof req.body.note === "string" ? req.body.note.slice(0, 2000) : null,
         updatedAt: new Date(),
-      }).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).returning();
+      }).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).returning());
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
       await auditQuotation(req, "quotation.calibrated", updated.id);
       res.json(updated);
@@ -179,9 +188,9 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       const { id } = req.params;
       const { templateId } = req.query;
 
-      const quote = await db.query.quotations.findFirst({
+      const quote = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.query.quotations.findFirst({
         where: and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)),
-      });
+      }));
       if (!quote) return res.status(404).json({ error: "Quotation not found" });
 
       const pdfBuffer = await generateQuotationPdf(id, templateId as string, tenantOf(req.user), req.query.includeEvidence === "true", controller.signal);

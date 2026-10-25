@@ -13,22 +13,39 @@ import { templates, PdfData } from './templates';
 export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction", actor?: TenantContext, includeEvidence = false, signal?: AbortSignal): Promise<Buffer> {
   const companyId = actor?.companyId;
   // 1. Fetch Data
-  const quote = await db.query.quotations.findFirst({
-    where: companyId
-      ? and(eq(quotations.id, quotationId), eq(quotations.companyId, companyId))
-      : eq(quotations.id, quotationId),
-  });
+  const { quote, company, clientData, items } = actor
+    ? await withAppTenant(actor, async (tenantDb) => {
+        const fetchedQuote = await tenantDb.query.quotations.findFirst({
+          where: and(eq(quotations.id, quotationId), eq(quotations.companyId, actor.companyId)),
+        });
+        if (!fetchedQuote) {
+          return { quote: undefined, company: undefined, clientData: undefined, items: [] as (typeof quotationItems.$inferSelect)[] };
+        }
+        const [fetchedCompany, fetchedClient, fetchedItems] = await Promise.all([
+          tenantDb.query.companies.findFirst({ where: eq(companies.id, fetchedQuote.companyId) }),
+          tenantDb.query.clients.findFirst({ where: and(eq(clients.id, fetchedQuote.clientId), eq(clients.companyId, fetchedQuote.companyId)) }),
+          tenantDb.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotationId), eq(quotationItems.companyId, fetchedQuote.companyId))),
+        ]);
+        return { quote: fetchedQuote, company: fetchedCompany, clientData: fetchedClient, items: fetchedItems };
+      })
+    : await (async () => {
+        const fetchedQuote = await db.query.quotations.findFirst({
+          where: companyId
+            ? and(eq(quotations.id, quotationId), eq(quotations.companyId, companyId))
+            : eq(quotations.id, quotationId),
+        });
+        if (!fetchedQuote) {
+          return { quote: undefined, company: undefined, clientData: undefined, items: [] as (typeof quotationItems.$inferSelect)[] };
+        }
+        const [fetchedCompany, fetchedClient, fetchedItems] = await Promise.all([
+          getControlDatabase().db.query.companies.findFirst({ where: eq(companies.id, fetchedQuote.companyId) }),
+          db.query.clients.findFirst({ where: and(eq(clients.id, fetchedQuote.clientId), eq(clients.companyId, fetchedQuote.companyId)) }),
+          db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotationId), eq(quotationItems.companyId, fetchedQuote.companyId))),
+        ]);
+        return { quote: fetchedQuote, company: fetchedCompany, clientData: fetchedClient, items: fetchedItems };
+      })();
 
   if (!quote) throw new Error("Quotation not found");
-
-  const [company, clientData, items] = await Promise.all([
-    // companies is FORCE RLS: the app role reads it in tenant context, other callers via the control plane.
-    actor
-      ? withAppTenant(actor, (tenantDb) => tenantDb.query.companies.findFirst({ where: eq(companies.id, quote.companyId) }))
-      : getControlDatabase().db.query.companies.findFirst({ where: eq(companies.id, quote.companyId) }),
-    db.query.clients.findFirst({ where: and(eq(clients.id, quote.clientId), eq(clients.companyId, quote.companyId)) }),
-    db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotationId), eq(quotationItems.companyId, quote.companyId)))
-  ]);
 
   if (!company) throw new Error("Company not found");
   if (!clientData) throw new Error("Client not found");

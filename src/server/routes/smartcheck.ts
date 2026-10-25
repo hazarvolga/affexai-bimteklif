@@ -738,7 +738,9 @@ export function registerSmartCheckRoutes(app: Express) {
     if (!parsedRequest.success) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
     const { quotationId, rowIds } = parsedRequest.data;
     if (rowIds.length > 1000) return res.status(400).json({ error: "Tek seferde en fazla 1000 satır aktarılabilir." });
-    const [quotation] = await db.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")));
+    const [quotation] = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")))
+    );
     if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
     const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     const selected = documentRows.filter((row) => rowIds.includes(row.id));
@@ -757,7 +759,7 @@ export function registerSmartCheckRoutes(app: Express) {
     if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
     const sourceDocuments = await db.select({ id: documents.id, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
     const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
-    const transferResult = await db.transaction(async (tx) => {
+    const transferResult = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
       // Use the revision series lock before inspecting the current draft/items.
       await tx.select({ id: quotations.id }).from(quotations).where(and(eq(quotations.id, quotation.parentId ?? quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
       const [currentQuote] = await tx.select().from(quotations).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");

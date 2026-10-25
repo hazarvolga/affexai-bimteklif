@@ -1085,15 +1085,16 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
       ? [...injectDataTransitions('0017_company_industry_settings_tenant_rls', statements)]
       : statements;
   }
-  if (tag === '0022_tenant_business_rls') {
-    const forced = ['usage_alerts', 'deals', 'activities', 'supplier_quote_submissions', 'supplier_quote_entries',
-      'rule_candidates', 'rule_registry', 'rule_versions', 'review_sessions', 'review_findings', 'competency_signals',
-      'competency_signal_evidence', 'assistance_resources', 'rule_assistance_resources']
-      .map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
-    return [...schemaStatements, ...forced];
+  if (tag === '0019_control_plane_rls') {
+    const ordered = [...schemaStatements];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0018_crm_leads_tenant_rls', ordered)]
+      : ordered;
   }
   if (tag === '0020_worker_entitlement_capability') {
-    return [
+    const ordered = [...schemaStatements];
+    const statements = [
+      ...ordered,
       `CREATE OR REPLACE FUNCTION public.bimmetraj_worker_get_entitlement(p_company_id uuid)
 RETURNS TABLE(company_exists boolean, subscription_status text, current_period_end timestamp with time zone, plan_id uuid, plan_is_active boolean, monthly_ifc_limit integer, ifc_max_file_mb integer, ifc_max_concurrent integer)
 LANGUAGE plpgsql SECURITY DEFINER
@@ -1121,9 +1122,14 @@ $function$`,
       `REVOKE ALL PRIVILEGES ON FUNCTION public.bimmetraj_worker_get_entitlement(uuid) FROM PUBLIC, bimmetraj_app, bimmetraj_control, bimmetraj_worker, bimmetraj_backup`,
       `GRANT EXECUTE ON FUNCTION public.bimmetraj_worker_get_entitlement(uuid) TO bimmetraj_worker`,
     ];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0019_control_plane_rls', statements)]
+      : statements;
   }
   if (tag === '0021_worker_company_context_capability') {
-    return [
+    const ordered = [...schemaStatements];
+    const statements = [
+      ...ordered,
       `CREATE OR REPLACE FUNCTION public.bimmetraj_worker_get_company_context(p_company_id uuid)
 RETURNS TABLE(company_exists boolean, active_standard text, smartcheck_max_waste_percent numeric)
 LANGUAGE plpgsql SECURITY DEFINER
@@ -1145,6 +1151,31 @@ $function$`,
       `REVOKE ALL PRIVILEGES ON FUNCTION public.bimmetraj_worker_get_company_context(uuid) FROM PUBLIC, bimmetraj_app, bimmetraj_control, bimmetraj_worker, bimmetraj_backup`,
       `GRANT EXECUTE ON FUNCTION public.bimmetraj_worker_get_company_context(uuid) TO bimmetraj_worker`,
     ];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0020_worker_entitlement_capability', statements)]
+      : statements;
+  }
+  if (tag === '0022_tenant_business_rls') {
+    const ordered = [...schemaStatements];
+    const forced = ['usage_alerts', 'deals', 'activities', 'supplier_quote_submissions', 'supplier_quote_entries',
+      'rule_candidates', 'rule_registry', 'rule_versions', 'review_sessions', 'review_findings', 'competency_signals',
+      'competency_signal_evidence', 'assistance_resources', 'rule_assistance_resources']
+      .map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0021_worker_company_context_capability', statements)]
+      : statements;
+  }
+  if (tag === '0023_quotation_core_rls') {
+    const ordered = [...schemaStatements];
+    const forced = [
+      'clients', 'quotations', 'quotation_items', 'quotation_item_evidence',
+      'quotation_transfer_ledgers', 'quotation_transfer_source_rows',
+    ].map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0022_tenant_business_rls', statements)]
+      : statements;
   }
   return [...schemaStatements];
 }

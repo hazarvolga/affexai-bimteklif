@@ -1,17 +1,18 @@
 import { resolveBenchmarkProvenance } from './benchmark-provenance';
 import { and, desc, eq, or } from 'drizzle-orm';
 import { z } from 'zod';
-import { db } from '../../db';
+import { withAppTenantTransaction } from '../../db/app-tenant';
+import type { TenantContext } from '../../db/tenant-context';
 import { clients, industries, quotationFinancials, quotationItemEvidence, quotationItems, quotations } from '../../db/schema';
 import { calculateLineItemTotal, calculateQuotationTotals } from '../../lib/calculations';
 import { manualQuotationInput } from './input';
-import { QuotationIntegrityError, resolveQuotationIndustryId } from './integrity';
+import { normalizeQuotationTenantActor, QuotationIntegrityError, resolveQuotationIndustryId } from './integrity';
 
 export const editQuotationInput = manualQuotationInput.extend({
   updatedAt: z.string().datetime({ offset: true }),
   status: z.literal('draft').default('draft'),
 });
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Transaction = Parameters<Parameters<typeof withAppTenantTransaction>[1]>[0];
 
 async function lockDraft(tx: Transaction, companyId: string, id: string) {
   const scope = and(eq(quotations.id, id), eq(quotations.companyId, companyId));
@@ -42,15 +43,19 @@ async function lockDraft(tx: Transaction, companyId: string, id: string) {
   return { quote, items };
 }
 
-export async function loadEditableQuotation(companyId: string, id: string) {
-  return db.transaction(async tx => {
+export async function loadEditableQuotation(actorOrCompanyId: TenantContext | string, id: string) {
+  const actor = normalizeQuotationTenantActor(actorOrCompanyId);
+  const { companyId } = actor;
+  return withAppTenantTransaction(actor, async tx => {
     const { quote, items } = await lockDraft(tx, companyId, id);
     return { ...quote, items };
   });
 }
 
-export async function editManualQuotation(companyId: string, id: string, input: z.infer<typeof editQuotationInput>) {
-  return db.transaction(async tx => {
+export async function editManualQuotation(actorOrCompanyId: TenantContext | string, id: string, input: z.infer<typeof editQuotationInput>) {
+  const actor = normalizeQuotationTenantActor(actorOrCompanyId);
+  const { companyId } = actor;
+  return withAppTenantTransaction(actor, async tx => {
     const { quote } = await lockDraft(tx, companyId, id);
     if (quote.updatedAt.getTime() !== new Date(input.updatedAt).getTime()) {
       throw new QuotationIntegrityError(409, 'Teklif başka bir işlemle değişti. Kaydetmeden önce yeniden yükleyin.');

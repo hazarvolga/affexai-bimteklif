@@ -4,17 +4,28 @@ import crypto from "node:crypto";
 import test from "node:test";
 import pg from "pg";
 
-import { DATABASE_ROLE_SPECS, DATABASE_TENANT_BUSINESS_RLS_TABLES } from "../../scripts/database-roles/contract";
-import { assertRoleBoundaries, inspectRoleBoundaries, inspectTenantBusinessRlsViolations } from "../../scripts/database-roles/inspect";
+import {
+  DATABASE_QUOTATION_CORE_RLS_TABLES,
+  DATABASE_ROLE_SPECS,
+  DATABASE_TENANT_BUSINESS_RLS_TABLES,
+} from "../../scripts/database-roles/contract";
+import {
+  assertRoleBoundaries,
+  inspectQuotationCoreRlsViolations,
+  inspectRoleBoundaries,
+  inspectTenantBusinessRlsViolations,
+} from "../../scripts/database-roles/inspect";
 import { provisionDatabaseRoles } from "../../scripts/database-roles/provision";
 import { applyMigrations, loadMigrations } from "../../scripts/release-migrations/runner";
 import { withTenantDrizzleTransaction, withTenantTransaction, type TenantContext } from "../db/tenant-context";
+import { registerClientRoutes } from "../server/routes/clients";
 import { registerCrmRoutes, type CrmTenantAccess } from "../server/routes/crm";
 
 const databaseName = "teklifpro_upgrade_test";
 const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
+const allProtectedTables = [...DATABASE_TENANT_BUSINESS_RLS_TABLES, ...DATABASE_QUOTATION_CORE_RLS_TABLES] as const;
 type Credentials = Record<typeof roles[number], string>;
-type Table = typeof DATABASE_TENANT_BUSINESS_RLS_TABLES[number];
+type Table = typeof allProtectedTables[number];
 const ids = {
   companyA: "11111111-1111-4111-8111-111111111111", companyB: "22222222-2222-4222-8222-222222222222",
   userA: "33333333-3333-4333-8333-333333333333", userB: "44444444-4444-4444-8444-444444444444",
@@ -39,6 +50,12 @@ const rowSql: Record<Table, string> = {
   competency_signal_evidence: "insert into competency_signal_evidence(company_id,competency_signal_id,review_finding_id,observed_user_id) values($1,gen_random_uuid(),gen_random_uuid(),gen_random_uuid())",
   assistance_resources: "insert into assistance_resources(company_id,created_by_user_id,title,resource_type,error_category,competency_area,content_body) values($1,gen_random_uuid(),$2,'checklist','classification_code',$2,$2)",
   rule_assistance_resources: "insert into rule_assistance_resources(rule_id,assistance_resource_id,company_id) values(gen_random_uuid(),gen_random_uuid(),$1)",
+  clients: "insert into clients(company_id,name,type) values($1,$2,'company')",
+  quotations: "insert into quotations(company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total) values($1,gen_random_uuid(),$2,$2,now(),0,0,0,0)",
+  quotation_items: "insert into quotation_items(company_id,quotation_id,description,unit,quantity,unit_price,total) values($1,gen_random_uuid(),$2,'m2',1,10,10)",
+  quotation_item_evidence: "insert into quotation_item_evidence(company_id,quotation_id,quotation_item_id,evidence_type,evidence_key,created_by_user_id) values($1,gen_random_uuid(),gen_random_uuid(),'quantity',$2,gen_random_uuid())",
+  quotation_transfer_ledgers: "insert into quotation_transfer_ledgers(company_id,actor_user_id,source_document_id,source_processing_run_id,source_artifact_id,source_quotation_id,target_quotation_id,idempotency_key,request_payload_hash,request_hash,scope_snapshot_json,source_rule_version) values($1,gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),$2,repeat('a',64),repeat('b',64),'{}','v1')",
+  quotation_transfer_source_rows: "insert into quotation_transfer_source_rows(company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version) values($1,gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),1,$2,'v1')",
 };
 const rowParams = (table: Table, companyId: string, tag: string) => rowSql[table].includes("$2") ? [companyId, tag] : [companyId];
 
@@ -52,7 +69,12 @@ function urlFor(control: URL, database: string, user?: string, password?: string
   const url = new URL(control); url.pathname = `/${database}`; if (user) url.username = user; if (password) url.password = password; return url.toString();
 }
 async function connect(connectionString: string) { const client = new pg.Client({ connectionString, connectionTimeoutMillis: 3_000 }); await client.connect(); return client; }
-async function denied(action: () => Promise<unknown>) { await assert.rejects(action, (error: unknown) => error instanceof pg.DatabaseError && error.code === "42501"); }
+async function denied(action: () => Promise<unknown>) {
+  await assert.rejects(
+    action,
+    (error: unknown) => error instanceof pg.DatabaseError && (error.code === "42501" || error.code === "P0001" || error.code === "P0002"),
+  );
+}
 async function deniedOrNoRows(action: () => Promise<pg.QueryResult>) {
   try { assert.equal((await action()).rowCount, 0); }
   catch (error) { assert.ok(error instanceof pg.DatabaseError && error.code === "42501"); }
@@ -80,10 +102,12 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     const system = (await admin.query<{ id: string }>("select system_identifier::text id from pg_control_system()")).rows[0]!.id;
     const target = { expectedDatabase: databaseName, expectedSystemIdentifier: system, requiredMarkerRegclass: "teklifpro_release.migrations" };
     await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
-    assert.deepEqual(await inspectTenantBusinessRlsViolations(admin), []); assertRoleBoundaries(await inspectRoleBoundaries(admin));
+    assert.deepEqual(await inspectTenantBusinessRlsViolations(admin), []);
+    assert.deepEqual(await inspectQuotationCoreRlsViolations(admin), []);
+    assertRoleBoundaries(await inspectRoleBoundaries(admin));
     const states = await admin.query<{ relname: string; rls: boolean; force_rls: boolean; owner: string }>(`select c.relname, c.relrowsecurity rls, c.relforcerowsecurity force_rls, pg_get_userbyid(c.relowner) owner
-      from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [DATABASE_TENANT_BUSINESS_RLS_TABLES]);
-    assert.equal(states.rowCount, DATABASE_TENANT_BUSINESS_RLS_TABLES.length);
+      from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
+    assert.equal(states.rowCount, allProtectedTables.length);
     for (const state of states.rows) assert.deepEqual(state, { relname: state.relname, rls: true, force_rls: true, owner: "bimmetraj_owner" });
 
     await admin.query("insert into companies(id,name) values($1,'A'),($2,'B')", [ids.companyA, ids.companyB]);
@@ -92,7 +116,8 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     await admin.query("insert into clients(id,company_id,name,type) values($1,$2,'Client A','company'),($3,$4,'Client B','company')", [ids.clientA, ids.companyA, ids.clientB, ids.companyB]);
     // Seed one row per tenant and table; FK triggers are bypassed only for this superuser seed.
     await admin.query("begin"); await admin.query("set local session_replication_role = replica");
-    for (const table of DATABASE_TENANT_BUSINESS_RLS_TABLES) {
+    for (const table of allProtectedTables) {
+      if (table === "clients") continue;
       await admin.query(rowSql[table], rowParams(table, ids.companyA, `seed-a-${table}`));
       await admin.query(rowSql[table], rowParams(table, ids.companyB, `seed-b-${table}`));
     }
@@ -109,7 +134,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     const adminCount = async (table: Table, companyId: string) =>
       (await admin.query<{ count: number }>(`select count(*)::int count from ${quote(table)} where company_id=$1`, [companyId])).rows[0]!.count;
 
-    for (const table of DATABASE_TENANT_BUSINESS_RLS_TABLES) {
+    for (const table of allProtectedTables) {
       assert.equal((await app.query(`select count(*)::int count from ${quote(table)}`)).rows[0].count, 0, `${table}: tenantless app reads fail closed`);
       await denied(() => app.query(rowSql[table], rowParams(table, ids.companyA, `tenantless-${table}`)));
       // App SQL without any company filter still sees only the bound tenant.
@@ -160,6 +185,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       post: (path: string, ...fns: Function[]) => handlers.set(`POST ${path}`, fns.at(-1)!),
     };
     registerCrmRoutes(expressApp, {} as any, () => {}, undefined, tenant);
+    registerClientRoutes(expressApp, {} as any, { withTenant: tenant.read });
     const call = async (key: string, req: Record<string, unknown>) => { const res = response(); await handlers.get(key)!({ query: {}, params: {}, body: {}, ...req }, res); return res; };
     const userA = { companyId: ids.companyA, userId: ids.userA };
     const userB = { companyId: ids.companyB, userId: ids.userB };
@@ -181,18 +207,35 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     assert.ok(!pipelineB.body.some((deal: { id: string }) => deal.id === dealId));
     assert.equal((await admin.query("select stage::text stage from deals where id=$1", [dealId])).rows[0].stage, "won");
 
+    const createdClient = await call("POST /api/clients", { user: userA, body: { name: "A route client", type: "company" } });
+    assert.equal(createdClient.code, 200, JSON.stringify(createdClient.body));
+    const clientRouteId = createdClient.body.id as string;
+    const clientsA = await call("GET /api/clients", { user: userA });
+    assert.ok(clientsA.body.every((client: { companyId: string }) => client.companyId === ids.companyA));
+    assert.ok(clientsA.body.some((client: { id: string }) => client.id === clientRouteId));
+    const clientsB = await call("GET /api/clients", { user: userB });
+    assert.ok(clientsB.body.every((client: { companyId: string }) => client.companyId === ids.companyB));
+    assert.ok(!clientsB.body.some((client: { id: string }) => client.id === clientRouteId));
+
     for (const mutation of [
       "alter table deals no force row level security",
       "drop policy usage_alerts_app_tenant on usage_alerts",
       "alter table rule_versions disable row level security",
       "delete from teklifpro_release.migrations where tag='0022_tenant_business_rls'",
+      "alter table quotations no force row level security",
+      "drop policy quotation_items_app_tenant on quotation_items",
+      "delete from teklifpro_release.migrations where tag='0023_quotation_core_rls'",
     ]) {
       await admin.query("begin");
       try {
         await admin.query(mutation);
-        assert.ok((await inspectTenantBusinessRlsViolations(admin)).length > 0, mutation);
+        const violations = [
+          ...(await inspectTenantBusinessRlsViolations(admin)),
+          ...(await inspectQuotationCoreRlsViolations(admin)),
+        ];
+        assert.ok(violations.length > 0, mutation);
         const drift = await inspectRoleBoundaries(admin);
-        assert.throws(() => assertRoleBoundaries(drift), /tenant business|boundary violations/i);
+        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|boundary violations/i);
       } finally { await admin.query("rollback"); }
     }
     await admin.query("alter policy activities_app_tenant on activities rename to activities_app_tenant_missing");

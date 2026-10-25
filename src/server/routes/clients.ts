@@ -1,9 +1,17 @@
 import type { Express } from "express";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "../../db";
+import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { clients } from "../../db/schema";
 import { authenticate } from "../middleware/auth";
+
+export interface ClientTenantAccess {
+  withTenant: typeof withAppTenant;
+}
+
+const defaultTenantAccess: ClientTenantAccess = {
+  withTenant: withAppTenant,
+};
 
 const createClientSchema = z.object({
   name: z.string().trim().min(1, "Müşteri adı zorunludur.").max(255),
@@ -15,17 +23,17 @@ const createClientSchema = z.object({
   pipelineStage: z.enum(["lead", "contacted", "quotation_sent", "negotiation", "won", "lost"]).default("lead"),
 });
 
-export function registerClientRoutes(app: Express, canMutate: any) {
+export function registerClientRoutes(app: Express, canMutate: any, tenantAccess: ClientTenantAccess = defaultTenantAccess) {
   app.get("/api/clients", authenticate, async (req, res) => {
     try {
       const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 200);
       const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-      const allClients = await db.select()
+      const allClients = await tenantAccess.withTenant(tenantOf(req.user), (tenantDb) => tenantDb.select()
         .from(clients)
         .where(eq(clients.companyId, req.user.companyId))
         .orderBy(desc(clients.createdAt))
         .limit(limit)
-        .offset(offset);
+        .offset(offset));
       res.json(allClients);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clients" });
@@ -48,7 +56,9 @@ export function registerClientRoutes(app: Express, canMutate: any) {
         pipelineStage: parsed.data.pipelineStage,
         companyId: req.user.companyId,
       };
-      const [newClient] = await db.insert(clients).values(data).returning();
+      const [newClient] = await tenantAccess.withTenant(tenantOf(req.user), (tenantDb) =>
+        tenantDb.insert(clients).values(data).returning()
+      );
       res.json(newClient);
     } catch (error) {
       res.status(500).json({ error: "Failed to create client" });

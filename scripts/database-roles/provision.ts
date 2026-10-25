@@ -316,7 +316,7 @@ async function convergePrivileges(client: Queryable, database: string, allowMiss
     }
     if (schema === "public") {
       await client.query(`grant select,insert,update,delete on all tables in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
-      await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_app,bimmetraj_worker`);
+      await client.query(`grant usage,select,update on all sequences in schema ${qualified} to bimmetraj_app,bimmetraj_control,bimmetraj_worker`);
       for (const [table, access] of Object.entries(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL)) {
         const present = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [`public.${table}`]);
         if (!present.rows[0]?.present) {
@@ -391,7 +391,10 @@ async function convergePrivileges(client: Queryable, database: string, allowMiss
   for (const functionSpec of DATABASE_FUNCTION_EXECUTE_SPECS) {
     const present = await client.query<{ count: number }>(`select count(*)::int as count from pg_proc p join pg_namespace n on n.oid=p.pronamespace
       where n.nspname=$1 and p.proname=$2 and oidvectortypes(p.proargtypes)=$3`, [functionSpec.schema, functionSpec.name, functionSpec.arguments]);
-    if (present.rows[0]?.count !== 1) throw new Error(`Required runtime function signature is missing or ambiguous: ${functionSpec.schema}.${functionSpec.name}`);
+    if (present.rows[0]?.count !== 1) {
+      if (allowMissingRestrictedTables && functionSpec.schema === "public") continue;
+      throw new Error(`Required runtime function signature is missing or ambiguous: ${functionSpec.schema}.${functionSpec.name}`);
+    }
     await client.query(`alter function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) owner to bimmetraj_owner`);
     await client.query(`alter function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) ${functionSpec.securityDefiner ? "security definer" : "security invoker"} set search_path to pg_catalog,${identifier(functionSpec.schema)}`);
     await client.query(`alter function ${identifier(functionSpec.schema)}.${identifier(functionSpec.name)}(${functionSpec.arguments}) ${functionSpec.strict ? "strict" : "called on null input"}`);

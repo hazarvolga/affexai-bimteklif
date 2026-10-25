@@ -162,6 +162,13 @@
       "sha256": "8633a01e1d0d11e7ed9865556d471282d29689561d2d0f9130f2bf3e8ca025d4",
       "snapshotSha256": "d962e72bcf075c7a8679647998a3de486b6a29c5489a83ef4d930d3803143d91",
       "statements": 70
+    },
+    {
+      "idx": 23,
+      "tag": "0023_quotation_core_rls",
+      "sha256": "e4947f32633e9843dea7f6f8d0b97f7908ecd6ad4b901016b4a130c52d23cdd4",
+      "snapshotSha256": "e353dd6a9e88c0bf8f9a8ce23d17f2ca8a140e1b251f61872cf165be3f794b10",
+      "statements": 30
     }
   ]
 }

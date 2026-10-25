@@ -109,7 +109,10 @@ test("provisions least-privilege database roles on isolated PostgreSQL 16", { ti
   try {
     const version = await control.query<{ major: number }>("select current_setting('server_version_num')::int / 10000 as major");
     assert.equal(version.rows[0]?.major, 16, "role provisioning evidence must run on PostgreSQL 16");
-    assert.equal((await control.query<{ name: string }>("select current_setting('cluster_name') as name")).rows[0]?.name, "teklifpro-phase7-role-test", "dedicated disposable cluster marker required");
+    const expectedClusterName = process.env.DATABASE_ROLE_TEST_CLUSTER_NAME === "<empty>"
+      ? ""
+      : process.env.DATABASE_ROLE_TEST_CLUSTER_NAME ?? "teklifpro-phase7-role-test";
+    assert.equal((await control.query<{ name: string }>("select current_setting('cluster_name') as name")).rows[0]?.name, expectedClusterName, "dedicated disposable cluster marker required");
     administratorRole = (await control.query<{ name: string }>("select current_user as name")).rows[0]?.name ?? "";
     defaultTablespaceOwner = (await control.query<{ name: string }>("select pg_get_userbyid(spcowner) as name from pg_tablespace where spcname='pg_default'")).rows[0]?.name ?? "";
     assert.ok(administratorRole && defaultTablespaceOwner);

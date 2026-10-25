@@ -107,6 +107,15 @@ export const DATABASE_TENANT_BUSINESS_RLS_TABLES = Object.freeze([
   "assistance_resources",
   "rule_assistance_resources",
 ] as const);
+/** Quotation core tables without worker or control-plane access, migrated in 0023 with the CDE policy matrix. */
+export const DATABASE_QUOTATION_CORE_RLS_TABLES = Object.freeze([
+  "clients",
+  "quotations",
+  "quotation_items",
+  "quotation_item_evidence",
+  "quotation_transfer_ledgers",
+  "quotation_transfer_source_rows",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
