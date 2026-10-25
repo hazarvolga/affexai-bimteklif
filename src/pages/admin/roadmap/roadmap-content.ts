@@ -723,16 +723,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Gerçek rol yapısıyla (bimmetraj_app + FORCE RLS) kurulan yerel inceleme veritabanında giriş sonrası /api/auth/me 'Company unavailable', şirket ayarları, abonelik, teklif oluşturma (kota) ve teklif PDF'i başarısızdı; canlı rol geçişi bu haliyle yapılsaydı hiçbir kullanıcı çalışamazdı. CI bu hatayı görmüyordu çünkü test düzeneği tabloları politikasız kopyalıyordu. Düzeltme: bu yollar şirket/abonelik/kullanım tablolarını çağıranın tenant işleminde okur; uygulama rolü bu tabloları kilitleyemediği için kota kilidi şirket başına advisory kilide taşındı ve yönetim plan/abonelik değişiklikleri ile ödeme onayı aynı kilidi alır; tarayıcı IFC kotası üretimde worker'a özel fonksiyonu çağırmaz; süper admin okumaları control-plane rolüyle yapılır. scripts/role-model-smoke.ts gerçek rol modeliyle 13/13 geçer (düzeltmeden önce 2/9). Hesap yöntemleri değişmedi; worker'ın kalan kota okumaları (T41 8B) açık.",
           ],
           [
-            "Rev. 72 (Güncel geliştirme)",
+            "Rev. 72",
             "25 Ekim 2026 (Coolify deploy'u içinde rol kurulumu; temiz kurulum yolu)",
             "BIM-CALC-2026-10-25.66",
             "Rol parolaları yalnız Coolify'da durduğu için rol adımları artık deploy grafiğinde tek seferlik servislerdir: db-bootstrap (boş veritabanında kanonik rolleri oluşturur, kurulu veritabanında hiçbir şey yapmaz) → migrate (bimmetraj_migrator) → db-provision (kuyruk şeması, yetki/RLS yakınsaması, inceleme) → app/worker. Rol CLI'sı paketlendiğinde inspect.ts'in kendi inceleme betiğini paralel çalıştırması hatası giderildi (her modda geçiş öncesi sahte hata üretiyordu). compose.coolify.yaml ile boş volume üzerinde üç geçişli prova: 1) bilinmeyen cluster parmak izinde değişiklik yapmadan durur, 2) kurulum tamamlanır, 3) yeniden çalıştırma etkisizdir. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 73 (Güncel geliştirme)",
+            "25 Ekim 2026 (Faz 8 SEO/GEO kod işleri: sitemap, robots, JSON-LD)",
+            "BIM-CALC-2026-10-25.67",
+            "GAP planı T47 ve T49'un kodla kapanan kısmı. Sitemap artık sayfalara sabit lastmod tarihi vermiyor; sayfa başına gerçek değişiklik tarihi tutulmadığı için tarih iddia edilmez. Production'da PUBLIC_APP_URL olmadan sunucu açılmaz; alan adı tahmini eklenmedi ve bu iki davranış testle sabitlendi. /hesaplayicilar, iki hesaplayıcı ve /bim-sozlugu sayfaya özgü JSON-LD alır: BreadcrumbList, ücretsiz WebApplication ve sözlük için noscript metniyle aynı listeden üretilen DefinedTermSet; puan, yorum veya fiyat alanı yazılmaz. robots.txt yapay zekâ arama tarayıcılarını (OAI-SearchBot, Claude-SearchBot, PerplexityBot vb.) ve eğitim tarayıcılarını (GPTBot, ClaudeBot, Google-Extended vb.) açık gruplarla listeler; varsayılan davranış öncekiyle aynıdır, eğitim izni ROBOTS_AI_TRAINING=disallow ile kapatılabilir. index.html llms.txt ve llms-full.txt'ye bağlanır. Hesap yöntemleri değişmedi; T48 (ön-render) ve GEO-03 açık.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 72 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 73 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1345,6 +1351,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Boş veritabanında migrate servisi henüz var olmayan bimmetraj_migrator ile bağlanıyordu; rol CLI'sı elle çalıştırılmak zorundaydı ve parolalar Coolify dışında yoktu. Paketli CLI her modda paralel bir inceleme de çalıştırıyordu.",
             "provision.ts bootstrapFreshDatabaseRoles; cli.ts bootstrap-fresh ve deploy-provision modları; queue-schema.ts; compose.coolify.yaml/compose.example.yaml db-bootstrap ve db-provision servisleri; inspect.ts giriş dosyası koruması; sözleşme testleri güncellendi.",
             "scripts/database-roles/provision.ts, scripts/database-roles/cli.ts, scripts/database-roles/queue-schema.ts, scripts/database-roles/inspect.ts, scripts/database-roles/bootstrap-fresh.test.ts, scripts/database-roles/inspect-entry.test.ts, scripts/database-roles/runtime-compose-contract.test.ts, compose.coolify.yaml, compose.example.yaml, docs/operations/database-role-model.md",
+          ],
+          [
+            "Rev. 73 · 25 Ekim 2026 (Faz 8 SEO/GEO kod işleri)",
+            "GAP planı T47/T49: SEO-03, SEO-04, SEO-05, GEO-01",
+            "Sitemap tüm sayfalara sabit 2026-10-18 lastmod veriyordu. robots.txt yalnız * grubunu içeriyordu ve eğitim/arama tarayıcıları için tercih kaydedilemiyordu. Hesaplayıcı ve sözlük sayfalarında sayfaya özgü JSON-LD yoktu. index.html llms.txt'ye bağlanmıyordu.",
+            "sitemapXml lastmod yazmaz; robotsTxt(origin, trainingPolicy) AI_SEARCH_CRAWLERS ve AI_TRAINING_CRAWLERS gruplarını üretir, aiTrainingPolicyFromEnv ROBOTS_AI_TRAINING'i okur; route-jsonld.ts BreadcrumbList/WebApplication/DefinedTermSet üretir ve injectRouteMeta bunu head'e bir kez ekler; public-glossary.ts sözlük noscript metni ile DefinedTermSet'in ortak kaynağıdır; PUBLIC_APP_URL fail-fast ve yerel 404 davranışı testlendi.",
+            "src/server/security/web-hardening.ts, src/server/security/route-meta.ts, src/server/security/route-jsonld.ts, src/server/security/public-glossary.ts, src/server/app.ts, index.html, src/server/security/web-hardening.test.ts, src/server/security/route-meta.test.ts, src/server/production-frontend.test.ts, src/server/config/production.test.ts",
           ],
         ],
       },
