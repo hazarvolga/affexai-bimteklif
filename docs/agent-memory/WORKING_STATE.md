@@ -24,7 +24,11 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 70** (`BIM-CALC-2026-10-24.64`, draft): icmal lines carry
+- Latest roadmap revision: **Rev. 71** (`BIM-CALC-2026-10-25.65`): request paths read
+  companies/subscriptions/usage_logs in tenant context (`src/db/app-tenant.ts`), quota
+  locking is a per-company advisory lock, admin RLS reads use the control plane.
+  Verify with `scripts/role-model-smoke.ts` against a provisioned database (13/13).
+  Rev. 70 (`BIM-CALC-2026-10-24.64`, draft): icmal lines carry
   their element list; "Bu sayı nasıl oluştu?", metraj cetveli CSV and an expert
   verification mode (records in the reviewer's browser for now). Local review
   server: `.claude/launch.json` → `teklifpro-review` (port 3001, docker

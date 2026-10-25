@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.64",
-  updatedOn: "24 Ekim 2026",
-  implementationBaseline: "ec56937e4bc85a06b7bf9d45839d35c34509a8e8",
+  version: "BIM-CALC-2026-10-25.65",
+  updatedOn: "25 Ekim 2026",
+  implementationBaseline: "14485418fabb9a241262509fac9f34012279f7ef",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1608,6 +1608,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Kalem toplamı izlenebilir eleman listesi olmadan gösteriliyordu.",
         after: "Kalem başına katkı listesi; katkıların toplamı net miktara eşittir (calm-icmal.test.ts).",
         basis: "Saha geri bildirimi (17 Ekim 2026): uzman hesap yöntemini sordu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 71",
+    version: "BIM-CALC-2026-10-25.65",
+    date: "25 Ekim 2026",
+    commit: "14485418fabb9a241262509fac9f34012279f7ef",
+    trigger: "Gerçek rol modeliyle yerel provada giriş, şirket, abonelik, kota ve PDF yollarının RLS altında başarısız olması.",
+    beforeSummary: "Kota tüketimi şirket, plan ve abonelik satırlarını FOR UPDATE/SHARE ile kilitliyordu; uygulama rolü bu tablolarda yalnız SELECT yetkisine sahip olduğundan üretim rol modelinde teklif oluşturma 503 dönüyordu.",
+    afterSummary: "Kota tüketimi şirket başına advisory kilit altında aynı okumaları yapar; yönetim plan/abonelik değişiklikleri ve ödeme onayı aynı kilidi alır. Kota limiti, sayaç ve tolerans kuralları değişmedi.",
+    affectedModules: ["kota"],
+    moduleDetails: {
+      kota: {
+        before: "Şirket/plan/abonelik satır kilitleri uygulama rolünde reddediliyordu.",
+        after: "Şirket başına pg_advisory_xact_lock; usage_records satır kilidi korunur (scripts/role-model-smoke.ts 13/13).",
+        basis: "Yerel PG16 prova, gerçek rol provisioning (scripts/database-roles/cli.ts provision)",
       },
     },
   },

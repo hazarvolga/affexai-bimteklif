@@ -711,16 +711,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Uzmanlar ürünü normal kullanıcı paketleriyle deneyecek; yönetim sayfalarını göremezler. /app/nasil-calisir sayfası (menüde Araçlar altında, tüm çalışma alanı rollerine açık) iş akışını ve 24 hesap/kontrol modülünü hesap yöntemleri sayfasıyla aynı içerikten gösterir: amaç, dayanak etiketi, formüller, kurallar, örnek hesap, kaynaklar, varsayımlar ve görüş sorulan konular. Her modülde 'Uygulamada dene' bağlantısı gerçek ekrana (SmartCheck, teklif oluşturma, kârlılık, piyasa, KİK hesaplayıcısı; demo sayfası değil) ve hazır konu satırlı geri bildirim e-postası bulunur. Kod yolları, inceleme kimlikleri, revizyon notları ve imza tablosu yalnız yönetimde kalır. Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 70 (Güncel geliştirme, taslak)",
+            "Rev. 70 (taslak)",
             "24 Ekim 2026 (Hesap izi, metraj cetveli ve uzman doğrulama modu)",
             "BIM-CALC-2026-10-24.64",
             "Saha görüşmesinde uzman mühendis hesapların nasıl yapıldığını sordu; icmal yalnız sonucu gösteriyordu. Artık her icmal satırı kendisini oluşturan elemanları taşır ve sağ panelde 'Bu sayı nasıl oluştu?' adımları sade Türkçeyle verilir (kaç eleman, kaç kat, miktarın Qto/geometri/özellikten geldiği, brüt − boşluk = net). 'Metraj cetvelini aç' tüm elemanları kat, mahal, katman, brüt, boşluk, net ve miktar kaynağıyla listeler; Türkçe Excel'in açtığı CSV olarak indirilir. 'Uzman doğrulama modu' ile mühendis her satırı Doğru / Düzeltme gerekli / Emin değilim olarak işaretler, kendi değerini ve notunu yazar; sapma ±%3 şirket toleransıyla karşılaştırılır ve ad, unvan, oda sicil numarası ve imza alanı olan rapor indirilir. Ön sürümde kayıtlar uzmanın tarayıcısında tutulur. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 71 (Güncel geliştirme)",
+            "25 Ekim 2026 (Üretim rol modelinde istek yolları tenant bağlamında; rol cutover blokajı kapandı)",
+            "BIM-CALC-2026-10-25.65",
+            "Gerçek rol yapısıyla (bimmetraj_app + FORCE RLS) kurulan yerel inceleme veritabanında giriş sonrası /api/auth/me 'Company unavailable', şirket ayarları, abonelik, teklif oluşturma (kota) ve teklif PDF'i başarısızdı; canlı rol geçişi bu haliyle yapılsaydı hiçbir kullanıcı çalışamazdı. CI bu hatayı görmüyordu çünkü test düzeneği tabloları politikasız kopyalıyordu. Düzeltme: bu yollar şirket/abonelik/kullanım tablolarını çağıranın tenant işleminde okur; uygulama rolü bu tabloları kilitleyemediği için kota kilidi şirket başına advisory kilide taşındı ve yönetim plan/abonelik değişiklikleri ile ödeme onayı aynı kilidi alır; tarayıcı IFC kotası üretimde worker'a özel fonksiyonu çağırmaz; süper admin okumaları control-plane rolüyle yapılır. scripts/role-model-smoke.ts gerçek rol modeliyle 13/13 geçer (düzeltmeden önce 2/9). Hesap yöntemleri değişmedi; worker'ın kalan kota okumaları (T41 8B) açık.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 70 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 71 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1319,6 +1325,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "İcmal satırı yalnız toplamı, kat dağılımını ve en fazla 6 örnek mahali gösteriyordu; satırı oluşturan elemanlar, miktar kaynağı ve uzmanın satır satır onay/itiraz kaydı yoktu.",
             "calm-icmal kalem başına katkı listesi (CalmQuantityContribution) üretir; calculation-trace.ts sade anlatım ve metraj cetveli CSV'si, expert-verification.ts karar/sapma/rapor modeli sağlar. CalculationTraceSection, MetrajCetveliSheet, ExpertLineVerification ve ExpertVerificationBar bileşenleri CalmIfcWorkspace'e bağlandı.",
             "src/ifc/calm-icmal.ts, src/ifc/calculation-trace.ts, src/ifc/expert-verification.ts, src/hooks/useExpertVerification.ts, src/components/smartcheck/CalculationTraceSection.tsx, src/components/smartcheck/MetrajCetveliSheet.tsx, src/components/smartcheck/ExpertLineVerification.tsx, src/components/smartcheck/ExpertVerificationBar.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx",
+          ],
+          [
+            "Rev. 71 · 25 Ekim 2026 (İstek yollarında tenant bağlamı ve kota kilidi)",
+            "Canlı rol geçişi öncesi doğrulama: gerçek rollerle yerel prova",
+            "İstek yolları companies, subscriptions ve usage_logs tablolarını tenant bağlamı olmadan uygulama havuzundan okuyordu; FORCE RLS altında satırlar görünmüyordu. Kota kodu bu satırları FOR UPDATE ile kilitliyordu; uygulama rolünün UPDATE yetkisi olmadığı için kilit reddediliyordu. Tarayıcı IFC kotası üretimde yalnız worker'ın çalıştırabildiği fonksiyonu çağırıyordu.",
+            "src/db/app-tenant.ts (withAppTenant, withAppTenantTransaction, tenantOf); withTenantTransaction izinli izolasyon seviyesi alır; src/services/billing/company-quota-lock.ts şirket başına advisory kilit; company-reads.ts; admin okumaları control-plane; scripts/role-model-smoke.ts.",
+            "src/db/app-tenant.ts, src/db/tenant-context.ts, src/services/billing/company-quota-lock.ts, src/services/billing/quota.ts, src/services/billing/feature-quota.ts, src/services/billing/usage-report.ts, src/services/company/company-reads.ts, src/server/routes/auth.ts, src/server/routes/company.ts, src/server/routes/billing.ts, src/server/routes/quotations.ts, src/server/routes/smartcheck.ts, src/server/admin/stats.ts, src/server/admin/changes.ts, scripts/role-model-smoke.ts",
           ],
         ],
       },
