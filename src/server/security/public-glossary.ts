@@ -1,5 +1,5 @@
 /**
- * BIM ve mevzuat sözlüğünün sunucu tarafı özeti: `/bim-sozlugu` `<noscript>` gövdesi ve DefinedTermSet JSON-LD
+ * BIM ve mevzuat sözlüğünün sunucu tarafı özeti: `/bim-sozlugu` ön-render (`#prerender`) gövdesi ve DefinedTermSet JSON-LD
  * aynı listeden üretilir, böylece yapısal veri ile okunabilir metin ayrışmaz.
  */
 export interface PublicGlossaryTerm {

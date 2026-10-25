@@ -29,7 +29,10 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 73** (`BIM-CALC-2026-10-25.67`): Faz 8 SEO/GEO code items
+- Latest roadmap revision: **Rev. 74** (`BIM-CALC-2026-10-25.68`): T46 first slice (llms.txt
+  capabilities only from the registry, package prices from the plan catalog) and T48 (server
+  text prerendered inside `#root` instead of `<noscript>`). Not deployed yet.
+  Rev. 73 (`BIM-CALC-2026-10-25.67`): Faz 8 SEO/GEO code items
   (T47/T49): no fixed sitemap lastmod, PUBLIC_APP_URL fail-fast pinned by tests, route JSON-LD
   for calculators and the glossary, explicit AI crawler groups in robots.txt
   (`ROBOTS_AI_TRAINING=disallow` closes training crawlers; default allows), llms links in

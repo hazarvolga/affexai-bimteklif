@@ -104,7 +104,10 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
 
 /**
  * JavaScript çalıştırmayan tarayıcılar (çoğu yapay zekâ ve bazı arama tarayıcıları) için rota başına gerçek içerik.
- * `<noscript>` bloğu olarak sunucuda eklenir; tam ön-render değildir ancak ham HTML'de okunabilir metin sağlar.
+ * T48: içerik `<div id="root">` içine `<main id="prerender">` olarak yazılır. Readability/Trafilatura gibi çıkarıcılar
+ * `<noscript>` içeriğini sildiği için metin artık onun dışındadır. JS çalışınca `createRoot().render()` kökü
+ * temizleyip uygulamayı çizer; JS ile açılan sayfada görsel kayma olmasın diye blok bu sürede ekran dışında tutulur,
+ * JS çalışmayan tarayıcıda `<noscript>` stili onu görünür yapar.
  * Yalnız kodla desteklenen ve kaynağı belirtilen bilgiler yazılır.
  */
 const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
@@ -159,7 +162,16 @@ const NAV_LINKS: readonly (readonly [string, string])[] = [
   ['/hesaplayicilar', 'Ücretsiz hesaplayıcılar'], ['/pilot', 'Pilot başvurusu'], ['/terms', 'Kullanım koşulları'], ['/privacy', 'KVKK ve gizlilik'],
 ];
 
-function renderNoscript(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[]): string {
+/**
+ * JS ile açılışta ön-render bloğu ekran dışında (ekran okuyucu ve metin çıkarıcıya açık) tutulur; React kökü
+ * temizleyince blok kaybolur. JS kapalıysa `<noscript>` içindeki kural onu normal akışta gösterir.
+ */
+const PRERENDER_STYLE = [
+  '<style id="prerender-style">#prerender{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0}</style>',
+  '<noscript><style>#prerender{position:static;width:auto;height:auto;margin:0 auto;padding:2rem 1rem;overflow:visible;clip:auto;max-width:60rem;font:16px/1.6 system-ui,sans-serif}</style></noscript>',
+].join('\n    ');
+
+function renderPrerender(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[]): string {
   const key = normalize(pathname);
   const paragraphs = [meta.description, ...(ROUTE_BODY[key] ?? [])];
   const extra = key === '/' ? capabilityLines : [];
@@ -169,7 +181,7 @@ function renderNoscript(pathname: string, origin: string, meta: RouteMeta, capab
     ...(extra.length ? ['<h2>Yetenekler ve doğrulama durumu</h2>', `<ul>${extra.map(line => `<li>${escapeAttr(line)}</li>`).join('')}</ul>`] : []),
     `<nav aria-label="Genel sayfalar"><ul>${NAV_LINKS.map(([href, label]) => `<li><a href="${origin}${href}">${escapeAttr(label)}</a></li>`).join('')}</ul></nav>`,
   ].join('');
-  return `<noscript><main>${body}</main></noscript>`;
+  return `<main id="prerender" data-prerender="route">${body}</main>`;
 }
 
 function normalize(pathname: string): string {
@@ -196,7 +208,7 @@ export interface InjectOptions {
   notFound?: boolean;
   /** Paylaşım görseli mevcutsa mutlak URL'i. */
   ogImagePath?: string | null;
-  /** Ana sayfa `<noscript>` içeriği için yetenek özeti satırları (yetenek kaydından üretilir). */
+  /** Ana sayfa ön-render içeriği için yetenek özeti satırları (yetenek kaydından üretilir). */
   capabilityLines?: readonly string[];
 }
 
@@ -237,8 +249,9 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
     if (data) out = out.replace('</head>', `    ${renderJsonLdScript('route-jsonld', data)}\n  </head>`);
   }
 
-  if (meta && !notFound && !meta.noindex && !out.includes('<noscript><main>') && out.includes('<div id="root"></div>')) {
-    out = out.replace('<div id="root"></div>', `<div id="root"></div>\n    ${renderNoscript(pathname, origin, meta, capabilityLines)}`);
+  if (meta && !notFound && !meta.noindex && !out.includes('id="prerender"') && out.includes('<div id="root"></div>')) {
+    out = out.replace('<div id="root"></div>', `<div id="root">${renderPrerender(pathname, origin, meta, capabilityLines)}</div>`);
+    if (out.includes('</head>')) out = out.replace('</head>', `    ${PRERENDER_STYLE}\n  </head>`);
   }
 
   if (meta?.noindex && !notFound && out.includes('</head>') && !/name="robots"/.test(out)) {
