@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.69",
+  version: "BIM-CALC-2026-10-25.70",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "b8ea6d2fbe1524118ea773976424622a05d36e84",
-  approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "e36a8bd8946dfde18b7a5e8ea954ec0786714641",
+  approvalStatus: "Rev. 76, T41 0022 (14 iş tablosu FORCE RLS), T32 veraPDF 1.30.3 runtime + 7/7 PDF/A-2b fixture matrisi, T46/GEO-03 tek kaynaklı site JSON-LD ve T43 c8 kapsam kapısı + Playwright E2E dallarını main üzerinde birleştirir. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1668,6 +1668,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     afterSummary: "Sunucu site JSON-LD'sini her sayfada canlı/pilot yeteneklerden ve yayındaki plan kataloğundan üretir; yol haritası yetenekleri listelenmez, Organization'a areaServed TR eklendi, sameAs/puan/yorum yazılmaz. Landing metni pilot durumunu ve bağımsız uzman onayı olmadığını söyler; public-copy.test.ts doğrulanmamış uygunluk/doğruluk/tekillik iddialarını engeller. Hesap yöntemleri değişmedi.",
     affectedModules: [],
   },
+  {
+    revision: "Rev. 76",
+    version: "BIM-CALC-2026-10-25.70",
+    date: "25 Ekim 2026",
+    commit: "e36a8bd8946dfde18b7a5e8ea954ec0786714641",
+    trigger: "GAP planı T41 (0022 14 iş tablosu FORCE RLS), T32 (veraPDF 1.30.3 runtime + 7/7 PDF/A-2b fixture matrisi) ve T43 (c8 kapsam kapısı + Playwright E2E) birleştirmesi.",
+    beforeSummary: "1) 14 CRM/faturalama/tedarik iş tablosu yalnızca uygulama katmanında company_id filtresiyle korunuyordu. 2) ifc-worker imajında gerçek veraPDF CLI runtime'ı yoktu ve ham XML doğrulama raporu ayrı artifact olarak saklanmıyordu. 3) CI hattında tüm-dosya kapsam ratchet kapısı ve gerçek tarayıcı Playwright E2E iş akışı bulunmuyordu.",
+    afterSummary: "1) 0022_tenant_business_rls.sql ile 14 iş tablosu FORCE RLS altına alındı (toplam 36 tablo). 2) ifc-worker imajına SHA-256 sabitli veraPDF 1.30.3 eklendi, ham XML rapor verapdf_report_xml artifact'ı olarak saklanıyor ve 7 vakalık PDF/A-2b fixture matrisi imaj içinde doğrulandı. 3) c8 tüm-dosya kapsam raporu (%46,80 satır, 7 kritik kapsam tabanı), REQUIRE_TEST_DATABASE=true ve 6 gerçek tarayıcı Playwright E2E senaryosu CI'a bağlandı.",
+    affectedModules: ["pdfa"],
+    moduleDetails: {
+      pdfa: {
+        before: "veraPDF rapor ayrıştırıcısı ve kaynak checksum zinciri vardı ancak ifc-worker imajında gerçek veraPDF CLI çalışma zamanı bulunmuyor ve ham XML rapor ayrı artifact olarak saklanmıyordu.",
+        after: "ifc-worker imajına veraPDF 1.30.3 (SHA-256 b512bf24…9a59, GPLv3+/MPLv2+ çift lisans) gömüldü; her PDF koşusunda pdf_preflight, verapdf_validation ve verapdf_report_xml artifact'ları saklanır ve 7 vakalık PDF/A-2b fixture matrisi (yalnız XMP etiketi PASS almaz) imaj içinde doğrulanır.",
+        basis: "ISO 19005-2 (PDF/A-2b) & Dijital Hazırlama Yön. m.7",
+      },
+    },
+  },
 ];
 
 interface CalculationEvidence {
@@ -1794,9 +1811,9 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "Puan/ağırlıkların kullanıcıyı yanıltmadığının değerlendirilmesi ve kapsam dışı kuralların görünür tutulması.",
   },
   pdfa: {
-    scope: "PDF yükleme, kuyruk, PDF/A kimliği (m.7), ISO 216 A4 katları pafta boyutu (m.8(1)), tek pafta kuralı (m.8(2)), taranmış sayfa (m.6(4)) ve gömülü e-imza (/Sig, m.6(1)-(2)) ön kontrolü aktif.",
-    testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts", "src/smartcheck/pdf/verapdf-runner.test.ts", "src/smartcheck/import/processor.pdf-artifacts.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md"],
-    pending: "veraPDF entegrasyon sözleşmesi ve kaynak bağlı artifact mevcuttur; gerçek sabitlenmiş runtime, izinli font/renk/ek/çok sayfa/imzalı dosya matrisi, lisanslı dönüşüm sağlayıcısı, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi bekler.",
+    scope: "PDF yükleme, kuyruk, ifc-worker içinde sabitlenmiş veraPDF 1.30.3 runtime doğrulaması + ham XML rapor artifact'ı (verapdf_report_xml), PDF/A kimliği (m.7), ISO 216 A4 katları pafta boyutu (m.8(1)), tek pafta kuralı (m.8(2)), taranmış sayfa (m.6(4)) ve gömülü e-imza (/Sig, m.6(1)-(2)) ön kontrolü aktif.",
+    testFiles: ["workers/ifc/test_pdf_preflight.py", "src/smartcheck/import/pdf-preflight-runner.test.ts", "src/smartcheck/pdf/verapdf-runner.test.ts", "src/smartcheck/pdf/pdfa-fixture-matrix.test.ts", "src/smartcheck/import/processor.pdf-artifacts.test.ts", "src/smartcheck/sample-projects.ts", "docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md", "docs/audits/phase-5/T32_VERAPDF_RUNTIME_2026-10-25.md"],
+    pending: "veraPDF 1.30.3 runtime ve 7 vakalık sentetik PDF/A-2b matrisi imajda doğrulandı; izinli gerçek font/renk/ek/çok sayfa/imzalı dosya matrisi, lisanslı dönüşüm sağlayıcısı kararı, gerçek pafta kabulü ve taranmış sayfa sezgisinin yanlış alarm değerlendirmesi bekler.",
   },
   bindirme: {
     scope: "Akademi kapalı; eğitim simülatörü kodu mevcut, üretim metraj motoru olarak kullanılmıyor.",

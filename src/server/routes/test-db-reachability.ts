@@ -28,15 +28,14 @@ export async function skipIfDatabaseUnavailable(
   t: { skip: (message?: string) => void },
   label = "isolated HTTP integration test",
 ): Promise<boolean> {
-  if (!process.env.DATABASE_URL) {
-    t.skip(`DATABASE_URL is required for the ${label}`);
+  // CI sets REQUIRE_TEST_DATABASE=true: a missing database is a failure, never a silent skip (T43).
+  const unavailable = (reason: string) => {
+    if (process.env.REQUIRE_TEST_DATABASE === "true") throw new Error(`${reason} (REQUIRE_TEST_DATABASE=true)`);
+    t.skip(reason);
     return true;
-  }
+  };
 
-  if (!(await canReachDatabase(process.env.DATABASE_URL))) {
-    t.skip(`DATABASE_URL database is not reachable for the ${label}`);
-    return true;
-  }
-
+  if (!process.env.DATABASE_URL) return unavailable(`DATABASE_URL is required for the ${label}`);
+  if (!(await canReachDatabase(process.env.DATABASE_URL))) return unavailable(`DATABASE_URL database is not reachable for the ${label}`);
   return false;
 }

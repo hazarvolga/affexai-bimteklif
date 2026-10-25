@@ -1,0 +1,10 @@
+{
+  "all": true,
+  "src": ["src"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.pgtest.ts", "src/**/*.d.ts"],
+  "extension": [".ts", ".tsx"],
+  "reporter": ["text-summary", "json-summary", "lcov"],
+  "reports-dir": "coverage",
+  "temp-directory": "coverage/.v8"
+}

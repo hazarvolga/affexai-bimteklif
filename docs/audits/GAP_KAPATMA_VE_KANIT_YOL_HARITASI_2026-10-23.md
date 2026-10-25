@@ -1,8 +1,8 @@
 # BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası
 
 **Tarih:** 23 Ekim 2026
-**Son durum güncellemesi:** 25 Ekim 2026 · Rev. 72 · `BIM-CALC-2026-10-25.66` · canlı revizyon `f474e99`
-**Durum:** KULLANICI ONAYLI / UYGULANIYOR — Faz 0–4 geliştirme ve otomatik kanıt kapıları tamamlandı. Faz 5 kod akışı tamamlandı ancak T32 gerçek veraPDF runtime/lisanslı PDF/A dönüşüm sağlayıcısı nedeniyle açık. Faz 6 kod düzeyinde Pilot/L2 ve varsayılan kapalıdır; izinli resmî dosya, vendor ve uzman kabulü bekler. Faz 7'de T40 yerel rol topolojisi ve T41'in 8C dahil yerel güvenlik dilimleri kanıtlandı; Rev.57 control-plane least-privilege review açıklarını kapattı. Tenant bağlamsız/hassas global app okumaları, production worker canary/drain + ACL revoke, production cutover ve kalan tenant tabloları açıktır. T42'nin manuel ödeme ve worker lease dilimleri kısmen tamamlandı. **25 Ekim 2026:** Hazar'ın kararıyla `main` (`f474e99`, Rev. 72) Faz 0–11 kapanmadan canlıya alındı; rol kurulumu deploy içinde (db-bootstrap → migrate → db-provision) çalıştı ve `/api/health` `ok` / `db: connected` döndü. Bu bir production dağıtımıdır, Faz 7 veya Faz 11 kapanışı değildir; canlı kabul (T52) ve aşağıdaki açık kapılar sürer.
+**Son durum güncellemesi:** 25 Ekim 2026 · Rev. 76 · `BIM-CALC-2026-10-25.70` · canlı revizyon `f474e99`
+**Durum:** KULLANICI ONAYLI / UYGULANIYOR — Faz 0–4 geliştirme ve otomatik kanıt kapıları tamamlandı. Faz 5'te T32 için `ifc-worker` imajına sabitlenmiş veraPDF 1.30.3, ham XML rapor artifact'ı ve 7/7 PDF/A-2b fixture matrisi eklendi; izinli gerçek dosya matrisi ve dönüşüm sağlayıcısı kararı nedeniyle açık. Faz 6 kod düzeyinde Pilot/L2 ve varsayılan kapalıdır; izinli resmî dosya, vendor ve uzman kabulü bekler. Faz 7'de T40 yerel rol topolojisi ve T41'in 8C + `0022_tenant_business_rls` (36 tablo FORCE RLS) dilimleri kanıtlandı; T43 için c8 tüm-dosya kapsam kapısı (%46,80 satır) ve Playwright E2E (6/6) CI hattına bağlandı. **25 Ekim 2026:** Hazar'ın kararıyla `main` (`f474e99`, Rev. 72) Faz 0–11 kapanmadan canlıya alındı; rol kurulumu deploy içinde (db-bootstrap → migrate → db-provision) çalıştı ve `/api/health` `ok` / `db: connected` döndü. Bu bir production dağıtımıdır, Faz 7 veya Faz 11 kapanışı değildir; canlı kabul (T52) ve aşağıdaki açık kapılar sürer.
 **Plan baseline:** `e748481684b296cc6a1cd5de0365136b47384d2b`
 **Kaynak:** [23 Ekim bağımsız kod doğrulama raporu](/Users/hazarvolgaekiz/dev/products/bimplanacademy/TeklifPro-repo/docs/audits/GAP_RAPORU_KOD_DOGRULAMA_2026-10-23.md).
 **Kapsam:** 9 KOD başlığı, eski rapordaki 22 BUG/GAP/SEO/GEO maddesi, altı hesap motoru değerlendirmesi, tamamlanmamış doğrulamalar ve rakip/iddia kanıtı. Toplam **56 To-Do**, **12 faz**.
@@ -36,12 +36,12 @@ Bu bölüm, Codex oturumu veya kullanım limiti kesilse bile güvenli devam nokt
 | Faz 2 | **Kod/test tamamlandı** | `a836b6e`; `PHASE_2_REPORT_2026-10-23.md` | İzinli gerçek IFC matrisi ve L3/L4 kabulü |
 | Faz 3 | **Kod/test tamamlandı** | `91b0bf6`; `PHASE_3_REPORT_2026-10-23.md` | Yetkili standart metni, vergi/ihale ve mühendis imzaları |
 | Faz 4 | **Kod/test tamamlandı** | `157d13c`; `PHASE_4_REPORT_2026-10-23.md` | Gerçek çok-kullanıcılı saha ve production kabulü |
-| Faz 5 | **Kısmi** | `601ce90`; Rev. 43 / `885dd9d`; `PHASE_5_REPORT_2026-10-23.md` | T32 gerçek veraPDF runtime, lisanslı dönüşüm sağlayıcısı ve izinli dosya matrisi |
+| Faz 5 | **Kısmi (Rev. 76)** | `601ce90`, `b7f519c`; `PHASE_5_REPORT_2026-10-23.md`, `T32_VERAPDF_RUNTIME_2026-10-25.md` | veraPDF 1.30.3 imajda + 7/7 PDF/A-2b fixture matrisi tamam; izinli gerçek dosya matrisi, dönüşüm kararı ve belge uzmanı kabulü |
 | Faz 6 | **PARTIAL / Pilot L2 / default-off** | `ff057c4`; Rev. 46 / `dc3daea`; `PHASE_6_REPORT_2026-10-24.md` | Resmî Yeşil Defter/ataşman, OSKA/AMP native dosya, ihale uzmanı ve saha kabulü |
-| Faz 7 / T40 | **Production rol geçişi canlıda (Rev. 72); kabul kanıtı açık** | `eeeaf75`, `b8733c0`, `b9bf785`; Rev. 47, 51 ve 72; canlı `f474e99` | Secret rotasyonu teyidi, production `role-model-smoke`, canary, restore/parity ve rollback kanıtı |
-| Faz 7 / T41 | **PARTIAL — 22 tenant tablosu RLS altında canlıda; Rev. 71 companies/subscriptions/usage_logs tenant context** | Rev. 61: `4afe32b` / `fd73459`; Rev. 71: `1448541`; 0020 entitlement + 0021 company-context capability | Worker canary/drain + authority-table ACL revoke, kalan tenant tabloları ve canlı negatif tenant kanıtı |
-| Faz 7 / T42 | **PARTIAL** | Manuel Havale/EFT `30bb9ee`; worker fencing `c185518`; Rev. 49–50 | Academy entitlement (flag kapalı), heartbeat/orphan cleanup, gerçek banka/dekont ve production rollout |
-| Faz 7 / T43–T45 | **Uygulanıyor / açık** | T45 sentetik IFC parser ölçümü 3/3 tekrarlandı; T43 coverage/E2E ve T44 restore/recovery yok | Ölçümden önce onaylı p95 bütçeleri, gerçek büyük IFC/Excel/PDF/3D, eşzamanlı tenant, hedef VPS ve kurtarma kanıtı |
+| Faz 7 / T40 | **Production rol geçişi canlıda (Rev. 72); kabul kanıtı açık** | `eeeaf75`, `b8733c0`, `b9bf785`; Rev. 47, 51 ve 72; canlı `f474e99`; **Hazar 25 Ekim 2026'da DB parolalarını döndürdü** | Production `role-model-smoke`, canary, restore/parity ve rollback kanıtı |
+| Faz 7 / T41 | **PARTIAL — 36 tenant tablosu FORCE RLS altında (`0022` dahil, Rev. 76)** | Rev. 61: `4afe32b`; Rev. 71: `1448541`; Rev. 76: `3a3b61a` (`0022_tenant_business_rls`); 0020 entitlement + 0021 company-context capability | Kalan 36 tablo (S1–S5 dilimleri), worker canary/drain ve canlı negatif tenant kanıtı |
+| Faz 7 / T42 | **PARTIAL** | Manuel Havale/EFT `30bb9ee`; worker fencing `c185518`; Rev. 49–50 | Academy entitlement (flag kapalı), heartbeat/orphan cleanup, §8.4 sektör varsayılanı, gerçek banka/dekont ve production rollout |
+| Faz 7 / T43–T45 | **PARTIAL (Rev. 76)** | T43 (`f84bfcc`): c8 tüm-dosya kapsam kapısı (%46,80 satır, 7 kritik kapsam tabanı), `REQUIRE_TEST_DATABASE=true`, Playwright E2E 6/6; T45 sentetik IFC parser ölçümü 3/3 | T43 %80 kapsam eşiği (ratchet R+1..R+4); T44 restore/recovery; T45 onaylı p95 bütçeleri ve gerçek büyük dosya ölçümü |
 | Faz 8 / T47 | **Kod/test tamamlandı (Rev. 73)** | `be0791f`; sitemap lastmod yok, PUBLIC_APP_URL fail-fast ve yerel 404 testli, canonical/404/noindex mevcut testler | Canlıya alındıktan sonra Search Console'da sitemap okuma kanıtı |
 | Faz 8 / T49 | **PARTIAL (Rev. 73–75)** | `be0791f`, `b8ea6d2`; BreadcrumbList, WebApplication, DefinedTermSet; AI tarayıcı grupları; **Hazar'ın kararı (25 Ekim 2026): eğitim tarayıcıları açık kalır** (`ROBOTS_AI_TRAINING` tanımsız); Organization `areaServed` TR | Gerçek kurumsal profil bağlantıları (sameAs), Rich Results doğrulaması |
 | Faz 8 / T46 | **PARTIAL (Rev. 74–75)** | `bc0ee54`, `b8ea6d2`; llms.txt, /pricing, site JSON-LD (featureList, fiyat aralığı) kayıt/katalogdan; landing iddiaları düzeltildi; genel sayfa iddia kapı testi | Mevzuat sayfaları ve admin açıklamalarının hizalanması |
@@ -151,10 +151,10 @@ Tek yazma sahibi/modül ilkesi korunur. Ortak şema değişimleri ve migration'l
 
 ### Faz 7 — Güvenlik, performans ve test
 
-- [ ] **T40 — DB rol ayrımı.** Yerel app/worker/migrator/backup credential topolojisi, fail-closed inspector/provisioner ve A→B→A rotation/rollback disposable PostgreSQL 16 üzerinde kanıtlandı (`eeeaf75`, `b8733c0`). Rev. 72 (`b9bf785`) rol kurulumunu Coolify deploy'una taşıdı; production 25 Ekim 2026'dan beri `f474e99` ile ayrık rollerle çalışıyor. **Kabul:** runtime superuser/BYPASSRLS değil; yetkisiz DDL reddedilir; app ve Graphile Worker gerekli işlemleri sürdürebilir; rol geçişinin geri dönüş planı testlidir. **Kalan:** secret rotasyonu teyidi, production `role-model-smoke`, canary, restore/parity ve rollback kanıtı.
-- [ ] **T41 — DB seviyesinde tenant savunması.** CDE'de 5, hakedişte 10, SmartCheck pilot evidence'da 2, şirket sektör ayarında 1 ve CRM/kota diliminde 4 olmak üzere 22 tenant tablosu; ayrıca pilot audit/global katalog yüzeyleri FORCE RLS/transaction-local context ile korunuyor. Rev.56 ayrı `bimmetraj_control` rolü/pool'u ve exact ACL/RLS ile meşru authority-table mutasyonlarını app kimliğinden ayırdı; Rev.57 authority/support ACL, bağlantı URL'si, startup preflight ve append-only audit sınırını least-privilege inceleme bulgularına göre sertleştirdi (`58cf320`, `cd4b640`, `5e11135`, `63c5c60`, `82207c2`, `1dcc0bc`, `a55841e`). **Kabul:** havuz bağlantısı yeniden kullanımı ve eşzamanlı A/B isteklerinde veri sızmaz; uygulama filtre hatasına karşı negatif DB testi geçer; uygulama RBAC kaldırılmaz. **Kalan:** worker canary/drain sonrası authority-table ACL revoke, diğer tenant tabloları ve canlı negatif kanıt; Rev. 71 (`1448541`) ile companies/subscriptions/usage_logs request-path okumaları tenant context'e alındı. Görev PARTIAL.
+- [ ] **T40 — DB rol ayrımı.** Yerel app/worker/migrator/backup credential topolojisi, fail-closed inspector/provisioner ve A→B→A rotation/rollback disposable PostgreSQL 16 üzerinde kanıtlandı (`eeeaf75`, `b8733c0`). Rev. 72 (`b9bf785`) rol kurulumunu Coolify deploy'una taşıdı; production 25 Ekim 2026'dan beri `f474e99` ile ayrık rollerle çalışıyor ve Hazar 25 Ekim 2026'da DB parolalarını döndürdü. **Kabul:** runtime superuser/BYPASSRLS değil; yetkisiz DDL reddedilir; app ve Graphile Worker gerekli işlemleri sürdürebilir; rol geçişinin geri dönüş planı testlidir. **Kalan:** production `role-model-smoke`, canary, restore/parity ve rollback kanıtı.
+- [ ] **T41 — DB seviyesinde tenant savunması.** CDE'de 5, hakedişte 10, SmartCheck pilot evidence'da 2, şirket sektör ayarında 1, CRM/kota diliminde 4 ve Rev. 76 (`3a3b61a`, `0022_tenant_business_rls`) ile CRM/faturalama/tedarik iş tablolarında 14 olmak üzere **36 tenant tablosu**; ayrıca pilot audit/global katalog yüzeyleri FORCE RLS/transaction-local context ile korunuyor (`docs/audits/phase-7/PHASE_7_T41_REMAINING_TABLES_2026-10-25.md`). Rev.56 ayrı `bimmetraj_control` rolü/pool'u ve exact ACL/RLS ile meşru authority-table mutasyonlarını app kimliğinden ayırdı; Rev.57 authority/support ACL, bağlantı URL'si, startup preflight ve append-only audit sınırını least-privilege inceleme bulgularına göre sertleştirdi (`58cf320`, `cd4b640`, `5e11135`, `63c5c60`, `82207c2`, `1dcc0bc`, `a55841e`, `3a3b61a`). **Kabul:** havuz bağlantısı yeniden kullanımı ve eşzamanlı A/B isteklerinde veri sızmaz; uygulama filtre hatasına karşı negatif DB testi geçer; uygulama RBAC kaldırılmaz. **Kalan:** kalan 36 tenant tablosu (S1–S5 dilimleri), worker canary/drain ve canlı negatif kanıt; Rev. 71 (`1448541`) ile companies/subscriptions/usage_logs ve Rev. 76 (`3a3b61a`) ile 14 iş tablosu request-path okumaları tenant context'e alındı. Görev PARTIAL.
 - [ ] **T42 — Yetki ve kaynak sınırı regresyonu.** Manuel Havale/EFT transaction/idempotency dilimi (`30bb9ee`) ve SmartCheck worker claim/lease fencing (`c185518`) tamamlandı. **Kabul:** ücretli işlem atlatma, çift kota tüketimi, yetkisiz export/onay ve tenant geçişi negatif senaryoları geçer; hassas veri loga çıkmaz. **Kalan:** Academy entitlement (özellik kapalı), uzun iş heartbeat/orphan cleanup, gerçek banka/dekont ve production rollout; görev PARTIAL.
-- [ ] **T43 — Tam doğrulama hattı.** Yeni davranışta önce anlamlı failing test; unit+izole PostgreSQL integration+gerçek browser E2E; lint/build/Python/dependency audit, kod ve güvenlik incelemesi. **Kabul:** yalnız seçili 181 testle kapanış yok; test kapsam raporu ölçülür, proje %80 eşiği sağlanır ve kritik dallar ayrıca izlenir; atlanan testler açık gerekçelendirilir, zorunlu senaryo atlanmaz.
+- [ ] **T43 — Tam doğrulama hattı.** *(25 Ekim 2026, PR #18, PARTIAL: c8 tüm-dosya kapsam raporu CI'da, proje %46,80 satır / %77,98 dal / %82,91 fonksiyon; ratchet kapısı bugünkü değerde, 7 kritik kapsam ayrı floor ile izleniyor; Playwright E2E giriş/teklif+PDF/SmartCheck IFC/admin roadmap 6/6 ve ayrı CI işi; `REQUIRE_TEST_DATABASE` ile DB senaryoları CI'da atlanamaz; atlanan testler `docs/audits/phase-7/PHASE_7_T43_COVERAGE_E2E_2026-10-25.md` §5'te. Kalan: %80 proje eşiği — 33,20 puan açık.)* Yeni davranışta önce anlamlı failing test; unit+izole PostgreSQL integration+gerçek browser E2E; lint/build/Python/dependency audit, kod ve güvenlik incelemesi. **Kabul:** yalnız seçili 181 testle kapanış yok; test kapsam raporu ölçülür, proje %80 eşiği sağlanır ve kritik dallar ayrıca izlenir; atlanan testler açık gerekçelendirilir, zorunlu senaryo atlanmaz.
 - [ ] **T44 — Worker, runtime ve kurtarma.** App/generic worker/IFC worker imaj SHA/digest/runtime'ını ayrı doğrula; queue retry/idempotency, process kill/restart, S3 hata/yarım yükleme ve kaynak limitlerini dene; DB+object storage yedek/restore tatbikatı yap. **Kabul:** yanlış başarı/çift işlem yok; migration ve veri uyumluluğunu koruyan rollback/forward recovery ölçülür; yalnız health 200 kanıt sayılmaz.
 - [ ] **T45 — Performans ve işletim bütçesi.** ExcelJS büyük chunk'ı, parse/3D/PDF worker RAM-CPU, büyük IFC/Excel, eşzamanlı tenant ve kuyruk gecikmesini hedef VPS sınırında ölç; Sentry/log/alert teslimi ve AI sağlayıcı varsa maliyet/fallback davranışını doğrula. **Kabul:** kabul edilen p95/süre/RAM/kota bütçeleri ölçümden önce kayıtlı; optimize edilen akış gerçek UI'da tekrar testli; limit aşımında anlaşılır hata ve geri kazanım var.
 
@@ -263,3 +263,186 @@ Yerel kanıt: `queue.integration.test.ts` admin disposable runtime ile 14/14 ge�
 ### Yerel doğrulama notu — 24 Ekim 2026
 
 `pnpm run build` Rev. 61 sonrası geçti. Focused release/role/roadmap/auth/tenant set `32/32`, artifact/role/roadmap subset `17/17`, `tsc --noEmit` ve `git diff --check` geçti. Tam `pnpm test`, disposable PostgreSQL ile gerçek izolasyon denemesine rağmen tam yeşil değil: test tabanında Graphile Worker `migrations` bootstrap'ı ve restricted `bimmetraj_app` runtime kimliği yoktu; paralel schema clone PostgreSQL `max_locks_per_transaction` sınırına çarptı. Bu test-environment kapısı ayrıca kapanmadan full-suite green veya production readiness iddiası yapılmayacaktır. Disposable DB/container kaldırılmıştır; canlı/veri sahibi veritabanına dokunulmamıştır.
+
+## 8. Son durum — 25 Ekim 2026 (öğleden sonra)
+
+Bu bölüm, 25 Ekim 2026 paralel oturumlarının sonucunu tek yerde toplar. "Kapandı" yalnız §2'deki kapanış durumlarıyla kullanılır; kod kapısının geçmesi, uzman/operasyon/canlı kabul yerine geçmez.
+
+### 8.1 Canlı ve `main`
+
+- **Canlı (kayıtlı):** `f474e99` / Rev. 72, ayrık DB rolleriyle (db-bootstrap → migrate → db-provision). `/api/health` `ok`, `db: connected`.
+- **`main`'e bu gün merge edilenler:** #13 Faz 8 SEO/GEO (Rev. 73, T47/T49), #14 salt-okur release preflight, #15 T46 llms/pricing tek kaynak, #16 T48 semantik prerender (Rev. 74), #20 T41 `0022_tenant_business_rls` (`931136d`), #17 T32 veraPDF 1.30.3 runtime (`e36a8bd`), #19 T46/GEO-03 site JSON-LD + landing metni (`3d9ebbe`, Rev. 75), #18 T43 c8 kapsam kapısı + Playwright E2E (Rev. 76). **Merge ≠ canlı:** Coolify'da elle Deploy ve `/api/health` revision kontrolü yapılmadıkça Rev. 73–76 canlı sayılmaz.
+
+### 8.2 Birleştirilen paralel PR'lar ve merge sonrası kalanlar
+
+| PR | İş | Durum | Merge sonrası kalan |
+|---|---|---|---|
+| #17 | T32 — veraPDF 1.30.3 runtime `ifc-worker` imajında, ham XML rapor artifact'ı, 7/7 PDF/A fixture matrisi | **`main`'de birleştirildi** (`e36a8bd`) | İzinli gerçek PDF matrisi, dönüşüm kararı (Ghostscript AGPL / ticari SDK / dönüşüm yok), deploy sonrası `verapdf --version` smoke, belge uzmanı kabulü |
+| #18 | T43 — c8 kapsam kapısı + kritik kapsamlar + Playwright E2E + `REQUIRE_TEST_DATABASE` | **`main`'de birleştirildi** (Rev. 76) | %80 proje eşiği (bugün %46,80); ratchet planı R+1…R+4 |
+| #19 | T46 2. dilim + GEO-03 — site JSON-LD kayıt/katalogdan, landing iddiaları, `areaServed` TR, kamu metni iddia kapı testi; eğitim tarayıcıları açık (Hazar kararı) | **`main`'de birleştirildi** (`3d9ebbe`, Rev. 75) | Mevzuat sayfaları/admin metinleri, `sameAs` gerçek profiller, Rich Results doğrulaması |
+| #20 | T41 — `0022_tenant_business_rls`: 14 tablo daha FORCE RLS (22 → 36), 72 `company_id` tablosu envanteri | **`main`'de birleştirildi** (`931136d`) | Kalan 36 tablo (S1–S5 dilimleri), worker canary/drain + ACL revoke, canlı `role-model-smoke` |
+
+**Birleştirme kaydı:** Önerilen `#20 → #17 → #19 → #18` sırasıyla dört PR'ın tamamı `main` dalına birleştirildi; `.github/workflows/verify.yml` ve `package.json` adımları kayıpsız birleştirildi.
+
+### 8.3 56 maddenin durumu
+
+| Durum | Maddeler | Adet |
+|---|---|---:|
+| Kod/test kapısı tamam (`[x]`) — uzman/vendor/canlı kabul ayrıca Faz 9'da | T01–T31, T33, T34, T47, T48 | 35 |
+| PARTIAL — kod dilimi var, kabul kriteri karşılanmadı | T32 (#17), T35–T39 (Pilot/L2, default-off), T40, T41 (#20), T42, T43 (#18), T45 (sentetik ön ölçüm), T46 (#19), T49 (#19) | 13 |
+| Açık — başlanmadı veya dış girdiye bağlı | T44, T50, T51, T52, T53, T54, T55, T56 | 8 |
+
+Not: T45 ve T35–T39 satırları §4'te kendi kalan maddeleriyle açık tutulur; sentetik ölçüm veya varsayılan-kapalı kod kabul sayılmaz. Faz 7 ve Faz 11 kapanmadı; "tam kapanış" beyanı yapılmaz.
+
+### 8.4 Bu oturumda bulunan, düzeltilmeyen kusur
+
+- **Teklif editörü sektör varsayılanı:** `CreateQuote` `industryId: 'residential'` gönderir; `industries` kataloğunda satır yoksa kayıt `500` (FK `quotations_industry_id_industries_id_fk`) döner. Production 0017 migration'ı satırı tohumladığı için canlıda görülmez. Beklenen: boş/eksik katalogda 4xx + anlaşılır Türkçe hata veya `industryId: null`. Sahibi: T42 regresyon kapsamı.
+
+## 9. Kalan maddeleri kapatma promptu
+
+Aşağıdaki metin, yeni bir Claude Code / Codex oturumuna olduğu gibi verilecek şekilde yazılmıştır. Her oturum tek bir iş dilimini alır; birden fazla oturum paralel çalışacaksa aynı dosyaya iki yazar atanmaz.
+
+````text
+BAĞLAM
+Sen TeklifPro / BIMMetraj deposunda çalışıyorsun: Vite + React + Express + Drizzle,
+PostgreSQL 16, Graphile Worker, Python IfcOpenShell IFC worker; production Coolify'da
+(compose.coolify.yaml), deploy ELLE yapılır ve merge canlıya alma değildir.
+Kapatılacak işlerin tek doğruluk kaynağı:
+docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md (§4 To-Do, §8 son durum).
+Önce CLAUDE.md, AGENTS.md, CODEX.md ve bu dosyanın §2 (onay sınırları), §6 (zorunlu
+kayıtlar) ve §8 bölümlerini oku. Sana atanan iş ID'sini (ör. T41-S1) yalnız o kapsamda yap.
+
+DEĞİŞMEZ KURALLAR
+1. Kanıt olmadan "kapandı" yazma. Durumlar: bekliyor → uygulanıyor → test edildi →
+   uzman/operasyon kabulü bekliyor → kapandı. Kod kapısı ≠ kabul. Sentetik/açık kaynak
+   örnek ≠ müşteri (L4) kabulü. Yerel test ≠ production kanıtı.
+2. Eşik/oran/sayı uydurma. Ölçemediğin şeyi bugünkü ölçülen değerle kapıla, açığı yaz,
+   ratchet planı ekle (T43 örneği: %46,80 ölçüldü, %80 sahte karşılanmadı).
+3. Mühendislik ve maliyet sayıları `yuksek-muhendis-mimar` skill'i ile doğrulanır.
+   3x3 şirket politikasıdır, normatif kural değildir: (a) metraj sapması ≤ %3,
+   (b) paspayı standart minimum mm'nin altında değil (TS 500: iç 20 / dış 25 /
+   döşeme 15 mm; EC2 XC3 cnom 35 mm yalnız activeStandard = EUROCODE_2),
+   (c) taşıyıcı elemanlar STR disiplininde. Paspayını asla yüzde olarak yazma.
+4. Yeni davranışta önce anlamlı failing test (RED), sonra uygulama (GREEN). DB testleri
+   izole PostgreSQL 16 ile (.github/workflows/verify.yml'deki rol bootstrap + release
+   migration zinciri); paylaşılan/canlı veritabanına dokunma. CI'da
+   REQUIRE_TEST_DATABASE=true: DB senaryosu atlanamaz.
+5. Dev Demo / Guest Login bypass yalnız import.meta.env.DEV iken; production'da asla.
+6. Production deploy, secret değişimi, ücretli lisans/araç satın alma, dış kuruma dosya
+   gönderme, uzman adına imza ve kamuya açık iddia değişikliği Hazar'ın açık onayı
+   olmadan yapılmaz. Bunlar gerektiğinde somut kapsam/maliyet/sürümle sor ve bekle.
+7. Marka yazımı: BIMMetraj. Conventional commits. Kullanıcıya ait
+   docs/agent-memory/gelecekteki-global-konumlandırma.md, kökteki
+   proje_analiz_gap_bug_seo_geo_rakip_raporu.md ve graphify-out/* commit'e girmez.
+8. Roadmap Rev kaydını (roadmap-content.ts / calculation-review.ts) entegre eden oturum
+   yazar; paralel dilim oturumları PR açıklamasına "kaydedilecekler" listesi koyar.
+9. Her iş bitiminde: kapsam raporu kapısı (`pnpm run test:coverage`) düşmemeli; kritik
+   kapsam floor'u düşerse test ekle, floor'u düşürme. Kapsam yükseldiyse
+   coverage-thresholds.json floor'unu yeni ölçülen değere (aşağı yuvarlanmış) çek.
+
+ÇIKTI SÖZLEŞMESİ (her dilim)
+- main'e karşı PR, yeşil CI (verify + e2e), PR gövdesinde: kabul kriteri → kanıt
+  eşlemesi, test komutları ve çıktıları, atlanan testler ve gerekçesi, kalan sınır.
+- docs/audits/phase-N/PHASE_N_<ID>_<konu>_<tarih>.md kanıt dosyası (iş ID, kabul
+  kriteri, kod SHA, kaynak/fixture hash, test komutu/çıktısı, kalan sınır).
+- Bu GAP dosyasında yalnız kendi maddenin §4 satırına kısa durum notu; §8.3 sayımını
+  güncelle. Başka maddenin satırını değiştirme.
+
+İŞ DİLİMLERİ VE BİTİŞ TANIMI (bağımlılık sırasıyla)
+
+[Önce: açık PR'ları merge et] #20 → #17 → #19 → #18. verify.yml adım çakışmalarını
+birleştir (adımlar bağımsız); her merge sonrası CI yeşil olmalı. Sonra Coolify'da elle
+Deploy, /api/health revision = main SHA, canlı smoke. Deploy Hazar onayıyla.
+
+T41 — Tenant RLS (kalan 36 tablo + worker ACL)
+- Envanter: docs/audits/phase-7/PHASE_7_T41_REMAINING_TABLES_2026-10-25.md.
+- S1 teklif çekirdeği (quotations, quotation_items, quotation_financials, clients…):
+  0022 deseniyle ENABLE+FORCE RLS, app tenant ALL policy, backup SELECT, worker/control
+  default-deny; tüm request path'leri withTenantDrizzleTransaction'a; PG16 negatif
+  sözleşme testi (tenantless deny, filtre hatası, cross-tenant 42501, havuz yeniden
+  kullanımı, 25 eşzamanlı A/B). S2 fiyat/kaynak zekâsı (nullable regulation_alerts için
+  global okuma policy'si), S3 SmartCheck doküman hattı (worker policy + canlı canary
+  gerektirir), S4 Academy/Allplan (control-plane yazar), S5 authority/audit.
+- Worker canary/drain → canlı image SHA doğrulaması → authority-table ACL revoke.
+- Bitiş: 72/72 tablo sınıflandırılmış (RLS veya gerekçeli global), canlıda
+  role-model-smoke negatifleri geçer. Canary/revoke Hazar onaylı deploy penceresinde.
+
+T40 — DB rol ayrımı canlı kabul
+- Secret rotasyonu teyidini (Hazar 25 Ekim'de döndürdüğünü bildirdi) kanıt dosyasına
+  bağla; production role-model-smoke; canary; restore/parity (T44 ile); rollback
+  provasının disposable PG16 + canlı-benzeri ortamda kaydı.
+
+T42 — Yetki ve kaynak sınırı regresyonu
+- Academy entitlement (flag kapalı) negatifleri; uzun iş heartbeat/orphan cleanup
+  (lease süresi dolan run'ın güvenli yeniden kuyruğa alınması, çift işlem yok);
+  ücretli işlem atlatma, çift kota tüketimi, yetkisiz export/onay negatifleri; loglarda
+  hassas veri yok taraması; §8.4 sektör varsayılanı kusurunu düzelt (RED test önce).
+- Gerçek banka/dekont mutabakatı dış girdi: Hazar'dan izinli örnek gelmeden kapanmaz.
+
+T43 — %80 kapsam (ratchet)
+- R+1: route integration testleri (admin, pricing, smartcheck yazma uçları) → route
+  ≥ %70, proje ≥ %52. R+2: Playwright koşusunda V8 coverage toplayıp (page.coverage →
+  istanbul/c8 merge) UI kapsamını rapora kat; proje ≥ %60. R+3: büyük UI dosyalarına
+  jsdom bileşen testleri, kritik kapsamlarda dal ≥ %85; proje ≥ %70. R+4: ≥ %80.
+- CI'da atlanan server-path.e2e venv testlerini sistem Python'uyla koştur
+  (resolvePythonBin kullan); LibreOffice'i CI'ya ekle veya gerekçeli ayrı iş yap.
+- Bitiş: proje satır ≥ %80, kritik floor'lar korunur, zorunlu senaryo atlanmaz.
+
+T44 — Worker, runtime ve kurtarma
+- App / generic worker / IFC worker imaj digest ve runtime sürümlerini ayrı doğrula
+  (release preflight script'i kullan). Kuyruk retry/idempotency, süreç kill/restart,
+  S3 hata ve yarım yükleme, kaynak limitleri için tekrarlanabilir tatbikat script'i.
+- DB + object storage yedek/restore tatbikatı (postgres:restore-drill script'leri,
+  deploy/backup) disposable ortamda; RPO/RTO ölç; migration ileri/geri uyumluluğu.
+- Bitiş: yanlış başarı/çift işlem yok; ölçülmüş recovery; "health 200" tek kanıt değil.
+
+T45 — Performans bütçesi
+- ÖNCE Hazar'dan p95 süre/RAM/kota bütçelerini yazılı al ve kaydet; ölçümden sonra
+  bütçe yazılmaz. Hedef VPS sınırında büyük IFC/Excel/PDF/3B, eşzamanlı tenant, kuyruk
+  gecikmesi; ExcelJS chunk'ı; Sentry/log/alert teslimi; limit aşımında anlaşılır hata.
+
+T32 — PDF/A (PR #17 merge sonrası)
+- Hazar'ın dönüşüm kararı (A: dönüşüm yok / B: Ghostscript AGPL veya ticari / D: SDK)
+  olmadan dönüşüm kodu yazma. İzinli gerçek PDF matrisi (CMYK/ICC, ek, nitelikli
+  e-imza) gelince aynı matris runner'ıyla koştur; deploy sonrası
+  `docker exec <ifc-worker> /opt/verapdf/verapdf --version` = 1.30.3 ve bir yüklemede
+  üç artifact. Belge/arşiv uzmanı kabulü ayrı.
+
+T46 / T49 — Ürün metni ve yapısal veri (PR #19 merge sonrası)
+- Mevzuat sayfaları ve admin açıklamalarını capability registry'den üret; kamu metni
+  iddia kapı testine yeni sayfaları ekle. Gerçek kurumsal profil bağlantıları yoksa
+  sameAs ekleme. Deploy sonrası Rich Results ve Search Console (T47) ile canlı
+  Readability/Lighthouse (T48) kanıtlarını kaydet.
+
+T35–T39 — Hakediş/EKAP (Pilot/L2, varsayılan kapalı)
+- Kod çekirdeği hazır; kapanış dış girdiye bağlı: izinli resmî Yeşil Defter/ataşman/
+  icmal, bağımsız teknik ofis golden fixture'ı, lisanslı OSKA/AMP native dosyası ve
+  hedef yazılımda gerçek import, isimli ihale uzmanı. Girdi gelmeden yalnız fixture
+  runner'ını ve kabul şablonunu hazırla; feature flag'i açma.
+
+T50–T52 — Bağımsız uzman, gerçek dosya, yayın adayı
+- T50: /admin/roadmap/expert-review akışıyla modül bazlı uzman dosyası (kişi/unvan/
+  sicil/tarih + kapsam + kod/kaynak/fixture hash). Uzman adına imza atma.
+- T51: en az beş izinli temsilî pilot dosya; model → çıktı → teklif → hakediş
+  karşılaştırması; sapma gerekçeleri ve kullanıcı kabulü.
+- T52: tam CI + uzman kapsamı + migration/restore/rollback planı + sürüm notuyla
+  release adayı; Hazar onayıyla deploy; app/worker SHA, DB ledger, gerçek login/IFC/
+  PDF/teklif/hakediş, alarm ve geri dönüş doğrulaması.
+
+T53–T55 — "Türkiye'de tek" iddiası
+- Önceden tanımlı kategori/özellik seti/tarih ile kaynaklı pazar envanteri (OSKA/
+  OSKABULUT, AMP, İhale Pro, BEXEL, CostX, Autodesk, Kreo ve aramada çıkan diğerleri);
+  var/yok/doğrulanamadı ayrımı; BIMMetraj aynı kanıt eşiğinde. Sonuç olumsuz veya
+  belirsizse "tek" yayımlanmaz; karar hukuk/reklam incelemesiyle ve geçerlilik
+  tarihiyle Hazar'a sunulur.
+
+T56 — Nihai kanıt dosyası
+- Yalnız T01–T55 kapandığında veya gerekçeli kapsam kararı alındığında: kaynak
+  rapordaki 9 KOD + 22 BUG/GAP/SEO/GEO ID'si ve altı motor ↔ iş ↔ kanıt bağlantı
+  matrisi. Açık madde varken "tam kapanış" yazma.
+
+DURMA KOŞULLARI
+- Kabul kriteri dış girdi (uzman, lisans, izinli dosya, Hazar kararı, canlı pencere)
+  gerektiriyorsa: kod tarafını bitir, blocker'ı kanıt dosyasına ve PR'a yaz, tek ve net
+  bir soru sor, kapanmış gibi işaretleme.
+````
