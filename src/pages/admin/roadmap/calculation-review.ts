@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.68",
+  version: "BIM-CALC-2026-10-25.69",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "cc5161946cab209fbab126826ba4a2b199313a5a",
+  implementationBaseline: "b8ea6d2fbe1524118ea773976424622a05d36e84",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1656,6 +1656,16 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     trigger: "GAP planı T46 (tek kaynaklı ürün metni) ilk dilimi ve T48 (semantik ön-render).",
     beforeSummary: "llms.txt'de yetenek kaydından ayrışmış elle yazılmış bir blok vardı (CDE ve PDF/A 'Faz 2', KİK dosyası 'Faz 3 yol haritasında'); paket fiyatları llms.txt ve /pricing metninde elle yazılıydı. Sunucu sayfa metni <noscript> içindeydi; Readability/Trafilatura gibi çıkarıcılar bu bloğu siler.",
     afterSummary: "llms.txt yetenekleri yalnız CAPABILITY_REGISTRY'den, paketleri ve iskontoları canonicalPlans ve BILLING_PERIOD_OPTIONS'tan üretir. Sayfa metni #root içinde <main id=\"prerender\"> olarak yazılır, JS ile açılışta ekran dışında tutulur ve React kökü temizler; JS kapalıyken <noscript> stiliyle görünür. Chromium'da CLS 0, mount sonrası tek main/h1. Hesap yöntemleri değişmedi.",
+    affectedModules: [],
+  },
+  {
+    revision: "Rev. 75",
+    version: "BIM-CALC-2026-10-25.69",
+    date: "25 Ekim 2026",
+    commit: "b8ea6d2fbe1524118ea773976424622a05d36e84",
+    trigger: "GAP planı T46 ikinci dilimi ve GEO-03: site geneli JSON-LD ve landing metni.",
+    beforeSummary: "index.html'deki Organization/SoftwareApplication JSON-LD'si elle yazılmıştı (featureList ve fiyat aralığı ayrışabilirdi). Landing, kayıtta canlı yetenek yokken 'canlı özellikler ... doğrulanmıştır' ve 'Onaylı İhale Teklifi' diyordu.",
+    afterSummary: "Sunucu site JSON-LD'sini her sayfada canlı/pilot yeteneklerden ve yayındaki plan kataloğundan üretir; yol haritası yetenekleri listelenmez, Organization'a areaServed TR eklendi, sameAs/puan/yorum yazılmaz. Landing metni pilot durumunu ve bağımsız uzman onayı olmadığını söyler; public-copy.test.ts doğrulanmamış uygunluk/doğruluk/tekillik iddialarını engeller. Hesap yöntemleri değişmedi.",
     affectedModules: [],
   },
 ];

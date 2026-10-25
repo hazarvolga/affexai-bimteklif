@@ -735,16 +735,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "GAP planı T47 ve T49'un kodla kapanan kısmı. Sitemap artık sayfalara sabit lastmod tarihi vermiyor; sayfa başına gerçek değişiklik tarihi tutulmadığı için tarih iddia edilmez. Production'da PUBLIC_APP_URL olmadan sunucu açılmaz; alan adı tahmini eklenmedi ve bu iki davranış testle sabitlendi. /hesaplayicilar, iki hesaplayıcı ve /bim-sozlugu sayfaya özgü JSON-LD alır: BreadcrumbList, ücretsiz WebApplication ve sözlük için noscript metniyle aynı listeden üretilen DefinedTermSet; puan, yorum veya fiyat alanı yazılmaz. robots.txt yapay zekâ arama tarayıcılarını (OAI-SearchBot, Claude-SearchBot, PerplexityBot vb.) ve eğitim tarayıcılarını (GPTBot, ClaudeBot, Google-Extended vb.) açık gruplarla listeler; varsayılan davranış öncekiyle aynıdır, eğitim izni ROBOTS_AI_TRAINING=disallow ile kapatılabilir. index.html llms.txt ve llms-full.txt'ye bağlanır. Hesap yöntemleri değişmedi; T48 (ön-render) ve GEO-03 açık.",
           ],
           [
-            "Rev. 74 (Güncel geliştirme)",
+            "Rev. 74",
             "25 Ekim 2026 (Tek kaynaklı ürün metni ve semantik ön-render)",
             "BIM-CALC-2026-10-25.68",
             "T46 ilk dilimi: llms.txt'deki elle yazılmış yetenek bloğu yetenek kaydından ayrışmıştı (CDE ve PDF/A için 'Faz 2', KİK dosyası için 'Faz 3 yol haritasında' diyordu); kaldırıldı, yetenekler yalnız kayıttan listelenir. llms.txt ve /pricing sunucu metnindeki paket fiyatları ve taahhüt iskontoları plan kataloğundan üretilir; değerler değişmedi. T48: sunucu sayfa metni <noscript> yerine #root içinde ön-render olarak yazılır; metin çıkarıcılar artık okur, React açılışta kökü temizler, JS ile açılışta görsel kayma yoktur (Chromium ölçümü CLS 0) ve JS kapalı tarayıcıda metin görünür. Hesap yöntemleri değişmedi; T46'nın landing/JSON-LD ve yönetim metni hizalaması açık.",
+          ],
+          [
+            "Rev. 75 (Güncel geliştirme)",
+            "25 Ekim 2026 (Site JSON-LD tek kaynak, landing metni, areaServed)",
+            "BIM-CALC-2026-10-25.69",
+            "T46 ikinci dilimi: index.html'deki elle yazılmış Organization/SoftwareApplication JSON-LD'si artık yalnız yerel geliştirme yedeğidir; üretimde sunucu bu grafiği her sayfada yetenek kaydının canlı/pilot kayıtlarından ve yayındaki plan kataloğundan üretir, yol haritasındaki yetenekler özellik listesine girmez. GEO-03: Organization'a areaServed TR eklendi; gerçek profil olmadan sameAs, puan veya yorum yazılmaz. Landing, kayıtta canlı yetenek ve bağımsız uzman onayı yokken 'canlı özellikler doğrulanmıştır' diyordu; metin pilot durumunu ve uzman onayı olmadığını söyleyecek şekilde düzeltildi. Genel sayfalarda doğrulanmamış uygunluk, doğruluk ve tekillik iddialarını engelleyen kapı testi (public-copy.test.ts) eklendi. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 74 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 75 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1371,6 +1377,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "llms.txt yetenek kaydıyla çelişen elle yazılmış bir blok ve elle yazılmış paket fiyatları taşıyordu; /pricing sunucu metni de fiyatları elle yazıyordu. Sunucu sayfa metni <noscript> içindeydi ve metin çıkarıcılar tarafından siliniyordu.",
             "web-hardening.ts planCatalogLines() ve kayıttan yetenek listesi; route-meta.ts pricingBody() canonicalPlans/BILLING_PERIOD_OPTIONS'tan üretir; renderPrerender() #root içine <main id=\"prerender\"> yazar, PRERENDER_STYLE JS açılışında bloğu ekran dışında tutar ve <noscript> stiliyle JS kapalıyken gösterir.",
             "src/server/security/web-hardening.ts, src/server/security/route-meta.ts, src/server/security/public-glossary.ts, src/server/security/web-hardening.test.ts, src/server/security/route-meta.test.ts",
+          ],
+          [
+            "Rev. 75 · 25 Ekim 2026 (Site JSON-LD ve landing metni)",
+            "GAP planı T46 ikinci dilimi ve GEO-03",
+            "index.html site JSON-LD'si elle yazılmıştı; landing kayıtla çelişen doğrulama ve onay ifadeleri taşıyordu; genel sayfalar için iddia kapısı yoktu.",
+            "site-jsonld.ts siteJsonLd() canlı/pilot yeteneklerden ve canonicalPlans'tan grafiği üretir; injectRouteMeta #site-jsonld bloğunu her sayfada değiştirir; LandingPage metni düzeltildi; public-copy.test.ts eklendi.",
+            "src/server/security/site-jsonld.ts, src/server/security/route-meta.ts, src/server/security/route-meta.test.ts, index.html, src/pages/LandingPage.tsx, src/pages/public-copy.test.ts",
           ],
         ],
       },

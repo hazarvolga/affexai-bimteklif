@@ -9,6 +9,7 @@
 
 import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
 import { renderJsonLdScript, routeJsonLd } from './route-jsonld';
+import { siteJsonLd } from './site-jsonld';
 import { canonicalPlans } from '../../services/billing/plan-catalog';
 import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
 
@@ -219,6 +220,9 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
   const normalizedPath = normalize(pathname);
   const meta = getRouteMeta(pathname);
   const canonical = `${origin}${normalizedPath === '/' ? '/' : normalizedPath}`;
+
+  // T46: statik site JSON-LD'si (index.html yedeği) yetenek kaydı ve plan kataloğundan üretilen grafikle değiştirilir.
+  out = out.replace(/<script id="site-jsonld" type="application\/ld\+json">[\s\S]*?<\/script>/, () => renderJsonLdScript('site-jsonld', siteJsonLd(origin)));
 
   // FAQPage JSON-LD yalnız ana sayfada kalmalı (P2 SEO: diğer rotalarda tekrar etmemeli)
   if (normalizedPath !== '/') {

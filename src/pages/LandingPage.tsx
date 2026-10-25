@@ -628,7 +628,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <div className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/5 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="text-xs text-muted-foreground">
                 <strong className="text-foreground font-semibold">Şeffaf Ürün Vitrini (Kanıt Kapısı L3):</strong>{' '}
-                Canlı özellikler gerçek kural motorları ve altın testlerle doğrulanmıştır; geliştirme aşamasındaki modüller tarihli yol haritası rozetiyle açıkça ayrılır.
+                Pilot özellikler kural motorları ve altın testlerle kontrol edilir; bağımsız uzman onayı henüz yoktur. Geliştirme aşamasındaki modüller yol haritası rozetiyle ayrı gösterilir.
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0 text-[11px] font-mono">
                 <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
@@ -649,7 +649,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <div className="max-w-3xl">
                 <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-wider text-primary">NASIL ÇALIŞIR? · UÇTAN UCA 5D İŞ AKIŞI</p>
                 <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">
-                  4 Adımda BIM Modelinden Kanıtlı ve Onaylı İhale Teklifine
+                  4 Adımda BIM Modelinden Kanıtı Görünen, Sizin Onayınızla Hazırlanan Teklife
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground">
                   IFC modelinizi, PDF/A paftalarınızı veya Excel metrajınızı yükleyin; RG 33331 e-PYS ön kontrolü, TS 500 &amp; Minha kesinti hesapları ve disiplin yetkili mühendis incelemesiyle kanıt izini koruyan teklif cetveli hazırlayın.

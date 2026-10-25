@@ -169,3 +169,33 @@ test('T48: noindex rotaları (/login) ön-render içeriği ve stil almaz', () =>
   assert.equal(login.includes('id="prerender"'), false);
   assert.equal(login.includes('prerender-style'), false);
 });
+
+test('T46/GEO-03: site JSON-LD yetenek kaydı ve plan kataloğundan üretilir; roadmap yeteneği, puan veya sameAs yazılmaz', async () => {
+  const { canonicalPlans } = await import('../../services/billing/plan-catalog');
+  const { getLiveCapabilities, getPilotCapabilities, getRoadmapCapabilities } = await import('../../capabilities/registry');
+  const shell = SHELL.replace('</head>', '<script id="site-jsonld" type="application/ld+json">{"stale":true}</script></head>');
+  for (const pathname of ['/', '/pricing', '/yok']) {
+    const html = injectRouteMeta(shell, { pathname, origin: 'https://bimmetraj.com', notFound: pathname === '/yok' });
+    const match = html.match(/<script id="site-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    assert.ok(match, pathname);
+    const graph = JSON.parse(match[1])['@graph'];
+    const org = graph.find((node: any) => node['@type'] === 'Organization');
+    const app = graph.find((node: any) => node['@type'] === 'SoftwareApplication');
+    assert.equal(org.areaServed.identifier, 'TR');
+    assert.equal('sameAs' in org, false);
+    const prices = canonicalPlans.filter(p => p.isActive && p.isPublished).map(p => p.monthlyPrice);
+    assert.deepEqual([app.offers.lowPrice, app.offers.highPrice, app.offers.offerCount], [String(Math.min(...prices)), String(Math.max(...prices)), String(prices.length)]);
+    assert.deepEqual(app.featureList, [...getLiveCapabilities(), ...getPilotCapabilities()].map(c => c.title));
+    for (const roadmap of getRoadmapCapabilities()) assert.equal(app.featureList.includes(roadmap.title), false, roadmap.id);
+    assert.equal(/aggregateRating|"review"/.test(match[1]), false);
+    assert.equal(html.includes('"stale"'), false);
+  }
+});
+
+test('T46: index.html site JSON-LD yedeği geçerli JSON ve sunucunun değiştirebileceği kimliği taşır', async () => {
+  const { readFileSync } = await import('node:fs');
+  const html = readFileSync('index.html', 'utf8');
+  const match = html.match(/<script id="site-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  assert.ok(match);
+  assert.doesNotThrow(() => JSON.parse(match[1]));
+});
