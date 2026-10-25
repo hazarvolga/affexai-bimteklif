@@ -33,7 +33,7 @@ test('the enterprise package gets its own AI allowance instead of the starter 20
   const reservation = await reserveAiUsage(company.id, user.id);
   assert.deepEqual([reservation.current, reservation.limit], [21, enterprise.monthlyAiLimit]);
   assert.ok((enterprise.monthlyAiLimit ?? 0) > 20, 'the enterprise catalog AI limit must exceed the starter 20');
-  const report = await import('./usage-report').then(module => module.readBillingUsage(company.id));
+  const report = await import('./usage-report').then(module => module.readBillingUsage({ companyId: company.id, userId: user.id }));
   const pdf = report.usage.find(row => row.feature === 'PDF_GENERATED');
   assert.equal(pdf?.enforced, true);
   assert.equal(pdf?.limit, 20, 'unset PDF column falls back to the legacy limit');

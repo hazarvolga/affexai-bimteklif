@@ -36,7 +36,6 @@ try {
       tabManager: persistentMultipleTabManager()
     })
   }, firebaseConfig.databaseId);
-  console.log("[Firebase] Firestore initialized with offline persistent cache.");
 } catch (err) {
   console.warn("[Firebase] Failed to initialize with persistent cache, falling back to standard Firestore:", err);
   dbInstance = getFirestore(app, firebaseConfig.databaseId);

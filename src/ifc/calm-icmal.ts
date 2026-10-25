@@ -34,6 +34,23 @@ export interface CalmRoomSampleRow {
   quantity: number;
 }
 
+/** Bir icmal kalemine giren tek bir elemanın (veya kaplama katmanının) metraj cetveli satırı. */
+export interface CalmQuantityContribution {
+  globalId: string;
+  name: string;
+  ifcClass: string;
+  storeyLabel: string;
+  roomLabel: string | null;
+  /** Çok katmanlı kaplamada miktarın geldiği katman; diğer elemanlarda null. */
+  layer: string | null;
+  netQuantity: number;
+  /** Modelde brüt/boşluk verisi yoksa null; hiçbir değer çarpanla üretilmez. */
+  grossQuantity: number | null;
+  openingQuantity: number | null;
+  quantitySource: ParsedIfcElement["quantitySource"];
+  quantitySourcePath?: string;
+}
+
 export interface CalmIcmalItem {
   id: string;
   groupKey: CalmIcmalGroupKey;
@@ -56,6 +73,8 @@ export interface CalmIcmalItem {
   sampleRooms: CalmRoomSampleRow[];
   /** Present for datasets projected from persisted SmartCheck rows; calibrated/demo datasets intentionally have none. */
   sourceQuantityRowIds?: string[];
+  /** Kalemi oluşturan elemanlar (metraj cetveli); kalibre/demo veri setlerinde yoktur. */
+  contributions?: CalmQuantityContribution[];
 }
 
 export interface CalmIcmalGroup {
@@ -614,6 +633,52 @@ function withQuantity(el: ParsedIfcElement): { quantity?: UncoveredQuantity } {
 
 type ElementPlacement = Pick<ParsedIfcElement, "matchedPozCode" | "isUncovered" | "uncoveredReason">;
 
+function contributionOf(
+  el: ParsedIfcElement,
+  storeyLabel: string,
+  layer: string | null,
+  netQuantity: number,
+  grossQuantity: number | null,
+  openingQuantity: number | null,
+): CalmQuantityContribution {
+  const roomLabel = el.spaceCode ? [el.spaceName, el.spaceCode].filter(Boolean).join(" · ") : el.spaceName || null;
+  return {
+    globalId: el.guid,
+    name: el.name,
+    ifcClass: el.ifcClass || el.type,
+    storeyLabel,
+    roomLabel,
+    layer,
+    netQuantity,
+    grossQuantity,
+    openingQuantity,
+    quantitySource: el.quantitySource,
+    ...(el.quantitySourcePath ? { quantitySourcePath: el.quantitySourcePath } : {}),
+  };
+}
+
+/**
+ * Worker raporundaki kayıtlarla icmalin ürettiği kayıtları birleştirir. Worker'da zaten bulunan bir
+ * kayıt ikinci kez eklenmez; ancak aynı GlobalId'yi paylaşan farklı elemanlar (mükerrer GUID'li
+ * modeller) ayrı kayıt olarak kalır. Eşleşme sayımla yapılır: worker'da bir kez geçen kimlik,
+ * icmalde iki kez geçiyorsa yalnız biri atlanır.
+ */
+function mergeReportEntries<T>(base: readonly T[], extra: readonly T[], identityOf: (entry: T) => string): T[] {
+  const remainingInBase = new Map<string, number>();
+  for (const entry of base) {
+    const key = identityOf(entry);
+    remainingInBase.set(key, (remainingInBase.get(key) ?? 0) + 1);
+  }
+  const added = extra.filter((entry) => {
+    const key = identityOf(entry);
+    const remaining = remainingInBase.get(key) ?? 0;
+    if (remaining === 0) return true;
+    remainingInBase.set(key, remaining - 1);
+    return false;
+  });
+  return [...base, ...added];
+}
+
 export function buildCalmIfcDatasetFromElements(
   elements: ParsedIfcElement[],
   summary?: Partial<IfcParseSummary> | null,
@@ -635,6 +700,7 @@ export function buildCalmIfcDatasetFromElements(
       byStorey: Map<string, number>;
       sampleRooms: CalmRoomSampleRow[];
       sourceQuantityRowIds: Set<string>;
+      contributions: CalmQuantityContribution[];
     }
   >();
 
@@ -667,11 +733,13 @@ export function buildCalmIfcDatasetFromElements(
           byStorey: new Map<string, number>(),
           sampleRooms: [],
           sourceQuantityRowIds: new Set<string>(),
+          contributions: [],
         };
         if (el.sourceQuantityRowId) entry.sourceQuantityRowIds.add(el.sourceQuantityRowId);
         entry.netQuantity += el.rebarKg;
         entry.grossQuantity += el.rebarKg;
         const storeyLabel = normalizeStoreyLabel(el.storey, el.spaceCode);
+        entry.contributions.push(contributionOf(el, storeyLabel, null, el.rebarKg, el.rebarKg, 0));
         entry.byStorey.set(storeyLabel, (entry.byStorey.get(storeyLabel) ?? 0) + el.rebarKg);
         if (!existing) accumMap.set(rebarSpec.id, entry);
         placements[elIndex] = { matchedPozCode: el.pozNo, isUncovered: false };
@@ -856,6 +924,7 @@ export function buildCalmIfcDatasetFromElements(
           byStorey: new Map<string, number>(),
           sampleRooms: [],
           sourceQuantityRowIds: new Set<string>(),
+          contributions: [],
         };
         accumMap.set(spec.id, entry);
       }
@@ -869,6 +938,8 @@ export function buildCalmIfcDatasetFromElements(
 
       const stLabel = normalizeStoreyLabel(el.storey, el.spaceCode);
       entry.byStorey.set(stLabel, (entry.byStorey.get(stLabel) || 0) + netQty);
+      const layerName = el.type === "IfcCovering" && Array.isArray(el.materialLayers) && el.materialLayers.length > 0 ? layerToken : null;
+      entry.contributions.push(contributionOf(el, stLabel, layerName, netQty, grossKnown ? grossQty : null, grossKnown ? openingQty : null));
 
       if (entry.sampleRooms.length < 6 && (el.spaceCode || el.spaceName || el.storey)) {
         const roomLabel = el.spaceCode
@@ -943,24 +1014,16 @@ export function buildCalmIfcDatasetFromElements(
       suppressedAssemblyParts: [],
     };
 
-    const seenUncoveredGuids = new Set(baseReport.uncoveredElements.map((u) => u.globalId));
-    const mergedUncovered = [...baseReport.uncoveredElements];
-    for (const u of unplacedUncoveredElements) {
-      if (!seenUncoveredGuids.has(u.globalId)) {
-        seenUncoveredGuids.add(u.globalId);
-        mergedUncovered.push(u);
-      }
-    }
-
-    const seenFindingKeys = new Set(baseReport.findings.map((f) => `${f.code}:${f.globalId}`));
-    const mergedFindings = [...baseReport.findings];
-    for (const f of unplacedFindings) {
-      const key = `${f.code}:${f.globalId}`;
-      if (!seenFindingKeys.has(key)) {
-        seenFindingKeys.add(key);
-        mergedFindings.push(f);
-      }
-    }
+    const mergedUncovered = mergeReportEntries(
+      baseReport.uncoveredElements,
+      unplacedUncoveredElements,
+      (u) => [u.globalId, u.ifcClass, u.name, u.storey].join("\u0000"),
+    );
+    const mergedFindings = mergeReportEntries(
+      baseReport.findings,
+      unplacedFindings,
+      (f) => [f.code, f.globalId, f.elementName ?? "", f.storey ?? ""].join("\u0000"),
+    );
 
     const totalCount = baseReport.totalElementCount || elements.length;
     resolvedConsistencyReport = {
@@ -1002,6 +1065,7 @@ export function buildCalmIfcDatasetFromElements(
       storeyBreakdown,
       sampleRooms: entry.sampleRooms,
       sourceQuantityRowIds: [...entry.sourceQuantityRowIds].sort(),
+      contributions: entry.contributions,
     };
   });
 

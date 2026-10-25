@@ -140,7 +140,7 @@ export default function Footer({ setView }: FooterProps) {
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-              T.C. ÇŞIDB UYUMLU
+              ÇŞB POZ ESASLI ÖN HESAP
             </span>
           </div>
         </div>

@@ -12,16 +12,36 @@ function assertTenantContext(context: TenantContext): void {
   if (!UUID_PATTERN.test(context.userId)) throw new Error("Tenant context userId must be a UUID");
 }
 
+export type TenantTransactionOptions = Readonly<{
+  isolationLevel?: "read committed" | "repeatable read" | "serializable";
+  readOnly?: boolean;
+}>;
+
+const ISOLATION_SQL: Record<NonNullable<TenantTransactionOptions["isolationLevel"]>, string> = {
+  "read committed": " ISOLATION LEVEL READ COMMITTED",
+  "repeatable read": " ISOLATION LEVEL REPEATABLE READ",
+  serializable: " ISOLATION LEVEL SERIALIZABLE",
+};
+
+/** BEGIN statement built only from the fixed option table above; no caller text reaches SQL. */
+export function tenantBeginStatement(options: TenantTransactionOptions = {}): string {
+  const isolation = options.isolationLevel ? ISOLATION_SQL[options.isolationLevel] : "";
+  if (options.isolationLevel && !isolation) throw new Error("Unsupported tenant transaction isolation level");
+  return `BEGIN${isolation}${options.readOnly ? " READ ONLY" : ""}`;
+}
+
 export async function withTenantTransaction<T>(
   pool: pg.Pool,
   context: TenantContext,
   work: (client: pg.PoolClient) => Promise<T>,
+  options: TenantTransactionOptions = {},
 ): Promise<T> {
   assertTenantContext(context);
+  const begin = tenantBeginStatement(options);
   const client = await pool.connect();
   let releaseError: Error | undefined;
   try {
-    await client.query("BEGIN");
+    await client.query(begin);
     const bound = await client.query(
       `select set_config('bimmetraj.company_id',$1,true), set_config('bimmetraj.user_id',$2,true)
        from pg_roles role
@@ -58,6 +78,7 @@ export function withTenantDrizzleTransaction<T>(
   pool: pg.Pool,
   context: TenantContext,
   work: (database: TenantDatabase) => Promise<T>,
+  options: TenantTransactionOptions = {},
 ): Promise<T> {
-  return withTenantTransaction(pool, context, (client) => work(drizzle(client, { schema })));
+  return withTenantTransaction(pool, context, (client) => work(drizzle(client, { schema })), options);
 }

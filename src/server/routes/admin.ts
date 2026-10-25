@@ -81,7 +81,7 @@ export function registerAdminRoutes(app: Express) {
   router.get("/dashboard", async (_req, res) => {
     try {
       // Toplam tenant sayısı (aktif/askıda vb.)
-      const tenantsRes = await db.execute(sql`
+      const tenantsRes = await getControlDatabase().db.execute(sql`
         SELECT s.status, COUNT(c.id) as count
         FROM companies c
         LEFT JOIN subscriptions s ON s.company_id = c.id
@@ -94,7 +94,7 @@ export function registerAdminRoutes(app: Express) {
       const totalTenants = Object.values(statusCounts).reduce((a: any, b: any) => a + b, 0);
 
       // MRR ve Paket Dağılımı
-      const mrrRes = await db.execute(sql`
+      const mrrRes = await getControlDatabase().db.execute(sql`
         SELECT p.name, p.monthly_price, COUNT(s.id) as active_count
         FROM subscriptions s
         JOIN plans p ON p.id = s.plan_id
@@ -170,13 +170,13 @@ export function registerAdminRoutes(app: Express) {
         return res.status(400).json({ error: "Geçersiz firma ID formatı" });
       }
 
-      const [company] = await db.select().from(companies).where(eq(companies.id, companyId));
+      const [company] = await getControlDatabase().db.select().from(companies).where(eq(companies.id, companyId));
       if (!company) {
         return res.status(404).json({ error: "Firma bulunamadı" });
       }
 
       // Users and memberships
-      const members = await db
+      const members = await getControlDatabase().db
         .select({
           userId: users.id,
           email: users.email,
@@ -189,14 +189,14 @@ export function registerAdminRoutes(app: Express) {
         .where(eq(memberships.companyId, companyId));
 
       // Subscription & Plan
-      const [subscription] = await db
+      const [subscription] = await getControlDatabase().db
         .select()
         .from(subscriptions)
         .where(eq(subscriptions.companyId, companyId));
 
       let plan = null;
       if (subscription?.planId) {
-        const [planRow] = await db.select().from(plans).where(eq(plans.id, subscription.planId));
+        const [planRow] = await getControlDatabase().db.select().from(plans).where(eq(plans.id, subscription.planId));
         plan = planRow ?? null;
       }
 
@@ -278,8 +278,8 @@ export function registerAdminRoutes(app: Express) {
   router.get("/plans", async (_req, res) => {
     try {
       const [allPlans, allSubs] = await Promise.all([
-        db.select().from(plans),
-        db
+        getControlDatabase().db.select().from(plans),
+        getControlDatabase().db
           .select({
             planId: subscriptions.planId,
             companyId: subscriptions.companyId,

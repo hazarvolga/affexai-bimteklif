@@ -1,439 +1,86 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-24. Keep this file to one page: current truth only.
-
-## 2026-10-24 deployment gate repair in progress
-
-- Latest pushed `main` is `781e208`; its GitHub Verify run `40085882300` failed at 65 tests. This is CI/test-infrastructure evidence, not a production deployment. Production still reports `d9d80df` (Rev. 40); do not conflate them.
-- Root causes reproduced on a dedicated local PostgreSQL 16 cluster: CI roles defaulted to `INHERIT` while the application requires `NOINHERIT`; isolated control/worker roles lacked cloned application schema access; queue fixtures ran privileged DDL/DML through the app login; hakediş fixtures opened pools before the isolation hook and cloned tables without their evidence triggers. The two worker capability functions had a contract source text different from their migration bodies.
-- Local repair validates disposable role provenance and exact attributes before integration tests, separates fixture-admin and restricted runtime connections, checks private queue denial, and runs dedicated PostgreSQL RLS contracts before the functional harness. The local five-suite RLS contract run passed 11/11. Focused auth, queue, hakediş, invitation and core-browser tests passed. Full `pnpm run verify`, GitHub Verify, image smoke and Coolify deploy remain gates until separately confirmed.
-- OpenAI Developers troubleshooting skill covers OpenAI API errors; this incident is PostgreSQL/CI and has no OpenAI API failure evidence.
-
-## Current local handoff — Rev. 67 / expert trial preparation; T45 partial
-
-- Rev. 65 records a local, repeatable preliminary performance measurement. `pnpm exec tsx scripts/compare-ifc-parsers.ts --synthetic-100mb` ran in three separate processes against a generated 100 MB IFC: 354,567 elements, 3.590–3.623 s parse time, peak RSS 1,190.48–1,237.61 MB, peak heap 778.86–826.59 MB. The result stayed below the documented 2 GiB RSS / 1 GiB heap ceilings.
-- This is not T45 closure. Approved p95/time/RAM/quota budgets, real permitted large IFC/Excel/PDF/3D fixtures, ExcelJS chunk measurement, concurrent tenant/queue latency, target VPS/Coolify evidence, and limit-error/recovery plus Sentry/log/alert correlation remain open.
-- Roadmap/calculation pages and `docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md` now carry Rev. 65 / `BIM-CALC-2026-10-24.59`; no production claim or deploy follows from this local measurement.
-- Harici fixture audit: `harici-kaynaklar/klasorler-ve-ornekler/ifc-document-sample/e-proje_4x3.ifc` (37.29 MB) and `harici-kaynaklar/klasorler-ve-ornekler/2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc` (31.39 MB) both show matching browser/worker supported type/Poz/E-PYS intersection, while total element, geometry-fallback volume and formwork metrics remain worker-authoritative. `IfcSampleFiles-main/README.md` says only “software test use”; it does not prove a license or redistribution permission. Rev. 66 classifies these differences in `scripts/compare-ifc-parsers.ts`; they are not expert/vendor acceptance.
-- Rev. 67 adds the protected `/admin/roadmap/expert-review` page. It is an execution guide for source admission, normal/boundary/invalid scenarios, real UI/VPS measurement, retry/alert observation, and signed expert decisions; it does not close T43–T45 or grant production approval.
-> **Brand Note:** Project brand is officially **BIMMetraj** (formerly TeklifPro; domain `https://bimmetraj.com`).
-
-History up to this date: `archive/WORKING_STATE_until_2026-10-13.md` (read it
-only when a decision needs its background; its paths and Vercel notes are stale).
-Full handoff for the next agent: `docs/agent-memory/HANDOFF_2026-10-21_ARA.md` (previous: `HANDOFF_2026-10-19_ARA.md`, `HANDOFF_2026-10-17.md`).
-Latest full audit & competitor report (2026-10-21): `docs/audits/GENEL_DURUM_GAP_BUG_SEO_GEO_RAKIP_RAPORU_2026-10-21.md` (next agent prompt: `docs/agent-memory/NEXT_AGENT_PROMPT_2026-10-21.md`).
-
-## Current local development — do not confuse with production
-
-- Local Phase 7 / T41 baseline is `82207c293f7ff527b3962e8f3e8ceabf58b9fe80` (`Rev. 55`, `BIM-CALC-2026-10-24.49`). Rev. 48 protects five CDE tables; Rev. 52 protects ten progress-payment tables; Rev. 53 protects two SmartCheck pilot tenant tables plus the pilot audit surface; Rev. 54 protects `company_industry_settings` with exact five-policy FORCE RLS and the global `industries` catalog with exact three-policy FORCE RLS. The settings service uses one tenant transaction, strict input and UI failure handling. Four `INITIAL_PLUGINS` rows are inserted with `ON CONFLICT DO NOTHING`, preserving operator-owned rows.
-- T41 remains **PARTIAL**: 22 tenant tables plus pilot audit and global catalog surfaces are covered. Other tenant tables, T40 production credential cutover, production canary/restore/rollback and deployment remain open. `PROGRESS_PAYMENTS_ENABLED` stays default-off; formulas and calculation outcomes are unchanged. `retention_until` is a minimum preservation boundary, not a purge scheduler or legal-hold workflow. Independent acceptance with permitted official files is still required. Latest evidence: `docs/audits/phase-7/PHASE_7_T41_COMPANY_INDUSTRY_SETTINGS_RLS_2026-10-24.md`; model: `docs/operations/tenant-rls-model.md`.
-- Local Phase 7 / T40 code baseline is `b8733c0d204bec9e978ab1a98e16df328dbb9d8c` (`Rev. 51`, `BIM-CALC-2026-10-24.45`). In addition to the Rev. 47 canonical role/ACL/RLS/provenance tooling, local compose now gives app, worker/ifc-worker, migrate and backup separate PostgreSQL login credentials. Release migration verifies the migrator identity, elevates with transaction-local owner role and enforces worker drain before migration. A password-authenticated disposable PostgreSQL 16 test proves A→B→A credential rollback and rejection of stale credentials.
-- T40 status remains **PARTIAL**: local cutover preparation and rollback evidence are complete, but production secrets/credentials were not cut over; production canary, restore/parity, rollback and deploy remain open. Evidence: `docs/audits/phase-7/PHASE_7_T40_RUNTIME_TOPOLOGY_2026-10-24.md`; operator model: `docs/operations/database-role-model.md`.
-- Local Phase 6 code baseline is `ff057c420641e864e89fa56ced6a1460fc31919b` (`Rev. 46`, `BIM-CALC-2026-10-24.40`). It adds tenant-bound period/cumulative progress payments, source-linked measurement/review evidence, immutable correction/event rules, candidate vendor roundtrip helpers, and tender-defense provenance/manifest helpers.
-- Status is **PARTIAL / pilot L2**. The feature flag is disabled by default and this revision has **not** been deployed. Production truth remains in the separate Production section below.
-- T35 is code/test complete. T36 still needs permitted official Yeşil Defter/attachment acceptance; T37 needs an independent technical-office fixture; T38 has no licensed OSKA/AMP native import acceptance; T39 has no named procurement expert sign-off and performs no official submission.
-- Phase 6 evidence: `docs/audits/phase-6/PHASE_6_REPORT_2026-10-24.md`. Recorded validation: `pnpm test` 1314/1308/0/6, IFC 72 pass, PostgreSQL lifecycle 14/0/1, service 3/3, artifacts 6/6, build pass, high/critical audit clean with 3 moderate advisories; code and security reviews GO.
+Last updated: 2026-10-24. Keep this file to one page: current truth only. Move
+history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
 
-- `https://bimmetraj.com` on Coolify (app UUID `ibjv2zbpecdcbd71lxo1vqd7`),
-  Docker Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`,
-  `migrate`, `backup`. Vercel files (`vercel.json`, `api/index.ts`) are legacy.
-- Latest implemented & LIVE revision: **Rev. 40 (`BIM-CALC-2026-10-22.34`, canlı `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e`)**: Node.js 24 LTS çalışma zamanı ve CI hattı (`Dockerfile`, `.github/workflows/verify.yml`) `24.18.0`'dan **`24.22.1`** sürümüne yükseltildi (`CVE-2026-111497` Brotli RCE ve `CVE-2026-105483` TLS hostname doğrulama atlatma yamaları); Coolify (`4.4.7`) `ROOT_USERNAME` `.env` tırnaklama hatası giderildi ve otomatik gece güncellemesi kapatıldı; sunucu (`169.58.96.15`) SSH/OS ve `.env` (`chmod 600`) sıkılaştırması ile GitHub Ed25519 Salt-Okunur Deploy Key (`bimmetraj-github-deploy-key` & `cortex-github-deploy-key`) entegrasyonu tamamlandı. Önceki revizyonlar: Rev. 39 (`BIM-CALC-2026-10-19.33`), Rev. 38 (`BIM-CALC-2026-10-19.32`, `420008e`), Rev. 37 (`BIM-CALC-2026-10-19.31`, `f00c8af`), Rev. 36 (`d52dfc8`), Rev. 35 (`9c59971`).
-- Bilinçli olarak yapılmayanlar (açık kaynak fırsat raporu): İngilizce katman sözlüğü ("Gypsum" alçıpan ≠ saten alçı), isimsiz/tekrarlanan isim kuralları, çok ülkeli sınıflandırma. Merdiven/korkuluk/cephe ve astar/macun için poz ve birim mühendis doğrulaması (`yuksek-muhendis-mimar`) olmadan eklenmez.
-- Last verified live revision: `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e` (Rev. 40, Node.js `24.22.1` Güvenlik Yaması & Coolify/VPS Sıkılaştırması,
-  `/api/health`, `revisionSource: "build"`, 2026-10-22, Coolify deploy `cf8e469a-7201-479a-b889-e1dbb021fb8c`). Transactional e-mail uses Stalwart SMTP 465 at
-  `mail.affexai.tr`, sender `info@bimmetraj.com`, with 8 corporate HTML/text templates (`src/server/notifications/email-templates.ts`) and Superadmin preview/test console at `/admin/email-templates`. Registration is open with package-aware onboarding (`/register?planId=...&billingPeriod=...`), plus Early-Access Waitlist on `/` and lead management at `/admin/leads`.
-- Still closed: card payments (Stripe test mode only; manual Havale/EFT IBAN transfer + Superadmin approval is live), AI (no provider keys).
-  SmartCheck server import is enabled for workspaces where `companies.is_smartcheck_enabled = true` (automatically set on registration with v6 quotas) as well as `SMARTCHECK_PILOT_COMPANY_IDS`.
-- Production R2 bucket `bimmetraj-production` and scoped app credentials are
-  configured. On 2026-10-13, app-container put/get/checksum/delete smoke passed.
-- Sentry organization `BIMMetraj` was created in the EU region via
-  `hazarvolga@gmail.com` on the free-path 14-day trial. Production `SENTRY_DSN`
-  is set in Coolify and present in the running `app`, `worker`, and `ifc-worker`
-  containers. A synthetic app-container error was flushed successfully to
-  Sentry (event ID `2fcdd9afa9d44f749b537fea86c215bb`); the event appeared in
-  Sentry issue `NODE-EXPRESS-1` (`153422905`). Sentry's default high-priority
-  issue alert fired once for this event. Its recipient was explicitly set to
-  `Hazar Volga Ekiz (hazarvolga@gmail.com)`; Sentry reported "Notification
-  fired!" for a test notification. Gmail Updates showed both the production
-  smoke alert (`NODE-EXPRESS-1`) and test issue notification (`NODE-EXPRESS-2`)
-  on 2026-10-13. The DSN is secret and must stay out of Git.
-- Daily 03:00 backup, R2 copy, restore drill passed.
+- `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
+  Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
+  `backup`. Vercel files are legacy.
+- **Live revision: `d9d80df` (Rev. 40, Node.js 24.22.1).** `main` is far ahead
+  and is **not deployable as-is**: production DB is at release migration
+  `0008_pilot_exception_rows` and has none of the `bimmetraj_*` roles that
+  migrations `0009`–`0021` and the new runtime need.
+- Deploy path: backup → worker drain → `role-admin bootstrap-legacy` →
+  `migrate` → `role-admin provision` → `role-admin inspect` → Coolify deploy →
+  `/api/health` revision + login/tenant/worker smoke. Runbook and the rehearsal
+  on a restored production backup: `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md`.
+- **Blocker before cutover:** Coolify Developer View exposed raw secrets on
+  2026-10-24. The five DB role passwords were re-entered; S3/backup keys, SMTP,
+  PostgreSQL service password and JWT secret still need rotation and
+  confirmation by Hazar. Do not open Developer View again.
+- Merging never deploys. Run `scripts/require-green-ci.sh <sha>` before Deploy.
 
-## e-PYS release and current rollout
+## Code (main / working branch)
 
-`fix/gap-closure-2026-10-13` and `feat/epys-preflight` were merged as PR #1
-(`e006d10`). Status table: `guncel-gap.md` ("Kapanış durumu"). The merge was
-verified on isolated PostgreSQL 16 (`pnpm run verify`, release migration
-lifecycle, Prisma shadow, audit) and Python worker tests.
+- Latest roadmap revision: **Rev. 72** (`BIM-CALC-2026-10-25.66`): role setup runs inside the
+  Coolify deploy (db-bootstrap -> migrate -> db-provision); clean-install steps in
+  `docs/operations/database-role-model.md`.
+  Rev. 71 (`BIM-CALC-2026-10-25.65`): request paths read
+  companies/subscriptions/usage_logs in tenant context (`src/db/app-tenant.ts`), quota
+  locking is a per-company advisory lock, admin RLS reads use the control plane.
+  Verify with `scripts/role-model-smoke.ts` against a provisioned database (13/13).
+  Rev. 70 (`BIM-CALC-2026-10-24.64`, draft): icmal lines carry
+  their element list; "Bu sayı nasıl oluştu?", metraj cetveli CSV and an expert
+  verification mode (records in the reviewer's browser for now). Local review
+  server: `.claude/launch.json` → `teklifpro-review` (port 3001, docker
+  `teklifpro-review-pg`, secrets in git-ignored `.env.review.local`).
+  Rev. 69 (`BIM-CALC-2026-10-24.63`): `/app/nasil-calisir`
+  shows the workflow and calculation modules to every workspace role, so expert
+  reviewers on normal packages can read methods and jump to the real screens.
+  Rev. 68 keeps
+  duplicate-GlobalId uncovered elements, marks the browser IFC pre-analysis as
+  non-authoritative and removes unverified compliance/accuracy claims from
+  product copy. Marketing claims ("Türkiye'de tek", "mevzuata uyumlu") are
+  decided only after independent expert review.
+- GAP programme (`docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md`):
+  Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off,
+  pilot L2); Faz 7 T40 local only, T41 partial (22 tenant tables under RLS),
+  T42 partial, T43–T45 open; Faz 8–11 open. Expert trial guide:
+  `/admin/roadmap/expert-review`.
+- Role and tenant models: `docs/operations/database-role-model.md`,
+  `docs/operations/tenant-rls-model.md`.
+- Known limits: browser IFC parser carries no per-element material layers (the
+  worker is authoritative); `src/worker/index.ts` is unreferenced.
 
-`feat/epys-preflight` adds:
-- RG 33331 e-PYS pre-check on every IFC run (vendored ifc-ruhsat@cd6d3ce, MIT;
-  see `workers/ifc/vendor/ifc_ruhsat/NOTICE.md`), EK-9 panel in SmartCheck,
-  `GET /api/smartcheck/documents/:id/epys-preflight`, IDS export, KVKK masking.
-- PDF/A pre-check library (`workers/ifc/pdf_preflight.py`); its upload wiring
-  was completed in the subsequent `8b86188` release.
-- Honest quick e-PYS label + CekmeArka; catalog v5 package description.
-- Admin: `/admin/roadmap` (Geliştirici Yol Haritası) and
-  `/admin/roadmap/calculations` (Hesaplama Yöntemleri, expert sign-off page).
-- Annex spot-check: official RG annex PDF (SHA-256 7dc88971…0ecb3) Tablo 6.55,
-  6.60, 9.1 rows 1–9 match the vendored data.
+## Testing
 
-Release status (2026-10-13):
-
-- Coolify deploys are manual (a push does not deploy). `98dd0f9` was deployed
-  manually on 2026-10-13 after the Sentry environment change; Coolify history
-  shows Success and `/api/health`
-  reports the full revision above, DB connected, all readiness flags true
-  including `smartcheckStorageConfigured`. The earlier `e006d10` deployment
-  applied migrations 0007/0008.
-- Done: Coolify Advanced → "Source commit availability" set to "Available
-  during build"; CSP header, `www` → apex 301, `/sitemap.xml` 200, and the
-  `/admin/roadmap*` routes have been checked.
-- Catalog v5 applied in the app container after a rolled-back `--plan`:
-  no insertions, one presentation update, five limit backfills. Public plans
-  now show the e-PYS badge "Pilot" and the reviewed description. No prices or
-  core offer quotas changed.
-- Pilot company is the superadmin-owned `Bimmetraj` tenant
-  (`9096aa51-3b1d-4b9e-b7e9-7443a75d5a63`). `SMARTCHECK_IMPORT_ENABLED=true`
-  and `SMARTCHECK_PILOT_COMPANY_IDS` equals only that ID in the running app and
-  queue worker containers. The IFC worker container imports `ifcopenshell` and
-  `pypdf` successfully. No other tenant is allowlisted.
-- This release adds PDF/A upload and pre-check to the SmartCheck flow. It has
-  25 MiB/signature/checksum checks, a 90-second subprocess timeout with Linux
-  CPU/RAM limits, a 500-page scan cap, a tenant PDF concurrency/monthly limit,
-  lower queue priority than IFC, and current-run-only report lookup.
-- Local `pnpm run lint` and `pnpm run build` passed. Local DB-backed verify
-  refuses the shared database by design. GitHub Actions Verify run
-  `38424266426` passed with isolated PostgreSQL, Python behavior tests, app
-  tests, Prisma checks, app/IFC-worker image builds and runtime smoke. The two
-  earlier failed runs exposed an original-PDF-name bug and a changed IFC
-  preview error code; commits `062528a` and `ab46292` fixed these before the
-  green run and production deployment.
-- Authenticated production pilot smoke completed on 2026-10-13 using the
-  existing in-app browser session and synthetic repository fixtures. A valid
-  IFC2X3 QTO fixture (`bimmetraj-qto-valid.ifc`) succeeded at 100%, produced
-  two review rows (including `Qto_SlabBaseQuantities/NetVolume`) and the EK-9
-  e-PYS panel. A one-page synthetic PDF with a template file name succeeded
-  at 100%; the UI showed a PDF/A-2B identity claim, 0 errors, 0 warnings and
-  1 manual full-validation item. These are pipeline checks, **not** expert
-  engineering acceptance or complete PDF/A certification. Two earlier pilot
-  IFC attempts remain as failed queue records: one has no admissible element
-  quantity evidence, the other is an invalid minimal IFC. Neither was retried.
-  Open: run representative real-project IFC/PDF acceptance with reviewer sign-off.
-  The internal tenant has an active subscription with `plan_id=null`, and the
-  fallback trial plan limits IFC to 35 MB; the local `e-proje_4x3.ifc` sample
-  is 37 MB. Use a smaller representative IFC or assign the internal tenant an
-  appropriate plan through audited admin flow before uploading it. Do not
-  change another tenant's subscription. Keep other tenants gated while the
-  pilot is evaluated.
-- Sentry SDK delivery from the production app container and issue receipt are
-  verified; all three service containers have the DSN. The default
-  high-priority alert is enabled, fired for the synthetic issue, and now targets
-  Hazar's account directly. Sentry accepted a test notification; both it and
-  the original production smoke alert arrived in Hazar's Gmail Updates inbox.
-- Existing Academy learner accounts land in the normal workspace shell
-  while `ACADEMY_ENABLED` is false.
-
-## 2026-10-14 GAP / BUG / UI-UX Closure (`GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md`)
-
-- **IFC 3x3 & e-PYS Worker Fixes (`workers/ifc/epys_preflight.py`, `workers/ifc/ifc_extract.py`):**
-  Fixed KVKK regex ordering/word boundaries so 11-digit TC Kimlik No is fully masked without corrupting 22-char IFC `GlobalId` strings (`BUG-01`). Replaced misleading EC2 default note (`BUG-09`). Extracted `LoadBearing`, `IsExternal`/`exposure`, `ExposureClass`, `coverMm`, `discipline` (`STR/ARC/MEP`), and `expectedQuantity` from IFC property sets and wired them into `src/smartcheck/rules/ifc-rule-run.ts` (`GAP-08`).
-- **SmartCheck e-PYS Availability & Plan Quota (`processor.ts`, `smartcheck.ts`, `service.ts`):**
-  Stored `epys_preflight` before QTO extraction and updated `GET /api/smartcheck/documents/:id/epys-preflight` + `SmartCheckImportWorkspace.tsx` so queue-opened and architectural IFC files always render the EK-9 panel (`BUG-02`, `BUG-03`). Connected PDF/A monthly quota in `service.ts` to the subscription's plan catalog (`BUG-10`).
-- **Contractual Minha Engine & Rebar/Formwork Transfer (`minha.ts`, `quotation-transfer.ts`, `CreateQuote.tsx`):**
-  Added `src/smartcheck/rules/minha.ts` (`CSB_2026` 0.50 m² vs `DIN_18350` 2.50 m² opening deduction, reveal addition, and structural intersection takeoff) (`GAP-06`). Enabled `needs_review` transfer for formwork (`m2`) and rebar (`ton`) estimates (`GAP-05`), fixed demo template line totals (`BUG-05`), added per-line `costCategory`, `discountPercent`, and `vatPercent` controls (`BUG-06`), and rounded per-line `effectiveCost` with `roundMoney` (`BUG-07`).
-- **Navigation, Honest Public Claims & Legal Pages (`Navbar.tsx`, `Landing.tsx`, `LegalPage.tsx`, `Dashboard.tsx`, `SmartCheckLab.tsx`):**
-  Added `/app/smartcheck`, `/app/market-intelligence`, and `/app/profitability` to navigation and fixed `/app/billing` roles (`BUG-08`). Unified IFC CTAs toward `/app/smartcheck` (`BUG-04`), replaced unverified "42.000+ ÇŞB Poz" claims with truthful catalog/evidence wording (`GAP-01`), and replaced the placeholder `LegalPage.tsx` with full BIMMetraj Terms & KVKK texts (`GAP-04`).
-- **Reviewer Discipline & Sign-off Metadata (`contracts.ts`, `CalculationMethods.tsx`):**
-  Added optional `reviewerDiscipline` (`ARC` | `STR` | `MEP` | `COST` | `QA`) to `QuantityRowReviewPatchSchema` (`GAP-07`) and structured `signOffEvidence` metadata to `CalculationMethods.tsx` (`GAP-12`).
-- **Release & CI Verification (2026-10-14):**
-  Pushed 9 atomic commits (`bf844d3` .. `9ab9ae5`) plus pricing-source UX/automation and e-PYS/roadmap commits to `origin/main`.
-- **Official ÇŞB 2026 PDF Catalog Sealing & Automated Nightly Price Tracker (`csb-pdf-parser.ts`, `pricing-file-import.ts`, `price-watcher.ts`, `PricingSources.tsx`):**
-  Parsed 15 official 2026 ÇŞB Yüksek Fen Kurulu PDFs (`docs/fiyatlandirma-kaynaklari/`) and embedded 6 SHA-256-sealed official 2026 catalogs (`csb-2026-official-catalogs.json`) + 3-stage PDF parser (`pdftotext` / `pypdf` / zlib stream) into `/admin/pricing-sources`. Sealed all 7 official catalogs (`csb_yfk_2026`, `csb_mekanik_2026`, `csb_elektrik_2026`, `epys_ek6`, `market_concrete_marmara`, `market_steel_karabuk`, `tuik_ime`) in production DB (`active`, 570 `approved` rows in `price_feed_staging`). Added 4-layer automated nightly 03:00 price tracker (TCMB EVDS + TÜİK Yİ-ÜFE/İME + ÇŞB page fingerprint + automatic impact simulation on active quotes).
-- **e-PYS Full EK-1/2/3/7 Dictionary, `IfcCovering` 5D Bridge, ALLPLAN 2026 e-PYS Kit v1 & Roadmap/Calculations Alignment (`ek2_disiplinler.json`, `ek3_mahaller.json`, `ek7_proje.json`, `isim.py`, `yapi.py`, `mahal.py`, `ifc_extract.py`, `smartcheck-evidence.ts`, `quotation-transfer.ts`, `epys-allplan-kit.ts`, `roadmap-content.ts`, `calculation-content.ts`, `calculation-review.ts`):**
-  Completed all audit report recommendations end-to-end: added EK-1 6-char project code & filename prefix cross-check, EK-2 `Tablo 2.3–2.14` (sub-disciplines, file types, storey codes), EK-3 `Tablo 3.2` (~130 official room names/codes), and EK-7 `Tablo 7.8` (`IfcGeometricRepresentationContext`) to `ifc_ruhsat`; prioritized `TREpys_PozOzellikSeti.PozNo`, extracted `IfcCovering` (`areaM2` in `m²`) into SmartCheck evidence rows and quote transfer, and extracted `TREpys_EmsalOzellikSeti` (`IfcSpatialZone`/`IfcSpace` `DAHIL`/`HARIC`/`YUZDE30`) in `ifc_extract.py`; built SHA-256-sealed **ALLPLAN 2026 e-PYS Kiti v1** (`GET /api/smartcheck/epys-allplan-kit`); updated `/admin/roadmap` and `/admin/roadmap/calculations` (`BIM-CALC-2026-10-14.2`, added `yapisal-sihirbaz` E-7 and `minha` E-8 module cards, fixed all contradictions, added ALUPLAN/ALLPLAN 2026 comparative matrix).
-- **2026-10-15 Package-Aware Onboarding, 0 ₺ Trial SmartCheck Auto-Activation, Multi-Bank IBAN Transfer & Superadmin Approval (`bank-transfer.ts`, `Register.tsx`, `Billing.tsx`, `PlansList.tsx`, `TenantDetail.tsx`, `Shell.tsx`, `SmartCheckImportWorkspace.tsx`):**
-  - Replaced blind registration with a 2-column package selection & workspace onboarding flow on `/register` (`PublicPricingSection.tsx` → `/register?planId=...`).
-  - Enabled `companies.is_smartcheck_enabled = true` on workspace registration and updated `smartcheck.ts` + `pilot-evidence.ts` to allow any tenant with `companies.is_smartcheck_enabled = true` (in addition to `SMARTCHECK_PILOT_COMPANY_IDS`), so `0 ₺` 14-Day Trial users immediately get their real trial quotas (`1 IFC / 35 MB`, `10 PDF/A`, `5 Teklif`) without hitting `SMARTCHECK_IMPORT_DISABLED`.
-  - Built real manual Bank Transfer (Havale/EFT) order reference generation (`BM-YYYY-...`), receipt notification (`POST /api/billing/payment-requests`), multi-bank account configuration (`GET/PUT /api/admin/billing/bank-accounts` + `PAYMENT_BANK_ACCOUNTS_JSON` env fallback), and 1-click Superadmin payment approval & subscription quota activation (`POST /api/admin/billing/payment-requests/:requestId/review`) in `/admin/plans` and `/admin/tenants/:companyId`.
-  - Added the **e-PYS (RG 33331) & ALLPLAN 2026 Hazırlık Şablonları** download bar (`GET /api/smartcheck/epys-ids` `.ids` XML + `GET /api/smartcheck/epys-allplan-kit` `.json`) directly to the user-facing `/app/smartcheck` screen (`SmartCheckImportWorkspace.tsx`).
-  - **Superadmin Multi-Tab Session Isolation & `/admin/tenants` Resilience (`api.ts`, `useAuth.tsx`, `TenantsList.tsx`, `TenantDetail.tsx`, `App.tsx`):** Persisted `superadmin_token` separately from customer `token` so logging into a tenant account in another browser tab does not clobber `/admin/*` API requests (`403` → `tenants.map` crash), added `Array.isArray` guards and a recovery banner in `TenantsList.tsx`, and added one-time chunk-reload protection on `React.lazy` routes after deployments.
-  - **Admin Plan Activation/Deactivation, Atomic Subscriber Migration & Dedicated PlanEditor Page (`input.ts`, `changes.ts`, `admin.ts`, `admin-data.ts`, `PlansList.tsx`, `PlanEditor.tsx`, `App.tsx`):** Enriched `GET /api/admin/plans` with `subscriberCount` and `subscribers`, added `replacementPlanId` to `PATCH /api/admin/plans/:id` so deactivating a plan with existing subscribers requires and atomically migrates all subscribed companies to an active replacement plan (logged in `admin_audit_logs`), replaced the cramped popup edit modal with a dedicated full-page **PlanEditor** (`/admin/plans/new` and `/admin/plans/:planId`) covering all 18+ plan quotas (IFC, PDF/A, Quote, AI, CRM, Regulation, Profitability, Storage MB/GB, Max Documents, Trial flag, preset templates, and live customer card preview), and added 1-click **"Aktif Et" / "Pasife Al"** controls on `/admin/plans`.
-  - **2026-10-15 Comprehensive 5-Skill Gap Audit & 4-Phase Closure (`docs/audits/GAP_VE_DENETIM_RAPORU_2026-10-15.md`):**
-    - **Faz 1 (P0):** Fixed IFC-to-quote unit price transfer keys (`beton/donati/kalip` + `concrete/rebar/formwork`) and `IfcCovering` `m2` unit collision (`src/ifc/quotation-transfer.ts`, `src/pages/CreateQuote.tsx`); fixed `monthlyPdfLimit` precedence over `monthlyRegulationLimit` in `src/smartcheck/import/service.ts`; wired `/app/smartcheck` status card to live `/api/smartcheck/queue` counts (`src/pages/SmartCheck.tsx`); added Turkish labels for all billing metrics (`src/pages/billing-usage.ts`), `IFC_IMPORTED` usage row (`src/services/billing/usage-report.ts`), and extended quota columns on `GET /api/public/plans` (`src/server/routes/billing.ts`); corrected Hero pafta arithmetic total (`2.888.250,00 ₺`) in `src/pages/LandingPage.tsx`.
-    - **Faz 2 (SEO & GEO):** Exposed `GET /llms.txt` (`src/server/security/web-hardening.ts`, `src/server/app.ts`), added OpenGraph, Twitter Card, and Schema.org `JSON-LD` (`Organization`, `SoftwareApplication`, `FAQPage`) to `index.html`, mounted `PublicMetadata` across public pages, and opened `/bim-sozlugu` (`PublicBimGlossaryPage`) as an indexable public route (`sitemap.xml` + `llms.txt`).
-    - **Faz 3 (P1 Mobile, WCAG 2.2 AA & Security):** Made `DosyadanTeklifDemo.tsx` `StepIndicator`, `BimIfcParserPage.tsx`, `MarketIntelligence.tsx`, and `CreateQuote.tsx` mobile-responsive (`375px`); added `#main-content` skip-link target (`Shell.tsx`, `AdminShell.tsx`), keyboard `role="button"`/`aria-pressed` on `SmartCheckDemo.tsx` cards, and `role="tablist"`/`role="tab"`/`role="tabpanel"` on `BimStandardsPage.tsx`; migrated `Settings.tsx` from raw `localStorage.getItem('token')` `fetch` calls to `fetchWithAuth`.
-    - **Faz 4 (P2 Engineering & BIM Standards):** Added deterministic `computeBeamSlabIntersectionDeduction` (`eng_calc.py` `betonarme_metraj` compatible) to `src/smartcheck/rules/minha.ts`, extracted `IFCMATERIAL` and `IFCSPACE` names in `src/ifc/parser/legacy-parser.ts` for `BimIfcParser.tsx` e-PYS Madde 12/EK-3 validation, persisted `BimGapAnalysis.tsx` state in `localStorage`, prefilled company name in `DocumentsView.tsx`, and connected `LegislationView.tsx` to `/api/regulations`.
-- **2026-10-15 Competitor-Calibrated Pricing (`v6`), Server-Safe Quotas & 4-Term Billing Cycle System:**
-  - Updated `src/services/billing/plan-catalog.ts` (`bimmetraj-2026-10-15-v6`) and `src/pages/admin/PlanEditor.tsx` presets to position BIMMetraj ~20% below Turkish AEC competitors while protecting single-VPS `ifc-worker` RAM/CPU and R2 storage:
-    - `14 Günlük Ücretsiz Deneme`: `0 ₺/ay` (`3 Teklif`, `1 IFC / 25 MB / 1 eşzamanlı`, `5 AI`, `3 PDF`, `0.25 GB`, `25 Doküman`).
-    - `e-PYS & BIM Standart Denetçi`: `1.250 ₺/ay` (`5 Teklif`, `5 IFC / 35 MB / 1 eşzamanlı`, `10 AI`, `8 PDF`, `1 GB`, `150 Doküman`).
-    - `Teklif & Şantiye`: `2.950 ₺/ay` (`25 Teklif`, `5 IFC / 40 MB / 1 eşzamanlı`, `25 AI`, `15 PDF`, `2 GB`, `300 Doküman`).
-    - `5D BIM & SmartCheck`: `5.450 ₺/ay` (`75 Teklif`, `15 IFC / 60 MB / 1 eşzamanlı`, `60 AI`, `35 PDF`, `5 GB`, `750 Doküman`).
-    - `Kurumsal Taahhüt & e-PYS`: `8.900 ₺/ay` (`200 Teklif`, `35 IFC / 85 MB / 2 eşzamanlı`, `150 AI`, `75 PDF`, `15 GB`, `2000 Doküman`).
-  - Added `src/services/billing/billing-periods.ts` and wired 4 billing periods across `PublicPricingSection.tsx`, `Register.tsx`, `Billing.tsx`, `PlansList.tsx`, `TenantDetail.tsx`, and `bank-transfer.ts`:
-    - `monthly` (`Aylık`, `%0 İndirim`, `30 gün`)
-    - `semi_annual` (`6 Aylık`, `%10 İndirim`, `180 gün`)
-    - `yearly` (`1 Yıllık`, `%20 İndirim`, `365 gün`)
-    - `biennial` (`2 Yıllık`, `%30 İndirim`, `730 gün`)
-  - Added `POST /api/admin/plans/sync-catalog` (`src/server/routes/admin.ts`) and "Standart Katalogla Eşitle" button in `PlansList.tsx`.
-- **2026-10-15 Official Ministry PDFs (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) 5-Phase Full Synchronization & Transactional Emails:**
-  - **Faz 1 (Python `ifc_ruhsat` Core Engine):** Added `maddeler_diger` for **EK-9 Tablo 9.2 (16 rows, non-architectural disciplines `ST`, `MK`, `EE`, etc.)** alongside **Tablo 9.1 (21 rows, Architectural `MM`)** in `ek9_form.json`, `ek9.py`, `kontrol.py`, `veri.py`, `bulgu.py`, `emsal.py`, and `epys_preflight.py` (`ek9Table`, `discipline`, `kaynakNo`). Added **EK-7 Tablo 7.9 (`IfcAnnotation`: `Name`, `Description`, `PredefinedType: SURVEY`)** in `ek7_proje.json` and `ozellik.py`.
-  - **Faz 2 (`workers/ifc/pdf_preflight.py`):** Added `#1.pdf` **m.8(1)** ISO 216 A4 and multiples page size check (`PAFTA_BOYUTU_ISO216`), **m.8(2)** single-sheet drawing rule check (`COKLU_PAFTA_DUZENI`), and `#2.pdf` **m.6(1)-(2)** embedded electronic signature (`/Sig`) detection (`eSignature`).
-  - **Faz 3 (TypeScript `SmartCheck` & `epys-allplan-kit.ts`):** Synchronized `ek6-dictionary.ts` with `EKLER.pdf` (`Tablo 6.3, 6.16, 6.20, 6.25, 6.56, 6.58, 6.66, 6.68`), aligned `epys.ts` with `#1.pdf` `m.13(3)` (`Malzeme İsmi_Dayanım`) + 5D `CSBPozNo` warning, and updated `epys-allplan-kit.ts` (`EmsalDurumu: ["DAHIL", "HARIC", "DIGER"]`).
-  - **Faz 4 (Frontend, Admin Docs & Revision History):** Updated `LegislationView.tsx` (official `2026–2033` RG 33331 transition timeline), `BimGlossary.tsx` (`e-PYS`, `EK-9 Formu`), `roadmap-content.ts` (all sections + new `revizyon-gunlugu` before/after comparison & chronological milestone tables), `calculation-content.ts`, `calculation-review.ts` (`BIM-CALC-2026-10-15.3` + `CALC_REVIEW_CHANGELOG` rendered in `CalculationMethods.tsx`), `EpysPreflightPanel.tsx` (`ek9Table` Tablo 9.1 / 9.2 + discipline badge), `PdfPreflightPanel.tsx` (`eSignature` `/Sig` status badge), and `LandingPage.tsx` (Hero, Features, How-It-Works 3 steps & 6 lifecycle cards). Built 8 corporate HTML transactional email templates (`src/server/notifications/email-templates.ts`) + Superadmin `/admin/email-templates` preview & test sender.
-  - **Faz 5 (Quota-Free Sample Projects, Engineering Acceptance Evidence Package `BIM-ENG-EVIDENCE-2026-10-15.3` & `ifc_ruhsat`/`ifc_extract` Hardening):**
-    - Guarded `oznitelik()` and `_semada_var()` in `workers/ifc/vendor/ifc_ruhsat/kurallar/ortak.py` & `ozellik.py` against `RuntimeError` on 7-attribute IFC4 `IfcAnnotation` entities and added fallback from `PredefinedType` (`None`/`USERDEFINED`) to `ObjectType`. Deduplicated `IfcWall` + `IfcWallStandardCase` via `seen_elem_ids` in `workers/ifc/ifc_extract.py` and added `"DIGER", "DİĞER"` to `emsal_durumu`.
-    - Built 1-click **"Örnek Projeyle Canlı Dene (Kotadan Düşmez)"** (`MM` Tablo 9.1 21 rows, `ST` Tablo 9.2 16 rows + `3×3` `COVER_BELOW_STANDARD_MIN`, `PDF/A-2B` ISO 216 A3 + `/Sig` e-imza) on `/app/smartcheck` (`SmartCheckImportWorkspace.tsx`, `src/smartcheck/sample-projects.ts`, `GET /api/smartcheck/sample-projects`, `POST /api/smartcheck/sample-projects/:sampleId` with `quotaConsumed: false` and ÇŞB 2026 price seeds `15.150.1005` / `15.390.1002`).
-    - Published `docs/audits/MUHENDISLIK_KABUL_KANIT_PAKETI_2026-10-15.md` (`BIM-ENG-EVIDENCE-2026-10-15.3`) and bumped `CALC_REVIEW_META` to `BIM-CALC-2026-10-15.3`.
-- **2026-10-16 Multi-Vendor 33-IFC Field Validation, ALLPLAN 2026.1 (`31.4 MB`) Expert Model Fix & Rev. 6 (`BIM-CALC-2026-10-16.1`):**
-  - Diagnosed and resolved all 6 root causes on the expert engineer's `31.4 MB` ALLPLAN 2026.1 model (`2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc`, `1,731` elements) and across 32 international multi-vendor IFC sample models (`IfcSampleFiles-main`, BIMcollab 2025 9 discipline `.ifczip` files, and `ifcbridge-model01..05` `IFC4X1`/`IFC4X2` bridge models):
-    1. **Recursive `IfcComplexProperty` Unwrapping (`workers/ifc/ifc_extract.py`, `vendor/ifc_ruhsat/kurallar/ortak.py`, `src/ifc/parser/quantity-extractor.ts`):** Unwrapped ALLPLAN 2026.1 `Object Layer Attributes #1..#4` inside `Pset_WallCommon`, summing layer volumes (`m³`) while keeping only the outer layer area (`2 × outer face`) for wall formwork.
-    2. **Multi-Threaded C++ 3D Geometry Engine + Analytical `IfcSectionedSolidHorizontal` Fallback (`workers/ifc/ifc_extract.py`):** Added `batch_extract_3d_geometry` (`ifcopenshell.geom.iterator` + `ifcopenshell.util.shape`), recursive `IsDecomposedBy` (`IfcRelAggregates`) child part volume/area summation (`IfcBuildingElementPart`, `IfcWallElementedCase`), `extract_sectioned_solid_geometry` for `IFC4X2` bridge sweeps, and `extract_curve_length_m` for 2D `GeometricCurveSet` coverings (`SKIRTINGBOARD`).
-    3. **Indirect Spatial Containment (`_find_parent_storey` in `workers/ifc/ifc_extract.py` & `src/ifc/parser/spatial-extractor.ts`):** Traversed `IfcCovering -> IfcSpace -> IfcRelAggregates -> IfcBuildingStorey` (and `CoversSpaces`/`CoversElements`) so room-bound coverings resolve to their exact building storey (`1. Bodrum Kat`, `Zemin Kat`, `1. Normal Kat`, `Çatı Katı`).
-    4. **Revit QTO Unit Scaling Normalization (`normalize_qto_set_quantities` in `workers/ifc/ifc_extract.py` & `src/ifc/parser/qto-extractor.ts`):** Detected and normalized unscaled `mm³`/`mm²` duplicate `NetVolume`/`NetSideArea` entries and mixed `ft²·mm`/`GrossArea × Width(mm)` (`1000×` / `10⁹×`) unit bugs in Revit IFC exports (`Ifc4_Revit_ARC/STR`, `02_BIMcollab_Example_STR_optimized`, `06_Limestone_walls`).
-    5. **e-PYS Filename & Discipline Inference (`workers/ifc/epys_preflight.py`, `vendor/ifc_ruhsat/kontrol.py`):** Passed `dosya_adi=effective_name` into `kontrol.kontrol_et` instead of `/tmp/.../model.ifc` and added token-hint discipline inference (`ST/STR`, `MK/MEP`, `EL`, `MM/ARC`) when filenames deviate from the 9-token EK-2 template.
-    6. **Browser Preview Limit & Explicit Plan File Size Error (`src/ifc/browser-preview.ts`, `src/server/routes/smartcheck.ts`):** Raised browser preview cap from `25 MiB` to `50 MiB` and replaced generic `"Geçersiz dosya bilgisi."` with `"Dosya boyutu (X MB) paketinizin maksimum IFC/doküman boyut sınırını (Y MB) aşıyor."` (`FILE_SIZE_LIMIT_EXCEEDED`).
-  - Result across all 33 IFC models: `33 / 33` exit with `0`, `1,731 / 1,731` (`100%`) elements admitted on `2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc` (`1,559.21 m³` volume, `7,861.01 m²` formwork, `6,268.95 m²` covering area). Updated `/admin/roadmap` and `/admin/roadmap/calculations` to **Rev. 6 (`BIM-CALC-2026-10-16.1`)**.
-- **2026-10-17 Allplan 4-Excel Cross-Validation, Multi-Layer Trade Explosion, Skirting (`mtül`), 16-Apartment Schedule & 3-Step Calm UI (`Rev. 7` · `BIM-CALC-2026-10-17.1`):**
-  - Cross-validated `2026_45_MM_XXXX_MD_MMC_NNN_01_duzenlenmis.ifc` against Melih Dinekli's 4 Allplan Excel reports (`melihdinekli/*.xlsx`) and implemented:
-    1. **Multi-Layer `IfcCovering` Trade Explosion (`workers/ifc/ifc_extract.py`, `src/ifc/calm-icmal.ts`):** Extracted `materialLayers` (`Object Layer Attributes #1..#4` `Malzeme` and `IfcRelAssociatesMaterial`) so composite coverings automatically explode into distinct contractor line items (`Şap 3 cm: 1.761,33 m²`, `Laminat Parke: 921,11 m²`, `Seramik Döşeme: 840,22 m²`, `XPS/Şilte: 1.599,13 m²`, `Duvar Fayans: 1.175,15 m²`, `Kaba Sıva: 4.775,62 m²`, `Saten Alçı: 4.775,62 m²`, `Plastik Boya: 4.775,62 m²`).
-    2. **Skirting (`SKIRTINGBOARD`) Linear Meter Conversion (`lengthM` in `mtül`):** Converted skirting coverings from `m²` (`53,61 m²`) to contractor-ready linear meters (`893,54 mtül` Parke Süpürgeliği + `753,92 mtül` Seramik/Granit Süpürgelik).
-    3. **Independent Unit / 16-Apartment Schedule (`IfcZone` + `IfcSpace`):** Extracted `summary.apartmentSchedule` (`D01..D16` + `OAL` + `BDR`) with room-by-room net sweepable `m²`, balcony `m²`, unit gross `m²`, and general gross `m²`.
-    4. **3-Step "Kağıt İcmal + Sağ Detay Kartı" Calm UI (`src/components/smartcheck/CalmIfcWorkspace.tsx`):** Mounted on both `SmartCheckImportWorkspace.tsx` and `BimIfcParser.tsx` with 3 tabs (`1. Malzeme İcmal Listesi` | `2. Daire Metrekareleri (16 Daire)` | `3. Maliyet & Teklif`), 3-column paper sheet on the left, and `Brüt − Kapı/Pencere Boşluğu (Minha) = Net` + storey/room Green Book inspector card on the right.
-- **2026-10-17 Centralized Pafta Design System (Light `#f3f1e9` / Dark Anthracite `#141517`), High-Contrast Bridge, Early-Access Waitlist (`/admin/leads`), PageSpeed Optimization & `GAP_RAPORU_2026-10-17.md` Remediation (`Rev. 8.1–8.2` · `BIM-CALC-2026-10-17.2`):**
-  - Centralized Light/Dark tokens in `DESIGN.md` & `src/index.css` (`ThemeToggle.tsx`, `PaftaDrawing.tsx`), mapping legacy `.text-white` and pastel `-200/-300/-400` classes to deep high-contrast pigments in Light Mode and setting Dark Mode to deep anthracite (`#141517`).
-  - Added Development Notice + Early-Access Waitlist (`#on-kayit`) on `LandingPage.tsx` and `/admin/leads` (`PilotApplications.tsx`) with search, status filtering, and CSV export.
-  - Remediated `GAP_RAPORU_2026-10-17.md`: removed `/2026_45/i` filename fallback in `src/ifc/calm-icmal.ts` (`Y-1`), hardened `POST /api/pilot-applications` against duplicate-email PII leakage and overwrite (`Y-2`), injected `findSubscription` in `src/server/middleware/auth.ts` for DB-free unit tests (`Y-4`), protected customer/sample IFC & PDF files in `.gitignore` (`Y-5`), and eliminated render-blocking Google Fonts + inline `<script>` in `index.html` (`src/main.tsx`, `src/App.tsx`).
-- **2026-10-17 `GAP_RAPORU_2026-10-17.md` Rev. 2 Remediation — Runtime ISO 19650-1/2 & LOIN Engine, 4734 KİK m.38 Abnormally Low Bid Engine, `4,00 m²` Minha Profile, Self-Hosted `@fontsource` Fonts & Security/Bundle Hardening (`Rev. 9.1` · `BIM-CALC-2026-10-17.3`):**
-  - Built runtime `src/smartcheck/rules/iso19650.ts` (ISO 19650-2 7-part & RG 33331 EK-2 9-part container naming, CDE `S0..B` & `Pxx.xx`/`Cxx` revision discipline, EN 17412-1 LOIN geometric/alphanumeric/GUID completeness) and wired it into `src/smartcheck/rules/ifc-rule-run.ts` (`GEO-2`).
-  - Built runtime `src/lib/kik-adt.ts` (4734 KİK m.38 & Genel Tebliğ m.45.1 boundary value $SD = R \times YM$, $1\sigma$ outlier band, $N = 1.00 / 0.80$, and 80% Pareto explanation-required items) and integrated an interactive card into `CalmIfcWorkspace.tsx` Tab 3 (`GEO-2`).
-  - Added `CSB_FORMWORK_4M2` (`4.00 m²`) opening deduction profile to `src/smartcheck/rules/minha.ts`, aligned `index.html` JSON-LD / `llms.txt` / `Footer.tsx`, and fixed duplicate waitlist feedback in `LandingPage.tsx` (`BUG-1`).
-  - Gated 50 MB PDF import JSON parsing behind `authenticate + checkSuperAdmin()` (`SEC-2`), restored fail-closed `isImpersonationRevoked` (`SEC-7`, `SEC-11`), added `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and HSTS `preload` (`SEC-8`, `SEC-9`), self-hosted `Manrope Variable`, `Instrument Serif`, and `IBM Plex Mono` via `@fontsource` while removing external Google Fonts and unused `Geist` (`SEC-3`, `UI-4`, `PERF-2`), extracted `buildCalibrated202645Dataset` to `src/ifc/calibrated-2026-45-fixture.ts` (`BUG-4`), isolated the 450 kB `charts` chunk from `index.html` (`PERF-1`), and returned real HTTP `404` + `noindex` on unknown SPA paths (`BUG-3 / SEO-2`).
-- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 0 (`K-1`..`K-5`, `0.1`..`0.7`) & `bakanlıktan-gelen-son-pdfler` (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) Alignment (`Rev. 10` · `BIM-CALC-2026-10-17.4`):**
-  - **`K-1` (`src/lib/kik-adt.ts`):** Implemented the exact official Kamu İhale Genel Tebliği m.45.1.1 / m.45.1.1.1 / m.45.1.1.4 formula (`[0.40 * YM, 1.20 * YM]` valid bid filter, piecewise $K$ coefficient from $C = T_{\text{ort2}} / YM$, official $N = 1.00$ for `ust_yapi` and $N = 1.20$ for `alt_yapi`, single-bid rule $T_{\text{ort2}} = T_1$, and $SD = \max(0.40 \times YM,\; (K \times T_{\text{ort2}}) / (C \times N))$). Returns `hasTenderSessionInputs: false` (`boundaryValueTry: 0`) when `YM` or bids are omitted.
-  - **`K-1b` / `0.1` (`src/components/smartcheck/CalmIfcWorkspace.tsx`):** Removed fabricated `estimatedYm = costSummary.directTotal * 1.25` and hardcoded `sampleBids`; added explicit user input fields for `YM` and `T_i`.
-  - **`K-2` / `0.2` (`src/smartcheck/rules/ifc-rule-run.ts`, `src/smartcheck/rules/iso19650.ts`):** Removed hardcoded `"SHARED"`, `"S3"`, `"P01.01"`, `"Zemin Kat"`, `"row-N"`, and `r.rawDescription` fallbacks; returns `cdeEvaluationStatus: "not_evaluated"` when CDE metadata is absent; bound 9-part RG 33331 EK-2 filename validation directly to `workers/ifc/vendor/ifc_ruhsat/ekler/ek2_disiplinler.json` (`bakanlıktan-gelen-son-pdfler/EKLER.pdf`).
-  - **`K-3` / `0.3` (`src/smartcheck/rules/minha.ts`):** Replaced unsourced `CSB_FORMWORK_4M2` with `CUSTOM_CONTRACT` requiring an explicit `customThresholdM2` parameter.
-  - **`K-4` / `0.4` (`src/server/production-frontend.test.ts`), `K-5` / `0.5` (`index.html`, `src/server/security/web-hardening.ts`) & `0.6` (`csb-2026-official-catalogs.json`):** Fixed SPA route vs 404 test assertions, updated storefront/LLM metadata (`N=1,00 / N=1,20`), and set `validityStart: "2026-03-01"` / `validityEnd: "2026-03-31"` on the 4 March 2026 monthly ÇŞB lists.
-- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 1 (`1.5`, `1.6`, `1.7`) & Faz 2 (`2.1`, `2.4`, `2.6`) — Capability Registry & Evidence Gate, KİK Golden Test Suite, Full 18,848-Row 6-Book ÇŞB 2026 Price Book Ingestion, `/admin/pricing-sources` 6-Tab Governance UI & Interactive ISO 19650 CDE/LOIN Card (`Rev. 11` · `BIM-CALC-2026-10-17.5`):**
-  - **`Faz 1.5` (`src/capabilities/registry.ts`, `src/capabilities/registry.test.ts`, `src/server/security/web-hardening.ts`):** Created Single Source of Truth Capability Registry (`BIM-CAP-2026-10-17.2`) with `L0..L4` verification levels, `live | pilot | roadmap` statuses, official regulatory sources, golden test links, and reviewer sign-offs; wired `llms.txt` directly to the registry and enforced CI gates against <L3 live claims and hardcoded inputs.
-  - **`Faz 1.6` (`src/lib/kik-adt.ts`, `src/lib/kik-adt.golden.test.ts`):** Added `computeKikKFactorExact` for unrounded intermediate $K$ multiplication (exact kuruş precision at $10^8$ TL scale) and 5 official Tebliğ m.45.1 golden test scenarios.
-  - **`Faz 1.7`, `Faz 2.4` & `Faz 2.6` (`src/server/crawler/data/csb-2026-official-catalogs.json`, `src/server/crawler/csb-pdf-parser.ts`, `src/server/routes/pricing-file-import.ts`, `src/pages/admin/PricingSources.tsx`):** Ingested 100% (`18,848 / 18,848` rows) across all 6 official 2026 ÇŞB PDF books (`csb_2026_mart_insaat_bf`: `1,861`, `csb_2026_mart_insaat_rayic`: `5,360`, `csb_2026_mart_mekanik_bf`: `5,678`, `csb_2026_mart_elektrik_bf`: `5,910`, `csb_2026_yapi_yaklasik_maliyet`: `18`, `csb_2026_tuik_endeks_eslestirme`: `21`), raised `maxRows` cap to `20,000`, added `getOfficialCatalogCoverageReport()`, and restructured `/admin/pricing-sources` into 6 governance tabs (`1. Kurumlar & Lisanslar`, `2. Fiyat Kitapları`, `3. İçe Aktarma`, `4. Doğrulama & Onay`, `5. Kapsam Raporu`, `6. Endeksler & Onaylı Kayıt Arama`).
-  - **`Faz 2.1` (`src/components/smartcheck/CalmIfcWorkspace.tsx`):** Added an interactive zero-default ISO 19650-1/2 CDE (`WIP`/`SHARED`/`PUBLISHED`/`ARCHIVED`), suitability (`S0..B`), revision (`Pxx.xx`/`Cxx`), and delivery stage inspection card alongside the real EN 17412-1 LOIN completeness badge.
-- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 2.1 / 2.2 & Section 7 Decisions (#2, #3, #4, #6) — CDE State Transition Validator (`validateCdeStateTransition`), 4-Stage EIR/LOIN Engine (`evaluateLoinByMilestone`), Interactive Minha Selector & Dated Roadmap Badges (`Rev. 12` · `BIM-CALC-2026-10-17.6`):**
-  - **`Faz 2.1` & `Faz 2.2` (`src/smartcheck/rules/iso19650.ts`, `src/smartcheck/rules/iso19650.test.ts`, `src/components/smartcheck/CalmIfcWorkspace.tsx`, `src/capabilities/registry.ts`):** Added `validateCdeStateTransition` (blocking direct `WIP -> PUBLISHED` jumps without `SHARED`, verifying suitability/revision codes) and `evaluateLoinByMilestone` (`CONCEPT` LOD 200, `DEFINITIVE` LOD 300, `IMPLEMENTATION` LOD 350, `AS_BUILT` LOD 400). Upgraded `iso19650-cde-workflow-state-machine` to `L3` `live` (`BIM-CAP-2026-10-17.3`).
-  - **Section 7 Decisions #2, #3, #4, #6 (`CalmIfcWorkspace.tsx`, `LandingPage.tsx`, `index.html`):** Persisted KİK `YM`/`T_i`, CDE transition log, and Minha profile in `localStorage`; added interactive Minha profile selector (`CSB_2026: 0,50 m²`, `DIN_18350: 2,50 m²`, `CUSTOM_CONTRACT: m²`); standardized ISO 19650 `"destekler"` wording; added `"Yol Haritasında · 2026 Q4"` badges for EKAP and Ghostscript/veraPDF.
-- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Faz 2.5 & Section 7 Decision (#1) — 4735 Price Escalation ($F = A_n \times B \times (P_n - 1)$), ÇŞB 2026 – TÜİK 21 Sub-Index Engine & BYOL License Mode (`Rev. 13` · `BIM-CALC-2026-10-17.7`):**
-  - **`Faz 2.5` (`src/lib/price-escalation.ts`, `src/lib/price-escalation.test.ts`, `src/capabilities/registry.ts`):** Implemented `CSB_2026_TUIK_SUB_INDICES` (21 official sub-indices), `computeContractPriceEscalation4735` ($F = A_n \times 0,90 \times (P_n - 1)$, $\sum w_i = 1,00$, exact kuruş precision), and `indexOutOfPeriodUnitPrice` (explicit `TUIK_INDEXED_ESTIMATE` tag). Registered as `L3` `live` in `BIM-CAP-2026-10-17.4`.
-  - **Section 7 Decision #1 (`CalmIfcWorkspace.tsx`):** Added BYOL (`BYOL_TENANT_CATALOG`) vs `CSB_2026_REFERENCE` license mode selector and interactive 4735 / TÜİK 21 sub-index simulator in Tab 3.
-- **2026-10-17 `YOL_HARITASI_2026-10-17.md` Section 7 Decision (#5) — Local TR Card & Installment Payment Channel (`iyzico / PayTR / Stripe TR`) in `Billing.tsx` (`Rev. 14` · `BIM-CALC-2026-10-17.8`):**
-  - Added dual payment channel selector (`Havale / EFT (%10–%30 İskonto)` vs `Türkiye Kartları & Taksit (iyzico / PayTR)`) and interactive 1 / 3 / 6 / 9 / 12 installment schedule preview for Turkish commercial cards (Bonus, World, Maximum, Axess, Paraf, Bankkart, Troy) in `src/pages/Billing.tsx`.
-- **2026-10-17 Melih Dinekli Field Feedback Recorded (`docs/audits/MELIH_DINEKLI_SAHA_GERIBILDIRIMI_2026-10-17.md` & `HANDOFF_2026-10-17.md` §2.14):**
-  - Permanently recorded all 6 field findings (Allplan TÜRKSERT vs Revit 5 cm beam-column overlap, exposed formwork surface vs Revit Family faces, 10 m -> 9.96 m 10-15% finishing layer collision, pre-IFC TAKS/KAKS/multi-parcel Excel feasibility & unit net/gross sharing, 50,000 TL/m² trade % breakdown & +10 m² quality-theft detector, and per-apartment subcontractor shield for Daire 3 plaster/screed 3 cm vs 5 cm).
-
-## Next code work
-
-- `Paket M-1` (Rev. 15), `Paket M-2` (Rev. 16), `Paket M-3` (Rev. 17) DONE.
-- `Rev. 18` (Python worker FILE_NAME & IfcApplication), `Rev. 19` (pre-BIM .xlsx import), `Rev. 20` (kaynaksız çarpan temizliği), `Rev. 21` (minha & server-path uçtan uca test), `Rev. 22` (ücretsiz hesaplayıcılar), `Rev. 23` (KİK N aralık denetimi), `Rev. 24` (fizibiliteden teklif taslağı köprüsü & CreateQuote doğrudan Excel/CSV kalem aktarımı) DONE.
-- Melih Dinekli'den 17 soru yanıtı bekleniyor (`docs/audits/MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md`).
-- Ücretsiz hesaplayıcılar kullanıcı isteğiyle şimdilik vitrinde/menüde bekletiliyor; bağımsız uzman teyidi sonrası açılacak.
-- **Rev. 25 (BIM-CALC-2026-10-17.19):** CreateQuote (`/app/quotes/new`) ve QuoteDetail (`/app/quotes/:id`) sayfalarındaki tüm sabit `zinc-*` sınıfları, gölgeler, gradyan balonları ve neon butonlar Pafta Tasarım Sistemi'ne (`DESIGN.md`) uygun olarak semantik tokenlere (`bg-card`, `bg-background`, `border-border`, `text-foreground`, `text-muted-foreground`, `bg-primary`) uyarlandı; açık modda siyah blok ve düşük kontrast problemleri tamamen giderildi.
-- **Rev. 27 (BIM-CALC-2026-10-17.21, `DENETIM_RAPORU_2026-10-17.md` P0 kapanışı):** Yetenek Kaydı'ndaki kurgusal "Denetim Kurulu" onayları silindi; tüm yetenekler `pilot / L2`. `live / L3` yalnız adı-soyadı, unvanı, **sicil numarası** ve tarihi olan gerçek bir uzmanın imzasıyla verilir (`registry.test.ts` zorlar). Kat Karşılığı ve YAMBİS hesaplayıcıları rota/sitemap/llms.txt'ten çıkarıldı (kayıtta `roadmap / L1`; sayfa dosyaları duruyor, yeniden yayın için KK-1…5 ve YB-1…4 önce kapanmalı). Faturalamadaki kart/taksit kanalı kaldırıldı (iyzico/PayTR entegrasyonu yok). Sunucu her genel rota için başlık/açıklama/canonical yazar, bilinmeyen rota `noindex` alır; `/og-image.png` ve `/llms-full.txt` eklendi. CI'daki Kurumsal AI limiti testi katalogdan (150) okur.
-
-- **Rev. 28 (BIM-CALC-2026-10-17.22):** Oturum artık HttpOnly çerezde: `bm_session` (+ süper admin için `bm_admin`), `SameSite=Strict`, `Path=/api`, üretimde `Secure` (`src/server/auth/session-cookie.ts`). Tarayıcıya jeton yanıt gövdesinde verilmez (`Sec-Fetch-Site` başlığı olan istemci = tarayıcı); API istemcileri/testler `Authorization: Bearer` kullanmaya devam eder. Çerezle gelen değiştirici istek aynı-origin kanıtı ister (403 `CSRF_ORIGIN_MISMATCH`). İstemci yalnız `bm_authed` ipucunu (kimlik bilgisi değil) localStorage'da tutar; `fetchWithAuth` Authorization eklemez, yönetim bağlamında `X-BM-Context: admin` gönderir. Yeni uç nokta: `POST /api/auth/logout`; impersonation çıkışı admin çerezini geri yükler. CI'a `scripts/e2e-core-flow-smoke.ts` ve `gap-crm-billing-ui-smoke.ts` eklendi (giriş → müşteri → teklif → PDF → yenileme → CSRF → çıkış). `scripts/migrate-design-tokens.mjs` köprü eşlemesini kaynağa uyguladı (2.962 sınıf; açık modda 4 sayfada piksel farkı 0; koyu modda saf beyaz → tebeşir #f3f1e9). Kalan 417 sınıf ön ekli (`hover:` vb.) veya renkli vurgu; köprü silinmeden önce bunlar elle taranmalı.
-
-- **Rev. 29 (BIM-CALC-2026-10-17.23, `docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md`):** Resmî veri araştırması uygulandı. (1) **KİK:** `kik-adt.ts` Tebliğ'in adım adım yuvarlamasını uygular (Tort1/σ/Tort2 2, C/K 3 ondalık) ve Tebliğ **45.2 resmî örneğini birebir üretir (SD = 52.281,00 TL)**; yuvarlamasız önceki sürüm 52.260,35 veriyordu. (2) **Müteahhit sınıflandırma:** `yambis-classification.ts` yönetmeliğin konsolide metnine (mevzuat.gov.tr No 31301) göre yeniden yazıldı: 14 grup, eşikler **yapı sınır bedelinin katları** (2026 = 1.238.250.000 TL = III. ve IV. sınıf birim maliyet ortalaması × 45.000), m² sınırı yok; bilanço 0,75/0,15/<0,75; ciro %10 (E, E1) / %15 (üst); G ve G1'de yalnız banka referansı; H'de şart yok. (3) **Kat karşılığı:** `kat-karsiligi.ts` konut KDV'sini net alana göre kısım bazlı hesaplar (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306: ilk 150 m² %1, fazlası %20), arsa sahibine teslimi emsal bedelden vergilendirir, tüm çarpanlar girdidir, tapu devri aşamaları ÖRNEK şablondur (içtihat değil). (4) **4735:** B = 0,90 ve ağırlık toplamı 1,00 resmî metinden doğrulandı; resmî sayısal örnek yok. (5) Sunucu her genel rotaya `<noscript>` içerik ekler (tam ön-render değildir). **Üç motor ve iki hesaplayıcı sayfası hâlâ yayında değil** (uzman onayı yok). Güven düzeyleri ve doğrulanamayanlar araştırma dosyasında.
-- **Rev. 30 (BIM-CALC-2026-10-17.24):** 17 saha sorusuna verilen yazılı yanıtlar (`yanitlar.rtf`) ve 27 kalemlik 6-villa proje maliyet dökümü (`6-villa 2 A'dan Z'ye piyasa maliyetii.pdf`) koda bağlandı. (1) **Taşeron Şap Hakediş Kalkanı:** Türkiye piyasa standardı (1 m³ şap = 325 kg çimento + %10 fire, 1:3-1:4 kum-çimento oranı) ve 4 yaygın taşeron şişirme taktiği koda ve Golden 8 testine bağlandı (`SITE_SCREED_BENCHMARK`). (2) **Net Mahal Ölçüm Kuralları:** 2 cm sıva payı (10 m oda -> 9,98x9,98 m net zemin), 1 m x 0,20 m dışa açılan kapı eşik payı (+0,20 m²), kapı/pencere kasa derinlik payı (+0,40 m²) ve süpürgelik tülü doğrulandı. (3) **İmar & Fizibilite %30 Tavanı:** Planlı Alanlar İmar Yönetmeliği m.5/8 uyarınca emsal harici alanın (ortak alan, sığınak, otopark) emsal alanının %30'undan fazlasının yasal olarak yapılamayacağı denetimi ve açık uyarısı `pre-bim-feasibility.ts` motoruna eklendi (Golden 13). (4) **27 Kalemlik 6-Villa Piyasa Maliyet Referansı:** 27 kalemlik döküm (Beton-Demir %20,43, Şantiye Kurulumu %8,10, Projelendirme %7,13, Kamu Ödemeleri %7,03, Elektrik %6,35, Isıtma-Soğutma %5,27, Pencere %4,84, Çatı %4,32, Dış Cephe %4,03 vb., toplam 4.135.752,77 TL) `VILLA_MARKET_COST_BENCHMARK_2026` olarak sisteme bağlandı (Golden 14).
-- **Rev. 31 (BIM-CALC-2026-10-17.25):** Müteahhitlik İş Akışları Karşılama Masası (`ContractorWorkflowHub.tsx`) geliştirildi. Kullanıcının giriş anında boş bir tablo yerine projesinin bulunduğu yaşam döngüsüne göre (Evre 01: Arsa & Ön Fizibilite / Excel İhale, Evre 02: 3D openBIM IFC Otomatik Metraj & Minha, Evre 03: Taşeron Hakediş Kalkanı & 325 kg/m³ çimento tavanı) yönlendirilmesi sağlandı. Aktif teklifler olduğunda kompakt yatay süreç şeridi, boş durumda ise rehber onboarding vitrini sunulur. PreBimFeasibilityPanel'e doğrudan çapa navigasyonu (`id="pre-bim-feasibility"`) eklendi.
-- **Rev. 32 (BIM-CALC-2026-10-17.26):** Sistem Hızlı Turu & İnteraktif Onboarding Rehberi (`SystemQuickTour.tsx` & `TourWelcomeBanner`) devreye alındı. Sıfır harici npm bağımlılığıyla, Pafta Tasarım Sistemi kurallarına (1px teknik çizgiler, köşe krosları `+`, semantik tokenlar, `%42` şeffaf perde) tam uyumlu olarak inşa edildi. Kullanıcıyı ve denetçiyi 5 temel iş adımında (1. Müteahhitlik Süreç Masası, 2. SmartCheck & IFC Yükleme, 3. Taşeron Hakediş Kalkanı, 4. Kamu İhale & Fiyat Farkı Araçları, 5. Pafta Anteti) hedefli spotlight ile adım adım gezdirir. ESC, yön tuşları, localStorage kalıcılığı ve tüm sayfalarda kalıcı `[🧭 Hızlı Tur]` tetikleyicisi bağlandı. Unit test: `src/components/dashboard/SystemQuickTour.test.ts`.
-- **Rev. 33 (BIM-CALC-2026-10-18.27):** Tasarım Sistemi Tam Token Göçü & WCAG 2.2 AA (`axe-core`) Erişilebilirlik Denetimi tamamlandı (`404fcf0` / `b3078bc`). Tüm bileşen ve sayfalardaki 400+ sabit nötr renk sınıfı (`bg-zinc-*`, `text-slate-*` vb.) semantik Pafta tokenlarına göç ettirildi; 10px altı mikro metinler `text-[10px]` okunabilirlik seviyesine çekildi. Tüm form kontrollerine `htmlFor/id` ve `aria-label` eklendi; `pnpm run test:a11y` (`src/lib/a11y-audit.test.ts`) sıfır kritik ihlal ile doğrulandı.
-- **Rev. 34 (BIM-CALC-2026-10-18.28):** Süreç Öncesi Revit → IFC Dışa Aktarım Kontrol Listesi, İlk 128 KB Otomatik Başlık Tespiti & Kurumsal Terminoloji Kapısı (`63a77a5` / `57d288d`). `src/ifc/authoring-software-diagnostics.ts` içine 6 maddelik `REVIT_PRE_EXPORT_CHECKLIST` (`Areas and Volumes` vs. `2nd Level Space Boundaries`, `Export base quantities` & Dion Moult `NetSideArea` minha tuzağı, `Join Geometry`, İnce yapı katman kısalması/kalıp, `LoD Low/Medium` & `Autodesk/revit-ifc#63`, `Shared Coordinates` & `IFCCARTESIANPOINT` IEEE-754 kayan nokta açıklaması) eklendi; `SmartCheckImportWorkspace.tsx` ve `BimIfcParser.tsx` yükleme ekranlarına süreç öncesi rehber ve seçilen `.ifc` dosyasının ilk 128 KB başlığından anında istemci tarafı Revit tespiti eklendi. Ürün arayüzü, hesap motorları ve yönetim sayfalarındaki tüm şahıs ismi referansları kurumsal mühendislik terminolojisine (`Şantiye Şap Standardı`, `SITE_SCREED_BENCHMARK`, `VILLA_MARKET_COST_BENCHMARK_2026`) taşındı ve `registry.test.ts` içine kalıcı `Kişi ismi otorite yasağı` kapı testi eklendi.
-- **Rev. 35 (BIM-CALC-2026-10-18.29, `docs/audits/PRODUCTION_READINESS_RAPORU_2026-10-18.md` P0/P1/P2 Kapanışı):** (1) **Erişilebilirlik & Kontrast (P0-1, P0-2, P1-1, P1-2, P1-3):** 16 adet `bg-primary ... text-foreground` butonu `text-primary-foreground` olarak düzeltildi; `src/index.css` içindeki `:root[data-theme="light"]` özgüllük tuzağı (`html:not(.dark)`) ve `src/main.tsx` `MutationObserver` senkronizasyonu ile koyu moddaki 64 kontrast ihlali sıfırlandı; `/smartcheck`, `/login`, `/register`, `/pilot`, `/bim-sozlugu` sayfalarındaki `aria-required-children`, `<main id="main-content">`, `label-content-name-mismatch` ve çift `<h1>` hataları giderildi; `scripts/e2e-a11y-smoke.ts` (Puppeteer + `axe-core`, 8 genel rota × 2 tema = 16 kombinasyon, 0 ihlal) CI'a (`verify.yml`) eklendi. (2) **SEO, GEO, PWA & Güvenlik Başlıkları (P1-4, P2):** `/bim-sozlugu` sunucu tarafı `<noscript>` çıktısına 12 temel openBIM/mevzuat terimi eklendi; `/` `<title>` 57 karaktere indirildi; `/login`, `/register`, `/forgot-password` rotalarına `noindex, follow` eklendi; `FAQPage` JSON-LD yalnızca `/` ile sınırlandı; `manifest.webmanifest`, `apple-touch-icon.png` (180×180), `/.well-known/security.txt`, CSP Cloudflare Insights izni, `/api/*` `Cache-Control: no-store` ve hesap bazlı giriş koruma (`login-account:${email}`, 15 dk / 20 deneme) devreye alındı. (3) **Performans & Mühendislik (`vite.config.ts`, `pre-bim-feasibility.ts`, `PreBimFeasibilityPanel.tsx`):** `react-vendor` ve `motion` ayrı chunk'lara bölünerek ana giriş paketi `570 kB → 105,41 kB` (`33,81 kB` gzip) seviyesine düşürüldü; Planlı Alanlar İmar Yönetmeliği Madde 5/8 & Madde 22 tam muafiyetleri (%30 tavanından tamamen muaf zorunlu otopark, sığınak, yangın merdiveni, asansör boşluğu) netleştirildi ve 27 kalemlik `VILLA_MARKET_COST_BENCHMARK_2026` referans tablosu `PreBimFeasibilityPanel.tsx` içine bağlandı.
-- **Rev. 36 (BIM-CALC-2026-10-19.30, `feat/ifc-consistency-gate` — IFC Kapsam, Veri Tutarlılığı & Metraj Bütünlüğü Kapısı):** `workers/ifc/ifc_extract.py`, `src/ifc/parser/legacy-parser.ts`, `src/ifc/smartcheck-evidence.ts`, `src/ifc/calm-icmal.ts` ve `src/components/smartcheck/IfcCoverageCard.tsx` üzerinde 7 maddelik IFC tutarlılık kapısı devreye alındı: (1) Mükerrer `GlobalId` tekilleştirme (`DUPLICATE_GLOBAL_ID`, ilk örnek korunur); (2) Yetim `IfcOpeningElement` tespiti (`ORPHAN_OPENING_ELEMENT`, minha hesabından hariç tutulur); (3) Negatif/sıfır/eksik QTO kapısı (`NEGATIVE_NET_QUANTITY`, `ZERO_NET_QUANTITY`, `MISSING_NET_QUANTITY`, `measured: false`, `measurementStatus: "ölçülemedi"`); (4) Kat ataması eksikliği (`MISSING_SPATIAL_STOREY`, `"Kat atanmamış"`); (5) `IfcBuildingElementProxy` ve PozNo kapsam oranı (`UNCOVERED_PROXY_ELEMENT`, `UNMAPPED_POZ_ELEMENT`, `coveredRatio`, `pozMappedRatio`); (6) `IfcTypeObject.HasPropertySets` (`IfcRelDefinesByType`) özellik kalıtımı (`instance > type`); (7) `IfcRelAggregates` montaj alt parçası çift sayım engeli ve toplulaştırma. 5 sentetik `.ifc` test fikstürü (`workers/ifc/fixtures/*.ifc`) eklendi; handoff: `docs/agent-memory/HANDOFF_2026-10-19_IFC_TUTARLILIK.md`.
+- Full suite needs an isolated PostgreSQL 16 configured like
+  `.github/workflows/verify.yml` (disposable roles, release migrations, runtime
+  role URLs). Never point tests at shared databases. Without it ~55 DB tests
+  fail with `ECONNREFUSED`; with it the suite passes (1355 tests on 2026-10-24).
 
 ## Ground rules for agents
 
-- Academy is out of scope (2026-10-13): `ACADEMY_ENABLED = false` in
-  `src/config/features.ts` hides it from menus/links and redirects its routes.
-  Do not build on Academy until the flag is turned back on.
-
 - 3x3 is company policy: metraj ≤ 3%, cover ≥ standard minimum in mm (TS 500
-  default; EC2 XC3 35 mm only for `activeStandard = EUROCODE_2`), load-bearing
-  in STR. Never "%3 paspayı". Rule pack `smartcheck-3x3-2026-10-v2`.
-- **No personal names as authority in the product:** Never use an individual's personal name (e.g. "Melih Dinekli") as a standard, benchmark identifier, or authority in UI components, calculation modules, or in-app admin pages (`registry.test.ts` enforces this). Always use institutional/engineering terms (`Şantiye Şap Standardı`, `SITE_SCREED_BENCHMARK`, `VILLA_MARKET_COST_BENCHMARK_2026`).
-- **No `live` / `L3` capability without a real, named, registered reviewer** (name, title, registrationNo, date). Fictional boards or agent skills are not sign-offs. Public calculators must start with empty inputs.
-- CI (`Verify` workflow) must be green before a Coolify deploy; a red commit is never deployed.
-- Dev demo / guest bypass exists only when `import.meta.env.DEV`.
-- No official ÇŞB/YFK prices without written licence; IFC transfer never
-  invents unit prices.
-- Engineering and cost numbers go through the `yuksek-muhendis-mimar` skill.
-- **Mandatory Chronological Roadmap & Calculation Review Rule (Never wait for user reminder):** Engineers and investors do not read GitHub commits; they track the project's evolution on `/admin/roadmap` and `/admin/roadmap/calculations`. On **every** feature, rule, regulation, or calculation change, automatically update `src/pages/admin/roadmap/roadmap-content.ts` (`#durum`, `#adimlar`, `#revizyon-gunlugu` Tablo 1 & Tablo 2 in strict chronological order `Rev. 0 → Rev. 1 → ... → Rev. N`) and `src/pages/admin/roadmap/calculation-review.ts` (`CALC_REVIEW_META.version`, `CALC_REVIEW_CHANGELOG` in strict chronological order `Rev. 1 → ... → Rev. N`, and per-module `moduleDetails`), plus public/guide pages (`LandingPage.tsx`, `LegislationView.tsx`, `BimGlossary.tsx`) when applicable, and verify with `npx tsx --test src/pages/admin/roadmap/content.test.ts`.
-- DB-backed tests need an isolated PostgreSQL 16 (CI pattern in
-  `.github/workflows/verify.yml`); they refuse the shared database.
+  interior 20 / exterior 25 / slab 15; EC2 XC3 35 mm only for `EUROCODE_2`),
+  load-bearing in STR. Never describe cover as a percentage.
+- Product copy describes verified behaviour only; no "%100", "tam uyumlu",
+  "tek" claims. No personal names as authority (`registry.test.ts`). No
+  `live`/`L3` capability without a real named, registered reviewer.
+- Engineering and cost numbers go through `yuksek-muhendis-mimar`; no invented
+  poz codes or prices; no official ÇŞB/YFK prices without written licence.
+- Every feature, rule or calculation change updates
+  `src/pages/admin/roadmap/roadmap-content.ts` and `calculation-review.ts`
+  (chronological, verified by `content.test.ts`).
+- Dev demo / guest bypass only when `import.meta.env.DEV`. Academy stays behind
+  `ACADEMY_ENABLED = false`.
+- Do not stage `graphify-out/*` or the user's untracked notes in the repo root.
 
 ## Open items owned by Hazar
 
-Stripe + legal texts (P0-2), external security review (P0-5), DKIM and inbox
-test (P1-8), YFK licence (P1-2), AI provider keys and eval budget (P1-6),
-Real pilot IFC/PDF acceptance evidence, real named expert sign-offs (engineer + tax/tender advisor) for the L3 gate, brand spelling decision (BIMMetraj vs BIMMetraj), card-payment provider decision, runtime DB role cutover/canary/rollback, remaining T41 scope and T42–T45 database hardening, DKIM, (httpOnly cookies: done in Rev. 28). Revisit Sentry quota after the trial
-automatically transitions to the free plan; do not enable paid usage.
-
-## 2026-10-24 T42 manual payment transaction slice
-
-- Baseline `30bb9eeedd3e64a468e9d4ae71f9396bcd4552ce` serializes manual Havale/EFT init, submit and review; request/receipt replay, snapshot rewrite, double terminal decision, inactive-plan activation and same-plan period reset are closed with real PG16 coverage.
-- Evidence: `docs/audits/phase-7/PHASE_7_T42_PARTIAL_2026-10-24.md`; roadmap `Rev. 49`; calculation record `BIM-CALC-2026-10-24.43`.
-- At baseline `30bb9ee`, T42 remained PARTIAL because Academy webhook entitlement and SmartCheck worker ownership/finalization were open. Repo-wide test was not green because five queue/worker fixtures lacked isolated worker migration tables; deployment stayed closed.
-
-## 2026-10-24 T42 SmartCheck worker ownership slice
-
-- Baseline `c185518834d5c82c468907ad00e3571c5f73587a` adds atomic queued→running claim, stable Graphile job ownership, per-delivery UUID lease fencing, owner-checked CSV/PDF/IFC canonical transactions and lease-specific immutable object keys.
-- Recovery clears ownership; stale workers cannot publish DB state. Approved release CLI requires explicit worker-drain acknowledgement, zero running runs and zero locked Graphile jobs before `0014`. The migration CTE is defense-in-depth for a bypass/direct apply and moves any residual running run plus matching document to explicit failed/retry state.
-- Evidence: `docs/audits/phase-7/PHASE_7_T42_WORKER_LEASE_2026-10-24.md`; roadmap `Rev. 50`; calculation record `BIM-CALC-2026-10-24.44`.
-- T42 remains PARTIAL: Academy webhook entitlement fencing, long-running heartbeat/orphan-object operations, production cutover/canary/rollback, bank reconciliation and independent permitted-file acceptance remain. Five legacy worker fixtures still miss isolated worker migration tables, so repo-wide CI is not green and deployment remains closed.
-
-## 2026-10-24 T40 local runtime credential topology slice
-
-- Baseline `b8733c0d204bec9e978ab1a98e16df328dbb9d8c` separates local compose connections: app → `bimmetraj_app`, worker/ifc-worker → `bimmetraj_worker`, migrate → `bimmetraj_migrator`, backup → `bimmetraj_backup`; the bootstrap credential remains confined to PostgreSQL initialization.
-- Release migration uses `BEGIN → SET LOCAL ROLE bimmetraj_owner → identity/target verification → advisory lock → worker-drain gate → migration → COMMIT/ROLLBACK`. App, worker and backup cannot assume owner.
-- Isolated password-authenticated PostgreSQL 16 evidence rotates all login credentials A→B, rejects A, validates B, rolls back B→A, rejects B and validates A. Recorded local checks: focused TypeScript 21/21, backup Python 6/6, PostgreSQL role suite 1/1 and TypeScript compile pass.
-- Evidence: `docs/audits/phase-7/PHASE_7_T40_RUNTIME_TOPOLOGY_2026-10-24.md`; roadmap `Rev. 51`; calculation record `BIM-CALC-2026-10-24.45`.
-- T40 remains PARTIAL. No production cutover, deploy, canary, restore/parity or production rollback was performed.
-
-## 2026-10-24 T41 progress-payment tenant RLS second slice
-
-- Baseline `cd4b640d77cf3662b7f2f0270c1460f56fd0f56e` adds migration `0015_progress_payment_tenant_rls` for all ten progress-payment tables, exact app tenant policies, backup SELECT, migrator-owner maintenance and worker default-deny.
-- Every `ProgressPaymentService` database entrypoint now runs in one transaction-local tenant context. Inspector/provisioner rejects a missing `0015` tag when a protected hakediş table exists and rejects a missing table/policy after `0015` is applied; tag and tables may both be absent in the valid pre-schema bootstrap state.
-- Recorded checks: focused 19/19, progress-payment PostgreSQL 1/1, CDE PostgreSQL 7/7, database-role PostgreSQL 1/1, root/release TypeScript compile and diff-check; code/security review GO.
-- Evidence: `docs/audits/phase-7/PHASE_7_T41_PROGRESS_PAYMENT_RLS_2026-10-24.md`; roadmap `Rev. 52`; calculation record `BIM-CALC-2026-10-24.46`.
-- T41 remains PARTIAL. Other tenant tables, production cutover/deploy/canary/restore and independent permitted-file Yeşil Defter acceptance remain open. `PROGRESS_PAYMENTS_ENABLED` remains default-off; formulas and calculation outcomes did not change.
-
-## 2026-10-24 T41 SmartCheck pilot evidence tenant RLS third slice
-
-- Baseline `5e1113524b3a3f4c253bae61066e0779c5391b1f` adds migration `0016_smartcheck_pilot_evidence_tenant_rls`: pilot cases use three exact policies, measurements use asymmetric SELECT/INSERT plus backup/owner policies, and both tables FORCE RLS. Pilot measurements and pilot audit evidence are append-only.
-- Pilot case/measurement triggers create audit rows in the same database transaction. Immutable SHA-256 `requestHash`, monotonic `caseRevision`, measurementId + hash replay proof, legacy evidence rejection, guarded case mutation, current membership and maker-checker review are enforced across service and database boundaries. The inspector verifies exact policy, trigger and function owner/security/search_path/execute/source provenance and fails closed on drift.
-- `smartcheck_audit_logs` now uses FORCE RLS with a six-policy matrix that preserves non-pilot app/worker behavior while tenant-scoping pilot reads and blocking direct pilot audit writes/mutation. `retention_until` records the minimum preservation boundary; no purge scheduler or legal-hold workflow exists.
-- Focused integration/contract tests, isolated PostgreSQL 16 suites and root/release TypeScript checks passed; code and security reviews returned GO. Evidence: `docs/audits/phase-7/PHASE_7_T41_SMARTCHECK_PILOT_EVIDENCE_RLS_2026-10-24.md`; roadmap `Rev. 53`; calculation record `BIM-CALC-2026-10-24.47`.
-- T41 and Phase 7 remain PARTIAL. Other tenant tables, production credential cutover/deploy/canary/restore/rollback and independent expert acceptance remain open. Pilot formulas and calculation results did not change; public pages did not change.
-
-## 2026-10-24 T41 company industry settings tenant RLS fourth slice
-
-- Baseline `63c5c6080b37fc135288335c9a76ffaba5625926` adds migration `0017_company_industry_settings_tenant_rls`: `company_industry_settings` uses app SELECT/INSERT/UPDATE, backup SELECT and migrator-owner ALL as an exact five-policy FORCE RLS matrix. App DELETE and worker access remain default-deny.
-- Global `industries` uses app/backup SELECT and migrator-owner ALL as an exact three-policy FORCE RLS matrix. The four canonical `INITIAL_PLUGINS` rows are inserted with `ON CONFLICT DO NOTHING`; missing rows are restored without overwriting operator-owned rows.
-- `CompanyIndustrySettingsService` moves all settings DB work into one checked-out tenant transaction. Routes validate the exact input shape/type/pattern, and the UI reports failed persistence without displaying a false success. Inspector/provisioner rejects missing `0017` tag, incomplete table set and exact policy drift.
-- Focused route/client/release/role tests, isolated PostgreSQL 16 regressions and root/release TypeScript checks passed; code and security reviews returned GO. Evidence: `docs/audits/phase-7/PHASE_7_T41_COMPANY_INDUSTRY_SETTINGS_RLS_2026-10-24.md`; roadmap `Rev. 54`; calculation record `BIM-CALC-2026-10-24.48`.
-- T41 and Phase 7 remain PARTIAL. The protected count is 18 tenant tables plus pilot audit/global catalog surfaces. Other tenant tables, production credential cutover/deploy/canary/restore/rollback and independent expert acceptance remain open. Calculation methods, formulas and results did not change; public marketing pages did not change.
-
-
-## 2026-10-24 T41 CRM lead and quota boundary fifth slice
-
-- Baseline `82207c293f7ff527b3962e8f3e8ceabf58b9fe80` adds migration `0018_crm_leads_tenant_rls`. `leads`, `companies`, `subscriptions` and `usage_logs` use exact FORCE RLS; `plans` is a global app SELECT-only catalog. The restricted ACL matrix permits app tenant reads and only lead/usage inserts, denies worker access to all five authority tables, preserves backup SELECT and migrator-owner maintenance, and makes future public tables/sequences app/worker default-deny.
-- `CrmLeadService` binds list/create to one tenant transaction. CRM quota reservation and lead insert are atomic; a company-keyed transaction advisory lock serializes concurrent quota claims. Negative usage counts are rejected. Central API reporting drops PostgreSQL detail/where/query/parameters/cause and emits only safe name/code plus hashed correlation tags.
-- Recorded checks: focused route/artifact/role/telemetry/quota 40/40; CRM PG16 1/1; company-industry, SmartCheck pilot, progress-payment and CDE RLS regressions 10/10; role provisioning PG16 1/1; root/release TypeScript and diff-check pass. The requested fresh final reviewer agents hit the account usage limit; earlier code review GO preceded the ACL fix and the earlier security NOT-GO findings were addressed by the new PG contract.
-- **Production remains NO-GO.** Registration, company settings, bank-transfer/subscription and admin plan writes still use the app pool. They must move to a separately credentialed control-plane role/pool or narrowly authorized control functions before production role cutover. T41 and Phase 7 remain PARTIAL; formulas/results and public marketing pages did not change.
-
-## 2026-10-24 T41 control-plane database identity sixth slice
-
-- Baseline `1dcc0bc373098b41a7bbad4c4832b3a4b5c44777` adds the sixth canonical role, `bimmetraj_control`: LOGIN, NOINHERIT and NOBYPASSRLS, without DDL, owner escalation, queue access or broad public-table access.
-- The app alone receives `CONTROL_DATABASE_URL`. Startup validation requires the exact control username, the same PostgreSQL host/port/database as `DATABASE_URL`, and rejects connection-behaviour query overrides. Registration and compensation, pilot tenant conversion, company mutations, bank-transfer/subscription changes, admin plan/company changes, quota release and detached usage audit now use the control pool.
-- Migration `0019_control_plane_rls` adds exact control policies for `companies`, `subscriptions` and `usage_logs`. The role contract grants only the documented authority/support-table matrix; `leads`, queue and allowlist-external access remain denied. Inspector/provisioner fails closed on ACL or policy drift.
-- Focused unit/artifact/compose tests passed 26/26; root TypeScript, production build and diff-check passed. Sequential disposable PostgreSQL 16 role, CDE, progress-payment, SmartCheck pilot, company-industry and CRM/control suites all passed. Full `pnpm test` could not complete because DB-backed integration tests lacked a safe isolated `DATABASE_URL`; this is not recorded as a full-suite pass. Fresh final code/security reviewer agents were unavailable because the account usage limit was reached.
-- Evidence: `docs/audits/phase-7/PHASE_7_T41_CONTROL_PLANE_DB_ROLE_2026-10-24.md`; roadmap `Rev. 56`; calculation record `BIM-CALC-2026-10-24.50`.
-- **Production remains NO-GO and T41/Phase 7 remain PARTIAL.** Tenantless app reads must be moved into transaction-local tenant context and worker entitlement reads need a narrow read boundary. Remaining tenant tables, production secret cutover, canary, restore/parity, rollback and independent acceptance are open. Formulas/results and public marketing pages did not change.
-
-## 2026-10-24 T41 control-plane least-privilege review remediation seventh slice
-
-- Baseline `a55841e56c0829f61802bc0db63e7baa1d317370` closes the Rev.56 final-review P1 findings: app/control/worker authority-support ACLs converge exactly; app direct user/membership/token mutation and audit DELETE are denied; auth, invitation and Academy control mutations use the control pool.
-- Both database URLs reject effective query overrides and duplicate options, require exact app/control identities on the same target and prevent TLS downgrade. Production startup requires and validates `CONTROL_DATABASE_URL`. Broad control sequence and pre-schema all-table grants were removed.
-- Registration no longer attempts to erase append-only payment audit/account state after email delivery failure; it preserves the account and returns `emailVerificationDeliveryPending` for resend. Route-level paid-plan failure/retry integration evidence remains P2.
-- Focused checks, TypeScript, build and CRM/control PostgreSQL 16 passed; final code and security reviews returned LOCAL GO. Audit remains append-only but app-forgeable because app INSERT is retained; it is not compliance authenticity proof.
-- Roadmap `Rev. 57`; calculation record `BIM-CALC-2026-10-24.51`. Production remains NO-GO; sensitive global app reads, worker entitlement/broad remaining surfaces, production cutover/canary/restore and independent acceptance remain open.
-
-## 2026-10-24 T41 tenant Drizzle transaction foundation eighth slice
-
-- Baseline `0a4d76a7cbf15b1bab80ebee2e41f260662bca0a` adds `withTenantDrizzleTransaction` beside the existing raw-client helper. It binds typed Drizzle to the same checked-out `PoolClient` only after transaction-local company/user context and restricted app-role validation succeed.
-- `src/db/tenant-context.test.ts` passes 7/7; TypeScript and diff-check pass. No auth route, worker entitlement function, ACL revoke, migration or calculation formula changed.
-- Roadmap `Rev. 58`; calculation record `BIM-CALC-2026-10-24.52`. Next order is 8A auth authority resolver, 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate; it is not an approval record.
-- Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.
-
-## 2026-10-24 T41 8B worker entitlement preparation gate
-
-- Worker still reads `companies`, `subscriptions` and `plans` directly in IFC limits and quota paths. Immediate ACL revoke would break the current worker image, so no revoke was performed.
-- The required expand → capability function → adapter code → canary/drain → ACL revoke sequence is documented in `docs/audits/phase-7/PHASE_7_T41_WORKER_ENTITLEMENT_2026-10-24.md` and surfaced on the admin roadmap.
-- T41 remains PARTIAL and production remains NO-GO. No calculation formula/result changed; expert guide/PDF remains deferred until T01–T49 technical closure.
-
-## 2026-10-24 T41 8B worker entitlement capability ninth slice
-
-- Baseline `9a47b51f71cb533f8f9202d438a4b0dbed05a4d4` adds release migration `0020_worker_entitlement_capability` and a narrow `SECURITY DEFINER` function with worker-only EXECUTE ACL, fixed search path and session-role guard.
-- Production IFC quota path validates company existence through the capability function; local/test path remains compatible until canary. Release artifact chain 15/15 and worker capability negative test pass; TypeScript passes.
-- Roadmap `Rev. 60`; calculation record `BIM-CALC-2026-10-24.54`. Remaining 8B work is canary/drain and ACL revoke for direct authority reads, then 8C remaining tenant reads.
-- Production remains NO-GO; expert guide/PDF remains deferred until T01–T49 technical closure.
-
-## 2026-10-24 T41 auth authority tenant-bound ninth slice
-
-- Baseline `cc70ca261981b0602afc3d8b0ac4c536aad6a7bc` moves authenticated membership and subscription authority reads onto `withTenantDrizzleTransaction`; the same checked-out PoolClient and transaction-local company/user context are required before the query runs. User profile lookup remains a control-plane read.
-- Auth tenant tests pass 8/8; related session/route tests and TypeScript pass. No calculation formula/result changed.
-- Roadmap `Rev. 59`; calculation record `BIM-CALC-2026-10-24.53`. Next order is 8B worker entitlement capability, then 8C remaining tenant reads. Expert guide/PDF remains a post-T01–T49 technical closure gate.
-- Production remains NO-GO; full suite, production cutover/canary/restore and independent expert acceptance remain open.
-
-## 2026-10-24 T41 8C worker company context capability
-
-- Baseline `4afe32b70e458d5a114dca47bd913ae8df2fb1a7` adds release migration `0021_worker_company_context_capability` and `fetchWorkerCompanyContext`. Production IFC rule evaluation and spreadsheet normalization no longer read `companies` directly; they use a worker-only `SECURITY DEFINER` capability. Local/test table path remains until canary/drain.
-- Release artifacts are pinned at `22/22`; worker capability tests are 2/2; the focused 32-test set, TypeScript and diff-check pass. Full `pnpm test` remains non-green because isolated DB URLs are unavailable and veraPDF runtime is not installed.
-- Roadmap `Rev. 61`; calculation record `BIM-CALC-2026-10-24.55`. Remaining local worker work is a direct-read inventory and production-safe ACL/drain proof; production cutover, canary, restore/parity, rollback and independent expert acceptance remain open. No calculation formula/result changed.
-
-## 2026-10-24 local full-suite environment audit
-
-- `pnpm run build` passes after Rev. 61 (Vite + server + spreadsheet worker bundles).
-- Focused release/role/roadmap/auth/tenant set passes `32/32`; roadmap-only/artifact/role subset passes `17/17`; TypeScript and diff-check pass.
-- A full `pnpm test` run was attempted against a disposable local PostgreSQL 16 database. It reached real isolated integration tests but remained non-green: the disposable base lacked Graphile worker `migrations` bootstrap and restricted `bimmetraj_app` runtime identity, and concurrent schema cloning hit PostgreSQL `max_locks_per_transaction`. These are test-environment gates to fix before claiming full-suite green; they are not silently reclassified as product passes.
-- The disposable database/container was removed after the run. No production or user database was touched.
-
-## 2026-10-24 Rev. 62 test isolation control/app split
-
-- Commit `131042dd6675341b73733881ad433f87f5e9dd2e` adds `CONTROL_DATABASE_URL` support to the disposable integration harness. Schema cloning and Graphile Worker migration bootstrap use the control connection; `DATABASE_URL` remains the restricted `bimmetraj_app` runtime for the same target database. Isolated worker wrappers and bounded role grants are provisioned without changing production ACLs.
-- Queue integration passes 14/14 with an admin disposable runtime; restricted app SmartCheck HTTP tenant flow passes and IFC quota passes 6/6. IFC HTTP worker execution still requires a separate worker credential harness. Full-suite green and production readiness remain unclaimed.
-
-## 2026-10-24 Rev. 63 explicit worker credential harness
-
-- Commit `c9e025e6f2b3a700cf18a192757dfeb5f21b10c4` adds optional `WORKER_DATABASE_URL` isolation for the restricted worker runtime. Queue/IFC `run` and `runOnce` tests can now use worker credentials while HTTP application tests continue using restricted `bimmetraj_app`.
-- This closes the code-side worker credential separation gate; a fresh disposable PG run with real app and worker passwords is still required before calling the full worker HTTP path green. Production cutover, canary/drain, restore/parity and expert acceptance remain open.
-
-## 2026-10-24 Rev. 64 worker queue RLS mirror
-
-- Commit `f13c2e2b4de5ecf8eedf009baab40723a57dee88` mirrors the production Graphile Worker RLS provisioning inside isolated worker schemas: migrations RLS is disabled and four private queue tables receive worker-only policies.
-- Fresh three-credential disposable PostgreSQL run passed restricted app SmartCheck HTTP plus restricted worker IFC HTTP/evidence flow `2/2`. Queue `14/14` remains green with admin harness; quota `6/6` remains green. Full-suite concurrency/role harness and production gates remain open.
-
-## 2026-10-24 restricted-role CI and test isolation repair (pending release)
-
-- The Verify workflow now exercises five PostgreSQL RLS contracts against a fresh disposable PostgreSQL 16 cluster before canonical role bootstrap, then runs release migrations and the full suite with separate restricted app/control/worker identities. Bootstrap fails closed on role provenance or membership drift; no broad PUBLIC grants are used.
-- The isolated integration harness keeps fixture DDL/DML on its dedicated admin connection and verifies all three runtime URLs target the same disposable database before mutation. Queue and progress-payment fixtures, control audit mocking, browser smokes and a time-dependent quotation fixture were aligned with that contract. The two worker capability source checks match the shipped migrations exactly.
-- Local evidence: fresh-cluster RLS contracts `11/11`; `pnpm run verify` 1355 tests (1349 passed, 6 skipped, 0 failed) and build passed; invitation and core-flow browser smokes passed; focused role/progress tests and lint passed. Code review found no critical/high finding. These are local results, not GitHub CI or production evidence.
-- Production remains on its earlier revision until GitHub Verify passes for the pushed commit and T40 credential, backup, restore, canary and rollback gates are established. Independent engineering acceptance remains open.
-
-## 2026-10-24 deploy verification and production rehearsal (CI/deploy still open)
-
-- Commit `495644599c5bbdb4ab02d9f72a5b0b12fee9bf2f` was pushed to `main`. GitHub Verify run `40088426684` passed RLS, restricted-role, full `pnpm run verify`, Prisma and browser stages, then failed its production dependency audit: Express 4 resolved vulnerable `body-parser@1.20.8` (GHSA-27r3-jxmh-p828). The workspace now overrides both affected major lines to patched `1.20.9` and `2.4.0`; local production audit reports no blocked finding. This dependency patch requires a new pushed CI run before deploy.
-- Live `/api/health` still reports `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e`. Production has no canonical `bimmetraj_*` roles, the app container has no `CONTROL_DATABASE_URL`, and the release ledger ends at `0008_pilot_exception_rows`; redeploying current Compose would fail closed.
-- A fresh 2026-10-24 11:08 UTC production backup completed its S3 upload/download checksum verification. The same archive restored into an isolated PostgreSQL 16 container; the checked public-table/user/company counts matched live (`68/5/5`). The container was removed after the check.
-- The first direct migration attempt on the restored clone stopped at missing `bimmetraj_owner` and rolled back. This exposed the bootstrap-order gate. The new `bootstrap-legacy` stage now resolves the old idx8 precondition; the same clone completed bootstrap, migrations `0009`–`0021`, full provisioning and role-boundary inspection. See `docs/agent-memory/HANDOFF_2026-10-24_DEPLOY_CUTOVER.md` for evidence and the remaining guarded production sequence.
-- Production remains NO-GO until a new pushed commit passes GitHub Verify, Coolify secrets are prepared, and the documented drain/cutover/deploy and post-deploy health/tenant/worker checks pass.
-
-## 2026-10-24 CI dependency patch and verified idx8 cutover rehearsal
-
-- GitHub Verify `40088426684` failed only at production dependency audit because Express 4 resolved vulnerable `body-parser@1.20.8` (`GHSA-27r3-jxmh-p828`). Local uncommitted pnpm overrides now resolve Express 4 to `1.20.9` and Express 5 to `2.4.0`; local audit policy reports `blocked: []`; local `pnpm run verify` and production build passed after the patch. A new pushed CI run is still required.
-- Root cause of the live migration-order blocker is recorded in `docs/agent-memory/HANDOFF_2026-10-24_DEPLOY_CUTOVER.md`. New `bootstrap-legacy` stage was exercised against an isolated PostgreSQL 16 restore of the latest production backup: idx8 bootstrap passed, release migrations `0009`–`0021` applied, and full role provision plus inspector passed. The disposable clone was removed; live DB was not changed.
-- Production `/api/health` remains at `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e`; no deploy occurred. Owner states there is no real customer data, but restored DB had 5 users and 5 companies, so do not assume a blank database or drop data.
-- Pending intended changes include dependency overrides/lock, bootstrap CLI/provision implementation and negative tests. Do not stage generated `graphify-out/` or the user-owned GAP/global-positioning files. Next: graphify update, review/stage only intended files, run focused + full verification, commit/push, require `scripts/require-green-ci.sh <SHA>`, then execute the documented production cutover and deploy sequence.
-
-
-## 2026-10-24 operator role-admin deploy-path closure (CI green, cutover pending)
-
-- Green Verify `40089915624` validated `cd819811683f1fff46225dae07b994d7087722b5` (17m18s), including patched dependency audit, full test, browser smoke and Docker image/network-isolated artifact builds. `scripts/require-green-ci.sh` passed for that SHA. The follow-up deploy-path commit `cdcc7dcaa18618bc77f38c2ea7064c1aeb2c9df3` also passed Verify `40091648042`; the same green-CI gate passed.
-- A final local deploy-path audit found `database-roles/cli.ts` was not bundled into production images and no opt-in Compose service existed to run the two-stage idx8 bootstrap. `Dockerfile` now bundles `dist/database-roles-cli.mjs`; `compose.coolify.yaml` and `compose.example.yaml` define a manual `role-admin` service gated by the `operator` profile, defaulting to read-only `inspect`. It is outside normal app startup.
-- The role-admin service only receives the required Compose-interpolated admin URL, role passwords and expected target values; `compose.example.yaml` no longer attaches broad app/Postgres env files. Tests check operator profile isolation, DB identities, required secrets and env-file secret non-leak. Focused Compose contract tests pass 4/4; local role CLI bundle succeeded.
-- The one-shot CLI write modes require `DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER`; retrieve it with the read-only SQL `select system_identifier::text from pg_control_system()` and verify against the deployment record before operator use. The default Coolify role-admin `inspect` still uses the bootstrap connection in this short-lived profile; do not keep the operator container running.
-- Production remains at revision `d9d80df12d9b4a00d36e89b12f68a9982b21ba8e`. Live app environment does not include `CONTROL_DATABASE_URL`; the production DB has no canonical roles. No live mutation/deploy was run. The isolated backup rehearsal container and SSH tunnel were removed.
-- The deploy-path code/docs/test changes are committed and pushed. Local lint, eight focused tests, dependency audit and build passed. Full local `pnpm run verify` could not complete DB integration tests because isolated local PostgreSQL was unavailable (`127.0.0.1:5432` refused connections); this was not claimed as green. The GitHub Verify for the exact pushed code SHA passed with isolated PostgreSQL. Security review caught and handoff fixes the operator CLI command: pass `node dist/database-roles-cli.mjs <mode>` because the migrate image uses `tini` as entrypoint. Operator commands and the short-lived admin-backed inspect limitation are documented. Keep graphify output and user-owned reports unstaged.
+Secret rotation (above), production role cutover and deploy, real named expert
+sign-offs (engineer, tax/tender), permitted real IFC/PDF/Excel files for the
+expert trial, card-payment provider and legal texts, external security review,
+DKIM, YFK licence, AI provider keys.

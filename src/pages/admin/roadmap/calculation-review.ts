@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-24.61",
-  updatedOn: "24 Ekim 2026",
-  implementationBaseline: "f0a9e357a16a709290519ff1f1e09bb6aeded6fe",
+  version: "BIM-CALC-2026-10-25.66",
+  updatedOn: "25 Ekim 2026",
+  implementationBaseline: "b9bf785cf8e8c19b9cb2a2d0a857227a871b4912",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1566,6 +1566,77 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         basis: "docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md T45",
       },
     },
+  },
+  {
+    revision: "Rev. 68",
+    version: "BIM-CALC-2026-10-24.62",
+    date: "24 Ekim 2026",
+    commit: "7fbedb3675c55655c6c8a075a4fb49c6cd9b18c7",
+    trigger: "Uzman denemesi öncesi: mükerrer GUID'li modellerde açıkta kalan elemanların kaybolması ve tarayıcı ön analizinin yetkili sonuç gibi görünmesi.",
+    beforeSummary: "İcmal, açıkta kalan kayıtları worker raporuyla yalnız GlobalId üzerinden birleştiriyordu; aynı GUID'i paylaşan ikinci eleman rapordan ve açıkta kalan sayacından düşüyordu. Tarayıcı ön analizinde yapısal elemanların neden açıkta kaldığı ekranda açıklanmıyordu.",
+    afterSummary: "Kayıtlar GUID + sınıf + ad + kat kimliğiyle sayımlı birleştirilir: worker'da bulunan kayıt bir kez kalır, farklı elemanlar ayrı kalır. Tarayıcı sonucu 'yetkili sonuç değildir' notuyla gösterilir. Metraj ve poz hesapları değişmedi.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Mükerrer GUID'li iki açıkta kalan elemandan yalnız ilki raporlanıyordu.",
+        after: "Her iki eleman da raporda ve sayaçta yer alır; worker kaydı çift sayılmaz.",
+        basis: "src/ifc/calm-icmal.test.ts (aynı GlobalId ve worker kaydı testleri)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 69",
+    version: "BIM-CALC-2026-10-24.63",
+    date: "24 Ekim 2026",
+    commit: "de96def679a18b825bd250bef301b35b07cd3360",
+    trigger: "Uzmanların normal kullanıcı paketiyle hesap yöntemlerini uygulama içinde görebilmesi.",
+    beforeSummary: "Modül açıklamaları, formüller ve örnek hesaplar yalnız süper adminin görebildiği /admin/roadmap/calculations sayfasındaydı.",
+    afterSummary: "Aynı içerik /app/nasil-calisir sayfasında tüm çalışma alanı rollerine gösterilir; hesap yöntemleri ve örnek sonuçlar değişmedi.",
+    affectedModules: ["expert-acceptance"],
+  },
+  {
+    revision: "Rev. 70",
+    version: "BIM-CALC-2026-10-24.64",
+    date: "24 Ekim 2026",
+    commit: "ec56937e4bc85a06b7bf9d45839d35c34509a8e8",
+    trigger: "Uzman mühendisin hesapların nasıl yapıldığını ekrandan izleyip satır satır doğrulayabilmesi.",
+    beforeSummary: "İcmal satırı yalnız toplamı ve kat dağılımını gösteriyordu; satırı oluşturan elemanlar ve uzman kararı kaydedilemiyordu.",
+    afterSummary: "Her satır eleman bazlı metraj cetveliyle açıklanır ve CSV olarak indirilir; uzman satır kararını, kendi değerini ve notunu girer, sapma ±%3 şirket toleransıyla karşılaştırılır. Miktar ve poz hesapları değişmedi.",
+    affectedModules: ["ifc-metraj", "expert-acceptance"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Kalem toplamı izlenebilir eleman listesi olmadan gösteriliyordu.",
+        after: "Kalem başına katkı listesi; katkıların toplamı net miktara eşittir (calm-icmal.test.ts).",
+        basis: "Saha geri bildirimi (17 Ekim 2026): uzman hesap yöntemini sordu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 71",
+    version: "BIM-CALC-2026-10-25.65",
+    date: "25 Ekim 2026",
+    commit: "14485418fabb9a241262509fac9f34012279f7ef",
+    trigger: "Gerçek rol modeliyle yerel provada giriş, şirket, abonelik, kota ve PDF yollarının RLS altında başarısız olması.",
+    beforeSummary: "Kota tüketimi şirket, plan ve abonelik satırlarını FOR UPDATE/SHARE ile kilitliyordu; uygulama rolü bu tablolarda yalnız SELECT yetkisine sahip olduğundan üretim rol modelinde teklif oluşturma 503 dönüyordu.",
+    afterSummary: "Kota tüketimi şirket başına advisory kilit altında aynı okumaları yapar; yönetim plan/abonelik değişiklikleri ve ödeme onayı aynı kilidi alır. Kota limiti, sayaç ve tolerans kuralları değişmedi.",
+    affectedModules: ["kota"],
+    moduleDetails: {
+      kota: {
+        before: "Şirket/plan/abonelik satır kilitleri uygulama rolünde reddediliyordu.",
+        after: "Şirket başına pg_advisory_xact_lock; usage_records satır kilidi korunur (scripts/role-model-smoke.ts 13/13).",
+        basis: "Yerel PG16 prova, gerçek rol provisioning (scripts/database-roles/cli.ts provision)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 72",
+    version: "BIM-CALC-2026-10-25.66",
+    date: "25 Ekim 2026",
+    commit: "b9bf785cf8e8c19b9cb2a2d0a857227a871b4912",
+    trigger: "Üretim veritabanı rollerinin parolasız operatör erişimiyle, Coolify deploy'u içinde kurulması.",
+    beforeSummary: "Rol kurulumu elle çalıştırılan operatör komutlarına bağlıydı; boş veritabanında migrate servisi başlayamıyordu.",
+    afterSummary: "db-bootstrap → migrate → db-provision tek seferlik servisleri deploy sırasında rolleri kurar ve yetkileri yakınsar. Hesap yöntemleri değişmedi.",
+    affectedModules: [],
   },
 ];
 

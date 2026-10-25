@@ -280,8 +280,8 @@ export function DosyadanTeklifDemo() {
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-green-400 font-bold text-base">Tüm Kontroller Başarılı</h4>
-                    <p className="text-green-400/80 text-sm">Modeldeki tüm taşıyıcı elemanlar ÇŞB pozlarıyla tam uyumlu.</p>
+                    <h4 className="text-green-400 font-bold text-base">Ön Kontrolde Bulgu Yok</h4>
+                    <p className="text-green-400/80 text-sm">Taşıyıcı elemanlar ÇŞB pozlarına eşleşti; sonuç teknik inceleme bekliyor.</p>
                   </div>
                 </div>
               );

@@ -4,9 +4,21 @@
     {
       "name": "teklifpro-dev",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "teklifpro-review",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "set -a; . ./.env.review.local; set +a; exec pnpm run dev"
+      ],
+      "port": 3001
     }
   ]
 }

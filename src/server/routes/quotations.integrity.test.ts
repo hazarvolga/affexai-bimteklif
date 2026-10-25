@@ -39,11 +39,13 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
     items: [{ description: "Work", unit: "m2", quantity: 2, unitPrice: 100, costUnitPrice: 70, wastePercent: 5,
       costCategory: "labor", discountPercent: 10, vatPercent: 20 }],
   });
+  // Tenant transactions need a UUID actor; policies scope by company only.
+  const actorUserId = crypto.randomUUID();
   const call = async (route: string, body: unknown = {}, id?: string, companyId = company.id) => {
     const response = { statusCode: 200, body: undefined as any,
       status(code: number) { this.statusCode = code; return this; },
       json(value: unknown) { this.body = value; return this; } };
-    await routes.get(route)!({ body, params: { id }, user: { companyId } }, response);
+    await routes.get(route)!({ body, params: { id }, user: { companyId, userId: actorUserId } }, response);
     return response;
   };
   const create = (body: unknown = payload()) => call("post /api/quotations", body);

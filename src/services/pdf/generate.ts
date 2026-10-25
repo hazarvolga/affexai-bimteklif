@@ -1,5 +1,8 @@
 import { renderPdf } from './renderer';
 import { db } from '../../db';
+import { withAppTenant } from '../../db/app-tenant';
+import { getControlDatabase } from '../../db/control-plane';
+import type { TenantContext } from '../../db/tenant-context';
 import { quotations, quotationItems, companies, clients } from '../../db/schema';
 import { and, eq } from 'drizzle-orm';
 import { templates, PdfData } from './templates';
@@ -7,7 +10,8 @@ import { templates, PdfData } from './templates';
 /**
  * Professional PDF Generation Engine
  */
-export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction", companyId?: string, includeEvidence = false, signal?: AbortSignal): Promise<Buffer> {
+export async function generateQuotationPdf(quotationId: string, templateId: string = "default_construction", actor?: TenantContext, includeEvidence = false, signal?: AbortSignal): Promise<Buffer> {
+  const companyId = actor?.companyId;
   // 1. Fetch Data
   const quote = await db.query.quotations.findFirst({
     where: companyId
@@ -18,7 +22,10 @@ export async function generateQuotationPdf(quotationId: string, templateId: stri
   if (!quote) throw new Error("Quotation not found");
 
   const [company, clientData, items] = await Promise.all([
-    db.query.companies.findFirst({ where: eq(companies.id, quote.companyId) }),
+    // companies is FORCE RLS: the app role reads it in tenant context, other callers via the control plane.
+    actor
+      ? withAppTenant(actor, (tenantDb) => tenantDb.query.companies.findFirst({ where: eq(companies.id, quote.companyId) }))
+      : getControlDatabase().db.query.companies.findFirst({ where: eq(companies.id, quote.companyId) }),
     db.query.clients.findFirst({ where: and(eq(clients.id, quote.clientId), eq(clients.companyId, quote.companyId)) }),
     db.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotationId), eq(quotationItems.companyId, quote.companyId)))
   ]);

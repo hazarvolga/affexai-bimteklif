@@ -186,6 +186,86 @@ export async function bootstrapLegacyDatabaseRoles(
   }
 }
 
+async function assertFreshTarget(client: Queryable, target: DatabaseRoleProvisionTarget): Promise<void> {
+  if (!/^[a-z][a-z0-9_]{2,62}$/.test(target.expectedDatabase) || !/^\d{10,30}$/.test(target.expectedSystemIdentifier)) {
+    throw new Error("Fresh bootstrap requires an exact database and system identifier");
+  }
+  const result = await client.query<{ database: string; system_identifier: string; version_major: number; superuser: boolean; create_role: boolean; user_tables: number; managed_schemas: number }>(`select current_database() as database,
+      control.system_identifier::text as system_identifier,
+      current_setting('server_version_num')::int / 10000 as version_major,
+      role.rolsuper as superuser, role.rolcreaterole as create_role,
+      (select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace
+        where c.relkind in ('r','p','v','m','S') and n.nspname not in ('pg_catalog','information_schema') and n.nspname not like 'pg_toast%' and n.nspname not like 'pg_temp%') as user_tables,
+      (select count(*)::int from pg_namespace where nspname=any($1::text[]) and nspname<>'public') as managed_schemas
+    from pg_control_system() control join pg_roles role on role.rolname=current_user`, [managedSchemas]);
+  const actual = result.rows[0];
+  if (!actual || actual.database !== target.expectedDatabase || actual.system_identifier !== target.expectedSystemIdentifier
+    || actual.version_major !== 16 || !actual.superuser || !actual.create_role
+    || ["postgres", "template0", "template1"].includes(actual.database)) {
+    throw new Error("Fresh bootstrap target fingerprint or administrator authority mismatch");
+  }
+  if (actual.user_tables !== 0 || actual.managed_schemas !== 0) {
+    throw new Error("Fresh bootstrap refuses a database that already contains tables or managed schemas");
+  }
+}
+
+/**
+ * A fresh database either has none of the canonical roles, or all of them from an earlier run of
+ * this bootstrap on the same cluster (a deploy that stopped before migrations finished). Anything
+ * else needs an operator. Full provenance inspection waits for provisionDatabaseRoles, because it
+ * also inspects schemas and queue objects that only exist after migrations.
+ */
+async function assertFreshRoleSet(client: Queryable, systemIdentifier: string): Promise<void> {
+  const roles = await client.query<{ name: string; provenance: string | null }>(
+    "select rolname as name, shobj_description(oid,'pg_authid') as provenance from pg_roles where rolname=any($1::text[])",
+    [canonicalRoleNames],
+  );
+  if (roles.rows.length === 0) return;
+  if (roles.rows.length !== DATABASE_ROLE_SPECS.length) throw new Error("Fresh bootstrap refuses a partial canonical role set");
+  const expected = `bimmetraj.database-roles.v1:${systemIdentifier}`;
+  if (roles.rows.some(({ provenance }) => provenance !== expected)) {
+    throw new Error("Fresh bootstrap refuses canonical roles with a different provenance");
+  }
+}
+
+export type FreshBootstrapResult = "bootstrapped" | "already-initialised";
+
+/**
+ * First-install counterpart of bootstrapLegacyDatabaseRoles: on an empty PostgreSQL 16 database
+ * it creates the canonical roles with their generated credentials and hands the database to
+ * bimmetraj_owner, so the release runner can migrate as bimmetraj_migrator. A database that
+ * already carries the release ledger is left untouched; full ACL/RLS convergence follows the
+ * migrations through provisionDatabaseRoles.
+ */
+export async function bootstrapFreshDatabaseRoles(
+  client: Queryable,
+  credentials: DatabaseRoleCredentials,
+  target: DatabaseRoleProvisionTarget,
+  administratorCredential: string,
+): Promise<FreshBootstrapResult> {
+  validateCredentials(credentials, administratorCredential);
+  await client.query("begin");
+  try {
+    const lock = await client.query<{ acquired: boolean }>("select pg_try_advisory_xact_lock(hashtext('bimmetraj.database-roles.v1')) as acquired");
+    if (!lock.rows[0]?.acquired) throw new Error("Another database role provisioning operation is already active");
+    const marker = await client.query<{ present: boolean }>("select to_regclass($1) is not null as present", [target.requiredMarkerRegclass]);
+    if (marker.rows[0]?.present) {
+      await client.query("commit");
+      return "already-initialised";
+    }
+    await assertFreshTarget(client, target);
+    await assertFreshRoleSet(client, target.expectedSystemIdentifier);
+    await assertExistingMembershipGraph(client);
+    await createCanonicalRoles(client, credentials, target.expectedSystemIdentifier);
+    await client.query(`alter database ${identifier(target.expectedDatabase)} owner to bimmetraj_owner`);
+    await client.query("commit");
+    return "bootstrapped";
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  }
+}
+
 async function transferManagedObjects(client: Queryable): Promise<void> {
   const schemas = await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas]);
   for (const schema of schemas.rows) await client.query(`alter schema ${identifier(schema.name)} owner to bimmetraj_owner`);

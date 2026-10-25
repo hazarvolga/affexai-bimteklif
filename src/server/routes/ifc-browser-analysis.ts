@@ -1,5 +1,5 @@
 import type { Express, RequestHandler } from "express";
-import { db } from "../../db";
+import { tenantOf, withAppTenantTransaction } from "../../db/app-tenant";
 import { consumeBrowserIfcAnalysis, QuotaError } from "../../services/billing/quota";
 import { fetchTenantIfcLimits, IfcLimitsUnavailableError, IfcNotAvailableError } from "../../smartcheck/import/config";
 import { authenticate, requireVerifiedEmail } from "../middleware/auth";
@@ -8,7 +8,7 @@ export function registerIfcBrowserAnalysisRoutes(app: Express, canMutate: Reques
   // The file never leaves the browser; this only books one IFC analysis against the package.
   app.post("/api/ifc/browser-analyses", authenticate, requireVerifiedEmail, canMutate, async (req, res) => {
     try {
-      const usage = await db.transaction(async tx => {
+      const usage = await withAppTenantTransaction(tenantOf(req.user), async tx => {
         const limits = await fetchTenantIfcLimits(req.user.companyId, tx);
         return consumeBrowserIfcAnalysis(tx, req.user.companyId, limits.monthlyLimit);
       });

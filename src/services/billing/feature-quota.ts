@@ -1,6 +1,8 @@
 import { and, eq, gte, lt, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { getControlDatabase } from '../../db/control-plane';
+import { withAppTenantTransaction } from '../../db/app-tenant';
+import { lockCompanyQuota } from './company-quota-lock';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type * as schema from '../../db/schema';
 import { companies, plans, subscriptions, usageLogs } from '../../db/schema';
@@ -20,7 +22,7 @@ type FeatureQuotaTransaction = NodePgDatabase<typeof schema>;
 
 export async function reserveFeatureUsageInTransaction(tx: FeatureQuotaTransaction, companyId: string, userId: string, feature: MeteredFeature): Promise<FeatureReservation> {
   try {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${companyId}, 0))`);
+    await lockCompanyQuota(tx, companyId);
     const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId));
     if (!company) throw new QuotaError(403, 'COMPANY_REQUIRED', 'Company is not available');
     const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
@@ -45,7 +47,7 @@ export async function reserveFeatureUsageInTransaction(tx: FeatureQuotaTransacti
 
 export async function reserveFeatureUsage(companyId: string, userId: string, feature: MeteredFeature): Promise<FeatureReservation> {
   try {
-    return await db.transaction(tx => reserveFeatureUsageInTransaction(tx, companyId, userId, feature));
+    return await withAppTenantTransaction({ companyId, userId }, tx => reserveFeatureUsageInTransaction(tx, companyId, userId, feature));
   } catch (error) {
     if (error instanceof QuotaError) throw error;
     throw featureQuotaUnavailable(feature);

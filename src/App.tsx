@@ -56,6 +56,7 @@ const Settings = page(() => import('@/pages/Settings'), 'Settings');
 const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
 const MarketIntelligence = page(() => import('@/pages/MarketIntelligence'), 'MarketIntelligence');
 const PilotEvidence = page(() => import('@/pages/PilotEvidence'), 'PilotEvidence');
+const HowItWorks = page(() => import('@/pages/HowItWorks'), 'HowItWorks');
 const CRM = page(() => import('@/pages/CRM'), 'CRM');
 const DealDetail = page(() => import('@/pages/DealDetail'), 'DealDetail');
 const AIAssistant = page(() => import('@/pages/AIAssistant'), 'AIAssistant');
@@ -162,6 +163,7 @@ function AppRoutes() {
           <Route path="regulations" element={<Regulations />} />
           <Route path="market-intelligence" element={<MarketIntelligence />} />
           <Route path="pilot-evidence" element={<PilotEvidence />} />
+          <Route path="nasil-calisir" element={<HowItWorks />} />
           <Route path="crm" element={<CRM />} />
           <Route path="crm/deals/:id" element={<DealDetail />} />
           <Route path="ai" element={<AIAssistant />} />

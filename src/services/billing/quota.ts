@@ -1,19 +1,22 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { db } from "../../db";
 import { companies, plans, subscriptions, usageRecords } from "../../db/schema";
+import { lockCompanyQuota } from "./company-quota-lock";
 import { QuotaError, quotationAllowance, quotaUnavailable } from "./quota-policy";
 
 export { QuotaError } from "./quota-policy";
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 async function lockedQuota(tx: Transaction, companyId: string, at?: Date) {
-  // Same order as admin subscription changes: company -> plan -> subscription.
-  const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for("update");
+  // The per-company advisory lock serialises this with entitlement changes; the restricted app
+  // role may read but not row-lock companies, plans and subscriptions.
+  await lockCompanyQuota(tx, companyId);
+  const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId));
   if (!company) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
   const [pointer] = await tx.select({ planId: subscriptions.planId }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
   const [plan] = pointer?.planId
-    ? await tx.select().from(plans).where(eq(plans.id, pointer.planId)).for("share") : [];
-  const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId)).for("update");
+    ? await tx.select().from(plans).where(eq(plans.id, pointer.planId)) : [];
+  const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
   if (subscription?.planId !== pointer?.planId) throw quotaUnavailable();
   const now = at ?? new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
   const allowance = quotationAllowance(subscription, plan, now);
@@ -56,9 +59,13 @@ export async function consumeQuotationQuota(tx: Transaction, companyId: string, 
   }
 }
 
-async function lockedIfcUsage(tx: Transaction, companyId: string, at?: Date) {
-  // Same order as admin subscription changes: company -> plan -> subscription.
-  if (process.env.NODE_ENV === "production") {
+/** Who consumes IFC usage: the app (browser pre-analysis) or the SmartCheck worker. */
+type IfcUsageCaller = "app" | "worker";
+
+async function lockedIfcUsage(tx: Transaction, companyId: string, at: Date | undefined, caller: IfcUsageCaller) {
+  await lockCompanyQuota(tx, companyId);
+  if (caller === "worker" && process.env.NODE_ENV === "production") {
+    // bimmetraj_worker cannot read companies/subscriptions; its capability function can.
     const entitlement = await tx.execute<{
       company_exists: boolean;
       subscription_status: string | null;
@@ -71,17 +78,15 @@ async function lockedIfcUsage(tx: Transaction, companyId: string, at?: Date) {
     }>(sql`select * from public.bimmetraj_worker_get_entitlement(${companyId}::uuid)`);
     if (!entitlement.rows[0]?.company_exists) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
   } else {
-    const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for("update");
+    // The app role reads these tables in tenant context but may not row-lock them.
+    const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId));
     if (!company) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
-  }
-
-  const [pointer] = process.env.NODE_ENV === "production"
-    ? [undefined]
-    : await tx.select({ planId: subscriptions.planId }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
-  if (process.env.NODE_ENV !== "production" && pointer?.planId) {
-    await tx.select().from(plans).where(eq(plans.id, pointer.planId)).for("share");
-    const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId)).for("update");
-    if (subscription?.planId !== pointer?.planId) throw quotaUnavailable();
+    const [pointer] = await tx.select({ planId: subscriptions.planId }).from(subscriptions).where(eq(subscriptions.companyId, companyId));
+    if (pointer?.planId) {
+      await tx.select().from(plans).where(eq(plans.id, pointer.planId));
+      const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
+      if (subscription?.planId !== pointer.planId) throw quotaUnavailable();
+    }
   }
 
   const now = at ?? new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
@@ -110,7 +115,7 @@ async function incrementIfcCounter(tx: Transaction, companyId: string, period: s
 // Call only within the run's successful completion transaction.
 export async function consumeIfcUsage(tx: Transaction, companyId: string, at?: Date) {
   try {
-    const { period, counters, current } = await lockedIfcUsage(tx, companyId, at);
+    const { period, counters, current } = await lockedIfcUsage(tx, companyId, at, "worker");
     await incrementIfcCounter(tx, companyId, period, counters);
     return { period, current: current + 1 };
   } catch (error) {
@@ -122,7 +127,7 @@ export async function consumeIfcUsage(tx: Transaction, companyId: string, at?: D
 /** Browser pre-analysis has no server run, so it reserves its IFC slot up front (L-9). */
 export async function consumeBrowserIfcAnalysis(tx: Transaction, companyId: string, monthlyLimit: number | null, at?: Date) {
   try {
-    const { period, counters, current } = await lockedIfcUsage(tx, companyId, at);
+    const { period, counters, current } = await lockedIfcUsage(tx, companyId, at, "app");
     // Same entitlement gate as quotations: no active, unexpired subscription means no analysis.
     const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
     const [plan] = subscription?.planId ? await tx.select().from(plans).where(eq(plans.id, subscription.planId)) : [];

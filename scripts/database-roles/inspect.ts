@@ -825,7 +825,16 @@ async function main() {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+/**
+ * Run as a script only when invoked as inspect.ts itself. Bundled into dist/database-roles-cli.mjs,
+ * every module shares the bundle's import.meta.url, so the URL comparison alone would start this
+ * inspection alongside whatever mode the role CLI was asked to run.
+ */
+export function isDirectInspectInvocation(entry: string | undefined, moduleUrl: string): boolean {
+  return Boolean(entry) && /(^|[\\/])inspect\.(ts|js|mjs)$/.test(entry!) && moduleUrl === pathToFileURL(entry!).href;
+}
+
+if (isDirectInspectInvocation(process.argv[1], import.meta.url)) {
   main().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : "Database role inspection failed"}\n`);
     process.exitCode = 1;

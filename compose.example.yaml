@@ -13,7 +13,7 @@ x-runtime: &runtime
   depends_on:
     postgres:
       condition: service_healthy
-    migrate:
+    db-provision:
       condition: service_completed_successfully
 
 services:
@@ -96,6 +96,8 @@ services:
       RELEASE_WORKERS_DRAINED: ${RELEASE_WORKERS_DRAINED:?RELEASE_WORKERS_DRAINED=true is required after workers are stopped}
     restart: "no"
     depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
 
@@ -108,7 +110,7 @@ services:
       context: .
       target: migrate
     command: [node, dist/database-roles-cli.mjs, inspect]
-    environment:
+    environment: &db-admin-environment
       NODE_ENV: production
       DATABASE_ROLE_ADMIN_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}@postgres:5432/bimmetraj_production
       DATABASE_ROLE_INSPECT_URL: postgresql://bimmetraj:${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}@postgres:5432/bimmetraj_production
@@ -129,6 +131,46 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  # One-shot deploy steps that need the bootstrap administrator: an empty database gets its
+  # canonical roles before migrations (db-bootstrap) and every deploy converges grants, RLS and
+  # the queue schema after them (db-provision). Both exit; no long-running service receives the
+  # administrator or role credentials.
+  db-bootstrap:
+    image: teklifpro-migrate:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: migrate
+    command: [node, dist/database-roles-cli.mjs, bootstrap-fresh]
+    restart: 'no'
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    environment: *db-admin-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  db-provision:
+    image: teklifpro-migrate:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: migrate
+    command: [node, dist/database-roles-cli.mjs, deploy-provision]
+    restart: 'no'
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    environment: *db-admin-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 
   backup:

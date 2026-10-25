@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { PageContainer } from "../../components/layout/PageContainer";
 
 const DISCIPLINES = [
-  ["STR", "TS 500 / TS 708, betonarme QTO, donatı ve kesişim düşümleri", "/app/ifc-parser"],
-  ["ARC", "İmar, mahal, açıklık, katman ve net/brüt alan kontrolleri", "/app/ifc-parser"],
-  ["MEP", "Mekanik/elektrik sınıf, ölçü, bağlantı ve birim doğrulaması", "/app/ifc-parser"],
-  ["COST", "Poz, birim, fiyat, minha, eskalasyon ve hakediş zinciri", "/app/dosyadan-teklif-demo"],
+  ["STR", "TS 500 / TS 708, betonarme QTO, donatı ve kesişim düşümleri", "/app/smartcheck"],
+  ["ARC", "İmar, mahal, açıklık, katman ve net/brüt alan kontrolleri", "/app/smartcheck"],
+  ["MEP", "Mekanik/elektrik sınıf, ölçü, bağlantı ve birim doğrulaması", "/app/smartcheck"],
+  ["COST", "Poz, birim, fiyat, minha, eskalasyon ve hakediş zinciri", "/app/quotes/new"],
   ["Vergi", "KDV, kat karşılığı ve işlem tarihi/statü sınırları", "/admin/roadmap/calculations"],
   ["İhale", "4734/4735, ADT, fiyat farkı ve kapsam dışı durumlar", "/admin/roadmap/calculations"],
 ] as const;

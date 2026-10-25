@@ -274,7 +274,7 @@ export function Shell() {
             </div>
             <span className="hidden xl:inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               <span className="status-dot" />
-              TEKNİK OFİS PAFTASI · RG 33331 &amp; ÇŞB UYUMLU
+              TEKNİK OFİS PAFTASI · RG 33331 &amp; ÇŞB POZ ESASLI
             </span>
           </div>
 

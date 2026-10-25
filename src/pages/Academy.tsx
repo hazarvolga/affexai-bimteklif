@@ -35,7 +35,7 @@ export function Academy() {
             Ekosistem Öğrenme Motoru
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight text-foreground uppercase">
-            Standartlarla Uyumlu <br/>
+            Standart Odaklı <br/>
             <span className="text-orange-500">Mikro Öğrenme Portalı</span>
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed font-sans max-w-xl">
@@ -153,9 +153,9 @@ export function Academy() {
               </div>
               <div className="p-4 bg-card rounded-2xl border border-border">
                 <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold mb-2">NEMETSCHEK ALLPLAN</Badge>
-                <h4 className="text-xs font-bold text-foreground mb-1">Allplan 2026 Donatı Hassasiyeti</h4>
+                <h4 className="text-xs font-bold text-foreground mb-1">Allplan 2026 Donatı ve Metraj Cetvelleri</h4>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  %100 matematiksel donatı ve metraj cetveli hassasiyetinde dünyada 1 numaradır. Statik betonarme projelerinde 0 sapma sağlar.
+                  Donatı ve metraj cetvellerinin modelden nasıl üretildiğini ve IFC'ye nasıl aktarıldığını örnek betonarme projelerde uygulamalı inceleyin.
                 </p>
               </div>
               <div className="p-4 bg-card rounded-2xl border border-border">

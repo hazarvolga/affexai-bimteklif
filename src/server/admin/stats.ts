@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../../db';
+import { getControlDatabase } from '../../db/control-plane';
 import type { subscriptions } from '../../db/schema';
 import { describeQuotationAllowance, quotaUnavailable } from '../../services/billing/quota-policy';
 
@@ -49,30 +50,23 @@ function tenantStats(row: TenantRow, now: Date) {
 }
 
 export async function readAdminTenants() {
-  return db.transaction(async tx => {
+  // companies/subscriptions are FORCE RLS; the super admin view reads them as the control-plane role.
+  return getControlDatabase().db.transaction(async tx => {
     const clock = await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`);
     const now = new Date(clock.rows[0].now);
     if (!Number.isFinite(now.getTime())) throw quotaUnavailable();
     const period = now.toISOString().slice(0, 7);
-    const result = await tx.execute<TenantRow>(sql`
+    const result = await tx.execute<Omit<TenantRow, 'current_usage' | 'current_ifc_usage' | 'invalid_usage'>>(sql`
       SELECT c.id, c.name, c.created_at, c.is_smartcheck_enabled, c.admin_notes, owners.owner_email,
         s.id AS subscription_id, s.status AS subscription_status, s.plan AS legacy_plan,
         s.plan_id, p.id AS linked_plan_id, p.name AS plan_name,
         p.monthly_quote_limit, p.is_active AS plan_active,
         p.monthly_ifc_limit, p.ifc_max_file_mb, p.ifc_max_concurrent,
         s.bonus_quote_limit, s.bonus_ifc_limit,
-        s.current_period_start, s.current_period_end,
-        COALESCE(ur.quote_count, 0) AS current_usage,
-        COALESCE(ur.ifc_count, 0) AS current_ifc_usage,
-        COALESCE(ur.invalid_usage, false) AS invalid_usage
+        s.current_period_start, s.current_period_end
       FROM companies c
       LEFT JOIN subscriptions s ON s.company_id = c.id
       LEFT JOIN plans p ON p.id = s.plan_id
-      LEFT JOIN (
-        SELECT company_id, SUM(quote_count) AS quote_count, SUM(ifc_count) AS ifc_count,
-          bool_or(quote_count < 0 OR quote_count IS NULL) AS invalid_usage
-        FROM usage_records WHERE period = ${period} GROUP BY company_id
-      ) ur ON ur.company_id = c.id
       LEFT JOIN (
         SELECT m.company_id, string_agg(u.email, ', ' ORDER BY u.email) AS owner_email
         FROM memberships m JOIN users u ON u.id = m.user_id
@@ -80,6 +74,21 @@ export async function readAdminTenants() {
       ) owners ON owners.company_id = c.id
       ORDER BY c.created_at DESC, c.id
     `);
-    return result.rows.map(row => tenantStats(row, now));
+    // usage_records has no RLS and is not a control-plane table: read it with the app role.
+    const usage = await db.execute<{ company_id: string; quote_count: string; ifc_count: string; invalid_usage: boolean }>(sql`
+      SELECT company_id, SUM(quote_count) AS quote_count, SUM(ifc_count) AS ifc_count,
+        bool_or(quote_count < 0 OR quote_count IS NULL) AS invalid_usage
+      FROM usage_records WHERE period = ${period} GROUP BY company_id
+    `);
+    const usageByCompany = new Map(usage.rows.map(row => [row.company_id, row]));
+    return result.rows.map(row => {
+      const counters = usageByCompany.get(row.id);
+      return tenantStats({
+        ...row,
+        current_usage: counters?.quote_count ?? '0',
+        current_ifc_usage: counters?.ifc_count ?? '0',
+        invalid_usage: counters?.invalid_usage ?? false,
+      }, now);
+    });
   }, { isolationLevel: 'repeatable read', accessMode: 'read only' });
 }

@@ -1,4 +1,5 @@
 import { and, eq } from 'drizzle-orm';
+import { lockCompanyQuota, lockCompanyQuotas } from '../../services/billing/company-quota-lock';
 import type { z } from 'zod';
 import { getControlDatabase } from '../../db/control-plane';
 import { adminAuditLogs, companies, plans, subscriptions } from '../../db/schema';
@@ -56,6 +57,8 @@ export async function updatePlan(adminId: string, id: string, input: z.infer<typ
       isDeactivating || replacementPlanId
         ? await tx.select().from(subscriptions).where(eq(subscriptions.planId, id)).for('update')
         : [];
+    // Quota consumers hold the per-company advisory lock; take it before moving their plan.
+    await lockCompanyQuotas(tx, existingSubscriptions.map(subscription => subscription.companyId));
 
     let migratedCompanyIds: string[] = [];
 
@@ -120,6 +123,7 @@ export async function updatePlan(adminId: string, id: string, input: z.infer<typ
 
 export async function updateSubscription(adminId: string, companyId: string, input: z.infer<typeof updateSubscriptionInput>) {
   return getControlDatabase().db.transaction(async tx => {
+    await lockCompanyQuota(tx, companyId);
     const [company] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).for('update');
     if (!company) throw new AdminChangeError(404, 'Company not found');
     // The company lock stabilizes this pointer without reversing plan/subscription lock order.
@@ -140,6 +144,7 @@ export async function updateSubscription(adminId: string, companyId: string, inp
 
 export async function updateCompanyAdmin(adminId: string, companyId: string, input: z.infer<typeof updateCompanyAdminInput>) {
   return getControlDatabase().db.transaction(async tx => {
+    await lockCompanyQuota(tx, companyId);
     const [before] = await tx.select().from(companies).where(eq(companies.id, companyId)).for('update');
     if (!before) throw new AdminChangeError(404, 'Company not found');
     const [after] = await tx.update(companies).set(input).where(eq(companies.id, companyId)).returning();

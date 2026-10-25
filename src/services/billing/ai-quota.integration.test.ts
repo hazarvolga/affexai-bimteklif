@@ -51,7 +51,7 @@ test('AI HTTP validates before reservation and retains failed provider attempts 
     assert.equal((await request('/api/ai/improve-quotation', { items: [], instructions: 'test' })).status, 500);
     assert.equal(providerCalls, 2);
     assert.equal(await count(), 2);
-    const report = await import('./usage-report').then(module => module.readBillingUsage(company.id));
+    const report = await import('./usage-report').then(module => module.readBillingUsage({ companyId: company.id, userId: user.id }));
     const ai = report.usage.find(row => row.feature === 'AI_QUOTATION_GENERATED');
     assert.equal(ai?.enforced, true);
     assert.equal(ai?.remaining, 18);

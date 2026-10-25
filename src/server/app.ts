@@ -71,7 +71,7 @@ import { registerProgressPaymentRoutes } from "./routes/progress-payments";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { validateAuthEmailEnvironment } from './auth/email-policy';
 import { pruneExpiredRateLimits } from "./auth/security";
-import { requestIdMiddleware } from "./logger";
+import { logger, requestIdMiddleware } from "./logger";
 import { priceSchedulerService } from "./crawler/priceSchedulerService";
 
 dotenv.config({ path: ".env.local" });
@@ -315,15 +315,15 @@ export async function startServer() {
   }
 
   const server = app.listen(PORT, "0.0.0.0", async () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+    logger.info(`Server running on http://0.0.0.0:${PORT}`);
     
     // Basic seeding if empty
     try {
       await pruneExpiredRateLimits();
       if (process.env.NODE_ENV === "production") return;
-      const existingCompany = await db.query.companies.findFirst();
+      const existingCompany = await getControlDatabase().db.query.companies.findFirst();
       if (!existingCompany) {
-        console.log("Seeding initial company and admin...");
+        logger.info("Seeding initial company and admin...");
         const controlDb = getControlDatabase().db;
         const [company] = await controlDb.insert(companies).values({
           name: "TeklifPro Demo Şirketi",
@@ -366,12 +366,12 @@ export async function startServer() {
     isShuttingDown = true;
     clearInterval(pruneInterval);
     priceSchedulerService.stop();
-    console.log(`Received ${signal}. Shutting down gracefully...`);
+    logger.info(`Received ${signal}. Shutting down gracefully...`);
     server.close(async () => {
       try {
         await pool.end();
 
-        console.log("DB pool closed. Server exited.");
+        logger.info("DB pool closed. Server exited.");
         process.exit(0);
       } catch (err) {
         console.error("Error during pool termination:", err);

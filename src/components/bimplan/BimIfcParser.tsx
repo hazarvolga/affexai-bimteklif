@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { canPreviewIfcInBrowser } from "@/ifc/browser-preview";
 import { reserveBrowserIfcAnalysis, type BrowserQuotaDenial } from "@/ifc/browser-quota";
 import { IfcQuotaDenialAlert } from "@/components/bimplan/IfcQuotaDenialAlert";
+import { BrowserPreviewNotice } from "@/components/bimplan/BrowserPreviewNotice";
 import { useAuth } from "@/hooks/useAuth";
 import React, { useState, useMemo } from 'react';
 import { 
@@ -512,6 +513,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
       {/* PARSED RESULTS & DASHBOARD */}
       {parsedData && !isParsing && (
         <div className="space-y-8">
+          <BrowserPreviewNotice />
           <CalmIfcWorkspace
             dataset={buildCalmIfcDatasetFromElements(
               parsedData.elements,
@@ -862,7 +864,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
                     <tr>
                       <th className="p-3">Nesne Tipi</th>
                       <th className="p-3">Toplam</th>
-                      <th className="p-3">Uyumlu</th>
+                      <th className="p-3">Ön Kontrol</th>
                       <th className="p-3">Uyarı</th>
                       <th className="p-3">İncele</th>
                       <th className="p-3">SmartCheck'e Alınabilir</th>
@@ -981,7 +983,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
                           }`}>
                             {el.smartCheckStatus === 'pass' && <CheckCircle2 className="w-3 h-3" />}
                             {el.smartCheckStatus === 'warning' && <AlertTriangle className="w-3 h-3" />}
-                            {el.smartCheckStatus === 'pass' ? 'Uyumlu' : 'İncele'}
+                            {el.smartCheckStatus === 'pass' ? 'Geçti' : 'İncele'}
                           </span>
                         </td>
                       </tr>

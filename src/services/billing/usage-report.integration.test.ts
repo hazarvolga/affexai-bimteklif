@@ -10,7 +10,7 @@ dotenv.config();
 useTestIsolation();
 
 test("billing reads authoritative quota without consuming or rejecting exhausted accounts", async (t) => {
-  const [{ db }, { companies, plans, subscriptions, usageRecords, usageLogs }, { registerBillingRoutes }] = await Promise.all([
+  const [{ db, pool }, { companies, plans, subscriptions, usageRecords, usageLogs }, { registerBillingRoutes }] = await Promise.all([
     import("../../db"), import("../../db/schema"), import("../../server/routes/billing"),
   ]);
   assert.match(String((await db.execute(sql`SELECT current_schema() AS schema`)).rows[0].schema), /^teklifpro_test_[a-f0-9]{32}$/);
@@ -34,7 +34,7 @@ test("billing reads authoritative quota without consuming or rejecting exhausted
   ]);
   const read = async (companyId = company.id) => {
     const response = { statusCode: 200, body: undefined as any, status(code: number) { this.statusCode = code; return this; }, json(body: unknown) { this.body = body; return this; } };
-    await routes.get("/api/billing/usage-stats")!({ user: { companyId } }, response);
+    await routes.get("/api/billing/usage-stats")!({ user: { companyId, userId: globalThis.crypto.randomUUID() } }, response);
     return response;
   };
   const quote = (body: any) => body.usage.find((item: any) => item.feature === "QUOTATION_CREATED");
@@ -118,7 +118,8 @@ test("billing reads authoritative quota without consuming or rejecting exhausted
   });
 
   await t.test("report database failure is generic 503, not a fabricated empty report", async (t) => {
-    t.mock.method(db, "transaction", async () => { throw new Error("private database details"); });
+    // The report runs in a tenant transaction on the app pool; fail the connection itself.
+    t.mock.method(pool, "connect", (async () => { throw new Error("private database details"); }) as any);
     const result = await read();
     assert.equal(result.statusCode, 503);
     assert.equal(JSON.stringify(result.body).includes("private database details"), false);

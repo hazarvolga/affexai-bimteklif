@@ -1,3 +1,4 @@
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import { acquireDocumentIo } from "../../smartcheck/import/admission";
 import { UPLOAD_MAX_TTL_MS, reserveUpload, UploadQuotaError } from "../../smartcheck/import/upload-quota";
 import { withReadDeadline } from "../../smartcheck/import/bounded-read";
@@ -50,11 +51,11 @@ const uploadBody = express.raw({ type: ["text/csv", "text/plain", "application/c
 const featureGate: RequestHandler = async (req, res, next) => {
   if (smartcheckImportEnabled(req.user.companyId)) return next();
   try {
-    const [company] = await db
+    const [company] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb
       .select({ isSmartcheckEnabled: companies.isSmartcheckEnabled })
       .from(companies)
       .where(eq(companies.id, req.user.companyId))
-      .limit(1);
+      .limit(1));
     if (smartcheckImportEnabled(req.user.companyId, Boolean(company?.isSmartcheckEnabled))) {
       return next();
     }
@@ -684,7 +685,7 @@ export function registerSmartCheckRoutes(app: Express) {
         ));
       isDuplicate = (dup?.count ?? 0) > 0;
     }
-    const [company] = await db.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
+    const [company] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId)));
     const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20));
     if (!validated) return res.status(500).json({ error: "Satır yeniden doğrulanamadı." });
     if (isDuplicate && !validated.findings.some((f) => f.code === "DUPLICATE_POSITION_CODE")) {
@@ -861,7 +862,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
       const sourceFileName = sourceDocuments[0]?.originalFileName ?? "SmartCheck dosyası";
 
-    const transferResult = await db.transaction(async (tx) => {
+    const transferResult = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
       await consumeQuotationQuota(tx, req.user.companyId);
       const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).for("update") : [];
       const lockedSourceIds = [...new Set(lockedSnapshots.map((snapshot) => snapshot.priceSourceId))];

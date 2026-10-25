@@ -1,5 +1,6 @@
 import { and, eq, gte, lt, sql } from "drizzle-orm";
-import { db } from "../../db";
+import { withAppTenantTransaction } from "../../db/app-tenant";
+import type { TenantContext } from "../../db/tenant-context";
 import { plans, subscriptions, usageLogs, usageRecords } from "../../db/schema";
 import { PLAN_LIMITS } from "./limits";
 import { describeQuotationAllowance, quotaUnavailable } from "./quota-policy";
@@ -9,8 +10,9 @@ import { featureMonthlyLimit, isMeteredFeature, quotaCodes } from './feature-lim
 // A malformed limit makes that feature unavailable in the report; it never hides the whole report.
 const limitOrNull = (read: () => number) => { try { return read(); } catch { return null; } };
 
-export async function readBillingUsage(companyId: string, at?: Date) {
-  return db.transaction(async tx => {
+export async function readBillingUsage(actor: TenantContext, at?: Date) {
+  const { companyId } = actor;
+  return withAppTenantTransaction(actor, async tx => {
     const now = at ?? new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
     const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
@@ -69,5 +71,5 @@ export async function readBillingUsage(companyId: string, at?: Date) {
       period: { key: allowance.period, start, end, timezone: "UTC", asOf: now },
       payments: { available: false, upgradeAvailable: false },
     };
-  }, { isolationLevel: "repeatable read", accessMode: "read only" });
+  }, { isolationLevel: "repeatable read", readOnly: true });
 }

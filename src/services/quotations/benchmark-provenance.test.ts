@@ -20,7 +20,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
  const input=(fields={})=>manualQuotationInput.parse({clientId:client.id,quoteNumber:'T',projectName:'Test',date:'2026-01-01',expiryDate:'2026-12-31',items:[{description:'A - Test',unit:'m3',quantity:1,unitPrice:100,benchmarkStagingId:row.id,...fields}]});
  for(const status of ['pending','rejected']) await t.test(`refuses ${status} at save`,async()=>{
   await db.update(s.priceFeedStaging).set({status}).where(eq(s.priceFeedStaging.id,row.id));
-  await assert.rejects(createManualQuotation(company.id,input()),{status:409});
+  await assert.rejects(createManualQuotation({companyId:company.id,userId:reviewer.id},input()),{status:409});
  });
  await db.update(s.priceFeedStaging).set({status:'approved'}).where(eq(s.priceFeedStaging.id,row.id));
  await t.test('HTTP benchmarks exclude pending, rejected, unknown dates and stale sources',async()=>{
@@ -45,22 +45,22 @@ test('benchmark approval is revalidated atomically and persisted through creatio
  });
  await t.test('does not relabel foreign-currency prices as TRY',async()=>{
   await db.update(s.pricingDataSources).set({currency:'USD'}).where(eq(s.pricingDataSources.id,source.id));
-  await assert.rejects(createManualQuotation(company.id,input()),{status:409});
+  await assert.rejects(createManualQuotation({companyId:company.id,userId:reviewer.id},input()),{status:409});
   await db.update(s.pricingDataSources).set({currency:'TRY'}).where(eq(s.pricingDataSources.id,source.id));
  });
  await t.test('refuses expired and missing validity at save',async()=>{
   for(const validityEnd of [null,new Date(Date.now()-1000)]){
    await db.update(s.pricingDataSources).set({validityEnd}).where(eq(s.pricingDataSources.id,source.id));
-   await assert.rejects(createManualQuotation(company.id,input()),{status:409});
+   await assert.rejects(createManualQuotation({companyId:company.id,userId:reviewer.id},input()),{status:409});
   }
   await db.update(s.pricingDataSources).set({validityEnd:new Date(Date.now()+86400000)}).where(eq(s.pricingDataSources.id,source.id));
  });
  await t.test('refuses stale browser price and changed unit',async()=>{
-  await assert.rejects(createManualQuotation(company.id,input({unitPrice:99})),{status:409});
-  await assert.rejects(createManualQuotation(company.id,input({unit:'ton'})),{status:409});
+  await assert.rejects(createManualQuotation({companyId:company.id,userId:reviewer.id},input({unitPrice:99})),{status:409});
+  await assert.rejects(createManualQuotation({companyId:company.id,userId:reviewer.id},input({unit:'ton'})),{status:409});
  });
  await t.test('stores server snapshot and preserves it on revision',async()=>{
-  const quote=await createManualQuotation(company.id,input({sourceReference:'forged'}));
+  const quote=await createManualQuotation({companyId:company.id,userId:reviewer.id},input({sourceReference:'forged'}));
   const [item]=await db.select().from(s.quotationItems).where(eq(s.quotationItems.quotationId,quote.id));
   const snapshot=JSON.parse(item.sourceReference!);
   assert.equal(snapshot.stagingId,row.id);assert.equal(snapshot.reviewedByUserId,reviewer.id);assert.equal(snapshot.price,'100.00');
