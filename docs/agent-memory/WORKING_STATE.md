@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-24. Keep this file to one page: current truth only. Move
+Last updated: 2026-10-25. Keep this file to one page: current truth only. Move
 history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
@@ -8,18 +8,19 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `d9d80df` (Rev. 40, Node.js 24.22.1).** `main` is far ahead
-  and is **not deployable as-is**: production DB is at release migration
-  `0008_pilot_exception_rows` and has none of the `bimmetraj_*` roles that
-  migrations `0009`–`0021` and the new runtime need.
-- Deploy path: backup → worker drain → `role-admin bootstrap-legacy` →
-  `migrate` → `role-admin provision` → `role-admin inspect` → Coolify deploy →
-  `/api/health` revision + login/tenant/worker smoke. Runbook and the rehearsal
-  on a restored production backup: `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md`.
-- **Blocker before cutover:** Coolify Developer View exposed raw secrets on
-  2026-10-24. The five DB role passwords were re-entered; S3/backup keys, SMTP,
-  PostgreSQL service password and JWT secret still need rotation and
-  confirmation by Hazar. Do not open Developer View again.
+- **Live revision: `f474e99` (Rev. 72, PR #11 merge), checked 2026-10-25:**
+  `/api/health` returns `status: ok`, `db: connected`, `revisionSource: build`
+  and all readiness flags true. `main` and production are the same commit.
+- The Rev. 72 deploy runs the role setup itself: `db-bootstrap` → `migrate` →
+  `db-provision` (`compose.coolify.yaml`, `docs/operations/database-role-model.md`).
+  The manual cutover runbook in `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md` is now
+  history.
+- **Not yet confirmed after the cutover (Hazar):** secret rotation after the
+  2026-10-24 Developer View exposure (S3/backup keys, SMTP, PostgreSQL service
+  password, JWT secret); `scripts/role-model-smoke.ts` against production;
+  login/tenant/worker/IFC worker smoke; a backup → restore drill on the new role
+  model; worker canary/drain followed by the authority-table ACL revoke (T41).
+  Do not open Developer View again.
 - Merging never deploys. Run `scripts/require-green-ci.sh <sha>` before Deploy.
 
 ## Code (main / working branch)
@@ -46,7 +47,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   decided only after independent expert review.
 - GAP programme (`docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md`):
   Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off,
-  pilot L2); Faz 7 T40 local only, T41 partial (22 tenant tables under RLS),
+  pilot L2); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and
+  rollback evidence open), T41 partial (22 tenant tables under RLS),
   T42 partial, T43–T45 open; Faz 8–11 open. Expert trial guide:
   `/admin/roadmap/expert-review`.
 - Role and tenant models: `docs/operations/database-role-model.md`,
@@ -80,7 +82,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Open items owned by Hazar
 
-Secret rotation (above), production role cutover and deploy, real named expert
+Secret rotation and post-cutover checks (above), real named expert
 sign-offs (engineer, tax/tender), permitted real IFC/PDF/Excel files for the
 expert trial, card-payment provider and legal texts, external security review,
 DKIM, YFK licence, AI provider keys.
