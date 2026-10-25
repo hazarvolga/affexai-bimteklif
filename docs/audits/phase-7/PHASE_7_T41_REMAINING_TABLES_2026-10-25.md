@@ -1,9 +1,9 @@
-# Faz 7 / T41 — `company_id` taşıyan tabloların envanteri ve 0022–0024 dilimleri
+# Faz 7 / T41 — `company_id` taşıyan tabloların envanteri ve 0022–0025 dilimleri
 
 **Tarih:** 25 Ekim 2026
-**Kod baseline:** `Rev. 81` (`main`, `0022_tenant_business_rls` + `0023_quotation_core_rls` + `0024_pricing_regulations_rls`)
-**Migration:** `0022_tenant_business_rls`, `0023_quotation_core_rls`, `0024_pricing_regulations_rls`
-**Karar:** **PARTIAL — 72 tablodan 50'si FORCE RLS altında (22 önceki + 14 `0022` + 6 `0023` S1 teklif çekirdeği + 8 `0024` S2 fiyat/kaynak/mevzuat); kalan 22 tablo üç dilime (S3–S5) ayrıldı, her biri ayrı tasarım/canary gerektirir**
+**Kod baseline:** `Rev. 82` (`main`, `0022_tenant_business_rls` + `0023_quotation_core_rls` + `0024_pricing_regulations_rls` + `0025_allplan_learner_rls`)
+**Migration:** `0022_tenant_business_rls`, `0023_quotation_core_rls`, `0024_pricing_regulations_rls`, `0025_allplan_learner_rls`
+**Karar:** **PARTIAL — 72 tablodan 57'si (%79,2) FORCE RLS altında (22 önceki + 14 `0022` + 6 `0023` S1 teklif çekirdeği + 8 `0024` S2 fiyat/kaynak/mevzuat + 7 `0025` S4a Allplan öğrenci verisi); kalan 15 tablo üç dilime (S3, S4b, S5) ayrıldı, her biri ayrı tasarım/canary gerektirir**
 
 ## Yöntem
 
@@ -15,7 +15,7 @@
 
 `company_id` taşımayan fakat tenant verisine FK ile bağlı tablolar (`quotation_financials`, `cost_components`, `academy_acquisition_events`) bu envanterin dışındadır. RLS için önce `company_id` kolonu veya join tabanlı bir policy kararı gerekir. Teklif dilimi (S1) ile birlikte ele alınmalıdır.
 
-## Kapsanan tablolar (50)
+## Kapsanan tablolar (57)
 
 | Dilim | Migration | Tablolar | Policy matrisi |
 |---|---|---|---|
@@ -26,7 +26,8 @@
 | CRM/kota | `0018_crm_leads_tenant_rls`, `0019_control_plane_rls` | `leads`, `subscriptions`, `usage_logs` (+ `companies` `id` ile) | asimetrik + control |
 | **Tenant iş tabloları** | **`0022_tenant_business_rls`** | `usage_alerts`, `deals`, `activities`, `supplier_quote_submissions`, `supplier_quote_entries`, `rule_candidates`, `rule_registry`, `rule_versions`, `review_sessions`, `review_findings`, `competency_signals`, `competency_signal_evidence`, `assistance_resources`, `rule_assistance_resources` | app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny |
 | **S1 — Teklif çekirdeği** | **`0023_quotation_core_rls`** | `clients`, `quotations`, `quotation_items`, `quotation_item_evidence`, `quotation_transfer_ledgers`, `quotation_transfer_source_rows` | app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny |
-| **S2 — Fiyat, kaynak zekâsı ve mevzuat (yeni)** | **`0024_pricing_regulations_rls`** | `price_sources`, `price_snapshots`, `source_intelligence_adapters`, `source_ingestion_runs`, `source_ingestion_artifacts`, `source_review_items`, `regulation_versions`, `regulation_alerts` | app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny |
+| **S2 — Fiyat, kaynak zekâsı ve mevzuat** | **`0024_pricing_regulations_rls`** | `price_sources`, `price_snapshots`, `source_intelligence_adapters`, `source_ingestion_runs`, `source_ingestion_artifacts`, `source_review_items`, `regulation_versions`, `regulation_alerts` | app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny |
+| **S4a — Allplan öğrenci verisi (yeni)** | **`0025_allplan_learner_rls`** | `allplan_lesson_progress`, `allplan_lesson_activity`, `allplan_lesson_notes`, `allplan_lesson_bookmarks`, `allplan_checkpoint_attempts`, `allplan_exam_attempts`, `allplan_certificate_audit_logs` | app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny |
 
 ### 0022 request-path taşıması
 
@@ -51,29 +52,33 @@
 - `src/server/routes/regulations.ts` ve `src/services/regulations/ingest-document.ts`: `GET /api/regulations/alerts`, `GET /api/regulations/versions` ve `ingestRegulationDocument` `withAppTenant` / `withAppTenantTransaction` içine taşındı.
 - `src/server/routes/market-intelligence.ts` ve `src/server/routes/smartcheck.ts`: fiyat belleği (`GET /api/market-intelligence/price-memory`), satır anormallik karşılaştırması ve SmartCheck teklife aktarım öncesi `price_snapshots`/`price_sources` doğrulamaları `withAppTenant` altında çalışır.
 
+### 0025 (S4a — Allplan öğrenci verisi) request-path taşıması
+
+- `src/server/routes/academy.ts`: `GET /api/academy/allplan/state`, `POST /api/academy/allplan/lessons/:slug/progress`, `POST /api/academy/allplan/lessons/:slug/activity`, `POST /api/academy/allplan/lessons/:slug/notes`, `DELETE /api/academy/allplan/notes/:id`, `POST /api/academy/allplan/lessons/:slug/bookmark`, `POST /api/academy/allplan/lessons/:slug/checkpoint`, `POST /api/academy/allplan/companion/query` (`usage_logs` dahil), `POST /api/academy/allplan/exam/submit`, `POST /api/academy/allplan/certificates/issue`, `POST /api/academy/allplan/certificates/:id/revoke` ve `GET /api/academy/allplan/team-report` uçlarındaki `allplan_*` okumaları/yazmaları `withAppTenant` / `withAppTenantTransaction` içine taşındı. (`allplan_certificates` tablosu `GET /api/academy/allplan/certificates/verify/:certificateNumber` halka açık sertifika doğrulama rotası nedeniyle S4b'de ayrı policy ile ele alınacaktır.)
+
 Uygulama katmanındaki `company_id` filtreleri ve RBAC kontrolleri korunur; RLS ikinci savunmadır.
 
-## Kalan tablolar (22) ve önerilen dilimler
+## Kalan tablolar (15) ve önerilen dilimler
 
 | Dilim | Tablolar | Engel | Gerekli iş |
 |---|---|---|---|
 | **S3 — SmartCheck doküman hattı (4)** | `documents`, `document_processing_runs`, `document_processing_artifacts`, `normalized_quantity_rows` | Worker bu tablolara yazıyor (`processor.ts`, `upload-cleanup.ts`). Worker policy'siz FORCE RLS canlı işlemeyi durdurur. | Worker için tenant-bound policy veya dar capability function; worker image canary/drain. |
-| **S4 — Academy/Allplan öğrenci verisi (13)** | `allplan_lesson_progress`, `allplan_lesson_activity`, `allplan_lesson_notes`, `allplan_lesson_bookmarks`, `allplan_checkpoint_attempts`, `allplan_exam_attempts`, `allplan_certificates`, `allplan_certificate_audit_logs`, `academy_enrollments`, `academy_learner_profiles`, `academy_activation_events`, `academy_enrollment_audit_logs`, `academy_payment_events` | Control-plane ACL'i var (Rev. 57); kayıt/aktivasyon yazımları control pool üzerinden gidiyor. Kullanıcı düzeyinde kapsam (`user_id`) da gerekiyor. | app tenant + user ve control policy matrisi; `DATABASE_CONTROL_TABLE_ACL` ile hizalama; auth/davet akışı regresyonu. |
+| **S4b — Academy control-plane ve halka açık sertifika doğrulama (6)** | `allplan_certificates`, `academy_enrollments`, `academy_learner_profiles`, `academy_activation_events`, `academy_enrollment_audit_logs`, `academy_payment_events` | `academy_*` tablolarında control-plane ACL'i var (Rev. 57); kayıt/aktivasyon yazımları control pool üzerinden gidiyor. `allplan_certificates` tablosunda ise kimlik doğrulamasız `GET /api/academy/allplan/certificates/verify/:certificateNumber` doğrulaması var. | `academy_*` için app tenant + control policy matrisi (`DATABASE_CONTROL_TABLE_ACL` ile hizalı); `allplan_certificates` için numaradan doğrulama capability fonksiyonu veya read policy. |
 | **S5 — Authority ve audit (5)** | `memberships`, `invitations`, `pilot_applications` (`provisioned_company_id`), `admin_audit_logs` (`target_company_id`), `usage_records` | Tenant iş verisi değil; auth middleware membership'i tenant bilinmeden okur, super-admin control pool ile tüm tenantları okur. `usage_records` kota sayacıdır (SmartCheck upload ve admin). | Exact ACL modeli korunur; RLS yalnız auth bootstrap (membership lookup) için ayrı tasarım ve control-plane policy ile değerlendirilmelidir. |
 
 ## Kanıt (yerel, izole PostgreSQL 16 Docker)
 
 | Kontrol | Sonuç |
 |---|---:|
-| `src/contracts/tenant-business-rls.pgtest.ts` (28 tablo: 14 `0022` + 6 `0023` S1 + 8 `0024` S2 + CRM & `/api/clients` route izolasyonu) | 1/1 PASS |
+| `src/contracts/tenant-business-rls.pgtest.ts` (35 tablo: 14 `0022` + 6 `0023` S1 + 8 `0024` S2 + 7 `0025` S4a + CRM & `/api/clients` route izolasyonu) | 1/1 PASS |
 | `src/contracts/database-role-provision.pgtest.ts` (pre-schema role contract düzeltmesi ile) | 1/1 PASS |
 | Önceki CDE / hakediş / SmartCheck pilot / sektör / CRM PG16 kontratları | 5 + 1 + 1 + 1 + 1 PASS (toplam 11/11 PG16 kontratı PASS) |
-| `scripts/release-migrations/artifacts.test.ts` | 14/14 PASS |
+| `scripts/release-migrations/artifacts.test.ts` | 15/15 PASS |
 | `scripts/release-migrations/verify.integration.test.ts` | 14/14 PASS (1 skipped: pg_dump/pg_restore) |
 | CRM route güvenlik/lead testleri | 8/8 PASS |
 | TypeScript (`tsc --noEmit`, release-migrations tsconfig) | PASS |
 
-Yeni PG16 kontratı her `0022`, `0023` ve `0024` tablosu (toplam 28 tablo) için şunları doğrular:
+Yeni PG16 kontratı her `0022`, `0023`, `0024` ve `0025` tablosu (toplam 35 tablo) için şunları doğrular:
 
 - Context yokken app okuması 0 satır döner, yazma 42501/P0002 ile reddedilir.
 - Filtresiz app SQL'i yalnız bağlı tenantı görür.
@@ -81,13 +86,13 @@ Yeni PG16 kontratı her `0022`, `0023` ve `0024` tablosu (toplam 28 tablo) için
 - Worker ve control satır göremez veya yazamaz; backup yalnız okur; migrator yalnız owner rolüyle erişir.
 - Tek bağlantılı pool'da commit, rollback ve tenant değişimi sonrasında GUC sızmaz; 25 eşzamanlı A/B transaction çapraz satır görmez.
 - Gerçek CRM ve `/api/clients` route handler'ları restricted app rolüyle çalışır: B, A'nın deal'ini veya müşterisini açamaz/göremez, aktivite ekleyemez, aşamasını değiştiremez veya pipeline'ında göremez.
-- FORCE kapatma, policy düşürme, RLS kapatma ve `0022`/`0023`/`0024` ledger tag silme driftleri inspector/provisioner tarafından reddedilir.
+- FORCE kapatma, policy düşürme, RLS kapatma ve `0022`/`0023`/`0024`/`0025` ledger tag silme driftleri inspector/provisioner tarafından reddedilir.
 
 `database-role-provision.pgtest.ts` içinde pre-schema bootstrap modunda henüz var olmayan post-migration public fonksiyonlarının (`bimmetraj_worker_get_entitlement`, `bimmetraj_worker_get_company_context`) atlanması ve `bimmetraj_control` sequence ACL hizalaması tamamlanarak `1/1 PASS` durumuna getirildi.
 
 ## Açık sınırlar
 
-- Kalan 22 tablo (S3–S5) FORCE RLS altında değildir; T41 **PARTIAL** kalır.
+- Kalan 15 tablo (S3, S4b, S5) FORCE RLS altında değildir; T41 **PARTIAL** kalır.
 - Migration ile yeni app image'ı arasındaki kısa deploy penceresinde eski app container'ı CRM deal/aktivite, usage alert, tedarikçi teklif ve teklif çekirdeği uçlarında boş/42501 sonuç görebilir. Yeni image ayağa kalkınca kapanır; migrate → app start sırası korunmalıdır.
 - `scripts/role-model-smoke.ts` provisioned bir sunucuya karşı çalıştırılması deploy sonrası canlı kanıt adımıdır.
 - Production worker ACL revoke, canary/drain ve canlı negatif tenant kanıtı bu dilimin dışındadır.

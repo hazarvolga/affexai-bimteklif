@@ -2,6 +2,7 @@ import type { Express } from "express";
 import crypto from "crypto";
 import { and, asc, count, countDistinct, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../db";
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import { getControlDatabase } from "../../db/control-plane";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
 import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
@@ -30,10 +31,10 @@ const safeHandler = (handler: any) => (req: any, res: any, next: any) => {
   }
 };
 
-const loadCertificationEligibility = async (companyId: string, userId: string) => {
+const loadCertificationEligibility = async (companyId: string, userId: string, dbClient: Pick<typeof db, "select"> = db) => {
   const [rows, activities] = await Promise.all([
-    db.select({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt, checkpointCompletedAt: allplanLessonProgress.checkpointCompletedAt, checkpointVersion: allplanLessonProgress.checkpointVersion }).from(allplanLessonProgress).where(and(eq(allplanLessonProgress.companyId, companyId), eq(allplanLessonProgress.userId, userId))),
-    db.select({ lessonSlug: allplanLessonActivity.lessonSlug, activeSeconds: allplanLessonActivity.activeSeconds }).from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, companyId), eq(allplanLessonActivity.userId, userId))),
+    dbClient.select({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt, checkpointCompletedAt: allplanLessonProgress.checkpointCompletedAt, checkpointVersion: allplanLessonProgress.checkpointVersion }).from(allplanLessonProgress).where(and(eq(allplanLessonProgress.companyId, companyId), eq(allplanLessonProgress.userId, userId))),
+    dbClient.select({ lessonSlug: allplanLessonActivity.lessonSlug, activeSeconds: allplanLessonActivity.activeSeconds }).from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, companyId), eq(allplanLessonActivity.userId, userId))),
   ]);
   const activityByLesson = new Map(activities.map(activity => [activity.lessonSlug, activity.activeSeconds]));
   return evaluateCertificationEligibility({
@@ -248,7 +249,7 @@ export function registerAcademyRoutes(app: Express) {
     const question = typeof req.body?.question === "string" ? req.body.question.trim() : "";
     if (question.length < 3 || question.length > 500) return res.status(400).json({ error: "Soru 3 ile 500 karakter arasında olmalıdır." });
     const since = new Date(Date.now() - 60 * 60 * 1000);
-    const outcome = await db.transaction(async tx => {
+    const outcome = await withAppTenantTransaction(tenantOf(req.user), async tx => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`academy-companion:${req.user.companyId}:${req.user.userId}`}))`);
       const [usage] = await tx.select({ count: sql<number>`coalesce(sum(${usageLogs.count}), 0)` }).from(usageLogs).where(and(eq(usageLogs.companyId, req.user.companyId), eq(usageLogs.userId, req.user.userId), eq(usageLogs.feature, "ACADEMY_COMPANION_QUERY"), gte(usageLogs.date, since)));
       if (Number(usage?.count ?? 0) >= 30) return { rateLimited: true as const };
@@ -270,12 +271,12 @@ export function registerAcademyRoutes(app: Express) {
   route.get("/api/academy/allplan/lessons/:lessonSlug/activity", authenticate, async (req, res) => {
     if (!findLesson(req.params.lessonSlug)) return res.status(404).json({ error: "Allplan dersi bulunamadı." });
     const scope = and(eq(allplanLessonNotes.companyId, req.user.companyId), eq(allplanLessonNotes.userId, req.user.userId), eq(allplanLessonNotes.lessonSlug, req.params.lessonSlug));
-    const [notes, [bookmark], [activity], [progress]] = await Promise.all([
-      db.select().from(allplanLessonNotes).where(scope).orderBy(desc(allplanLessonNotes.createdAt)),
-      db.select().from(allplanLessonBookmarks).where(and(eq(allplanLessonBookmarks.companyId, req.user.companyId), eq(allplanLessonBookmarks.userId, req.user.userId), eq(allplanLessonBookmarks.lessonSlug, req.params.lessonSlug))),
-      db.select().from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, req.params.lessonSlug))),
-      db.select().from(allplanLessonProgress).where(and(eq(allplanLessonProgress.companyId, req.user.companyId), eq(allplanLessonProgress.userId, req.user.userId), eq(allplanLessonProgress.lessonSlug, req.params.lessonSlug))),
-    ]);
+    const [notes, [bookmark], [activity], [progress]] = await withAppTenant(tenantOf(req.user), async (tenantDb) => Promise.all([
+      tenantDb.select().from(allplanLessonNotes).where(scope).orderBy(desc(allplanLessonNotes.createdAt)),
+      tenantDb.select().from(allplanLessonBookmarks).where(and(eq(allplanLessonBookmarks.companyId, req.user.companyId), eq(allplanLessonBookmarks.userId, req.user.userId), eq(allplanLessonBookmarks.lessonSlug, req.params.lessonSlug))),
+      tenantDb.select().from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, req.params.lessonSlug))),
+      tenantDb.select().from(allplanLessonProgress).where(and(eq(allplanLessonProgress.companyId, req.user.companyId), eq(allplanLessonProgress.userId, req.user.userId), eq(allplanLessonProgress.lessonSlug, req.params.lessonSlug))),
+    ]), { readOnly: true });
     return res.json({ notes, bookmarked: Boolean(bookmark), activeSeconds: activity?.activeSeconds ?? 0, lastViewedAt: activity?.lastViewedAt ?? null, completed: Boolean(progress?.completedAt), checkpointCompleted: Boolean(progress?.checkpointCompletedAt && progress.checkpointVersion === "v1") });
   });
 
@@ -283,20 +284,26 @@ export function registerAcademyRoutes(app: Express) {
     if (!findLesson(req.params.lessonSlug)) return res.status(404).json({ error: "Allplan dersi bulunamadı." });
     const body = cleanNote(req.body?.body);
     if (!body) return res.status(400).json({ error: "Not metni boş olamaz." });
-    const [note] = await db.insert(allplanLessonNotes).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug, body }).returning();
+    const [note] = await withAppTenant(tenantOf(req.user), async (tenantDb) =>
+      tenantDb.insert(allplanLessonNotes).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug, body }).returning()
+    );
     return res.status(201).json({ note });
   });
 
   route.delete("/api/academy/allplan/lessons/:lessonSlug/notes/:noteId", authenticate, async (req, res) => {
-    await db.delete(allplanLessonNotes).where(and(eq(allplanLessonNotes.id, req.params.noteId), eq(allplanLessonNotes.companyId, req.user.companyId), eq(allplanLessonNotes.userId, req.user.userId), eq(allplanLessonNotes.lessonSlug, req.params.lessonSlug)));
+    await withAppTenant(tenantOf(req.user), async (tenantDb) =>
+      tenantDb.delete(allplanLessonNotes).where(and(eq(allplanLessonNotes.id, req.params.noteId), eq(allplanLessonNotes.companyId, req.user.companyId), eq(allplanLessonNotes.userId, req.user.userId), eq(allplanLessonNotes.lessonSlug, req.params.lessonSlug)))
+    );
     return res.status(204).send();
   });
 
   route.put("/api/academy/allplan/lessons/:lessonSlug/bookmark", authenticate, async (req, res) => {
     if (!findLesson(req.params.lessonSlug) || typeof req.body?.bookmarked !== "boolean") return res.status(400).json({ error: "Geçersiz bookmark isteği." });
     const scope = and(eq(allplanLessonBookmarks.companyId, req.user.companyId), eq(allplanLessonBookmarks.userId, req.user.userId), eq(allplanLessonBookmarks.lessonSlug, req.params.lessonSlug));
-    if (req.body.bookmarked) await db.insert(allplanLessonBookmarks).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug }).onConflictDoNothing();
-    else await db.delete(allplanLessonBookmarks).where(scope);
+    await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      if (req.body.bookmarked) await tenantDb.insert(allplanLessonBookmarks).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug }).onConflictDoNothing();
+      else await tenantDb.delete(allplanLessonBookmarks).where(scope);
+    });
     return res.json({ bookmarked: req.body.bookmarked });
   });
 
@@ -306,24 +313,29 @@ export function registerAcademyRoutes(app: Express) {
     if (!Number.isInteger(deltaSeconds) || deltaSeconds < 1 || deltaSeconds > 60) return res.status(400).json({ error: "Geçersiz çalışma süresi heartbeat'i." });
     const now = new Date();
     const scope = and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, req.params.lessonSlug));
-    const [current] = await db.select().from(allplanLessonActivity).where(scope);
-    if (!current) {
-      const [activity] = await db.insert(allplanLessonActivity).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug, activeSeconds: 0, lastViewedAt: now, updatedAt: now }).onConflictDoNothing().returning();
-      return res.json({ activeSeconds: activity?.activeSeconds ?? 0, lastViewedAt: activity?.lastViewedAt ?? now });
-    }
-    const elapsedSeconds = Math.max(0, Math.floor((now.getTime() - current.lastViewedAt.getTime()) / 1000));
-    const acceptedDelta = acceptedStudyDelta(deltaSeconds, elapsedSeconds);
-    const activeSeconds = Math.min(604800, current.activeSeconds + acceptedDelta);
-    const [activity] = await db.update(allplanLessonActivity).set({ activeSeconds, lastViewedAt: now, updatedAt: now }).where(scope).returning();
-    return res.json({ activeSeconds: activity.activeSeconds, lastViewedAt: activity.lastViewedAt });
+    const outcome = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [current] = await tenantDb.select().from(allplanLessonActivity).where(scope);
+      if (!current) {
+        const [activity] = await tenantDb.insert(allplanLessonActivity).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug, activeSeconds: 0, lastViewedAt: now, updatedAt: now }).onConflictDoNothing().returning();
+        return { activeSeconds: activity?.activeSeconds ?? 0, lastViewedAt: activity?.lastViewedAt ?? now };
+      }
+      const elapsedSeconds = Math.max(0, Math.floor((now.getTime() - current.lastViewedAt.getTime()) / 1000));
+      const acceptedDelta = acceptedStudyDelta(deltaSeconds, elapsedSeconds);
+      const activeSeconds = Math.min(604800, current.activeSeconds + acceptedDelta);
+      const [activity] = await tenantDb.update(allplanLessonActivity).set({ activeSeconds, lastViewedAt: now, updatedAt: now }).where(scope).returning();
+      return { activeSeconds: activity.activeSeconds, lastViewedAt: activity.lastViewedAt };
+    });
+    return res.json(outcome);
   });
 
   route.get("/api/academy/allplan/progress", authenticate, async (req, res) => {
     try {
-      const rows = await db.select({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt })
-        .from(allplanLessonProgress)
-        .where(and(eq(allplanLessonProgress.companyId, req.user.companyId), eq(allplanLessonProgress.userId, req.user.userId), isNotNull(allplanLessonProgress.completedAt)))
-        .orderBy(asc(allplanLessonProgress.lessonSlug));
+      const rows = await withAppTenant(tenantOf(req.user), async (tenantDb) =>
+        tenantDb.select({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt })
+          .from(allplanLessonProgress)
+          .where(and(eq(allplanLessonProgress.companyId, req.user.companyId), eq(allplanLessonProgress.userId, req.user.userId), isNotNull(allplanLessonProgress.completedAt)))
+          .orderBy(asc(allplanLessonProgress.lessonSlug)),
+      { readOnly: true });
       return res.json({ completedLessons: rows.map(row => row.lessonSlug), synced: true });
     } catch (error) {
       console.error("Allplan progress fetch error:", error);
@@ -339,27 +351,35 @@ export function registerAcademyRoutes(app: Express) {
     try {
       const now = new Date();
       const completedAt = req.body.completed ? now : null;
-      if (req.body.completed) {
-        const lesson = findLesson(lessonSlug)!;
-        const [[activity], [existingProgress]] = await Promise.all([
-          db.select().from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, lessonSlug))),
-          db.select().from(allplanLessonProgress).where(and(eq(allplanLessonProgress.companyId, req.user.companyId), eq(allplanLessonProgress.userId, req.user.userId), eq(allplanLessonProgress.lessonSlug, lessonSlug))),
-        ]);
-        const requiredSeconds = requiredStudySeconds(lesson.estimatedMinutes);
-        if (!activity || activity.activeSeconds < requiredSeconds) return res.status(409).json({ error: `Dersi tamamlamak için en az ${Math.ceil(requiredSeconds / 60)} dakika doğrulanmış çalışma süresi gerekir.`, requiredSeconds, activeSeconds: activity?.activeSeconds ?? 0 });
-        if (lesson.interactiveTool && (!existingProgress?.checkpointCompletedAt || existingProgress.checkpointVersion !== "v1")) return res.status(409).json({ error: "Dersi tamamlamak için laboratuvar checkpoint'i doğrulanmalıdır." });
-      }
-      const [progress] = await db.insert(allplanLessonProgress).values({
-        companyId: req.user.companyId,
-        userId: req.user.userId,
-        lessonSlug,
-        completedAt,
-        updatedAt: now,
-      }).onConflictDoUpdate({
-        target: [allplanLessonProgress.userId, allplanLessonProgress.companyId, allplanLessonProgress.lessonSlug],
-        set: { completedAt, updatedAt: now },
-      }).returning({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt });
-      return res.json({ progress, synced: true });
+      const outcome = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        if (req.body.completed) {
+          const lesson = findLesson(lessonSlug)!;
+          const [[activity], [existingProgress]] = await Promise.all([
+            tenantDb.select().from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, lessonSlug))),
+            tenantDb.select().from(allplanLessonProgress).where(and(eq(allplanLessonProgress.companyId, req.user.companyId), eq(allplanLessonProgress.userId, req.user.userId), eq(allplanLessonProgress.lessonSlug, lessonSlug))),
+          ]);
+          const requiredSeconds = requiredStudySeconds(lesson.estimatedMinutes);
+          if (!activity || activity.activeSeconds < requiredSeconds) {
+            return { conflict: { error: `Dersi tamamlamak için en az ${Math.ceil(requiredSeconds / 60)} dakika doğrulanmış çalışma süresi gerekir.`, requiredSeconds, activeSeconds: activity?.activeSeconds ?? 0 } };
+          }
+          if (lesson.interactiveTool && (!existingProgress?.checkpointCompletedAt || existingProgress.checkpointVersion !== "v1")) {
+            return { conflict: { error: "Dersi tamamlamak için laboratuvar checkpoint'i doğrulanmalıdır." } };
+          }
+        }
+        const [progress] = await tenantDb.insert(allplanLessonProgress).values({
+          companyId: req.user.companyId,
+          userId: req.user.userId,
+          lessonSlug,
+          completedAt,
+          updatedAt: now,
+        }).onConflictDoUpdate({
+          target: [allplanLessonProgress.userId, allplanLessonProgress.companyId, allplanLessonProgress.lessonSlug],
+          set: { completedAt, updatedAt: now },
+        }).returning({ lessonSlug: allplanLessonProgress.lessonSlug, completedAt: allplanLessonProgress.completedAt });
+        return { progress };
+      });
+      if ("conflict" in outcome) return res.status(409).json(outcome.conflict);
+      return res.json({ progress: outcome.progress, synced: true });
     } catch (error) {
       console.error("Allplan progress update error:", error);
       return res.status(500).json({ error: "Allplan ilerlemesi kaydedilemedi." });
@@ -372,10 +392,10 @@ export function registerAcademyRoutes(app: Express) {
     if (!lesson.interactiveTool) return res.status(400).json({ error: "Bu ders için laboratuvar checkpoint'i tanımlı değil." });
     const evidence = req.body?.evidence && typeof req.body.evidence === "object" ? req.body.evidence as Record<string, unknown> : {};
     if (JSON.stringify(evidence).length > 2000) return res.status(413).json({ error: "Checkpoint kanıtı izin verilen boyutu aşıyor." });
-    const [activity] = await db.select().from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, req.params.lessonSlug)));
-    if (!activity || activity.activeSeconds < 30) return res.status(409).json({ error: "Checkpoint için önce doğrulanmış ders çalışma süresi gerekir." });
     const now = new Date();
-    const outcome = await db.transaction(async tx => {
+    const outcome = await withAppTenantTransaction(tenantOf(req.user), async tx => {
+      const [activity] = await tx.select().from(allplanLessonActivity).where(and(eq(allplanLessonActivity.companyId, req.user.companyId), eq(allplanLessonActivity.userId, req.user.userId), eq(allplanLessonActivity.lessonSlug, req.params.lessonSlug)));
+      if (!activity || activity.activeSeconds < 30) return { insufficientStudy: true as const };
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`${req.user.companyId}:${req.user.userId}:${req.params.lessonSlug}:checkpoint`}))`);
       const [{ attempts }] = await tx.select({ attempts: count() }).from(allplanCheckpointAttempts).where(and(eq(allplanCheckpointAttempts.companyId, req.user.companyId), eq(allplanCheckpointAttempts.userId, req.user.userId), eq(allplanCheckpointAttempts.lessonSlug, req.params.lessonSlug), gte(allplanCheckpointAttempts.attemptedAt, new Date(now.getTime() - 15 * 60 * 1000))));
       if (attempts >= 10) return { rateLimited: true as const };
@@ -385,6 +405,7 @@ export function registerAcademyRoutes(app: Express) {
       const [progress] = await tx.insert(allplanLessonProgress).values({ companyId: req.user.companyId, userId: req.user.userId, lessonSlug: req.params.lessonSlug, checkpointCompletedAt: now, checkpointEvidence: evidence, checkpointVersion: "v1", updatedAt: now }).onConflictDoUpdate({ target: [allplanLessonProgress.userId, allplanLessonProgress.companyId, allplanLessonProgress.lessonSlug], set: { checkpointCompletedAt: now, checkpointEvidence: evidence, checkpointVersion: "v1", updatedAt: now } }).returning({ lessonSlug: allplanLessonProgress.lessonSlug, checkpointCompletedAt: allplanLessonProgress.checkpointCompletedAt });
       return { passed: true as const, progress };
     });
+    if ("insufficientStudy" in outcome) return res.status(409).json({ error: "Checkpoint için önce doğrulanmış ders çalışma süresi gerekir." });
     if ("rateLimited" in outcome) return res.status(429).json({ error: "Checkpoint deneme limiti doldu. 15 dakika sonra tekrar deneyin." });
     if (!outcome.passed) return res.status(400).json({ error: "Laboratuvar checkpoint kanıtı geçersiz." });
     const { progress } = outcome;
@@ -392,22 +413,24 @@ export function registerAcademyRoutes(app: Express) {
   });
 
   route.get("/api/academy/allplan/certification", authenticate, async (req, res) => {
-    const [eligibility, [certificate], [{ attemptsToday }]] = await Promise.all([
-      loadCertificationEligibility(req.user.companyId, req.user.userId),
-      db.select({ certificateNumber: allplanCertificates.certificateNumber, status: allplanCertificates.status, issuedAt: allplanCertificates.issuedAt, expiresAt: allplanCertificates.expiresAt }).from(allplanCertificates).where(and(eq(allplanCertificates.companyId, req.user.companyId), eq(allplanCertificates.userId, req.user.userId), eq(allplanCertificates.programVersion, ALLPLAN_PROGRAM_VERSION))),
-      db.select({ attemptsToday: count() }).from(allplanExamAttempts).where(and(eq(allplanExamAttempts.companyId, req.user.companyId), eq(allplanExamAttempts.userId, req.user.userId), gte(allplanExamAttempts.completedAt, new Date(Date.now() - 24 * 60 * 60 * 1000)))),
-    ]);
+    const [eligibility, [certificate], [{ attemptsToday }]] = await withAppTenant(tenantOf(req.user), async (tenantDb) => Promise.all([
+      loadCertificationEligibility(req.user.companyId, req.user.userId, tenantDb),
+      tenantDb.select({ certificateNumber: allplanCertificates.certificateNumber, status: allplanCertificates.status, issuedAt: allplanCertificates.issuedAt, expiresAt: allplanCertificates.expiresAt }).from(allplanCertificates).where(and(eq(allplanCertificates.companyId, req.user.companyId), eq(allplanCertificates.userId, req.user.userId), eq(allplanCertificates.programVersion, ALLPLAN_PROGRAM_VERSION))),
+      tenantDb.select({ attemptsToday: count() }).from(allplanExamAttempts).where(and(eq(allplanExamAttempts.companyId, req.user.companyId), eq(allplanExamAttempts.userId, req.user.userId), gte(allplanExamAttempts.completedAt, new Date(Date.now() - 24 * 60 * 60 * 1000)))),
+    ]), { readOnly: true });
     return res.json({ programVersion: ALLPLAN_PROGRAM_VERSION, passingScore: 80, maxDailyAttempts: ALLPLAN_MAX_DAILY_ATTEMPTS, attemptsToday, eligibility, assessment: publicAssessment(), certificate: certificate ? { ...certificate, status: effectiveCertificateStatus(certificate) } : null, entitlement: res.locals.allplanEntitlement });
   });
 
   route.post("/api/academy/allplan/certification/attempts", authenticate, requireVerifiedEmail, async (req, res) => {
     const answers = req.body?.answers;
     if (!Array.isArray(answers) || answers.length !== ALLPLAN_ASSESSMENT.length || answers.some((answer, index) => !Number.isInteger(answer) || answer < 0 || answer >= ALLPLAN_ASSESSMENT[index].options.length)) return res.status(400).json({ error: "Geçersiz sınav yanıtları." });
-    const eligibility = await loadCertificationEligibility(req.user.companyId, req.user.userId);
+    const eligibility = await withAppTenant(tenantOf(req.user), async (tenantDb) =>
+      loadCertificationEligibility(req.user.companyId, req.user.userId, tenantDb),
+    { readOnly: true });
     if (!eligibility.eligible) return res.status(409).json({ error: "Sertifika sınavı için ders ve checkpoint koşulları tamamlanmadı.", eligibility });
 
     const result = scoreAssessment(answers, ALLPLAN_ASSESSMENT.map(question => question.answer));
-    const outcome = await db.transaction(async tx => {
+    const outcome = await withAppTenantTransaction(tenantOf(req.user), async tx => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`${req.user.companyId}:${req.user.userId}:${ALLPLAN_PROGRAM_VERSION}`}))`);
       const [{ attemptsToday }] = await tx.select({ attemptsToday: count() }).from(allplanExamAttempts).where(and(eq(allplanExamAttempts.companyId, req.user.companyId), eq(allplanExamAttempts.userId, req.user.userId), gte(allplanExamAttempts.completedAt, new Date(Date.now() - 24 * 60 * 60 * 1000))));
       if (attemptsToday >= ALLPLAN_MAX_DAILY_ATTEMPTS) return { rateLimited: true as const };
@@ -430,14 +453,17 @@ export function registerAcademyRoutes(app: Express) {
   route.post("/api/academy/allplan/certificates/:certificateNumber/revoke", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     const reason = typeof req.body?.reason === "string" ? req.body.reason.trim().slice(0, 1000) : "";
     if (!reason) return res.status(400).json({ error: "İptal nedeni zorunludur." });
-    const [certificate] = await db.select().from(allplanCertificates).where(and(eq(allplanCertificates.certificateNumber, req.params.certificateNumber.toUpperCase()), eq(allplanCertificates.companyId, req.user.companyId)));
-    if (!certificate) return res.status(404).json({ error: "Sertifika bulunamadı." });
-    if (certificate.status === "revoked") return res.status(409).json({ error: "Sertifika zaten iptal edilmiş." });
     const now = new Date();
-    await db.transaction(async tx => {
+    const outcome = await withAppTenantTransaction(tenantOf(req.user), async tx => {
+      const [certificate] = await tx.select().from(allplanCertificates).where(and(eq(allplanCertificates.certificateNumber, req.params.certificateNumber.toUpperCase()), eq(allplanCertificates.companyId, req.user.companyId)));
+      if (!certificate) return { notFound: true as const };
+      if (certificate.status === "revoked") return { alreadyRevoked: true as const };
       await tx.update(allplanCertificates).set({ status: "revoked", revokedAt: now, revokeReason: reason }).where(eq(allplanCertificates.id, certificate.id));
       await tx.insert(allplanCertificateAuditLogs).values({ certificateId: certificate.id, companyId: req.user.companyId, actorUserId: req.user.userId, action: "revoked", reason });
+      return { certificateNumber: certificate.certificateNumber };
     });
-    return res.json({ certificateNumber: certificate.certificateNumber, status: "revoked", revokedAt: now });
+    if ("notFound" in outcome) return res.status(404).json({ error: "Sertifika bulunamadı." });
+    if ("alreadyRevoked" in outcome) return res.status(409).json({ error: "Sertifika zaten iptal edilmiş." });
+    return res.json({ certificateNumber: outcome.certificateNumber, status: "revoked", revokedAt: now });
   });
 }

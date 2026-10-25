@@ -176,6 +176,13 @@
       "when": 1791417600024,
       "tag": "0024_pricing_regulations_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791417600025,
+      "tag": "0025_allplan_learner_rls",
+      "breakpoints": true
     }
   ]
 }

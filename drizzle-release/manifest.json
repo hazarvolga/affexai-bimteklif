@@ -176,6 +176,13 @@
       "sha256": "a9a2a9378a0e5b51f60e84167957078d1b761b34e7270c02391842f197ed753a",
       "snapshotSha256": "319059c6732aab7a0bb95d3d5171efb91ec7775298c59702e7986f11806a64f3",
       "statements": 40
+    },
+    {
+      "idx": 25,
+      "tag": "0025_allplan_learner_rls",
+      "sha256": "027f37f124629928cc4cfb7595b8811dd2613609f825bb8e45def4a2d898287f",
+      "snapshotSha256": "c422ede74d15fa69f55a3206aaec9ed4dfd2a009beea5fdaf216baf728759d4d",
+      "statements": 35
     }
   ]
 }

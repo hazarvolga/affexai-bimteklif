@@ -53,7 +53,9 @@ Rev.58, sonraki tenant okuma taşımaları için `withTenantDrizzleTransaction` 
 
 `0023_quotation_core_rls` (S1 — Teklif çekirdeği), aynı CDE matrisiyle şu 6 teklif çekirdeği tablosunu FORCE RLS altına alır: `clients`, `quotations`, `quotation_items`, `quotation_item_evidence`, `quotation_transfer_ledgers` ve `quotation_transfer_source_rows`. Müşteri, teklif, revizyon, Calm transfer, kârlılık, risk kalibrasyonu, mevzuat etki analizi, fiyat anlık görüntüsü kilitleme ve PDF üretimi akışları `withAppTenant` / `withAppTenantTransaction` ile çalışır.
 
-`0024_pricing_regulations_rls` (S2 — Fiyat, kaynak zekâsı ve mevzuat), aynı CDE matrisiyle şu 8 fiyat/kaynak/mevzuat tablosunu FORCE RLS altına alır: `price_sources`, `price_snapshots`, `source_intelligence_adapters`, `source_ingestion_runs`, `source_ingestion_artifacts`, `source_review_items`, `regulation_versions` ve `regulation_alerts`. Fiyat kaynakları, anlık görüntüler, katalog içe aktarma, kaynak zekâsı adaptör/ingest/review akışları, mevzuat sürümleri/uyarıları ve fiyat belleği okumaları `withAppTenant` / `withAppTenantTransaction` ile çalışır. Böylece `company_id` taşıyan 72 tablonun 50'si FORCE RLS altındadır; kalan 22 tablo ve S3–S5 dilim planı `docs/audits/phase-7/PHASE_7_T41_REMAINING_TABLES_2026-10-25.md` içindedir.
+`0024_pricing_regulations_rls` (S2 — Fiyat, kaynak zekâsı ve mevzuat), aynı CDE matrisiyle şu 8 fiyat/kaynak/mevzuat tablosunu FORCE RLS altına alır: `price_sources`, `price_snapshots`, `source_intelligence_adapters`, `source_ingestion_runs`, `source_ingestion_artifacts`, `source_review_items`, `regulation_versions` ve `regulation_alerts`. Fiyat kaynakları, anlık görüntüler, katalog içe aktarma, kaynak zekâsı adaptör/ingest/review akışları, mevzuat sürümleri/uyarıları ve fiyat belleği okumaları `withAppTenant` / `withAppTenantTransaction` ile çalışır.
+
+`0025_allplan_learner_rls` (S4a — Allplan öğrenci verisi), aynı CDE matrisiyle şu 7 Allplan öğrenci tablosunu FORCE RLS altına alır: `allplan_lesson_progress`, `allplan_lesson_activity`, `allplan_lesson_notes`, `allplan_lesson_bookmarks`, `allplan_checkpoint_attempts`, `allplan_exam_attempts` ve `allplan_certificate_audit_logs`. Böylece `company_id` taşıyan 72 tablonun 57'si (%79,2) FORCE RLS altındadır; kalan 15 tablo ve S3/S4b/S5 dilim planı `docs/audits/phase-7/PHASE_7_T41_REMAINING_TABLES_2026-10-25.md` içindedir.
 
 ### CDE ve hakediş tablolarının ortak policy matrisi
 
@@ -88,7 +90,7 @@ Pilot ölçüm kabulü vaka satırını kilitler. Normalleştirilmiş istek SHA-
 
 ## Operasyonel kapı
 
-`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls`, `0017_company_industry_settings_tenant_rls`, `0018_crm_leads_tenant_rls`, `0019_control_plane_rls`, `0022_tenant_business_rls`, `0023_quotation_core_rls` ve `0024_pricing_regulations_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
+`database-roles:inspect`, release ledger'ında `0013_cde_tenant_rls`, `0015_progress_payment_tenant_rls`, `0016_smartcheck_pilot_evidence_tenant_rls`, `0017_company_industry_settings_tenant_rls`, `0018_crm_leads_tenant_rls`, `0019_control_plane_rls`, `0022_tenant_business_rls`, `0023_quotation_core_rls`, `0024_pricing_regulations_rls` ve `0025_allplan_learner_rls` tag'lerini gördüğünde ilgili bounded context için şunları exact karşılaştırır:
 
 - İlgili migrationın kapsadığı bütün tablolar ve owner=`bimmetraj_owner`.
 - `ENABLE` ve `FORCE` RLS.

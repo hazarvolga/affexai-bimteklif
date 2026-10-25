@@ -127,6 +127,16 @@ export const DATABASE_PRICING_REGULATIONS_RLS_TABLES = Object.freeze([
   "regulation_versions",
   "regulation_alerts",
 ] as const);
+/** Allplan learner tables without worker or control-plane access, migrated in 0025 with the CDE policy matrix. */
+export const DATABASE_ALLPLAN_LEARNER_RLS_TABLES = Object.freeze([
+  "allplan_lesson_progress",
+  "allplan_lesson_activity",
+  "allplan_lesson_notes",
+  "allplan_lesson_bookmarks",
+  "allplan_checkpoint_attempts",
+  "allplan_exam_attempts",
+  "allplan_certificate_audit_logs",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),

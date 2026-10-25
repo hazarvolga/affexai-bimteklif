@@ -5,6 +5,7 @@ import test from "node:test";
 import pg from "pg";
 
 import {
+  DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
   DATABASE_ROLE_SPECS,
@@ -12,6 +13,7 @@ import {
 } from "../../scripts/database-roles/contract";
 import {
   assertRoleBoundaries,
+  inspectAllplanLearnerRlsViolations,
   inspectPricingRegulationsRlsViolations,
   inspectQuotationCoreRlsViolations,
   inspectRoleBoundaries,
@@ -29,6 +31,7 @@ const allProtectedTables = [
   ...DATABASE_TENANT_BUSINESS_RLS_TABLES,
   ...DATABASE_QUOTATION_CORE_RLS_TABLES,
   ...DATABASE_PRICING_REGULATIONS_RLS_TABLES,
+  ...DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
 ] as const;
 type Credentials = Record<typeof roles[number], string>;
 type Table = typeof allProtectedTables[number];
@@ -70,6 +73,13 @@ const rowSql: Record<Table, string> = {
   source_review_items: "insert into source_review_items(company_id,ingestion_run_id,item_type,title,rationale) values($1,gen_random_uuid(),'price_snapshot',$2,$2)",
   regulation_versions: "insert into regulation_versions(company_id,source_review_item_id,ingestion_run_id,version_key,title,summary,category,impact_level,authority,source_url,source_document_identifier,source_document_hash,source_text) values($1,gen_random_uuid(),gen_random_uuid(),$2,$2,$2,'tax','high',$2,'https://www.resmigazete.gov.tr',$2,repeat('a',16),$2)",
   regulation_alerts: "insert into regulation_alerts(company_id,title,category,effective_date,impact_level,summary) values($1,$2,'tax',now(),'high',$2)",
+  allplan_lesson_progress: "insert into allplan_lesson_progress(company_id,user_id,lesson_slug) values($1,gen_random_uuid(),$2)",
+  allplan_lesson_activity: "insert into allplan_lesson_activity(company_id,user_id,lesson_slug,active_seconds) values($1,gen_random_uuid(),$2,60)",
+  allplan_lesson_notes: "insert into allplan_lesson_notes(company_id,user_id,lesson_slug,body) values($1,gen_random_uuid(),$2,$2)",
+  allplan_lesson_bookmarks: "insert into allplan_lesson_bookmarks(company_id,user_id,lesson_slug) values($1,gen_random_uuid(),$2)",
+  allplan_checkpoint_attempts: "insert into allplan_checkpoint_attempts(company_id,user_id,lesson_slug,tool,passed) values($1,gen_random_uuid(),$2,'wall-simulator',true)",
+  allplan_exam_attempts: "insert into allplan_exam_attempts(company_id,user_id,program_version,answers,score,passed) values($1,gen_random_uuid(),$2,'[0,1]'::jsonb,85,true)",
+  allplan_certificate_audit_logs: "insert into allplan_certificate_audit_logs(company_id,certificate_id,actor_user_id,action,reason) values($1,gen_random_uuid(),gen_random_uuid(),'issued',$2)",
 };
 const rowParams = (table: Table, companyId: string, tag: string) => rowSql[table].includes("$2") ? [companyId, tag] : [companyId];
 
@@ -119,6 +129,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     assert.deepEqual(await inspectTenantBusinessRlsViolations(admin), []);
     assert.deepEqual(await inspectQuotationCoreRlsViolations(admin), []);
     assert.deepEqual(await inspectPricingRegulationsRlsViolations(admin), []);
+    assert.deepEqual(await inspectAllplanLearnerRlsViolations(admin), []);
     assertRoleBoundaries(await inspectRoleBoundaries(admin));
     const states = await admin.query<{ relname: string; rls: boolean; force_rls: boolean; owner: string }>(`select c.relname, c.relrowsecurity rls, c.relforcerowsecurity force_rls, pg_get_userbyid(c.relowner) owner
       from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
@@ -243,6 +254,9 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       "alter table price_snapshots no force row level security",
       "drop policy regulation_versions_app_tenant on regulation_versions",
       "delete from teklifpro_release.migrations where tag='0024_pricing_regulations_rls'",
+      "alter table allplan_lesson_progress no force row level security",
+      "drop policy allplan_exam_attempts_app_tenant on allplan_exam_attempts",
+      "delete from teklifpro_release.migrations where tag='0025_allplan_learner_rls'",
     ]) {
       await admin.query("begin");
       try {
@@ -251,10 +265,11 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
           ...(await inspectTenantBusinessRlsViolations(admin)),
           ...(await inspectQuotationCoreRlsViolations(admin)),
           ...(await inspectPricingRegulationsRlsViolations(admin)),
+          ...(await inspectAllplanLearnerRlsViolations(admin)),
         ];
         assert.ok(violations.length > 0, mutation);
         const drift = await inspectRoleBoundaries(admin);
-        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|boundary violations/i);
+        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|boundary violations/i);
       } finally { await admin.query("rollback"); }
     }
     await admin.query("alter policy activities_app_tenant on activities rename to activities_app_tenant_missing");

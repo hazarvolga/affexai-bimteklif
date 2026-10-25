@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.75",
+  version: "BIM-CALC-2026-10-25.76",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "1b7753dfb60faeb204c75c341cb3bc7db8a8d8d6",
-  approvalStatus: "Rev. 81, T41 S2 (0024_pricing_regulations_rls) kapsamında 8 fiyat, kaynak zekâsı ve mevzuat tablosunu (price_sources, price_snapshots, source_intelligence_adapters, source_ingestion_runs, source_ingestion_artifacts, source_review_items, regulation_versions, regulation_alerts) ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alır (50/72 company_id tablosu FORCE RLS altında); Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S3–S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "6d3d3058b4feb9f8d56ec727d87109c349d4de3e",
+  approvalStatus: "Rev. 82, T41 S4a (0025_allplan_learner_rls) kapsamında 7 Allplan öğrenci tablosunu (allplan_lesson_progress, allplan_lesson_activity, allplan_lesson_notes, allplan_lesson_bookmarks, allplan_checkpoint_attempts, allplan_exam_attempts, allplan_certificate_audit_logs) ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alır (57/72 company_id tablosu FORCE RLS altında); Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS), Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S3/S4b/S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1765,6 +1765,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Fiyat belleği ve onaylı snapshot örnek karşılaştırması sorguları tenant GUC bağlamı olmadan paylaşılan app havuzundan çalışıyordu.",
         after: "market-intelligence fiyat belleği ve satır anormallik karşılaştırmasındaki price_snapshots/price_sources sorguları withAppTenant altında çalışır.",
         basis: "Faz 7 T41 S2 — fiyat belleği veritabanı izolasyonu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 82",
+    version: "BIM-CALC-2026-10-25.76",
+    date: "25 Ekim 2026",
+    commit: "6d3d3058b4feb9f8d56ec727d87109c349d4de3e",
+    trigger: "GAP planı T41 S4a dilimi (0025_allplan_learner_rls — 7 Allplan öğrenci tablosu FORCE RLS).",
+    beforeSummary: "allplan_lesson_progress, allplan_lesson_activity, allplan_lesson_notes, allplan_lesson_bookmarks, allplan_checkpoint_attempts, allplan_exam_attempts ve allplan_certificate_audit_logs tabloları yalnızca uygulama katmanında company_id filtresiyle korunuyordu; src/server/routes/academy.ts içindeki öğrenci sorguları paylaşılan app havuzundan doğrudan çalışabiliyordu.",
+    afterSummary: "0025_allplan_learner_rls.sql ile 7 Allplan öğrenci tablosu ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alındı (57/72 company_id tablosu FORCE RLS altında); academy.ts içindeki kimlik doğrulamalı tüm ilerleme, etkinlik, not, yer imi, checkpoint, sınav, sertifika düzenleme/iptal ve ekip raporu sorguları withAppTenant/withAppTenantTransaction sınırına taşındı; tenant-business-rls.pgtest.ts 35 tablo için 1/1 PASS, artifacts.test.ts 15/15 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["bindirme"],
+    moduleDetails: {
+      bindirme: {
+        before: "Allplan eğitim ilerleme, etkinlik, not, yer imi, checkpoint, sınav ve sertifika denetim tablolarında veritabanı düzeyinde FORCE RLS yoktu; sorgular paylaşılan app havuzundan doğrudan çalışıyordu.",
+        after: "0025_allplan_learner_rls ile 7 Allplan öğrenci tablosu FORCE RLS altına alındı ve kimlik doğrulamalı tüm academy.ts sorguları withAppTenant / withAppTenantTransaction içine taşındı.",
+        basis: "Faz 7 T41 S4a — Allplan öğrenci verisi çok-kiracılı veritabanı izolasyonu",
       },
     },
   },

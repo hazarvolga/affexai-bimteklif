@@ -1913,7 +1913,10 @@ export const allplanLessonProgress = pgTable("allplan_lesson_progress", {
   }).onDelete("cascade"),
   lessonSlugCheck: check("allplan_lesson_progress_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   idxUserProgress: index("idx_allplan_lesson_progress_user").on(table.companyId, table.userId, table.updatedAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_lesson_progress", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_lesson_progress"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_lesson_progress"),
+})).enableRLS();
 
 export const allplanLessonActivity = pgTable("allplan_lesson_activity", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1930,7 +1933,10 @@ export const allplanLessonActivity = pgTable("allplan_lesson_activity", {
   lessonSlugCheck: check("allplan_lesson_activity_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   secondsCheck: check("allplan_lesson_activity_seconds_check", sql`${table.activeSeconds} >= 0`),
   idxUserActivity: index("idx_allplan_lesson_activity_user").on(table.companyId, table.userId, table.updatedAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_lesson_activity", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_lesson_activity"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_lesson_activity"),
+})).enableRLS();
 
 export const allplanLessonNotes = pgTable("allplan_lesson_notes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1946,7 +1952,10 @@ export const allplanLessonNotes = pgTable("allplan_lesson_notes", {
   lessonSlugCheck: check("allplan_lesson_notes_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   bodyCheck: check("allplan_lesson_notes_body_check", sql`length(${table.body}) between 1 and 5000`),
   idxUserNotes: index("idx_allplan_lesson_notes_user_lesson").on(table.companyId, table.userId, table.lessonSlug, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_lesson_notes", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_lesson_notes"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_lesson_notes"),
+})).enableRLS();
 
 export const allplanLessonBookmarks = pgTable("allplan_lesson_bookmarks", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1960,7 +1969,10 @@ export const allplanLessonBookmarks = pgTable("allplan_lesson_bookmarks", {
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
   lessonSlugCheck: check("allplan_lesson_bookmarks_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   idxUserBookmarks: index("idx_allplan_lesson_bookmarks_user").on(table.companyId, table.userId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_lesson_bookmarks", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_lesson_bookmarks"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_lesson_bookmarks"),
+})).enableRLS();
 
 export const allplanCheckpointAttempts = pgTable("allplan_checkpoint_attempts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1976,7 +1988,10 @@ export const allplanCheckpointAttempts = pgTable("allplan_checkpoint_attempts", 
   lessonSlugCheck: check("allplan_checkpoint_attempts_lesson_slug_check", sql`length(${table.lessonSlug}) between 1 and 180`),
   toolCheck: check("allplan_checkpoint_attempts_tool_check", sql`${table.tool} in ('wall-simulator', 'coordinate-calculator', 'shortcut-trainer', 'reinforcement-estimator')`),
   idxCheckpointAttempts: index("idx_allplan_checkpoint_attempts_user_lesson").on(table.companyId, table.userId, table.lessonSlug, table.attemptedAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_checkpoint_attempts", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_checkpoint_attempts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_checkpoint_attempts"),
+})).enableRLS();
 
 export const allplanExamAttempts = pgTable("allplan_exam_attempts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1992,7 +2007,10 @@ export const allplanExamAttempts = pgTable("allplan_exam_attempts", {
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
   scoreCheck: check("allplan_exam_attempts_score_check", sql`${table.score} between 0 and 100`),
   idxUserAttempts: index("idx_allplan_exam_attempts_user").on(table.companyId, table.userId, table.completedAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_exam_attempts", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_exam_attempts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_exam_attempts"),
+})).enableRLS();
 
 export const allplanCertificates = pgTable("allplan_certificates", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2030,7 +2048,10 @@ export const allplanCertificateAuditLogs = pgTable("allplan_certificate_audit_lo
   actorMembershipFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   actionCheck: check("allplan_certificate_audit_logs_action_check", sql`${table.action} in ('issued', 'revoked')`),
   idxCertificateAudit: index("idx_allplan_certificate_audit").on(table.certificateId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_certificate_audit_logs", table.companyId),
+  backupReadPolicy: backupReadPolicy("allplan_certificate_audit_logs"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_certificate_audit_logs"),
+})).enableRLS();
 
 export const academyProducts = pgTable("academy_products", {
   id: uuid("id").primaryKey().defaultRandom(),
