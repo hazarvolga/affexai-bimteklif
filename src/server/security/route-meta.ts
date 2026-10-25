@@ -7,6 +7,25 @@
  * (tam ön-render ayrı iştir); burada yalnız `<head>` doğrulanır.
  */
 
+import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
+import { renderJsonLdScript, routeJsonLd } from './route-jsonld';
+import { canonicalPlans } from '../../services/billing/plan-catalog';
+import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
+
+const tl = (value: number) => value.toLocaleString('tr-TR');
+
+/** T46: fiyat ve iskonto metni elle yazılmaz; plan kataloğu ve fatura dönemlerinden üretilir. */
+function pricingBody(): string[] {
+  const plans = canonicalPlans.filter(plan => plan.isActive && plan.isPublished).sort((a, b) => a.displayOrder - b.displayOrder);
+  const trial = plans.find(plan => plan.isTrial);
+  const paid = plans.filter(plan => !plan.isTrial);
+  const commitments = BILLING_PERIOD_OPTIONS.filter(option => option.discountPercent > 0);
+  return [
+    `${trial ? `${trial.name} (${tl(trial.monthlyPrice)} TL/ay) ve ` : ''}${paid.length} kademeli aylık paket kataloğu: ${paid.map(plan => `${plan.name} (${tl(plan.monthlyPrice)} TL/ay)`).join(', ')}.`,
+    `Havale/EFT ile ${commitments.map(option => option.months).join(', ')} aylık taahhütlerde sırasıyla ${commitments.map(option => `%${option.discountPercent}`).join(', ')} iskonto uygulanır. Kredi kartı ile çevrimiçi tahsilat henüz yayında değildir; tüm ödemeler kurumsal banka havalesi/EFT ve fatura onayı ile yürütülür.`,
+  ];
+}
+
 export interface RouteMeta {
   title: string;
   description: string;
@@ -85,7 +104,10 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
 
 /**
  * JavaScript çalıştırmayan tarayıcılar (çoğu yapay zekâ ve bazı arama tarayıcıları) için rota başına gerçek içerik.
- * `<noscript>` bloğu olarak sunucuda eklenir; tam ön-render değildir ancak ham HTML'de okunabilir metin sağlar.
+ * T48: içerik `<div id="root">` içine `<main id="prerender">` olarak yazılır. Readability/Trafilatura gibi çıkarıcılar
+ * `<noscript>` içeriğini sildiği için metin artık onun dışındadır. JS çalışınca `createRoot().render()` kökü
+ * temizleyip uygulamayı çizer; JS ile açılan sayfada görsel kayma olmasın diye blok bu sürede ekran dışında tutulur,
+ * JS çalışmayan tarayıcıda `<noscript>` stili onu görünür yapar.
  * Yalnız kodla desteklenen ve kaynağı belirtilen bilgiler yazılır.
  */
 const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
@@ -106,20 +128,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
     'SmartCheck Canlı Demo; örnek IFC/metraj verileri üzerinde ≤%3 QTO sapma politikası, TS 500 betonarme paspayı kontrolü, ÇŞB 2026 / DIN 18350 boşluk minha düşümü ve RG 33331 e-PYS EK-9 ön kontrol kurallarını tarayıcıda deneyimlemenizi sağlar.',
     'Bu sayfadaki veriler tanıtım amaçlı örnek senaryolardır; gerçek proje dosyalarınızı test etmek için ücretsiz deneme hesabı oluşturabilir veya pilot başvurusunda bulunabilirsiniz.',
   ],
-  '/bim-sozlugu': [
-    'EIR (Bilgi Gereksinimleri — Exchange Information Requirements): İdarenin veya işverenin ihale/sözleşme aşamasında müteahhitten talep ettiği BIM model standartlarını, teslim formatlarını (IFC 4.3, COBie) ve veri derinliğini tanımlayan teknik şartnamedir (TS EN ISO 19650-2).',
-    'BEP (BIM Uygulama Planı — BIM Execution Plan): Yüklenici teknik ofisinin işveren EIR şartnamesine cevaben hazırladığı; modelleme yazılımlarını, koordinat sistemini, çakışma testi periyotlarını ve disiplin sorumluluklarını belirleyen uygulama planıdır.',
-    'CDE (Ortak Veri Ortamı — Common Data Environment): TS EN ISO 19650 standardına göre tüm proje paydaşlarının model, pafta ve metraj revizyonlarını WIP (Çalışılıyor), SHARED (Paylaşıldı), PUBLISHED (Yayınlandı) ve ARCHIVED (Arşiv) durum geçişleriyle yönettiği tekil doğruluk kaynağıdır.',
-    'IFC ve IFC 4.3 (Industry Foundation Classes — ISO 16739-1:2024): buildingSMART tarafından geliştirilen, farklı BIM yazılımları (Revit, Allplan, Archicad, Tekla) arasında geometri, malzeme ve metraj (QTO) verilerinin kayıpsız aktarılmasını sağlayan açık veri standardıdır. IFC 4.3 özellikle üstyapı ve altyapı projelerinde güncel açık BIM şemasıdır.',
-    'QTO (Quantity Take-Off — Otomatik Metraj Çıkarımı): IFC modelindeki yapı elemanlarının (IfcWall, IfcSlab, IfcColumn, IfcBeam, IfcCovering) hacim (NetVolume), alan (NetArea) ve uzunluk özelliklerinin Qto_*BaseQuantities ve 3B geometriden otomatik okunarak metraj cetveline dönüştürülmesidir.',
-    'LOD ve LOIN (Level of Development / Level of Information Need — EN 17412-1): Bir BIM elemanının geometrik detay (LOD 100–500) ve alfa-sayısal bilgi gereksinimi (LOIN) seviyesidir. Hakediş ve yaklaşık maliyet için en az LOD 300–350 ve LOIN aşama doğrulaması gerekir.',
-    'COBie (Construction Operations Building Information Exchange): Yapım aşamasında toplanan ekipman, mahal (IfcSpace), garanti ve bakım verilerinin tesis yönetimine (FM) devredilmesini sağlayan standart veri yapısıdır.',
-    'ÇŞB Pozu (Çevre, Şehircilik ve İklim Değişikliği Bakanlığı Birim Fiyatları): Kamu ve özel sektör inşaat ihalelerinde imalat kalemlerini tanımlayan standart poz numaraları (örn. 15.150.1005 C25/30 beton, 15.180.1003 nervürlü çelik), ölçü kuralları ve resmî birim fiyat tarifleridir.',
-    'Minha (Boşluk ve Kesişim Düşümü): Duvar, sıva, boya ve kaplama metrajlarında kapı/pencere boşluklarının ve yapısal kesişimlerin brüt alandan düşülmesi işlemidir. ÇŞB 2026 Genel Teknik Şartnamesi (0,50 m² eşiği), DIN 18350 VOB/C (2,50 m² eşiği) veya özel şartname kurallarına göre uygulanır.',
-    'TS 500 (Betonarme Yapıların Tasarım ve Yapım Kuralları): Betonarme elemanların minimum paspayı (örtü betonu), malzeme dayanımı ve kiriş–döşeme–kolon birleşim bölgelerinde mükerrer beton hacminin düşülmesi esaslarını belirleyen Türk Standardıdır.',
-    'RG 33331 e-PYS ve EK-9 Kontrol Formu: 5 Ağustos 2026 tarihli Resmî Gazete (Sayı: 33331) ile yayımlanan Elektronik Proje Yönetim Sistemi kapsamında yapı ruhsatı eki BIM (IFC) modellerinin ve PDF/A paftalarının sağlaması gereken EK-1..EK-7 ve EK-9 (Tablo 9.1 Mimari 21 satır, Tablo 9.2 Diğer Disiplinler 16 satır) teknik doğrulama kriterleridir.',
-    '4734 KİK m.38 ve Tebliğ m.45.1.1 Aşırı Düşük Teklif Sınır Değeri: Kamu yapım ihalelerinde yaklaşık maliyet (YM) ve geçerli tekliflerden Tort1, standart sapma (σ), Tort2, C, K ve N katsayılarıyla sınır değer (SD) hesaplanması ve toplam teklifin %80\'ini oluşturan açıklama istenecek sıralı iş kalemlerinin belirlenmesi sürecidir.',
-  ],
+  '/bim-sozlugu': PUBLIC_GLOSSARY_TERMS.map(term => `${term.name}: ${term.description}`),
   '/hesaplayicilar': [
     'BIMMetraj ücretsiz inşaat hesaplayıcıları, kayıt gerektirmeden ve uydurma varsayılan değer dayatmadan doğrudan tarayıcınızda çalışır: 1) 4734 KİK m.38 ve Kamu İhale Genel Tebliği m.45.1.1 Yapım İşleri Aşırı Düşük Teklif Sınır Değeri (SD) Hesaplayıcı, 2) 4735 Sayılı Kanun m.8 Yapım İşleri Fiyat Farkı F = An × B × (Pn − 1) Hesaplayıcı.',
     'Tüm hesaplamalar ön kontrol ve bilgilendirme amaçlıdır; bağımsız uzman onayı henüz alınmamıştır. İhale ve hakediş kararlarında resmî mevzuat metinleri ve ilgili idare esastır.',
@@ -135,10 +144,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
     'An, uygulama ayında gerçekleşen iş miktarlarının sözleşme birim fiyatlarıyla çarpımıdır; B = 0,90 sabit katsayısıdır; Pn, a (işçilik), b1–b6 (malzeme grupları) ve c (makine-ekipman) ağırlık katsayıları ile temel ve güncel endekslerden bulunur. Ağırlık katsayılarının toplamı 1,00\'dir ve ihale dokümanında gösterilir; sözleşme süresince değiştirilemez. Temel endeks ihale ayına, güncel endeks uygulama ayına aittir.',
     'Bu hesaplayıcı bilgilendirme amaçlıdır; sözleşmenizdeki katsayı ve endeks değerlerini siz girersiniz.',
   ],
-  '/pricing': [
-    '14 günlük ücretsiz deneme (0 TL/ay) ve beş kademeli aylık paket kataloğu: e-PYS & BIM Standart Denetçi (1.250 TL/ay), Teklif & Şantiye (2.950 TL/ay), 5D BIM & SmartCheck (5.450 TL/ay) ve Kurumsal Taahhüt & e-PYS (8.900 TL/ay).',
-    'Havale/EFT ile 6, 12 ve 24 aylık taahhütlerde sırasıyla %10, %20 ve %30 iskonto uygulanır. Kredi kartı ile çevrimiçi tahsilat henüz yayında değildir; tüm ödemeler kurumsal banka havalesi/EFT ve fatura onayı ile yürütülür.',
-  ],
+  '/pricing': pricingBody(),
   '/pilot': [
     'Kurumsal teknik ofisler, mimarlık büroları ve yüklenici firmalar gerçek IFC modelleri, PDF paftaları ve Excel keşif listeleriyle BIMMetraj pilot programına başvurabilir.',
     'Pilot çalışmada QTO metraj sapması, Revit/Allplan IFC dışa aktarım ayarları, ÇŞB 2026 poz eşleştirmesi ve RG 33331 e-PYS EK-9 ön kontrol akışı kendi proje verileriniz üzerinde birlikte doğrulanır.',
@@ -156,7 +162,16 @@ const NAV_LINKS: readonly (readonly [string, string])[] = [
   ['/hesaplayicilar', 'Ücretsiz hesaplayıcılar'], ['/pilot', 'Pilot başvurusu'], ['/terms', 'Kullanım koşulları'], ['/privacy', 'KVKK ve gizlilik'],
 ];
 
-function renderNoscript(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[]): string {
+/**
+ * JS ile açılışta ön-render bloğu ekran dışında (ekran okuyucu ve metin çıkarıcıya açık) tutulur; React kökü
+ * temizleyince blok kaybolur. JS kapalıysa `<noscript>` içindeki kural onu normal akışta gösterir.
+ */
+const PRERENDER_STYLE = [
+  '<style id="prerender-style">#prerender{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0}</style>',
+  '<noscript><style>#prerender{position:static;width:auto;height:auto;margin:0 auto;padding:2rem 1rem;overflow:visible;clip:auto;max-width:60rem;font:16px/1.6 system-ui,sans-serif}</style></noscript>',
+].join('\n    ');
+
+function renderPrerender(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[]): string {
   const key = normalize(pathname);
   const paragraphs = [meta.description, ...(ROUTE_BODY[key] ?? [])];
   const extra = key === '/' ? capabilityLines : [];
@@ -166,7 +181,7 @@ function renderNoscript(pathname: string, origin: string, meta: RouteMeta, capab
     ...(extra.length ? ['<h2>Yetenekler ve doğrulama durumu</h2>', `<ul>${extra.map(line => `<li>${escapeAttr(line)}</li>`).join('')}</ul>`] : []),
     `<nav aria-label="Genel sayfalar"><ul>${NAV_LINKS.map(([href, label]) => `<li><a href="${origin}${href}">${escapeAttr(label)}</a></li>`).join('')}</ul></nav>`,
   ].join('');
-  return `<noscript><main>${body}</main></noscript>`;
+  return `<main id="prerender" data-prerender="route">${body}</main>`;
 }
 
 function normalize(pathname: string): string {
@@ -193,7 +208,7 @@ export interface InjectOptions {
   notFound?: boolean;
   /** Paylaşım görseli mevcutsa mutlak URL'i. */
   ogImagePath?: string | null;
-  /** Ana sayfa `<noscript>` içeriği için yetenek özeti satırları (yetenek kaydından üretilir). */
+  /** Ana sayfa ön-render içeriği için yetenek özeti satırları (yetenek kaydından üretilir). */
   capabilityLines?: readonly string[];
 }
 
@@ -229,8 +244,14 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
     );
   }
 
-  if (meta && !notFound && !meta.noindex && !out.includes('<noscript><main>') && out.includes('<div id="root"></div>')) {
-    out = out.replace('<div id="root"></div>', `<div id="root"></div>\n    ${renderNoscript(pathname, origin, meta, capabilityLines)}`);
+  if (meta && !notFound && !meta.noindex && !out.includes('id="route-jsonld"') && out.includes('</head>')) {
+    const data = routeJsonLd({ pathname: normalizedPath, origin, title: meta.title, description: meta.description });
+    if (data) out = out.replace('</head>', `    ${renderJsonLdScript('route-jsonld', data)}\n  </head>`);
+  }
+
+  if (meta && !notFound && !meta.noindex && !out.includes('id="prerender"') && out.includes('<div id="root"></div>')) {
+    out = out.replace('<div id="root"></div>', `<div id="root">${renderPrerender(pathname, origin, meta, capabilityLines)}</div>`);
+    if (out.includes('</head>')) out = out.replace('</head>', `    ${PRERENDER_STYLE}\n  </head>`);
   }
 
   if (meta?.noindex && !notFound && out.includes('</head>') && !/name="robots"/.test(out)) {

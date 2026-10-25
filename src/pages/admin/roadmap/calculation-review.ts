@@ -1,8 +1,8 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.66",
+  version: "BIM-CALC-2026-10-25.68",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "b9bf785cf8e8c19b9cb2a2d0a857227a871b4912",
+  implementationBaseline: "cc5161946cab209fbab126826ba4a2b199313a5a",
   approvalStatus: "Rev. 67, uzman deneme ve kabul rehberi /admin/roadmap/expert-review altında yayınlanmıştır. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43/T44/T45 kanıtı, production cutover/canary/restore tamamlanmadığından production NO-GO; T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
@@ -1636,6 +1636,26 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     trigger: "Üretim veritabanı rollerinin parolasız operatör erişimiyle, Coolify deploy'u içinde kurulması.",
     beforeSummary: "Rol kurulumu elle çalıştırılan operatör komutlarına bağlıydı; boş veritabanında migrate servisi başlayamıyordu.",
     afterSummary: "db-bootstrap → migrate → db-provision tek seferlik servisleri deploy sırasında rolleri kurar ve yetkileri yakınsar. Hesap yöntemleri değişmedi.",
+    affectedModules: [],
+  },
+  {
+    revision: "Rev. 73",
+    version: "BIM-CALC-2026-10-25.67",
+    date: "25 Ekim 2026",
+    commit: "be0791f3e5a3e1e690e3e6d0e17f753b7b9fd3a0",
+    trigger: "GAP planı Faz 8 kod işleri (T47, T49): SEO-03, SEO-04, SEO-05 ve GEO-01 bulguları.",
+    beforeSummary: "Sitemap tüm sayfalara sabit 2026-10-18 lastmod veriyordu; robots.txt yalnız `*` grubunu içeriyordu; hesaplayıcı ve sözlük sayfalarında sayfaya özgü JSON-LD yoktu; index.html llms.txt'ye bağlanmıyordu.",
+    afterSummary: "Sitemap lastmod yazmaz; production'da PUBLIC_APP_URL zorunluluğu testle sabitlendi; hesaplayıcılar ve sözlük BreadcrumbList, WebApplication ve DefinedTermSet alır (puan/fiyat yok); robots.txt yapay zekâ arama ve eğitim tarayıcılarını açık gruplarla listeler, eğitim izni ROBOTS_AI_TRAINING ile kapatılabilir. Hesap yöntemleri değişmedi.",
+    affectedModules: [],
+  },
+  {
+    revision: "Rev. 74",
+    version: "BIM-CALC-2026-10-25.68",
+    date: "25 Ekim 2026",
+    commit: "cc5161946cab209fbab126826ba4a2b199313a5a",
+    trigger: "GAP planı T46 (tek kaynaklı ürün metni) ilk dilimi ve T48 (semantik ön-render).",
+    beforeSummary: "llms.txt'de yetenek kaydından ayrışmış elle yazılmış bir blok vardı (CDE ve PDF/A 'Faz 2', KİK dosyası 'Faz 3 yol haritasında'); paket fiyatları llms.txt ve /pricing metninde elle yazılıydı. Sunucu sayfa metni <noscript> içindeydi; Readability/Trafilatura gibi çıkarıcılar bu bloğu siler.",
+    afterSummary: "llms.txt yetenekleri yalnız CAPABILITY_REGISTRY'den, paketleri ve iskontoları canonicalPlans ve BILLING_PERIOD_OPTIONS'tan üretir. Sayfa metni #root içinde <main id=\"prerender\"> olarak yazılır, JS ile açılışta ekran dışında tutulur ve React kökü temizler; JS kapalıyken <noscript> stiliyle görünür. Chromium'da CLS 0, mount sonrası tek main/h1. Hesap yöntemleri değişmedi.",
     affectedModules: [],
   },
 ];
