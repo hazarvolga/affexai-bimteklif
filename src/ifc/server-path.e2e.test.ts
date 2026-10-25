@@ -5,19 +5,30 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { IfcExtractorOutputSchema } from "../smartcheck/import/ifc-python-runner";
+import { IfcExtractorOutputSchema, resolvePythonBin } from "../smartcheck/import/ifc-python-runner";
 import { buildCalmIfcDatasetFromArtifact } from "./calm-icmal";
 import { buildIfcSmartCheckEvidenceArtifact } from "./smartcheck-evidence";
 import { normalizeIfcElementsForParity } from "./parser/contract";
 import { parseIfcText } from "./parser/legacy-parser";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
-const PYTHON = path.join(ROOT, "workers/ifc/.venv/bin/python");
+const PYTHON = resolvePythonBin();
 const CLI = path.join(ROOT, "workers/ifc/ifc_extract.py");
+
+function hasPythonIfcRuntime(): boolean {
+  try {
+    execFileSync(PYTHON, ["-c", "import ifcopenshell"], { stdio: "ignore", timeout: 10_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const PYTHON_AVAILABLE = hasPythonIfcRuntime();
 
 function runWorker(sample: string): { raw: unknown } | null {
   const input = path.join(ROOT, "harici-kaynaklar/klasorler-ve-ornekler/IfcSampleFiles-main", sample);
-  if (!existsSync(PYTHON) || !existsSync(input)) return null;
+  if (!PYTHON_AVAILABLE || !existsSync(input)) return null;
   const dir = mkdtempSync(path.join(tmpdir(), "ifc-e2e-"));
   try {
     const out = path.join(dir, "out.json");
@@ -70,7 +81,7 @@ test("sunucu yolu uçtan uca: kapı/pencere ölçüleri Python'dan Calm veri set
 
 test("sunucu yolu uçtan uca: consistencyReport (Tip özellik mirası ve montaj çift sayım koruması) Zod şemasından Calm veri setine ulaşır", (t) => {
   const fixturePath = path.join(ROOT, "workers/ifc/fixtures/assembly_double_count.ifc");
-  if (!existsSync(PYTHON) || !existsSync(fixturePath)) return t.skip("Python venv veya fixture yok");
+  if (!PYTHON_AVAILABLE || !existsSync(fixturePath)) return t.skip("Python ifcopenshell runtime veya fixture yok");
   const dir = mkdtempSync(path.join(tmpdir(), "ifc-e2e-consistency-"));
   try {
     const out = path.join(dir, "out.json");
@@ -103,7 +114,7 @@ test("sunucu yolu uçtan uca: consistencyReport (Tip özellik mirası ve montaj 
 
 test("browser/worker parity: desteklenen QTO kesişimi aynı dosya, run ve STEP kimliğiyle eşleşir", (t) => {
   const fixturePath = path.join(ROOT, "workers/ifc/fixtures/duplicate_guid_and_orphan_opening.ifc");
-  if (!existsSync(PYTHON) || !existsSync(fixturePath)) return t.skip("Python venv veya fixture yok");
+  if (!PYTHON_AVAILABLE || !existsSync(fixturePath)) return t.skip("Python ifcopenshell runtime veya fixture yok");
   const text = readFileSync(fixturePath, "utf8");
   const fileSha256 = createHash("sha256").update(text).digest("hex");
   const runId = "22222222-2222-4222-8222-222222222222";

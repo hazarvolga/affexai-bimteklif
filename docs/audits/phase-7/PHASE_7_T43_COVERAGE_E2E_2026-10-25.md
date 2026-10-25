@@ -58,7 +58,7 @@ Kritik kapsamlar (auth/billing/teklif matematiği/SmartCheck/DB) bugün %87–99
 
 Yerel sonuç: 6/6 PASS (~17 s). Mevcut Puppeteer smoke'ları (`e2e-core-flow-smoke`, `e2e-a11y-smoke`, invitation, CRM/billing) CI'da korunuyor; a11y axe kapısı Playwright'a taşınmadı.
 
-**Bulgu (düzeltilmedi, takip):** Teklif editörü sektörü varsayılan `residential` gönderir; `industries` tablosunda bu satır yoksa kayıt 500 (FK) ile düşer. Production'da release migration 0017 satırı tohumladığı için canlıda görülmez; boş katalogda anlaşılır hata yerine 500 dönmesi ayrı bir iş.
+**Bulgu (Rev. 78 ile düzeltildi):** Teklif editörü sektörü varsayılan `residential` gönderdiğinde `industries` tablosunda bu satır yoksa kayıt 500 (FK) ile düşüyordu. Rev. 78 ile `resolveQuotationIndustryId` ve `CreateQuote.tsx` katalog senkronizasyonu devreye alındı; boş katalogda güvenli `null`'a düşer, dolu katalogda tanımsız/pasif sektöre 400 döner (`src/server/routes/t42-regression.test.ts`).
 
 ## 5. Atlanan testler ve gerekçeleri
 
@@ -67,7 +67,7 @@ Yerel sonuç: 6/6 PASS (~17 s). Mevcut Puppeteer smoke'ları (`e2e-core-flow-smo
 | e-proje_4x3 golden manifest (5 test) | `src/ifc/parser-gates.test.ts`, `parser/qto-extractor.test.ts`, `parser/quantity-extractor.test.ts`, `parser/spatial-extractor.test.ts`, `smartcheck-evidence.test.ts` | Örnek `harici-kaynaklar/…/e-proje_4x3.ifc` lisans gereği repoda değil (`.gitignore`) | Hayır; repo örnekleriyle eşdeğer kapsam `smartcheck-ifc.spec.ts` ve IFC unit testlerinde |
 | Yerel IFC örneğinden kanıt artefaktı | `src/ifc/smartcheck-processing.test.ts` | Aynı yerel örnek | Hayır |
 | Sunucu yolu uçtan uca — Revit IFC, kapı/pencere (2) | `src/ifc/server-path.e2e.test.ts` | `harici-kaynaklar/IfcSampleFiles-main` repoda yok | Hayır |
-| Sunucu yolu consistencyReport, browser/worker parity (2) | `src/ifc/server-path.e2e.test.ts` | `workers/ifc/.venv/bin/python` arar; CI sistem Python'u kullandığı için CI'da atlanır (yerelde venv ile koşar ve geçer) | Takip: CI'da çalıştırılmalı |
+| Sunucu yolu consistencyReport, browser/worker parity (2) | `src/ifc/server-path.e2e.test.ts` | **Rev. 79 ile çözüldü:** `resolvePythonBin()` + `hasPythonIfcRuntime()` ile hem yerel `.venv` hem CI sistem Python'unda (`actions/setup-python`) atlanmadan koşar (4/4 yerel, 2/2 repo fixture'larıyla CI) | CI'da koşar |
 | LibreOffice CSV formül nötrleme | `src/lib/tabular-data.test.ts` | `soffice` CI imajında yok | Takip |
 | Gerçek veraPDF CLI | `src/smartcheck/pdf/verapdf-runner.test.ts` | `VERAPDF_CLI_PATH` yok — T32 oturumunun kapsamı | T32'de |
 | Üç rollü izolasyon (yerel) | `src/server/routes/test-isolation.test.ts` | Yalnız üç rol URL'si yoksa; CI'da koşar | CI'da koşar |

@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.72",
+  version: "BIM-CALC-2026-10-25.73",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "a32b997eae615fab3ded08a2c4f1340e306c8475",
-  approvalStatus: "Rev. 78, T42 yetki/kaynak sınırı regresyonunu, §8.4 sektör varsayılanı kusurunu, Academy kapalı-bayrak korumasını ve SmartCheck orphan lease devralma akışını tamamlar; Rev. 77 T46 tek kaynaklı ürün doğruluğunu kapatmıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41/T42 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "11333fda14ebb32be5503fa81d6111387e5086e8",
+  approvalStatus: "Rev. 79, T43 kapsamında server-path.e2e.test.ts içindeki Python çözümlemesini resolvePythonBin() + hasPythonIfcRuntime() ile birleştirerek CI sistem Python'unda atlanan IFC parity/consistency testlerini devreye alır; Rev. 78 T42 yetki/kaynak sınırı regresyonunu ve §8.4 sektör varsayılanı kusurunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1709,6 +1709,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Askıdaki abonelik, salt-okunur impersonation, kapalı Academy bayrağı ve boş sektör kataloğu regresyonları tek bir T42 kapı testinde birleştirilmemişti.",
         after: "t42-regression.test.ts (4/4) ile SUBSCRIPTION_SUSPENDED, IMPERSONATION_READ_ONLY, ACADEMY_FEATURE_DISABLED, resolveQuotationIndustryId ve orphan lease devralma sınırları doğrulandı.",
         basis: "Faz 7 T42 yetki ve kaynak sınırı regresyon sözleşmesi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 79",
+    version: "BIM-CALC-2026-10-25.73",
+    date: "25 Ekim 2026",
+    commit: "11333fda14ebb32be5503fa81d6111387e5086e8",
+    trigger: "GAP planı T43 — server-path.e2e.test.ts Python çalışma zamanı çözümlemesinin resolvePythonBin() ile birleştirilmesi.",
+    beforeSummary: "src/ifc/server-path.e2e.test.ts sabit workers/ifc/.venv/bin/python yolunu aradığı için CI ortamında (actions/setup-python) consistencyReport ve browser/worker parity testleri skip ediliyordu.",
+    afterSummary: "resolvePythonBin() ve hasPythonIfcRuntime() ile hem yerel .venv hem CI sistem Python'u desteklenir; repo fixture'larıyla çalışan 2 IFC E2E testi CI'da atlanmadan koşar. Hesap yöntemleri değişmedi.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "server-path.e2e.test.ts yalnızca yerel workers/ifc/.venv/bin/python varlığında çalışıyordu.",
+        after: "resolvePythonBin() + ifcopenshell runtime kontrolü ile CI sistem Python'unda da consistencyReport ve browser/worker parity testleri çalışır.",
+        basis: "Faz 7 T43 doğrulama hattı — zorunlu senaryonun CI'da atlanmaması",
       },
     },
   },

@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (25 Ekim 2026 · Rev. 77 geliştirme)",
+    title: "Uygulama durumu (25 Ekim 2026 · Rev. 79 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -760,16 +760,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T46 tamamlandı: 1) LegislationView.tsx doğrudan CAPABILITY_REGISTRY'ye bağlandı; 6 resmi kitap / 18.848 satır kapsamı küçültülmeden yapısal satır varlığı ile ticari kullanım lisansı, yürürlük dönemi ve uzman onayı ayrımı gösterildi; veraPDF 1.30.3 + verapdf_report_xml akışı hizalandı. 2) BimGlossary.tsx, BimDashboard.tsx, DeveloperRoadmap.tsx, CalculationMethods.tsx, AdminDashboard.tsx ve PricingSources.tsx üzerindeki eski sabit 'Rev. 5', 'TeklifPro' ve doğrulanmamış ifadeler temizlenerek public-copy.test.ts kapısına dahil edildi. 3) Platform sahibi e-postası (hazarvolga@gmail.com) kayıt ve giriş akışlarında otomatik is_super_admin = true ve bm_admin çerezi alacak şekilde koruma altına alındı.",
           ],
           [
-            "Rev. 78 (Güncel geliştirme)",
+            "Rev. 78",
             "25 Ekim 2026 (T42 Yetki, Kaynak Sınırı, §8.4 Sektör Varsayılanı ve Orphan Lease Regresyonu)",
-            "BIM-CALC-2026-10-25.72",
+            "BIM-CALC-2026-10-25.72 (11333fd)",
             "T42 kod ve regresyon dilimi tamamlandı: 1) §8.4 kusuru giderildi: resolveQuotationIndustryId ile sektör kataloğu boşken varsayılan 'residential' 500 FK hatası yerine güvenli null'a düşer, katalog doluyken tanımsız/pasif sektör 400 QuotationIntegrityError döner; CreateQuote.tsx aktif katalogla hizalandı. 2) Academy entitlement: ACADEMY_ENABLED=false iken /api/academy/allplan/* rotaları DB'ye gitmeden 403 ACADEMY_FEATURE_DISABLED döner; açıkken kayıtsız kullanıcı ve viewer sertifika iptali 403 ile reddedilir. 3) Uzun iş heartbeat / orphan lease: DEFAULT_SMARTCHECK_LEASE_TIMEOUT_MS (15 dk) ve isSmartCheckLeaseExpired ile süresi dolan running işler yeni workerLeaseToken ile güvenli devralınır; eski işçi fencing ile durdurulur. 4) Askıdaki abonelik (SUBSCRIPTION_SUSPENDED) ve salt-okunur impersonation (IMPERSONATION_READ_ONLY) negatifleri t42-regression.test.ts ile sabitlendi.",
+          ],
+          [
+            "Rev. 79 (Güncel geliştirme)",
+            "25 Ekim 2026 (T43 CI Sistem Python Çözümlemesi: server-path.e2e.test.ts Atlanan Testlerin Kaldırılması)",
+            "BIM-CALC-2026-10-25.73",
+            "src/ifc/server-path.e2e.test.ts sabit workers/ifc/.venv/bin/python yolunu aradığı için CI'da actions/setup-python ile kurulan sistem Python'unu görmüyor ve consistencyReport + browser/worker parity testlerini atlıyordu. resolvePythonBin() ve hasPythonIfcRuntime() ile hem yerel .venv hem CI sistem Python'u desteklenir hale getirildi (yerelde 4/4, CI'da repo içi fixture testleri 2/2 atlanmadan çalışır).",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 78 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 79 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1424,6 +1430,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) CreateQuote varsayılan 'residential' gönderdiğinde industries tablosu boşsa teklif kaydı 500 FK hatası veriyordu. 2) ACADEMY_ENABLED=false iken requireAllplanEntitlement özellik bayrağını kontrol etmeden DB sorgusuna gidiyordu. 3) claimSmartCheckRun yalnızca aynı deliveryId için yeniden teslim alıyor, farklı deliveryId ile süresi dolan (orphan) running işleri devralamıyordu.",
             "1) resolveQuotationIndustryId boş katalogda null'a düşer, dolu katalogda geçersiz/pasif sektörü 400 QuotationIntegrityError ile reddeder; CreateQuote.tsx aktif katalogla hizalandı. 2) createRequireAllplanEntitlement ve isAcademyRuntimeEnabled eklendi (ACADEMY_ENABLED=false iken 403 ACADEMY_FEATURE_DISABLED). 3) DEFAULT_SMARTCHECK_LEASE_TIMEOUT_MS (15 dk) ve isSmartCheckLeaseExpired ile süresi dolan running işler yeni workerLeaseToken ile güvenli devralınır. 4) t42-regression.test.ts (4/4) ve PHASE_7_T42_REGRESSION_2026-10-25.md eklendi.",
             "src/services/quotations/integrity.ts, src/services/quotations/edit.ts, src/pages/CreateQuote.tsx, src/server/middleware/academyEntitlement.ts, src/smartcheck/import/processor.ts, src/server/routes/t42-regression.test.ts, docs/audits/phase-7/PHASE_7_T42_REGRESSION_2026-10-25.md",
+          ],
+          [
+            "Rev. 79 · 25 Ekim 2026 (T43 CI sistem Python çözümlemesi)",
+            "GAP planı T43 — atlanan server-path.e2e venv testlerinin CI sistem Python'u ile çalıştırılması",
+            "src/ifc/server-path.e2e.test.ts doğrudan workers/ifc/.venv/bin/python yolunu kontrol ettiği için CI ortamında (actions/setup-python) ifcopenshell kurulu olmasına rağmen consistencyReport ve browser/worker parity testlerini skip ediyordu.",
+            "resolvePythonBin() ve hasPythonIfcRuntime() kullanılarak hem yerel .venv hem CI sistem Python'u desteklendi; repo içi fixture kullanan iki E2E testi CI'da atlanmadan çalışır.",
+            "src/ifc/server-path.e2e.test.ts, docs/audits/phase-7/PHASE_7_T43_COVERAGE_E2E_2026-10-25.md",
           ],
         ],
       },
