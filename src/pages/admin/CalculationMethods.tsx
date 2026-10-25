@@ -81,6 +81,7 @@ function ModuleCard({ module, index }: { module: CalcModule; index: number }) {
 }
 
 export function CalculationMethods() {
+  const latestRevision = CALC_REVIEW_CHANGELOG[CALC_REVIEW_CHANGELOG.length - 1]?.revision ?? "Güncel";
   return (
     <PageContainer>
       <div className="print-doc">
@@ -103,11 +104,11 @@ export function CalculationMethods() {
         </section>
         <section className="space-y-3 rounded-xl border border-indigo-500/25 bg-indigo-500/[0.04] p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-bold text-foreground">Kronolojik Sürüm ve Mevzuat Revizyon Tarihçesi (Rev. 1 → Rev. 5 · Önceki Durum → Yeni Durum)</h2>
+            <h2 className="text-base font-bold text-foreground">Kronolojik Sürüm ve Mevzuat Revizyon Tarihçesi (Rev. 1 → {latestRevision} · Önceki Durum → Yeni Durum)</h2>
             <Badge variant="outline" className="border-indigo-400/30 text-indigo-300">Güncel: {CALC_REVIEW_META.version}</Badge>
           </div>
           <p className="text-xs leading-relaxed text-foreground dark:text-muted-foreground">
-            Uzman mühendislerin geliştirme sürecini başından bugüne kronolojik sırayla (`Rev. 1 → Rev. 2 → Rev. 3 → Rev. 4 → Rev. 5`) takip edebilmesi için her revizyonda neyin, ne zaman, hangi mevzuat veya teknik dayanakla nasıl değiştirildiği aşağıda listelenmiştir. Ayrıca her modül kartının kendi içinde o modüle ait kronolojik revizyon geçmişi yer alır.
+            Uzman mühendislerin geliştirme sürecini başından bugüne kronolojik sırayla (`Rev. 1 → ... → {latestRevision}`) takip edebilmesi için her revizyonda neyin, ne zaman, hangi mevzuat veya teknik dayanakla nasıl değiştirildiği aşağıda listelenmiştir. Ayrıca her modül kartının kendi içinde o modüle ait kronolojik revizyon geçmişi yer alır.
           </p>
           <DocTable
             columns={[

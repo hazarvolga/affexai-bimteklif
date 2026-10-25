@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { Calendar, Search, ShieldAlert, CheckCircle, Info, Database, Layers, ArrowRight, Award, ExternalLink } from 'lucide-react';
 import { TimelineEvent, PozCode } from '../../types';
 import { fetchWithAuth } from '@/lib/api';
+import {
+  CAPABILITY_REGISTRY,
+  CAPABILITY_REGISTRY_VERSION,
+  getLiveCapabilities,
+  getPilotCapabilities,
+  getRoadmapCapabilities,
+} from '../../capabilities/registry';
 
 interface LiveRegulationItem {
   id: string;
@@ -222,11 +229,11 @@ export default function LegislationView() {
           </p>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            EK-9 ön kontrol satırları otomatik veya manuel olarak işaretlenir ve kanıt referansı taşır. Belge kimliği doğrulanmadığı sürece hatasız rapor dahi <code>manual_review_required</code> durumunda kalır.
+            EK-9 ön kontrol satırları otomatik veya manuel olarak işaretlenir ve kanıt referansı taşır. Belge kimliği doğrulanmadığı sürece bulgu üretmeyen rapor dahi <code>manual_review_required</code> durumunda kalır.
           </p>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            PDF ön kontrolündeki <code>signed</code> durumu yalnız imza sözlüğü, ByteRange ve Contents yapısının bulunduğunu gösterir; sertifika güven zinciri, iptal ve zaman damgası doğrulaması değildir. PDF/A kimlik beyanı da tek başına uygunluk sayılmaz: harici veraPDF çalışma ortamı yoksa sonuç <code>unavailable</code> kalır ve sistem dönüşüm yapmaz. 3B IFC görüntüleyici kaynak hash + işlem + STEP kimliğiyle incelemeye yardım eder; görüntü geometrisinden teklif miktarı üretmez.
+            PDF ön kontrolündeki <code>signed</code> durumu yalnız imza sözlüğü, ByteRange ve Contents yapısının bulunduğunu gösterir; sertifika güven zinciri, iptal ve zaman damgası doğrulaması değildir. PDF/A kimlik beyanı da tek başına uygunluk sayılmaz: sunucu <code>ifc-worker</code> imajında sabitlenmiş veraPDF 1.30.3 çalıştırılarak ham XML rapor (<code>verapdf_report_xml</code>) ve doğrulama sonucu ayrı kanıt olarak saklanır; çalışma ortamı bulunmayan yerel koşularda sonuç <code>unavailable</code> kalır ve lisanslı dönüşüm sağlayıcısı seçilmeden sistem dosyayı dönüştürmez. 3B IFC görüntüleyici kaynak hash + işlem + STEP kimliğiyle incelemeye yardım eder; görüntü geometrisinden teklif miktarı üretmez.
           </p>
 
           <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl text-xs text-orange-800 font-bold">
@@ -321,13 +328,26 @@ export default function LegislationView() {
           <div className="flex items-start gap-3 bg-orange-50/50 border border-orange-100 p-4 rounded-xl">
             <Info className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-relaxed font-semibold">
-              <strong>Önemli 5D Eşleştirme Kuralı:</strong> Modellerinizde 5D metraj ve teklif köprüsü kurarken IFC yapı elemanlarına <code>TREpys_PozOzellikSeti.PozNo</code> (veya geriye dönük uyumluluk için <code>Tr_Pset_CSB.PozNo</code>) eklenebilir. SmartCheck bu kodu aday olarak okur; birim, semantik, geçerlilik ve kaynak kullanım yetkisi doğrulanmadan fiyat üretmez veya teklifi kilitlemez.
+              <strong>Önemli 5D Eşleştirme Kuralı (6 Resmi Kitap · 18.848 Satır):</strong> Modellerinizde 5D metraj ve teklif köprüsü kurarken IFC yapı elemanlarına <code>TREpys_PozOzellikSeti.PozNo</code> (veya geriye dönük uyumluluk için <code>Tr_Pset_CSB.PozNo</code>) eklenebilir. Sistemde 6 resmi 2026 ÇŞB PDF kitabındaki toplam 18.848 poz ve rayiç satırı SHA-256 özetiyle kayıtlıdır; ancak satır varlığı tek başına ticari kullanım yetkisi, yürürlük dönemi güncelliği veya bağımsız maliyet uzmanı onayı anlamına gelmez. SmartCheck bu kodu aday olarak okur; birim, semantik, geçerlilik ve kaynak kullanım yetkisi doğrulanmadan fiyat üretmez veya teklifi kilitlemez.
             </p>
           </div>
           <div className="mt-3 flex items-start gap-3 border border-amber-500/30 bg-amber-500/5 p-4 rounded-xl">
             <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-relaxed font-semibold">
               <strong>Hakediş kapsam sınırı:</strong> Dönemsel ve kümülatif hakediş çekirdeği pilot/L2 düzeyindedir ve varsayılan olarak kapalıdır. Kaynak ölçüm ve review kayıtları teknik çalışma cetveline bağlanır; çıktı resmî Yeşil Defter, OSKA/AMP uyumluluk belgesi veya EKAP gönderimi değildir. Bu kabuller için izinli vendor dosyası, bağımsız teknik ofis fikstürü ve adlı ihale uzmanı imzası gerekir.
+            </p>
+          </div>
+          <div className="mt-4 rounded-2xl border border-border bg-card p-5 space-y-3" id="capability-registry-summary">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-xs font-extrabold uppercase tracking-wider text-foreground">
+                Tek Kaynaklı Yetenek Kaydı Durumu ({CAPABILITY_REGISTRY_VERSION})
+              </div>
+              <span className="text-[11px] font-mono text-muted-foreground">
+                Canlı (L3/L4): {getLiveCapabilities().length} · Pilot (L2): {getPilotCapabilities().length} · Yol Haritası (L1): {getRoadmapCapabilities().length} · Toplam: {CAPABILITY_REGISTRY.length}
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Bu sayfadaki mevzuat, ön kontrol ve hesap açıklamaları <code>CAPABILITY_REGISTRY</code> ile aynı kanıt sınırını paylaşır; bağımsız uzman imzası tamamlanmadan hiçbir yetenek L3/canlı onaylı olarak sunulmaz.
             </p>
           </div>
         </div>

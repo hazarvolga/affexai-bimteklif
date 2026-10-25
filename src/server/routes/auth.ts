@@ -14,7 +14,7 @@ import { createInitialPaymentOrder } from "../../services/billing/bank-transfer"
 import { formatBillingCycleLabel, normalizeBillingCycle } from "../../services/billing/billing-periods";
 import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
-import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
+import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, isPlatformSuperAdminEmail, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
 import { ADMIN_COOKIE, bodyToken, clearSessionCookies, isSameOriginMutation, parseCookies, restoreAdminSession, setSessionCookies } from "../auth/session-cookie";
 
@@ -121,7 +121,7 @@ export function registerAuthRoutes(app: Express) {
           .limit(1) : [];
         if (intent === "academy" && !edition) throw new Error("ACADEMY_EDITION_UNAVAILABLE");
         const [company] = await tx.insert(companies).values({ name: companyName, isSmartcheckEnabled: true }).returning();
-        const [user] = await tx.insert(users).values({ email, fullName, passwordHash }).returning();
+        const [user] = await tx.insert(users).values({ email, fullName, passwordHash, isSuperAdmin: isPlatformSuperAdminEmail(email) }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
         const trialPlan = await selectTrialPlan(tx);
         const now = new Date();
@@ -195,7 +195,7 @@ export function registerAuthRoutes(app: Express) {
         console.error('Registration persisted; verification delivery must be retried:', error instanceof Error ? error.name : 'UnknownError');
       }
       const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
-      setSessionCookies(res, token);
+      setSessionCookies(res, token, { isSuperAdmin: result.user.isSuperAdmin });
       const pendingPaymentOrder = result.pendingPaymentOrder
         ? (({ createdNow: _createdNow, ...order }) => order)(result.pendingPaymentOrder)
         : null;
@@ -334,6 +334,10 @@ export function registerAuthRoutes(app: Express) {
       const [user] = await db.select().from(users).where(eq(users.email, email));
       if (!user || !(await AuthService.comparePassword(password, user.passwordHash || ""))) {
         return res.status(401).json({ error: "Invalid credentials" });
+      }
+      if (!user.isSuperAdmin && isPlatformSuperAdminEmail(user.email)) {
+        await getControlDatabase().db.update(users).set({ isSuperAdmin: true }).where(eq(users.id, user.id));
+        user.isSuperAdmin = true;
       }
 
       const [membership] = await db.select().from(memberships).where(eq(memberships.userId, user.id)).orderBy(desc(memberships.createdAt));

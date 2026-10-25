@@ -4,10 +4,19 @@ import { toast } from "sonner";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Button } from "../../components/ui/button";
 import { fetchWithAuth } from "../../lib/api";
+import {
+  CAPABILITY_REGISTRY,
+  CAPABILITY_REGISTRY_VERSION,
+  getLiveCapabilities,
+  getPilotCapabilities,
+  getRoadmapCapabilities,
+} from "../../capabilities/registry";
+import { CALC_REVIEW_CHANGELOG } from "./roadmap/calculation-review";
 import { DocSectionView, DocSources, DocToc } from "./roadmap/DocBlocks";
 import { ROADMAP_META, ROADMAP_SECTIONS, ROADMAP_SOURCES } from "./roadmap/roadmap-content";
 
 export function DeveloperRoadmap() {
+  const latestRevision = CALC_REVIEW_CHANGELOG[CALC_REVIEW_CHANGELOG.length - 1]?.revision ?? "Güncel";
   const handleDownloadAllplanKit = async () => {
     try {
       const res = await fetchWithAuth("/api/smartcheck/epys-allplan-kit");
@@ -40,7 +49,7 @@ export function DeveloperRoadmap() {
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">
           <a href="#revizyon-gunlugu">
-            <Button type="button" variant="outline" className="border-amber-500/40 bg-amber-500/10 text-xs font-bold text-amber-200 hover:bg-amber-500/20"><History size={15} className="mr-2" />Kronolojik Revizyon Günlüğü (Rev. 0 → Rev. 5)</Button>
+            <Button type="button" variant="outline" className="border-amber-500/40 bg-amber-500/10 text-xs font-bold text-amber-200 hover:bg-amber-500/20"><History size={15} className="mr-2" />Kronolojik Revizyon Günlüğü (Rev. 0 → {latestRevision})</Button>
           </a>
           <Button type="button" onClick={handleDownloadAllplanKit} className="bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"><Download size={15} className="mr-2" />ALLPLAN 2026 e-PYS Kiti v1</Button>
           <Link to="/admin/roadmap/calculations">
@@ -52,7 +61,11 @@ export function DeveloperRoadmap() {
           <Button type="button" variant="outline" onClick={() => window.print()} className="border-border bg-card text-xs text-foreground"><Printer size={15} className="mr-2" />Yazdır / PDF</Button>
         </div>
       </header>
-      <p className="mb-6 rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground">{ROADMAP_META.status}</p>
+      <p className="mb-3 rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground">{ROADMAP_META.status}</p>
+      <p className="mb-6 rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground">
+        <strong>Tek Kaynaklı Yetenek Kaydı ({CAPABILITY_REGISTRY_VERSION}):</strong>{" "}
+        Canlı (L3/L4): {getLiveCapabilities().length} · Pilot (L2): {getPilotCapabilities().length} · Yol Haritası (L1): {getRoadmapCapabilities().length} · Toplam: {CAPABILITY_REGISTRY.length}. Vitrindeki ifadeler, <code>llms.txt</code> ve <code>site-jsonld.ts</code> bu kayıttan beslenir.
+      </p>
       <div className="space-y-5">
         <DocToc sections={ROADMAP_SECTIONS} />
         {ROADMAP_SECTIONS.map((section, index) => <DocSectionView key={section.id} section={section} index={index} />)}

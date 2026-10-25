@@ -121,7 +121,7 @@ export default function BimGlossary() {
       abbreviation: 'ISO 19005 Conformance Validation',
       turkishName: 'PDF/A Standart Uygunluk Doğrulaması',
       category: 'Teknoloji',
-      definition: 'Bir PDF dosyasının yalnız XMP içindeki pdfaid beyanını okumak yerine font, renk, ek ve diğer ISO 19005 kurallarını bir doğrulayıcıyla sınamasıdır. BIMMetraj harici veraPDF raporunu kaynak SHA-256 ile ayrı kanıt olarak saklar; doğrulayıcı çalışma ortamı yoksa uygunluk üretmez ve lisanslı dönüşüm sağlayıcısı seçilmeden dosyayı dönüştürmez.',
+      definition: 'Bir PDF dosyasının yalnız XMP içindeki pdfaid beyanını okumak yerine font, renk, ek ve diğer ISO 19005 kurallarını bir doğrulayıcıyla sınamasıdır. BIMMetraj sunucu ifc-worker imajında sabitlenmiş veraPDF 1.30.3 çalıştırarak doğrulama sonucunu ve ham XML raporu (verapdf_report_xml) kaynak SHA-256 ile ayrı kanıt olarak saklar; çalışma ortamı bulunmayan yerel koşularda uygunluk üretmez ve lisanslı dönüşüm sağlayıcısı seçilmeden dosyayı dönüştürmez.',
       englishTranslation: 'PDF/A Conformance Validation',
       isoRole: 'PDF/A kimlik beyanı, standart uygunluk doğrulaması ve dönüştürülmüş türev dosya birbirinden ayrı izlenir.',
       importance: 'Çok Yüksek'
@@ -161,7 +161,7 @@ export default function BimGlossary() {
       abbreviation: 'Construction Operations Building Information Exchange',
       turkishName: 'Yapım Operasyonları Bina Bilgi Değişimi',
       category: 'Mali & Yönetim',
-      definition: 'Yapı elemanlarının marka, model, seri numarası, yedek parça ve garanti bilgilerini içeren, inşaat tamamlandığında tesis işletme ekiplerine (FM) teslim edilen standart e-tablo verisidir.',
+      definition: 'Yapı elemanlarının marka, model, seri numarası, yedek parça ve bakım periyodu bilgilerini içeren, inşaat tamamlandığında tesis işletme ekiplerine (FM) teslim edilen standart e-tablo verisidir.',
       englishTranslation: 'Construction Operations Building Information Exchange',
       isoRole: 'Yatırımın işletme aşamasına (CAFM/IWMS yazılımları) sorunsuz aktarılmasını sağlar.',
       importance: 'Yüksek'
@@ -284,13 +284,13 @@ export default function BimGlossary() {
       tip: "Bu doküman ihale şartnamesinin teknik ekidir."
     },
     {
-      question: "Farklı yazılımlar arasında veri kaybı olmadan model paylaşımını sağlayan açık veri formatı hangisidir?",
+      question: "Farklı yazılımlar arasında standart şema yapısıyla model paylaşımını sağlayan açık veri formatı hangisidir?",
       options: ["RVT", "DWG", "IFC", "PDF"],
       answer: "IFC",
       tip: "BuildingSMART tarafından openBIM standardı olarak geliştirilmiştir."
     },
     {
-      question: "Tesis işletme ekiplerine marka, model ve garanti bilgilerini teslim etmek için kullanılan standart e-tablo formatı hangisidir?",
+      question: "Tesis işletme ekiplerine marka, model ve bakım periyodu bilgilerini teslim etmek için kullanılan standart e-tablo formatı hangisidir?",
       options: ["COBie", "LOD 300", "BEP", "OIR"],
       answer: "COBie",
       tip: "Bu döküman Excel formatında FM (Facility Management) ekiplerine sunulur."
@@ -541,7 +541,7 @@ export default function BimGlossary() {
                 <p className="text-sm font-bold text-foreground">Skorunuz: <span className="text-primary text-lg">{score} / {quizQuestions.length}</span></p>
                 <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
                   {score === quizQuestions.length 
-                    ? "Tebrikler! Kusursuz bir BIM uzmanısınız. Tüm standartlara hakimsiniz!" 
+                    ? "Tebrikler! Tüm soruları doğru yanıtladınız ve temel BIM kavramlarına güçlü bir başlangıç yaptınız." 
                     : score >= 3 
                     ? "Harika! BIM temelleriniz oldukça güçlü. Kendinizi geliştirmeye devam edin." 
                     : "Başlangıç için fena değil! Terimler sözlüğündeki detayları okuyarak bilginizi tazeleyebilirsiniz."}

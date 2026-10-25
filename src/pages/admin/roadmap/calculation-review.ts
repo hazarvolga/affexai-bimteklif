@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.70",
+  version: "BIM-CALC-2026-10-25.71",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "e36a8bd8946dfde18b7a5e8ea954ec0786714641",
-  approvalStatus: "Rev. 76, T41 0022 (14 iş tablosu FORCE RLS), T32 veraPDF 1.30.3 runtime + 7/7 PDF/A-2b fixture matrisi, T46/GEO-03 tek kaynaklı site JSON-LD ve T43 c8 kapsam kapısı + Playwright E2E dallarını main üzerinde birleştirir. Bu yalnızca kanıt toplama ve çalışma sırasıdır; bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "405d2bc69be1780e1f8d38e83559560515269964",
+  approvalStatus: "Rev. 77, T46 tek kaynaklı ürün doğruluğu kapısını mevzuat, sözlük ve admin yüzeylerinde tamamlar; T41 0022 (36 tablo FORCE RLS), T32 veraPDF 1.30.3 runtime + 7/7 PDF/A-2b matrisi ve T43 c8 kapsam kapısı + Playwright E2E main üzerindedir. Bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan tenant RLS dilimleri tamamlanmadığından T41 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1684,6 +1684,16 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         basis: "ISO 19005-2 (PDF/A-2b) & Dijital Hazırlama Yön. m.7",
       },
     },
+  },
+  {
+    revision: "Rev. 77",
+    version: "BIM-CALC-2026-10-25.71",
+    date: "25 Ekim 2026",
+    commit: "405d2bc69be1780e1f8d38e83559560515269964",
+    trigger: "GAP planı T46 üçüncü dilimi ve tam kapanışı: mevzuat, sözlük ve admin yüzeylerinin CAPABILITY_REGISTRY tek kaynağına hizalanması.",
+    beforeSummary: "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında sabit 'Rev. 5' ifadesi, AdminDashboard.tsx'te 'TeklifPro' adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler vardı.",
+    afterSummary: "LegislationView.tsx doğrudan CAPABILITY_REGISTRY'den canlı/pilot/yol haritası sayılarını ve 18.848 resmi katalog satır sınırını üretir; DeveloperRoadmap.tsx ve CalculationMethods.tsx son revizyonu CALC_REVIEW_CHANGELOG'dan dinamik okur; public-copy.test.ts mevzuat, sözlük ve admin yüzeylerini de kapsar. Hesap yöntemleri değişmedi.",
+    affectedModules: [],
   },
 ];
 

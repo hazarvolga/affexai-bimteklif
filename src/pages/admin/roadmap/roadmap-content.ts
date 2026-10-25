@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (25 Ekim 2026 · Rev. 76 geliştirme)",
+    title: "Uygulama durumu (25 Ekim 2026 · Rev. 77 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -274,17 +274,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 67 · 13–24 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 77 · 13–25 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 67)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 24 Ekim 2026 Rev. 67 · BIM-CALC-2026-10-24.61 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43/T44, worker canary ve production cutover açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL, production deploy NO-GO'dur.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 77)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 77 · BIM-CALC-2026-10-25.71 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimleri açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 67):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 77):",
       },
       {
         type: "table",
@@ -748,10 +748,16 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T46 ikinci dilimi: index.html'deki elle yazılmış Organization/SoftwareApplication JSON-LD'si artık yalnız yerel geliştirme yedeğidir; üretimde sunucu bu grafiği her sayfada yetenek kaydının canlı/pilot kayıtlarından ve yayındaki plan kataloğundan üretir, yol haritasındaki yetenekler özellik listesine girmez. GEO-03: Organization'a areaServed TR eklendi; gerçek profil olmadan sameAs, puan veya yorum yazılmaz. Landing, kayıtta canlı yetenek ve bağımsız uzman onayı yokken 'canlı özellikler doğrulanmıştır' diyordu; metin pilot durumunu ve uzman onayı olmadığını söyleyecek şekilde düzeltildi. Genel sayfalarda doğrulanmamış uygunluk, doğruluk ve tekillik iddialarını engelleyen kapı testi (public-copy.test.ts) eklendi. Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 76 (Güncel geliştirme)",
+            "Rev. 76",
             "25 Ekim 2026 (T41 0022 14 iş tablosu FORCE RLS, T32 veraPDF 1.30.3 runtime & 7/7 PDF/A matrisi, T43 c8 kapsam kapısı ve Playwright E2E)",
-            "BIM-CALC-2026-10-25.70",
+            "BIM-CALC-2026-10-25.70 (405d2bc)",
             "1) T41 (PR #20): 0022_tenant_business_rls.sql ile 14 tenant iş tablosu daha (crm_contacts, crm_opportunities, crm_tasks, crm_notes, crm_activities, payment_methods, invoices, billing_bank_transfer_requests, suppliers, supplier_rfqs, supplier_quotes, price_observations, price_history, material_price_predictions) FORCE RLS altına alındı (22 → 36 tablo) ve 72 company_id tablosunun tam envanteri çıkarıldı. 2) T32 (PR #17): ifc-worker imajına sabitlenmiş veraPDF 1.30.3 (SHA-256 b512bf24…9a59, GPLv3+/MPLv2+ çift lisans) gömüldü, ham XML rapor verapdf_report_xml artifact'ı olarak saklanıyor ve 7 vakalık PDF/A-2b fixture matrisi (yalnız XMP etiketi PASS almaz) imaj içinde doğrulandı. 3) T43 (PR #18): c8 tüm-dosya kapsam raporu (%46,80 satır, 7 kritik kapsam tabanı), REQUIRE_TEST_DATABASE=true ve 6 gerçek tarayıcı Playwright E2E senaryosu (giriş, teklif+PDF, SmartCheck IFC, admin roadmap) CI hattına birleştirildi.",
+          ],
+          [
+            "Rev. 77 (Güncel geliştirme)",
+            "25 Ekim 2026 (T46 Üçüncü Dilim ve Tam Kapanış: Mevzuat, Sözlük ve Admin Metinlerinin Tek Kaynağa Hizalanması)",
+            "BIM-CALC-2026-10-25.71",
+            "T46 tamamlandı: 1) LegislationView.tsx doğrudan CAPABILITY_REGISTRY'ye bağlandı; 6 resmi kitap / 18.848 satır kapsamı küçültülmeden yapısal satır varlığı ile ticari kullanım lisansı, yürürlük dönemi ve uzman onayı ayrımı gösterildi; veraPDF 1.30.3 + verapdf_report_xml akışı hizalandı. 2) BimGlossary.tsx, BimDashboard.tsx, DeveloperRoadmap.tsx, CalculationMethods.tsx, AdminDashboard.tsx ve PricingSources.tsx üzerindeki eski sabit 'Rev. 5', 'TeklifPro' ve doğrulanmamış ifadeler temizlenerek public-copy.test.ts kapısına dahil edildi. 3) Eski dış raporlardaki '103 poz', 'CDE yok', 'Rev35 canlı' teşhisleri tarihî kayıtlar yeniden yazılmadan docs/audits/phase-8/PHASE_8_T46_SINGLE_SOURCE_COPY_2026-10-25.md kanıt dosyasıyla kayıt altına alındı.",
           ],
         ],
       },
@@ -1398,6 +1404,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) CRM, ödeme/fatura ve tedarik/piyasa zekâsındaki 14 iş tablosu yalnızca uygulama katmanında company_id filtresine güveniyordu. 2) ifc-worker imajında gerçek veraPDF CLI çalışma zamanı yoktu ve ham XML doğrulama raporu ayrı artifact olarak saklanmıyordu. 3) CI'da tüm-dosya kapsam raporu/ratchet kapısı ve gerçek tarayıcı Playwright E2E koşusu yoktu.",
             "1) 0022_tenant_business_rls.sql ile 14 iş tablosuna ENABLE+FORCE RLS, app tenant ALL, backup SELECT, migrator-owner ALL ve worker/control default-deny politikaları eklendi; crm.ts, billing.ts ve market-intelligence.ts istek yolları withAppTenant/withAppTenantTransaction sınırına taşındı. 2) Dockerfile ifc-worker aşamasına SHA-256 sabitli veraPDF 1.30.3 eklendi; pdf-artifacts.ts ile pdf_preflight, verapdf_validation ve verapdf_report_xml üçlü artifact zinciri ve 7 vakalık PDF/A-2b fixture matrisi kuruldu. 3) .c8rc.json, coverage-thresholds.json, scripts/ci/coverage-gate.ts, REQUIRE_TEST_DATABASE=true ve 4 Playwright E2E spec'i (6/6) verify.yml hattına birleştirildi.",
             "drizzle-release/0022_tenant_business_rls.sql, src/contracts/tenant-business-rls.pgtest.ts, src/server/routes/crm.ts, src/server/routes/billing.ts, src/server/routes/market-intelligence.ts, Dockerfile, src/smartcheck/import/pdf-artifacts.ts, src/smartcheck/pdf/pdfa-fixture-matrix.ts, .c8rc.json, coverage-thresholds.json, scripts/ci/coverage-gate.ts, e2e/*, .github/workflows/verify.yml",
+          ],
+          [
+            "Rev. 77 · 25 Ekim 2026 (T46 mevzuat, sözlük ve admin metinlerinin tek kaynağa hizalanması)",
+            "GAP planı T46 üçüncü dilimi (SEO-01, SEO-02, GAP-01)",
+            "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında eski 'Rev. 5' ifadesi, AdminDashboard.tsx'te 'TeklifPro' adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler bulunuyordu.",
+            "LegislationView.tsx doğrudan CAPABILITY_REGISTRY'den canlı/pilot/yol haritası sayılarını ve 18.848 resmi katalog satır sınırını gösterir; DeveloperRoadmap.tsx ve CalculationMethods.tsx son revizyonu CALC_REVIEW_CHANGELOG'dan dinamik okur; public-copy.test.ts mevzuat, sözlük ve admin yüzeylerini de kapsayacak şekilde genişletildi ve PHASE_8_T46_SINGLE_SOURCE_COPY_2026-10-25.md kanıt dosyası oluşturuldu.",
+            "src/components/bimplan/LegislationView.tsx, src/components/bimplan/BimGlossary.tsx, src/components/bimplan/BimDashboard.tsx, src/pages/admin/DeveloperRoadmap.tsx, src/pages/admin/CalculationMethods.tsx, src/pages/admin/AdminDashboard.tsx, src/pages/admin/PricingSources.tsx, src/pages/public-copy.test.ts, docs/audits/phase-8/PHASE_8_T46_SINGLE_SOURCE_COPY_2026-10-25.md",
           ],
         ],
       },

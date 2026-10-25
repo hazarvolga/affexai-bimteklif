@@ -1329,22 +1329,22 @@ export function PricingSources() {
                   className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="csb_2026_mart_insaat_bf">
-                    ÇŞB 2026 Mart Güncel İnşaat Birim Fiyat Listesi (PDF — 15.xxx.xxxx · 1.861 / 1.861 Tam Poz · %100)
+                    ÇŞB 2026 Mart Güncel İnşaat Birim Fiyat Listesi (PDF — 15.xxx.xxxx · 1.861 / 1.861 Satır)
                   </option>
                   <option value="csb_2026_mart_insaat_rayic">
-                    ÇŞB 2026 Mart Güncel İnşaat Rayiç Fiyat Listesi (PDF — 10.xxx.xxxx · 5.360 / 5.360 Tam Rayiç · %100)
+                    ÇŞB 2026 Mart Güncel İnşaat Rayiç Fiyat Listesi (PDF — 10.xxx.xxxx · 5.360 / 5.360 Satır)
                   </option>
                   <option value="csb_2026_mart_mekanik_bf">
-                    ÇŞB 2026 Mart Güncel Mekanik Tesisat Birim Fiyat Listesi (PDF — 25.xxx.xxxx · 5.678 / 5.678 Tam Poz · %100)
+                    ÇŞB 2026 Mart Güncel Mekanik Tesisat Birim Fiyat Listesi (PDF — 25.xxx.xxxx · 5.678 / 5.678 Satır)
                   </option>
                   <option value="csb_2026_mart_elektrik_bf">
-                    ÇŞB 2026 Mart Güncel Elektrik Tesisat Birim Fiyat Listesi (PDF — 35.xxx.xxxx · 5.910 / 5.910 Tam Poz · %100)
+                    ÇŞB 2026 Mart Güncel Elektrik Tesisat Birim Fiyat Listesi (PDF — 35.xxx.xxxx · 5.910 / 5.910 Satır)
                   </option>
                   <option value="csb_2026_yapi_yaklasik_maliyet">
-                    ÇŞB 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Tebliği (PDF — 18 / 18 Yapı Sınıfı I-A..V-E TL/m² · %100)
+                    ÇŞB 2026 Yılı Yapı Yaklaşık Birim Maliyetleri Tebliği (PDF — 18 / 18 Yapı Sınıfı I-A..V-E TL/m²)
                   </option>
                   <option value="csb_2026_tuik_endeks_eslestirme">
-                    ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (PDF — 21 / 21 Ana TÜİK Alt Endeksi · %100)
+                    ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (PDF — 21 / 21 Ana TÜİK Alt Endeksi)
                   </option>
                 </select>
                 <Button
@@ -1842,7 +1842,7 @@ export function PricingSources() {
                 </p>
               </div>
               <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
-                {coverageReport?.fullCoverageBooks ?? 6} / {coverageReport?.totalBooks ?? 6} Kitap Yayında (%100 Kapsam)
+                {coverageReport?.fullCoverageBooks ?? 6} / {coverageReport?.totalBooks ?? 6} Kitap Yayında (18.848 / 18.848 Satır)
               </span>
             </div>
 
@@ -2042,7 +2042,7 @@ export function PricingSources() {
               </span>
             </div>
             <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed">
-              4735 sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkı kararnamesi ve dönem dışı resmi poz güncellemeleri için ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 ana TÜİK alt endeksi (<code className="text-purple-300">csb_2026_tuik_endeks_eslestirme</code>) sistemde %100 kapsamla mühürlüdür.
+              4735 sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkı kararnamesi ve dönem dışı resmi poz güncellemeleri için ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 ana TÜİK alt endeksi (<code className="text-purple-300">csb_2026_tuik_endeks_eslestirme</code>) sistemde 21 / 21 satırın tamamıyla SHA-256 mühürlüdür.
             </p>
           </div>
 

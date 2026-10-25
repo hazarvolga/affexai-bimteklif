@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from './registration';
+import { isPlatformSuperAdminEmail, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from './registration';
 
 describe('registration boundary', () => {
   it('normalizes an Academy learner registration without requiring an organization', () => {
@@ -35,6 +35,14 @@ describe('registration boundary', () => {
     assert.equal(parseSelectedPlanId({ planId: '2b507e20-83d1-4b21-9fc1-000000000001' }), '2b507e20-83d1-4b21-9fc1-000000000001');
     assert.equal(parseSelectedPlanId({ selectedPlanId: 'not-a-uuid' }), null);
     assert.equal(parseSelectedPlanId({}), null);
+  });
+
+  it('recognizes the canonical platform super-admin email case-insensitively', () => {
+    assert.equal(isPlatformSuperAdminEmail('hazarvolga@gmail.com'), true);
+    assert.equal(isPlatformSuperAdminEmail('  HazarVolga@Gmail.COM '), true);
+    assert.equal(isPlatformSuperAdminEmail('user@example.com'), false);
+    assert.equal(isPlatformSuperAdminEmail(''), false);
+    assert.equal(isPlatformSuperAdminEmail(null), false);
   });
 });
 

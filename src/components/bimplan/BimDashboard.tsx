@@ -459,7 +459,7 @@ export default function BimDashboard() {
                 <p className="text-[10px] text-muted-foreground font-semibold leading-normal pt-1 italic">
                   {bimLevel === 0 && 'Geleneksel CAD çizimi. Koordinasyon ve veri transferi getirisi bulunmaz.'}
                   {bimLevel === 1 && 'Kısmi 3D modelleme. Sınırlı işbirliği, veriler silolar halinde saklanır.'}
-                  {bimLevel === 2 && 'ISO 19650 standartlarına tam uyumlu, Ortak Veri Ortamı (CDE) yönetimli işbirlikçi BIM.'}
+                  {bimLevel === 2 && 'ISO 19650 bilgi konteyneri ve durum geçiş kurallarını destekleyen, Ortak Veri Ortamı (CDE) yönetimli işbirlikçi BIM.'}
                   {bimLevel === 3 && 'Tesis işletmesine entegre COBie veritabanı, bulut e-PYS sistemleri ve yaşayan Dijital İkiz.'}
                 </p>
               </div>

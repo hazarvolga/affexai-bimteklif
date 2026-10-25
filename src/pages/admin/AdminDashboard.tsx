@@ -24,7 +24,7 @@ export function AdminDashboard() {
 
   return (
     <PageContainer>
-      <PageHeader title="Platform Genel Bakış" description="TeklifPro platformunun genel durumunu, aktif firmaları ve gelir metriklerini takip edin." icon={LayoutDashboard} />
+      <PageHeader title="Platform Genel Bakış" description="BIMMetraj platformunun genel durumunu, aktif firmaları ve gelir metriklerini takip edin." icon={LayoutDashboard} />
       
       {loading ? (
         <div className="flex h-40 items-center justify-center text-muted-foreground">Yükleniyor...</div>

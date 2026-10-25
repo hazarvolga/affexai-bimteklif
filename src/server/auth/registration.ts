@@ -50,6 +50,15 @@ export function parseRegistrationInput(value: unknown): RegistrationInput | null
   };
 }
 
+export const PLATFORM_SUPER_ADMIN_EMAILS = Object.freeze(['hazarvolga@gmail.com'] as const);
+
+export function isPlatformSuperAdminEmail(email: unknown): boolean {
+  if (typeof email !== 'string') return false;
+  const normalized = email.trim().toLocaleLowerCase('en-US');
+  if (!normalized) return false;
+  return PLATFORM_SUPER_ADMIN_EMAILS.includes(normalized as (typeof PLATFORM_SUPER_ADMIN_EMAILS)[number]);
+}
+
 export function publicRegisteredUser<T extends { id: unknown; email: unknown; fullName: unknown; createdAt: unknown; emailVerified?: unknown; isSuperAdmin?: unknown }>(user: T) {
   return { id: user.id, email: user.email, fullName: user.fullName, emailVerified: user.emailVerified ?? null, createdAt: user.createdAt, isSuperAdmin: user.isSuperAdmin ?? false };
 }
