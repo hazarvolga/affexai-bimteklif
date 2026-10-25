@@ -15,9 +15,9 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   `db-provision` (`compose.coolify.yaml`, `docs/operations/database-role-model.md`).
   The manual cutover runbook in `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md` is now
   history.
-- **Not yet confirmed after the cutover (Hazar):** secret rotation after the
-  2026-10-24 Developer View exposure (S3/backup keys, SMTP, PostgreSQL service
-  password, JWT secret); `scripts/role-model-smoke.ts` against production;
+- Secret rotation after the 2026-10-24 Developer View exposure (S3/backup keys,
+  SMTP, PostgreSQL service password, JWT secret): **done by Hazar, 2026-10-25**.
+- **Not yet confirmed after the cutover (Hazar):** `scripts/role-model-smoke.ts` against production;
   login/tenant/worker/IFC worker smoke; a backup → restore drill on the new role
   model; worker canary/drain followed by the authority-table ACL revoke (T41).
   Do not open Developer View again.
@@ -29,7 +29,10 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 74** (`BIM-CALC-2026-10-25.68`): T46 first slice (llms.txt
+- Latest roadmap revision: **Rev. 75** (`BIM-CALC-2026-10-25.69`): site JSON-LD generated from the
+  registry and plan catalog, landing claims trimmed, public-copy guard test, `areaServed` TR.
+  Not deployed yet.
+  Rev. 74 (`BIM-CALC-2026-10-25.68`): T46 first slice (llms.txt
   capabilities only from the registry, package prices from the plan catalog) and T48 (server
   text prerendered inside `#root` instead of `<noscript>`). Not deployed yet.
   Rev. 73 (`BIM-CALC-2026-10-25.67`): Faz 8 SEO/GEO code items
@@ -94,7 +97,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Open items owned by Hazar
 
-Secret rotation and post-cutover checks (above), real named expert
+Post-cutover checks (above), real named expert
 sign-offs (engineer, tax/tender), permitted real IFC/PDF/Excel files for the
 expert trial, card-payment provider and legal texts, external security review,
 DKIM, YFK licence, AI provider keys.
