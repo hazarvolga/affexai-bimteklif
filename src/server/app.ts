@@ -321,7 +321,7 @@ export async function startServer() {
     try {
       await pruneExpiredRateLimits();
       if (process.env.NODE_ENV === "production") return;
-      const existingCompany = await db.query.companies.findFirst();
+      const existingCompany = await getControlDatabase().db.query.companies.findFirst();
       if (!existingCompany) {
         logger.info("Seeding initial company and admin...");
         const controlDb = getControlDatabase().db;

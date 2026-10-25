@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { companies, plans, subscriptions, usageAlerts } from "../../db/schema";
@@ -67,8 +68,12 @@ export function registerBillingRoutes(app: Express) {
   });
 
   app.get("/api/billing/subscription", authenticate, async (req, res) => {
-    const sub = await db.query.subscriptions.findFirst({ where: eq(subscriptions.companyId, req.user.companyId) });
-    res.json(sub);
+    try {
+      const sub = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.query.subscriptions.findFirst({ where: eq(subscriptions.companyId, req.user.companyId) }));
+      res.json(sub ?? null);
+    } catch {
+      res.status(503).json({ error: "Abonelik bilgisi alınamadı.", code: "BILLING_SUBSCRIPTION_UNAVAILABLE" });
+    }
   });
 
   app.get("/api/billing/plans", (_req, res) => {
@@ -77,7 +82,7 @@ export function registerBillingRoutes(app: Express) {
 
   app.get("/api/billing/usage-stats", authenticate, async (req, res) => {
     try {
-      res.json(await readBillingUsage(req.user.companyId));
+      res.json(await readBillingUsage(tenantOf(req.user)));
     } catch {
       res.status(503).json({ error: "Failed to fetch usage stats", code: "BILLING_USAGE_UNAVAILABLE" });
     }
@@ -104,11 +109,11 @@ export function registerBillingRoutes(app: Express) {
         const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
         const billingCycle = normalizeBillingCycle(req.body?.billingCycle);
         if (!planId) return res.status(400).json({ error: "Paket seçimi zorunludur." });
-        const [company] = await db
+        const [company] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb
           .select({ id: companies.id, name: companies.name })
           .from(companies)
           .where(eq(companies.id, req.user.companyId))
-          .limit(1);
+          .limit(1));
         if (!company) return res.status(404).json({ error: "Şirket bulunamadı." });
         const result = await createInitialPaymentOrder({
           companyId: company.id,

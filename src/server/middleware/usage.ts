@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { db } from "../../db";
+import { withAppTenantTransaction } from "../../db/app-tenant";
 import { checkQuotationQuota, QuotaError } from "../../services/billing/quota";
 import { quotaUnavailable } from "../../services/billing/quota-policy";
 import { recordUsage } from "../../services/billing/usage-audit";
@@ -10,7 +10,7 @@ import { releaseFeatureUsage, reserveFeatureUsage } from "../../services/billing
 export { PLAN_LIMITS } from "../../services/billing/limits";
 
 type UsageDependencies = {
-  checkQuota(companyId: string): Promise<unknown>;
+  checkQuota(companyId: string, userId: string): Promise<unknown>;
   logUsage(companyId: string, userId: string, feature: string): Promise<unknown>;
   reserveAiQuota?(companyId: string, userId: string): Promise<unknown>;
   reserveFeatureQuota?(companyId: string, userId: string, feature: MeteredFeature): Promise<{ id: string }>;
@@ -20,7 +20,7 @@ type UsageDependencies = {
 const isSuccess = (status: number) => status >= 200 && status < 300;
 
 export const createUsageTracker = (dependencies: UsageDependencies = {
-  checkQuota: companyId => db.transaction(tx => checkQuotationQuota(tx, companyId)),
+  checkQuota: (companyId, userId) => withAppTenantTransaction({ companyId, userId }, tx => checkQuotationQuota(tx, companyId)),
   logUsage: recordUsage,
   reserveAiQuota: reserveAiUsage,
   reserveFeatureQuota: reserveFeatureUsage,
@@ -29,7 +29,7 @@ export const createUsageTracker = (dependencies: UsageDependencies = {
   try {
     const { companyId, userId } = req.user;
     // Preflight is advisory UX only; the creation transaction owns quota consumption.
-    if (feature === "QUOTATION_CREATED") await dependencies.checkQuota(companyId);
+    if (feature === "QUOTATION_CREATED") await dependencies.checkQuota(companyId, userId);
     if (feature === AI_USAGE_FEATURE) {
       if (!dependencies.reserveAiQuota) throw new QuotaError(503, 'AI_QUOTA_UNAVAILABLE', 'AI quota is temporarily unavailable');
       await dependencies.reserveAiQuota(companyId, userId);

@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PgDialect } from 'drizzle-orm/pg-core';
-import { db } from '../../db';
+import { COMPANY_SUMMARY_COLUMNS, companyReads } from '../../services/company/company-reads';
 import { authenticate } from '../middleware/auth';
 import { registerCompanyRoutes } from './company';
 
@@ -31,7 +30,7 @@ test('company rejects anonymous requests before reading company data', async () 
 });
 
 test('company rejects tenantless sessions without a company query', async (t) => {
-  const query = t.mock.method(db.query.companies, 'findFirst', async () => { throw new Error('must not query'); });
+  const query = t.mock.method(companyReads, 'findSummary', async () => { throw new Error('must not query'); });
   const res = response();
   await handlers()[1]({ user: { companyId: null, isSuperAdmin: true } }, res);
   assert.equal(res.statusCode, 403);
@@ -41,26 +40,25 @@ test('company rejects tenantless sessions without a company query', async (t) =>
 test('company lookup uses only session tenant and an explicit minimal DTO projection', async (t) => {
   const companyId = '22222222-2222-4222-8222-222222222222';
   const dto = { id: companyId, name: 'Own workspace', logoUrl: null, defaultCurrency: 'TRY', defaultVatRate: 20 };
-  t.mock.method(db.query.companies, 'findFirst', async (query: any) => {
-    const sql = new PgDialect().sqlToQuery(query.where);
-    assert.deepEqual(sql.params, [companyId]);
-    assert.match(sql.sql, /"companies"\."id" =/);
-    assert.deepEqual(query.columns, { id: true, name: true, logoUrl: true, defaultCurrency: true, defaultVatRate: true });
+  const userId = '33333333-3333-4333-8333-333333333333';
+  t.mock.method(companyReads, 'findSummary', async (actor: any) => {
+    assert.deepEqual(actor, { companyId, userId });
     return dto;
   });
+  assert.deepEqual(COMPANY_SUMMARY_COLUMNS, { id: true, name: true, logoUrl: true, defaultCurrency: true, defaultVatRate: true });
   const res = response();
-  await handlers()[1]({ user: { companyId }, query: { companyId: 'other-tenant' } }, res);
+  await handlers()[1]({ user: { companyId, userId }, query: { companyId: 'other-tenant' } }, res);
   assert.deepEqual(res.body, dto);
 });
 
 test('company query failure returns a generic error and absent company returns null', async (t) => {
-  const query = t.mock.method(db.query.companies, 'findFirst', async (): Promise<any> => { throw new Error('private database details'); });
+  const query = t.mock.method(companyReads, 'findSummary', async (): Promise<any> => { throw new Error('private database details'); });
   const res = response();
-  await handlers()[1]({ user: { companyId: 'tenant' } }, res);
+  await handlers()[1]({ user: { companyId: 'tenant', userId: 'user' } }, res);
   assert.equal(res.statusCode, 500);
   assert.deepEqual(res.body, { error: 'Failed to fetch company' });
   query.mock.mockImplementation(async () => undefined);
   const missing = response();
-  await handlers()[1]({ user: { companyId: 'tenant' } }, missing);
+  await handlers()[1]({ user: { companyId: 'tenant', userId: 'user' } }, missing);
   assert.equal(missing.body, null);
 });

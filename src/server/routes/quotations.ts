@@ -6,6 +6,7 @@ import { manualQuotationInput, quotationStatusInput } from "../../services/quota
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
+import { tenantOf } from "../../db/app-tenant";
 import { PdfRenderError } from "../../services/pdf/renderer";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
@@ -105,7 +106,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
     try {
       const parsed = manualQuotationInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: "Invalid quotation input", issues: parsed.error.issues });
-      const newQuote = await createManualQuotation(req.user.companyId, parsed.data);
+      const newQuote = await createManualQuotation(tenantOf(req.user), parsed.data);
       await auditQuotation(req, "quotation.created", newQuote.id);
       res.json(newQuote);
     } catch (error) {
@@ -183,7 +184,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       });
       if (!quote) return res.status(404).json({ error: "Quotation not found" });
 
-      const pdfBuffer = await generateQuotationPdf(id, templateId as string, req.user.companyId, req.query.includeEvidence === "true", controller.signal);
+      const pdfBuffer = await generateQuotationPdf(id, templateId as string, tenantOf(req.user), req.query.includeEvidence === "true", controller.signal);
       if (controller.signal.aborted || res.destroyed) return;
 
       res.setHeader("Content-Type", "application/pdf");

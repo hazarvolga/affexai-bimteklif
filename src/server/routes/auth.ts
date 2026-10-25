@@ -1,4 +1,5 @@
 import { deliverTransactionalEmail } from '../auth/email-delivery';
+import { withAppTenant } from "../../db/app-tenant";
 import type { EmailRenderContext } from '../auth/email-templates';
 import { assertAuthEmailAvailable, requireAuthEmailDelivery, EmailDeliveryError } from "../auth/email-policy";
 import { stageAndDeliverAuthAction } from '../auth/action-email';
@@ -336,7 +337,9 @@ export function registerAuthRoutes(app: Express) {
       }
 
       const [membership] = await db.select().from(memberships).where(eq(memberships.userId, user.id)).orderBy(desc(memberships.createdAt));
-      const company = membership ? await db.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }) : null;
+      const company = membership
+        ? await withAppTenant({ companyId: membership.companyId, userId: user.id }, (tenantDb) => tenantDb.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }))
+        : null;
 
       const token = AuthService.generateToken({
         userId: user.id,
@@ -360,7 +363,9 @@ export function registerAuthRoutes(app: Express) {
         ? await db.select().from(memberships).where(and(eq(memberships.userId, req.user.userId), eq(memberships.companyId, req.user.companyId)))
         : [];
       if (req.user.companyId && !membership) return res.status(403).json({ error: "Forbidden: Company membership required" });
-      const company = membership ? await db.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }) : null;
+      const company = membership
+        ? await withAppTenant({ companyId: membership.companyId, userId: req.user.userId }, (tenantDb) => tenantDb.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }))
+        : null;
       if (membership && !company) return res.status(403).json({ error: "Forbidden: Company unavailable" });
       const learner = await db.query.academyLearnerProfiles.findFirst({ where: req.user.companyId
         ? and(eq(academyLearnerProfiles.userId, req.user.userId), eq(academyLearnerProfiles.companyId, req.user.companyId))

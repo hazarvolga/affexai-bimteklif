@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { db } from '../../db';
+import { getControlDatabase } from '../../db/control-plane';
 import { registerAdminRoutes } from '../routes/admin';
 
 const now = '2026-11-01T00:30:00Z';
@@ -13,18 +14,25 @@ const row = (overrides = {}) => ({
   current_period_end: null, current_usage: '7', invalid_usage: false, ...overrides,
 });
 
-async function read(t: TestContext, rows: unknown[]) {
+type Row = ReturnType<typeof row>;
+
+// Companies, subscriptions and plans come from the control plane (FORCE RLS tables); usage
+// counters come from the app role. Each mock answers only its own query.
+async function read(t: TestContext, rows: Row[]) {
   const queries: { sql: string; params: unknown[] }[] = [];
-  const execute = async (query: any) => {
+  const answering = (result: unknown[]) => async (query: any) => {
     const compiled = new PgDialect().sqlToQuery(query);
     queries.push(compiled);
-    return { rows: compiled.sql.includes('clock_timestamp()') ? [{ now }] : rows };
+    return { rows: compiled.sql.includes('clock_timestamp()') ? [{ now }] : result };
   };
-  t.mock.method(db, 'execute', execute as any);
-  t.mock.method(db, 'transaction', (async (callback: any, options: unknown) => {
+  const companyRows = rows.map(({ current_usage: _usage, invalid_usage: _invalid, ...company }) => company);
+  const usageRows = rows.map(r => ({ company_id: r.id, quote_count: r.current_usage, ifc_count: '0', invalid_usage: r.invalid_usage }));
+  const controlExecute = answering(companyRows);
+  t.mock.method(getControlDatabase().db, 'transaction', (async (callback: any, options: unknown) => {
     assert.deepEqual(options, { isolationLevel: 'repeatable read', accessMode: 'read only' });
-    return callback({ execute });
+    return callback({ execute: controlExecute });
   }) as any);
+  t.mock.method(db, 'execute', answering(usageRows) as any);
   let handler: any;
   const app: any = {
     use(prefix: string, router: any) {
@@ -57,11 +65,13 @@ test('admin tenant quota uses authoritative legacy allowance and numeric summed 
 
 test('admin tenant query aggregates duplicates before joining and uses DB-clock UTC month', async t => {
   const { res, queries } = await read(t, [row()]);
-  const query = queries.find(query => /FROM companies c/.test(query.sql))!;
-  assert.match(query.sql, /SUM\(quote_count\)/i);
-  assert.match(query.sql, /GROUP BY company_id/i);
-  assert.ok(query.params.includes('2026-11'));
-  assert.doesNotMatch(query.sql, /CURRENT_DATE/i);
+  const companiesQuery = queries.find(query => /FROM companies c/.test(query.sql))!;
+  const usageQuery = queries.find(query => /FROM usage_records/.test(query.sql))!;
+  assert.doesNotMatch(companiesQuery.sql, /usage_records/i);
+  assert.match(usageQuery.sql, /SUM\(quote_count\)/i);
+  assert.match(usageQuery.sql, /GROUP BY company_id/i);
+  assert.ok(usageQuery.params.includes('2026-11'));
+  assert.doesNotMatch(usageQuery.sql + companiesQuery.sql, /CURRENT_DATE/i);
   assert.equal(res.body[0].quota_period, '2026-11');
 });
 

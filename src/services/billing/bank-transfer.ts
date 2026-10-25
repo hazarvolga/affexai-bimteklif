@@ -3,6 +3,7 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
 import { getControlDatabase } from "../../db/control-plane";
+import { lockCompanyQuota } from "./company-quota-lock";
 import { adminAuditLogs, companies, plans, subscriptions, users } from "../../db/schema";
 import {
   BILLING_CYCLE_IDS,
@@ -616,6 +617,7 @@ export async function reviewBankTransferByAdmin(input: {
       const now = new Date();
       const durationDays = getBillingPeriodOption(lockedTarget.billingCycle).durationDays;
 
+      await lockCompanyQuota(tx, lockedTarget.companyId);
       const [company] = await tx
         .select({ id: companies.id })
         .from(companies)

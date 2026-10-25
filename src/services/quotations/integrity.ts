@@ -1,6 +1,8 @@
 import { resolveBenchmarkProvenance } from './benchmark-provenance';
 import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "../../db";
+import { withAppTenantTransaction } from "../../db/app-tenant";
+import type { TenantContext } from "../../db/tenant-context";
 import { clients, quotationItemEvidence, quotationItems, quotations } from "../../db/schema";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import type { ManualQuotationInput } from "./input";
@@ -13,8 +15,9 @@ export class QuotationIntegrityError extends Error {
   }
 }
 
-export async function createManualQuotation(companyId: string, input: ManualQuotationInput) {
-  return db.transaction(async tx => {
+export async function createManualQuotation(actor: TenantContext, input: ManualQuotationInput) {
+  const { companyId } = actor;
+  return withAppTenantTransaction(actor, async tx => {
     await consumeQuotationQuota(tx, companyId);
     const [client] = await tx.select({ id: clients.id }).from(clients)
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for("share");

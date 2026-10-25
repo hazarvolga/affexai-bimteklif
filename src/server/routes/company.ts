@@ -3,6 +3,8 @@ import type { Express } from "express";
 import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db";
 import { getControlDatabase } from "../../db/control-plane";
+import { tenantOf } from "../../db/app-tenant";
+import { companyReads } from "../../services/company/company-reads";
 import { companies, invitations, memberships, pilotApplications, quotationFinancials, quotationItems, quotations, users } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
 import { bodyToken, readSessionToken, setSessionCookies } from "../auth/session-cookie";
@@ -36,7 +38,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
     });
   });
   app.get("/api/company/risk-settings", authenticate, async (req, res) => {
-    const company = await db.query.companies.findFirst({ where: eq(companies.id, req.user.companyId) });
+    const company = await companyReads.findFull(tenantOf(req.user));
     if (!company) return res.status(404).json({ error: "Company not found" });
     res.json({
       escalationVolatilityPercent: Number(company.defaultEscalationVolatilityPercent),
@@ -136,10 +138,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
   app.get("/api/company", authenticate, async (req, res) => {
     try {
       if (!req.user.companyId) return res.status(403).json({ error: "Forbidden: Company membership required" });
-      const company = await db.query.companies.findFirst({
-        where: eq(companies.id, req.user.companyId),
-        columns: { id: true, name: true, logoUrl: true, defaultCurrency: true, defaultVatRate: true },
-      });
+      const company = await companyReads.findSummary(tenantOf(req.user));
       res.json(company || null);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch company" });
@@ -149,9 +148,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
   app.get("/api/company/profile", authenticate, async (req, res) => {
     try {
       if (!req.user.companyId) return res.status(403).json({ error: "Forbidden: Company membership required" });
-      const company = await db.query.companies.findFirst({
-        where: eq(companies.id, req.user.companyId),
-      });
+      const company = await companyReads.findFull(tenantOf(req.user));
       if (!company) return res.status(404).json({ error: "Company not found" });
 
       res.json({
