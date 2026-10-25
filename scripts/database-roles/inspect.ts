@@ -10,6 +10,7 @@ import {
   DATABASE_CONTROL_TABLE_ACL,
   DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
+  DATABASE_TENANT_BUSINESS_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
   DATABASE_QUEUE_RLS_TABLES,
@@ -89,7 +90,8 @@ const sensitiveKey = /(?:password|passwd|secret|token|authorization|cookie|datab
 const connectionUrl = /(?:postgres(?:ql)?:\/\/)[^\s]+/i;
 const managedSchemas = DATABASE_SCHEMA_SPECS.map(({ name }) => name);
 
-type ProtectedTenantRlsTable = typeof DATABASE_CDE_RLS_TABLES[number] | typeof DATABASE_PROGRESS_PAYMENT_RLS_TABLES[number];
+type ProtectedTenantRlsTable = typeof DATABASE_CDE_RLS_TABLES[number] | typeof DATABASE_PROGRESS_PAYMENT_RLS_TABLES[number]
+  | typeof DATABASE_TENANT_BUSINESS_RLS_TABLES[number];
 
 async function inspectProtectedTenantRlsViolations(
   client: Queryable,
@@ -147,6 +149,10 @@ const inspectCdeRlsViolations = (client: Queryable) => inspectProtectedTenantRls
 
 const inspectProgressPaymentRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
   client, DATABASE_PROGRESS_PAYMENT_RLS_TABLES, "0015_progress_payment_tenant_rls", "progress-payment",
+);
+
+export const inspectTenantBusinessRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
+  client, DATABASE_TENANT_BUSINESS_RLS_TABLES, "0022_tenant_business_rls", "tenant business",
 );
 
 export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Promise<string[]> {
@@ -449,6 +455,7 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectSmartcheckPilotRlsViolations(client));
   violations.push(...await inspectCompanyIndustryRlsViolations(client));
   violations.push(...await inspectCrmLeadRlsViolations(client, options));
+  violations.push(...await inspectTenantBusinessRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   for (const spec of DATABASE_SCHEMA_SPECS) if (spec.required && !present.has(spec.name)) violations.push(`${spec.name}: required managed schema is missing`);
   const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;

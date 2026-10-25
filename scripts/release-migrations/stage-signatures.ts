@@ -90,6 +90,10 @@ const stages = [
     sql: '6c19a3c1c45aae5eb944af3e75143b99bc8a4881fe6f75a55d3fa7a8fb4f3edc',
     snapshot: '2cae587be6efeed722926ffc1109abeeb6a0ac2d55446690b4d599594965ab5f',
     catalog: '4913b9ecc2c1661fd01743ec8b1d0241eaf28fea5900524692a2d8b1490fdc84' },
+  { tag: '0022_tenant_business_rls',
+    sql: '8633a01e1d0d11e7ed9865556d471282d29689561d2d0f9130f2bf3e8ca025d4',
+    snapshot: 'd962e72bcf075c7a8679647998a3de486b6a29c5489a83ef4d930d3803143d91',
+    catalog: 'a5450819acdcb6349c4c62287169615306ba43100256b39e0816970612f6cc97' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

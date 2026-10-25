@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { Express, RequestHandler } from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db";
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import {
   documents,
   normalizedQuantityRows,
@@ -78,9 +79,12 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     const status = typeof req.query.status === "string" ? textValue(req.query.status, 30) : "";
     const conditions = [eq(supplierQuoteSubmissions.companyId, req.user.companyId)];
     if (["draft", "awaiting_review", "approved", "rejected", "expired"].includes(status)) conditions.push(eq(supplierQuoteSubmissions.status, status));
-    const submissions = await db.select().from(supplierQuoteSubmissions).where(and(...conditions)).orderBy(desc(supplierQuoteSubmissions.createdAt)).limit(200);
-    const ids = submissions.map((submission) => submission.id);
-    const entries = ids.length ? await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.companyId, req.user.companyId), inArray(supplierQuoteEntries.submissionId, ids))).orderBy(supplierQuoteEntries.createdAt) : [];
+    const { submissions, entries } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const submissions = await tenantDb.select().from(supplierQuoteSubmissions).where(and(...conditions)).orderBy(desc(supplierQuoteSubmissions.createdAt)).limit(200);
+      const ids = submissions.map((submission) => submission.id);
+      const entries = ids.length ? await tenantDb.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.companyId, req.user.companyId), inArray(supplierQuoteEntries.submissionId, ids))).orderBy(supplierQuoteEntries.createdAt) : [];
+      return { submissions, entries };
+    }, { readOnly: true });
     const entriesBySubmission = new Map<string, typeof entries>();
     for (const entry of entries) entriesBySubmission.set(entry.submissionId, [...(entriesBySubmission.get(entry.submissionId) ?? []), entry]);
     res.json(submissions.map((submission) => ({ ...submission, entries: entriesBySubmission.get(submission.id) ?? [] })));
@@ -107,7 +111,7 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     if (quoteDate && validUntil && validUntil < quoteDate) return res.status(400).json({ error: "Teklif geçerlilik tarihi teklif tarihinden önce olamaz." });
     const confidence = numberValue(body.confidence);
     if (confidence !== null && (confidence < 0 || confidence > 1)) return res.status(400).json({ error: "Confidence 0 ile 1 arasında olmalıdır." });
-    const [submission] = await db.insert(supplierQuoteSubmissions).values({
+    const [submission] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.insert(supplierQuoteSubmissions).values({
       companyId: req.user.companyId,
       documentId,
       sourceDocumentHash,
@@ -128,20 +132,24 @@ export function registerMarketIntelligenceRoutes(app: Express) {
       confidence: String(confidence ?? 0),
       status: "awaiting_review",
       createdByUserId: req.user.userId,
-    }).returning();
+    }).returning());
     await audit(req, "supplier_quote_created", "supplier_quote_submission", submission.id, { supplierName, sourceDocumentHash, documentId });
     res.status(201).json({ ...submission, entries: [] });
   });
 
   app.get("/api/market-intelligence/supplier-quotes/:id", authenticate, rateLimit, async (req, res) => {
-    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
-    if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
-    const entries = await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.submissionId, submission.id), eq(supplierQuoteEntries.companyId, req.user.companyId))).orderBy(supplierQuoteEntries.createdAt);
-    res.json({ ...submission, entries });
+    const detail = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [submission] = await tenantDb.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+      if (!submission) return null;
+      const entries = await tenantDb.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.submissionId, submission.id), eq(supplierQuoteEntries.companyId, req.user.companyId))).orderBy(supplierQuoteEntries.createdAt);
+      return { ...submission, entries };
+    }, { readOnly: true });
+    if (!detail) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
+    res.json(detail);
   });
 
   app.post("/api/market-intelligence/supplier-quotes/:id/entries", ...mutateStack, async (req, res) => {
-    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    const [submission] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId))));
     if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
     if (submission.status === "approved" || submission.status === "rejected") return res.status(409).json({ error: "Karara bağlanmış tedarikçi teklifine satır eklenemez." });
     const rawEntries = Array.isArray(req.body?.entries) ? req.body.entries : [];
@@ -167,15 +175,18 @@ export function registerMarketIntelligenceRoutes(app: Express) {
       evaluations.push({ sourceRowKey, ...evaluation });
       inserts.push({ companyId: req.user.companyId, submissionId: submission.id, sourceRowKey, positionCode, description, unit, quantity: String(quantity), unitPrice: String(unitPrice), currency: currency as "TRY" | "USD" | "EUR", vatStatus, vatPercent: numberValue(raw.vatPercent) === null ? submission.vatPercent : String(numberValue(raw.vatPercent)), freightStatus, region, validFrom: parseDate(raw.validFrom) ?? submission.quoteDate, validUntil: parseDate(raw.validUntil) ?? submission.validUntil, sourceCellRange: textValue(raw.sourceCellRange, 120) || null, baselineCount: evaluation.baselineCount, outlierStatus: evaluation.outlierStatus, outlierScore: evaluation.outlierScore === null ? null : String(evaluation.outlierScore), confidence: String(evaluation.confidence), reviewStatus: "pending" });
     }
-    const inserted = await db.insert(supplierQuoteEntries).values(inserts).onConflictDoNothing({ target: [supplierQuoteEntries.companyId, supplierQuoteEntries.submissionId, supplierQuoteEntries.sourceRowKey] }).returning();
-    const averageConfidence = inserted.length ? inserted.reduce((sum, entry) => sum + Number(entry.confidence), 0) / inserted.length : Number(submission.confidence);
-    await db.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    const inserted = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const inserted = await tenantDb.insert(supplierQuoteEntries).values(inserts).onConflictDoNothing({ target: [supplierQuoteEntries.companyId, supplierQuoteEntries.submissionId, supplierQuoteEntries.sourceRowKey] }).returning();
+      const averageConfidence = inserted.length ? inserted.reduce((sum, entry) => sum + Number(entry.confidence), 0) / inserted.length : Number(submission.confidence);
+      await tenantDb.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+      return inserted;
+    });
     await audit(req, "supplier_quote_entries_created", "supplier_quote_submission", submission.id, { insertedCount: inserted.length, evaluations });
     res.status(inserted.length ? 201 : 200).json({ submissionId: submission.id, insertedCount: inserted.length, evaluations, entries: inserted });
   });
 
   app.post("/api/market-intelligence/supplier-quotes/:id/import-smartcheck-rows", ...mutateStack, async (req, res) => {
-    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    const [submission] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, req.params.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId))));
     if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
     if (!submission.documentId) return res.status(409).json({ error: "Bu teklif SmartCheck kaynak dokümanına bağlı değil.", code: "SMARTCHECK_SOURCE_REQUIRED" });
     if (submission.status === "approved" || submission.status === "rejected") return res.status(409).json({ error: "Karara bağlanmış tedarikçi teklifine satır aktarılamaz." });
@@ -204,9 +215,12 @@ export function registerMarketIntelligenceRoutes(app: Express) {
       evaluations.push({ sourceRowKey, normalizedQuantityRowId: row.id, ...evaluation });
       inserts.push({ companyId: req.user.companyId, submissionId: submission.id, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceRowKey, positionCode: row.normalizedPositionCode ?? row.rawPositionCode ?? null, description, unit, quantity: String(quantity), unitPrice: String(unitPrice), currency: submission.currency, vatStatus: submission.vatStatus, vatPercent: submission.vatPercent, freightStatus: submission.freightStatus, region, validFrom: submission.quoteDate, validUntil: submission.validUntil, sourceCellRange: row.sourceCellRange, baselineCount: evaluation.baselineCount, outlierStatus: evaluation.outlierStatus, outlierScore: evaluation.outlierScore === null ? null : String(evaluation.outlierScore), confidence: String(evaluation.confidence), reviewStatus: "pending" as const });
     }
-    const inserted = await db.insert(supplierQuoteEntries).values(inserts).onConflictDoNothing({ target: [supplierQuoteEntries.companyId, supplierQuoteEntries.submissionId, supplierQuoteEntries.sourceRowKey] }).returning();
-    const averageConfidence = inserted.length ? inserted.reduce((sum, entry) => sum + Number(entry.confidence), 0) / inserted.length : Number(submission.confidence);
-    await db.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+    const inserted = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const inserted = await tenantDb.insert(supplierQuoteEntries).values(inserts).onConflictDoNothing({ target: [supplierQuoteEntries.companyId, supplierQuoteEntries.submissionId, supplierQuoteEntries.sourceRowKey] }).returning();
+      const averageConfidence = inserted.length ? inserted.reduce((sum, entry) => sum + Number(entry.confidence), 0) / inserted.length : Number(submission.confidence);
+      await tenantDb.update(supplierQuoteSubmissions).set({ confidence: String(Math.min(1, Number(averageConfidence.toFixed(2)))), status: "awaiting_review", updatedAt: new Date() }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+      return inserted;
+    });
     await audit(req, "supplier_quote_smartcheck_rows_imported", "supplier_quote_submission", submission.id, { selectedCount: selected.length, insertedCount: inserted.length, sourceDocumentId: submission.documentId, evaluations });
     res.status(inserted.length ? 201 : 200).json({ submissionId: submission.id, sourceDocumentId: submission.documentId, selectedCount: selected.length, insertedCount: inserted.length, evaluations, entries: inserted });
   });
@@ -214,14 +228,18 @@ export function registerMarketIntelligenceRoutes(app: Express) {
   app.patch("/api/market-intelligence/supplier-quote-entries/:id/review", ...mutateStack, async (req, res) => {
     const status = textValue(req.body?.status, 20);
     if (status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu approved veya rejected olabilir." });
-    const [entry] = await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, req.params.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+    const actor = tenantOf(req.user);
+    const { entry, submission } = await withAppTenant(actor, async (tenantDb) => {
+      const [entry] = await tenantDb.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, req.params.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+      const [submission] = entry ? await tenantDb.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, entry.submissionId), eq(supplierQuoteSubmissions.companyId, req.user.companyId))) : [];
+      return { entry, submission };
+    }, { readOnly: true });
     if (!entry) return res.status(404).json({ error: "Tedarikçi teklif satırı bulunamadı." });
     if (entry.reviewStatus !== "pending") return res.status(409).json({ error: "Satır daha önce karara bağlandı." });
-    const [submission] = await db.select().from(supplierQuoteSubmissions).where(and(eq(supplierQuoteSubmissions.id, entry.submissionId), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
     if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
     const reviewedAt = new Date();
     let priceSnapshotId: string | null = entry.priceSnapshotId;
-    await db.transaction(async (tx) => {
+    await withAppTenantTransaction(actor, async (tx) => {
       if (status === "approved") {
         let [source] = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), eq(priceSources.sourceType, "supplier_quote"), eq(priceSources.sourceDocumentHash, submission.sourceDocumentHash), eq(priceSources.sourceDocumentIdentifier, submission.sourceDocumentIdentifier))).limit(1);
         if (!source) {
@@ -239,7 +257,7 @@ export function registerMarketIntelligenceRoutes(app: Express) {
         await tx.update(supplierQuoteSubmissions).set({ status: allEntries.some((row) => row.reviewStatus === "rejected") ? "rejected" : "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: reviewedAt }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
       }
     });
-    const [updated] = await db.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+    const [updated] = await withAppTenant(actor, (tenantDb) => tenantDb.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId))));
     await audit(req, `supplier_quote_entry_${status}`, "supplier_quote_entry", entry.id, { submissionId: submission.id, priceSnapshotId, outlierStatus: entry.outlierStatus, canonicalPromotion: false });
     res.json(updated);
   });

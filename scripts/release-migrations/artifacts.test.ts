@@ -8,6 +8,7 @@ import * as schema from '../../src/db/schema';
 import { INITIAL_PLUGINS } from '../../src/lib/plugins/definitions';
 import { pinnedSignature } from './stage-signatures';
 import { injectDataTransitions } from './data-transitions';
+import { DATABASE_TENANT_BUSINESS_RLS_TABLES } from '../database-roles/contract';
 
 test('release stage pins reject unreviewed or changed artifacts', async () => {
   const migrations = await loadMigrations();
@@ -251,11 +252,25 @@ test('SmartCheck pilot evidence declares asymmetric tenant RLS and hardened appe
   assert.ok(statements.some((statement) => statement.includes('CREATE TRIGGER smartcheck_pilot_audit_append_only')));
 });
 
+test('tenant business tables declare the exact CDE tenant, backup, and migration RLS matrix', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  for (const table of DATABASE_TENANT_BUSINESS_RLS_TABLES) {
+    const definition = tables[`public.${table}`];
+    assert.equal(definition.isRLSEnabled, true, table);
+    assert.deepEqual(Object.keys(definition.policies).sort(), [`${table}_app_tenant`, `${table}_backup_read`, `${table}_owner_migration`]);
+    const tenant = `current_user = 'bimmetraj_app' AND "${table}"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
+    const app = definition.policies[`${table}_app_tenant`];
+    assert.deepEqual({ for: app.for, to: app.to, using: app.using, withCheck: app.withCheck }, { for: 'ALL', to: ['public'], using: tenant, withCheck: tenant });
+  }
+  const forced = injectDataTransitions('0022_tenant_business_rls', []);
+  assert.deepEqual(forced, DATABASE_TENANT_BUSINESS_RLS_TABLES.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
+});
+
 test('release artifacts form an append-only chain matching current schema', async () => {
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 22);
+  assert.equal(migrations.length, 23);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));
