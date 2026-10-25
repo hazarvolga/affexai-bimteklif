@@ -98,6 +98,10 @@ const stages = [
     sql: 'e4947f32633e9843dea7f6f8d0b97f7908ecd6ad4b901016b4a130c52d23cdd4',
     snapshot: 'e353dd6a9e88c0bf8f9a8ce23d17f2ca8a140e1b251f61872cf165be3f794b10',
     catalog: '4fe5176333f02c3ef566212c42e65bcbb60bf648170db919392a9dc7c1c2f022' },
+  { tag: '0024_pricing_regulations_rls',
+    sql: 'a9a2a9378a0e5b51f60e84167957078d1b761b34e7270c02391842f197ed753a',
+    snapshot: '319059c6732aab7a0bb95d3d5171efb91ec7775298c59702e7986f11806a64f3',
+    catalog: '93f8d05f836c2f123b648b034138694daba7b55807043940905890a3f6d3e722' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

@@ -116,6 +116,17 @@ export const DATABASE_QUOTATION_CORE_RLS_TABLES = Object.freeze([
   "quotation_transfer_ledgers",
   "quotation_transfer_source_rows",
 ] as const);
+/** Pricing, source intelligence, and regulation tables without worker or control-plane access, migrated in 0024 with the CDE policy matrix. */
+export const DATABASE_PRICING_REGULATIONS_RLS_TABLES = Object.freeze([
+  "price_sources",
+  "price_snapshots",
+  "source_intelligence_adapters",
+  "source_ingestion_runs",
+  "source_ingestion_artifacts",
+  "source_review_items",
+  "regulation_versions",
+  "regulation_alerts",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),

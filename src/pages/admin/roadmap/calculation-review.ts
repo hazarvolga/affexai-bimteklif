@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.74",
+  version: "BIM-CALC-2026-10-25.75",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "a7d7eca5a60afcddde6b55ae0d671732250489ba",
-  approvalStatus: "Rev. 80, T41 S1 (0023_quotation_core_rls) kapsamında 6 teklif çekirdeği tablosunu (clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers, quotation_transfer_source_rows) ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alır (42/72 company_id tablosu FORCE RLS altında) ve database-role-provision.pgtest.ts pre-schema rol sözleşmesini 1/1 PASS durumuna getirir; Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S2–S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "1b7753dfb60faeb204c75c341cb3bc7db8a8d8d6",
+  approvalStatus: "Rev. 81, T41 S2 (0024_pricing_regulations_rls) kapsamında 8 fiyat, kaynak zekâsı ve mevzuat tablosunu (price_sources, price_snapshots, source_intelligence_adapters, source_ingestion_runs, source_ingestion_artifacts, source_review_items, regulation_versions, regulation_alerts) ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alır (50/72 company_id tablosu FORCE RLS altında); Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S3–S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1743,6 +1743,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Müşteri, teklif, kalem, kanıt ve Calm transfer tablolarında veritabanı düzeyinde FORCE RLS yoktu; sorgular paylaşılan app havuzundan doğrudan çalışabiliyordu.",
         after: "0023_quotation_core_rls ile 6 teklif çekirdeği tablosu FORCE RLS altına alındı ve tüm teklif/revizyon/düzenleme/aktarım/PDF sorguları withAppTenant / withAppTenantTransaction içine taşındı.",
         basis: "Faz 7 T41 S1 — teklif çekirdeği çok-kiracılı veritabanı izolasyonu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 81",
+    version: "BIM-CALC-2026-10-25.75",
+    date: "25 Ekim 2026",
+    commit: "1b7753dfb60faeb204c75c341cb3bc7db8a8d8d6",
+    trigger: "GAP planı T41 S2 dilimi (0024_pricing_regulations_rls — 8 fiyat, kaynak zekâsı ve mevzuat tablosu FORCE RLS).",
+    beforeSummary: "price_sources, price_snapshots, source_intelligence_adapters, source_ingestion_runs, source_ingestion_artifacts, source_review_items, regulation_versions ve regulation_alerts tabloları yalnızca uygulama katmanında company_id filtresiyle korunuyordu; pricing, source-intelligence, regulations, market-intelligence ve smartcheck sorguları doğrudan paylaşılan app havuzundan çalışabiliyordu.",
+    afterSummary: "0024_pricing_regulations_rls.sql ile 8 fiyat/kaynak/mevzuat tablosu ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alındı (50/72 company_id tablosu FORCE RLS altında); ilgili tüm route/servis yolları withAppTenant/withAppTenantTransaction sınırına taşındı; tenant-business-rls.pgtest.ts 28 tablo için 1/1 PASS ve release-migration testleri 14/14 PASS olarak doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["fiyat-eslestirme", "aykiri-fiyat"],
+    moduleDetails: {
+      "fiyat-eslestirme": {
+        before: "price_sources, price_snapshots ve source_intelligence_* tablolarında veritabanı düzeyinde FORCE RLS yoktu; katalog içe aktarma, snapshot inceleme ve aktarım öncesi fiyat doğrulaması paylaşılan app havuzundan doğrudan çalışıyordu.",
+        after: "0024_pricing_regulations_rls ile 8 tablo FORCE RLS altına alındı ve tüm fiyat/kaynak/mevzuat sorguları withAppTenant / withAppTenantTransaction içine taşındı.",
+        basis: "Faz 7 T41 S2 — fiyat ve kaynak zekâsı çok-kiracılı veritabanı izolasyonu",
+      },
+      "aykiri-fiyat": {
+        before: "Fiyat belleği ve onaylı snapshot örnek karşılaştırması sorguları tenant GUC bağlamı olmadan paylaşılan app havuzundan çalışıyordu.",
+        after: "market-intelligence fiyat belleği ve satır anormallik karşılaştırmasındaki price_snapshots/price_sources sorguları withAppTenant altında çalışır.",
+        basis: "Faz 7 T41 S2 — fiyat belleği veritabanı izolasyonu",
       },
     },
   },

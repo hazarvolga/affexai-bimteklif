@@ -231,7 +231,9 @@ export function registerPricingRoutes(app: Express) {
   });
 
   app.get("/api/pricing/sources", authenticate, rateLimit, async (req, res) => {
-    const rows = await db.select().from(priceSources).where(eq(priceSources.companyId, req.user.companyId)).orderBy(desc(priceSources.updatedAt)).limit(200);
+    const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select().from(priceSources).where(eq(priceSources.companyId, req.user.companyId)).orderBy(desc(priceSources.updatedAt)).limit(200)
+    , { readOnly: true });
     res.json(rows);
   });
 
@@ -249,25 +251,27 @@ export function registerPricingRoutes(app: Express) {
     if (!sourceTypes.has(sourceType) || !name || !validHash(sourceDocumentHash) || !licenseStatuses.has(licenseStatus)) return res.status(400).json({ error: "Kaynak tipi, isim, lisans durumu ve kaynak hash zorunludur." });
     const authorization = resolveAuthorizationInput({ sourceType, sourceDocumentHash, actorUserId: req.user.userId, allowTenantAuthorization: false });
     if (authorization.authorizationStatus === "authorized" && (!authorization.authorizationScope || !authorization.decision.eligible)) return res.status(400).json({ error: "Yetkilendirilmiş fiyat kaynağı için kapsam, kanıt hash'i ve yetkilendirme tarihi zorunludur.", reason: authorization.decision.eligible ? "authorization_scope_missing" : authorization.decision.reason });
-    const [source] = await db.insert(priceSources).values({
-      companyId: req.user.companyId,
-      sourceType,
-      name,
-      authority: typeof req.body?.authority === "string" ? req.body.authority.trim().slice(0, 200) : null,
-      sourceUrl: typeof req.body?.sourceUrl === "string" ? req.body.sourceUrl.trim().slice(0, 2000) : null,
-      sourceDocumentIdentifier: typeof req.body?.sourceDocumentIdentifier === "string" ? req.body.sourceDocumentIdentifier.trim().slice(0, 255) : null,
-      sourceDocumentHash,
-      licenseStatus,
-      authorizationStatus: authorization.authorizationStatus,
-      authorizationScope: authorization.authorizationScope,
-      authorizationEvidenceHash: authorization.authorizationEvidenceHash,
-      authorizedAt: authorization.authorizedAt,
-      authorizedByUserId: authorization.authorizedByUserId,
-      jurisdiction: typeof req.body?.jurisdiction === "string" ? req.body.jurisdiction.trim().slice(0, 120) : null,
-      region: typeof req.body?.region === "string" ? req.body.region.trim().slice(0, 120) : null,
-      createdByUserId: req.user.userId,
-      metadataJson: req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {},
-    }).returning();
+    const [source] = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.insert(priceSources).values({
+        companyId: req.user.companyId,
+        sourceType,
+        name,
+        authority: typeof req.body?.authority === "string" ? req.body.authority.trim().slice(0, 200) : null,
+        sourceUrl: typeof req.body?.sourceUrl === "string" ? req.body.sourceUrl.trim().slice(0, 2000) : null,
+        sourceDocumentIdentifier: typeof req.body?.sourceDocumentIdentifier === "string" ? req.body.sourceDocumentIdentifier.trim().slice(0, 255) : null,
+        sourceDocumentHash,
+        licenseStatus,
+        authorizationStatus: authorization.authorizationStatus,
+        authorizationScope: authorization.authorizationScope,
+        authorizationEvidenceHash: authorization.authorizationEvidenceHash,
+        authorizedAt: authorization.authorizedAt,
+        authorizedByUserId: authorization.authorizedByUserId,
+        jurisdiction: typeof req.body?.jurisdiction === "string" ? req.body.jurisdiction.trim().slice(0, 120) : null,
+        region: typeof req.body?.region === "string" ? req.body.region.trim().slice(0, 120) : null,
+        createdByUserId: req.user.userId,
+        metadataJson: req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {},
+      }).returning()
+    );
     await audit(req, "price_source_created", "price_source", source.id, { sourceType, sourceDocumentHash, licenseStatus, authorizationStatus: authorization.authorizationStatus });
     res.status(201).json(source);
   });
@@ -278,7 +282,9 @@ export function registerPricingRoutes(app: Express) {
     const conditions = [eq(priceSnapshots.companyId, req.user.companyId)];
     if (status) conditions.push(eq(priceSnapshots.reviewStatus, status));
     if (positionCode) conditions.push(eq(priceSnapshots.positionCode, positionCode));
-    const rows = await db.select().from(priceSnapshots).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(Math.min(Math.max(Number(req.query.limit) || 100, 1), 500));
+    const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select().from(priceSnapshots).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(Math.min(Math.max(Number(req.query.limit) || 100, 1), 500))
+    , { readOnly: true });
     const now = new Date();
     res.json(rows.map((row) => ({ ...row, stale: isPriceSnapshotStale(row, now) })));
   });
@@ -302,12 +308,14 @@ export function registerPricingRoutes(app: Express) {
       });
     }
     const now = new Date();
-    const authorizedCandidates = await db.select({ snapshot: priceSnapshots, source: priceSources })
-      .from(priceSnapshots)
-      .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
-      .where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSources.authorizationStatus, "authorized"), sql`${priceSources.authorizationEvidenceHash} IS NOT NULL`, sql`${priceSources.authorizedAt} IS NOT NULL`, eq(priceSnapshots.reviewStatus, "approved"), sql`${priceSnapshots.reviewedAt} IS NOT NULL`, sql`${priceSnapshots.reviewedByUserId} IS NOT NULL`, sql`(${priceSnapshots.validFrom} IS NULL OR ${priceSnapshots.validFrom} <= ${now})`, sql`(${priceSnapshots.validUntil} IS NULL OR ${priceSnapshots.validUntil} >= ${now})`))
-      .orderBy(desc(priceSnapshots.capturedAt))
-      .limit(500);
+    const authorizedCandidates = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select({ snapshot: priceSnapshots, source: priceSources })
+        .from(priceSnapshots)
+        .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
+        .where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSources.authorizationStatus, "authorized"), sql`${priceSources.authorizationEvidenceHash} IS NOT NULL`, sql`${priceSources.authorizedAt} IS NOT NULL`, eq(priceSnapshots.reviewStatus, "approved"), sql`${priceSnapshots.reviewedAt} IS NOT NULL`, sql`${priceSnapshots.reviewedByUserId} IS NOT NULL`, sql`(${priceSnapshots.validFrom} IS NULL OR ${priceSnapshots.validFrom} <= ${now})`, sql`(${priceSnapshots.validUntil} IS NULL OR ${priceSnapshots.validUntil} >= ${now})`))
+        .orderBy(desc(priceSnapshots.capturedAt))
+        .limit(500)
+    , { readOnly: true });
     const candidates = authorizedCandidates.filter(({ source }) => mode === "CSB_2026_REFERENCE"
       ? source.sourceType === "official_reference"
       : source.sourceType !== "official_reference");
@@ -427,7 +435,7 @@ export function registerPricingRoutes(app: Express) {
     let insertedCount = 0;
     let reusedCount = 0;
     try {
-      const [source] = await db.transaction(async (tx) => {
+      const [source] = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
         const [createdSource] = await tx.insert(priceSources).values({
           companyId: req.user.companyId,
           sourceType,
@@ -510,7 +518,10 @@ export function registerPricingRoutes(app: Express) {
   });
 
   app.post("/api/pricing/sources/:sourceId/snapshots", ...mutateStack, async (req, res) => {
-    const [source] = await db.select().from(priceSources).where(and(eq(priceSources.id, req.params.sourceId), eq(priceSources.companyId, req.user.companyId)));
+    const actor = tenantOf(req.user);
+    const [source] = await withAppTenant(actor, (tenantDb) =>
+      tenantDb.select().from(priceSources).where(and(eq(priceSources.id, req.params.sourceId), eq(priceSources.companyId, req.user.companyId)))
+    , { readOnly: true });
     if (!source) return res.status(404).json({ error: "Fiyat kaynağı bulunamadı." });
     const description = typeof req.body?.description === "string" ? req.body.description.trim().slice(0, 500) : "";
     const unit = typeof req.body?.unit === "string" ? req.body.unit.trim().slice(0, 40) : "";
@@ -528,31 +539,34 @@ export function registerPricingRoutes(app: Express) {
     const snapshotKey = buildPriceSnapshotKey({ sourceDocumentHash, externalReference: req.body?.externalReference, positionCode: req.body?.positionCode, description, unit, amount, currency, capturedAt });
     const requestedStatus = typeof req.body?.reviewStatus === "string" ? req.body.reviewStatus : "advisory";
     if (!reviewStatuses.has(requestedStatus) || requestedStatus === "approved") return res.status(400).json({ error: "Yeni snapshot yalnız draft veya advisory olarak oluşturulabilir." });
-    const [snapshot] = await db.insert(priceSnapshots).values({
-      companyId: req.user.companyId,
-      priceSourceId: source.id,
-      snapshotKey,
-      externalReference: typeof req.body?.externalReference === "string" ? req.body.externalReference.trim().slice(0, 255) : null,
-      positionCode: typeof req.body?.positionCode === "string" ? req.body.positionCode.trim().slice(0, 120) : null,
-      description,
-      unit,
-      amount: String(amount),
-      currency: currency as "TRY" | "USD" | "EUR",
-      vatStatus: req.body?.vatStatus === "included" || req.body?.vatStatus === "excluded" ? req.body.vatStatus : "unknown",
-      vatPercent: req.body?.vatPercent === undefined || req.body.vatPercent === null || req.body.vatPercent === "" ? null : String(Number(req.body.vatPercent)),
-      freightStatus: req.body?.freightStatus === "included" || req.body?.freightStatus === "excluded" ? req.body.freightStatus : "unknown",
-      region: typeof req.body?.region === "string" ? req.body.region.trim().slice(0, 120) : source.region,
-      validFrom,
-      validUntil,
-      capturedAt,
-      sourceDocumentHash,
-      sourceVersion: typeof req.body?.sourceVersion === "string" ? req.body.sourceVersion.trim().slice(0, 120) : null,
-      confidence: String(confidence),
-      reviewStatus: requestedStatus as "draft" | "advisory",
-      createdByUserId: req.user.userId,
-      metadataJson: req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {},
-    }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning();
-    const result = snapshot ?? (await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.priceSourceId, source.id), eq(priceSnapshots.snapshotKey, snapshotKey))))[0];
+    const { snapshot, result } = await withAppTenant(actor, async (tenantDb) => {
+      const [snapshot] = await tenantDb.insert(priceSnapshots).values({
+        companyId: req.user.companyId,
+        priceSourceId: source.id,
+        snapshotKey,
+        externalReference: typeof req.body?.externalReference === "string" ? req.body.externalReference.trim().slice(0, 255) : null,
+        positionCode: typeof req.body?.positionCode === "string" ? req.body.positionCode.trim().slice(0, 120) : null,
+        description,
+        unit,
+        amount: String(amount),
+        currency: currency as "TRY" | "USD" | "EUR",
+        vatStatus: req.body?.vatStatus === "included" || req.body?.vatStatus === "excluded" ? req.body.vatStatus : "unknown",
+        vatPercent: req.body?.vatPercent === undefined || req.body.vatPercent === null || req.body.vatPercent === "" ? null : String(Number(req.body.vatPercent)),
+        freightStatus: req.body?.freightStatus === "included" || req.body?.freightStatus === "excluded" ? req.body.freightStatus : "unknown",
+        region: typeof req.body?.region === "string" ? req.body.region.trim().slice(0, 120) : source.region,
+        validFrom,
+        validUntil,
+        capturedAt,
+        sourceDocumentHash,
+        sourceVersion: typeof req.body?.sourceVersion === "string" ? req.body.sourceVersion.trim().slice(0, 120) : null,
+        confidence: String(confidence),
+        reviewStatus: requestedStatus as "draft" | "advisory",
+        createdByUserId: req.user.userId,
+        metadataJson: req.body?.metadataJson && typeof req.body.metadataJson === "object" ? req.body.metadataJson : {},
+      }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning();
+      const result = snapshot ?? (await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.priceSourceId, source.id), eq(priceSnapshots.snapshotKey, snapshotKey))))[0];
+      return { snapshot, result };
+    });
     if (!result) return res.status(500).json({ error: "Fiyat snapshot oluşturulamadı." });
     await audit(req, snapshot ? "price_snapshot_created" : "price_snapshot_reused", "price_snapshot", result.id, { sourceId: source.id, snapshotKey });
     res.status(snapshot ? 201 : 200).json({ ...result, stale: isPriceSnapshotStale(result) });
@@ -561,10 +575,13 @@ export function registerPricingRoutes(app: Express) {
   app.patch("/api/pricing/snapshots/:snapshotId/review", ...mutateStack, async (req, res) => {
     const status = typeof req.body?.status === "string" ? req.body.status : "";
     if (status !== "advisory" && status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu advisory, approved veya rejected olabilir." });
-    const [existing] = await db.select({ snapshot: priceSnapshots, source: priceSources })
-      .from(priceSnapshots)
-      .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
-      .where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
+    const actor = tenantOf(req.user);
+    const [existing] = await withAppTenant(actor, (tenantDb) =>
+      tenantDb.select({ snapshot: priceSnapshots, source: priceSources })
+        .from(priceSnapshots)
+        .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
+        .where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, req.user.companyId)))
+    , { readOnly: true });
     if (!existing) return res.status(404).json({ error: "Fiyat snapshot bulunamadı." });
     if (status === "approved") {
       const authorization = evaluatePriceSourceAuthorization({ sourceType: existing.source.sourceType, authorizationStatus: existing.source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: existing.source.authorizationEvidenceHash });
@@ -586,7 +603,9 @@ export function registerPricingRoutes(app: Express) {
         }
       }
     }
-    const [snapshot] = await db.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 2000) : null }).where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, req.user.companyId))).returning();
+    const [snapshot] = await withAppTenant(actor, (tenantDb) =>
+      tenantDb.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 2000) : null }).where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, req.user.companyId))).returning()
+    );
     if (!snapshot) return res.status(409).json({ error: "Fiyat snapshot güncellenemedi." });
     await audit(req, `price_snapshot_${status}`, "price_snapshot", snapshot.id, {});
     res.json(snapshot);

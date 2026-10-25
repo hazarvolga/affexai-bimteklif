@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { Express, RequestHandler } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import {
   priceSnapshots,
   priceSources,
@@ -63,7 +64,9 @@ async function audit(req: any, action: string, entityType: string, entityId: str
 
 export function registerSourceIntelligenceRoutes(app: Express) {
   app.get("/api/source-intelligence/official-adapters", authenticate, rateLimit, async (req, res) => {
-    const adapters = await db.select().from(sourceIntelligenceAdapters).where(eq(sourceIntelligenceAdapters.companyId, req.user.companyId)).orderBy(sourceIntelligenceAdapters.adapterKey);
+    const adapters = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select().from(sourceIntelligenceAdapters).where(eq(sourceIntelligenceAdapters.companyId, req.user.companyId)).orderBy(sourceIntelligenceAdapters.adapterKey)
+    , { readOnly: true });
     res.json(adapters);
   });
 
@@ -77,30 +80,37 @@ export function registerSourceIntelligenceRoutes(app: Express) {
     } catch (error) {
       return res.status(400).json({ error: "Kaynak URL allowlist dışında.", code: error instanceof Error ? error.message : "SOURCE_HOST_NOT_ALLOWED" });
     }
-    const existing = await db.select({ id: sourceIntelligenceAdapters.id }).from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.companyId, req.user.companyId), eq(sourceIntelligenceAdapters.adapterKey, adapterKey)));
-    if (existing.length) return res.status(409).json({ error: "Bu adaptör şirket için zaten kayıtlı." });
-    const [adapter] = await db.insert(sourceIntelligenceAdapters).values({
-      companyId: req.user.companyId,
-      adapterKey,
-      sourceKind: definition.sourceKind,
-      displayName: definition.displayName,
-      authority: definition.authority,
-      sourceUrl,
-      allowedHost: definition.allowedHost,
-      jurisdiction: "TR",
-      region: textValue(req.body?.region, 120) || null,
-      cadence: ["manual", "daily", "weekly", "monthly"].includes(req.body?.cadence) ? req.body.cadence : definition.cadence,
-      enabled: req.body?.enabled !== false,
-      configurationJson: objectPayload(req.body?.configurationJson) ?? {},
-      createdByUserId: req.user.userId,
-    }).returning();
-    await audit(req, "source_adapter_created", "source_adapter", adapter.id, { adapterKey, sourceKind: definition.sourceKind });
-    res.status(201).json(adapter);
+    const created = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const existing = await tenantDb.select({ id: sourceIntelligenceAdapters.id }).from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.companyId, req.user.companyId), eq(sourceIntelligenceAdapters.adapterKey, adapterKey)));
+      if (existing.length) return { conflict: true as const };
+      const [adapter] = await tenantDb.insert(sourceIntelligenceAdapters).values({
+        companyId: req.user.companyId,
+        adapterKey,
+        sourceKind: definition.sourceKind,
+        displayName: definition.displayName,
+        authority: definition.authority,
+        sourceUrl,
+        allowedHost: definition.allowedHost,
+        jurisdiction: "TR",
+        region: textValue(req.body?.region, 120) || null,
+        cadence: ["manual", "daily", "weekly", "monthly"].includes(req.body?.cadence) ? req.body.cadence : definition.cadence,
+        enabled: req.body?.enabled !== false,
+        configurationJson: objectPayload(req.body?.configurationJson) ?? {},
+        createdByUserId: req.user.userId,
+      }).returning();
+      return { conflict: false as const, adapter };
+    });
+    if (created.conflict) return res.status(409).json({ error: "Bu adaptör şirket için zaten kayıtlı." });
+    await audit(req, "source_adapter_created", "source_adapter", created.adapter.id, { adapterKey, sourceKind: definition.sourceKind });
+    res.status(201).json(created.adapter);
   });
 
   app.get("/api/source-intelligence/health", authenticate, rateLimit, async (req, res) => {
-    const adapters = await db.select().from(sourceIntelligenceAdapters).where(eq(sourceIntelligenceAdapters.companyId, req.user.companyId)).orderBy(sourceIntelligenceAdapters.adapterKey);
-    const runs = await db.select().from(sourceIngestionRuns).where(eq(sourceIngestionRuns.companyId, req.user.companyId)).orderBy(desc(sourceIngestionRuns.createdAt)).limit(500);
+    const { adapters, runs } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const adapters = await tenantDb.select().from(sourceIntelligenceAdapters).where(eq(sourceIntelligenceAdapters.companyId, req.user.companyId)).orderBy(sourceIntelligenceAdapters.adapterKey);
+      const runs = await tenantDb.select().from(sourceIngestionRuns).where(eq(sourceIngestionRuns.companyId, req.user.companyId)).orderBy(desc(sourceIngestionRuns.createdAt)).limit(500);
+      return { adapters, runs };
+    }, { readOnly: true });
     const latestByAdapter = new Map<string, typeof runs[number]>();
     for (const run of runs) if (!latestByAdapter.has(run.adapterId)) latestByAdapter.set(run.adapterId, run);
     res.json(adapters.map((adapter) => {
@@ -111,17 +121,22 @@ export function registerSourceIntelligenceRoutes(app: Express) {
   });
 
   app.get("/api/source-intelligence/review-queue", authenticate, rateLimit, async (req, res) => {
-    const rows = await db.select({ item: sourceReviewItems, run: sourceIngestionRuns, adapter: sourceIntelligenceAdapters })
-      .from(sourceReviewItems)
-      .innerJoin(sourceIngestionRuns, and(eq(sourceReviewItems.ingestionRunId, sourceIngestionRuns.id), eq(sourceReviewItems.companyId, sourceIngestionRuns.companyId)))
-      .innerJoin(sourceIntelligenceAdapters, and(eq(sourceIngestionRuns.adapterId, sourceIntelligenceAdapters.id), eq(sourceIngestionRuns.companyId, sourceIntelligenceAdapters.companyId)))
-      .where(and(eq(sourceReviewItems.companyId, req.user.companyId), eq(sourceReviewItems.status, "pending")))
-      .orderBy(desc(sourceReviewItems.createdAt)).limit(200);
+    const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select({ item: sourceReviewItems, run: sourceIngestionRuns, adapter: sourceIntelligenceAdapters })
+        .from(sourceReviewItems)
+        .innerJoin(sourceIngestionRuns, and(eq(sourceReviewItems.ingestionRunId, sourceIngestionRuns.id), eq(sourceReviewItems.companyId, sourceIngestionRuns.companyId)))
+        .innerJoin(sourceIntelligenceAdapters, and(eq(sourceIngestionRuns.adapterId, sourceIntelligenceAdapters.id), eq(sourceIngestionRuns.companyId, sourceIntelligenceAdapters.companyId)))
+        .where(and(eq(sourceReviewItems.companyId, req.user.companyId), eq(sourceReviewItems.status, "pending")))
+        .orderBy(desc(sourceReviewItems.createdAt)).limit(200)
+    , { readOnly: true });
     res.json(rows.map(({ item, run, adapter }) => ({ ...item, run, adapter })));
   });
 
   app.post("/api/source-intelligence/official-adapters/:adapterId/ingest", ...mutateStack, async (req, res) => {
-    const [adapter] = await db.select().from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.id, req.params.adapterId), eq(sourceIntelligenceAdapters.companyId, req.user.companyId)));
+    const actor = tenantOf(req.user);
+    const [adapter] = await withAppTenant(actor, (tenantDb) =>
+      tenantDb.select().from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.id, req.params.adapterId), eq(sourceIntelligenceAdapters.companyId, req.user.companyId)))
+    , { readOnly: true });
     if (!adapter) return res.status(404).json({ error: "Kaynak adaptörü bulunamadı." });
     if (!adapter.enabled) return res.status(409).json({ error: "Kaynak adaptörü devre dışı." });
     const sourcePayload = objectPayload(req.body?.sourcePayload);
@@ -139,11 +154,15 @@ export function registerSourceIntelligenceRoutes(app: Express) {
     if (!capturedAt) return res.status(400).json({ error: "capturedAt geçersiz." });
     const sourceHash = sourcePayloadHash(sourcePayload);
     const runKey = crypto.createHash("sha256").update(`${adapter.id}:${sourceDocumentIdentifier}:${sourceHash}`).digest("hex");
-    const existing = await db.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.companyId, req.user.companyId), eq(sourceIngestionRuns.runKey, runKey)));
+    const { existing, previousRun, previousArtifact } = await withAppTenant(actor, async (tenantDb) => {
+      const existing = await tenantDb.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.companyId, req.user.companyId), eq(sourceIngestionRuns.runKey, runKey)));
+      if (existing.length) return { existing, previousRun: null, previousArtifact: null };
+      const previousRun = (await tenantDb.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.companyId, req.user.companyId), eq(sourceIngestionRuns.adapterId, adapter.id))).orderBy(desc(sourceIngestionRuns.createdAt)).limit(1))[0] ?? null;
+      const previousArtifact = previousRun ? (await tenantDb.select().from(sourceIngestionArtifacts).where(and(eq(sourceIngestionArtifacts.companyId, req.user.companyId), eq(sourceIngestionArtifacts.ingestionRunId, previousRun.id), eq(sourceIngestionArtifacts.artifactType, "normalized"))).limit(1))[0] ?? null : null;
+      return { existing, previousRun, previousArtifact };
+    }, { readOnly: true });
     if (existing.length) return res.status(200).json({ idempotent: true, run: existing[0] });
 
-    const previousRun = (await db.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.companyId, req.user.companyId), eq(sourceIngestionRuns.adapterId, adapter.id))).orderBy(desc(sourceIngestionRuns.createdAt)).limit(1))[0] ?? null;
-    const previousArtifact = previousRun ? (await db.select().from(sourceIngestionArtifacts).where(and(eq(sourceIngestionArtifacts.companyId, req.user.companyId), eq(sourceIngestionArtifacts.ingestionRunId, previousRun.id), eq(sourceIngestionArtifacts.artifactType, "normalized"))).limit(1))[0] ?? null : null;
     let normalized;
     try {
       normalized = normalizeOfficialPayload(adapter.adapterKey, { ...sourcePayload, sourceDocumentIdentifier });
@@ -156,7 +175,7 @@ export function registerSourceIntelligenceRoutes(app: Express) {
     let priceSourceId: string | null = null;
     let runId = "";
     try {
-      const result = await db.transaction(async (tx) => {
+      const result = await withAppTenantTransaction(actor, async (tx) => {
         if (adapter.sourceKind === "price" || adapter.sourceKind === "index") {
           const requestedPriceSourceId = textValue(req.body?.priceSourceId, 80);
           if (requestedPriceSourceId) {
@@ -227,7 +246,7 @@ export function registerSourceIntelligenceRoutes(app: Express) {
       await audit(req, "source_ingestion_completed", "source_ingestion_run", result.run.id, { adapterKey: adapter.adapterKey, sourceHash, status: result.run.status, diff: result.diff });
       return res.status(201).json({ ...result, sourceHash, priceSourceId });
     } catch (error) {
-      if (runId) await db.update(sourceIngestionRuns).set({ status: "failed", errorCode: error instanceof Error ? error.message : "SOURCE_INGESTION_FAILED", errorMessage: "Kaynak ingest işlemi tamamlanamadı.", completedAt: new Date(), updatedAt: new Date() }).where(and(eq(sourceIngestionRuns.id, runId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
+      if (runId) await withAppTenant(actor, (tenantDb) => tenantDb.update(sourceIngestionRuns).set({ status: "failed", errorCode: error instanceof Error ? error.message : "SOURCE_INGESTION_FAILED", errorMessage: "Kaynak ingest işlemi tamamlanamadı.", completedAt: new Date(), updatedAt: new Date() }).where(and(eq(sourceIngestionRuns.id, runId), eq(sourceIngestionRuns.companyId, req.user.companyId))));
       const code = error instanceof Error ? error.message : "SOURCE_INGESTION_FAILED";
       if (code === "PRICE_SOURCE_NOT_FOUND") return res.status(404).json({ error: "Fiyat kaynağı bulunamadı." });
       if (code === "PRICE_SOURCE_HASH_MISMATCH") return res.status(409).json({ error: "Fiyat kaynağı hash’i yeni payload ile eşleşmiyor.", code });
@@ -238,12 +257,15 @@ export function registerSourceIntelligenceRoutes(app: Express) {
   app.patch("/api/source-intelligence/review-items/:id", ...mutateStack, async (req, res) => {
     const status = textValue(req.body?.status, 20);
     if (status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu approved veya rejected olabilir." });
-    const [item] = await db.select().from(sourceReviewItems).where(and(eq(sourceReviewItems.id, req.params.id), eq(sourceReviewItems.companyId, req.user.companyId)));
+    const actor = tenantOf(req.user);
+    const [item] = await withAppTenant(actor, (tenantDb) =>
+      tenantDb.select().from(sourceReviewItems).where(and(eq(sourceReviewItems.id, req.params.id), eq(sourceReviewItems.companyId, req.user.companyId)))
+    , { readOnly: true });
     if (!item) return res.status(404).json({ error: "Kaynak review item bulunamadı." });
     if (item.status !== "pending") return res.status(409).json({ error: "Review item daha önce karara bağlandı." });
     const reviewedAt = new Date();
     let updated: typeof item;
-    await db.transaction(async (tx) => {
+    await withAppTenantTransaction(actor, async (tx) => {
       [updated] = await tx.update(sourceReviewItems).set({ status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: reviewedAt }).where(and(eq(sourceReviewItems.id, item.id), eq(sourceReviewItems.companyId, req.user.companyId))).returning();
       if (item.priceSnapshotId) await tx.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null }).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
       if (status === "approved" && item.itemType === "regulation_diff") {

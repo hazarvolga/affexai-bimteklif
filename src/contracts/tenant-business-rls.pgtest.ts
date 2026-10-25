@@ -5,12 +5,14 @@ import test from "node:test";
 import pg from "pg";
 
 import {
+  DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
   DATABASE_ROLE_SPECS,
   DATABASE_TENANT_BUSINESS_RLS_TABLES,
 } from "../../scripts/database-roles/contract";
 import {
   assertRoleBoundaries,
+  inspectPricingRegulationsRlsViolations,
   inspectQuotationCoreRlsViolations,
   inspectRoleBoundaries,
   inspectTenantBusinessRlsViolations,
@@ -23,7 +25,11 @@ import { registerCrmRoutes, type CrmTenantAccess } from "../server/routes/crm";
 
 const databaseName = "teklifpro_upgrade_test";
 const roles = ["bimmetraj_migrator", "bimmetraj_app", "bimmetraj_control", "bimmetraj_worker", "bimmetraj_backup"] as const;
-const allProtectedTables = [...DATABASE_TENANT_BUSINESS_RLS_TABLES, ...DATABASE_QUOTATION_CORE_RLS_TABLES] as const;
+const allProtectedTables = [
+  ...DATABASE_TENANT_BUSINESS_RLS_TABLES,
+  ...DATABASE_QUOTATION_CORE_RLS_TABLES,
+  ...DATABASE_PRICING_REGULATIONS_RLS_TABLES,
+] as const;
 type Credentials = Record<typeof roles[number], string>;
 type Table = typeof allProtectedTables[number];
 const ids = {
@@ -56,6 +62,14 @@ const rowSql: Record<Table, string> = {
   quotation_item_evidence: "insert into quotation_item_evidence(company_id,quotation_id,quotation_item_id,evidence_type,evidence_key,created_by_user_id) values($1,gen_random_uuid(),gen_random_uuid(),'quantity',$2,gen_random_uuid())",
   quotation_transfer_ledgers: "insert into quotation_transfer_ledgers(company_id,actor_user_id,source_document_id,source_processing_run_id,source_artifact_id,source_quotation_id,target_quotation_id,idempotency_key,request_payload_hash,request_hash,scope_snapshot_json,source_rule_version) values($1,gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),$2,repeat('a',64),repeat('b',64),'{}','v1')",
   quotation_transfer_source_rows: "insert into quotation_transfer_source_rows(company_id,transfer_ledger_id,source_quantity_row_id,source_document_id,source_processing_run_id,target_quotation_id,target_quotation_item_id,contributed_quantity,source_cell_range,source_rule_version) values($1,gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),gen_random_uuid(),1,$2,'v1')",
+  price_sources: "insert into price_sources(company_id,source_type,name,source_document_hash,created_by_user_id) values($1,'official_reference',$2,repeat('a',16),gen_random_uuid())",
+  price_snapshots: "insert into price_snapshots(company_id,price_source_id,snapshot_key,description,unit,amount,source_document_hash) values($1,gen_random_uuid(),$2,$2,'m3',10,repeat('a',16))",
+  source_intelligence_adapters: "insert into source_intelligence_adapters(company_id,adapter_key,source_kind,display_name,authority,source_url,allowed_host,created_by_user_id) values($1,'yfk','price',$2,$2,'https://yfk.csb.gov.tr','yfk.csb.gov.tr',gen_random_uuid())",
+  source_ingestion_runs: "insert into source_ingestion_runs(company_id,adapter_id,run_key,source_document_identifier,source_url,parser_version,requested_by_user_id) values($1,gen_random_uuid(),$2,$2,'https://yfk.csb.gov.tr','v1',gen_random_uuid())",
+  source_ingestion_artifacts: "insert into source_ingestion_artifacts(company_id,ingestion_run_id,artifact_type,storage_key,content_type,checksum_sha256,size_bytes) values($1,gen_random_uuid(),'raw',$2,'application/json',repeat('a',16),10)",
+  source_review_items: "insert into source_review_items(company_id,ingestion_run_id,item_type,title,rationale) values($1,gen_random_uuid(),'price_snapshot',$2,$2)",
+  regulation_versions: "insert into regulation_versions(company_id,source_review_item_id,ingestion_run_id,version_key,title,summary,category,impact_level,authority,source_url,source_document_identifier,source_document_hash,source_text) values($1,gen_random_uuid(),gen_random_uuid(),$2,$2,$2,'tax','high',$2,'https://www.resmigazete.gov.tr',$2,repeat('a',16),$2)",
+  regulation_alerts: "insert into regulation_alerts(company_id,title,category,effective_date,impact_level,summary) values($1,$2,'tax',now(),'high',$2)",
 };
 const rowParams = (table: Table, companyId: string, tag: string) => rowSql[table].includes("$2") ? [companyId, tag] : [companyId];
 
@@ -104,6 +118,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     await provisionDatabaseRoles(admin, credentials, target, administratorCredential);
     assert.deepEqual(await inspectTenantBusinessRlsViolations(admin), []);
     assert.deepEqual(await inspectQuotationCoreRlsViolations(admin), []);
+    assert.deepEqual(await inspectPricingRegulationsRlsViolations(admin), []);
     assertRoleBoundaries(await inspectRoleBoundaries(admin));
     const states = await admin.query<{ relname: string; rls: boolean; force_rls: boolean; owner: string }>(`select c.relname, c.relrowsecurity rls, c.relforcerowsecurity force_rls, pg_get_userbyid(c.relowner) owner
       from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
@@ -225,6 +240,9 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       "alter table quotations no force row level security",
       "drop policy quotation_items_app_tenant on quotation_items",
       "delete from teklifpro_release.migrations where tag='0023_quotation_core_rls'",
+      "alter table price_snapshots no force row level security",
+      "drop policy regulation_versions_app_tenant on regulation_versions",
+      "delete from teklifpro_release.migrations where tag='0024_pricing_regulations_rls'",
     ]) {
       await admin.query("begin");
       try {
@@ -232,10 +250,11 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
         const violations = [
           ...(await inspectTenantBusinessRlsViolations(admin)),
           ...(await inspectQuotationCoreRlsViolations(admin)),
+          ...(await inspectPricingRegulationsRlsViolations(admin)),
         ];
         assert.ok(violations.length > 0, mutation);
         const drift = await inspectRoleBoundaries(admin);
-        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|boundary violations/i);
+        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|boundary violations/i);
       } finally { await admin.query("rollback"); }
     }
     await admin.query("alter policy activities_app_tenant on activities rename to activities_app_tenant_missing");

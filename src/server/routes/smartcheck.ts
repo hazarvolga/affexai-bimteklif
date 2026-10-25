@@ -748,9 +748,12 @@ export function registerSmartCheckRoutes(app: Express) {
     if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
     const overrides = parsedRequest.data.overrides ?? {};
     const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
-    const snapshots = requestedSnapshotIds.length ? await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
-    const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
-    const pricingSources = pricingSourceIds.length ? await db.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
+    const { snapshots, pricingSources, pricingSourceIds } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const snapshots = requestedSnapshotIds.length ? await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
+      const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
+      const pricingSources = pricingSourceIds.length ? await tenantDb.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
+      return { snapshots, pricingSources, pricingSourceIds };
+    }, { readOnly: true });
     const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
     const invalidSnapshot = snapshots.find((snapshot) => {
       const source = pricingSourceById.get(snapshot.priceSourceId);
@@ -851,9 +854,12 @@ export function registerSmartCheckRoutes(app: Express) {
       if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
 
       const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
-      const snapshots = requestedSnapshotIds.length ? await db.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
-      const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
-      const pricingSources = pricingSourceIds.length ? await db.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
+      const { snapshots, pricingSources, pricingSourceIds } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const snapshots = requestedSnapshotIds.length ? await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
+        const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
+        const pricingSources = pricingSourceIds.length ? await tenantDb.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
+        return { snapshots, pricingSources, pricingSourceIds };
+      }, { readOnly: true });
       const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
       const invalidSnapshot = snapshots.find((snapshot) => {
         const source = pricingSourceById.get(snapshot.priceSourceId);

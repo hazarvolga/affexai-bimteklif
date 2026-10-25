@@ -169,6 +169,13 @@
       "sha256": "e4947f32633e9843dea7f6f8d0b97f7908ecd6ad4b901016b4a130c52d23cdd4",
       "snapshotSha256": "e353dd6a9e88c0bf8f9a8ce23d17f2ca8a140e1b251f61872cf165be3f794b10",
       "statements": 30
+    },
+    {
+      "idx": 24,
+      "tag": "0024_pricing_regulations_rls",
+      "sha256": "a9a2a9378a0e5b51f60e84167957078d1b761b34e7270c02391842f197ed753a",
+      "snapshotSha256": "319059c6732aab7a0bb95d3d5171efb91ec7775298c59702e7986f11806a64f3",
+      "statements": 40
     }
   ]
 }

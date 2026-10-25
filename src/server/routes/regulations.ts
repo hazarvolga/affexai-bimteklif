@@ -15,9 +15,11 @@ import { QuotaError } from '../../services/billing/quota-policy';
 export function registerRegulationRoutes(app: Express, regulatoryService: RegulatoryIntelligenceService, canMutate: any) {
   app.get("/api/regulations/alerts", authenticate, async (req, res) => {
     try {
-      const alerts = await db.select().from(regulationAlerts)
-        .where(eq(regulationAlerts.companyId, req.user.companyId))
-        .orderBy(desc(regulationAlerts.createdAt));
+      const alerts = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+        tenantDb.select().from(regulationAlerts)
+          .where(eq(regulationAlerts.companyId, req.user.companyId))
+          .orderBy(desc(regulationAlerts.createdAt))
+      , { readOnly: true });
       res.json(alerts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch alerts" });
@@ -26,10 +28,12 @@ export function registerRegulationRoutes(app: Express, regulatoryService: Regula
 
   app.get("/api/regulations/versions", authenticate, async (req, res) => {
     try {
-      const versions = await db.select().from(regulationVersions)
-        .where(and(eq(regulationVersions.companyId, req.user.companyId), eq(regulationVersions.governanceStatus, "advisory")))
-        .orderBy(desc(regulationVersions.effectiveFrom), desc(regulationVersions.createdAt))
-        .limit(200);
+      const versions = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+        tenantDb.select().from(regulationVersions)
+          .where(and(eq(regulationVersions.companyId, req.user.companyId), eq(regulationVersions.governanceStatus, "advisory")))
+          .orderBy(desc(regulationVersions.effectiveFrom), desc(regulationVersions.createdAt))
+          .limit(200)
+      , { readOnly: true });
       res.json(versions);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch regulation versions" });

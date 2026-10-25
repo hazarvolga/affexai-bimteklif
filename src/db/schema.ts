@@ -554,7 +554,10 @@ export const priceSources = pgTable("price_sources", {
   authorizationEvidenceCheck: check("price_sources_authorization_evidence_check", sql`${table.authorizationStatus} <> 'authorized' OR (${table.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' AND length(${table.authorizationScope}) > 0 AND ${table.authorizedAt} IS NOT NULL AND ${table.authorizedByUserId} IS NOT NULL)`),
   sourceHashCheck: check("price_sources_source_document_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
   sourceLookupIdx: index("idx_price_sources_lookup").on(table.companyId, table.sourceType, table.region),
-}));
+  appTenantPolicy: appTenantPolicy("price_sources", table.companyId),
+  backupReadPolicy: backupReadPolicy("price_sources"),
+  ownerMigrationPolicy: ownerMigrationPolicy("price_sources"),
+})).enableRLS();
 
 export const priceSnapshots = pgTable("price_snapshots", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -607,7 +610,10 @@ export const priceSnapshots = pgTable("price_snapshots", {
   validityCheck: check("price_snapshots_validity_check", sql`${table.validUntil} IS NULL OR ${table.validFrom} IS NULL OR ${table.validUntil} >= ${table.validFrom}`),
   sourceHashCheck: check("price_snapshots_source_document_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
   snapshotLookupIdx: index("idx_price_snapshots_lookup").on(table.companyId, table.reviewStatus, table.validUntil),
-}));
+  appTenantPolicy: appTenantPolicy("price_snapshots", table.companyId),
+  backupReadPolicy: backupReadPolicy("price_snapshots"),
+  ownerMigrationPolicy: ownerMigrationPolicy("price_snapshots"),
+})).enableRLS();
 
 // ============================================================
 // SMARTCHECK PHASE 4 — CONTROLLED OFFICIAL SOURCE INGESTION
@@ -646,7 +652,10 @@ export const sourceIntelligenceAdapters = pgTable("source_intelligence_adapters"
   adapterKeyCheck: check("source_intelligence_adapters_adapter_key_check", sql`${table.adapterKey} in ('yfk', 'tuik', 'gib', 'resmi_gazete')`),
   cadenceCheck: check("source_intelligence_adapters_cadence_check", sql`${table.cadence} in ('manual', 'daily', 'weekly', 'monthly')`),
   idxLookup: index("idx_source_intelligence_adapters_lookup").on(table.companyId, table.enabled, table.sourceKind),
-}));
+  appTenantPolicy: appTenantPolicy("source_intelligence_adapters", table.companyId),
+  backupReadPolicy: backupReadPolicy("source_intelligence_adapters"),
+  ownerMigrationPolicy: ownerMigrationPolicy("source_intelligence_adapters"),
+})).enableRLS();
 
 export const sourceIngestionRuns = pgTable("source_ingestion_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -687,7 +696,10 @@ export const sourceIngestionRuns = pgTable("source_ingestion_runs", {
   statusCheck: check("source_ingestion_runs_status_check", sql`${table.status} in ('queued', 'fetching', 'quarantined', 'parsed', 'diffed', 'awaiting_review', 'approved', 'rejected', 'unchanged', 'failed')`),
   sourceHashCheck: check("source_ingestion_runs_source_hash_check", sql`${table.sourceHash} IS NULL OR length(${table.sourceHash}) >= 16`),
   idxLookup: index("idx_source_ingestion_runs_lookup").on(table.companyId, table.adapterId, table.status, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("source_ingestion_runs", table.companyId),
+  backupReadPolicy: backupReadPolicy("source_ingestion_runs"),
+  ownerMigrationPolicy: ownerMigrationPolicy("source_ingestion_runs"),
+})).enableRLS();
 
 export const sourceIngestionArtifacts = pgTable("source_ingestion_artifacts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -712,7 +724,10 @@ export const sourceIngestionArtifacts = pgTable("source_ingestion_artifacts", {
   checksumCheck: check("source_ingestion_artifacts_checksum_check", sql`length(${table.checksumSha256}) >= 16`),
   sizeCheck: check("source_ingestion_artifacts_size_check", sql`${table.sizeBytes} >= 0`),
   idxLookup: index("idx_source_ingestion_artifacts_lookup").on(table.companyId, table.ingestionRunId, table.artifactType),
-}));
+  appTenantPolicy: appTenantPolicy("source_ingestion_artifacts", table.companyId),
+  backupReadPolicy: backupReadPolicy("source_ingestion_artifacts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("source_ingestion_artifacts"),
+})).enableRLS();
 
 export const sourceReviewItems = pgTable("source_review_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -751,7 +766,10 @@ export const sourceReviewItems = pgTable("source_review_items", {
   itemTypeCheck: check("source_review_items_type_check", sql`${table.itemType} in ('price_snapshot', 'regulation_diff')`),
   statusCheck: check("source_review_items_status_check", sql`${table.status} in ('pending', 'approved', 'rejected')`),
   idxQueue: index("idx_source_review_items_queue").on(table.companyId, table.status, table.itemType, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("source_review_items", table.companyId),
+  backupReadPolicy: backupReadPolicy("source_review_items"),
+  ownerMigrationPolicy: ownerMigrationPolicy("source_review_items"),
+})).enableRLS();
 
 // ============================================================
 // SMARTCHECK PHASE 5 — ADVISORY REGULATION VERSIONS
@@ -805,7 +823,10 @@ export const regulationVersions = pgTable("regulation_versions", {
   hashCheck: check("regulation_versions_source_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
   validityCheck: check("regulation_versions_validity_check", sql`${table.effectiveUntil} IS NULL OR ${table.effectiveFrom} IS NULL OR ${table.effectiveUntil} >= ${table.effectiveFrom}`),
   idxLookup: index("idx_regulation_versions_lookup").on(table.companyId, table.governanceStatus, table.effectiveFrom),
-}));
+  appTenantPolicy: appTenantPolicy("regulation_versions", table.companyId),
+  backupReadPolicy: backupReadPolicy("regulation_versions"),
+  ownerMigrationPolicy: ownerMigrationPolicy("regulation_versions"),
+})).enableRLS();
 
 export const quotationItems = pgTable("quotation_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -924,7 +945,10 @@ export const regulationAlerts = pgTable("regulation_alerts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   companyCreatedIdx: index("idx_regulation_alerts_company_created").on(table.companyId, table.createdAt),
-}));
+  appTenantPolicy: appTenantPolicy("regulation_alerts", table.companyId),
+  backupReadPolicy: backupReadPolicy("regulation_alerts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("regulation_alerts"),
+})).enableRLS();
 
 export const industries = pgTable("industries", {
   id: text("id").primaryKey(),

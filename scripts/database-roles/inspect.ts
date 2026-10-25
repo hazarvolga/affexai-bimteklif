@@ -11,6 +11,7 @@ import {
   DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
+  DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_TENANT_BUSINESS_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
@@ -92,7 +93,8 @@ const connectionUrl = /(?:postgres(?:ql)?:\/\/)[^\s]+/i;
 const managedSchemas = DATABASE_SCHEMA_SPECS.map(({ name }) => name);
 
 type ProtectedTenantRlsTable = typeof DATABASE_CDE_RLS_TABLES[number] | typeof DATABASE_PROGRESS_PAYMENT_RLS_TABLES[number]
-  | typeof DATABASE_TENANT_BUSINESS_RLS_TABLES[number] | typeof DATABASE_QUOTATION_CORE_RLS_TABLES[number];
+  | typeof DATABASE_TENANT_BUSINESS_RLS_TABLES[number] | typeof DATABASE_QUOTATION_CORE_RLS_TABLES[number]
+  | typeof DATABASE_PRICING_REGULATIONS_RLS_TABLES[number];
 
 async function inspectProtectedTenantRlsViolations(
   client: Queryable,
@@ -158,6 +160,10 @@ export const inspectTenantBusinessRlsViolations = (client: Queryable) => inspect
 
 export const inspectQuotationCoreRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
   client, DATABASE_QUOTATION_CORE_RLS_TABLES, "0023_quotation_core_rls", "quotation core",
+);
+
+export const inspectPricingRegulationsRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
+  client, DATABASE_PRICING_REGULATIONS_RLS_TABLES, "0024_pricing_regulations_rls", "pricing regulations",
 );
 
 export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Promise<string[]> {
@@ -462,6 +468,7 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectCrmLeadRlsViolations(client, options));
   violations.push(...await inspectTenantBusinessRlsViolations(client));
   violations.push(...await inspectQuotationCoreRlsViolations(client));
+  violations.push(...await inspectPricingRegulationsRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   const controlPlaneTableNames = [...Object.keys(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL), ...Object.keys(DATABASE_CONTROL_TABLE_ACL)];
   const controlTablesPresent = options.allowPreSchemaRoleContract

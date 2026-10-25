@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (25 Ekim 2026 · Rev. 79 geliştirme)",
+    title: "Uygulama durumu (25 Ekim 2026 · Rev. 81 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -197,7 +197,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["IDS dışa aktarımı ve ALLPLAN 2026 e-PYS Kiti v1", "Hazır", "ALLPLAN 2026 için SHA-256 mühürlü TREpys nitelik kataloğu, EK-2/EK-3/EK-5 sözlükleri ve m.13(3) + 15 karakter uyumlu malzeme kütüphanesi (/api/smartcheck/epys-allplan-kit) indirilebilir durumda"],
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
         ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
-        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB rol ayrımı canlıda (Rev. 72) · 36 tenant tablosu RLS altında (Rev. 76)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Coolify deploy içindeki db-bootstrap → migrate → db-provision zinciriyle runtime DB rol ayrımı canlıda çalışır. 0022_tenant_business_rls ile 14 iş tablosu daha eklenerek toplam 36 tenant tablosu FORCE RLS altına alınmıştır; kalan 36 tablo (S1–S5 dilimleri), worker canary/drain ve canlı role-model-smoke açıktır."],
+        ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB rol ayrımı canlıda (Rev. 72) · 50 tenant tablosu RLS altında (Rev. 81)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Coolify deploy içindeki db-bootstrap → migrate → db-provision zinciriyle runtime DB rol ayrımı canlıda çalışır. 0022_tenant_business_rls (14 iş tablosu), 0023_quotation_core_rls (S1 6 teklif çekirdeği tablosu) ve 0024_pricing_regulations_rls (S2 8 fiyat/kaynak/mevzuat tablosu) ile toplam 50 tenant tablosu FORCE RLS altına alınmıştır; kalan 22 tablo (S3–S5 dilimleri), worker canary/drain ve canlı role-model-smoke açıktır."],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Manuel Havale/EFT Yaşam Döngüsü Yarış ve Replay Kapısı (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 49)", "Sipariş init tekilleştirilir; requestId zorunludur; plan/dönem/tutar snapshotı değişmez; dekont NFKC+dar ASCII ile global tekilleşir; submit/review ortak request kilidi kullanır; approve/reject terminaldir; pasif paket onayı kapanır ve ikinci gerçek ödeme aktif aynı-plan dönemini resetlemek yerine uzatır. Production deploy veya banka mutabakat entegrasyonu yapılmadı."],
@@ -258,7 +258,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / veraPDF 1.30.3 imajda hazır (25 Ekim 2026 · Rev. 76)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32'de ifc-worker imajına sabitlenmiş veraPDF 1.30.3 (SHA-256 b512bf24…9a59, GPLv3+/MPLv2+ çift lisans) gömüldü, ham XML rapor verapdf_report_xml artifact'ı olarak saklanıyor ve 7 vakalık PDF/A-2b fixture matrisi imaj içinde doğrulandı; izinli gerçek dosya matrisi ve dönüşüm sağlayıcısı kararı açık."],
         ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
         ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Canlı rol geçişi tamamlandı; kabul kanıtı açık (25 Ekim 2026 · Rev. 72)", "Rev. 47 canonical rol/ACL/RLS/provenance sözleşmesini kurdu. Rev. 51 yerel runtime credentiallarını ayırdı; Rev. 72 rol kurulumunu Coolify deploy'una (db-bootstrap → migrate → db-provision) taşıdı ve Hazar 25 Ekim 2026'da DB parolalarını döndürdü. Production role-model-smoke, canary, restore/parity ve rollback kanıtı açık."],
-        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 42 tenant tablosu + control-plane ayrımı + pilot audit/global katalog yüzeyleri PG16 kanıtlı (25 Ekim 2026 · Rev. 80)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs, Rev. 76 (0022_tenant_business_rls) 14 iş tablosu ve Rev. 80 (0023_quotation_core_rls — S1 teklif çekirdeği: clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers, quotation_transfer_source_rows) olmak üzere toplam 42 tenant tablosunu FORCE RLS ile korur; database-role-provision.pgtest.ts pre-schema modu da 1/1 PASS durumundadır. Kalan 30 tablo (S2–S5 dilimleri), worker canary/drain ve canlı negatif kanıt açık olduğundan T41 PARTIAL'dır."],
+        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 50 tenant tablosu + control-plane ayrımı + pilot audit/global katalog yüzeyleri PG16 kanıtlı (25 Ekim 2026 · Rev. 81)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs, Rev. 76 (0022_tenant_business_rls) 14 iş tablosu, Rev. 80 (0023_quotation_core_rls — S1 teklif çekirdeği: 6 tablo) ve Rev. 81 (0024_pricing_regulations_rls — S2 fiyat/kaynak/mevzuat: price_sources, price_snapshots, source_intelligence_adapters, source_ingestion_runs, source_ingestion_artifacts, source_review_items, regulation_versions, regulation_alerts: 8 tablo) olmak üzere toplam 50 tenant tablosunu FORCE RLS ile korur; database-role-provision.pgtest.ts pre-schema modu da 1/1 PASS durumundadır. Kalan 22 tablo (S3–S5 dilimleri), worker canary/drain ve canlı negatif kanıt açık olduğundan T41 PARTIAL'dır."],
         ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale, SmartCheck worker, Academy yetki ve orphan lease dilimleri PG16/test kanıtlı (25 Ekim 2026 · Rev. 78)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını; Rev. 78 Academy entitlement özellik bayrağı/rol sınırını, 15 dk orphan lease devralmayı ve boş sektör kataloğunda teklif kaydı güvenliğini tamamladı. Canlı banka ekstresi mutabakatı ve production rollout açık olduğundan T42 PARTIAL'dır."],
         ["19 — GAP kapatma Faz 7: Kapsam kapısı ve gerçek tarayıcı E2E (T43)", "Kısmi / c8 kapsam ratchet + Playwright E2E CI'da (25 Ekim 2026 · Rev. 76)", "c8 tüm-dosya kapsam raporu, 7 kritik kapsam tabanı, REQUIRE_TEST_DATABASE=true ve 6 gerçek tarayıcı Playwright E2E senaryosu (giriş, teklif+PDF, SmartCheck IFC, admin roadmap) CI hattına bağlandı. Proje satır kapsamı %46,80 ölçüldü; %80 eşiğine R+1..R+4 ratchet planıyla çıkılacaktır."],
       ] },
@@ -274,17 +274,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 80 · 13–25 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 81 · 13–25 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 80)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 80 · BIM-CALC-2026-10-25.74 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimleri açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 81)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 81 · BIM-CALC-2026-10-25.75 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimleri açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 80):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 81):",
       },
       {
         type: "table",
@@ -772,16 +772,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "src/ifc/server-path.e2e.test.ts sabit workers/ifc/.venv/bin/python yolunu aradığı için CI'da actions/setup-python ile kurulan sistem Python'unu görmüyor ve consistencyReport + browser/worker parity testlerini atlıyordu. resolvePythonBin() ve hasPythonIfcRuntime() ile hem yerel .venv hem CI sistem Python'u desteklenir hale getirildi (yerelde 4/4, CI'da repo içi fixture testleri 2/2 atlanmadan çalışır).",
           ],
           [
-            "Rev. 80 (Güncel geliştirme)",
+            "Rev. 80",
             "25 Ekim 2026 (T41 S1 Teklif Çekirdeği 0023_quotation_core_rls FORCE RLS + database-role-provision.pgtest.ts Düzeltmesi)",
-            "BIM-CALC-2026-10-25.74",
+            "BIM-CALC-2026-10-25.74 (1b7753d)",
             "T41 S1 dilimi (0023_quotation_core_rls) tamamlandı: 1) clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers ve quotation_transfer_source_rows (6 tablo) ENABLE + FORCE RLS ve exact CDE 3-policy matrisine (app tenant ALL, backup SELECT, migrator-owner ALL; worker ve control default-deny) alındı; böylece company_id taşıyan 72 tablonun 42'si FORCE RLS altındadır. 2) Müşteri (/api/clients), teklif (/api/quotations), manuel düzenleme/revizyon (quotation-edit, integrity, edit), Calm transfer (calm-transfer, smartcheck), kârlılık (profit), risk kalibrasyonu (company), mevzuat etkisi (regulations), fiyat kilitleme (pricing) ve PDF üretimi (pdf/generate) yolları withAppTenant / withAppTenantTransaction içine taşındı. 3) database-role-provision.pgtest.ts içindeki pre-schema role contract fonksiyon/sequence ACL uyumsuzluğu ve data-transitions.ts içindeki 0019–0023 tam katalog zinciri düzeltilerek 11/11 PG16 kontrat testi ve 14/14 release-migration lifecycle testi yeşil yapıldı.",
+          ],
+          [
+            "Rev. 81 (Güncel geliştirme)",
+            "25 Ekim 2026 (T41 S2 Fiyat, Kaynak Zekâsı ve Mevzuat 0024_pricing_regulations_rls FORCE RLS)",
+            "BIM-CALC-2026-10-25.75",
+            "T41 S2 dilimi (0024_pricing_regulations_rls) tamamlandı: 1) price_sources, price_snapshots, source_intelligence_adapters, source_ingestion_runs, source_ingestion_artifacts, source_review_items, regulation_versions ve regulation_alerts (8 tablo) ENABLE + FORCE RLS ve exact CDE 3-policy matrisine alındı; böylece company_id taşıyan 72 tablonun 50'si FORCE RLS altındadır (kalan 22 tablo S3–S5 dilimlerinde). 2) pricing (/api/pricing/sources, snapshots, snapshot-suggestions, catalog/import, review), source-intelligence (/api/source-intelligence/official-adapters, health, review-queue, ingest, review-items), regulations (/api/regulations/alerts, versions ve ingestRegulationDocument), market-intelligence (fiyat belleği ve onaylı örnek karşılaştırması) ve smartcheck (aktarım öncesi price_snapshots/price_sources okumaları) yolları withAppTenant / withAppTenantTransaction içine taşındı. 3) tenant-business-rls.pgtest.ts 28 tablo (0022 + 0023 + 0024) için 1/1 PASS, artifacts.test.ts 14/14 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 80 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 81 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1450,6 +1456,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) clients, quotations, quotation_items, quotation_item_evidence, quotation_transfer_ledgers ve quotation_transfer_source_rows tabloları yalnızca uygulama katmanında company_id filtresiyle korunuyordu. 2) database-role-provision.pgtest.ts pre-schema modunda henüz oluşturulmamış worker capability fonksiyonlarında ve control sequence ACL'inde hata veriyordu; data-transitions.ts 0019–0022 tam katalog zinciri eksikti.",
             "1) 0023_quotation_core_rls.sql ile 6 teklif çekirdeği tablosuna ENABLE+FORCE RLS ve exact CDE 3-policy matrisi eklendi (42/72 company_id tablosu FORCE RLS altında); clients, quotations, quotation-edit, smartcheck, profit, company, regulations, pricing, pdf/generate, integrity, edit ve calm-transfer yolları withAppTenant/withAppTenantTransaction sınırına taşındı. 2) provision.ts, inspect.ts ve data-transitions.ts düzeltilerek 11/11 PG16 kontrat testi ve 14/14 release-migration lifecycle testi yeşil yapıldı.",
             "drizzle-release/0023_quotation_core_rls.sql, src/db/schema.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/database-roles/provision.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/contracts/database-role-provision.pgtest.ts, src/server/routes/clients.ts, src/server/routes/quotations.ts, src/server/routes/quotation-edit.ts, src/server/routes/smartcheck.ts, src/server/routes/profit.ts, src/server/routes/company.ts, src/server/routes/regulations.ts, src/server/routes/pricing.ts, src/services/pdf/generate.ts, src/services/quotations/integrity.ts, src/services/quotations/edit.ts, src/services/quotations/calm-transfer.ts",
+          ],
+          [
+            "Rev. 81 · 25 Ekim 2026 (T41 S2 0024_pricing_regulations_rls: 8 fiyat, kaynak zekâsı ve mevzuat tablosu FORCE RLS)",
+            "GAP planı T41 S2 dilimi (8 fiyat, kaynak zekâsı ve mevzuat tablosu FORCE RLS)",
+            "price_sources, price_snapshots, source_intelligence_adapters, source_ingestion_runs, source_ingestion_artifacts, source_review_items, regulation_versions ve regulation_alerts tabloları yalnızca uygulama katmanında company_id filtresiyle korunuyordu; pricing, source-intelligence, regulations, market-intelligence (fiyat belleği) ve smartcheck (fiyat snapshot doğrulaması) sorguları doğrudan paylaşılan app havuzundan çalışıyordu.",
+            "0024_pricing_regulations_rls.sql ile 8 fiyat/kaynak/mevzuat tablosuna ENABLE+FORCE RLS ve exact CDE 3-policy matrisi eklendi (50/72 company_id tablosu FORCE RLS altında); pricing.ts, source-intelligence.ts, regulations.ts, ingest-document.ts, market-intelligence.ts ve smartcheck.ts içindeki ilgili tüm okuma/yazma yolları withAppTenant/withAppTenantTransaction sınırına taşındı; PG16 kontratı 28 tablo için doğrulandı.",
+            "drizzle-release/0024_pricing_regulations_rls.sql, src/db/schema.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/server/routes/pricing.ts, src/server/routes/source-intelligence.ts, src/server/routes/regulations.ts, src/services/regulations/ingest-document.ts, src/server/routes/market-intelligence.ts, src/server/routes/smartcheck.ts",
           ],
         ],
       },

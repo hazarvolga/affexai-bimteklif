@@ -65,13 +65,14 @@ async function audit(req: any, action: string, entityType: string, entityId: str
   await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson });
 }
 
-async function approvedSamples(companyId: string, currency: string) {
-  const rows = await db.select({ snapshot: priceSnapshots, sourceType: priceSources.sourceType })
-    .from(priceSnapshots)
-    .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
-    .where(and(eq(priceSnapshots.companyId, companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"])))
-    .orderBy(desc(priceSnapshots.capturedAt)).limit(2000);
-  return rows;
+async function approvedSamples(actor: { companyId: string; userId: string }, currency: string) {
+  return withAppTenant(actor, (tenantDb) =>
+    tenantDb.select({ snapshot: priceSnapshots, sourceType: priceSources.sourceType })
+      .from(priceSnapshots)
+      .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
+      .where(and(eq(priceSnapshots.companyId, actor.companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"])))
+      .orderBy(desc(priceSnapshots.capturedAt)).limit(2000)
+  , { readOnly: true });
 }
 
 export function registerMarketIntelligenceRoutes(app: Express) {
@@ -154,7 +155,7 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     if (submission.status === "approved" || submission.status === "rejected") return res.status(409).json({ error: "Karara bağlanmış tedarikçi teklifine satır eklenemez." });
     const rawEntries = Array.isArray(req.body?.entries) ? req.body.entries : [];
     if (!rawEntries.length || rawEntries.length > 1000) return res.status(400).json({ error: "1 ile 1000 arasında tedarikçi satırı zorunludur." });
-    const baselineRows = await approvedSamples(req.user.companyId, submission.currency);
+    const baselineRows = await approvedSamples(tenantOf(req.user), submission.currency);
     const inserts = [];
     const evaluations = [];
     for (let index = 0; index < rawEntries.length; index += 1) {
@@ -199,7 +200,7 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     if (!selected.length) return res.status(409).json({ error: "Aktarılabilir onaylı SmartCheck satırı bulunamadı.", code: "SMARTCHECK_ROWS_NOT_APPROVED" });
     const notApproved = selected.filter((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception");
     if (notApproved.length) return res.status(409).json({ error: "Piyasa hafızasına yalnız onaylı veya gerekçeli istisna SmartCheck satırları aktarılabilir.", code: "SMARTCHECK_ROWS_NOT_APPROVED", rowIds: notApproved.map((row) => row.id) });
-    const baselineRows = await approvedSamples(req.user.companyId, submission.currency);
+    const baselineRows = await approvedSamples(tenantOf(req.user), submission.currency);
     const baselineSamples = baselineRows.map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
     const inserts = [];
     const evaluations = [];
@@ -272,7 +273,9 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     if (positionCode) conditions.push(eq(priceSnapshots.positionCode, positionCode));
     if (unit) conditions.push(eq(priceSnapshots.unit, unit));
     if (region) conditions.push(eq(priceSnapshots.region, region));
-    const rows = await db.select({ snapshot: priceSnapshots, source: priceSources }).from(priceSnapshots).innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId))).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(500);
+    const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
+      tenantDb.select({ snapshot: priceSnapshots, source: priceSources }).from(priceSnapshots).innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId))).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(500)
+    , { readOnly: true });
     const samples: PriceMemorySample[] = rows.map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
     res.json({ currency, positionCode, unit, region, summary: summarizePriceMemory(samples), samples: rows.map(({ snapshot, source }) => ({ ...snapshot, sourceType: source.sourceType, sourceName: source.name })).slice(0, 100) });
   });

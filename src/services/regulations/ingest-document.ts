@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
 import { and, eq, sql } from 'drizzle-orm';
-import { db } from '../../db';
+import { withAppTenantTransaction } from '../../db/app-tenant';
 import { sourceIntelligenceAdapters, sourceIngestionRuns, sourceIngestionArtifacts, sourceReviewItems, smartcheckAuditLogs } from '../../db/schema';
 import type { OfficialRegulationDocument } from './official-document';
 
 /** Freshly fetched text enters the existing tenant review pipeline, never canonical rules. */
 export async function ingestRegulationDocument(companyId: string, userId: string, document: OfficialRegulationDocument) {
   const runKey = createHash('sha256').update(`official-document-v1:${companyId}:${document.sourceUrl}:${document.sourceHash}`).digest('hex');
-  return db.transaction(async tx => {
+  return withAppTenantTransaction({ companyId, userId }, async tx => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${companyId}), hashtext('regulation-document-ingest'))`);
     let [adapter] = await tx.select().from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.companyId,companyId),eq(sourceIntelligenceAdapters.adapterKey,'resmi_gazete')));
     if (!adapter) [adapter] = await tx.insert(sourceIntelligenceAdapters).values({ companyId, adapterKey:'resmi_gazete', sourceKind:'regulation', displayName:'Resmî Gazete', authority:'Türkiye Cumhuriyeti Resmî Gazete', sourceUrl:'https://www.resmigazete.gov.tr', allowedHost:'www.resmigazete.gov.tr', cadence:'manual', createdByUserId:userId, configurationJson:{ licenseStatus:'unknown', ingestionMode:'official-html-document' } }).returning();

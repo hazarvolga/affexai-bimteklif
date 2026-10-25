@@ -1177,5 +1177,16 @@ $function$`,
       ? [...injectDataTransitions('0022_tenant_business_rls', statements)]
       : statements;
   }
+  if (tag === '0024_pricing_regulations_rls') {
+    const ordered = [...schemaStatements];
+    const forced = [
+      'price_sources', 'price_snapshots', 'source_intelligence_adapters', 'source_ingestion_runs',
+      'source_ingestion_artifacts', 'source_review_items', 'regulation_versions', 'regulation_alerts',
+    ].map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0023_quotation_core_rls', statements)]
+      : statements;
+  }
   return [...schemaStatements];
 }
