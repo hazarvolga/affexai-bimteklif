@@ -13,7 +13,7 @@ backups/
 TeklifPro-Stratejik-Oneri-Raporu.docx
 
 # Python
-.venv/
+.venv
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -30,3 +30,5 @@ TeklifPro_*.pdf
 graphify-out/2026-*/
 # Harici kaynak dokümanları ve örnek modeller yalnız yerelde tutulur
 harici-kaynaklar/
+playwright-report/
+test-results/

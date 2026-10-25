@@ -1,0 +1,90 @@
+{
+  "target": 80,
+  "project": {
+    "lines": 46,
+    "branches": 77,
+    "functions": 82
+  },
+  "critical": [
+    {
+      "name": "auth, session, CSRF, security",
+      "paths": [
+        "src/server/auth/",
+        "src/server/security/",
+        "src/server/middleware/",
+        "src/services/auth/"
+      ],
+      "lines": 96,
+      "branches": 91,
+      "functions": 96
+    },
+    {
+      "name": "billing, plans, quota",
+      "paths": [
+        "src/services/billing/"
+      ],
+      "lines": 94,
+      "branches": 81,
+      "functions": 98
+    },
+    {
+      "name": "quotation, pricing, progress-payment math",
+      "paths": [
+        "src/services/quotations/",
+        "src/services/pricing/",
+        "src/services/financials/",
+        "src/services/progress-payments/",
+        "src/smartcheck/pricing/",
+        "src/lib/progress-payment/",
+        "src/lib/calculators/",
+        "src/lib/price-escalation.ts"
+      ],
+      "lines": 96,
+      "branches": 81,
+      "functions": 98
+    },
+    {
+      "name": "SmartCheck rules, IFC import and quantity",
+      "paths": [
+        "src/smartcheck/rules/",
+        "src/smartcheck/import/",
+        "src/ifc/parser/",
+        "src/domain/quantity/"
+      ],
+      "lines": 87,
+      "branches": 81,
+      "functions": 94
+    },
+    {
+      "name": "database schema and tenant context",
+      "paths": [
+        "src/db/"
+      ],
+      "lines": 99,
+      "branches": 94,
+      "functions": 66
+    },
+    {
+      "name": "HTTP API routes",
+      "paths": [
+        "src/server/routes/"
+      ],
+      "lines": 54,
+      "branches": 62,
+      "functions": 92
+    },
+    {
+      "name": "UI (pages, components, hooks) — E2E-covered",
+      "paths": [
+        "src/pages/",
+        "src/components/",
+        "src/hooks/",
+        "src/App.tsx",
+        "src/main.tsx"
+      ],
+      "lines": 11,
+      "branches": 46,
+      "functions": 22
+    }
+  ]
+}
