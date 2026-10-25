@@ -9,6 +9,22 @@
 
 import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
 import { renderJsonLdScript, routeJsonLd } from './route-jsonld';
+import { canonicalPlans } from '../../services/billing/plan-catalog';
+import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
+
+const tl = (value: number) => value.toLocaleString('tr-TR');
+
+/** T46: fiyat ve iskonto metni elle yazılmaz; plan kataloğu ve fatura dönemlerinden üretilir. */
+function pricingBody(): string[] {
+  const plans = canonicalPlans.filter(plan => plan.isActive && plan.isPublished).sort((a, b) => a.displayOrder - b.displayOrder);
+  const trial = plans.find(plan => plan.isTrial);
+  const paid = plans.filter(plan => !plan.isTrial);
+  const commitments = BILLING_PERIOD_OPTIONS.filter(option => option.discountPercent > 0);
+  return [
+    `${trial ? `${trial.name} (${tl(trial.monthlyPrice)} TL/ay) ve ` : ''}${paid.length} kademeli aylık paket kataloğu: ${paid.map(plan => `${plan.name} (${tl(plan.monthlyPrice)} TL/ay)`).join(', ')}.`,
+    `Havale/EFT ile ${commitments.map(option => option.months).join(', ')} aylık taahhütlerde sırasıyla ${commitments.map(option => `%${option.discountPercent}`).join(', ')} iskonto uygulanır. Kredi kartı ile çevrimiçi tahsilat henüz yayında değildir; tüm ödemeler kurumsal banka havalesi/EFT ve fatura onayı ile yürütülür.`,
+  ];
+}
 
 export interface RouteMeta {
   title: string;
@@ -125,10 +141,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
     'An, uygulama ayında gerçekleşen iş miktarlarının sözleşme birim fiyatlarıyla çarpımıdır; B = 0,90 sabit katsayısıdır; Pn, a (işçilik), b1–b6 (malzeme grupları) ve c (makine-ekipman) ağırlık katsayıları ile temel ve güncel endekslerden bulunur. Ağırlık katsayılarının toplamı 1,00\'dir ve ihale dokümanında gösterilir; sözleşme süresince değiştirilemez. Temel endeks ihale ayına, güncel endeks uygulama ayına aittir.',
     'Bu hesaplayıcı bilgilendirme amaçlıdır; sözleşmenizdeki katsayı ve endeks değerlerini siz girersiniz.',
   ],
-  '/pricing': [
-    '14 günlük ücretsiz deneme (0 TL/ay) ve beş kademeli aylık paket kataloğu: e-PYS & BIM Standart Denetçi (1.250 TL/ay), Teklif & Şantiye (2.950 TL/ay), 5D BIM & SmartCheck (5.450 TL/ay) ve Kurumsal Taahhüt & e-PYS (8.900 TL/ay).',
-    'Havale/EFT ile 6, 12 ve 24 aylık taahhütlerde sırasıyla %10, %20 ve %30 iskonto uygulanır. Kredi kartı ile çevrimiçi tahsilat henüz yayında değildir; tüm ödemeler kurumsal banka havalesi/EFT ve fatura onayı ile yürütülür.',
-  ],
+  '/pricing': pricingBody(),
   '/pilot': [
     'Kurumsal teknik ofisler, mimarlık büroları ve yüklenici firmalar gerçek IFC modelleri, PDF paftaları ve Excel keşif listeleriyle BIMMetraj pilot programına başvurabilir.',
     'Pilot çalışmada QTO metraj sapması, Revit/Allplan IFC dışa aktarım ayarları, ÇŞB 2026 poz eşleştirmesi ve RG 33331 e-PYS EK-9 ön kontrol akışı kendi proje verileriniz üzerinde birlikte doğrulanır.',

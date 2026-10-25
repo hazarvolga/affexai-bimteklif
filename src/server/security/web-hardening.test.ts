@@ -125,3 +125,14 @@ test('GEO-01: ROBOTS_AI_TRAINING=disallow closes the site only for training craw
   for (const agent of ['*', ...AI_SEARCH_CRAWLERS]) assert.equal(groups.get(agent)?.includes('Disallow: /'), false, agent);
   assert.match(robots, /Sitemap: https:\/\/bimmetraj\.com\/sitemap\.xml/);
 });
+
+test('T46: llms.txt describes capabilities only through the registry and packages only through the plan catalog', async () => {
+  const { canonicalPlans } = await import('../../services/billing/plan-catalog');
+  const { CAPABILITY_REGISTRY } = await import('../../capabilities/registry');
+  const llms = llmsTxt('https://bimmetraj.com');
+  assert.equal(/Faz \d yol haritas/i.test(llms), false, 'eski elle yazılmış yol haritası ifadesi kalmamalı');
+  for (const capability of CAPABILITY_REGISTRY) assert.ok(llms.includes(capability.title), capability.id);
+  for (const plan of canonicalPlans.filter(p => p.isActive && p.isPublished)) {
+    assert.ok(llms.includes(`**${plan.name}**: ${plan.monthlyPrice.toLocaleString('tr-TR')} ₺/ay`), plan.name);
+  }
+});

@@ -148,3 +148,13 @@ test('SEO-05: rota JSON-LD yalnız uygun genel sayfalarda, bir kez ve kaçışla
   const script = once.match(/<script id="route-jsonld"[^>]*>([\s\S]*?)<\/script>/)![1];
   assert.equal(/[<>]/.test(script), false);
 });
+
+test('T46: /pricing sunucu metni plan kataloğu ve fatura dönemleriyle aynı fiyat ve iskontoları gösterir', async () => {
+  const { canonicalPlans } = await import('../../services/billing/plan-catalog');
+  const { BILLING_PERIOD_OPTIONS } = await import('../../services/billing/billing-periods');
+  const html = injectRouteMeta(SHELL, { pathname: '/pricing', origin: 'https://bimmetraj.com' });
+  for (const plan of canonicalPlans.filter(p => p.isActive && p.isPublished)) {
+    assert.ok(html.includes(`(${plan.monthlyPrice.toLocaleString('tr-TR')} TL/ay)`), plan.name);
+  }
+  for (const option of BILLING_PERIOD_OPTIONS.filter(o => o.discountPercent > 0)) assert.ok(html.includes(`%${option.discountPercent}`), option.id);
+});
