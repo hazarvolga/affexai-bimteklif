@@ -19,7 +19,7 @@ Bu belge `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md` runbook'unun yerine geçmez; onu
 2. [ ] **Worker drain:** `worker` ve `ifc-worker` durdurulur; kilitli/çalışan iş ve çalışan doküman sayısı sıfır olmalı.
 3. [ ] `RELEASE_WORKERS_DRAINED=true` geçici olarak eklenir.
 4. [ ] **Deploy:** `db-bootstrap → migrate (0022–0028) → db-provision (inspect dahil) → app / worker / ifc-worker`.
-   - Yerel kanıt: 26 Ekim 2026'da boş PostgreSQL 16 üzerinde 0000–0028.in tamamı hatasız uygulandı. Bu, canlı veriyle prova değildir.
+   - Yerel kanıt: 26 Ekim 2026'da boş PostgreSQL 16 üzerinde 0000–0028'in tamamı hatasız uygulandı. Bu, canlı veriyle prova değildir.
 5. [ ] `RELEASE_WORKERS_DRAINED` kaldırılır.
 
 ## 2. Deploy sonrası doğrulama (uzman davetinden önce)
